@@ -19,8 +19,9 @@ export const pullToRefreshStyles = tv({
     // the content scrolls ("Don't scroll the loading indicator off-screen").
     layer: 'pointer-events-none sticky top-0 z-(--md-sys-z-sticky) h-0',
     // Clips the indicator at the top of the area (Compose's `clipRect(top = 0f)`), with room
-    // for the longest pull: twice the threshold.
-    clip: 'absolute inset-x-0 top-0 flex h-[calc(var(--m3-pull-to-refresh-threshold)*2)] justify-center overflow-hidden',
+    // for the longest pull: twice the threshold. In flow but overflowing the zero-height layer,
+    // so it covers the content without moving it, and nothing inside is positioned.
+    clip: 'flex h-[calc(var(--m3-pull-to-refresh-threshold)*2)] justify-center overflow-hidden',
     indicator:
       'grid size-[48px] shrink-0 place-items-center overflow-hidden rounded-corner-full bg-primary-container',
     face: '[grid-area:1/1] transition-opacity duration-m3-effects-default ease-m3-effects-default data-[active=false]:opacity-0',
