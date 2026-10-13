@@ -28,6 +28,15 @@ import {
 const block = (selector: string, lines: string[]) =>
   `${selector} {\n${lines.map((line) => `  ${line}`).join('\n')}\n}`;
 
+/**
+ * Type is in rem, so text follows the reader's browser font size (WCAG 1.4.4),
+ * as Android's sp follows the system font scale; layout stays in px (dp). The
+ * scale is defined at a 16px root, so the default renders pixel-identical.
+ * Dividing by 16 always gives a finite decimal; rounding drops float noise.
+ */
+const ROOT_FONT_SIZE = 16;
+const rem = (px: number) => `${Number((px / ROOT_FONT_SIZE).toFixed(6))}rem`;
+
 const shadowColor = (opacity: number) =>
   `color-mix(in srgb, var(--md-sys-color-shadow) ${opacity * 100}%, transparent)`;
 
@@ -54,9 +63,9 @@ export function generateTokensCss(): string {
     const prefix = `--md-sys-typescale-${role}`;
     root.push(
       `${prefix}-font: var(--md-ref-typeface-${s.font});`,
-      `${prefix}-size: ${s.size}px;`,
-      `${prefix}-line-height: ${s.lineHeight}px;`,
-      `${prefix}-tracking: ${s.tracking}px;`,
+      `${prefix}-size: ${rem(s.size)};`,
+      `${prefix}-line-height: ${rem(s.lineHeight)};`,
+      `${prefix}-tracking: ${rem(s.tracking)};`,
       `${prefix}-weight: ${s.weight};`,
     );
   }
