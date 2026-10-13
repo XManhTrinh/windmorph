@@ -206,7 +206,9 @@ export async function SelectBody(): Promise<ComponentDoc> {
               list is its Menu, so neither can drift: Compose&apos;s{' '}
               <InlineCode>ExposedDropdownMenuBox</InlineCode> with a{' '}
               <InlineCode>PrimaryNotEditable</InlineCode> anchor. The menu is as wide as the field,
-              and the arrow turns over while it&apos;s open.
+              and the arrow turns over while it&apos;s open. It opens as the Menu does, expanding
+              from the field&apos;s edge, rather than Compose&apos;s 80% scale, which the M3 motion
+              spec avoids.
             </li>
             <li>
               <InlineCode>presentation</InlineCode> adds what Compose leaves to apps:{' '}

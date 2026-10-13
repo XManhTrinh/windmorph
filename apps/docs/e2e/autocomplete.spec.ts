@@ -206,6 +206,12 @@ test.describe('Autocomplete layout safety', () => {
           expect(await container.evaluate((el) => (el as HTMLElement).offsetHeight)).toBe(56);
           const input = page.getByRole('combobox', { name: 'City' });
           await input.fill('lon');
+          // Let the menu's reveal finish: above a field at the bottom it opens upwards, so
+          // the first option is clipped until the end (a click retried meanwhile scrolls,
+          // which closes the combobox's menu).
+          await page.evaluate(() =>
+            Promise.allSettled(document.getAnimations().map((a) => a.finished)),
+          );
           await page.getByRole('option', { name: /London/ }).click();
           await expect(input).toHaveValue('London');
         });

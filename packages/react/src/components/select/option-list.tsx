@@ -327,7 +327,7 @@ function OptionItem<T>({
 /**
  * The list's popover: anchored to the field, at least as wide as it (Compose's
  * `exposedDropdownSize`), above it when there's no room below, with the menu's open and
- * close motion. `isNonModal` keeps an `Autocomplete`'s input usable while it's open.
+ * close motion: revealed from the field's edge as it fades in (M3 motion avoids scale). `isNonModal` keeps an `Autocomplete`'s input usable while it's open.
  */
 export function OptionPopover({
   state,
@@ -433,7 +433,7 @@ function PopoverBody({
           {...exitProps}
           data-exiting={isExiting || undefined}
           data-placement={placement ?? undefined}
-          className={cn(menu.motion(), 'flex max-h-[inherit] min-h-0 flex-col')}
+          className={cn(menu.reveal(), 'min-h-0')}
         >
           {children}
         </div>
