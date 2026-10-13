@@ -6,9 +6,10 @@ import { useState } from 'react';
 
 /**
  * The modal date picker: a `PickerDialog` wrapping a `DatePicker`, controlled with `open` /
- * `onOpenChange`. The picker edits a draft; the `confirmButton` applies it and closes, the
- * `dismissButton` just closes. The dialog is closed until the trigger opens it, so nothing
- * is shown over the page on load.
+ * `onOpenChange`. The picker edits a draft; `onConfirm` applies it, so the `confirmButton`,
+ * Enter on a day and, on compact windows (`fullScreen="compact"`), the full-screen Save
+ * button all save it. The `dismissButton` just closes. The dialog is closed until the
+ * trigger opens it, so nothing is shown over the page on load.
  */
 export function PickerDialogDate() {
   const [open, setOpen] = useState(false);
@@ -29,6 +30,10 @@ export function PickerDialogDate() {
         aria-label="Select date"
         open={open}
         onOpenChange={setOpen}
+        onConfirm={() => {
+          if (draft) setValue(draft);
+        }}
+        fullScreen="compact"
         dismissButton={
           <Button variant="text" onPress={() => setOpen(false)}>
             Cancel

@@ -2,15 +2,16 @@ import { CalendarDate, Time } from '@internationalized/date';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   Button,
+  DateField,
   DatePicker,
   DateRangePicker,
-  IconButton,
   PickerDialog,
   TimePicker,
+  TimePickerModeToggle,
   type DateRange as DateRangeValue,
+  type TimePickerMode,
 } from '@windmorph/react';
 import { useState } from 'react';
-import { EditIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -22,10 +23,10 @@ const meta = { title: 'Components/Pickers' } satisfies Meta;
 export default meta;
 type Story = StoryObj;
 
-// A month away from today, so the "today" outline never shows in screenshots.
+// Years away from today, so the "today" outline never shows in screenshots.
 const DATE = new CalendarDate(2030, 3, 14);
 
-/** The date picker's content (Compose's `DatePicker`). */
+/** The modal date picker's content (Compose's `DatePicker`). */
 export const Date: Story = {
   render: function DateStory() {
     const [value, setValue] = useState<CalendarDate | null>(DATE);
@@ -45,7 +46,53 @@ export const Date: Story = {
   },
 };
 
-/** The date range picker. */
+/** The modal date input: an outlined field with no mask and the format below it. */
+export const DateInput: Story = {
+  render: function DateInputStory() {
+    const [value, setValue] = useState<CalendarDate | null>(DATE);
+    return (
+      <div className="flex flex-col gap-4">
+        <div
+          className="w-fit rounded-corner-extra-large bg-surface-container-high"
+          data-testid="picker"
+        >
+          <DatePicker
+            value={value}
+            onChange={setValue}
+            defaultMode="input"
+            minValue={new CalendarDate(2020, 1, 1)}
+          />
+        </div>
+        <p className="text-body-medium" data-testid="value">
+          Value {value?.toString()}
+        </p>
+      </div>
+    );
+  },
+};
+
+/** The docked date picker: a date field with a calendar just below it. */
+export const Docked: Story = {
+  render: function DockedStory() {
+    const [value, setValue] = useState<CalendarDate | null>(DATE);
+    return (
+      <div className="flex min-h-[560px] flex-col gap-4">
+        <DateField
+          label="Date"
+          value={value}
+          onChange={setValue}
+          yearRange={[2020, 2040]}
+          maxValue={new CalendarDate(2035, 12, 31)}
+        />
+        <p className="text-body-medium" data-testid="value">
+          Value {value?.toString() ?? 'none'}
+        </p>
+      </div>
+    );
+  },
+};
+
+/** The date range picker: a vertically scrolling list of months. */
 export const DateRange: Story = {
   render: function RangeStory() {
     const [value, setValue] = useState<DateRangeValue | null>({
@@ -57,18 +104,22 @@ export const DateRange: Story = {
         className="w-fit rounded-corner-extra-large bg-surface-container-high"
         data-testid="picker"
       >
-        <DateRangePicker value={value} onChange={setValue} />
+        <DateRangePicker value={value} onChange={setValue} yearRange={[2020, 2040]} />
       </div>
     );
   },
 };
 
-/** The modal date picker: confirm applies the picked date. */
+/** The modal date picker: OK or Enter on a day applies the picked date. */
 export const DateDialog: Story = {
   render: function DateDialogStory() {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState<CalendarDate>(DATE);
     const [draft, setDraft] = useState<CalendarDate | null>(DATE);
+    const confirm = () => {
+      if (draft) setValue(draft);
+      setOpen(false);
+    };
     return (
       <div className="flex flex-col items-start gap-4">
         <Button onPress={() => setOpen(true)}>Pick a date</Button>
@@ -79,19 +130,15 @@ export const DateDialog: Story = {
           aria-label="Select date"
           open={open}
           onOpenChange={setOpen}
+          onConfirm={confirm}
+          fullScreen="compact"
           dismissButton={
             <Button variant="text" onPress={() => setOpen(false)}>
               Cancel
             </Button>
           }
           confirmButton={
-            <Button
-              variant="text"
-              onPress={() => {
-                if (draft) setValue(draft);
-                setOpen(false);
-              }}
-            >
+            <Button variant="text" onPress={confirm}>
               OK
             </Button>
           }
@@ -103,7 +150,37 @@ export const DateDialog: Story = {
   },
 };
 
-/** Time pickers: 12-hour and 24-hour dials, and input mode. */
+/** The full-screen range picker, as on compact windows: close and Save at the top. */
+export const DateRangeFullScreen: Story = {
+  render: function FullScreenStory() {
+    const [open, setOpen] = useState(true);
+    const [value, setValue] = useState<DateRangeValue | null>({
+      start: new CalendarDate(2030, 3, 10),
+      end: new CalendarDate(2030, 3, 13),
+    });
+    const [draft, setDraft] = useState(value);
+    return (
+      <>
+        <Button onPress={() => setOpen(true)}>Pick dates</Button>
+        <p className="text-body-medium" data-testid="value">
+          Value {value ? `${value.start.toString()} – ${value.end.toString()}` : 'none'}
+        </p>
+        <PickerDialog
+          aria-label="Select dates"
+          fullScreen="always"
+          open={open}
+          onOpenChange={setOpen}
+          onConfirm={() => setValue(draft)}
+          confirmButton={<Button variant="text">OK</Button>}
+        >
+          <DateRangePicker value={draft} onChange={setDraft} yearRange={[2020, 2040]} />
+        </PickerDialog>
+      </>
+    );
+  },
+};
+
+/** Time pickers: 12-hour and 24-hour dials, the horizontal layout, and input mode. */
 export const Time12: Story = {
   render: function TimeStory() {
     const [value, setValue] = useState(new Time(14, 35));
@@ -134,22 +211,41 @@ export const Time24: Story = {
   ),
 };
 
-export const TimeInput: Story = {
+export const TimeHorizontal: Story = {
   render: () => (
     <div
       className="w-fit rounded-corner-extra-large bg-surface-container-high p-6"
       data-testid="picker"
     >
-      <TimePicker defaultValue={new Time(9, 5)} hourCycle={12} mode="input" />
+      <TimePicker defaultValue={new Time(7, 30)} hourCycle={12} layout="horizontal" />
     </div>
   ),
 };
 
-/** The modal time picker with the dial / input toggle at the start of the actions. */
+export const TimeInput: Story = {
+  render: () => (
+    <div className="flex gap-6">
+      <div
+        className="w-fit rounded-corner-extra-large bg-surface-container-high p-6"
+        data-testid="picker"
+      >
+        <TimePicker defaultValue={new Time(9, 5)} hourCycle={12} mode="input" />
+      </div>
+      <div
+        className="w-fit rounded-corner-extra-large bg-surface-container-high p-6"
+        data-testid="picker-24"
+      >
+        <TimePicker defaultValue={new Time(21, 5)} hourCycle={24} mode="input" />
+      </div>
+    </div>
+  ),
+};
+
+/** The modal time picker with the keyboard / clock toggle at the start of the actions. */
 export const TimeDialog: Story = {
   render: function TimeDialogStory() {
     const [open, setOpen] = useState(true);
-    const [mode, setMode] = useState<'dial' | 'input'>('dial');
+    const [mode, setMode] = useState<TimePickerMode>('dial');
     return (
       <>
         <Button onPress={() => setOpen(true)}>Pick a time</Button>
@@ -159,13 +255,7 @@ export const TimeDialog: Story = {
           aria-label="Select time"
           open={open}
           onOpenChange={setOpen}
-          modeToggleButton={
-            <IconButton
-              icon={<EditIcon />}
-              aria-label={mode === 'dial' ? 'Switch to text input' : 'Switch to clock'}
-              onPress={() => setMode(mode === 'dial' ? 'input' : 'dial')}
-            />
-          }
+          modeToggleButton={<TimePickerModeToggle mode={mode} onModeChange={setMode} />}
           dismissButton={
             <Button variant="text" onPress={() => setOpen(false)}>
               Cancel
@@ -177,7 +267,12 @@ export const TimeDialog: Story = {
             </Button>
           }
         >
-          <TimePicker defaultValue={new Time(7, 30)} hourCycle={12} mode={mode} />
+          <TimePicker
+            defaultValue={new Time(7, 30)}
+            hourCycle={12}
+            mode={mode}
+            onModeChange={setMode}
+          />
         </PickerDialog>
       </>
     );

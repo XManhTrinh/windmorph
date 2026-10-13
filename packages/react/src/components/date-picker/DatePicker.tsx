@@ -1,13 +1,19 @@
 'use client';
 
 import {
+  CalendarDate,
   createCalendar,
   getLocalTimeZone,
+  maxDate,
+  minDate,
+  startOfWeek,
+  toCalendarDate,
   today,
-  type CalendarDate,
   type DateValue,
 } from '@internationalized/date';
 import {
+  useContext,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -16,21 +22,17 @@ import {
   type Ref,
 } from 'react';
 import {
+  mergeProps,
   useCalendar,
-  useDateField,
   useDateFormatter,
-  useDateSegment,
   useLocale,
   useRangeCalendar,
   type AriaButtonProps,
 } from 'react-aria';
 import {
   useCalendarState,
-  useDateFieldState,
   useRangeCalendarState,
   type CalendarState,
-  type DateFieldState,
-  type DateSegment,
   type RangeCalendarState,
 } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
@@ -39,8 +41,12 @@ import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
+import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { CalendarGrid } from './CalendarGrid';
-import { dateFieldStyles, datePickerStyles } from './date-picker-styles';
+import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
+import { DateInput, type DateInputStrings } from './DateInput';
+import { datePickerStyles } from './date-picker-styles';
+import { PickerDialogContext } from './picker-dialog-context';
 import {
   ArrowDropDownIcon,
   CalendarIcon,
@@ -50,24 +56,36 @@ import {
 } from './picker-icons';
 
 /** The picker's labels, for localisation. */
-export interface DatePickerStrings {
+export interface DatePickerStrings extends DateInputStrings {
   /** @default "Select date" (or "Select dates" for a range) */
   title?: string;
   /** Headline when nothing is selected. @default "Selected date" / "Start date – End date" */
   noSelection?: string;
+  /** @default "Previous month" */
   previousMonth?: string;
+  /** @default "Next month" */
   nextMonth?: string;
+  /** Tooltip of the previous-month button, naming its shortcut. @default "Previous month (Page Up)" */
+  previousMonthTooltip?: string;
+  /** Tooltip of the next-month button, naming its shortcut. @default "Next month (Page Down)" */
+  nextMonthTooltip?: string;
   /** @default "Switch to selecting a year" */
   showYears?: string;
   /** @default "Switch to selecting a day" */
   showDays?: string;
+  /** Tooltip of the month and year button, naming its shortcut. @default "Choose a year (Shift+Y)" */
+  yearsTooltip?: string;
+  /** Name of the year list. @default "Year" */
+  yearList?: string;
   /** @default "Switch to text input mode" */
   inputMode?: string;
   /** @default "Switch to calendar input mode" */
   calendarMode?: string;
   /** Label of the input mode's field. @default "Date" */
   dateLabel?: string;
+  /** @default "Start date" */
   startDateLabel?: string;
+  /** @default "End date" */
   endDateLabel?: string;
 }
 
@@ -87,7 +105,10 @@ interface DatePickerCommonProps {
   showModeToggle?: boolean;
   /** Start in calendar or text input mode. @default "calendar" */
   defaultMode?: 'calendar' | 'input';
-  /** First and last selectable years in the year list. @default [1900, 2100] */
+  /**
+   * First and last years of the year list (and of a range's month list). Years outside
+   * `minValue` / `maxValue` are shown disabled. @default [1900, 2100]
+   */
   yearRange?: [number, number];
   strings?: DatePickerStrings;
   ref?: Ref<HTMLDivElement>;
@@ -113,12 +134,19 @@ export type DateRangePickerProps = DatePickerCommonProps & {
   value?: DateRange | null;
   defaultValue?: DateRange | null;
   onChange?: (value: DateRange) => void;
+  /**
+   * `scroll` lists the months one under another and scrolls vertically, as the M3 modal
+   * range picker does; `paged` shows one month at a time with previous / next buttons and
+   * a year list, like the date picker. @default "scroll"
+   */
+  monthLayout?: 'scroll' | 'paged';
 };
 
 /**
- * M3 date picker (Compose's `DatePicker`): a header with the selected date, a month grid
- * with month navigation and a year list, and a text input mode. Put it in a
- * {@link PickerDialog} for the modal form. Values are `@internationalized/date` dates.
+ * M3 modal date picker (Compose's `DatePicker`): a header with the selected date, a month
+ * grid you page with the arrows, a horizontal swipe or Page Up / Down, a year list, and a
+ * text input mode. Put it in a {@link PickerDialog} for the modal form; {@link DateField}
+ * is the docked form. Values are `@internationalized/date` dates.
  *
  * @example
  * <DatePicker value={date} onChange={setDate} />
@@ -132,8 +160,8 @@ export function DatePicker(props: DatePickerProps) {
 }
 
 /**
- * M3 date range picker (Compose's `DateRangePicker`): select a start and an end date on the
- * month grid, or type them in input mode.
+ * M3 date range picker (Compose's `DateRangePicker`): select a start and an end date on a
+ * vertically scrolling list of months, or type them in input mode.
  *
  * @example
  * <DateRangePicker value={range} onChange={setRange} />
@@ -150,6 +178,7 @@ type Inner<P> = P & { directionRef: (element: HTMLElement | null) => void };
 
 function SingleDatePicker(props: Inner<DatePickerProps>) {
   const { locale } = useLocale();
+  const confirm = useContext(PickerDialogContext);
   const [value, setValue] = useControlledState(
     props.value,
     props.defaultValue ?? null,
@@ -179,28 +208,49 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
         <DateInput
           label={strings.dateLabel ?? 'Date'}
           value={value}
-          onChange={(date) => date && setValue(date)}
+          onCommit={(date) => date && setValue(date)}
+          onEnter={(date) => date && confirm?.requestConfirm()}
           minValue={props.minValue}
           maxValue={props.maxValue}
+          isDateUnavailable={props.isDateUnavailable}
+          strings={strings}
+          className="w-full"
         />
       }
     />
   );
 }
 
-function RangeDatePicker(props: Inner<DateRangePickerProps>) {
+/** Whole months from `from` to `to`. */
+const monthsBetween = (from: CalendarDate, to: CalendarDate) =>
+  (to.year - from.year) * 12 + (to.month - from.month);
+
+function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePickerProps>) {
   const { locale } = useLocale();
+  const confirm = useContext(PickerDialogContext);
   const [value, setValue] = useControlledState(
     props.value,
     props.defaultValue ?? null,
     props.onChange as (value: DateRange | null) => void,
   );
+  // The scrolling list shows every month of the year range (within min / max) at once.
+  const [firstYear, lastYear] = props.yearRange ?? [1900, 2100];
+  const scroll = monthLayout === 'scroll';
+  const listStart = maxDate(
+    new CalendarDate(firstYear, 1, 1),
+    props.minValue ? toCalendarDate(props.minValue) : null,
+  )!;
+  const listEnd = minDate(
+    new CalendarDate(lastYear, 12, 31),
+    props.maxValue ? toCalendarDate(props.maxValue) : null,
+  )!;
   const state = useRangeCalendarState({
     value,
     onChange: (range) => setValue(range as DateRange),
-    minValue: props.minValue,
-    maxValue: props.maxValue,
+    minValue: scroll ? listStart : props.minValue,
+    maxValue: scroll ? listEnd : props.maxValue,
     isDateUnavailable: props.isDateUnavailable,
+    visibleDuration: scroll ? { months: monthsBetween(listStart, listEnd) + 1 } : undefined,
     locale,
     createCalendar,
   });
@@ -210,33 +260,40 @@ function RangeDatePicker(props: Inner<DateRangePickerProps>) {
   const headline = value
     ? `${format(value.start)} – ${format(value.end)}`
     : (strings.noSelection ?? 'Start date – End date');
+  const common = {
+    minValue: props.minValue,
+    maxValue: props.maxValue,
+    isDateUnavailable: props.isDateUnavailable,
+    strings,
+    className: 'w-full',
+  };
   return (
     <PickerFrame
       {...props}
       range
+      scroll={scroll}
       state={state}
       headline={headline}
       input={
-        <div className="flex flex-col gap-[16px]">
+        <>
           <DateInput
+            {...common}
             label={strings.startDateLabel ?? 'Start date'}
             value={value?.start ?? null}
-            onChange={(start) =>
+            onCommit={(start) =>
               start && setValue({ start, end: value && value.end >= start ? value.end : start })
             }
-            minValue={props.minValue}
-            maxValue={props.maxValue}
           />
           <DateInput
+            {...common}
             label={strings.endDateLabel ?? 'End date'}
             value={value?.end ?? null}
-            onChange={(end) =>
+            onCommit={(end) =>
               end && setValue({ start: value && value.start <= end ? value.start : end, end })
             }
-            minValue={props.minValue}
-            maxValue={props.maxValue}
+            onEnter={(end) => end && value && confirm?.requestConfirm()}
           />
-        </div>
+        </>
       }
     />
   );
@@ -244,6 +301,7 @@ function RangeDatePicker(props: Inner<DateRangePickerProps>) {
 
 function PickerFrame({
   range,
+  scroll = false,
   state,
   headline,
   input,
@@ -260,6 +318,7 @@ function PickerFrame({
   ...rest
 }: Inner<DatePickerCommonProps> & {
   range: boolean;
+  scroll?: boolean;
   state: CalendarState | RangeCalendarState;
   headline: string;
   input: ReactNode;
@@ -272,6 +331,14 @@ function PickerFrame({
   const [years, setYears] = useState(false);
   const styles = datePickerStyles({ range });
   const title = strings.title ?? (range ? 'Select dates' : 'Select date');
+  const bodyProps = {
+    styles,
+    years,
+    setYears,
+    yearRange,
+    strings,
+    className: classNames?.body,
+  };
   return (
     <div
       {...data}
@@ -282,6 +349,7 @@ function PickerFrame({
       }}
       style={style}
       data-years={years || undefined}
+      data-mode={mode}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       {showHeader && (
@@ -305,30 +373,14 @@ function PickerFrame({
           </div>
         </div>
       )}
-      {mode === 'calendar' ? (
-        range ? (
-          <RangeCalendarBody
-            state={state as RangeCalendarState}
-            styles={styles}
-            years={years}
-            setYears={setYears}
-            yearRange={yearRange}
-            strings={strings}
-            className={classNames?.body}
-          />
-        ) : (
-          <SingleCalendarBody
-            state={state as CalendarState}
-            styles={styles}
-            years={years}
-            setYears={setYears}
-            yearRange={yearRange}
-            strings={strings}
-            className={classNames?.body}
-          />
-        )
-      ) : (
+      {mode === 'input' ? (
         <div className={styles.input({ class: classNames?.body })}>{input}</div>
+      ) : range && scroll ? (
+        <RangeMonthList state={state as RangeCalendarState} {...bodyProps} />
+      ) : range ? (
+        <RangeCalendarBody state={state as RangeCalendarState} {...bodyProps} />
+      ) : (
+        <SingleCalendarBody state={state as CalendarState} {...bodyProps} />
       )}
     </div>
   );
@@ -340,7 +392,7 @@ interface BodyProps {
   setYears: (open: boolean) => void;
   yearRange: [number, number];
   strings: DatePickerStrings;
-  className?: string;
+  className?: string | undefined;
 }
 
 function SingleCalendarBody({ state, ...props }: BodyProps & { state: CalendarState }) {
@@ -390,35 +442,61 @@ function CalendarBody({
   nextButtonProps: AriaButtonProps;
   bodyRef?: Ref<HTMLDivElement>;
 }) {
+  const confirm = useContext(PickerDialogContext);
   const monthFormatter = useDateFormatter({ month: 'long', year: 'numeric' });
   const monthLabel = monthFormatter.format(state.visibleRange.start.toDate(getLocalTimeZone()));
+  const menuRef = useRef<HTMLButtonElement>(null);
+  const [focusYears, setFocusYears] = useState(false);
+  const { swipeProps, slideKey, slideDirection } = useMonthSwipe(state);
+  const onKeyDownCapture = usePickerKeys(state, {
+    onConfirm: confirm?.requestConfirm,
+    onMonthMenu: () => menuRef.current?.focus(),
+    onYearMenu: () => {
+      setFocusYears(true);
+      setYears(true);
+    },
+  });
   return (
-    <div {...calendarProps} ref={bodyRef} className={styles.body({ class: className })}>
+    <div
+      {...calendarProps}
+      ref={bodyRef}
+      onKeyDownCapture={onKeyDownCapture}
+      className={styles.body({ class: className })}
+    >
       <div className={styles.nav()}>
-        <Button
-          variant="text"
-          className="text-on-surface-variant"
-          aria-label={`${monthLabel}, ${years ? (strings.showDays ?? 'Switch to selecting a day') : (strings.showYears ?? 'Switch to selecting a year')}`}
-          onPress={() => setYears(!years)}
-          trailingIcon={
-            <span className={styles.yearButtonIcon()}>
-              <ArrowDropDownIcon />
-            </span>
-          }
-        >
-          <span aria-live="polite">{monthLabel}</span>
-        </Button>
+        <TooltipTrigger>
+          <Button
+            ref={menuRef}
+            variant="text"
+            className="text-on-surface-variant"
+            aria-label={`${monthLabel}, ${years ? (strings.showDays ?? 'Switch to selecting a day') : (strings.showYears ?? 'Switch to selecting a year')}`}
+            onPress={() => {
+              setFocusYears(false);
+              setYears(!years);
+            }}
+            trailingIcon={
+              <span className={styles.yearButtonIcon()}>
+                <ArrowDropDownIcon />
+              </span>
+            }
+          >
+            <span aria-live="polite">{monthLabel}</span>
+          </Button>
+          <Tooltip>{strings.yearsTooltip ?? 'Choose a year (Shift+Y)'}</Tooltip>
+        </TooltipTrigger>
         {!years && (
           <div className={styles.navButtons()}>
-            <IconButton
+            <ShortcutIconButton
               icon={<ChevronLeftIcon />}
-              aria-label={strings.previousMonth ?? 'Previous month'}
+              label={strings.previousMonth ?? 'Previous month'}
+              tooltip={strings.previousMonthTooltip ?? 'Previous month (Page Up)'}
               onPress={prevButtonProps.onPress as () => void}
               disabled={prevButtonProps.isDisabled}
             />
-            <IconButton
+            <ShortcutIconButton
               icon={<ChevronRightIcon />}
-              aria-label={strings.nextMonth ?? 'Next month'}
+              label={strings.nextMonth ?? 'Next month'}
+              tooltip={strings.nextMonthTooltip ?? 'Next month (Page Down)'}
               onPress={nextButtonProps.onPress as () => void}
               disabled={nextButtonProps.isDisabled}
             />
@@ -430,169 +508,161 @@ function CalendarBody({
           state={state}
           styles={styles}
           yearRange={yearRange}
+          label={strings.yearList ?? 'Year'}
+          autoFocus={focusYears}
           onPick={() => setYears(false)}
         />
       ) : (
-        <CalendarGrid state={state} styles={styles} />
+        <div {...swipeProps} className={styles.swipe()}>
+          <div key={slideKey} data-direction={slideDirection} className={styles.slide()}>
+            <CalendarGrid state={state} styles={styles} />
+          </div>
+        </div>
       )}
     </div>
   );
 }
+
+/**
+ * The range picker's months, one under another in a vertical scroll (M3: "To navigate
+ * across months, scroll vertically"), under a single weekday row. Only the months in view
+ * (and the focused one) are rendered; the rest are spacers of the same fixed height.
+ */
+function RangeMonthList({ state, styles, className }: BodyProps & { state: RangeCalendarState }) {
+  const confirm = useContext(PickerDialogContext);
+  const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const { calendarProps } = useRangeCalendar({}, state, ref);
+  const { locale } = useLocale();
+  const first = state.visibleRange.start;
+  const count = monthsBetween(first, state.visibleRange.end) + 1;
+  const focusedIndex = monthsBetween(first, state.focusedDate);
+  const [view, setView] = useState(() => ({ top: focusedIndex * MONTH_HEIGHT, height: 0 }));
+  const weekdays = useDateFormatter({ weekday: 'narrow' });
+  const longWeekdays = useDateFormatter({ weekday: 'long' });
+  const subhead = useDateFormatter({ month: 'long', year: 'numeric' });
+  const onKeyDownCapture = usePickerKeys(state, {
+    onConfirm: confirm?.requestConfirm,
+    onMonthMenu: () => undefined,
+    onYearMenu: () => undefined,
+  });
+
+  // Open on the focused month (the range's start, or today), then follow the scroll.
+  const initialTop = useRef(view.top);
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollTop = initialTop.current;
+    const measure = () => setView({ top: list.scrollTop, height: list.clientHeight });
+    measure();
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(list);
+    list.addEventListener('scroll', measure, { passive: true });
+    return () => {
+      observer?.disconnect();
+      list.removeEventListener('scroll', measure);
+    };
+  }, []);
+
+  const height = view.height || MONTH_HEIGHT;
+  let from = Math.max(0, Math.floor(view.top / MONTH_HEIGHT) - 1);
+  let to = Math.min(count - 1, Math.floor((view.top + height) / MONTH_HEIGHT) + 1);
+  if (state.isFocused) {
+    from = Math.min(from, focusedIndex);
+    to = Math.max(to, focusedIndex);
+  }
+  const weekStart = startOfWeek(today(getLocalTimeZone()), locale);
+
+  return (
+    <div
+      {...mergeProps(calendarProps, { onKeyDownCapture })}
+      ref={ref}
+      className={styles.body({ class: cn('min-h-0 flex-1', className) })}
+    >
+      <div aria-hidden="true" className={styles.weekdayRow()}>
+        {Array.from({ length: 7 }, (_, index) => {
+          const day = weekStart.add({ days: index }).toDate(getLocalTimeZone());
+          return (
+            <span key={index} title={longWeekdays.format(day)} className={styles.weekdayCell()}>
+              {weekdays.format(day)}
+            </span>
+          );
+        })}
+      </div>
+      <div ref={listRef} className={styles.months()}>
+        <div style={{ height: from * MONTH_HEIGHT }} />
+        {Array.from({ length: to - from + 1 }, (_, i) => {
+          const month = first.add({ months: from + i });
+          return (
+            <div key={month.toString()} className="h-[336px]">
+              <div aria-hidden="true" className={styles.monthSubhead()}>
+                {subhead.format(month.toDate(getLocalTimeZone()))}
+              </div>
+              <CalendarGrid state={state} styles={styles} month={month} />
+            </div>
+          );
+        })}
+        <div style={{ height: (count - 1 - to) * MONTH_HEIGHT }} />
+      </div>
+    </div>
+  );
+}
+
+/** A month in the scrolling list: its 48px subhead and six 48px weeks. */
+const MONTH_HEIGHT = 336;
 
 function YearList({
   state,
   styles,
   yearRange,
+  label,
+  autoFocus,
   onPick,
 }: {
   state: CalendarState | RangeCalendarState;
   styles: ReturnType<typeof datePickerStyles>;
   yearRange: [number, number];
+  label: string;
+  autoFocus: boolean;
   onPick: () => void;
 }) {
   const current = today(getLocalTimeZone()).year;
   const focusedYear = state.focusedDate.year;
-  const first = Math.max(yearRange[0], state.minValue?.year ?? yearRange[0]);
-  const last = Math.min(yearRange[1], state.maxValue?.year ?? yearRange[1]);
+  const minYear = state.minValue?.year ?? -Infinity;
+  const maxYear = state.maxValue?.year ?? Infinity;
   return (
     <div
       role="radiogroup"
-      aria-label="Year"
+      aria-label={label}
       className={styles.years()}
       ref={(element) => {
         // Open on the focused year, as Compose scrolls the year list to it.
-        element
-          ?.querySelector<HTMLElement>('[aria-checked="true"]')
-          ?.scrollIntoView?.({ block: 'center' });
+        const selected = element?.querySelector<HTMLElement>('[aria-checked="true"]');
+        selected?.scrollIntoView?.({ block: 'center' });
+        if (autoFocus) selected?.focus({ preventScroll: true });
       }}
     >
-      {Array.from({ length: last - first + 1 }, (_, i) => first + i).map((year) => (
-        <YearButton
-          key={year}
-          year={year}
-          selected={year === focusedYear}
-          current={year === current}
-          styles={styles}
-          onPick={() => {
-            state.setFocusedDate(state.focusedDate.set({ year }));
-            onPick();
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function YearButton({
-  year,
-  selected,
-  current,
-  styles,
-  onPick,
-}: {
-  year: number;
-  selected: boolean;
-  current: boolean;
-  styles: ReturnType<typeof datePickerStyles>;
-  onPick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      tabIndex={selected ? 0 : -1}
-      data-selected={selected || undefined}
-      data-current={current || undefined}
-      onClick={onPick}
-      onKeyDown={(event) => {
-        const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[event.key];
-        if (step === undefined) return;
-        event.preventDefault();
-        const buttons = [...(event.currentTarget.parentElement?.children ?? [])] as HTMLElement[];
-        const index = buttons.indexOf(event.currentTarget);
-        const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
-        const delta = rtl && Math.abs(step) === 1 ? -step : step;
-        buttons[Math.min(Math.max(index + delta, 0), buttons.length - 1)]?.focus();
-      }}
-      className={styles.year()}
-    >
-      {year}
-    </button>
-  );
-}
-
-/** Compose's date input field, with React Aria's date segments. */
-function DateInput({
-  label,
-  value,
-  onChange,
-  minValue,
-  maxValue,
-}: {
-  label: string;
-  value: CalendarDate | null;
-  onChange: (value: CalendarDate | null) => void;
-  minValue?: DateValue;
-  maxValue?: DateValue;
-}) {
-  const { locale } = useLocale();
-  const state = useDateFieldState({
-    label,
-    value,
-    onChange: (date) => onChange(date as CalendarDate | null),
-    minValue,
-    maxValue,
-    granularity: 'day',
-    locale,
-    createCalendar,
-  });
-  const ref = useRef<HTMLDivElement>(null);
-  const { labelProps, fieldProps, errorMessageProps } = useDateField({ label }, state, ref);
-  const styles = dateFieldStyles();
-  return (
-    <div className={styles.root()}>
-      <span {...labelProps} className={styles.label()}>
-        {label}
-      </span>
-      <div
-        {...fieldProps}
-        ref={ref}
-        data-invalid={state.isInvalid || undefined}
-        className={styles.field()}
-      >
-        {state.segments.map((segment, index) => (
-          <Segment key={index} segment={segment} state={state} styles={styles} />
-        ))}
-      </div>
-      {state.isInvalid && (
-        <span {...errorMessageProps} className={styles.error()}>
-          {state.displayValidation.validationErrors.join(' ')}
-        </span>
+      {Array.from({ length: yearRange[1] - yearRange[0] + 1 }, (_, i) => yearRange[0] + i).map(
+        (year) => (
+          <ChoiceButton
+            key={year}
+            selected={year === focusedYear}
+            disabled={year < minYear || year > maxYear}
+            data-current={year === current || undefined}
+            steps={YEAR_STEPS}
+            className={styles.year()}
+            onPick={() => {
+              state.setFocusedDate(state.focusedDate.set({ year }));
+              onPick();
+            }}
+          >
+            {year}
+          </ChoiceButton>
+        ),
       )}
     </div>
   );
 }
 
-function Segment({
-  segment,
-  state,
-  styles,
-}: {
-  segment: DateSegment;
-  state: DateFieldState;
-  styles: ReturnType<typeof dateFieldStyles>;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { segmentProps } = useDateSegment(segment, state, ref);
-  return (
-    <div
-      {...segmentProps}
-      ref={ref}
-      data-placeholder={segment.isPlaceholder || undefined}
-      className={segment.type === 'literal' ? styles.literal() : styles.segment()}
-    >
-      {segment.text}
-    </div>
-  );
-}
+/** Three years to a row. */
+const YEAR_STEPS = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 };

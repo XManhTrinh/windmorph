@@ -28,8 +28,16 @@ export async function PickerDialogBody() {
           It is controlled with <code className="text-on-surface">open</code> /{' '}
           <code className="text-on-surface">onOpenChange</code> (or uncontrolled with{' '}
           <code className="text-on-surface">defaultOpen</code>). The common pattern is to edit a
-          draft value and apply it in <code className="text-on-surface">confirmButton</code>, so
-          cancelling leaves the committed value untouched.
+          draft value and apply it in <code className="text-on-surface">onConfirm</code> (and the{' '}
+          <code className="text-on-surface">confirmButton</code>), so cancelling leaves the
+          committed value untouched.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          On compact windows M3 recommends a full-screen date picker:{' '}
+          <code className="text-on-surface">fullScreen=&quot;compact&quot;</code> (below 600px) or{' '}
+          <code className="text-on-surface">&quot;always&quot;</code> fills the window and puts a
+          close (x) button and a Save button, which calls{' '}
+          <code className="text-on-surface">onConfirm</code>, at the top instead of the actions.
         </p>
       </section>
 
@@ -66,7 +74,11 @@ export async function PickerDialogBody() {
           <li>
             Escape closes it, and a press outside closes it when{' '}
             <code className="text-on-surface">dismissable</code> (the default). The picker inside
-            keeps its own keyboard model (calendar grid or dial).
+            keeps its own keyboard model (calendar grid or dial). With{' '}
+            <code className="text-on-surface">onConfirm</code>, Enter on a day (or in a typed date)
+            closes the dialog and saves, as the M3 date picker keyboard table asks;{' '}
+            <code className="text-on-surface">onConfirm</code> runs once the picker&apos;s new value
+            has rendered.
           </li>
           <li>
             Actions read in order: the <code className="text-on-surface">modeToggleButton</code> at
@@ -93,6 +105,13 @@ export async function PickerDialogBody() {
             corners at elevation 3, on the dialog&apos;s scrim and motion. Date actions sit 8px
             apart with 8px below and 6px from the end; the time variant puts the mode toggle at the
             start of the actions row.
+          </li>
+          <li>
+            Full screen follows the M3 full-screen dialog, as{' '}
+            <code className="text-on-surface">Dialog</code> does: the panel fills the window on{' '}
+            <code className="text-on-surface">surface</code> with no corners or elevation, under a
+            64px row holding the close button and Save; the range picker&apos;s month list fills the
+            height.
           </li>
           <li>
             <code className="text-on-surface">children</code> may be a function of{' '}

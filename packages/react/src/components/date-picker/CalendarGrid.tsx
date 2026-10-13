@@ -1,14 +1,22 @@
 'use client';
 
 import {
+  endOfMonth,
   getLocalTimeZone,
-  getWeeksInMonth,
   isSameDay,
+  isSameMonth,
   isToday,
+  startOfWeek,
   type CalendarDate,
 } from '@internationalized/date';
 import { useRef } from 'react';
-import { mergeProps, useCalendarCell, useCalendarGrid, useLocale } from 'react-aria';
+import {
+  mergeProps,
+  useCalendarCell,
+  useCalendarGrid,
+  useDateFormatter,
+  useLocale,
+} from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import type { datePickerStyles } from './date-picker-styles';
@@ -18,45 +26,66 @@ type AnyCalendarState = CalendarState | RangeCalendarState;
 const isRangeState = (state: AnyCalendarState): state is RangeCalendarState =>
   'highlightedRange' in state;
 
-/** The month grid of a date or date range picker (React Aria `useCalendarGrid`). */
+/**
+ * The month grid of a date or date range picker (React Aria `useCalendarGrid`). Weekdays
+ * are column headers named by their full name, which a hover shows too (M3: "the tooltip
+ * is available on hover"). `month` draws one month of a multi-month list: days of other
+ * months are left out, and the weekday row is for assistive technology only.
+ */
 export function CalendarGrid({
   state,
   styles,
+  month,
 }: {
   state: AnyCalendarState;
   styles: ReturnType<typeof datePickerStyles>;
+  month?: CalendarDate;
 }) {
   const { locale } = useLocale();
-  const { gridProps, headerProps, weekDays } = useCalendarGrid({ weekdayStyle: 'narrow' }, state);
-  const weeks = getWeeksInMonth(state.visibleRange.start, locale);
+  const start = month ?? state.visibleRange.start;
+  const { gridProps, weekDays } = useCalendarGrid(
+    month
+      ? { startDate: month, endDate: endOfMonth(month), weekdayStyle: 'narrow' }
+      : { weekdayStyle: 'narrow' },
+    state,
+  );
+  const longWeekday = useDateFormatter({ weekday: 'long' });
+  const firstDay = startOfWeek(start, locale);
   // Compose always lays out six weeks, so the picker keeps its height between months.
   return (
     <table {...gridProps} className={styles.grid()}>
-      <thead {...headerProps}>
+      <thead className={month ? 'sr-only' : undefined}>
         <tr>
-          {weekDays.map((day, index) => (
-            <th key={index} className={styles.weekday()}>
-              {day}
-            </th>
-          ))}
+          {weekDays.map((day, index) => {
+            const name = longWeekday.format(
+              firstDay.add({ days: index }).toDate(getLocalTimeZone()),
+            );
+            return (
+              <th key={index} scope="col" abbr={name} title={name} className={styles.weekday()}>
+                {day}
+              </th>
+            );
+          })}
         </tr>
       </thead>
       <tbody>
         {Array.from({ length: 6 }, (_, weekIndex) => (
           <tr key={weekIndex}>
-            {weekIndex < weeks
-              ? state
-                  .getDatesInWeek(weekIndex)
-                  .map((date, index) =>
-                    date ? (
-                      <CalendarCell key={index} state={state} date={date} styles={styles} />
-                    ) : (
-                      <td key={index} className={styles.cell()} />
-                    ),
-                  )
-              : Array.from({ length: 7 }, (_, index) => (
+            {state
+              .getDatesInWeek(weekIndex, start)
+              .map((date, index) =>
+                date && (!month || isSameMonth(date, month)) ? (
+                  <CalendarCell
+                    key={index}
+                    state={state}
+                    date={date}
+                    styles={styles}
+                    shownMonth={start}
+                  />
+                ) : (
                   <td key={index} aria-hidden="true" className={styles.cell()} />
-                ))}
+                ),
+              )}
           </tr>
         ))}
       </tbody>
@@ -68,10 +97,12 @@ function CalendarCell({
   state,
   date,
   styles,
+  shownMonth,
 }: {
   state: AnyCalendarState;
   date: CalendarDate;
   styles: ReturnType<typeof datePickerStyles>;
+  shownMonth: CalendarDate;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const {
@@ -84,16 +115,18 @@ function CalendarCell({
     isPressed,
     formattedDate,
   } = useCalendarCell({ date }, state, ref);
+  // Days of the months around this one (the docked picker shows them) can't be chosen.
+  const isOutside = isOutsideVisibleRange || !isSameMonth(date, shownMonth);
   const disabled = isDisabled || isUnavailable;
   const { interactionProps, dataAttributes } = useM3Interaction(
-    { isDisabled: disabled || isOutsideVisibleRange, isPressed },
+    { isDisabled: disabled || isOutside, isPressed },
     ref,
   );
 
   // Range: the ends are filled circles; the days between sit on the band.
   let range: 'start' | 'middle' | 'end' | undefined;
   let filled = isSelected;
-  if (isRangeState(state) && state.highlightedRange && isSelected && !isOutsideVisibleRange) {
+  if (isRangeState(state) && state.highlightedRange && isSelected && !isOutside) {
     const { start, end } = state.highlightedRange;
     const isStart = isSameDay(date, start);
     const isEnd = isSameDay(date, end);
@@ -107,11 +140,11 @@ function CalendarCell({
         {...mergeProps(buttonProps, interactionProps)}
         {...dataAttributes}
         ref={ref}
-        data-selected={filled || undefined}
+        data-selected={(filled && !isOutside) || undefined}
         data-in-range={range === 'middle' || undefined}
-        data-today={isToday(date, getLocalTimeZone()) || undefined}
+        data-today={(isToday(date, getLocalTimeZone()) && !isOutside) || undefined}
         data-disabled={disabled || undefined}
-        data-outside={isOutsideVisibleRange || undefined}
+        data-outside={isOutside || undefined}
         className={styles.day()}
       >
         {formattedDate}

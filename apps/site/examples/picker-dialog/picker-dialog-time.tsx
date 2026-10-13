@@ -1,18 +1,24 @@
 'use client';
 
 import { Time } from '@internationalized/date';
-import { Button, IconButton, PickerDialog, TimePicker } from '@windmorph/react';
+import {
+  Button,
+  PickerDialog,
+  TimePicker,
+  TimePickerModeToggle,
+  type TimePickerMode,
+} from '@windmorph/react';
 import { useState } from 'react';
-import { EditIcon } from '../../components/icons';
 
 /**
- * The modal time picker: `variant="time"` pads the content and shows a title, and the
- * `modeToggleButton` sits at the start of the actions row to switch the picker between its
- * dial and input modes. Like the date dialog it is closed until the trigger opens it.
+ * The modal time picker: `variant="time"` pads the content and shows a title, and a
+ * `TimePickerModeToggle` (the keyboard / clock button) sits at the start of the actions row
+ * to switch the picker between its dial and input modes. Like the date dialog it is closed
+ * until the trigger opens it.
  */
 export function PickerDialogTime() {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<'dial' | 'input'>('dial');
+  const [mode, setMode] = useState<TimePickerMode>('dial');
   return (
     <div className="flex flex-col items-start gap-4">
       <Button onPress={() => setOpen(true)}>Pick a time</Button>
@@ -22,13 +28,7 @@ export function PickerDialogTime() {
         aria-label="Select time"
         open={open}
         onOpenChange={setOpen}
-        modeToggleButton={
-          <IconButton
-            icon={<EditIcon />}
-            aria-label={mode === 'dial' ? 'Switch to text input' : 'Switch to clock'}
-            onPress={() => setMode(mode === 'dial' ? 'input' : 'dial')}
-          />
-        }
+        modeToggleButton={<TimePickerModeToggle mode={mode} onModeChange={setMode} />}
         dismissButton={
           <Button variant="text" onPress={() => setOpen(false)}>
             Cancel
@@ -40,7 +40,12 @@ export function PickerDialogTime() {
           </Button>
         }
       >
-        <TimePicker defaultValue={new Time(7, 30)} hourCycle={12} mode={mode} />
+        <TimePicker
+          defaultValue={new Time(7, 30)}
+          hourCycle={12}
+          mode={mode}
+          onModeChange={setMode}
+        />
       </PickerDialog>
     </div>
   );

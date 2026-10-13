@@ -5,9 +5,10 @@ import { DateRangePicker, type DateRange } from '@windmorph/react';
 import { useState } from 'react';
 
 /**
- * The date range picker: pick a start and an end date on the month grid, or type them in
- * input mode. Its value is a `{ start, end }` pair of `CalendarDate`s; the days between the
- * ends sit on a `secondary-container` band.
+ * The date range picker: pick a start and an end date on a vertically scrolling list of
+ * months, or type them in input mode. Its value is a `{ start, end }` pair of
+ * `CalendarDate`s; the days between the ends sit on a `secondary-container` band.
+ * `monthLayout="paged"` shows one month at a time instead.
  */
 export function DateRangeExample() {
   const [value, setValue] = useState<DateRange | null>({
