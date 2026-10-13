@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { FloatingToolbar } from '../toolbar/Toolbar';
 import { ExtendedFab, Fab } from './Fab';
 
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
@@ -241,6 +242,32 @@ describe('ExtendedFab', () => {
     );
     expect(screen.getByText('Compose')).toHaveClass('ps-0');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('cannot collapse'));
+    warn.mockRestore();
+  });
+
+  it('warns once when paired with a floating toolbar, and only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (label: string) => (
+      <FloatingToolbar
+        aria-label="Actions"
+        fab={<ExtendedFab icon={<Icon />}>{label}</ExtendedFab>}
+      >
+        <button type="button">Search</button>
+      </FloatingToolbar>
+    );
+    const { rerender, unmount } = render(toolbar('Compose'));
+    rerender(toolbar('Write'));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('not an extended FAB'));
+    unmount();
+
+    // Outside a toolbar, or in production, it stays silent.
+    warn.mockClear();
+    render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar('Compose'));
+    vi.unstubAllEnvs();
+    expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
 

@@ -109,6 +109,13 @@ export async function FabBody(): Promise<ComponentDoc> {
             enabled and handle the empty case.
           </p>
           <p className="text-body-large text-on-surface-variant">
+            M3 recommends the medium FAB (<InlineCode>size=&quot;medium&quot;</InlineCode>, 80px)
+            for most layouts. The default size stays the 56px FAB, as in Compose, so set{' '}
+            <InlineCode>medium</InlineCode> unless the screen is dense. Don&apos;t put an extended
+            FAB beside a floating toolbar; pair the toolbar with a FAB (a development warning flags
+            an extended one).
+          </p>
+          <p className="text-body-large text-on-surface-variant">
             In compact and medium windows, place the FAB at the bottom trailing corner with 16px
             margins (<InlineCode>fixed end-4 bottom-4</InlineCode>). In expanded windows, consider
             the upper start corner, such as the navigation rail&apos;s header; a FAB nested in

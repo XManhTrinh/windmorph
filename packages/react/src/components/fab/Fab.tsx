@@ -1,12 +1,13 @@
 'use client';
 
-import type { ReactElement, ReactNode } from 'react';
+import { useContext, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
   type ButtonBaseLinkProps,
   type ButtonBaseProps,
 } from '../../primitives/ButtonBase';
+import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { FabTooltip } from './FabTooltip';
@@ -186,6 +187,17 @@ export function ExtendedFab({
       '[@windmorph/react] An ExtendedFab without an icon cannot collapse; it stays expanded.',
     );
   }
+  // Once per FAB, not on every render.
+  const inFloatingToolbar = useContext(ToolbarContext)?.kind === 'floating';
+  const warnedToolbar = useRef(false);
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && inFloatingToolbar && !warnedToolbar.current) {
+      warnedToolbar.current = true;
+      console.warn(
+        '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
+      );
+    }
+  }, [inFloatingToolbar]);
   const collapsed = !expanded && Boolean(icon);
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });
   const baseProps = {
