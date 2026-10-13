@@ -1,6 +1,7 @@
 # CI for Windmorph's public repo: builds, typechecks, lints and tests `@windmorph/react`,
 # Storybook, the Next.js playground and the docs site, then runs the site's internal link check
-# and Playwright smoke suite against its static export.
+# and Playwright smoke suite against its static export, and the playground's Playwright suite
+# (every export imported into a Server Component, under `next start` and `next dev`).
 #
 # The docs site also documents Windmorph Pro, which it installs from the private
 # `windmorph-pro` repo's `dist` branch (an optional dependency). `PRO_READ_TOKEN` is a
@@ -93,3 +94,34 @@ jobs:
       # first, then the link checker and the full Playwright smoke suite run against `out/`.
       - name: Link check & Playwright smoke suite
         run: pnpm turbo run link-check test:e2e --filter=site
+
+  playground-e2e:
+    name: Playground Playwright suite
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # The pnpm version comes from package.json's `packageManager` (pnpm@12.8.1).
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # The playground uses only the public core, so Windmorph Pro (optional) isn't needed.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter next-playground exec playwright install --with-deps chromium
+
+      # `test:e2e` depends on `next-playground#build`, which builds `@windmorph/react` first.
+      - name: Playwright suite
+        run: pnpm turbo run test:e2e --filter=next-playground
