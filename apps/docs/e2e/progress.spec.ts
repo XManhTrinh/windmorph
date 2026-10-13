@@ -38,6 +38,19 @@ test.describe('Progress visual regression', () => {
     });
   }
 
+  test('thickness', async ({ page }) => {
+    const open = await frozen(page, 600);
+    await open('components-progress--thickness');
+    await expect(page.getByTestId('thickness')).toHaveScreenshot('thickness.png');
+  });
+
+  test('circular · rtl is not mirrored', async ({ page }) => {
+    const open = await frozen(page, 600);
+    await open('components-progress--circular', { dir: 'rtl' });
+    // The row runs right to left, but each arc still runs clockwise from 12 o'clock.
+    await expect(page.getByTestId('circular')).toHaveScreenshot('circular-rtl.png');
+  });
+
   test('linear · rtl', async ({ page }) => {
     const open = await frozen(page, 600);
     await open('components-progress--linear', { dir: 'rtl' });
@@ -63,6 +76,22 @@ test.describe('Progress behaviour', () => {
     const first = await active.getAttribute('d');
     await page.waitForTimeout(300);
     expect(await active.getAttribute('d')).toBe(first);
+  });
+});
+
+test.describe('Progress handoff', () => {
+  test('an indeterminate indicator eases into its value', async ({ page }) => {
+    await openStory(page, 'components-progress--handoff');
+    const linear = page.getByRole('progressbar', { name: 'Handoff linear' });
+    await expect(linear).not.toHaveAttribute('aria-valuenow');
+    await page.getByRole('button', { name: 'Toggle' }).click();
+    await expect(linear).toHaveAttribute('aria-valuenow', '0.7');
+    const circular = page.getByRole('progressbar', { name: 'Handoff circular' });
+    // The ring settles at 12 o'clock with a 70% arc.
+    await expect
+      .poll(() => circular.locator('g').first().getAttribute('transform'))
+      .toMatch(/^rotate\((0|360) /);
+    await expect(circular.locator('path').nth(1)).toHaveAttribute('stroke-dasharray', '0.7 1');
   });
 });
 

@@ -1,8 +1,8 @@
 import { LoadingIndicator } from '@windmorph/react';
 
 /**
- * Passing `value` (0–1) makes the indicator determinate: a circle morphs into a soft burst
- * as it fills. The box is 48px; `className` (`size-6`, `size-16`…) resizes it and the shape
+ * Passing `value` (0–1) makes the indicator follow a gesture's progress (pull to refresh): a
+ * circle morphs into a soft burst as it fills. Never switch one instance between the two modes. The box is 48px; `className` (`size-6`, `size-16`…) resizes it and the shape
  * scales with it.
  */
 export function LoadingDeterminate() {

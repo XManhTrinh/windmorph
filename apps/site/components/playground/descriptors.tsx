@@ -617,9 +617,9 @@ export const PLAYGROUND_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         'aria-label': 'Uploading',
         className: 'w-[280px]',
       }),
-    defaultProps: { wavy: false },
-    surfacedProps: ['value', 'wavy'],
-    initialState: { value: 0.4, wavy: false },
+    defaultProps: { wavy: false, thickness: 4 },
+    surfacedProps: ['value', 'wavy', 'thickness'],
+    initialState: { value: 0.4, wavy: false, thickness: 4 },
     codeSlots: { 'aria-label': '"Uploading"', className: '"w-full"' },
   },
   skeleton: {

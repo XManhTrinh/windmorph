@@ -378,7 +378,10 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Not in v1:** virtualised lists (plain DOM is fine for a few hundred options, the 245 countries included).
 
 ### Progress indicators (built, Tier 2)
-- `LinearProgressIndicator`: `value` (0–1; leave it out for indeterminate), `wavy`, `stopIndicator` (default on). `CircularProgressIndicator`: `value` (required) and `wavy`. **There's no indeterminate circular indicator**: it's deprecated in Expressive and `LoadingIndicator` replaces it. Both are React Aria progress bars that need a name.
+- `LinearProgressIndicator` and `CircularProgressIndicator`: `value` (0–1; leave it out for indeterminate), `wavy`, `thickness` / `trackThickness` (4px; the track follows `thickness` unless set) and `track` (default on). Linear adds `stopIndicator` (default on). Both are React Aria progress bars that need a name.
+- **Indeterminate circular is built** (2026-10-13, following the spec, which lists Determinate and Indeterminate behaviour for both variants in M3 Expressive and uses circular indicators for short indeterminate activities). An earlier revision called it deprecated: only the old separate circular token set is. The `LoadingIndicator` stays the recommended choice for short waits.
+- **Thickness** (2026-10-13, the spec's "Track thickness: Configurable"): thicker strokes grow the box by the extra thickness, keeping the wave's room. Linear height = max(stroke, track) (+ 6px wavy); circular size = 40px (48px wavy) + max(stroke, track) − 4. The spec's thick configuration (8px) gives Compose's thick samples: 14px wavy linear, 52px wavy circular (44px flat). The size is a `--m3-progress-height` / `--m3-progress-size` variable the component sets, and stroke widths are SVG attributes. Round caps inset by half the thicker stroke; the stop dot stays at most 4px, inset by a quarter of a thicker track (Compose).
+- **No track** (`track={false}`) for use inside a button, as the spec's accessibility guidance asks; the stop dot goes with it. The docs pair it with `classNames.indicator="stroke-current"`.
 - **Values** (Compose `ProgressIndicator.kt`, `WavyProgressIndicator.kt`, `Linear/CircularWavyProgressModifiers.kt`, and the ProgressIndicator / Linear / Circular tokens):
   - Shared: `primary` active indicator and stop dot on a `secondary-container` track, with 4px round strokes and a 4px gap.
   - Linear: 240px wide (resize with `className`, e.g. `w-full`), 4px tall, 10px when wavy.
@@ -389,11 +392,13 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Wavelength 40px (20px indeterminate), travelling a wavelength per second.
   - A wavy determinate indicator flattens below 10% and above 95% (`indicatorAmplitude`). The amplitude changes over 500ms: standard easing as it grows, emphasized-accelerate as it shrinks.
 - **Indeterminate linear:** Compose's four keyframed curves over a 1750ms cycle (first head 0–1000ms, first tail 250–1250ms, second head 650–1500ms, second tail 900–1750ms, emphasized-accelerate), drawn as two lines.
+- **Indeterminate circular:** Compose's 6000ms cycle: a linear 1080° turn, plus a 90° step in the first 300ms of every 1500ms (emphasized decelerate), while the arc grows from 10% to 87% of the ring over 3000ms and shrinks back (standard easing). Compose's keyframes attach those easings to the hold after each move, so its moves run linear; we apply them to the moves, as its comments describe. The arc and its gapped track turn together (a `<g>` rotation). Both flat and wavy keep the track, since the spec's indeterminate indicators "move along a fixed track" (Compose's flat one hides it). The wavy one has full amplitude.
+- **Indeterminate to determinate** (2026-10-13, the spec's "a progress indicator should change from indeterminate to determinate", shown animated): when `value` arrives, the last indeterminate frame eases into the value over 500ms (standard easing). Linear: the first line's tail and head move to 0 and the value, the second line collapses to the start and the wavelength widens to 40px. Circular: the ring keeps turning clockwise to 12 o'clock while the arc takes the value. Reduced motion snaps.
 - **Circular drawing:**
   - Flat: arcs from 12 o'clock with a gap of (4px + stroke) of circumference either side, drawn as dashes on a `pathLength="1"` circle.
   - Wavy: Compose's `CircularShapes` from our shape library. The active ring is `star(n, innerRadius 0.75, rounding 0.35 / smoothing 0.4, innerRounding 0.5)`, with n = round(2πr / 15px) (9 at 48px), morphed from an n-vertex circle by amplitude.
   - The ring is drawn twice (`pathLength="2"`, Compose's `repeatPath`). The dash shifts along it while the group rotates back, so the wave travels while the arc stays put: one revolution per n seconds.
-- **Rendering:** geometry and timing are pure functions (`progress-geometry.ts`), unit-tested against Compose's numbers. Animated variants write paths to the SVG from Motion's `useAnimationFrame`. The first render is a deterministic frame at t = 0, so it's SSR-safe. The SVG mirrors in RTL.
+- **Rendering:** geometry and timing are pure functions (`progress-geometry.ts`), unit-tested against Compose's numbers. Animated variants write paths to the SVG from Motion's `useAnimationFrame`. The first render is a deterministic frame at t = 0, so it's SSR-safe. The linear SVG mirrors in RTL; the circular one doesn't (2026-10-13, the spec: "Circular progress indicators don't need to be mirrored", and they run clockwise).
 - **Reduced motion:** the wave stops travelling and amplitude changes snap. Indeterminate motion stays, because it conveys activity.
 
 ### Tooltip (built, Tier 2)
@@ -520,7 +525,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Not in v1:** the icon swap happens on the state change rather than at 50% progress.
 
 ### Loading indicator (built, Tier 2)
-- `LoadingIndicator`: indeterminate by default; `value` (0–1) makes it determinate. `variant` = `default | contained`, and `shapes` takes at least two `MaterialShapes` names or `RoundedPolygon`s. It's a React Aria `useProgressBar` (`role="progressbar"`, `aria-valuenow` / `aria-valuetext` when determinate), and the types require `aria-label` or `aria-labelledby`.
+- `LoadingIndicator`: indeterminate by default; `value` (0–1) makes it follow a gesture's progress (pull to refresh). The spec describes it for indeterminate waits and says not to turn one into a progress indicator, so the docs lead with indeterminate and warn against switching one instance between modes (2026-10-13). `variant` = `default | contained`, and `shapes` takes at least two `MaterialShapes` names or `RoundedPolygon`s. It's a React Aria `useProgressBar` (`role="progressbar"`, `aria-valuenow` / `aria-valuetext` when determinate), and the types require `aria-label` or `aria-labelledby`.
 - **Values** (Compose `LoadingIndicator.kt`, `LoadingIndicatorTokens`):
   - Box: 48px, full corners. The indicator is 38px (`ActiveIndicatorScale` 38/48) times Compose's `calculateScaleFactor`, so no shape clips as it rotates.
   - Colours: `primary`; contained is `on-primary-container` on `primary-container`.
@@ -783,7 +788,8 @@ Build order: Foundations (token source, 6 themes × modes × contrast, motion sc
 | Small FAB | FAB sizes default / medium / large |
 | Segmented button | Connected button group |
 | Bottom app bar | Docked toolbar |
-| Indeterminate circular progress | Loading indicator |
+
+Indeterminate circular progress was listed here until 2026-10-13. The M3 Expressive spec lists it, flat and wavy, so it's built; only the old separate circular token set is deprecated.
 
 ## 16. Licences & attribution
 

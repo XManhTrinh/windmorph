@@ -9,7 +9,8 @@ describe('LinearProgressIndicator', () => {
     const bar = screen.getByRole('progressbar', { name: 'Uploading' });
     expect(bar).toHaveAttribute('aria-valuenow', '0.25');
     expect(bar).toHaveAttribute('aria-valuetext', '25%');
-    expect(bar).toHaveClass('w-[240px]', 'h-[4px]');
+    expect(bar).toHaveClass('w-[240px]');
+    expect(bar).toHaveStyle({ '--m3-progress-height': '4px' });
     const [track, active] = [...bar.querySelectorAll('path')];
     expect(track).toHaveClass('stroke-secondary-container');
     expect(active).toHaveClass('stroke-primary');
@@ -22,7 +23,7 @@ describe('LinearProgressIndicator', () => {
   it('can hide the stop dot and be wavy', () => {
     render(<LinearProgressIndicator value={0.5} wavy stopIndicator={false} aria-label="Wavy" />);
     const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveClass('h-[10px]');
+    expect(bar).toHaveStyle({ '--m3-progress-height': '10px' });
     expect(bar.querySelector('circle')).toBeNull();
     expect(bar.querySelectorAll('path')[1]!.getAttribute('d')).toContain('Q');
   });
@@ -54,11 +55,101 @@ describe('LinearProgressIndicator', () => {
   });
 });
 
+describe('LinearProgressIndicator thickness and track', () => {
+  it('takes the spec’s thick configuration, growing to fit the strokes and the wave', () => {
+    render(<LinearProgressIndicator value={0.5} wavy thickness={8} aria-label="Thick" />);
+    const bar = screen.getByRole('progressbar');
+    // 8px strokes plus 3px of wave either side (Compose's thick sample is 14px).
+    expect(bar).toHaveStyle({ '--m3-progress-height': '14px' });
+    const [track, active] = [...bar.querySelectorAll('path')];
+    expect(track).toHaveAttribute('stroke-width', '8');
+    expect(active).toHaveAttribute('stroke-width', '8');
+  });
+
+  it('sets the track’s thickness on its own', () => {
+    render(<LinearProgressIndicator value={0.5} thickness={4} trackThickness={8} aria-label="x" />);
+    const bar = screen.getByRole('progressbar');
+    expect(bar).toHaveStyle({ '--m3-progress-height': '8px' });
+    const [track, active] = [...bar.querySelectorAll('path')];
+    expect(track).toHaveAttribute('stroke-width', '8');
+    expect(active).toHaveAttribute('stroke-width', '4');
+  });
+
+  it('can drop the track and its stop dot, for use inside a button', () => {
+    render(
+      <LinearProgressIndicator
+        value={0.5}
+        track={false}
+        classNames={{ indicator: 'stroke-current' }}
+        aria-label="x"
+      />,
+    );
+    const bar = screen.getByRole('progressbar');
+    expect(bar.querySelector('.stroke-secondary-container')).toBeNull();
+    expect(bar.querySelector('circle')).toBeNull();
+    expect(bar.querySelector('path')).toHaveClass('stroke-current');
+  });
+
+  it('eases the moving line into the value when it arrives', async () => {
+    const { rerender } = render(<LinearProgressIndicator aria-label="Loading" />);
+    const first = screen.getByRole('progressbar').querySelectorAll('path')[1]!;
+    await waitFor(() => expect(first.getAttribute('d')).not.toBe('M2 2L2 2'));
+    rerender(<LinearProgressIndicator value={0.5} aria-label="Loading" />);
+    // The handoff settles on the determinate line (0 to 50% of 240px).
+    await waitFor(() => expect(first.getAttribute('d')).toBe('M2 2L120 2'), { timeout: 2000 });
+  });
+});
+
 describe('CircularProgressIndicator', () => {
+  it('is indeterminate without a value, flat or wavy, turning over a track', async () => {
+    const { container, rerender } = render(<CircularProgressIndicator aria-label="Loading" />);
+    const ring = screen.getByRole('progressbar', { name: 'Loading' });
+    expect(ring).not.toHaveAttribute('aria-valuenow');
+    expect(ring).toHaveAttribute('data-indeterminate', 'true');
+    const [track, active] = [...ring.querySelectorAll('path')];
+    expect(track).toHaveClass('stroke-secondary-container');
+    // The arc starts at 10% of the ring.
+    expect(active).toHaveAttribute('stroke-dasharray', '0.1 1');
+    const group = ring.querySelector('g')!;
+    const before = group.getAttribute('transform');
+    await waitFor(() => expect(group.getAttribute('transform')).not.toBe(before));
+    expect(await axeViolations(container)).toEqual([]);
+    rerender(<CircularProgressIndicator wavy aria-label="Loading" />);
+    expect(ring).toHaveStyle({ '--m3-progress-size': '48px' });
+    expect(ring.querySelectorAll('path')[1]).toHaveAttribute('pathLength', '2');
+  });
+
+  it('is not mirrored in right-to-left layouts', () => {
+    render(
+      <div dir="rtl">
+        <CircularProgressIndicator value={0.3} aria-label="x" />
+      </div>,
+    );
+    expect(screen.getByRole('progressbar').querySelector('svg')!.getAttribute('class')).not.toMatch(
+      /rtl:/,
+    );
+  });
+
+  it('takes the thick configuration: 44px flat, 52px wavy', () => {
+    const { rerender } = render(
+      <CircularProgressIndicator value={0.5} thickness={8} aria-label="x" />,
+    );
+    const ring = screen.getByRole('progressbar');
+    expect(ring).toHaveStyle({ '--m3-progress-size': '44px' });
+    expect(ring.querySelector('path')).toHaveAttribute('stroke-width', '8');
+    rerender(<CircularProgressIndicator value={0.5} wavy thickness={8} aria-label="x" />);
+    expect(ring).toHaveStyle({ '--m3-progress-size': '52px' });
+  });
+
+  it('can drop the track', () => {
+    render(<CircularProgressIndicator value={0.5} track={false} aria-label="x" />);
+    expect(screen.getByRole('progressbar').querySelectorAll('path')).toHaveLength(1);
+  });
+
   it('draws an arc from 12 o’clock over a gapped track', async () => {
     const { container } = render(<CircularProgressIndicator value={0.5} aria-label="Syncing" />);
     const ring = screen.getByRole('progressbar', { name: 'Syncing' });
-    expect(ring).toHaveClass('size-[40px]');
+    expect(ring).toHaveStyle({ '--m3-progress-size': '40px' });
     const [track, active] = [...ring.querySelectorAll('path')];
     expect(active).toHaveAttribute('stroke-dasharray', '0.5 1');
     expect(active).toHaveAttribute('pathLength', '1');
@@ -70,10 +161,13 @@ describe('CircularProgressIndicator', () => {
 
   it('hides the arc at 0 and is 48px when wavy', () => {
     const { rerender } = render(<CircularProgressIndicator value={0} aria-label="x" />);
-    expect(screen.getByRole('progressbar').querySelectorAll('path')).toHaveLength(1);
+    expect(screen.getByRole('progressbar').querySelectorAll('path')[1]).toHaveAttribute(
+      'visibility',
+      'hidden',
+    );
     rerender(<CircularProgressIndicator value={0.4} wavy aria-label="x" />);
     const ring = screen.getByRole('progressbar');
-    expect(ring).toHaveClass('size-[48px]');
+    expect(ring).toHaveStyle({ '--m3-progress-size': '48px' });
     const active = ring.querySelectorAll('path')[1]!;
     expect(active).toHaveAttribute('pathLength', '2');
     expect(active).toHaveAttribute('stroke-dasharray', '0.4 2');

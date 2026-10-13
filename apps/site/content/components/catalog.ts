@@ -1154,7 +1154,8 @@ export const COMPONENT_META: ComponentMeta[] = [
       variants: ['linear', 'circular'],
     },
     related: ['loading-indicator', 'snackbar'],
-    whenNotToUse: 'For an indeterminate wait of unknown length prefer the Loading indicator.',
+    whenNotToUse: 'For a short indeterminate wait (under 5 seconds) prefer the Loading indicator.',
+    keywords: ['progress bar', 'spinner', 'indeterminate', 'thickness', 'thick', 'wavy'],
   },
   {
     slug: 'load-more',

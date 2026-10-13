@@ -6,32 +6,35 @@ import {
   useRef,
   useState,
   type ComponentPropsWithRef,
+  type CSSProperties,
   type RefObject,
 } from 'react';
 import { mergeProps, useObjectRef, useProgressBar } from 'react-aria';
 import { cn } from '../../utils/cn';
 import {
   AMPLITUDE_DURATION_MS,
-  CIRCULAR_FLAT_SIZE,
-  CIRCULAR_WAVE_SIZE,
-  LINEAR_FLAT_HEIGHT,
+  CIRCULAR_WAVELENGTH,
   LINEAR_INDETERMINATE_WAVELENGTH,
-  LINEAR_WAVE_HEIGHT,
   LINEAR_WAVELENGTH,
   LINEAR_WIDTH,
+  STROKE,
   WAVE_PERIOD_MS,
   amplitudeFor,
   circlePath,
   circularFlatArcs,
+  circularSize,
   circularWavePeriod,
   circularWavyPaths,
   circularWavyShapes,
   circularWavyTrack,
   emphasizedAccelerate,
+  indeterminateCircular,
   indeterminateLinearFractions,
+  linearHeight,
   linearPaths,
   standard,
   stopIndicator,
+  type Strokes,
 } from './progress-geometry';
 import { circularProgressStyles, linearProgressStyles } from './progress-styles';
 
@@ -70,6 +73,46 @@ function useAmplitude(target: number, reduceMotion: boolean) {
   };
 }
 
+/**
+ * When an indicator turns determinate, its last indeterminate frame eases into the value over
+ * 500ms (standard easing) instead of jumping, as the spec shows. `record` keeps the frame the
+ * loop last drew; `at(time)` gives the handoff's start and eased progress, or null.
+ */
+function useHandoff<T>(indeterminate: boolean, reduceMotion: boolean) {
+  const last = useRef<T | null>(null);
+  const handoff = useRef<{ from: T; start: number | null } | null>(null);
+  const wasIndeterminate = useRef(indeterminate);
+  useLayoutEffect(() => {
+    if (wasIndeterminate.current && !indeterminate && last.current !== null && !reduceMotion) {
+      handoff.current = { from: last.current, start: null };
+    }
+    if (indeterminate) handoff.current = null;
+    wasIndeterminate.current = indeterminate;
+  }, [indeterminate, reduceMotion]);
+  return {
+    record: (state: T) => {
+      last.current = state;
+    },
+    at: (time: number) => {
+      const h = handoff.current;
+      if (!h) return null;
+      if (h.start === null) h.start = time;
+      const t = Math.min(Math.max((time - h.start) / AMPLITUDE_DURATION_MS, 0), 1);
+      if (t >= 1) handoff.current = null;
+      return { from: h.from, t: standard(t) };
+    },
+    active: () => handoff.current !== null,
+  };
+}
+
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** The strokes from the thickness props; the track follows the indicator unless set. */
+const strokesFor = (thickness: number, trackThickness: number | undefined): Strokes => ({
+  active: thickness,
+  track: trackThickness ?? thickness,
+});
+
 function useWidth(ref: RefObject<HTMLElement | null>) {
   const [width, setWidth] = useState(LINEAR_WIDTH);
   useLayoutEffect(() => {
@@ -85,6 +128,28 @@ function useWidth(ref: RefObject<HTMLElement | null>) {
   return width;
 }
 
+/* ------------------------------------------------------------------ Shared */
+
+interface SharedOwnProps {
+  /** Progress from 0 to 1; leave it out for an indeterminate indicator. */
+  value?: number;
+  /** The M3 Expressive wavy indicator. @default false */
+  wavy?: boolean;
+  /**
+   * Thickness of the active indicator in px. The spec's thick configuration is 8 (with the
+   * track); the indicator grows to fit, keeping room for the wave. @default 4
+   */
+  thickness?: number;
+  /** Thickness of the track in px. @default the `thickness` */
+  trackThickness?: number;
+  /**
+   * Draw the track (and the linear stop dot). Remove it inside a button, colouring the
+   * indicator like the button's label: `classNames={{ indicator: 'stroke-current' }}`.
+   * @default true
+   */
+  track?: boolean;
+}
+
 /* ------------------------------------------------------------------ Linear */
 
 export interface LinearProgressIndicatorClassNames {
@@ -94,11 +159,7 @@ export interface LinearProgressIndicatorClassNames {
   stop?: string;
 }
 
-interface LinearOwnProps {
-  /** Progress from 0 to 1; leave it out for an indeterminate indicator. */
-  value?: number;
-  /** The M3 Expressive wavy indicator. @default false */
-  wavy?: boolean;
+interface LinearOwnProps extends SharedOwnProps {
   /** The dot at the end of a determinate track (Compose draws it). @default true */
   stopIndicator?: boolean;
   classNames?: LinearProgressIndicatorClassNames;
@@ -111,7 +172,9 @@ export type LinearProgressIndicatorProps = LinearOwnProps &
 /**
  * M3 linear progress indicator: determinate (`value`) or indeterminate, flat or wavy, with a
  * stop dot at the end of a determinate track. 240px wide by default; set the width with
- * `className` (`w-full`). A wavy determinate indicator flattens below 10% and above 95%.
+ * `className` (`w-full`). `thickness` and `trackThickness` set the strokes (4px by default).
+ * A wavy determinate indicator flattens below 10% and above 95%. It mirrors in right-to-left
+ * layouts. When `value` arrives on an indeterminate indicator, the moving line eases into it.
  *
  * @example
  * <LinearProgressIndicator value={0.4} wavy aria-label="Uploading" className="w-full" />
@@ -119,9 +182,13 @@ export type LinearProgressIndicatorProps = LinearOwnProps &
 export function LinearProgressIndicator({
   value,
   wavy = false,
+  thickness = STROKE,
+  trackThickness,
+  track: showTrack = true,
   stopIndicator: showStop = true,
   classNames,
   className,
+  style,
   ref,
   ...rest
 }: LinearProgressIndicatorProps) {
@@ -129,9 +196,12 @@ export function LinearProgressIndicator({
   const v = clamp01(value ?? 0);
   const rootRef = useObjectRef(ref);
   const width = useWidth(rootRef);
-  const height = wavy ? LINEAR_WAVE_HEIGHT : LINEAR_FLAT_HEIGHT;
+  const strokes = strokesFor(thickness, trackThickness);
+  const height = linearHeight(wavy, strokes);
   const reduceMotion = useReducedMotion() ?? false;
-  const amplitude = useAmplitude(wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0, reduceMotion);
+  const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
+  const amplitude = useAmplitude(ampTarget, reduceMotion);
+  const handoff = useHandoff<number[]>(indeterminate, reduceMotion);
   const { progressBarProps } = useProgressBar({
     ...rest,
     value: indeterminate ? undefined : v,
@@ -140,42 +210,50 @@ export function LinearProgressIndicator({
     isIndeterminate: indeterminate,
   });
 
-  const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
-  /** A frame at `time` (the loop's ms, for the indeterminate keyframes) and `now` (clock). */
-  const frame = (time: number, amp: number, now: number) => {
+  /** The track and active paths for some line positions, wave amplitude and clock. */
+  const paths = (fractions: number[], amp: number, now: number, wavelength: number) => {
     const offset = amp > 0 && !reduceMotion ? (now % WAVE_PERIOD_MS) / WAVE_PERIOD_MS : 0;
-    return {
-      paths: linearPaths(
-        width,
-        height,
-        indeterminate ? indeterminateLinearFractions(time) : [0, v],
-        amp,
-        offset,
-        indeterminate ? LINEAR_INDETERMINATE_WAVELENGTH : LINEAR_WAVELENGTH,
-      ),
-      stop: !indeterminate && showStop ? stopIndicator(width, height, v) : null,
-    };
+    return linearPaths(width, height, fractions, amp, offset, wavelength, strokes);
   };
+  const determinate = [0, v, 0, 0];
 
   const trackRef = useRef<SVGPathElement>(null);
   const firstRef = useRef<SVGPathElement>(null);
   const secondRef = useRef<SVGPathElement>(null);
   useAnimationFrame((time) => {
-    if (!indeterminate && !wavy) return;
-    const { paths } = frame(time, amplitude(time), time);
-    trackRef.current?.setAttribute('d', paths.track);
-    firstRef.current?.setAttribute('d', paths.active[0] ?? '');
-    secondRef.current?.setAttribute('d', paths.active[1] ?? '');
+    if (!indeterminate && !wavy && !handoff.active()) return;
+    let fractions = determinate;
+    let wavelength = LINEAR_WAVELENGTH;
+    if (indeterminate) {
+      fractions = indeterminateLinearFractions(time);
+      wavelength = LINEAR_INDETERMINATE_WAVELENGTH;
+      handoff.record(fractions);
+    } else {
+      const step = handoff.at(time);
+      if (step) {
+        fractions = step.from.map((f, i) => mix(f, determinate[i]!, step.t));
+        wavelength = mix(LINEAR_INDETERMINATE_WAVELENGTH, LINEAR_WAVELENGTH, step.t);
+      }
+    }
+    const drawn = paths(fractions, amplitude(time), time, wavelength);
+    trackRef.current?.setAttribute('d', drawn.track);
+    firstRef.current?.setAttribute('d', drawn.active[0] ?? '');
+    secondRef.current?.setAttribute('d', drawn.active[1] ?? '');
   });
 
   // The first render is a deterministic frame (SSR-safe); animation frames take over.
-  const initial = frame(0, ampTarget, 0);
+  const initial = indeterminate
+    ? paths(indeterminateLinearFractions(0), ampTarget, 0, LINEAR_INDETERMINATE_WAVELENGTH)
+    : paths(determinate, ampTarget, 0, LINEAR_WAVELENGTH);
+  const stop =
+    !indeterminate && showTrack && showStop ? stopIndicator(width, height, v, strokes) : null;
   const styles = linearProgressStyles({ wavy });
   return (
     <div
       {...mergeProps(rest, progressBarProps)}
       ref={rootRef}
       data-indeterminate={indeterminate || undefined}
+      style={{ '--m3-progress-height': `${height}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <svg
@@ -184,27 +262,32 @@ export function LinearProgressIndicator({
         aria-hidden="true"
         className={styles.svg()}
       >
-        <path
-          ref={trackRef}
-          d={initial.paths.track}
-          className={styles.track({ class: classNames?.track })}
-        />
+        {showTrack && (
+          <path
+            ref={trackRef}
+            d={initial.track}
+            strokeWidth={strokes.track}
+            className={styles.track({ class: classNames?.track })}
+          />
+        )}
         <path
           ref={firstRef}
-          d={initial.paths.active[0] ?? ''}
+          d={initial.active[0] ?? ''}
+          strokeWidth={strokes.active}
           className={styles.indicator({ class: classNames?.indicator })}
         />
         {/* Indeterminate indicators draw a second line. */}
         <path
           ref={secondRef}
-          d={initial.paths.active[1] ?? ''}
+          d={initial.active[1] ?? ''}
+          strokeWidth={strokes.active}
           className={styles.indicator({ class: classNames?.indicator })}
         />
-        {initial.stop && (
+        {stop && (
           <circle
-            cx={initial.stop.cx}
-            cy={initial.stop.cy}
-            r={initial.stop.r}
+            cx={stop.cx}
+            cy={stop.cy}
+            r={stop.r}
             className={styles.stop({ class: classNames?.stop })}
           />
         )}
@@ -221,11 +304,7 @@ export interface CircularProgressIndicatorClassNames {
   indicator?: string;
 }
 
-interface CircularOwnProps {
-  /** Progress from 0 to 1. (Indeterminate circular progress is replaced by `LoadingIndicator`.) */
-  value: number;
-  /** The M3 Expressive wavy indicator (48px). @default false */
-  wavy?: boolean;
+interface CircularOwnProps extends SharedOwnProps {
   classNames?: CircularProgressIndicatorClassNames;
 }
 
@@ -233,105 +312,180 @@ export type CircularProgressIndicatorProps = CircularOwnProps &
   Naming &
   Omit<ComponentPropsWithRef<'div'>, keyof CircularOwnProps | 'children' | 'role'>;
 
+interface CircularFrame {
+  /** Degrees clockwise from 12 o'clock where the arc starts. */
+  rotation: number;
+  /** The arc's length as a fraction of the ring. */
+  sweep: number;
+}
+
+/** Every attribute the circular indicator animates, for one frame. */
+function circularAttributes(
+  wavy: boolean,
+  size: number,
+  strokes: Strokes,
+  { rotation, sweep }: CircularFrame,
+  amplitude: number,
+  offset: number,
+) {
+  const c = size / 2;
+  const turn = (deg: number) => `rotate(${Math.round(deg * 100) / 100} ${c} ${c})`;
+  if (!wavy) {
+    const d = circlePath(size, Math.max(strokes.active, strokes.track));
+    const arcs = circularFlatArcs(sweep, size, strokes.active);
+    return {
+      ring: turn(rotation),
+      wave: '',
+      trackD: d,
+      trackDash: `${arcs.trackLength} 1`,
+      trackOffset: -arcs.trackStart,
+      activeD: d,
+      activeDash: `${sweep} 1`,
+      activeOffset: 0,
+      visible: sweep > 0,
+    };
+  }
+  const paths = circularWavyPaths(amplitude, size, strokes.active);
+  const track = circularWavyTrack(sweep, size, strokes);
+  return {
+    ring: turn(rotation),
+    // Shift the dash along the ring and turn the ring back: the wave moves, the arc stays.
+    wave: turn(-offset * 360),
+    trackD: paths.track,
+    trackDash: `${track.length} 1`,
+    trackOffset: -track.start,
+    activeD: paths.active,
+    activeDash: `${sweep} 2`,
+    activeOffset: -offset,
+    visible: sweep > 0,
+  };
+}
+
 /**
- * M3 circular progress indicator (determinate): an arc from 12 o'clock over a track, flat
- * (40px) or wavy (48px), whose wave travels around the ring. M3 Expressive replaces the
- * indeterminate circular indicator with {@link LoadingIndicator}.
+ * M3 circular progress indicator: determinate (`value`) or indeterminate, flat (40px) or wavy
+ * (48px), drawn clockwise from 12 o'clock over a track. A wavy indicator's wave travels
+ * around the ring. `thickness` and `trackThickness` set the strokes (4px by default); the spec's
+ * thick configuration (8px) makes it 44px, or 52px wavy. It isn't mirrored in right-to-left
+ * layouts. For short waits, {@link LoadingIndicator} is recommended.
  *
  * @example
  * <CircularProgressIndicator value={0.7} wavy aria-label="Downloading" />
+ * <CircularProgressIndicator aria-label="Loading" />
  */
 export function CircularProgressIndicator({
   value,
   wavy = false,
+  thickness = STROKE,
+  trackThickness,
+  track: showTrack = true,
   classNames,
   className,
+  style,
   ref,
   ...rest
 }: CircularProgressIndicatorProps) {
-  const v = clamp01(value);
+  const indeterminate = value === undefined;
+  const v = clamp01(value ?? 0);
   const reduceMotion = useReducedMotion() ?? false;
-  const amplitude = useAmplitude(wavy ? amplitudeFor(v) : 0, reduceMotion);
-  const { progressBarProps } = useProgressBar({ ...rest, value: v, minValue: 0, maxValue: 1 });
+  const strokes = strokesFor(thickness, trackThickness);
+  const size = circularSize(wavy, strokes);
+  const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
+  const amplitude = useAmplitude(ampTarget, reduceMotion);
+  const handoff = useHandoff<CircularFrame>(indeterminate, reduceMotion);
+  const { progressBarProps } = useProgressBar({
+    ...rest,
+    value: indeterminate ? undefined : v,
+    minValue: 0,
+    maxValue: 1,
+    isIndeterminate: indeterminate,
+  });
   const styles = circularProgressStyles({ wavy });
-  const size = wavy ? CIRCULAR_WAVE_SIZE : CIRCULAR_FLAT_SIZE;
+  const period = circularWavePeriod(
+    circularWavyShapes(size, CIRCULAR_WAVELENGTH, strokes.active).vertices,
+  );
+  const offsetAt = (amp: number, now: number) =>
+    wavy && amp > 0 && !reduceMotion ? (now % period) / period : 0;
+  const determinate: CircularFrame = { rotation: 0, sweep: v };
 
-  const groupRef = useRef<SVGGElement>(null);
+  const ringRef = useRef<SVGGElement>(null);
+  const waveRef = useRef<SVGGElement>(null);
+  const trackRef = useRef<SVGPathElement>(null);
   const activeRef = useRef<SVGPathElement>(null);
-  const period = circularWavePeriod(circularWavyShapes(size).vertices);
-  const ampTarget = wavy ? amplitudeFor(v) : 0;
-  const wavyFrame = (amp: number, now: number) => {
-    const offset = amp > 0 && !reduceMotion ? (now % period) / period : 0;
-    return { offset, paths: circularWavyPaths(amp, size) };
-  };
   useAnimationFrame((time) => {
-    if (!wavy) return;
-    const { offset, paths } = wavyFrame(amplitude(time), time);
-    activeRef.current?.setAttribute('d', paths.active);
-    activeRef.current?.setAttribute('stroke-dashoffset', String(-offset));
-    // Shift the dash along the ring and turn the ring back: the wave moves, the arc stays.
-    groupRef.current?.setAttribute('transform', `rotate(${-offset * 360} ${size / 2} ${size / 2})`);
+    if (!indeterminate && !wavy && !handoff.active()) return;
+    let frame = determinate;
+    if (indeterminate) {
+      frame = indeterminateCircular(time);
+      handoff.record(frame);
+    } else {
+      const step = handoff.at(time);
+      // Keep turning clockwise to the next 12 o'clock while the arc takes the value.
+      if (step) {
+        const target = step.from.rotation === 0 ? 0 : 360;
+        frame = {
+          rotation: mix(step.from.rotation, target, step.t),
+          sweep: mix(step.from.sweep, v, step.t),
+        };
+      }
+    }
+    const amp = amplitude(time);
+    const a = circularAttributes(wavy, size, strokes, frame, amp, offsetAt(amp, time));
+    ringRef.current?.setAttribute('transform', a.ring);
+    waveRef.current?.setAttribute('transform', a.wave);
+    const trackEl = trackRef.current;
+    trackEl?.setAttribute('d', a.trackD);
+    trackEl?.setAttribute('stroke-dasharray', a.trackDash);
+    trackEl?.setAttribute('stroke-dashoffset', String(a.trackOffset));
+    const activeEl = activeRef.current;
+    activeEl?.setAttribute('d', a.activeD);
+    activeEl?.setAttribute('stroke-dasharray', a.activeDash);
+    activeEl?.setAttribute('stroke-dashoffset', String(a.activeOffset));
+    activeEl?.setAttribute('visibility', a.visible ? 'visible' : 'hidden');
   });
 
-  let content;
-  if (!wavy) {
-    const arcs = circularFlatArcs(v, size);
-    const d = circlePath(size);
-    content = (
-      <>
-        <path
-          d={d}
-          pathLength={1}
-          strokeDasharray={`${arcs.trackLength} 1`}
-          strokeDashoffset={-arcs.trackStart}
-          className={styles.track({ class: classNames?.track })}
-        />
-        {v > 0 && (
-          <path
-            d={d}
-            pathLength={1}
-            strokeDasharray={`${arcs.active} 1`}
-            className={styles.indicator({ class: classNames?.indicator })}
-          />
-        )}
-      </>
-    );
-  } else {
-    const initial = wavyFrame(ampTarget, 0);
-    const track = circularWavyTrack(v, size);
-    content = (
-      <>
-        <path
-          d={initial.paths.track}
-          pathLength={1}
-          strokeDasharray={`${track.length} 1`}
-          strokeDashoffset={-track.start}
-          className={styles.track({ class: classNames?.track })}
-        />
-        {v > 0 && (
-          <g ref={groupRef}>
-            <path
-              ref={activeRef}
-              d={initial.paths.active}
-              pathLength={2}
-              strokeDasharray={`${v} 2`}
-              strokeDashoffset={-initial.offset}
-              className={styles.indicator({ class: classNames?.indicator })}
-            />
-          </g>
-        )}
-      </>
-    );
-  }
-
+  // The first render is a deterministic frame (SSR-safe); animation frames take over.
+  const initial = circularAttributes(
+    wavy,
+    size,
+    strokes,
+    indeterminate ? indeterminateCircular(0) : determinate,
+    ampTarget,
+    0,
+  );
   return (
     <div
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
+      data-indeterminate={indeterminate || undefined}
+      style={{ '--m3-progress-size': `${size}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <svg viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className={styles.svg()}>
-        {content}
+        <g ref={ringRef} transform={initial.ring}>
+          {showTrack && (
+            <path
+              ref={trackRef}
+              d={initial.trackD}
+              pathLength={1}
+              strokeWidth={strokes.track}
+              strokeDasharray={initial.trackDash}
+              strokeDashoffset={initial.trackOffset}
+              className={styles.track({ class: classNames?.track })}
+            />
+          )}
+          <g ref={waveRef} transform={initial.wave || undefined}>
+            <path
+              ref={activeRef}
+              d={initial.activeD}
+              pathLength={wavy ? 2 : 1}
+              strokeWidth={strokes.active}
+              strokeDasharray={initial.activeDash}
+              strokeDashoffset={initial.activeOffset}
+              visibility={initial.visible ? 'visible' : 'hidden'}
+              className={styles.indicator({ class: classNames?.indicator })}
+            />
+          </g>
+        </g>
       </svg>
     </div>
   );

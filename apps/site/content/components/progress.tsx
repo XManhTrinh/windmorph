@@ -27,10 +27,20 @@ export async function ProgressBody() {
         </p>
         <p className="text-body-large text-on-surface-variant">
           <code className="text-on-surface">LinearProgressIndicator</code> is a horizontal track;{' '}
-          <code className="text-on-surface">CircularProgressIndicator</code> is a ring. For an
-          indeterminate circular indicator, reach for{' '}
-          <code className="text-on-surface">LoadingIndicator</code> instead — M3 Expressive replaces
-          the spinning circle with it.
+          <code className="text-on-surface">CircularProgressIndicator</code> is a ring. For short
+          indeterminate waits (under 5 seconds) the{' '}
+          <code className="text-on-surface">LoadingIndicator</code> is recommended. When a
+          process&apos;s progress becomes known, give an indeterminate indicator its{' '}
+          <code className="text-on-surface">value</code>: the moving line eases into it.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          <code className="text-on-surface">thickness</code> and{' '}
+          <code className="text-on-surface">trackThickness</code> set the strokes (4px by default);
+          8px is the spec&apos;s thick configuration, and the indicator grows to fit. Inside a
+          button, remove the track with <code className="text-on-surface">track={'{false}'}</code>{' '}
+          and colour the indicator like the label with{' '}
+          <code className="text-on-surface">classNames.indicator</code> set to{' '}
+          <code className="text-on-surface">stroke-current</code>.
         </p>
       </section>
 
@@ -80,18 +90,16 @@ export async function ProgressBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            There is{' '}
-            <strong className="text-on-surface">no indeterminate circular indicator</strong>: it is
-            deprecated in M3 Expressive, so{' '}
-            <code className="text-on-surface">CircularProgressIndicator</code> requires{' '}
-            <code className="text-on-surface">value</code>, and{' '}
-            <code className="text-on-surface">LoadingIndicator</code> covers the indeterminate case.
+            The indeterminate circular indicator follows Compose&apos;s 6-second cycle (a 1080° turn
+            plus a 90° step every 1.5s, the arc growing from 10% to 87% and back) and keeps its
+            track, which the spec shows (Compose&apos;s flat one hides it).
           </li>
           <li>
             Shared values: a <code className="text-on-surface">primary</code> active indicator and
             stop dot on a <code className="text-on-surface">secondary-container</code> track, with
             4px round strokes and a 4px gap. Linear is 240px wide (4px tall, 10px wavy); circular is
-            40px (48px wavy).
+            40px (48px wavy). Thicker strokes grow the box by the extra thickness (Compose&apos;s
+            thick samples: 14px linear, 52px wavy circular at 8px).
           </li>
           <li>
             Linear draws Compose&apos;s wavy quadratics and keyframed indeterminate curves; a wavy
@@ -101,7 +109,8 @@ export async function ProgressBody() {
           </li>
           <li>
             Geometry and timing are pure functions tested against Compose&apos;s numbers; the first
-            render is a deterministic t = 0 frame (SSR-safe), and the SVG mirrors in RTL.
+            render is a deterministic t = 0 frame (SSR-safe). The linear indicator mirrors in RTL;
+            the circular one stays clockwise, as the spec says.
           </li>
         </ul>
       </section>

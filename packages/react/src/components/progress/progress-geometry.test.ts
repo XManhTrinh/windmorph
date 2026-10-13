@@ -7,7 +7,10 @@ import {
   circularWavyTrack,
   cubicBezier,
   emphasizedAccelerate,
+  indeterminateCircular,
   indeterminateLinearFractions,
+  circularSize,
+  linearHeight,
   linearPaths,
   stopIndicator,
   waveSegment,
@@ -129,5 +132,46 @@ describe('circular geometry', () => {
     const circumference = Math.PI * 44;
     expect(start).toBeCloseTo((0.5 * circumference + 8) / circumference, 6);
     expect(start + length).toBeCloseTo(1 - 8 / circumference, 6);
+  });
+});
+
+describe('thickness', () => {
+  const thick = { active: 8, track: 8 };
+
+  it('sizes the box for the strokes and the wave (Compose’s thick samples)', () => {
+    expect(linearHeight(false)).toBe(4);
+    expect(linearHeight(true)).toBe(10);
+    expect(linearHeight(true, thick)).toBe(14);
+    expect(circularSize(false)).toBe(40);
+    expect(circularSize(true)).toBe(48);
+    expect(circularSize(true, thick)).toBe(52);
+    expect(circularSize(false, { active: 4, track: 8 })).toBe(44);
+  });
+
+  it('insets the line for the thicker cap and keeps the 3px wave', () => {
+    const { active } = linearPaths(240, 8, [0, 0.5], 0, 0, 40, thick);
+    expect(active).toEqual(['M4 4L120 4']);
+    const ys = numbers(waveSegment(0, 40, 14, 1, 40, 0, 8)).filter((_, i) => i % 2 === 1);
+    expect(Math.max(...ys)).toBeCloseTo(7 + 6, 5);
+  });
+
+  it('keeps the stop dot at 4px, inset by a quarter of a thicker track', () => {
+    expect(stopIndicator(240, 8, 0.5, thick)).toEqual({ cx: 240 - 4 - 2 + 2, cy: 4, r: 2 });
+  });
+});
+
+describe('indeterminateCircular', () => {
+  it('follows Compose’s 6000ms cycle: 10% to 87% and back, turning clockwise', () => {
+    expect(indeterminateCircular(0)).toEqual({ rotation: 0, sweep: 0.1 });
+    expect(indeterminateCircular(3000).sweep).toBeCloseTo(0.87, 6);
+    expect(indeterminateCircular(6000)).toEqual(indeterminateCircular(0));
+    // 1080° a cycle plus a 90° step in the first 300ms of every 1500ms.
+    expect(indeterminateCircular(300).rotation).toBeCloseTo(54 + 90, 6);
+    expect(indeterminateCircular(1500).rotation).toBeCloseTo((270 + 90) % 360, 6);
+    // Between steps only the slow turn moves it.
+    expect(indeterminateCircular(1000).rotation - indeterminateCircular(900).rotation).toBeCloseTo(
+      18,
+      6,
+    );
   });
 });

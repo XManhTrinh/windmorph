@@ -10,14 +10,27 @@ import { circle, star } from '../../shapes/shapes';
  * Linear/CircularProgressIndicator tokens), as pure functions of the inputs.
  */
 
+/** The default thickness of the active indicator and the track (`ActiveThickness`, `TrackThickness`). */
 export const STROKE = 4;
 export const GAP = 4;
 export const STOP = 4;
-const CAP = STROKE / 2;
+
+/** Stroke widths of the active indicator and the track, in px. */
+export interface Strokes {
+  active: number;
+  track: number;
+}
+
+export const DEFAULT_STROKES: Strokes = { active: STROKE, track: STROKE };
+
+/** Round caps reach half the thicker stroke past each end (Compose `currentStrokeCapWidth`). */
+const capOf = (strokes: Strokes) => Math.max(strokes.active, strokes.track) / 2;
 
 export const LINEAR_WIDTH = 240;
 export const LINEAR_FLAT_HEIGHT = 4;
 export const LINEAR_WAVE_HEIGHT = 10;
+/** `ActiveWaveAmplitude`: the wave's peak either side of the centre line. */
+export const LINEAR_AMPLITUDE = 3;
 export const LINEAR_WAVELENGTH = 40;
 export const LINEAR_INDETERMINATE_WAVELENGTH = 20;
 
@@ -25,6 +38,19 @@ export const CIRCULAR_FLAT_SIZE = 40;
 export const CIRCULAR_WAVE_SIZE = 48;
 export const CIRCULAR_WAVELENGTH = 15;
 const MIN_CIRCULAR_VERTICES = 5;
+
+/**
+ * The box that holds the strokes. Thicker strokes grow it by the extra thickness, keeping the
+ * wave's room: Compose's thick samples use 8px strokes in a 14px linear and a 52px wavy
+ * circular indicator (the spec's "thicker variants").
+ */
+export const linearHeight = (wavy: boolean, strokes: Strokes = DEFAULT_STROKES) =>
+  Math.max(strokes.active, strokes.track) + (wavy ? LINEAR_AMPLITUDE * 2 : 0);
+
+export const circularSize = (wavy: boolean, strokes: Strokes = DEFAULT_STROKES) =>
+  (wavy ? CIRCULAR_WAVE_SIZE : CIRCULAR_FLAT_SIZE) +
+  Math.max(strokes.active, strokes.track) -
+  STROKE;
 
 /** The wave travels one wavelength per second (`waveSpeed = wavelength`). */
 export const WAVE_PERIOD_MS = 1000;
@@ -63,6 +89,8 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
 export const emphasizedAccelerate = cubicBezier(0.3, 0, 0.8, 0.15);
 /** `EasingStandardCubicBezier`. */
 export const standard = cubicBezier(0.2, 0, 0, 1);
+/** `EasingEmphasizedDecelerateCubicBezier`. */
+export const emphasizedDecelerate = cubicBezier(0.05, 0.7, 0.1, 1);
 
 /** `WavyProgressIndicatorDefaults.indicatorAmplitude`: no wave below 10% or above 95%. */
 export const amplitudeFor = (progress: number) => (progress <= 0.1 || progress >= 0.95 ? 0 : 1);
@@ -77,6 +105,35 @@ export function indeterminateLinearFractions(elapsedMs: number): number[] {
   const at = (delay: number, duration: number) =>
     emphasizedAccelerate(Math.min(Math.max((t - delay) / duration, 0), 1));
   return [at(250, 1000), at(0, 1000), at(900, 850), at(650, 850)];
+}
+
+/** The indeterminate circular cycle (Compose `CircularAnimationProgressDuration`). */
+export const CIRCULAR_CYCLE_MS = 6000;
+const CIRCULAR_STEP_MS = 300;
+const CIRCULAR_STEP_EVERY_MS = 1500;
+const CIRCULAR_MIN_SWEEP = 0.1;
+const CIRCULAR_MAX_SWEEP = 0.87;
+
+/**
+ * Compose's indeterminate circular motion over a 6000ms cycle: a linear 1080° turn, plus a
+ * 90° step every 1500ms (300ms, emphasized decelerate), while the arc grows from 10% to 87%
+ * of the ring and shrinks back (3000ms each, standard easing). Compose attaches each easing
+ * to the keyframe after the move, so its steps run linear; the easings here are the ones its
+ * comments describe. `rotation` is in degrees clockwise from 12 o'clock; `sweep` is a fraction.
+ */
+export function indeterminateCircular(elapsedMs: number): { rotation: number; sweep: number } {
+  const t = ((elapsedMs % CIRCULAR_CYCLE_MS) + CIRCULAR_CYCLE_MS) % CIRCULAR_CYCLE_MS;
+  const global = (t / CIRCULAR_CYCLE_MS) * 1080;
+  const step = Math.floor(t / CIRCULAR_STEP_EVERY_MS);
+  const within = t - step * CIRCULAR_STEP_EVERY_MS;
+  const additional = (step + emphasizedDecelerate(Math.min(within / CIRCULAR_STEP_MS, 1))) * 90;
+  const half = CIRCULAR_CYCLE_MS / 2;
+  const range = CIRCULAR_MAX_SWEEP - CIRCULAR_MIN_SWEEP;
+  const sweep =
+    t < half
+      ? CIRCULAR_MIN_SWEEP + range * standard(t / half)
+      : CIRCULAR_MAX_SWEEP - range * standard((t - half) / half);
+  return { rotation: (global + additional) % 360, sweep };
 }
 
 const clampNum = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
@@ -94,12 +151,13 @@ export function waveSegment(
   amplitude: number,
   wavelength: number,
   waveOffset: number,
+  stroke = STROKE,
 ): string {
   const mid = height / 2;
   if (amplitude === 0 || x1 <= x0) return `M${fmt(x0)} ${fmt(mid)}L${fmt(x1)} ${fmt(mid)}`;
   const shift = waveOffset * wavelength;
   const half = wavelength / 2;
-  const peak = (height - STROKE) * amplitude;
+  const peak = (height - stroke) * amplitude;
   const wave = (u: number) => {
     const k = Math.floor(u / half);
     const t = (u - k * half) / half;
@@ -141,11 +199,13 @@ export function linearPaths(
   amplitude: number,
   waveOffset: number,
   wavelength: number,
+  strokes: Strokes = DEFAULT_STROKES,
 ): LinearPaths {
+  const cap = capOf(strokes);
   const mid = height / 2;
   const active: string[] = [];
   let track = '';
-  let nextEnd = width - CAP;
+  let nextEnd = width - cap;
   track += `M${fmt(nextEnd)} ${fmt(mid)}`;
   let gap = GAP;
   let activeVisible = false;
@@ -155,35 +215,42 @@ export function linearPaths(
     const tail = start * width;
     const head = end * width;
     if (i === 0) {
-      gap = head < CAP ? 0 : Math.min(head - CAP, GAP);
-      activeVisible = head >= CAP;
+      gap = head < cap ? 0 : Math.min(head - cap, GAP);
+      activeVisible = head >= cap;
     }
-    const adjHead = clampNum(head, CAP, width - CAP);
-    const adjTail = clampNum(tail, CAP, width - CAP);
-    if (Math.abs(end - start) > 0 && head >= CAP) {
-      active.push(waveSegment(adjTail, adjHead, height, amplitude, wavelength, waveOffset));
+    const adjHead = clampNum(head, cap, width - cap);
+    const adjTail = clampNum(tail, cap, width - cap);
+    if (Math.abs(end - start) > 0 && head >= cap) {
+      active.push(
+        waveSegment(adjTail, adjHead, height, amplitude, wavelength, waveOffset, strokes.active),
+      );
     }
-    const spacing = activeVisible ? gap + CAP * 2 : gap;
+    const spacing = activeVisible ? gap + cap * 2 : gap;
     if (nextEnd > adjHead + spacing) {
-      track += `L${fmt(Math.max(CAP, adjHead + spacing))} ${fmt(mid)}`;
+      track += `L${fmt(Math.max(cap, adjHead + spacing))} ${fmt(mid)}`;
     }
     if (head > tail) {
-      nextEnd = Math.max(CAP, adjTail - spacing);
+      nextEnd = Math.max(cap, adjTail - spacing);
       track += `M${fmt(nextEnd)} ${fmt(mid)}`;
     }
   }
-  if (nextEnd > CAP) track += `L${fmt(CAP)} ${fmt(mid)}`;
+  if (nextEnd > cap) track += `L${fmt(cap)} ${fmt(mid)}`;
   return { active, track };
 }
 
 /**
- * The stop indicator (Compose `drawStopIndicator`, wavy version): a 4px dot at the track's
- * end that shrinks once the progress reaches it.
+ * The stop indicator (Compose `drawStopIndicator`, wavy version): a dot at the track's end, at
+ * most 4px (inset by a quarter of a thicker track), that shrinks once the progress reaches it.
  */
-export function stopIndicator(width: number, height: number, progress: number) {
-  let size = Math.min(STROKE, STOP);
-  let x = width - size;
-  const progressX = width * progress + CAP;
+export function stopIndicator(
+  width: number,
+  height: number,
+  progress: number,
+  strokes: Strokes = DEFAULT_STROKES,
+) {
+  let size = Math.min(strokes.track, STOP);
+  let x = width - size - (size === strokes.track ? 0 : strokes.track / 4);
+  const progressX = width * progress + capOf(strokes);
   if (x <= progressX) {
     size = Math.max(0, size - (progressX - x));
     x = progressX;
@@ -197,8 +264,8 @@ export function stopIndicator(width: number, height: number, progress: number) {
  * Flat circular indicator (Compose `CircularProgressIndicator`): the arc and the track as
  * fractions of a circle starting at 12 o'clock, the gap being (4px + stroke) of circumference.
  */
-export function circularFlatArcs(progress: number, size = CIRCULAR_FLAT_SIZE) {
-  const gap = (GAP + STROKE) / (Math.PI * size);
+export function circularFlatArcs(progress: number, size = CIRCULAR_FLAT_SIZE, stroke = STROKE) {
+  const gap = (GAP + stroke) / (Math.PI * size);
   const g = Math.min(progress, gap);
   return {
     active: progress,
@@ -208,8 +275,8 @@ export function circularFlatArcs(progress: number, size = CIRCULAR_FLAT_SIZE) {
 }
 
 /** A circle path from 12 o'clock, clockwise, for `pathLength="1"` dashes. */
-export function circlePath(size: number) {
-  const r = (size - STROKE) / 2;
+export function circlePath(size: number, stroke = STROKE) {
+  const r = (size - stroke) / 2;
   const c = size / 2;
   return `M${c} ${c - r}A${r} ${r} 0 1 1 ${c} ${c + r}A${r} ${r} 0 1 1 ${c} ${c - r}Z`;
 }
@@ -217,8 +284,12 @@ export function circlePath(size: number) {
 const wavyShapes = new Map<number, { track: RoundedPolygon; active: RoundedPolygon }>();
 
 /** Compose `CircularShapes`: a circle and a 0.75-inner-radius star with matched vertices. */
-export function circularWavyShapes(size = CIRCULAR_WAVE_SIZE, wavelength = CIRCULAR_WAVELENGTH) {
-  const r = size / 2 - STROKE / 2;
+export function circularWavyShapes(
+  size = CIRCULAR_WAVE_SIZE,
+  wavelength = CIRCULAR_WAVELENGTH,
+  stroke = STROKE,
+) {
+  const r = size / 2 - stroke / 2;
   const vertices = Math.max(MIN_CIRCULAR_VERTICES, Math.round((2 * Math.PI * r) / wavelength));
   let shapes = wavyShapes.get(vertices);
   if (!shapes) {
@@ -240,10 +311,10 @@ export function circularWavyShapes(size = CIRCULAR_WAVE_SIZE, wavelength = CIRCU
  * 12 o'clock: the flat track circle and the active ring morphed from that circle towards
  * the star by `amplitude`.
  */
-export function circularWavyPaths(amplitude: number, size = CIRCULAR_WAVE_SIZE) {
-  const { track, active } = circularWavyShapes(size);
-  const scale = size - STROKE;
-  const offset = STROKE / 2;
+export function circularWavyPaths(amplitude: number, size = CIRCULAR_WAVE_SIZE, stroke = STROKE) {
+  const { track, active } = circularWavyShapes(size, CIRCULAR_WAVELENGTH, stroke);
+  const scale = size - stroke;
+  const offset = stroke / 2;
   const place = { scale, translateX: offset, translateY: offset, startAngle: 270 };
   // The active ring is drawn twice (Compose's `repeatPath`), so a dash shifted along it by
   // the wave offset never runs off the end; give it `pathLength="2"`.
@@ -264,10 +335,15 @@ export function circularWavyPaths(amplitude: number, size = CIRCULAR_WAVE_SIZE) 
  * Track spacing for the wavy circle (Compose `updateDrawPaths`): the gap plus both caps,
  * shrinking while the progress is smaller, as fractions of the circumference.
  */
-export function circularWavyTrack(progress: number, size = CIRCULAR_WAVE_SIZE) {
-  const length = Math.PI * (size - STROKE);
+export function circularWavyTrack(
+  progress: number,
+  size = CIRCULAR_WAVE_SIZE,
+  strokes: Strokes = DEFAULT_STROKES,
+) {
+  const cap = capOf(strokes);
+  const length = Math.PI * (size - strokes.active);
   const stop = progress * length;
-  const spacing = Math.min(stop, CAP) * 2 + Math.min(stop, GAP);
+  const spacing = Math.min(stop, cap) * 2 + Math.min(stop, GAP);
   const start = (stop + spacing) / length;
   const end = (length - spacing) / length;
   return { start, length: Math.max(0, end - start) };

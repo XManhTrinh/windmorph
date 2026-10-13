@@ -24,12 +24,17 @@ export async function LoadingIndicatorBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           The M3 Expressive loading indicator is a shape that morphs through Material shapes while
-          it rotates. Use it for short, indeterminate waits — it replaces the spinning circular
-          progress indicator. Pass <code className="text-on-surface">value</code> (0–1) for a
-          determinate variant that morphs from a circle to a soft burst as it fills.
+          it rotates. Use it for short, indeterminate waits (under 5 seconds). Pass{' '}
+          <code className="text-on-surface">value</code> (0–1) only to follow a gesture&apos;s
+          progress, such as pull to refresh: it morphs from a circle to a soft burst as it fills.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          For a horizontal track, or a determinate ring with a stop dot, use{' '}
+          Don&apos;t switch one loading indicator from indeterminate to determinate. When a
+          process&apos;s progress becomes known, use a progress indicator, which can make that
+          change.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          For a horizontal track, a ring over a track, or longer work, use{' '}
           <code className="text-on-surface">LinearProgressIndicator</code> or{' '}
           <code className="text-on-surface">CircularProgressIndicator</code> instead.
         </p>
@@ -46,7 +51,7 @@ export async function LoadingIndicatorBody() {
           <LoadingIndeterminate />
         </ExampleViewer>
         <ExampleViewer
-          title="Determinate and sizing"
+          title="Following a gesture, and sizing"
           code={determinate}
           html={determinateHtml}
           fileName="loading-determinate.tsx"

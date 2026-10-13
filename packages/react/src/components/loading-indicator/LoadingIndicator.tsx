@@ -30,8 +30,10 @@ type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
 interface LoadingIndicatorOwnProps {
   /**
-   * Progress from 0 to 1. Leave it out for an indeterminate indicator, which morphs
-   * through its shapes while rotating.
+   * Progress from 0 to 1, for a progress-driven gesture such as pull to refresh. Leave it out
+   * (the usual case) for an indeterminate indicator, which morphs through its shapes while
+   * rotating. Don't switch one indicator from indeterminate to determinate: the spec says a
+   * loading indicator never turns into a progress indicator; use a progress indicator instead.
    */
   value?: number;
   /** `contained` draws the indicator on a `primary-container` circle. @default "default" */
@@ -60,15 +62,17 @@ const shapeKey = (shape: MorphShape) => {
 
 /**
  * M3 Expressive loading indicator: a shape that morphs through Material shapes while it
- * rotates. Indeterminate by default; pass `value` (0–1) for a determinate indicator that
- * morphs from a circle to a soft burst as it fills. Rendered as `role="progressbar"`, so it
- * needs a name. Under `prefers-reduced-motion` the indeterminate indicator only rotates.
+ * rotates, for short indeterminate waits (under 5 seconds). `value` (0–1) makes it follow a
+ * gesture's progress, morphing from a circle to a soft burst; never switch one instance from
+ * indeterminate to determinate (use a progress indicator for work whose progress becomes
+ * known). Rendered as `role="progressbar"`, so it needs a name. Under
+ * `prefers-reduced-motion` the indeterminate indicator only rotates.
  *
  * The box is 48px; size it with `className` (e.g. `size-24`) and the shape scales with it.
  *
  * @example
  * <LoadingIndicator aria-label="Loading messages" />
- * <LoadingIndicator variant="contained" value={0.4} aria-label="Uploading" />
+ * <LoadingIndicator variant="contained" aria-label="Refreshing" />
  */
 export function LoadingIndicator({
   value,
