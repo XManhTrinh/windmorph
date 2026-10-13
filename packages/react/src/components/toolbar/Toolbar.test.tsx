@@ -75,6 +75,43 @@ describe('DockedToolbar', () => {
     expect(screen.getByRole('button', { name: 'One' })).toHaveFocus();
   });
 
+  it('lets Tab and Shift+Tab move through every control, then out (M3)', async () => {
+    const { container } = render(
+      <>
+        <button type="button">Before</button>
+        <DockedToolbar aria-label="Actions">
+          {button('One')}
+          {button('Two')}
+          {button('Three')}
+        </DockedToolbar>
+        <button type="button">After</button>
+      </>,
+    );
+    const focused = () =>
+      document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent;
+    const order: (string | null | undefined)[] = [];
+    for (let i = 0; i < 5; i++) {
+      await userEvent.tab();
+      order.push(focused());
+    }
+    expect(order).toEqual(['Before', 'One', 'Two', 'Three', 'After']);
+    const back: (string | null | undefined)[] = [];
+    for (let i = 0; i < 4; i++) {
+      await userEvent.tab({ shift: true });
+      back.push(focused());
+    }
+    expect(back).toEqual(['Three', 'Two', 'One', 'Before']);
+    // Arrows still work, and re-entering after an arrow move starts at the first control.
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(focused()).toBe('Two');
+    await userEvent.click(screen.getByRole('button', { name: 'After' }));
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('Three');
+    expect(screen.getByRole('toolbar', { name: 'Actions' })).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('follows the DOM direction for arrow keys', async () => {
     render(
       <div dir="rtl" style={{ direction: 'rtl' }}>
@@ -303,6 +340,10 @@ describe('FloatingToolbar', () => {
     expect(toolbar).toHaveAttribute('data-expanded', 'false');
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+    expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    // Tab moves on to the next control, still inside, then out of the toolbar.
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus();
     expect(toolbar).toHaveAttribute('data-expanded', 'true');
     await userEvent.tab();
     expect(toolbar).toHaveAttribute('data-expanded', 'false');
