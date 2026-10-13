@@ -18,14 +18,14 @@ const COLORS = [
 
 function* outputs() {
   for (const color of COLORS)
-    for (const lowered of [false, true]) {
+    for (const elevation of ['default', 'lowered', 'flat'] as const) {
       for (const size of ['default', 'medium', 'large'] as const) {
-        const slots = fabStyles({ color, lowered, size });
+        const slots = fabStyles({ color, elevation, size });
         yield* [slots.root(), slots.icon()];
       }
       for (const size of ['sm', 'md', 'lg'] as const)
         for (const hasIcon of [false, true]) {
-          const slots = extendedFabStyles({ color, lowered, size, hasIcon });
+          const slots = extendedFabStyles({ color, elevation, size, hasIcon });
           yield* [
             slots.root(),
             slots.content(),

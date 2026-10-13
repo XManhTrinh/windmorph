@@ -28,6 +28,67 @@ test.describe('FAB visual regression', () => {
 });
 
 test.describe('FAB interaction', () => {
+  test('hovering shows its label in a tooltip', async ({ page }) => {
+    await openStory(page, 'components-fab--playground');
+    const fab = page.getByRole('button', { name: 'Compose' });
+    // React Aria counts hovers once a pointer move has set the interaction modality.
+    await page.mouse.move(5, 5);
+    await fab.hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Compose');
+    await expect(fab).toHaveAttribute('aria-describedby', /.+/);
+  });
+
+  test('a flat FAB has no shadow at rest or on hover', async ({ page }) => {
+    await openStory(page, 'components-fab--playground', {}, { elevation: 'flat' });
+    const fab = page.getByRole('button', { name: 'Compose' });
+    const shadow = () => fab.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(await shadow()).toBe('none');
+    await fab.hover();
+    await expect(fab).toHaveAttribute('data-hovered', 'true');
+    expect(await shadow()).toBe('none');
+  });
+
+  test('disappears towards its centre and reappears', async ({ page }) => {
+    await openStory(page, 'components-fab--visibility');
+    const fab = page.getByTestId('fab');
+    const style = () =>
+      fab.evaluate((el) => {
+        const s = getComputedStyle(el);
+        return { transform: s.transform, opacity: s.opacity, visibility: s.visibility };
+      });
+    expect(await style()).toEqual({ transform: 'none', opacity: '1', visibility: 'visible' });
+
+    await page.getByRole('button', { name: 'Hide' }).click();
+    // Scale 0.2 around the centre, faded and hidden once settled; out of the tab order.
+    await expect
+      .poll(style)
+      .toEqual({ transform: 'matrix(0.2, 0, 0, 0.2, 0, 0)', opacity: '0', visibility: 'hidden' });
+    await expect(fab).toHaveAttribute('inert');
+    await expect(page.getByTestId('extended-fab')).toHaveAttribute('data-hidden', 'true');
+
+    await page.getByRole('button', { name: 'Show' }).click();
+    await expect.poll(style).toEqual({ transform: 'none', opacity: '1', visibility: 'visible' });
+    await expect(fab).not.toHaveAttribute('inert');
+  });
+
+  test('reduced motion only fades', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-fab--visibility');
+    const fab = page.getByTestId('fab');
+    await page.getByRole('button', { name: 'Hide' }).click();
+    await expect.poll(() => fab.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+    expect(await fab.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  });
+
+  test('a new key with appear replays the entrance', async ({ page }) => {
+    await openStory(page, 'components-fab--visibility');
+    await page.getByRole('button', { name: 'Next tab' }).click();
+    const fab = page.getByRole('button', { name: 'Tab 2 action' });
+    // It starts small and transparent, then settles.
+    await expect.poll(() => fab.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+    expect(await fab.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+  });
+
   test('hover raises the elevation and focus shows the ring', async ({ page }) => {
     await openStory(page, 'components-fab--playground', {}, { size: 'medium' });
     const fab = page.getByRole('button', { name: 'Compose' });

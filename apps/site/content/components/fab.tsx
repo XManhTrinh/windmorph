@@ -2,20 +2,23 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { FabColors } from '../../examples/fab/fab-colors';
 import { FabExtended } from '../../examples/fab/fab-extended';
 import { FabExtendedCollapse } from '../../examples/fab/fab-extended-collapse';
+import { FabVisibility } from '../../examples/fab/fab-visibility';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 
 /** FAB page body (Fab + ExtendedFab). */
 export async function FabBody() {
-  const [colors, extended, collapse] = await Promise.all([
+  const [colors, extended, collapse, visibility] = await Promise.all([
     readExampleSource('fab/fab-colors.tsx'),
     readExampleSource('fab/fab-extended.tsx'),
     readExampleSource('fab/fab-extended-collapse.tsx'),
+    readExampleSource('fab/fab-visibility.tsx'),
   ]);
-  const [colorsHtml, extendedHtml, collapseHtml] = await Promise.all([
+  const [colorsHtml, extendedHtml, collapseHtml, visibilityHtml] = await Promise.all([
     highlightSource(colors),
     highlightSource(extended),
     highlightSource(collapse),
+    highlightSource(visibility),
   ]);
 
   return (
@@ -32,6 +35,13 @@ export async function FabBody() {
         <p className="text-body-large text-on-surface-variant">
           FABs have no disabled state in M3 — if an action is unavailable, hide the FAB or keep it
           enabled and handle the empty case.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          In compact and medium windows, place the FAB at the bottom trailing corner with 16px
+          margins (<code className="text-on-surface">fixed end-4 bottom-4</code>). In expanded
+          windows, consider the upper start corner, such as the navigation rail&apos;s header; a FAB
+          nested in another component rests at level 0, so give it{' '}
+          <code className="text-on-surface">elevation=&quot;flat&quot;</code>.
         </p>
       </section>
 
@@ -61,6 +71,14 @@ export async function FabBody() {
         >
           <FabExtendedCollapse />
         </ExampleViewer>
+        <ExampleViewer
+          title="Disappear and reappear"
+          code={visibility}
+          html={visibilityHtml}
+          fileName="fab-visibility.tsx"
+        >
+          <FabVisibility />
+        </ExampleViewer>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -69,12 +87,21 @@ export async function FabBody() {
           <li>
             <code className="text-on-surface">Fab</code> has no visible text, so{' '}
             <code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code> is required.
+            <code className="text-on-surface">aria-labelledby</code> is required. Its{' '}
+            <code className="text-on-surface">aria-label</code> also shows in a tooltip on hover and
+            keyboard focus, as M3 asks of FABs on the web; pass{' '}
+            <code className="text-on-surface">tooltip={'{false}'}</code> when you wrap the FAB in
+            your own <code className="text-on-surface">TooltipTrigger</code>.
           </li>
           <li>
             <code className="text-on-surface">ExtendedFab</code> is named by its label; a text-only
             extended FAB needs no extra name. The label stays in the accessible name while
-            collapsed.
+            collapsed. It needs no tooltip.
+          </li>
+          <li>
+            A hidden FAB (<code className="text-on-surface">visible={'{false}'}</code>) is{' '}
+            <code className="text-on-surface">inert</code>, so it leaves the tab order and the
+            accessibility tree.
           </li>
           <li>
             Tab moves focus; Enter or Space activates. With{' '}
@@ -84,7 +111,7 @@ export async function FabBody() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
+        <h2 className="text-headline-small text-on-surface">Spec values and differences</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             <code className="text-on-surface">Fab</code> sizes are default / medium / large (56 / 80
@@ -93,14 +120,16 @@ export async function FabBody() {
             96px tall).
           </li>
           <li>
-            Shapes and icons follow Compose&apos;s code: corners large (16px) / large-increased
-            (20px) / extra-large (28px); icons 24 / 28 / 36px, with the large icon 36px because
-            Compose marks the 32px token incorrect.
+            Corners are large (16px) / large-increased (20px) / extra-large (28px); icons follow the
+            spec tokens, 24 / 28 / 32px. Extended FABs put 8 / 16 / 20px between icon and label.
           </li>
           <li>
-            Elevation is level 3 (hover 4); <code className="text-on-surface">lowered</code> is
-            level 1 (hover 2). There is no press morph and no disabled state — the types enforce the
-            latter.
+            <code className="text-on-surface">elevation</code> is{' '}
+            <code className="text-on-surface">default</code> (level 3, hover 4),{' '}
+            <code className="text-on-surface">lowered</code> (level 1, hover 2) or{' '}
+            <code className="text-on-surface">flat</code> (level 0, for a FAB nested in another
+            component such as the navigation rail). There is no press morph and no disabled state —
+            the types enforce the latter.
           </li>
           <li>
             Colour styles are <code className="text-on-surface">primary-container</code> (default),{' '}
@@ -114,9 +143,16 @@ export async function FabBody() {
           <li>
             <code className="text-on-surface">expanded</code> animates a CSS grid column between{' '}
             <code className="text-on-surface">0fr</code> and{' '}
-            <code className="text-on-surface">1fr</code>, so the width animates without transforms.
-            Compose&apos;s whole-FAB show/hide (scale to 0.2 + fade) is deferred because it
-            conflicts with the layout-safety rules.
+            <code className="text-on-surface">1fr</code>, so the width animates without transforms,
+            on the fast spatial and fast effects springs both ways.
+          </li>
+          <li>
+            <code className="text-on-surface">visible</code> follows Compose&apos;s show / hide: the
+            FAB expands from its centre (scale 0.2 → 1) on the fast spatial spring and fades on the
+            fast effects spring. The scale is a <code className="text-on-surface">transform</code>{' '}
+            set only while hidden or appearing, so it composes with Tailwind&apos;s{' '}
+            <code className="text-on-surface">translate-*</code> and{' '}
+            <code className="text-on-surface">scale-*</code> utilities.
           </li>
         </ul>
       </section>

@@ -55,7 +55,7 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded }: Args) {
               aria-label={open ? 'Collapse navigation' : 'Expand navigation'}
               onPress={toggle}
             />
-            <Fab icon={<EditIcon />} aria-label="Compose" lowered className="mt-[4px]" />
+            <Fab icon={<EditIcon />} aria-label="Compose" elevation="flat" className="mt-[4px]" />
           </>
         )}
       >
@@ -99,7 +99,7 @@ export const RailStates: Story = {
           <NavigationRail
             aria-label={expanded ? 'Expanded' : 'Collapsed'}
             expanded={expanded}
-            header={<Fab icon={<EditIcon />} aria-label="Compose" lowered />}
+            header={<Fab icon={<EditIcon />} aria-label="Compose" elevation="flat" />}
             className="h-full"
           >
             {DESTINATIONS.map(({ id, label, icon }, i) => (

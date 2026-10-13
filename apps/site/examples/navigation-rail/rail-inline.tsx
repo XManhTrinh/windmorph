@@ -38,7 +38,7 @@ export function RailInline() {
               aria-label={expanded ? 'Collapse navigation' : 'Expand navigation'}
               onPress={toggle}
             />
-            <ExtendedFab icon={<EditIcon />} expanded={expanded} lowered className="mt-1">
+            <ExtendedFab icon={<EditIcon />} expanded={expanded} elevation="flat" className="mt-1">
               Compose
             </ExtendedFab>
           </>

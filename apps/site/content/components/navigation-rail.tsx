@@ -27,7 +27,8 @@ export async function NavigationRailBody() {
           <code className="text-on-surface">expanded</code>. A FAB in the header is an{' '}
           <code className="text-on-surface">ExtendedFab</code> given the rail&apos;s{' '}
           <code className="text-on-surface">expanded</code>, so it shows its label only while the
-          rail is expanded. On compact windows use a{' '}
+          rail is expanded, and <code className="text-on-surface">elevation=&quot;flat&quot;</code>,
+          since a FAB nested in the rail rests at level 0 (M3). On compact windows use a{' '}
           <code className="text-on-surface">NavigationBar</code> instead.
         </p>
         <p className="text-body-large text-on-surface-variant">

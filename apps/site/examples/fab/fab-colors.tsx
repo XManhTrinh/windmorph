@@ -11,7 +11,7 @@ export function FabColors() {
       <Fab size="default" icon={<EditIcon />} aria-label="Compose" />
       <Fab size="medium" color="secondary-container" icon={<EditIcon />} aria-label="Compose" />
       <Fab size="large" color="tertiary-container" icon={<EditIcon />} aria-label="Compose" />
-      <Fab color="primary" lowered icon={<EditIcon />} aria-label="Compose lowered" />
+      <Fab color="primary" elevation="lowered" icon={<EditIcon />} aria-label="Compose lowered" />
     </>
   );
 }

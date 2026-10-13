@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
@@ -27,8 +27,8 @@ describe('Fab', () => {
 
   it.each([
     ['medium', 'size-[80px]', 'rounded-corner-large-increased', 'size-[28px]'],
-    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[36px]'],
-  ] as const)('sizes the %s FAB to Compose', (size, box, corner, iconSize) => {
+    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[32px]'],
+  ] as const)('sizes the %s FAB to the spec tokens', (size, box, corner, iconSize) => {
     render(<Fab size={size} icon={<Icon />} aria-label="Add" />);
     expect(screen.getByRole('button')).toHaveClass(box, corner);
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
@@ -44,12 +44,62 @@ describe('Fab', () => {
     expect(screen.getByRole('button')).toHaveClass(bg, text);
   });
 
-  it('lowers its elevation', () => {
-    render(<Fab lowered icon={<Icon />} aria-label="Add" />);
-    expect(screen.getByRole('button')).toHaveClass(
+  it('lowers its elevation, or sits flat (level 0) when nested in another component', () => {
+    render(
+      <>
+        <Fab elevation="lowered" icon={<Icon />} aria-label="Lowered" />
+        <Fab elevation="flat" icon={<Icon />} aria-label="Flat" />
+        <ExtendedFab elevation="flat" icon={<Icon />}>
+          Compose
+        </ExtendedFab>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Lowered' })).toHaveClass(
       'shadow-elevation-1',
       'data-hovered:shadow-elevation-2',
     );
+    for (const name of ['Flat', 'Compose']) {
+      const fab = screen.getByRole('button', { name });
+      expect(fab).toHaveClass('shadow-elevation-0', 'state-layer');
+      expect(fab.className).not.toMatch(/data-hovered:shadow/);
+    }
+  });
+
+  it('disappears towards its centre and reappears, inert while hidden', async () => {
+    const { rerender } = render(<Fab icon={<Icon />} aria-label="Add" />);
+    const fab = screen.getByRole('button', { name: 'Add' });
+    expect(fab).not.toHaveAttribute('data-hidden');
+    expect(fab).not.toHaveAttribute('inert');
+    expect(fab).toHaveClass(
+      'data-hidden:[transform:scale(0.2)]',
+      'data-hidden:opacity-0',
+      'motion-reduce:data-hidden:[transform:none]',
+    );
+
+    rerender(<Fab icon={<Icon />} aria-label="Add" visible={false} />);
+    expect(fab).toHaveAttribute('data-hidden', 'true');
+    expect(fab).toHaveAttribute('inert');
+
+    rerender(<Fab icon={<Icon />} aria-label="Add" appear />);
+    expect(fab).not.toHaveAttribute('inert');
+    expect(fab).toHaveAttribute('data-appear', 'true');
+    expect(fab).toHaveClass('data-appear:starting:[transform:scale(0.2)]');
+    expect(await axeViolations(fab.parentElement!)).toEqual([]);
+  });
+
+  it('shows its label in a tooltip on hover, unless turned off', async () => {
+    render(
+      <>
+        <Fab icon={<Icon />} aria-label="Compose" />
+        <Fab icon={<Icon />} aria-label="Plain" tooltip={false} />
+      </>,
+    );
+    fireEvent.pointerMove(document.body);
+    await userEvent.hover(screen.getByRole('button', { name: 'Compose' }));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
+    await userEvent.unhover(screen.getByRole('button', { name: 'Compose' }));
+    await userEvent.hover(screen.getByRole('button', { name: 'Plain' }));
+    expect(screen.queryAllByRole('tooltip').map((tip) => tip.textContent)).not.toContain('Plain');
   });
 
   it('presses, positions with consumer classes and renders links', async () => {
@@ -91,22 +141,35 @@ describe('ExtendedFab', () => {
     );
     expect(fab).toHaveAttribute('data-expanded', 'true');
     expect(screen.getByText('Compose')).toHaveClass('ps-[8px]');
+    // The extended FAB's label names it, so it has no tooltip (M3).
+    expect(fab).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('hides like a FAB', () => {
+    render(
+      <ExtendedFab icon={<Icon />} visible={false}>
+        Compose
+      </ExtendedFab>,
+    );
+    const fab = screen.getByText('Compose').closest('button')!;
+    expect(fab).toHaveAttribute('data-hidden', 'true');
+    expect(fab).toHaveAttribute('inert');
   });
 
   it.each([
     [
       'md',
       ['h-[80px]', 'ps-[26px]', 'rounded-corner-large-increased', 'text-title-large'],
-      'ps-[12px]',
+      'ps-[16px]',
       'size-[28px]',
     ],
     [
       'lg',
       ['h-[96px]', 'ps-[28px]', 'rounded-corner-extra-large', 'text-headline-small'],
-      'ps-[16px]',
+      'ps-[20px]',
       'size-[32px]',
     ],
-  ] as const)('sizes %s to Compose', (size, rootClasses, gap, iconSize) => {
+  ] as const)('sizes %s to the spec tokens', (size, rootClasses, gap, iconSize) => {
     render(
       <ExtendedFab size={size} icon={<Icon />}>
         Compose
@@ -129,6 +192,8 @@ describe('ExtendedFab', () => {
     );
     expect(collapse).toHaveAttribute('data-collapsed');
     expect(collapse).toHaveClass('data-collapsed:grid-cols-[0fr]', 'data-collapsed:opacity-0');
+    // Both directions run on the fast spatial and fast effects springs.
+    expect(collapse.className).not.toMatch(/-default-/);
     expect(screen.getByRole('button', { name: 'Compose' })).toHaveAttribute(
       'data-expanded',
       'false',

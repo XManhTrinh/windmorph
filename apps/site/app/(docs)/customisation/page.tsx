@@ -192,12 +192,17 @@ export default async function CustomisationPage() {
         </ul>
         <CodeBlock code={LAYOUT_SNIPPET} html={layoutHtml} lang="tsx" title="layout.tsx" />
         <p className="text-body-large text-on-surface-variant">
-          Two documented exceptions: overlays portal to{' '}
+          Three documented exceptions: overlays portal to{' '}
           <code className="text-on-surface">body</code> on a z-index token scale (
-          <code className="text-on-surface">--md-sys-z-*</code>, which you can override), and
+          <code className="text-on-surface">--md-sys-z-*</code>, which you can override);
           scroll-driven app bars and toolbars manage their own expansion (
           <code className="text-on-surface">useToolbarScrollExpansion</code>,{' '}
-          <code className="text-on-surface">TopAppBarScrollBehavior</code>).
+          <code className="text-on-surface">TopAppBarScrollBehavior</code>); and a FAB or toolbar
+          that you hide (<code className="text-on-surface">visible={'{false}'}</code>) scales or
+          slides with a <code className="text-on-surface">transform</code> on its root while hidden.
+          That uses the <code className="text-on-surface">transform</code> property only, so
+          Tailwind&apos;s <code className="text-on-surface">translate-*</code> and{' '}
+          <code className="text-on-surface">scale-*</code> classes still apply.
         </p>
       </section>
     </article>
