@@ -99,10 +99,10 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             In the expanded rail the pill hugs its icon and label. In both states the new
             destination&apos;s pill expands from the centre of its icon on the default spatial
             spring, and its label turns bold. The whole row is the target. An item&apos;s{' '}
-            <InlineCode>selectedIcon</InlineCode> cross-fades with its icon. Labels never truncate:
-            a long label wraps, breaking between words first, and the item grows taller. While the
-            rail widens, labels stay on one line, clipped by the rail, so no icon moves. A press
-            ripples through the pill.
+            <InlineCode>selectedIcon</InlineCode> cross-fades with its icon. A long label wraps
+            between words and the item grows taller; it never breaks inside a word, and a single
+            word too long for its item ends with an ellipsis. While the rail widens, labels stay on
+            one line, clipped by the rail, so no icon moves. A press ripples through the pill.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>itemAlignment=&quot;center&quot;</InlineCode> centres the items in the space

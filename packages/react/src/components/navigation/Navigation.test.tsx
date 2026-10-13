@@ -279,11 +279,13 @@ describe('NavigationRail', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
-  it('wraps long labels instead of truncating them, and bolds the current one', () => {
+  it('wraps long labels between words, never inside one, and bolds the current one', () => {
     const { rerender } = render(<Rail />);
     const label = screen.getByText('Inbox');
     expect(label).not.toHaveClass('truncate');
-    expect(label).toHaveClass('text-balance', '[overflow-wrap:anywhere]');
+    expect(label).toHaveClass('text-balance', 'overflow-hidden', 'text-ellipsis');
+    // Lines break between words only: never inside one.
+    expect(label.className).not.toMatch(/overflow-wrap:anywhere|break-all|hyphens-auto/);
     expect(label).toHaveClass('group-data-current/nav:text-label-medium-emphasized');
     rerender(<Rail expanded />);
     expect(screen.getByText('Inbox')).toHaveClass(
@@ -656,8 +658,11 @@ describe('NavigationBar', () => {
     expect(label).not.toHaveClass('truncate');
     expect(label).toHaveClass(
       'text-balance',
+      'overflow-hidden',
+      'text-ellipsis',
       'group-data-current/nav:text-label-medium-emphasized',
     );
+    expect(label.className).not.toMatch(/overflow-wrap:anywhere|break-all|hyphens-auto/);
     expect(screen.getByRole('navigation')).toHaveClass('min-h-[64px]');
   });
 

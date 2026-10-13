@@ -33,9 +33,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * the content sits above every pill so a moving one never covers another item's label.
  * Under reduced motion it fades in place instead.
  *
- * Labels never truncate (M3: "Don't truncate or display an ellipsis in place of label
- * text"): they wrap, breaking between words first, and the item grows taller, so the full
- * label stays visible under large text sizes.
+ * Labels don't truncate (M3: "Don't truncate or display an ellipsis in place of label
+ * text"): they wrap between words, and the item grows taller, so the full label stays
+ * visible under large text sizes. They never break inside a word ("Searc/h"); a single word
+ * too long for the item ends with an ellipsis on its line instead (2026-10-13).
  *
  * Badges overlap the icon's top end (BadgedBox), except in the expanded rail, where M3 puts
  * them next to the label, 4px after it.
@@ -90,7 +91,7 @@ export const navItemStyles = tv({
     // The expanded rail's badge, 4px after the label (the content gap is 8px).
     badge: 'inline-flex shrink-0 -ms-[4px]',
     label: [
-      'min-w-0 text-balance [overflow-wrap:anywhere] hyphens-auto group-data-disabled/nav:text-on-surface-variant/38',
+      'min-w-0 overflow-hidden text-ellipsis text-balance group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
   },
