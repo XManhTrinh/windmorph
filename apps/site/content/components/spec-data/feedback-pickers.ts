@@ -250,6 +250,84 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'pull-to-refresh': {
+    spec: 'loading-indicator/specs',
+    covers: [
+      {
+        name: 'Pull to refresh (loading indicator guidelines)',
+        kind: 'use case',
+        examples: ['pull-to-refresh/pull-to-refresh-basic', 'pull-to-refresh/pull-to-refresh-feed'],
+      },
+      {
+        name: 'Containment: contained, used with pull to refresh',
+        kind: 'configuration',
+        examples: ['pull-to-refresh/pull-to-refresh-basic'],
+      },
+      {
+        name: 'Threshold before a refresh; reversing past it cancels',
+        kind: 'configuration',
+        examples: ['pull-to-refresh/pull-to-refresh-threshold'],
+      },
+      {
+        name: 'Visible until the refresh completes',
+        kind: 'use case',
+        examples: ['pull-to-refresh/pull-to-refresh-feed'],
+      },
+      {
+        name: 'Refresh without relying on a gesture',
+        kind: 'use case',
+        examples: ['pull-to-refresh/pull-to-refresh-button'],
+      },
+    ],
+    differences: [
+      {
+        item: 'Settle spring',
+        note: 'The indicator settles on the fast spatial spring of the motion scheme, since it moves position; Compose uses a default, non-bouncing spring.',
+      },
+    ],
+    extensions: [
+      {
+        item: 'On the web',
+        note: 'The spec says the loading indicator is used in pull to refresh on Jetpack Compose only; this brings the same behaviour to touch, mouse and pen on the web.',
+      },
+      {
+        item: 'Promise-driven refreshing',
+        note: 'Without `refreshing`, a promise returned by `onRefresh` keeps the indicator until it settles.',
+      },
+      {
+        item: 'Announcements',
+        note: 'A polite live region announces the start and the end of each refresh (`labels`).',
+      },
+    ],
+    notBuilt: [
+      {
+        item: 'Arrow indicator',
+        note: "Compose's older `PullToRefreshDefaults.Indicator` (an arrow on a circular indicator) isn't built: M3 Expressive uses the loading indicator.",
+      },
+    ],
+    compose: [
+      {
+        composable: 'PullToRefreshBox',
+        component: 'PullToRefresh',
+        params: [
+          { compose: 'isRefreshing', windmorph: 'refreshing' },
+          { compose: 'onRefresh', windmorph: 'onRefresh', note: 'May return a promise.' },
+          { compose: 'enabled', windmorph: 'disabled', note: 'Inverted.' },
+          { compose: 'threshold', windmorph: 'threshold', note: 'In px; 80 by default.' },
+          {
+            compose: 'indicator',
+            windmorph: 'classNames.indicator',
+            note: 'Always `PullToRefreshDefaults.LoadingIndicator`.',
+          },
+        ],
+      },
+      {
+        composable: 'Modifier.pullToRefresh',
+        component: 'PullToRefresh',
+        note: 'Wrap the scroll container, or the page.',
+      },
+    ],
+  },
   'date-picker': {
     spec: 'date-pickers/specs',
     covers: [

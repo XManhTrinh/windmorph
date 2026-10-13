@@ -564,6 +564,15 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <span className="size-9 rotate-12 rounded-corner-large bg-primary" />
     </span>
   ),
+  'pull-to-refresh': (
+    <Col gap={2}>
+      <span className="mx-auto grid size-10 place-items-center rounded-full bg-primary-container">
+        <span className="size-6 rotate-12 rounded-corner-medium bg-on-primary-container" />
+      </span>
+      <Text w={140} />
+      <Text w={110} />
+    </Col>
+  ),
   skeleton: (
     <Row>
       <Shape w={36} h={36} tone="high" />

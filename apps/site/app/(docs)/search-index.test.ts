@@ -38,6 +38,15 @@ describe('searchPages', () => {
     }
   });
 
+  it('finds pull to refresh by the words people use for it', () => {
+    for (const query of ['swipe to refresh', 'reload', 'pull down', 'update feed']) {
+      expect(
+        searchPages(index, query).map((entry) => entry.href),
+        query,
+      ).toContain('/components/pull-to-refresh');
+    }
+  });
+
   it('finds Select and Autocomplete by the words people use for them', () => {
     for (const query of ['dropdown', 'picker']) {
       const hrefs = searchPages(index, query).map((entry) => entry.href);
