@@ -8,10 +8,14 @@ import {
   type ComponentPropsWithRef,
   type CSSProperties,
   type ReactNode,
+  type RefObject,
 } from 'react';
+import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationBarStyles, type NavigationBarArrangement } from './navigation-styles';
+import { useHideOnScroll } from './use-hide-on-scroll';
+import { onItemArrowKeys } from './use-item-arrow-keys';
 
 interface BarContextValue {
   iconPosition: 'top' | 'start';
@@ -33,8 +37,22 @@ interface NavigationBarOwnProps {
    * windows). @default "top"
    */
   iconPosition?: 'top' | 'start';
-  /** Share the width equally, or centre the items within side padding. @default "equal" */
+  /**
+   * Share the width equally, or centre the items. Stacked items centre within side
+   * padding; items beside their icons keep their own width, with the extra space at the
+   * ends. @default "equal" for `iconPosition="top"`, "centered" for `"start"`
+   */
   arrangement?: NavigationBarArrangement;
+  /**
+   * `hide-on-scroll` slides the bar off the bottom while the page scrolls down and back
+   * on any scroll up. The bar becomes `sticky` at the bottom, so put it last in a
+   * scrolling layout and don't add positioning classes. It stays put under reduced
+   * motion. M3: don't hide the bar on scroll when a screen reader is active, so leave
+   * this off where assistive tech is in use. @default "pinned"
+   */
+  scrollBehavior?: 'pinned' | 'hide-on-scroll';
+  /** With `hide-on-scroll`, the element that scrolls instead of the page. */
+  scrollRef?: RefObject<HTMLElement | null>;
   /** `NavigationBarItem` elements (3–5 in M3). */
   children: ReactNode;
   classNames?: NavigationBarClassNames;
@@ -50,7 +68,8 @@ export type NavigationBarProps = NavigationBarOwnProps &
 /**
  * M3 Expressive flexible navigation bar: 3–5 destinations along the bottom of compact and
  * medium windows. Items stack the icon above the label, or (`iconPosition="start"`) place
- * it beside the label in a 40px pill.
+ * it beside the label in a 40px pill. Labels wrap rather than truncate, and the bar grows
+ * to fit them. Tab or the arrow keys move between items.
  *
  * @example
  * <NavigationBar aria-label="Main" className="fixed inset-x-0 bottom-0">
@@ -59,21 +78,36 @@ export type NavigationBarProps = NavigationBarOwnProps &
  */
 export function NavigationBar({
   iconPosition = 'top',
-  arrangement,
+  arrangement = iconPosition === 'start' ? 'centered' : 'equal',
+  scrollBehavior = 'pinned',
+  scrollRef,
   children,
   classNames,
   className,
   style,
+  ref,
+  onKeyDown,
   ...rest
 }: NavigationBarProps) {
-  const styles = navigationBarStyles({ arrangement });
+  const navRef = useObjectRef(ref);
+  const hideOnScroll = scrollBehavior === 'hide-on-scroll';
+  useHideOnScroll(hideOnScroll, navRef, scrollRef);
+  const styles = navigationBarStyles({ arrangement, iconPosition, hideOnScroll });
   const count = Children.toArray(children).filter(isValidElement).length;
-  // Compose: centred items sit within (100% − 10% × (n + 3)) / 2 each side, up to 6 items.
+  // Compose: centred stacked items sit within (100% − 10% × (n + 3)) / 2 each side, up to 6.
   const padding =
-    arrangement === 'centered' && count <= 6 ? `${(100 - 10 * (count + 3)) / 2}%` : undefined;
+    arrangement === 'centered' && iconPosition === 'top' && count <= 6
+      ? `${(100 - 10 * (count + 3)) / 2}%`
+      : undefined;
+  const arrowKeys = onItemArrowKeys('horizontal');
   return (
     <nav
       {...rest}
+      ref={navRef}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        arrowKeys(event);
+      }}
       style={{ paddingInline: padding, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

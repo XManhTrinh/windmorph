@@ -19,12 +19,18 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Colours: icons `on-surface-variant`, selected `on-secondary-container` on a
  * `secondary-container` pill; labels `on-surface-variant`, selected `secondary` below the
  * icon or `on-secondary-container` beside it; disabled 38%. The state layer is
- * `on-secondary-container` on the pill. The current item's pill grows from its centre on the
- * default spatial spring (Compose animates its width) and colours change on default
- * effects. In the expanded rail (`slide`) the pill instead slides from the previous current
- * item on the fast spatial spring, as in M3's expanded rail: the old pill goes at once, and
- * the content sits above every pill so a moving one never covers another item's label. With
- * a `selectedIcon`, the two icons cross-fade on default effects.
+ * `on-secondary-container` on the pill. In every layout the current item's pill expands from
+ * the centre of its icon and fades in on the default spatial spring (M3: "the active
+ * indicator expands from the center of the icon"), and colours change on default effects.
+ * The current label is bold (the emphasized label role). With a `selectedIcon`, the two
+ * icons cross-fade on default effects.
+ *
+ * Labels never truncate (M3: "Don't truncate or display an ellipsis in place of label
+ * text"): they wrap, breaking between words first, and the item grows taller, so the full
+ * label stays visible under large text sizes.
+ *
+ * Badges overlap the icon's top end (BadgedBox), except in the expanded rail, where M3 puts
+ * them next to the label, 4px after it.
  *
  * The pill, its state layer and its content share one grid cell, so nothing is positioned.
  * Every class is written out in full so Tailwind can find it.
@@ -45,7 +51,6 @@ export const navItemStyles = tv({
     ],
     indicator: [
       'col-start-1 row-start-1 rounded-full bg-secondary-container opacity-0',
-      '[clip-path:inset(0_50%_round_9999px)]',
       'group-data-current/nav:opacity-100 group-data-current/nav:[clip-path:inset(0_0_round_9999px)]',
       '[transition-property:clip-path,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
@@ -74,8 +79,12 @@ export const navItemStyles = tv({
       'col-start-1 row-start-1 size-full opacity-0 data-shown:opacity-100 [&>svg]:size-full',
       '[transition-property:opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
+    // Holds the icon (or both faces) inside a badge's anchor.
+    iconStack: 'inline-grid size-[24px] place-items-center [&>svg]:size-full',
+    // The expanded rail's badge, 4px after the label (the content gap is 8px).
+    badge: 'inline-flex shrink-0 -ms-[4px]',
     label: [
-      'min-w-0 truncate group-data-disabled/nav:text-on-surface-variant/38',
+      'min-w-0 text-balance [overflow-wrap:anywhere] hyphens-auto group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
   },
@@ -85,37 +94,50 @@ export const navItemStyles = tv({
         // The 56px pill centres in the collapsed width; labels may use all of it (Compose).
         root: 'min-h-[64px] w-(--m3-rail-collapsed-width) content-start',
         pill: 'h-[32px] w-[56px]',
-        label:
-          'mt-[4px] max-w-full text-center text-label-medium group-data-current/nav:text-secondary',
+        indicator: '[clip-path:inset(0_50%_round_9999px)]',
+        label: [
+          'mt-[4px] max-w-full text-center text-label-medium',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-secondary',
+        ],
       },
       'rail-start': {
         root: 'w-full justify-items-start px-(--m3-rail-item-inset)',
-        pill: 'h-[56px] max-w-full',
-        content: 'justify-start gap-[8px] ps-[16px] pe-[16px]',
-        label: 'text-label-large group-data-current/nav:text-on-secondary-container',
+        pill: 'min-h-[56px] max-w-full',
+        // The icon's centre: 16px padding + half the 24px icon from the start edge.
+        indicator:
+          '[clip-path:inset(0_calc(100%_-_28px)_0_28px_round_9999px)] rtl:[clip-path:inset(0_28px_0_calc(100%_-_28px)_round_9999px)]',
+        content: 'justify-start gap-[8px] ps-[16px] pe-[16px] py-[8px]',
+        label: [
+          'text-label-large',
+          'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-on-secondary-container',
+        ],
       },
       'bar-top': {
         root: 'h-full content-center py-[6px]',
         pill: 'h-[32px] w-[56px]',
-        label:
-          'mt-[4px] max-w-full px-[4px] text-center text-label-medium group-data-current/nav:text-secondary',
+        indicator: '[clip-path:inset(0_50%_round_9999px)]',
+        label: [
+          'mt-[4px] max-w-full px-[4px] text-center text-label-medium',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-secondary',
+        ],
       },
       'bar-start': {
-        root: 'h-full content-center',
-        pill: 'h-[40px]',
-        content: 'gap-[4px] ps-[16px] pe-[16px]',
-        label: 'text-label-medium group-data-current/nav:text-on-secondary-container',
+        // Content-sized; 4px each side keeps neighbouring pills 8px apart.
+        root: 'h-full content-center px-[4px]',
+        pill: 'min-h-[40px] max-w-full',
+        indicator:
+          '[clip-path:inset(0_calc(100%_-_28px)_0_28px_round_9999px)] rtl:[clip-path:inset(0_28px_0_calc(100%_-_28px)_round_9999px)]',
+        content: 'gap-[4px] ps-[16px] pe-[16px] py-[4px]',
+        label: [
+          'text-label-medium',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-on-secondary-container',
+        ],
       },
     },
     /** Labels that move when the rail changes width fade in at their new place. */
     enterLabel: { true: { label: 'starting:opacity-0' }, false: {} },
-    /** The pill slides between items (Motion moves it) instead of growing in place. */
-    slide: {
-      true: { indicator: '[transition-property:none]', content: 'z-[1]' },
-      false: {},
-    },
   },
-  defaultVariants: { layout: 'bar-top', enterLabel: false, slide: false },
+  defaultVariants: { layout: 'bar-top', enterLabel: false },
 });
 
 export type NavItemLayout = NonNullable<VariantProps<typeof navItemStyles>['layout']>;

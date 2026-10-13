@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  Badge,
+  type BadgeProps,
   Fab,
   IconButton,
   NavigationBar,
@@ -7,7 +9,7 @@ import {
   NavigationRail,
   NavigationRailItem,
 } from '@windmorph/react';
-import { useState } from 'react';
+import { useRef, useState, type ReactElement } from 'react';
 import { EditIcon, HomeIcon, MenuIcon, SearchIcon, SendIcon, StarIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
@@ -22,21 +24,36 @@ const DESTINATIONS = [
   { id: 'sent', label: 'Sent mail', icon: <SendIcon /> },
 ];
 
+/** Badges for the demos: a count on Search and a dot on Starred. */
+const BADGES: Record<string, { badge: ReactElement<BadgeProps>; badgeLabel: string }> = {
+  search: { badge: <Badge>3</Badge>, badgeLabel: '3 new results' },
+  starred: { badge: <Badge />, badgeLabel: 'Updated' },
+};
+
 interface Args {
   modal: boolean;
   hideOnCollapse: boolean;
   defaultExpanded: boolean;
+  itemAlignment: 'top' | 'center';
+  divider: boolean;
 }
 
 const meta = {
   title: 'Components/Navigation',
-  args: { modal: false, hideOnCollapse: false, defaultExpanded: false },
+  args: {
+    modal: false,
+    hideOnCollapse: false,
+    defaultExpanded: false,
+    itemAlignment: 'top',
+    divider: false,
+  },
+  argTypes: { itemAlignment: { control: 'inline-radio', options: ['top', 'center'] } },
 } satisfies Meta<Args>;
 
 export default meta;
 type Story = StoryObj<Args>;
 
-function RailDemo({ modal, hideOnCollapse, defaultExpanded }: Args) {
+function RailDemo({ modal, hideOnCollapse, defaultExpanded, itemAlignment, divider }: Args) {
   const [current, setCurrent] = useState('home');
   const [expanded, setExpanded] = useState(defaultExpanded);
   return (
@@ -46,6 +63,8 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded }: Args) {
         data-testid="rail"
         modal={modal}
         hideOnCollapse={hideOnCollapse}
+        itemAlignment={itemAlignment}
+        divider={divider}
         expanded={expanded}
         onExpandedChange={setExpanded}
         header={({ expanded: open, toggle }) => (
@@ -63,6 +82,7 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded }: Args) {
           <NavigationRailItem
             key={id}
             icon={icon}
+            {...BADGES[id]}
             selected={current === id}
             onPress={() => setCurrent(id)}
           >
@@ -90,7 +110,16 @@ export const Rail: Story = { render: (args) => <RailDemo {...args} /> };
 /** The modal expanded rail: opens over the page with a scrim. */
 export const ModalRail: Story = { args: { modal: true }, render: (args) => <RailDemo {...args} /> };
 
-/** Collapsed and expanded rails side by side, for visual regression. */
+/** Items centred as a group (M3's tablet layout), with a divider on the content edge. */
+export const CenteredRail: Story = {
+  args: { itemAlignment: 'center', divider: true },
+  render: (args) => <RailDemo {...args} />,
+};
+
+/**
+ * Collapsed and expanded rails side by side, for visual regression: badges on the icon
+ * collapsed and after the label expanded, a divider, and a label that wraps.
+ */
 export const RailStates: Story = {
   render: () => (
     <div className="flex w-fit gap-6" data-testid="rails">
@@ -99,14 +128,22 @@ export const RailStates: Story = {
           <NavigationRail
             aria-label={expanded ? 'Expanded' : 'Collapsed'}
             expanded={expanded}
+            divider
             header={<Fab icon={<EditIcon />} aria-label="Compose" elevation="flat" />}
             className="h-full"
           >
             {DESTINATIONS.map(({ id, label, icon }, i) => (
-              <NavigationRailItem key={id} icon={icon} selected={i === 0} disabled={i === 3}>
+              <NavigationRailItem
+                key={id}
+                icon={icon}
+                {...BADGES[id]}
+                selected={i === 0}
+                disabled={i === 3}
+              >
                 {label}
               </NavigationRailItem>
             ))}
+            <NavigationRailItem icon={<StarIcon />}>Shared with me</NavigationRailItem>
           </NavigationRail>
         </div>
       ))}
@@ -114,14 +151,21 @@ export const RailStates: Story = {
   ),
 };
 
-function BarDemo({ iconPosition }: { iconPosition: 'top' | 'start' }) {
+function BarDemo({
+  iconPosition,
+  destinations = DESTINATIONS,
+}: {
+  iconPosition: 'top' | 'start';
+  destinations?: typeof DESTINATIONS;
+}) {
   const [current, setCurrent] = useState('home');
   return (
     <NavigationBar aria-label={`Bar ${iconPosition}`} iconPosition={iconPosition}>
-      {DESTINATIONS.map(({ id, label, icon }) => (
+      {destinations.map(({ id, label, icon }) => (
         <NavigationBarItem
           key={id}
           icon={icon}
+          {...BADGES[id]}
           selected={current === id}
           onPress={() => setCurrent(id)}
         >
@@ -132,7 +176,14 @@ function BarDemo({ iconPosition }: { iconPosition: 'top' | 'start' }) {
   );
 }
 
-/** The flexible navigation bar: stacked items (compact) and inline items (medium). */
+const LONG_LABELS = DESTINATIONS.map((destination) =>
+  destination.id === 'sent' ? { ...destination, label: 'Recently shared files' } : destination,
+);
+
+/**
+ * The flexible navigation bar: stacked items (compact), inline items centred with the extra
+ * space at the ends (medium), and a narrow bar whose long label wraps and grows the bar.
+ */
 export const Bar: Story = {
   render: () => (
     <div className="flex w-[600px] flex-col gap-6" data-testid="bars">
@@ -140,8 +191,50 @@ export const Bar: Story = {
         <BarDemo iconPosition="top" />
       </div>
       <BarDemo iconPosition="start" />
+      <div className="w-[320px]">
+        <BarDemo iconPosition="top" destinations={LONG_LABELS} />
+      </div>
     </div>
   ),
+};
+
+/** `scrollBehavior="hide-on-scroll"`: the bar hides while scrolling down, returns on up. */
+export const HideOnScroll: Story = {
+  render: function HideOnScrollStory() {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [current, setCurrent] = useState('home');
+    return (
+      <div
+        ref={scrollRef}
+        data-testid="scroller"
+        className="h-[400px] w-[412px] overflow-y-auto border border-outline-variant"
+      >
+        <div className="flex flex-col gap-4 p-4 text-body-large">
+          {Array.from({ length: 30 }, (_, i) => (
+            <p key={i}>Paragraph {i + 1}</p>
+          ))}
+        </div>
+        <NavigationBar
+          aria-label="Main"
+          data-testid="bar"
+          scrollBehavior="hide-on-scroll"
+          scrollRef={scrollRef}
+        >
+          {DESTINATIONS.map(({ id, label, icon }) => (
+            <NavigationBarItem
+              key={id}
+              icon={icon}
+              selected={current === id}
+              onPress={() => setCurrent(id)}
+              onReselect={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              {label}
+            </NavigationBarItem>
+          ))}
+        </NavigationBar>
+      </div>
+    );
+  },
 };
 
 export const LayoutOverride: StoryObj<{

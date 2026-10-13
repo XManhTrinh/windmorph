@@ -20,12 +20,16 @@ import { cn } from '../../utils/cn';
 import type { NavItemLayout } from './nav-item-styles';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationRailStyles } from './navigation-styles';
+import { onItemArrowKeys } from './use-item-arrow-keys';
 
 /** Registered in utilities.css (96px); every rail inset is derived from it. */
 const COLLAPSED_WIDTH_VAR = '--m3-rail-collapsed-width';
 const DEFAULT_COLLAPSED_WIDTH = 96;
 const EXPANDED_MIN = 220;
 const EXPANDED_MAX = 360;
+/** Elements that take focus with Tab, for the modal rail's initial focus. */
+const FOCUSABLE =
+  'a[href]:not([aria-disabled="true"]), button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
 /**
  * The item chrome beside an expanded label: an item inset each side, (collapsed − 56) / 2,
@@ -41,8 +45,6 @@ function expandedChrome(el: HTMLElement) {
 interface RailContextValue {
   layout: NavItemLayout;
   enterLabel: boolean;
-  /** The expanded list's last current pill, which the next current item's pill slides from. */
-  lastIndicatorRef?: RefObject<HTMLElement | null>;
   /** The modal rail collapses after an item is chosen. */
   onNavigate?: () => void;
 }
@@ -76,6 +78,14 @@ interface NavigationRailOwnProps {
   hideOnCollapse?: boolean;
   /** Content above the items, e.g. a menu button and a FAB; a function receives the state. */
   header?: ReactNode | ((state: { expanded: boolean; toggle: () => void }) => ReactNode);
+  /**
+   * Align the items as a group to the top, or to the middle of the space below the header
+   * (M3 recommends centre on tablets, within easier reach). The header stays at the top.
+   * @default "top"
+   */
+  itemAlignment?: 'top' | 'center';
+  /** Draw a divider on the edge next to the content. @default false */
+  divider?: boolean;
   /** `NavigationRailItem` elements. */
   children: ReactNode;
   classNames?: NavigationRailClassNames;
@@ -88,14 +98,26 @@ export type NavigationRailProps = NavigationRailOwnProps &
     keyof NavigationRailOwnProps | 'aria-label' | 'aria-labelledby'
   >;
 
-/** Expanded width: the widest label plus the item chrome, 220–360px (Compose). */
+/**
+ * Expanded width: the widest label on one line plus the item chrome, 220–360px (Compose).
+ * Past 360px labels wrap.
+ */
 function useExpandedWidth(ref: RefObject<HTMLElement | null>, active: boolean, content: ReactNode) {
   const [width, setWidth] = useState(EXPANDED_MIN);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!active || !el) return;
     const labels = [...el.querySelectorAll<HTMLElement>('[data-nav-label]')];
-    const widest = Math.max(0, ...labels.map((label) => label.scrollWidth));
+    // Labels wrap in a narrow rail; measure each on one line.
+    const widest = Math.max(
+      0,
+      ...labels.map((label) => {
+        label.style.whiteSpace = 'nowrap';
+        const natural = label.scrollWidth;
+        label.style.whiteSpace = '';
+        return natural;
+      }),
+    );
     const header = el.querySelector<HTMLElement>('[data-rail-header]');
     const headerWidth = header ? header.scrollWidth : 0;
     const chrome = expandedChrome(el);
@@ -108,7 +130,9 @@ function useExpandedWidth(ref: RefObject<HTMLElement | null>, active: boolean, c
  * M3 Expressive navigation rail: destinations along the start edge. Collapsed (96px) items
  * show the icon above the label; expanded (220–360px) they show it beside the label and
  * the rail's width springs open. With `modal`, the expanded rail opens over the page as a
- * sheet with a scrim. Put a menu button in `header` to toggle `expanded`.
+ * sheet with a scrim, focusing its first interactive element. Put a menu button in
+ * `header` to toggle `expanded`. Tab or the Up / Down arrows move between items, and
+ * labels wrap rather than truncate.
  *
  * Icons stay on one line through the middle of the collapsed rail in both states. For a
  * different collapsed width, set `--m3-rail-collapsed-width` (e.g. the class
@@ -127,6 +151,8 @@ export function NavigationRail({
   modal = false,
   hideOnCollapse = false,
   header,
+  itemAlignment = 'top',
+  divider = false,
   children,
   classNames,
   className,
@@ -137,7 +163,6 @@ export function NavigationRail({
   const toggle = () => setExpanded(!isExpanded);
   const inlineExpanded = isExpanded && !modal;
   const rootRef = useRef<HTMLElement>(null);
-  const lastIndicatorRef = useRef<HTMLElement>(null);
   const width = useExpandedWidth(rootRef, inlineExpanded, children);
   // Labels fade in at their new place once the rail has changed mode (not on first render).
   const [mode, setMode] = useState(inlineExpanded);
@@ -147,7 +172,7 @@ export function NavigationRail({
     setModeChanged(true);
   }
 
-  const styles = navigationRailStyles({ expanded: inlineExpanded });
+  const styles = navigationRailStyles({ expanded: inlineExpanded, itemAlignment, divider });
   const headerContent =
     typeof header === 'function' ? header({ expanded: isExpanded, toggle }) : header;
   const showInline = !(modal && hideOnCollapse);
@@ -173,12 +198,15 @@ export function NavigationRail({
                 {headerContent}
               </div>
             )}
-            <div className={styles.items({ class: classNames?.items })}>
+            <div
+              data-item-alignment={itemAlignment}
+              onKeyDown={onItemArrowKeys('vertical')}
+              className={styles.items({ class: classNames?.items })}
+            >
               <RailContext
                 value={{
                   layout: inlineExpanded ? 'rail-start' : 'rail-top',
                   enterLabel: modeChanged,
-                  lastIndicatorRef: inlineExpanded ? lastIndicatorRef : undefined,
                 }}
               >
                 {children}
@@ -194,6 +222,7 @@ export function NavigationRail({
           header={headerContent}
           naming={rest as Naming}
           slide={hideOnCollapse}
+          itemAlignment={itemAlignment}
           railRef={rootRef}
           classNames={classNames}
         >
@@ -210,6 +239,7 @@ function ModalRail({
   header,
   naming,
   slide,
+  itemAlignment,
   railRef,
   classNames,
   children,
@@ -219,6 +249,7 @@ function ModalRail({
   header: ReactNode;
   naming: Naming;
   slide: boolean;
+  itemAlignment: 'top' | 'center';
   railRef: RefObject<HTMLElement | null>;
   classNames?: NavigationRailClassNames;
   children: ReactNode;
@@ -240,6 +271,7 @@ function ModalRail({
         header={header}
         naming={naming}
         slide={slide}
+        itemAlignment={itemAlignment}
         railRef={railRef}
         classNames={classNames}
       >
@@ -256,6 +288,7 @@ function ModalSheet({
   header,
   naming,
   slide,
+  itemAlignment,
   railRef,
   classNames,
   children,
@@ -266,12 +299,12 @@ function ModalSheet({
   header: ReactNode;
   naming: Naming;
   slide: boolean;
+  itemAlignment: 'top' | 'center';
   railRef: RefObject<HTMLElement | null>;
   classNames?: NavigationRailClassNames;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const lastIndicatorRef = useRef<HTMLElement>(null);
   const { modalProps, underlayProps } = useModalOverlay({ isDismissable: !isExiting }, state, ref);
   const { dialogProps } = useDialog(naming, ref);
   // The sheet is portalled out of the rail, so it can't inherit a collapsed width set on the
@@ -284,8 +317,18 @@ function ModalSheet({
       getComputedStyle(rail).getPropertyValue(COLLAPSED_WIDTH_VAR),
     );
   }, [railRef]);
+  // M3: initial focus lands on the first interactive item, whether it's the menu button,
+  // the FAB or the first destination (useDialog would otherwise focus the sheet itself).
+  useLayoutEffect(() => {
+    const first = ref.current?.querySelector<HTMLElement>(FOCUSABLE);
+    first?.focus();
+  }, []);
   const width = useExpandedWidth(ref, true, children);
-  const styles = navigationRailStyles({ expanded: true, sheetEntry: slide ? 'slide' : 'grow' });
+  const styles = navigationRailStyles({
+    expanded: true,
+    sheetEntry: slide ? 'slide' : 'grow',
+    itemAlignment,
+  });
   const exiting = isExiting || undefined;
   return (
     <>
@@ -311,16 +354,11 @@ function ModalSheet({
         <nav
           aria-label={'aria-label' in naming ? naming['aria-label'] : undefined}
           aria-labelledby={'aria-labelledby' in naming ? naming['aria-labelledby'] : undefined}
+          data-item-alignment={itemAlignment}
+          onKeyDown={onItemArrowKeys('vertical')}
           className={styles.items({ class: classNames?.items })}
         >
-          <RailContext
-            value={{
-              layout: 'rail-start',
-              enterLabel: false,
-              lastIndicatorRef,
-              onNavigate: state.close,
-            }}
-          >
+          <RailContext value={{ layout: 'rail-start', enterLabel: false, onNavigate: state.close }}>
             {children}
           </RailContext>
         </nav>
@@ -340,7 +378,6 @@ export function NavigationRailItem({ onPress, ...props }: NavigationRailItemProp
       {...(props as NavItemProps)}
       layout={rail.layout}
       enterLabel={rail.enterLabel}
-      {...(rail.lastIndicatorRef && { lastIndicatorRef: rail.lastIndicatorRef })}
       onPress={(event) => {
         onPress?.(event);
         rail.onNavigate?.();

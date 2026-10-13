@@ -19,8 +19,17 @@ import { tv, type VariantProps } from '../../utils/tv';
  * centred on the icon line, and anything wider (an extended FAB) keeps its width and starts
  * at the column's edge.
  *
- * Bar: `surface-container`, 64px, no elevation. Items share the width equally, or, when
- * centred, sit within side padding of (100% − 10% × (items + 3)) / 2 (up to 6 items).
+ * Items align as a group to the top (default) or, with `itemAlignment="center"`, to the
+ * middle of the space below the header (M3: centre alignment on tablets); the header stays
+ * at the top. An optional divider (`outline-variant`) marks the edge next to the content.
+ *
+ * Bar: `surface-container`, at least 64px (it grows when labels wrap), no elevation.
+ * Stacked items share the width equally, or, when centred, sit within side padding of
+ * (100% − 10% × (items + 3)) / 2 (up to 6 items). Items beside their icons
+ * (`iconPosition="start"`) are centred by default and sized to their content, so the extra
+ * space goes to the bar's ends (M3: "Horizontal navigation items have a fixed width").
+ * With `scrollBehavior="hide-on-scroll"` the bar is sticky at the bottom and its offset
+ * (`--m3-nav-bar-offset`, 0 down to minus its height) follows the page scroll.
  *
  * The rail's width is the `--m3-rail-width` variable, so a consumer `w-*` class still wins;
  * a narrower or wider collapsed rail sets `--m3-rail-collapsed-width` instead.
@@ -49,8 +58,7 @@ export const navigationRailStyles = tv({
     // Children keep their own width (a centred grid item would shrink to the 56px column).
     header:
       'grid grid-cols-[56px] justify-items-center-safe ps-(--m3-rail-item-inset) pb-[40px] [&>*]:min-w-max',
-    // Isolated, so the items' raised content stays above their pills and no higher.
-    items: 'isolate flex flex-col',
+    items: 'flex flex-col',
     scrim: [
       'fixed inset-0 z-(--md-sys-z-scrim) bg-scrim/32 opacity-100',
       '[transition-property:opacity]',
@@ -73,6 +81,16 @@ export const navigationRailStyles = tv({
       true: { items: 'gap-0' },
       false: { items: 'gap-[4px]' },
     },
+    /** Auto margins centre the items without hiding any when the rail overflows. */
+    itemAlignment: {
+      top: {},
+      center: { items: 'my-auto' },
+    },
+    /** A divider on the edge next to the content. */
+    divider: {
+      true: { root: 'border-e border-outline-variant' },
+      false: {},
+    },
     /** Modal sheet entry: from the collapsed width, or sliding in from the start edge. */
     sheetEntry: {
       grow: {
@@ -84,7 +102,7 @@ export const navigationRailStyles = tv({
       },
     },
   },
-  defaultVariants: { expanded: false, sheetEntry: 'grow' },
+  defaultVariants: { expanded: false, sheetEntry: 'grow', itemAlignment: 'top', divider: false },
 });
 
 /** Variant definitions for {@link NavigationBar}; extend them to add variants. */
@@ -98,8 +116,17 @@ export const navigationBarStyles = tv({
       equal: { item: 'flex-1 basis-0' },
       centered: { root: 'justify-center', item: 'flex-1 basis-0' },
     },
+    iconPosition: { top: {}, start: {} },
+    hideOnScroll: {
+      true: { root: 'sticky bottom-(--m3-nav-bar-offset) z-(--md-sys-z-sticky)' },
+      false: {},
+    },
   },
-  defaultVariants: { arrangement: 'equal' },
+  compoundVariants: [
+    // Items beside their icons keep their own width; the extra space goes to the ends.
+    { arrangement: 'centered', iconPosition: 'start', class: { item: 'flex-initial basis-auto' } },
+  ],
+  defaultVariants: { arrangement: 'equal', iconPosition: 'top', hideOnScroll: false },
 });
 
 export type NavigationBarStyleProps = VariantProps<typeof navigationBarStyles>;

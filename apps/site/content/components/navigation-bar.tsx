@@ -33,9 +33,24 @@ export async function NavigationBarBody() {
           <code className="text-on-surface">onPress</code>) with an{' '}
           <code className="text-on-surface">icon</code>, an optional{' '}
           <code className="text-on-surface">selectedIcon</code> and a label;{' '}
-          <code className="text-on-surface">selected</code> marks the current one.{' '}
-          <code className="text-on-surface">arrangement=&quot;centered&quot;</code> groups the items
-          within side padding instead of spreading them equally.
+          <code className="text-on-surface">selected</code> marks the current one, with a bold
+          label. Stacked items share the width equally;{' '}
+          <code className="text-on-surface">arrangement=&quot;centered&quot;</code> groups them
+          within side padding. Items beside their icons keep their own width and are centred by
+          default, with the extra space at the bar&apos;s ends. Labels never truncate: a long label
+          wraps and the bar grows taller.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          An item&apos;s <code className="text-on-surface">badge</code> (a{' '}
+          <code className="text-on-surface">Badge</code>) overlaps its icon.{' '}
+          <code className="text-on-surface">onReselect</code> runs when the current destination is
+          pressed again; M3 resets the page&apos;s scroll position to the top then.{' '}
+          <code className="text-on-surface">scrollBehavior=&quot;hide-on-scroll&quot;</code> slides
+          the bar off the bottom while the page scrolls down and back on any scroll up; the bar
+          becomes <code className="text-on-surface">sticky</code>, so put it last in the scrolling
+          layout, and pass <code className="text-on-surface">scrollRef</code> when an element
+          scrolls rather than the page. It stays put under reduced motion. Don&apos;t hide the bar
+          on scroll when a screen reader is active.
         </p>
       </section>
 
@@ -68,8 +83,10 @@ export async function NavigationBarBody() {
             <code className="text-on-surface">aria-labelledby</code> (required by the types).
           </li>
           <li>
-            Each item is a link or button that Tab reaches and Enter or Space activates; the icon is
-            hidden from assistive tech and the label names the item.
+            Each item is a link or button that Tab reaches and Enter or Space activates; the Left
+            and Right arrows (mirrored right to left) also move focus between items. The icon is
+            hidden from assistive tech and the label names the item; a badge describes it through
+            its text or <code className="text-on-surface">badgeLabel</code>.
           </li>
           <li>
             The selected item sets{' '}
@@ -85,12 +102,14 @@ export async function NavigationBarBody() {
           <li>
             This is Compose&apos;s short / flexible navigation bar (
             <code className="text-on-surface">ShortNavigationBar</code>), which replaces the
-            original navigation bar; it is 64px{' '}
+            original navigation bar; it is at least 64px{' '}
             <code className="text-on-surface">surface-container</code> with no elevation.
           </li>
           <li>
             <code className="text-on-surface">arrangement=&quot;centered&quot;</code> reproduces
-            Compose&apos;s side padding of (100% − 10% × (n + 3)) / 2 for up to 6 items.
+            Compose&apos;s side padding of (100% − 10% × (n + 3)) / 2 for up to 6 stacked items.
+            Inline items are sized to their content, 8px apart (a provisional gap; the spec gives no
+            value).
           </li>
           <li>
             The pill grows from its centre on the default spatial spring, and the state layer and

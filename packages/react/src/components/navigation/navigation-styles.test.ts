@@ -15,14 +15,18 @@ function* outputs() {
       for (const slot of Object.values(slots)) yield slot();
     }
   for (const expanded of [false, true])
-    for (const sheetEntry of ['grow', 'slide'] as const) {
-      const slots = navigationRailStyles({ expanded, sheetEntry });
-      for (const slot of Object.values(slots)) yield slot();
-    }
-  for (const arrangement of ['equal', 'centered'] as const) {
-    const slots = navigationBarStyles({ arrangement });
-    for (const slot of Object.values(slots)) yield slot();
-  }
+    for (const sheetEntry of ['grow', 'slide'] as const)
+      for (const itemAlignment of ['top', 'center'] as const)
+        for (const divider of [false, true]) {
+          const slots = navigationRailStyles({ expanded, sheetEntry, itemAlignment, divider });
+          for (const slot of Object.values(slots)) yield slot();
+        }
+  for (const arrangement of ['equal', 'centered'] as const)
+    for (const iconPosition of ['top', 'start'] as const)
+      for (const hideOnScroll of [false, true]) {
+        const slots = navigationBarStyles({ arrangement, iconPosition, hideOnScroll });
+        for (const slot of Object.values(slots)) yield slot();
+      }
 }
 
 describe('navigation styles', () => {

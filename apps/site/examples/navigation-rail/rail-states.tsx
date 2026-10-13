@@ -1,4 +1,4 @@
-import { NavigationRail, NavigationRailItem } from '@windmorph/react';
+import { Badge, NavigationRail, NavigationRailItem } from '@windmorph/react';
 import { HomeIcon, SearchIcon, SendIcon, StarIcon, StarOutlineIcon } from '../../components/icons';
 
 const DESTINATIONS = [
@@ -11,7 +11,9 @@ const DESTINATIONS = [
 /**
  * The collapsed and expanded layouts side by side. Collapsed, items stack the icon above
  * the label; expanded, the icon sits beside the label. A `selectedIcon` can swap in while
- * an item is selected, and a disabled item is skipped by the keyboard.
+ * an item is selected, and a disabled item is skipped by the keyboard. A `badge` sits on
+ * the icon while collapsed and after the label while expanded, and `divider` marks the
+ * edge next to the content.
  */
 export function RailStates() {
   return (
@@ -24,6 +26,7 @@ export function RailStates() {
           <NavigationRail
             aria-label={expanded ? 'Expanded example' : 'Collapsed example'}
             expanded={expanded}
+            divider
             className="h-full"
           >
             {DESTINATIONS.map(({ id, label, icon, selectedIcon }, index) => (
@@ -31,6 +34,7 @@ export function RailStates() {
                 key={id}
                 icon={icon}
                 selectedIcon={selectedIcon}
+                {...(id === 'search' && { badge: <Badge>3</Badge>, badgeLabel: '3 new results' })}
                 selected={index === 2}
                 disabled={index === 3}
               >

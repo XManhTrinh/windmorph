@@ -88,39 +88,45 @@ test.describe('Expanded navigation rail', () => {
     await expect.poll(async () => (await fab.boundingBox())?.width).toBe(56);
   });
 
-  test('the pill slides from the previous destination to the new one', async ({ page }) => {
+  test("the new pill expands in place from its icon's centre (M3 rail selection)", async ({
+    page,
+  }) => {
     const rail = page.getByRole('navigation', { name: 'Mail' });
     // Let the rail finish expanding first.
     await expect.poll(async () => (await rail.boundingBox())?.width).toBeGreaterThanOrEqual(220);
-    const tops = await rail.evaluate(async (nav) => {
+    const run = await rail.evaluate(async (nav) => {
       const item = (name: string) =>
         [...nav.querySelectorAll('button')].find((button) => button.textContent === name)!;
-      const pillTop = (name: string) =>
-        item(name).querySelector('[class*="bg-secondary-container"]')!.getBoundingClientRect().top;
-      const from = pillTop('Home');
+      const pill = (name: string) =>
+        item(name).querySelector<HTMLElement>('[class*="bg-secondary-container"]')!;
       item('Sent').click();
-      const frames: number[] = [];
+      const frames: { top: number; clip: string }[] = [];
       const end = performance.now() + 800;
       while (performance.now() < end) {
         await new Promise(requestAnimationFrame);
-        frames.push(pillTop('Sent'));
+        frames.push({
+          top: pill('Sent').getBoundingClientRect().top,
+          clip: getComputedStyle(pill('Sent')).clipPath,
+        });
       }
-      // Where Sent's pill rests, measured with nothing moving.
-      return { from, frames, to: frames.at(-1)! };
+      return frames;
     });
-    const distance = tops.to - tops.from;
-    expect(distance).toBeGreaterThan(100); // Home and Sent are three items apart
-    // It starts near Home, passes through the middle, and settles on Sent.
-    expect(Math.abs(tops.frames[0]! - tops.from)).toBeLessThan(distance / 3);
-    expect(
-      tops.frames.some((top) => Math.abs(top - (tops.from + distance / 2)) < distance / 4),
-    ).toBe(true);
-    expect(Math.abs(tops.frames.at(-1)! - tops.to)).toBeLessThanOrEqual(1);
-    // Only one pill shows: Home's is gone.
-    const homePill = rail
-      .getByRole('button', { name: 'Home' })
-      .locator('[class*="bg-secondary-container"]');
-    await expect(homePill).toHaveCSS('opacity', '0');
+    const rest = run.at(-1)!;
+    // The pill never travels: it stays on its own row.
+    for (const frame of run) expect(Math.abs(frame.top - rest.top)).toBeLessThanOrEqual(1);
+    // It starts clipped towards the icon's centre line (16px padding + half the 24px icon)
+    // and opens to the whole pill.
+    expect(run[0]!.clip).not.toBe(rest.clip);
+    expect(rest.clip).toMatch(/^inset\(0px round/);
+    // Only one pill shows once settled: Home's has gone.
+    await expect
+      .poll(() =>
+        rail
+          .getByRole('button', { name: 'Home' })
+          .locator('[class*="bg-secondary-container"]')
+          .evaluate((el) => getComputedStyle(el).opacity),
+      )
+      .toBe('0');
   });
 
   test('the pill hugs its icon and label, while the whole row is the target', async ({ page }) => {
@@ -144,34 +150,5 @@ test.describe('Expanded navigation rail', () => {
     const box = (await search.boundingBox())!;
     await search.click({ position: { x: box.width - 12, y: box.height / 2 } });
     await expect(search).toHaveAttribute('aria-current', 'page');
-  });
-
-  test('the pill changes width as it slides between labels of different lengths', async ({
-    page,
-  }) => {
-    const rail = page.getByRole('navigation', { name: 'Mail' });
-    await expect.poll(async () => (await rail.boundingBox())?.width).toBeGreaterThanOrEqual(220);
-    const widths = await rail.evaluate(async (nav) => {
-      const item = (name: string) =>
-        [...nav.querySelectorAll('button')].find((button) => button.textContent === name)!;
-      const pillWidth = (name: string) =>
-        item(name).querySelector('[class*="bg-secondary-container"]')!.getBoundingClientRect()
-          .width;
-      const from = pillWidth('Home');
-      item('Starred').click();
-      const frames: number[] = [];
-      const end = performance.now() + 800;
-      while (performance.now() < end) {
-        await new Promise(requestAnimationFrame);
-        frames.push(pillWidth('Starred'));
-      }
-      const pill = item('Starred').querySelector<HTMLElement>('[class*="bg-secondary-container"]')!;
-      return { from, frames, inlineWidth: pill.style.width };
-    });
-    const to = widths.frames.at(-1)!;
-    expect(to - widths.from).toBeGreaterThan(4); // "Starred" is longer than "Home"
-    expect(Math.abs(widths.frames[0]! - widths.from)).toBeLessThan((to - widths.from) / 2);
-    // Settled, it sizes itself to its content again.
-    expect(widths.inlineWidth).toBe('');
   });
 });

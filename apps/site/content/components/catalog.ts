@@ -1021,6 +1021,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     expressive: true,
     related: ['navigation-bar', 'tabs'],
     whenNotToUse: 'In compact windows use a Navigation bar; for in-page sections use Tabs.',
+    keywords: ['side navigation', 'sidebar', 'nav rail', 'badge', 'divider', 'centred items'],
   },
   {
     slug: 'navigation-bar',
@@ -1032,7 +1033,8 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'showcase',
     expressive: true,
     related: ['navigation-rail', 'tabs'],
-    whenNotToUse: 'For more than five destinations use a Navigation rail or drawer.',
+    whenNotToUse: 'For more than five destinations use a Navigation rail.',
+    keywords: ['bottom navigation', 'tab bar', 'bottom bar', 'badge', 'hide on scroll'],
   },
   {
     slug: 'tabs',

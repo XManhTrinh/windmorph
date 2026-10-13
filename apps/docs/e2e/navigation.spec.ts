@@ -61,6 +61,46 @@ test.describe('NavigationRail behaviour', () => {
     await expect(page.getByTestId('page')).toContainText('Current: search');
   });
 
+  test('the modal rail focuses its first interactive element', async ({ page }) => {
+    await openStory(page, 'components-navigation--modal-rail');
+    await page.getByRole('button', { name: 'Expand navigation' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Main' });
+    await expect(sheet.getByRole('button', { name: 'Collapse navigation' })).toBeFocused();
+  });
+
+  test('arrow keys move focus between items without choosing one', async ({ page }) => {
+    await openStory(page, 'components-navigation--rail');
+    const home = page.getByRole('button', { name: 'Home' });
+    await home.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('button', { name: /^Search/ })).toBeFocused();
+    await page.keyboard.press('End');
+    await expect(page.getByRole('button', { name: 'Sent mail' })).toBeFocused();
+    await expect(page.getByTestId('page')).toContainText('Current: home');
+  });
+
+  test('the expanded pill expands from the centre of the icon', async ({ page }) => {
+    await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: true });
+    const starred = page.getByRole('button', { name: /^Starred/ });
+    const pill = starred.locator(':scope > span > span').first();
+    expect(await pill.evaluate((el) => getComputedStyle(el).clipPath)).toContain('28px');
+    await starred.click();
+    await expect.poll(() => pill.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  });
+
+  test('centred items sit in the middle of the space below the header', async ({ page }) => {
+    await openStory(page, 'components-navigation--centered-rail');
+    const rail = await page.getByTestId('rail').boundingBox();
+    const items = await page.getByRole('button', { name: 'Home' }).locator('..').boundingBox();
+    const header = await page
+      .getByRole('button', { name: 'Expand navigation' })
+      .locator('..')
+      .boundingBox();
+    const below = rail!.y + rail!.height - items!.y - items!.height;
+    const above = items!.y - (header!.y + header!.height);
+    expect(Math.abs(below - above)).toBeLessThan(2);
+  });
+
   test('items are keyboard reachable with a pill focus ring', async ({ page }) => {
     await openStory(page, 'components-navigation--rail-states');
     const home = page.getByRole('navigation', { name: 'Collapsed' }).getByRole('button', {
@@ -72,6 +112,31 @@ test.describe('NavigationRail behaviour', () => {
     await expect(home).toHaveAttribute('data-focus-visible', 'true');
     const pill = home.locator(':scope > span').first();
     expect(await pill.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  });
+});
+
+test.describe('NavigationBar behaviour', () => {
+  test('hides on scroll down and returns on scroll up', async ({ page }) => {
+    await openStory(page, 'components-navigation--hide-on-scroll');
+    const scroller = page.getByTestId('scroller');
+    const bar = page.getByTestId('bar');
+    const offset = () =>
+      bar.evaluate((el) => (el as HTMLElement).style.getPropertyValue('--m3-nav-bar-offset'));
+    const height = await bar.evaluate((el) => (el as HTMLElement).offsetHeight);
+    await scroller.evaluate((el) => el.scrollBy(0, 300));
+    await expect.poll(offset).toBe(`-${height}px`);
+    await scroller.evaluate((el) => el.scrollBy(0, -20));
+    await expect.poll(offset).toBe(`-${height - 20}px`);
+  });
+
+  test('inline items are centred with the extra space at the ends', async ({ page }) => {
+    await openStory(page, 'components-navigation--bar');
+    const bar = page.getByRole('navigation', { name: 'Bar start' });
+    const box = (await bar.boundingBox())!;
+    const first = (await bar.getByRole('button', { name: 'Home' }).boundingBox())!;
+    const last = (await bar.getByRole('button', { name: 'Sent mail' }).boundingBox())!;
+    expect(first.x - box.x).toBeGreaterThan(16);
+    expect(Math.abs(first.x - box.x - (box.x + box.width - last.x - last.width))).toBeLessThan(2);
   });
 });
 

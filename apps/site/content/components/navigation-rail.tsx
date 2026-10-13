@@ -41,10 +41,24 @@ export async function NavigationRailBody() {
           still expands.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          In the expanded rail the pill hugs its icon and label, and slides from the previous
-          destination to the new one on the fast spatial spring, changing width on the way;
-          collapsed, it grows in place. The whole row is the target. An item&apos;s{' '}
-          <code className="text-on-surface">selectedIcon</code> cross-fades with its icon.
+          In the expanded rail the pill hugs its icon and label. In both states the new
+          destination&apos;s pill expands from the centre of its icon on the default spatial spring,
+          and its label turns bold. The whole row is the target. An item&apos;s{' '}
+          <code className="text-on-surface">selectedIcon</code> cross-fades with its icon. Labels
+          never truncate: a long label wraps, breaking between words first, and the item grows
+          taller.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          <code className="text-on-surface">itemAlignment=&quot;center&quot;</code> centres the
+          items in the space below the header (M3 recommends it on tablets, where the middle is
+          easier to reach); the header stays at the top.{' '}
+          <code className="text-on-surface">divider</code> draws an{' '}
+          <code className="text-on-surface">outline-variant</code> line on the edge next to the
+          content. An item&apos;s <code className="text-on-surface">badge</code> (a{' '}
+          <code className="text-on-surface">Badge</code>) sits on the icon while collapsed and after
+          the label while expanded; <code className="text-on-surface">onReselect</code> runs when
+          the current destination is pressed again. A FAB in the header should rest flat (level 0)
+          in the rail.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Each <code className="text-on-surface">NavigationRailItem</code> is a link (
@@ -90,7 +104,14 @@ export async function NavigationRailBody() {
           </li>
           <li>
             Each item is a real link or button, so Tab reaches it and Enter or Space activates it.
-            The icon is hidden from assistive tech; the label names the item.
+            The Up and Down arrows move focus between items (Home and End to the first and last)
+            without choosing one. The icon is hidden from assistive tech; the label names the item.
+          </li>
+          <li>
+            A badge describes its item: its text, or{' '}
+            <code className="text-on-surface">badgeLabel</code> (e.g. &quot;3 new messages&quot;),
+            is linked with <code className="text-on-surface">aria-describedby</code>. Give a small
+            (dot) badge a <code className="text-on-surface">badgeLabel</code>.
           </li>
           <li>
             The selected item sets{' '}
@@ -98,8 +119,9 @@ export async function NavigationRailBody() {
             reader announces the current destination. A disabled item is skipped.
           </li>
           <li>
-            The modal rail is a dialog: it traps focus, and Escape, an outside press or choosing an
-            item collapses it and returns focus.
+            The modal rail is a dialog: focus starts on its first interactive element (the menu
+            button, the FAB or the first destination) and stays inside, and Escape, an outside press
+            or choosing an item collapses it and returns focus.
           </li>
         </ul>
       </section>
