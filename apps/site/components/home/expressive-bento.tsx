@@ -195,7 +195,7 @@ export function ExpressiveBento() {
           Google's showcase */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-1 large:row-span-4 large:row-start-7">
         <FloatingToolbar aria-label="Photo tools" elevated={false}>
-          <ButtonGroup aria-label="Tools" buttonVariant="tonal" className="gap-[8px]">
+          <ButtonGroup aria-label="Tools" buttonVariant="tonal">
             <IconButton toggle variant="tonal" icon={<InkPenIcon />} aria-label="Markup" />
             <IconButton toggle variant="tonal" icon={<CropIcon />} aria-label="Crop" />
             <IconButton toggle variant="tonal" icon={<TuneIcon />} aria-label="Adjust" />
@@ -216,7 +216,7 @@ export function ExpressiveBento() {
       {/* Two small tiles: the loading indicator's morph and an icon button's shape change */}
       <div className="col-span-2 grid grid-cols-2 gap-4 large:col-span-1 large:col-start-2 large:row-span-3 large:row-start-8">
         <Tile>
-          <LoadingIndicator variant="contained" aria-label="Loading" className="scale-[1.75]" />
+          <LoadingIndicator variant="contained" aria-label="Loading" size={84} />
         </Tile>
         <Tile>
           <IconButton
