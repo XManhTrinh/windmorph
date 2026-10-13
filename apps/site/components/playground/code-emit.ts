@@ -87,7 +87,9 @@ export function emitSnippet(input: EmitInput): string {
     const slot = input.toggledSlots?.[name];
     if (slot !== undefined) {
       if (value === true) {
-        attrs.push(`${name}={${typeof slot === 'function' ? slot(input.values) : slot}}`);
+        const jsx = typeof slot === 'function' ? slot(input.values) : slot;
+        // A plain string literal is written as an attribute string: `origin="trigger"`.
+        attrs.push(/^"[^"\\{}]*"$/.test(jsx) ? `${name}=${jsx}` : `${name}={${jsx}}`);
       }
       continue;
     }

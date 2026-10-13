@@ -183,6 +183,22 @@ test.describe('Dialog behaviour', () => {
     expect((await page.getByRole('alertdialog').boundingBox())!.y).toBe(56);
   });
 
+  test('classNames.positioner places it anywhere, keeping the window margin', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 760 });
+    await openStory(page, 'components-dialog--custom-position');
+    await page.getByRole('button', { name: 'Open dialog' }).click();
+    await settle(page);
+    const wide = (await page.getByRole('alertdialog').boundingBox())!;
+    expect(wide.y).toBe(56);
+    expect(wide.x + wide.width).toBe(1024 - 56);
+
+    await page.setViewportSize({ width: 390, height: 760 });
+    await settle(page);
+    const compact = (await page.getByRole('alertdialog').boundingBox())!;
+    expect(compact.y).toBe(24);
+    expect(compact.x + compact.width).toBe(390 - 24);
+  });
+
   test('full screen without a header action shows a 56px bottom action bar', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 760 });
     await openStory(page, 'components-dialog--full-screen-bottom-bar');
@@ -348,4 +364,97 @@ test.describe('Dialog spec details', () => {
       .click();
     await expect(editor).toHaveCount(0);
   });
+});
+
+/** The consumer layout classes of the §10 override matrix (`apps/docs/stories/layout-overrides.ts`). */
+const POSITIONER_OVERRIDES = [
+  'none',
+  'fixed',
+  'absolute',
+  'sticky',
+  'static',
+  'overflowHidden',
+  'overflowVisible',
+  'fullWidth',
+  'transform',
+];
+
+test.describe('Dialog classNames.positioner layout safety', () => {
+  for (const override of POSITIONER_OVERRIDES) {
+    for (const transformedAncestor of [false, true]) {
+      const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''}`;
+      test(name, async ({ page }) => {
+        await page.setViewportSize({ width: 1024, height: 760 });
+        await openStory(
+          page,
+          'components-dialog--positioner-override',
+          {},
+          { override, transformedAncestor },
+        );
+        await page.getByRole('button', { name: 'Open dialog' }).click();
+        const dialog = page.getByRole('dialog', { name: 'Sync across devices?' });
+        // Enter motion: the panel expands downward on its library-owned wrapper.
+        expect((await clipTransition(dialog))[0]).toBe('inset(-32px -32px 100%)');
+        await settle(page);
+
+        const panel = await dialog.evaluate((el) => {
+          const motion = getComputedStyle(el.parentElement!);
+          const box = el.getBoundingClientRect();
+          return {
+            width: (el as HTMLElement).offsetWidth,
+            radius: getComputedStyle(el).borderTopLeftRadius,
+            clip: motion.clipPath,
+            opacity: motion.opacity,
+            inWindow:
+              box.top >= 0 &&
+              box.left >= 0 &&
+              box.bottom <= window.innerHeight &&
+              box.right <= window.innerWidth,
+          };
+        });
+        // The consumer's class reached the positioner.
+        const positioner = await dialog.evaluate((el) => {
+          const style = getComputedStyle(el.parentElement!.parentElement!);
+          return { position: style.position, transformed: style.rotate !== 'none' };
+        });
+        expect(positioner).toEqual({
+          position: ['absolute', 'sticky', 'static'].includes(override) ? override : 'fixed',
+          transformed: override === 'transform',
+        });
+        // The text sets the panel's width (between 280px and 560px) in every case.
+        expect(panel).toEqual({
+          width: 500,
+          radius: '28px',
+          clip: 'inset(-32px)',
+          opacity: '1',
+          inWindow: true,
+        });
+
+        // The scrim still covers the whole window.
+        const scrim = await page.evaluate(() => {
+          const el = document.querySelector<HTMLElement>('[aria-hidden="true"].bg-scrim\\/32')!;
+          const box = el.getBoundingClientRect();
+          return [box.x, box.y, box.width, box.height];
+        });
+        expect(scrim).toEqual([0, 0, 1024, 760]);
+
+        // Focus starts on the first action, and the keyboard focus ring is an outline.
+        await expect(dialog.getByRole('button', { name: 'Not now' })).toBeFocused();
+        await page.keyboard.press('Tab');
+        const sync = dialog.getByRole('button', { name: 'Sync' });
+        await expect(sync).toBeFocused();
+        await expect(sync).toHaveAttribute('data-focus-visible', 'true');
+        expect(await sync.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+
+        // Pressing inside keeps it open; pressing outside dismisses it with the exit motion.
+        await dialog.getByText('Your theme and layout').click();
+        await expect(dialog).toBeVisible();
+        await page.mouse.click(8, 8);
+        expect(await dialog.evaluate((el) => el.parentElement!.hasAttribute('data-exiting'))).toBe(
+          true,
+        );
+        await expect(dialog).toHaveCount(0);
+      });
+    }
+  }
 });

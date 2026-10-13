@@ -258,6 +258,22 @@ describe('Dialog', () => {
     expect(panel).toHaveStyle({ padding: '32px' });
   });
 
+  it('merges classNames.positioner into the positioner, so it can sit anywhere', async () => {
+    render(<DeleteDialog classNames={{ positioner: 'items-start justify-end' }} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const positioner = screen.getByTestId('panel').parentElement!.parentElement!;
+    expect(positioner).toHaveClass(
+      'items-start',
+      'justify-end',
+      'fixed',
+      'inset-0',
+      'p-[24px]',
+      'medium:p-[56px]',
+    );
+    expect(positioner).not.toHaveClass('items-center');
+    expect(positioner).not.toHaveClass('justify-center');
+  });
+
   it('draws the optional dividers around its content', async () => {
     render(
       <Dialog defaultOpen aria-label="Ringtone">
@@ -574,5 +590,87 @@ describe('Dialog container transform', () => {
     const { baseElement } = render(<NewEvent origin="trigger" />);
     await userEvent.click(screen.getByRole('button', { name: 'New event' }));
     expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});
+
+describe('DialogActions with more than two actions', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  function Actions({ children }: { children: React.ReactNode }) {
+    return (
+      <Dialog defaultOpen aria-label="Share">
+        <DialogActions>{children}</DialogActions>
+      </Dialog>
+    );
+  }
+
+  const ok = <Button variant="text">OK</Button>;
+  const cancel = <Button variant="text">Cancel</Button>;
+  const learnMore = <Button variant="text">Learn more</Button>;
+
+  it('warns once in development when it holds three actions, counting inside fragments', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(
+      <Actions>
+        {learnMore}
+        <>
+          {cancel}
+          {ok}
+        </>
+      </Actions>,
+    );
+    await screen.findByRole('alertdialog');
+    rerender(
+      <Actions>
+        {learnMore}
+        {cancel}
+        {ok}
+      </Actions>,
+    );
+    const warnings = warn.mock.calls.filter(([message]) =>
+      String(message).includes('DialogActions'),
+    );
+    expect(warnings).toEqual([
+      [
+        '[@windmorph/react] DialogActions holds 3 actions; M3 dialogs have at most two ' +
+          '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
+      ],
+    ]);
+  });
+
+  it('stays silent with one or two actions, ignoring null and false', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(<Actions>{ok}</Actions>);
+    await screen.findByRole('alertdialog');
+    rerender(
+      <Actions>
+        {null}
+        {cancel}
+        {false}
+        {ok}
+      </Actions>,
+    );
+    expect(
+      warn.mock.calls.filter(([message]) => String(message).includes('DialogActions')),
+    ).toEqual([]);
+  });
+
+  it('stays silent in production', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <Actions>
+        {learnMore}
+        {cancel}
+        {ok}
+      </Actions>,
+    );
+    await screen.findByRole('alertdialog');
+    expect(
+      warn.mock.calls.filter(([message]) => String(message).includes('DialogActions')),
+    ).toEqual([]);
   });
 });
