@@ -19,11 +19,25 @@ describe('SnackbarHostState', () => {
     expect(state.currentSnackbarData).toBeNull();
   });
 
-  it('uses Compose’s durations', () => {
+  it('uses Compose’s durations, and never times out a snackbar with an action', () => {
     expect(durationMillis({ message: 'a' })).toBe(4000);
     expect(durationMillis({ message: 'a', duration: 'long' })).toBe(10000);
     expect(durationMillis({ message: 'a', actionLabel: 'Undo' })).toBe(Infinity);
-    expect(durationMillis({ message: 'a', actionLabel: 'Undo', duration: 'short' })).toBe(4000);
+    expect(durationMillis({ message: 'a', actionLabel: 'Undo', duration: 'short' })).toBe(Infinity);
+  });
+
+  it('can replace the snackbar on screen instead of queueing', async () => {
+    const state = new SnackbarHostState();
+    const first = state.showSnackbar('Uploading 1 file');
+    const later = state.showSnackbar('Queued');
+    const second = state.showSnackbar('Uploading 2 files', { replace: true });
+    await expect(first).resolves.toBe('dismissed');
+    expect(state.currentSnackbarData?.visuals.message).toBe('Uploading 2 files');
+    state.currentSnackbarData!.dismiss();
+    await expect(second).resolves.toBe('dismissed');
+    expect(state.currentSnackbarData?.visuals.message).toBe('Queued');
+    state.currentSnackbarData!.dismiss();
+    await later;
   });
 });
 
@@ -115,6 +129,73 @@ describe('SnackbarHost', () => {
     expect(state.currentSnackbarData).not.toBeNull();
     act(() => vi.advanceTimersByTime(1));
     expect(state.currentSnackbarData).toBeNull();
+  });
+
+  it('dismisses on Escape even without the × button', async () => {
+    const state = new SnackbarHostState();
+    render(<SnackbarHost state={state} />);
+    let result: Promise<string> | undefined;
+    act(() => {
+      result = state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull();
+    screen.getByRole('button', { name: 'Undo' }).focus();
+    await userEvent.keyboard('{Escape}');
+    await expect(result).resolves.toBe('dismissed');
+  });
+
+  it('moves focus to an actionable snackbar with Alt+G and returns it when it leaves', async () => {
+    const state = new SnackbarHostState();
+    const { container } = render(
+      <>
+        <button type="button">Archive</button>
+        <SnackbarHost state={state} data-testid="host" />
+      </>,
+    );
+    const archive = screen.getByRole('button', { name: 'Archive' });
+    archive.focus();
+    act(() => {
+      void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    const item = screen.getByText('Archived').closest('[data-snackbar-id]')!;
+    expect(item).toHaveAttribute('aria-keyshortcuts', 'Alt+G');
+    // Alt+G types "©" on a Mac; the physical key still matches.
+    fireEvent.keyDown(document, { key: '©', code: 'KeyG', altKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.keyboard('{Enter}');
+    expect(archive).toHaveFocus();
+  });
+
+  it('can change or turn off the shortcut, and leaves snackbars without actions alone', () => {
+    const state = new SnackbarHostState();
+    const { rerender } = render(<SnackbarHost state={state} focusShortcut={false} />);
+    act(() => {
+      void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toHaveFocus();
+    rerender(<SnackbarHost state={state} focusShortcut="Control+Shift+S" />);
+    fireEvent.keyDown(document, { key: 'S', code: 'KeyS', ctrlKey: true, shiftKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+    act(() => state.currentSnackbarData!.dismiss());
+    act(() => {
+      void state.showSnackbar('Saved');
+    });
+    expect(screen.getByText('Saved').closest('[data-snackbar-id]')).not.toHaveAttribute(
+      'aria-keyshortcuts',
+    );
+  });
+
+  it('expands upward with a clip instead of scaling', () => {
+    const state = new SnackbarHostState();
+    render(<SnackbarHost state={state} />);
+    act(() => {
+      void state.showSnackbar('Saved');
+    });
+    const item = screen.getByText('Saved').closest('[data-snackbar-id]')!;
+    expect(item.className).toContain('starting:[clip-path:inset(100%_-32px_-32px_-32px)]');
+    expect(item.className).not.toMatch(/scale/);
   });
 
   it('removes a snackbar once it has faded out', () => {

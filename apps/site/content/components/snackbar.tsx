@@ -65,13 +65,27 @@ export async function SnackbarBody() {
             new message is announced without moving focus. Snackbars never take focus themselves.
           </li>
           <li>
-            When a snackbar has a dismiss (×) button, Escape dismisses it while focus is inside it.
-            The dismiss button needs a name; it defaults to{' '}
+            <kbd className="text-on-surface">Alt+G</kbd> moves focus to a snackbar with an action or
+            a dismiss button, as the spec asks for on the web. Change it with{' '}
+            <code className="text-on-surface">focusShortcut</code> (or turn it off with{' '}
+            <code className="text-on-surface">false</code>), and list it with your app&apos;s other
+            shortcuts. The snackbar carries it in{' '}
+            <code className="text-on-surface">aria-keyshortcuts</code>.
+          </li>
+          <li>
+            Escape dismisses a snackbar while focus is inside it, with or without a dismiss (×)
+            button. The dismiss button needs a name; it defaults to{' '}
             <code className="text-on-surface">dismissLabel</code> &quot;Dismiss&quot;.
           </li>
           <li>
+            When a snackbar leaves with focus inside it, focus returns to where it was before it
+            entered the snackbar.
+          </li>
+          <li>
             The auto-dismiss timer pauses while the pointer or focus is on the snackbar, so a reader
-            or a slow pointer never loses the message (WCAG 2.2.1).
+            or a slow pointer never loses the message (WCAG 2.2.1). Snackbars with an action never
+            time out. On the web, use an auto-dismissing snackbar only alongside inline feedback for
+            the same event.
           </li>
         </ul>
       </section>
@@ -87,10 +101,14 @@ export async function SnackbarBody() {
             Undo.
           </li>
           <li>
-            Durations match Compose: <code className="text-on-surface">short</code> 4s,{' '}
-            <code className="text-on-surface">long</code> 10s, and{' '}
-            <code className="text-on-surface">indefinite</code> by default when there is an action.
-            There is no platform accessibility multiplier.
+            Durations match Compose: <code className="text-on-surface">short</code> 4s and{' '}
+            <code className="text-on-surface">long</code> 10s. A snackbar with an action is always{' '}
+            <code className="text-on-surface">indefinite</code>, as the spec requires; Compose lets
+            you time one out. There is no platform accessibility multiplier.
+          </li>
+          <li>
+            <code className="text-on-surface">showSnackbar(visuals, {'{ replace: true }'})</code>{' '}
+            replaces the snackbar on screen with updated information instead of queueing behind it.
           </li>
           <li>
             The container is <code className="text-on-surface">inverse-surface</code> at elevation 3
@@ -101,8 +119,9 @@ export async function SnackbarBody() {
           </li>
           <li>
             A leaving snackbar stays <code className="text-on-surface">inert</code> while the next
-            one fades in, both sharing one grid cell, matching Compose&apos;s cross-fade. The pause
-            on hover or focus is an addition on top of Compose.
+            one fades in, both sharing one grid cell, matching Compose&apos;s cross-fade. A snackbar
+            expands upward from the bottom edge rather than scaling, since the spec avoids scale
+            motion. The pause on hover or focus is an addition on top of Compose.
           </li>
         </ul>
       </section>

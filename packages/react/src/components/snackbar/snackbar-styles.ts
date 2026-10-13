@@ -7,7 +7,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * above and below, an `inverse-primary` text-button action and an `inverse-on-surface`
  * dismiss icon button; 8px after the action when there is no dismiss button. On a new
  * line, the actions sit at the end, 4px from the bottom. The host pads each snackbar by
- * 12px and fades it on fast effects while scaling it from 80% on fast spatial.
+ * 12px and fades it on fast effects while it expands upward from the bottom edge on fast
+ * spatial (a clip-path reveal: the spec avoids scale and z-axis motion, and "a snackbar at
+ * the bottom of the screen expands upwards"). The clip rests 32px outside the box so the
+ * shadow shows; reduced motion keeps only the fade.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -46,11 +49,12 @@ export const snackbarHostStyles = tv({
   slots: {
     root: 'grid justify-items-center',
     item: [
-      'col-start-1 row-start-1 flex w-full justify-center p-[12px] opacity-100 scale-none',
-      '[transition-property:opacity,scale]',
+      'col-start-1 row-start-1 flex w-full justify-center p-[12px] opacity-100',
+      '[clip-path:inset(-32px)] starting:[clip-path:inset(100%_-32px_-32px_-32px)] data-exiting:[clip-path:inset(100%_-32px_-32px_-32px)]',
+      '[transition-property:opacity,clip-path] motion-reduce:[transition-property:opacity]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
-      'starting:scale-80 starting:opacity-0 data-exiting:scale-80 data-exiting:opacity-0',
+      'starting:opacity-0 data-exiting:opacity-0',
     ],
   },
 });

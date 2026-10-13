@@ -8,8 +8,9 @@ import { useState } from 'react';
  * button queues a snackbar with `showSnackbar`; the host shows them one at a time in a
  * polite live region, positioned here at the bottom of a bounded container. `showSnackbar`
  * resolves `'action-performed'` or `'dismissed'`, so the "With action" button can react to
- * Undo. A snackbar with an action stays until it is acted on or dismissed; a plain one
- * leaves after four seconds, pausing while the pointer or focus is on it.
+ * Undo. A snackbar with an action stays until it is acted on or dismissed; Alt+G moves
+ * focus to it and Escape dismisses it. A plain one leaves after four seconds, pausing while
+ * the pointer or focus is on it. "Replace" swaps the snackbar on screen for an updated one.
  */
 export function SnackbarHostDemo() {
   const snackbar = useSnackbarHostState();
@@ -37,6 +38,12 @@ export function SnackbarHostDemo() {
           }
         >
           Dismissible
+        </Button>
+        <Button
+          variant="outlined"
+          onPress={() => void snackbar.showSnackbar('2 photos uploaded', { replace: true })}
+        >
+          Replace
         </Button>
       </div>
       <p className="text-body-medium text-on-surface-variant">Last result: {result}</p>

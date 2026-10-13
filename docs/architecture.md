@@ -416,8 +416,8 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Testing note:** React Aria counts a hover only after a pointer move has set its interaction modality. Tests move the pointer before hovering, as any real approach does.
 
 ### Snackbar (built, Tier 2)
-- `Snackbar`: the message as `children`, `actionLabel` + `onAction`, `onDismiss` (shows the × button; Escape inside it also dismisses), `dismissLabel`, `actionOnNewLine`.
-- `SnackbarHostState` (from `useSnackbarHostState()`) ports Compose's queue. `showSnackbar({ message, actionLabel, withDismissAction, actionOnNewLine, duration })` shows one snackbar at a time and resolves `'action-performed'` or `'dismissed'`. `SnackbarHost` renders it; the consumer positions it with `className`.
+- `Snackbar`: the message as `children`, `actionLabel` + `onAction`, `onDismiss` (shows the × button), `onEscape` (Escape inside it; defaults to `onDismiss`), `dismissLabel`, `actionOnNewLine`.
+- `SnackbarHostState` (from `useSnackbarHostState()`) ports Compose's queue. `showSnackbar({ message, actionLabel, withDismissAction, actionOnNewLine, duration }, { replace })` shows one snackbar at a time and resolves `'action-performed'` or `'dismissed'`. `replace` (2026-10-13, the spec: "a snackbar with updated information can immediately replace an outdated snackbar") dismisses the current one and shows the new one at once. `SnackbarHost` renders it; the consumer positions it with `className`.
 - **Values** (Compose `Snackbar.kt` with its `isSnackbarStylingFixEnabled` layout, `SnackbarHost.kt`, `SnackbarTokens`):
   - Container: `inverse-surface`, level 3, 4px corners, 48px minimum height, up to 600px wide.
   - Text and spacing: `body-medium` `inverse-on-surface` with 16px before it and 14px above and below; 8px after the action when there's no dismiss button.
@@ -425,10 +425,14 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - On a new line, the actions sit at the end, 4px from the bottom.
   - The host pads each snackbar by 12px.
 - **Motion and timing:**
-  - Snackbars fade on fast effects and scale from 80% on fast spatial, on a host-owned wrapper (not the snackbar's root). A leaving snackbar stays, `inert`, while the next one appears, both sharing one grid cell.
-  - Durations: short 4s, long 10s, indefinite by default when there's an action (Compose). There's no platform accessibility multiplier.
+  - Snackbars fade on fast effects and **expand upward from the bottom edge** on fast spatial, on a host-owned wrapper (not the snackbar's root): a `clip-path: inset()` reveal whose top edge moves from 100% to 32px outside the box (the margin keeps the shadow). 2026-10-13, the spec's transitions page: "Scale and z-axis motion is avoided" and "a snackbar at the bottom of the screen expands upwards"; it used to scale from 80%. Reduced motion keeps only the fade. A leaving snackbar stays, `inert`, while the next one appears, both sharing one grid cell.
+  - Durations: short 4s, long 10s. **A snackbar with an action never times out** (2026-10-13, the spec: "Snackbars with actions shouldn't auto-dismiss"), so `duration` is ignored then; Compose allowed it. There's no platform accessibility multiplier. The docs say to use auto-dismissing snackbars on the web only alongside inline feedback.
   - **Addition:** the timer pauses while the pointer or focus is on the snackbar (WCAG 2.2.1).
-- **Accessibility:** the host is a persistent `aria-live="polite"` region, so new messages are announced. Snackbars don't take focus.
+- **Accessibility:** the host is a persistent `aria-live="polite"` region, so new messages are announced. Snackbars don't take focus. Added 2026-10-13 from the spec's accessibility page:
+  - `focusShortcut` (default `Alt+G`, `false` to turn off) moves focus to the shown snackbar's first control when it has one; letters also match the physical key, since Alt changes the character on some layouts. An actionable snackbar's wrapper carries it in `aria-keyshortcuts`.
+  - Escape dismisses the host's snackbars whether or not the × is shown.
+  - When a snackbar leaves with focus inside it, focus returns to the element focused before it entered (the focus event's `relatedTarget`), if that's still in the page.
+  - `utils/focus.ts` holds `firstTabbable` (React Aria's tree walker isn't public) and `matchesShortcut`.
 
 ### Navigation rail and flexible navigation bar (built, Tier 2)
 - `NavigationRail` with `NavigationRailItem`, and `NavigationBar` with `NavigationBarItem`. Items are links (`href`) or buttons (`onPress`) with `icon`, optional `selectedIcon` and a label; `selected` marks the current destination with `aria-current="page"` (`data-current`, since `ButtonBase` owns `data-selected`). Each is a `nav` landmark that needs a name.

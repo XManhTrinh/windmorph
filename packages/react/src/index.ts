@@ -147,6 +147,7 @@ export {
   SnackbarHostState,
   type SnackbarData,
   type SnackbarDuration,
+  type ShowSnackbarOptions,
   type SnackbarResult,
   type SnackbarVisuals,
 } from './components/snackbar/snackbar-state';

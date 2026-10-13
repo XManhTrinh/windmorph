@@ -37,6 +37,41 @@ test.describe('SnackbarHost behaviour', () => {
     await expect(host.getByText('Draft discarded')).toHaveCount(0);
   });
 
+  test('Alt+G reaches an actionable snackbar, Escape dismisses it and focus returns', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-snackbar--host');
+    const trigger = page.getByRole('button', { name: 'With action' });
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const host = page.getByTestId('host');
+    await expect(host.getByText('Message archived')).toBeVisible();
+    await page.keyboard.press('Alt+KeyG');
+    await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('result')).toHaveText('Result: dismissed');
+    await expect(trigger).toBeFocused();
+  });
+
+  test('a replacing snackbar takes over at once', async ({ page }) => {
+    await openStory(page, 'components-snackbar--host');
+    const host = page.getByTestId('host');
+    await page.getByRole('button', { name: 'With action' }).click();
+    await page.getByRole('button', { name: 'Replace' }).click();
+    await expect(page.getByTestId('result')).toHaveText('Result: dismissed');
+    await expect(host.getByText('Photos uploaded')).toBeVisible();
+  });
+
+  test('a snackbar expands upward from its bottom edge', async ({ page }) => {
+    await openStory(page, 'components-snackbar--host');
+    await page.getByRole('button', { name: 'Short' }).click();
+    const item = page.getByTestId('host').locator('[data-snackbar-id]');
+    const clip = await item.evaluate((el) => getComputedStyle(el).clipPath);
+    const scale = await item.evaluate((el) => getComputedStyle(el).scale);
+    expect(scale).toBe('none');
+    expect(clip).toContain('inset(');
+  });
+
   test('short snackbars leave by themselves', async ({ page }) => {
     await page.clock.install();
     await openStory(page, 'components-snackbar--host');

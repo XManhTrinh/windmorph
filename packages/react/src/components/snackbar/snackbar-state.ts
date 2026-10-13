@@ -14,8 +14,20 @@ export interface SnackbarVisuals {
   withDismissAction?: boolean;
   /** Put the action under the message, for long action labels. */
   actionOnNewLine?: boolean;
-  /** @default "indefinite" with an action, otherwise "short" */
+  /**
+   * How long it stays without an action. A snackbar with an action always stays until it's
+   * acted on or dismissed, as the spec requires, so this is ignored then.
+   * @default "short"
+   */
   duration?: SnackbarDuration;
+}
+
+export interface ShowSnackbarOptions {
+  /**
+   * Replace the snackbar on screen (which resolves `'dismissed'`) instead of queueing behind
+   * it, for a snackbar with updated information.
+   */
+  replace?: boolean;
 }
 
 export interface SnackbarData {
@@ -26,10 +38,13 @@ export interface SnackbarData {
   dismiss: () => void;
 }
 
-/** Compose `SnackbarDuration.toMillis` (without the platform accessibility multiplier). */
-export function durationMillis({ duration, actionLabel }: SnackbarVisuals): number {
-  const resolved = duration ?? (actionLabel ? 'indefinite' : 'short');
-  return resolved === 'short' ? 4000 : resolved === 'long' ? 10000 : Infinity;
+/**
+ * Compose `SnackbarDuration.toMillis` (without the platform accessibility multiplier). A
+ * snackbar with an action never times out: "Snackbars with actions shouldn't auto-dismiss."
+ */
+export function durationMillis({ duration = 'short', actionLabel }: SnackbarVisuals): number {
+  if (actionLabel !== undefined) return Infinity;
+  return duration === 'short' ? 4000 : duration === 'long' ? 10000 : Infinity;
 }
 
 let nextId = 1;
@@ -49,13 +64,18 @@ export class SnackbarHostState {
   }
 
   /**
-   * Shows a snackbar once any current one has gone, and resolves with how it ended.
+   * Shows a snackbar once any current one has gone (or at once with `replace`), and resolves
+   * with how it ended.
    *
    * @example
    * const result = await snackbar.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
    * if (result === 'action-performed') unarchive();
+   * snackbar.showSnackbar('3 files uploaded', { replace: true });
    */
-  showSnackbar(visuals: SnackbarVisuals | string): Promise<SnackbarResult> {
+  showSnackbar(
+    visuals: SnackbarVisuals | string,
+    { replace = false }: ShowSnackbarOptions = {},
+  ): Promise<SnackbarResult> {
     const resolved = typeof visuals === 'string' ? { message: visuals } : visuals;
     return new Promise((resolve) => {
       const show = () => {
@@ -75,8 +95,11 @@ export class SnackbarHostState {
         this.current = data;
         this.emit();
       };
-      if (this.current) this.queue.push(show);
-      else show();
+      if (!this.current) show();
+      else if (replace) {
+        this.queue.unshift(show);
+        this.current.dismiss();
+      } else this.queue.push(show);
     });
   }
 

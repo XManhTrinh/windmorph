@@ -67,6 +67,9 @@ export const Host: Story = {
           >
             Dismissible
           </Button>
+          <Button onPress={() => void snackbar.showSnackbar('Photos uploaded', { replace: true })}>
+            Replace
+          </Button>
         </div>
         <p className="text-body-medium" data-testid="result">
           Result: {result}
