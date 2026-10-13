@@ -1,18 +1,22 @@
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
- * Bottom sheet values follow Compose Material 3 (ModalBottomSheet.kt, BottomSheet.kt,
- * SheetDefaults.kt, SheetBottomTokens): at most 640px wide and centred, 28px top corners,
- * `surface-container-low`, a 32 × 4px `on-surface-variant` drag handle with 22px above and
- * below it, and a 32% scrim fading on the default effects spring. It shows on the default
- * spatial spring and hides on the fast effects spring, as Compose's `showMotionSpec` /
- * `hideMotionSpec` do.
+ * Bottom sheet values follow m3.material.io and Compose Material 3 (ModalBottomSheet.kt,
+ * BottomSheetScaffold.kt, SheetDefaults.kt, SheetBottomTokens): at most 640px wide and
+ * centred, with a 72px top margin (56px, and 56px side margins, above 640px), 28px top
+ * corners, `surface-container-low` at level 1, a 32 × 4px `on-surface-variant` drag handle
+ * with 22px above and below it, and (modal) a 32% scrim fading on the default effects
+ * spring. It shows on the default spatial spring and hides on the fast spatial spring: the
+ * exit moves the sheet, and position moves on spatial springs (2026-10-13).
  *
- * Side sheets aren't in Compose; values follow Material Components Android
- * (`m3_comp_sheet_side_*`): 256px wide; standard `surface` at level 0 with no corners;
- * modal `surface-container-low` at level 1 with 16px corners on its free edge, over a 32%
- * scrim; detached sheets sit 16px from the edges with 16px corners all round. They move on
- * the bottom sheet's springs.
+ * Side sheets aren't in Compose; values follow m3.material.io and Material Components
+ * Android (`m3_comp_sheet_side_*`): 256px wide; standard `surface` at level 0 with no
+ * corners and an `outline-variant` divider on its content edge; modal
+ * `surface-container-low` at level 1 with 16px corners on its free edge, over a 32% scrim;
+ * detached sheets sit 16px from the edges with 16px corners all round. The header has 24px
+ * start padding (16px with a back button) and 12px between its parts; the bottom action
+ * row is at least 72px, 16px above and 24px below, start-aligned. They move on the bottom
+ * sheet's springs.
  *
  * The sheets move by `translate` on a library-owned wrapper, never on the consumer's panel
  * (§10). Every class is written out in full so Tailwind can find it.
@@ -26,13 +30,13 @@ const scrim = [
   'starting:opacity-0 data-exiting:opacity-0',
 ];
 
-/** Shows on the default spatial spring, hides on the fast effects spring. */
+/** Shows on the default spatial spring, hides on the fast spatial spring. */
 const sheetMotion = [
   '[transition-property:translate]',
   '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
   '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
-  'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
-  'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+  'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+  'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
   'data-dragging:[transition-duration:0s]',
 ];
 
@@ -40,24 +44,38 @@ const sheetMotion = [
 export const bottomSheetStyles = tv({
   slots: {
     scrim,
-    // Library-owned wrapper that moves the sheet.
+    // Library-owned wrapper that positions and moves the sheet.
     motion: [
-      'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex max-h-dvh w-full max-w-[640px]',
+      'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px]',
+      'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
+      'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
       'translate-y-(--m3-sheet-offset) starting:translate-y-full data-exiting:translate-y-full',
       ...sheetMotion,
     ],
     panel: [
-      'flex max-h-dvh w-full flex-col rounded-t-corner-extra-large',
-      'bg-surface-container-low text-on-surface outline-none',
+      'flex max-h-[calc(100dvh-72px)] w-full flex-col rounded-t-corner-extra-large',
+      'min-[641px]:max-h-[calc(100dvh-56px)]',
+      'bg-surface-container-low text-on-surface shadow-elevation-1 outline-none',
     ],
     handle: [
       'flex w-full shrink-0 cursor-grab touch-none justify-center pt-[22px] pb-[22px] outline-none',
       'focus-ring-inset rounded-t-corner-extra-large data-dragging:cursor-grabbing',
     ],
     handleBar: 'h-[4px] w-[32px] rounded-corner-extra-large bg-on-surface-variant',
+    closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
     content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain',
   },
+  variants: {
+    variant: {
+      modal: {},
+      // Over the page without a scrim, below every overlay; the page stays usable around it.
+      standard: { motion: 'z-(--md-sys-z-sticky)' },
+    },
+  },
+  defaultVariants: { variant: 'modal' },
 });
+
+export type BottomSheetStyleProps = VariantProps<typeof bottomSheetStyles>;
 
 /** Variant definitions for {@link SideSheet}. */
 export const sideSheetStyles = tv({
@@ -73,7 +91,12 @@ export const sideSheetStyles = tv({
     header:
       'flex min-h-[72px] shrink-0 items-center gap-[12px] ps-[24px] pe-[12px] pt-[12px] pb-[12px]',
     title: 'min-w-0 flex-1 text-title-large font-brand text-on-surface-variant',
+    headerActions: 'ms-auto flex shrink-0 items-center gap-[12px]',
     content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain ps-[24px] pe-[24px]',
+    footer: [
+      'flex min-h-[72px] shrink-0 flex-wrap items-center justify-start gap-[8px]',
+      'ps-[24px] pe-[24px] pt-[16px] pb-[24px]',
+    ],
     // Standard sheets sit in the layout; their width opens and closes on a grid track.
     standard: [
       'inline-grid h-full shrink-0 grid-cols-[1fr] visible data-closed:invisible data-closed:grid-cols-[0fr]',
@@ -82,6 +105,7 @@ export const sideSheetStyles = tv({
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',
     ],
     standardClip: 'flex min-w-0 justify-end overflow-hidden',
+    standardFrame: 'flex h-full shrink-0',
   },
   variants: {
     variant: {
@@ -89,14 +113,36 @@ export const sideSheetStyles = tv({
       standard: { panel: 'h-full shrink-0 bg-surface' },
     },
     detached: {
-      true: { motion: 'pt-[16px] pb-[16px] pe-[16px]', panel: 'rounded-corner-large' },
+      true: {
+        motion: 'pt-[16px] pb-[16px] pe-[16px]',
+        standardFrame: 'pt-[16px] pb-[16px] ps-[16px] pe-[16px]',
+        panel: 'rounded-corner-large',
+      },
       false: {},
     },
+    /** A back button leads the header. */
+    hasBack: { true: { header: 'ps-[16px]' }, false: {} },
+    /** A divider separates the standard sheet from the content beside it. */
+    divider: { true: {}, false: {} },
+    /** A divider separates the bottom actions from the content. */
+    footerDivider: { true: { footer: 'border-t border-outline-variant' }, false: {} },
   },
   compoundVariants: [
     { variant: 'modal', detached: false, class: { panel: 'rounded-s-corner-large' } },
+    {
+      variant: 'standard',
+      detached: false,
+      divider: true,
+      class: { panel: 'border-s border-outline-variant' },
+    },
   ],
-  defaultVariants: { variant: 'modal', detached: false },
+  defaultVariants: {
+    variant: 'modal',
+    detached: false,
+    hasBack: false,
+    divider: true,
+    footerDivider: false,
+  },
 });
 
 export type SideSheetStyleProps = VariantProps<typeof sideSheetStyles>;

@@ -447,16 +447,19 @@ export { SheetTrigger, type SheetTriggerProps } from './components/sheet/SheetTr
 export {
   BottomSheet,
   type BottomSheetClassNames,
+  type BottomSheetLabels,
   type BottomSheetProps,
 } from './components/sheet/BottomSheet';
 export {
   SideSheet,
   type SideSheetClassNames,
+  type SideSheetLabels,
   type SideSheetProps,
 } from './components/sheet/SideSheet';
 export {
   bottomSheetStyles,
   sideSheetStyles,
+  type BottomSheetStyleProps,
   type SideSheetStyleProps,
 } from './components/sheet/sheet-styles';
 export {

@@ -1,6 +1,13 @@
 'use client';
 
-import { useContext, useId, type ComponentPropsWithRef, type ReactNode, type Ref } from 'react';
+import {
+  useContext,
+  useId,
+  type ComponentPropsWithRef,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import {
   mergeProps,
   useDialog,
@@ -13,6 +20,8 @@ import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { IconButton } from '../icon-button/IconButton';
+import { BackIcon, CloseIcon } from './sheet-icons';
 import { sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
@@ -20,9 +29,24 @@ export interface SideSheetClassNames {
   scrim?: string;
   panel?: string;
   header?: string;
+  backButton?: string;
   title?: string;
+  /** The end of the header: `actions` and the close button. */
+  headerActions?: string;
+  closeButton?: string;
   content?: string;
+  footer?: string;
 }
+
+/** Words the side sheet announces. */
+export interface SideSheetLabels {
+  /** The close button. */
+  close: string;
+  /** The back button (with `onBack`). */
+  back: string;
+}
+
+const DEFAULT_LABELS: SideSheetLabels = { close: 'Close', back: 'Back' };
 
 interface SideSheetRenderProps {
   /** Closes a modal sheet, or reports `onOpenChange(false)` for a standard one. */
@@ -35,17 +59,32 @@ interface SideSheetOwnProps {
    * content and opens and closes its width. @default "modal"
    */
   variant?: 'modal' | 'standard';
-  /** Float 16px from the window edges with corners all round (modal). @default false */
+  /** Float 16px from the edges with corners all round. @default false */
   detached?: boolean;
   open?: boolean;
+  /** @default false (modal), true (standard) */
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   /** The headline. It names the sheet. */
   title?: ReactNode;
-  /** Header controls after the title, e.g. a close `IconButton`. */
+  /** Shows a back button before the title, for a sheet with several levels. */
+  onBack?: () => void;
+  /** Header controls before the close button. */
   actions?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
+  /** Bottom action buttons, start-aligned, e.g. Save and Cancel. */
+  footer?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
+  /** A divider between the content and `footer`. @default false */
+  footerDivider?: boolean;
+  /** A divider between a standard sheet and the content beside it. @default true */
+  divider?: boolean;
   /** Pressing the scrim closes a modal sheet. @default true */
   dismissable?: boolean;
+  /** Replaces the close button's icon. */
+  closeIcon?: ReactElement;
+  /** Replaces the back button's icon. */
+  backIcon?: ReactElement;
+  /** Words the sheet announces, with English defaults. */
+  labels?: Partial<SideSheetLabels>;
   children?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
   classNames?: SideSheetClassNames;
 }
@@ -62,13 +101,15 @@ export type SideSheetProps = SideSheetOwnProps &
 /**
  * M3 side sheet: supplementary content at the end edge of the window. A modal sheet slides
  * in over a scrim as a dialog (Escape or a press outside closes it); a standard sheet sits
- * in the layout and opens and closes its width.
+ * in the layout as a non-modal dialog and opens and closes its width. Both always show a
+ * close button, as M3 requires.
  *
  * @example
  * <SheetTrigger>
  *   <Button>Filters</Button>
- *   <SideSheet title="Filters" actions={({ close }) => (
- *     <IconButton icon={<CloseIcon />} aria-label="Close" onPress={close} />)}>…</SideSheet>
+ *   <SideSheet title="Filters" footer={({ close }) => <Button onPress={close}>Apply</Button>}>
+ *     …
+ *   </SideSheet>
  * </SheetTrigger>
  */
 export function SideSheet({
@@ -105,41 +146,105 @@ type InnerProps = Omit<SideSheetProps, 'variant' | 'open' | 'defaultOpen' | 'onO
   state: OverlayTriggerState;
 };
 
+type BodyProps = Pick<
+  SideSheetOwnProps,
+  | 'title'
+  | 'onBack'
+  | 'actions'
+  | 'footer'
+  | 'children'
+  | 'closeIcon'
+  | 'backIcon'
+  | 'labels'
+  | 'classNames'
+> & {
+  titleId: string;
+  close: () => void;
+  styles: ReturnType<typeof sideSheetStyles>;
+};
+
 function SheetBody({
   title,
   titleId,
+  onBack,
   actions,
+  footer,
   children,
+  closeIcon,
+  backIcon,
+  labels: labelsProp,
   close,
   styles,
   classNames,
-}: {
-  title?: ReactNode;
-  titleId: string;
-  actions: SideSheetOwnProps['actions'];
-  children: SideSheetOwnProps['children'];
-  close: () => void;
-  styles: ReturnType<typeof sideSheetStyles>;
-  classNames?: SideSheetClassNames;
-}) {
+}: BodyProps) {
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const renderProps = { close };
+  const render = (slot: SideSheetOwnProps['children']) =>
+    typeof slot === 'function' ? slot(renderProps) : slot;
   return (
     <>
-      {(title != null || actions != null) && (
-        <div className={styles.header({ class: classNames?.header })}>
-          {title != null && (
-            <h2 id={titleId} className={styles.title({ class: classNames?.title })}>
-              {title}
-            </h2>
-          )}
-          {typeof actions === 'function' ? actions(renderProps) : actions}
+      <div className={styles.header({ class: classNames?.header })}>
+        {onBack && (
+          <IconButton
+            icon={backIcon ?? <BackIcon />}
+            aria-label={labels.back}
+            onPress={onBack}
+            className={classNames?.backButton}
+          />
+        )}
+        {title != null && (
+          <h2 id={titleId} className={styles.title({ class: classNames?.title })}>
+            {title}
+          </h2>
+        )}
+        <div className={styles.headerActions({ class: classNames?.headerActions })}>
+          {render(actions)}
+          <IconButton
+            icon={closeIcon ?? <CloseIcon />}
+            aria-label={labels.close}
+            onPress={close}
+            className={classNames?.closeButton}
+          />
         </div>
-      )}
-      <div className={styles.content({ class: classNames?.content })}>
-        {typeof children === 'function' ? children(renderProps) : children}
       </div>
+      <div className={styles.content({ class: classNames?.content })}>{render(children)}</div>
+      {footer != null && (
+        <div className={styles.footer({ class: classNames?.footer })}>{render(footer)}</div>
+      )}
     </>
   );
+}
+
+const BODY_KEYS = [
+  'title',
+  'onBack',
+  'actions',
+  'footer',
+  'children',
+  'closeIcon',
+  'backIcon',
+  'labels',
+  'classNames',
+] as const;
+
+/** Splits the header, body and footer props from those of the panel element. */
+function splitBodyProps<T extends Record<string, unknown>>(props: T) {
+  const body: Record<string, unknown> = {};
+  const rest: Record<string, unknown> = { ...props };
+  for (const key of BODY_KEYS) {
+    body[key] = rest[key];
+    delete rest[key];
+  }
+  return {
+    body: body as Omit<BodyProps, 'titleId' | 'close' | 'styles'>,
+    rest: rest as Omit<T, (typeof BODY_KEYS)[number]>,
+  };
+}
+
+/** `aria-labelledby` for the panel: the consumer's, else the title's unless `aria-label` names it. */
+function labelledBy(props: Record<string, unknown>, hasTitle: boolean, titleId: string) {
+  const own = props['aria-labelledby'] as string | undefined;
+  return own ?? (props['aria-label'] == null && hasTitle ? titleId : undefined);
 }
 
 function ModalSideSheet({
@@ -149,34 +254,35 @@ function ModalSideSheet({
   triggerOverlayProps,
   detached = false,
   dismissable = true,
-  title,
-  actions,
-  children,
+  divider: _divider,
+  footerDivider = false,
   className,
-  classNames,
   style,
   ref,
-  ...rest
+  ...props
 }: InnerProps & {
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
   triggerOverlayProps?: { id?: string };
 }) {
+  const { body, rest } = splitBodyProps(props);
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const titleId = useId();
-  const styles = sideSheetStyles({ variant: 'modal', detached });
+  const styles = sideSheetStyles({
+    variant: 'modal',
+    detached,
+    hasBack: body.onBack != null,
+    footerDivider,
+  });
   const { modalProps, underlayProps } = useModalOverlay(
     { isDismissable: dismissable && !isExiting },
     state,
     panelRef,
   );
-  const labelling = rest as { 'aria-label'?: string; 'aria-labelledby'?: string };
   const { dialogProps } = useDialog(
     {
       ...(rest as AriaDialogProps),
-      'aria-labelledby':
-        labelling['aria-labelledby'] ??
-        (labelling['aria-label'] == null && title != null ? titleId : undefined),
+      'aria-labelledby': labelledBy(rest, body.title != null, titleId),
     },
     panelRef,
   );
@@ -186,7 +292,7 @@ function ModalSideSheet({
       <div
         aria-hidden="true"
         data-exiting={exiting}
-        className={styles.scrim({ class: classNames?.scrim })}
+        className={styles.scrim({ class: body.classNames?.scrim })}
       />
       <div {...underlayProps} className="fixed inset-0 z-(--md-sys-z-sheet)">
         <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
@@ -195,19 +301,10 @@ function ModalSideSheet({
             ref={panelRef}
             style={style}
             data-exiting={exiting}
-            className={styles.panel({ class: cn(classNames?.panel, className) })}
+            className={styles.panel({ class: cn(body.classNames?.panel, className) })}
           >
             <TriggerContext value={null}>
-              <SheetBody
-                title={title}
-                titleId={titleId}
-                actions={actions}
-                close={state.close}
-                styles={styles}
-                classNames={classNames}
-              >
-                {children}
-              </SheetBody>
+              <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
             </TriggerContext>
           </div>
         </div>
@@ -218,46 +315,42 @@ function ModalSideSheet({
 
 function StandardSideSheet({
   state,
-  title,
-  actions,
-  children,
+  detached = false,
+  divider = true,
+  footerDivider = false,
+  dismissable: _dismissable,
   className,
-  classNames,
   style,
   ref,
-  detached: _detached,
-  dismissable: _dismissable,
-  ...rest
+  ...props
 }: InnerProps) {
+  const { body, rest } = splitBodyProps(props);
   const titleId = useId();
-  const styles = sideSheetStyles({ variant: 'standard' });
-  const labelling = rest as { 'aria-label'?: string; 'aria-labelledby'?: string };
+  const styles = sideSheetStyles({
+    variant: 'standard',
+    detached,
+    divider,
+    hasBack: body.onBack != null,
+    footerDivider,
+  });
   const closed = !state.isOpen || undefined;
+  // A non-modal dialog (m3.material.io: the side sheet's role is dialog); focus isn't moved.
   return (
     <div
       {...rest}
       ref={ref}
+      role="dialog"
       style={style}
       data-closed={closed}
       inert={!state.isOpen}
-      aria-labelledby={
-        labelling['aria-labelledby'] ??
-        (labelling['aria-label'] == null && title != null ? titleId : undefined)
-      }
-      className={styles.standard({ class: cn(classNames?.panel, className) })}
+      aria-labelledby={labelledBy(rest, body.title != null, titleId)}
+      className={styles.standard({ class: cn(body.classNames?.panel, className) })}
     >
       <div className={styles.standardClip()}>
-        <div className={styles.panel()}>
-          <SheetBody
-            title={title}
-            titleId={titleId}
-            actions={actions}
-            close={state.close}
-            styles={styles}
-            classNames={classNames}
-          >
-            {children}
-          </SheetBody>
+        <div className={styles.standardFrame()}>
+          <div className={styles.panel()}>
+            <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
+          </div>
         </div>
       </div>
     </div>

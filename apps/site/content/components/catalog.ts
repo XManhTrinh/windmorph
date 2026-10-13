@@ -700,6 +700,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       elevation: 'level1',
     },
     related: ['dialog', 'menu'],
+    keywords: ['drawer', 'panel', 'peek', 'non-modal', 'filters', 'drag handle'],
     whenNotToUse: 'For a focused decision that must block the screen use a Dialog.',
   },
   {

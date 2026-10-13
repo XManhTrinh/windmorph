@@ -1,15 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import {
-  BottomSheet,
-  Button,
-  IconButton,
-  List,
-  ListItem,
-  SheetTrigger,
-  SideSheet,
-} from '@windmorph/react';
+import { BottomSheet, Button, List, ListItem, SheetTrigger, SideSheet } from '@windmorph/react';
 import { useState } from 'react';
-import { CloseIcon, DeleteIcon, EditIcon, SendIcon, StarIcon } from './icons';
+import { DeleteIcon, EditIcon, SendIcon, StarIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -68,17 +60,63 @@ export const BottomTall: Story = {
   ),
 };
 
-const closeAction = ({ close }: { close: () => void }) => (
-  <IconButton icon={<CloseIcon />} aria-label="Close" onPress={close} />
+/**
+ * A standard bottom sheet sits over the page without a scrim, collapsed to its peek height;
+ * the page behind stays usable. Here it is placed in a bounded region.
+ */
+export const BottomStandard: Story = {
+  render: function StandardBottomStory() {
+    const [count, setCount] = useState(0);
+    return (
+      <div
+        className="relative h-[600px] w-[412px] overflow-hidden border border-outline-variant"
+        data-testid="layout"
+      >
+        <div className="flex flex-col items-start gap-4 p-6">
+          <p className="text-body-large">Main content</p>
+          <Button variant="tonal" onPress={() => setCount((c) => c + 1)}>
+            {`Pressed ${count}`}
+          </Button>
+        </div>
+        <BottomSheet
+          variant="standard"
+          aria-label="Now playing"
+          classNames={{ container: 'absolute' }}
+          data-testid="sheet"
+        >
+          <div className="px-6 pb-6">
+            <p className="pb-4 text-title-medium">Now playing</p>
+            <Options count={3} onPick={() => undefined} />
+          </div>
+        </BottomSheet>
+      </div>
+    );
+  },
+};
+
+const footer = ({ close }: { close: () => void }) => (
+  <>
+    <Button onPress={close}>Apply</Button>
+    <Button variant="outlined" onPress={close}>
+      Cancel
+    </Button>
+  </>
 );
 
-/** A modal side sheet, docked or detached. */
-export const Side: StoryObj<{ detached: boolean }> = {
-  args: { detached: false },
-  render: ({ detached }) => (
+/** A modal side sheet, docked or detached, with its built-in close button and bottom actions. */
+export const Side: StoryObj<{ detached: boolean; back: boolean }> = {
+  args: { detached: false, back: false },
+  render: ({ detached, back }) => (
     <SheetTrigger>
       <Button>Open filters</Button>
-      <SideSheet title="Filters" detached={detached} actions={closeAction} data-testid="sheet">
+      <SideSheet
+        title="Filters"
+        detached={detached}
+        onBack={back ? () => undefined : undefined}
+        footer={footer}
+        footerDivider
+        data-testid="sheet"
+      >
         <p className="text-body-medium text-on-surface-variant">
           Filter the results by date, type and owner.
         </p>
@@ -107,7 +145,6 @@ export const SideStandard: Story = {
           title="Details"
           open={open}
           onOpenChange={setOpen}
-          actions={closeAction}
           data-testid="sheet"
         >
           <p className="text-body-medium text-on-surface-variant">

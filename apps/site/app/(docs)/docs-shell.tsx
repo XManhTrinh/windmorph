@@ -17,7 +17,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, type ReactElement, type ReactNode } from 'react';
 import {
-  CloseIcon,
   HomeIcon,
   MenuBookIcon,
   MenuIcon,
@@ -49,13 +48,7 @@ function DisplaySettings() {
   return (
     <SheetTrigger>
       <IconButton icon={<SettingsIcon />} aria-label="Display settings" />
-      <SideSheet
-        title="Display"
-        className="w-[320px]"
-        actions={({ close }) => (
-          <IconButton icon={<CloseIcon />} aria-label="Close display settings" onPress={close} />
-        )}
-      >
+      <SideSheet title="Display" className="w-[320px]" labels={{ close: 'Close display settings' }}>
         <ThemeControls />
       </SideSheet>
     </SheetTrigger>

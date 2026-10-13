@@ -41,7 +41,13 @@ describe('BottomSheet', () => {
       'rounded-t-corner-extra-large',
       'bg-surface-container-low',
     );
-    expect(dialog.parentElement).toHaveClass('max-w-[640px]', 'bottom-0');
+    expect(dialog).toHaveClass('shadow-elevation-1', 'max-h-[calc(100dvh-72px)]');
+    expect(dialog.parentElement).toHaveClass(
+      'max-w-[640px]',
+      'bottom-0',
+      'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
+      'min-[641px]:max-h-[calc(100dvh-56px)]',
+    );
     const handle = screen.getByRole('button', { name: 'Close sheet' });
     expect(handle.firstElementChild).toHaveClass('h-[4px]', 'w-[32px]', 'bg-on-surface-variant');
     expect(handle).toHaveClass('pt-[22px]', 'pb-[22px]');
@@ -103,6 +109,86 @@ describe('BottomSheet', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.getByRole('dialog')).toHaveAttribute('data-exiting');
   });
+
+  it('drags from the top 48px of a sheet without a handle', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" defaultOpen dragHandle={false} onOpenChange={onOpenChange}>
+        Content
+      </BottomSheet>,
+    );
+    const dialog = screen.getByRole('dialog');
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue({ top: 500 } as DOMRect);
+    // A drag starting below the zone does nothing.
+    fireEvent.pointerDown(dialog, { button: 0, clientY: 600, pointerId: 1 });
+    fireEvent.pointerMove(dialog, { clientY: 700, pointerId: 1 });
+    expect(dialog).not.toHaveAttribute('data-dragging');
+    fireEvent.pointerUp(dialog, { clientY: 700, pointerId: 1 });
+    fireEvent.pointerDown(dialog, { button: 0, clientY: 520, pointerId: 2 });
+    fireEvent.pointerMove(dialog, { clientY: 560, pointerId: 2 });
+    expect(dialog).toHaveAttribute('data-dragging', 'true');
+    fireEvent.pointerMove(dialog, { clientY: 640, pointerId: 2 });
+    fireEvent.pointerUp(dialog, { clientY: 640, pointerId: 2 });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('shows a close button once a modal sheet fills the window', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(728);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(412);
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet
+        aria-label="Details"
+        defaultOpen
+        onOpenChange={onOpenChange}
+        labels={{ expand: 'Agrandir', close: 'Fermer' }}
+      >
+        Tall content
+      </BottomSheet>,
+    );
+    // Half open: no close button yet.
+    expect(screen.queryByRole('button', { name: 'Fermer' })).toBe(null);
+    await userEvent.click(screen.getByRole('button', { name: 'Agrandir' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('a standard sheet sits over the page without a scrim, collapsed to its peek height', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const { container } = render(
+      <>
+        <Button>Page action</Button>
+        <BottomSheet variant="standard" aria-label="Now playing" peekHeight={80}>
+          Player
+        </BottomSheet>
+      </>,
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Now playing' });
+    // Rendered in place, not portalled, with no scrim and no aria-modal.
+    expect(container).toContainElement(sheet);
+    expect(sheet).not.toHaveAttribute('aria-modal');
+    expect(document.querySelector('.bg-scrim\\/32')).toBe(null);
+    expect(sheet.parentElement).toHaveClass('z-(--md-sys-z-sticky)');
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('320px');
+    // The page stays usable: focus is not moved into the sheet.
+    expect(document.activeElement).toBe(document.body);
+    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+    // Escape and the handle collapse it again; it never closes by itself.
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse sheet' }));
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    expect(screen.getByRole('dialog')).toBe(sheet);
+  });
 });
 
 describe('SideSheet', () => {
@@ -110,7 +196,11 @@ describe('SideSheet', () => {
     const { baseElement } = render(
       <SheetTrigger>
         <Button>Filters</Button>
-        <SideSheet title="Filters" actions={({ close }) => <Button onPress={close}>Close</Button>}>
+        <SideSheet
+          title="Filters"
+          footer={({ close }) => <Button onPress={close}>Apply</Button>}
+          footerDivider
+        >
           Options
         </SideSheet>
       </SheetTrigger>,
@@ -124,9 +214,45 @@ describe('SideSheet', () => {
       'rounded-s-corner-large',
     );
     expect(screen.getByRole('heading', { name: 'Filters' })).toHaveClass('text-title-large');
+    const footer = screen.getByRole('button', { name: 'Apply' }).parentElement!;
+    expect(footer).toHaveClass(
+      'min-h-[72px]',
+      'pt-[16px]',
+      'pb-[24px]',
+      'justify-start',
+      'border-t',
+      'border-outline-variant',
+    );
     expect(await axeViolations(baseElement)).toEqual([]);
+    // M3 requires a close button in every side sheet; it is built in.
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(dialog).toHaveAttribute('data-exiting');
+  });
+
+  it('shows a back button with a 16px header inset, and localises its words', async () => {
+    const onBack = vi.fn();
+    const { baseElement } = render(
+      <SideSheet
+        title="Sort"
+        defaultOpen
+        onBack={onBack}
+        labels={{ close: 'Fermer', back: 'Retour' }}
+        actions={<Button variant="text">Reset</Button>}
+      >
+        Options
+      </SideSheet>,
+    );
+    const back = screen.getByRole('button', { name: 'Retour' });
+    expect(back.closest('.min-h-\\[72px\\]')).toHaveClass('ps-[16px]');
+    const close = screen.getByRole('button', { name: 'Fermer' });
+    // Header actions come before the close button, at the end of the header.
+    expect(close.parentElement).toHaveClass('ms-auto');
+    expect(close.parentElement!.firstElementChild).toBe(
+      screen.getByRole('button', { name: 'Reset' }),
+    );
+    await userEvent.click(back);
+    expect(onBack).toHaveBeenCalledOnce();
+    expect(await axeViolations(baseElement)).toEqual([]);
   });
 
   it('detaches with corners all round', () => {
@@ -140,7 +266,7 @@ describe('SideSheet', () => {
     expect(dialog.parentElement).toHaveClass('pt-[16px]', 'pe-[16px]');
   });
 
-  it('renders a standard sheet in the layout that opens and closes its width', () => {
+  it('renders a standard sheet in the layout that opens and closes its width', async () => {
     function Demo() {
       const [open, setOpen] = useState(true);
       return (
@@ -160,13 +286,71 @@ describe('SideSheet', () => {
         </>
       );
     }
-    render(<Demo />);
+    const { container } = render(<Demo />);
     const sheet = screen.getByTestId('sheet');
     expect(sheet).toHaveClass('grid-cols-[1fr]', 'data-closed:grid-cols-[0fr]');
+    // A non-modal dialog: named, not aria-modal, focus left where it was.
+    expect(sheet).toHaveAttribute('role', 'dialog');
+    expect(sheet).not.toHaveAttribute('aria-modal');
     expect(sheet).toHaveAccessibleName('Details');
-    expect(screen.getByText('Body').closest('.bg-surface')).not.toBe(null);
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
+    const panel = screen.getByText('Body').closest('.bg-surface');
+    expect(panel).toHaveClass('border-s', 'border-outline-variant');
+    expect(await axeViolations(container)).toEqual([]);
+    // Its close button reports onOpenChange(false).
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(sheet).toHaveAttribute('data-closed', 'true');
     expect(sheet).toHaveAttribute('inert');
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
+    expect(sheet).not.toHaveAttribute('data-closed');
+  });
+
+  it('restyles each part through classNames', () => {
+    render(
+      <>
+        <SideSheet
+          variant="standard"
+          title="Details"
+          onBack={() => undefined}
+          footer={<Button>Save</Button>}
+          classNames={{
+            backButton: 'back-x',
+            closeButton: 'close-x',
+            headerActions: 'actions-x',
+            footer: 'footer-x',
+          }}
+        >
+          Body
+        </SideSheet>
+        <BottomSheet variant="standard" aria-label="Player" classNames={{ container: 'absolute' }}>
+          Player
+        </BottomSheet>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Back' })).toHaveClass('back-x');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('close-x');
+    expect(screen.getByRole('button', { name: 'Close' }).parentElement).toHaveClass('actions-x');
+    expect(screen.getByRole('button', { name: 'Save' }).parentElement).toHaveClass('footer-x');
+    // A consumer position replaces the default `fixed` (e.g. inside a bounded region).
+    const container = screen.getByRole('dialog', { name: 'Player' }).parentElement!;
+    expect(container).toHaveClass('absolute');
+    expect(container).not.toHaveClass('fixed');
+  });
+
+  it('detaches a standard sheet and can drop its divider', () => {
+    const { rerender } = render(
+      <SideSheet variant="standard" aria-label="Details" detached>
+        Body
+      </SideSheet>,
+    );
+    const panel = screen.getByText('Body').closest('.bg-surface')!;
+    expect(panel).toHaveClass('rounded-corner-large');
+    expect(panel).not.toHaveClass('border-s');
+    expect(panel.parentElement).toHaveClass('pt-[16px]', 'ps-[16px]', 'pe-[16px]', 'pb-[16px]');
+    rerender(
+      <SideSheet variant="standard" aria-label="Details" divider={false}>
+        Body
+      </SideSheet>,
+    );
+    expect(screen.getByText('Body').closest('.bg-surface')).not.toHaveClass('border-s');
   });
 });

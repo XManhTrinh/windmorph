@@ -55,7 +55,10 @@ test.describe('Bottom sheet', () => {
     expect((await rect(sheet)).y).toBe(400);
     await page.getByRole('button', { name: 'Expand sheet' }).click();
     await settle(page);
-    expect((await rect(sheet)).y).toBe(0);
+    // Fully open, it stops 72px below the top of a compact window (m3.material.io).
+    expect((await rect(sheet)).y).toBe(72);
+    // Filling the window, it shows a close button.
+    await expect(sheet.getByRole('button', { name: 'Close', exact: true })).toBeVisible();
     // Escape returns it to half, then closes it; focus returns to the trigger.
     await page.keyboard.press('Escape');
     await settle(page);
@@ -89,6 +92,36 @@ test.describe('Bottom sheet', () => {
     await expect(sheet).toBeHidden();
   });
 
+  test('above 640px it keeps 56px top and side margins', async ({ page }) => {
+    await page.setViewportSize({ width: 700, height: 800 });
+    await openStory(page, 'components-sheet--bottom-tall');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    const sheet = page.getByRole('dialog');
+    await settle(page);
+    await page.getByRole('button', { name: 'Expand sheet' }).click();
+    await settle(page);
+    expect(await rect(sheet)).toMatchObject({ y: 56, x: 56, width: 588 });
+  });
+
+  test('a standard sheet peeks over the page, which stays usable', async ({ page }) => {
+    await page.setViewportSize({ width: 460, height: 700 });
+    await openStory(page, 'components-sheet--bottom-standard');
+    const layout = page.getByTestId('layout');
+    const sheet = page.getByRole('dialog', { name: 'Now playing' });
+    await settle(page);
+    const frame = await rect(layout);
+    expect((await rect(sheet)).y).toBe(frame.bottom - 1 - 56);
+    await expect(layout).toHaveScreenshot('bottom-standard.png');
+    await page.getByRole('button', { name: 'Pressed 0' }).click();
+    await expect(page.getByRole('button', { name: 'Pressed 1' })).toBeVisible();
+    await page.getByRole('button', { name: 'Expand sheet' }).click();
+    await settle(page);
+    expect((await rect(sheet)).bottom).toBe(frame.bottom - 1);
+    await expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    await page.getByRole('button', { name: 'Collapse sheet' }).click();
+    await expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+  });
+
   test('pressing the scrim closes it', async ({ page }) => {
     await page.setViewportSize({ width: 412, height: 800 });
     await openStory(page, 'components-sheet--bottom');
@@ -115,6 +148,20 @@ test.describe('Side sheet', () => {
       await expect(sheet).toBeHidden();
     });
   }
+
+  test('a back button insets the header to 16px', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await openStory(page, 'components-sheet--side', {}, { back: true });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    const back = await rect(sheet.getByRole('button', { name: 'Back' }));
+    const box = await rect(sheet);
+    expect(back.x - box.x).toBe(16);
+    const actions = await rect(sheet.getByRole('button', { name: 'Apply' }));
+    expect(actions.x - box.x).toBe(24);
+    expect(box.bottom - actions.bottom).toBe(24);
+  });
 
   test('detached sheet floats 16px from the edges', async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });
