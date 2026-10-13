@@ -44,6 +44,11 @@ interface ButtonBaseCommonProps extends PressHandlers {
   disabled?: boolean;
   className?: string;
   style?: CSSProperties;
+  /**
+   * The element is being dragged (e.g. a card picked up to move it): sets `data-dragged`
+   * for the dragged state layer. A consumer's own `data-dragged` attribute counts too.
+   */
+  dragged?: boolean;
   /** Content, or a function of the selection state (e.g. to swap a toggle's icon). */
   children?: ReactNode | ((state: ButtonBaseRenderState) => ReactNode);
 }
@@ -110,10 +115,16 @@ function splitProps<T extends ButtonBaseCommonProps>(props: T) {
     onPressChange,
     onPressUp,
     preventFocusOnPress,
+    dragged,
     ...dom
   } = props;
+  const consumerDragged = (dom as Record<string, unknown>)['data-dragged'];
   return {
     disabled,
+    // Our `data-*` attributes are spread last, so a consumer's `data-dragged` feeds the state.
+    isDragged:
+      dragged ??
+      (consumerDragged !== undefined && consumerDragged !== false && consumerDragged !== 'false'),
     element: { className, style },
     children,
     // React Aria options, not DOM attributes: they go to the press hooks.
@@ -129,14 +140,14 @@ function ActionBase(props: ButtonBaseActionProps | ButtonBaseDivActionProps) {
   const { ref, elementType = 'button', ...rest } = props;
   const type =
     elementType === 'button' ? ((rest as ButtonBaseActionProps).type ?? 'button') : undefined;
-  const { disabled, element, children, press, dom } = splitProps(rest);
+  const { disabled, isDragged, element, children, press, dom } = splitProps(rest);
   const domRef = useObjectRef(ref as Ref<HTMLElement>);
   const { buttonProps, isPressed } = useButton(
     { ...press, type, isDisabled: disabled, elementType },
     domRef,
   );
   const { interactionProps, dataAttributes } = useM3Interaction(
-    { isDisabled: disabled, isPressed },
+    { isDisabled: disabled, isPressed, isDragged },
     domRef,
   );
   const elementProps = {
@@ -156,14 +167,14 @@ function ActionBase(props: ButtonBaseActionProps | ButtonBaseDivActionProps) {
 }
 
 function LinkBase({ ref, href, ...props }: ButtonBaseLinkProps) {
-  const { disabled, element, children, press, dom } = splitProps(props);
+  const { disabled, isDragged, element, children, press, dom } = splitProps(props);
   const domRef = useObjectRef(ref);
   const { linkProps, isPressed } = useLink(
     { ...press, href, isDisabled: disabled, elementType: 'a' },
     domRef,
   );
   const { interactionProps, dataAttributes } = useM3Interaction(
-    { isDisabled: disabled, isPressed },
+    { isDisabled: disabled, isPressed, isDragged },
     domRef,
   );
   return (
@@ -188,7 +199,7 @@ function ToggleBase({
   toggle,
   ...props
 }: ButtonBaseToggleProps) {
-  const { disabled, element, children, press, dom } = splitProps(props);
+  const { disabled, isDragged, element, children, press, dom } = splitProps(props);
   const domRef = useObjectRef(ref);
   const options = {
     ...press,
@@ -202,7 +213,7 @@ function ToggleBase({
   const state = useToggleState(options);
   const { buttonProps, isPressed, isSelected } = useToggleButton(options, state, domRef);
   const { interactionProps, dataAttributes } = useM3Interaction(
-    { isDisabled: disabled, isPressed, isSelected },
+    { isDisabled: disabled, isPressed, isSelected, isDragged },
     domRef,
   );
   return (
@@ -227,7 +238,7 @@ function GroupItemBase({
   value: string;
   state: ToggleGroupState;
 }) {
-  const { disabled, element, children, press, dom } = splitProps(props);
+  const { disabled, isDragged, element, children, press, dom } = splitProps(props);
   const domRef = useObjectRef(ref);
   const { buttonProps, isPressed, isSelected } = useToggleButtonGroupItem(
     { ...press, id: value, isDisabled: disabled, elementType: 'button' },
@@ -235,7 +246,7 @@ function GroupItemBase({
     domRef,
   );
   const { interactionProps, dataAttributes } = useM3Interaction(
-    { isDisabled: disabled || state.isDisabled, isPressed, isSelected },
+    { isDisabled: disabled || state.isDisabled, isPressed, isSelected, isDragged },
     domRef,
   );
   return (

@@ -70,16 +70,26 @@ function Demo({ view, defaultExpanded = false }: Args & { defaultExpanded?: bool
         onExpandedChange={setExpanded}
         leadingIcon={({ expanded: open, collapse }) =>
           open && view === 'full-screen' ? (
-            <IconButton icon={<ArrowBackIcon />} aria-label="Back" onPress={collapse} />
+            <IconButton
+              variant="standard"
+              icon={<ArrowBackIcon />}
+              aria-label="Back"
+              onPress={collapse}
+            />
           ) : (
             <SearchIcon />
           )
         }
         trailingIcon={({ expanded: open }) =>
           open && query ? (
-            <IconButton icon={<CloseIcon />} aria-label="Clear" onPress={() => setQuery('')} />
+            <IconButton
+              variant="standard"
+              icon={<CloseIcon />}
+              aria-label="Clear"
+              onPress={() => setQuery('')}
+            />
           ) : (
-            <IconButton icon={<MicIcon />} aria-label="Voice search" />
+            <IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />
           )
         }
       >
@@ -103,7 +113,9 @@ export const Collapsed: Story = {
         aria-label="Search"
         placeholder="Search"
         leadingIcon={<SearchIcon />}
-        trailingIcon={<IconButton icon={<MicIcon />} aria-label="Voice search" />}
+        trailingIcon={
+          <IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />
+        }
       />
       <SearchBar aria-label="Search" placeholder="Search" />
       <SearchBar aria-label="Search" defaultValue="Holiday photos" leadingIcon={<SearchIcon />} />
@@ -178,6 +190,7 @@ export const LayoutOverride: StoryObj<{
           leadingIcon={<SearchIcon />}
           trailingIcon={
             <IconButton
+              variant="standard"
               icon={<MicIcon />}
               aria-label="Voice search"
               onPress={() => setCount((c) => c + 1)}

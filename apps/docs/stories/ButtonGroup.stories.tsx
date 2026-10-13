@@ -39,30 +39,42 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Press a button: it grows while its neighbours shrink, keeping the group's width. */
+/**
+ * Press a button: it grows while its neighbours shrink, keeping the group's width. Tab
+ * reaches the group and the arrow keys move between its buttons.
+ */
 export const Standard: Story = {};
 
-/** Standard and connected groups at every size. */
+/**
+ * Standard groups at every size (18 / 12 / 8 / 8 / 8px apart), then connected groups,
+ * round and square, spanning a 560px container.
+ */
 export const Sizes: Story = {
   render: () => (
-    <div className="flex flex-col items-start gap-6" data-testid="sizes">
+    <div className="flex w-[560px] flex-col items-start gap-6" data-testid="sizes">
       {SIZES.map((size) => (
-        <div key={size} className="flex flex-wrap items-center gap-8">
-          <ButtonGroup size={size} buttonVariant="tonal" aria-label={`Standard ${size}`}>
-            <Button>One</Button>
-            <Button>Two</Button>
-            <IconButton variant="tonal" icon={<SearchIcon />} aria-label="Search" />
-          </ButtonGroup>
-          <ButtonGroup
-            variant="connected"
-            size={size}
-            buttonVariant="tonal"
-            aria-label={`Connected ${size}`}
-          >
-            <Button>One</Button>
-            <Button>Two</Button>
-            <Button>Three</Button>
-          </ButtonGroup>
+        <ButtonGroup key={size} size={size} buttonVariant="tonal" aria-label={`Standard ${size}`}>
+          <Button>One</Button>
+          <Button>Two</Button>
+          <IconButton variant="tonal" icon={<SearchIcon />} aria-label="Search" />
+        </ButtonGroup>
+      ))}
+      {SIZES.map((size) => (
+        <div key={size} className="flex w-full flex-col gap-2">
+          {(['round', 'square'] as const).map((shape) => (
+            <ButtonGroup
+              key={shape}
+              variant="connected"
+              shape={shape}
+              size={size}
+              buttonVariant="tonal"
+              aria-label={`Connected ${shape} ${size}`}
+            >
+              <Button>One</Button>
+              <Button>Two</Button>
+              <IconButton variant="tonal" icon={<SearchIcon />} aria-label="Search" />
+            </ButtonGroup>
+          ))}
         </div>
       ))}
     </div>
@@ -74,7 +86,7 @@ export const ConnectedSingleSelection: Story = {
   render: function ConnectedStory() {
     const [view, setView] = useState(new Set(['week']));
     return (
-      <div className="flex flex-col items-start gap-4" data-testid="connected">
+      <div className="flex w-[480px] flex-col items-start gap-4" data-testid="connected">
         <ButtonGroup
           variant="connected"
           selectionMode="single"
@@ -104,11 +116,13 @@ export const ConnectedSingleSelection: Story = {
   },
 };
 
-/** Connected multiple selection with icon buttons. */
+/** Connected multiple selection with XS icon buttons, at least 48px wide each. */
 export const ConnectedMultipleSelection: Story = {
   render: () => (
     <ButtonGroup
       variant="connected"
+      size="xs"
+      className="w-fit"
       selectionMode="multiple"
       defaultSelectedKeys={['bold']}
       aria-label="Text format"
@@ -138,7 +152,7 @@ export const Variants: Story = {
   render: () => (
     <div className="flex flex-col items-start gap-4" data-testid="variants">
       {(['filled', 'tonal', 'outlined', 'elevated'] as const).map((buttonVariant) => (
-        <div key={buttonVariant} className="flex items-center gap-8">
+        <div key={buttonVariant} className="flex w-[640px] items-center gap-8">
           <ButtonGroup buttonVariant={buttonVariant} aria-label={`${buttonVariant} actions`}>
             <Button>Copy</Button>
             <Button>Paste</Button>

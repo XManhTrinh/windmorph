@@ -160,9 +160,9 @@ export const PLAYGROUND_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     component: 'IconButton',
     render: (props) =>
       createElement(IconButtonAny, { ...props, 'aria-label': 'Favorite', icon: <StarIcon /> }),
-    defaultProps: { variant: 'standard', size: 'sm', width: 'default', disabled: false },
+    defaultProps: { variant: 'filled', size: 'sm', width: 'default', disabled: false },
     surfacedProps: ['variant', 'size', 'width', 'disabled'],
-    initialState: { variant: 'standard', size: 'sm', width: 'default' },
+    initialState: { variant: 'filled', size: 'sm', width: 'default' },
     codeSlots: { icon: STAR, 'aria-label': '"Favorite"' },
   },
   'button-group': {

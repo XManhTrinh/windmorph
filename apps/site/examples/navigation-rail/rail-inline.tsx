@@ -34,6 +34,7 @@ export function RailInline() {
         header={({ expanded, toggle }) => (
           <>
             <IconButton
+              variant="standard"
               icon={<MenuIcon />}
               aria-label={expanded ? 'Collapse navigation' : 'Expand navigation'}
               onPress={toggle}

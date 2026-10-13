@@ -26,16 +26,61 @@ describe('ButtonGroup', () => {
         <IconButton icon={<Icon />} aria-label="More" />
       </ButtonGroup>,
     );
-    const group = screen.getByRole('group', { name: 'Actions' });
-    expect(group).toHaveClass('inline-flex', 'gap-[12px]');
+    const group = screen.getByRole('toolbar', { name: 'Actions' });
+    // Medium standard groups space their buttons 8px apart.
+    expect(group).toHaveClass('inline-flex', 'gap-[8px]');
     expect(screen.getByRole('button', { name: 'Copy' })).toHaveClass(
       'h-[56px]',
       'bg-secondary-container',
     );
     // A child's own prop wins.
     expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('h-[32px]');
-    // Icon buttons share the size but keep their own variant.
-    expect(screen.getByRole('button', { name: 'More' })).toHaveClass('h-[56px]', 'bg-transparent');
+    // Icon buttons share the size but keep their own variant (filled by default).
+    expect(screen.getByRole('button', { name: 'More' })).toHaveClass('h-[56px]', 'bg-primary');
+  });
+
+  it.each([
+    ['xs', 'gap-[18px]'],
+    ['sm', 'gap-[12px]'],
+    ['md', 'gap-[8px]'],
+    ['lg', 'gap-[8px]'],
+    ['xl', 'gap-[8px]'],
+  ] as const)('spaces a standard %s group %s apart', (size, gap) => {
+    render(
+      <ButtonGroup aria-label="Actions" size={size}>
+        <Button>Copy</Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('toolbar')).toHaveClass(gap);
+  });
+
+  it('moves focus with the arrow keys without a selection mode, mirrored in RTL', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ButtonGroup aria-label="Actions">
+        <Button>Copy</Button>
+        <Button>Paste</Button>
+      </ButtonGroup>,
+    );
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Copy' })).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('button', { name: 'Paste' })).toHaveFocus();
+    // Tab leaves the group instead of visiting every button.
+    await user.tab();
+    expect(document.body).toHaveFocus();
+
+    rerender(
+      <div dir="rtl">
+        <ButtonGroup aria-label="Actions" key="rtl">
+          <Button>Copy</Button>
+          <Button>Paste</Button>
+        </ButtonGroup>
+      </div>,
+    );
+    screen.getByRole('button', { name: 'Copy' }).focus();
+    await user.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('button', { name: 'Paste' })).toHaveFocus();
   });
 
   it('gives connected buttons their position corners', () => {
@@ -46,7 +91,7 @@ describe('ButtonGroup', () => {
         <IconButton icon={<Icon />} aria-label="Right" />
       </ButtonGroup>,
     );
-    expect(screen.getByRole('group')).toHaveClass('gap-[2px]');
+    expect(screen.getByRole('toolbar')).toHaveClass('gap-[2px]');
     const leading = screen.getByRole('button', { name: 'Left' });
     expect(leading).toHaveClass(
       'rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
@@ -62,6 +107,69 @@ describe('ButtonGroup', () => {
       'rounded-e-[min(var(--md-sys-shape-corner-full),20px)]',
       'rounded-s-corner-small',
     );
+  });
+
+  it.each([
+    ['xs', 'corner-extra-small', 16],
+    ['sm', 'corner-small', 20],
+    ['md', 'corner-small', 28],
+    ['lg', 'corner-large', 48],
+    ['xl', 'corner-large-increased', 68],
+  ] as const)('gives %s connected buttons %s inner corners', (size, inner, full) => {
+    render(
+      <ButtonGroup variant="connected" size={size} aria-label="Align">
+        <Button>Left</Button>
+        <Button>Centre</Button>
+        <IconButton icon={<Icon />} aria-label="Right" />
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('button', { name: 'Left' })).toHaveClass(
+      `rounded-s-[min(var(--md-sys-shape-corner-full),${full}px)]`,
+      `rounded-e-${inner}`,
+    );
+    expect(screen.getByRole('button', { name: 'Centre' })).toHaveClass(`rounded-${inner}`);
+    expect(screen.getByRole('button', { name: 'Right' })).toHaveClass(`rounded-s-${inner}`);
+  });
+
+  it('gives a square connected group outer corners the size of its inner ones', () => {
+    render(
+      <ButtonGroup variant="connected" shape="square" size="lg" aria-label="Align">
+        <Button>Left</Button>
+        <IconButton icon={<Icon />} aria-label="Right" />
+      </ButtonGroup>,
+    );
+    for (const button of screen.getAllByRole('button')) {
+      expect(button).toHaveClass('rounded-corner-large');
+      expect(button).not.toHaveClass('rounded-e-[min(var(--md-sys-shape-corner-full),48px)]');
+    }
+  });
+
+  it('spans its container in the connected variant, and a consumer can narrow it', () => {
+    const { rerender } = render(
+      <ButtonGroup variant="connected" aria-label="View">
+        <Button>Day</Button>
+        <Button>Week</Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('toolbar')).toHaveClass('flex', 'w-full', '*:grow');
+    rerender(
+      <ButtonGroup variant="connected" aria-label="View" className="w-fit">
+        <Button>Day</Button>
+        <Button>Week</Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('toolbar')).toHaveClass('w-fit');
+    expect(screen.getByRole('toolbar')).not.toHaveClass('w-full');
+  });
+
+  it('keeps XS and S connected icon buttons at least 48px wide', () => {
+    render(
+      <ButtonGroup variant="connected" size="xs" aria-label="Format">
+        <IconButton icon={<Icon />} aria-label="Bold" />
+        <IconButton icon={<Icon />} aria-label="Italic" />
+      </ButtonGroup>,
+    );
+    for (const button of screen.getAllByRole('button')) expect(button).toHaveClass('min-w-[48px]');
   });
 
   it('leaves a single connected button with its normal shape', () => {
@@ -91,7 +199,7 @@ describe('ButtonGroup', () => {
         <Button>Copy</Button>
       </ButtonGroup>,
     );
-    const group = screen.getByRole('group');
+    const group = screen.getByRole('toolbar');
     expect(group).toHaveClass('flex', 'w-full', 'gap-1');
     expect(group).not.toHaveClass('inline-flex', 'gap-[12px]');
   });
@@ -257,6 +365,22 @@ describe('ButtonGroup press expansion', () => {
     expect(two.style.flex).toBe('');
     expect(two.style.minWidth).toBe('');
     vi.useRealTimers();
+  });
+
+  it('never widens a pressed button in a connected group (only its shape changes)', async () => {
+    const user = userEvent.setup();
+    render(
+      <ButtonGroup variant="connected" aria-label="View">
+        <Button>Day</Button>
+        <Button>Week</Button>
+        <Button>Month</Button>
+      </ButtonGroup>,
+    );
+    const buttons = screen.getAllByRole('button');
+    stubWidths(buttons, 100, 60);
+    await user.pointer({ keys: '[MouseLeft>]', target: buttons[1]! });
+    for (const button of buttons) expect(button.style.flexBasis).toBe('');
+    await user.pointer({ keys: '[/MouseLeft]', target: buttons[1]! });
   });
 
   it('can be turned off', async () => {

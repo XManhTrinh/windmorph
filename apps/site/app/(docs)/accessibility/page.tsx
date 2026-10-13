@@ -8,7 +8,7 @@ export const metadata: Metadata = guideMetadata('/accessibility');
 const NAMING_SNIPPET = `import { IconButton, TextField } from '@windmorph/react';
 
 // Icon-only buttons require a name — the types enforce aria-label OR aria-labelledby.
-<IconButton icon={<SearchIcon />} aria-label="Search" />;
+<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />;
 
 // A TextField needs a visible label OR aria-label / aria-labelledby.
 <TextField label="Email" type="email" />;

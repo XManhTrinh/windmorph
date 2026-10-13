@@ -31,6 +31,7 @@ export function ListDetailSettings() {
       detailLabel={section?.title ?? ''}
       back={
         <IconButton
+          variant="standard"
           aria-label="Back to settings"
           icon={<ArrowBackIcon />}
           onPress={() => setActive('list')}

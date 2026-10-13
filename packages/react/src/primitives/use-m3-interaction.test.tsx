@@ -98,6 +98,29 @@ describe('useM3Interaction', () => {
     expect(target.style.getPropertyValue('--m3-ripple-origin-y')).toBe('20px');
   });
 
+  it('flags a press that starts while the corner morph is running (the modified web curve)', () => {
+    class FakeTransition {
+      constructor(
+        public transitionProperty: string,
+        public playState: string,
+      ) {}
+    }
+    vi.stubGlobal('CSSTransition', FakeTransition);
+    render(<Pressable />);
+    const target = screen.getByRole('button');
+    let animations: FakeTransition[] = [new FakeTransition('border-top-left-radius', 'running')];
+    target.getAnimations = () => animations as unknown as Animation[];
+
+    fireEvent.pointerDown(target, { pointerId: 1, button: 0 });
+    expect(target).toHaveAttribute('data-rapid-press');
+    fireEvent.pointerUp(target, { pointerId: 1, button: 0 });
+
+    animations = [new FakeTransition('background-color', 'running')];
+    fireEvent.pointerDown(target, { pointerId: 1, button: 0 });
+    expect(target).not.toHaveAttribute('data-rapid-press');
+    vi.unstubAllGlobals();
+  });
+
   it('ignores secondary-button presses for the ripple', () => {
     render(<Pressable />);
     const target = screen.getByRole('button');

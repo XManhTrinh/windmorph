@@ -283,6 +283,7 @@ export function TimePickerModeToggle({
   if (room === 'none') return null;
   return mode === 'dial' ? (
     <IconButton
+      variant="standard"
       icon={keyboardIcon ?? <KeyboardIcon />}
       aria-label={toggleInputLabel}
       onPress={() => onModeChange('input')}
@@ -290,6 +291,7 @@ export function TimePickerModeToggle({
     />
   ) : (
     <IconButton
+      variant="standard"
       icon={clockIcon ?? <ScheduleIcon />}
       aria-label={toggleDialLabel}
       onPress={() => onModeChange('dial')}

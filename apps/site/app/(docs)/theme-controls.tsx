@@ -80,6 +80,7 @@ export function ThemeControls() {
         variant="connected"
         size="sm"
         aria-label="Colour mode"
+        className="w-fit"
         selectionMode="single"
         disallowEmptySelection
         selectedKeys={[mode]}

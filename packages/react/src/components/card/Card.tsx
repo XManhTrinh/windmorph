@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  useEffect,
-  useLayoutEffect,
-  type ComponentPropsWithRef,
-  type Ref,
-  type RefObject,
-} from 'react';
+import { useEffect, type ComponentPropsWithRef, type Ref, type RefObject } from 'react';
 import { useObjectRef } from 'react-aria';
 import {
   ButtonBase,
@@ -67,13 +61,6 @@ function useNoNestedInteractive(ref: RefObject<HTMLElement | null>, interactive:
   });
 }
 
-/** Sets `data-dragged` on the element, which the button primitive otherwise owns. */
-function useDraggedAttribute(ref: RefObject<HTMLElement | null>, dragged: boolean) {
-  useLayoutEffect(() => {
-    ref.current?.toggleAttribute('data-dragged', dragged);
-  });
-}
-
 /**
  * M3 card: filled, elevated or outlined. Static by default; with `onPress` or `href` the
  * whole card is pressable, with M3 state layers, hover elevation and a focus ring.
@@ -93,19 +80,26 @@ export function Card(props: CardProps) {
   const { variant, dragged = false, className, ref, ...rest } = props;
   const domRef = useObjectRef(ref as Ref<HTMLElement>);
   useNoNestedInteractive(domRef, interactive);
-  useDraggedAttribute(domRef, dragged);
 
   const classes = cn(cardStyles({ variant, interactive }), className);
 
   if (!interactive) {
     const { href, onPress, disabled, ...div } = rest as CardStaticProps;
-    return <div {...div} ref={domRef as Ref<HTMLDivElement>} className={classes} />;
+    return (
+      <div
+        {...div}
+        ref={domRef as Ref<HTMLDivElement>}
+        data-dragged={dragged || undefined}
+        className={classes}
+      />
+    );
   }
 
   // Destructuring a union merges its members (see Button); `rest` holds one member's props.
   const baseProps = {
     ...rest,
     ...(isAction ? { elementType: 'div' as const } : {}),
+    dragged,
     ref: domRef,
     className: classes,
   } as ButtonBaseProps;

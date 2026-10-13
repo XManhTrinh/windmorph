@@ -114,7 +114,7 @@ export function ExpressiveShowcase() {
         />
         <ExpressiveCard
           title="New: Button groups"
-          description="Related buttons that react to each other: the pressed one grows while its neighbours make room."
+          description="Related buttons that react to each other: the pressed one changes shape, and in a standard group it grows while its neighbours make room."
           preview={
             <ButtonGroup
               variant="connected"
@@ -122,6 +122,7 @@ export function ExpressiveShowcase() {
               disallowEmptySelection
               defaultSelectedKeys={['week']}
               aria-label="Calendar view"
+              className="w-fit"
             >
               <Button toggle value="day">
                 Day

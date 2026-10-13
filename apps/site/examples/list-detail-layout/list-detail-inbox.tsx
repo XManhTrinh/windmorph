@@ -32,6 +32,7 @@ export function ListDetailInbox() {
       detailLabel={message?.from ?? ''}
       back={
         <IconButton
+          variant="standard"
           aria-label="Back to conversations"
           icon={<ArrowBackIcon />}
           onPress={() => setActive('list')}

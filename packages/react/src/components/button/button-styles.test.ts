@@ -12,18 +12,10 @@ function* outputs() {
     for (const size of ['xs', 'sm', 'md', 'lg', 'xl'] as const)
       for (const shape of ['round', 'square'] as const)
         for (const toggle of [false, true])
-          for (const hasLeadingIcon of [false, true])
-            for (const connected of ['none', 'leading', 'middle', 'trailing'] as const) {
-              const slots = buttonStyles({
-                variant,
-                size,
-                shape,
-                toggle,
-                hasLeadingIcon,
-                connected,
-              });
-              yield* [slots.root(), slots.content(), slots.label(), slots.icon()];
-            }
+          for (const connected of ['none', 'leading', 'middle', 'trailing'] as const) {
+            const slots = buttonStyles({ variant, size, shape, toggle, connected });
+            yield* [slots.root(), slots.content(), slots.label(), slots.icon()];
+          }
 }
 
 describe('buttonStyles', () => {
@@ -31,7 +23,13 @@ describe('buttonStyles', () => {
 
   it('writes every class literally so Tailwind can find it', async () => {
     expect(
-      await nonLiteralClasses(new URL('./button-styles.ts', import.meta.url), classes),
+      await nonLiteralClasses(
+        [
+          new URL('./button-styles.ts', import.meta.url),
+          new URL('./connected-shapes.ts', import.meta.url),
+        ],
+        classes,
+      ),
     ).toEqual([]);
   });
 

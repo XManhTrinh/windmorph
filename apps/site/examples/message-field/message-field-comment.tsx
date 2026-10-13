@@ -14,7 +14,14 @@ const MOOD = (
 /** A tool: its own button and action. This one puts 🙂 at the caret. */
 function EmojiTool() {
   const field = useMessageField();
-  return <IconButton icon={MOOD} aria-label="Add 🙂" onPress={() => field.insertText('🙂')} />;
+  return (
+    <IconButton
+      variant="standard"
+      icon={MOOD}
+      aria-label="Add 🙂"
+      onPress={() => field.insertText('🙂')}
+    />
+  );
 }
 
 /**

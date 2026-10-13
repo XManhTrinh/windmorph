@@ -3,6 +3,7 @@
 import { useRef, type ComponentPropsWithRef, type ReactNode, type RefObject } from 'react';
 import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { topAppBarStyles, type TopAppBarTitleAlign, type TopAppBarVariant } from './app-bar-styles';
 import { useAppBarScroll, type TopAppBarScrollBehavior } from './use-app-bar-scroll';
 
@@ -101,33 +102,35 @@ export function TopAppBar({
       data-collapsed={scroll.collapsed || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <div className={styles.row({ class: classNames?.row })}>
-        {navigationIcon != null && (
-          <div className={styles.navigation({ class: classNames?.navigation })}>
-            {navigationIcon}
+      <ButtonContext value={standardIconButtons}>
+        <div className={styles.row({ class: classNames?.row })}>
+          {navigationIcon != null && (
+            <div className={styles.navigation({ class: classNames?.navigation })}>
+              {navigationIcon}
+            </div>
+          )}
+          <div
+            aria-hidden={hideTopTitle || undefined}
+            className={styles.title({ class: classNames?.title })}
+          >
+            <div className={styles.titleText()}>{title}</div>
+            {subtitle != null && <div className={styles.subtitleText()}>{subtitle}</div>}
+          </div>
+          {actions != null && (
+            <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
+          )}
+        </div>
+        {twoRows && (
+          <div
+            ref={expandedRowRef}
+            aria-hidden={!hideTopTitle || undefined}
+            className={styles.expandedRow({ class: classNames?.expandedRow })}
+          >
+            <div className={styles.expandedTitle()}>{title}</div>
+            {subtitle != null && <div className={styles.expandedSubtitle()}>{subtitle}</div>}
           </div>
         )}
-        <div
-          aria-hidden={hideTopTitle || undefined}
-          className={styles.title({ class: classNames?.title })}
-        >
-          <div className={styles.titleText()}>{title}</div>
-          {subtitle != null && <div className={styles.subtitleText()}>{subtitle}</div>}
-        </div>
-        {actions != null && (
-          <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
-        )}
-      </div>
-      {twoRows && (
-        <div
-          ref={expandedRowRef}
-          aria-hidden={!hideTopTitle || undefined}
-          className={styles.expandedRow({ class: classNames?.expandedRow })}
-        >
-          <div className={styles.expandedTitle()}>{title}</div>
-          {subtitle != null && <div className={styles.expandedSubtitle()}>{subtitle}</div>}
-        </div>
-      )}
+      </ButtonContext>
     </header>
   );
 }

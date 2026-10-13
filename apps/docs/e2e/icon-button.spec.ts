@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
@@ -36,7 +36,7 @@ test.describe('IconButton interaction states', () => {
       page,
       'components-iconbutton--playground',
       {},
-      { variant: 'filled', size: 'md' },
+      { variant: 'filled', size: 'md', tooltip: false },
     );
     const button = page.getByRole('button', { name: 'Search' });
 
@@ -73,15 +73,45 @@ test.describe('IconButton interaction states', () => {
     await shotWithMargin(page, toggle, 'toggle-selected.png');
   });
 
-  test('standard icon buttons inherit the surrounding text colour', async ({ page }) => {
+  test('shows its label as a tooltip on hover and keyboard focus', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--playground', {}, { size: 'md' });
+    const button = page.getByRole('button', { name: 'Search' });
+    // React Aria shows tooltips for pointer hover once it has seen the pointer move.
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 4 });
+    await expect(page.getByRole('tooltip')).toHaveText('Search');
+    await page.mouse.move(0, 0);
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('tooltip')).toHaveText('Search');
+  });
+
+  test('standard and outlined icons are on-surface-variant, not the surrounding colour', async ({
+    page,
+  }) => {
     await openStory(page, 'components-iconbutton--variants');
-    const row = page.getByTestId('variants');
-    const standard = row.getByRole('button', { name: 'Search' }).first();
-    const [rowColor, buttonColor] = await Promise.all([
-      row.evaluate((el) => getComputedStyle(el).color),
-      standard.evaluate((el) => getComputedStyle(el).color),
-    ]);
-    expect(buttonColor).toBe(rowColor);
+    const variants = page.getByTestId('variants');
+    const color = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).color);
+    for (const [index, name] of [
+      [2, 'outlined'],
+      [3, 'standard'],
+    ] as const) {
+      const row = variants.locator('> div').nth(index);
+      // The row label is text-on-surface-variant; the story's own text is on-surface.
+      const label = row.getByText(name, { exact: true });
+      const button = row.getByRole('button', { name: 'Search' }).first();
+      expect(await color(button)).toBe(await color(label));
+      expect(await color(button)).not.toBe(await color(variants));
+    }
+  });
+
+  test('a container recolours standard and outlined icons through the token', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--content-color');
+    const box = page.getByTestId('content-color');
+    const color = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).color);
+    const containerColor = await color(box);
+    expect(await color(box.getByRole('button', { name: 'Search' }))).toBe(containerColor);
+    expect(await color(box.getByRole('button', { name: 'Star' }))).toBe(containerColor);
   });
 });
 

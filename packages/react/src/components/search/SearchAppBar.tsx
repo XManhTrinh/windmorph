@@ -3,6 +3,7 @@
 import type { ComponentPropsWithRef, ReactNode, RefObject } from 'react';
 import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { useAppBarScroll } from '../app-bar/use-app-bar-scroll';
 import { SearchAppBarContext } from './SearchBar';
 import { searchAppBarStyles } from './search-styles';
@@ -73,15 +74,21 @@ export function SearchAppBar({
       data-scrolled={scroll.scrolled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      {navigationIcon != null && (
-        <div className={styles.navigation({ class: classNames?.navigation })}>{navigationIcon}</div>
-      )}
-      <div className={styles.search({ class: classNames?.search })}>
-        <SearchAppBarContext value={{ scrolled: scroll.scrolled }}>{children}</SearchAppBarContext>
-      </div>
-      {actions != null && (
-        <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
-      )}
+      <ButtonContext value={standardIconButtons}>
+        {navigationIcon != null && (
+          <div className={styles.navigation({ class: classNames?.navigation })}>
+            {navigationIcon}
+          </div>
+        )}
+        <div className={styles.search({ class: classNames?.search })}>
+          <SearchAppBarContext value={{ scrolled: scroll.scrolled }}>
+            {children}
+          </SearchAppBarContext>
+        </div>
+        {actions != null && (
+          <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
+        )}
+      </ButtonContext>
     </header>
   );
 }

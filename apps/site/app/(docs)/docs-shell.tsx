@@ -47,7 +47,7 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 function DisplaySettings() {
   return (
     <SheetTrigger>
-      <IconButton icon={<SettingsIcon />} aria-label="Display settings" />
+      <IconButton variant="standard" icon={<SettingsIcon />} aria-label="Display settings" />
       <SideSheet title="Display" className="w-[320px]" labels={{ close: 'Close display settings' }}>
         <ThemeControls />
       </SideSheet>
@@ -79,7 +79,7 @@ function SectionMenu() {
   return (
     <span className="large:hidden">
       <MenuTrigger>
-        <IconButton icon={<MoreVertIcon />} aria-label="Guide sections" />
+        <IconButton variant="standard" icon={<MoreVertIcon />} aria-label="Guide sections" />
         <Menu aria-label="Guide sections" onAction={(key) => router.push(String(key))}>
           {DOCS_SECTIONS.map((section) => (
             <MenuItem key={section.href}>{section.label}</MenuItem>

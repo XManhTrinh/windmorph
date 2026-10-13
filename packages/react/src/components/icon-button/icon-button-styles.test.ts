@@ -33,7 +33,13 @@ describe('iconButtonStyles', () => {
 
   it('writes every class literally so Tailwind can find it', async () => {
     expect(
-      await nonLiteralClasses(new URL('./icon-button-styles.ts', import.meta.url), classes),
+      await nonLiteralClasses(
+        [
+          new URL('./icon-button-styles.ts', import.meta.url),
+          new URL('../button/connected-shapes.ts', import.meta.url),
+        ],
+        classes,
+      ),
     ).toEqual([]);
   });
 

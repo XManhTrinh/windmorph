@@ -70,6 +70,7 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded, itemAlignment, divid
         header={({ expanded: open, toggle }) => (
           <>
             <IconButton
+              variant="standard"
               icon={<MenuIcon />}
               aria-label={open ? 'Collapse navigation' : 'Expand navigation'}
               onPress={toggle}
@@ -93,6 +94,7 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded, itemAlignment, divid
       <main className="flex-1 p-6 text-body-large" data-testid="page">
         {modal && hideOnCollapse && (
           <IconButton
+            variant="standard"
             icon={<MenuIcon />}
             aria-label="Open navigation"
             onPress={() => setExpanded(true)}

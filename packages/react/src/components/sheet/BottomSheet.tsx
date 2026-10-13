@@ -444,6 +444,7 @@ function BottomSheetPanel({
           {showCloseButton && (
             <div className={styles.closeRow({ class: classNames?.closeRow })}>
               <IconButton
+                variant="standard"
                 icon={standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)}
                 aria-label={standard ? labels.collapse : labels.close}
                 onPress={standard ? () => setDetent('lower') : close}

@@ -361,6 +361,7 @@ function PickerFrame({
             </div>
             {showModeToggle && (
               <IconButton
+                variant="standard"
                 icon={mode === 'calendar' ? <EditIcon /> : <CalendarIcon />}
                 aria-label={
                   mode === 'calendar'
@@ -474,13 +475,19 @@ function CalendarBody({
               setFocusYears(false);
               setYears(!years);
             }}
-            trailingIcon={
-              <span className={styles.yearButtonIcon()}>
-                <ArrowDropDownIcon />
-              </span>
-            }
           >
-            <span aria-live="polite">{monthLabel}</span>
+            {/* The drop-down arrow trails the label here, which Button's one leading icon can't do. */}
+            <span className="inline-flex items-center gap-[8px]">
+              <span aria-live="polite">{monthLabel}</span>
+              <span
+                aria-hidden="true"
+                className="inline-flex size-[20px] items-center justify-center"
+              >
+                <span className={styles.yearButtonIcon()}>
+                  <ArrowDropDownIcon />
+                </span>
+              </span>
+            </span>
           </Button>
           <Tooltip>{strings.yearsTooltip ?? 'Choose a year (Shift+Y)'}</Tooltip>
         </TooltipTrigger>

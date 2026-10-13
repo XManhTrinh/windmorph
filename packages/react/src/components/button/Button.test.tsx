@@ -63,14 +63,15 @@ describe('Button', () => {
     ['elevated', ['bg-surface-container-low', 'text-primary', 'shadow-elevation-1']],
     ['tonal', ['bg-secondary-container', 'text-on-secondary-container']],
     ['outlined', ['border-outline-variant', 'text-on-surface-variant', 'bg-transparent']],
-    ['text', ['bg-transparent', 'text-primary', 'px-[12px]']],
+    // Small text buttons take the 16px padding of the other small buttons (M3 Expressive).
+    ['text', ['bg-transparent', 'text-primary', 'px-[16px]']],
   ] as const)('styles the %s variant', (variant, classes) => {
     render(<Button variant={variant}>Go</Button>);
     expect(screen.getByRole('button')).toHaveClass(...classes);
   });
 
   it.each([
-    ['xs', ['h-[32px]', 'px-[12px]', 'text-label-large'], 'gap-[4px]', 'size-[20px]'],
+    ['xs', ['h-[32px]', 'px-[16px]', 'text-label-large'], 'gap-[8px]', 'size-[20px]'],
     ['sm', ['h-[40px]', 'px-[16px]', 'text-label-large'], 'gap-[8px]', 'size-[20px]'],
     ['md', ['h-[56px]', 'px-[24px]', 'text-title-medium'], 'gap-[8px]', 'size-[24px]'],
     [
@@ -85,7 +86,7 @@ describe('Button', () => {
       'gap-[16px]',
       'size-[40px]',
     ],
-  ] as const)('sizes %s to the Compose measurements', (size, rootClasses, gap, iconSize) => {
+  ] as const)('sizes %s to the M3 token measurements', (size, rootClasses, gap, iconSize) => {
     render(
       <Button size={size} leadingIcon={<Icon />}>
         Go
@@ -151,11 +152,7 @@ describe('Button', () => {
   });
 
   it('hides icons from assistive tech and names the button by its label', () => {
-    render(
-      <Button leadingIcon={<Icon />} trailingIcon={<Icon />}>
-        Download
-      </Button>,
-    );
+    render(<Button leadingIcon={<Icon />}>Download</Button>);
     expect(screen.getByRole('button')).toHaveAccessibleName('Download');
     for (const icon of screen.getAllByTestId('icon')) {
       expect(icon.parentElement).toHaveAttribute('aria-hidden', 'true');
@@ -275,13 +272,18 @@ describe('Button toggle', () => {
     );
   });
 
-  it('uses the bouncy spatial spring for its shape and a 6px press at size S', () => {
+  it('presses a toggle to the same 8px corner as other small buttons', () => {
     render(<Button toggle>Bold</Button>);
     expect(screen.getByRole('button')).toHaveClass(
       'container-motion',
-      'container-motion-spatial',
-      'data-pressed:rounded-[6px]',
+      'data-pressed:rounded-corner-small',
     );
+  });
+
+  it('has no trailing icon (M3 allows one icon, on the leading side)', () => {
+    // @ts-expect-error trailingIcon was removed
+    const button = <Button trailingIcon={<Icon />}>Next</Button>;
+    expect(button).toBeTruthy();
   });
 
   it('rejects a text toggle in its types', () => {

@@ -145,7 +145,10 @@ export const floatingToolbarStyles = tv({
     },
     color: {
       standard: { root: 'text-on-surface-variant' },
-      vibrant: { root: 'text-on-primary-container' },
+      // Standard and outlined icon buttons take the vibrant content colour.
+      vibrant: {
+        root: 'text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]',
+      },
     },
     /** Level 1 by default; turn it off over visually distinct content. */
     elevated: { true: {}, false: {} },

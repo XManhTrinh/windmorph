@@ -1,13 +1,18 @@
 import { tv, type VariantProps } from '../../utils/tv';
+import { connectedShapeVariants } from '../button/connected-shapes';
 
 /*
- * Values follow Compose Material 3 (IconButton.kt, IconButtonDefaults.kt and the
- * *IconButtonTokens files). Width = icon size + leading + trailing space; Compose's
- * "Uniform" width option is the default width. Standard and outlined icon buttons take
- * the surrounding content colour (Compose's LocalContentColor), and the outline is
- * drawn in that colour. Every class is written out in full so Tailwind can find it.
+ * Values follow the M3 Expressive icon button specs and Compose's *IconButtonTokens files.
+ * Width = icon size + leading + trailing space; Compose's "Uniform" width option is the
+ * default width. Every class is written out in full so Tailwind can find it.
+ *
+ * Colours (2026-10-13, from the spec's colour table): standard icons are
+ * `on-surface-variant` (`primary` when a toggle is selected), and outlined ones have an
+ * `outline-variant` outline around an `on-surface-variant` icon. A container that needs
+ * another content colour for its standard and outlined icon buttons (a vibrant toolbar, a
+ * snackbar) sets `--md-comp-icon-button-icon-color` on an ancestor, e.g. to `currentColor`
+ * to inherit its own text colour.
  */
-
 const full = {
   xs: 'rounded-[min(var(--md-sys-shape-corner-full),16px)]',
   sm: 'rounded-[min(var(--md-sys-shape-corner-full),20px)]',
@@ -63,119 +68,6 @@ type Size = keyof typeof full;
 const SIZES = Object.keys(full) as Size[];
 const WIDTHS = ['narrow', 'default', 'wide'] as const;
 
-/**
- * Connected button group corners (Compose `ButtonGroupDefaults.connected*Shapes`): outer
- * corners stay full, inner corners are small (8px), extra-small (4px) while pressed, and
- * the whole button becomes full when selected. Compose defines one set for all sizes.
- */
-const connectedShapes = [
-  {
-    size: 'xs',
-    connected: 'leading',
-    class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),16px)]',
-    },
-  },
-  {
-    size: 'xs',
-    connected: 'middle',
-    class: {
-      root: 'rounded-corner-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
-    },
-  },
-  {
-    size: 'xs',
-    connected: 'trailing',
-    class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',
-    },
-  },
-  {
-    size: 'sm',
-    connected: 'leading',
-    class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),20px)] rounded-e-corner-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),20px)]',
-    },
-  },
-  {
-    size: 'sm',
-    connected: 'middle',
-    class: {
-      root: 'rounded-corner-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),20px)]',
-    },
-  },
-  {
-    size: 'sm',
-    connected: 'trailing',
-    class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),20px)] rounded-s-corner-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
-    },
-  },
-  {
-    size: 'md',
-    connected: 'leading',
-    class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),28px)] rounded-e-corner-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),28px)]',
-    },
-  },
-  {
-    size: 'md',
-    connected: 'middle',
-    class: {
-      root: 'rounded-corner-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
-    },
-  },
-  {
-    size: 'md',
-    connected: 'trailing',
-    class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),28px)] rounded-s-corner-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),28px)]',
-    },
-  },
-  {
-    size: 'lg',
-    connected: 'leading',
-    class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),48px)] rounded-e-corner-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),48px)]',
-    },
-  },
-  {
-    size: 'lg',
-    connected: 'middle',
-    class: {
-      root: 'rounded-corner-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),48px)]',
-    },
-  },
-  {
-    size: 'lg',
-    connected: 'trailing',
-    class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),48px)] rounded-s-corner-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),48px)]',
-    },
-  },
-  {
-    size: 'xl',
-    connected: 'leading',
-    class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),68px)] rounded-e-corner-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),68px)]',
-    },
-  },
-  {
-    size: 'xl',
-    connected: 'middle',
-    class: {
-      root: 'rounded-corner-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),68px)]',
-    },
-  },
-  {
-    size: 'xl',
-    connected: 'trailing',
-    class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),68px)] rounded-s-corner-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),68px)]',
-    },
-  },
-] as const;
-
 const sizeVariants = SIZES.flatMap((size) => [
   { size, connected: 'none' as const, shape: 'round' as const, class: { root: full[size] } },
   { size, connected: 'none' as const, shape: 'square' as const, class: { root: square[size] } },
@@ -211,7 +103,9 @@ export const iconButtonStyles = tv({
   },
   variants: {
     variant: {
-      standard: { root: 'bg-transparent text-inherit data-disabled:text-current/38' },
+      standard: {
+        root: 'bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:text-on-surface/38',
+      },
       filled: {
         root: 'bg-primary text-on-primary data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
       },
@@ -219,7 +113,7 @@ export const iconButtonStyles = tv({
         root: 'bg-secondary-container text-on-secondary-container data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
       },
       outlined: {
-        root: 'border border-solid border-current bg-transparent text-inherit data-disabled:text-current/38',
+        root: 'border border-solid border-outline-variant bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:text-on-surface/38',
       },
     },
     size: {
@@ -239,7 +133,13 @@ export const iconButtonStyles = tv({
   },
   compoundVariants: [
     ...sizeVariants,
-    ...connectedShapes,
+    ...connectedShapeVariants,
+    // Extra small and small connected groups keep 48px wide buttons (button group specs).
+    {
+      size: ['xs', 'sm'],
+      connected: ['leading', 'middle', 'trailing'],
+      class: { root: 'min-w-[48px]' },
+    },
     { variant: 'outlined', size: 'lg', class: { root: 'border-2' } },
     { variant: 'outlined', size: 'xl', class: { root: 'border-3' } },
     // Toggle colours: unselected → selected.
@@ -266,13 +166,12 @@ export const iconButtonStyles = tv({
       variant: 'outlined',
       toggle: true,
       class: {
-        root: 'data-selected:not-data-disabled:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
+        root: 'data-disabled:data-selected:bg-on-surface/10 data-selected:not-data-disabled:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
       },
     },
-    // In a vibrant toolbar (M3 toolbar colour spec, FloatingToolbarTokens.VibrantButton*):
-    // standard buttons are on-primary-container, and selected tonal toggles turn
-    // surface-container / on-surface.
-    { variant: 'standard', toolbar: 'vibrant', class: { root: 'text-on-primary-container' } },
+    // In a vibrant toolbar (M3 toolbar colour spec, FloatingToolbarTokens.VibrantButton*),
+    // selected tonal toggles turn surface-container / on-surface. Standard icons take the
+    // toolbar's on-primary-container through --md-comp-icon-button-icon-color.
     {
       variant: 'tonal',
       toggle: true,
@@ -283,7 +182,7 @@ export const iconButtonStyles = tv({
     },
   ],
   defaultVariants: {
-    variant: 'standard',
+    variant: 'filled',
     size: 'sm',
     width: 'default',
     shape: 'round',

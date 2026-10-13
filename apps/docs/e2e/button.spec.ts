@@ -55,7 +55,7 @@ test.describe('Button interaction states', () => {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await expect(button).toHaveAttribute('data-pressed', 'true');
-    // Pressed corners morph from full to medium (12px) on the effects spring.
+    // Pressed corners morph from full to medium (12px) on the fast spatial spring.
     await expect
       .poll(() => button.evaluate((el) => getComputedStyle(el).borderTopLeftRadius))
       .toBe('12px');
@@ -64,6 +64,48 @@ test.describe('Button interaction states', () => {
     await expect
       .poll(() => button.evaluate((el) => getComputedStyle(el).borderTopLeftRadius))
       .toBe('28px');
+  });
+
+  test('the press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-button--playground', {}, { size: 'md' });
+    const button = page.getByRole('button', { name: 'Button' });
+    /** The smallest and largest corner radius over the next `ms`, sampled every frame. */
+    const radiusRange = (ms: number) =>
+      button.evaluate(async (el, duration) => {
+        let min = Infinity;
+        let max = -Infinity;
+        const start = performance.now();
+        while (performance.now() - start < duration) {
+          await new Promise(requestAnimationFrame);
+          const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius);
+          min = Math.min(min, radius);
+          max = Math.max(max, radius);
+        }
+        return { min, max };
+      }, ms);
+    const radius = () =>
+      button.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+
+    await page.mouse.down();
+    // 28px → 12px overshoots below 12px before settling (expressive scheme).
+    expect((await radiusRange(450)).min).toBeLessThan(11.5);
+    await page.mouse.up();
+    await page.waitForTimeout(60);
+    const midRelease = await radius();
+    expect(midRelease).toBeGreaterThan(12.5);
+    expect(midRelease).toBeLessThan(27.5);
+    await page.mouse.down();
+    await expect(button).toHaveAttribute('data-rapid-press', '');
+    // A press that overlaps the release morph picks up where it is, on the non-bouncing
+    // effects spring.
+    const range = await radiusRange(450);
+    expect(range.min).toBeGreaterThanOrEqual(11.9);
+    expect(range.max).toBeLessThanOrEqual(midRelease + 2);
+    await page.mouse.up();
   });
 
   test('toggle selection swaps the shape', async ({ page }) => {

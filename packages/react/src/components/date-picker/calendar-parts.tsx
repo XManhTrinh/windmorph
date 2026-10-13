@@ -115,7 +115,13 @@ export function ShortcutIconButton({
 }) {
   return (
     <TooltipTrigger>
-      <IconButton icon={icon} aria-label={label} onPress={onPress} disabled={disabled} />
+      <IconButton
+        variant="standard"
+        icon={icon}
+        aria-label={label}
+        onPress={onPress}
+        disabled={disabled}
+      />
       <Tooltip>{tooltip}</Tooltip>
     </TooltipTrigger>
   );

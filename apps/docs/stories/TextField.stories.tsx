@@ -64,7 +64,7 @@ export const Variants: Story = {
             variant={variant}
             label="Search"
             leadingIcon={<SearchIcon />}
-            trailingIcon={<IconButton icon={<ClearIcon />} aria-label="Clear" />}
+            trailingIcon={<IconButton variant="standard" icon={<ClearIcon />} aria-label="Clear" />}
             defaultValue="Kyoto"
           />
           <TextField

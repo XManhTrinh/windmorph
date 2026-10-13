@@ -6,7 +6,8 @@ import { useState } from 'react';
 /**
  * A connected group with single selection is the M3 Expressive replacement for segmented
  * buttons. Toggle buttons with a `value` form one selection; `disallowEmptySelection`
- * keeps one always chosen. It renders as a `radiogroup` with arrow-key movement.
+ * keeps one always chosen. It renders as a `radiogroup` with arrow-key movement, and spans
+ * its container with the buttons sharing the width.
  */
 export function ButtonGroupConnected() {
   const [view, setView] = useState(new Set(['week']));

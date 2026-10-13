@@ -35,12 +35,14 @@ export const topAppBarStyles = tv({
       'grid h-[64px] shrink-0 items-center',
       'bg-[color:color-mix(in_oklab,var(--color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--color-surface))]',
     ],
-    navigation: 'col-start-1 flex items-center ps-[8px] pe-[4px] text-on-surface',
+    // Icon buttons take each slot's content colour.
+    navigation:
+      'col-start-1 flex items-center ps-[8px] pe-[4px] text-on-surface [--md-comp-icon-button-icon-color:currentColor]',
     title: 'col-start-2 flex min-w-0 flex-col ps-[4px] pe-[4px]',
     titleText: 'truncate text-on-surface',
     subtitleText: 'truncate text-on-surface-variant',
     actions:
-      'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant',
+      'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant [--md-comp-icon-button-icon-color:currentColor]',
     // Two-row bars: the expanded title row.
     expandedRow: 'flex flex-col ps-[16px] pe-[16px]',
     expandedTitle: 'text-on-surface',

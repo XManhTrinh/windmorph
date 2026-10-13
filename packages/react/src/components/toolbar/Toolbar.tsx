@@ -22,6 +22,7 @@ import {
   type ButtonBaseProps,
 } from '../../primitives/ButtonBase';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
@@ -129,7 +130,9 @@ function DockedToolbarRoot({
         class: cn(classNames?.root, className),
       })}
     >
-      <ToolbarContext value={DOCKED}>{children}</ToolbarContext>
+      <ToolbarContext value={DOCKED}>
+        <ButtonContext value={standardIconButtons}>{children}</ButtonContext>
+      </ToolbarContext>
     </div>
   );
 }
@@ -310,35 +313,37 @@ function FloatingToolbarRoot({
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ToolbarContext value={context}>
-        {hasFab ? (
-          <>
-            <div className={styles.toolbarSlot()}>
-              <div
-                data-collapsed={!expanded || undefined}
-                data-toolbar-collapsible=""
-                className={styles.surface({ class: classNames?.surface })}
-              >
-                <div ref={contentRef} className={styles.content({ class: classNames?.items })}>
-                  {children}
+        <ButtonContext value={standardIconButtons}>
+          {hasFab ? (
+            <>
+              <div className={styles.toolbarSlot()}>
+                <div
+                  data-collapsed={!expanded || undefined}
+                  data-toolbar-collapsible=""
+                  className={styles.surface({ class: classNames?.surface })}
+                >
+                  <div ref={contentRef} className={styles.content({ class: classNames?.items })}>
+                    {children}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className={styles.fabSlot()}>
-              <div
-                data-collapsed={!expanded || undefined}
-                className={styles.fabBox({ class: classNames?.fab })}
-              >
-                {fab}
+              <div className={styles.fabSlot()}>
+                <div
+                  data-collapsed={!expanded || undefined}
+                  className={styles.fabBox({ class: classNames?.fab })}
+                >
+                  {fab}
+                </div>
               </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {collapsible('leading', leading)}
-            <div className={styles.items({ class: classNames?.items })}>{children}</div>
-            {collapsible('trailing', trailing)}
-          </>
-        )}
+            </>
+          ) : (
+            <>
+              {collapsible('leading', leading)}
+              <div className={styles.items({ class: classNames?.items })}>{children}</div>
+              {collapsible('trailing', trailing)}
+            </>
+          )}
+        </ButtonContext>
       </ToolbarContext>
     </div>
   );

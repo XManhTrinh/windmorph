@@ -392,6 +392,7 @@ export function DialogHeader({
     <div {...props} className={styles.header({ class: cn(classNames?.root, className) })}>
       {fullScreen !== 'never' && (
         <IconButton
+          variant="standard"
           icon={<CloseIcon />}
           aria-label={closeLabel}
           onPress={close}

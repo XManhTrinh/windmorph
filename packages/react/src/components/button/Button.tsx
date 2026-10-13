@@ -33,10 +33,12 @@ interface ButtonOwnProps {
   size?: ButtonSize;
   /** @default "round" */
   shape?: ButtonShape;
-  /** Icon before the label, e.g. a Material Symbols SVG. Decorative; the label names the button. */
+  /**
+   * Icon before the label, e.g. a Material Symbols SVG. Decorative; the label names the
+   * button. M3 allows one icon, on the leading side ("Don't use two icons in the same
+   * button"), so there's no trailing icon.
+   */
   leadingIcon?: ReactElement;
-  /** Icon after the label. */
-  trailingIcon?: ReactElement;
   /** The visible label. Required: buttons without text are `IconButton`s. */
   children: Exclude<ReactNode, null | undefined | boolean>;
   /** Classes for each part. `classNames.root` is merged with `className`. */
@@ -75,7 +77,6 @@ export function Button({
   shape: shapeProp,
   disabled: disabledProp,
   leadingIcon,
-  trailingIcon,
   classNames,
   className,
   children,
@@ -96,7 +97,6 @@ export function Button({
     size,
     shape: shapeProp ?? context.shape ?? 'round',
     toggle,
-    hasLeadingIcon: Boolean(leadingIcon),
     connected: context.connected ?? 'none',
   });
 
@@ -118,11 +118,6 @@ export function Button({
           </span>
         )}
         <span className={styles.label({ class: classNames?.label })}>{children}</span>
-        {trailingIcon && (
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-            {trailingIcon}
-          </span>
-        )}
       </span>
     </ButtonBase>
   );

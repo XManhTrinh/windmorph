@@ -13,6 +13,7 @@ import { cn } from '../../utils/cn';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
+import { Tooltip, TooltipTrigger, useInTooltipTrigger } from '../tooltip/Tooltip';
 import {
   iconButtonStyles,
   type IconButtonVariant,
@@ -32,7 +33,11 @@ type AccessibleName =
   | { 'aria-label'?: string; 'aria-labelledby': string };
 
 interface IconButtonOwnProps {
-  /** @default "standard" */
+  /**
+   * Colour style. Filled is the M3 default; toolbars and app bars default their icon
+   * buttons to `standard` through `ButtonContext`.
+   * @default "filled"
+   */
   variant?: IconButtonVariant;
   /** @default "sm" */
   size?: ButtonSize;
@@ -42,6 +47,13 @@ interface IconButtonOwnProps {
   shape?: ButtonShape;
   /** The icon, e.g. a Material Symbols SVG. Hidden from assistive tech; `aria-label` names the button. */
   icon: ReactElement;
+  /**
+   * Shows the `aria-label` in a plain tooltip on hover and keyboard focus, as M3 asks of
+   * icon buttons on the web. It steps aside when the button is already inside a
+   * `TooltipTrigger` or `RichTooltipTrigger`, and when it's named by `aria-labelledby`.
+   * @default true
+   */
+  tooltip?: boolean;
   /** Classes for each part. `classNames.root` is merged with `className`. */
   classNames?: IconButtonClassNames;
 }
@@ -64,26 +76,28 @@ export type IconButtonToggleProps = IconButtonOwnProps &
 export type IconButtonProps = IconButtonActionProps | IconButtonLinkProps | IconButtonToggleProps;
 
 /**
- * M3 Expressive icon button: standard, filled, tonal and outlined variants; XS–XL
- * sizes; narrow, default or wide widths; round or square shape; an optional toggle
- * form; and a press morph. Standard and outlined icon buttons take the surrounding
- * text colour, like Compose's `LocalContentColor`.
+ * M3 Expressive icon button: filled (default), tonal, outlined and standard variants;
+ * XS–XL sizes; narrow, default or wide widths; round or square shape; an optional toggle
+ * form; a press morph; and its label as a tooltip on hover and keyboard focus.
  *
- * Shares `size`, `shape` and `disabled` with `ButtonContext`, so it fits in button groups.
+ * Shares `size`, `shape` and `disabled` with `ButtonContext`, so it fits in button groups,
+ * and takes its default variant from it (`iconButtonVariant`).
  *
  * @example
  * <IconButton icon={<SearchIcon />} aria-label="Search" onPress={openSearch} />
+ * <IconButton variant="standard" icon={<MoreIcon />} aria-label="More options" />
  * <IconButton toggle variant="filled" icon={<StarIcon />} selectedIcon={<StarFilledIcon />}
  *   aria-label="Favourite" selected={isFavourite} onSelectedChange={setFavourite} />
  */
 export function IconButton(props: IconButtonProps) {
   const {
-    variant = 'standard',
+    variant: variantProp,
     size: sizeProp,
     width = 'default',
     shape: shapeProp,
     disabled: disabledProp,
     icon,
+    tooltip = true,
     classNames,
     className,
     // Only toggle props carry `selectedIcon`; the others read it as undefined.
@@ -93,6 +107,7 @@ export function IconButton(props: IconButtonProps) {
 
   const context = useContext(ButtonContext);
   const toolbar = useContext(ToolbarContext);
+  const inTooltipTrigger = useInTooltipTrigger();
   const size = sizeProp ?? context.size ?? 'sm';
   const shape = shapeProp ?? context.shape ?? 'round';
   if (process.env.NODE_ENV !== 'production' && toolbar?.kind === 'floating' && shape === 'square') {
@@ -101,7 +116,7 @@ export function IconButton(props: IconButtonProps) {
     );
   }
   const styles = iconButtonStyles({
-    variant,
+    variant: variantProp ?? context.iconButtonVariant ?? 'filled',
     size,
     width,
     shape,
@@ -117,7 +132,7 @@ export function IconButton(props: IconButtonProps) {
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
 
-  return (
+  const button = (
     <ButtonBase {...baseProps}>
       {({ isSelected }) => (
         <span className={styles.content({ class: classNames?.content })}>
@@ -128,5 +143,14 @@ export function IconButton(props: IconButtonProps) {
         </span>
       )}
     </ButtonBase>
+  );
+
+  const label = base['aria-label'];
+  if (!tooltip || inTooltipTrigger || !label || base['aria-labelledby']) return button;
+  return (
+    <TooltipTrigger>
+      {button}
+      <Tooltip>{label}</Tooltip>
+    </TooltipTrigger>
   );
 }

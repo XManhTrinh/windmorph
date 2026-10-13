@@ -71,6 +71,7 @@ export const Badges: Story = {
         <NavigationBarItem icon={<StarIcon />}>Starred</NavigationBarItem>
       </NavigationBar>
       <IconButton
+        variant="standard"
         aria-label="Messages, 12 unread"
         icon={
           <BadgedBox badge={<Badge>{12}</Badge>}>

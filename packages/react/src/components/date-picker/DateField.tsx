@@ -208,6 +208,7 @@ function DateFieldInner({
         classNames={{ input: classNames?.input }}
         trailingIcon={
           <IconButton
+            variant="standard"
             icon={calendarIcon ?? <CalendarIcon />}
             aria-label={strings.openCalendar ?? 'Open calendar'}
             aria-haspopup="dialog"
@@ -472,13 +473,16 @@ function MenuButton({
         disabled={disabled}
         onPress={onPress}
         className={styles.menuButton()}
-        trailingIcon={
-          <span data-open={open || undefined} className={styles.menuIcon()}>
-            <ArrowDropDownIcon />
-          </span>
-        }
       >
-        {children}
+        {/* The drop-down arrow trails the label here, which Button's one leading icon can't do. */}
+        <span className="inline-flex items-center gap-[8px]">
+          {children}
+          <span aria-hidden="true" className="inline-flex size-[20px] items-center justify-center">
+            <span data-open={open || undefined} className={styles.menuIcon()}>
+              <ArrowDropDownIcon />
+            </span>
+          </span>
+        </span>
       </Button>
       <Tooltip>{tooltip}</Tooltip>
     </TooltipTrigger>

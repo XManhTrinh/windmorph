@@ -159,7 +159,7 @@ export function ExpressiveBento() {
           selectionMode="single"
           selectedKeys={active ? ['going'] : []}
           aria-label="Reply"
-          className="shrink-0 max-medium:scale-80"
+          className="w-fit shrink-0 max-medium:scale-80"
         >
           <Button
             data-press="on off"
@@ -242,7 +242,7 @@ export function ExpressiveBento() {
           className="absolute start-[28%] -end-px top-12 bottom-0 w-auto rounded-ss-corner-extra-large"
           header={
             <div className="flex flex-col items-start gap-6">
-              <IconButton icon={<MenuOpenIcon />} aria-label="Collapse" />
+              <IconButton variant="standard" icon={<MenuOpenIcon />} aria-label="Collapse" />
               <ExtendedFab color="tertiary-container" elevation="flat" icon={<PersonAddIcon />}>
                 Add friend
               </ExtendedFab>

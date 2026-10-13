@@ -186,6 +186,7 @@ function SheetBody({
       <div className={styles.header({ class: classNames?.header })}>
         {onBack && (
           <IconButton
+            variant="standard"
             icon={backIcon ?? <BackIcon />}
             aria-label={labels.back}
             onPress={onBack}
@@ -200,6 +201,7 @@ function SheetBody({
         <div className={styles.headerActions({ class: classNames?.headerActions })}>
           {render(actions)}
           <IconButton
+            variant="standard"
             icon={closeIcon ?? <CloseIcon />}
             aria-label={labels.close}
             onPress={close}

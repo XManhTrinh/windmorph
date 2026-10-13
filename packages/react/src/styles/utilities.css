@@ -170,12 +170,15 @@
 /*
  * Transitions for an interactive container: corner radius (the press / selection
  * morph) plus colours, elevation, outline and flex-basis, appended to the state layer's own.
- * Corners use the effects spring, which never bounces (as Compose's Button does);
- * add `container-motion-spatial` for the bouncy fast spatial spring of toggle buttons.
+ * Corners move on the fast spatial spring, which bounces in the expressive scheme: the
+ * spec drives "rounded corners" with spatial springs and all component motion with the
+ * fast speeds (2026-10-13). A press that starts while the last morph is still running
+ * (`data-rapid-press`, set by `useM3Interaction`) uses the fast effects spring instead,
+ * the web's modified curve that keeps rapid clicks from resonating.
  */
 @utility container-motion {
-  --m3-shape-duration: var(--md-sys-motion-spring-effects-default-duration);
-  --m3-shape-easing: var(--md-sys-motion-spring-effects-default-easing);
+  --m3-shape-duration: var(--md-sys-motion-spring-spatial-fast-duration);
+  --m3-shape-easing: var(--md-sys-motion-spring-spatial-fast-easing);
   /* flex-basis animates a button group's press-to-expand on the fast spatial spring. */
   --m3-transition-property:
     border-radius, background-color, color, box-shadow, border-color, flex-basis;
@@ -191,11 +194,10 @@
     var(--md-sys-motion-spring-effects-fast-easing),
     var(--md-sys-motion-spring-effects-fast-easing), var(--md-sys-motion-spring-spatial-fast-easing);
   --m3-transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
-}
-
-@utility container-motion-spatial {
-  --m3-shape-duration: var(--md-sys-motion-spring-spatial-fast-duration);
-  --m3-shape-easing: var(--md-sys-motion-spring-spatial-fast-easing);
+  &[data-rapid-press] {
+    --m3-shape-duration: var(--md-sys-motion-spring-effects-fast-duration);
+    --m3-shape-easing: var(--md-sys-motion-spring-effects-fast-easing);
+  }
 }
 
 /* M3 focus indicator: an outline, so clipping ancestors and `overflow-hidden` never hide it. */

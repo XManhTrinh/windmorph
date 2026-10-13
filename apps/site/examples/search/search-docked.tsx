@@ -53,9 +53,14 @@ export function SearchDocked() {
         leadingIcon={<SearchIcon />}
         trailingIcon={({ expanded }) =>
           expanded && query ? (
-            <IconButton icon={<CloseIcon />} aria-label="Clear" onPress={() => setQuery('')} />
+            <IconButton
+              variant="standard"
+              icon={<CloseIcon />}
+              aria-label="Clear"
+              onPress={() => setQuery('')}
+            />
           ) : (
-            <IconButton icon={<MicIcon />} aria-label="Voice search" />
+            <IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />
           )
         }
         className="w-full"

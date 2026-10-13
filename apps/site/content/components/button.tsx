@@ -68,8 +68,8 @@ export async function ButtonBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The visible label names the button; leading and trailing icons are decorative and hidden
-            from assistive tech.
+            The visible label names the button; the leading icon is decorative and hidden from
+            assistive tech. M3 allows one icon, before the label, so there is no trailing icon.
           </li>
           <li>
             Tab moves focus to the button; Enter or Space activates it. A focus ring shows while
@@ -90,16 +90,18 @@ export async function ButtonBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Values come from what Compose&apos;s <code className="text-on-surface">Button.kt</code>{' '}
-            / <code className="text-on-surface">ToggleButton.kt</code> use, which in places
-            overrides the token files: text buttons use{' '}
-            <code className="text-on-surface">primary</code>, XS padding is 12px with a 4px icon
-            gap, and small toggle buttons press to a 6px corner.
+            Values follow the M3 Expressive specs and the token files where Compose&apos;s code
+            overrides them: XS padding is 16px with an 8px icon gap, small text buttons have the
+            same 16px padding as the other small buttons, and toggle buttons press to the same
+            corners as the others (8 / 8 / 12 / 16 / 16px). Text buttons use{' '}
+            <code className="text-on-surface">primary</code>.
           </li>
           <li>
             The press morph is a CSS <code className="text-on-surface">border-radius</code>{' '}
-            transition on the effects-default spring (which never bounces); toggle buttons use the
-            fast-spatial spring, which does bounce.
+            transition on the fast spatial spring, which bounces in the expressive scheme (Compose
+            uses a non-bouncing effects spring; the spec puts corners on spatial springs). A press
+            that starts while the last morph is still settling uses the fast effects spring instead,
+            the web&apos;s modified curve against rapid-click resonance.
           </li>
           <li>
             Selected round toggle buttons become square and selected square ones become round (the

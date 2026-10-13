@@ -59,6 +59,7 @@ export function HeroReel() {
         disallowEmptySelection
         selectedKeys={[view]}
         aria-label="Calendar view"
+        className="w-fit"
       >
         <Button data-press-view="day" toggle value="day">
           Day

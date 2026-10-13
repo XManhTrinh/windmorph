@@ -69,18 +69,20 @@ const RIPPLE_START = {
 /**
  * Starts a fresh ripple on `element`, as Compose does for every press, even while the last
  * one is still growing or fading. The ripple's animated properties are pinned to their start
- * values with transitions off and flushed to style, then released: they transition from
- * this press's start to whatever the state layer's rules say (growing if `data-rippling` is
- * on, or once it turns on).
+ * values with their transitions off and flushed to style, then released: they transition
+ * from this press's start to whatever the state layer's rules say (growing if
+ * `data-rippling` is on, or once it turns on). Only the ripple's transitions are switched
+ * off: the component's own (`--m3-transition-property`, such as a running corner morph) keep
+ * running, so a quick second press doesn't make the corners jump.
  */
 export function restartRipple(element: HTMLElement) {
   const { style } = element;
-  const transition = style.transition;
-  style.transition = 'none';
+  const transitionProperty = style.transitionProperty;
+  style.transitionProperty = 'var(--m3-transition-property, --m3-none)';
   for (const [name, value] of Object.entries(RIPPLE_START)) style.setProperty(name, value);
   getComputedStyle(element).getPropertyValue('--m3-ripple-x');
   for (const name of Object.keys(RIPPLE_START)) style.removeProperty(name);
-  style.transition = transition;
+  style.transitionProperty = transitionProperty;
 }
 
 /**
@@ -103,6 +105,29 @@ function setRippleOrigin(element: HTMLElement, clientX?: number, clientY?: numbe
     `${Math.ceil(Math.hypot(rect.width, rect.height) / 2 + 10)}px`,
   );
   restartRipple(element);
+}
+
+/**
+ * Flags a press that starts while the element's corner morph is still running
+ * (`data-rapid-press`). M3's buttons note that the web can use "a modified motion curve to
+ * avoid resonant effects from overlapping animations": the `container-motion` utility then
+ * morphs on the fast effects spring, which doesn't overshoot, instead of the fast spatial
+ * one. The attribute is set on the element directly, before React renders the press, so
+ * the morph that press starts already uses the modified curve. Call it before anything
+ * that resets the element's transitions (such as `restartRipple`).
+ */
+export function markRapidPress(element: HTMLElement) {
+  const morphing =
+    typeof element.getAnimations === 'function' &&
+    element
+      .getAnimations()
+      .some(
+        (animation) =>
+          animation instanceof CSSTransition &&
+          animation.transitionProperty.endsWith('radius') &&
+          animation.playState === 'running',
+      );
+  element.toggleAttribute('data-rapid-press', morphing);
 }
 
 /**
@@ -161,11 +186,13 @@ export function useM3Interaction(
   const rippleProps: DOMAttributes<HTMLElement> = {
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
       if (!isDisabled && event.button === 0) {
+        markRapidPress(event.currentTarget);
         setRippleOrigin(event.currentTarget, event.clientX, event.clientY);
       }
     },
     onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
       if (!isDisabled && (event.key === 'Enter' || event.key === ' ')) {
+        markRapidPress(event.currentTarget);
         setRippleOrigin(event.currentTarget);
       }
     },

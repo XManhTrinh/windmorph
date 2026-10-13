@@ -47,7 +47,7 @@ export const menuStyles = tv({
     item: [
       'group/item flex min-h-[44px] w-full cursor-pointer items-center px-[12px] text-start',
       'text-label-large outline-none select-none',
-      'state-layer focus-ring-inset container-motion container-motion-spatial',
+      'state-layer focus-ring-inset container-motion',
       'data-selected:rounded-corner-medium',
       'data-disabled:cursor-default',
     ],

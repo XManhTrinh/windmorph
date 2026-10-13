@@ -24,7 +24,7 @@ export function MenuBasic() {
   return (
     <div className="flex flex-col items-start gap-3">
       <MenuTrigger>
-        <IconButton icon={<MoreIcon />} aria-label="More actions" />
+        <IconButton variant="standard" icon={<MoreIcon />} aria-label="More actions" />
         <Menu onAction={(key) => setLast(String(key))} disabledKeys={['find']}>
           <MenuGroup title="Edit">
             <MenuItem key="new" leadingIcon={<AddIcon />} shortcut="⌘N">

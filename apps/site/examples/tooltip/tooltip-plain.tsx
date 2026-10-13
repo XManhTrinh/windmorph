@@ -19,7 +19,7 @@ export function TooltipPlain() {
     <div className="flex gap-2">
       {ITEMS.map(({ icon, label, tip }) => (
         <TooltipTrigger key={label}>
-          <IconButton icon={icon} aria-label={label} />
+          <IconButton variant="standard" icon={icon} aria-label={label} />
           <Tooltip caret>{tip}</Tooltip>
         </TooltipTrigger>
       ))}

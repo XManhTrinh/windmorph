@@ -123,10 +123,13 @@ export const searchAppBarStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
-    navigation: 'flex shrink-0 items-center ps-[8px] pe-[4px] text-on-surface',
+    // Icon buttons take each slot's content colour.
+    navigation:
+      'flex shrink-0 items-center ps-[8px] pe-[4px] text-on-surface [--md-comp-icon-button-icon-color:currentColor]',
     // Centres the search bar in the free space, 8px from its neighbours and 4px vertically.
     search: 'flex min-w-0 flex-1 justify-center ps-[8px] pe-[8px] pt-[4px] pb-[4px]',
-    actions: 'flex shrink-0 items-center gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant',
+    actions:
+      'flex shrink-0 items-center gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant [--md-comp-icon-button-icon-color:currentColor]',
   },
   variants: {
     scrolling: {

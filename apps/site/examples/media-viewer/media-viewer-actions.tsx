@@ -49,7 +49,7 @@ export function MediaViewerActions() {
         actions={
           <MenuTrigger>
             <TooltipTrigger placement="bottom">
-              <IconButton icon={<MoreVertIcon />} aria-label="Plus d’options" />
+              <IconButton variant="standard" icon={<MoreVertIcon />} aria-label="Plus d’options" />
               <Tooltip>Plus d’options</Tooltip>
             </TooltipTrigger>
             <Menu aria-label="Plus d’options" onAction={(key) => setChosen(String(key))}>

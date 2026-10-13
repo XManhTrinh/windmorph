@@ -34,7 +34,7 @@ export const Grouped: Story = {
     return (
       <div className="flex flex-col items-start gap-4">
         <MenuTrigger>
-          <IconButton icon={<MoreIcon />} aria-label="More" />
+          <IconButton variant="standard" icon={<MoreIcon />} aria-label="More" />
           <Menu variant={variant} onAction={(key) => setLast(String(key))} disabledKeys={['star']}>
             <MenuGroup title="Edit">
               <MenuItem key="add" leadingIcon={<AddIcon />} shortcut="⌘N">

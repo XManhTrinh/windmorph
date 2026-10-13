@@ -64,6 +64,7 @@ export function ThemeSwitcherDemo() {
           variant="connected"
           size="sm"
           aria-label="Colour mode"
+          className="w-fit"
           selectionMode="single"
           disallowEmptySelection
           selectedKeys={[mode]}

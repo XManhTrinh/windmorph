@@ -75,6 +75,13 @@ export async function IconButtonBody() {
             the hit area stays large enough.
           </li>
           <li>
+            On hover and keyboard focus the <code className="text-on-surface">aria-label</code>{' '}
+            shows as a plain tooltip, as M3 asks of icon buttons on the web.{' '}
+            <code className="text-on-surface">tooltip=&#123;false&#125;</code> turns it off, and it
+            steps aside inside a <code className="text-on-surface">TooltipTrigger</code> of your
+            own.
+          </li>
+          <li>
             A toggle icon button exposes <code className="text-on-surface">aria-pressed</code> and
             may swap to a <code className="text-on-surface">selectedIcon</code> when selected.
           </li>
@@ -86,8 +93,11 @@ export async function IconButtonBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Variants are{' '}
-            <code className="text-on-surface">standard | filled | tonal | outlined</code> — no
-            elevated or text, matching Compose&apos;s icon button set.
+            <code className="text-on-surface">filled | tonal | outlined | standard</code> — no
+            elevated or text. Filled is the default, as in the M3 Expressive specs (Compose&apos;s
+            plain <code className="text-on-surface">IconButton</code> is standard). Toolbars and app
+            bars make their icon buttons standard by default through{' '}
+            <code className="text-on-surface">ButtonContext</code>.
           </li>
           <li>
             <code className="text-on-surface">width</code> (narrow / default / wide) is the icon
@@ -95,9 +105,12 @@ export async function IconButtonBody() {
             <code className="text-on-surface">Uniform</code> option is the default width.
           </li>
           <li>
-            Standard and outlined icon buttons inherit the surrounding text colour (like
-            Compose&apos;s <code className="text-on-surface">LocalContentColor</code>); the outlined
-            border is drawn in that colour, and disabled is that colour at 38%.
+            Standard icons are <code className="text-on-surface">on-surface-variant</code>, and
+            outlined ones are too, inside an{' '}
+            <code className="text-on-surface">outline-variant</code> outline (the spec&apos;s colour
+            table). A container that needs its own content colour, like a vibrant toolbar, sets{' '}
+            <code className="text-on-surface">--md-comp-icon-button-icon-color</code> (to{' '}
+            <code className="text-on-surface">currentColor</code> to inherit it).
           </li>
           <li>
             Selected toggles: standard turns <code className="text-on-surface">primary</code>,
@@ -110,8 +123,9 @@ export async function IconButtonBody() {
           <li>
             Reads <code className="text-on-surface">size</code> /{' '}
             <code className="text-on-surface">shape</code> /{' '}
-            <code className="text-on-surface">disabled</code> from{' '}
-            <code className="text-on-surface">ButtonContext</code>, but not{' '}
+            <code className="text-on-surface">disabled</code> and its default{' '}
+            <code className="text-on-surface">iconButtonVariant</code> from{' '}
+            <code className="text-on-surface">ButtonContext</code>, but not the Button{' '}
             <code className="text-on-surface">variant</code>, because the variant sets differ.
           </li>
         </ul>

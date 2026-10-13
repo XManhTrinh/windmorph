@@ -14,7 +14,7 @@ import {
   type LayoutOverrideName,
 } from './layout-overrides';
 
-const VARIANTS: IconButtonVariant[] = ['standard', 'filled', 'tonal', 'outlined'];
+const VARIANTS: IconButtonVariant[] = ['filled', 'tonal', 'outlined', 'standard'];
 const SIZES: ButtonSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 const WIDTHS: IconButtonWidth[] = ['narrow', 'default', 'wide'];
 const SHAPES: ButtonShape[] = ['round', 'square'];
@@ -22,13 +22,14 @@ const SHAPES: ButtonShape[] = ['round', 'square'];
 const meta = {
   title: 'Components/IconButton',
   component: IconButton,
-  args: { icon: <SearchIcon />, 'aria-label': 'Search', variant: 'standard', size: 'sm' },
+  args: { icon: <SearchIcon />, 'aria-label': 'Search', variant: 'filled', size: 'sm' },
   argTypes: {
     variant: { control: 'inline-radio', options: VARIANTS },
     size: { control: 'inline-radio', options: SIZES },
     width: { control: 'inline-radio', options: WIDTHS },
     shape: { control: 'inline-radio', options: SHAPES },
     disabled: { control: 'boolean' },
+    tooltip: { control: 'boolean' },
     icon: { control: false },
   },
 } satisfies Meta<typeof IconButton>;
@@ -36,18 +37,19 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+/** Hover or focus it: the `aria-label` shows as a plain tooltip. */
 export const Playground: Story = {};
 
 /**
- * Every variant: enabled, as an unselected and selected toggle, and disabled. The row
- * sets `text-on-surface-variant`, which standard and outlined icon buttons inherit.
+ * Every variant: enabled, as an unselected and selected toggle, and disabled. Standard
+ * and outlined icons are `on-surface-variant`, whatever the surrounding text colour.
  */
 export const Variants: Story = {
   render: () => (
-    <div className="flex flex-col gap-4 text-on-surface-variant" data-testid="variants">
+    <div className="flex flex-col gap-4 text-on-surface" data-testid="variants">
       {VARIANTS.map((variant) => (
         <div key={variant} className="flex items-center gap-4">
-          <span className="w-24 text-label-medium">{variant}</span>
+          <span className="w-24 text-label-medium text-on-surface-variant">{variant}</span>
           <IconButton variant={variant} icon={<SearchIcon />} aria-label="Search" />
           <IconButton toggle variant={variant} icon={<StarOutlineIcon />} aria-label="Star" />
           <IconButton
@@ -61,6 +63,22 @@ export const Variants: Story = {
           <IconButton variant={variant} icon={<SearchIcon />} aria-label="Search" disabled />
         </div>
       ))}
+    </div>
+  ),
+};
+
+/**
+ * A container sets `--md-comp-icon-button-icon-color` to give its standard and outlined
+ * icon buttons another content colour; `currentColor` inherits its own.
+ */
+export const ContentColor: Story = {
+  render: () => (
+    <div
+      className="flex items-center gap-4 rounded-corner-large bg-primary-container p-4 text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]"
+      data-testid="content-color"
+    >
+      <IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />
+      <IconButton variant="outlined" icon={<StarOutlineIcon />} aria-label="Star" />
     </div>
   ),
 };

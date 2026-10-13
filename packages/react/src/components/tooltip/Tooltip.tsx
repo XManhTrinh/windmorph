@@ -573,3 +573,14 @@ function RichBody({
     </div>
   );
 }
+
+/**
+ * Whether the caller is inside a `TooltipTrigger` or `RichTooltipTrigger`, so its trigger
+ * already has a tooltip. Icon buttons, which show their label as a tooltip by default, use
+ * it to step aside for a tooltip the app wrapped them in.
+ */
+export function useInTooltipTrigger(): boolean {
+  const plain = useContext(TooltipContext);
+  const rich = useContext(RichContext);
+  return plain !== null || rich !== null;
+}

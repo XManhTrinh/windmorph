@@ -70,9 +70,9 @@ export async function ButtonGroupBody() {
             <code className="text-on-surface">aria-label</code>.
           </li>
           <li>
-            Without selection the group is a{' '}
-            <code className="text-on-surface">role=&quot;group&quot;</code>; each button is tabbable
-            and activates on Enter or Space.
+            Without selection the group is a <code className="text-on-surface">toolbar</code>: Tab
+            enters and leaves it, the arrow keys move between its buttons (mirrored in RTL), and
+            Enter or Space activates one.
           </li>
           <li>
             Single selection renders as a <code className="text-on-surface">radiogroup</code> of
@@ -90,18 +90,23 @@ export async function ButtonGroupBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Press expansion: the pressed item grows by{' '}
+            Press expansion (standard groups only): the pressed item grows by{' '}
             <code className="text-on-surface">expandedRatio</code> (0.15) of its width while its
             neighbours shrink by the same amount, so the group&apos;s width stays constant. On the
             web the group watches each child&apos;s{' '}
             <code className="text-on-surface">data-pressed</code> and animates{' '}
             <code className="text-on-surface">flex-basis</code> on the fast spatial spring;{' '}
-            <code className="text-on-surface">expandedRatio=0</code> turns it off.
+            <code className="text-on-surface">expandedRatio=0</code> turns it off. In a connected
+            group only the pressed button&apos;s shape changes.
           </li>
           <li>
-            Connected groups use a 2px gap; outer corners stay full, inner corners are small (8px)
-            and extra-small (4px) when pressed, and selected buttons become fully round. These are
-            logical corners, so they mirror in RTL.
+            Standard groups space their buttons 18 / 12 / 8 / 8 / 8px apart (XS–XL), so small
+            buttons&apos; 48px targets never overlap. Connected groups use a 2px gap and span their
+            container, the buttons sharing the extra width (add{' '}
+            <code className="text-on-surface">w-fit</code> to hug the content). Outer corners are
+            full, or the inner size in a square group; inner corners are 4 / 8 / 8 / 16 / 20px, 4px
+            when pressed; selected buttons become fully round; and XS and S connected icon buttons
+            are at least 48px wide. These are logical corners, so they mirror in RTL.
           </li>
           <li>
             Toggle buttons with a <code className="text-on-surface">value</code> join the
@@ -109,9 +114,8 @@ export async function ButtonGroupBody() {
             reports are not passed to <code className="text-on-surface">onSelectionChange</code>.
           </li>
           <li>
-            Compose only ships <em>Small</em> group tokens (gaps 12px / 2px, inner corners 8/4px);
-            those values are used at every size until per-size values are published. The Compose
-            overflow menu is deferred.
+            The overflow menu (trailing buttons collapsing into a menu at small widths) isn&apos;t
+            built yet.
           </li>
           <li>
             Children must be direct <code className="text-on-surface">Button</code> /{' '}

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button, type ButtonShape, type ButtonSize, type ButtonVariant } from '@windmorph/react';
 import { useState } from 'react';
-import { AddIcon, ArrowIcon, SendIcon, StarIcon } from './icons';
+import { AddIcon, SendIcon, StarIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -80,7 +80,7 @@ export const SizesAndShapes: Story = {
       ))}
       <div className="flex flex-wrap items-center gap-4">
         {SIZES.map((size) => (
-          <Button key={size} size={size} variant="outlined" trailingIcon={<ArrowIcon />}>
+          <Button key={size} size={size} variant="outlined">
             Next
           </Button>
         ))}

@@ -110,6 +110,7 @@ export function Snackbar({
           )}
           {onDismiss && (
             <IconButton
+              variant="standard"
               icon={<CloseIcon />}
               aria-label={dismissLabel}
               onPress={onDismiss}

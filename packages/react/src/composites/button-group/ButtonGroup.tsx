@@ -10,8 +10,10 @@ import {
   type ComponentPropsWithRef,
   type Key,
   type ReactNode,
+  type Ref,
+  type RefCallback,
 } from 'react';
-import { mergeProps, useObjectRef, useToggleButtonGroup } from 'react-aria';
+import { mergeProps, mergeRefs, useObjectRef, useToggleButtonGroup, useToolbar } from 'react-aria';
 import { useToggleGroupState } from 'react-stately';
 import type { ButtonShape, ButtonSize, ButtonVariant } from '../../components/button/button-styles';
 import {
@@ -19,21 +21,34 @@ import {
   ToggleGroupStateContext,
   type ButtonContextValue,
 } from '../../components/button/ButtonContext';
+import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { tv, type VariantProps } from '../../utils/tv';
 import { usePressExpansion } from './use-press-expansion';
 
-/** Variant definitions for {@link ButtonGroup}. */
+/**
+ * Variant definitions for {@link ButtonGroup}, from the M3 Expressive button group specs
+ * (2026-10-13). Standard groups space their buttons 18 / 12 / 8 / 8 / 8px apart (XS–XL), so
+ * the XS and S buttons' 48px targets don't overlap. Connected groups are 2px apart at every
+ * size, and span their container with the buttons sharing the extra width ("The connected
+ * button group should span the width of the page or surface it's placed on"); a consumer
+ * `w-fit` (or a `max-w-*`) narrows it.
+ */
 export const buttonGroupStyles = tv({
-  base: 'inline-flex items-center',
+  base: 'items-center',
   variants: {
     variant: {
-      // Compose ButtonGroupSmallTokens / ConnectedButtonGroupSmallTokens (one value for all sizes).
-      standard: 'gap-[12px]',
-      connected: 'gap-[2px]',
+      standard: 'inline-flex',
+      connected: 'flex w-full gap-[2px] *:grow',
     },
+    size: { xs: '', sm: '', md: '', lg: '', xl: '' },
   },
-  defaultVariants: { variant: 'standard' },
+  compoundVariants: [
+    { variant: 'standard', size: 'xs', class: 'gap-[18px]' },
+    { variant: 'standard', size: 'sm', class: 'gap-[12px]' },
+    { variant: 'standard', size: ['md', 'lg', 'xl'], class: 'gap-[8px]' },
+  ],
+  defaultVariants: { variant: 'standard', size: 'sm' },
 });
 
 export type ButtonGroupVariant = NonNullable<VariantProps<typeof buttonGroupStyles>['variant']>;
@@ -44,14 +59,18 @@ export interface ButtonGroupProps extends Omit<
   'onChange' | 'defaultValue'
 > {
   /**
-   * `standard` spaces buttons 12px apart; `connected` joins them 2px apart with shared
-   * inner corners (the M3 Expressive replacement for segmented buttons).
+   * `standard` spaces the buttons apart (18 / 12 / 8px by size) and grows a pressed button
+   * into its neighbours' space; `connected` joins them 2px apart with shared inner corners
+   * across the container's width (the M3 Expressive replacement for segmented buttons).
    * @default "standard"
    */
   variant?: ButtonGroupVariant;
-  /** Size shared by every button and icon button in the group. */
+  /** Size shared by every button and icon button in the group; it also sets the spacing. */
   size?: ButtonSize;
-  /** Shape shared by the buttons of a standard group. Connected groups set their own corners. */
+  /**
+   * Shape shared by the buttons. A `square` connected group gives its outer corners the
+   * size of its inner ones (4 / 8 / 8 / 16 / 20px).
+   */
   shape?: ButtonShape;
   /** Variant shared by every `Button` in the group (icon buttons keep their own). */
   buttonVariant?: ButtonVariant;
@@ -69,8 +88,9 @@ export interface ButtonGroupProps extends Omit<
   /** Prevents deselecting the last selected button. */
   disallowEmptySelection?: boolean;
   /**
-   * How much a pressed button grows, as a fraction of its width; its neighbours shrink
-   * by the same amount. `0` turns the interaction off. @default 0.15
+   * How much a pressed button in a standard group grows, as a fraction of its width; its
+   * neighbours shrink by the same amount. `0` turns the interaction off. Connected groups
+   * never do this: only the pressed button's shape changes. @default 0.15
    */
   expandedRatio?: number;
   children?: ReactNode;
@@ -85,11 +105,23 @@ function positionOf(index: number, count: number): Position | undefined {
   return 'middle';
 }
 
+/** The group's ref, also reporting its element to `DomDirectionLocale`. */
+function useGroupRef(ref: Ref<HTMLDivElement> | undefined, directionRef: RefCallback<HTMLElement>) {
+  // Arrow keys follow the laid-out direction, which React Aria reads from its locale.
+  const merged = useMemo(
+    () => mergeRefs<HTMLDivElement>(ref, directionRef as RefCallback<HTMLDivElement>),
+    [ref, directionRef],
+  );
+  return useObjectRef<HTMLDivElement>(merged);
+}
+
 /**
  * M3 Expressive button group. Shares size, shape, variant and disabled with its `Button`
- * and `IconButton` children, grows a pressed button while its neighbours shrink, and in
- * the `connected` variant joins the buttons with shared inner corners. With
- * `selectionMode`, toggle buttons that have a `value` form a single or multiple selection.
+ * and `IconButton` children. A standard group grows a pressed button while its neighbours
+ * shrink; a `connected` group joins the buttons with shared inner corners and only
+ * changes the pressed button's shape. Tab reaches the group and the arrow keys move
+ * between its buttons (a `toolbar`). With `selectionMode`, toggle buttons that have a
+ * `value` form a single or multiple selection.
  *
  * Children must be direct `Button` / `IconButton` elements so each gets its position.
  *
@@ -101,7 +133,15 @@ function positionOf(index: number, count: number): Position | undefined {
  *   <Button toggle value="month">Month</Button>
  * </ButtonGroup>
  */
-export function ButtonGroup({
+export function ButtonGroup(props: ButtonGroupProps) {
+  return (
+    <DomDirectionLocale>
+      {(directionRef) => <ButtonGroupRoot {...props} directionRef={directionRef} />}
+    </DomDirectionLocale>
+  );
+}
+
+function ButtonGroupRoot({
   variant = 'standard',
   size,
   shape,
@@ -116,9 +156,10 @@ export function ButtonGroup({
   className,
   children,
   ref,
+  directionRef,
   ...props
-}: ButtonGroupProps) {
-  const domRef = useObjectRef(ref);
+}: ButtonGroupProps & { directionRef: RefCallback<HTMLElement> }) {
+  const domRef = useGroupRef(ref, directionRef);
   const parent = useContext(ButtonContext);
   const hasSelection = selectionMode !== 'none';
 
@@ -144,21 +185,24 @@ export function ButtonGroup({
     state,
     domRef,
   );
+  // Without a selection the group is a React Aria toolbar: Tab enters and leaves it as one
+  // stop, and the arrow keys move between its buttons.
+  const { toolbarProps } = useToolbar({ ...props, orientation: 'horizontal' }, domRef);
 
   useLayoutEffect(() => {
     currentKeys.current = state.selectedKeys;
   });
 
-  usePressExpansion(domRef, expandedRatio);
+  usePressExpansion(domRef, variant === 'standard' ? expandedRatio : 0);
 
   const shared = useMemo<ButtonContextValue>(
     () => ({
       variant: buttonVariant ?? parent.variant,
       size: size ?? parent.size,
-      shape: variant === 'standard' ? (shape ?? parent.shape) : undefined,
+      shape: shape ?? parent.shape,
       disabled: disabled ?? parent.disabled,
     }),
-    [buttonVariant, size, shape, disabled, variant, parent],
+    [buttonVariant, size, shape, disabled, parent],
   );
 
   const items = Children.toArray(children).filter(isValidElement);
@@ -175,10 +219,10 @@ export function ButtonGroup({
 
   return (
     <div
-      {...(hasSelection ? mergeProps(props, groupProps) : { role: 'group', ...props })}
+      {...mergeProps(props, hasSelection ? groupProps : toolbarProps)}
       ref={domRef}
       data-variant={variant}
-      className={cn(buttonGroupStyles({ variant }), className)}
+      className={cn(buttonGroupStyles({ variant, size: size ?? parent.size ?? 'sm' }), className)}
     >
       {hasSelection ? (
         <ToggleGroupStateContext value={state}>{content}</ToggleGroupStateContext>

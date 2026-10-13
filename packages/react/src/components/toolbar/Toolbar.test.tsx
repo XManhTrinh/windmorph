@@ -130,7 +130,15 @@ describe('FloatingToolbar', () => {
         <IconButton toggle variant="tonal" defaultSelected icon={<Icon />} aria-label="Bold" />
       </FloatingToolbar>,
     );
-    expect(screen.getByRole('button', { name: 'Pen' })).toHaveClass('text-on-primary-container');
+    // Standard icons read the colour token, which the vibrant toolbar sets to its own
+    // on-primary-container text colour; portalled overlays don't inherit it.
+    expect(screen.getByRole('toolbar')).toHaveClass(
+      'text-on-primary-container',
+      '[--md-comp-icon-button-icon-color:currentColor]',
+    );
+    expect(screen.getByRole('button', { name: 'Pen' })).toHaveClass(
+      'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
+    );
     const bold = screen.getByRole('button', { name: 'Bold' });
     expect(bold).toHaveClass(
       'data-selected:not-data-disabled:bg-surface-container',

@@ -88,9 +88,11 @@ export function MessageFieldChat() {
             ),
           ])
         }
-        leading={<IconButton icon={MOOD} aria-label="Emoji" />}
-        trailing={<IconButton icon={ATTACH} aria-label="Attach a file" />}
-        emptyAction={<IconButton icon={MIC} aria-label="Record a voice message" />}
+        leading={<IconButton variant="standard" icon={MOOD} aria-label="Emoji" />}
+        trailing={<IconButton variant="standard" icon={ATTACH} aria-label="Attach a file" />}
+        emptyAction={
+          <IconButton variant="standard" icon={MIC} aria-label="Record a voice message" />
+        }
       />
     </div>
   );

@@ -29,6 +29,7 @@ export function BadgeBasic() {
           </span>
         </BadgedBox>
         <IconButton
+          variant="standard"
           aria-label="Messages, 12 unread"
           icon={
             <BadgedBox badge={<Badge>{12}</Badge>}>

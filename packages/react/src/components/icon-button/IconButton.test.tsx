@@ -1,19 +1,20 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ButtonContext } from '../button/ButtonContext';
+import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { IconButton } from './IconButton';
 
 const Star = () => <svg data-testid="star" viewBox="0 0 24 24" />;
 const StarFilled = () => <svg data-testid="star-filled" viewBox="0 0 24 24" />;
 
 describe('IconButton', () => {
-  it('renders a standard, small, round icon button that inherits the text colour', () => {
+  it('renders a filled, small, round icon button by default (M3 Expressive)', () => {
     render(<IconButton icon={<Star />} aria-label="Favourite" />);
     const button = screen.getByRole('button', { name: 'Favourite' });
-    expect(button).toHaveClass('bg-transparent', 'text-inherit', 'h-[40px]', 'w-[40px]');
+    expect(button).toHaveClass('bg-primary', 'text-on-primary', 'h-[40px]', 'w-[40px]');
     expect(button).toHaveClass('rounded-[min(var(--md-sys-shape-corner-full),20px)]');
     expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
     expect(screen.getByTestId('star').parentElement).toHaveAttribute('aria-hidden', 'true');
@@ -34,7 +35,22 @@ describe('IconButton', () => {
   it.each([
     ['filled', ['bg-primary', 'text-on-primary', 'data-disabled:text-on-surface/38']],
     ['tonal', ['bg-secondary-container', 'text-on-secondary-container']],
-    ['outlined', ['border-current', 'text-inherit', 'data-disabled:text-current/38']],
+    [
+      'outlined',
+      [
+        'border-outline-variant',
+        'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
+        'data-disabled:text-on-surface/38',
+      ],
+    ],
+    [
+      'standard',
+      [
+        'bg-transparent',
+        'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
+        'data-disabled:text-on-surface/38',
+      ],
+    ],
   ] as const)('styles the %s variant', (variant, classes) => {
     render(<IconButton variant={variant} icon={<Star />} aria-label="Fav" />);
     expect(screen.getByRole('button')).toHaveClass(...classes);
@@ -46,7 +62,7 @@ describe('IconButton', () => {
     ['md', 'default', 'h-[56px]', 'w-[56px]', 'size-[24px]'],
     ['lg', 'default', 'h-[96px]', 'w-[96px]', 'size-[32px]'],
     ['xl', 'wide', 'h-[136px]', 'w-[184px]', 'size-[40px]'],
-  ] as const)('sizes %s / %s to the Compose measurements', (size, width, h, w, iconSize) => {
+  ] as const)('sizes %s / %s to the token measurements', (size, width, h, w, iconSize) => {
     render(<IconButton size={size} width={width} icon={<Star />} aria-label="Fav" />);
     const button = screen.getByRole('button');
     expect(button).toHaveClass(h, w);
@@ -81,8 +97,19 @@ describe('IconButton', () => {
     expect(element).toBe(button);
     expect(button).toHaveClass('fixed', 'w-full', 'text-error');
     expect(button).not.toHaveClass('w-[40px]');
-    expect(button).not.toHaveClass('text-inherit');
+    expect(button).not.toHaveClass('text-on-primary');
     expect(button).toHaveStyle({ top: '8px' });
+  });
+
+  it('lets a consumer colour replace the standard icon colour', () => {
+    render(
+      <IconButton variant="standard" className="text-error" icon={<Star />} aria-label="Fav" />,
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('text-error');
+    expect(button).not.toHaveClass(
+      'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
+    );
   });
 
   it('takes size, shape and disabled from ButtonContext but not the Button variant', () => {
@@ -92,8 +119,48 @@ describe('IconButton', () => {
       </ButtonContext>,
     );
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('h-[96px]', 'rounded-corner-extra-large', 'bg-transparent');
+    expect(button).toHaveClass('h-[96px]', 'rounded-corner-extra-large', 'bg-primary');
     expect(button).toBeDisabled();
+  });
+
+  it('takes its default variant from ButtonContext, and its own variant wins', () => {
+    render(
+      <ButtonContext value={{ iconButtonVariant: 'standard' }}>
+        <IconButton icon={<Star />} aria-label="Search" />
+        <IconButton variant="tonal" icon={<Star />} aria-label="Share" />
+      </ButtonContext>,
+    );
+    expect(screen.getByRole('button', { name: 'Search' })).toHaveClass('bg-transparent');
+    expect(screen.getByRole('button', { name: 'Share' })).toHaveClass('bg-secondary-container');
+  });
+
+  it('shows its label as a tooltip on hover', async () => {
+    const user = userEvent.setup();
+    render(<IconButton icon={<Star />} aria-label="Favourite" />);
+    await user.hover(screen.getByRole('button'));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Favourite');
+  });
+
+  it('skips its tooltip when turned off, labelled elsewhere or already in a TooltipTrigger', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <IconButton tooltip={false} icon={<Star />} aria-label="Off" />
+        <span id="name">Named</span>
+        <IconButton icon={<Star />} aria-labelledby="name" />
+        <TooltipTrigger>
+          <IconButton icon={<Star />} aria-label="Wrapped" />
+          <Tooltip>Add to favourites</Tooltip>
+        </TooltipTrigger>
+      </>,
+    );
+    await user.hover(screen.getByRole('button', { name: 'Off' }));
+    await user.hover(screen.getByRole('button', { name: 'Named' }));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    await user.hover(screen.getByRole('button', { name: 'Wrapped' }));
+    const tooltips = await screen.findAllByRole('tooltip');
+    expect(tooltips).toHaveLength(1);
+    expect(within(tooltips[0]!).getByText('Add to favourites')).toBeInTheDocument();
   });
 
   it('renders a link that navigates through the RouterProvider', async () => {
@@ -154,7 +221,7 @@ describe('IconButton toggle', () => {
     expect(onSelectedChange).toHaveBeenCalledWith(true);
   });
 
-  it('swaps shape on selection with the non-bouncing effects spring', () => {
+  it('swaps shape on selection, morphing with the container motion', () => {
     render(
       <>
         <IconButton toggle defaultSelected size="md" icon={<Star />} aria-label="Round" />
@@ -173,14 +240,15 @@ describe('IconButton toggle', () => {
       'data-selected:not-data-pressed:not-data-disabled:rounded-corner-large',
     );
     expect(round).toHaveClass('container-motion');
-    expect(round).not.toHaveClass('container-motion-spatial');
     expect(screen.getByRole('button', { name: 'Square' })).toHaveClass(
       'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
     );
   });
 
   it('uses primary for a selected standard toggle', () => {
-    render(<IconButton toggle defaultSelected icon={<Star />} aria-label="Fav" />);
+    render(
+      <IconButton toggle variant="standard" defaultSelected icon={<Star />} aria-label="Fav" />,
+    );
     expect(screen.getByRole('button')).toHaveClass('data-selected:not-data-disabled:text-primary');
   });
 });
