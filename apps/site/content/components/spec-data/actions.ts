@@ -215,6 +215,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['button-group/button-group-standard'],
       },
+      {
+        name: 'Overflow menu at smaller widths',
+        kind: 'use case',
+        examples: ['button-group/button-group-overflow'],
+      },
     ],
     extensions: [
       {
@@ -223,13 +228,7 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: 'Shared button variant',
-        note: '`buttonVariant` sets the variant of every `Button` in the group through context; a button’s own `variant` wins.',
-      },
-    ],
-    notBuilt: [
-      {
-        item: 'Overflow menu',
-        note: "Compose's overflow menu, which folds the trailing buttons into a menu when there's no room, isn't built yet.",
+        note: '`buttonVariant` sets the variant of every `Button` in the group through context, and of its `IconButton`s for the styles they have (filled, tonal, outlined); a button’s own `variant` wins.',
       },
     ],
     compose: [
@@ -238,6 +237,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         component: 'ButtonGroup variant="standard"',
         params: [
           { compose: 'expandedRatio', windmorph: 'expandedRatio' },
+          {
+            compose: 'overflowIndicator = { ButtonGroupDefaults.OverflowIndicator(it) }',
+            windmorph: 'overflow, labels.more',
+            note: 'The menu items come from the folded buttons; there is no per-item menu content.',
+          },
           {
             compose: 'Modifier.animateWidth(interactionSource)',
             windmorph: '(automatic)',

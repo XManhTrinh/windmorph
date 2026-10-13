@@ -75,12 +75,13 @@ const SUMMARY_ITEMS_CODE = `[\n    ${SUMMARY_ITEMS.map(({ id, icon }) => `{ id: 
 export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   button: {
     component: 'Button',
-    render: ({ leadingIcon, toggle, selected, ...props }, update) =>
+    render: ({ leadingIcon, selectedLeadingIcon, toggle, selected, ...props }, update) =>
       createElement(
         ButtonAny,
         {
           ...props,
           ...(leadingIcon === true && { leadingIcon: <EditIcon /> }),
+          ...(selectedLeadingIcon === true && { selectedLeadingIcon: <StarIcon /> }),
           // The selected state belongs to the toggle form only.
           ...(toggle === true && {
             toggle: true,
@@ -99,6 +100,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       dragged: false,
       toggle: false,
       selected: false,
+      selectedLeadingIcon: false,
     },
     surfacedProps: [
       'variant',
@@ -107,6 +109,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'leadingIcon',
       'toggle',
       'selected',
+      'selectedLeadingIcon',
       'disabled',
       'dragged',
       'href',
@@ -115,8 +118,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     // Text buttons have no toggle form, and a toggle is never a link (the types say so).
     adjust: (values, changed) =>
       adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
-    controlKinds: { leadingIcon: 'boolean' },
-    toggledSlots: { leadingIcon: EDIT },
+    controlKinds: { leadingIcon: 'boolean', selectedLeadingIcon: 'boolean' },
+    toggledSlots: { leadingIcon: EDIT, selectedLeadingIcon: STAR },
     notControlled: NO_VISIBLE_EFFECT,
     codeChildren: 'Label',
   },
@@ -172,7 +175,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     render: (props) => {
       // Selection needs toggle buttons with a value; a mode change starts afresh.
       const selectable = props.selectionMode !== 'none';
-      return createElement(
+      const group = createElement(
         ButtonGroupAny,
         { ...props, key: String(props.selectionMode), 'aria-label': 'Text style' },
         ...['One', 'Two', 'Three'].map((label) =>
@@ -183,6 +186,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
           ),
         ),
       );
+      // A narrow box, so `overflow` has something to fold.
+      return props.overflow === true ? <div className="w-[180px]">{group}</div> : group;
     },
     defaultProps: {
       variant: 'standard',
@@ -191,6 +196,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       buttonVariant: 'filled',
       selectionMode: 'none',
       disallowEmptySelection: false,
+      overflow: false,
       disabled: false,
     },
     surfacedProps: [
@@ -201,6 +207,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'selectionMode',
       'disallowEmptySelection',
       'expandedRatio',
+      'overflow',
       'disabled',
     ],
     initialState: { variant: 'standard', size: 'sm' },

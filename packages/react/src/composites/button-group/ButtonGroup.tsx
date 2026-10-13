@@ -4,27 +4,45 @@ import {
   Children,
   isValidElement,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
   type ComponentPropsWithRef,
   type Key,
+  type ReactElement,
   type ReactNode,
   type Ref,
   type RefCallback,
+  type RefObject,
 } from 'react';
 import { mergeProps, mergeRefs, useObjectRef, useToggleButtonGroup, useToolbar } from 'react-aria';
 import { useToggleGroupState } from 'react-stately';
+import { Button } from '../../components/button/Button';
 import type { ButtonShape, ButtonSize, ButtonVariant } from '../../components/button/button-styles';
 import {
   ButtonContext,
   ToggleGroupStateContext,
   type ButtonContextValue,
 } from '../../components/button/ButtonContext';
+import { IconButton } from '../../components/icon-button/IconButton';
+import type { IconButtonVariant } from '../../components/icon-button/icon-button-styles';
+import { Menu, MenuItem, MenuTrigger } from '../../components/menu/Menu';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { tv, type VariantProps } from '../../utils/tv';
+import { useOverflow } from './use-overflow';
 import { usePressExpansion } from './use-press-expansion';
+
+/** Material Symbols `more_vert` (Apache-2.0), the overflow indicator's icon. */
+function MoreVertIcon() {
+  return (
+    <svg viewBox="0 -960 960 960" fill="currentColor">
+      <path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z" />
+    </svg>
+  );
+}
 
 /**
  * Variant definitions for {@link ButtonGroup}, from the M3 Expressive button group specs
@@ -32,27 +50,46 @@ import { usePressExpansion } from './use-press-expansion';
  * the XS and S buttons' 48px targets don't overlap. Connected groups are 2px apart at every
  * size, and span their container with the buttons sharing the extra width ("The connected
  * button group should span the width of the page or surface it's placed on"); a consumer
- * `w-fit` (or a `max-w-*`) narrows it.
+ * `w-fit` (or a `max-w-*`) narrows it. Connected buttons share the width equally (2026-10-13,
+ * as Compose's connected sample gives each `weight(1f)`); `*:basis-auto` on the group sizes
+ * them by their content instead.
+ *
+ * With `overflow`, a standard group fills its container's width too, so it can measure the
+ * room it has; its buttons stay at the start. Buttons folded into the overflow menu carry
+ * `data-overflow-hidden`; while measuring, the group takes its content's width and no
+ * button grows.
  */
 export const buttonGroupStyles = tv({
   base: 'items-center',
   variants: {
     variant: {
       standard: 'inline-flex',
-      connected: 'flex w-full gap-[2px] *:grow',
+      connected: 'flex w-full gap-[2px] *:grow *:basis-0',
     },
     size: { xs: '', sm: '', md: '', lg: '', xl: '' },
+    overflow: {
+      true: 'flex w-full min-w-0 *:data-overflow-hidden:hidden data-measuring:w-max data-measuring:*:grow-0',
+      false: '',
+    },
   },
   compoundVariants: [
     { variant: 'standard', size: 'xs', class: 'gap-[18px]' },
     { variant: 'standard', size: 'sm', class: 'gap-[12px]' },
     { variant: 'standard', size: ['md', 'lg', 'xl'], class: 'gap-[8px]' },
   ],
-  defaultVariants: { variant: 'standard', size: 'sm' },
+  defaultVariants: { variant: 'standard', size: 'sm', overflow: false },
 });
 
 export type ButtonGroupVariant = NonNullable<VariantProps<typeof buttonGroupStyles>['variant']>;
 export type ButtonGroupSelectionMode = 'none' | 'single' | 'multiple';
+
+/** Text the group adds for assistive tech and its tooltip; translate it for your locale. */
+export interface ButtonGroupLabels {
+  /** The overflow indicator's name and tooltip. @default "More options" */
+  more: string;
+}
+
+const DEFAULT_LABELS: ButtonGroupLabels = { more: 'More options' };
 
 export interface ButtonGroupProps extends Omit<
   ComponentPropsWithRef<'div'>,
@@ -73,7 +110,11 @@ export interface ButtonGroupProps extends Omit<
    * size of its inner ones (4 / 8 / 8 / 16 / 20px).
    */
   shape?: ButtonShape;
-  /** Variant shared by every `Button` in the group (icon buttons keep their own). */
+  /**
+   * Variant shared by every `Button` in the group. `filled`, `tonal` and `outlined` reach
+   * the `IconButton`s too, so a group never mixes colour styles; a button's own `variant`
+   * wins.
+   */
   buttonVariant?: ButtonVariant;
   disabled?: boolean;
   /**
@@ -93,10 +134,49 @@ export interface ButtonGroupProps extends Omit<
    * same amount and the group keeps its width. `0` turns it off. Standard groups default to
    * 0.15. Connected groups default to 0 (the spec: they "don't affect adjacent buttons", as
    * in Compose's connected sample); set a ratio to opt in, as Compose can by combining a
-   * button group's `animateWidth` with the connected shapes. @default 0.15 standard, 0 connected
+   * button group's `animateWidth` with the connected shapes. Under reduced motion there's
+   * no bump. @default 0.15 standard, 0 connected
    */
   expandedRatio?: number;
+  /**
+   * Folds the trailing buttons that don't fit into a menu behind a trailing "More options"
+   * icon button (M3: "Buttons at the trailing edge of the button group can be customized to
+   * collapse into an overflow menu at smaller breakpoints"). The group then fills its
+   * container's width and re-measures as it resizes. Each folded button becomes a menu
+   * item with its label (an icon button's `aria-label`) and icon; disabled buttons stay
+   * disabled, and toggles show their selection. Choosing an item presses the button.
+   * @default false
+   */
+  overflow?: boolean;
+  /**
+   * Text for assistive tech, e.g. the overflow indicator's name.
+   * @default { more: "More options" }
+   */
+  labels?: Partial<ButtonGroupLabels>;
   children?: ReactNode;
+}
+
+/** The props the group reads from its children for the overflow menu and warnings. */
+interface ChildProps {
+  variant?: string;
+  toggle?: boolean;
+  value?: string;
+  disabled?: boolean;
+  children?: ReactNode;
+  leadingIcon?: ReactElement;
+  selectedLeadingIcon?: ReactElement;
+  icon?: ReactElement;
+  selectedIcon?: ReactElement;
+  'aria-label'?: string;
+}
+
+const ICON_BUTTON_VARIANTS: readonly string[] = ['filled', 'tonal', 'outlined'];
+
+/** The icon button variant a group's `buttonVariant` implies, if it exists for icon buttons. */
+function iconVariantOf(variant: ButtonVariant | undefined): IconButtonVariant | undefined {
+  return variant && ICON_BUTTON_VARIANTS.includes(variant)
+    ? (variant as IconButtonVariant)
+    : undefined;
 }
 
 type Position = NonNullable<ButtonContextValue['connected']>;
@@ -156,6 +236,8 @@ function ButtonGroupRoot({
   onSelectionChange,
   disallowEmptySelection,
   expandedRatio,
+  overflow = false,
+  labels,
   className,
   children,
   ref,
@@ -198,34 +280,58 @@ function ButtonGroupRoot({
 
   usePressExpansion(domRef, expandedRatio ?? (variant === 'standard' ? 0.15 : 0));
 
+  const iconButtonVariant = iconVariantOf(buttonVariant);
   const shared = useMemo<ButtonContextValue>(
     () => ({
       variant: buttonVariant ?? parent.variant,
       size: size ?? parent.size,
       shape: shape ?? parent.shape,
       disabled: disabled ?? parent.disabled,
+      iconButtonVariant: iconButtonVariant ?? parent.iconButtonVariant,
     }),
-    [buttonVariant, size, shape, disabled, parent],
+    [buttonVariant, iconButtonVariant, size, shape, disabled, parent],
   );
 
-  const items = Children.toArray(children).filter(isValidElement);
+  const items = Children.toArray(children).filter(isValidElement) as ReactElement<ChildProps>[];
+  const visible = useOverflow(domRef, overflow, items.length);
+  const overflowing = overflow && visible < items.length;
+
+  useGroupWarnings(variant, items, buttonVariant, iconButtonVariant);
+
+  // Connected corners follow the buttons that show, the overflow indicator last.
+  const shown = overflowing ? visible + 1 : items.length;
+  const contextFor = (index: number): ButtonContextValue =>
+    variant === 'connected' ? { ...shared, connected: positionOf(index, shown) } : shared;
   const content = items.map((child, index) => (
-    <ButtonContext
-      key={child.key ?? index}
-      value={
-        variant === 'connected' ? { ...shared, connected: positionOf(index, items.length) } : shared
-      }
-    >
+    <ButtonContext key={child.key ?? index} value={contextFor(Math.min(index, shown - 1))}>
       {child}
     </ButtonContext>
   ));
+  if (overflow) {
+    content.push(
+      <ButtonContext key="overflow" value={contextFor(shown - 1)}>
+        <OverflowMenu
+          groupRef={domRef}
+          hidden={items.slice(visible)}
+          offset={visible}
+          label={labels?.more ?? DEFAULT_LABELS.more}
+          selectionMode={selectionMode}
+          selectedKeys={state.selectedKeys}
+          disabled={Boolean(disabled ?? parent.disabled)}
+        />
+      </ButtonContext>,
+    );
+  }
 
   return (
     <div
       {...mergeProps(props, hasSelection ? groupProps : toolbarProps)}
       ref={domRef}
       data-variant={variant}
-      className={cn(buttonGroupStyles({ variant, size: size ?? parent.size ?? 'sm' }), className)}
+      className={cn(
+        buttonGroupStyles({ variant, size: size ?? parent.size ?? 'sm', overflow }),
+        className,
+      )}
     >
       {hasSelection ? (
         <ToggleGroupStateContext value={state}>{content}</ToggleGroupStateContext>
@@ -234,4 +340,142 @@ function ButtonGroupRoot({
       )}
     </div>
   );
+}
+
+/**
+ * Development warnings, once per group, for what the M3 button group guidelines advise
+ * against: standard icon buttons and text buttons in a group ("they have no container
+ * treatment"), and a connected group with nothing to select ("Avoid using a connected
+ * group when none of the buttons can be toggled"). Only the variants the group or the
+ * buttons set count: a toolbar's standard default doesn't.
+ */
+function useGroupWarnings(
+  variant: ButtonGroupVariant,
+  items: ReactElement<ChildProps>[],
+  buttonVariant: ButtonVariant | undefined,
+  iconButtonVariant: IconButtonVariant | undefined,
+) {
+  const containerless = items.some((child) =>
+    child.type === IconButton
+      ? (child.props.variant ?? iconButtonVariant) === 'standard'
+      : child.type === Button && (child.props.variant ?? buttonVariant) === 'text',
+  );
+  const nothingToSelect =
+    variant === 'connected' && items.length > 0 && !items.some((child) => child.props.toggle);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !containerless) return;
+    console.warn(
+      '[@windmorph/react] Avoid standard icon buttons and text buttons in a ButtonGroup (M3): they have no container, so the group has nothing to shape.',
+    );
+  }, [containerless]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !nothingToSelect) return;
+    console.warn(
+      '[@windmorph/react] A connected ButtonGroup is for selection (M3): use toggle buttons in it, or a standard group for actions.',
+    );
+  }, [nothingToSelect]);
+}
+
+interface OverflowMenuProps {
+  groupRef: RefObject<HTMLDivElement | null>;
+  /** The folded buttons, in order. */
+  hidden: ReactElement<ChildProps>[];
+  /** The index of the first folded button among the group's children. */
+  offset: number;
+  label: string;
+  selectionMode: ButtonGroupSelectionMode;
+  selectedKeys: ReadonlySet<Key>;
+  disabled: boolean;
+}
+
+/**
+ * The overflow indicator (Compose `ButtonGroupDefaults.OverflowIndicator`: a filled icon
+ * button with `more_vert` and a "More options" tooltip, here the group's icon button
+ * variant) and its menu. Choosing an item clicks the folded button itself, so its own
+ * press handler, link, toggle or group selection runs as if it had been pressed.
+ */
+function OverflowMenu({
+  groupRef,
+  hidden,
+  offset,
+  label,
+  selectionMode,
+  selectedKeys,
+  disabled,
+}: OverflowMenuProps) {
+  // Folded standalone toggles keep their state inside them: read it when the menu opens
+  // and after each choice.
+  const [pressed, setPressed] = useState<ReadonlySet<string>>(new Set());
+  const elementAt = (key: string) =>
+    groupRef.current?.children[Number(key)] as HTMLElement | undefined;
+  const keyOf = (index: number) => String(offset + index);
+  const readPressed = () =>
+    setPressed(
+      new Set(
+        hidden
+          .map((_, index) => keyOf(index))
+          .filter((key) => elementAt(key)?.getAttribute('aria-pressed') === 'true'),
+      ),
+    );
+
+  const grouped = selectionMode !== 'none';
+  const hasToggles = hidden.some((child) => child.props.toggle);
+  const menuSelectionMode = grouped ? selectionMode : hasToggles ? 'multiple' : 'none';
+  const selected = hidden
+    .map((child, index) => ({ child, key: keyOf(index) }))
+    .filter(({ child, key }) =>
+      grouped
+        ? child.props.value !== undefined && selectedKeys.has(child.props.value)
+        : pressed.has(key),
+    )
+    .map(({ key }) => key);
+  const disabledKeys = hidden
+    .map((child, index) => ({ child, key: keyOf(index) }))
+    .filter(({ child }) => disabled || child.props.disabled)
+    .map(({ key }) => key);
+
+  return (
+    <MenuTrigger onOpenChange={(open) => open && readPressed()}>
+      <IconButton icon={<MoreVertIcon />} aria-label={label} />
+      <Menu
+        selectionMode={menuSelectionMode}
+        selectedKeys={selected}
+        disabledKeys={disabledKeys}
+        placement="bottom end"
+        onAction={(key) => {
+          elementAt(String(key))?.click();
+          // The button updates once this event is handled.
+          setTimeout(readPressed);
+        }}
+      >
+        {hidden.map((child, index) => {
+          const { label: itemLabel, icon } = describe(child, selected.includes(keyOf(index)));
+          return (
+            <MenuItem
+              key={keyOf(index)}
+              leadingIcon={icon}
+              textValue={typeof itemLabel === 'string' ? itemLabel : undefined}
+            >
+              {itemLabel}
+            </MenuItem>
+          );
+        })}
+      </Menu>
+    </MenuTrigger>
+  );
+}
+
+/** A folded button's menu label and icon. */
+function describe(child: ReactElement<ChildProps>, isSelected: boolean) {
+  const { props } = child;
+  if (child.type === IconButton) {
+    return {
+      label: props['aria-label'],
+      icon: (isSelected && props.selectedIcon) || props.icon,
+    };
+  }
+  return {
+    label: props.children,
+    icon: (isSelected && props.selectedLeadingIcon) || props.leadingIcon,
+  };
 }

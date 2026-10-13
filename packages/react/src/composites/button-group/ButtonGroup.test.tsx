@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Button } from '../../components/button/Button';
 import { IconButton } from '../../components/icon-button/IconButton';
+import { ButtonContext, standardIconButtons } from '../../components/button/ButtonContext';
+import { setMediaQueries } from '../../../test/setup';
 import { ButtonGroup } from './ButtonGroup';
+import { fitCount } from './use-overflow';
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 
@@ -35,8 +38,81 @@ describe('ButtonGroup', () => {
     );
     // A child's own prop wins.
     expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('h-[32px]');
-    // Icon buttons share the size but keep their own variant (filled by default).
-    expect(screen.getByRole('button', { name: 'More' })).toHaveClass('h-[56px]', 'bg-primary');
+    // Icon buttons share the size and the variant, so the group never mixes styles.
+    expect(screen.getByRole('button', { name: 'More' })).toHaveClass(
+      'h-[56px]',
+      'bg-secondary-container',
+    );
+  });
+
+  it('passes buttonVariant to icon buttons only where they have it, and their own variant wins', () => {
+    render(
+      <>
+        <ButtonGroup aria-label="Outlined" buttonVariant="outlined">
+          <IconButton icon={<Icon />} aria-label="Shared" />
+          <IconButton variant="filled" icon={<Icon />} aria-label="Own" />
+        </ButtonGroup>
+        <ButtonGroup aria-label="Elevated" buttonVariant="elevated">
+          <Button>Copy</Button>
+          <IconButton icon={<Icon />} aria-label="Default" />
+        </ButtonGroup>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Shared' })).toHaveClass('border-outline-variant');
+    expect(screen.getByRole('button', { name: 'Own' })).toHaveClass('bg-primary');
+    // Icon buttons have no elevated style: they keep the filled default.
+    expect(screen.getByRole('button', { name: 'Default' })).toHaveClass('bg-primary');
+  });
+
+  it('warns once about standard icon buttons, text buttons and connected groups without toggles', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender } = render(
+      <ButtonGroup aria-label="Actions">
+        <IconButton variant="standard" icon={<Icon />} aria-label="Search" />
+      </ButtonGroup>,
+    );
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenLastCalledWith(expect.stringContaining('standard icon buttons'));
+    rerender(
+      <ButtonGroup aria-label="Actions">
+        <IconButton variant="standard" icon={<Icon />} aria-label="Search" />
+        <Button>Copy</Button>
+      </ButtonGroup>,
+    );
+    expect(warn).toHaveBeenCalledTimes(1);
+
+    warn.mockClear();
+    render(
+      <ButtonGroup aria-label="Text" buttonVariant="text">
+        <Button>Copy</Button>
+      </ButtonGroup>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('text buttons'));
+
+    warn.mockClear();
+    render(
+      <ButtonGroup variant="connected" aria-label="View">
+        <Button>Day</Button>
+        <Button>Week</Button>
+      </ButtonGroup>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('toggle buttons'));
+
+    // A toolbar's standard default and connected toggles don't warn.
+    warn.mockClear();
+    render(
+      <ButtonContext value={standardIconButtons}>
+        <ButtonGroup aria-label="Format">
+          <IconButton icon={<Icon />} aria-label="Bold" />
+        </ButtonGroup>
+        <ButtonGroup variant="connected" aria-label="Align">
+          <Button toggle>Left</Button>
+          <Button toggle>Right</Button>
+        </ButtonGroup>
+      </ButtonContext>,
+    );
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it.each([
@@ -131,6 +207,24 @@ describe('ButtonGroup', () => {
     expect(screen.getByRole('button', { name: 'Right' })).toHaveClass(`rounded-s-${inner}`);
   });
 
+  it('presses XS connected inner corners to 2px, below their 4px rest corners', () => {
+    render(
+      <ButtonGroup variant="connected" size="xs" aria-label="View">
+        <Button toggle>Day</Button>
+        <Button toggle>Week</Button>
+        <Button toggle>Month</Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('button', { name: 'Day' })).toHaveClass(
+      'rounded-e-corner-extra-small',
+      'data-pressed:rounded-e-[2px]',
+    );
+    expect(screen.getByRole('button', { name: 'Week' })).toHaveClass('data-pressed:rounded-[2px]');
+    expect(screen.getByRole('button', { name: 'Month' })).toHaveClass(
+      'data-pressed:rounded-s-[2px]',
+    );
+  });
+
   it('gives a square connected group outer corners the size of its inner ones', () => {
     render(
       <ButtonGroup variant="connected" shape="square" size="lg" aria-label="Align">
@@ -151,7 +245,8 @@ describe('ButtonGroup', () => {
         <Button>Week</Button>
       </ButtonGroup>,
     );
-    expect(screen.getByRole('toolbar')).toHaveClass('flex', 'w-full', '*:grow');
+    // Equal shares of the width (Compose's weight(1f)); `*:basis-auto` sizes them by content.
+    expect(screen.getByRole('toolbar')).toHaveClass('flex', 'w-full', '*:grow', '*:basis-0');
     rerender(
       <ButtonGroup variant="connected" aria-label="View" className="w-fit">
         <Button>Day</Button>
@@ -401,6 +496,18 @@ describe('ButtonGroup press expansion', () => {
     await user.pointer({ keys: '[/MouseLeft]', target: buttons[0]! });
   });
 
+  it('stays still under reduced motion', async () => {
+    setMediaQueries({ '(prefers-reduced-motion: reduce)': true });
+    const user = userEvent.setup();
+    render(<Three />);
+    const buttons = screen.getAllByRole('button');
+    stubWidths(buttons, 100, 60);
+    await user.pointer({ keys: '[MouseLeft>]', target: buttons[1]! });
+    expect(buttons[1]).toHaveAttribute('data-pressed');
+    for (const button of buttons) expect(button.style.flexBasis).toBe('');
+    await user.pointer({ keys: '[/MouseLeft]', target: buttons[1]! });
+  });
+
   it('can be turned off', async () => {
     const user = userEvent.setup();
     render(
@@ -413,5 +520,119 @@ describe('ButtonGroup press expansion', () => {
     await user.pointer({ keys: '[MouseLeft>]', target: one });
     expect(one.style.flexBasis).toBe('');
     await user.pointer({ keys: '[/MouseLeft]', target: one });
+  });
+});
+
+describe('ButtonGroup overflow', () => {
+  it('fits as many buttons as there is room for, leaving room for the indicator', () => {
+    expect(fitCount([80, 80, 80], 8, 40, 300)).toBe(3);
+    expect(fitCount([80, 80, 80], 8, 40, 255)).toBe(2);
+    expect(fitCount([80, 80, 80], 8, 40, 100)).toBe(0);
+  });
+
+  /** jsdom has no layout: a 200px group, 80px buttons and a 40px indicator, no gap. */
+  function stubLayout() {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const label = this.getAttribute('aria-label');
+        return { width: label === 'More options' ? 40 : 80 } as DOMRect;
+      });
+    return () => {
+      width.mockRestore();
+      rect.mockRestore();
+    };
+  }
+
+  it('folds the trailing buttons into a menu that presses them', async () => {
+    const restore = stubLayout();
+    const user = userEvent.setup();
+    const onArchive = vi.fn();
+    render(
+      <ButtonGroup aria-label="Actions" overflow>
+        <Button>Reply</Button>
+        <Button>Forward</Button>
+        <Button leadingIcon={<Icon />} onPress={onArchive}>
+          Archive
+        </Button>
+        <Button disabled>Delete</Button>
+      </ButtonGroup>,
+    );
+    const group = screen.getByRole('toolbar');
+    expect(group).toHaveClass('w-full', 'min-w-0');
+    // 80 + 80 + 40 fits 200px; Archive and Delete are folded.
+    expect(screen.getByRole('button', { name: 'Archive', hidden: true })).toHaveAttribute(
+      'data-overflow-hidden',
+    );
+    expect(screen.getByRole('button', { name: 'Forward' })).not.toHaveAttribute(
+      'data-overflow-hidden',
+    );
+    const more = screen.getByRole('button', { name: 'More options' });
+    expect(more).not.toHaveAttribute('data-overflow-hidden');
+
+    await user.click(more);
+    const items = screen.getAllByRole('menuitem');
+    expect(items.map((item) => item.textContent)).toEqual(['Archive', 'Delete']);
+    expect(items[1]).toHaveAttribute('aria-disabled', 'true');
+    await user.click(items[0]!);
+    expect(onArchive).toHaveBeenCalledTimes(1);
+    restore();
+  });
+
+  it('shows every button and no indicator when they fit, with its own label', () => {
+    const restore = stubLayout();
+    render(
+      <ButtonGroup aria-label="Actions" overflow labels={{ more: 'More actions' }}>
+        <Button>Reply</Button>
+        <Button>Forward</Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('button', { name: 'Forward' })).not.toHaveAttribute(
+      'data-overflow-hidden',
+    );
+    expect(screen.getByRole('button', { name: 'More actions', hidden: true })).toHaveAttribute(
+      'data-overflow-hidden',
+    );
+    restore();
+  });
+
+  it('reflects a selection group in the menu, gives the indicator the trailing corners', async () => {
+    const restore = stubLayout();
+    const user = userEvent.setup();
+    const onSelectionChange = vi.fn();
+    render(
+      <ButtonGroup
+        variant="connected"
+        aria-label="View"
+        overflow
+        selectionMode="single"
+        defaultSelectedKeys={['month']}
+        onSelectionChange={onSelectionChange}
+      >
+        <Button toggle value="day">
+          Day
+        </Button>
+        <Button toggle value="week">
+          Week
+        </Button>
+        <Button toggle value="month">
+          Month
+        </Button>
+        <Button toggle value="year">
+          Year
+        </Button>
+      </ButtonGroup>,
+    );
+    const more = screen.getByRole('button', { name: 'More options' });
+    expect(more).toHaveClass('rounded-e-[min(var(--md-sys-shape-corner-full),20px)]');
+    expect(screen.getByRole('radio', { name: 'Week' })).toHaveClass('rounded-corner-small');
+
+    await user.click(more);
+    const month = screen.getByRole('menuitemradio', { name: 'Month' });
+    expect(month).toHaveAttribute('aria-checked', 'true');
+    await user.click(screen.getByRole('menuitemradio', { name: 'Year' }));
+    expect(onSelectionChange).toHaveBeenCalledWith(new Set(['year']));
+    restore();
   });
 });

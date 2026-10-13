@@ -7,7 +7,9 @@
  *   4 / 8 / 8 / 16 / 20px (XS–XL).
  * - Square groups: every corner takes that size, the outer ones too.
  * - Pressed, an inner corner tightens to 4px (Compose's `PressedInnerCornerCornerSize`;
- *   the spec gives no value). Selected, the whole button becomes fully round.
+ *   the spec gives no value), and to 2px at XS, whose inner corners already rest at 4px,
+ *   so a press always shows a change (2026-10-13). Selected, the whole button becomes
+ *   fully round.
  *
  * Corners are logical (`s` / `e`), so they mirror in RTL. Every class is written out in
  * full: Tailwind finds classes by scanning for literal strings.
@@ -18,7 +20,7 @@ export const connectedShapeVariants = [
     connected: 'leading',
     shape: 'round',
     class: {
-      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),16px)]',
+      root: 'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small data-pressed:rounded-e-[2px] data-selected:not-data-pressed:not-data-disabled:rounded-e-[min(var(--md-sys-shape-corner-full),16px)]',
     },
   },
   {
@@ -26,14 +28,14 @@ export const connectedShapeVariants = [
     connected: 'leading',
     shape: 'square',
     class: {
-      root: 'rounded-corner-extra-small data-pressed:rounded-e-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
+      root: 'rounded-corner-extra-small data-pressed:rounded-e-[2px] data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
     },
   },
   {
     size: 'xs',
     connected: 'middle',
     class: {
-      root: 'rounded-corner-extra-small data-pressed:rounded-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
+      root: 'rounded-corner-extra-small data-pressed:rounded-[2px] data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
     },
   },
   {
@@ -41,7 +43,7 @@ export const connectedShapeVariants = [
     connected: 'trailing',
     shape: 'round',
     class: {
-      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',
+      root: 'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small data-pressed:rounded-s-[2px] data-selected:not-data-pressed:not-data-disabled:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',
     },
   },
   {
@@ -49,7 +51,7 @@ export const connectedShapeVariants = [
     connected: 'trailing',
     shape: 'square',
     class: {
-      root: 'rounded-corner-extra-small data-pressed:rounded-s-corner-extra-small data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
+      root: 'rounded-corner-extra-small data-pressed:rounded-s-[2px] data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
     },
   },
   {

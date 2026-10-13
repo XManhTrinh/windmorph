@@ -3,11 +3,14 @@ import { Button, ButtonGroup, IconButton, type ButtonSize } from '@windmorph/rea
 import { useState } from 'react';
 import {
   AddIcon,
+  DeleteIcon,
+  EditIcon,
   FormatBoldIcon,
   FormatItalicIcon,
   FormatUnderlinedIcon,
   SearchIcon,
   StarIcon,
+  StarOutlineIcon,
 } from './icons';
 import {
   LAYOUT_OVERRIDES,
@@ -179,6 +182,69 @@ export const Variants: Story = {
       ))}
     </div>
   ),
+};
+
+/**
+ * `overflow`: the trailing buttons that don't fit fold into a "More options" menu. Drag the
+ * `width` control (or resize the window) and they come back as room opens up.
+ */
+export const Overflow: StoryObj<{ width: number }> = {
+  args: { width: 320 },
+  argTypes: { width: { control: { type: 'range', min: 120, max: 720, step: 10 } } },
+  render: function OverflowStory({ width }) {
+    const [last, setLast] = useState('none');
+    const [view, setView] = useState(new Set(['week']));
+    return (
+      <div className="flex flex-col gap-6" style={{ width }} data-testid="overflow">
+        <ButtonGroup aria-label="Message actions" overflow data-testid="standard">
+          <Button leadingIcon={<EditIcon />} onPress={() => setLast('reply')}>
+            Reply
+          </Button>
+          <Button variant="tonal" onPress={() => setLast('forward')}>
+            Forward
+          </Button>
+          <Button
+            variant="tonal"
+            toggle
+            leadingIcon={<StarOutlineIcon />}
+            selectedLeadingIcon={<StarIcon />}
+          >
+            Star
+          </Button>
+          <Button variant="outlined" onPress={() => setLast('archive')}>
+            Archive
+          </Button>
+          <IconButton variant="tonal" icon={<DeleteIcon />} aria-label="Delete" disabled />
+        </ButtonGroup>
+        <ButtonGroup
+          variant="connected"
+          overflow
+          selectionMode="single"
+          disallowEmptySelection
+          selectedKeys={view}
+          onSelectionChange={setView}
+          aria-label="Calendar view"
+          data-testid="connected"
+        >
+          <Button toggle value="day">
+            Day
+          </Button>
+          <Button toggle value="week">
+            Week
+          </Button>
+          <Button toggle value="month">
+            Month
+          </Button>
+          <Button toggle value="year">
+            Year
+          </Button>
+        </ButtonGroup>
+        <p className="text-body-medium text-on-surface-variant" data-testid="last">
+          Last: {last} · View: {[...view].join(', ')}
+        </p>
+      </div>
+    );
+  },
 };
 
 /** Layout safety (architecture §10) for the group root. */

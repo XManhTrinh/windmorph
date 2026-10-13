@@ -113,7 +113,7 @@ export function adjustToggleForm(
 ): Record<string, unknown> {
   const next = { ...values };
   const { noToggleVariant, fallbackVariant } = options;
-  const toggleOnly = ['selected', 'selectedIcon'];
+  const toggleOnly = ['selected', 'selectedIcon', 'selectedLeadingIcon'];
   const off = () => {
     next.toggle = false;
     for (const name of toggleOnly) if (name in next) next[name] = false;
