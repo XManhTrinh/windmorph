@@ -9,6 +9,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   outline). Elevated chips are `surface-container-low` at level 1 (hover 2, dragged 4).
  * - Padding: 16px at an edge without an icon, 8px beside an icon (4px beside an avatar),
  *   and 8px between elements. Input chips without a leading element keep Compose's 12px.
+ *   Padding counts from the container's edge, as Compose's border overlays the content:
+ *   a flat chip's 1px border is taken out of its edge padding (`--m3-chip-border`).
+ * - Elevation never shows a press: hover raises a chip (elevated 1 → 2, a flat selected
+ *   filter chip 0 → 1) only while it isn't pressed, keyboard-focused or dragged.
+ * - A keyboard-focused flat chip's border is `on-surface` (assist, suggestion) or
+ *   `on-surface-variant` (unselected filter and input chips).
  * - Leading icons are `primary`; a selected filter chip's is `on-secondary-container`, a
  *   selected input chip's `primary`, an unselected input chip's `on-surface-variant`.
  * - The remove button has a 48px target, and a chip with one is at least 88px wide.
@@ -87,7 +93,7 @@ export const chipStyles = tv({
       filter: {
         root: [
           'text-on-surface-variant',
-          'data-selected:bg-secondary-container data-selected:text-on-secondary-container data-selected:data-hovered:shadow-elevation-1',
+          'data-selected:bg-secondary-container data-selected:text-on-secondary-container',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',
         ],
         leading: [
@@ -125,10 +131,14 @@ export const chipStyles = tv({
     },
     elevated: {
       true: {
-        root: 'bg-surface-container-low shadow-elevation-1 data-hovered:shadow-elevation-2 data-dragged:shadow-elevation-4 data-disabled:bg-on-surface/12 data-disabled:shadow-elevation-0',
+        root: [
+          '[--m3-chip-border:0px] bg-surface-container-low shadow-elevation-1',
+          'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
+          'data-dragged:shadow-elevation-4 data-disabled:bg-on-surface/12 data-disabled:shadow-elevation-0',
+        ],
       },
       false: {
-        root: 'border border-solid bg-transparent data-dragged:shadow-elevation-4 data-disabled:border-on-surface/12',
+        root: '[--m3-chip-border:1px] border border-solid bg-transparent data-dragged:shadow-elevation-4 data-disabled:border-on-surface/12',
       },
     },
     /** `strong` draws the border in `outline` for 3:1 contrast (M3's accessibility guidance). */
@@ -153,33 +163,65 @@ export const chipStyles = tv({
       elevated: true,
       class: { root: 'data-selected:bg-secondary-container' },
     },
+    // A flat selected filter chip rises to level 1 on hover only (focus and press stay at 0).
+    {
+      kind: 'filter',
+      elevated: false,
+      class: {
+        root: 'data-selected:data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
+      },
+    },
+    // A keyboard-focused flat chip's border darkens (Compose's Flat*FocusOutlineColor).
+    {
+      kind: ['assist', 'suggestion'],
+      elevated: false,
+      class: { root: 'data-focus-visible:border-on-surface' },
+    },
+    {
+      kind: ['filter', 'input'],
+      split: 'none',
+      elevated: false,
+      class: { root: 'data-focus-visible:not-data-selected:border-on-surface-variant' },
+    },
+    {
+      kind: ['filter', 'input'],
+      split: ['two', 'removeOnly'],
+      elevated: false,
+      class: { root: 'has-data-focus-visible:not-data-selected:border-on-surface-variant' },
+    },
 
-    // One-part chips: 16px at an edge without an icon, 8px beside one, 8px between.
+    // One-part chips: 16px at an edge without an icon, 8px beside one, 8px between, each
+    // edge padding less the flat chip's border.
     // A filter chip without a leading icon grows a check when selected (8 · check · 8).
     {
       kind: ['assist', 'suggestion', 'filter'],
       split: 'none',
       leading: 'none',
-      class: { root: 'ps-[16px]' },
+      class: { root: 'ps-[calc(16px-var(--m3-chip-border))]' },
     },
-    { kind: 'filter', split: 'none', leading: 'none', class: { root: 'data-selected:ps-[8px]' } },
+    {
+      kind: 'filter',
+      split: 'none',
+      leading: 'none',
+      class: { root: 'data-selected:ps-[calc(8px-var(--m3-chip-border))]' },
+    },
     {
       kind: ['assist', 'suggestion', 'filter'],
       split: 'none',
       leading: 'icon',
-      class: { root: 'ps-[8px]' },
+      class: { root: 'ps-[calc(8px-var(--m3-chip-border))]' },
     },
     {
       kind: ['assist', 'suggestion', 'filter'],
       split: 'none',
       trailing: false,
-      class: { root: 'pe-[16px]' },
+      class: { root: 'pe-[calc(16px-var(--m3-chip-border))]' },
     },
     {
       kind: ['assist', 'suggestion', 'filter'],
       split: 'none',
       trailing: true,
-      class: { root: 'pe-[8px]' },
+      class: { root: 'pe-[calc(8px-var(--m3-chip-border))]' },
     },
     { kind: ['assist', 'suggestion', 'filter'], leading: 'icon', class: { leading: 'me-[8px]' } },
     { kind: ['assist', 'suggestion', 'filter'], trailing: true, class: { trailing: 'ms-[8px]' } },
@@ -188,22 +230,37 @@ export const chipStyles = tv({
       kind: 'filter',
       split: 'two',
       leading: 'none',
-      class: { primary: 'ps-[16px] data-selected:ps-[8px]', root: 'pe-[8px]' },
+      class: {
+        primary:
+          'ps-[calc(16px-var(--m3-chip-border))] data-selected:ps-[calc(8px-var(--m3-chip-border))]',
+        root: 'pe-[calc(8px-var(--m3-chip-border))]',
+      },
     },
     {
       kind: 'filter',
       split: 'two',
       leading: 'icon',
-      class: { primary: 'ps-[8px]', root: 'pe-[8px]' },
+      class: {
+        primary: 'ps-[calc(8px-var(--m3-chip-border))]',
+        root: 'pe-[calc(8px-var(--m3-chip-border))]',
+      },
     },
 
     // Input: 12px without a leading element, 8px beside an icon, 4px beside an avatar;
     // 8px between elements and at the end beside the remove button, 12px without one.
-    { kind: 'input', leading: 'none', class: { primary: 'ps-[12px]' } },
-    { kind: 'input', leading: 'icon', class: { primary: 'ps-[8px]', leading: 'me-[8px]' } },
-    { kind: 'input', leading: 'avatar', class: { primary: 'ps-[4px]', leading: 'me-[8px]' } },
-    { kind: 'input', trailing: false, class: { primary: 'pe-[12px]' } },
-    { kind: 'input', trailing: true, class: { root: 'pe-[8px]' } },
+    { kind: 'input', leading: 'none', class: { primary: 'ps-[calc(12px-var(--m3-chip-border))]' } },
+    {
+      kind: 'input',
+      leading: 'icon',
+      class: { primary: 'ps-[calc(8px-var(--m3-chip-border))]', leading: 'me-[8px]' },
+    },
+    {
+      kind: 'input',
+      leading: 'avatar',
+      class: { primary: 'ps-[calc(4px-var(--m3-chip-border))]', leading: 'me-[8px]' },
+    },
+    { kind: 'input', trailing: false, class: { primary: 'pe-[calc(12px-var(--m3-chip-border))]' } },
+    { kind: 'input', trailing: true, class: { root: 'pe-[calc(8px-var(--m3-chip-border))]' } },
   ],
   defaultVariants: {
     kind: 'assist',

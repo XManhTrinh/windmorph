@@ -106,7 +106,15 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               chip and its remove button are two focus stops. A filter chip with{' '}
               <InlineCode>onRemove</InlineCode> works the same way.
             </li>
-            <li>Backspace or Delete on a removable chip removes it.</li>
+            <li>
+              Backspace or Delete on a removable chip removes it. In a{' '}
+              <InlineCode>ChipSet</InlineCode>, focus then moves to the next chip (the previous one
+              at the end, or the set once it&apos;s empty), so keyboard users keep their place.
+            </li>
+            <li>
+              The remove button&apos;s close icon is hidden from assistive tech; its name says what
+              it does.
+            </li>
           </ul>
         </section>
       </>
@@ -124,7 +132,15 @@ export async function ChipsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               16px at an edge without an icon, 8px beside one (4px beside an avatar), 8px between
-              elements and between chips.
+              elements and between chips. Padding counts from the chip&apos;s edge: a flat
+              chip&apos;s 1px border takes none of it, so flat and elevated chips are the same size.
+            </li>
+            <li>
+              Elevation never shows a press: an elevated chip rises from level 1 to 2 on hover and a
+              selected flat filter chip from 0 to 1, only while it isn&apos;t pressed or
+              keyboard-focused. A keyboard-focused flat chip&apos;s border darkens to{' '}
+              <InlineCode>on-surface</InlineCode> (assist, suggestion) or{' '}
+              <InlineCode>on-surface-variant</InlineCode> (filter, input).
             </li>
             <li>
               Leading icons are <InlineCode>primary</InlineCode>. Selected filter and input chips

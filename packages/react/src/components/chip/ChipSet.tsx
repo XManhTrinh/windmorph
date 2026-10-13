@@ -1,12 +1,14 @@
 'use client';
 
 import {
+  useEffect,
   useRef,
   type ComponentPropsWithRef,
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
+import { useObjectRef } from 'react-aria';
 import { useToggleGroupState, type Key } from 'react-stately';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
@@ -120,6 +122,58 @@ function useChipSetKeyboard() {
 }
 
 /**
+ * Keeps focus in the set when the focused chip goes away, e.g. after Backspace or Delete
+ * removes it (WCAG 2.4.3): focus moves to the next stop, or the previous one at the end,
+ * or the set itself once it's empty. The stops are read whenever focus enters a stop or a
+ * key is pressed, so the removed one's neighbours are known after it has left the DOM.
+ */
+function useFocusAfterRemoval(rootRef: { current: HTMLDivElement | null }) {
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    let focused: HTMLElement | null = null;
+    let stops: HTMLElement[] = [];
+    const remember = () => {
+      const active = root.ownerDocument.activeElement;
+      stops = focusables(root);
+      focused = active instanceof HTMLElement && stops.includes(active) ? active : null;
+    };
+    const forget = (event: globalThis.FocusEvent) => {
+      // Focus moving elsewhere (not a removal, which leaves nothing focused) ends the watch.
+      if (event.relatedTarget instanceof Node && !root.contains(event.relatedTarget)) {
+        focused = null;
+      }
+    };
+    const restore = () => {
+      if (!focused || focused.isConnected) return;
+      const active = root.ownerDocument.activeElement;
+      const lost = focused;
+      focused = null;
+      if (active && active !== root.ownerDocument.body) return;
+      const index = stops.indexOf(lost);
+      const next =
+        stops.slice(index + 1).find((stop) => stop.isConnected) ??
+        stops
+          .slice(0, index)
+          .reverse()
+          .find((stop) => stop.isConnected);
+      (next ?? root).focus();
+    };
+    const observer = new MutationObserver(restore);
+    observer.observe(root, { childList: true, subtree: true });
+    root.addEventListener('focusin', remember);
+    root.addEventListener('keydown', remember, true);
+    root.addEventListener('focusout', forget);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener('focusin', remember);
+      root.removeEventListener('keydown', remember, true);
+      root.removeEventListener('focusout', forget);
+    };
+  }, [rootRef]);
+}
+
+/**
  * M3 chip set: a labelled group of chips, 8px apart, that wraps or scrolls sideways. It is
  * one Tab stop, and arrow keys move between its chips. With `selectionMode`, its filter
  * chips (each with a `value`) share one selection.
@@ -156,11 +210,15 @@ export function ChipSet({
     isDisabled: disabled,
   });
   const keyboard = useChipSetKeyboard();
+  const rootRef = useObjectRef(ref);
+  useFocusAfterRemoval(rootRef);
   return (
     <div
       role={selectionMode === 'single' ? 'radiogroup' : 'group'}
+      // Focusable from script only: it takes focus when its last chip is removed.
+      tabIndex={-1}
       {...rest}
-      ref={ref}
+      ref={rootRef}
       data-layout={layout ?? 'wrap'}
       aria-disabled={disabled || undefined}
       onKeyDown={(event) => {

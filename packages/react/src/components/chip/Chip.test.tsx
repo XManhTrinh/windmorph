@@ -21,8 +21,8 @@ describe('AssistChip', () => {
       'border-outline-variant',
       'text-on-surface',
       'text-label-large',
-      'ps-[8px]',
-      'pe-[16px]',
+      'ps-[calc(8px-var(--m3-chip-border))]',
+      'pe-[calc(16px-var(--m3-chip-border))]',
     );
     expect(screen.getByTestId('icon').parentElement).toHaveClass('text-primary', 'me-[8px]');
     expect(screen.getByTestId('icon').parentElement).toHaveAttribute('aria-hidden', 'true');
@@ -32,9 +32,30 @@ describe('AssistChip', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('takes the flat border out of its padding, and darkens the border on keyboard focus', () => {
+    render(
+      <>
+        <AssistChip>Flat</AssistChip>
+        <AssistChip elevated>Raised</AssistChip>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Flat' })).toHaveClass(
+      'border',
+      '[--m3-chip-border:1px]',
+      'data-focus-visible:border-on-surface',
+    );
+    expect(screen.getByRole('button', { name: 'Raised' })).toHaveClass('[--m3-chip-border:0px]');
+    expect(screen.getByRole('button', { name: 'Raised' }).className).not.toContain(
+      'data-focus-visible:border',
+    );
+  });
+
   it('pads 16px without icons', () => {
     render(<AssistChip>Plain</AssistChip>);
-    expect(screen.getByRole('button', { name: 'Plain' })).toHaveClass('ps-[16px]', 'pe-[16px]');
+    expect(screen.getByRole('button', { name: 'Plain' })).toHaveClass(
+      'ps-[calc(16px-var(--m3-chip-border))]',
+      'pe-[calc(16px-var(--m3-chip-border))]',
+    );
   });
 
   it('can be elevated, a link, disabled, or strongly outlined', () => {
@@ -49,9 +70,13 @@ describe('AssistChip', () => {
     expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
       'bg-surface-container-low',
       'shadow-elevation-1',
-      'data-hovered:shadow-elevation-2',
+      'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
     );
     expect(screen.getByRole('button', { name: 'Elevated' })).not.toHaveClass('border');
+    // The press never raises it: hover's level 2 waits until the press ends (level 1).
+    expect(screen.getByRole('button', { name: 'Elevated' }).className).not.toMatch(
+      /(^| )data-hovered:shadow-elevation-2|data-pressed:shadow-elevation-2/,
+    );
     expect(screen.getByRole('link', { name: 'Directions' })).toHaveAttribute('href', '/map');
     expect(screen.getByRole('button', { name: 'Off' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Strong' })).toHaveClass('border-outline');
@@ -83,9 +108,11 @@ describe('FilterChip', () => {
       'rounded-corner-small',
       'data-selected:bg-secondary-container',
       'data-selected:border-transparent',
-      'ps-[16px]',
-      'data-selected:ps-[8px]',
-      'pe-[16px]',
+      'data-selected:data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
+      'data-focus-visible:not-data-selected:border-on-surface-variant',
+      'ps-[calc(16px-var(--m3-chip-border))]',
+      'data-selected:ps-[calc(8px-var(--m3-chip-border))]',
+      'pe-[calc(16px-var(--m3-chip-border))]',
     );
     expect(chip.className).not.toMatch(/rounded-corner-medium|rounded-\[min/);
     const check = chip.querySelector('svg')!.closest('[aria-hidden]')!;
@@ -109,15 +136,24 @@ describe('FilterChip', () => {
         </FilterChip>
       </>,
     );
-    expect(screen.getByRole('button', { name: 'Leading' })).toHaveClass('ps-[8px]', 'pe-[16px]');
+    expect(screen.getByRole('button', { name: 'Leading' })).toHaveClass(
+      'ps-[calc(8px-var(--m3-chip-border))]',
+      'pe-[calc(16px-var(--m3-chip-border))]',
+    );
     expect(screen.getByTestId('l').parentElement).toHaveClass(
       'me-[8px]',
       'text-primary',
       'group-data-selected/chip:text-on-secondary-container',
     );
-    expect(screen.getByRole('button', { name: 'Trailing' })).toHaveClass('ps-[16px]', 'pe-[8px]');
+    expect(screen.getByRole('button', { name: 'Trailing' })).toHaveClass(
+      'ps-[calc(16px-var(--m3-chip-border))]',
+      'pe-[calc(8px-var(--m3-chip-border))]',
+    );
     expect(screen.getByTestId('t').parentElement).toHaveClass('ms-[8px]');
-    expect(screen.getByRole('button', { name: 'Both' })).toHaveClass('ps-[8px]', 'pe-[8px]');
+    expect(screen.getByRole('button', { name: 'Both' })).toHaveClass(
+      'ps-[calc(8px-var(--m3-chip-border))]',
+      'pe-[calc(8px-var(--m3-chip-border))]',
+    );
     expect(screen.getByRole('button', { name: 'Both' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('t2').parentElement).toHaveClass('ms-[8px]');
   });
@@ -127,6 +163,10 @@ describe('FilterChip', () => {
     expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
       'bg-surface-container-low',
       'data-selected:bg-secondary-container',
+    );
+    // Selected or not, an elevated chip's hover is level 2: the flat chip's level 1 isn't here.
+    expect(screen.getByRole('button', { name: 'Elevated' }).className).not.toMatch(
+      /data-selected:data-hovered[^ ]*:shadow-elevation-1/,
     );
   });
 
@@ -141,8 +181,13 @@ describe('FilterChip', () => {
     const toggle = screen.getByRole('button', { name: 'Nearby' });
     const remove = screen.getByRole('button', { name: 'Remove Nearby' });
     const root = toggle.parentElement!;
-    expect(root).toHaveClass('min-w-[88px]', 'rounded-corner-small', 'pe-[8px]');
-    expect(toggle).toHaveClass('ps-[16px]');
+    expect(root).toHaveClass(
+      'min-w-[88px]',
+      'rounded-corner-small',
+      'pe-[calc(8px-var(--m3-chip-border))]',
+      'has-data-focus-visible:not-data-selected:border-on-surface-variant',
+    );
+    expect(toggle).toHaveClass('ps-[calc(16px-var(--m3-chip-border))]');
     expect(remove.querySelector('[data-touch-target]')).not.toBeNull();
 
     await userEvent.click(toggle);
@@ -177,12 +222,14 @@ describe('InputChip', () => {
       'rounded-corner-small',
       'border-outline-variant',
       'min-w-[88px]',
-      'pe-[8px]',
+      'pe-[calc(8px-var(--m3-chip-border))]',
     );
-    expect(chip).toHaveClass('ps-[4px]');
+    expect(chip).toHaveClass('ps-[calc(4px-var(--m3-chip-border))]');
     expect(root.querySelector('img')!.parentElement).toHaveClass('rounded-corner-medium');
     expect(root.querySelector('img')!.parentElement!.parentElement).toHaveClass('me-[8px]');
     expect(remove).toHaveClass('size-[24px]', 'rounded-full', 'focus-ring');
+    // The close icon is decorative: the button's name says what it does.
+    expect(remove.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(remove.querySelector('[data-touch-target]')).not.toBeNull();
 
     await userEvent.click(chip);
@@ -249,8 +296,8 @@ describe('InputChip', () => {
     render(<InputChip data-testid="chip">Plain</InputChip>);
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.getByText('Plain').closest('[data-chip-primary]')).toHaveClass(
-      'ps-[12px]',
-      'pe-[12px]',
+      'ps-[calc(12px-var(--m3-chip-border))]',
+      'pe-[calc(12px-var(--m3-chip-border))]',
     );
   });
 });

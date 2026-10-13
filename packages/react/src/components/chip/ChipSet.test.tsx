@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -73,6 +74,58 @@ describe('ChipSet', () => {
     expect(screen.getByRole('button', { name: 'Remove Alex' })).toHaveFocus();
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('button', { name: 'Remove Sam' })).toHaveFocus();
+  });
+
+  it('keeps focus in the set when the focused chip is removed', async () => {
+    function Recipients() {
+      const [names, setNames] = useState(['Alex', 'Sam', 'Priya']);
+      return (
+        <ChipSet aria-label="Recipients">
+          {names.map((name) => (
+            <InputChip
+              key={name}
+              onPress={name === 'Alex' ? () => {} : undefined}
+              onRemove={() => setNames((all) => all.filter((other) => other !== name))}
+            >
+              {name}
+            </InputChip>
+          ))}
+        </ChipSet>
+      );
+    }
+    const { container } = render(<Recipients />);
+    // The next stop takes focus: past both of a two-part chip's stops.
+    screen.getByRole('button', { name: 'Alex' }).focus();
+    await userEvent.keyboard('{Delete}');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Remove Sam' })).toHaveFocus());
+    // The last chip hands focus back to the one before it.
+    screen.getByRole('button', { name: 'Remove Priya' }).focus();
+    await userEvent.keyboard('{Backspace}');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Remove Sam' })).toHaveFocus());
+    // With no chips left, the set itself holds focus.
+    await userEvent.keyboard('{Backspace}');
+    await waitFor(() => expect(screen.getByRole('group', { name: 'Recipients' })).toHaveFocus());
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('leaves focus alone when it has moved on before a chip goes', async () => {
+    function Later() {
+      const [shown, setShown] = useState(true);
+      return (
+        <>
+          <ChipSet aria-label="Tags">
+            {shown && <InputChip onRemove={() => {}}>Draft</InputChip>}
+          </ChipSet>
+          <button type="button" onClick={() => setShown(false)}>
+            Clear
+          </button>
+        </>
+      );
+    }
+    render(<Later />);
+    screen.getByRole('button', { name: 'Remove Draft' }).focus();
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
   });
 
   it('shares one selection between its filter chips', async () => {
