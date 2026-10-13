@@ -211,7 +211,7 @@ export function ExpressiveBento() {
             data-press="on off"
             toggle
             selected={active}
-            size="lg"
+            size="md"
             shape="square"
             variant="filled"
             className="bg-primary-container text-on-primary-container"
