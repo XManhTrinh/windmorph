@@ -108,12 +108,22 @@ test.describe('Toolbar geometry', () => {
       expect(await box(fab)).toMatchObject({ width: 56, height: 56 });
 
       await page.getByRole('button', { name: 'Collapse' }).click();
-      await expect.poll(async () => (await box(fab)).width).toBe(80);
-      expect(await box(toolbar)).toEqual(expanded);
-      // The FAB stays at the end edge and grows towards the toolbar.
-      const fabBox = await box(fab);
-      if (dir === 'ltr') expect(fabBox.x + fabBox.width).toBe(expanded.x + expanded.width);
-      else expect(fabBox.x).toBe(expanded.x);
+      // Polled until the springs settle: the FAB grows to 80px, the toolbar keeps its size, and
+      // the FAB stays at the end edge, growing towards the toolbar.
+      await expect
+        .poll(async () => {
+          const [toolbarBox, fabBox] = await Promise.all([box(toolbar), box(fab)]);
+          return {
+            toolbar: toolbarBox,
+            fab: { width: fabBox.width, height: fabBox.height },
+            fabEndEdge: dir === 'ltr' ? fabBox.x + fabBox.width : fabBox.x,
+          };
+        })
+        .toEqual({
+          toolbar: expanded,
+          fab: { width: 80, height: 80 },
+          fabEndEdge: dir === 'ltr' ? expanded.x + expanded.width : expanded.x,
+        });
       // The toolbar has faded to nothing; its controls stay reachable by focus.
       const surface = page.getByRole('button', { name: 'Bold' }).locator('../..');
       await expect.poll(() => surface.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');

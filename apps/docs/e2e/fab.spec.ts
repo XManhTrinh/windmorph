@@ -82,11 +82,33 @@ test.describe('FAB interaction', () => {
 
   test('a new key with appear replays the entrance', async ({ page }) => {
     await openStory(page, 'components-fab--visibility');
+    // Record the transitions the new FAB starts, so the entrance is seen to run however fast
+    // the machine is.
+    await page.evaluate(() => {
+      const record = window as unknown as { entrance: string[] };
+      record.entrance = [];
+      document.addEventListener('transitionrun', (event) => {
+        const target = event.target as HTMLElement;
+        if (target.getAttribute('aria-label') === 'Tab 2 action') {
+          record.entrance.push(event.propertyName);
+        }
+      });
+    });
     await page.getByRole('button', { name: 'Next tab' }).click();
     const fab = page.getByRole('button', { name: 'Tab 2 action' });
-    // It starts small and transparent, then settles.
-    await expect.poll(() => fab.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
-    expect(await fab.evaluate((el) => getComputedStyle(el).transform)).toBe('none');
+    // It grows from its centre and fades in…
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { entrance: string[] }).entrance))
+      .toEqual(expect.arrayContaining(['transform', 'opacity']));
+    // …then settles. Both are polled together: the fade's spring ends before the scale's.
+    await expect
+      .poll(() =>
+        fab.evaluate((el) => {
+          const style = getComputedStyle(el);
+          return { opacity: style.opacity, transform: style.transform };
+        }),
+      )
+      .toEqual({ opacity: '1', transform: 'none' });
   });
 
   test('hover raises the elevation and focus shows the ring', async ({ page }) => {
