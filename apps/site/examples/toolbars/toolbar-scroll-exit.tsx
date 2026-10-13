@@ -20,7 +20,7 @@ export function ToolbarScrollExit() {
         ref={scrollRef}
         tabIndex={0}
         role="region"
-        aria-label="Messages"
+        aria-label="Inbox"
         className="h-full overflow-y-auto p-4 pb-20"
       >
         {Array.from({ length: 40 }, (_, index) => (
