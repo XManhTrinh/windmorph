@@ -34,7 +34,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { LoadingIndicator } from '../loading-indicator/LoadingIndicator';
-import { menuStyles } from '../menu/menu-styles';
+import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
 
 /**
  * Disabled options stay focusable but can't be chosen (M3 menus: "Disabled menu items can
@@ -154,14 +154,7 @@ export function OptionList<T>({
       <ul
         {...props}
         ref={listBoxRef}
-        className={cn(
-          'min-h-0 flex-1 overflow-y-auto outline-none',
-          // M3: a menu that scrolls "show[s] a persistent scrollbar". A styled WebKit
-          // scrollbar is always drawn (overlay scrollbars hide); elsewhere, a thin one.
-          '[&::-webkit-scrollbar]:w-[12px] [&::-webkit-scrollbar-track]:bg-transparent',
-          '[&::-webkit-scrollbar-thumb]:rounded-corner-full [&::-webkit-scrollbar-thumb]:border-[4px] [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-outline [&::-webkit-scrollbar-thumb]:bg-clip-padding',
-          'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
-        )}
+        className={cn('min-h-0 flex-1 overflow-y-auto outline-none', persistentScrollbar)}
       >
         {nodes.map((node, index) =>
           node.type === 'section' ? (

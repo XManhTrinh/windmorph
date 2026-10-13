@@ -26,9 +26,21 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - the menu is revealed from its anchored edge (a clip) as it fades in, on the fast springs
  *   (M3 motion: components enter along the x or y axis; scale is avoided); the exposed
  *   dropdown menus keep Compose's scale from 80% (`motion`);
- * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped.
+ * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped,
+ *   and shows a persistent scrollbar (M3).
  * Every class is written out in full so Tailwind can find it.
  */
+
+/**
+ * M3: a menu that scrolls "show[s] a persistent scrollbar". Overlay scrollbars hide at rest,
+ * so a styled WebKit scrollbar is always drawn (a 4px `outline` thumb in a 12px track);
+ * elsewhere, a thin one. Shared by the menu and the exposed dropdown menus' option list.
+ */
+export const persistentScrollbar = [
+  '[&::-webkit-scrollbar]:w-[12px] [&::-webkit-scrollbar-track]:bg-transparent',
+  '[&::-webkit-scrollbar-thumb]:rounded-corner-full [&::-webkit-scrollbar-thumb]:border-[4px] [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-outline [&::-webkit-scrollbar-thumb]:bg-clip-padding',
+  'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
+];
 
 /** Variant definitions for {@link Menu} and its parts. */
 export const menuStyles = tv({
@@ -67,6 +79,7 @@ export const menuStyles = tv({
     // outside the menu still dismisses it. Widths include the padding: 112–280px groups.
     menu: [
       'flex max-h-[inherit] flex-col overflow-y-auto outline-none',
+      ...persistentScrollbar,
       '[--m3-menu-corner:var(--md-sys-shape-corner-large)]',
       'data-[shape=active]:[--m3-menu-corner:24px]',
       'data-[shape=inactive]:[--m3-menu-corner:var(--md-sys-shape-corner-small)]',
