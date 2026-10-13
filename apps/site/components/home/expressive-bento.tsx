@@ -154,8 +154,10 @@ export function ExpressiveBento() {
 
       {/* Connected button group: a selection appears */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-3 large:row-span-4 large:row-start-1">
+        {/* Opts into the press bump Google's showcase video shows on this connected group */}
         <ButtonGroup
           variant="connected"
+          expandedRatio={0.15}
           selectionMode="single"
           selectedKeys={active ? ['going'] : []}
           aria-label="Reply"

@@ -367,7 +367,7 @@ describe('ButtonGroup press expansion', () => {
     vi.useRealTimers();
   });
 
-  it('never widens a pressed button in a connected group (only its shape changes)', async () => {
+  it('by default never widens a pressed button in a connected group (only its shape changes)', async () => {
     const user = userEvent.setup();
     render(
       <ButtonGroup variant="connected" aria-label="View">
@@ -381,6 +381,24 @@ describe('ButtonGroup press expansion', () => {
     await user.pointer({ keys: '[MouseLeft>]', target: buttons[1]! });
     for (const button of buttons) expect(button.style.flexBasis).toBe('');
     await user.pointer({ keys: '[/MouseLeft]', target: buttons[1]! });
+  });
+
+  it('opts a connected group into the press bump with expandedRatio', async () => {
+    const user = userEvent.setup();
+    render(
+      <ButtonGroup variant="connected" expandedRatio={0.15} aria-label="View">
+        <Button>Day</Button>
+        <Button>Week</Button>
+        <Button>Month</Button>
+      </ButtonGroup>,
+    );
+    const buttons = screen.getAllByRole('button');
+    stubWidths(buttons, 100, 60);
+    await user.pointer({ keys: '[MouseLeft>]', target: buttons[0]! });
+    expect(buttons[0]!.style.flexBasis).toBe('115px');
+    expect(buttons[1]!.style.flexBasis).toBe('85px');
+    expect(buttons[2]!.style.flexBasis).toBe('');
+    await user.pointer({ keys: '[/MouseLeft]', target: buttons[0]! });
   });
 
   it('can be turned off', async () => {

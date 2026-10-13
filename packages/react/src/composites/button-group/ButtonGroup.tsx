@@ -59,9 +59,10 @@ export interface ButtonGroupProps extends Omit<
   'onChange' | 'defaultValue'
 > {
   /**
-   * `standard` spaces the buttons apart (18 / 12 / 8px by size) and grows a pressed button
-   * into its neighbours' space; `connected` joins them 2px apart with shared inner corners
-   * across the container's width (the M3 Expressive replacement for segmented buttons).
+   * `standard` spaces the buttons apart (18 / 12 / 8px by size); `connected` joins them 2px
+   * apart with shared inner corners across the container's width (the M3 Expressive
+   * replacement for segmented buttons). A standard group grows a pressed button into its
+   * neighbours' space; a connected one only changes its shape unless `expandedRatio` is set.
    * @default "standard"
    */
   variant?: ButtonGroupVariant;
@@ -88,9 +89,11 @@ export interface ButtonGroupProps extends Omit<
   /** Prevents deselecting the last selected button. */
   disallowEmptySelection?: boolean;
   /**
-   * How much a pressed button in a standard group grows, as a fraction of its width; its
-   * neighbours shrink by the same amount. `0` turns the interaction off. Connected groups
-   * never do this: only the pressed button's shape changes. @default 0.15
+   * How much a pressed button grows, as a fraction of its width; its neighbours shrink by the
+   * same amount and the group keeps its width. `0` turns it off. Standard groups default to
+   * 0.15. Connected groups default to 0 (the spec: they "don't affect adjacent buttons", as
+   * in Compose's connected sample); set a ratio to opt in, as Compose can by combining a
+   * button group's `animateWidth` with the connected shapes. @default 0.15 standard, 0 connected
    */
   expandedRatio?: number;
   children?: ReactNode;
@@ -118,8 +121,8 @@ function useGroupRef(ref: Ref<HTMLDivElement> | undefined, directionRef: RefCall
 /**
  * M3 Expressive button group. Shares size, shape, variant and disabled with its `Button`
  * and `IconButton` children. A standard group grows a pressed button while its neighbours
- * shrink; a `connected` group joins the buttons with shared inner corners and only
- * changes the pressed button's shape. Tab reaches the group and the arrow keys move
+ * shrink; a `connected` group joins the buttons with shared inner corners and, by default,
+ * only changes the pressed button's shape (`expandedRatio` opts it into the bump). Tab reaches the group and the arrow keys move
  * between its buttons (a `toolbar`). With `selectionMode`, toggle buttons that have a
  * `value` form a single or multiple selection.
  *
@@ -152,7 +155,7 @@ function ButtonGroupRoot({
   defaultSelectedKeys,
   onSelectionChange,
   disallowEmptySelection,
-  expandedRatio = 0.15,
+  expandedRatio,
   className,
   children,
   ref,
@@ -193,7 +196,7 @@ function ButtonGroupRoot({
     currentKeys.current = state.selectedKeys;
   });
 
-  usePressExpansion(domRef, variant === 'standard' ? expandedRatio : 0);
+  usePressExpansion(domRef, expandedRatio ?? (variant === 'standard' ? 0.15 : 0));
 
   const shared = useMemo<ButtonContextValue>(
     () => ({
