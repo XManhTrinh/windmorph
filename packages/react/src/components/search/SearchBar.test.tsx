@@ -180,6 +180,61 @@ describe('SearchBar', () => {
     expect(onExpandedChange).toHaveBeenLastCalledWith(false);
   });
 
+  it('passes inputProps to both inputs, keeping its own role, name and state', async () => {
+    const onKeyDown = vi.fn();
+    const onSubmit = vi.fn();
+    render(
+      <SearchBar
+        aria-label="Search mail"
+        onSubmit={onSubmit}
+        inputProps={{
+          'aria-keyshortcuts': 'Control+K',
+          'aria-describedby': 'hint',
+          enterKeyHint: 'go',
+          autoComplete: 'on',
+          spellCheck: true,
+          onKeyDown,
+          // A consumer can't take over what the bar owns, even past the types.
+          ...({ role: 'textbox', 'aria-label': 'Other', type: 'text' } as object),
+        }}
+      >
+        <button type="button">Suggestion</button>
+      </SearchBar>,
+    );
+    const collapsed = screen.getByRole('combobox', { name: 'Search mail' });
+    for (const [name, value] of [
+      ['aria-keyshortcuts', 'Control+K'],
+      ['aria-describedby', 'hint'],
+      ['enterkeyhint', 'go'],
+      ['autocomplete', 'on'],
+      ['spellcheck', 'true'],
+      ['type', 'search'],
+      ['aria-haspopup', 'dialog'],
+    ] as const) {
+      expect(collapsed).toHaveAttribute(name, value);
+    }
+    act(() => collapsed.focus());
+    await userEvent.keyboard('{ArrowDown}');
+    // The consumer's handler runs and the bar still expands.
+    expect(onKeyDown).toHaveBeenCalledTimes(1);
+    expect(collapsed).toHaveAttribute('aria-expanded', 'true');
+    const expanded = screen.getByRole('searchbox', { name: 'Search mail' });
+    expect(expanded).toHaveAttribute('aria-keyshortcuts', 'Control+K');
+    expect(expanded).toHaveAttribute('enterkeyhint', 'go');
+    expect(expanded).toHaveAttribute('type', 'search');
+    await userEvent.keyboard('x{Enter}');
+    expect(onKeyDown).toHaveBeenCalledTimes(3);
+    expect(onSubmit).toHaveBeenCalledWith('x');
+  });
+
+  it('defaults the inputs to the search keyboard action, with no autocomplete', () => {
+    render(<SearchBar aria-label="Search" />);
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAttribute('enterkeyhint', 'search');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+    expect(input).toHaveAttribute('spellcheck', 'false');
+  });
+
   it('requires a name in its types', () => {
     // @ts-expect-error aria-label or aria-labelledby is required
     const unnamed = <SearchBar placeholder="Search" />;

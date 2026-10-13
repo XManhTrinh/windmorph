@@ -53,6 +53,37 @@ export interface SearchBarClassNames {
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
+/**
+ * Attributes for the search inputs, e.g. `aria-keyshortcuts`, `aria-describedby`,
+ * `enterKeyHint`, `autoComplete`, `spellCheck`, `inputMode` or event handlers. The bar owns
+ * its value, name, role and popup state, so those keys are left out; an `id` or `name`
+ * would be duplicated, since the bar renders a second input while expanded.
+ */
+export type SearchBarInputProps = Omit<
+  ComponentProps<'input'>,
+  | 'ref'
+  | 'id'
+  | 'name'
+  | 'type'
+  | 'role'
+  | 'value'
+  | 'defaultValue'
+  | 'onChange'
+  | 'placeholder'
+  | 'className'
+  | 'children'
+  | 'dangerouslySetInnerHTML'
+  | 'inert'
+  | 'aria-label'
+  | 'aria-labelledby'
+  | 'aria-expanded'
+  | 'aria-haspopup'
+  | 'aria-controls'
+  | 'aria-hidden'
+> & {
+  [data: `data-${string}`]: string | number | boolean | undefined;
+};
+
 interface SearchBarOwnProps {
   /** Controlled query. */
   value?: string;
@@ -96,6 +127,13 @@ interface SearchBarOwnProps {
   children?: ReactNode;
   /** The input element (collapsed, or expanded while the view is open). */
   inputRef?: Ref<HTMLInputElement>;
+  /**
+   * Attributes for both inputs, the collapsed one and the expanded view's. They replace the
+   * bar's defaults (`enterKeyHint="search"`, `autoComplete="off"`, `spellCheck={false}`);
+   * event handlers run before the bar's own, and the bar's role, name, value and popup state
+   * always win.
+   */
+  inputProps?: SearchBarInputProps;
   ref?: Ref<HTMLDivElement>;
   className?: string;
   style?: CSSProperties;
@@ -152,6 +190,7 @@ export function SearchBar(props: SearchBarProps) {
     resultsAnnouncement,
     children,
     inputRef,
+    inputProps: consumerInputProps,
     ref,
     className,
     style,
@@ -223,16 +262,23 @@ export function SearchBar(props: SearchBarProps) {
     </SearchField>
   );
 
-  const inputProps = {
+  // The consumer's attributes replace the defaults; the bar's own keys always win, and
+  // `mergeProps` chains event handlers (the consumer's first).
+  const sharedInputProps = (handlers: ComponentProps<'input'>): ComponentProps<'input'> => ({
+    ...mergeProps(
+      { enterKeyHint: 'search', autoComplete: 'off', spellCheck: false },
+      consumerInputProps,
+      handlers,
+    ),
+    id: undefined,
+    name: undefined,
+    role: undefined,
     type: 'search',
-    enterKeyHint: 'search' as const,
-    autoComplete: 'off',
-    spellCheck: false,
     value: query,
     placeholder,
     'aria-label': label,
     'aria-labelledby': label == null ? labelledBy : undefined,
-  };
+  });
   const inputClass = (align: 'start' | 'center') =>
     searchBarStyles({
       hasLeading: leading != null,
@@ -259,7 +305,22 @@ export function SearchBar(props: SearchBarProps) {
     >
       {field(
         <input
-          {...inputProps}
+          {...sharedInputProps({
+            onChange: (event: ChangeEvent<HTMLInputElement>) => {
+              const next = event.target.value;
+              // Compose expands the bar as the user types into it.
+              if (next.length > query.length) state.open();
+              setQuery(next);
+            },
+            onClick: state.open,
+            onKeyDown: (event) => {
+              submitOnEnter(event);
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                state.open();
+              }
+            },
+          })}
           className={inputClass(textAlign)}
           // The consumer's `inputRef` follows whichever input is live.
           ref={isPresent ? undefined : inputRef}
@@ -269,20 +330,6 @@ export function SearchBar(props: SearchBarProps) {
           role="combobox"
           aria-expanded={state.isOpen}
           aria-haspopup="dialog"
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            const next = event.target.value;
-            // Compose expands the bar as the user types into it.
-            if (next.length > query.length) state.open();
-            setQuery(next);
-          }}
-          onClick={state.open}
-          onKeyDown={(event) => {
-            submitOnEnter(event);
-            if (event.key === 'ArrowDown') {
-              event.preventDefault();
-              state.open();
-            }
-          }}
         />,
         collapsedTone,
       )}
@@ -302,25 +349,26 @@ export function SearchBar(props: SearchBarProps) {
             field={(contentRef) =>
               field(
                 <ExpandedInput
-                  {...inputProps}
+                  {...sharedInputProps({
+                    onChange: (event) => setQuery(event.target.value),
+                    onKeyDown: (event) => {
+                      // M3: once results are queried, the query stays visible but not
+                      // focused; focus moves to the results.
+                      if (submitOnEnter(event)) {
+                        contentRef.current?.focus();
+                        return;
+                      }
+                      if (event.key === 'ArrowDown') {
+                        const first = contentRef.current?.querySelector<HTMLElement>(FOCUSABLE);
+                        if (first) {
+                          event.preventDefault();
+                          first.focus();
+                        }
+                      }
+                    },
+                  })}
                   className={inputClass('start')}
                   inputRef={inputRef}
-                  onChange={(event) => setQuery(event.target.value)}
-                  onKeyDown={(event) => {
-                    // M3: once results are queried, the query stays visible but not
-                    // focused; focus moves to the results.
-                    if (submitOnEnter(event)) {
-                      contentRef.current?.focus();
-                      return;
-                    }
-                    if (event.key === 'ArrowDown') {
-                      const first = contentRef.current?.querySelector<HTMLElement>(FOCUSABLE);
-                      if (first) {
-                        event.preventDefault();
-                        first.focus();
-                      }
-                    }
-                  }}
                 />,
                 'default',
               )

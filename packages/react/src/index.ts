@@ -396,6 +396,7 @@ export {
   SearchBar,
   type SearchBarClassNames,
   type SearchBarIconState,
+  type SearchBarInputProps,
   type SearchBarProps,
 } from './components/search/SearchBar';
 export {
