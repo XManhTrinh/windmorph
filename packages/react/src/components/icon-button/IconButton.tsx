@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, type ReactElement } from 'react';
+import { useContext, useEffect, useMemo, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -13,6 +13,7 @@ import { cn } from '../../utils/cn';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
+import { TriggerContext, type TriggerContextValue } from '../../primitives/TriggerContext';
 import { Tooltip, TooltipTrigger, useInTooltipTrigger } from '../tooltip/Tooltip';
 import {
   iconButtonStyles,
@@ -49,7 +50,8 @@ interface IconButtonOwnProps {
   icon: ReactElement;
   /**
    * Shows the `aria-label` in a plain tooltip on hover and keyboard focus, as M3 asks of
-   * icon buttons on the web. It steps aside when the button is already inside a
+   * icon buttons on the web. The tooltip only repeats the name, so it isn't linked as a
+   * description (no double announcement). It steps aside when the button is already inside a
    * `TooltipTrigger` or `RichTooltipTrigger`, and when it's named by `aria-labelledby`.
    * @default true
    */
@@ -153,8 +155,24 @@ export function IconButton(props: IconButtonProps) {
   if (!tooltip || inTooltipTrigger || !label || base['aria-labelledby']) return button;
   return (
     <TooltipTrigger>
-      {button}
+      <WithoutDescription>{button}</WithoutDescription>
       <Tooltip>{label}</Tooltip>
     </TooltipTrigger>
   );
+}
+
+/**
+ * The built-in tooltip repeats the button's name, so it isn't linked as a description:
+ * screen readers would announce the name twice ("Search, button, Search"). The tooltip
+ * still shows; only `aria-describedby` from the enclosing trigger is dropped (2026-10-13).
+ */
+function WithoutDescription({ children }: { children: ReactNode }) {
+  const trigger = useContext(TriggerContext);
+  const value = useMemo(() => {
+    if (!trigger) return null;
+    const own: Record<string, unknown> = { ...trigger };
+    delete own['aria-describedby'];
+    return own as TriggerContextValue;
+  }, [trigger]);
+  return <TriggerContext value={value}>{children}</TriggerContext>;
 }

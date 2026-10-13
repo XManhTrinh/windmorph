@@ -138,3 +138,14 @@ test.describe('IconButton disabled outlines (2026-10-13)', () => {
     expect(await border('Starred')).toBe('rgba(0, 0, 0, 0)');
   });
 });
+
+test.describe('IconButton tooltip announcement (2026-10-13)', () => {
+  test('the tooltip shows but does not describe the button it names', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--playground', {}, { size: 'md' });
+    const button = page.getByRole('button', { name: 'Search' });
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 4 });
+    await expect(page.getByRole('tooltip')).toHaveText('Search');
+    await expect(button).not.toHaveAttribute('aria-describedby');
+  });
+});
