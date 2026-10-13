@@ -158,7 +158,12 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               Selected toggles: standard turns <InlineCode>primary</InlineCode>, filled{' '}
               <InlineCode>primary</InlineCode>/<InlineCode>on-primary</InlineCode>, tonal{' '}
               <InlineCode>secondary</InlineCode>/<InlineCode>on-secondary</InlineCode>, outlined
-              inverse-surface with no border; shape swaps round ↔ square.
+              inverse-surface with no border, disabled or not; shape swaps round ↔ square.
+            </li>
+            <li>
+              A disabled outlined icon button&apos;s outline dims to{' '}
+              <InlineCode>outline-variant</InlineCode> at 10%, the same as a disabled outlined
+              button (Compose&apos;s code draws it at 38% of the content colour).
             </li>
             <li>
               Reads <InlineCode>size</InlineCode> / <InlineCode>shape</InlineCode> /{' '}

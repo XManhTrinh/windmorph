@@ -122,3 +122,19 @@ test.describe('IconButton layout safety', () => {
     radius: '20px',
   });
 });
+
+test.describe('IconButton disabled outlines (2026-10-13)', () => {
+  test('a disabled outline dims to 10%, and a selected toggle has none', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--disabled');
+    const row = page.getByTestId('disabled').locator('> div').nth(2);
+    const border = (name: string) =>
+      row
+        .getByRole('button', { name, exact: true })
+        .evaluate((el) => getComputedStyle(el).borderTopColor);
+    // outline-variant at 10% alpha, for a plain button and an unselected toggle.
+    for (const name of ['Search', 'Star']) {
+      expect(await border(name)).toMatch(/(, 0\.1\)|\/ 0\.1\))$/);
+    }
+    expect(await border('Starred')).toBe('rgba(0, 0, 0, 0)');
+  });
+});

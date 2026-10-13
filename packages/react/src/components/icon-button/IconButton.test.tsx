@@ -251,4 +251,27 @@ describe('IconButton toggle', () => {
     );
     expect(screen.getByRole('button')).toHaveClass('data-selected:not-data-disabled:text-primary');
   });
+
+  it('dims a disabled outline and drops the outline of a selected outlined toggle', () => {
+    render(
+      <>
+        <IconButton variant="outlined" disabled icon={<Star />} aria-label="Off" />
+        <IconButton
+          toggle
+          variant="outlined"
+          defaultSelected
+          disabled
+          icon={<Star />}
+          aria-label="Selected off"
+        />
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Off' })).toHaveClass(
+      'data-disabled:not-data-selected:border-outline-variant/10',
+    );
+    const selected = screen.getByRole('button', { name: 'Selected off' });
+    expect(selected).toHaveAttribute('data-selected');
+    expect(selected).toHaveClass('data-selected:border-transparent');
+    expect(selected.className).not.toMatch(/not-data-disabled:border-transparent/);
+  });
 });
