@@ -53,7 +53,7 @@ export const badgedBoxStyles = tv({
     hang: [
       'col-start-1 row-start-1 flex size-0 items-end self-start justify-self-start',
       'ms-[calc(100%-6px)] mt-[6px]',
-      'has-[>[data-size=large]]:ms-[calc(100%-12px)] has-[>[data-size=large]]:mt-[14px]',
+      'has-[[data-size=large]]:ms-[calc(100%-12px)] has-[[data-size=large]]:mt-[14px]',
     ],
   },
 });

@@ -122,8 +122,8 @@ describe('BadgedBox', () => {
     const hang = screen.getByTestId('box').lastElementChild!;
     expect(hang.firstElementChild).toHaveAttribute('data-size', 'large');
     expect(hang).toHaveClass(
-      'has-[>[data-size=large]]:ms-[calc(100%-12px)]',
-      'has-[>[data-size=large]]:mt-[14px]',
+      'has-[[data-size=large]]:ms-[calc(100%-12px)]',
+      'has-[[data-size=large]]:mt-[14px]',
     );
   });
 });
