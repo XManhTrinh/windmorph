@@ -78,7 +78,9 @@ export default async function MotionPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Try it</h2>
+        <h2 id="try-it" className="text-headline-small text-on-surface">
+          Try it
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           The box below springs with the fast spatial spring. In the expressive scheme it
           overshoots; switch the top-bar motion toggle to standard (or enable{' '}
@@ -89,7 +91,9 @@ export default async function MotionPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Schemes, families &amp; speeds</h2>
+        <h2 id="schemes-families-and-speeds" className="text-headline-small text-on-surface">
+          Schemes, families &amp; speeds
+        </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Schemes</span> — <InlineCode>expressive</InlineCode>{' '}
@@ -110,7 +114,9 @@ export default async function MotionPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Spring tokens</h2>
+        <h2 id="spring-tokens" className="text-headline-small text-on-surface">
+          Spring tokens
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Compose springs, given as damping ratio / stiffness (mass 1). Motion’s damping coefficient
           is derived as <InlineCode>2 · dampingRatio · √stiffness</InlineCode>.
@@ -165,7 +171,9 @@ export default async function MotionPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Using springs</h2>
+        <h2 id="using-springs" className="text-headline-small text-on-surface">
+          Using springs
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           In JS, <InlineCode>useM3Spring(family, speed)</InlineCode> returns a Motion spring for the
           active scheme (read from <InlineCode>useThemeScope</InlineCode>);{' '}
@@ -183,7 +191,9 @@ export default async function MotionPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Reduced motion</h2>
+        <h2 id="reduced-motion" className="text-headline-small text-on-surface">
+          Reduced motion
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>useM3Spring</InlineCode> forces the <InlineCode>standard</InlineCode> scheme
           when <InlineCode>prefers-reduced-motion</InlineCode> is set (via Motion’s{' '}
@@ -193,7 +203,9 @@ export default async function MotionPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Legacy tokens</h2>
+        <h2 id="legacy-tokens" className="text-headline-small text-on-surface">
+          Legacy tokens
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           For consumers migrating from baseline M3, legacy durations (
           <InlineCode>short-1</InlineCode> = 50ms … <InlineCode>extra-long-4</InlineCode> = 1000ms,

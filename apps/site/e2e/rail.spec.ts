@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
 test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/getting-started');
+    await page.goto('/components');
   });
 
   test('hover opens the Actions panel and reveals its component links', async ({ page }) => {
@@ -144,10 +144,10 @@ test.describe('Pinned second menu on component pages', () => {
       'data-current',
       'true',
     );
-    // Content is pushed right of the rail (96) + panel (232) = 328px.
+    // Content is pushed right of the rail (96) + panel (256) = 352px.
     const main = page.locator('#main-content');
     const mainBox = await main.boundingBox();
-    expect(mainBox!.x).toBeGreaterThanOrEqual(324);
+    expect(mainBox!.x).toBeGreaterThanOrEqual(348);
   });
 
   test('hovering another group previews it, then reverts to the pinned group on leave', async ({
@@ -200,7 +200,10 @@ test.describe('Navigation rail under RTL', () => {
   test('rail is on the right edge and the panel sits flush to its inline-end', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
-    await page.getByRole('button', { name: 'Display settings' }).click();
+    await page
+      .getByRole('navigation', { name: 'Components and settings' })
+      .getByRole('button', { name: 'Display settings' })
+      .click();
     const sheet = page.getByRole('dialog', { name: 'Display' });
     await sheet.getByText('Right to left').click();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
@@ -217,5 +220,41 @@ test.describe('Navigation rail under RTL', () => {
     await expect(flyout).toBeVisible();
     const flyoutBox = await flyout.boundingBox();
     expect(Math.abs(flyoutBox!.x + flyoutBox!.width - railBox!.x)).toBeLessThanOrEqual(1);
+  });
+});
+
+/** The Guides destination: the six guides, pinned on a guide page like a component group. */
+test.describe('Guides in the rail', () => {
+  test('lists the guides and pins them on a guide page', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/theming');
+    const trigger = page.getByRole('link', { name: 'Guides', exact: true });
+    await expect(trigger).toHaveAttribute('data-current', 'true');
+    await expect(trigger).toHaveAttribute('href', '/getting-started');
+    const flyout = page.getByRole('navigation', { name: 'Guides' });
+    await expect(flyout).toBeVisible();
+    await expect(flyout.getByRole('link')).toHaveText([
+      'Getting Started',
+      'Theming',
+      'Customisation',
+      'Motion',
+      'Accessibility',
+      'Next.js',
+    ]);
+    await expect(flyout.getByRole('link', { name: 'Theming' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await flyout.getByRole('link', { name: 'Motion' }).click();
+    await expect(page).toHaveURL(/\/motion$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Motion');
+  });
+
+  test('the top bar keeps only the search', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/theming');
+    const bar = page.locator('header:visible').first();
+    await expect(bar.getByRole('combobox', { name: 'Search documentation' })).toBeVisible();
+    await expect(bar.getByRole('link')).toHaveCount(0);
   });
 });

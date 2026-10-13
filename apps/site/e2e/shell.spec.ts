@@ -69,10 +69,61 @@ test.describe('Docs shell', () => {
     await expect(page).toHaveURL(/\/components\/menu$/);
   });
 
+  test('search opens a component on the tab the query asks for', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/getting-started');
+    await page.getByRole('combobox', { name: 'Search documentation' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Search documentation' });
+    await dialog.getByRole('searchbox').fill('slider keyboard');
+    await dialog.getByRole('row', { name: /^Slider: Accessibility/ }).click();
+    await expect(page).toHaveURL(/\/components\/slider\/accessibility$/);
+    await expect(page.getByRole('tab', { name: 'Accessibility' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
+  test('the skip link moves focus to the page content', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/theming');
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: 'Skip to content' });
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeVisible();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#main-content')).toBeFocused();
+  });
+
+  test('the outline lists the sections and marks the one being read', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/getting-started');
+    const outline = page.getByRole('navigation', { name: 'On this page' });
+    await expect(outline.getByRole('link').first()).toHaveText('Install');
+    await expect(outline.getByRole('link', { name: 'Install' })).toHaveAttribute(
+      'aria-current',
+      'location',
+    );
+    await outline.getByRole('link', { name: 'Icons' }).click();
+    await expect(page).toHaveURL(/#icons$/);
+    await expect(outline.getByRole('link', { name: 'Icons' })).toHaveAttribute(
+      'aria-current',
+      'location',
+    );
+  });
+
+  test('the outline is hidden on small windows', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/getting-started');
+    await expect(page.getByRole('navigation', { name: 'On this page' })).toBeHidden();
+  });
+
   test('display settings switch the mode and the direction, which persists', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
-    await page.getByRole('button', { name: 'Display settings' }).click();
+    await page
+      .getByRole('navigation', { name: 'Components and settings' })
+      .getByRole('button', { name: 'Display settings' })
+      .click();
     const sheet = page.getByRole('dialog', { name: 'Display' });
     await sheet.getByRole('radio', { name: 'Dark' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');

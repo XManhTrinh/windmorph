@@ -110,7 +110,7 @@ function AccordionSection({
                   onNavigate={onNavigate}
                   chips={
                     page.expressive || page.pro ? (
-                      <PageChips expressive={page.expressive} pro={page.pro} compact />
+                      <PageChips expressive={page.expressive} pro={page.pro} />
                     ) : undefined
                   }
                 >

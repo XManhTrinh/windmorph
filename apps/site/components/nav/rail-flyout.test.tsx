@@ -1,18 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { RAIL_GROUP_MAP } from '../../content/components/catalog';
 import { axeViolations } from '../../test/axe';
+import { RAIL_DESTINATIONS } from './docs-rail';
 import { GroupTrigger, RailFlyout } from './rail-flyout';
 
-const actions = RAIL_GROUP_MAP.actions;
+const actions = RAIL_DESTINATIONS.actions;
 const noop = () => {};
 
 describe('GroupTrigger', () => {
   it('is a link to the group\u2019s first page with disclosure ARIA and visual-only current', () => {
     render(
       <GroupTrigger
-        group={actions}
+        destination={actions}
         icon={<svg aria-hidden="true" />}
         open={false}
         current
@@ -38,7 +38,7 @@ describe('GroupTrigger', () => {
     const onFocusOpen = vi.fn();
     render(
       <GroupTrigger
-        group={actions}
+        destination={actions}
         icon={<svg aria-hidden="true" />}
         open
         current={false}
@@ -61,7 +61,8 @@ describe('RailFlyout', () => {
     render(
       <RailFlyout
         id="fly-actions"
-        group={actions}
+        destination={actions}
+        destinationKey="actions"
         open
         pathname="/components/icon-button"
         onNavigate={noop}
@@ -84,7 +85,8 @@ describe('RailFlyout', () => {
     render(
       <RailFlyout
         id="fly-actions"
-        group={actions}
+        destination={actions}
+        destinationKey="actions"
         open
         pathname="/components/button"
         onNavigate={onNavigate}
@@ -102,7 +104,8 @@ describe('RailFlyout', () => {
     const { container } = render(
       <RailFlyout
         id="fly-actions"
-        group={actions}
+        destination={actions}
+        destinationKey="actions"
         open
         pathname="/components/button"
         onNavigate={noop}
@@ -111,5 +114,25 @@ describe('RailFlyout', () => {
       />,
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('Guides destination', () => {
+  it('lists the six guides and marks the current one', () => {
+    render(
+      <RailFlyout
+        id="fly-guides"
+        destination={RAIL_DESTINATIONS.guides}
+        destinationKey="guides"
+        open
+        pathname="/theming"
+        onNavigate={noop}
+        onPointerEnter={noop}
+        onPointerLeave={noop}
+      />,
+    );
+    const nav = screen.getByRole('navigation', { name: 'Guides' });
+    expect(nav.querySelectorAll('a')).toHaveLength(6);
+    expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('Theming');
   });
 });

@@ -65,7 +65,9 @@ export default async function CustomisationPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">The override ladder</h2>
+        <h2 id="the-override-ladder" className="text-headline-small text-on-surface">
+          The override ladder
+        </h2>
         <ol className="list-decimal ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
@@ -111,7 +113,9 @@ export default async function CustomisationPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">className &amp; classNames</h2>
+        <h2 id="classname-and-classnames" className="text-headline-small text-on-surface">
+          className &amp; classNames
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Every component takes <InlineCode>className</InlineCode> for the root and{' '}
           <InlineCode>classNames</InlineCode> for its named slots (for example a button’s{' '}
@@ -123,7 +127,9 @@ export default async function CustomisationPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Extending variants</h2>
+        <h2 id="extending-variants" className="text-headline-small text-on-surface">
+          Extending variants
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Each component exports its variant recipe as a <InlineCode>*Styles</InlineCode> definition
           — <InlineCode>buttonStyles</InlineCode>, <InlineCode>iconButtonStyles</InlineCode>,{' '}
@@ -137,7 +143,9 @@ export default async function CustomisationPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Why the consumer wins: cn()</h2>
+        <h2 id="why-the-consumer-wins-cn" className="text-headline-small text-on-surface">
+          Why the consumer wins: cn()
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>cn()</InlineCode> is <InlineCode>tailwind-merge</InlineCode> extended with the
           library’s theme keys — colour roles, type roles, <InlineCode>corner-*</InlineCode> radii,{' '}
@@ -150,7 +158,9 @@ export default async function CustomisationPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Layout safety</h2>
+        <h2 id="layout-safety" className="text-headline-small text-on-surface">
+          Layout safety
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           A component’s internals never depend on the root’s <InlineCode>position</InlineCode>,{' '}
           <InlineCode>overflow</InlineCode>, <InlineCode>display</InlineCode> or{' '}

@@ -4,14 +4,57 @@ import { NavigationRail } from '@windmorph/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { DOCS_SECTIONS } from '../../app/(docs)/sections';
 import {
   COMPONENT_META_MAP,
   RAIL_GROUPS,
-  RAIL_GROUP_MAP,
+  pagesInRailGroup,
   type RailGroupId,
 } from '../../content/components/catalog';
+import { MenuBookIcon } from '../icons';
 import { GROUP_ICONS } from './group-icons';
-import { GroupTrigger, RailFlyout } from './rail-flyout';
+import { GroupTrigger, RailFlyout, type RailDestination } from './rail-flyout';
+
+/** A rail destination's id: the guides, or a component group. */
+type DestinationId = 'guides' | RailGroupId;
+
+/** The rail's destinations, top to bottom: the guides, then the component groups. */
+const DESTINATIONS: { id: DestinationId; icon: ReactNode; destination: RailDestination }[] = [
+  {
+    id: 'guides',
+    icon: <MenuBookIcon />,
+    destination: {
+      railLabel: 'Guides',
+      fullName: 'Guides',
+      href: DOCS_SECTIONS[0]!.href,
+      links: DOCS_SECTIONS.map((section) => ({ href: section.href, title: section.label })),
+    },
+  },
+  ...RAIL_GROUPS.map((group) => {
+    const pages = pagesInRailGroup(group.id);
+    return {
+      id: group.id,
+      icon: GROUP_ICONS[group.id],
+      destination: {
+        railLabel: group.railLabel,
+        fullName: group.fullName,
+        // The registry is the single source of truth for the group's first page.
+        href: pages.length > 0 ? `/components/${pages[0]!.slug}` : '/components',
+        links: pages.map((page) => ({
+          href: `/components/${page.slug}`,
+          title: page.title,
+          expressive: page.expressive,
+          pro: page.pro,
+        })),
+      },
+    };
+  }),
+];
+
+/** The destinations keyed by id. */
+export const RAIL_DESTINATIONS = Object.fromEntries(
+  DESTINATIONS.map((entry) => [entry.id, entry.destination]),
+) as Record<DestinationId, RailDestination>;
 
 /**
  * Hover-intent timing. A short OPEN delay means briefly passing the pointer over adjacent
@@ -25,18 +68,21 @@ import { GroupTrigger, RailFlyout } from './rail-flyout';
 const OPEN_DELAY = 60;
 const CLOSE_DELAY = 250;
 
-function currentRailGroup(pathname: string): RailGroupId | null {
+/** The destination a page belongs to: a guide, or a component page's group. */
+export function currentDestination(pathname: string): DestinationId | null {
+  if (DOCS_SECTIONS.some((section) => pathname === section.href)) return 'guides';
   const match = pathname.match(/^\/components\/([^/]+)/);
   if (!match) return null;
   return COMPONENT_META_MAP[match[1]!]?.railGroup ?? null;
 }
 
 /**
- * The medium+ left navigation rail: a Home squircle, one navigable group trigger per rail
- * group (each links to the group's first page AND opens a secondary flyout of component
- * links), and the display-settings trigger pinned at the bottom.
+ * The medium+ left navigation rail: a Home squircle, a Guides destination, one navigable
+ * group trigger per component group (each links to its first page AND opens a secondary
+ * flyout of its links), and the display-settings trigger pinned at the bottom.
  *
- * On a component DETAIL page the flyout is a PERMANENT secondary pane for the active group
+ * On a guide or a component DETAIL page the flyout is a PERMANENT secondary pane for the
+ * active destination
  * (`pinned`); the shell insets content past it. On every other page the flyout is a
  * transient hover/focus overlay. In both cases hovering another group previews it (after the
  * open delay) and leaving reverts to the active/pinned group (after the close delay). Owns
@@ -44,25 +90,25 @@ function currentRailGroup(pathname: string): RailGroupId | null {
  */
 export function DocsRail({ settings }: { settings: ReactNode }) {
   const pathname = usePathname();
-  const current = currentRailGroup(pathname);
+  const current = currentDestination(pathname);
   const pinned = current !== null;
   const baseId = useId();
-  const [openGroup, setOpenGroup] = useState<RailGroupId | null>(null);
+  const [openGroup, setOpenGroup] = useState<DestinationId | null>(null);
   const openTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const triggerRefs = useRef<Partial<Record<RailGroupId, HTMLAnchorElement | null>>>({});
+  const triggerRefs = useRef<Partial<Record<DestinationId, HTMLAnchorElement | null>>>({});
 
   // On a detail page the panel defaults to the active group; a hover/focus preview overrides it.
   const displayedGroup = openGroup ?? current;
   const open = displayedGroup !== null;
-  const flyoutId = (id: RailGroupId) => `${baseId}-flyout-${id}`;
+  const flyoutId = (id: DestinationId) => `${baseId}-flyout-${id}`;
 
   // The panel is ALWAYS mounted (closed = inert, width 0) so that every open/close runs the
   // same `data-open` width transition — the first hover after load animates identically to
   // every later one (no `@starting-style` first-mount special case). It keeps showing the
   // last group's content while it closes, updating only to a new non-null group.
-  const [shownGroup, setShownGroup] = useState<RailGroupId>(
-    () => displayedGroup ?? RAIL_GROUPS[0]!.id,
+  const [shownGroup, setShownGroup] = useState<DestinationId>(
+    () => displayedGroup ?? DESTINATIONS[0]!.id,
   );
   if (displayedGroup !== null && displayedGroup !== shownGroup) {
     setShownGroup(displayedGroup);
@@ -84,7 +130,7 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
 
   // Pointer hover: open/switch after the intent delay; a pending open replaces any earlier one.
   const hoverOpen = useCallback(
-    (id: RailGroupId) => {
+    (id: DestinationId) => {
       clearCloseTimer();
       clearOpenTimer();
       openTimer.current = setTimeout(() => setOpenGroup(id), OPEN_DELAY);
@@ -94,7 +140,7 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
 
   // Keyboard focus: open immediately (no hover delay).
   const focusOpen = useCallback(
-    (id: RailGroupId) => {
+    (id: DestinationId) => {
       clearCloseTimer();
       clearOpenTimer();
       setOpenGroup(id);
@@ -183,19 +229,19 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
 
         {/* Middle zone: the scrollable group destinations, with M3 rail item rhythm. */}
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-          {RAIL_GROUPS.map((group) => (
+          {DESTINATIONS.map(({ id, icon, destination }) => (
             <GroupTrigger
-              key={group.id}
-              group={group}
-              icon={GROUP_ICONS[group.id]}
-              open={displayedGroup === group.id}
-              current={current === group.id}
-              flyoutId={flyoutId(group.id)}
+              key={id}
+              destination={destination}
+              icon={icon}
+              open={displayedGroup === id}
+              current={current === id}
+              flyoutId={flyoutId(id)}
               triggerRef={(node) => {
-                triggerRefs.current[group.id] = node;
+                triggerRefs.current[id] = node;
               }}
-              onPointerOpen={() => hoverOpen(group.id)}
-              onFocusOpen={() => focusOpen(group.id)}
+              onPointerOpen={() => hoverOpen(id)}
+              onFocusOpen={() => focusOpen(id)}
               onPointerLeave={scheduleClose}
             />
           ))}
@@ -210,7 +256,8 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
           transition — no first-mount `@starting-style` special case. */}
       <RailFlyout
         id={flyoutId(shownGroup)}
-        group={RAIL_GROUP_MAP[shownGroup]}
+        destination={RAIL_DESTINATIONS[shownGroup]}
+        destinationKey={shownGroup}
         open={open}
         pinned={pinned}
         pathname={pathname}

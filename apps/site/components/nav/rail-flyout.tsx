@@ -2,11 +2,29 @@
 
 import Link from 'next/link';
 import type { PointerEvent, ReactNode, Ref } from 'react';
-import { pagesInRailGroup, type RailGroup } from '../../content/components/catalog';
 import { PageChips } from '../page-chips';
 
+/** A rail destination: a guide list or a component group. */
+export interface RailDestination {
+  /** ONE WORD — the rail label, also the flyout's small heading. */
+  railLabel: string;
+  /** The flyout's accessible name. */
+  fullName: string;
+  /** Where the trigger itself goes: the first link. */
+  href: string;
+  links: RailLink[];
+}
+
+/** A link in a rail flyout, with the chips its page carries. */
+export interface RailLink {
+  href: string;
+  title: string;
+  expressive?: boolean;
+  pro?: boolean;
+}
+
 export interface GroupTriggerProps {
-  group: RailGroup;
+  destination: RailDestination;
   icon: ReactNode;
   /** Whether this group's flyout is open. */
   open: boolean;
@@ -25,14 +43,14 @@ export interface GroupTriggerProps {
 
 /**
  * A rail group trigger — a site-owned anchor styled with the nav-item token language. It
- * NAVIGATES to the first component page in its group (so it works with the keyboard,
+ * NAVIGATES to the first page of its destination (so it works with the keyboard,
  * middle-click / open-in-new-tab and no-JS), while hover/focus OPENS the group's flyout.
  * It still controls the panel (`aria-expanded`/`aria-controls`) and reads as current
  * (`data-current`) when any page in the group is active — a group link, never "the current
  * page", so it carries no `aria-current`.
  */
 export function GroupTrigger({
-  group,
+  destination,
   icon,
   open,
   current,
@@ -42,13 +60,10 @@ export function GroupTrigger({
   onFocusOpen,
   onPointerLeave,
 }: GroupTriggerProps) {
-  const pages = pagesInRailGroup(group.id);
-  // The registry is the single source of truth for the group's first page.
-  const href = pages.length > 0 ? `/components/${pages[0]!.slug}` : '/components';
   return (
     <Link
       ref={triggerRef}
-      href={href}
+      href={destination.href}
       aria-expanded={open}
       aria-controls={open ? flyoutId : undefined}
       data-current={current ? 'true' : undefined}
@@ -74,7 +89,7 @@ export function GroupTrigger({
         </span>
       </span>
       <span className="mt-[4px] max-w-full truncate text-center text-label-medium text-on-surface-variant transition-colors duration-200 group-hover/trigger:text-secondary group-focus-visible/trigger:text-secondary group-data-[current=true]/trigger:text-secondary group-data-[open=true]/trigger:text-secondary motion-reduce:transition-none">
-        {group.railLabel}
+        {destination.railLabel}
       </span>
     </Link>
   );
@@ -82,8 +97,10 @@ export function GroupTrigger({
 
 export interface RailFlyoutProps {
   id?: string;
-  /** The group whose links to show. `null` before any group has been opened. */
-  group: RailGroup | null;
+  /** The destination whose links to show, keyed by `destinationKey` for the fade. */
+  destination: RailDestination;
+  /** Changes when another destination's links show, re-running their fade-in. */
+  destinationKey: string;
   pathname: string;
   /** Whether the panel is open (slid in). The panel stays mounted so close animates too. */
   open: boolean;
@@ -112,7 +129,8 @@ export interface RailFlyoutProps {
  */
 export function RailFlyout({
   id,
-  group,
+  destination,
+  destinationKey,
   pathname,
   open,
   pinned = false,
@@ -121,59 +139,57 @@ export function RailFlyout({
   onPointerEnter,
   onPointerLeave,
 }: RailFlyoutProps) {
-  const pages = group ? pagesInRailGroup(group.id) : [];
   return (
     <nav
       ref={flyoutRef}
       id={id}
-      aria-label={group?.fullName}
+      aria-label={destination.fullName}
       data-open={open ? 'true' : 'false'}
       data-pinned={pinned ? 'true' : undefined}
       // Closed: removed from tab order and the a11y tree while it slides away.
       inert={!open ? true : undefined}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
-      className="absolute top-0 start-full z-20 flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-e-corner-large bg-surface-container shadow-[2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] transition-[width,opacity] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] will-change-[width] rtl:shadow-[-2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] motion-reduce:transition-none data-[open=false]:pointer-events-none data-[open=false]:w-0 data-[open=false]:opacity-0 data-[open=false]:duration-[var(--md-sys-motion-spring-spatial-fast-duration)] data-[open=false]:ease-[var(--md-sys-motion-spring-spatial-fast-easing)] data-[open=true]:w-58 data-[open=true]:opacity-100"
+      className="absolute top-0 start-full z-20 flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-e-corner-large bg-surface-container shadow-[2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] transition-[width,opacity] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] will-change-[width] rtl:shadow-[-2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] motion-reduce:transition-none data-[open=false]:pointer-events-none data-[open=false]:w-0 data-[open=false]:opacity-0 data-[open=false]:duration-[var(--md-sys-motion-spring-spatial-fast-duration)] data-[open=false]:ease-[var(--md-sys-motion-spring-spatial-fast-easing)] data-[open=true]:w-64 data-[open=true]:opacity-100"
     >
       {/* 1px divider on the inline-START (rail) edge — an element, not a panel border. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 start-0 w-px bg-outline-variant"
       />
-      {group && (
-        // Fixed 232px width (room for every name beside its chip) so the content doesn't reflow while the panel's width animates —
-        // it's revealed from the rail edge under overflow-x-hidden (no seam). Keyed by group
-        // so the content re-runs a quick fade on group switch. Snaps under reduced motion.
-        <div
-          key={group.id}
-          className="flex w-58 shrink-0 flex-col will-change-[opacity] motion-safe:animate-[drawer-fade-in_150ms_ease-out]"
-        >
-          <p className="px-4 pt-5 pb-3 text-label-small uppercase text-on-surface-variant">
-            {group.railLabel}
-          </p>
-          <ul className="flex flex-col gap-0.5 px-2 pb-3">
-            {pages.map((page) => {
-              const href = `/components/${page.slug}`;
-              const active = pathname === href || pathname.startsWith(`${href}/`);
-              return (
-                <li key={page.slug}>
-                  <Link
-                    href={href}
-                    aria-current={active ? 'page' : undefined}
-                    onClick={onNavigate}
-                    // Compact chips sit at the end of the row, where M3's navigation drawer
-                    // puts a badge label.
-                    className="flex items-center gap-2 rounded-corner-full px-3 py-2.5 text-body-medium text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary aria-[current=page]:bg-secondary-container aria-[current=page]:text-body-medium-emphasized aria-[current=page]:text-on-secondary-container motion-reduce:transition-none"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{page.title}</span>
-                    <PageChips expressive={page.expressive} pro={page.pro} compact />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      {/* Fixed 256px width (room for every name beside its chip) so the content doesn't reflow
+          while the panel's width animates — it's revealed from the rail edge under
+          overflow-x-hidden (no seam). Keyed by destination so the content re-runs a quick fade
+          on a switch. Snaps under reduced motion. */}
+      <div
+        key={destinationKey}
+        className="flex w-64 shrink-0 flex-col will-change-[opacity] motion-safe:animate-[drawer-fade-in_150ms_ease-out]"
+      >
+        <p className="px-4 pt-5 pb-3 text-label-small uppercase text-on-surface-variant">
+          {destination.railLabel}
+        </p>
+        <ul className="flex flex-col gap-0.5 px-2 pb-3">
+          {destination.links.map((page) => {
+            const href = page.href;
+            const active = pathname === href || pathname.startsWith(`${href}/`);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={onNavigate}
+                  // Compact chips sit at the end of the row, where M3's navigation drawer
+                  // puts a badge label.
+                  className="flex items-center gap-2 rounded-corner-full px-3 py-2.5 text-body-medium text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary aria-[current=page]:bg-secondary-container aria-[current=page]:text-body-medium-emphasized aria-[current=page]:text-on-secondary-container motion-reduce:transition-none"
+                >
+                  <span className="min-w-0 flex-1 truncate">{page.title}</span>
+                  <PageChips expressive={page.expressive} pro={page.pro} />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }

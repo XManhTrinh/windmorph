@@ -107,7 +107,9 @@ export default async function NextjsPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">The /next export surface</h2>
+        <h2 id="the-next-export-surface" className="text-headline-small text-on-surface">
+          The /next export surface
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>@windmorph/react/next</InlineCode> exports{' '}
           <InlineCode>getThemeFromCookies</InlineCode> (with <InlineCode>CookieReader</InlineCode>{' '}
@@ -123,7 +125,9 @@ export default async function NextjsPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">App Router (cookie, no flash)</h2>
+        <h2 id="app-router-cookie-no-flash" className="text-headline-small text-on-surface">
+          App Router (cookie, no flash)
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           With a server you can read the theme cookie and render the right{' '}
           <InlineCode>data-*</InlineCode> attributes on <InlineCode>&lt;html&gt;</InlineCode> before
@@ -141,7 +145,9 @@ export default async function NextjsPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Pages Router (script, no flash)</h2>
+        <h2 id="pages-router-script-no-flash" className="text-headline-small text-on-surface">
+          Pages Router (script, no flash)
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Render <InlineCode>ThemeScript</InlineCode> from <InlineCode>@windmorph/react</InlineCode>{' '}
           inside <InlineCode>&lt;Head&gt;</InlineCode> with{' '}
@@ -158,7 +164,9 @@ export default async function NextjsPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Server &amp; client boundaries</h2>
+        <h2 id="server-and-client-boundaries" className="text-headline-small text-on-surface">
+          Server &amp; client boundaries
+        </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
             Interactive component files ship with <InlineCode>&quot;use client&quot;</InlineCode>;
@@ -188,7 +196,9 @@ export default async function NextjsPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Leaving with unsaved changes</h2>
+        <h2 id="leaving-with-unsaved-changes" className="text-headline-small text-on-surface">
+          Leaving with unsaved changes
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>useNavigationGuard</InlineCode> asks before a page with unsaved changes is
           left. While <InlineCode>when</InlineCode> is true, library links inside{' '}
@@ -205,7 +215,9 @@ export default async function NextjsPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Static export (this site)</h2>
+        <h2 id="static-export-this-site" className="text-headline-small text-on-surface">
+          Static export (this site)
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           This documentation site uses <InlineCode>output: &apos;export&apos;</InlineCode>, so there
           is no server to read cookies. It therefore uses the <InlineCode>ThemeScript</InlineCode>{' '}

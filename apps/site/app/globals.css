@@ -35,3 +35,63 @@
     -webkit-box-decoration-break: clone;
   }
 }
+
+/* Section headings land below the sticky top bar when the outline (or a #link) jumps to them. */
+main :where(h2[id], h3[id]) {
+  scroll-margin-top: 5rem;
+}
+
+/* Page transitions: M3's shared axis (Y). The page content leaves upward as it fades out and
+   the next page rises in as it fades in, on the default spatial spring (movement) and the
+   default effects spring (fade); the rest of the window (rail, bars) stays still. Browsers
+   without view transitions simply swap the page. Off under reduced motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(.page-axis) {
+  animation-duration: var(--md-sys-motion-spring-spatial-default-duration);
+  animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
+}
+::view-transition-old(.page-axis) {
+  animation:
+    var(--md-sys-motion-spring-effects-fast-duration)
+      var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both page-rise-out;
+}
+::view-transition-new(.page-axis) {
+  animation:
+    var(--md-sys-motion-spring-effects-default-duration)
+      var(--md-sys-motion-spring-effects-default-easing)
+      var(--md-sys-motion-spring-effects-fast-duration) both page-fade-in,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
+}
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes page-rise-out {
+  to {
+    translate: 0 -30px;
+  }
+}
+@keyframes page-rise-in {
+  from {
+    translate: 0 30px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

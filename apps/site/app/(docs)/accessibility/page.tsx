@@ -75,7 +75,9 @@ export default async function AccessibilityPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Commitments</h2>
+        <h2 id="commitments" className="text-headline-small text-on-surface">
+          Commitments
+        </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>Keyboard operation and a visible focus indicator on every interactive element.</li>
           <li>
@@ -95,7 +97,9 @@ export default async function AccessibilityPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Focus rings</h2>
+        <h2 id="focus-rings" className="text-headline-small text-on-surface">
+          Focus rings
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Focus rings are a CSS <InlineCode>outline</InlineCode> with{' '}
           <InlineCode>outline-offset</InlineCode> (the <InlineCode>focus-ring</InlineCode> /{' '}
@@ -106,7 +110,9 @@ export default async function AccessibilityPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Names the types require</h2>
+        <h2 id="names-the-types-require" className="text-headline-small text-on-surface">
+          Names the types require
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           These components won’t type-check without an accessible name, so the requirement can’t be
           forgotten:
@@ -139,7 +145,9 @@ export default async function AccessibilityPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Keyboard behaviour</h2>
+        <h2 id="keyboard-behaviour" className="text-headline-small text-on-surface">
+          Keyboard behaviour
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           A per-family summary. Detailed per-component tables live on the individual component
           pages.
@@ -171,7 +179,9 @@ export default async function AccessibilityPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Right-to-left</h2>
+        <h2 id="right-to-left" className="text-headline-small text-on-surface">
+          Right-to-left
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Components use logical properties, so they mirror in RTL. React Aria, though, takes
           keyboard direction (arrow keys, <InlineCode>start</InlineCode> /{' '}

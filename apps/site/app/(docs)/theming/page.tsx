@@ -160,7 +160,9 @@ export default async function ThemingPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Try it</h2>
+        <h2 id="try-it" className="text-headline-small text-on-surface">
+          Try it
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           This live demo drives a <InlineCode>ThemeScope</InlineCode> around the preview card, so
           the controls re-theme the card without touching the rest of the page.
@@ -170,7 +172,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">The four dimensions</h2>
+        <h2 id="the-four-dimensions" className="text-headline-small text-on-surface">
+          The four dimensions
+        </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Theme</span> — six built-ins: baseline (the default,
@@ -205,7 +209,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">ThemeProvider</h2>
+        <h2 id="themeprovider" className="text-headline-small text-on-surface">
+          ThemeProvider
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Each dimension is controlled (<InlineCode>theme</InlineCode>/<InlineCode>mode</InlineCode>
           /<InlineCode>contrast</InlineCode>/<InlineCode>motion</InlineCode> with the matching{' '}
@@ -222,7 +228,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Reading &amp; scoping the theme</h2>
+        <h2 id="reading-and-scoping-the-theme" className="text-headline-small text-on-surface">
+          Reading &amp; scoping the theme
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>useTheme()</InlineCode> returns the current <InlineCode>theme</InlineCode>,{' '}
           <InlineCode>mode</InlineCode>, <InlineCode>contrast</InlineCode>,{' '}
@@ -242,7 +250,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Custom themes</h2>
+        <h2 id="custom-themes" className="text-headline-small text-on-surface">
+          Custom themes
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>createTheme()</InlineCode> generates a theme from a seed colour with the M3
           2025 colour spec. Pass the result in <InlineCode>ThemeProvider</InlineCode>’s{' '}
@@ -262,7 +272,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Mixing palettes</h2>
+        <h2 id="mixing-palettes" className="text-headline-small text-on-surface">
+          Mixing palettes
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           An M3 scheme is built from six tonal palettes, the core colours of Material Theme Builder:{' '}
           <InlineCode>primary</InlineCode>, <InlineCode>secondary</InlineCode>,{' '}
@@ -289,7 +301,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Success and warning</h2>
+        <h2 id="success-and-warning" className="text-headline-small text-on-surface">
+          Success and warning
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           M3 has no key colour for success or warning, so every theme adds them the way Material
           Theme Builder makes custom colours: a green and an amber, turned slightly toward the seed
@@ -320,7 +334,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Overriding tokens</h2>
+        <h2 id="overriding-tokens" className="text-headline-small text-on-surface">
+          Overriding tokens
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Themes set <InlineCode>--md-sys-color-*</InlineCode> under{' '}
           <InlineCode>[data-theme][data-mode]</InlineCode>. Override tokens globally on{' '}
@@ -333,7 +349,9 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">No theme flash</h2>
+        <h2 id="no-theme-flash" className="text-headline-small text-on-surface">
+          No theme flash
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           With a server, read the cookie: <InlineCode>getThemeFromCookies()</InlineCode> from{' '}
           <InlineCode>@windmorph/react/next</InlineCode> and render{' '}
