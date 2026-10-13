@@ -36,9 +36,14 @@ test.describe('Component page tabs', () => {
   test('the arrow keys move between tabs and Enter opens one', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
+    // The playground writes its settings to the URL once it hydrates; start after that, so the
+    // URL update can't land between the key presses.
+    await expect(page).toHaveURL(/\?variant=/);
     await page.getByRole('tab', { name: 'Overview' }).focus();
     await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('tab', { name: 'API' })).toBeFocused();
     await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('tab', { name: 'Accessibility' })).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/components\/button\/accessibility$/);
     await expect(page.getByRole('tab', { name: 'Accessibility' })).toBeFocused();
