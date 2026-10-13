@@ -1,6 +1,15 @@
 'use client';
 
-import type { CSSProperties, ReactNode, Ref } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import {
   mergeProps,
   useFocusRing,
@@ -16,7 +25,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { switchStyles } from './switch-styles';
-import { useRippleHold } from '../../primitives/use-m3-interaction';
+import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 
 export const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -67,15 +76,24 @@ type SwitchLabel =
 
 export type SwitchProps = SwitchOwnProps & SwitchLabel;
 
+const THUMB_OFF_CENTER = 16;
+const THUMB_ON_CENTER = 36;
+/** How far (px) a press moves before it becomes a drag. */
+const DRAG_SLOP = 3;
+
+/** Whether a thumb dragged to `center` (px) is in the on half. */
+const isOnAt = (center: number) => center > (THUMB_ON_CENTER + THUMB_OFF_CENTER) / 2;
+
 /** Thumb size and centre in px (Compose `ThumbNode`). */
 export function thumbGeometry(selected: boolean, pressed: boolean, hasIcon: boolean) {
   const size = pressed ? 28 : selected || hasIcon ? 24 : 16;
-  return { size, center: selected ? 36 : 16 };
+  return { size, center: selected ? THUMB_ON_CENTER : THUMB_OFF_CENTER };
 }
 
 /**
- * M3 switch: a track and a thumb that grows and slides when switched on, optional
- * icons in the thumb, a state layer that follows the thumb and a 48px touch target.
+ * M3 switch: a track and a thumb that grows and slides when switched on (by a tap, a
+ * drag, Space or Enter), optional icons in the thumb, a state layer that follows the
+ * thumb and a 48px touch target.
  * A visually hidden native input with `role="switch"` (React Aria `useSwitch`) keeps
  * forms and assistive tech working.
  *
@@ -110,7 +128,59 @@ export function Switch({
     isDisabled: disabled,
     isReadOnly: readOnly,
   };
-  const state = useToggleState(options);
+  const toggleState = useToggleState(options);
+  // Dragging the thumb (M3: "Touch: Tap, Drag"). The thumb follows the pointer between its
+  // off and on centres; releasing sets the switch from the half the thumb is in. React
+  // Aria's press then toggles on the click that follows, which `skipToggle` absorbs (it
+  // lapses after React Aria's own 80ms click fallback, for a release outside the switch).
+  const [dragCenter, setDragCenter] = useState<number | null>(null);
+  const [skipToggle, setSkipToggle] = useState(false);
+  const state = {
+    ...toggleState,
+    toggle: () => (skipToggle ? setSkipToggle(false) : toggleState.toggle()),
+  };
+  const stopDrag = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopDrag.current?.(), []);
+  // Window listeners rather than React Aria `useMove`, which stops the pointer-down from
+  // reaching the label's press handling (a tap on the track must still toggle).
+  const dragProps = {
+    onPointerDown: (event: PointerEvent<HTMLSpanElement>) => {
+      if (event.button !== 0 || disabled || readOnly) return;
+      const { pointerId } = event;
+      const start = state.isSelected ? THUMB_ON_CENTER : THUMB_OFF_CENTER;
+      const sign = getComputedStyle(event.currentTarget).direction === 'rtl' ? -1 : 1;
+      const startX = event.clientX;
+      let center: number | null = null;
+      const move = (moveEvent: globalThis.PointerEvent) => {
+        if (moveEvent.pointerId !== pointerId) return;
+        const offset = (moveEvent.clientX - startX) * sign;
+        if (center === null && Math.abs(offset) < DRAG_SLOP) return;
+        center = Math.min(THUMB_ON_CENTER, Math.max(THUMB_OFF_CENTER, start + offset));
+        setDragCenter(center);
+      };
+      const remove = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+        stopDrag.current = null;
+      };
+      const end = (endEvent: globalThis.PointerEvent) => {
+        if (endEvent.pointerId !== pointerId) return;
+        remove();
+        setDragCenter(null);
+        if (center === null) return;
+        if (endEvent.type !== 'pointerup') return;
+        state.setSelected(isOnAt(center));
+        setSkipToggle(true);
+        setTimeout(() => setSkipToggle(false), 100);
+      };
+      stopDrag.current?.();
+      stopDrag.current = remove;
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+    },
+  };
   const { inputProps, labelProps, isSelected, isPressed } = useSwitch(options, state, domInputRef);
   const { focusProps, isFocusVisible } = useFocusRing();
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
@@ -118,14 +188,38 @@ export function Switch({
   const icon = isSelected
     ? (selectedIcon ?? (icons ? <CheckIcon /> : null))
     : (unselectedIcon ?? (icons ? <CloseIcon /> : null));
-  const pressed = isPressed && !disabled;
+  // Browsers toggle a checkbox input on Space only; M3 also toggles a switch on Enter.
+  // Enter presses like Space does: the thumb grows on key down and the switch toggles on
+  // key up.
+  const [enterPressed, setEnterPressed] = useState(false);
+  const enterProps = {
+    onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      if (event.repeat || disabled || readOnly) return;
+      const control = event.currentTarget.closest<HTMLElement>('[data-selection-control]');
+      if (control) restartRipple(control);
+      setEnterPressed(true);
+    },
+    onKeyUp: (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key !== 'Enter' || !enterPressed) return;
+      setEnterPressed(false);
+      toggleState.toggle();
+    },
+    onBlur: () => setEnterPressed(false),
+  };
+  const dragging = dragCenter !== null;
+  const pressed = (isPressed || enterPressed || dragging) && !disabled;
   const rippling = useRippleHold(pressed);
-  const { size, center } = thumbGeometry(isSelected, pressed, Boolean(icon));
+  const geometry = thumbGeometry(isSelected, pressed, Boolean(icon));
+  const { size } = geometry;
+  const center = dragCenter ?? geometry.center;
   const stateAttributes = {
     'data-selected': isSelected || undefined,
     'data-disabled': disabled || undefined,
     'data-hovered': (isHovered && !disabled) || undefined,
     'data-pressed': pressed || undefined,
+    'data-dragged': dragging || undefined,
     'data-rippling': rippling || undefined,
     'data-focus-visible': isFocusVisible || undefined,
     'data-has-icon': Boolean(icon) || undefined,
@@ -136,7 +230,7 @@ export function Switch({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps)}
+      inputProps={mergeProps(inputProps, focusProps, enterProps)}
       inputRef={domInputRef}
       rootData={data}
       state={stateAttributes}
@@ -144,6 +238,7 @@ export function Switch({
       className={className}
       classNames={classNames}
       style={style}
+      controlProps={dragProps}
       controlStyle={
         {
           '--m3-thumb-size': `${size}px`,

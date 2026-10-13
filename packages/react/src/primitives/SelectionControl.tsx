@@ -2,6 +2,7 @@
 
 import {
   type CSSProperties,
+  type HTMLAttributes,
   type InputHTMLAttributes,
   type KeyboardEvent,
   type LabelHTMLAttributes,
@@ -46,6 +47,8 @@ export interface SelectionControlProps {
   style?: CSSProperties;
   /** Inline style for the control (e.g. CSS variables that position a switch thumb). */
   controlStyle?: CSSProperties;
+  /** Extra props for the control (e.g. a switch's drag handlers). */
+  controlProps?: HTMLAttributes<HTMLSpanElement>;
 }
 
 /**
@@ -67,6 +70,7 @@ export function SelectionControl({
   classNames,
   style,
   controlStyle,
+  controlProps,
 }: SelectionControlProps) {
   // Every press starts a fresh (centred) ripple on the control, as in Compose.
   const restart = (label: HTMLElement) => {
@@ -91,6 +95,7 @@ export function SelectionControl({
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <span
+        {...controlProps}
         {...state}
         data-selection-control=""
         style={controlStyle}

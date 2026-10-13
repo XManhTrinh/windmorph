@@ -68,8 +68,8 @@ export async function SwitchBody() {
             assistive tech work natively.
           </li>
           <li>
-            Tab moves focus; Space toggles it. The focus ring surrounds the track, which has a 48px
-            touch target.
+            Tab moves focus; Space or Enter toggles it (M3&apos;s keyboard spec). The focus ring
+            surrounds the track, which has a 48px touch target.
           </li>
           <li>
             An accessible name is required; the thumb icons (
@@ -87,6 +87,10 @@ export async function SwitchBody() {
             A 52×32px track with a 2px outline. The thumb geometry is computed like Compose&apos;s{' '}
             <code className="text-on-surface">ThumbNode</code>: 16px off, 24px on or with an icon,
             28px pressed, centred 16 / 36px from the start.
+          </li>
+          <li>
+            The thumb can be dragged: it follows the pointer between its off and on positions, and
+            releasing sets the switch from the half it&apos;s in (a tap still toggles).
           </li>
           <li>
             Pressing snaps the thumb; releasing animates its{' '}

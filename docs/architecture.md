@@ -326,6 +326,8 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Pressing snaps the thumb; release animates `width` / `height` / `top` / `inset-inline-start` on fast spatial. Mirrors in RTL.
   - Hover, focus and press change the thumb to `on-surface-variant` (off) / `primary-container` (on). Disabled colours are Compose's composites over `surface` (`color-mix`).
   - `icons` shows the default check / close icons; `selectedIcon` / `unselectedIcon` override them. The focus ring surrounds the track.
+  - **Enter toggles it, as Space does** (M3 spec, keyboard table; 2026-10-13): browsers toggle a checkbox input on Space only, so the switch handles Enter itself (the thumb grows on key down, the switch toggles on key up).
+  - **The thumb can be dragged** (M3 spec, "Touch: Tap, Drag"; 2026-10-13): it follows the pointer between its off and on centres (mirrored in RTL, `data-dragged` while it moves) and releasing sets the switch from the half it's in; a tap still toggles. The track is `touch-action: pan-y`, and the drag uses window pointer listeners because React Aria `useMove` stops the pointer-down the label's press handling needs. `SelectionControl` takes `controlProps` for these handlers.
 - **No CheckboxGroup** in v1. Compose has none, and a fieldset of Checkboxes with `name` covers forms.
 - `splitDataAttributes` (utils) routes `data-*` to the root for components whose remaining props go to a React Aria hook (TextField, the selection controls). Those hooks forward only the attributes they know, so consumer `data-*` attributes were being dropped.
 

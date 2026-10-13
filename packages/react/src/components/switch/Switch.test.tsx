@@ -46,6 +46,57 @@ describe('Switch', () => {
     expect(thumbVars(input).size).toBe('24px');
   });
 
+  it('toggles on Enter, growing the thumb while the key is down', async () => {
+    const user = userEvent.setup();
+    const onSelectedChange = vi.fn();
+    render(<Switch onSelectedChange={onSelectedChange}>Wi-Fi</Switch>);
+    const input = screen.getByRole('switch');
+    await user.keyboard('{Tab}');
+    await user.keyboard('[Enter>]');
+    expect(thumbVars(input).size).toBe('28px');
+    await user.keyboard('[/Enter]');
+    expect(input).toBeChecked();
+    expect(onSelectedChange).toHaveBeenCalledWith(true);
+    await user.keyboard('{Enter}');
+    expect(input).not.toBeChecked();
+  });
+
+  it('follows a drag with the thumb and switches from where it is released', async () => {
+    const user = userEvent.setup();
+    render(<Switch>Wi-Fi</Switch>);
+    const input = screen.getByRole('switch');
+    const track = trackOf(input);
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: track, coords: { clientX: 10 } },
+      { target: track, coords: { clientX: 20 } },
+    ]);
+    expect(thumbVars(input)).toEqual({ size: '28px', center: '26px' });
+    expect(input.closest('label')).toHaveAttribute('data-dragged');
+    await user.pointer([
+      { target: track, coords: { clientX: 40 } },
+      { keys: '[/MouseLeft]', target: track },
+    ]);
+    expect(input).toBeChecked();
+    expect(thumbVars(input)).toEqual({ size: '24px', center: '36px' });
+    // Dragged back past the middle, it stays off even though the press ended over it.
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: track, coords: { clientX: 40 } },
+      { target: track, coords: { clientX: 0 } },
+      { keys: '[/MouseLeft]', target: track },
+    ]);
+    expect(input).not.toBeChecked();
+    // A tap still toggles.
+    await user.click(track);
+    expect(input).toBeChecked();
+  });
+
+  it('ignores Enter when read-only', async () => {
+    const user = userEvent.setup();
+    render(<Switch readOnly>Wi-Fi</Switch>);
+    await user.keyboard('{Tab}{Enter}');
+    expect(screen.getByRole('switch')).not.toBeChecked();
+  });
+
   it('shows icons and uses a 24px thumb even when off', async () => {
     render(<Switch icons>Dark mode</Switch>);
     const input = screen.getByRole('switch');

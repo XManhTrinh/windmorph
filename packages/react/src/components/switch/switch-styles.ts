@@ -4,8 +4,9 @@ import { tv, type VariantProps } from '../../utils/tv';
 /*
  * Values follow Compose Material 3 (Switch.kt and SwitchTokens): a 52×32px track with a
  * 2px outline; the thumb is 16px (off), 24px (on, or with an icon) and 28px (pressed),
- * centred 16px or 36px from the track's start. Pressing snaps the thumb; releasing
- * animates it on the fast spatial spring. The 40px state layer follows the thumb.
+ * centred 16px or 36px from the track's start. Pressing (or dragging) snaps the
+ * thumb; releasing animates it on the fast spatial spring. The 40px state layer
+ * follows the thumb.
  * Disabled colours are Compose's composites over `surface`. `--m3-thumb-size` and
  * `--m3-thumb-center` are set by the component. Every class is written out in full.
  */
@@ -20,6 +21,8 @@ export const switchStyles = tv({
     // The control is the track.
     control: [
       'h-[32px] w-[52px] border-2 border-solid border-outline bg-surface-container-highest',
+      // The thumb can be dragged sideways; vertical swipes still scroll the page.
+      'touch-pan-y',
       '[transition-property:background-color,border-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',

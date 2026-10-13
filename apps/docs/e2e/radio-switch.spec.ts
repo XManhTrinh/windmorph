@@ -110,8 +110,36 @@ test.describe('Switch', () => {
       await expect.poll(async () => (await centre()).size).toBe(28);
       await page.mouse.up();
       await expect.poll(centre).toEqual({ size: 16, fromStart: 16 });
+
+      // Dragging moves the thumb with the pointer (mirrored in RTL) and sets the switch
+      // from where it's released.
+      const off = await box(thumb);
+      const towardsEnd = dir === 'ltr' ? 1 : -1;
+      await page.mouse.move(off.x + off.width / 2, off.y + off.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(off.x + off.width / 2 + 8 * towardsEnd, off.y + off.height / 2, {
+        steps: 4,
+      });
+      await expect.poll(centre).toEqual({ size: 28, fromStart: 24 });
+      await page.mouse.move(off.x + off.width / 2 + 30 * towardsEnd, off.y + off.height / 2, {
+        steps: 4,
+      });
+      await expect.poll(centre).toEqual({ size: 28, fromStart: 36 });
+      await page.mouse.up();
+      await expect(input).toBeChecked();
+      await expect.poll(centre).toEqual({ size: 24, fromStart: 36 });
     });
   }
+
+  test('Space and Enter toggle it', async ({ page }) => {
+    await openStory(page, 'components-switch--playground');
+    const input = page.getByRole('switch', { name: 'Wi-Fi' });
+    await input.focus();
+    await page.keyboard.press('Enter');
+    await expect(input).toBeChecked();
+    await page.keyboard.press('Space');
+    await expect(input).not.toBeChecked();
+  });
 
   test('focus ring surrounds the track', async ({ page }) => {
     await openStory(page, 'components-switch--playground');
