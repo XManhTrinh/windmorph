@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
-import { TooltipPlacementContext } from '../tooltip/Tooltip';
+import { TooltipPlacementContext } from '../tooltip/tooltip-placement';
 
 /**
  * What an app bar gives the controls inside it: `standard` icon buttons, and plain tooltips

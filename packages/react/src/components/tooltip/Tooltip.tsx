@@ -42,23 +42,9 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { tabbables } from '../../utils/focus';
 import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
+import { TooltipPlacementContext, type TooltipPlacement } from './tooltip-placement';
 
-/**
- * Where a tooltip sits against its anchor. `start` / `end` follow the text direction; a
- * second word aligns the tooltip with that edge of the anchor (`bottom start` sits below,
- * extending towards the end). Tooltips flip when there's no room.
- */
-export type TooltipPlacement =
-  | 'top'
-  | 'bottom'
-  | 'left'
-  | 'right'
-  | 'start'
-  | 'end'
-  | 'top start'
-  | 'top end'
-  | 'bottom start'
-  | 'bottom end';
+export { TooltipPlacementContext, type TooltipPlacement };
 
 /**
  * The spec: 4px from an anchor with a visual boundary (a button), 8px from one without (text).
@@ -168,14 +154,6 @@ interface TooltipContextValue {
 }
 
 const TooltipContext = createContext<TooltipContextValue | null>(null);
-
-/**
- * The default placement of the plain tooltips inside, where a container calls for one other
- * than `top`. App bars provide `bottom` (the spec: "If the element is in an app bar, the plain
- * tooltip appears below the element"), so their icon buttons' tooltips open below. A
- * trigger's own `placement` wins.
- */
-export const TooltipPlacementContext = createContext<TooltipPlacement | null>(null);
 
 export interface TooltipTriggerProps {
   /** The trigger (a library button or anything reading `TriggerContext`), then a `<Tooltip>`. */
