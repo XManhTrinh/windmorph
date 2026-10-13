@@ -19,7 +19,7 @@ describe('Badge', () => {
     render(<Badge data-testid="badge">{3}</Badge>);
     const badge = screen.getByTestId('badge');
     expect(badge).toHaveClass(
-      'h-[16px]',
+      'min-h-[16px]',
       'min-w-[16px]',
       'ps-[4px]',
       'pe-[4px]',

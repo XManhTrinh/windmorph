@@ -81,15 +81,15 @@ export const timePickerStyles = tv({
       horizontal: {
         root: 'flex-row',
         display: 'flex-col items-center',
-        period: 'mt-[16px] h-[38px] w-[216px] flex-row',
+        period: 'mt-[16px] min-h-[38px] w-[216px] flex-row',
         periodOption: 'not-last:border-e not-last:border-outline',
         dial: 'ms-[36px]',
       },
     },
   },
   compoundVariants: [
-    { mode: 'dial', layout: 'vertical', class: { period: 'h-[80px]' } },
-    { mode: 'input', class: { period: 'h-[72px]' } },
+    { mode: 'dial', layout: 'vertical', class: { period: 'min-h-[80px]' } },
+    { mode: 'input', class: { period: 'min-h-[72px]' } },
   ],
   defaultVariants: { hourCycle: 12, mode: 'dial', layout: 'vertical' },
 });

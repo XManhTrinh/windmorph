@@ -32,7 +32,7 @@ export const topAppBarStyles = tv({
     ],
     // The top row: navigation icon, title and actions.
     row: [
-      'grid h-[64px] shrink-0 items-center',
+      'grid min-h-[64px] shrink-0 items-center',
       'bg-[color:color-mix(in_oklab,var(--color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--color-surface))]',
     ],
     // Icon buttons take each slot's content colour.

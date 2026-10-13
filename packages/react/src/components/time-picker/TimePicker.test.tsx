@@ -115,7 +115,7 @@ describe('TimePicker', () => {
     expect(picker).toHaveAttribute('data-layout', 'horizontal');
     expect(screen.getByRole('radiogroup', { name: 'AM or PM' })).toHaveClass(
       'w-[216px]',
-      'h-[38px]',
+      'min-h-[38px]',
     );
     expect(screen.getByRole('group', { name: 'Clock' })).toHaveClass('ms-[36px]');
     act(() => setMediaQueries({ [NO_ROOM]: true }));

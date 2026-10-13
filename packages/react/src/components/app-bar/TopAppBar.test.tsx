@@ -38,7 +38,7 @@ describe('TopAppBar', () => {
     expect(bar).toHaveClass('fixed', 'top-0', 'w-full', 'text-on-surface');
     expect(bar).not.toHaveClass('sticky');
     const row = bar.firstElementChild!;
-    expect(row).toHaveClass('h-[64px]', 'grid-cols-[auto_minmax(0,1fr)_auto]');
+    expect(row).toHaveClass('min-h-[64px]', 'grid-cols-[auto_minmax(0,1fr)_auto]');
     expect(screen.getByRole('heading', { name: 'Inbox' }).parentElement).toHaveClass(
       'text-title-large',
       'truncate',
@@ -88,7 +88,7 @@ describe('TopAppBar', () => {
         HTMLElement,
         HTMLElement,
       ];
-      expect(row).toHaveClass('h-[64px]');
+      expect(row).toHaveClass('min-h-[64px]');
       expect(expanded).toHaveClass(rowHeight, 'ps-[16px]');
       expect(expanded.firstElementChild).toHaveClass(font);
       // Only the expanded title is announced while expanded.

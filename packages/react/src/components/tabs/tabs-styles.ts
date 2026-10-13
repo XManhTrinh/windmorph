@@ -93,10 +93,10 @@ export const tabsStyles = tv({
       },
     },
     layout: {
-      text: { tab: 'h-[48px]' },
-      'icon-top': { tab: 'h-[64px] flex-col justify-center gap-[2px]' },
-      'icon-start': { tab: 'h-[48px] flex-row gap-[8px]' },
-      'icon-only': { tab: 'h-[48px]' },
+      text: { tab: 'min-h-[48px]' },
+      'icon-top': { tab: 'min-h-[64px] flex-col justify-center gap-[2px]' },
+      'icon-start': { tab: 'min-h-[48px] flex-row gap-[8px]' },
+      'icon-only': { tab: 'min-h-[48px]' },
     },
   },
   defaultVariants: {

@@ -29,7 +29,7 @@ export const badgeStyles = tv({
     size: {
       small: { root: 'size-[6px]' },
       large: {
-        root: 'h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+        root: 'min-h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
       },
     },
     /** Text longer than four characters stops at 34px and truncates. */
