@@ -34,7 +34,11 @@ export function PullToRefreshButton() {
         refreshing={refreshing}
         onRefresh={refresh}
         labels={{ refreshing: 'Refreshing orders', refreshed: 'Orders refreshed' }}
-        className="min-h-0 grow overflow-y-auto"
+        role="region"
+        aria-label="Orders list"
+        // A scrolling area needs keyboard access.
+        tabIndex={0}
+        className="min-h-0 grow overflow-y-auto outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
       >
         <List aria-label="Orders">
           {ORDERS.map((order) => (

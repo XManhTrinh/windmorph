@@ -164,7 +164,13 @@ export async function PullToRefreshBody(): Promise<ComponentDoc> {
               when it ends.
             </li>
             <li>
-              It adds nothing to the tab order. Under{' '}
+              When the area is itself the scroll container, give it keyboard access as any scrolling
+              region needs: <InlineCode>tabIndex={'{0}'}</InlineCode>,{' '}
+              <InlineCode>role=&quot;region&quot;</InlineCode> and an{' '}
+              <InlineCode>aria-label</InlineCode>, as the examples do.
+            </li>
+            <li>
+              It adds nothing to the tab order itself. Under{' '}
               <InlineCode>prefers-reduced-motion</InlineCode> the indicator settles on the standard
               spring and the refreshing indicator only rotates.
             </li>

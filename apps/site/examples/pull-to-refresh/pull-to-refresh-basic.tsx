@@ -26,7 +26,11 @@ export function PullToRefreshBasic() {
           }, 1500),
         )
       }
-      className="h-[320px] w-full max-w-[412px] overflow-y-auto rounded-corner-large bg-surface-container-low"
+      role="region"
+      aria-label="News"
+      // A scrolling area needs keyboard access.
+      tabIndex={0}
+      className="h-[320px] w-full max-w-[412px] overflow-y-auto rounded-corner-large bg-surface-container-low outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
     >
       <div className="flex flex-col gap-3 p-4">
         <p className="text-label-large text-on-surface-variant">Refreshed {updated} times</p>

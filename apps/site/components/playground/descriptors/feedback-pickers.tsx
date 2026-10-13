@@ -145,8 +145,11 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
             update('refreshing', true);
             setTimeout(() => update('refreshing', false), 1500);
           },
+          role: 'region',
+          'aria-label': 'Messages',
+          tabIndex: 0,
           className:
-            'h-[320px] w-[320px] max-w-full overflow-y-auto rounded-corner-large bg-surface-container-low',
+            'h-[320px] w-[320px] max-w-full overflow-y-auto rounded-corner-large bg-surface-container-low outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary',
         },
         <List aria-label="Messages">
           {PULL_SENDERS.map((name) => (
@@ -158,7 +161,13 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     surfacedProps: ['refreshing', 'threshold', 'disabled'],
     controlKinds: { threshold: 'number' },
     importMembers: ['List', 'ListItem'],
-    codeSlots: { onRefresh: '() => {}', className: '"h-80 overflow-y-auto"' },
+    codeSlots: {
+      onRefresh: '() => {}',
+      role: '"region"',
+      'aria-label': '"Messages"',
+      tabIndex: '0',
+      className: '"h-80 overflow-y-auto"',
+    },
     codeChildren:
       '<List aria-label="Messages">\n    <ListItem>Alex</ListItem>\n    <ListItem>Sam</ListItem>\n  </List>',
   },

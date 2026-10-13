@@ -33,7 +33,11 @@ export function PullToRefreshThreshold() {
           refreshing: 'Syncing files',
           refreshed: 'Files synced',
         }}
-        className="h-[320px] overflow-y-auto rounded-corner-large bg-surface-container-low"
+        role="region"
+        aria-label="File list"
+        // A scrolling area needs keyboard access.
+        tabIndex={0}
+        className="h-[320px] overflow-y-auto rounded-corner-large bg-surface-container-low outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
       >
         <List aria-label="Files">
           {FILES.map((file) => (

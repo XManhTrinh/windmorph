@@ -20,7 +20,11 @@ export function PullToRefreshRtl() {
           setTimeout(() => setRefreshing(false), 1500);
         }}
         labels={{ pull: 'اسحب للتحديث', refreshing: 'جارٍ التحديث', refreshed: 'تم التحديث' }}
-        className="h-[280px] overflow-y-auto rounded-corner-large bg-surface-container-low"
+        role="region"
+        aria-label="آخر الرسائل"
+        // A scrolling area needs keyboard access.
+        tabIndex={0}
+        className="h-[280px] overflow-y-auto rounded-corner-large bg-surface-container-low outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
       >
         <List aria-label="جهات الاتصال">
           {NAMES.map((name) => (

@@ -44,7 +44,11 @@ export function PullToRefreshFeed() {
       refreshing={refreshing}
       onRefresh={refresh}
       labels={{ refreshing: 'Refreshing messages', refreshed: 'Messages refreshed' }}
-      className="h-[400px] w-full max-w-[412px] overflow-y-auto rounded-corner-large bg-surface"
+      role="region"
+      aria-label="Message feed"
+      // A scrolling area needs keyboard access.
+      tabIndex={0}
+      className="h-[400px] w-full max-w-[412px] overflow-y-auto rounded-corner-large bg-surface outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
     >
       <List aria-label="Messages">
         {messages.map((item) => (
