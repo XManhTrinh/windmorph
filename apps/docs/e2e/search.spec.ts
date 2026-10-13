@@ -170,6 +170,25 @@ test.describe('Search geometry and behaviour', () => {
     await expect(dialog).toBeHidden();
   });
 
+  test('by default: full screen on a compact window, docked from 600px wide', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground');
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    await settle(page);
+    // M3: "Full-screen layout: Default for compact breakpoints".
+    expect(await rect(dialog)).toMatchObject({ x: 0, y: 0, width: 412, height: 640 });
+    await dialog.getByRole('button', { name: 'Back' }).click();
+    await expect(dialog).toBeHidden();
+
+    // "Docked layout: Best for medium and expanded windows."
+    await page.setViewportSize({ width: 600, height: 640 });
+    await expect(page.getByTestId('search')).toHaveAttribute('data-view', 'docked');
+    await page.getByRole('combobox').click();
+    await settle(page);
+    expect((await rect(dialog)).width).toBeLessThan(600);
+  });
+
   test('typing into the collapsed bar expands it with the query', async ({ page }) => {
     await openStory(page, 'components-search--playground');
     await page.getByRole('combobox').focus();

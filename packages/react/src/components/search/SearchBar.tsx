@@ -23,6 +23,7 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
+import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { searchBarStyles } from './search-styles';
 
 /** Set by `SearchAppBar` for the search bar inside it. */
@@ -33,6 +34,11 @@ export interface SearchBarIconState {
   expanded: boolean;
   /** Collapses the search view, e.g. from a back button. */
   collapse: () => void;
+  /**
+   * The view in effect (`auto` resolved for the window), so a back button can show in the
+   * full-screen view only.
+   */
+  view: 'docked' | 'full-screen';
 }
 
 type SearchBarIcon = ReactNode | ((state: SearchBarIconState) => ReactNode);
@@ -97,10 +103,14 @@ interface SearchBarOwnProps {
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
   /**
-   * How the bar expands: a dropdown below it over a scrim, or a full-screen view (compact
-   * windows). @default "docked"
+   * How the bar expands: `docked`, a dropdown below it over a scrim; `full-screen`, a view
+   * that fills the window; `auto`, full screen on compact windows (below 600px wide) and
+   * docked on larger ones, as M3 recommends ("Full-screen layout: Default for compact
+   * breakpoints"; docked is "Best for medium and expanded windows"). It follows the window
+   * as it resizes.
+   * @default "auto"
    */
-  view?: 'docked' | 'full-screen';
+  view?: SearchBarView;
   placeholder?: string;
   /** Leading icon, e.g. a search icon, or a back button while expanded. */
   leadingIcon?: SearchBarIcon;
@@ -144,6 +154,9 @@ interface SearchBarOwnProps {
 
 export type SearchBarProps = SearchBarOwnProps & Naming;
 
+/** How a {@link SearchBar} expands. */
+export type SearchBarView = 'auto' | 'docked' | 'full-screen';
+
 interface BarRect {
   top: number;
   left: number;
@@ -184,7 +197,7 @@ export function SearchBar(props: SearchBarProps) {
     expanded,
     defaultExpanded,
     onExpandedChange,
-    view = 'docked',
+    view: requestedView = 'auto',
     placeholder,
     leadingIcon,
     trailingIcon,
@@ -203,6 +216,9 @@ export function SearchBar(props: SearchBarProps) {
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
+  // The server and the first client render see a docked view, so hydration matches.
+  const compact = useMediaQuery(COMPACT_WINDOW);
+  const view = requestedView === 'auto' ? (compact ? 'full-screen' : 'docked') : requestedView;
   const [query, setQuery] = useControlledState(value, defaultValue ?? '', onChange);
   const state = useOverlayTriggerState({
     isOpen: expanded,
@@ -233,7 +249,7 @@ export function SearchBar(props: SearchBarProps) {
     });
   }, [state.isOpen, rootRef]);
 
-  const iconState: SearchBarIconState = { expanded: state.isOpen, collapse: state.close };
+  const iconState: SearchBarIconState = { expanded: state.isOpen, collapse: state.close, view };
   const leading = typeof leadingIcon === 'function' ? leadingIcon(iconState) : leadingIcon;
   const trailing = typeof trailingIcon === 'function' ? trailingIcon(iconState) : trailingIcon;
   const styles = searchBarStyles({
@@ -303,6 +319,7 @@ export function SearchBar(props: SearchBarProps) {
       ref={rootRef}
       style={style}
       data-expanded={state.isOpen || undefined}
+      data-view={view}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       {field(

@@ -3,14 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { setMediaQueries } from '../../../test/setup';
+import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 import { IconButton } from '../icon-button/IconButton';
 import { SearchAppBar } from './SearchAppBar';
-import { SearchBar } from './SearchBar';
+import { SearchBar, type SearchBarView } from './SearchBar';
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 
 function Controlled(props: {
-  view?: 'docked' | 'full-screen';
+  view?: SearchBarView;
   onSubmit?: (v: string) => void;
   resultsAnnouncement?: string;
 }) {
@@ -175,6 +177,26 @@ describe('SearchBar', () => {
     expect(field.parentElement).toHaveClass('start-[16px]', 'w-[calc(100%-32px)]');
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByTestId('search')).not.toHaveAttribute('data-expanded');
+  });
+
+  it('by default opens full screen on compact windows and docked on larger ones', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    render(<Controlled />);
+    const bar = screen.getByTestId('search');
+    // M3: "Full-screen layout: Default for compact breakpoints".
+    expect(bar).toHaveAttribute('data-view', 'full-screen');
+    await userEvent.click(screen.getByRole('combobox'));
+    expect(screen.getByRole('dialog')).toHaveClass('fixed', 'inset-0');
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    // Docked from the medium window class up ("Best for medium and expanded windows").
+    act(() => setMediaQueries({ [COMPACT_WINDOW]: false }));
+    expect(bar).toHaveAttribute('data-view', 'docked');
+  });
+
+  it('keeps an explicit view whatever the window', () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    render(<Controlled view="docked" />);
+    expect(screen.getByTestId('search')).toHaveAttribute('data-view', 'docked');
   });
 
   it('follows controlled expansion', async () => {
