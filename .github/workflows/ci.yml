@@ -57,6 +57,11 @@ jobs:
       - name: Build, typecheck, lint & test
         run: pnpm turbo run build typecheck lint test
 
+      # Each public component's gzipped size (its module plus the library modules it imports,
+      # from the built dist) against packages/react/bundle-size.json: fails past a 2% tolerance.
+      - name: Check bundle sizes
+        run: pnpm turbo run size --filter=@windmorph/react
+
   site-e2e:
     name: Site link check & Playwright smoke suite
     timeout-minutes: 45

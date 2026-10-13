@@ -11,6 +11,10 @@
       "dependsOn": ["^build", "generate"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "storybook-static/**"]
     },
+    "size": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
     "typecheck": {
       "dependsOn": ["^build", "generate"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tsconfig.base.json"]
