@@ -113,9 +113,9 @@ export interface BadgedBoxProps extends Omit<ComponentPropsWithRef<'span'>, 'chi
  * />
  */
 export function BadgedBox({ badge, children, classNames, className, ...rest }: BadgedBoxProps) {
-  const badgeContent = badge.props.children;
-  const size = badgeContent == null || badgeContent === false ? 'small' : 'large';
-  const styles = badgedBoxStyles({ size });
+  // The placement follows the badge's own `data-size` in CSS, so a badge that arrives as a
+  // lazy server reference (no props yet) still hangs in the right place.
+  const styles = badgedBoxStyles();
   return (
     <span {...rest} className={styles.root({ class: cn(classNames?.root, className) })}>
       <span className={styles.anchor({ class: classNames?.anchor })}>{children}</span>

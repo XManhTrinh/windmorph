@@ -118,9 +118,12 @@ describe('BadgedBox', () => {
         <Icon />
       </BadgedBox>,
     );
-    expect(screen.getByTestId('box').lastElementChild).toHaveClass(
-      'ms-[calc(100%-12px)]',
-      'mt-[14px]',
+    // The hang reads the badge's own size, so it works without the badge's props.
+    const hang = screen.getByTestId('box').lastElementChild!;
+    expect(hang.firstElementChild).toHaveAttribute('data-size', 'large');
+    expect(hang).toHaveClass(
+      'has-[>[data-size=large]]:ms-[calc(100%-12px)]',
+      'has-[>[data-size=large]]:mt-[14px]',
     );
   });
 });

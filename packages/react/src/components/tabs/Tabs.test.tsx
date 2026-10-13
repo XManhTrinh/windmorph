@@ -98,7 +98,10 @@ describe('Tabs', () => {
     );
     const inbox = screen.getByRole('tab', { name: 'Inbox' });
     expect(inbox).toHaveAccessibleDescription('3');
-    expect(screen.getByText('3').closest('[data-size]')!.parentElement).toHaveClass('gap-[4px]');
+    // The badge (inside the describing wrapper) follows the label, 4px away.
+    const described = document.getElementById(inbox.getAttribute('aria-describedby')!)!;
+    expect(described).toContainElement(screen.getByText('3'));
+    expect(described.parentElement).toHaveClass('gap-[4px]');
     expect(await axeViolations(container)).toEqual([]);
     unmount();
     render(

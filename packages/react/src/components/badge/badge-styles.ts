@@ -48,16 +48,14 @@ export const badgedBoxStyles = tv({
     root: 'inline-grid shrink-0 grid-cols-[100%] grid-rows-[100%] align-middle',
     // A bare SVG anchor gets Compose's default 24px icon size; wrap other sizes.
     anchor: 'col-start-1 row-start-1 flex items-center justify-center [&>svg]:size-[24px]',
-    // The zero-size box the badge hangs from.
-    hang: 'col-start-1 row-start-1 flex size-0 items-end self-start justify-self-start',
+    // The zero-size box the badge hangs from; a large badge (its root's `data-size`) hangs
+    // further in and lower.
+    hang: [
+      'col-start-1 row-start-1 flex size-0 items-end self-start justify-self-start',
+      'ms-[calc(100%-6px)] mt-[6px]',
+      'has-[>[data-size=large]]:ms-[calc(100%-12px)] has-[>[data-size=large]]:mt-[14px]',
+    ],
   },
-  variants: {
-    size: {
-      small: { hang: 'ms-[calc(100%-6px)] mt-[6px]' },
-      large: { hang: 'ms-[calc(100%-12px)] mt-[14px]' },
-    },
-  },
-  defaultVariants: { size: 'small' },
 });
 
 export type BadgeStyleProps = VariantProps<typeof badgeStyles>;

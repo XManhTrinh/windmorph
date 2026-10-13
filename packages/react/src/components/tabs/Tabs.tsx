@@ -2,7 +2,6 @@
 
 import { animate } from 'motion/react';
 import {
-  cloneElement,
   useId,
   useLayoutEffect,
   useRef,
@@ -355,16 +354,19 @@ function TabButton({ item, index, state, hasPanels, layout, styles, className }:
   const badgeOnIcon =
     badge != null && icon != null && (layout === 'icon-top' || item.rendered == null);
   // The badge describes the tab rather than adding to its name.
+  // Wrapped rather than cloned: a badge can arrive as a lazy server reference without props.
   const badgeNode =
-    badge != null
-      ? cloneElement(badge, { id: badge.props.id ?? badgeId, 'aria-hidden': true })
-      : null;
+    badge != null ? (
+      <span id={badgeId} aria-hidden="true" className="contents">
+        {badge}
+      </span>
+    ) : null;
   return (
     <div
       {...mergeProps(ownProps, interactionProps)}
       {...dataAttributes}
       aria-controls={hasPanels ? controls : undefined}
-      aria-describedby={badgeNode?.props.id}
+      aria-describedby={badge != null ? badgeId : undefined}
       data-key={String(item.key)}
       ref={ref}
       style={{ gridColumnStart: index + 1 }}

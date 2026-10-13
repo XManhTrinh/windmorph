@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, type ReactElement, type ReactNode } from 'react';
+import { isValidElement, useId, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -76,7 +76,9 @@ export function NavItem({
   const inline = layout === 'rail-start' || layout === 'bar-start';
   // M3: badges sit on the icon, except in the expanded rail, where they follow the label.
   const badgeAfterLabel = layout === 'rail-start';
-  const badgeText = badge?.props.children;
+  // A badge can arrive as a lazy server reference without props yet (React's dev
+  // server rendering), so read its text only from a real element.
+  const badgeText = isValidElement<BadgeProps>(badge) ? badge.props.children : undefined;
   const description =
     badgeLabel ??
     (typeof badgeText === 'string' || typeof badgeText === 'number' ? String(badgeText) : null);
