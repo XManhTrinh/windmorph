@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { MenuBasic } from '../../examples/menu/menu-basic';
-import { MenuContext } from '../../examples/menu/menu-context';
-import { MenuSelection } from '../../examples/menu/menu-selection';
-import { MenuSubmenu } from '../../examples/menu/menu-submenu';
-import { MenuLayouts } from '../../examples/menu/menu-layouts';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const MenuBasic = lazyExample('menu/menu-basic', 'MenuBasic');
+const MenuContext = lazyExample('menu/menu-context', 'MenuContext');
+const MenuSelection = lazyExample('menu/menu-selection', 'MenuSelection');
+const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
+const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {

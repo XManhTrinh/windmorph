@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { DialogAlert } from '../../examples/dialog/dialog-alert';
-import { DialogBasic } from '../../examples/dialog/dialog-basic';
-import { DialogFullScreen } from '../../examples/dialog/dialog-full-screen';
-import { DialogScrollable } from '../../examples/dialog/dialog-scrollable';
-import { DialogIcon } from '../../examples/dialog/dialog-icon';
-import { DialogPlacement } from '../../examples/dialog/dialog-placement';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const DialogAlert = lazyExample('dialog/dialog-alert', 'DialogAlert');
+const DialogBasic = lazyExample('dialog/dialog-basic', 'DialogBasic');
+const DialogFullScreen = lazyExample('dialog/dialog-full-screen', 'DialogFullScreen');
+const DialogScrollable = lazyExample('dialog/dialog-scrollable', 'DialogScrollable');
+const DialogIcon = lazyExample('dialog/dialog-icon', 'DialogIcon');
+const DialogPlacement = lazyExample('dialog/dialog-placement', 'DialogPlacement');
 
 /** Dialog page body: the flat parts, basic, alert, scrollable and full-screen dialogs. */
 export async function DialogBody(): Promise<ComponentDoc> {

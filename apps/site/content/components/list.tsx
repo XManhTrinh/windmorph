@@ -1,18 +1,20 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ListDividers } from '../../examples/list/list-dividers';
-import { ListExpandable } from '../../examples/list/list-expandable';
-import { ListInteractive } from '../../examples/list/list-interactive';
-import { ListLinks } from '../../examples/list/list-links';
-import { ListMedia } from '../../examples/list/list-media';
-import { ListRadio } from '../../examples/list/list-radio';
-import { ListStatic } from '../../examples/list/list-static';
-import { ListToggles } from '../../examples/list/list-toggles';
-import { ListSections } from '../../examples/list/list-sections';
-import { ListSelection } from '../../examples/list/list-selection';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ListDividers = lazyExample('list/list-dividers', 'ListDividers');
+const ListExpandable = lazyExample('list/list-expandable', 'ListExpandable');
+const ListInteractive = lazyExample('list/list-interactive', 'ListInteractive');
+const ListLinks = lazyExample('list/list-links', 'ListLinks');
+const ListMedia = lazyExample('list/list-media', 'ListMedia');
+const ListRadio = lazyExample('list/list-radio', 'ListRadio');
+const ListStatic = lazyExample('list/list-static', 'ListStatic');
+const ListToggles = lazyExample('list/list-toggles', 'ListToggles');
+const ListSections = lazyExample('list/list-sections', 'ListSections');
+const ListSelection = lazyExample('list/list-selection', 'ListSelection');
 
 /**
  * List page body: static, media, dividers and line limits, link, interactive, switch and

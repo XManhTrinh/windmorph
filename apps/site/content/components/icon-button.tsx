@@ -1,13 +1,18 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { IconButtonSizes } from '../../examples/icon-button/icon-button-sizes';
-import { IconButtonToggle } from '../../examples/icon-button/icon-button-toggle';
-import { IconButtonVariants } from '../../examples/icon-button/icon-button-variants';
-import { IconButtonShapes } from '../../examples/icon-button/icon-button-shapes';
-import { IconButtonToggleVariants } from '../../examples/icon-button/icon-button-toggle-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const IconButtonSizes = lazyExample('icon-button/icon-button-sizes', 'IconButtonSizes');
+const IconButtonToggle = lazyExample('icon-button/icon-button-toggle', 'IconButtonToggle');
+const IconButtonVariants = lazyExample('icon-button/icon-button-variants', 'IconButtonVariants');
+const IconButtonShapes = lazyExample('icon-button/icon-button-shapes', 'IconButtonShapes');
+const IconButtonToggleVariants = lazyExample(
+  'icon-button/icon-button-toggle-variants',
+  'IconButtonToggleVariants',
+);
 
 /** IconButton page body. */
 export async function IconButtonBody(): Promise<ComponentDoc> {

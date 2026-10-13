@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SelectBasic } from '../../examples/select/select-basic';
-import { SelectMultiple } from '../../examples/select/select-multiple';
-import { SelectSearchable } from '../../examples/select/select-searchable';
-import { SelectVariants } from '../../examples/select/select-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SelectBasic = lazyExample('select/select-basic', 'SelectBasic');
+const SelectMultiple = lazyExample('select/select-multiple', 'SelectMultiple');
+const SelectSearchable = lazyExample('select/select-searchable', 'SelectSearchable');
+const SelectVariants = lazyExample('select/select-variants', 'SelectVariants');
 
 /** Select page body: purpose, examples, accessibility and differences from Compose. */
 export async function SelectBody(): Promise<ComponentDoc> {

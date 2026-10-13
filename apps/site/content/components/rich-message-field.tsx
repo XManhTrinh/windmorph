@@ -3,12 +3,23 @@ import { messageFieldTokenSet } from '@windmorph/react-pro';
 import { mentionListTokenSet, richTextTokenSet } from '@windmorph/react-pro/rich-text';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { RichMessageFieldComment } from '../../examples/rich-message-field/rich-message-field-comment';
-import { RichMessageFieldMentions } from '../../examples/rich-message-field/rich-message-field-mentions';
-import { RichMessageFieldPost } from '../../examples/rich-message-field/rich-message-field-post';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const RichMessageFieldComment = lazyExample(
+  'rich-message-field/rich-message-field-comment',
+  'RichMessageFieldComment',
+);
+const RichMessageFieldMentions = lazyExample(
+  'rich-message-field/rich-message-field-mentions',
+  'RichMessageFieldMentions',
+);
+const RichMessageFieldPost = lazyExample(
+  'rich-message-field/rich-message-field-post',
+  'RichMessageFieldPost',
+);
 
 /** Rich message field page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function RichMessageFieldBody(): Promise<ComponentDoc> {

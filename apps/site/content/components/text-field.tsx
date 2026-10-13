@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { TextFieldForm } from '../../examples/text-field/text-field-form';
-import { TextFieldAdornments } from '../../examples/text-field/text-field-adornments';
-import { TextFieldMultiline } from '../../examples/text-field/text-field-multiline';
-import { TextFieldStates } from '../../examples/text-field/text-field-states';
-import { TextFieldVariants } from '../../examples/text-field/text-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const TextFieldForm = lazyExample('text-field/text-field-form', 'TextFieldForm');
+const TextFieldAdornments = lazyExample('text-field/text-field-adornments', 'TextFieldAdornments');
+const TextFieldMultiline = lazyExample('text-field/text-field-multiline', 'TextFieldMultiline');
+const TextFieldStates = lazyExample('text-field/text-field-states', 'TextFieldStates');
+const TextFieldVariants = lazyExample('text-field/text-field-variants', 'TextFieldVariants');
 
 /** TextField page body: purpose, live examples, accessibility and Compose differences. */
 export async function TextFieldBody(): Promise<ComponentDoc> {

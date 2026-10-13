@@ -2,11 +2,13 @@ import type { ComponentDoc } from './doc';
 import { commentRowTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { CommentRowThread } from '../../examples/comment-row/comment-row-thread';
-import { CommentRowStates } from '../../examples/comment-row/comment-row-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CommentRowThread = lazyExample('comment-row/comment-row-thread', 'CommentRowThread');
+const CommentRowStates = lazyExample('comment-row/comment-row-states', 'CommentRowStates');
 
 /** CommentRow page body: purpose, example, behaviour, accessibility and tokens. */
 export async function CommentRowBody(): Promise<ComponentDoc> {

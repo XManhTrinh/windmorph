@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ShapedIconSizes } from '../../examples/shaped-icon/shaped-icon-sizes';
-import { ShapedIconSteps } from '../../examples/shaped-icon/shaped-icon-steps';
-import { ShapedIconTones } from '../../examples/shaped-icon/shaped-icon-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ShapedIconSizes = lazyExample('shaped-icon/shaped-icon-sizes', 'ShapedIconSizes');
+const ShapedIconSteps = lazyExample('shaped-icon/shaped-icon-steps', 'ShapedIconSteps');
+const ShapedIconTones = lazyExample('shaped-icon/shaped-icon-tones', 'ShapedIconTones');
 
 /** Shaped icon page body: purpose, examples, accessibility and theming. */
 export async function ShapedIconBody(): Promise<ComponentDoc> {

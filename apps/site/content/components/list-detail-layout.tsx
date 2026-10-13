@@ -1,10 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ListDetailInbox } from '../../examples/list-detail-layout/list-detail-inbox';
-import { ListDetailSettings } from '../../examples/list-detail-layout/list-detail-settings';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ListDetailInbox = lazyExample('list-detail-layout/list-detail-inbox', 'ListDetailInbox');
+const ListDetailSettings = lazyExample(
+  'list-detail-layout/list-detail-settings',
+  'ListDetailSettings',
+);
 
 /** List-detail layout page body: when to use it, examples, accessibility and theming. */
 export async function ListDetailLayoutBody(): Promise<ComponentDoc> {

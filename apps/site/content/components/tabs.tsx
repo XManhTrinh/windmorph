@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { TabsBadges } from '../../examples/tabs/tabs-badges';
-import { TabsPrimary } from '../../examples/tabs/tabs-primary';
-import { TabsScrollable } from '../../examples/tabs/tabs-scrollable';
-import { TabsSecondary } from '../../examples/tabs/tabs-secondary';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const TabsBadges = lazyExample('tabs/tabs-badges', 'TabsBadges');
+const TabsPrimary = lazyExample('tabs/tabs-primary', 'TabsPrimary');
+const TabsScrollable = lazyExample('tabs/tabs-scrollable', 'TabsScrollable');
+const TabsSecondary = lazyExample('tabs/tabs-secondary', 'TabsSecondary');
 
 /** Tabs page body: primary, secondary and scrollable rows, badges and alignment. */
 export async function TabsBody(): Promise<ComponentDoc> {

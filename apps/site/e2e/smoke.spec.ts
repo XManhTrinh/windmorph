@@ -3,6 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { gotoReady } from './navigate';
 
 /**
  * One data-driven smoke suite covering EVERY page of the static export: the home page, the
@@ -129,7 +130,7 @@ async function assertPageHealthy(
     );
   }
 
-  await page.goto(url);
+  await gotoReady(page, url);
 
   await expect(page.locator('main')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();

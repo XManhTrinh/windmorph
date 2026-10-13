@@ -64,8 +64,8 @@ export const GUIDES_CATEGORY = 'Guides';
 
 /**
  * The guide pages plus the components gallery index, with the summaries the search shows.
- * (Individual component pages are added to the index from `COMPONENT_PAGES` in the root
- * layout; this list is the non-component destinations.)
+ * (Individual component pages are added to the index from `COMPONENT_PAGES` by
+ * `app/search-index.json/route.ts`; this list is the non-component destinations.)
  */
 export const GUIDE_ENTRIES: SearchEntry[] = [
   {

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { gotoReady } from './navigate';
 
 /**
  * The component Playground island: changing a control updates both the live preview's code
@@ -14,7 +15,7 @@ test.describe('Component Playground', () => {
       origin: baseURL,
     });
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/button');
+    await gotoReady(page, '/components/button');
   });
 
   test('a control change updates the code snippet and the shareable URL', async ({ page }) => {
@@ -63,7 +64,7 @@ test.describe('Playground on a phone', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/components/button');
+    await gotoReady(page, '/components/button');
     const playground = page.getByRole('region', { name: 'Button playground' });
     const sheet = playground.getByRole('dialog', { name: 'Button props' });
     await expect(sheet).toBeVisible();
@@ -81,7 +82,7 @@ test.describe('Playground on a phone', () => {
 
   test("the header's settings button opens the display settings", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/button');
+    await gotoReady(page, '/components/button');
     await page
       .getByRole('region', { name: 'Button playground' })
       .getByRole('button', { name: 'Display settings' })

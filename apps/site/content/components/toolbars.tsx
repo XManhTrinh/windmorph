@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ToolbarDocked } from '../../examples/toolbars/toolbar-docked';
-import { ToolbarFabScroll } from '../../examples/toolbars/toolbar-fab-scroll';
-import { ToolbarFloating } from '../../examples/toolbars/toolbar-floating';
-import { ToolbarOverflow } from '../../examples/toolbars/toolbar-overflow';
-import { ToolbarScrollExit } from '../../examples/toolbars/toolbar-scroll-exit';
-import { ToolbarVertical } from '../../examples/toolbars/toolbar-vertical';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ToolbarDocked = lazyExample('toolbars/toolbar-docked', 'ToolbarDocked');
+const ToolbarFabScroll = lazyExample('toolbars/toolbar-fab-scroll', 'ToolbarFabScroll');
+const ToolbarFloating = lazyExample('toolbars/toolbar-floating', 'ToolbarFloating');
+const ToolbarOverflow = lazyExample('toolbars/toolbar-overflow', 'ToolbarOverflow');
+const ToolbarScrollExit = lazyExample('toolbars/toolbar-scroll-exit', 'ToolbarScrollExit');
+const ToolbarVertical = lazyExample('toolbars/toolbar-vertical', 'ToolbarVertical');
 
 /** Toolbars page body: docked, floating, overflow, scroll expansion and scroll exit. */
 export async function ToolbarsBody(): Promise<ComponentDoc> {

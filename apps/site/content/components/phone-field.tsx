@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { PhoneFieldFlags } from '../../examples/phone-field/phone-field-flags';
-import { PhoneFieldSignup } from '../../examples/phone-field/phone-field-signup';
-import { PhoneFieldStates } from '../../examples/phone-field/phone-field-states';
-import { PhoneFieldVariants } from '../../examples/phone-field/phone-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const PhoneFieldFlags = lazyExample('phone-field/phone-field-flags', 'PhoneFieldFlags');
+const PhoneFieldSignup = lazyExample('phone-field/phone-field-signup', 'PhoneFieldSignup');
+const PhoneFieldStates = lazyExample('phone-field/phone-field-states', 'PhoneFieldStates');
+const PhoneFieldVariants = lazyExample('phone-field/phone-field-variants', 'PhoneFieldVariants');
 
 /** Phone field page body: purpose, examples, accessibility and theming. */
 export async function PhoneFieldBody(): Promise<ComponentDoc> {

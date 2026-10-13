@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ButtonLink } from '../../examples/button/button-link';
-import { ButtonSizes } from '../../examples/button/button-sizes';
-import { ButtonToggle } from '../../examples/button/button-toggle';
-import { ButtonVariants } from '../../examples/button/button-variants';
-import { ButtonShapes } from '../../examples/button/button-shapes';
-import { ButtonToggleVariants } from '../../examples/button/button-toggle-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ButtonLink = lazyExample('button/button-link', 'ButtonLink');
+const ButtonSizes = lazyExample('button/button-sizes', 'ButtonSizes');
+const ButtonToggle = lazyExample('button/button-toggle', 'ButtonToggle');
+const ButtonVariants = lazyExample('button/button-variants', 'ButtonVariants');
+const ButtonShapes = lazyExample('button/button-shapes', 'ButtonShapes');
+const ButtonToggleVariants = lazyExample('button/button-toggle-variants', 'ButtonToggleVariants');
 
 /** Button page body: purpose, live examples, accessibility and Compose differences. */
 export async function ButtonBody(): Promise<ComponentDoc> {

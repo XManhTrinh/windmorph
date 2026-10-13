@@ -2,12 +2,14 @@ import type { ComponentDoc } from './doc';
 import { collapseTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { CollapseDisclosure } from '../../examples/collapse/collapse-disclosure';
-import { CollapseReplies } from '../../examples/collapse/collapse-replies';
-import { CollapseShownFirst } from '../../examples/collapse/collapse-shown-first';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CollapseDisclosure = lazyExample('collapse/collapse-disclosure', 'CollapseDisclosure');
+const CollapseReplies = lazyExample('collapse/collapse-replies', 'CollapseReplies');
+const CollapseShownFirst = lazyExample('collapse/collapse-shown-first', 'CollapseShownFirst');
 
 /** Collapse page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function CollapseBody(): Promise<ComponentDoc> {

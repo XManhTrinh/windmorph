@@ -89,6 +89,7 @@ test.describe('Docs search', () => {
     await input.fill('button');
     const grids = view(page).getByRole('grid');
     const firstGroup = grids.first().getByRole('row');
+    await expect(firstGroup.first()).toBeVisible();
     const count = await firstGroup.count();
     await page.keyboard.press('ArrowDown');
     await expect(firstGroup.first()).toBeFocused();

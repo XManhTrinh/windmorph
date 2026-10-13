@@ -2,6 +2,7 @@ import { readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { gotoReady } from './navigate';
 
 /**
  * Opens every menu on every component page. Pages only render menus when opened, so the
@@ -21,7 +22,7 @@ for (const slug of slugs) {
       if (message.type() === 'error') errors.push(message.text());
     });
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto(`/components/${slug}`);
+    await gotoReady(page, `/components/${slug}`);
     const triggers = page.locator('main [aria-haspopup="true"], main [aria-haspopup="menu"]');
     const count = await triggers.count();
     for (let index = 0; index < count; index++) {

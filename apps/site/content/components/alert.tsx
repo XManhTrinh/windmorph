@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { AlertDismissible } from '../../examples/alert/alert-dismissible';
-import { AlertFormError } from '../../examples/alert/alert-form-error';
-import { AlertTones } from '../../examples/alert/alert-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const AlertDismissible = lazyExample('alert/alert-dismissible', 'AlertDismissible');
+const AlertFormError = lazyExample('alert/alert-form-error', 'AlertFormError');
+const AlertTones = lazyExample('alert/alert-tones', 'AlertTones');
 
 /** Alert page body: when to use it, examples, accessibility and tokens. */
 export async function AlertBody(): Promise<ComponentDoc> {

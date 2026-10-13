@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { IntentLink } from '../intent-link';
 import type { PointerEvent, ReactNode, Ref } from 'react';
 import { PageChips } from '../page-chips';
 
@@ -61,7 +61,7 @@ export function GroupTrigger({
   onPointerLeave,
 }: GroupTriggerProps) {
   return (
-    <Link
+    <IntentLink
       ref={triggerRef}
       href={destination.href}
       aria-expanded={open}
@@ -91,7 +91,7 @@ export function GroupTrigger({
       <span className="mt-[4px] max-w-full truncate text-center text-label-medium text-on-surface-variant transition-colors duration-200 group-hover/trigger:text-secondary group-focus-visible/trigger:text-secondary group-data-[current=true]/trigger:text-secondary group-data-[open=true]/trigger:text-secondary motion-reduce:transition-none">
         {destination.railLabel}
       </span>
-    </Link>
+    </IntentLink>
   );
 }
 
@@ -174,7 +174,7 @@ export function RailFlyout({
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
               <li key={href}>
-                <Link
+                <IntentLink
                   href={href}
                   aria-current={active ? 'page' : undefined}
                   onClick={onNavigate}
@@ -184,7 +184,7 @@ export function RailFlyout({
                 >
                   <span className="min-w-0 flex-1 truncate">{page.title}</span>
                   <PageChips expressive={page.expressive} pro={page.pro} />
-                </Link>
+                </IntentLink>
               </li>
             );
           })}

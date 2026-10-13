@@ -1,10 +1,12 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { BarInline } from '../../examples/navigation-bar/bar-inline';
-import { BarStacked } from '../../examples/navigation-bar/bar-stacked';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const BarInline = lazyExample('navigation-bar/bar-inline', 'BarInline');
+const BarStacked = lazyExample('navigation-bar/bar-stacked', 'BarStacked');
 
 /** Navigation bar page body: stacked and inline items. */
 export async function NavigationBarBody(): Promise<ComponentDoc> {

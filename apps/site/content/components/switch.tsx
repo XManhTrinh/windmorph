@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SwitchBasic } from '../../examples/switch/switch-basic';
-import { SwitchIcons } from '../../examples/switch/switch-icons';
-import { SwitchStates } from '../../examples/switch/switch-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SwitchBasic = lazyExample('switch/switch-basic', 'SwitchBasic');
+const SwitchIcons = lazyExample('switch/switch-icons', 'SwitchIcons');
+const SwitchStates = lazyExample('switch/switch-states', 'SwitchStates');
 
 /** Switch page body. */
 export async function SwitchBody(): Promise<ComponentDoc> {

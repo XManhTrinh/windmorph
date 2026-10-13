@@ -1,10 +1,12 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { MediaViewerActions } from '../../examples/media-viewer/media-viewer-actions';
-import { MediaViewerGallery } from '../../examples/media-viewer/media-viewer-gallery';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const MediaViewerActions = lazyExample('media-viewer/media-viewer-actions', 'MediaViewerActions');
+const MediaViewerGallery = lazyExample('media-viewer/media-viewer-gallery', 'MediaViewerGallery');
 
 /** Media viewer page body: purpose, examples, gestures, accessibility and theming. */
 export async function MediaViewerBody(): Promise<ComponentDoc> {

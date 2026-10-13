@@ -7,9 +7,6 @@ import { InlineScript } from '../components/inline-script';
 import { SITE_NAME, siteUrl } from '../lib/site-metadata';
 import { SITE_DEFAULT_THEME, SITE_THEMES } from '../lib/site-themes';
 import { DocsShell } from './(docs)/docs-shell';
-import { componentSearchEntry, GUIDE_ENTRIES, type SearchEntry } from './(docs)/search-index';
-import { COMPONENT_PAGES } from '../content/components/registry';
-import { componentTabs } from '../lib/component-page';
 import { DIRECTION_SCRIPT } from './direction';
 import './globals.css';
 
@@ -41,19 +38,7 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * The search index is built here, on the server, because the component registry imports
- * page bodies that read example source from disk. Building it in the root layout lets the
- * one shell (top bar + rail) wrap every route, the homepage included.
- */
-async function searchEntries(): Promise<SearchEntry[]> {
-  const components = await Promise.all(
-    COMPONENT_PAGES.map(async (page) => componentSearchEntry(page, await componentTabs(page))),
-  );
-  return [...GUIDE_ENTRIES, ...components];
-}
-
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={robotoFlex.variable}>
       <head>
@@ -84,7 +69,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             defaultContrast={DEFAULT_THEME_STATE.contrast}
             defaultMotion={DEFAULT_THEME_STATE.motion}
           >
-            <DocsShell searchEntries={await searchEntries()}>{children}</DocsShell>
+            <DocsShell>{children}</DocsShell>
           </ThemeProvider>
         </NextRouterProvider>
       </body>

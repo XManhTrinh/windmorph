@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { gotoReady } from './navigate';
 
 /** Component page tabs: each is its own URL, and the tabs navigate between them. */
 test.describe('Component page tabs', () => {
   test('the tabs navigate between linkable tab pages', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/slider');
+    await gotoReady(page, '/components/slider');
     const tabs = page.getByRole('tablist', { name: 'Slider documentation' });
     await expect(tabs.getByRole('tab')).toHaveText([
       'Overview',
@@ -22,7 +23,7 @@ test.describe('Component page tabs', () => {
     await expect(page.getByRole('region', { name: 'Slider props', exact: true })).toBeVisible();
 
     // A tab page opens on its own, with its tab selected.
-    await page.goto('/components/slider/guidelines');
+    await gotoReady(page, '/components/slider/guidelines');
     await expect(page.getByRole('tab', { name: 'Guidelines' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -35,7 +36,7 @@ test.describe('Component page tabs', () => {
 
   test('the arrow keys move between tabs and Enter opens one', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/button');
+    await gotoReady(page, '/components/button');
     // Start once the playground has hydrated (its segmented controls are radios then). It
     // leaves the URL alone until a control changes, so nothing re-renders between the presses.
     await expect(page.getByRole('radio', { name: 'outlined', exact: true })).toBeVisible();
@@ -51,7 +52,7 @@ test.describe('Component page tabs', () => {
 
   test('props are cards on a phone, with no sideways scroll', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/components/button/api');
+    await gotoReady(page, '/components/button/api');
     await expect(page.getByRole('list', { name: 'Button props' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Button props' })).toBeHidden();
     const overflow = await page.evaluate(
@@ -69,7 +70,7 @@ test.describe('Example cards', () => {
   }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL });
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/switch');
+    await gotoReady(page, '/components/switch');
     const show = page.getByRole('button', { name: 'Show code' }).first();
     await expect(show).toHaveAttribute('aria-expanded', 'false');
     await show.click();
@@ -87,7 +88,7 @@ test.describe('Example cards', () => {
 test.describe('Install command', () => {
   test('switches package manager and remembers the choice', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/getting-started');
+    await gotoReady(page, '/getting-started');
     const terminal = page.getByRole('region', { name: 'Terminal' });
     await expect(terminal).toHaveText('pnpm add @windmorph/react motion');
     await page.getByRole('radio', { name: 'yarn' }).click();
@@ -101,7 +102,7 @@ test.describe('Install command', () => {
 test.describe('Component index', () => {
   test('filter chips and typing narrow the list', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components');
+    await gotoReady(page, '/components');
     const cards = page.getByRole('article').locator('a[href^="/components/"]');
     const all = await cards.count();
     await page.getByRole('radio', { name: 'Pro' }).click();

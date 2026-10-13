@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SliderDiscrete } from '../../examples/slider/slider-discrete';
-import { SliderRange } from '../../examples/slider/slider-range';
-import { SliderSizes } from '../../examples/slider/slider-sizes';
-import { SliderValueLabel } from '../../examples/slider/slider-value-label';
-import { SliderVertical } from '../../examples/slider/slider-vertical';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SliderDiscrete = lazyExample('slider/slider-discrete', 'SliderDiscrete');
+const SliderRange = lazyExample('slider/slider-range', 'SliderRange');
+const SliderSizes = lazyExample('slider/slider-sizes', 'SliderSizes');
+const SliderValueLabel = lazyExample('slider/slider-value-label', 'SliderValueLabel');
+const SliderVertical = lazyExample('slider/slider-vertical', 'SliderVertical');
 
 /** Slider + RangeSlider page body. */
 export async function SliderBody(): Promise<ComponentDoc> {

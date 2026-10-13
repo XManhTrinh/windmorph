@@ -1,11 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { PickerDialogDate } from '../../examples/picker-dialog/picker-dialog-date';
-import { PickerDialogTime } from '../../examples/picker-dialog/picker-dialog-time';
-import { PickerDialogFullScreen } from '../../examples/picker-dialog/picker-dialog-full-screen';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const PickerDialogDate = lazyExample('picker-dialog/picker-dialog-date', 'PickerDialogDate');
+const PickerDialogTime = lazyExample('picker-dialog/picker-dialog-time', 'PickerDialogTime');
+const PickerDialogFullScreen = lazyExample(
+  'picker-dialog/picker-dialog-full-screen',
+  'PickerDialogFullScreen',
+);
 
 /** Picker dialog page body. */
 export async function PickerDialogBody(): Promise<ComponentDoc> {

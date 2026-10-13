@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { FabMenuBasic } from '../../examples/fab-menu/fab-menu-basic';
-import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
-import { FabMenuRotate } from '../../examples/fab-menu/fab-menu-rotate';
-import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const FabMenuBasic = lazyExample('fab-menu/fab-menu-basic', 'FabMenuBasic');
+const FabMenuColors = lazyExample('fab-menu/fab-menu-colors', 'FabMenuColors');
+const FabMenuRotate = lazyExample('fab-menu/fab-menu-rotate', 'FabMenuRotate');
+const FabMenuWeb = lazyExample('fab-menu/fab-menu-web', 'FabMenuWeb');
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody(): Promise<ComponentDoc> {

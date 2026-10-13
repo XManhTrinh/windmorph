@@ -1,12 +1,17 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SplitButtonBasic } from '../../examples/split-button/split-button-basic';
-import { SplitButtonIcon } from '../../examples/split-button/split-button-icon';
-import { SplitButtonVariants } from '../../examples/split-button/split-button-variants';
-import { SplitButtonSizes } from '../../examples/split-button/split-button-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SplitButtonBasic = lazyExample('split-button/split-button-basic', 'SplitButtonBasic');
+const SplitButtonIcon = lazyExample('split-button/split-button-icon', 'SplitButtonIcon');
+const SplitButtonVariants = lazyExample(
+  'split-button/split-button-variants',
+  'SplitButtonVariants',
+);
+const SplitButtonSizes = lazyExample('split-button/split-button-sizes', 'SplitButtonSizes');
 
 /** SplitButton page body. */
 export async function SplitButtonBody(): Promise<ComponentDoc> {

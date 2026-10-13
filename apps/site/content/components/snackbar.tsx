@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SnackbarHostDemo } from '../../examples/snackbar/snackbar-host';
-import { SnackbarLayouts } from '../../examples/snackbar/snackbar-layouts';
-import { SnackbarTwoLines } from '../../examples/snackbar/snackbar-two-lines';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SnackbarHostDemo = lazyExample('snackbar/snackbar-host', 'SnackbarHostDemo');
+const SnackbarLayouts = lazyExample('snackbar/snackbar-layouts', 'SnackbarLayouts');
+const SnackbarTwoLines = lazyExample('snackbar/snackbar-two-lines', 'SnackbarTwoLines');
 
 /** Snackbar page body. */
 export async function SnackbarBody(): Promise<ComponentDoc> {

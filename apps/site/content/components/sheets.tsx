@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SheetBottom } from '../../examples/sheets/sheet-bottom';
-import { SheetBottomStandard } from '../../examples/sheets/sheet-bottom-standard';
-import { SheetSide } from '../../examples/sheets/sheet-side';
-import { SheetStandard } from '../../examples/sheets/sheet-standard';
-import { SheetSideLevels } from '../../examples/sheets/sheet-side-levels';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SheetBottom = lazyExample('sheets/sheet-bottom', 'SheetBottom');
+const SheetBottomStandard = lazyExample('sheets/sheet-bottom-standard', 'SheetBottomStandard');
+const SheetSide = lazyExample('sheets/sheet-side', 'SheetSide');
+const SheetStandard = lazyExample('sheets/sheet-standard', 'SheetStandard');
+const SheetSideLevels = lazyExample('sheets/sheet-side-levels', 'SheetSideLevels');
 
 /** Sheets page body: modal and standard bottom sheets, modal and standard side sheets. */
 export async function SheetsBody(): Promise<ComponentDoc> {

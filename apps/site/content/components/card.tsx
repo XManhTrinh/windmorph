@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { CardInteractive } from '../../examples/card/card-interactive';
-import { CardVariants } from '../../examples/card/card-variants';
-import { CardContent } from '../../examples/card/card-content';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CardInteractive = lazyExample('card/card-interactive', 'CardInteractive');
+const CardVariants = lazyExample('card/card-variants', 'CardVariants');
+const CardContent = lazyExample('card/card-content', 'CardContent');
 
 /** Card page body: variants and the static / pressable / link forms. */
 export async function CardBody(): Promise<ComponentDoc> {

@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { TagShortForms } from '../../examples/tag/tag-short-forms';
-import { TagStatuses } from '../../examples/tag/tag-statuses';
-import { TagTokens } from '../../examples/tag/tag-tokens';
-import { TagVariants } from '../../examples/tag/tag-variants';
-import { TagSizes } from '../../examples/tag/tag-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const TagShortForms = lazyExample('tag/tag-short-forms', 'TagShortForms');
+const TagStatuses = lazyExample('tag/tag-statuses', 'TagStatuses');
+const TagTokens = lazyExample('tag/tag-tokens', 'TagTokens');
+const TagVariants = lazyExample('tag/tag-variants', 'TagVariants');
+const TagSizes = lazyExample('tag/tag-sizes', 'TagSizes');
 
 /** Tag page body: when to use it (and not a chip or a badge), examples, a11y and tokens. */
 export async function TagBody(): Promise<ComponentDoc> {

@@ -1,14 +1,19 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { PinInputCorners } from '../../examples/pin-input/pin-input-corners';
-import { PinInputGroups } from '../../examples/pin-input/pin-input-groups';
-import { PinInputPin } from '../../examples/pin-input/pin-input-pin';
-import { PinInputStates } from '../../examples/pin-input/pin-input-states';
-import { PinInputVariants } from '../../examples/pin-input/pin-input-variants';
-import { PinInputVerification } from '../../examples/pin-input/pin-input-verification';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const PinInputCorners = lazyExample('pin-input/pin-input-corners', 'PinInputCorners');
+const PinInputGroups = lazyExample('pin-input/pin-input-groups', 'PinInputGroups');
+const PinInputPin = lazyExample('pin-input/pin-input-pin', 'PinInputPin');
+const PinInputStates = lazyExample('pin-input/pin-input-states', 'PinInputStates');
+const PinInputVariants = lazyExample('pin-input/pin-input-variants', 'PinInputVariants');
+const PinInputVerification = lazyExample(
+  'pin-input/pin-input-verification',
+  'PinInputVerification',
+);
 
 /** PIN input page body: purpose, examples, accessibility and theming. */
 export async function PinInputBody(): Promise<ComponentDoc> {

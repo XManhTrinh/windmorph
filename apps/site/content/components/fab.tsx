@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { FabColors } from '../../examples/fab/fab-colors';
-import { FabExtended } from '../../examples/fab/fab-extended';
-import { FabExtendedCollapse } from '../../examples/fab/fab-extended-collapse';
-import { FabVisibility } from '../../examples/fab/fab-visibility';
-import { FabColorStyles } from '../../examples/fab/fab-color-styles';
-import { FabElevation } from '../../examples/fab/fab-elevation';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const FabColors = lazyExample('fab/fab-colors', 'FabColors');
+const FabExtended = lazyExample('fab/fab-extended', 'FabExtended');
+const FabExtendedCollapse = lazyExample('fab/fab-extended-collapse', 'FabExtendedCollapse');
+const FabVisibility = lazyExample('fab/fab-visibility', 'FabVisibility');
+const FabColorStyles = lazyExample('fab/fab-color-styles', 'FabColorStyles');
+const FabElevation = lazyExample('fab/fab-elevation', 'FabElevation');
 
 /** FAB page body (Fab + ExtendedFab). */
 export async function FabBody(): Promise<ComponentDoc> {

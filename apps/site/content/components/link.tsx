@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { LinkButton } from '../../examples/link/link-button';
-import { LinkInText } from '../../examples/link/link-in-text';
-import { LinkPlain } from '../../examples/link/link-plain';
-import { LinkStandalone } from '../../examples/link/link-standalone';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const LinkButton = lazyExample('link/link-button', 'LinkButton');
+const LinkInText = lazyExample('link/link-in-text', 'LinkInText');
+const LinkPlain = lazyExample('link/link-plain', 'LinkPlain');
+const LinkStandalone = lazyExample('link/link-standalone', 'LinkStandalone');
 
 /** Link page body: when to use it, examples, accessibility and tokens. */
 export async function LinkBody(): Promise<ComponentDoc> {

@@ -1,12 +1,20 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { AutocompleteAsync } from '../../examples/autocomplete/autocomplete-async';
-import { AutocompleteBasic } from '../../examples/autocomplete/autocomplete-basic';
-import { AutocompleteMultiple } from '../../examples/autocomplete/autocomplete-multiple';
-import { AutocompleteSections } from '../../examples/autocomplete/autocomplete-sections';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const AutocompleteAsync = lazyExample('autocomplete/autocomplete-async', 'AutocompleteAsync');
+const AutocompleteBasic = lazyExample('autocomplete/autocomplete-basic', 'AutocompleteBasic');
+const AutocompleteMultiple = lazyExample(
+  'autocomplete/autocomplete-multiple',
+  'AutocompleteMultiple',
+);
+const AutocompleteSections = lazyExample(
+  'autocomplete/autocomplete-sections',
+  'AutocompleteSections',
+);
 
 /** Autocomplete page body: purpose, examples, accessibility and differences from Compose. */
 export async function AutocompleteBody(): Promise<ComponentDoc> {

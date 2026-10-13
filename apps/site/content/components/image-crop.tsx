@@ -1,10 +1,12 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ImageCropAvatar } from '../../examples/image-crop/image-crop-avatar';
-import { ImageCropInline } from '../../examples/image-crop/image-crop-inline';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ImageCropAvatar = lazyExample('image-crop/image-crop-avatar', 'ImageCropAvatar');
+const ImageCropInline = lazyExample('image-crop/image-crop-inline', 'ImageCropInline');
 
 /** Image crop page body: purpose, examples, the server's part, accessibility and theming. */
 export async function ImageCropBody(): Promise<ComponentDoc> {

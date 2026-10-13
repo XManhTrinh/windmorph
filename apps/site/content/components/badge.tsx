@@ -1,10 +1,12 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { BadgeBasic } from '../../examples/badge/badge-basic';
-import { BadgeNavigation } from '../../examples/badge/badge-navigation';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const BadgeBasic = lazyExample('badge/badge-basic', 'BadgeBasic');
+const BadgeNavigation = lazyExample('badge/badge-navigation', 'BadgeNavigation');
 
 /** Badge page body: small and large badges, alone and on anchors. */
 export async function BadgeBody(): Promise<ComponentDoc> {

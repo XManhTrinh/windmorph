@@ -1,10 +1,12 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { DividerBasic } from '../../examples/divider/divider-basic';
-import { DividerList } from '../../examples/divider/divider-list';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const DividerBasic = lazyExample('divider/divider-basic', 'DividerBasic');
+const DividerList = lazyExample('divider/divider-list', 'DividerList');
 
 /** Divider page body: orientation, inset and the decorative flag. */
 export async function DividerBody(): Promise<ComponentDoc> {
