@@ -107,14 +107,19 @@ test.describe('Select behaviour', () => {
           frames.push({ clip: style.clipPath, scale: style.scale });
         }
         if (performance.now() - start < 1500) requestAnimationFrame(tick);
+        else (window as unknown as { framesDone_: boolean }).framesDone_ = true;
       };
       tick();
     });
     await page.keyboard.press('Enter');
     await expect(page.getByRole('listbox')).toBeVisible();
+    // Wait for the whole recording, so the last frame is after the spring has settled.
     await expect
-      .poll(() => page.evaluate(() => (window as unknown as { frames_: unknown[] }).frames_.length))
-      .toBeGreaterThan(20);
+      .poll(() => page.evaluate(() => (window as unknown as { framesDone_?: boolean }).framesDone_))
+      .toBe(true);
+    expect(
+      await page.evaluate(() => (window as unknown as { frames_: unknown[] }).frames_.length),
+    ).toBeGreaterThan(20);
     const frames = await page.evaluate(
       () => (window as unknown as { frames_: { clip: string; scale: string }[] }).frames_,
     );
