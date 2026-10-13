@@ -142,6 +142,13 @@ export async function SliderBody(): Promise<ComponentDoc> {
               measuring; range and centred tracks carry stop indicators at both ends.
             </li>
             <li>
+              Stop indicators and ticks use the M3 token table&apos;s colours, not Compose&apos;s
+              code: <InlineCode>on-primary</InlineCode> on the active track and{' '}
+              <InlineCode>on-secondary-container</InlineCode> on the inactive one (disabled,{' '}
+              <InlineCode>inverse-on-surface</InlineCode> and <InlineCode>on-surface</InlineCode> at
+              38%).
+            </li>
+            <li>
               Inset icons follow MDC — a <InlineCode>startIcon</InlineCode> 10px inside the active
               track&apos;s start and an <InlineCode>endIcon</InlineCode> 10px inside the inactive
               end (replacing the stop) on sizes md and up. When the active track is too short for
