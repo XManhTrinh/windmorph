@@ -56,10 +56,11 @@ const pressTargets = (step: number) =>
   `[data-press~="${step % 2 === 1 ? 'on' : 'off'}"], [data-press-fab-menu] button[aria-expanded]`;
 
 /** The three progress indicators: full while resting, partway while active. */
+/** As in Google's showcase: a default line, then two 8px lines (the spec's thick configuration). */
 const PROGRESS = [
-  { key: 'first', active: 0.25, wavy: false },
-  { key: 'second', active: 0.4, wavy: false },
-  { key: 'third', active: 0.45, wavy: true },
+  { key: 'first', active: 0.25, wavy: false, thickness: 4 },
+  { key: 'second', active: 0.4, wavy: false, thickness: 8 },
+  { key: 'third', active: 0.45, wavy: true, thickness: 8 },
 ] as const;
 
 function Tile({ className, children }: { className?: string; children: ReactNode }) {
@@ -181,6 +182,7 @@ export function ExpressiveBento() {
               key={indicator.key}
               value={active ? indicator.active : 1}
               wavy={indicator.wavy}
+              thickness={indicator.thickness}
               aria-label="Progress"
               className="w-full"
             />
@@ -237,6 +239,8 @@ export function ExpressiveBento() {
           expanded
           aria-label="Sections"
           className="absolute start-[28%] -end-px top-12 bottom-0 w-auto rounded-ss-corner-extra-large"
+          // Clipped by the tile, as in the showcase: its column must not scroll.
+          classNames={{ body: 'overflow-hidden' }}
           header={
             <div className="flex flex-col items-start gap-6">
               <IconButton variant="standard" icon={<MenuOpenIcon />} aria-label="Collapse" />
