@@ -278,6 +278,8 @@ describe('FloatingToolbar', () => {
       'rounded-corner-large',
       'bg-primary-container',
       'shadow-elevation-2',
+      // Hover 3, pressed 2: the hover level never applies while pressed.
+      'data-hovered:not-data-pressed:shadow-elevation-3',
     );
     expect(fab.parentElement).toHaveClass('size-[56px]', 'data-collapsed:size-[80px]');
     const surface = screen.getByRole('button', { name: 'Search' }).parentElement!.parentElement!;

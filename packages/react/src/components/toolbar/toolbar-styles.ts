@@ -235,10 +235,13 @@ export const toolbarFabStyles = tv({
       standard: { root: 'bg-primary-container text-on-primary-container' },
       vibrant: { root: 'bg-tertiary-container text-on-tertiary-container' },
     },
-    /** Like `Fab`: level 2 (Compose's toolbar FAB), level 1, or level 0 for a flat FAB. */
+    /**
+     * Like `Fab`: level 2 (Compose's toolbar FAB: hover 3, pressed 2), level 1 (hover 2,
+     * pressed 1), or level 0 for a flat FAB. The hover level never applies while pressed.
+     */
     elevation: {
-      default: { root: 'shadow-elevation-2 data-hovered:shadow-elevation-3' },
-      lowered: { root: 'shadow-elevation-1 data-hovered:shadow-elevation-2' },
+      default: { root: 'shadow-elevation-2 data-hovered:not-data-pressed:shadow-elevation-3' },
+      lowered: { root: 'shadow-elevation-1 data-hovered:not-data-pressed:shadow-elevation-2' },
       flat: { root: 'shadow-elevation-0' },
     },
   },

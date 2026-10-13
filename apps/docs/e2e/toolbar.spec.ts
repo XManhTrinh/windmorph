@@ -64,7 +64,9 @@ test.describe('Toolbar geometry', () => {
     expect(bold.x - (edit.x + edit.width)).toBe(8);
   });
 
-  test('collapsing hides leading and trailing content and Tab skips it', async ({ page }) => {
+  test('collapsing clips leading and trailing content; focusing it expands the toolbar', async ({
+    page,
+  }) => {
     await openStory(page, 'components-toolbar--collapse');
     const toolbar = page.getByTestId('toolbar');
     await page.getByRole('button', { name: 'Collapse' }).click();
@@ -142,6 +144,22 @@ test.describe('Toolbar geometry', () => {
     await expect(toolbar).toHaveAttribute('data-expanded', 'false');
     await scroller.evaluate((el) => el.scrollTo(0, 100));
     await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+  });
+});
+
+test.describe('ToolbarFab elevation', () => {
+  test('pressing keeps level 2, not the hover level 3', async ({ page }) => {
+    await openStory(page, 'components-toolbar--with-fab');
+    const fab = page.getByRole('button', { name: 'New' }).first();
+    const shadow = () => fab.evaluate((el) => getComputedStyle(el).boxShadow);
+    const rest = await shadow();
+    await fab.hover();
+    await expect(fab).toHaveAttribute('data-hovered', 'true');
+    await expect.poll(shadow).not.toBe(rest);
+    await page.mouse.down();
+    await expect(fab).toHaveAttribute('data-pressed', 'true');
+    await expect.poll(shadow).toBe(rest);
+    await page.mouse.up();
   });
 });
 
