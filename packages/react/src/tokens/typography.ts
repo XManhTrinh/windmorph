@@ -1,7 +1,9 @@
 /**
  * M3 type scale, including the Expressive emphasized variants
- * (Compose `TypeScaleTokens`; sp → px 1:1).
+ * (Compose `TypeScaleTokens`; sp → px 1:1 at a 16px root).
  *
+ * Values are written in px, as in the spec, and emitted as rem (px / 16), so text
+ * follows the reader's browser font size the way sp follows Android's font scale.
  * Each role becomes `--md-sys-typescale-<role>-{font,size,line-height,tracking,weight}`
  * and a Tailwind `text-<role>` utility that sets size, line height, tracking and weight.
  */
@@ -17,11 +19,11 @@ export type Typeface = keyof typeof TYPEFACES;
 
 export interface TypeStyle {
   font: Typeface;
-  /** px */
+  /** px at a 16px root (emitted as rem) */
   size: number;
-  /** px */
+  /** px at a 16px root (emitted as rem) */
   lineHeight: number;
-  /** px */
+  /** px at a 16px root (emitted as rem) */
   tracking: number;
   weight: 400 | 500 | 700;
 }

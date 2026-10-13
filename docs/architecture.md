@@ -1,6 +1,6 @@
 # @windmorph/react — Architecture
 
-Status: **Tier 3 complete** · Last updated: 2026-10-13 (rev. 43 — the core on its own; Windmorph Pro has its own architecture)
+Status: **Tier 3 complete** · Last updated: 2026-10-13 (rev. 44 — type in rem, layout in px)
 
 A production-ready React component library implementing the **latest Material Design 3 Expressive** specification, consumed by many React and Next.js projects. This is the free, MIT-licensed core: M3 Expressive components only.
 
@@ -16,7 +16,7 @@ import { Button, Dialog, DialogTrigger, ThemeProvider } from '@windmorph/react';
 |---|---|---|
 | 1 | Package name | `@windmorph/react`, in `packages/react` (each package's folder is named after its npm name) |
 | 2 | React | Latest only (React 19+). `ref` as a normal prop, **no `forwardRef`** |
-| 3 | Spec source of truth | **m3.material.io** for design intent; **Jetpack Compose Material 3 token files** for exact values (dp → CSS px 1:1). Material Web is in maintenance mode and will not implement Expressive, so it is *not* a reference |
+| 3 | Spec source of truth | **m3.material.io** for design intent; **Jetpack Compose Material 3 token files** for exact values (dp → CSS px 1:1; sp → rem at a 16px root, §4 Typography). Material Web is in maintenance mode and will not implement Expressive, so it is *not* a reference |
 | 4 | Themes | 6 built-in colour themes × light/dark, generated with `ColorSpec2025` (see §5) |
 | 5 | Contrast | Standard, medium and high contrast shipped in v1 |
 | 6 | Motion | Two motion schemes, `expressive` (default) and `standard`, independent of colour theme (see §6) |
@@ -104,7 +104,7 @@ Tailwind utility names:
 | Token | Utilities |
 |---|---|
 | Colour roles | `bg-primary`, `text-on-surface`, `border-outline-variant`, … |
-| Type scale | `text-<role>` sets size, line height, tracking and weight (`text-body-large`, `text-label-large-emphasized`); typeface via `font-brand` / `font-plain` |
+| Type scale | `text-<role>` sets size, line height, tracking and weight (`text-body-large`, `text-label-large-emphasized`), in rem so text follows the browser's font size (see Typography below); typeface via `font-brand` / `font-plain` |
 | Corners | `rounded-corner-<name>` (`rounded-corner-full`, `rounded-corner-medium`, …) |
 | Elevation | `shadow-elevation-0` … `shadow-elevation-5` |
 | Springs | `ease-m3-<family>-<speed>` and `duration-m3-<family>-<speed>`; legacy curves are `ease-m3-emphasized`, … |
@@ -131,6 +131,10 @@ hover 8% · focus 10% · pressed 10% · dragged 16% · disabled content 38% · d
 
 ### Typography
 Full baseline type scale + Expressive **emphasized** variants for every role (display/headline/title/body/label × large/medium/small).
+
+**Type in rem, layout in px** (2026-10-13). Android sizes text in sp, which follows the system font scale, and everything else in dp, which doesn't. The web equivalent is rem for type and px for layout: the token source keeps Compose's values (px at a 16px root) and the generator writes each role's size, line height and tracking as rem (`px / 16`, so `body-large` is `1rem` / `1.5rem` / `0.03125rem`). At the browser's default 16px the result is pixel-identical to the px scale; when a reader raises the browser's font size, every role scales with it while containers, padding, corners, icons and touch targets keep their px sizes, as on Android. Browser zoom scales both, as before. Before this, the scale was in px, so a 32px default font size still gave a 24px dialog title: WCAG 1.4.4 (resize text) relied on zoom alone, and the M3 guidance that text should work at 200% was not met. Tracking is rem rather than em so it stays a fixed fraction of the root, matching Compose's sp tracking.
+
+Components write text through the type roles (`text-<role>` or the `typescale()` tokens), never as px sizes. Where a container had a fixed height that 200% text overflowed, it has a minimum height instead and grows, as Compose's `heightIn(min = …)` / `defaultMinSize` containers do: the small top app bar's row (64px), tabs (48 / 64px), the time picker's period selector (80 / 72 / 38px) and the large badge (16px, Compose's `Badge` uses `defaultMinSize`). Containers whose 200% text still fits keep their fixed height (buttons, chips, the search bar, dialog headers and action bars, the slider's value label). Sizes the spec fixes as geometry keep it: the time picker's 96 × 80px selectors and 256px dial, and the date picker's 48px day cells, so their larger digits fill the box. `apps/docs/e2e/type-scale.spec.ts` sets a 32px root and checks that the roles double, that layout stays in px and that the grown containers hold their text.
 
 ## 5. Theming
 

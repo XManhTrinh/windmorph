@@ -108,6 +108,16 @@ describe('generated CSS', () => {
     expect(tokens).toMatch(/prefers-reduced-motion: reduce\) \{\n:root,\n\[data-motion\]/);
   });
 
+  it('writes the type scale in rem, so text follows the browser font size', () => {
+    const tokens = generateTokensCss();
+    expect(tokens).toContain('--md-sys-typescale-body-large-size: 1rem;');
+    expect(tokens).toContain('--md-sys-typescale-body-large-line-height: 1.5rem;');
+    expect(tokens).toContain('--md-sys-typescale-body-large-tracking: 0.03125rem;');
+    expect(tokens).toContain('--md-sys-typescale-display-large-size: 3.5625rem;');
+    expect(tokens).toContain('--md-sys-typescale-display-large-tracking: -0.0125rem;');
+    expect(tokens).not.toMatch(/--md-sys-typescale-[\w-]+-(size|line-height|tracking): [-\d.]+px;/);
+  });
+
   it('is deterministic', () => {
     expect(generateTokensCss()).toBe(generateTokensCss());
     expect(generateTailwindThemeCss()).toBe(generateTailwindThemeCss());

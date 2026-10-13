@@ -35,7 +35,7 @@ describe('Tabs', () => {
     expect(tabs[0]).toHaveAttribute('aria-controls', screen.getByRole('tabpanel').id);
     expect(list).toHaveClass('auto-cols-fr', 'bg-surface');
     expect(tabs[1]).toHaveClass(
-      'h-[48px]',
+      'min-h-[48px]',
       'text-title-small',
       'text-on-surface-variant',
       'data-selected:text-primary',
@@ -173,7 +173,7 @@ describe('Tabs', () => {
       </Tabs>,
     );
     expect(screen.getByRole('tab', { name: 'Photos' })).toHaveClass(
-      'h-[64px]',
+      'min-h-[64px]',
       'flex-col',
       'justify-center',
       'gap-[2px]',
@@ -186,7 +186,7 @@ describe('Tabs', () => {
       </Tabs>,
     );
     expect(screen.getByRole('tab', { name: 'Photos' })).toHaveClass(
-      'h-[48px]',
+      'min-h-[48px]',
       'gap-[8px]',
       'data-selected:text-on-surface',
     );
