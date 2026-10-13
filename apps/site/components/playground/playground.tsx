@@ -100,7 +100,9 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
 
   return (
     <section className="flex flex-col gap-4" aria-label={`${componentName} playground`}>
-      <h2 className="text-headline-small text-on-surface">Playground</h2>
+      <h2 id="playground" className="text-headline-small text-on-surface">
+        Playground
+      </h2>
       {/*
        * One cohesive card: the preview + props panel and the code panel are sections of the
        * same bordered surface, split by a divider, so the whole Playground reads as a single

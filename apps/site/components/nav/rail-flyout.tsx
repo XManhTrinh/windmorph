@@ -154,7 +154,7 @@ export function RailFlyout({
           <ul className="flex flex-col gap-0.5 px-2 pb-3">
             {pages.map((page) => {
               const href = `/components/${page.slug}`;
-              const active = pathname === href;
+              const active = pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <li key={page.slug}>
                   <Link

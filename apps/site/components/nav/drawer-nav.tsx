@@ -106,7 +106,7 @@ function AccordionSection({
               <li key={page.slug}>
                 <DrawerLink
                   href={href}
-                  active={pathname === href}
+                  active={isActive(pathname, href)}
                   onNavigate={onNavigate}
                   chips={
                     page.expressive || page.pro ? (

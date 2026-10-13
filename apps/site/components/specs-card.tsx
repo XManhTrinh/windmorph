@@ -17,7 +17,9 @@ export function SpecsCard({ specs }: { specs: ComponentSpecs }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-headline-small text-on-surface">M3 Expressive specs</h2>
+      <h2 id="specs" className="text-headline-small text-on-surface">
+        M3 Expressive specs
+      </h2>
       <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-corner-large border border-outline-variant bg-outline-variant medium:grid-cols-2">
         {rows.map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 bg-surface p-4">

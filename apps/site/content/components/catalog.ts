@@ -1363,3 +1363,52 @@ export const COMPONENT_PAGE_COUNT = COMPONENT_META.filter(
 
 /** The number of gallery categories (non-primitive rail groups), for honest hero copy. */
 export const CATEGORY_COUNT = GALLERY_RAIL_GROUPS.length;
+
+/**
+ * Each M3 component page's counterpart on m3.material.io (the path under `/components/`),
+ * linked from its Guidelines tab. Windmorph Pro components aren't part of M3, so they have
+ * none; neither does the Primitives reference.
+ */
+export const M3_GUIDELINES: Record<string, string> = {
+  button: 'buttons',
+  'icon-button': 'icon-buttons',
+  'button-group': 'button-groups',
+  'split-button': 'split-button',
+  fab: 'floating-action-button',
+  'fab-menu': 'fab-menu',
+  'text-field': 'text-fields',
+  select: 'menus',
+  autocomplete: 'menus',
+  checkbox: 'checkbox',
+  'radio-group': 'radio-button',
+  switch: 'switch',
+  slider: 'sliders',
+  chips: 'chips',
+  card: 'cards',
+  dialog: 'dialogs',
+  menu: 'menus',
+  tooltip: 'tooltips',
+  sheets: 'bottom-sheets',
+  list: 'lists',
+  carousel: 'carousel',
+  badge: 'badges',
+  divider: 'divider',
+  'navigation-rail': 'navigation-rail',
+  'navigation-bar': 'navigation-bar',
+  tabs: 'tabs',
+  'top-app-bar': 'app-bars',
+  search: 'search',
+  toolbars: 'toolbars',
+  snackbar: 'snackbar',
+  progress: 'progress-indicators',
+  'loading-indicator': 'loading-indicator',
+  'date-picker': 'date-pickers',
+  'time-picker': 'time-pickers',
+  'picker-dialog': 'date-pickers',
+};
+
+/** The m3.material.io guidelines URL for a component page, if it has one. */
+export function m3GuidelinesUrl(slug: string): string | null {
+  const path = M3_GUIDELINES[slug];
+  return path ? `https://m3.material.io/components/${path}/overview` : null;
+}

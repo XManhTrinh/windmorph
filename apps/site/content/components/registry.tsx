@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react';
 import { AutocompleteBody } from './autocomplete';
 import { AvatarBody } from './avatar';
 import { BadgeBody } from './badge';
@@ -60,6 +59,7 @@ import { ToolbarsBody } from './toolbars';
 import { TooltipBody } from './tooltip';
 import { TopAppBarBody } from './top-app-bar';
 import { COMPONENT_META, type ComponentMeta } from './catalog';
+import type { ComponentDoc } from './doc';
 
 // Re-export the pure catalog surface so existing server imports keep resolving via registry.
 export type {
@@ -80,14 +80,17 @@ export {
   pagesInRailGroup,
 } from './catalog';
 
-/** A fully-wired component page: catalog metadata plus its rendered body. */
+/** Builds a component page's written content, split by tab (it reads example sources). */
+export type ComponentDocLoader = () => ComponentDoc | Promise<ComponentDoc>;
+
+/** A fully-wired component page: catalog metadata plus its written content. */
 export interface ComponentPageMeta extends ComponentMeta {
-  /** The per-component page body: sections (a) purpose, (b) examples, (d) a11y, (e) Compose. */
-  Body: ComponentType;
+  /** The page's content per tab: examples, guidelines, accessibility and API notes. */
+  loadDoc: ComponentDocLoader;
 }
 
-/** The page body for each slug, kept separate from the pure catalog so clients can import it. */
-const BODIES: Record<string, ComponentType> = {
+/** The content for each slug, kept separate from the pure catalog so clients can import it. */
+const BODIES: Record<string, ComponentDocLoader> = {
   button: ButtonBody,
   'icon-button': IconButtonBody,
   'button-group': ButtonGroupBody,
@@ -336,9 +339,9 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
 
 /** Every component page, in display order: catalog metadata wired to its page body. */
 export const COMPONENT_PAGES: ComponentPageMeta[] = COMPONENT_META.map((meta) => {
-  const Body = BODIES[meta.slug];
-  if (!Body) throw new Error(`No page body registered for component slug "${meta.slug}"`);
-  return { ...meta, Body };
+  const loadDoc = BODIES[meta.slug];
+  if (!loadDoc) throw new Error(`No page content registered for component slug "${meta.slug}"`);
+  return { ...meta, loadDoc };
 });
 
 /** The registry keyed by slug, for the dynamic route to resolve a page. */

@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { COMPONENT_META } from '../../content/components/catalog';
 import { componentSearchEntry, GUIDE_ENTRIES, searchPages, type SearchEntry } from './search-index';
 
-const entries: SearchEntry[] = [...GUIDE_ENTRIES, ...COMPONENT_META.map(componentSearchEntry)];
+const entries: SearchEntry[] = [
+  ...GUIDE_ENTRIES,
+  ...COMPONENT_META.map((page) => componentSearchEntry(page)),
+];
 
 describe('searchPages', () => {
   it('finds a component by title', () => {
@@ -52,16 +55,19 @@ describe('searchPages', () => {
     expect(results[0]?.href).toBe('/components/text-field');
   });
 
-  it('finds pages by the code names people import', () => {
+  it('finds pages by the code names people import, on their API tab', () => {
+    // A name the summary also uses finds the page on its title or summary, so it opens it.
+    expect(searchPages(entries, 'FileTrigger').map((entry) => entry.href)).toContain(
+      '/components/file-trigger',
+    );
     const cases = [
-      ['ShapedIcon', '/components/shaped-icon'],
-      ['SkipLink', '/components/skip-link'],
-      ['FileTrigger', '/components/file-trigger'],
+      ['ShapedIcon', '/components/shaped-icon/api'],
+      ['SkipLink', '/components/skip-link/api'],
       ['useFileTrigger', '/components/file-trigger'],
-      ['IconButton', '/components/icon-button'],
-      ['useSnackbarHostState', '/components/snackbar'],
-      ['useToolbarScrollExpansion', '/components/toolbars'],
-      ['useToolbarScrollExit', '/components/toolbars'],
+      ['IconButton', '/components/icon-button/api'],
+      ['useSnackbarHostState', '/components/snackbar/api'],
+      ['useToolbarScrollExpansion', '/components/toolbars/api'],
+      ['useToolbarScrollExit', '/components/toolbars/api'],
       ['useTheme', '/theming'],
       ['useNavigationGuard', '/nextjs'],
     ] as const;
@@ -71,6 +77,23 @@ describe('searchPages', () => {
         query,
       ).toContain(href);
     }
+  });
+
+  it('opens a component on the tab a query asks for', () => {
+    expect(searchPages(entries, 'slider keyboard')[0]).toMatchObject({
+      title: 'Slider: Accessibility',
+      href: '/components/slider/accessibility',
+    });
+    expect(searchPages(entries, 'button api')[0]?.href).toBe('/components/button/api');
+    expect(searchPages(entries, 'tabs guidelines')[0]?.href).toBe('/components/tabs/guidelines');
+  });
+
+  it('leaves out a tab a page does not have', () => {
+    const primitives = componentSearchEntry(
+      { slug: 'primitives', title: 'Primitives', summary: '', propsComponents: [] },
+      ['overview', 'accessibility', 'api'],
+    );
+    expect(searchPages([primitives], 'primitives guidelines')).toEqual([]);
   });
 
   it('documents every hook the library exports on some page', async () => {
@@ -92,7 +115,9 @@ describe('searchPages', () => {
     ];
     const sources = await Promise.all(entryFiles.map((file) => readFile(file, 'utf8')));
     const exported = new Set(sources.join('\n').match(/\buse[A-Z][A-Za-z0-9]+\b/g) ?? []);
-    const searchable = new Set(entries.flatMap((entry) => entry.keywords ?? []));
+    const searchable = new Set(
+      entries.flatMap((entry) => [...(entry.keywords ?? []), ...(entry.codeNames ?? [])]),
+    );
     expect([...exported].filter((hook) => !searchable.has(hook))).toEqual([]);
   });
 });

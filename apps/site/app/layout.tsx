@@ -9,6 +9,7 @@ import { SITE_DEFAULT_THEME, SITE_THEMES } from '../lib/site-themes';
 import { DocsShell } from './(docs)/docs-shell';
 import { componentSearchEntry, GUIDE_ENTRIES, type SearchEntry } from './(docs)/search-index';
 import { COMPONENT_PAGES } from '../content/components/registry';
+import { componentTabs } from '../lib/component-page';
 import { DIRECTION_SCRIPT } from './direction';
 import './globals.css';
 
@@ -45,12 +46,14 @@ export const metadata: Metadata = {
  * page bodies that read example source from disk. Building it in the root layout lets the
  * one shell (top bar + rail) wrap every route, the homepage included.
  */
-const SEARCH_ENTRIES: SearchEntry[] = [
-  ...GUIDE_ENTRIES,
-  ...COMPONENT_PAGES.map(componentSearchEntry),
-];
+async function searchEntries(): Promise<SearchEntry[]> {
+  const components = await Promise.all(
+    COMPONENT_PAGES.map(async (page) => componentSearchEntry(page, await componentTabs(page))),
+  );
+  return [...GUIDE_ENTRIES, ...components];
+}
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={robotoFlex.variable}>
       <head>
@@ -81,7 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             defaultContrast={DEFAULT_THEME_STATE.contrast}
             defaultMotion={DEFAULT_THEME_STATE.motion}
           >
-            <DocsShell searchEntries={SEARCH_ENTRIES}>{children}</DocsShell>
+            <DocsShell searchEntries={await searchEntries()}>{children}</DocsShell>
           </ThemeProvider>
         </NextRouterProvider>
       </body>
