@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { Dialog, DialogContent, DialogTrigger } from '../dialog/Dialog';
 import { Menu, MenuItem } from '../menu/Menu';
 import { SplitButton, type SplitButtonProps } from './SplitButton';
 
@@ -56,7 +57,7 @@ describe('SplitButton', () => {
       'ps-[13px]',
       'rounded-e-[min(var(--md-sys-shape-corner-full),20px)]',
       'rounded-s-corner-extra-small',
-      '[--m3-optical:-2px]',
+      '[--m3-optical:-1px]',
     );
     expect(trailing().parentElement).toHaveClass('gap-[2px]');
     expect(await axeViolations(container)).toEqual([]);
@@ -106,9 +107,9 @@ describe('SplitButton', () => {
       'ps-[24px]',
       'rounded-e-corner-extra-small',
       'size-[26px]',
-      '[--m3-optical:-3px]',
+      '[--m3-optical:-2px]',
     ],
-    ['lg', 'h-[96px]', 'ps-[48px]', 'rounded-e-corner-small', 'size-[38px]', '[--m3-optical:-4px]'],
+    ['lg', 'h-[96px]', 'ps-[48px]', 'rounded-e-corner-small', 'size-[38px]', '[--m3-optical:-3px]'],
     [
       'xl',
       'h-[136px]',
@@ -117,11 +118,11 @@ describe('SplitButton', () => {
       'size-[50px]',
       '[--m3-optical:-6px]',
     ],
-  ] as const)('sizes %s from Compose', (size, height, padding, inner, iconSize, optical) => {
+  ] as const)('sizes %s from the spec', (size, height, padding, inner, iconSize, optical) => {
     render(<Send size={size} />);
     expect(leading()).toHaveClass(height, padding, inner);
     expect(trailing()).toHaveClass(height, optical);
-    expect(trailing().firstElementChild).toHaveClass(iconSize);
+    expect(trailing().querySelector('[data-motion]')).toHaveClass(iconSize);
   });
 
   it.each([
@@ -158,5 +159,99 @@ describe('SplitButton', () => {
     expect(root).toHaveClass('fixed', 'bottom-4', 'inline-flex');
     expect(root).toHaveStyle({ zIndex: '2' });
     expect(trailing()).toHaveClass('shadow-elevation-3');
+  });
+
+  it.each([
+    ['xs', 'rounded-e-corner-small'],
+    ['sm', 'rounded-e-corner-medium'],
+    ['md', 'rounded-e-corner-medium'],
+    ['lg', 'rounded-e-corner-large-increased'],
+    ['xl', 'rounded-e-corner-large-increased'],
+  ] as const)('changes the %s inner corners on hover and keyboard focus too', (size, corner) => {
+    render(<Send size={size} />);
+    expect(leading()).toHaveClass(
+      `data-hovered:${corner}`,
+      `data-focus-visible:${corner}`,
+      `data-pressed:${corner}`,
+    );
+    const start = corner.replace('rounded-e-', 'rounded-s-');
+    expect(trailing()).toHaveClass(
+      `not-data-open:data-hovered:${start}`,
+      `not-data-open:data-focus-visible:${start}`,
+      `data-pressed:${start}`,
+    );
+  });
+
+  it('gives both halves a 48px touch target at XS and S only', () => {
+    const { rerender } = render(<Send size="xs" />);
+    for (const button of [leading(), trailing()]) {
+      const target = button.querySelector('[data-touch-target]');
+      expect(target).not.toBeNull();
+      expect(target?.parentElement).toHaveClass('relative');
+    }
+    rerender(<Send size="md" />);
+    expect(document.querySelector('[data-touch-target]')).toBeNull();
+  });
+
+  it('turns the chevron inwards on the standard scheme spring, mirrored in RTL', () => {
+    render(<Send />);
+    const icon = trailing().querySelector('[data-motion]');
+    expect(icon).toHaveAttribute('data-motion', 'standard');
+    expect(icon).toHaveClass(
+      'in-data-open:ltr:rotate-180',
+      'in-data-open:rtl:-rotate-180',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+    );
+  });
+
+  it('can show only an icon in the leading button, named by leadingLabel', async () => {
+    const { container } = render(
+      <SplitButton
+        leadingIcon={<Icon />}
+        leadingLabel="Send"
+        menuLabel="More send options"
+        menu={
+          <Menu aria-label="Send options">
+            <MenuItem key="later">Send later</MenuItem>
+          </Menu>
+        }
+      />,
+    );
+    expect(leading()).toHaveAccessibleName('Send');
+    expect(leading()).toHaveTextContent('');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('opens another overlay through an enclosing trigger', async () => {
+    render(
+      <DialogTrigger>
+        <SplitButton menuLabel="More send options">Send</SplitButton>
+        <Dialog role="dialog" aria-label="Schedule send">
+          <DialogContent>Pick a time.</DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    expect(leading()).not.toHaveAttribute('aria-haspopup');
+    await userEvent.click(trailing());
+    expect(await screen.findByRole('dialog', { name: 'Schedule send' })).toBeInTheDocument();
+  });
+
+  it('reports trailing presses and toggles open without a menu', async () => {
+    const onTrailingPress = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <SplitButton
+        menuLabel="More send options"
+        onTrailingPress={onTrailingPress}
+        onOpenChange={onOpenChange}
+      >
+        Send
+      </SplitButton>,
+    );
+    await userEvent.click(trailing());
+    expect(onTrailingPress).toHaveBeenCalledOnce();
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(trailing()).toHaveAttribute('aria-expanded', 'true');
+    expect(trailing()).toHaveAttribute('data-open', 'true');
   });
 });

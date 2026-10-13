@@ -148,6 +148,8 @@ export interface MenuProps extends Omit<
   variant?: MenuVariant;
   /** Placement relative to the trigger. @default "bottom start" */
   placement?: Placement;
+  /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
+  offset?: number;
   className?: string;
   classNames?: MenuClassNames;
   style?: CSSProperties;
@@ -204,6 +206,7 @@ function MenuPopover({
   isExiting,
   exitProps,
   placement = 'bottom start',
+  offset = 0,
   ...props
 }: MenuProps & {
   trigger: MenuTriggerContextValue;
@@ -227,7 +230,7 @@ function MenuPopover({
       triggerRef: trigger.triggerRef,
       popoverRef,
       placement: toPhysicalPlacement(placement, direction),
-      offset: 0,
+      offset,
     },
     trigger.state,
   );

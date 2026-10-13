@@ -42,7 +42,6 @@ const meta = {
     size: { control: 'inline-radio', options: SIZES },
     leadingIcon: { control: false },
     menu: { control: false },
-    menuIcon: { control: false },
   },
 } satisfies Meta<typeof SplitButton>;
 
@@ -88,6 +87,25 @@ export const VariantsAndSizes: Story = {
             </SplitButton>
           ))}
         </div>
+      ))}
+    </div>
+  ),
+};
+
+/** The leading button with only an icon, named by `leadingLabel`. */
+export const IconOnly: Story = {
+  render: () => (
+    <div className="flex w-fit items-center gap-6" data-testid="icon-only">
+      {SIZES.map((size) => (
+        <SplitButton
+          key={size}
+          size={size}
+          variant="tonal"
+          leadingIcon={<EditIcon />}
+          leadingLabel="Edit"
+          menuLabel={`More ${size} edit options`}
+          menu={sendMenu()}
+        />
       ))}
     </div>
   ),

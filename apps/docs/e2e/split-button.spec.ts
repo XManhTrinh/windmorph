@@ -15,6 +15,11 @@ test.describe('SplitButton visual regression', () => {
     }
   }
 
+  test('icon only', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--icon-only');
+    await expect(page.getByTestId('icon-only')).toHaveScreenshot('icon-only.png');
+  });
+
   test('disabled', async ({ page }) => {
     await openStory(page, 'components-splitbutton--disabled');
     await expect(page.getByTestId('disabled')).toHaveScreenshot('disabled.png');
@@ -70,6 +75,61 @@ test.describe('SplitButton behaviour', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0);
     await expect(trigger).toBeFocused();
+  });
+});
+
+test.describe('SplitButton spec geometry', () => {
+  test('the menu opens 4px below, aligned with the trailing button end edge', async ({ page }) => {
+    for (const dir of ['ltr', 'rtl'] as const) {
+      await openStory(page, 'components-splitbutton--playground', { dir });
+      const trigger = page.getByRole('button', { name: 'More send options' });
+      await trigger.click();
+      const menu = page.getByRole('menu');
+      await expect(menu).toBeVisible();
+      await page.waitForTimeout(500);
+      const button = (await trigger.boundingBox())!;
+      // The menu list extends 8px past its groups (room for their shadows): inset it.
+      const list = (await menu.boundingBox())!;
+      const surface = {
+        top: list.y + 8,
+        left: list.x + 8,
+        right: list.x + list.width - 8,
+      };
+      expect(Math.round(surface.top - (button.y + button.height))).toBe(4);
+      if (dir === 'ltr')
+        expect(Math.abs(surface.right - (button.x + button.width))).toBeLessThan(1);
+      else expect(Math.abs(surface.left - button.x)).toBeLessThan(1);
+      await page.keyboard.press('Escape');
+    }
+  });
+
+  test('inner corners change on hover and keyboard focus', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--playground');
+    const send = page.getByRole('button', { name: 'Send', exact: true });
+    const trigger = page.getByRole('button', { name: 'More send options' });
+    const endRadius = () => send.evaluate((el) => getComputedStyle(el).borderTopRightRadius);
+    expect(await endRadius()).toBe('4px');
+    await send.hover();
+    await expect.poll(endRadius).toBe('12px');
+    await page.mouse.move(0, 0);
+    await expect.poll(endRadius).toBe('4px');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(trigger).toBeFocused();
+    await expect
+      .poll(() => trigger.evaluate((el) => getComputedStyle(el).borderTopLeftRadius))
+      .toBe('12px');
+  });
+
+  test('small halves have 48px touch targets', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--playground', {}, { size: 'xs' });
+    for (const name of ['Send', 'More send options']) {
+      const button = page.getByRole('button', { name, exact: true });
+      const target = button.locator('[data-touch-target]');
+      const box = (await target.boundingBox())!;
+      expect(box.height).toBe(48);
+      expect(box.width).toBeGreaterThanOrEqual(48);
+    }
   });
 });
 

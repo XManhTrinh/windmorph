@@ -2,19 +2,25 @@ import { tv, type VariantProps } from '../../utils/tv';
 import { buttonVariantClasses } from '../button/button-styles';
 
 /*
- * Values follow Compose Material 3 (SplitButton.kt, SplitButton{XSmall…XLarge}Tokens):
+ * Values follow the M3 Expressive split button specs and Compose's
+ * SplitButton{XSmall…XLarge}Tokens (2026-10-13):
  *
  * - Two buttons 2px apart, each at least 48px wide, with full outer corners. Inner corners
- *   are 4 / 4 / 4 / 8 / 12px (XS–XL) and press to 8 / 12 / 12 / 20 / 20px; the code uses
- *   the pressed corners only (the hovered tokens are unused). Corners animate on the
- *   effects default spring.
+ *   are 4 / 4 / 4 / 8 / 12px (XS–XL) and change to 8 / 12 / 12 / 20 / 20px when hovered,
+ *   keyboard-focused or pressed ("The inner corners change shape for hovered, focused, and
+ *   pressed states"). Corners move on the fast spatial spring (`container-motion`).
+ * - XS and S halves are shorter than 48px, so each gets a 48px touch target.
  * - Leading padding 12/10, 16/12, 24, 48, 64px; trailing 13, 13, 15, 29, 43px with a 22 /
  *   22 / 26 / 38 / 50px icon.
  * - While its menu is open the trailing button is a circle with a persistent 10% layer
  *   of its content colour (Compose draws the outline at the pressed state-layer alpha).
- * - The trailing icon is optically centred: Compose shifts it by 0.11 × (start − end
- *   corner) of the current shape, rounded: −1 / −2 / −3 / −4 / −6px at rest, −1 / −1 /
- *   −2 / −3 / −5px pressed and 0 when round.
+ * - The trailing icon is optically centred, −1 / −1 / −2 / −3 / −6px from the centre at
+ *   rest (the spec's "Menu icon offset when unselected"), −1 / −1 / −2 / −3 / −5px pressed
+ *   (Compose) and centred when open.
+ * - The icon turns over inwards (towards the leading button, so the other way in RTL) on
+ *   the standard scheme's fast spatial spring whatever the active scheme ("The split
+ *   button uses the standard motion scheme … when rotating the menu button"): the icon
+ *   carries `data-motion="standard"`.
  *
  * Label type and icon sizes follow the Button scale per size; Compose's split button
  * provides `label-large` and leaves larger text to the caller. Every class is written out
@@ -40,8 +46,9 @@ export const splitButtonStyles = tv({
   slots: {
     root: 'inline-flex items-center gap-[2px]',
     leading: half,
-    // Library-owned inner wrapper of the leading button.
-    content: 'inline-flex min-w-0 items-center justify-center',
+    // Library-owned inner wrappers: they hold the touch targets, never consumer layout.
+    content: 'relative inline-flex min-w-0 items-center justify-center',
+    trailingContent: 'relative inline-flex items-center justify-center',
     label: 'min-w-0',
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
     trailing: [
@@ -53,9 +60,9 @@ export const splitButtonStyles = tv({
     menuIcon: [
       'relative start-(--m3-optical) inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
       '[transition-property:inset-inline-start,rotate]',
-      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
-      'in-data-open:rotate-180',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
+      'in-data-open:ltr:rotate-180 in-data-open:rtl:-rotate-180',
     ],
   },
   variants: {
@@ -64,13 +71,15 @@ export const splitButtonStyles = tv({
       xs: {
         leading: [
           'h-[32px] ps-[12px] pe-[10px] text-label-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small data-pressed:rounded-e-corner-small',
+          'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small',
+          'data-hovered:rounded-e-corner-small data-focus-visible:rounded-e-corner-small data-pressed:rounded-e-corner-small',
         ],
-        content: 'gap-[4px]',
+        content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
           'h-[32px] ps-[13px] pe-[13px]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small data-pressed:rounded-s-corner-small',
+          'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small',
+          'not-data-open:data-hovered:rounded-s-corner-small not-data-open:data-focus-visible:rounded-s-corner-small data-pressed:rounded-s-corner-small',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',
           '[--m3-optical:-1px] data-pressed:[--m3-optical:-1px] data-open:not-data-pressed:[--m3-optical:0px]',
         ],
@@ -79,58 +88,66 @@ export const splitButtonStyles = tv({
       sm: {
         leading: [
           'h-[40px] ps-[16px] pe-[12px] text-label-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),20px)] rounded-e-corner-extra-small data-pressed:rounded-e-corner-medium',
+          'rounded-s-[min(var(--md-sys-shape-corner-full),20px)] rounded-e-corner-extra-small',
+          'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
           'h-[40px] ps-[13px] pe-[13px]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),20px)] rounded-s-corner-extra-small data-pressed:rounded-s-corner-medium',
+          'rounded-e-[min(var(--md-sys-shape-corner-full),20px)] rounded-s-corner-extra-small',
+          'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
-          '[--m3-optical:-2px] data-pressed:[--m3-optical:-1px] data-open:not-data-pressed:[--m3-optical:0px]',
+          '[--m3-optical:-1px] data-pressed:[--m3-optical:-1px] data-open:not-data-pressed:[--m3-optical:0px]',
         ],
         menuIcon: 'size-[22px]',
       },
       md: {
         leading: [
           'h-[56px] ps-[24px] pe-[24px] text-title-medium',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),28px)] rounded-e-corner-extra-small data-pressed:rounded-e-corner-medium',
+          'rounded-s-[min(var(--md-sys-shape-corner-full),28px)] rounded-e-corner-extra-small',
+          'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[24px]',
         trailing: [
           'h-[56px] ps-[15px] pe-[15px]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),28px)] rounded-s-corner-extra-small data-pressed:rounded-s-corner-medium',
+          'rounded-e-[min(var(--md-sys-shape-corner-full),28px)] rounded-s-corner-extra-small',
+          'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),28px)]',
-          '[--m3-optical:-3px] data-pressed:[--m3-optical:-2px] data-open:not-data-pressed:[--m3-optical:0px]',
+          '[--m3-optical:-2px] data-pressed:[--m3-optical:-2px] data-open:not-data-pressed:[--m3-optical:0px]',
         ],
         menuIcon: 'size-[26px]',
       },
       lg: {
         leading: [
           'h-[96px] ps-[48px] pe-[48px] font-brand text-headline-small',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),48px)] rounded-e-corner-small data-pressed:rounded-e-corner-large-increased',
+          'rounded-s-[min(var(--md-sys-shape-corner-full),48px)] rounded-e-corner-small',
+          'data-hovered:rounded-e-corner-large-increased data-focus-visible:rounded-e-corner-large-increased data-pressed:rounded-e-corner-large-increased',
         ],
         content: 'gap-[12px]',
         icon: 'size-[32px]',
         trailing: [
           'h-[96px] ps-[29px] pe-[29px]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),48px)] rounded-s-corner-small data-pressed:rounded-s-corner-large-increased',
+          'rounded-e-[min(var(--md-sys-shape-corner-full),48px)] rounded-s-corner-small',
+          'not-data-open:data-hovered:rounded-s-corner-large-increased not-data-open:data-focus-visible:rounded-s-corner-large-increased data-pressed:rounded-s-corner-large-increased',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),48px)]',
-          '[--m3-optical:-4px] data-pressed:[--m3-optical:-3px] data-open:not-data-pressed:[--m3-optical:0px]',
+          '[--m3-optical:-3px] data-pressed:[--m3-optical:-3px] data-open:not-data-pressed:[--m3-optical:0px]',
         ],
         menuIcon: 'size-[38px]',
       },
       xl: {
         leading: [
           'h-[136px] ps-[64px] pe-[64px] font-brand text-headline-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),68px)] rounded-e-corner-medium data-pressed:rounded-e-corner-large-increased',
+          'rounded-s-[min(var(--md-sys-shape-corner-full),68px)] rounded-e-corner-medium',
+          'data-hovered:rounded-e-corner-large-increased data-focus-visible:rounded-e-corner-large-increased data-pressed:rounded-e-corner-large-increased',
         ],
         content: 'gap-[16px]',
         icon: 'size-[40px]',
         trailing: [
           'h-[136px] ps-[43px] pe-[43px]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),68px)] rounded-s-corner-medium data-pressed:rounded-s-corner-large-increased',
+          'rounded-e-[min(var(--md-sys-shape-corner-full),68px)] rounded-s-corner-medium',
+          'not-data-open:data-hovered:rounded-s-corner-large-increased not-data-open:data-focus-visible:rounded-s-corner-large-increased data-pressed:rounded-s-corner-large-increased',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),68px)]',
           '[--m3-optical:-6px] data-pressed:[--m3-optical:-5px] data-open:not-data-pressed:[--m3-optical:0px]',
         ],

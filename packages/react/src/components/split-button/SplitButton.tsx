@@ -1,15 +1,24 @@
 'use client';
 
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
+import {
+  cloneElement,
+  useContext,
+  type ComponentPropsWithRef,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
+} from 'react';
+import type { PressEvent } from 'react-aria';
+import { useControlledState } from 'react-stately/useControlledState';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
   type ButtonBaseLinkProps,
 } from '../../primitives/ButtonBase';
-import { useControlledState } from 'react-stately/useControlledState';
+import { TouchTarget } from '../../primitives/TouchTarget';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { cn } from '../../utils/cn';
-import { MenuTrigger } from '../menu/Menu';
+import { MenuTrigger, type MenuProps } from '../menu/Menu';
 import {
   splitButtonStyles,
   type SplitButtonSize,
@@ -32,6 +41,8 @@ export interface SplitButtonClassNames {
   label?: string;
   icon?: string;
   trailing?: string;
+  /** Inner wrapper of the trailing button, around its icon. */
+  trailingContent?: string;
   menuIcon?: string;
 }
 
@@ -40,17 +51,22 @@ interface SplitButtonOwnProps {
   variant?: SplitButtonVariant;
   /** @default "sm" */
   size?: SplitButtonSize;
-  /** The leading button's label. */
-  children: ReactNode;
-  /** Icon before the label. Hidden from assistive tech. */
+  /** Icon before the label, or on its own with `leadingLabel`. Hidden from assistive tech. */
   leadingIcon?: ReactElement;
   /** Accessible name of the trailing button, e.g. "More send options". */
   menuLabel: string;
-  /** The `<Menu>` the trailing button opens. */
-  menu: ReactElement;
-  /** Replaces the trailing chevron (which turns over while the menu is open). */
-  menuIcon?: ReactElement;
-  /** Whether the menu is open (controlled). */
+  /**
+   * The `<Menu>` the trailing button opens, 4px below it and aligned with its end edge
+   * unless the menu sets its own `placement` or `offset`. Leave it out to open something
+   * else: the trailing button then takes an enclosing trigger (a `DialogTrigger`, a
+   * `RichTooltipTrigger`, …), or reports presses through `onTrailingPress` and `onOpenChange`.
+   */
+  menu?: ReactElement<MenuProps>;
+  /** Called when the trailing button is pressed. Without a menu or trigger it also toggles `open`. */
+  onTrailingPress?: (event: PressEvent) => void;
+  /** Ref to the trailing button, e.g. to anchor a custom overlay to it. */
+  trailingRef?: Ref<HTMLButtonElement>;
+  /** Whether the trailing button's menu or overlay is open (controlled). */
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -59,23 +75,44 @@ interface SplitButtonOwnProps {
   classNames?: SplitButtonClassNames;
 }
 
+/** The leading button shows a label, an icon and a label, or an icon alone. */
+type LeadingContent =
+  | {
+      /** The leading button's label. */
+      children: ReactNode;
+      leadingLabel?: undefined;
+    }
+  | {
+      children?: undefined;
+      leadingIcon: ReactElement;
+      /** Accessible name of an icon-only leading button. */
+      leadingLabel: string;
+    };
+
 type LeadingProps =
   | Pick<ButtonBaseActionProps, 'onPress' | 'onPressStart' | 'onPressEnd' | 'type'>
   | Pick<ButtonBaseLinkProps, 'href' | 'target' | 'rel' | 'onPress'>;
 
 export type SplitButtonProps = SplitButtonOwnProps &
+  LeadingContent &
   LeadingProps &
   Omit<
     ComponentPropsWithRef<'div'>,
-    keyof SplitButtonOwnProps | 'onPress' | 'onPressStart' | 'onPressEnd' | 'type'
+    | keyof SplitButtonOwnProps
+    | 'children'
+    | 'leadingLabel'
+    | 'onPress'
+    | 'onPressStart'
+    | 'onPressEnd'
+    | 'type'
   >;
 
 /**
  * M3 Expressive split button: a leading action and a trailing button that opens a menu
- * of related actions. Five sizes (`xs`–`xl`) in the filled, tonal, outlined and elevated
- * styles. While the menu is open the trailing button becomes round and its chevron turns
- * over. `className`, `style` and `data-*` go on the wrapper; leading-button props
- * (`onPress`, `href`, …) go to the leading button.
+ * of related actions (or another overlay). Five sizes (`xs`–`xl`) in the filled, tonal,
+ * outlined and elevated styles. While the menu is open the trailing button becomes round
+ * and its chevron turns over. `className`, `style` and `data-*` go on the wrapper;
+ * leading-button props (`onPress`, `href`, …) go to the leading button.
  *
  * @example
  * <SplitButton
@@ -90,12 +127,14 @@ export type SplitButtonProps = SplitButtonOwnProps &
 export function SplitButton(props: SplitButtonProps) {
   const {
     variant,
-    size,
+    size = 'sm',
     children,
     leadingIcon,
+    leadingLabel,
     menuLabel,
     menu,
-    menuIcon,
+    onTrailingPress,
+    trailingRef,
     open,
     defaultOpen,
     onOpenChange,
@@ -113,43 +152,83 @@ export function SplitButton(props: SplitButtonProps) {
     onPressStart?: ButtonBaseActionProps['onPressStart'];
     onPressEnd?: ButtonBaseActionProps['onPressEnd'];
   };
+  const outerTrigger = useContext(TriggerContext);
   const [isOpen, setOpen] = useControlledState(open, defaultOpen ?? false, onOpenChange);
   const styles = splitButtonStyles({ variant, size });
+  const hasTouchTarget = size === 'xs' || size === 'sm';
   const leadingProps = {
     disabled,
     onPress,
     onPressStart,
     onPressEnd,
+    'aria-label': leadingLabel,
     className: styles.leading({ class: classNames?.leading }),
     ...(href !== undefined ? { href, target, rel } : { type }),
   } as ButtonBaseActionProps | ButtonBaseLinkProps;
 
+  const trailingProps = {
+    label: menuLabel,
+    disabled,
+    hasTouchTarget,
+    buttonRef: trailingRef,
+    className: styles.trailing({ class: classNames?.trailing }),
+    contentClassName: styles.trailingContent({ class: classNames?.trailingContent }),
+    iconClassName: styles.menuIcon({ class: classNames?.menuIcon }),
+  };
+
+  let trailing: ReactNode;
+  if (menu) {
+    trailing = (
+      <MenuTrigger open={isOpen} onOpenChange={setOpen}>
+        <TrailingButton {...trailingProps} open={isOpen} onPress={onTrailingPress} />
+        {cloneElement(menu, {
+          placement: menu.props.placement ?? 'bottom end',
+          offset: menu.props.offset ?? 4,
+        })}
+      </MenuTrigger>
+    );
+  } else if (outerTrigger) {
+    // An enclosing trigger (dialog, sheet, rich tooltip) opens its overlay from here.
+    trailing = (
+      <TrailingButton
+        {...trailingProps}
+        open={outerTrigger['aria-expanded'] === true}
+        onPress={onTrailingPress}
+      />
+    );
+  } else {
+    trailing = (
+      <TrailingButton
+        {...trailingProps}
+        open={isOpen}
+        aria-expanded={isOpen}
+        onPress={(event) => {
+          setOpen(!isOpen);
+          onTrailingPress?.(event);
+        }}
+      />
+    );
+  }
+
   return (
     <div {...root} className={styles.root({ class: cn(classNames?.root, className) })}>
-      {/* The leading button must not pick up the menu trigger's props. */}
+      {/* The leading button must not pick up the trailing button's trigger props. */}
       <TriggerContext value={null}>
         <ButtonBase {...leadingProps}>
           <span className={styles.content({ class: classNames?.content })}>
+            {hasTouchTarget && <TouchTarget />}
             {leadingIcon && (
               <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
                 {leadingIcon}
               </span>
             )}
-            <span className={styles.label({ class: classNames?.label })}>{children}</span>
+            {children != null && (
+              <span className={styles.label({ class: classNames?.label })}>{children}</span>
+            )}
           </span>
         </ButtonBase>
       </TriggerContext>
-      <MenuTrigger open={isOpen} onOpenChange={setOpen}>
-        <TrailingButton
-          label={menuLabel}
-          open={isOpen}
-          disabled={disabled}
-          className={styles.trailing({ class: classNames?.trailing })}
-          iconClassName={styles.menuIcon({ class: classNames?.menuIcon })}
-          icon={menuIcon ?? <ArrowDownIcon />}
-        />
-        {menu}
-      </MenuTrigger>
+      {trailing}
     </div>
   );
 }
@@ -158,29 +237,47 @@ interface TrailingButtonProps {
   label: string;
   open: boolean;
   disabled?: boolean;
+  hasTouchTarget: boolean;
+  buttonRef?: Ref<HTMLButtonElement>;
+  onPress?: (event: PressEvent) => void;
+  'aria-expanded'?: boolean;
   className: string;
+  contentClassName: string;
   iconClassName: string;
-  icon: ReactElement;
 }
 
-/** The menu trigger: MenuTrigger supplies its press handler and `aria-expanded`. */
+/**
+ * The trailing button. An enclosing trigger (the menu's or another overlay's) adds its
+ * press handler and `aria-expanded` through `TriggerContext`.
+ */
 function TrailingButton({
   label,
   open,
   disabled,
+  hasTouchTarget,
+  buttonRef,
+  onPress,
+  'aria-expanded': ariaExpanded,
   className,
+  contentClassName,
   iconClassName,
-  icon,
 }: TrailingButtonProps) {
   return (
     <ButtonBase
+      ref={buttonRef}
       aria-label={label}
+      aria-expanded={ariaExpanded}
       data-open={open || undefined}
       disabled={disabled}
+      onPress={onPress}
       className={className}
     >
-      <span aria-hidden="true" className={iconClassName}>
-        {icon}
+      <span className={contentClassName}>
+        {hasTouchTarget && <TouchTarget />}
+        {/* M3: the trailing button always shows this icon, since it turns over when open. */}
+        <span aria-hidden="true" data-motion="standard" className={iconClassName}>
+          <ArrowDownIcon />
+        </span>
       </span>
     </ButtonBase>
   );

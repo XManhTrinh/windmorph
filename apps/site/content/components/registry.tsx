@@ -158,7 +158,16 @@ const BODIES: Record<string, ComponentType> = {
 export const COMPONENT_SLOTS: Record<string, string[]> = {
   Button: ['root', 'content', 'label', 'icon'],
   IconButton: ['root', 'content', 'icon'],
-  SplitButton: ['root', 'leading', 'content', 'label', 'icon', 'trailing', 'menuIcon'],
+  SplitButton: [
+    'root',
+    'leading',
+    'content',
+    'label',
+    'icon',
+    'trailing',
+    'trailingContent',
+    'menuIcon',
+  ],
   Fab: ['root', 'icon'],
   ExtendedFab: ['root', 'content', 'icon', 'label', 'text'],
   FabMenu: ['root', 'anchor', 'button', 'icon', 'list'],
