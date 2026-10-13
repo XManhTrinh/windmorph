@@ -4,7 +4,13 @@ import type { Metadata } from 'next';
 import { Roboto_Flex } from 'next/font/google';
 import type { ReactNode } from 'react';
 import { InlineScript } from '../components/inline-script';
-import { SITE_NAME, siteUrl } from '../lib/site-metadata';
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+  pageMetadata,
+} from '../lib/site-metadata';
 import { SITE_DEFAULT_THEME, SITE_THEMES } from '../lib/site-themes';
 import { DocsShell } from './(docs)/docs-shell';
 import { DIRECTION_SCRIPT } from './direction';
@@ -17,25 +23,15 @@ const robotoFlex = Roboto_Flex({
   display: 'swap',
 });
 
-const DESCRIPTION =
-  'Windmorph (@windmorph/react) is a React component library for Material Design 3 Expressive: accessible components, themes, springs and shapes, with docs and live examples.';
-
+/**
+ * The site's defaults: every page sets its own title, description, canonical URL and link
+ * previews through `pageMetadata`; these are the home page's, and the title template.
+ */
 export const metadata: Metadata = {
-  metadataBase: siteUrl(),
-  title: {
-    default: `${SITE_NAME}: Material 3 Expressive for React`,
-    template: `%s · ${SITE_NAME}`,
-  },
-  description: DESCRIPTION,
+  ...pageMetadata(SITE_TITLE, SITE_DESCRIPTION, '/'),
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s · ${SITE_NAME}` },
   applicationName: SITE_NAME,
-  alternates: { canonical: '/' },
-  openGraph: {
-    type: 'website',
-    siteName: SITE_NAME,
-    title: `${SITE_NAME}: Material 3 Expressive for React`,
-    description: DESCRIPTION,
-    url: '/',
-  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

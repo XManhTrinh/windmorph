@@ -9,7 +9,7 @@ const LOGO_BLUE = '#1F5AAB';
 const LOGO_TEAL = '#2CDECE';
 
 /** The logo's blue and teal on near-neutral surfaces (the neutrals come from tonal spot). */
-const windmorph = createTheme({
+export const SITE_THEME = createTheme({
   name: 'windmorph',
   seed: LOGO_BLUE,
   variant: 'vibrant',
@@ -21,10 +21,10 @@ const windmorph = createTheme({
  * themes and its own default (`baseline`) are unchanged, so apps using the package aren't
  * affected.
  */
-export const SITE_DEFAULT_THEME = windmorph.name;
+export const SITE_DEFAULT_THEME = SITE_THEME.name;
 
 /** Every theme the site's display settings offer: the logo's theme, then the six built-ins. */
 export const SITE_THEMES: NonNullable<ThemeProviderProps['themes']> = [
-  windmorph,
+  SITE_THEME,
   ...BUILT_IN_THEME_NAMES,
 ];
