@@ -71,7 +71,7 @@ function ActionableDemo() {
  */
 export const Actionable: Story = { render: () => <ActionableDemo /> };
 
-/** Uncontained: fixed-size items, the last one cut off; no snapping. */
+/** Uncontained: items of one size that flow past the end edge, never cropped; no snapping. */
 export const Uncontained: Story = {
   render: () => (
     <div className="w-[412px]" data-testid="frame">

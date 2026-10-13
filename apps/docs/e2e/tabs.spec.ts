@@ -194,6 +194,76 @@ test.describe('Tabs behaviour', () => {
   });
 });
 
+test.describe('Tabs first paint and resizing', () => {
+  test('the indicator and selected colour appear in place, with no slide or fade', async ({
+    page,
+  }) => {
+    // Sample from the very first frame: the indicator's box and the selected tab's colour.
+    await page.addInitScript(() => {
+      const samples: { x: number; width: number; color: string }[] = [];
+      (window as unknown as { __tabs: typeof samples }).__tabs = samples;
+      const tick = () => {
+        const indicator = document.querySelector<HTMLElement>('[role="tablist"] > [data-ready]');
+        const tab = document.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+        if (indicator && tab) {
+          const { x, width } = indicator.getBoundingClientRect();
+          samples.push({ x, width, color: getComputedStyle(tab).color });
+        }
+        if (samples.length < 40) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await openStory(page, 'components-tabs--playground');
+    await page.waitForTimeout(800);
+    const samples = await page.evaluate(
+      () => (window as unknown as { __tabs: { x: number; width: number; color: string }[] }).__tabs,
+    );
+    expect(samples.length).toBeGreaterThan(5);
+    // It never slides: each frame shows it where it was first placed (before the page's
+    // styles finished loading, the row may still have had another width) or where it ends.
+    const [first, last] = [samples[0]!, samples.at(-1)!];
+    const at = (a: { x: number; width: number }, b: { x: number; width: number }) =>
+      Math.abs(a.x - b.x) < 0.5 && Math.abs(a.width - b.width) < 0.5;
+    for (const sample of samples) {
+      expect(at(sample, first) || at(sample, last)).toBe(true);
+      expect(sample.color).toBe(last.color);
+    }
+    // Later selections still slide.
+    await page.getByRole('tab', { name: 'Drafts' }).click();
+    const list = page.getByRole('tablist');
+    expect(
+      await indicator(page, list).evaluate((el) => getComputedStyle(el).transitionProperty),
+    ).toBe('translate, width');
+  });
+
+  test("the indicator follows the selected tab's content when only that resizes", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tabs--playground');
+    const list = page.getByRole('tablist');
+    const tab = page.getByRole('tab', { name: 'All' });
+    const rowWidth = (await box(list)).width;
+    // As when a web font loads after mount: the label widens, the row doesn't.
+    await tab
+      .locator('[data-tab-part]')
+      .last()
+      .evaluate((el) => {
+        (el as HTMLElement).style.letterSpacing = '6px';
+      });
+    expect((await box(list)).width).toBe(rowWidth);
+    await expect
+      .poll(async () => {
+        const parts = await tab.locator('[data-tab-part]').evaluateAll((els) => {
+          const rects = els.map((el) => el.getBoundingClientRect());
+          return Math.max(...rects.map((r) => r.right)) - Math.min(...rects.map((r) => r.left));
+        });
+        const bar = (await indicator(page, list).boundingBox())!;
+        return Math.abs(bar.width - parts);
+      })
+      .toBeLessThan(1);
+  });
+});
+
 test.describe('Tabs layout safety', () => {
   layoutSafetySuite('components-tabs--layout-override', {
     height: 48,

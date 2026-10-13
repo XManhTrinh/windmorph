@@ -234,6 +234,129 @@ test.describe('NavigationBar behaviour', () => {
   });
 });
 
+test.describe('NavigationBar measurements', () => {
+  test('items stretch to the 64px bar; inline pills sit in its middle', async ({ page }) => {
+    await openStory(page, 'components-navigation--bar');
+    for (const name of ['Bar top', 'Bar start']) {
+      const bar = page.getByRole('navigation', { name }).first();
+      const barBox = (await bar.boundingBox())!;
+      expect(barBox.height).toBe(64);
+      for (const item of await bar.getByRole('button').all()) {
+        const itemBox = (await item.boundingBox())!;
+        // The whole height is the touch target (at least 48px).
+        expect(itemBox.y).toBe(barBox.y);
+        expect(itemBox.height).toBe(64);
+        if (name === 'Bar start') {
+          const pill = (await item.locator(':scope > span').first().boundingBox())!;
+          expect(pill.height).toBe(40);
+          expect(pill.y + pill.height / 2).toBeCloseTo(barBox.y + 32, 0);
+        }
+      }
+    }
+  });
+});
+
+test.describe('Navigation item ripple', () => {
+  /** The pill's state layer (its second layer, after the indicator). */
+  const stateLayer = (item: Locator) => item.locator(':scope > span > span').nth(1);
+
+  for (const story of ['bar', 'rail'] as const) {
+    test(`a press ripples through the pill from the press point · ${story}`, async ({ page }) => {
+      await openStory(page, `components-navigation--${story}`);
+      const item = page.getByRole('button', { name: /^Search/ }).first();
+      const layer = stateLayer(item);
+      const pill = (await layer.boundingBox())!;
+      await page.mouse.move(pill.x + 8, pill.y + 8);
+      await page.mouse.down();
+      await expect(layer).toHaveAttribute('data-rippling', 'true');
+      // The origin is the press point in the pill's own box, and the ripple shows.
+      expect(await layer.evaluate((el) => el.style.getPropertyValue('--m3-ripple-origin-x'))).toBe(
+        '8px',
+      );
+      await expect
+        .poll(() =>
+          layer.evaluate((el) =>
+            Number(getComputedStyle(el).getPropertyValue('--m3-ripple-opacity')),
+          ),
+        )
+        .toBeGreaterThan(0.05);
+      expect(await layer.evaluate((el) => getComputedStyle(el).backgroundImage)).toContain(
+        'radial-gradient',
+      );
+      expect(await layer.evaluate((el) => getComputedStyle(el).borderRadius)).not.toBe('0px');
+      await page.mouse.up();
+      await expect(layer).not.toHaveAttribute('data-rippling');
+    });
+  }
+});
+
+test.describe('NavigationRail width motion', () => {
+  /** Every item's height and icon top, sampled each frame for `ms` after `act`. */
+  async function sampleItems(page: Page, scope: string, act: () => Promise<void>, ms = 900) {
+    await page.evaluate(
+      ({ scope, ms }) => {
+        const samples: { heights: number[]; icons: number[] }[] = [];
+        (window as unknown as { __items: typeof samples }).__items = samples;
+        const start = performance.now();
+        const tick = () => {
+          const items = [...document.querySelectorAll<HTMLElement>(`${scope} [data-nav-item]`)];
+          if (items.length)
+            samples.push({
+              heights: items.map((item) => Math.round(item.getBoundingClientRect().height)),
+              icons: items.map((item) =>
+                Math.round(item.querySelector('svg')!.getBoundingClientRect().top),
+              ),
+            });
+          if (performance.now() - start < ms) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { scope, ms },
+    );
+    await act();
+    await page.waitForTimeout(ms + 100);
+    return page.evaluate(
+      () => (window as unknown as { __items: { heights: number[]; icons: number[] }[] }).__items,
+    );
+  }
+
+  test('labels stay on one line while the rail widens, so no icon moves', async ({ page }) => {
+    await openStory(page, 'components-navigation--rail');
+    const rail = page.getByTestId('rail');
+    const samples = await sampleItems(page, '[data-testid="rail"]', () =>
+      page.getByRole('button', { name: 'Expand navigation' }).click(),
+    );
+    await expect(rail).not.toHaveAttribute('data-widening');
+    const last = samples.at(-1)!;
+    expect(samples.length).toBeGreaterThan(10);
+    // From the first expanded frame on (collapsed items are 64px, expanded ones 56px).
+    const expanded = samples.findIndex((sample) => sample.heights[0] !== samples[0]!.heights[0]);
+    expect(expanded).toBeGreaterThan(0);
+    for (const sample of samples.slice(expanded)) {
+      // Expanded items are 56px; none grows taller mid-transition.
+      expect(Math.max(...sample.heights)).toBeLessThanOrEqual(Math.max(...last.heights));
+      sample.icons.forEach((top, index) =>
+        expect(Math.abs(top - last.icons[index]!)).toBeLessThan(2),
+      );
+    }
+  });
+
+  test('the modal rail grows without its labels wrapping', async ({ page }) => {
+    await openStory(page, 'components-navigation--modal-rail');
+    const samples = await sampleItems(page, '[role="dialog"]', () =>
+      page.getByRole('button', { name: 'Expand navigation' }).click(),
+    );
+    const last = samples.at(-1)!;
+    expect(samples.length).toBeGreaterThan(10);
+    for (const sample of samples) {
+      expect(Math.max(...sample.heights)).toBeLessThanOrEqual(Math.max(...last.heights));
+      sample.icons.forEach((top, index) =>
+        expect(Math.abs(top - last.icons[index]!)).toBeLessThan(2),
+      );
+    }
+  });
+});
+
 test.describe('NavigationBar layout safety', () => {
   layoutSafetySuite('components-navigation--layout-override', {
     height: 64,

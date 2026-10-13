@@ -21,8 +21,8 @@ function slides(count: number) {
 }
 
 /**
- * The `uncontained` and `hero` variants. Uncontained shows fixed-size items (`itemSize`)
- * with the last one cut off, scrolling freely (`snap="item"` snaps it); hero shows one large item with small ones
+ * The `uncontained` and `hero` variants. Uncontained shows items of one size (`itemSize`)
+ * that flow past the end edge, scrolling freely (`snap="item"` snaps it); hero shows one large item with small ones
  * beside it (`heroAlignment="center"` here centres it).
  */
 export function CarouselVariants() {

@@ -58,10 +58,11 @@ describe('Carousel', () => {
     );
     const groups = screen.getAllByRole('group');
     expect(groups[0]!.style.width).toBe('186px');
-    // The 16px leading padding shrinks the first item's mask and moves it in by 16px.
+    // The 16px leading padding comes out of the large and medium items (8px each), so the
+    // first item's mask is 178px and moves in by 16px; the small item stays 40px.
     const first = mask(0).style;
-    expect(first.clipPath).toMatch(/^inset\(0 2\.67px 0 2\.67px round/);
-    expect(first.translate).toBe('13.33px 0');
+    expect(first.clipPath).toMatch(/^inset\(0 4px 0 4px round/);
+    expect(first.translate).toBe('12px 0');
     // The scroller pads only across the carousel: the keylines handle the main-axis padding.
     const scroller = groups[0]!.parentElement!;
     expect(scroller.style.paddingBlock).toBe('8px');
@@ -78,6 +79,31 @@ describe('Carousel', () => {
       </Carousel>,
     );
     expect(screen.getAllByRole('group')[0]).toHaveClass('snap-start', 'snap-always');
+  });
+
+  it('keeps uncontained items one size, unmasked, flowing past the end edge', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(412);
+    render(
+      <Carousel aria-label="Cards" variant="uncontained" itemSize={188}>
+        {slides(5)}
+      </Carousel>,
+    );
+    const groups = screen.getAllByRole('group');
+    const scroller = groups[0]!.parentElement!;
+    expect(groups.every((group) => group.style.width === '188px')).toBe(true);
+    // CSS corners only: no keyline mask, translation or size.
+    expect(mask(0)).toHaveClass('[clip-path:inset(0_round_var(--m3-carousel-item-corner))]');
+    expect(mask(4).style.clipPath).toBe('');
+    expect(mask(4).style.translate).toBe('');
+    // Leading padding only.
+    expect(scroller.style.paddingInlineStart).toBe('16px');
+    expect(scroller.style.paddingInlineEnd).toBe('0px');
+    vi.restoreAllMocks();
+  });
+
+  it('fills every item with the surface colour', () => {
+    render(<Carousel aria-label="Photos">{slides(3)}</Carousel>);
+    expect(mask(0)).toHaveClass('bg-surface');
   });
 
   it('uncontained carousels snap only when asked; vertical ones scroll on y', () => {
@@ -120,6 +146,11 @@ describe('Carousel', () => {
     expect(groups[0]!.style.height).toBe('640px');
     expect(groups[0]).toHaveClass('snap-always', 'focus-ring-inset');
     expect(mask(0).style.clipPath).toBe('');
+    // Edge to edge: no corners, pressed or not.
+    expect(screen.getByRole('region')).toHaveClass(
+      '[--m3-carousel-corner:0px]',
+      '[--m3-carousel-pressed-corner:0px]',
+    );
   });
 
   it('lets multi-aspect items keep their own width between 9:16 and 16:9', () => {

@@ -10,6 +10,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Snapping: hero and full-screen move one item at a time (`scroll-snap-stop: always`);
  *   multi-browse flings across many items and then snaps; uncontained and multi-aspect
  *   scroll freely unless `snap="item"`.
+ * - Uncontained (and multi-aspect) items keep one size and flow past the end edge; only
+ *   multi-browse and hero items follow keylines.
+ * - Each item's mask is filled with `surface`, the spec's container colour, so transparent
+ *   or still-loading content never shows what's behind the carousel.
  * - Items are masked with 28px (extra-large) corners, as Compose's samples do with
  *   `maskClip(MaterialTheme.shapes.extraLarge)`; `--m3-carousel-corner` overrides it. A
  *   pressed item's corners tighten to `--m3-carousel-pressed-corner` (20px, large-increased)
@@ -37,7 +41,7 @@ export const carouselStyles = tv({
     ],
     item: 'flex shrink-0 rounded-(--m3-carousel-corner)',
     mask: [
-      'grid size-full overflow-hidden [&>*]:[grid-area:1/1] [&>*]:size-full',
+      'grid size-full overflow-hidden bg-surface [&>*]:[grid-area:1/1] [&>*]:size-full',
       '[--m3-carousel-item-corner:var(--m3-carousel-corner)]',
       'data-pressed:[--m3-carousel-item-corner:var(--m3-carousel-pressed-corner)]',
       '[transition-property:--m3-carousel-item-corner]',
@@ -73,8 +77,14 @@ export const carouselStyles = tv({
       false: {},
     },
     interactive: { true: { item: 'cursor-pointer data-disabled:cursor-default' }, false: {} },
-    /** Full-bleed items draw the focus ring inside their edge. */
-    fullBleed: { true: { item: 'focus-ring-inset' }, false: { item: 'focus-ring' } },
+    /** Full-bleed items fill the window edge to edge: no corners, focus ring inside. */
+    fullBleed: {
+      true: {
+        root: '[--m3-carousel-corner:0px] [--m3-carousel-pressed-corner:0px]',
+        item: 'focus-ring-inset',
+      },
+      false: { item: 'focus-ring' },
+    },
   },
   compoundVariants: [
     {

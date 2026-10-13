@@ -22,11 +22,11 @@ import {
   createStrategy,
   heroKeylineList,
   keylinesForScrollOffset,
+  MAX_SMALL_ITEM_SIZE,
   maxScrollOffset,
   multiBrowseKeylineList,
   placeItem,
   snapPositionOffset,
-  uncontainedKeylineList,
   type Strategy,
 } from './carousel-keylines';
 import { carouselStyles } from './carousel-styles';
@@ -68,8 +68,8 @@ type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
 interface CarouselOwnProps {
   /**
-   * `multi-browse` shows large, medium and small items; `uncontained` shows fixed-size items
-   * with the last one cut off; `multi-aspect` is uncontained with items of their own widths
+   * `multi-browse` shows large, medium and small items; `uncontained` shows items of one
+   * size that flow past the end edge, never masked or resized; `multi-aspect` is uncontained with items of their own widths
    * (9:16 to 16:9); `hero` shows one large item with small ones beside it; `full-screen`
    * shows one edge-to-edge item at a time. @default "multi-browse"
    */
@@ -123,7 +123,12 @@ interface CarouselOwnProps {
 
 export type CarouselProps = CarouselOwnProps & Naming;
 
-const KEYLINE_VARIANTS: readonly CarouselVariant[] = ['multi-browse', 'uncontained', 'hero'];
+/**
+ * Variants whose items change size along keylines as they scroll. Uncontained and
+ * multi-aspect items keep one size and flow past the end edge (M3: "items are a single size
+ * and flow past the edge of the screen"), so they are never masked or cropped.
+ */
+const KEYLINE_VARIANTS: readonly CarouselVariant[] = ['multi-browse', 'hero'];
 
 function defaultPadding(variant: CarouselVariant): CarouselContentPadding {
   if (variant === 'full-screen') return { start: 0, end: 0, cross: 0 };
@@ -210,28 +215,33 @@ export function Carousel({
   function computeStrategy(): Strategy | null {
     if (space === 0 || count === 0 || !keylined) return null;
     const keylines =
-      variant === 'uncontained'
-        ? uncontainedKeylineList(space, itemSize, itemSpacing)
-        : variant === 'hero'
-          ? heroKeylineList(
-              space,
-              preferredItemSize,
-              itemSpacing,
-              count,
-              heroAlignment === 'center',
-              minSmallItemSize,
-              maxSmallItemSize,
-            )
-          : multiBrowseKeylineList(
-              space,
-              preferredItemSize ?? 186,
-              itemSpacing,
-              count,
-              minSmallItemSize,
-              maxSmallItemSize,
-            );
+      variant === 'hero'
+        ? heroKeylineList(
+            space,
+            preferredItemSize,
+            itemSpacing,
+            count,
+            heroAlignment === 'center',
+            minSmallItemSize,
+            maxSmallItemSize,
+          )
+        : multiBrowseKeylineList(
+            space,
+            preferredItemSize ?? 186,
+            itemSpacing,
+            count,
+            minSmallItemSize,
+            maxSmallItemSize,
+          );
     const result = masked
-      ? createStrategy(keylines, space, itemSpacing, padding.start, padding.end)
+      ? createStrategy(
+          keylines,
+          space,
+          itemSpacing,
+          padding.start,
+          padding.end,
+          maxSmallItemSize ?? MAX_SMALL_ITEM_SIZE,
+        )
       : createStrategy(keylines, space, itemSpacing);
     return result.isValid ? result : null;
   }

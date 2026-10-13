@@ -14,12 +14,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   drawer's), while the whole row stays the link or button: a larger target than Compose's
  *   pill-only one, with the state layer and focus ring still on the pill.
  * - bar-top: 6px · 56×32 pill · 4px · `label-medium` · 6px (64px).
- * - bar-start: 40px pill holding icon · 4px · `label-medium`, 16px inside.
+ * - bar-start: 40px pill holding icon · 4px · `label-medium`, 16px inside, centred in an
+ *   item as tall as the bar (64px), which is the touch target.
  *
  * Colours: icons `on-surface-variant`, selected `on-secondary-container` on a
  * `secondary-container` pill; labels `on-surface-variant`, selected `secondary` below the
  * icon or `on-secondary-container` beside it; disabled 38%. The state layer is
- * `on-secondary-container` on the pill. In every layout the current item's pill expands from
+ * `on-secondary-container` on the pill, and a press ripples through it from the press point
+ * (M3: "a ripple passes through the indicator"), as on every other M3 control. In every layout the current item's pill expands from
  * the centre of its icon and fades in on the default spatial spring (M3: "the active
  * indicator expands from the center of the icon"), and colours change on default effects.
  * The current label is bold (the emphasized label role). With a `selectedIcon`, the two
@@ -62,15 +64,13 @@ export const navItemStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
     ],
+    // The shared state layer and ripple, on the pill: the item's hover and focus show
+    // through it, and a press ripples from the press point (NavItem sets the origin).
     stateLayer: [
-      'col-start-1 row-start-1 rounded-full bg-on-secondary-container opacity-0',
-      'group-data-hovered/nav:opacity-(--md-sys-state-hover-state-layer-opacity)',
-      'group-data-focus-visible/nav:opacity-(--md-sys-state-focus-state-layer-opacity)',
-      'group-data-pressed/nav:opacity-(--md-sys-state-pressed-state-layer-opacity)',
-      'group-data-disabled/nav:opacity-0',
-      '[transition-property:opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+      'col-start-1 row-start-1 rounded-full state-layer',
+      '[--m3-state-layer-color:var(--md-sys-color-on-secondary-container)]',
+      'group-data-hovered/nav:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
+      'group-data-focus-visible/nav:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
     ],
     // `relative` keeps the content above the indicator and state layer: elements with
     // opacity or clip-path paint in the positioned layer, above plain in-flow content.
@@ -118,8 +118,11 @@ export const navItemStyles = tv({
           'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-on-secondary-container',
         ],
       },
+      // Bar items stretch to the bar's height (64px, or taller when a label wraps), so the
+      // whole height is the touch target. Stacked items keep their icons on one line at the
+      // top; inline items centre their pill.
       'bar-top': {
-        root: 'h-full content-center py-[6px]',
+        root: 'self-stretch content-start py-[6px]',
         pill: 'h-[32px] w-[56px]',
         indicator: '[clip-path:inset(0_50%_round_9999px)]',
         label: [
@@ -129,7 +132,7 @@ export const navItemStyles = tv({
       },
       'bar-start': {
         // Content-sized; 4px each side keeps neighbouring pills 8px apart.
-        root: 'h-full content-center px-[4px]',
+        root: 'self-stretch content-center px-[4px]',
         pill: 'min-h-[40px] max-w-full',
         indicator:
           '[clip-path:inset(0_calc(100%_-_28px)_0_28px_round_9999px)] rtl:[clip-path:inset(0_28px_0_calc(100%_-_28px)_round_9999px)]',

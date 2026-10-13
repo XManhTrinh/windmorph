@@ -459,6 +459,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'itemWidth', windmorph: 'itemSize' },
           { compose: 'flingBehavior', windmorph: 'snap' },
         ],
+        note: 'Items keep `itemSize` and flow past the end edge, as the spec says; Compose places them on keylines that shrink and crop them.',
       },
       {
         composable: 'HorizontalCenteredHeroCarousel',

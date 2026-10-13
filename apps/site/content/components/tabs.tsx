@@ -136,11 +136,12 @@ export async function TabsBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              The <InlineCode>primary</InlineCode> indicator slides on the default spatial spring.
-              Primary tabs draw it 3px high with only its top corners rounded, as wide as the
-              content (at least 24px); secondary tabs draw it 2px high across the whole tab
-              (m3.material.io&apos;s measurements; Compose rounds every corner and uses 3px for
-              both).
+              The <InlineCode>primary</InlineCode> indicator slides on the default spatial spring
+              when the selection changes; on first paint and when the row or the selected tab&apos;s
+              content resizes (a web font loading) it moves into place at once. Primary tabs draw it
+              3px high with only its top corners rounded, as wide as the content (at least 24px);
+              secondary tabs draw it 2px high across the whole tab (m3.material.io&apos;s
+              measurements; Compose rounds every corner and uses 3px for both).
             </li>
             <li>
               Where Compose defaults an unselected tab&apos;s colour to the selected one, the token

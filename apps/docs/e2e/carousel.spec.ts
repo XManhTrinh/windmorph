@@ -47,17 +47,80 @@ test.describe('Carousel visual regression', () => {
   });
 });
 
+test.describe('Carousel container, full-screen and uncontained', () => {
+  for (const mode of ['light', 'dark'] as const) {
+    test(`items are filled with the surface colour · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-carousel--multi-browse', { mode });
+      const [fill, surface] = await page.getByTestId('slide-0').evaluate((slide) => {
+        const probe = document.createElement('div');
+        probe.style.backgroundColor = 'var(--md-sys-color-surface)';
+        slide.parentElement!.append(probe);
+        const colours = [
+          getComputedStyle(slide.parentElement!).backgroundColor,
+          getComputedStyle(probe).backgroundColor,
+        ];
+        probe.remove();
+        return colours;
+      });
+      expect(fill).toBe(surface);
+      expect(fill).not.toBe('rgba(0, 0, 0, 0)');
+    });
+  }
+
+  test('full-screen items fill the frame edge to edge, with no corners even when pressed', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-carousel--full-screen');
+    const mask = page.getByTestId('slide-0').locator('..');
+    expect(await mask.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(0px)');
+    expect(await mask.evaluate((el) => getComputedStyle(el.parentElement!).borderRadius)).toBe(
+      '0px',
+    );
+    expect(
+      await page
+        .getByTestId('carousel')
+        .evaluate((el) => getComputedStyle(el).getPropertyValue('--m3-carousel-pressed-corner')),
+    ).toBe('0px');
+    const frameBox = (await page.getByTestId('frame').boundingBox())!;
+    const maskBox = (await mask.boundingBox())!;
+    expect(maskBox).toEqual(frameBox);
+  });
+
+  test('uncontained items keep one size while on screen and flow past the edge', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-carousel--uncontained');
+    const scroller = page.getByTestId('carousel').locator('> div');
+    for (const offset of [0, 344, 574]) {
+      await scroller.evaluate((el, left) => el.scrollTo({ left, behavior: 'instant' }), offset);
+      await frame(page);
+      const items = await visible(page, 8);
+      // Every item is its full 180px (itemSize), unclipped, 8px apart.
+      for (const item of items) expect(item.size).toBe(180);
+      for (let i = 1; i < items.length; i++) expect(items[i]!.x - items[i - 1]!.x).toBe(188);
+      // Some item runs past the end edge, uncropped.
+      expect(items.some((item) => item.x < 412 && item.x + item.size > 412)).toBe(true);
+    }
+    expect(
+      await page
+        .getByTestId('slide-0')
+        .evaluate((el) => getComputedStyle(el.parentElement!).clipPath),
+    ).toContain('round 28px');
+  });
+});
+
 test.describe('Carousel keylines', () => {
   test('a 360px multi-browse carousel starts 16px in, shrinking 186 · 118 · 40 to fit', async ({
     page,
   }) => {
     await openStory(page, 'components-carousel--multi-browse');
     const [a, b, c] = await visible(page, 3);
-    // Compose's content padding: each item gives up a third of the 16px leading padding.
+    // The 16px leading padding comes out of the large and medium items (Compose shares it
+    // with the small one too, leaving it 34.67px); small items keep the spec's 40px minimum.
     expect(a!.x).toBe(16);
-    expect(a!.size).toBe(181);
-    expect(b!.size).toBe(113);
-    expect(c!.size).toBe(35);
+    expect(a!.size).toBe(178);
+    expect(b!.size).toBe(110);
+    expect(c!.size).toBe(40);
     expect(c!.x + c!.size).toBe(360);
     const corner = await page
       .getByTestId('slide-0')
@@ -73,10 +136,33 @@ test.describe('Carousel keylines', () => {
     const all = await visible(page, 10);
     // The arrangement ends 16px before the end edge (the trailing padding).
     expect(all[9]!.x + all[9]!.size).toBe(344);
-    expect(all[9]!.size).toBe(181);
-    expect(all[8]!.size).toBe(113);
-    expect(all[7]!.size).toBe(35);
+    expect(all[9]!.size).toBe(178);
+    expect(all[8]!.size).toBe(110);
+    expect(all[7]!.size).toBe(40);
   });
+
+  for (const story of ['multi-browse', 'hero'] as const) {
+    test(`small items stay 40–56px at the start and the end · ${story}`, async ({ page }) => {
+      await openStory(page, `components-carousel--${story}`);
+      const carousel = page.getByTestId('carousel').first();
+      const scroller = carousel.locator('> div');
+      const width = await carousel.evaluate((el) => el.getBoundingClientRect().width);
+      for (const end of [false, true]) {
+        if (end)
+          await scroller.evaluate((el) =>
+            el.scrollTo({ left: el.scrollWidth, behavior: 'instant' }),
+          );
+        await frame(page);
+        const count = await carousel.locator('[role="group"]').count();
+        const items = (await visible(page, count)).filter(
+          (item) => item.x + item.size > 0 && item.x < width && item.size > 0,
+        );
+        // Whatever is on screen, cut by neither edge, is at least the small minimum.
+        for (const item of items.filter((i) => i.x >= 0 && i.x + i.size <= width))
+          expect(item.size).toBeGreaterThanOrEqual(40);
+      }
+    });
+  }
 
   test('items take focus (not the container); arrows move it and scroll to the item', async ({
     page,
@@ -166,7 +252,7 @@ test.describe('Carousel keylines', () => {
     await openStory(page, 'components-carousel--multi-browse', { dir: 'rtl' });
     const [a, b] = await visible(page, 2);
     expect(a!.x + a!.size).toBe(344);
-    expect(b!.size).toBe(113);
+    expect(b!.size).toBe(110);
   });
 
   test('vertical carousels scroll on y with the same keylines', async ({ page }) => {

@@ -138,6 +138,46 @@ function useExpandedWidth(ref: RefObject<HTMLElement | null>, active: boolean, c
 }
 
 /**
+ * Whether `ref` is still widening after it became `expanding` (or mounted expanding, as the
+ * modal sheet grows from the collapsed width): from that render until its width transition
+ * ends, and false at once when none runs (reduced motion, or a consumer width). Meanwhile the
+ * rail keeps its labels on one line, so none wraps letter by letter in a rail that is still
+ * narrow and no icon jumps; the rail's clipping hides what doesn't fit yet.
+ */
+function useWidening(ref: RefObject<HTMLElement | null>, expanding: boolean) {
+  const [widening, setWidening] = useState(expanding);
+  const [wasExpanding, setWasExpanding] = useState(expanding);
+  if (expanding !== wasExpanding) {
+    setWasExpanding(expanding);
+    setWidening(expanding);
+  }
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!widening || !el) return;
+    // Reading the running transitions resolves this render's styles, starting the spring.
+    const running =
+      typeof el.getAnimations === 'function' &&
+      el
+        .getAnimations()
+        .some(
+          (animation) =>
+            'transitionProperty' in animation && animation.transitionProperty === 'width',
+        );
+    if (!running) {
+      setWidening(false);
+      return;
+    }
+    // A later width (the measured one replacing the minimum) retargets the same spring.
+    const done = (event: TransitionEvent) => {
+      if (event.target === el && event.propertyName === 'width') setWidening(false);
+    };
+    el.addEventListener('transitionend', done);
+    return () => el.removeEventListener('transitionend', done);
+  }, [ref, widening]);
+  return widening;
+}
+
+/**
  * M3 Expressive navigation rail: destinations along the start edge. Collapsed (96px) items
  * show the icon above the label; expanded (220–360px) they show it beside the label and
  * the rail's width springs open. With `modal`, the expanded rail opens over the page as a
@@ -178,6 +218,7 @@ export function NavigationRail({
   const lastIndicatorRef = useRef<HTMLElement>(null);
   const slide = indicatorMotion === 'slide';
   const width = useExpandedWidth(rootRef, inlineExpanded, children);
+  const widening = useWidening(rootRef, inlineExpanded);
   // Labels fade in at their new place once the rail has changed mode (not on first render).
   const [mode, setMode] = useState(inlineExpanded);
   const [modeChanged, setModeChanged] = useState(false);
@@ -209,6 +250,7 @@ export function NavigationRail({
             } as CSSProperties
           }
           data-expanded={inlineExpanded || undefined}
+          data-widening={widening || undefined}
           className={styles.root({ class: cn(classNames?.root, className) })}
         >
           <div className={styles.body({ class: classNames?.body })}>
@@ -353,6 +395,7 @@ function ModalSheet({
     first?.focus();
   }, []);
   const width = useExpandedWidth(ref, true, children);
+  const widening = useWidening(ref, true);
   const styles = navigationRailStyles({
     expanded: true,
     sheetEntry: slide ? 'slide' : 'grow',
@@ -373,6 +416,7 @@ function ModalSheet({
         {...mergeProps(modalProps, dialogProps)}
         ref={ref}
         data-exiting={exiting}
+        data-widening={widening || undefined}
         style={{ '--m3-rail-width': `${width}px` } as CSSProperties}
         className={styles.sheet({ class: classNames?.sheet })}
       >

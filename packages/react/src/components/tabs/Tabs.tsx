@@ -196,7 +196,12 @@ function TabsInner({
   return (
     <>
       <div ref={scrollerRef} className={styles.scroller()}>
-        <div {...tabListProps} ref={listRef} className={styles.list({ class: classNames?.list })}>
+        <div
+          {...tabListProps}
+          ref={listRef}
+          data-animate={indicator?.animate || undefined}
+          className={styles.list({ class: classNames?.list })}
+        >
           {items.map((item, index) => (
             <TabButton
               key={item.key}
@@ -235,9 +240,23 @@ function TabsInner({
   );
 }
 
+/** Where the indicator goes, and whether it moves there (a selection change) or jumps. */
+interface IndicatorPlacement {
+  x: number;
+  width: number;
+  /**
+   * The selection changed since the last placement, so the indicator slides and the tabs'
+   * colours change in motion. The first placement and resizes (the row's, or the selected
+   * tab's content's, e.g. when a web font loads) put it in place at once: M3 motion explains
+   * a selection, and nothing slides in on mount.
+   */
+  animate: boolean;
+}
+
 /**
  * Measures the selected tab: its content (primary) or the whole tab (secondary). Again when
- * the tabs change, as tabs added or removed move the selected one without resizing the row.
+ * the tabs change, as tabs added or removed move the selected one without resizing the row,
+ * and when the row or the selected tab's content resizes.
  */
 function useIndicator(
   listRef: React.RefObject<HTMLDivElement | null>,
@@ -245,10 +264,19 @@ function useIndicator(
   variant: TabsVariant,
   tabs: unknown,
 ) {
-  const [indicator, setIndicator] = useState<{ x: number; width: number } | null>(null);
+  const [indicator, setIndicator] = useState<IndicatorPlacement | null>(null);
+  const placedKey = useRef<React.Key | null>(null);
   useLayoutEffect(() => {
     const list = listRef.current;
     if (!list) return;
+    const place = (x: number, width: number) => {
+      const animate = placedKey.current != null && placedKey.current !== selectedKey;
+      placedKey.current = selectedKey;
+      // An unchanged place keeps the last placement, so a re-measure never cuts a slide short.
+      setIndicator((last) =>
+        last && last.x === x && last.width === width ? last : { x, width, animate },
+      );
+    };
     const measure = () => {
       const tab = [...list.querySelectorAll<HTMLElement>('[role="tab"]')].find(
         (el) => el.dataset.key === String(selectedKey),
@@ -265,7 +293,7 @@ function useIndicator(
       const tabX = (tabRect.left - listLeft) / scale;
       const tabWidth = tabRect.width / scale;
       if (variant === 'secondary') {
-        setIndicator({ x: tabX, width: tabWidth });
+        place(tabX, tabWidth);
         return;
       }
       // Compose: the content width less the 16px padding each side, at least 24px.
@@ -276,12 +304,17 @@ function useIndicator(
         ? (Math.max(...parts.map((r) => r.right)) - Math.min(...parts.map((r) => r.left))) / scale
         : 0;
       const width = Math.max(Math.min(contentWidth, tabWidth - 32), 24);
-      setIndicator({ x: tabX + (tabWidth - width) / 2, width });
+      place(tabX + (tabWidth - width) / 2, width);
     };
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(measure);
     observer.observe(list);
+    // The selected tab's content can resize without the row, e.g. when a web font loads.
+    const selected = [...list.querySelectorAll<HTMLElement>('[role="tab"]')].find(
+      (el) => el.dataset.key === String(selectedKey),
+    );
+    selected?.querySelectorAll('[data-tab-part]').forEach((part) => observer.observe(part));
     return () => observer.disconnect();
   }, [listRef, selectedKey, variant, tabs]);
   return indicator;
