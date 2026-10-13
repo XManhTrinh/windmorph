@@ -1,41 +1,19 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import { SITE_URL, markdownPath, ogImagePath } from '../lib/site-metadata';
+import { OUT_DIR, exportedPages, isTabPage } from './pages';
 
 /**
  * The files the static export carries beside its pages: each page's Markdown twin and
  * link-preview image, `llms.txt`, `llms-full.txt`, `sitemap.xml` and `robots.txt`. Pages are
  * enumerated from the export's HTML, so a page added later is checked without listing it.
  */
-const here = dirname(fileURLToPath(import.meta.url));
-const outDir = resolve(here, '../out');
-
-/** Every page of the export, as its path (`/`, `/theming`, `/components/button/api`). */
-function pagePaths(): string[] {
-  const paths: string[] = [];
-  const walk = (dir: string) => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        if (entry.name !== '_next' && entry.name !== 'og') walk(full);
-      } else if (entry.name.endsWith('.html')) {
-        const file = relative(outDir, full).split(/[\\/]/).join('/');
-        if (file === '404.html' || file.startsWith('_')) continue;
-        paths.push(file === 'index.html' ? '/' : `/${file.slice(0, -'.html'.length)}`);
-      }
-    }
-  };
-  walk(outDir);
-  return paths.sort();
-}
-
 function read(path: string): string {
-  return readFileSync(join(outDir, path), 'utf8');
+  return readFileSync(join(OUT_DIR, path), 'utf8');
 }
 
-const PAGES = pagePaths();
+const PAGES = exportedPages();
 
 test('the export has pages to check', () => {
   expect(PAGES).toContain('/');
@@ -46,7 +24,7 @@ test('the export has pages to check', () => {
 test('every page has its Markdown twin', () => {
   for (const path of PAGES) {
     const file = markdownPath(path);
-    expect(existsSync(join(outDir, file)), `${file} is missing`).toBe(true);
+    expect(existsSync(join(OUT_DIR, file)), `${file} is missing`).toBe(true);
     expect(read(file), `${file} has no title`).toMatch(/^# \S/);
   }
 });
@@ -70,10 +48,10 @@ test('llms.txt links every guide and component twin', () => {
   );
   for (const path of PAGES) {
     // Tab pages are part of their component page's twin; the home page's twin is llms.txt.
-    if (path === '/' || /^\/components\/[^/]+\/[^/]+$/.test(path)) continue;
+    if (path === '/' || isTabPage(path)) continue;
     expect(linked, `llms.txt doesn't link ${path}`).toContain(markdownPath(path));
   }
-  for (const path of linked) expect(existsSync(join(outDir, path)), path).toBe(true);
+  for (const path of linked) expect(existsSync(join(OUT_DIR, path)), path).toBe(true);
 });
 
 test('llms-full.txt holds the guides and component pages in full', () => {
@@ -97,7 +75,7 @@ test('every page has a canonical URL and a link-preview image that exists', () =
     expect(content(html, /<meta name="twitter:card" content="([^"]+)"/), path).toBe(
       'summary_large_image',
     );
-    expect(existsSync(join(outDir, image)), `${image} is missing`).toBe(true);
+    expect(existsSync(join(OUT_DIR, image)), `${image} is missing`).toBe(true);
   }
 });
 

@@ -64,6 +64,7 @@ jobs:
 
   site-e2e:
     name: Site link check & Playwright smoke suite
+    # Every page (component tabs included) gets an axe scan in light and dark mode.
     timeout-minutes: 45
     runs-on: ubuntu-latest
     env:
