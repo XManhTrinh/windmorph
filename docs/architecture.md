@@ -343,6 +343,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Text: a 24px `secondary` icon, a `headline-small` title and `body-medium` `on-surface-variant` text.
   - Spacing: 16px below the icon and the title, 24px below the text, 8px between actions.
   - Stacked actions put the confirm action (last) **on top**, matching Compose's flipped `FlowRow` (`flex-wrap-reverse`).
+  - **At most two actions** (2026-10-13, the spec: a single action only to acknowledge, at most two, no third "Learn more"): `DialogActions` warns once per instance, in development only, when it holds more than two elements (a fragment's children are counted, not the fragment; `null` and `false` aren't counted).
   - Long content scrolls inside the panel. The scrim is `scrim` at 32%.
   - **Scrolling content and the keyboard** (2026-10-13, the spec: assistive tech must be able to "Scroll the dialog to access all of its contents"): while `DialogContent` overflows (a `ResizeObserver` on it and its children) it is `tabIndex=0` with `data-scrollable` and the `focus-ring`; React Aria's focus containment skipped it before. Initial focus skips it (`firstTabbable(panel, skip)`) and still lands on the first control.
   - **Dividers** (2026-10-13, the spec's anatomy: "Divider (optional)", 1dp): `DialogContent dividers` draws 1px `outline-variant` lines across the panel's full width above and below the content, 8px from it, keeping 24px to the actions. Opt-in rather than automatic, as the spec only marks them optional; basic dialogs only (from 600px for `compact`).

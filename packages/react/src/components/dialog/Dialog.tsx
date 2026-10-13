@@ -2,7 +2,9 @@
 
 import {
   Children,
+  Fragment,
   createContext,
+  isValidElement,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -563,18 +565,41 @@ export function DialogContent({ className, dividers = false, ref, ...props }: Di
 
 export type DialogActionsProps = ComponentPropsWithRef<'div'>;
 
+/** The elements among `children`, counting a fragment's children rather than the fragment. */
+function countActions(children: ReactNode): number {
+  let count = 0;
+  Children.forEach(children, (child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) return;
+    count += child.type === Fragment ? countActions(child.props.children) : 1;
+  });
+  return count;
+}
+
 /**
  * Row of actions at the end of the dialog, 8px apart. Put the confirming action last:
  * when the actions do not fit on one line they stack with it on top. While the dialog is
  * full screen they're hidden when `DialogHeader` carries the confirming action, and
- * otherwise form the spec's 56px bottom action bar.
+ * otherwise form the spec's 56px bottom action bar. Use at most two actions (the spec); in
+ * development it warns once when it holds more.
  */
-export function DialogActions({ className, ...props }: DialogActionsProps) {
+export function DialogActions({ className, children, ...props }: DialogActionsProps) {
   const { fullScreen, bottomBar } = useContext(DialogPartsContext);
+  const actionCount = countActions(children);
+  const warned = useRef(false);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || warned.current || actionCount <= 2) return;
+    warned.current = true;
+    console.warn(
+      `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
+        '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
+    );
+  }, [actionCount]);
   return (
     <div
       {...props}
       className={dialogStyles({ fullScreen, bottomBar }).actions({ class: className })}
-    />
+    >
+      {children}
+    </div>
   );
 }

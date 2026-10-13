@@ -205,7 +205,8 @@ export async function DialogBody(): Promise<ComponentDoc> {
               Use at most two actions. A single action must be an acknowledgement (&quot;OK&quot;,
               &quot;Got it&quot;); with two, one confirms and the other dismisses. Don&apos;t add a
               third such as &quot;Learn more&quot;: it leaves the task unfinished. Show more inline,
-              or before the dialog opens.
+              or before the dialog opens. In development, <InlineCode>DialogActions</InlineCode>{' '}
+              warns once when it holds more than two actions.
             </li>
             <li>
               Put the dismissive action first and the confirming action last, so it sits closest to
