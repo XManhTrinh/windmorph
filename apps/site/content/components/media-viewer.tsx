@@ -6,25 +6,16 @@ import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  {
-    file: 'media-viewer-gallery.tsx',
-    title: 'Opened from thumbnails',
-    Example: MediaViewerGallery,
-  },
-  {
-    file: 'media-viewer-actions.tsx',
-    title: 'Translated, with an action menu',
-    Example: MediaViewerActions,
-  },
-];
-
 /** Media viewer page body: purpose, examples, gestures, accessibility and theming. */
 export async function MediaViewerBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`media-viewer/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [gallery, actions] = await Promise.all([
+    readExampleSource('media-viewer/media-viewer-gallery.tsx'),
+    readExampleSource('media-viewer/media-viewer-actions.tsx'),
+  ]);
+  const [galleryHtml, actionsHtml] = await Promise.all([
+    highlightSource(gallery),
+    highlightSource(actions),
+  ]);
 
   return {
     overview: (
@@ -33,17 +24,22 @@ export async function MediaViewerBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="Opened from thumbnails"
+            code={gallery}
+            html={galleryHtml}
+            fileName="media-viewer-gallery.tsx"
+          >
+            <MediaViewerGallery />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Translated, with an action menu"
+            code={actions}
+            html={actionsHtml}
+            fileName="media-viewer-actions.tsx"
+          >
+            <MediaViewerActions />
+          </ExampleViewer>
         </section>
       </>
     ),

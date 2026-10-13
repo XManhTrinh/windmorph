@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { ShapedIconSizes } from '../../examples/shaped-icon/shaped-icon-sizes';
 import { ShapedIconSteps } from '../../examples/shaped-icon/shaped-icon-steps';
+import { ShapedIconTones } from '../../examples/shaped-icon/shaped-icon-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -17,6 +18,8 @@ export async function ShapedIconBody(): Promise<ComponentDoc> {
     highlightSource(sizes),
   ]);
 
+  const tones = await readExampleSource('shaped-icon/shaped-icon-tones.tsx');
+  const tonesHtml = await highlightSource(tones);
   return {
     overview: (
       <>
@@ -39,6 +42,14 @@ export async function ShapedIconBody(): Promise<ComponentDoc> {
             fileName="shaped-icon-sizes.tsx"
           >
             <ShapedIconSizes />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Tones"
+            code={tones}
+            html={tonesHtml}
+            fileName="shaped-icon-tones.tsx"
+          >
+            <ShapedIconTones />
           </ExampleViewer>
         </section>
       </>

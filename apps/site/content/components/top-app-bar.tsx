@@ -1,20 +1,26 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
+import { SearchAppBarDemo } from '../../examples/search/search-app-bar';
+import { TopAppBarFlexible } from '../../examples/top-app-bar/top-app-bar-flexible';
 import { TopAppBarScrolling } from '../../examples/top-app-bar/top-app-bar-scrolling';
 import { TopAppBarVariants } from '../../examples/top-app-bar/top-app-bar-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-/** Top app bar page body: the three sizes and scroll behaviour. */
+/** Top app bar page body: the three sizes, centred text, scroll behaviour and search. */
 export async function TopAppBarBody(): Promise<ComponentDoc> {
-  const [variants, scrolling] = await Promise.all([
+  const [variants, flexible, scrolling, searchAppBar] = await Promise.all([
     readExampleSource('top-app-bar/top-app-bar-variants.tsx'),
+    readExampleSource('top-app-bar/top-app-bar-flexible.tsx'),
     readExampleSource('top-app-bar/top-app-bar-scrolling.tsx'),
+    readExampleSource('search/search-app-bar.tsx'),
   ]);
-  const [variantsHtml, scrollingHtml] = await Promise.all([
+  const [variantsHtml, flexibleHtml, scrollingHtml, searchAppBarHtml] = await Promise.all([
     highlightSource(variants),
+    highlightSource(flexible),
     highlightSource(scrolling),
+    highlightSource(searchAppBar),
   ]);
 
   return {
@@ -33,12 +39,28 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
             <TopAppBarVariants />
           </ExampleViewer>
           <ExampleViewer
+            title="Flexible bars with centred text"
+            code={flexible}
+            html={flexibleHtml}
+            fileName="top-app-bar-flexible.tsx"
+          >
+            <TopAppBarFlexible />
+          </ExampleViewer>
+          <ExampleViewer
             title="Scroll behaviour"
             code={scrolling}
             html={scrollingHtml}
             fileName="top-app-bar-scrolling.tsx"
           >
             <TopAppBarScrolling />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Search app bar"
+            code={searchAppBar}
+            html={searchAppBarHtml}
+            fileName="search-app-bar.tsx"
+          >
+            <SearchAppBarDemo />
           </ExampleViewer>
         </section>
       </>

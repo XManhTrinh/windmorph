@@ -1,38 +1,34 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
+import { PinInputCorners } from '../../examples/pin-input/pin-input-corners';
 import { PinInputGroups } from '../../examples/pin-input/pin-input-groups';
 import { PinInputPin } from '../../examples/pin-input/pin-input-pin';
+import { PinInputStates } from '../../examples/pin-input/pin-input-states';
 import { PinInputVariants } from '../../examples/pin-input/pin-input-variants';
 import { PinInputVerification } from '../../examples/pin-input/pin-input-verification';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  {
-    file: 'pin-input-verification.tsx',
-    title: 'A verification code that submits itself',
-    Example: PinInputVerification,
-  },
-  {
-    file: 'pin-input-variants.tsx',
-    title: 'Outlined or filled, in three sizes',
-    Example: PinInputVariants,
-  },
-  {
-    file: 'pin-input-groups.tsx',
-    title: 'Groups, letters and custom characters',
-    Example: PinInputGroups,
-  },
-  { file: 'pin-input-pin.tsx', title: 'A masked PIN', Example: PinInputPin },
-];
-
 /** PIN input page body: purpose, examples, accessibility and theming. */
 export async function PinInputBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`pin-input/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [verification, variants, groups, pin, corners, states] = await Promise.all([
+    readExampleSource('pin-input/pin-input-verification.tsx'),
+    readExampleSource('pin-input/pin-input-variants.tsx'),
+    readExampleSource('pin-input/pin-input-groups.tsx'),
+    readExampleSource('pin-input/pin-input-pin.tsx'),
+    readExampleSource('pin-input/pin-input-corners.tsx'),
+    readExampleSource('pin-input/pin-input-states.tsx'),
+  ]);
+  const [verificationHtml, variantsHtml, groupsHtml, pinHtml, cornersHtml, statesHtml] =
+    await Promise.all([
+      highlightSource(verification),
+      highlightSource(variants),
+      highlightSource(groups),
+      highlightSource(pin),
+      highlightSource(corners),
+      highlightSource(states),
+    ]);
 
   return {
     overview: (
@@ -41,17 +37,54 @@ export async function PinInputBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="A verification code that submits itself"
+            code={verification}
+            html={verificationHtml}
+            fileName="pin-input-verification.tsx"
+          >
+            <PinInputVerification />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Outlined or filled, in three sizes"
+            code={variants}
+            html={variantsHtml}
+            fileName="pin-input-variants.tsx"
+          >
+            <PinInputVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Groups, letters and custom characters"
+            code={groups}
+            html={groupsHtml}
+            fileName="pin-input-groups.tsx"
+          >
+            <PinInputGroups />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A masked PIN"
+            code={pin}
+            html={pinHtml}
+            fileName="pin-input-pin.tsx"
+          >
+            <PinInputPin />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Corners and character sets"
+            code={corners}
+            html={cornersHtml}
+            fileName="pin-input-corners.tsx"
+          >
+            <PinInputCorners />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Invalid, required, read-only and disabled"
+            code={states}
+            html={statesHtml}
+            fileName="pin-input-states.tsx"
+          >
+            <PinInputStates />
+          </ExampleViewer>
         </section>
       </>
     ),

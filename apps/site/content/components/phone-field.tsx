@@ -2,31 +2,26 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { PhoneFieldFlags } from '../../examples/phone-field/phone-field-flags';
 import { PhoneFieldSignup } from '../../examples/phone-field/phone-field-signup';
+import { PhoneFieldStates } from '../../examples/phone-field/phone-field-states';
 import { PhoneFieldVariants } from '../../examples/phone-field/phone-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  {
-    file: 'phone-field-signup.tsx',
-    title: 'An optional phone at sign-up',
-    Example: PhoneFieldSignup,
-  },
-  { file: 'phone-field-variants.tsx', title: 'Outlined or filled', Example: PhoneFieldVariants },
-  {
-    file: 'phone-field-flags.tsx',
-    title: 'Flags, when the app wants them',
-    Example: PhoneFieldFlags,
-  },
-];
-
 /** Phone field page body: purpose, examples, accessibility and theming. */
 export async function PhoneFieldBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`phone-field/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [signup, variants, flags, states] = await Promise.all([
+    readExampleSource('phone-field/phone-field-signup.tsx'),
+    readExampleSource('phone-field/phone-field-variants.tsx'),
+    readExampleSource('phone-field/phone-field-flags.tsx'),
+    readExampleSource('phone-field/phone-field-states.tsx'),
+  ]);
+  const [signupHtml, variantsHtml, flagsHtml, statesHtml] = await Promise.all([
+    highlightSource(signup),
+    highlightSource(variants),
+    highlightSource(flags),
+    highlightSource(states),
+  ]);
 
   return {
     overview: (
@@ -35,17 +30,38 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="An optional phone at sign-up"
+            code={signup}
+            html={signupHtml}
+            fileName="phone-field-signup.tsx"
+          >
+            <PhoneFieldSignup />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Outlined or filled"
+            code={variants}
+            html={variantsHtml}
+            fileName="phone-field-variants.tsx"
+          >
+            <PhoneFieldVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Flags, when the app wants them"
+            code={flags}
+            html={flagsHtml}
+            fileName="phone-field-flags.tsx"
+          >
+            <PhoneFieldFlags />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Required, read-only, disabled, and another locale"
+            code={states}
+            html={statesHtml}
+            fileName="phone-field-states.tsx"
+          >
+            <PhoneFieldStates />
+          </ExampleViewer>
         </section>
       </>
     ),

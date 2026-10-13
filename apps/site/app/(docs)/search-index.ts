@@ -113,6 +113,20 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     kind: 'guide',
     keywords: ['NextRouterProvider', 'useNavigationGuard', 'useGuardedNavigate'],
   },
+  {
+    title: 'From Compose',
+    summary:
+      'Jetpack Compose Material 3 composables and their key parameters, mapped to Windmorph components and props.',
+    href: '/from-compose',
+    keywords: ['Jetpack Compose', 'Android', 'composable', 'migrate', 'port'],
+  },
+  {
+    title: 'Spec status',
+    summary:
+      'What each component covers of the M3 Expressive spec, its deliberate differences and its extensions.',
+    href: '/spec-status',
+    keywords: ['M3 spec', 'coverage', 'differences', 'extensions', 'Material 3 Expressive'],
+  },
 ];
 
 /** The pages the search suggests before anything is typed, and when nothing matches. */

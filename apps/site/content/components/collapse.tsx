@@ -4,6 +4,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { CollapseDisclosure } from '../../examples/collapse/collapse-disclosure';
 import { CollapseReplies } from '../../examples/collapse/collapse-replies';
+import { CollapseShownFirst } from '../../examples/collapse/collapse-shown-first';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -19,6 +20,8 @@ export async function CollapseBody(): Promise<ComponentDoc> {
     highlightSource(disclosure),
   ]);
 
+  const shownFirst = await readExampleSource('collapse/collapse-shown-first.tsx');
+  const shownFirstHtml = await highlightSource(shownFirst);
   return {
     overview: (
       <>
@@ -41,6 +44,14 @@ export async function CollapseBody(): Promise<ComponentDoc> {
             fileName="collapse-disclosure.tsx"
           >
             <CollapseDisclosure />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Open from the start"
+            code={shownFirst}
+            html={shownFirstHtml}
+            fileName="collapse-shown-first.tsx"
+          >
+            <CollapseShownFirst />
           </ExampleViewer>
         </section>
       </>

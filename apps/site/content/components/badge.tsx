@@ -1,6 +1,7 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { BadgeBasic } from '../../examples/badge/badge-basic';
+import { BadgeNavigation } from '../../examples/badge/badge-navigation';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -9,6 +10,9 @@ import { InlineCode } from '../../components/inline-code';
 export async function BadgeBody(): Promise<ComponentDoc> {
   const basic = await readExampleSource('badge/badge-basic.tsx');
   const basicHtml = await highlightSource(basic);
+
+  const navigation = await readExampleSource('badge/badge-navigation.tsx');
+  const navigationHtml = await highlightSource(navigation);
 
   return {
     overview: (
@@ -24,6 +28,14 @@ export async function BadgeBody(): Promise<ComponentDoc> {
             fileName="badge-basic.tsx"
           >
             <BadgeBasic />
+          </ExampleViewer>
+          <ExampleViewer
+            title="On navigation items"
+            code={navigation}
+            html={navigationHtml}
+            fileName="badge-navigation.tsx"
+          >
+            <BadgeNavigation />
           </ExampleViewer>
         </section>
       </>

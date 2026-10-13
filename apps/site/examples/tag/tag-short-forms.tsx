@@ -17,7 +17,7 @@ export function TagShortForms() {
         </Tag>
       </p>
       <Tag variant="outlined" shape="rounded" maxWidth="12rem">
-        Vietnamese groceries and fresh herbs
+        Fresh herbs, spices and imported groceries
       </Tag>
     </div>
   );

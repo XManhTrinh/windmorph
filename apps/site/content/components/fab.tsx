@@ -4,6 +4,8 @@ import { FabColors } from '../../examples/fab/fab-colors';
 import { FabExtended } from '../../examples/fab/fab-extended';
 import { FabExtendedCollapse } from '../../examples/fab/fab-extended-collapse';
 import { FabVisibility } from '../../examples/fab/fab-visibility';
+import { FabColorStyles } from '../../examples/fab/fab-color-styles';
+import { FabElevation } from '../../examples/fab/fab-elevation';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -23,6 +25,15 @@ export async function FabBody(): Promise<ComponentDoc> {
     highlightSource(visibility),
   ]);
 
+  const [colorStylesSrc, elevationSrc] = await Promise.all([
+    readExampleSource('fab/fab-color-styles.tsx'),
+    readExampleSource('fab/fab-elevation.tsx'),
+  ]);
+  const [colorStylesSrcHtml, elevationSrcHtml] = await Promise.all([
+    highlightSource(colorStylesSrc),
+    highlightSource(elevationSrc),
+  ]);
+
   return {
     overview: (
       <>
@@ -37,6 +48,22 @@ export async function FabBody(): Promise<ComponentDoc> {
             fileName="fab-colors.tsx"
           >
             <FabColors />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Colour styles"
+            code={colorStylesSrc}
+            html={colorStylesSrcHtml}
+            fileName="fab-color-styles.tsx"
+          >
+            <FabColorStyles />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Elevation"
+            code={elevationSrc}
+            html={elevationSrcHtml}
+            fileName="fab-elevation.tsx"
+          >
+            <FabElevation />
           </ExampleViewer>
           <ExampleViewer
             title="Extended FAB"

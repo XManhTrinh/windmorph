@@ -2,19 +2,22 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { SkeletonAnimations } from '../../examples/skeleton/skeleton-animations';
 import { SkeletonCards } from '../../examples/skeleton/skeleton-cards';
+import { SkeletonVariants } from '../../examples/skeleton/skeleton-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Skeleton page body: when to use it, examples, accessibility and theming. */
 export async function SkeletonBody(): Promise<ComponentDoc> {
-  const [cards, animations] = await Promise.all([
+  const [cards, animations, skeletonVariants] = await Promise.all([
     readExampleSource('skeleton/skeleton-cards.tsx'),
     readExampleSource('skeleton/skeleton-animations.tsx'),
+    readExampleSource('skeleton/skeleton-variants.tsx'),
   ]);
-  const [cardsHtml, animationsHtml] = await Promise.all([
+  const [cardsHtml, animationsHtml, skeletonVariantsHtml] = await Promise.all([
     highlightSource(cards),
     highlightSource(animations),
+    highlightSource(skeletonVariants),
   ]);
 
   return {
@@ -39,6 +42,14 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             fileName="skeleton-animations.tsx"
           >
             <SkeletonAnimations />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Shapes and tones"
+            code={skeletonVariants}
+            html={skeletonVariantsHtml}
+            fileName="skeleton-variants.tsx"
+          >
+            <SkeletonVariants />
           </ExampleViewer>
         </section>
       </>

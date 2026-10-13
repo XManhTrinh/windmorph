@@ -35,7 +35,7 @@ export function ToolbarFloating() {
       >
         {expanded ? 'Collapse' : 'Expand'}
       </button>
-      <div className="flex items-start gap-6">
+      <div className="flex flex-wrap items-start gap-6">
         <FloatingToolbar
           aria-label="Formatting"
           expanded={expanded}

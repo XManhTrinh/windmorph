@@ -4,6 +4,8 @@ import { ButtonLink } from '../../examples/button/button-link';
 import { ButtonSizes } from '../../examples/button/button-sizes';
 import { ButtonToggle } from '../../examples/button/button-toggle';
 import { ButtonVariants } from '../../examples/button/button-variants';
+import { ButtonShapes } from '../../examples/button/button-shapes';
+import { ButtonToggleVariants } from '../../examples/button/button-toggle-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -21,6 +23,15 @@ export async function ButtonBody(): Promise<ComponentDoc> {
     highlightSource(sizes),
     highlightSource(toggle),
     highlightSource(link),
+  ]);
+
+  const [shapesSrc, toggleVariantsSrc] = await Promise.all([
+    readExampleSource('button/button-shapes.tsx'),
+    readExampleSource('button/button-toggle-variants.tsx'),
+  ]);
+  const [shapesSrcHtml, toggleVariantsSrcHtml] = await Promise.all([
+    highlightSource(shapesSrc),
+    highlightSource(toggleVariantsSrc),
   ]);
 
   return {
@@ -47,12 +58,28 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             <ButtonSizes />
           </ExampleViewer>
           <ExampleViewer
+            title="Shapes"
+            code={shapesSrc}
+            html={shapesSrcHtml}
+            fileName="button-shapes.tsx"
+          >
+            <ButtonShapes />
+          </ExampleViewer>
+          <ExampleViewer
             title="Toggle"
             code={toggle}
             html={toggleHtml}
             fileName="button-toggle.tsx"
           >
             <ButtonToggle />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Toggle colour styles"
+            code={toggleVariantsSrc}
+            html={toggleVariantsSrcHtml}
+            fileName="button-toggle-variants.tsx"
+          >
+            <ButtonToggleVariants />
           </ExampleViewer>
           <ExampleViewer title="As a link" code={link} html={linkHtml} fileName="button-link.tsx">
             <ButtonLink />

@@ -8,14 +8,14 @@ import { SearchIcon } from '../../components/icons';
 export function IconButtonSizes() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <IconButton variant="tonal" size="xs" icon={<SearchIcon />} aria-label="Search" />
         <IconButton variant="tonal" size="sm" icon={<SearchIcon />} aria-label="Search" />
         <IconButton variant="tonal" size="md" icon={<SearchIcon />} aria-label="Search" />
         <IconButton variant="tonal" size="lg" icon={<SearchIcon />} aria-label="Search" />
         <IconButton variant="tonal" size="xl" icon={<SearchIcon />} aria-label="Search" />
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <IconButton
           variant="filled"
           size="md"

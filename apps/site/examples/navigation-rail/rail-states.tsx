@@ -17,7 +17,7 @@ const DESTINATIONS = [
  */
 export function RailStates() {
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-wrap gap-6">
       {[false, true].map((expanded) => (
         <div
           key={String(expanded)}

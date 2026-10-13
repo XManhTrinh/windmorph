@@ -12,13 +12,13 @@ import { TimePicker } from '@windmorph/react';
 export function TimePickerModes() {
   return (
     <div className="flex flex-wrap items-start gap-6">
-      <div className="w-fit rounded-corner-extra-large bg-surface-container-high p-6">
+      <div className="w-fit max-w-full overflow-x-auto rounded-corner-extra-large bg-surface-container-high p-6">
         <TimePicker defaultValue={new Time(18, 0)} hourCycle={24} />
       </div>
-      <div className="w-fit rounded-corner-extra-large bg-surface-container-high p-6">
+      <div className="w-fit max-w-full overflow-x-auto rounded-corner-extra-large bg-surface-container-high p-6">
         <TimePicker defaultValue={new Time(7, 30)} hourCycle={12} layout="horizontal" />
       </div>
-      <div className="w-fit rounded-corner-extra-large bg-surface-container-high p-6">
+      <div className="w-fit max-w-full overflow-x-auto rounded-corner-extra-large bg-surface-container-high p-6">
         <TimePicker defaultValue={new Time(9, 5)} hourCycle={12} mode="input" />
       </div>
     </div>

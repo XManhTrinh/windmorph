@@ -1,6 +1,7 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { DividerBasic } from '../../examples/divider/divider-basic';
+import { DividerList } from '../../examples/divider/divider-list';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -9,6 +10,9 @@ import { InlineCode } from '../../components/inline-code';
 export async function DividerBody(): Promise<ComponentDoc> {
   const basic = await readExampleSource('divider/divider-basic.tsx');
   const basicHtml = await highlightSource(basic);
+
+  const list = await readExampleSource('divider/divider-list.tsx');
+  const listHtml = await highlightSource(list);
 
   return {
     overview: (
@@ -24,6 +28,14 @@ export async function DividerBody(): Promise<ComponentDoc> {
             fileName="divider-basic.tsx"
           >
             <DividerBasic />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Dividers in a list"
+            code={list}
+            html={listHtml}
+            fileName="divider-list.tsx"
+          >
+            <DividerList />
           </ExampleViewer>
         </section>
       </>

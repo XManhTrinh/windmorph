@@ -3,26 +3,25 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { AutocompleteAsync } from '../../examples/autocomplete/autocomplete-async';
 import { AutocompleteBasic } from '../../examples/autocomplete/autocomplete-basic';
 import { AutocompleteMultiple } from '../../examples/autocomplete/autocomplete-multiple';
+import { AutocompleteSections } from '../../examples/autocomplete/autocomplete-sections';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  { file: 'autocomplete-basic.tsx', title: 'Type to find', Example: AutocompleteBasic },
-  {
-    file: 'autocomplete-multiple.tsx',
-    title: 'Several choices as input chips',
-    Example: AutocompleteMultiple,
-  },
-  { file: 'autocomplete-async.tsx', title: 'Options from a server', Example: AutocompleteAsync },
-];
-
 /** Autocomplete page body: purpose, examples, accessibility and differences from Compose. */
 export async function AutocompleteBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`autocomplete/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [basic, multiple, sections, fromServer] = await Promise.all([
+    readExampleSource('autocomplete/autocomplete-basic.tsx'),
+    readExampleSource('autocomplete/autocomplete-multiple.tsx'),
+    readExampleSource('autocomplete/autocomplete-sections.tsx'),
+    readExampleSource('autocomplete/autocomplete-async.tsx'),
+  ]);
+  const [basicHtml, multipleHtml, sectionsHtml, fromServerHtml] = await Promise.all([
+    highlightSource(basic),
+    highlightSource(multiple),
+    highlightSource(sections),
+    highlightSource(fromServer),
+  ]);
 
   return {
     overview: (
@@ -31,17 +30,38 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="Type to find"
+            code={basic}
+            html={basicHtml}
+            fileName="autocomplete-basic.tsx"
+          >
+            <AutocompleteBasic />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Several choices as input chips"
+            code={multiple}
+            html={multipleHtml}
+            fileName="autocomplete-multiple.tsx"
+          >
+            <AutocompleteMultiple />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Grouped in sections"
+            code={sections}
+            html={sectionsHtml}
+            fileName="autocomplete-sections.tsx"
+          >
+            <AutocompleteSections />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Options from a server"
+            code={fromServer}
+            html={fromServerHtml}
+            fileName="autocomplete-async.tsx"
+          >
+            <AutocompleteAsync />
+          </ExampleViewer>
         </section>
       </>
     ),

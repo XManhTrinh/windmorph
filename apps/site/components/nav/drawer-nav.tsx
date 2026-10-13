@@ -126,7 +126,7 @@ function AccordionSection({
 }
 
 /**
- * The compact modal-drawer navigation: the six guide sections and the component groups
+ * The compact modal-drawer navigation: the guide sections and the component groups
  * (each an in-place accordion of component links). Rendered inside the modal
  * `NavigationRail`. Every link calls `onNavigate` to dismiss the drawer on activation.
  */

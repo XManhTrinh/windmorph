@@ -10,11 +10,19 @@ import {
   type ComponentDoc,
   type ComponentTab,
 } from '../content/components/doc';
+import { HookTable } from '../components/hook-table';
 import { InlineCode } from '../components/inline-code';
 import { Playground } from '../components/playground/playground';
 import { PropsList } from '../components/props-list';
+import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
-import { readComponentPropsSafe, type ComponentPropsFile } from './component-props';
+import { SPEC_DATA } from '../content/components/spec-data';
+import {
+  readComponentPropsSafe,
+  readHookDocSafe,
+  type ComponentPropsFile,
+  type HookDocFile,
+} from './component-props';
 
 const docs = new Map<string, Promise<ComponentDoc>>();
 
@@ -53,7 +61,12 @@ export async function componentTabs(page: ComponentPageMeta): Promise<ComponentT
   const doc = await loadComponentDoc(page);
   const has: Record<ComponentTab, boolean> = {
     overview: Boolean(doc.overview) || page.playground === 'full',
-    api: Boolean(doc.api) || Boolean(page.specs) || page.propsComponents.length > 0,
+    api:
+      Boolean(doc.api) ||
+      Boolean(page.specs) ||
+      page.propsComponents.length > 0 ||
+      (page.hooks ?? []).length > 0 ||
+      Boolean(SPEC_DATA[page.slug]),
     accessibility: Boolean(doc.accessibility),
     guidelines:
       Boolean(doc.guidelines) ||
@@ -97,6 +110,10 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
     // A component with no props and no classNames slots has nothing to list.
     ({ json, slots }) => json && (json.props.length > 0 || (slots && slots.length > 0)),
   );
+  const hooks = (await Promise.all((page.hooks ?? []).map((name) => readHookDocSafe(name)))).filter(
+    (hook): hook is HookDocFile => hook !== null,
+  );
+  const specData = SPEC_DATA[page.slug];
   return (
     <>
       {tables.length > 0 && (
@@ -129,6 +146,15 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
           ))}
         </section>
       )}
+      {hooks.length > 0 && (
+        <section className="flex flex-col gap-6">
+          <SectionHeading id="hooks">Hooks</SectionHeading>
+          {hooks.map((hook) => (
+            <HookTable key={hook.displayName} doc={hook} />
+          ))}
+        </section>
+      )}
+      {specData && <SpecStatus slug={page.slug} title={page.title} data={specData} />}
       {page.specs && <SpecsCard specs={page.specs} />}
       {doc.api}
     </>

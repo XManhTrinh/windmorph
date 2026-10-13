@@ -17,8 +17,8 @@ const REACTIONS: ReactionOption[] = [
 ];
 
 const COMMENTS = [
-  { id: 'ada', name: 'Ada Lovelace', text: 'Is the workshop open to beginners?', reactions: 3 },
-  { id: 'grace', name: 'Grace Hopper', text: 'Yes! Bring a laptop if you have one.', reactions: 1 },
+  { id: 'alex', name: 'Alex Morgan', text: 'Is the workshop open to beginners?', reactions: 3 },
+  { id: 'priya', name: 'Priya Shah', text: 'Yes! Bring a laptop if you have one.', reactions: 1 },
 ];
 
 /**
@@ -71,10 +71,10 @@ export function CommentRowThread() {
       <CommentRow
         as="li"
         isPending
-        avatar={<Avatar name="Alan Turing" size="sm" decorative />}
+        avatar={<Avatar name="Omar Haddad" size="sm" decorative />}
         bubble={
           <>
-            <span className="text-label-large text-on-surface">Alan Turing</span>
+            <span className="text-label-large text-on-surface">Omar Haddad</span>
             <span className="text-body-medium text-on-surface">Count me in for Saturday.</span>
           </>
         }

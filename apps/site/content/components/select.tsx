@@ -8,27 +8,20 @@ import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  { file: 'select-basic.tsx', title: 'One choice', Example: SelectBasic },
-  {
-    file: 'select-variants.tsx',
-    title: 'Filled and outlined, with states',
-    Example: SelectVariants,
-  },
-  { file: 'select-multiple.tsx', title: 'Several choices', Example: SelectMultiple },
-  {
-    file: 'select-searchable.tsx',
-    title: 'A long list, with a search',
-    Example: SelectSearchable,
-  },
-];
-
 /** Select page body: purpose, examples, accessibility and differences from Compose. */
 export async function SelectBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`select/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [basic, variants, multiple, searchable] = await Promise.all([
+    readExampleSource('select/select-basic.tsx'),
+    readExampleSource('select/select-variants.tsx'),
+    readExampleSource('select/select-multiple.tsx'),
+    readExampleSource('select/select-searchable.tsx'),
+  ]);
+  const [basicHtml, variantsHtml, multipleHtml, searchableHtml] = await Promise.all([
+    highlightSource(basic),
+    highlightSource(variants),
+    highlightSource(multiple),
+    highlightSource(searchable),
+  ]);
 
   return {
     overview: (
@@ -37,17 +30,38 @@ export async function SelectBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="One choice"
+            code={basic}
+            html={basicHtml}
+            fileName="select-basic.tsx"
+          >
+            <SelectBasic />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Filled and outlined, with states"
+            code={variants}
+            html={variantsHtml}
+            fileName="select-variants.tsx"
+          >
+            <SelectVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Several choices"
+            code={multiple}
+            html={multipleHtml}
+            fileName="select-multiple.tsx"
+          >
+            <SelectMultiple />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A long list, with a search"
+            code={searchable}
+            html={searchableHtml}
+            fileName="select-searchable.tsx"
+          >
+            <SelectSearchable />
+          </ExampleViewer>
         </section>
       </>
     ),
@@ -168,6 +182,19 @@ export async function SelectBody(): Promise<ComponentDoc> {
     ),
     api: (
       <>
+        <section className="flex flex-col gap-3">
+          <h2 id="building-blocks" className="text-headline-small text-on-surface">
+            Building blocks
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>OptionPopover</InlineCode> is the popover the options open in, exported for
+            building a field of your own on top: it anchors to a trigger, is at least as wide as it,
+            flips above it when there&apos;s no room, and opens and closes with the menu&apos;s
+            motion. Pass it React Stately&apos;s overlay state and the trigger&apos;s ref;{' '}
+            <InlineCode>isNonModal</InlineCode> keeps an input beside it usable, as{' '}
+            <InlineCode>Autocomplete</InlineCode> does.
+          </p>
+        </section>
         <section className="flex flex-col gap-3">
           <h2 id="differences-from-compose" className="text-headline-small text-on-surface">
             Differences from Compose

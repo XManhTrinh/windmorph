@@ -3,6 +3,7 @@
 import { Button, IconButton, Tab, Tabs } from '@windmorph/react';
 import { CodeBlock, Collapse } from '@windmorph/react-pro';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { exampleAnchor } from '../lib/example-anchor';
 import { CheckIcon, CodeIcon, ContentCopyIcon } from './icons';
 import { useCopy } from './site-snackbar';
 
@@ -17,7 +18,10 @@ export interface ExampleViewerProps {
   html: string;
   /** @default "tsx" */
   lang?: string;
-  /** File name shown in the `CodeBlock` header, e.g. `button-variants.tsx`. */
+  /**
+   * File name shown in the `CodeBlock` header, e.g. `button-variants.tsx`. It also gives the
+   * example its anchor (`#example-button-variants`), which the spec status links to.
+   */
   fileName?: string;
   /**
    * Shows the preview and the source in `Preview` / `Code` tabs instead of a preview with a
@@ -61,6 +65,7 @@ export function ExampleViewer({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const copy = useCopy();
   const sourceId = useId();
+  const anchor = fileName ? exampleAnchor(fileName) : undefined;
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -75,7 +80,7 @@ export function ExampleViewer({
 
   if (tabbed) {
     return (
-      <div className="flex flex-col gap-3">
+      <div id={anchor} className="flex scroll-mt-20 flex-col gap-3">
         {title != null && <h3 className="text-title-medium text-on-surface">{title}</h3>}
         <Tabs aria-label={title ? `${title} example` : 'Example'} variant="secondary">
           <Tab key="preview" title="Preview">
@@ -99,7 +104,7 @@ export function ExampleViewer({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div id={anchor} className="flex scroll-mt-20 flex-col gap-2">
       {title != null && <h3 className="text-title-medium text-on-surface">{title}</h3>}
       {preview}
       <div className="flex items-center justify-end gap-1">

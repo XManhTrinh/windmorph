@@ -1,5 +1,6 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TextFieldForm } from '../../examples/text-field/text-field-form';
 import { TextFieldAdornments } from '../../examples/text-field/text-field-adornments';
 import { TextFieldMultiline } from '../../examples/text-field/text-field-multiline';
 import { TextFieldStates } from '../../examples/text-field/text-field-states';
@@ -10,17 +11,19 @@ import { InlineCode } from '../../components/inline-code';
 
 /** TextField page body: purpose, live examples, accessibility and Compose differences. */
 export async function TextFieldBody(): Promise<ComponentDoc> {
-  const [variants, adornments, states, multiline] = await Promise.all([
+  const [variants, adornments, states, multiline, form] = await Promise.all([
     readExampleSource('text-field/text-field-variants.tsx'),
     readExampleSource('text-field/text-field-adornments.tsx'),
     readExampleSource('text-field/text-field-states.tsx'),
     readExampleSource('text-field/text-field-multiline.tsx'),
+    readExampleSource('text-field/text-field-form.tsx'),
   ]);
-  const [variantsHtml, adornmentsHtml, statesHtml, multilineHtml] = await Promise.all([
+  const [variantsHtml, adornmentsHtml, statesHtml, multilineHtml, formHtml] = await Promise.all([
     highlightSource(variants),
     highlightSource(adornments),
     highlightSource(states),
     highlightSource(multiline),
+    highlightSource(form),
   ]);
 
   return {
@@ -61,6 +64,14 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
             fileName="text-field-multiline.tsx"
           >
             <TextFieldMultiline />
+          </ExampleViewer>
+          <ExampleViewer
+            title="In a form"
+            code={form}
+            html={formHtml}
+            fileName="text-field-form.tsx"
+          >
+            <TextFieldForm />
           </ExampleViewer>
         </section>
       </>

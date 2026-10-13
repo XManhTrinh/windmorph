@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TooltipPlain } from '../../examples/tooltip/tooltip-plain';
 import { TooltipRich } from '../../examples/tooltip/tooltip-rich';
+import { TooltipRichConfigurations } from '../../examples/tooltip/tooltip-rich-configurations';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -13,6 +14,9 @@ export async function TooltipBody(): Promise<ComponentDoc> {
     readExampleSource('tooltip/tooltip-rich.tsx'),
   ]);
   const [plainHtml, richHtml] = await Promise.all([highlightSource(plain), highlightSource(rich)]);
+
+  const richConfigurations = await readExampleSource('tooltip/tooltip-rich-configurations.tsx');
+  const richConfigurationsHtml = await highlightSource(richConfigurations);
 
   return {
     overview: (
@@ -26,6 +30,14 @@ export async function TooltipBody(): Promise<ComponentDoc> {
           </ExampleViewer>
           <ExampleViewer title="Rich" code={rich} html={richHtml} fileName="tooltip-rich.tsx">
             <TooltipRich />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Rich tooltip configurations"
+            code={richConfigurations}
+            html={richConfigurationsHtml}
+            fileName="tooltip-rich-configurations.tsx"
+          >
+            <TooltipRichConfigurations />
           </ExampleViewer>
         </section>
       </>

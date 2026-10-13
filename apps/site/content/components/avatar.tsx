@@ -3,26 +3,32 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { AvatarBadges } from '../../examples/avatar/avatar-badges';
 import { AvatarFallbacks } from '../../examples/avatar/avatar-fallbacks';
 import { AvatarGroupExample } from '../../examples/avatar/avatar-group';
+import { AvatarPhotos } from '../../examples/avatar/avatar-photos';
 import { AvatarShapes } from '../../examples/avatar/avatar-shapes';
+import { AvatarTones } from '../../examples/avatar/avatar-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  { file: 'avatar/avatar-fallbacks.tsx', title: 'Fallbacks and sizes', Example: AvatarFallbacks },
-  { file: 'avatar/avatar-shapes.tsx', title: 'All 35 Expressive shapes', Example: AvatarShapes },
-  { file: 'avatar/avatar-badges.tsx', title: 'Presence and badges', Example: AvatarBadges },
-  { file: 'avatar/avatar-group.tsx', title: 'Groups', Example: AvatarGroupExample },
-] as const;
-
 /** Avatar page body: purpose, examples, accessibility and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const examples = await Promise.all(
-    EXAMPLES.map(async (example) => {
-      const code = await readExampleSource(example.file);
-      return { ...example, code, html: await highlightSource(code) };
-    }),
-  );
+  const [fallbacks, photos, tones, shapes, badges, group] = await Promise.all([
+    readExampleSource('avatar/avatar-fallbacks.tsx'),
+    readExampleSource('avatar/avatar-photos.tsx'),
+    readExampleSource('avatar/avatar-tones.tsx'),
+    readExampleSource('avatar/avatar-shapes.tsx'),
+    readExampleSource('avatar/avatar-badges.tsx'),
+    readExampleSource('avatar/avatar-group.tsx'),
+  ]);
+  const [fallbacksHtml, photosHtml, tonesHtml, shapesHtml, badgesHtml, groupHtml] =
+    await Promise.all([
+      highlightSource(fallbacks),
+      highlightSource(photos),
+      highlightSource(tones),
+      highlightSource(shapes),
+      highlightSource(badges),
+      highlightSource(group),
+    ]);
 
   return {
     overview: (
@@ -31,17 +37,44 @@ export async function AvatarBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {examples.map(({ file, title, code, html, Example }) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={code}
-              html={html}
-              fileName={file.split('/')[1] ?? file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="Fallbacks and sizes"
+            code={fallbacks}
+            html={fallbacksHtml}
+            fileName="avatar-fallbacks.tsx"
+          >
+            <AvatarFallbacks />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Photos and links"
+            code={photos}
+            html={photosHtml}
+            fileName="avatar-photos.tsx"
+          >
+            <AvatarPhotos />
+          </ExampleViewer>
+          <ExampleViewer title="Tones" code={tones} html={tonesHtml} fileName="avatar-tones.tsx">
+            <AvatarTones />
+          </ExampleViewer>
+          <ExampleViewer
+            title="All 35 Expressive shapes"
+            code={shapes}
+            html={shapesHtml}
+            fileName="avatar-shapes.tsx"
+          >
+            <AvatarShapes />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Presence and badges"
+            code={badges}
+            html={badgesHtml}
+            fileName="avatar-badges.tsx"
+          >
+            <AvatarBadges />
+          </ExampleViewer>
+          <ExampleViewer title="Groups" code={group} html={groupHtml} fileName="avatar-group.tsx">
+            <AvatarGroupExample />
+          </ExampleViewer>
         </section>
       </>
     ),

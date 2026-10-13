@@ -223,7 +223,7 @@ test.describe('Navigation rail under RTL', () => {
   });
 });
 
-/** The Guides destination: the six guides, pinned on a guide page like a component group. */
+/** The Guides destination: every guide, pinned on a guide page like a component group. */
 test.describe('Guides in the rail', () => {
   test('lists the guides and pins them on a guide page', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
@@ -240,6 +240,8 @@ test.describe('Guides in the rail', () => {
       'Motion',
       'Accessibility',
       'Next.js',
+      'From Compose',
+      'Spec status',
     ]);
     await expect(flyout.getByRole('link', { name: 'Theming' })).toHaveAttribute(
       'aria-current',

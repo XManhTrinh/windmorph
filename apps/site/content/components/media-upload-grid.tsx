@@ -1,26 +1,24 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { MediaUploadGridComposer } from '../../examples/media-upload-grid/media-upload-grid-composer';
+import { MediaUploadGridDisabled } from '../../examples/media-upload-grid/media-upload-grid-disabled';
 import { MediaUploadGridRow } from '../../examples/media-upload-grid/media-upload-grid-row';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  {
-    file: 'media-upload-grid-composer.tsx',
-    title: 'A post composer: progress, retry, reorder and a menu',
-    Example: MediaUploadGridComposer,
-  },
-  { file: 'media-upload-grid-row.tsx', title: 'One scrolling row', Example: MediaUploadGridRow },
-];
-
 /** Media upload grid page body: purpose, examples, the app's part, accessibility and theming. */
 export async function MediaUploadGridBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`media-upload-grid/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [composer, row, disabled] = await Promise.all([
+    readExampleSource('media-upload-grid/media-upload-grid-composer.tsx'),
+    readExampleSource('media-upload-grid/media-upload-grid-row.tsx'),
+    readExampleSource('media-upload-grid/media-upload-grid-disabled.tsx'),
+  ]);
+  const [composerHtml, rowHtml, disabledHtml] = await Promise.all([
+    highlightSource(composer),
+    highlightSource(row),
+    highlightSource(disabled),
+  ]);
 
   return {
     overview: (
@@ -29,17 +27,30 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="A post composer: progress, retry, reorder and a menu"
+            code={composer}
+            html={composerHtml}
+            fileName="media-upload-grid-composer.tsx"
+          >
+            <MediaUploadGridComposer />
+          </ExampleViewer>
+          <ExampleViewer
+            title="One scrolling row"
+            code={row}
+            html={rowHtml}
+            fileName="media-upload-grid-row.tsx"
+          >
+            <MediaUploadGridRow />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Disabled while the post is sent"
+            code={disabled}
+            html={disabledHtml}
+            fileName="media-upload-grid-disabled.tsx"
+          >
+            <MediaUploadGridDisabled />
+          </ExampleViewer>
         </section>
       </>
     ),

@@ -3,6 +3,8 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { IconButtonSizes } from '../../examples/icon-button/icon-button-sizes';
 import { IconButtonToggle } from '../../examples/icon-button/icon-button-toggle';
 import { IconButtonVariants } from '../../examples/icon-button/icon-button-variants';
+import { IconButtonShapes } from '../../examples/icon-button/icon-button-shapes';
+import { IconButtonToggleVariants } from '../../examples/icon-button/icon-button-toggle-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -18,6 +20,15 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
     highlightSource(variants),
     highlightSource(sizes),
     highlightSource(toggle),
+  ]);
+
+  const [shapesSrc, toggleVariantsSrc] = await Promise.all([
+    readExampleSource('icon-button/icon-button-shapes.tsx'),
+    readExampleSource('icon-button/icon-button-toggle-variants.tsx'),
+  ]);
+  const [shapesSrcHtml, toggleVariantsSrcHtml] = await Promise.all([
+    highlightSource(shapesSrc),
+    highlightSource(toggleVariantsSrc),
   ]);
 
   return {
@@ -44,12 +55,28 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             <IconButtonSizes />
           </ExampleViewer>
           <ExampleViewer
+            title="Shapes"
+            code={shapesSrc}
+            html={shapesSrcHtml}
+            fileName="icon-button-shapes.tsx"
+          >
+            <IconButtonShapes />
+          </ExampleViewer>
+          <ExampleViewer
             title="Toggle"
             code={toggle}
             html={toggleHtml}
             fileName="icon-button-toggle.tsx"
           >
             <IconButtonToggle />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Toggle colour styles"
+            code={toggleVariantsSrc}
+            html={toggleVariantsSrcHtml}
+            fileName="icon-button-toggle-variants.tsx"
+          >
+            <IconButtonToggleVariants />
           </ExampleViewer>
         </section>
       </>

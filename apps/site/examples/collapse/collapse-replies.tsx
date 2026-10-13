@@ -5,9 +5,9 @@ import { Avatar, Collapse, MessageField } from '@windmorph/react-pro';
 import { useState } from 'react';
 
 const comments = [
-  { id: 'ada', name: 'Ada Lovelace', text: 'Is the workshop open to beginners?' },
-  { id: 'grace', name: 'Grace Hopper', text: 'I can bring the projector.' },
-  { id: 'alan', name: 'Alan Turing', text: 'Count me in for Saturday.' },
+  { id: 'alex', name: 'Alex Morgan', text: 'Is the workshop open to beginners?' },
+  { id: 'priya', name: 'Priya Shah', text: 'I can bring the projector.' },
+  { id: 'omar', name: 'Omar Haddad', text: 'Count me in for Saturday.' },
 ];
 
 /**

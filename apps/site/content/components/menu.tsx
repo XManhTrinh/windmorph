@@ -4,6 +4,7 @@ import { MenuBasic } from '../../examples/menu/menu-basic';
 import { MenuContext } from '../../examples/menu/menu-context';
 import { MenuSelection } from '../../examples/menu/menu-selection';
 import { MenuSubmenu } from '../../examples/menu/menu-submenu';
+import { MenuLayouts } from '../../examples/menu/menu-layouts';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -23,6 +24,9 @@ export async function MenuBody(): Promise<ComponentDoc> {
     highlightSource(context),
   ]);
 
+  const layouts = await readExampleSource('menu/menu-layouts.tsx');
+  const layoutsHtml = await highlightSource(layouts);
+
   return {
     overview: (
       <>
@@ -37,6 +41,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
             fileName="menu-basic.tsx"
           >
             <MenuBasic />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Dividers and gaps"
+            code={layouts}
+            html={layoutsHtml}
+            fileName="menu-layouts.tsx"
+          >
+            <MenuLayouts />
           </ExampleViewer>
           <ExampleViewer
             title="Single selection (vibrant)"

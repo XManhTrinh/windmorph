@@ -5,28 +5,30 @@ import { ToolbarFabScroll } from '../../examples/toolbars/toolbar-fab-scroll';
 import { ToolbarFloating } from '../../examples/toolbars/toolbar-floating';
 import { ToolbarOverflow } from '../../examples/toolbars/toolbar-overflow';
 import { ToolbarScrollExit } from '../../examples/toolbars/toolbar-scroll-exit';
+import { ToolbarVertical } from '../../examples/toolbars/toolbar-vertical';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Toolbars page body: docked, floating, overflow, scroll expansion and scroll exit. */
 export async function ToolbarsBody(): Promise<ComponentDoc> {
-  const [docked, floating, overflow, fabScroll, scrollExit] = await Promise.all([
+  const [docked, floating, vertical, overflow, fabScroll, scrollExit] = await Promise.all([
     readExampleSource('toolbars/toolbar-docked.tsx'),
     readExampleSource('toolbars/toolbar-floating.tsx'),
+    readExampleSource('toolbars/toolbar-vertical.tsx'),
     readExampleSource('toolbars/toolbar-overflow.tsx'),
     readExampleSource('toolbars/toolbar-fab-scroll.tsx'),
     readExampleSource('toolbars/toolbar-scroll-exit.tsx'),
   ]);
-  const [dockedHtml, floatingHtml, overflowHtml, fabScrollHtml, scrollExitHtml] = await Promise.all(
-    [
+  const [dockedHtml, floatingHtml, verticalHtml, overflowHtml, fabScrollHtml, scrollExitHtml] =
+    await Promise.all([
       highlightSource(docked),
       highlightSource(floating),
+      highlightSource(vertical),
       highlightSource(overflow),
       highlightSource(fabScroll),
       highlightSource(scrollExit),
-    ],
-  );
+    ]);
 
   return {
     overview: (
@@ -50,6 +52,14 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
             fileName="toolbar-floating.tsx"
           >
             <ToolbarFloating />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Vertical, standard and vibrant"
+            code={vertical}
+            html={verticalHtml}
+            fileName="toolbar-vertical.tsx"
+          >
+            <ToolbarVertical />
           </ExampleViewer>
           <ExampleViewer
             title="Vibrant, with an overflow menu"

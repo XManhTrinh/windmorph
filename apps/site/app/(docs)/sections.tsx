@@ -1,10 +1,12 @@
 import type { ReactElement } from 'react';
 import {
   AccessibilityIcon,
+  ChecklistIcon,
   CodeIcon,
   HomeIcon,
   MotionIcon,
   PaletteIcon,
+  SwapHorizIcon,
   TuneIcon,
 } from '../../components/icons';
 
@@ -15,7 +17,7 @@ export interface DocsSection {
 }
 
 /**
- * The six guide sections, full-name labels, shared by the top bar and the modal drawer.
+ * The guide sections, full-name labels, shared by the top bar and the modal drawer.
  * The `/components` gallery is owned by the left rail (not a top-bar section); its route
  * still exists and is reached from the rail, the compact bottom bar and the homepage.
  */
@@ -26,4 +28,6 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { href: '/motion', label: 'Motion', icon: <MotionIcon /> },
   { href: '/accessibility', label: 'Accessibility', icon: <AccessibilityIcon /> },
   { href: '/nextjs', label: 'Next.js', icon: <CodeIcon /> },
+  { href: '/from-compose', label: 'From Compose', icon: <SwapHorizIcon /> },
+  { href: '/spec-status', label: 'Spec status', icon: <ChecklistIcon /> },
 ];

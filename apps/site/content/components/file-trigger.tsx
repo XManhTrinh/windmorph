@@ -1,7 +1,6 @@
 import type { ComponentDoc } from './doc';
-import { PropsTable } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
-import { readComponentProps } from '../../lib/component-props';
+import { FileTriggerFolder } from '../../examples/file-trigger/file-trigger-folder';
 import { FileTriggerMenu } from '../../examples/file-trigger/file-trigger-menu';
 import { FileTriggerPhoto } from '../../examples/file-trigger/file-trigger-photo';
 import { readExampleSource } from '../../lib/example-source';
@@ -10,16 +9,16 @@ import { InlineCode } from '../../components/inline-code';
 
 /** File trigger page body: purpose, examples, the hook and accessibility. */
 export async function FileTriggerBody(): Promise<ComponentDoc> {
-  const [photo, menu] = await Promise.all([
+  const [photo, menu, folder] = await Promise.all([
     readExampleSource('file-trigger/file-trigger-photo.tsx'),
     readExampleSource('file-trigger/file-trigger-menu.tsx'),
+    readExampleSource('file-trigger/file-trigger-folder.tsx'),
   ]);
-  const [photoHtml, menuHtml] = await Promise.all([highlightSource(photo), highlightSource(menu)]);
-  // The hook takes FileTrigger's options (its props, without the button and the input ref),
-  // read from the same generated table, so the two can't drift apart.
-  const options = (await readComponentProps('FileTrigger')).props.filter(
-    (prop) => prop.name !== 'children' && prop.name !== 'inputRef',
-  );
+  const [photoHtml, menuHtml, folderHtml] = await Promise.all([
+    highlightSource(photo),
+    highlightSource(menu),
+    highlightSource(folder),
+  ]);
 
   return {
     overview: (
@@ -43,6 +42,14 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
             fileName="file-trigger-menu.tsx"
           >
             <FileTriggerMenu />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A folder, or several documents"
+            code={folder}
+            html={folderHtml}
+            fileName="file-trigger-folder.tsx"
+          >
+            <FileTriggerFolder />
           </ExampleViewer>
         </section>
       </>
@@ -118,37 +125,6 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
               <InlineCode>input</InlineCode> once.
             </li>
           </ul>
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h2 id="usefiletrigger" className="text-headline-small text-on-surface">
-            useFileTrigger
-          </h2>
-          <p className="text-body-large text-on-surface-variant">
-            <InlineCode>useFileTrigger(options, inputRef?)</InlineCode> opens the picker from a
-            trigger that can&apos;t be wrapped, such as a menu item. It takes the same options as{' '}
-            <InlineCode>FileTrigger</InlineCode> and returns{' '}
-            <InlineCode>{'{ open, input }'}</InlineCode>.
-          </p>
-          <PropsTable caption="useFileTrigger options" rows={options} />
-          <PropsTable
-            caption="useFileTrigger returns"
-            rows={[
-              {
-                name: 'open',
-                type: '() => void',
-                required: true,
-                description:
-                  'Opens the file picker. Call it from a press or key handler: browsers need a user action.',
-              },
-              {
-                name: 'input',
-                type: 'ReactElement',
-                required: true,
-                description: 'The hidden file input. Render it once, anywhere near the trigger.',
-              },
-            ]}
-          />
         </section>
       </>
     ),

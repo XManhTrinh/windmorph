@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { CardInteractive } from '../../examples/card/card-interactive';
 import { CardVariants } from '../../examples/card/card-variants';
+import { CardContent } from '../../examples/card/card-content';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -16,6 +17,9 @@ export async function CardBody(): Promise<ComponentDoc> {
     highlightSource(variants),
     highlightSource(interactive),
   ]);
+
+  const content = await readExampleSource('card/card-content.tsx');
+  const contentHtml = await highlightSource(content);
 
   return {
     overview: (
@@ -39,6 +43,14 @@ export async function CardBody(): Promise<ComponentDoc> {
             fileName="card-interactive.tsx"
           >
             <CardInteractive />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Content and actions"
+            code={content}
+            html={contentHtml}
+            fileName="card-content.tsx"
+          >
+            <CardContent />
           </ExampleViewer>
         </section>
       </>

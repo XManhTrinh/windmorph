@@ -1,20 +1,26 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
+import { RailHideOnCollapse } from '../../examples/navigation-rail/rail-hide-on-collapse';
 import { RailInline } from '../../examples/navigation-rail/rail-inline';
+import { RailModal } from '../../examples/navigation-rail/rail-modal';
 import { RailStates } from '../../examples/navigation-rail/rail-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-/** Navigation rail page body: an expandable rail and the collapsed/expanded layouts. */
+/** Navigation rail page body: an expandable rail, its layouts and the modal rail. */
 export async function NavigationRailBody(): Promise<ComponentDoc> {
-  const [inline, states] = await Promise.all([
+  const [inline, states, modal, hidden] = await Promise.all([
     readExampleSource('navigation-rail/rail-inline.tsx'),
     readExampleSource('navigation-rail/rail-states.tsx'),
+    readExampleSource('navigation-rail/rail-modal.tsx'),
+    readExampleSource('navigation-rail/rail-hide-on-collapse.tsx'),
   ]);
-  const [inlineHtml, statesHtml] = await Promise.all([
+  const [inlineHtml, statesHtml, modalHtml, hiddenHtml] = await Promise.all([
     highlightSource(inline),
     highlightSource(states),
+    highlightSource(modal),
+    highlightSource(hidden),
   ]);
 
   return {
@@ -39,6 +45,22 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             fileName="rail-states.tsx"
           >
             <RailStates />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Modal expanded rail"
+            code={modal}
+            html={modalHtml}
+            fileName="rail-modal.tsx"
+          >
+            <RailModal />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Hidden while collapsed"
+            code={hidden}
+            html={hiddenHtml}
+            fileName="rail-hide-on-collapse.tsx"
+          >
+            <RailHideOnCollapse />
           </ExampleViewer>
         </section>
       </>

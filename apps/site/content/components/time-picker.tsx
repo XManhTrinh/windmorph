@@ -2,17 +2,23 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TimePickerDial } from '../../examples/time-picker/time-picker-dial';
 import { TimePickerModes } from '../../examples/time-picker/time-picker-modes';
+import { TimePickerModal } from '../../examples/time-picker/time-picker-modal';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Time picker page body. */
 export async function TimePickerBody(): Promise<ComponentDoc> {
-  const [dial, modes] = await Promise.all([
+  const [dial, modes, timePickerModal] = await Promise.all([
     readExampleSource('time-picker/time-picker-dial.tsx'),
     readExampleSource('time-picker/time-picker-modes.tsx'),
+    readExampleSource('time-picker/time-picker-modal.tsx'),
   ]);
-  const [dialHtml, modesHtml] = await Promise.all([highlightSource(dial), highlightSource(modes)]);
+  const [dialHtml, modesHtml, timePickerModalHtml] = await Promise.all([
+    highlightSource(dial),
+    highlightSource(modes),
+    highlightSource(timePickerModal),
+  ]);
 
   return {
     overview: (
@@ -38,6 +44,14 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             tabbed
           >
             <TimePickerModes />
+          </ExampleViewer>
+          <ExampleViewer
+            title="In a dialog"
+            code={timePickerModal}
+            html={timePickerModalHtml}
+            fileName="time-picker-modal.tsx"
+          >
+            <TimePickerModal />
           </ExampleViewer>
         </section>
       </>

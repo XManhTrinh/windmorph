@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { ReactionPickerMessage } from '../../examples/reaction-picker/reaction-picker-message';
 import { ReactionPickerPost } from '../../examples/reaction-picker/reaction-picker-post';
+import { ReactionPickerVariants } from '../../examples/reaction-picker/reaction-picker-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -16,6 +17,11 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
     highlightSource(post),
     highlightSource(message),
   ]);
+
+  const [variantsSrc] = await Promise.all([
+    readExampleSource('reaction-picker/reaction-picker-variants.tsx'),
+  ]);
+  const [variantsSrcHtml] = await Promise.all([highlightSource(variantsSrc)]);
 
   return {
     overview: (
@@ -39,6 +45,14 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
             fileName="reaction-picker-message.tsx"
           >
             <ReactionPickerMessage />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Variants and sizes"
+            code={variantsSrc}
+            html={variantsSrcHtml}
+            fileName="reaction-picker-variants.tsx"
+          >
+            <ReactionPickerVariants />
           </ExampleViewer>
         </section>
       </>

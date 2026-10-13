@@ -4,23 +4,26 @@ import { SliderDiscrete } from '../../examples/slider/slider-discrete';
 import { SliderRange } from '../../examples/slider/slider-range';
 import { SliderSizes } from '../../examples/slider/slider-sizes';
 import { SliderValueLabel } from '../../examples/slider/slider-value-label';
+import { SliderVertical } from '../../examples/slider/slider-vertical';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Slider + RangeSlider page body. */
 export async function SliderBody(): Promise<ComponentDoc> {
-  const [sizes, valueLabel, discrete, range] = await Promise.all([
+  const [sizes, valueLabel, discrete, range, vertical] = await Promise.all([
     readExampleSource('slider/slider-sizes.tsx'),
     readExampleSource('slider/slider-value-label.tsx'),
     readExampleSource('slider/slider-discrete.tsx'),
     readExampleSource('slider/slider-range.tsx'),
+    readExampleSource('slider/slider-vertical.tsx'),
   ]);
-  const [sizesHtml, valueLabelHtml, discreteHtml, rangeHtml] = await Promise.all([
+  const [sizesHtml, valueLabelHtml, discreteHtml, rangeHtml, verticalHtml] = await Promise.all([
     highlightSource(sizes),
     highlightSource(valueLabel),
     highlightSource(discrete),
     highlightSource(range),
+    highlightSource(vertical),
   ]);
 
   return {
@@ -51,6 +54,14 @@ export async function SliderBody(): Promise<ComponentDoc> {
           </ExampleViewer>
           <ExampleViewer title="Range" code={range} html={rangeHtml} fileName="slider-range.tsx">
             <SliderRange />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Vertical"
+            code={vertical}
+            html={verticalHtml}
+            fileName="slider-vertical.tsx"
+          >
+            <SliderVertical />
           </ExampleViewer>
         </section>
       </>

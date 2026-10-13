@@ -3,14 +3,18 @@ import { loadMoreTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { LoadMoreList } from '../../examples/load-more/load-more-list';
+import { LoadMoreAuto } from '../../examples/load-more/load-more-auto';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** LoadMore page body: purpose, example, behaviour, accessibility and tokens. */
 export async function LoadMoreBody(): Promise<ComponentDoc> {
-  const source = await readExampleSource('load-more/load-more-list.tsx');
-  const html = await highlightSource(source);
+  const [source, auto] = await Promise.all([
+    readExampleSource('load-more/load-more-list.tsx'),
+    readExampleSource('load-more/load-more-auto.tsx'),
+  ]);
+  const [html, autoHtml] = await Promise.all([highlightSource(source), highlightSource(auto)]);
 
   return {
     overview: (
@@ -26,6 +30,14 @@ export async function LoadMoreBody(): Promise<ComponentDoc> {
             fileName="load-more-list.tsx"
           >
             <LoadMoreList />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Loading as you scroll"
+            code={auto}
+            html={autoHtml}
+            fileName="load-more-auto.tsx"
+          >
+            <LoadMoreAuto />
           </ExampleViewer>
         </section>
       </>

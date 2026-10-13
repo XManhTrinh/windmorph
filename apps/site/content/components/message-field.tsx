@@ -4,23 +4,33 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { MessageFieldChat } from '../../examples/message-field/message-field-chat';
 import { MessageFieldComment } from '../../examples/message-field/message-field-comment';
+import { MessageFieldDocked } from '../../examples/message-field/message-field-docked';
+import { MessageFieldLimit } from '../../examples/message-field/message-field-limit';
 import { MessageFieldTriggerExample } from '../../examples/message-field/message-field-trigger';
+import { MessageFieldVariants } from '../../examples/message-field/message-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Message field page body: purpose, examples, behaviour, motion, accessibility and tokens. */
 export async function MessageFieldBody(): Promise<ComponentDoc> {
-  const [comment, chat, trigger] = await Promise.all([
+  const [comment, chat, trigger, variants, docked, limit] = await Promise.all([
     readExampleSource('message-field/message-field-comment.tsx'),
     readExampleSource('message-field/message-field-chat.tsx'),
     readExampleSource('message-field/message-field-trigger.tsx'),
+    readExampleSource('message-field/message-field-variants.tsx'),
+    readExampleSource('message-field/message-field-docked.tsx'),
+    readExampleSource('message-field/message-field-limit.tsx'),
   ]);
-  const [commentHtml, chatHtml, triggerHtml] = await Promise.all([
-    highlightSource(comment),
-    highlightSource(chat),
-    highlightSource(trigger),
-  ]);
+  const [commentHtml, chatHtml, triggerHtml, variantsHtml, dockedHtml, limitHtml] =
+    await Promise.all([
+      highlightSource(comment),
+      highlightSource(chat),
+      highlightSource(trigger),
+      highlightSource(variants),
+      highlightSource(docked),
+      highlightSource(limit),
+    ]);
 
   return {
     overview: (
@@ -52,6 +62,30 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             fileName="message-field-trigger.tsx"
           >
             <MessageFieldTriggerExample />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Variants and sizes"
+            code={variants}
+            html={variantsHtml}
+            fileName="message-field-variants.tsx"
+          >
+            <MessageFieldVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Docked as a card's footer once it opens"
+            code={docked}
+            html={dockedHtml}
+            fileName="message-field-docked.tsx"
+          >
+            <MessageFieldDocked />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A limit, a label and an error; Ctrl or ⌘ + Enter sends"
+            code={limit}
+            html={limitHtml}
+            fileName="message-field-limit.tsx"
+          >
+            <MessageFieldLimit />
           </ExampleViewer>
         </section>
       </>

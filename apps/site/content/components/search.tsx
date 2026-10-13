@@ -2,18 +2,21 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { SearchAppBarDemo } from '../../examples/search/search-app-bar';
 import { SearchDocked } from '../../examples/search/search-docked';
+import { SearchFullScreen } from '../../examples/search/search-full-screen';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-/** Search page body: a docked search bar and the app bar with search. */
+/** Search page body: docked and full-screen search, and the app bar with search. */
 export async function SearchBody(): Promise<ComponentDoc> {
-  const [docked, appBar] = await Promise.all([
+  const [docked, fullScreen, appBar] = await Promise.all([
     readExampleSource('search/search-docked.tsx'),
+    readExampleSource('search/search-full-screen.tsx'),
     readExampleSource('search/search-app-bar.tsx'),
   ]);
-  const [dockedHtml, appBarHtml] = await Promise.all([
+  const [dockedHtml, fullScreenHtml, appBarHtml] = await Promise.all([
     highlightSource(docked),
+    highlightSource(fullScreen),
     highlightSource(appBar),
   ]);
 
@@ -31,6 +34,14 @@ export async function SearchBody(): Promise<ComponentDoc> {
             fileName="search-docked.tsx"
           >
             <SearchDocked />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Full-screen search"
+            code={fullScreen}
+            html={fullScreenHtml}
+            fileName="search-full-screen.tsx"
+          >
+            <SearchFullScreen />
           </ExampleViewer>
           <ExampleViewer
             title="App bar with search"

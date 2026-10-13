@@ -3,6 +3,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { SplitButtonBasic } from '../../examples/split-button/split-button-basic';
 import { SplitButtonIcon } from '../../examples/split-button/split-button-icon';
 import { SplitButtonVariants } from '../../examples/split-button/split-button-variants';
+import { SplitButtonSizes } from '../../examples/split-button/split-button-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -19,6 +20,9 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
     highlightSource(variants),
     highlightSource(icon),
   ]);
+
+  const [sizesSrc] = await Promise.all([readExampleSource('split-button/split-button-sizes.tsx')]);
+  const [sizesSrcHtml] = await Promise.all([highlightSource(sizesSrc)]);
 
   return {
     overview: (
@@ -50,6 +54,14 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
             fileName="split-button-icon.tsx"
           >
             <SplitButtonIcon />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Sizes"
+            code={sizesSrc}
+            html={sizesSrcHtml}
+            fileName="split-button-sizes.tsx"
+          >
+            <SplitButtonSizes />
           </ExampleViewer>
         </section>
       </>

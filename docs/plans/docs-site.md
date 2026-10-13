@@ -71,10 +71,13 @@ apps/site
       customisation/
       accessibility/
       nextjs/
-      components/[slug]/     One page per component (statically generated)
-  content/                   MDX for guides and component pages
+      from-compose/          Compose Material 3 composables and parameters → components and props
+      spec-status/           Every component's M3 Expressive spec status
+      components/[slug]/     One page per component (statically generated), tabs: Overview, API,
+                             Accessibility, Guidelines
+  content/                   Guides and component pages; components/catalog.ts and spec-data/
   examples/                  One file per live example
-  scripts/generate-props.ts  TSDoc → props JSON per component
+  scripts/generate-props.ts  TSDoc → props JSON per component, and hook docs (scripts/hook-docs.ts)
 ```
 
 Every piece of the layout is a library component (see "Only our components"): navigation rail / flexible navigation bar, top app bar, search bar for the page index, lists, cards, tabs for example source, and a theme / mode / contrast / motion / direction switcher.
@@ -111,10 +114,14 @@ Every piece of the layout is a library component (see "Only our components"): na
 6. **Next.js**
    - App Router and Pages Router setup, `"use client"` boundaries, server-safe utilities.
    - `@windmorph/react/next` helpers.
-7. **Components** (about 40 pages), each with:
+7. **From Compose:** Compose Material 3 composables and their key parameters mapped to components and props, generated from the spec data, plus the conventions that carry over (`Modifier` → `className`, `onClick` → `onPress`, …).
+8. **Spec status:** every component's status from the spec data, linked to its API tab.
+9. **Components** (about 60 pages), each with:
    - What it is for, and when to use something else.
-   - Live examples of its variants, sizes and states.
-   - The generated props table (and `classNames` slots).
+   - A playground with a control for every public prop (tested; the few that can't have one are allowlisted with a reason).
+   - Live examples of its variants, sizes and states: one for every variant and configuration in the M3 spec, mapped in its spec data (tested).
+   - The generated props table for every exported part (and `classNames` slots), and its hooks as functions (tested against the core's exports).
+   - A spec status: what it covers of the M3 Expressive spec, its deliberate differences and its extensions, from its spec data.
    - Keyboard and screen-reader behaviour.
    - Where it differs from Compose, condensed from `docs/architecture.md` §9.
    - Pages: Button, IconButton, ButtonGroup, SplitButton, Fab / ExtendedFab, FabMenu, Card, Chips, TextField, Checkbox, RadioGroup, Switch, Slider / RangeSlider, Dialog, Menu, Tooltip, Snackbar, BottomSheet / SideSheet, NavigationRail, NavigationBar, Tabs, TopAppBar, SearchBar / SearchAppBar, Toolbars, List, Carousel, Badge, Divider, Progress indicators, LoadingIndicator, DatePicker / DateRangePicker, TimePicker, PickerDialog, plus the primitives (`@windmorph/react/primitives`) on one page.

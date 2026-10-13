@@ -4,6 +4,7 @@ import { TagShortForms } from '../../examples/tag/tag-short-forms';
 import { TagStatuses } from '../../examples/tag/tag-statuses';
 import { TagTokens } from '../../examples/tag/tag-tokens';
 import { TagVariants } from '../../examples/tag/tag-variants';
+import { TagSizes } from '../../examples/tag/tag-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -23,6 +24,8 @@ export async function TagBody(): Promise<ComponentDoc> {
     highlightSource(tokens),
   ]);
 
+  const sizesShapes = await readExampleSource('tag/tag-sizes.tsx');
+  const sizesShapesHtml = await highlightSource(sizesShapes);
   return {
     overview: (
       <>
@@ -45,6 +48,14 @@ export async function TagBody(): Promise<ComponentDoc> {
             fileName="tag-variants.tsx"
           >
             <TagVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Sizes and shapes"
+            code={sizesShapes}
+            html={sizesShapesHtml}
+            fileName="tag-sizes.tsx"
+          >
+            <TagSizes />
           </ExampleViewer>
           <ExampleViewer
             title="Short forms and long labels"

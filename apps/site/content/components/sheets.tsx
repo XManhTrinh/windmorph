@@ -4,6 +4,7 @@ import { SheetBottom } from '../../examples/sheets/sheet-bottom';
 import { SheetBottomStandard } from '../../examples/sheets/sheet-bottom-standard';
 import { SheetSide } from '../../examples/sheets/sheet-side';
 import { SheetStandard } from '../../examples/sheets/sheet-standard';
+import { SheetSideLevels } from '../../examples/sheets/sheet-side-levels';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -22,6 +23,9 @@ export async function SheetsBody(): Promise<ComponentDoc> {
     highlightSource(side),
     highlightSource(standard),
   ]);
+
+  const sideLevels = await readExampleSource('sheets/sheet-side-levels.tsx');
+  const sideLevelsHtml = await highlightSource(sideLevels);
 
   return {
     overview: (
@@ -53,6 +57,14 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             fileName="sheet-side.tsx"
           >
             <SheetSide />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Side sheet with levels"
+            code={sideLevels}
+            html={sideLevelsHtml}
+            fileName="sheet-side-levels.tsx"
+          >
+            <SheetSideLevels />
           </ExampleViewer>
           <ExampleViewer
             title="Standard side sheet"

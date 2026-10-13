@@ -17,7 +17,7 @@ export function PinInputGroups() {
         size="small"
         type="alphanumeric"
         groups={[4, 4]}
-        defaultValue="VK20"
+        defaultValue="SAVE"
         otp={false}
       />
       <PinInput

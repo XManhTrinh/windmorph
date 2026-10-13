@@ -2,17 +2,23 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { PickerDialogDate } from '../../examples/picker-dialog/picker-dialog-date';
 import { PickerDialogTime } from '../../examples/picker-dialog/picker-dialog-time';
+import { PickerDialogFullScreen } from '../../examples/picker-dialog/picker-dialog-full-screen';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Picker dialog page body. */
 export async function PickerDialogBody(): Promise<ComponentDoc> {
-  const [date, time] = await Promise.all([
+  const [date, time, fullScreen] = await Promise.all([
     readExampleSource('picker-dialog/picker-dialog-date.tsx'),
     readExampleSource('picker-dialog/picker-dialog-time.tsx'),
+    readExampleSource('picker-dialog/picker-dialog-full-screen.tsx'),
   ]);
-  const [dateHtml, timeHtml] = await Promise.all([highlightSource(date), highlightSource(time)]);
+  const [dateHtml, timeHtml, fullScreenHtml] = await Promise.all([
+    highlightSource(date),
+    highlightSource(time),
+    highlightSource(fullScreen),
+  ]);
 
   return {
     overview: (
@@ -36,6 +42,14 @@ export async function PickerDialogBody(): Promise<ComponentDoc> {
             fileName="picker-dialog-time.tsx"
           >
             <PickerDialogTime />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Full screen"
+            code={fullScreen}
+            html={fullScreenHtml}
+            fileName="picker-dialog-full-screen.tsx"
+          >
+            <PickerDialogFullScreen />
           </ExampleViewer>
         </section>
       </>

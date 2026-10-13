@@ -14,7 +14,7 @@ export function PhoneFieldFlags() {
   return (
     <PhoneField
       label="Phone"
-      defaultCountry="VN"
+      defaultCountry="DE"
       priorityCountries={['FR', 'GB', 'US', 'CA']}
       renderFlag={(country) => <span aria-hidden="true">{emojiFlag(country)}</span>}
     />

@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * One data-driven smoke suite covering EVERY page of the static export: the home page, the six
+ * One data-driven smoke suite covering EVERY page of the static export: the home page, the
  * guide pages, the component gallery, all component slugs under `/components/<slug>` and their
  * tabs under `/components/<slug>/<tab>`.
  *
@@ -26,7 +26,7 @@ const componentsOut = join(outDir, 'components');
 /** Matches the port in `playwright.config.ts`; only used if the baseURL fixture is unset. */
 const DEFAULT_BASE_URL = 'http://localhost:4317';
 
-/** The six fixed guide routes (from `app/(docs)/sections.tsx`), plus home and the gallery. */
+/** The fixed guide routes (from `app/(docs)/sections.tsx`), plus home and the gallery. */
 const GUIDE_ROUTES = [
   '/getting-started',
   '/theming',
@@ -34,6 +34,8 @@ const GUIDE_ROUTES = [
   '/customisation',
   '/accessibility',
   '/nextjs',
+  '/from-compose',
+  '/spec-status',
 ] as const;
 
 /** Enumerate component slugs from the export output (the real `generateStaticParams` result). */

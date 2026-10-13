@@ -3,6 +3,9 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { DateFieldExample } from '../../examples/date-picker/date-field';
 import { DatePickerBasic } from '../../examples/date-picker/date-picker-basic';
 import { DateRangeExample } from '../../examples/date-picker/date-range';
+import { DateInput } from '../../examples/date-picker/date-input';
+import { DateRangeModal } from '../../examples/date-picker/date-range-modal';
+import { DatePickerModal } from '../../examples/date-picker/date-picker-modal';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -11,16 +14,23 @@ const c = 'text-on-surface';
 
 /** Date picker page body. */
 export async function DatePickerBody(): Promise<ComponentDoc> {
-  const [basic, range, docked] = await Promise.all([
+  const [basic, range, docked, datePickerModal, dateRangeModal, dateInput] = await Promise.all([
     readExampleSource('date-picker/date-picker-basic.tsx'),
     readExampleSource('date-picker/date-range.tsx'),
     readExampleSource('date-picker/date-field.tsx'),
+    readExampleSource('date-picker/date-picker-modal.tsx'),
+    readExampleSource('date-picker/date-range-modal.tsx'),
+    readExampleSource('date-picker/date-input.tsx'),
   ]);
-  const [basicHtml, rangeHtml, dockedHtml] = await Promise.all([
-    highlightSource(basic),
-    highlightSource(range),
-    highlightSource(docked),
-  ]);
+  const [basicHtml, rangeHtml, dockedHtml, datePickerModalHtml, dateRangeModalHtml, dateInputHtml] =
+    await Promise.all([
+      highlightSource(basic),
+      highlightSource(range),
+      highlightSource(docked),
+      highlightSource(datePickerModal),
+      highlightSource(dateRangeModal),
+      highlightSource(dateInput),
+    ]);
 
   return {
     overview: (
@@ -39,6 +49,14 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
             <DateFieldExample />
           </ExampleViewer>
           <ExampleViewer
+            title="Modal date picker"
+            code={datePickerModal}
+            html={datePickerModalHtml}
+            fileName="date-picker-modal.tsx"
+          >
+            <DatePickerModal />
+          </ExampleViewer>
+          <ExampleViewer
             title="Date picker"
             code={basic}
             html={basicHtml}
@@ -55,6 +73,22 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
             tabbed
           >
             <DateRangeExample />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Modal date range picker"
+            code={dateRangeModal}
+            html={dateRangeModalHtml}
+            fileName="date-range-modal.tsx"
+          >
+            <DateRangeModal />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Modal date input"
+            code={dateInput}
+            html={dateInputHtml}
+            fileName="date-input.tsx"
+          >
+            <DateInput />
           </ExampleViewer>
         </section>
       </>

@@ -3,6 +3,7 @@ import { reactionSummaryTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { ReactionSummaryVariants } from '../../examples/reaction-summary/reaction-summary-variants';
+import { ReactionSummarySizes } from '../../examples/reaction-summary/reaction-summary-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -11,6 +12,11 @@ import { InlineCode } from '../../components/inline-code';
 export async function ReactionSummaryBody(): Promise<ComponentDoc> {
   const source = await readExampleSource('reaction-summary/reaction-summary-variants.tsx');
   const html = await highlightSource(source);
+
+  const [sizesSrc] = await Promise.all([
+    readExampleSource('reaction-summary/reaction-summary-sizes.tsx'),
+  ]);
+  const [sizesSrcHtml] = await Promise.all([highlightSource(sizesSrc)]);
 
   return {
     overview: (
@@ -26,6 +32,14 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
             fileName="reaction-summary-variants.tsx"
           >
             <ReactionSummaryVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Sizes and icon count"
+            code={sizesSrc}
+            html={sizesSrcHtml}
+            fileName="reaction-summary-sizes.tsx"
+          >
+            <ReactionSummarySizes />
           </ExampleViewer>
         </section>
       </>

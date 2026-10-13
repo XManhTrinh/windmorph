@@ -2,19 +2,22 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { SnackbarHostDemo } from '../../examples/snackbar/snackbar-host';
 import { SnackbarLayouts } from '../../examples/snackbar/snackbar-layouts';
+import { SnackbarTwoLines } from '../../examples/snackbar/snackbar-two-lines';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Snackbar page body. */
 export async function SnackbarBody(): Promise<ComponentDoc> {
-  const [layouts, host] = await Promise.all([
+  const [layouts, host, snackbarTwoLines] = await Promise.all([
     readExampleSource('snackbar/snackbar-layouts.tsx'),
     readExampleSource('snackbar/snackbar-host.tsx'),
+    readExampleSource('snackbar/snackbar-two-lines.tsx'),
   ]);
-  const [layoutsHtml, hostHtml] = await Promise.all([
+  const [layoutsHtml, hostHtml, snackbarTwoLinesHtml] = await Promise.all([
     highlightSource(layouts),
     highlightSource(host),
+    highlightSource(snackbarTwoLines),
   ]);
 
   return {
@@ -31,6 +34,14 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
             fileName="snackbar-layouts.tsx"
           >
             <SnackbarLayouts />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Two lines"
+            code={snackbarTwoLines}
+            html={snackbarTwoLinesHtml}
+            fileName="snackbar-two-lines.tsx"
+          >
+            <SnackbarTwoLines />
           </ExampleViewer>
           <ExampleViewer
             title="Host and queue"

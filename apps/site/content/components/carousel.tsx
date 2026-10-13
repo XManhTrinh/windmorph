@@ -4,6 +4,7 @@ import { CarouselActions } from '../../examples/carousel/carousel-actions';
 import { CarouselLayouts } from '../../examples/carousel/carousel-layouts';
 import { CarouselMultiBrowse } from '../../examples/carousel/carousel-multibrowse';
 import { CarouselVariants } from '../../examples/carousel/carousel-variants';
+import { CarouselHero } from '../../examples/carousel/carousel-hero';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -23,6 +24,9 @@ export async function CarouselBody(): Promise<ComponentDoc> {
     highlightSource(actions),
   ]);
 
+  const hero = await readExampleSource('carousel/carousel-hero.tsx');
+  const heroHtml = await highlightSource(hero);
+
   return {
     overview: (
       <>
@@ -37,6 +41,9 @@ export async function CarouselBody(): Promise<ComponentDoc> {
             fileName="carousel-multibrowse.tsx"
           >
             <CarouselMultiBrowse />
+          </ExampleViewer>
+          <ExampleViewer title="Hero" code={hero} html={heroHtml} fileName="carousel-hero.tsx">
+            <CarouselHero />
           </ExampleViewer>
           <ExampleViewer
             title="Uncontained and hero"

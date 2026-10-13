@@ -4,6 +4,8 @@ import { DialogAlert } from '../../examples/dialog/dialog-alert';
 import { DialogBasic } from '../../examples/dialog/dialog-basic';
 import { DialogFullScreen } from '../../examples/dialog/dialog-full-screen';
 import { DialogScrollable } from '../../examples/dialog/dialog-scrollable';
+import { DialogIcon } from '../../examples/dialog/dialog-icon';
+import { DialogPlacement } from '../../examples/dialog/dialog-placement';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -22,6 +24,12 @@ export async function DialogBody(): Promise<ComponentDoc> {
     highlightSource(scrollable),
     highlightSource(fullScreen),
   ]);
+
+  const iconDialog = await readExampleSource('dialog/dialog-icon.tsx');
+  const iconDialogHtml = await highlightSource(iconDialog);
+
+  const placement = await readExampleSource('dialog/dialog-placement.tsx');
+  const placementHtml = await highlightSource(placement);
 
   return {
     overview: (
@@ -47,12 +55,28 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <DialogAlert />
           </ExampleViewer>
           <ExampleViewer
+            title="With an icon"
+            code={iconDialog}
+            html={iconDialogHtml}
+            fileName="dialog-icon.tsx"
+          >
+            <DialogIcon />
+          </ExampleViewer>
+          <ExampleViewer
             title="Scrollable content"
             code={scrollable}
             html={scrollableHtml}
             fileName="dialog-scrollable.tsx"
           >
             <DialogScrollable />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Placement"
+            code={placement}
+            html={placementHtml}
+            fileName="dialog-placement.tsx"
+          >
+            <DialogPlacement />
           </ExampleViewer>
           <ExampleViewer
             title="Full screen on compact windows"

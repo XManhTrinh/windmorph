@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { DOCS_SECTIONS } from '../../app/(docs)/sections';
 import { axeViolations } from '../../test/axe';
 import { RAIL_DESTINATIONS } from './docs-rail';
 import { GroupTrigger, RailFlyout } from './rail-flyout';
@@ -118,7 +119,7 @@ describe('RailFlyout', () => {
 });
 
 describe('Guides destination', () => {
-  it('lists the six guides and marks the current one', () => {
+  it('lists every guide and marks the current one', () => {
     render(
       <RailFlyout
         id="fly-guides"
@@ -132,7 +133,7 @@ describe('Guides destination', () => {
       />,
     );
     const nav = screen.getByRole('navigation', { name: 'Guides' });
-    expect(nav.querySelectorAll('a')).toHaveLength(6);
+    expect(nav.querySelectorAll('a')).toHaveLength(DOCS_SECTIONS.length);
     expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('Theming');
   });
 });

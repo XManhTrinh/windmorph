@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { ExpandableTextCollapsible } from '../../examples/expandable-text/expandable-text-collapsible';
 import { ExpandableTextPost } from '../../examples/expandable-text/expandable-text-post';
+import { ExpandableTextControlled } from '../../examples/expandable-text/expandable-text-controlled';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -17,6 +18,8 @@ export async function ExpandableTextBody(): Promise<ComponentDoc> {
     highlightSource(collapsible),
   ]);
 
+  const controlled = await readExampleSource('expandable-text/expandable-text-controlled.tsx');
+  const controlledHtml = await highlightSource(controlled);
   return {
     overview: (
       <>
@@ -39,6 +42,14 @@ export async function ExpandableTextBody(): Promise<ComponentDoc> {
             fileName="expandable-text-collapsible.tsx"
           >
             <ExpandableTextCollapsible />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Controlled: expand all"
+            code={controlled}
+            html={controlledHtml}
+            fileName="expandable-text-controlled.tsx"
+          >
+            <ExpandableTextControlled />
           </ExampleViewer>
         </section>
       </>

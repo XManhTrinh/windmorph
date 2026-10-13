@@ -3,21 +3,24 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { EmptyStateNoPosts } from '../../examples/empty-state/empty-state-no-posts';
 import { EmptyStateRetry } from '../../examples/empty-state/empty-state-retry';
 import { EmptyStateSearch } from '../../examples/empty-state/empty-state-search';
+import { EmptyStateVariants } from '../../examples/empty-state/empty-state-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /** Empty state page body: when to use it, examples, accessibility and theming. */
 export async function EmptyStateBody(): Promise<ComponentDoc> {
-  const [noPosts, retry, search] = await Promise.all([
+  const [noPosts, retry, search, emptyStateVariants] = await Promise.all([
     readExampleSource('empty-state/empty-state-no-posts.tsx'),
     readExampleSource('empty-state/empty-state-retry.tsx'),
     readExampleSource('empty-state/empty-state-search.tsx'),
+    readExampleSource('empty-state/empty-state-variants.tsx'),
   ]);
-  const [noPostsHtml, retryHtml, searchHtml] = await Promise.all([
+  const [noPostsHtml, retryHtml, searchHtml, emptyStateVariantsHtml] = await Promise.all([
     highlightSource(noPosts),
     highlightSource(retry),
     highlightSource(search),
+    highlightSource(emptyStateVariants),
   ]);
 
   return {
@@ -50,6 +53,14 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
             fileName="empty-state-search.tsx"
           >
             <EmptyStateSearch />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Variants and sizes"
+            code={emptyStateVariants}
+            html={emptyStateVariantsHtml}
+            fileName="empty-state-variants.tsx"
+          >
+            <EmptyStateVariants />
           </ExampleViewer>
         </section>
       </>

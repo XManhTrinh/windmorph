@@ -3,6 +3,7 @@ import { mediaGridTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { MediaGridViewer } from '../../examples/media-grid/media-grid-viewer';
+import { MediaGridColumns } from '../../examples/media-grid/media-grid-columns';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -12,6 +13,8 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
   const source = await readExampleSource('media-grid/media-grid-viewer.tsx');
   const html = await highlightSource(source);
 
+  const columns = await readExampleSource('media-grid/media-grid-columns.tsx');
+  const columnsHtml = await highlightSource(columns);
   return {
     overview: (
       <>
@@ -26,6 +29,14 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
             fileName="media-grid-viewer.tsx"
           >
             <MediaGridViewer />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Every photo, in four columns"
+            code={columns}
+            html={columnsHtml}
+            fileName="media-grid-columns.tsx"
+          >
+            <MediaGridColumns />
           </ExampleViewer>
         </section>
       </>

@@ -3,6 +3,8 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { ButtonGroupConnected } from '../../examples/button-group/button-group-connected';
 import { ButtonGroupMultiple } from '../../examples/button-group/button-group-multiple';
 import { ButtonGroupStandard } from '../../examples/button-group/button-group-standard';
+import { ButtonGroupSizes } from '../../examples/button-group/button-group-sizes';
+import { ButtonGroupPressBump } from '../../examples/button-group/button-group-press-bump';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -18,6 +20,15 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
     highlightSource(standard),
     highlightSource(connected),
     highlightSource(multiple),
+  ]);
+
+  const [sizesSrc, pressBumpSrc] = await Promise.all([
+    readExampleSource('button-group/button-group-sizes.tsx'),
+    readExampleSource('button-group/button-group-press-bump.tsx'),
+  ]);
+  const [sizesSrcHtml, pressBumpSrcHtml] = await Promise.all([
+    highlightSource(sizesSrc),
+    highlightSource(pressBumpSrc),
   ]);
 
   return {
@@ -50,6 +61,22 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
             fileName="button-group-multiple.tsx"
           >
             <ButtonGroupMultiple />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Sizes and shapes"
+            code={sizesSrc}
+            html={sizesSrcHtml}
+            fileName="button-group-sizes.tsx"
+          >
+            <ButtonGroupSizes />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Connected, with a press bump"
+            code={pressBumpSrc}
+            html={pressBumpSrcHtml}
+            fileName="button-group-press-bump.tsx"
+          >
+            <ButtonGroupPressBump />
           </ExampleViewer>
         </section>
       </>

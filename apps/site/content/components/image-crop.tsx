@@ -6,17 +6,16 @@ import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-const EXAMPLES = [
-  { file: 'image-crop-avatar.tsx', title: 'A profile photo', Example: ImageCropAvatar },
-  { file: 'image-crop-inline.tsx', title: 'Inline, in a 4:5 frame', Example: ImageCropInline },
-];
-
 /** Image crop page body: purpose, examples, the server's part, accessibility and theming. */
 export async function ImageCropBody(): Promise<ComponentDoc> {
-  const sources = await Promise.all(
-    EXAMPLES.map((example) => readExampleSource(`image-crop/${example.file}`)),
-  );
-  const highlighted = await Promise.all(sources.map((source) => highlightSource(source)));
+  const [avatar, inline] = await Promise.all([
+    readExampleSource('image-crop/image-crop-avatar.tsx'),
+    readExampleSource('image-crop/image-crop-inline.tsx'),
+  ]);
+  const [avatarHtml, inlineHtml] = await Promise.all([
+    highlightSource(avatar),
+    highlightSource(inline),
+  ]);
 
   return {
     overview: (
@@ -25,17 +24,22 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
           <h2 id="examples" className="text-headline-small text-on-surface">
             Examples
           </h2>
-          {EXAMPLES.map(({ file, title, Example }, index) => (
-            <ExampleViewer
-              key={file}
-              title={title}
-              code={sources[index]!}
-              html={highlighted[index]!}
-              fileName={file}
-            >
-              <Example />
-            </ExampleViewer>
-          ))}
+          <ExampleViewer
+            title="A profile photo"
+            code={avatar}
+            html={avatarHtml}
+            fileName="image-crop-avatar.tsx"
+          >
+            <ImageCropAvatar />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Inline, in a 4:5 frame"
+            code={inline}
+            html={inlineHtml}
+            fileName="image-crop-inline.tsx"
+          >
+            <ImageCropInline />
+          </ExampleViewer>
         </section>
       </>
     ),

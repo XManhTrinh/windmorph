@@ -3,6 +3,7 @@ import { commentRowTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
 import { CommentRowThread } from '../../examples/comment-row/comment-row-thread';
+import { CommentRowStates } from '../../examples/comment-row/comment-row-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -12,6 +13,8 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
   const source = await readExampleSource('comment-row/comment-row-thread.tsx');
   const html = await highlightSource(source);
 
+  const states = await readExampleSource('comment-row/comment-row-states.tsx');
+  const statesHtml = await highlightSource(states);
   return {
     overview: (
       <>
@@ -26,6 +29,14 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
             fileName="comment-row-thread.tsx"
           >
             <CommentRowThread />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A photo below, and a removed comment"
+            code={states}
+            html={statesHtml}
+            fileName="comment-row-states.tsx"
+          >
+            <CommentRowStates />
           </ExampleViewer>
         </section>
       </>
@@ -88,7 +99,7 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>as</InlineCode> renders the root as an <InlineCode>article</InlineCode>{' '}
               (name it with <InlineCode>aria-label</InlineCode>, such as &quot;Comment by
-              Ada&quot;), an <InlineCode>li</InlineCode> in a list, or a{' '}
+              Alex&quot;), an <InlineCode>li</InlineCode> in a list, or a{' '}
               <InlineCode>div</InlineCode>.
             </li>
             <li>
