@@ -147,6 +147,10 @@ export async function PickerDialogBody(): Promise<ComponentDoc> {
               picker&apos;s month list fills the height.
             </li>
             <li>
+              In a window too short for the whole dialog, or with large text, the picker scrolls
+              between the title and the actions, which stay in view.
+            </li>
+            <li>
               <InlineCode>children</InlineCode> may be a function of{' '}
               <InlineCode>{'{ close }'}</InlineCode>, so a confirm action can apply its value and
               close in one place.

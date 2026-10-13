@@ -38,6 +38,22 @@ describe('picker styles', () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
 
+  it('scrolls the picker above actions that stay in view in a short window', () => {
+    for (const variant of ['date', 'time'] as const) {
+      const styles = pickerDialogStyles({ variant });
+      // The panel stops at the window's height without scrolling itself…
+      expect(styles.panel().split(' ')).toEqual(
+        expect.arrayContaining(['max-h-full', 'overflow-hidden']),
+      );
+      expect(styles.panel()).not.toMatch(/overflow-y-auto/);
+      // …the content shrinks and scrolls, and the actions keep their height.
+      expect(styles.content().split(' ')).toEqual(
+        expect.arrayContaining(['min-h-0', 'overflow-y-auto']),
+      );
+      expect(styles.actions().split(' ')).toContain('shrink-0');
+    }
+  });
+
   it('time picker classes are literal and compile', async () => {
     const classes = collectClasses(
       [12, 24].flatMap((hourCycle) =>

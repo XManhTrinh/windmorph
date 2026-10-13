@@ -150,6 +150,41 @@ export const DateDialog: Story = {
   },
 };
 
+/** The modal date range picker, full screen only on compact windows. */
+export const DateRangeDialog: Story = {
+  render: function DateRangeDialogStory() {
+    const [open, setOpen] = useState(false);
+    const [draft, setDraft] = useState<DateRangeValue | null>({
+      start: new CalendarDate(2030, 3, 10),
+      end: new CalendarDate(2030, 3, 13),
+    });
+    return (
+      <>
+        <Button onPress={() => setOpen(true)}>Pick dates</Button>
+        <PickerDialog
+          aria-label="Select dates"
+          open={open}
+          onOpenChange={setOpen}
+          onConfirm={() => setOpen(false)}
+          fullScreen="compact"
+          dismissButton={
+            <Button variant="text" onPress={() => setOpen(false)}>
+              Cancel
+            </Button>
+          }
+          confirmButton={
+            <Button variant="text" onPress={() => setOpen(false)}>
+              OK
+            </Button>
+          }
+        >
+          <DateRangePicker value={draft} onChange={setDraft} yearRange={[2020, 2040]} />
+        </PickerDialog>
+      </>
+    );
+  },
+};
+
 /** The full-screen range picker, as on compact windows: close and Save at the top. */
 export const DateRangeFullScreen: Story = {
   render: function FullScreenStory() {

@@ -10,6 +10,9 @@ import { tv } from '../../utils/tv';
  * full-screen dialog, as `Dialog` does: the panel fills the window on `surface-container-high`
  * (the date picker's container role) with no corners or elevation, and a 56px top row holds
  * the `on-surface` close (x) icon button and the Save text button in place of the actions.
+ * In a window too short for the whole dialog (a short window, or text at 200%), the panel
+ * stops at the window's height and the picker scrolls inside it, above the actions, which
+ * stay in view; the picker keeps its own size and never shrinks under them (2026-10-13).
  * Every class is written out in full.
  */
 
@@ -17,14 +20,16 @@ import { tv } from '../../utils/tv';
 export const pickerDialogStyles = tv({
   slots: {
     panel: [
-      'group/picker-dialog flex max-h-full max-w-full flex-col overflow-y-auto rounded-corner-extra-large',
+      'group/picker-dialog flex max-h-full max-w-full flex-col overflow-hidden rounded-corner-extra-large',
       'bg-surface-container-high text-on-surface shadow-elevation-3 outline-none',
     ],
     header: 'flex h-[56px] shrink-0 items-center justify-between ps-[4px] pe-[12px]',
     close: '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
-    title: 'pb-[20px] text-label-medium text-on-surface-variant',
-    content: 'flex min-h-0 flex-col',
-    actions: 'flex items-center justify-between gap-[8px]',
+    title: 'shrink-0 pb-[20px] text-label-medium text-on-surface-variant',
+    // The picker scrolls here, between the title and the actions, when the window is too
+    // short for it; the actions stay in view below it.
+    content: 'flex min-h-0 flex-col overflow-y-auto overscroll-contain',
+    actions: 'flex shrink-0 items-center justify-between gap-[8px]',
     buttons: 'ms-auto flex items-center gap-[8px]',
   },
   variants: {

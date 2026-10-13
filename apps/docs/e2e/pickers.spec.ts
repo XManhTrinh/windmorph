@@ -511,3 +511,70 @@ test.describe('Pickers layout safety', () => {
     interactive: false,
   });
 });
+
+test.describe('Picker dialogs in short windows (2026-10-13)', () => {
+  /**
+   * The dialog's content (the picker's scroll area) and actions row, measured after the
+   * content is scrolled to its end: how far the picker reaches over the actions where it
+   * isn't clipped, whether the content scrolls, and where the actions and panel sit.
+   */
+  const layout = (dialog: Locator) =>
+    dialog.getByRole('button', { name: 'OK' }).evaluate((ok) => {
+      const actions = ok.closest('[class*="justify-between"]')!;
+      const content = actions.previousElementSibling as HTMLElement;
+      const picker = content.firstElementChild!;
+      const style = getComputedStyle(content);
+      const scrollable = style.overflowY === 'auto' || style.overflowY === 'scroll';
+      content.scrollTop = content.scrollHeight;
+      const actionsBox = actions.getBoundingClientRect();
+      const panel = actions.parentElement!.getBoundingClientRect();
+      // What shows of the picker: clipped to the content when it scrolls.
+      const shownBottom = scrollable
+        ? Math.min(picker.getBoundingClientRect().bottom, content.getBoundingClientRect().bottom)
+        : picker.getBoundingClientRect().bottom;
+      // Scrolled to its end, the whole picker (its last row of days, or the range picker's
+      // month list) sits above the actions.
+      const pickerBottom = picker.getBoundingClientRect().bottom;
+      return {
+        scrolls: scrollable && content.scrollHeight > content.clientHeight,
+        overlap: Math.max(0, Math.round(shownBottom - actionsBox.top)),
+        pickerAboveActions: pickerBottom <= actionsBox.top + 0.5,
+        actionsInPanel: actionsBox.bottom <= panel.bottom + 0.5,
+        panelInWindow: panel.top >= 0 && panel.bottom <= window.innerHeight + 0.5,
+      };
+    });
+
+  const cases = [
+    { name: '720px window at a 32px root', width: 1280, height: 720, root: 32 },
+    { name: '480px window at the default root', width: 1024, height: 480, root: 16 },
+  ];
+  const pickers = [
+    { story: 'components-pickers--date-dialog', open: 'Pick a date', title: 'Select date' },
+    { story: 'components-pickers--date-range-dialog', open: 'Pick dates', title: 'Select dates' },
+  ];
+
+  for (const { name, width, height, root } of cases) {
+    for (const { story, open, title } of pickers) {
+      test(`${title}: the calendar scrolls above the actions · ${name}`, async ({ page }) => {
+        await page.setViewportSize({ width, height });
+        await openStory(page, story);
+        await page.addStyleTag({ content: `html { font-size: ${root}px; }` });
+        await page.getByRole('button', { name: open }).click();
+        const dialog = page.getByRole('dialog', { name: title });
+        await expect(dialog).toBeVisible();
+        await settle(page);
+        expect(await layout(dialog)).toEqual({
+          scrolls: true,
+          overlap: 0,
+          pickerAboveActions: true,
+          actionsInPanel: true,
+          panelInWindow: true,
+        });
+        await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeInViewport();
+        await expect(dialog.getByRole('button', { name: 'OK' })).toBeInViewport();
+        await dialog.getByRole('button', { name: 'OK' }).click();
+        await expect(dialog).toBeHidden();
+      });
+    }
+  }
+});
