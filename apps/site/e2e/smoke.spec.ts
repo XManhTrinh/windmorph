@@ -75,6 +75,8 @@ const TAB_ROUTES = enumerateTabRoutes();
 interface Variant {
   dir?: 'rtl';
   dark?: boolean;
+  /** Open the search with a query before the scan: docked (1280px) or full screen (390px). */
+  search?: 'docked' | 'full-screen';
 }
 
 /**
@@ -119,6 +121,12 @@ async function assertPageHealthy(
     ]);
   }
 
+  if (variant.search) {
+    await page.setViewportSize(
+      variant.search === 'docked' ? { width: 1280, height: 900 } : { width: 390, height: 844 },
+    );
+  }
+
   await page.goto(url);
 
   await expect(page.locator('main')).toBeVisible();
@@ -129,6 +137,22 @@ async function assertPageHealthy(
   }
   if (variant.dark) {
     await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
+  }
+
+  if (variant.search) {
+    // The bar answers the shortcut once hydrated, when it advertises it.
+    await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveAttribute(
+      'aria-keyshortcuts',
+      /K/,
+    );
+    await page.keyboard.press('ControlOrMeta+K');
+    const view = page.getByRole('dialog', { name: 'Search documentation' });
+    await view.getByRole('searchbox').fill('button');
+    await expect(view.getByRole('grid').first()).toBeVisible();
+    // No sideways scrolling, even on a 390px phone.
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      page.viewportSize()!.width,
+    );
   }
 
   // Anything that still animates under reduced motion finishes before the scan. Looping
@@ -181,6 +205,27 @@ for (const url of TAB_ROUTES) {
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dir: 'rtl' });
       });
     }
+  });
+}
+
+// The search view, open with results, in each layout, mode and direction.
+for (const search of ['docked', 'full-screen'] as const) {
+  test.describe(`search (${search})`, () => {
+    test('is healthy (LTR / default mode)', async ({ page, baseURL }) => {
+      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, '/getting-started', { search });
+    });
+    test('is healthy in dark mode', async ({ page, baseURL }) => {
+      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, '/getting-started', {
+        search,
+        dark: true,
+      });
+    });
+    test('is healthy in RTL', async ({ page, baseURL }) => {
+      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, '/getting-started', {
+        search,
+        dir: 'rtl',
+      });
+    });
   });
 }
 

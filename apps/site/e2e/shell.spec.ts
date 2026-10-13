@@ -44,7 +44,7 @@ test.describe('Docs shell', () => {
     await page.getByRole('combobox', { name: 'Search documentation' }).click();
     const input = page.getByRole('dialog').getByRole('searchbox');
     await input.fill('zzzz');
-    await expect(page.getByText('No pages match “zzzz”.')).toBeVisible();
+    await expect(page.getByText('No results for “zzzz”')).toBeVisible();
     await input.fill('theming');
     await input.press('Enter');
     await expect(page).toHaveURL(/\/theming$/);
@@ -75,7 +75,7 @@ test.describe('Docs shell', () => {
     await page.getByRole('combobox', { name: 'Search documentation' }).click();
     const dialog = page.getByRole('dialog', { name: 'Search documentation' });
     await dialog.getByRole('searchbox').fill('slider keyboard');
-    await dialog.getByRole('row', { name: /^Slider: Accessibility/ }).click();
+    await dialog.getByRole('row', { name: /^Slider, Accessibility/ }).click();
     await expect(page).toHaveURL(/\/components\/slider\/accessibility$/);
     await expect(page.getByRole('tab', { name: 'Accessibility' })).toHaveAttribute(
       'aria-selected',
