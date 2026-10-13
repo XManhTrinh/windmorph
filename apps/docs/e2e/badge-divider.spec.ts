@@ -51,6 +51,9 @@ test.describe('Badge', () => {
     await expect(badges.getByText('99+', { exact: true })).toBeVisible();
     const longer = await rect(badges.getByText('Longer').locator('..'));
     expect(longer.width).toBe(34);
+    // Four characters, "+" included, always show in full.
+    const capped = badges.getByText('999+', { exact: true }).first();
+    expect(await capped.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     await expect(page.getByTestId('small')).toContainText('New notification');
     await expect(page.getByRole('button', { name: 'Messages, 12 unread' })).toBeVisible();
   });

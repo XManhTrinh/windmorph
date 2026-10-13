@@ -31,10 +31,15 @@ describe('Badge', () => {
     expect(badge.firstElementChild).not.toHaveAttribute('aria-hidden');
   });
 
-  it('stops text badges at 34px, truncating', () => {
+  it('stops text longer than four characters at 34px, truncating', () => {
     render(<Badge data-testid="badge">Longer</Badge>);
     expect(screen.getByTestId('badge')).toHaveClass('max-w-[34px]');
     expect(screen.getByTestId('badge').firstElementChild).toHaveClass('truncate');
+  });
+
+  it('never cuts a label of four characters or fewer, "+" included', () => {
+    render(<Badge data-testid="badge">999+</Badge>);
+    expect(screen.getByTestId('badge')).not.toHaveClass('max-w-[34px]');
   });
 
   it('caps counts at max with a "+" and formats them for the locale', () => {

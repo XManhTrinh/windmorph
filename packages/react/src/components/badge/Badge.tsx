@@ -56,7 +56,9 @@ export function Badge({
 }: BadgeProps) {
   const format = useNumberFormatter();
   const size = children == null || children === false ? 'small' : 'large';
-  const styles = badgeStyles({ size, count: typeof children === 'number' });
+  // M3's limit is four characters, "+" included; only longer text is cut.
+  const overflow = typeof children === 'string' && [...children].length > 4;
+  const styles = badgeStyles({ size, overflow });
   const content =
     typeof children === 'number'
       ? children > max

@@ -98,7 +98,7 @@ export const Badges: Story = {
         <Tab key="drafts" title="Drafts" icon={<EditIcon />} badge={<Badge />} />
       </Tabs>
       <Tabs aria-label="Updates" variant="secondary" align="start">
-        <Tab key="new" title="New" badge={<Badge>999+</Badge>} />
+        <Tab key="new" title="New" badge={<Badge>{1000}</Badge>} />
         <Tab key="older" title="Older updates" />
       </Tabs>
       <Tabs aria-label="Folders" iconPlacement="start">
