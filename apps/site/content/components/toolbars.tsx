@@ -1,6 +1,7 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { ToolbarDocked } from '../../examples/toolbars/toolbar-docked';
+import { ToolbarDockedOverflow } from '../../examples/toolbars/toolbar-docked-overflow';
 import { ToolbarFabScroll } from '../../examples/toolbars/toolbar-fab-scroll';
 import { ToolbarFloating } from '../../examples/toolbars/toolbar-floating';
 import { ToolbarOverflow } from '../../examples/toolbars/toolbar-overflow';
@@ -12,23 +13,33 @@ import { InlineCode } from '../../components/inline-code';
 
 /** Toolbars page body: docked, floating, overflow, scroll expansion and scroll exit. */
 export async function ToolbarsBody(): Promise<ComponentDoc> {
-  const [docked, floating, vertical, overflow, fabScroll, scrollExit] = await Promise.all([
-    readExampleSource('toolbars/toolbar-docked.tsx'),
-    readExampleSource('toolbars/toolbar-floating.tsx'),
-    readExampleSource('toolbars/toolbar-vertical.tsx'),
-    readExampleSource('toolbars/toolbar-overflow.tsx'),
-    readExampleSource('toolbars/toolbar-fab-scroll.tsx'),
-    readExampleSource('toolbars/toolbar-scroll-exit.tsx'),
-  ]);
-  const [dockedHtml, floatingHtml, verticalHtml, overflowHtml, fabScrollHtml, scrollExitHtml] =
+  const [docked, dockedOverflow, floating, vertical, overflow, fabScroll, scrollExit] =
     await Promise.all([
-      highlightSource(docked),
-      highlightSource(floating),
-      highlightSource(vertical),
-      highlightSource(overflow),
-      highlightSource(fabScroll),
-      highlightSource(scrollExit),
+      readExampleSource('toolbars/toolbar-docked.tsx'),
+      readExampleSource('toolbars/toolbar-docked-overflow.tsx'),
+      readExampleSource('toolbars/toolbar-floating.tsx'),
+      readExampleSource('toolbars/toolbar-vertical.tsx'),
+      readExampleSource('toolbars/toolbar-overflow.tsx'),
+      readExampleSource('toolbars/toolbar-fab-scroll.tsx'),
+      readExampleSource('toolbars/toolbar-scroll-exit.tsx'),
     ]);
+  const [
+    dockedHtml,
+    dockedOverflowHtml,
+    floatingHtml,
+    verticalHtml,
+    overflowHtml,
+    fabScrollHtml,
+    scrollExitHtml,
+  ] = await Promise.all([
+    highlightSource(docked),
+    highlightSource(dockedOverflow),
+    highlightSource(floating),
+    highlightSource(vertical),
+    highlightSource(overflow),
+    highlightSource(fabScroll),
+    highlightSource(scrollExit),
+  ]);
 
   return {
     overview: (
@@ -44,6 +55,14 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
             fileName="toolbar-docked.tsx"
           >
             <ToolbarDocked />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Docked, with an overflow menu"
+            code={dockedOverflow}
+            html={dockedOverflowHtml}
+            fileName="toolbar-docked-overflow.tsx"
+          >
+            <ToolbarDockedOverflow />
           </ExampleViewer>
           <ExampleViewer
             title="Floating toolbar"
@@ -97,20 +116,26 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             Toolbars gather a set of related actions. A <InlineCode>DockedToolbar</InlineCode> is a
             full-width 64px bar, usually along the bottom of the window (it replaces the bottom app
-            bar), with its items centred 32px apart or, in compact windows, spread out. A{' '}
+            bar). Its items sit centred 32px apart by default; for the spec&apos;s alternative,
+            centred 8px apart, add <InlineCode>className=&quot;gap-2&quot;</InlineCode>. In compact
+            windows, spread them evenly with{' '}
+            <InlineCode>arrangement=&quot;space-between&quot;</InlineCode>. A{' '}
             <InlineCode>FloatingToolbar</InlineCode> is a pill that floats above the content,
             horizontal (16px from the window&apos;s edge) or vertical (24px), in{' '}
             <InlineCode>standard</InlineCode> or <InlineCode>vibrant</InlineCode> colours. It is
             elevated by default; set <InlineCode>elevated={'{false}'}</InlineCode> over visually
-            distinct content. Avoid square icon buttons in it (a development warning flags them).
+            distinct content. Avoid square icon buttons in it, and wide ones in a vertical toolbar
+            (development warnings flag both).
           </p>
           <p className="text-body-large text-on-surface-variant">
             Icon buttons take the toolbar&apos;s colours: standard buttons are{' '}
             <InlineCode>on-surface-variant</InlineCode> in a standard toolbar and{' '}
             <InlineCode>on-primary-container</InlineCode> in a vibrant one, where a selected tonal
             toggle turns <InlineCode>surface-container</InlineCode> /{' '}
-            <InlineCode>on-surface</InlineCode>. When the actions don&apos;t fit, put the rest in an
-            overflow menu in the trailing slot.
+            <InlineCode>on-surface</InlineCode>. When the actions don&apos;t fit, as in compact
+            windows, put the rest in an overflow menu: a <InlineCode>MenuTrigger</InlineCode> with
+            an icon button at the end of a docked toolbar, or in a floating toolbar&apos;s trailing
+            slot.
           </p>
           <p className="text-body-large text-on-surface-variant">
             A floating toolbar&apos;s <InlineCode>leading</InlineCode> and{' '}
@@ -121,7 +146,9 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
             <InlineCode>expanded</InlineCode> from a scroll container. Either toolbar can instead
             leave the screen on scroll: <InlineCode>useToolbarScrollExit</InlineCode> drives its{' '}
             <InlineCode>visible</InlineCode> prop (and <InlineCode>exitEdge</InlineCode> picks the
-            floating toolbar&apos;s edge). Use one behaviour or the other, never both.
+            floating toolbar&apos;s edge). Use one behaviour or the other, never both: a development
+            warning flags a floating toolbar that is collapsed and hidden at once. Pair a floating
+            toolbar with a FAB, not an extended FAB (also flagged in development).
           </p>
         </section>
       </>
@@ -138,6 +165,13 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
               <InlineCode>role=&quot;toolbar&quot;</InlineCode>, a required name (
               <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>), and
               arrow keys between the controls, following the DOM direction.
+            </li>
+            <li>
+              Tab and Shift+Tab move through every control in order, then out of the toolbar; the
+              arrow keys also move between controls (↑ / ↓ in a vertical toolbar, flipped in RTL).
+              This follows the M3 spec (&quot;Tab or Arrows: Navigate between interactive
+              elements&quot;) rather than the WAI-ARIA toolbar pattern, where the whole toolbar is a
+              single tab stop.
             </li>
             <li>
               The controls are ordinary buttons, so each icon button still needs its own{' '}

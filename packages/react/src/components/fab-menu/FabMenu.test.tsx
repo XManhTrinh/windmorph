@@ -59,6 +59,11 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
     expect(toggle()).toHaveAttribute('data-open', 'true');
     expect(toggle()).toHaveClass('data-open:size-[56px]', 'data-open:bg-primary');
+    // Size and corners on fast spatial; colours on fast effects, which never overshoot.
+    expect(toggle()).toHaveClass(
+      '[--m3-transition-property:width,height,border-radius,background-color,color]',
+      '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
+    );
     expect(screen.getByTestId('close')).toBeInTheDocument();
     // The FAB transforms into the close button: both icons share one cell and hand over
     // halfway through the morph (a visibility switch delayed by half the spring).
@@ -360,6 +365,28 @@ describe('FabMenu', () => {
     expect(await axeViolations(document.body)).toEqual([]);
     await userEvent.click(screen.getByRole('menuitem', { name: 'Reply' }));
     expect(onReply).toHaveBeenCalledOnce();
+  });
+
+  it('shows its label in a tooltip while closed, not while open, unless turned off', async () => {
+    vi.useRealTimers();
+    const { rerender } = render(<Menu />);
+    fireEvent.pointerMove(document.body);
+    await userEvent.hover(toggle());
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Create');
+    // Opening turns the FAB into the close button: no tooltip.
+    await userEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    expect(toggle()).not.toHaveAttribute('aria-describedby');
+    await userEvent.unhover(toggle());
+    await userEvent.hover(toggle());
+    expect(toggle()).not.toHaveAttribute('aria-describedby');
+    await userEvent.unhover(toggle());
+
+    rerender(<Menu tooltip={false} />);
+    await userEvent.click(toggle());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.hover(toggle());
+    expect(toggle()).not.toHaveAttribute('aria-describedby');
   });
 
   it('requires FabMenuItem to be inside a FabMenu', () => {

@@ -3,6 +3,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { FabMenuBasic } from '../../examples/fab-menu/fab-menu-basic';
 import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
 import { FabMenuRotate } from '../../examples/fab-menu/fab-menu-rotate';
+import { FabMenuTooltip } from '../../examples/fab-menu/fab-menu-tooltip';
 import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -10,17 +11,19 @@ import { InlineCode } from '../../components/inline-code';
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody(): Promise<ComponentDoc> {
-  const [basic, colors, web, rotate] = await Promise.all([
+  const [basic, colors, web, rotate, tooltip] = await Promise.all([
     readExampleSource('fab-menu/fab-menu-basic.tsx'),
     readExampleSource('fab-menu/fab-menu-colors.tsx'),
     readExampleSource('fab-menu/fab-menu-web.tsx'),
     readExampleSource('fab-menu/fab-menu-rotate.tsx'),
+    readExampleSource('fab-menu/fab-menu-tooltip.tsx'),
   ]);
-  const [basicHtml, colorsHtml, webHtml, rotateHtml] = await Promise.all([
+  const [basicHtml, colorsHtml, webHtml, rotateHtml, tooltipHtml] = await Promise.all([
     highlightSource(basic),
     highlightSource(colors),
     highlightSource(web),
     highlightSource(rotate),
+    highlightSource(tooltip),
   ]);
 
   return {
@@ -62,6 +65,14 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
           >
             <FabMenuRotate />
           </ExampleViewer>
+          <ExampleViewer
+            title="Tooltip"
+            code={tooltip}
+            html={tooltipHtml}
+            fileName="fab-menu-tooltip.tsx"
+          >
+            <FabMenuTooltip />
+          </ExampleViewer>
         </section>
       </>
     ),
@@ -88,11 +99,13 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             short windows they scroll behind the close button, which stays reachable.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            On the web and in large windows, M3 has the FAB open a standard menu instead: set{' '}
-            <InlineCode>presentation=&quot;menu&quot;</InlineCode>, and choose it per window size
-            class if you like. Items run <InlineCode>onAction</InlineCode> (or follow{' '}
-            <InlineCode>href</InlineCode>) in either presentation. <InlineCode>visible</InlineCode>{' '}
-            and <InlineCode>appear</InlineCode> work as on <InlineCode>Fab</InlineCode>.
+            On the web, M3 has the FAB open a standard menu: use{' '}
+            <InlineCode>presentation=&quot;menu&quot;</InlineCode> on large screens (the expanded
+            window class, 840px and up), and keep the default <InlineCode>list</InlineCode> in
+            compact and medium windows, choosing it per window size class. Items run{' '}
+            <InlineCode>onAction</InlineCode> (or follow <InlineCode>href</InlineCode>) in either
+            presentation. <InlineCode>visible</InlineCode> and <InlineCode>appear</InlineCode> work
+            as on <InlineCode>Fab</InlineCode>.
           </p>
         </section>
       </>
@@ -108,6 +121,11 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
               The button&apos;s name (<InlineCode>aria-label</InlineCode> or{' '}
               <InlineCode>aria-labelledby</InlineCode>) is required; it reports{' '}
               <InlineCode>aria-expanded</InlineCode> and <InlineCode>aria-controls</InlineCode>.
+              While closed, its <InlineCode>aria-label</InlineCode> shows in a tooltip on hover and
+              keyboard focus, as M3 asks of FABs on the web; open, it is the close button and has
+              none. It steps aside when you wrap the menu in your own{' '}
+              <InlineCode>TooltipTrigger</InlineCode>; <InlineCode>tooltip={'{false}'}</InlineCode>{' '}
+              turns it off.
             </li>
             <li>
               DOM order is the button then the items (shown above it), so Tab moves from the button
@@ -140,8 +158,9 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             <li>
               The toggle button keeps its FAB&apos;s layout box (56 / 80 / 96px) in a library-owned
               anchor; open, it becomes the 56px close button with 28px corners and a 20px icon.
-              Size, corners, container colour (<InlineCode>*-container</InlineCode> → the vibrant
-              role) and icon all follow one fast spatial spring. Elevation is level 3.
+              Size, corners and icon follow the fast spatial spring; the colours move from the{' '}
+              <InlineCode>*-container</InlineCode> role to the vibrant role on the fast effects
+              spring, so they never overshoot. Elevation is level 3.
             </li>
             <li>
               Items are 56px pills (min 56px wide, 24px padding, 8px icon gap, 24px icon,{' '}

@@ -1,14 +1,16 @@
 'use client';
 
-import type { ReactElement, ReactNode } from 'react';
+import { useContext, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
   type ButtonBaseLinkProps,
   type ButtonBaseProps,
 } from '../../primitives/ButtonBase';
+import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { FabTooltip } from './FabTooltip';
 import {
   extendedFabStyles,
   fabStyles,
@@ -144,6 +146,12 @@ interface ExtendedFabOwnProps extends FabCommonProps {
    * (e.g. while the page scrolls). @default true
    */
   expanded?: boolean;
+  /**
+   * While collapsed, shows the label (or `aria-label`) in a plain tooltip on hover and
+   * keyboard focus, as M3 asks of icon-only FABs on the web. Expanded, the label is visible
+   * and there is no tooltip. It steps aside inside your own `TooltipTrigger`. @default true
+   */
+  tooltip?: boolean;
   classNames?: ExtendedFabClassNames;
 }
 
@@ -155,7 +163,7 @@ export type ExtendedFabProps = ExtendedFabOwnProps &
 /**
  * M3 Expressive extended FAB: small (56px), medium (80px) and large (96px), with an icon
  * and a label that collapses and expands with `expanded`. Its visible label names it, so
- * it has no tooltip (M3).
+ * it has a tooltip only while collapsed to the icon (M3's FAB rule).
  *
  * @example
  * <ExtendedFab icon={<EditIcon />} expanded={!isScrolling} onPress={compose}>Compose</ExtendedFab>
@@ -168,6 +176,7 @@ export function ExtendedFab({
   appear = false,
   icon,
   expanded = true,
+  tooltip = true,
   classNames,
   className,
   children,
@@ -178,6 +187,17 @@ export function ExtendedFab({
       '[@windmorph/react] An ExtendedFab without an icon cannot collapse; it stays expanded.',
     );
   }
+  // Once per FAB, not on every render.
+  const inFloatingToolbar = useContext(ToolbarContext)?.kind === 'floating';
+  const warnedToolbar = useRef(false);
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && inFloatingToolbar && !warnedToolbar.current) {
+      warnedToolbar.current = true;
+      console.warn(
+        '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
+      );
+    }
+  }, [inFloatingToolbar]);
   const collapsed = !expanded && Boolean(icon);
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });
   const baseProps = {
@@ -185,7 +205,7 @@ export function ExtendedFab({
     ...visibilityProps(visible, appear),
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
-  return (
+  const fab = (
     <ButtonBase {...baseProps} data-expanded={!collapsed}>
       <span className={styles.content({ class: classNames?.content })}>
         {icon && (
@@ -200,5 +220,11 @@ export function ExtendedFab({
         </span>
       </span>
     </ButtonBase>
+  );
+  if (!tooltip || !icon) return fab;
+  return (
+    <FabTooltip available={collapsed} label={base['aria-label'] ?? children}>
+      {fab}
+    </FabTooltip>
   );
 }

@@ -12,6 +12,8 @@ export interface ToolbarContextValue {
    * is. Docked toolbars leave it out.
    */
   expanded?: boolean;
+  /** A floating toolbar's orientation; docked toolbars are always horizontal. */
+  orientation?: 'horizontal' | 'vertical';
 }
 
 /**

@@ -18,10 +18,11 @@ const colors = {
 } as const;
 
 const elevation = {
-  // FabPrimaryContainerTokens: level 3, hover 4.
-  default: { root: 'shadow-elevation-3 data-hovered:shadow-elevation-4' },
-  // loweredElevation(): level 1, hover 2.
-  lowered: { root: 'shadow-elevation-1 data-hovered:shadow-elevation-2' },
+  // FabPrimaryContainerTokens: level 3, hover 4, pressed 3 (the hover level never applies
+  // while pressed, even with the pointer still over the FAB).
+  default: { root: 'shadow-elevation-3 data-hovered:not-data-pressed:shadow-elevation-4' },
+  // loweredElevation(): level 1, hover 2, pressed 1.
+  lowered: { root: 'shadow-elevation-1 data-hovered:not-data-pressed:shadow-elevation-2' },
   // Nested in another component, such as the navigation rail: level 0 in every state.
   flat: { root: 'shadow-elevation-0' },
 } as const;

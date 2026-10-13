@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { FloatingToolbar } from '../toolbar/Toolbar';
 import { ExtendedFab, Fab } from './Fab';
 
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
@@ -17,7 +18,8 @@ describe('Fab', () => {
       'bg-primary-container',
       'text-on-primary-container',
       'shadow-elevation-3',
-      'data-hovered:shadow-elevation-4',
+      // Pressed is level 3 again: the hover level never applies while pressed.
+      'data-hovered:not-data-pressed:shadow-elevation-4',
       'state-layer',
       'focus-ring',
     );
@@ -56,7 +58,7 @@ describe('Fab', () => {
     );
     expect(screen.getByRole('button', { name: 'Lowered' })).toHaveClass(
       'shadow-elevation-1',
-      'data-hovered:shadow-elevation-2',
+      'data-hovered:not-data-pressed:shadow-elevation-2',
     );
     for (const name of ['Flat', 'Compose']) {
       const fab = screen.getByRole('button', { name });
@@ -141,8 +143,40 @@ describe('ExtendedFab', () => {
     );
     expect(fab).toHaveAttribute('data-expanded', 'true');
     expect(screen.getByText('Compose')).toHaveClass('ps-[8px]');
-    // The extended FAB's label names it, so it has no tooltip (M3).
+  });
+
+  it('shows its label in a tooltip only while collapsed, unless turned off', async () => {
+    const { rerender } = render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
+    const fab = screen.getByRole('button', { name: 'Compose' });
+    fireEvent.pointerMove(document.body);
+    // Expanded, the label is visible, so there is no tooltip.
+    await userEvent.hover(fab);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    await userEvent.unhover(fab);
+
+    rerender(
+      <ExtendedFab icon={<Icon />} expanded={false}>
+        Compose
+      </ExtendedFab>,
+    );
+    // The same element: collapsing never remounts the FAB.
+    expect(screen.getByRole('button', { name: 'Compose' })).toBe(fab);
+    await userEvent.hover(fab);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
+    expect(fab).toHaveAttribute('aria-describedby');
+
+    // Expanding again closes it.
+    rerender(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
     expect(fab).not.toHaveAttribute('aria-describedby');
+    await userEvent.unhover(fab);
+
+    rerender(
+      <ExtendedFab icon={<Icon />} expanded={false} tooltip={false}>
+        Plain
+      </ExtendedFab>,
+    );
+    await userEvent.hover(screen.getByRole('button', { name: 'Plain' }));
+    expect(screen.queryAllByRole('tooltip').map((tip) => tip.textContent)).not.toContain('Plain');
   });
 
   it('hides like a FAB', () => {
@@ -208,6 +242,32 @@ describe('ExtendedFab', () => {
     );
     expect(screen.getByText('Compose')).toHaveClass('ps-0');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('cannot collapse'));
+    warn.mockRestore();
+  });
+
+  it('warns once when paired with a floating toolbar, and only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (label: string) => (
+      <FloatingToolbar
+        aria-label="Actions"
+        fab={<ExtendedFab icon={<Icon />}>{label}</ExtendedFab>}
+      >
+        <button type="button">Search</button>
+      </FloatingToolbar>
+    );
+    const { rerender, unmount } = render(toolbar('Compose'));
+    rerender(toolbar('Write'));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('not an extended FAB'));
+    unmount();
+
+    // Outside a toolbar, or in production, it stays silent.
+    warn.mockClear();
+    render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar('Compose'));
+    vi.unstubAllEnvs();
+    expect(warn).not.toHaveBeenCalled();
     warn.mockRestore();
   });
 

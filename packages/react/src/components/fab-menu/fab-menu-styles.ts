@@ -6,8 +6,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * - The toggle button keeps its FAB's layout box (56 / 80 / 96px) and, when open, shrinks to
  *   the 56px close button with full corners and a 20px icon, its container going from the
- *   `*-container` role to the vibrant role. Size, corners, colours and icon all follow one
- *   fast spatial spring, as Compose's single `checkedProgress` does. Elevation is level 3.
+ *   `*-container` role to the vibrant role. Size, corners and icon follow the fast spatial
+ *   spring, as Compose's `checkedProgress` does; the colours move on the fast effects spring,
+ *   which the motion spec asks for colour (no overshoot). Elevation is level 3.
  * - Items are 56px pills (min width 56px, 24px side padding, 8px icon gap, 24px icon,
  *   `title-medium`) at level 3 (the ListItemContainerElevation token), 4px apart, 8px
  *   above the button. Item width springs on fast spatial and opacity on fast effects.
@@ -61,8 +62,9 @@ export const fabMenuStyles = tv({
       // Open: the 56px close button, its corners half its size (a literal, so they interpolate).
       'data-open:size-[56px] data-open:rounded-[28px]',
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
-      '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-      '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+      // Size and corners on the fast spatial spring; colours on fast effects (no overshoot).
+      '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
       '[--m3-transition-delay:0s,0s,0s,0s,0s]',
     ],
     // The FAB "transforms into the close button" (M3): with `openIcon`, both icons share

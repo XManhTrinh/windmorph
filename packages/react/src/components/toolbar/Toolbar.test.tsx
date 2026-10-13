@@ -75,6 +75,43 @@ describe('DockedToolbar', () => {
     expect(screen.getByRole('button', { name: 'One' })).toHaveFocus();
   });
 
+  it('lets Tab and Shift+Tab move through every control, then out (M3)', async () => {
+    const { container } = render(
+      <>
+        <button type="button">Before</button>
+        <DockedToolbar aria-label="Actions">
+          {button('One')}
+          {button('Two')}
+          {button('Three')}
+        </DockedToolbar>
+        <button type="button">After</button>
+      </>,
+    );
+    const focused = () =>
+      document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent;
+    const order: (string | null | undefined)[] = [];
+    for (let i = 0; i < 5; i++) {
+      await userEvent.tab();
+      order.push(focused());
+    }
+    expect(order).toEqual(['Before', 'One', 'Two', 'Three', 'After']);
+    const back: (string | null | undefined)[] = [];
+    for (let i = 0; i < 4; i++) {
+      await userEvent.tab({ shift: true });
+      back.push(focused());
+    }
+    expect(back).toEqual(['Three', 'Two', 'One', 'Before']);
+    // Arrows still work, and re-entering after an arrow move starts at the first control.
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(focused()).toBe('Two');
+    await userEvent.click(screen.getByRole('button', { name: 'After' }));
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('Three');
+    expect(screen.getByRole('toolbar', { name: 'Actions' })).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('follows the DOM direction for arrow keys', async () => {
     render(
       <div dir="rtl" style={{ direction: 'rtl' }}>
@@ -175,6 +212,52 @@ describe('FloatingToolbar', () => {
     warn.mockRestore();
   });
 
+  it('warns once about wide icon buttons in a vertical toolbar, only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (orientation: 'horizontal' | 'vertical', label: string) => (
+      <FloatingToolbar aria-label="Tools" orientation={orientation}>
+        <IconButton width="wide" icon={<Icon />} aria-label={label} />
+      </FloatingToolbar>
+    );
+    const { unmount } = render(toolbar('horizontal', 'Pen'));
+    expect(warn).not.toHaveBeenCalled();
+    unmount();
+    const { rerender, unmount: unmountVertical } = render(toolbar('vertical', 'Pen'));
+    rerender(toolbar('vertical', 'Marker'));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('wide icon buttons'));
+    unmountVertical();
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar('vertical', 'Pen'));
+    vi.unstubAllEnvs();
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it('warns once when it both collapses and leaves the screen, only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (expanded: boolean, visible: boolean) => (
+      <FloatingToolbar aria-label="Tools" expanded={expanded} visible={visible}>
+        {button('Pen')}
+      </FloatingToolbar>
+    );
+    const { rerender, unmount } = render(toolbar(false, true));
+    rerender(toolbar(true, false));
+    expect(warn).not.toHaveBeenCalled();
+    // Scrolling back and forth with both set warns only the first time.
+    rerender(toolbar(false, false));
+    rerender(toolbar(true, true));
+    rerender(toolbar(false, false));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('both collapse and leave'));
+    unmount();
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar(false, false));
+    vi.unstubAllEnvs();
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
   it('slides off its exit edge when hidden', () => {
     render(
       <FloatingToolbar aria-label="Tools" visible={false} exitEdge="end" orientation="vertical">
@@ -258,6 +341,10 @@ describe('FloatingToolbar', () => {
     await userEvent.tab();
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
     expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    // Tab moves on to the next control, still inside, then out of the toolbar.
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus();
+    expect(toolbar).toHaveAttribute('data-expanded', 'true');
     await userEvent.tab();
     expect(toolbar).toHaveAttribute('data-expanded', 'false');
   });
@@ -278,6 +365,8 @@ describe('FloatingToolbar', () => {
       'rounded-corner-large',
       'bg-primary-container',
       'shadow-elevation-2',
+      // Hover 3, pressed 2: the hover level never applies while pressed.
+      'data-hovered:not-data-pressed:shadow-elevation-3',
     );
     expect(fab.parentElement).toHaveClass('size-[56px]', 'data-collapsed:size-[80px]');
     const surface = screen.getByRole('button', { name: 'Search' }).parentElement!.parentElement!;

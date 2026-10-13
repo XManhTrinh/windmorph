@@ -119,6 +119,14 @@ export function IconButton(props: IconButtonProps) {
       );
     }
   }, [squareInFloatingToolbar]);
+  const wideInVerticalToolbar = toolbar?.orientation === 'vertical' && width === 'wide';
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && wideInVerticalToolbar) {
+      console.warn(
+        '[@windmorph/react] Avoid wide icon buttons in a vertical toolbar (M3): use the default or narrow width.',
+      );
+    }
+  }, [wideInVerticalToolbar]);
   const styles = iconButtonStyles({
     variant: variantProp ?? context.iconButtonVariant ?? 'filled',
     size,

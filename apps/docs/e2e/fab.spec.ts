@@ -38,6 +38,48 @@ test.describe('FAB interaction', () => {
     await expect(fab).toHaveAttribute('aria-describedby', /.+/);
   });
 
+  for (const elevation of ['default', 'lowered'] as const) {
+    test(`pressing keeps the resting level, not the hover one · ${elevation}`, async ({ page }) => {
+      await openStory(page, 'components-fab--playground', {}, { elevation });
+      const fab = page.getByRole('button', { name: 'Compose' });
+      const shadow = () => fab.evaluate((el) => getComputedStyle(el).boxShadow);
+      const rest = await shadow();
+      await fab.hover();
+      await expect(fab).toHaveAttribute('data-hovered', 'true');
+      // Hover raises it a level (4, or 2 lowered)…
+      await expect.poll(shadow).not.toBe(rest);
+      // …and pressing with the pointer still over it drops back (3, or 1 lowered).
+      await page.mouse.down();
+      await expect(fab).toHaveAttribute('data-pressed', 'true');
+      await expect.poll(shadow).toBe(rest);
+      await page.mouse.up();
+    });
+  }
+
+  test('a collapsed extended FAB shows its label in a tooltip, an expanded one doesn’t', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-fab--extended-collapse');
+    const fab = page.getByTestId('extended-fab');
+    await page.mouse.move(5, 5);
+    await fab.hover();
+    await expect(fab).toHaveAttribute('data-hovered', 'true');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect(fab).toHaveAttribute('data-expanded', 'false');
+    await fab.hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Compose');
+    await expect(fab).toHaveAttribute('aria-describedby', /.+/);
+    // Keyboard focus shows it too.
+    await page.mouse.move(0, 0);
+    await expect(page.getByRole('tooltip')).toHaveCount(0, { timeout: 3000 });
+    await page.getByRole('button', { name: 'Expand' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(fab).toBeFocused();
+    await expect(page.getByRole('tooltip')).toHaveText('Compose');
+  });
+
   test('a flat FAB has no shadow at rest or on hover', async ({ page }) => {
     await openStory(page, 'components-fab--playground', {}, { elevation: 'flat' });
     const fab = page.getByRole('button', { name: 'Compose' });

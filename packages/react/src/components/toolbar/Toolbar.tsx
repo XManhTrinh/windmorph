@@ -2,6 +2,7 @@
 
 import {
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -9,6 +10,7 @@ import {
   type ComponentPropsWithRef,
   type CSSProperties,
   type FocusEvent,
+  type HTMLAttributes,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -66,7 +68,25 @@ function useToolbarRoot(
     [ref, directionRef],
   );
   const rootRef = useObjectRef<HTMLDivElement>(merged);
-  const { toolbarProps } = useToolbar(props, rootRef);
+  const { toolbarProps: aria } = useToolbar(props, rootRef);
+  const { onKeyDownCapture } = aria;
+  /*
+   * M3, not the WAI-ARIA single-tab-stop pattern (2026-10-13): "Tab or Arrows: Navigate
+   * between interactive elements". React Aria's arrows stay (orientation-aware, flipped in
+   * RTL), but Tab and Shift+Tab are left to the browser, so they move through every control
+   * in order and then out of the toolbar. Its focus restoring is dropped too, so Tab enters
+   * at the first control and Shift+Tab at the last.
+   */
+  const toolbarProps: HTMLAttributes<HTMLElement> = {
+    ...aria,
+    onFocusCapture: undefined,
+    onBlurCapture: undefined,
+    onKeyDownCapture:
+      onKeyDownCapture &&
+      ((event) => {
+        if (event.key !== 'Tab') onKeyDownCapture(event);
+      }),
+  };
   return { rootRef, toolbarProps };
 }
 
@@ -94,7 +114,8 @@ export type DockedToolbarProps = DockedToolbarOwnProps & Naming & DivProps<Docke
 
 /**
  * M3 Expressive docked toolbar: a full-width 64px bar of actions, usually along the bottom
- * of the window (it replaces the bottom app bar). Arrow keys move between its controls.
+ * of the window (it replaces the bottom app bar). Tab and the arrow keys move between its
+ * controls (M3).
  *
  * @example
  * <DockedToolbar aria-label="Message actions" className="fixed inset-x-0 bottom-0">
@@ -219,7 +240,8 @@ export type FloatingToolbarProps = FloatingToolbarOwnProps &
  * M3 Expressive floating toolbar: a pill of controls that floats above the content,
  * horizontal or vertical, in standard or vibrant colours. Leading and trailing content
  * collapse with `expanded`; or pair it with a FAB, and collapsing hides the toolbar while
- * the FAB grows. Arrow keys move between its controls.
+ * the FAB grows. Tab and the arrow keys move between its
+ * controls (M3).
  *
  * @example
  * <FloatingToolbar aria-label="Formatting" expanded={expanded} className="fixed bottom-4 start-1/2"
@@ -285,9 +307,24 @@ function FloatingToolbarRoot({
   });
   const [contentRef, toolbarSize] = useContentSize(hasFab, orientation);
   const context = useMemo(
-    () => ({ kind: 'floating', color, expanded }) as const,
-    [color, expanded],
+    () => ({ kind: 'floating', color, expanded, orientation }) as const,
+    [color, expanded, orientation],
   );
+  // Once per toolbar, however often it collapses and leaves while scrolling.
+  const collapsesAndExits = !visible && !expandedProp;
+  const warnedCollapseAndExit = useRef(false);
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      collapsesAndExits &&
+      !warnedCollapseAndExit.current
+    ) {
+      warnedCollapseAndExit.current = true;
+      console.warn(
+        "[@windmorph/react] A FloatingToolbar shouldn't both collapse and leave the screen (M3): use `expanded` or `visible`, not both.",
+      );
+    }
+  }, [collapsesAndExits]);
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (

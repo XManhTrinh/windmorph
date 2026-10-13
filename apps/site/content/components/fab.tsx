@@ -3,6 +3,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { FabColors } from '../../examples/fab/fab-colors';
 import { FabExtended } from '../../examples/fab/fab-extended';
 import { FabExtendedCollapse } from '../../examples/fab/fab-extended-collapse';
+import { FabExtendedTooltip } from '../../examples/fab/fab-extended-tooltip';
 import { FabVisibility } from '../../examples/fab/fab-visibility';
 import { FabColorStyles } from '../../examples/fab/fab-color-styles';
 import { FabElevation } from '../../examples/fab/fab-elevation';
@@ -25,13 +26,15 @@ export async function FabBody(): Promise<ComponentDoc> {
     highlightSource(visibility),
   ]);
 
-  const [colorStylesSrc, elevationSrc] = await Promise.all([
+  const [colorStylesSrc, elevationSrc, tooltipSrc] = await Promise.all([
     readExampleSource('fab/fab-color-styles.tsx'),
     readExampleSource('fab/fab-elevation.tsx'),
+    readExampleSource('fab/fab-extended-tooltip.tsx'),
   ]);
-  const [colorStylesSrcHtml, elevationSrcHtml] = await Promise.all([
+  const [colorStylesSrcHtml, elevationSrcHtml, tooltipSrcHtml] = await Promise.all([
     highlightSource(colorStylesSrc),
     highlightSource(elevationSrc),
+    highlightSource(tooltipSrc),
   ]);
 
   return {
@@ -82,6 +85,14 @@ export async function FabBody(): Promise<ComponentDoc> {
             <FabExtendedCollapse />
           </ExampleViewer>
           <ExampleViewer
+            title="Tooltip while collapsed"
+            code={tooltipSrc}
+            html={tooltipSrcHtml}
+            fileName="fab-extended-tooltip.tsx"
+          >
+            <FabExtendedTooltip />
+          </ExampleViewer>
+          <ExampleViewer
             title="Disappear and reappear"
             code={visibility}
             html={visibilityHtml}
@@ -107,6 +118,13 @@ export async function FabBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             FABs have no disabled state in M3 — if an action is unavailable, hide the FAB or keep it
             enabled and handle the empty case.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            M3 recommends the medium FAB (<InlineCode>size=&quot;medium&quot;</InlineCode>, 80px)
+            for most layouts. The default size stays the 56px FAB, as in Compose, so set{' '}
+            <InlineCode>medium</InlineCode> unless the screen is dense. Don&apos;t put an extended
+            FAB beside a floating toolbar; pair the toolbar with a FAB (a development warning flags
+            an extended one).
           </p>
           <p className="text-body-large text-on-surface-variant">
             In compact and medium windows, place the FAB at the bottom trailing corner with 16px
@@ -135,8 +153,10 @@ export async function FabBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>ExtendedFab</InlineCode> is named by its label; a text-only extended FAB
-              needs no extra name. The label stays in the accessible name while collapsed. It needs
-              no tooltip.
+              needs no extra name. The label stays in the accessible name while collapsed. Expanded,
+              it needs no tooltip; collapsed to the icon, it shows its label in a tooltip on hover
+              and keyboard focus, like a FAB (<InlineCode>tooltip={'{false}'}</InlineCode> turns it
+              off).
             </li>
             <li>
               A hidden FAB (<InlineCode>visible={'{false}'}</InlineCode>) is{' '}
@@ -169,7 +189,7 @@ export async function FabBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>elevation</InlineCode> is <InlineCode>default</InlineCode> (level 3, hover
-              4), <InlineCode>lowered</InlineCode> (level 1, hover 2) or{' '}
+              4, pressed 3), <InlineCode>lowered</InlineCode> (level 1, hover 2, pressed 1) or{' '}
               <InlineCode>flat</InlineCode> (level 0, for a FAB nested in another component such as
               the navigation rail). There is no press morph and no disabled state — the types
               enforce the latter.

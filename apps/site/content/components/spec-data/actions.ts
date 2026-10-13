@@ -363,7 +363,7 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
     extensions: [
       {
         item: 'Lowered elevation',
-        note: '`elevation="lowered"` (level 1, hover 2) is Compose’s lowered elevation; the spec shows level 3, and level 0 when nested.',
+        note: '`elevation="lowered"` (level 1, hover 2, pressed 1) is Compose’s lowered elevation; the spec shows level 3, and level 0 when nested.',
       },
       { item: 'Links', note: '`href` renders the FAB as an `<a>`.' },
     ],
