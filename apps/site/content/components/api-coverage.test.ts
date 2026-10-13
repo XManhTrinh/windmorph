@@ -40,6 +40,8 @@ const NOT_COMPONENTS: Record<string, string> = {
     'A React context for building on top: the button group and the toolbars provide it.',
   ToggleGroupStateContext:
     "A React context for building on top: a button group's selection state, read by its buttons.",
+  TooltipPlacementContext:
+    'A React context for building on top: the app bars provide it, so plain tooltips inside open below.',
   SnackbarHostState:
     "A class, not a component: its members are listed under `useSnackbarHostState`'s return value.",
 };
