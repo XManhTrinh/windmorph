@@ -73,7 +73,7 @@ export const sliderStyles = tv({
     handle: [
       '[inline-size:4px] [block-size:100%] rounded-full bg-primary',
       'data-active:[inline-size:2px]',
-      'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--color-on-surface)_38%,var(--color-surface))]',
+      'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_38%,var(--md-sys-color-surface))]',
     ],
     // A zero-size box at the thumb that the value indicator hangs from.
     // It sits 12px before the row's block start (above, or left of a vertical slider).

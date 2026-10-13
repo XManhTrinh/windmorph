@@ -120,6 +120,20 @@ describe('Slider', () => {
     warn.mockRestore();
   });
 
+  it('ignores inset icons on xs and sm sliders, with a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    for (const size of ['xs', 'sm'] as const) {
+      const { unmount } = render(
+        <Slider aria-label="Volume" size={size} startIcon={<Icon />} endIcon={<Icon />} />,
+      );
+      expect(screen.queryByTestId('icon')).toBe(null);
+      unmount();
+    }
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn.mock.calls[0]![0]).toContain('size md, lg or xl');
+    warn.mockRestore();
+  });
+
   it('steps by an interval with Space and an arrow', async () => {
     const onChange = vi.fn();
     render(<Slider aria-label="Volume" defaultValue={50} onChange={onChange} />);

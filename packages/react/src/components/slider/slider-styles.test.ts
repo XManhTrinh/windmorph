@@ -27,4 +27,9 @@ describe('sliderStyles', () => {
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
+
+  it('reads colour roles from the theme scope, never the root-only Tailwind aliases', () => {
+    // `var(--color-*)` resolves once at :root, so a ThemeScope or dark mode would be ignored.
+    expect(classes.filter((c) => c.includes('var(--color-'))).toEqual([]);
+  });
 });

@@ -47,6 +47,35 @@ test.describe('Slider visual regression', () => {
 });
 
 test.describe('Slider geometry and interaction', () => {
+  test('a disabled handle takes its colours from a dark theme scope', async ({ page }) => {
+    await openStory(page, 'components-slider--variants', { mode: 'dark' });
+    const handle = page
+      .getByRole('group', { name: 'Disabled', exact: true })
+      .locator('[data-thumb] > span')
+      .first();
+    // on-surface 38% over surface, resolved inside the story's scope, not at the root.
+    const expected = await page.getByTestId('variants').evaluate((root) => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor =
+        'color-mix(in srgb, var(--md-sys-color-on-surface) 38%, var(--md-sys-color-surface))';
+      root.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    const atRoot = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor =
+        'color-mix(in srgb, var(--md-sys-color-on-surface) 38%, var(--md-sys-color-surface))';
+      document.body.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    expect(expected).not.toBe(atRoot);
+    expect(await handle.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(expected);
+  });
+
   test('track, gap and handle follow Compose', async ({ page }) => {
     await openStory(page, 'components-slider--playground', {}, { showValueLabel: false });
     const slider = page.getByTestId('slider');
