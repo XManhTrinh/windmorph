@@ -7,9 +7,10 @@ import { tv } from '../../utils/tv';
  * toggle at the start of the actions row).
  *
  * Full screen (the M3 date picker's recommendation on compact windows) follows the M3
- * full-screen dialog, as `Dialog` does: the panel fills the window on `surface` with no
- * corners or elevation, and a 64px top row holds the close (x) icon button and the Save
- * text button in place of the actions. Every class is written out in full.
+ * full-screen dialog, as `Dialog` does: the panel fills the window on `surface-container-high`
+ * (the date picker's container role) with no corners or elevation, and a 56px top row holds
+ * the `on-surface` close (x) icon button and the Save text button in place of the actions.
+ * Every class is written out in full.
  */
 
 /** Variant definitions for {@link PickerDialog}. */
@@ -19,7 +20,8 @@ export const pickerDialogStyles = tv({
       'group/picker-dialog flex max-h-full max-w-full flex-col overflow-y-auto rounded-corner-extra-large',
       'bg-surface-container-high text-on-surface shadow-elevation-3 outline-none',
     ],
-    header: 'flex h-[64px] shrink-0 items-center justify-between ps-[4px] pe-[12px]',
+    header: 'flex h-[56px] shrink-0 items-center justify-between ps-[4px] pe-[12px]',
+    close: '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
     title: 'pb-[20px] text-label-medium text-on-surface-variant',
     content: 'flex min-h-0 flex-col',
     actions: 'flex items-center justify-between gap-[8px]',
@@ -32,8 +34,7 @@ export const pickerDialogStyles = tv({
     },
     fullScreen: {
       true: {
-        panel:
-          'size-full max-h-none max-w-none overflow-hidden rounded-none bg-surface shadow-none',
+        panel: 'size-full max-h-none max-w-none overflow-hidden rounded-none shadow-none',
         content: 'flex-1 items-center',
         actions: 'hidden',
       },

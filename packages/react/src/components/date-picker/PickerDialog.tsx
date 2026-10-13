@@ -29,6 +29,8 @@ export interface PickerDialogClassNames {
   panel?: string;
   /** The full-screen top row with the close and Save buttons. */
   header?: string;
+  /** The full-screen close (x) icon button. */
+  close?: string;
   actions?: string;
 }
 
@@ -184,6 +186,7 @@ function PickerDialogModal({
                     icon={closeIcon ?? <CloseIcon />}
                     aria-label={strings.close ?? 'Close'}
                     onPress={state.close}
+                    className={styles.close({ class: classNames?.close })}
                   />
                   <div className={styles.buttons()}>
                     {modeToggleButton}

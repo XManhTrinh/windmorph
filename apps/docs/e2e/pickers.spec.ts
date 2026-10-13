@@ -14,6 +14,17 @@ const rect = (locator: Locator) =>
     };
   });
 
+/** A colour role resolved where `locator` is (inside its theme scope), as `rgb()`. */
+const roleColor = (locator: Locator, role: string) =>
+  locator.evaluate((el, name) => {
+    const probe = document.createElement('span');
+    probe.style.color = `var(--md-sys-color-${name})`;
+    el.append(probe);
+    const color = getComputedStyle(probe).color;
+    probe.remove();
+    return color;
+  }, role);
+
 const settle = (page: Page) =>
   page.evaluate(() =>
     Promise.allSettled(document.getAnimations().map((a) => a.finished)).then(() => undefined),
@@ -128,6 +139,16 @@ test.describe('Date picker', () => {
     const dialog = page.getByRole('dialog', { name: 'Select date' });
     await settle(page);
     expect(await rect(dialog)).toMatchObject({ x: 0, y: 0, width: 390, height: 780 });
+    // M3: the date picker's `surface-container-high` container and the full-screen dialog's
+    // 56px top row, with an `on-surface` close icon.
+    expect(await dialog.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
+      await roleColor(dialog, 'surface-container-high'),
+    );
+    const close = dialog.getByRole('button', { name: 'Close' });
+    expect((await rect(close.locator('xpath=..'))).height).toBe(56);
+    expect(await close.evaluate((el) => getComputedStyle(el).color)).toBe(
+      await roleColor(dialog, 'on-surface'),
+    );
     await dialog.getByRole('button', { name: /March 20, 2030/ }).click();
     await dialog.getByRole('button', { name: 'Save' }).click();
     await expect(dialog).toBeHidden();

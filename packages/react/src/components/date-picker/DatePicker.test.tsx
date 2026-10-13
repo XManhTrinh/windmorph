@@ -259,7 +259,13 @@ describe('PickerDialog', () => {
     );
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('data-full-screen', 'true');
-    expect(dialog).toHaveClass('size-full', 'rounded-none', 'bg-surface');
+    // M3: the date picker's container is `surface-container-high`, full screen too, under the
+    // full-screen dialog's 56px top row with an `on-surface` close icon.
+    expect(dialog).toHaveClass('size-full', 'rounded-none', 'bg-surface-container-high');
+    expect(dialog.querySelector('div')).toHaveClass('h-[56px]');
+    expect(within(dialog).getByRole('button', { name: 'Close' })).toHaveClass(
+      '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
+    );
     expect(within(dialog).queryByRole('button', { name: 'OK' })).toBe(null);
     expect(await axeViolations(baseElement)).toEqual([]);
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
