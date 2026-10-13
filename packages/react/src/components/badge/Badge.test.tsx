@@ -52,6 +52,17 @@ describe('Badge', () => {
     expect(screen.getByTestId('under')).toHaveTextContent('42');
   });
 
+  it('keeps a count left to right in right-to-left layouts', () => {
+    render(
+      <div dir="rtl">
+        <Badge data-testid="count">{1200}</Badge>
+        <Badge data-testid="text">جديد</Badge>
+      </div>,
+    );
+    expect(screen.getByTestId('count').firstElementChild).toHaveAttribute('dir', 'ltr');
+    expect(screen.getByTestId('text').firstElementChild).not.toHaveAttribute('dir');
+  });
+
   it('announces its label instead of the visible content', () => {
     render(
       <>

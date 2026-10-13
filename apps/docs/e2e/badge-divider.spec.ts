@@ -55,6 +55,22 @@ test.describe('Badge', () => {
     await expect(page.getByRole('button', { name: 'Messages, 12 unread' })).toBeVisible();
   });
 
+  test('a capped count reads "999+" in right-to-left layouts', async ({ page }) => {
+    await openStory(page, 'components-badge--badges', { dir: 'rtl' });
+    const label = page.getByTestId('badges').getByText('999+', { exact: true }).first();
+    const plus = await label.evaluate((el) => {
+      const range = document.createRange();
+      const text = el.firstChild!;
+      range.setStart(text, 3);
+      range.setEnd(text, 4);
+      const digits = document.createRange();
+      digits.setStart(text, 0);
+      digits.setEnd(text, 1);
+      return range.getBoundingClientRect().x > digits.getBoundingClientRect().x;
+    });
+    expect(plus).toBe(true);
+  });
+
   test.describe('layout safety', () => {
     layoutSafetySuite('components-badge--layout-override', {
       height: 24,

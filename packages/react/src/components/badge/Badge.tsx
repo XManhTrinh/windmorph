@@ -74,6 +74,8 @@ export function Badge({
       {size === 'large' && (
         <span
           aria-hidden={announcement != null || undefined}
+          // A count reads left to right in every layout, so "999+" never shows as "+999".
+          dir={typeof children === 'number' ? 'ltr' : undefined}
           className={styles.label({ class: classNames?.label })}
         >
           {content}
@@ -98,12 +100,15 @@ export interface BadgedBoxProps extends Omit<ComponentPropsWithRef<'span'>, 'chi
 }
 
 /**
- * Places a badge at the top end of its anchor (Compose's `BadgedBox`), e.g. on a
- * navigation icon. The badge's announcement is part of the text around it, so a
- * navigation item reads its icon's badge with its label.
+ * Places a badge at the top end of its anchor (Compose's `BadgedBox`), e.g. on an icon.
+ * The badge's announcement is part of the text around it; an anchor named with its own
+ * `aria-label` should say what the badge means.
  *
  * @example
- * <NavigationBarItem icon={<BadgedBox badge={<Badge>{3}</Badge>}><MailIcon /></BadgedBox>}>Mail</NavigationBarItem>
+ * <IconButton
+ *   aria-label="Messages, 3 unread"
+ *   icon={<BadgedBox badge={<Badge>{3}</Badge>}><MailIcon /></BadgedBox>}
+ * />
  */
 export function BadgedBox({ badge, children, classNames, className, ...rest }: BadgedBoxProps) {
   const badgeContent = badge.props.children;
