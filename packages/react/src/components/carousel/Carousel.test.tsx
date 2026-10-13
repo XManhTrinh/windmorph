@@ -1,12 +1,24 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Carousel } from './Carousel';
 
-afterEach(() => vi.restoreAllMocks());
+const reducedMotion = vi.hoisted(() => ({ value: false }));
+vi.mock('motion/react', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useReducedMotion: () => reducedMotion.value,
+}));
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  reducedMotion.value = false;
+});
 
 const slides = (n: number) =>
   Array.from({ length: n }, (_, i) => <div key={i} data-testid={`slide-${i}`}>{`Slide ${i}`}</div>);
+
+const mask = (index: number) => screen.getByTestId(`slide-${index}`).parentElement!;
 
 describe('Carousel', () => {
   it('is a named carousel region of slides', async () => {
@@ -22,11 +34,22 @@ describe('Carousel', () => {
     const groups = screen.getAllByRole('group');
     expect(groups).toHaveLength(4);
     expect(groups[0]).toHaveAttribute('aria-label', '1 of 4');
-    expect(groups[0]).toHaveClass('snap-start', 'snap-always');
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('sizes slots and masks items from the keylines once measured', () => {
+  it('takes its slide labels from `labels`, with numbers in the locale', () => {
+    render(
+      <Carousel
+        aria-label="Photos"
+        labels={{ slide: (position, count) => `Photo ${position} / ${count}` }}
+      >
+        {slides(2)}
+      </Carousel>,
+    );
+    expect(screen.getAllByRole('group')[1]).toHaveAttribute('aria-label', 'Photo 2 / 2');
+  });
+
+  it('sizes slots and masks items from the keylines, inside the content padding', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
     render(
       <Carousel aria-label="Photos" preferredItemSize={186}>
@@ -35,21 +58,41 @@ describe('Carousel', () => {
     );
     const groups = screen.getAllByRole('group');
     expect(groups[0]!.style.width).toBe('186px');
-    const mask = (index: number) => screen.getByTestId(`slide-${index}`).parentElement!;
-    expect(mask(0).style.clipPath).toBe('inset(0 0px 0 0px round var(--m3-carousel-corner))');
-    // The second item shows as the 118px medium item: 34px masked off each side.
-    expect(mask(1).style.clipPath).toBe('inset(0 34px 0 34px round var(--m3-carousel-corner))');
-    expect(mask(1).style.getPropertyValue('--m3-carousel-item-size')).toBe('118px');
-    expect(mask(1).style.translate).toBe('-34px 0');
+    // The 16px leading padding shrinks the first item's mask and moves it in by 16px.
+    const first = mask(0).style;
+    expect(first.clipPath).toMatch(/^inset\(0 2\.67px 0 2\.67px round/);
+    expect(first.translate).toBe('13.33px 0');
+    // The scroller pads only across the carousel: the keylines handle the main-axis padding.
+    const scroller = groups[0]!.parentElement!;
+    expect(scroller.style.paddingBlock).toBe('8px');
+    expect(scroller.style.paddingInlineStart).toBe('0px');
   });
 
-  it('uncontained carousels do not snap; vertical ones scroll on y', () => {
+  it('lets multi-browse fling across items; hero stops at each one', () => {
+    const { rerender } = render(<Carousel aria-label="Photos">{slides(3)}</Carousel>);
+    expect(screen.getAllByRole('group')[0]).toHaveClass('snap-start');
+    expect(screen.getAllByRole('group')[0]).not.toHaveClass('snap-always');
+    rerender(
+      <Carousel aria-label="Photos" variant="hero">
+        {slides(3)}
+      </Carousel>,
+    );
+    expect(screen.getAllByRole('group')[0]).toHaveClass('snap-start', 'snap-always');
+  });
+
+  it('uncontained carousels snap only when asked; vertical ones scroll on y', () => {
     const { rerender } = render(
       <Carousel aria-label="Cards" variant="uncontained">
         {slides(3)}
       </Carousel>,
     );
     expect(screen.getAllByRole('group')[0]).not.toHaveClass('snap-start');
+    rerender(
+      <Carousel aria-label="Cards" variant="uncontained" snap="item">
+        {slides(3)}
+      </Carousel>,
+    );
+    expect(screen.getAllByRole('group')[0]).toHaveClass('snap-start');
     rerender(
       <Carousel aria-label="Cards" orientation="vertical">
         {slides(3)}
@@ -60,5 +103,130 @@ describe('Carousel', () => {
       'overflow-y-auto',
       'snap-y',
     );
+  });
+
+  it('shows full-screen items one at a time, vertically, with no padding', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(640);
+    render(
+      <Carousel aria-label="Stories" variant="full-screen">
+        {slides(3)}
+      </Carousel>,
+    );
+    const groups = screen.getAllByRole('group');
+    const scroller = groups[0]!.parentElement!;
+    expect(scroller).toHaveClass('flex-col', 'snap-y');
+    expect(scroller.style.gap).toBe('16px');
+    expect(scroller.style.paddingInline).toBe('0px');
+    expect(groups[0]!.style.height).toBe('640px');
+    expect(groups[0]).toHaveClass('snap-always', 'focus-ring-inset');
+    expect(mask(0).style.clipPath).toBe('');
+  });
+
+  it('lets multi-aspect items keep their own width between 9:16 and 16:9', () => {
+    render(
+      <Carousel aria-label="Clips" variant="multi-aspect">
+        {slides(2)}
+      </Carousel>,
+    );
+    const group = screen.getAllByRole('group')[0]!;
+    expect(group.style.width).toBe('');
+    expect(group).toHaveClass(
+      'w-max',
+      'min-w-[calc(var(--m3-carousel-cross-size)*9/16)]',
+      'max-w-[calc(var(--m3-carousel-cross-size)*16/9)]',
+    );
+    expect(group.parentElement!.style.paddingInlineStart).toBe('16px');
+  });
+
+  it('keeps every item large and unmasked under reduced motion', () => {
+    reducedMotion.value = true;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
+    render(<Carousel aria-label="Photos">{slides(6)}</Carousel>);
+    const groups = screen.getAllByRole('group');
+    expect(groups.map((group) => group.style.width)).toEqual(Array(6).fill('186px'));
+    expect(mask(1).style.clipPath).toBe('');
+    expect(mask(1).style.translate).toBe('');
+    // The scroller pads the items itself, and snaps them inside the padding.
+    const scroller = groups[0]!.parentElement!;
+    expect(scroller.style.paddingInlineStart).toBe('16px');
+    expect(scroller.style.scrollPaddingInlineStart).toBe('16px');
+  });
+
+  it('moves focus between items with Tab and the arrow keys, and leaves with Down', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Carousel aria-label="Photos">{slides(3)}</Carousel>
+        <button type="button">Show all</button>
+      </>,
+    );
+    const groups = screen.getAllByRole('group');
+    await user.tab();
+    await user.tab();
+    // The container never takes focus: Tab lands on the first item.
+    expect(groups[0]).toHaveFocus();
+    await user.keyboard('{ArrowRight}');
+    expect(groups[1]).toHaveFocus();
+    await user.tab();
+    expect(groups[2]).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(groups[0]).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(groups[2]).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(groups[1]).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    act(() => groups[1]!.focus());
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('button', { name: 'Show all' })).toHaveFocus();
+  });
+
+  it('mirrors the arrow keys right to left', async () => {
+    const user = userEvent.setup();
+    render(
+      <div dir="rtl" style={{ direction: 'rtl' }}>
+        <Carousel aria-label="Photos">{slides(3)}</Carousel>
+      </div>,
+    );
+    const groups = screen.getAllByRole('group');
+    act(() => groups[0]!.focus());
+    await user.keyboard('{ArrowLeft}');
+    expect(groups[1]).toHaveFocus();
+  });
+
+  it('activates items with a press, Enter or Space, and shows their states', async () => {
+    const user = userEvent.setup();
+    const onAction = vi.fn();
+    const { container } = render(
+      <Carousel aria-label="Photos" onAction={onAction} disabledIndexes={[2]}>
+        {slides(3)}
+      </Carousel>,
+    );
+    const groups = screen.getAllByRole('group');
+    await user.click(screen.getByTestId('slide-1'));
+    expect(onAction).toHaveBeenLastCalledWith(1);
+    act(() => groups[0]!.focus());
+    await user.keyboard('{Enter}');
+    expect(onAction).toHaveBeenLastCalledWith(0);
+    await user.keyboard(' ');
+    expect(onAction).toHaveBeenCalledTimes(3);
+    await user.click(screen.getByTestId('slide-2'));
+    expect(onAction).toHaveBeenCalledTimes(3);
+    expect(groups[2]).toHaveAttribute('aria-disabled', 'true');
+    expect(mask(2)).toHaveAttribute('data-disabled');
+    const stateLayer = mask(0).lastElementChild!;
+    expect(stateLayer).toHaveAttribute('aria-hidden', 'true');
+    expect(stateLayer).toHaveClass('state-layer');
+    fireEvent.pointerDown(groups[0]!, { pointerType: 'mouse', button: 0, pointerId: 1 });
+    expect(mask(0)).toHaveAttribute('data-pressed');
+    fireEvent.pointerUp(groups[0]!, { pointerType: 'mouse', button: 0, pointerId: 1 });
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('has no state layer when items are not actionable', () => {
+    render(<Carousel aria-label="Photos">{slides(1)}</Carousel>);
+    expect(mask(0).children).toHaveLength(1);
   });
 });

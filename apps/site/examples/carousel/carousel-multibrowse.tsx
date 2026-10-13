@@ -24,8 +24,8 @@ function slides(count: number) {
 /**
  * The default `multi-browse` carousel shows large, medium and small items whose sizes
  * change as they scroll. Give it a cross-axis size with `className`. It is a labelled
- * `region` ("carousel"); each item is a "slide" announced as "n of N". Scroll, drag, or
- * focus it and use the arrow keys.
+ * `region` ("carousel"); each item is a "slide" announced as "n of N". Scroll or drag it;
+ * a fling crosses several items and then snaps. Tab to an item and use the arrow keys.
  */
 export function CarouselMultiBrowse() {
   return (

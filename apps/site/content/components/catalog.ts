@@ -769,12 +769,13 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A scrollable row of items that resize along keylines: multi-browse, uncontained or hero.',
+      'A scrollable row of items that resize along keylines: multi-browse, uncontained, multi-aspect, hero or full-screen.',
     propsComponents: ['Carousel'],
     playground: 'showcase',
     expressive: true,
+    keywords: ['slides', 'gallery', 'slideshow', 'image strip', 'stories', 'full-screen feed'],
     specs: {
-      variants: ['multi-browse', 'uncontained', 'hero'],
+      variants: ['multi-browse', 'uncontained', 'multi-aspect', 'hero', 'full-screen'],
       shape: 'rounded-corner-extra-large',
     },
     related: ['card', 'tabs'],

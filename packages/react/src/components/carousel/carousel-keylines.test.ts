@@ -65,4 +65,32 @@ describe('carousel keylines (Compose Keylines.kt / Strategy.kt)', () => {
     expect(snapPositionOffset(strategy, 0, 10)).toBe(0);
     expect(snapPositionOffset(strategy, 9, 10)).toBe(360 - 186);
   });
+
+  it('starts and ends inside the content padding, which items bleed over once scrolled', () => {
+    const strategy = createStrategy(multiBrowseKeylineList(360, 186, 8, 10), 360, 8, 16, 16);
+    const max = maxScrollOffset(strategy, 10);
+    // Scroll range and snapping are unchanged; only the end steps move by the padding.
+    expect(max).toBe(186 * 10 + 8 * 9 - 360);
+    expect(snapPositionOffset(strategy, 0, 10)).toBe(0);
+    const start = keylinesForScrollOffset(strategy, 0, max);
+    const first = start.find((k) => k.isFocal)!;
+    expect(first.offset - first.size / 2).toBeCloseTo(16);
+    const end = keylinesForScrollOffset(strategy, max, max);
+    const last = end.filter((k) => k.isFocal).pop()!;
+    expect(last.offset + last.size / 2).toBeCloseTo(360 - 16);
+    // In the middle the keylines use the whole width again.
+    const middle = keylinesForScrollOffset(strategy, max / 2, max);
+    expect(sizes(middle)).toEqual([10, 186, 118, 40, 10]);
+  });
+
+  it('shifts an uncontained carousel by its leading padding only', () => {
+    const strategy = createStrategy(uncontainedKeylineList(360, 240, 8), 360, 8, 16, 0);
+    const start = keylinesForScrollOffset(strategy, 0, maxScrollOffset(strategy, 6));
+    const first = start.find((k) => k.isFocal)!;
+    expect(first.offset - first.size / 2).toBeCloseTo(16);
+    const max = maxScrollOffset(strategy, 6);
+    const end = keylinesForScrollOffset(strategy, max, max);
+    const last = end.filter((k) => k.isFocal).pop()!;
+    expect(last.offset + last.size / 2).toBeCloseTo(360);
+  });
 });

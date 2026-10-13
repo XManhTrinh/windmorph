@@ -46,6 +46,16 @@
   initial-value: 96px;
 }
 
+/*
+ * A carousel item's mask corner. Registered so a pressed item's corners animate (the mask
+ * is clipped with `clip-path`, which reads it).
+ */
+@property --m3-carousel-item-corner {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 28px;
+}
+
 /* `dark:` follows `data-mode`, including `system`. */
 @custom-variant dark {
   &:where([data-mode='dark'], [data-mode='dark'] *) {

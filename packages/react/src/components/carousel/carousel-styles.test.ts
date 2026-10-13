@@ -9,10 +9,18 @@ import { carouselStyles } from './carousel-styles';
 
 function* outputs() {
   for (const orientation of ['horizontal', 'vertical'] as const)
-    for (const snapping of ['single', 'none'] as const) {
-      const slots = carouselStyles({ orientation, snapping });
-      for (const slot of Object.values(slots)) yield slot();
-    }
+    for (const snapping of ['single', 'many', 'none'] as const)
+      for (const flag of [true, false]) {
+        const slots = carouselStyles({
+          orientation,
+          snapping,
+          masked: flag,
+          aspect: flag,
+          interactive: flag,
+          fullBleed: flag,
+        });
+        for (const slot of Object.values(slots)) yield slot();
+      }
 }
 
 describe('carouselStyles', () => {

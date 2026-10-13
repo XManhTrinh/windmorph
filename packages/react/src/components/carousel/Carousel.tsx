@@ -1,5 +1,6 @@
 'use client';
 
+import { useReducedMotion } from 'motion/react';
 import {
   Children,
   isValidElement,
@@ -7,11 +8,14 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
+  type KeyboardEvent,
   type PointerEvent,
   type ReactNode,
   type Ref,
 } from 'react';
-import { useObjectRef } from 'react-aria';
+import { useNumberFormatter, useObjectRef } from 'react-aria';
+import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import {
@@ -33,18 +37,44 @@ export interface CarouselClassNames {
   item?: string;
   /** The masked layer of each item (corners, clipping). */
   mask?: string;
+  /** The state layer painted over an item that can be activated. */
+  stateLayer?: string;
 }
+
+/** Words the carousel announces. */
+export interface CarouselLabels {
+  /** Each item's name: its position (from 1) and the number of items, as formatted text. */
+  slide: (position: string, count: string) => string;
+}
+
+const DEFAULT_LABELS: CarouselLabels = {
+  slide: (position, count) => `${position} of ${count}`,
+};
+
+/** Padding around the items, in px. `start` and `end` run along the carousel. */
+export interface CarouselContentPadding {
+  /** Before the first item. */
+  start: number;
+  /** After the last item. */
+  end: number;
+  /** Either side across the carousel. */
+  cross: number;
+}
+
+export type CarouselVariant =
+  'multi-browse' | 'uncontained' | 'multi-aspect' | 'hero' | 'full-screen';
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
 interface CarouselOwnProps {
   /**
    * `multi-browse` shows large, medium and small items; `uncontained` shows fixed-size items
-   * with the last one cut off; `hero` shows one large item with small ones beside it.
-   * @default "multi-browse"
+   * with the last one cut off; `multi-aspect` is uncontained with items of their own widths
+   * (9:16 to 16:9); `hero` shows one large item with small ones beside it; `full-screen`
+   * shows one edge-to-edge item at a time. @default "multi-browse"
    */
-  variant?: 'multi-browse' | 'uncontained' | 'hero';
-  /** @default "horizontal" */
+  variant?: CarouselVariant;
+  /** @default "horizontal" ("vertical" for full-screen) */
   orientation?: 'horizontal' | 'vertical';
   /**
    * Preferred size of the large items along the carousel (multi-browse, hero). Hero defaults
@@ -53,7 +83,7 @@ interface CarouselOwnProps {
   preferredItemSize?: number;
   /** Size of the items along the carousel (uncontained). @default 240 */
   itemSize?: number;
-  /** Space between items, px. @default 8 */
+  /** Space between items, px. @default 8 (16 for full-screen) */
   itemSpacing?: number;
   /** Centre the large hero item between small ones. @default "start" */
   heroAlignment?: 'start' | 'center';
@@ -61,6 +91,26 @@ interface CarouselOwnProps {
   minSmallItemSize?: number;
   /** Maximum size of the small items. @default 56 */
   maxSmallItemSize?: number;
+  /**
+   * Padding around the items. Items scroll over the start and end padding.
+   * @default { start: 16, end: 16, cross: 8 } (uncontained and multi-aspect: no end padding;
+   * full-screen: none)
+   */
+  contentPadding?: Partial<CarouselContentPadding>;
+  /**
+   * Snap uncontained and multi-aspect carousels to their items. Multi-browse, hero and
+   * full-screen carousels always snap. @default "none"
+   */
+  snap?: 'none' | 'item';
+  /**
+   * Called when an item is pressed, or activated with Enter or Space. Items then show
+   * hover, focus and pressed states.
+   */
+  onAction?: (index: number) => void;
+  /** Indexes of items that can't be activated. */
+  disabledIndexes?: readonly number[];
+  /** Words the carousel announces, for localisation. */
+  labels?: Partial<CarouselLabels>;
   /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
   children: ReactNode;
   ref?: Ref<HTMLDivElement>;
@@ -73,10 +123,40 @@ interface CarouselOwnProps {
 
 export type CarouselProps = CarouselOwnProps & Naming;
 
+const KEYLINE_VARIANTS: readonly CarouselVariant[] = ['multi-browse', 'uncontained', 'hero'];
+
+function defaultPadding(variant: CarouselVariant): CarouselContentPadding {
+  if (variant === 'full-screen') return { start: 0, end: 0, cross: 0 };
+  if (variant === 'uncontained' || variant === 'multi-aspect')
+    return { start: 16, end: 0, cross: 8 };
+  return { start: 16, end: 16, cross: 8 };
+}
+
+const TABBABLE =
+  'a[href],area[href],button,input,select,textarea,iframe,summary,[contenteditable],[tabindex]';
+
+/** The next (or previous) element in the tab order outside `container`. */
+function tabbableOutside(container: HTMLElement, forward: boolean): HTMLElement | undefined {
+  const candidates = Array.from(
+    container.ownerDocument.querySelectorAll<HTMLElement>(TABBABLE),
+  ).filter(
+    (element) =>
+      !container.contains(element) &&
+      element.tabIndex >= 0 &&
+      !element.matches(':disabled') &&
+      !element.closest('[inert],[hidden]'),
+  );
+  const isAfter = (element: HTMLElement) =>
+    Boolean(container.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
+  return forward ? candidates.find(isAfter) : candidates.filter((e) => !isAfter(e)).pop();
+}
+
 /**
  * M3 Expressive carousel: a scrollable row (or column) of items whose sizes follow Compose's
- * keylines as they scroll: multi-browse (large, medium and small items), uncontained, or
- * hero. Give it a height (or a width, vertical) with `className`.
+ * keylines as they scroll: multi-browse (large, medium and small items), uncontained,
+ * multi-aspect, hero or full-screen. Give it a height (or a width, vertical) with
+ * `className`. Tab or the arrow keys move between items; Up and Down (Left and Right when
+ * vertical) leave the carousel. Under reduced motion every item keeps the large size.
  *
  * @example
  * <Carousel aria-label="Photos" className="h-[221px]">
@@ -85,13 +165,18 @@ export type CarouselProps = CarouselOwnProps & Naming;
  */
 export function Carousel({
   variant = 'multi-browse',
-  orientation = 'horizontal',
+  orientation = variant === 'full-screen' ? 'vertical' : 'horizontal',
   preferredItemSize,
   itemSize = 240,
-  itemSpacing = 8,
+  itemSpacing = variant === 'full-screen' ? 16 : 8,
   heroAlignment = 'start',
   minSmallItemSize,
   maxSmallItemSize,
+  contentPadding,
+  snap = 'none',
+  onAction,
+  disabledIndexes,
+  labels: labelsProp,
   children,
   ref,
   className,
@@ -104,17 +189,26 @@ export function Carousel({
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const numbers = useNumberFormatter();
   const items = Children.toArray(children).filter(isValidElement);
   const count = items.length;
   const vertical = orientation === 'vertical';
+  const reduceMotion = useReducedMotion() ?? false;
+  const padding = { ...defaultPadding(variant), ...contentPadding };
+  const keylined = KEYLINE_VARIANTS.includes(variant);
+  // Under reduced motion items keep the large size, unmasked (the spec's reduced motion).
+  const masked = keylined && !reduceMotion;
   const rootRef = useObjectRef(ref);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const maskRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [space, setSpace] = useState(0);
+  const [crossSize, setCrossSize] = useState(0);
 
   const strategy = computeStrategy();
   function computeStrategy(): Strategy | null {
-    if (space === 0 || count === 0) return null;
+    if (space === 0 || count === 0 || !keylined) return null;
     const keylines =
       variant === 'uncontained'
         ? uncontainedKeylineList(space, itemSize, itemSpacing)
@@ -136,7 +230,9 @@ export function Carousel({
               minSmallItemSize,
               maxSmallItemSize,
             );
-    const result = createStrategy(keylines, space, itemSpacing);
+    const result = masked
+      ? createStrategy(keylines, space, itemSpacing, padding.start, padding.end)
+      : createStrategy(keylines, space, itemSpacing);
     return result.isValid ? result : null;
   }
 
@@ -144,7 +240,7 @@ export function Carousel({
   // re-rendering (Compose's `carouselItem` layer block).
   const update = () => {
     const scroller = scrollerRef.current;
-    if (!scroller || !strategy) return;
+    if (!scroller || !strategy || !masked) return;
     const rtl = !vertical && getComputedStyle(scroller).direction === 'rtl';
     const scroll = Math.abs(vertical ? scroller.scrollTop : scroller.scrollLeft);
     const max = maxScrollOffset(strategy, count);
@@ -158,8 +254,8 @@ export function Carousel({
       const move = round(rtl ? -translation : translation);
       mask.style.translate = vertical ? `0 ${move}px` : `${move}px 0`;
       mask.style.clipPath = vertical
-        ? `inset(${inset}px 0 ${inset}px 0 round var(--m3-carousel-corner))`
-        : `inset(0 ${inset}px 0 ${inset}px round var(--m3-carousel-corner))`;
+        ? `inset(${inset}px 0 ${inset}px 0 round var(--m3-carousel-item-corner))`
+        : `inset(0 ${inset}px 0 ${inset}px round var(--m3-carousel-item-corner))`;
       mask.style.setProperty('--m3-carousel-item-size', `${round(size)}px`);
     });
   };
@@ -167,7 +263,18 @@ export function Carousel({
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
-    const measure = () => setSpace(vertical ? scroller.clientHeight : scroller.clientWidth);
+    const measure = () => {
+      const computed = getComputedStyle(scroller);
+      const px = (value: string) => Number.parseFloat(value) || 0;
+      // The keylines span the scroller's padding box along the carousel: Compose handles
+      // the start and end padding in the keylines, not in the layout.
+      setSpace(vertical ? scroller.clientHeight : scroller.clientWidth);
+      setCrossSize(
+        vertical
+          ? scroller.clientWidth - px(computed.paddingLeft) - px(computed.paddingRight)
+          : scroller.clientHeight - px(computed.paddingTop) - px(computed.paddingBottom),
+      );
+    };
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(measure);
@@ -176,9 +283,16 @@ export function Carousel({
   }, [vertical]);
 
   useLayoutEffect(() => {
+    // Leaving the masked layout (reduced motion) clears what `update` wrote.
+    if (!masked)
+      maskRefs.current.forEach((mask) => {
+        mask?.style.removeProperty('translate');
+        mask?.style.removeProperty('clip-path');
+        mask?.style.removeProperty('--m3-carousel-item-size');
+      });
     update();
     const scroller = scrollerRef.current;
-    if (!scroller) return;
+    if (!scroller || !masked) return;
     let frame = 0;
     const onScroll = () => {
       if (!frame)
@@ -195,9 +309,13 @@ export function Carousel({
   });
 
   // Mouse drag scrolls the carousel (touch and trackpads scroll natively); snapping is
-  // paused while dragging and resumes on release.
+  // paused while dragging and resumes on release. A drag never activates an item.
   const drag = useRef<{ start: number; scroll: number; id: number } | null>(null);
+  const dragged = useRef(false);
+  const pointerFocus = useRef(false);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    pointerFocus.current = true;
+    dragged.current = false;
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
     const scroller = event.currentTarget;
     drag.current = {
@@ -212,6 +330,7 @@ export function Carousel({
     const scroller = event.currentTarget;
     const delta = (vertical ? event.clientY : event.clientX) - state.start;
     if (Math.abs(delta) > 3 && !scroller.hasAttribute('data-dragging')) {
+      dragged.current = true;
       scroller.setAttribute('data-dragging', '');
       scroller.setPointerCapture?.(state.id);
     }
@@ -223,10 +342,95 @@ export function Carousel({
     event.currentTarget.removeAttribute('data-dragging');
   };
 
-  const snapping = variant === 'uncontained' ? 'none' : 'single';
-  const styles = carouselStyles({ orientation, snapping });
+  // Brings a focused item into view: keylined carousels scroll it to its snap position
+  // (the focal keyline); the others just far enough to show it.
+  const reveal = (index: number) => {
+    const scroller = scrollerRef.current;
+    const slot = slotRefs.current[index];
+    if (!scroller || !slot) return;
+    const behavior: ScrollBehavior = reduceMotion ? 'instant' : 'smooth';
+    if (strategy && masked) {
+      const step = strategy.itemMainAxisSize + itemSpacing;
+      const max = maxScrollOffset(strategy, count);
+      const target = Math.min(
+        max,
+        Math.max(0, index * step - snapPositionOffset(strategy, index, count)),
+      );
+      const rtl = !vertical && getComputedStyle(scroller).direction === 'rtl';
+      scroller.scrollTo?.(
+        vertical ? { top: target, behavior } : { left: rtl ? -target : target, behavior },
+      );
+    } else {
+      slot.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior });
+    }
+  };
+
+  const onSlotFocus = (index: number, event: FocusEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    // A press focuses the item without moving the carousel.
+    if (pointerFocus.current) return;
+    reveal(index);
+  };
+
+  const focusSlot = (index: number) => {
+    const slot = slotRefs.current[Math.max(0, Math.min(count - 1, index))];
+    if (!slot) return;
+    pointerFocus.current = true;
+    slot.focus({ preventScroll: true });
+    pointerFocus.current = false;
+    reveal(Number(slot.dataset.index));
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    pointerFocus.current = false;
+    const target = event.target as HTMLElement;
+    const index = slotRefs.current.indexOf(target as HTMLDivElement);
+    if (index < 0) return;
+    const rtl = getComputedStyle(target).direction === 'rtl';
+    const [prev, next, leaveBack, leaveForward] = vertical
+      ? ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+      : rtl
+        ? ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown']
+        : ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    let handled = true;
+    if (event.key === next) focusSlot(index + 1);
+    else if (event.key === prev) focusSlot(index - 1);
+    else if (event.key === 'Home') focusSlot(0);
+    else if (event.key === 'End') focusSlot(count - 1);
+    else if (event.key === leaveForward || event.key === leaveBack) {
+      const root = rootRef.current;
+      const outside = root && tabbableOutside(root, event.key === leaveForward);
+      if (outside) outside.focus();
+      else handled = false;
+    } else handled = false;
+    if (handled) event.preventDefault();
+  };
+
+  const snapping =
+    variant === 'hero' || variant === 'full-screen'
+      ? 'single'
+      : variant === 'multi-browse' || snap === 'item'
+        ? 'many'
+        : 'none';
+  const styles = carouselStyles({
+    orientation,
+    snapping,
+    masked,
+    aspect: variant === 'multi-aspect',
+    interactive: onAction !== undefined,
+    fullBleed: variant === 'full-screen',
+  });
   const fallbackSize = variant === 'uncontained' ? itemSize : (preferredItemSize ?? 186);
-  const slotSize = strategy?.itemMainAxisSize ?? fallbackSize;
+  const slotSize =
+    variant === 'full-screen'
+      ? space || undefined
+      : variant === 'multi-aspect'
+        ? undefined
+        : (strategy?.itemMainAxisSize ?? fallbackSize);
+  // The scroller pads the items itself only when the keylines don't.
+  const layoutPadding = masked ? { start: 0, end: 0 } : padding;
+  const total = numbers.format(count);
+  const disabled = new Set(disabledIndexes);
 
   return (
     <div
@@ -241,38 +445,128 @@ export function Carousel({
     >
       <div
         ref={scrollerRef}
-        tabIndex={0}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        style={{ gap: itemSpacing }}
+        onKeyDown={onKeyDown}
+        style={
+          {
+            gap: itemSpacing,
+            [vertical ? 'paddingInline' : 'paddingBlock']: padding.cross,
+            [vertical ? 'paddingBlockStart' : 'paddingInlineStart']: layoutPadding.start,
+            [vertical ? 'paddingBlockEnd' : 'paddingInlineEnd']: layoutPadding.end,
+            [vertical ? 'scrollPaddingBlockStart' : 'scrollPaddingInlineStart']:
+              layoutPadding.start,
+            [vertical ? 'scrollPaddingBlockEnd' : 'scrollPaddingInlineEnd']: layoutPadding.end,
+            '--m3-carousel-cross-size': `${crossSize}px`,
+          } as CSSProperties
+        }
         className={styles.scroller({ class: classNames?.scroller })}
       >
         {items.map((item, index) => (
-          <div
+          <CarouselItem
             key={item.key ?? index}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${index + 1} of ${count}`}
-            style={{
-              [vertical ? 'height' : 'width']: slotSize,
-              [vertical ? 'scrollMarginBlockStart' : 'scrollMarginInlineStart']: strategy
-                ? snapPositionOffset(strategy, index, count)
-                : 0,
+            index={index}
+            label={labels.slide(numbers.format(index + 1), total)}
+            disabled={disabled.has(index)}
+            onAction={
+              onAction &&
+              (() => {
+                if (!dragged.current) onAction(index);
+              })
+            }
+            onFocus={(event) => onSlotFocus(index, event)}
+            slotRef={(element) => {
+              slotRefs.current[index] = element;
             }}
-            className={styles.item({ class: classNames?.item })}
+            maskRef={(element) => {
+              maskRefs.current[index] = element;
+            }}
+            style={{
+              ...(slotSize === undefined ? {} : { [vertical ? 'height' : 'width']: slotSize }),
+              [vertical ? 'scrollMarginBlockStart' : 'scrollMarginInlineStart']:
+                strategy && masked ? snapPositionOffset(strategy, index, count) : 0,
+            }}
+            styles={styles}
+            classNames={classNames}
           >
-            <div
-              ref={(element) => {
-                maskRefs.current[index] = element;
-              }}
-              className={styles.mask({ class: classNames?.mask })}
-            >
-              {item}
-            </div>
-          </div>
+            {item}
+          </CarouselItem>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CarouselItem({
+  index,
+  label,
+  disabled,
+  onAction,
+  onFocus,
+  slotRef,
+  maskRef,
+  style,
+  styles,
+  classNames,
+  children,
+}: {
+  index: number;
+  label: string;
+  disabled: boolean;
+  onAction?: () => void;
+  onFocus: (event: FocusEvent<HTMLDivElement>) => void;
+  slotRef: (element: HTMLDivElement | null) => void;
+  maskRef: (element: HTMLDivElement | null) => void;
+  style: CSSProperties;
+  styles: ReturnType<typeof carouselStyles>;
+  classNames?: CarouselClassNames;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const interactive = onAction !== undefined;
+  const { interactionProps, dataAttributes } = useM3Interaction(
+    { isDisabled: disabled || !interactive, onPress: onAction },
+    ref,
+  );
+  const { 'data-focus-visible': focusVisible, ...states } = dataAttributes;
+  return (
+    <div
+      {...interactionProps}
+      ref={(element) => {
+        ref.current = element;
+        slotRef(element);
+      }}
+      role="group"
+      aria-roledescription="slide"
+      aria-label={label}
+      aria-disabled={(interactive && disabled) || undefined}
+      tabIndex={0}
+      data-index={index}
+      data-focus-visible={focusVisible}
+      data-disabled={(interactive && disabled) || undefined}
+      onFocus={(event) => {
+        interactionProps.onFocus?.(event);
+        onFocus(event);
+      }}
+      style={style}
+      className={styles.item({ class: classNames?.item })}
+    >
+      <div
+        ref={maskRef}
+        {...(interactive ? states : {})}
+        className={styles.mask({ class: classNames?.mask })}
+      >
+        {children}
+        {interactive && (
+          <span
+            aria-hidden="true"
+            {...states}
+            data-focus-visible={focusVisible}
+            className={styles.stateLayer({ class: classNames?.stateLayer })}
+          />
+        )}
       </div>
     </div>
   );

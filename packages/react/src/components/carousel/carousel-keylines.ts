@@ -523,10 +523,45 @@ function isLastFocalAtEnd(list: KeylineList, mainAxis: number) {
   );
 }
 
-function startSteps(defaults: KeylineList, mainAxis: number, itemSpacing: number): KeylineList[] {
+/**
+ * Compose's `createShiftedKeylineListForContentPadding`: `from` shifted by `padding` (negative
+ * for the end), each item shrinking by an equal share of it. The unadjusted offsets stay
+ * those of `from`, since items keep their natural slots.
+ */
+function shiftedForPadding(
+  from: KeylineList,
+  mainAxis: number,
+  itemSpacing: number,
+  padding: number,
+  pivotIndex: number,
+): KeylineList {
+  const nonAnchors = from.filter((k) => !k.isAnchor).length;
+  const reduction = padding / nonAnchors;
+  const shifted = keylineListWithPivot(
+    mainAxis,
+    itemSpacing,
+    pivotIndex,
+    from[pivotIndex]!.offset - reduction / 2 + padding,
+    from.map((k) => ({ size: k.size - Math.abs(reduction), isAnchor: k.isAnchor })),
+  );
+  return shifted.map((k, i) => ({ ...k, unadjustedOffset: from[i]!.unadjustedOffset }));
+}
+
+function startSteps(
+  defaults: KeylineList,
+  mainAxis: number,
+  itemSpacing: number,
+  padding: number,
+): KeylineList[] {
   if (defaults.length === 0) return [];
   const steps = [defaults];
-  if (isFirstFocalAtStart(defaults)) return steps;
+  if (isFirstFocalAtStart(defaults)) {
+    if (padding !== 0)
+      steps.push(
+        shiftedForPadding(defaults, mainAxis, itemSpacing, padding, firstFocalIndex(defaults)),
+      );
+    return steps;
+  }
   const startIndex = firstNonAnchorIndex(defaults);
   const endIndex = firstFocalIndex(defaults);
   const count = endIndex - startIndex;
@@ -543,13 +578,34 @@ function startSteps(defaults: KeylineList, mainAxis: number, itemSpacing: number
     }
     steps.push(moveKeyline(prev, firstNonAnchorIndex(defaults), dstIndex, mainAxis, itemSpacing));
   }
+  if (padding !== 0) {
+    const last = steps[steps.length - 1]!;
+    steps[steps.length - 1] = shiftedForPadding(
+      last,
+      mainAxis,
+      itemSpacing,
+      padding,
+      firstFocalIndex(last),
+    );
+  }
   return steps;
 }
 
-function endSteps(defaults: KeylineList, mainAxis: number, itemSpacing: number): KeylineList[] {
+function endSteps(
+  defaults: KeylineList,
+  mainAxis: number,
+  itemSpacing: number,
+  padding: number,
+): KeylineList[] {
   if (defaults.length === 0) return [];
   const steps = [defaults];
-  if (isLastFocalAtEnd(defaults, mainAxis)) return steps;
+  if (isLastFocalAtEnd(defaults, mainAxis)) {
+    if (padding !== 0)
+      steps.push(
+        shiftedForPadding(defaults, mainAxis, itemSpacing, -padding, lastFocalIndex(defaults)),
+      );
+    return steps;
+  }
   const startIndex = lastFocalIndex(defaults);
   const endIndex = lastNonAnchorIndex(defaults);
   const count = endIndex - startIndex;
@@ -565,6 +621,16 @@ function endSteps(defaults: KeylineList, mainAxis: number, itemSpacing: number):
       dstIndex = lastIndexBeforeFocalRangeWithSize(prev, defaults[original + 1]!.size) + 1;
     }
     steps.push(moveKeyline(prev, lastNonAnchorIndex(defaults), dstIndex, mainAxis, itemSpacing));
+  }
+  if (padding !== 0) {
+    const last = steps[steps.length - 1]!;
+    steps[steps.length - 1] = shiftedForPadding(
+      last,
+      mainAxis,
+      itemSpacing,
+      -padding,
+      lastFocalIndex(last),
+    );
   }
   return steps;
 }
@@ -600,23 +666,35 @@ export interface Strategy {
   isValid: boolean;
 }
 
-/** Compose's `Strategy` (without content padding). */
+/**
+ * Compose's `Strategy`. The content padding before the first item and after the last one is
+ * handled by the keylines (the last start and end steps are shifted by it), not by the
+ * scroller, so items bleed over it while scrolling, as Compose's do.
+ */
 export function createStrategy(
   defaults: KeylineList,
   availableSpace: number,
   itemSpacing: number,
+  beforeContentPadding = 0,
+  afterContentPadding = 0,
 ): Strategy {
-  const start = startSteps(defaults, availableSpace, itemSpacing);
-  const end = endSteps(defaults, availableSpace, itemSpacing);
+  const start = startSteps(defaults, availableSpace, itemSpacing, beforeContentPadding);
+  const end = endSteps(defaults, availableSpace, itemSpacing, afterContentPadding);
   const startShiftDistance =
     start.length === 0
       ? 0
-      : start[start.length - 1]![0]!.unadjustedOffset - start[0]![0]!.unadjustedOffset;
+      : Math.max(
+          start[start.length - 1]![0]!.unadjustedOffset - start[0]![0]!.unadjustedOffset,
+          beforeContentPadding,
+        );
   const endShiftDistance =
     end.length === 0
       ? 0
-      : end[0]![end[0]!.length - 1]!.unadjustedOffset -
-        end[end.length - 1]![end[end.length - 1]!.length - 1]!.unadjustedOffset;
+      : Math.max(
+          end[0]![end[0]!.length - 1]!.unadjustedOffset -
+            end[end.length - 1]![end[end.length - 1]!.length - 1]!.unadjustedOffset,
+          afterContentPadding,
+        );
   const focal = defaults[firstFocalIndex(defaults)];
   const itemMainAxisSize = focal?.size ?? 0;
   return {
