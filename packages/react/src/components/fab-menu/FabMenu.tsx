@@ -269,6 +269,7 @@ export function FabMenu({
           {button}
           <Menu
             placement="top end"
+            offset={4}
             aria-label={ariaLabel}
             aria-labelledby={ariaLabelledBy}
             className={styles.menu({ class: classNames?.menu })}

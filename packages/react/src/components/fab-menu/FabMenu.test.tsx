@@ -266,7 +266,11 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveAttribute('aria-haspopup', 'true');
     await userEvent.click(toggle());
     const menu = await screen.findByRole('menu', { name: 'Create' });
-    expect(menu).toHaveClass('[[data-placement^=top]>&]:-mb-[4px]');
+    // Opens above the FAB; the 4px gap itself is measured in the Playwright spec.
+    expect(menu.closest('[data-placement]')).toHaveAttribute(
+      'data-placement',
+      expect.stringMatching(/^top/),
+    );
     expect(screen.getAllByRole('menuitem').map((el) => el.textContent)).toEqual([
       'Reply',
       'Forward',

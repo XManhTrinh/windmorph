@@ -93,7 +93,8 @@ export const fabMenuStyles = tv({
     itemIcon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
     // presentation="menu": a standard Menu 4px from the FAB, on whichever side it opened
     // (the menu list already cancels its own 8px shadow room with -8px).
-    menu: '[[data-placement^=top]>&]:-mb-[4px] [[data-placement^=bottom]>&]:-mt-[4px]',
+    // The web menu's 4px gap comes from `offset` on the Menu; this slot is for consumers.
+    menu: '',
   },
   variants: {
     color: colors,

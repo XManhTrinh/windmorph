@@ -140,18 +140,18 @@ test.describe('FabMenu short windows and web menu', () => {
     const menu = page.getByRole('menu', { name: 'Create' });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole('menuitem').first()).toBeFocused();
-    // Measure once the entry animation (a scale from 80%) has finished.
+    // The surface is the menu itself in the default divider layout; a gap layout's list
+    // extends 8px past its groups (room for their shadows), so measure the last group there.
+    // Poll until the entry reveal has settled.
+    const buttonTop = (await button.boundingBox())!.y;
     await expect
-      .poll(() => menu.evaluate((el) => getComputedStyle(el.parentElement!).scale))
-      .toBe('none');
-    const gap = await menu.evaluate(
-      (el, buttonTop) => {
-        const group = el.firstElementChild!.getBoundingClientRect();
-        return Math.round(buttonTop - group.bottom);
-      },
-      (await button.boundingBox())!.y,
-    );
-    expect(gap).toBe(4);
+      .poll(() =>
+        menu.evaluate((el, top) => {
+          const surface = el.getAttribute('data-layout') === 'gap' ? el.lastElementChild! : el;
+          return Math.round(top - surface.getBoundingClientRect().bottom);
+        }, buttonTop),
+      )
+      .toBe(4);
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('last')).toHaveText('Last action: Send');
