@@ -30,6 +30,42 @@ async function visibleHeight(page: Page) {
   return Math.max(0, bar.bottom - (scroller.y + 1));
 }
 
+/**
+ * The bar's fill named by the colour role it matches in the bar's own theme scope (canvas
+ * pixels, since its `color-mix` computes to `oklab(…)`), its luminance (0–255), and the top
+ * row's own background.
+ */
+const barColours = (bar: Locator) =>
+  bar.evaluate((el) => {
+    const context = document.createElement('canvas').getContext('2d')!;
+    const pixel = (css: string) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = css;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data];
+    };
+    const role = (name: string) => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = `var(--md-sys-color-${name})`;
+      el.append(probe);
+      const css = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return pixel(css).join();
+    };
+    const rgba = pixel(getComputedStyle(el).backgroundColor);
+    const fill = rgba.join();
+    return {
+      fill:
+        fill === role('surface')
+          ? 'surface'
+          : fill === role('surface-container')
+            ? 'surface-container'
+            : fill,
+      luminance: Math.round(0.2126 * rgba[0]! + 0.7152 * rgba[1]! + 0.0722 * rgba[2]!),
+      row: getComputedStyle(el.firstElementChild!).backgroundColor,
+    };
+  });
+
 test.describe('TopAppBar visual regression', () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
@@ -179,36 +215,7 @@ test.describe('TopAppBar geometry and scrolling', () => {
         { variant, scrollBehavior: 'pinned' },
       );
       const bar = page.getByTestId('bar');
-      // The bar's colour against the roles, as canvas pixels (its `color-mix` computes to
-      // `oklab(…)`), and the top row's own background.
-      const colours = () =>
-        bar.evaluate((el) => {
-          const context = document.createElement('canvas').getContext('2d')!;
-          const pixel = (css: string) => {
-            context.clearRect(0, 0, 1, 1);
-            context.fillStyle = css;
-            context.fillRect(0, 0, 1, 1);
-            return [...context.getImageData(0, 0, 1, 1).data].join();
-          };
-          const role = (name: string) => {
-            const probe = document.createElement('div');
-            probe.style.backgroundColor = `var(--color-${name})`;
-            el.append(probe);
-            const css = getComputedStyle(probe).backgroundColor;
-            probe.remove();
-            return pixel(css);
-          };
-          const fill = pixel(getComputedStyle(el).backgroundColor);
-          return {
-            fill:
-              fill === role('surface')
-                ? 'surface'
-                : fill === role('surface-container')
-                  ? 'surface-container'
-                  : fill,
-            row: getComputedStyle(el.firstElementChild!).backgroundColor,
-          };
-        });
+      const colours = () => barColours(bar);
       expect((await colours()).fill).toBe('surface');
       await scrollTo(page, 200);
       await expect(bar).toHaveAttribute('data-scrolled', 'true');
@@ -218,6 +225,27 @@ test.describe('TopAppBar geometry and scrolling', () => {
       expect(await visibleHeight(page)).toBe(height);
       await scrollTo(page, 0);
       await expect.poll(async () => (await colours()).fill).toBe('surface');
+    });
+  }
+});
+
+test.describe('TopAppBar theming', () => {
+  for (const variant of ['small', 'medium'] as const) {
+    test(`a ${variant} bar takes the surface roles of a dark theme scope`, async ({ page }) => {
+      // Storybook renders each story in a ThemeScope driven by the toolbar.
+      await openStory(
+        page,
+        'components-topappbar--scrolling',
+        { mode: 'dark' },
+        { variant, scrollBehavior: 'pinned' },
+      );
+      const bar = page.getByTestId('bar');
+      const before = await barColours(bar);
+      expect(before.fill).toBe('surface');
+      expect(before.luminance).toBeLessThan(64);
+      await scrollTo(page, 200);
+      await expect.poll(async () => (await barColours(bar)).fill).toBe('surface-container');
+      expect((await barColours(bar)).luminance).toBeLessThan(64);
     });
   }
 });

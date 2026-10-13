@@ -40,4 +40,12 @@ describe('topAppBarStyles', () => {
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
+
+  it('reads the surface roles where the bar is, so a theme scope or dark mode applies', () => {
+    const { root, row } = topAppBarStyles({ variant: 'medium', twoRows: true });
+    for (const slot of [root(), row()]) {
+      expect(slot).toContain('var(--md-sys-color-surface-container)');
+      expect(slot).not.toContain('var(--color-');
+    }
+  });
 });

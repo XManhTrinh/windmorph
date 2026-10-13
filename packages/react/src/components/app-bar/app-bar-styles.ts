@@ -28,12 +28,12 @@ export const topAppBarStyles = tv({
   slots: {
     root: [
       'flex w-full flex-col text-on-surface',
-      'bg-[color:color-mix(in_oklab,var(--color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--color-surface))]',
+      'bg-[color:color-mix(in_oklab,var(--md-sys-color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
     ],
     // The top row: navigation icon, title and actions.
     row: [
       'grid h-[64px] shrink-0 items-center',
-      'bg-[color:color-mix(in_oklab,var(--color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--color-surface))]',
+      'bg-[color:color-mix(in_oklab,var(--md-sys-color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
     ],
     // Icon buttons take each slot's content colour.
     navigation:
