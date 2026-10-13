@@ -871,6 +871,21 @@ npm i @windmorph/react motion
 ```
 Plus font setup (Roboto Flex via `next/font` or Google Fonts) — documented, not bundled.
 
+### Releasing (2026-10-13)
+
+Only `@windmorph/react` is published to npm. `@windmorph/test-utils`, Storybook, the playground and the site are private workspace packages, and Windmorph Pro is published from its own repository. Versions and changelogs come from Changesets (`.changeset/`): every user-visible change adds a changeset (`pnpm changeset`).
+
+- **Package metadata:** `repository` (with `directory`), `homepage`, `bugs`, `keywords` and `publishConfig` (`access: public`, `provenance: true`). The tarball holds `dist` (ESM, `.d.ts`, the CSS entry points, the CLI with its shebang, and source maps that embed their sources, since `src` isn't published), `NOTICE`, `README.md` and the root `LICENSE`, which pnpm adds. There is no `engines` field: Node 24 is the repo's toolchain, and consumers' requirements come from the peer dependencies. To check a release candidate, run `pnpm --filter @windmorph/react pack`, then `npx publint` and `npx @arethetypeswrong/cli --profile esm-only` (leaving out the CSS entry points) on the tarball.
+- **Workflow** (`.github/workflows/release.yml`, on every push to `main`): Changesets' `select-mode` picks one of three modes.
+  - *version*: pending changesets exist, so it opens or updates the "chore(release): version packages" pull request (bumped version, `CHANGELOG.md`, changesets removed).
+  - *publish*: no pending changesets, and the package's version isn't on npm yet. The `pack` job runs CI's checks (format, traces, `turbo run build typecheck lint test`, with Windmorph Pro installed through `PRO_READ_TOKEN`) and packs the tarball with `pnpm pack`. The `publish` job publishes it with `pnpm publish` and npm provenance, then pushes a `@windmorph/react@<version>` tag and a GitHub release. Only `publish` has `id-token: write`, and it runs in the `npm` GitHub environment, where required reviewers can gate releases.
+  - *none*: nothing to do.
+- **A release:** merge pull requests that carry changesets → merge the release pull request the workflow opens → that merge publishes. The release pull request is opened with `GITHUB_TOKEN`, so CI doesn't start on it by itself: close and reopen it (or push to its branch) to run the checks before merging.
+- **Authentication:** npm trusted publishing (OIDC) once it's configured for `@windmorph/react` on npmjs.com (repository `XManhTrinh/windmorph`, workflow `release.yml`, environment `npm`); npm then adds provenance automatically. Until then, the **`NPM_TOKEN`** secret: a granular access token with read and write access to the `@windmorph` scope (allowed to bypass two-factor authentication if the account requires it for publishing), written to the runner's `~/.npmrc`, since pnpm doesn't read tokens from environment variables in a project `.npmrc`. Once trusted publishing works, delete `NPM_TOKEN` and set the package to require two-factor authentication and disallow tokens.
+- **Repository settings:** Actions → General → "Allow GitHub Actions to create and approve pull requests" must be on; `NPM_TOKEN` is a secret of the `npm` environment (or of the repository); `PRO_READ_TOKEN` as for CI.
+- **0.1.0, the first publish:** the package is already at 0.1.0, and the pending changesets are dropped when the 0.1.0 work is squashed into one release commit, so 0.1.0 has no version pull request. When that commit reaches `main`, `select-mode` finds no changesets and no 0.1.0 on npm, and the workflow publishes 0.1.0 directly (`pnpm changeset publish-plan` shows the plan locally). Before that merge, the `@windmorph` scope must belong to the publishing npm account or organisation, and `NPM_TOKEN` (or a trusted publisher, which must publish within two days of being created) must be in place. Later releases go through changesets and the release pull request.
+- **Manual fallback:** the root `pnpm release` script (build, then `changeset publish`) publishes from a local checkout; such a publish carries no provenance.
+
 ## 13. Repo layout (pnpm workspaces + Turborepo)
 
 ```
@@ -904,7 +919,7 @@ Windmorph Pro (`@windmorph/react-pro`) lives in its own private repository.
 - Layout-safety override matrix (§10)
 - Next playground build + Playwright in CI
 - Docs site (`apps/site`, §1 #23): build + static export, an internal link checker over `out/`, and a registry-driven Playwright smoke suite over every page (home, guides, all component slugs) asserting render, no console errors, an axe scan, RTL and dark mode — all run in CI
-- Changesets for versioning/changelog
+- Changesets for versioning/changelog; releases run in `.github/workflows/release.yml` (§12, "Releasing")
 
 ## 15. Component roadmap (M3 Expressive set)
 
