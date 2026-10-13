@@ -61,6 +61,34 @@ export const BottomTall: Story = {
 };
 
 /**
+ * Content that scrolls, with a row of filters that scrolls sideways. On a touch screen, a
+ * drag down on the content at its top moves the sheet; otherwise the content scrolls.
+ */
+export const BottomScrolling: Story = {
+  render: () => (
+    <SheetTrigger>
+      <Button>Open sheet</Button>
+      <BottomSheet aria-label="Places" data-testid="sheet">
+        {({ close }) => (
+          <>
+            <div className="flex gap-2 overflow-x-auto px-4 pb-2" data-testid="filters">
+              {['Cafés', 'Parks', 'Museums', 'Markets', 'Libraries', 'Galleries', 'Gardens'].map(
+                (name) => (
+                  <Button key={name} variant="tonal" className="shrink-0">
+                    {name}
+                  </Button>
+                ),
+              )}
+            </div>
+            <Options count={24} onPick={close} />
+          </>
+        )}
+      </BottomSheet>
+    </SheetTrigger>
+  ),
+};
+
+/**
  * A standard bottom sheet sits over the page without a scrim, collapsed to its peek height;
  * the page behind stays usable. Here it is placed in a bounded region.
  */

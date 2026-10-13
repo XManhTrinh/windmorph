@@ -169,6 +169,81 @@ test.describe('Bottom sheet', () => {
   });
 });
 
+/** A one-finger touch drag through the browser's own gesture handling (scrolling included). */
+async function touchDrag(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  steps = 12,
+) {
+  const cdp = await page.context().newCDPSession(page);
+  const point = (t: number) => ({
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t,
+  });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
+  for (let step = 1; step <= steps; step++) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [point(step / steps)],
+    });
+    await page.waitForTimeout(16);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await cdp.detach();
+}
+
+test.describe('Bottom sheet drags from its content (touch)', () => {
+  test.use({ hasTouch: true, viewport: { width: 412, height: 800 } });
+
+  const open = async (page: Page) => {
+    await openStory(page, 'components-sheet--bottom-scrolling');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    const sheet = page.getByRole('dialog');
+    await settle(page);
+    const content = page.getByTestId('filters').locator('..');
+    return { sheet, content };
+  };
+  const scrollTop = (content: Locator) => content.evaluate((el) => el.scrollTop);
+
+  test('a drag down with the content at its top closes the sheet', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    expect((await rect(sheet)).y).toBe(400);
+    expect(await scrollTop(content)).toBe(0);
+    await touchDrag(page, { x: 200, y: 600 }, { x: 200, y: 790 });
+    await expect(sheet).toBeHidden();
+  });
+
+  test('a drag down while the content is scrolled scrolls it back', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    await content.evaluate((el) => el.scrollTo({ top: 300 }));
+    await touchDrag(page, { x: 200, y: 500 }, { x: 200, y: 650 });
+    await settle(page);
+    expect(await scrollTop(content)).toBeLessThan(300);
+    expect((await rect(sheet)).y).toBe(400);
+    await expect(sheet).toBeVisible();
+  });
+
+  test('a drag up scrolls the content, even at its top', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    await touchDrag(page, { x: 200, y: 700 }, { x: 200, y: 550 });
+    await settle(page);
+    expect(await scrollTop(content)).toBeGreaterThan(0);
+    expect((await rect(sheet)).y).toBe(400);
+  });
+
+  test('a sideways drag scrolls a horizontal scroller inside', async ({ page }) => {
+    const { sheet } = await open(page);
+    const filters = page.getByTestId('filters');
+    const row = await rect(filters);
+    const y = row.y + row.height / 2;
+    await touchDrag(page, { x: 350, y }, { x: 100, y: y + 20 });
+    await settle(page);
+    expect(await filters.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    expect((await rect(sheet)).y).toBe(400);
+  });
+});
+
 test.describe('Side sheet', () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`modal sheet slides in at the end edge · ${dir}`, async ({ page }) => {

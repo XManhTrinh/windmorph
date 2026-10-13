@@ -68,7 +68,9 @@ export const bottomSheetStyles = tv({
     ],
     handleBar: 'h-[4px] w-[32px] rounded-corner-extra-large bg-on-surface-variant',
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
-    content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain',
+    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
+    content:
+      'min-h-0 flex-1 overflow-y-auto overscroll-contain data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
   },
   variants: {
     variant: {

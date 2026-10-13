@@ -124,6 +124,14 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               still drags it.
             </li>
             <li>
+              On a touch screen, a drag down that starts on the content while it is scrolled to its
+              top moves the sheet, with the handle&apos;s settling and dismissal. A drag up, or any
+              drag while the content is scrolled, scrolls it; each gesture keeps its first choice
+              until the finger lifts. Sideways drags, form fields and elements that handle their own
+              drags (such as sliders) are left alone, and a mouse drag on the content selects text
+              as usual.
+            </li>
+            <li>
               A modal bottom sheet that fills the window shows a close button (
               <InlineCode>labels.close</InlineCode>); a standard one shows a collapse button.{' '}
               <InlineCode>closeButton=&#123;false&#125;</InlineCode> hides it.
@@ -177,8 +185,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               &ldquo;Side sheets cannot scroll horizontally&rdquo;).
             </li>
             <li>
-              Not in v1: dragging through nested scrolling, predictive back, and detents beyond half
-              / full (modal) or peek / full (standard).
+              Not in v1: predictive back, and detents beyond half / full (modal) or peek / full
+              (standard).
             </li>
           </ul>
         </section>

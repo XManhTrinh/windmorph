@@ -2,6 +2,7 @@
 
 import {
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -29,6 +30,13 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
+import {
+  contentGesture,
+  DRAG_SLOP,
+  type ContentGesture,
+  ownsGesture,
+  scrolledAbove,
+} from './sheet-gesture';
 import { settleTarget } from './sheet-settle';
 import { bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
@@ -66,8 +74,6 @@ const DEFAULT_LABELS: BottomSheetLabels = {
 
 /** The interactive strip at the top of a sheet without a drag handle (m3.material.io). */
 const DRAG_ZONE = 48;
-/** How far a pointer moves before a press becomes a drag. */
-const DRAG_SLOP = 4;
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
@@ -247,9 +253,14 @@ function BottomSheetPanel({
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const [detent, setDetent] = useState<'expanded' | 'lower' | null>(null);
   const [drag, setDrag] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const pointer = useRef({
     pending: false,
     fromHandle: false,
+    /** Started on the content, where a drag only moves the sheet once it picks `drag`. */
+    fromContent: false,
+    gesture: 'undecided' as ContentGesture,
+    x: 0,
     y: 0,
     offset: 0,
     id: 0,
@@ -306,11 +317,18 @@ function BottomSheetPanel({
     else close();
   };
 
-  const startPointer = (event: PointerEvent<HTMLElement>, fromHandle: boolean) => {
+  const startPointer = (
+    event: PointerEvent<HTMLElement>,
+    fromHandle: boolean,
+    fromContent = false,
+  ) => {
     if (event.button !== 0) return;
     pointer.current = {
       pending: true,
       fromHandle,
+      fromContent,
+      gesture: 'undecided',
+      x: event.clientX,
       y: event.clientY,
       offset: restingOffset,
       id: event.pointerId,
@@ -320,6 +338,19 @@ function BottomSheetPanel({
   const movePointer = (event: PointerEvent<HTMLElement>) => {
     const start = pointer.current;
     if (!start.pending) return;
+    if (start.fromContent && start.gesture !== 'drag') {
+      // Once a touch on the content picks scrolling or dragging, it keeps that choice.
+      start.gesture = contentGesture(
+        event.clientX - start.x,
+        event.clientY - start.y,
+        scrolledAbove(event.target as Element, contentRef.current!),
+      );
+      if (start.gesture === 'undecided') return;
+      if (start.gesture === 'scroll') {
+        start.pending = false;
+        return;
+      }
+    }
     start.samples = [...start.samples, { y: event.clientY, t: event.timeStamp }].filter(
       (sample) => event.timeStamp - sample.t < 100,
     );
@@ -351,6 +382,39 @@ function BottomSheetPanel({
     const top = event.currentTarget.getBoundingClientRect().top;
     if (event.clientY - top <= DRAG_ZONE) startPointer(event, false);
   };
+
+  // A touch (or pen) drag down on content scrolled to its top moves the sheet, as the
+  // handle does. Mouse drags select text instead, as they always have on the web.
+  const onContentPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    const content = contentRef.current;
+    const target = event.target as Element;
+    pointer.current.fromContent = false;
+    if (event.pointerType === 'mouse' || !content?.contains(target)) return;
+    if (ownsGesture(target, content)) return;
+    startPointer(event, false, true);
+  };
+
+  // While the content is at its top, the browser only scrolls it for upward and sideways
+  // moves (`touch-action: pan-x pan-down`), so a downward one reaches the sheet as pointer
+  // events. Browsers without `pan-down` (iOS Safari) are stopped from scrolling or
+  // rubber-banding by cancelling the touch moves of a drag.
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const update = () => content.toggleAttribute('data-at-top', content.scrollTop <= 0);
+    const onTouchMove = (event: TouchEvent) => {
+      const start = pointer.current;
+      if (start.pending && start.fromContent && start.gesture === 'drag' && event.cancelable)
+        event.preventDefault();
+    };
+    update();
+    content.addEventListener('scroll', update, { passive: true });
+    content.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      content.removeEventListener('scroll', update);
+      content.removeEventListener('touchmove', onTouchMove);
+    };
+  }, []);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Escape' || isExiting) return;
@@ -394,21 +458,39 @@ function BottomSheetPanel({
     >
       <div
         {...panelProps}
+        // Content drags listen in the capture phase: pressable content (list items, buttons)
+        // stops its pointer events from bubbling.
+        onPointerDownCapture={(event) => {
+          panelProps.onPointerDownCapture?.(event);
+          onContentPointerDown(event);
+        }}
+        onPointerMoveCapture={(event) => {
+          panelProps.onPointerMoveCapture?.(event);
+          if (pointer.current.fromContent) movePointer(event);
+        }}
+        onPointerUpCapture={(event) => {
+          panelProps.onPointerUpCapture?.(event);
+          if (pointer.current.fromContent) endPointer(event);
+        }}
+        onPointerCancelCapture={(event) => {
+          panelProps.onPointerCancelCapture?.(event);
+          if (pointer.current.fromContent) cancelPointer();
+        }}
         onPointerDown={(event) => {
           panelProps.onPointerDown?.(event);
-          if (zone) onZonePointerDown(event);
+          if (zone && !pointer.current.fromContent) onZonePointerDown(event);
         }}
         onPointerMove={(event) => {
           panelProps.onPointerMove?.(event);
-          if (zone) movePointer(event);
+          if (zone && !pointer.current.fromContent) movePointer(event);
         }}
         onPointerUp={(event) => {
           panelProps.onPointerUp?.(event);
-          if (zone) endPointer(event);
+          if (zone && !pointer.current.fromContent) endPointer(event);
         }}
         onPointerCancel={(event) => {
           panelProps.onPointerCancel?.(event);
-          if (zone) cancelPointer();
+          if (zone && !pointer.current.fromContent) cancelPointer();
         }}
         ref={panelRef}
         style={style}
@@ -452,7 +534,7 @@ function BottomSheetPanel({
               />
             </div>
           )}
-          <div className={styles.content({ class: classNames?.content })}>
+          <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
             {typeof children === 'function' ? children({ close }) : children}
           </div>
         </TriggerContext>
