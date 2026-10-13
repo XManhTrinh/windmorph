@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test';
 
 /** The docs shell: page search, display settings and the direction switch. */
 test.describe('Docs shell', () => {
-  test("the top bar's search is 48px, and opens over itself at that height", async ({ page }) => {
+  test("the top bar's search is 48px, and opens over itself as M3's 56px field", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/getting-started');
     const input = page.getByRole('combobox', { name: 'Search documentation' });
@@ -12,7 +14,8 @@ test.describe('Docs shell', () => {
     await input.click();
     const dialog = page.getByRole('dialog', { name: 'Search documentation' });
     const field = dialog.getByRole('searchbox').locator('..');
-    await expect.poll(async () => (await field.boundingBox())!.height).toBe(48);
+    // The expanded docked field is always M3's 56px, centred on the bar.
+    await expect.poll(async () => (await field.boundingBox())!.height).toBe(56);
   });
 
   test('search finds a component page and opens it', async ({ page }) => {

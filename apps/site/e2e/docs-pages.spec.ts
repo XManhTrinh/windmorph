@@ -36,9 +36,9 @@ test.describe('Component page tabs', () => {
   test('the arrow keys move between tabs and Enter opens one', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
-    // The playground writes its settings to the URL once it hydrates; start after that, so the
-    // URL update can't land between the key presses.
-    await expect(page).toHaveURL(/\?variant=/);
+    // Start once the playground has hydrated (its segmented controls are radios then). It
+    // leaves the URL alone until a control changes, so nothing re-renders between the presses.
+    await expect(page.getByRole('radio', { name: 'outlined', exact: true })).toBeVisible();
     await page.getByRole('tab', { name: 'Overview' }).focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('tab', { name: 'API' })).toBeFocused();
