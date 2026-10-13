@@ -102,6 +102,23 @@ test.describe('List visual regression', () => {
     });
   }
 
+  for (const mode of MODES) {
+    test(`sections · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-list--sections', { mode });
+      await expect(page.getByTestId('sections')).toHaveScreenshot(`sections-${mode}.png`);
+    });
+  }
+
+  test('sections · standard', async ({ page }) => {
+    await openStory(page, 'components-list--sections', {}, { variant: 'standard' });
+    await expect(page.getByTestId('sections')).toHaveScreenshot('sections-standard.png');
+  });
+
+  test('sections · selection · rtl', async ({ page }) => {
+    await openStory(page, 'components-list--sections', { dir: 'rtl' }, { kind: 'selection' });
+    await expect(page.getByTestId('sections')).toHaveScreenshot('sections-selection-rtl.png');
+  });
+
   test('selection · rtl', async ({ page }) => {
     await openStory(page, 'components-list--selection', { dir: 'rtl' });
     await expect(page.getByTestId('selection')).toHaveScreenshot('selection-rtl.png');
@@ -165,6 +182,47 @@ test.describe('List geometry and interaction', () => {
       .locator('..')
       .evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
     expect(corner).toBe('12px');
+  });
+
+  test('sections: subheaders line up with the headlines, corners and keys follow sections', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-list--sections');
+    const grid = page.getByRole('grid', { name: 'Settings' });
+    const network = grid.getByRole('rowgroup', { name: 'Network' });
+    await expect(grid.getByRole('rowgroup', { name: 'Display' })).toBeVisible();
+    const subheader = await rect(network.getByRole('rowheader'));
+    const wifi = network.getByRole('row', { name: /Wi‑Fi/ });
+    const item = await rect(wifi);
+    expect(subheader.height).toBe(48);
+    const subheaderText = await network.getByRole('rowheader').evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return Math.round(range.getBoundingClientRect().x);
+    });
+    expect(subheaderText - item.x).toBe(16);
+    expect(item.y).toBe(subheader.y + subheader.height);
+    // Each section is its own segmented group: 16px outer corners at both of its ends.
+    const brightness = grid.getByRole('row', { name: /Brightness/ });
+    expect(await radius(brightness)).toEqual(['16px', '4px']);
+    expect(await radius(grid.getByRole('row', { name: /Bluetooth/ }))).toEqual(['4px', '16px']);
+    // ↓ from the last item of a section reaches the first of the next.
+    await page.keyboard.press('Tab');
+    await expect(wifi).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    await expect(brightness).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('action')).toHaveText('brightness');
+
+    await openStory(page, 'components-list--sections', {}, { kind: 'selection' });
+    const listbox = page.getByRole('listbox', { name: 'Settings' });
+    await expect(listbox.getByRole('group', { name: 'Display' }).getByRole('option')).toHaveCount(
+      2,
+    );
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowUp');
+    await expect(listbox.getByRole('option', { name: /Font size/ })).toBeFocused();
   });
 
   test('items follow Compose padding, spacing and heights', async ({ page }) => {

@@ -5,6 +5,7 @@ import {
   ListItemAvatar,
   ListItemImage,
   ListItemVideo,
+  ListSection,
   Switch,
   type ListVariant,
 } from '@windmorph/react';
@@ -376,6 +377,54 @@ export const DividersAndLines: Story = {
       </List>
     </div>
   ),
+};
+
+/**
+ * Sections: each `ListSection` is a labelled group under a subheader. Items take their
+ * corners within their section, and ↑ / ↓ move across sections as through one list.
+ */
+export const Sections: StoryObj<Args & { kind: 'static' | 'action' | 'selection' }> = {
+  args: { kind: 'action' },
+  argTypes: { kind: { control: 'inline-radio', options: ['static', 'action', 'selection'] } },
+  render: function SectionsStory({ variant, kind }) {
+    const [action, setAction] = useState('');
+    return (
+      <div
+        className="w-[360px] rounded-corner-extra-large bg-surface-container p-3"
+        data-testid="sections"
+      >
+        <List
+          aria-label="Settings"
+          variant={variant}
+          {...(kind === 'action' && { onAction: (key) => setAction(String(key)) })}
+          {...(kind === 'selection' && {
+            selectionMode: 'multiple' as const,
+            defaultSelectedKeys: ['wifi'],
+          })}
+        >
+          <ListSection key="network" title="Network">
+            <ListItem key="wifi" leading={<HomeIcon />} supportingText="Connected">
+              Wi‑Fi
+            </ListItem>
+            <ListItem key="bluetooth" leading={<SendIcon />}>
+              Bluetooth
+            </ListItem>
+          </ListSection>
+          <ListSection key="display" title="Display">
+            <ListItem key="brightness" leading={<StarIcon />}>
+              Brightness
+            </ListItem>
+            <ListItem key="font" leading={<SearchIcon />} supportingText="Default">
+              Font size
+            </ListItem>
+          </ListSection>
+        </List>
+        <p className="sr-only" data-testid="action">
+          {action}
+        </p>
+      </div>
+    );
+  },
 };
 
 /** Layout safety (architecture §10). */

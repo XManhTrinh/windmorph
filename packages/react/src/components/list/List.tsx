@@ -24,9 +24,11 @@ import {
   useFocusRing,
   useGridList,
   useGridListItem,
+  useGridListSection,
   useHover,
   useLink,
   useListBox,
+  useListBoxSection,
   useObjectRef,
   useOption,
   useRadio,
@@ -185,8 +187,74 @@ ListItemElement.getCollectionNode = function* getCollectionNode(
  */
 export const ListItem = ListItemElement as unknown as (props: ListItemProps) => JSX.Element;
 
+/** Props of a {@link ListSection}: a subheader, or a name when it shows none. */
+export type ListSectionProps = {
+  /** `ListItem` elements, each with its own `key`. */
+  children: ReactElement<ListItemProps> | ReactElement<ListItemProps>[];
+  className?: string;
+} & (
+  | {
+      /** The subheader shown above the section's items, which names the group. */
+      title: ReactNode;
+      'aria-label'?: string;
+    }
+  | { title?: undefined; 'aria-label': string }
+);
+
+/** A collection node for a section, as React Stately's `Section` describes it. */
+interface ListSectionNode {
+  type: 'section';
+  props: ListSectionProps;
+  rendered: ReactNode;
+  'aria-label'?: string | undefined;
+  hasChildNodes: true;
+  childNodes: () => Iterable<ListItemNode>;
+}
+
+function ListSectionElement(_props: ListSectionProps): null {
+  return null;
+}
+
+/** Describes the section to React Stately's collection builder, as its `Section` does. */
+ListSectionElement.getCollectionNode = function* getCollectionNode(
+  props: ListSectionProps,
+): Generator<ListSectionNode> {
+  const children = listItems(props.children);
+  yield {
+    type: 'section',
+    props,
+    rendered: props.title,
+    'aria-label': props['aria-label'],
+    hasChildNodes: true,
+    *childNodes() {
+      for (const element of children) yield { type: 'item', element };
+    },
+  };
+};
+
+/**
+ * A labelled group of items in a {@link List}, under a subheader (`title`). Identify it with
+ * a React `key`, like its items. Arrow keys move across sections as through one list.
+ * Sections go in static, action (grid) and selection (list box) lists, not in radio lists
+ * or lists with `childItems`.
+ *
+ * @example
+ * <List aria-label="Settings" onAction={open}>
+ *   <ListSection key="network" title="Network">
+ *     <ListItem key="wifi">Wi‑Fi</ListItem>
+ *   </ListSection>
+ * </List>
+ */
+export const ListSection = ListSectionElement as unknown as (
+  props: ListSectionProps,
+) => JSX.Element;
+
 export interface ListClassNames {
   root?: string;
+  /** Each `ListSection`'s wrapper (its subheader and items). */
+  section?: string;
+  /** Each `ListSection`'s subheader. */
+  subheader?: string;
   item?: string;
   leading?: string;
   text?: string;
@@ -202,11 +270,13 @@ export interface ListClassNames {
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
+type ListChild = ReactElement<ListItemProps> | ReactElement<ListSectionProps>;
+
 interface ListOwnProps {
   /** Flush items, or separate items 2px apart with rounded group corners. @default "standard" */
   variant?: ListVariant;
-  /** `ListItem` elements. */
-  children: ReactElement<ListItemProps> | ReactElement<ListItemProps>[];
+  /** `ListItem` elements, or `ListSection`s of them. */
+  children: ListChild | ListChild[];
   /** Called when an item is pressed or Enter is pressed on it. Makes the list interactive. */
   onAction?: (key: Key) => void;
   /** @default "none" */
@@ -313,7 +383,11 @@ export function List(props: ListProps) {
 }
 
 function ListBody(props: ListProps) {
-  const items = listItems(props.children);
+  const entries = listItems(props.children);
+  const items = entries.flatMap((entry) =>
+    isSection(entry) ? listItems(entry.props.children) : [entry as ReactElement<ListItemProps>],
+  );
+  const sectioned = entries.some(isSection);
   if (
     props.value !== undefined ||
     props.defaultValue !== undefined ||
@@ -328,13 +402,19 @@ function ListBody(props: ListProps) {
           'onValueChange) needs a value, and none can have a control or an href.',
       );
     }
+    if (sectioned) {
+      throw new Error(
+        "[@windmorph/react] List: a radio list can't hold ListSections. Use one radio list " +
+          'per group, or a list with selectionMode="single".',
+      );
+    }
     return <RadioList {...props} items={items} />;
   }
   const selectable = props.selectionMode != null && props.selectionMode !== 'none';
   const expandable = items.some((item) => listItems(item.props.childItems).length > 0);
   // Links alone don't make a grid list: they render as real anchors in a plain list.
   const interactive = props.onAction != null || selectable || expandable;
-  if (!interactive) return <StaticList {...props} items={items} />;
+  if (!interactive) return <StaticList {...props} entries={entries} />;
   if (items.some((item) => item.props.control != null)) {
     throw new Error(
       "[@windmorph/react] List: switch and checkbox items (control) can't be in a list with " +
@@ -342,7 +422,15 @@ function ListBody(props: ListProps) {
         "Switch in an item's trailing content.",
     );
   }
-  if (expandable) return <InteractiveList {...props} kind="tree" />;
+  if (expandable) {
+    if (sectioned) {
+      throw new Error(
+        "[@windmorph/react] List: a list with childItems can't hold ListSections; nest the " +
+          'groups as expandable items instead.',
+      );
+    }
+    return <InteractiveList {...props} kind="tree" />;
+  }
   // A selection list is a list box (M3: "Container: List box · List item: Option"); a list
   // whose items also act or link keeps the grid list's separate actions.
   if (selectable && props.onAction == null && !items.some((item) => item.props.href != null)) {
@@ -465,9 +553,9 @@ function StaticList({
   className,
   style,
   ref,
-  items,
+  entries,
   ...rest
-}: ListProps & { items: ReactElement<ListItemProps>[] }) {
+}: ListProps & { entries: ReactElement[] }) {
   const { data } = splitDataAttributes(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
@@ -476,6 +564,51 @@ function StaticList({
   const root = listStyles({ variant }).root({ class: cn(classNames?.root, className) });
   const options = useContext(ListOptionsContext);
   const disabledKeySet = new Set<Key>(rest.disabledKeys ?? []);
+  const renderItems = (items: ReactElement<ListItemProps>[]) =>
+    items.map((item, index) => {
+      const isDisabled = Boolean(
+        disabled || item.props.disabled || (item.key != null && disabledKeySet.has(item.key)),
+      );
+      if (item.props.href != null) {
+        return (
+          <LinkItem
+            key={item.key ?? index}
+            item={item.props}
+            variant={variant}
+            classNames={classNames}
+            position={position(index, items.length)}
+            isDisabled={isDisabled}
+          />
+        );
+      }
+      if (item.props.control != null) {
+        return (
+          <li key={item.key ?? index}>
+            <ToggleItem
+              item={item.props}
+              control={item.props.control}
+              variant={variant}
+              classNames={classNames}
+              position={position(index, items.length)}
+              listDisabled={isDisabled}
+            />
+          </li>
+        );
+      }
+      const styles = itemStyles(item.props, variant, false, options);
+      return (
+        <li
+          key={item.key ?? index}
+          data-shape="rest"
+          data-position={position(index, items.length)}
+          className={styles.item({ class: cn(classNames?.item, item.props.className) })}
+        >
+          <span className={styles.cell()}>
+            <ItemContent item={item.props} styles={styles} classNames={classNames} />
+          </span>
+        </li>
+      );
+    });
   return (
     <ul
       {...data}
@@ -485,51 +618,99 @@ function StaticList({
       aria-labelledby={labelledBy}
       className={root}
     >
-      {items.map((item, index) => {
-        const isDisabled = Boolean(
-          disabled || item.props.disabled || (item.key != null && disabledKeySet.has(item.key)),
-        );
-        if (item.props.href != null) {
-          return (
-            <LinkItem
-              key={item.key ?? index}
-              item={item.props}
-              variant={variant}
-              classNames={classNames}
-              position={position(index, items.length)}
-              isDisabled={isDisabled}
-            />
-          );
-        }
-        if (item.props.control != null) {
-          return (
-            <li key={item.key ?? index}>
-              <ToggleItem
-                item={item.props}
-                control={item.props.control}
-                variant={variant}
-                classNames={classNames}
-                position={position(index, items.length)}
-                listDisabled={isDisabled}
-              />
-            </li>
-          );
-        }
-        const styles = itemStyles(item.props, variant, false, options);
-        return (
-          <li
-            key={item.key ?? index}
-            data-shape="rest"
-            data-position={position(index, items.length)}
-            className={styles.item({ class: cn(classNames?.item, item.props.className) })}
+      {groupEntries(entries).map((group, index) =>
+        group.section ? (
+          <StaticSection
+            key={group.section.key ?? `section-${index}`}
+            section={group.section.props}
+            variant={variant}
+            classNames={classNames}
           >
-            <span className={styles.cell()}>
-              <ItemContent item={item.props} styles={styles} classNames={classNames} />
-            </span>
-          </li>
-        );
-      })}
+            {renderItems(group.items)}
+          </StaticSection>
+        ) : (
+          renderItems(group.items)
+        ),
+      )}
     </ul>
+  );
+}
+
+/** Whether a `List` child is a `ListSection`. */
+function isSection(element: ReactElement): element is ReactElement<ListSectionProps> {
+  return element.type === ListSectionElement;
+}
+
+/**
+ * The list's children as groups: each `ListSection`, and each run of items outside one, so
+ * that items take their position (for segmented corners and dividers) within their group.
+ */
+function groupEntries(entries: ReactElement[]) {
+  const groups: {
+    section: ReactElement<ListSectionProps> | null;
+    items: ReactElement<ListItemProps>[];
+  }[] = [];
+  for (const entry of entries) {
+    if (isSection(entry)) {
+      groups.push({ section: entry, items: listItems(entry.props.children) });
+      continue;
+    }
+    const item = entry as ReactElement<ListItemProps>;
+    const last = groups.at(-1);
+    if (last?.section === null) last.items.push(item);
+    else groups.push({ section: null, items: [item] });
+  }
+  return groups;
+}
+
+/** The collection's top-level nodes as groups: each section, and each run of items. */
+function groupNodes(collection: ListState<object>['collection']) {
+  const groups: { section: Node<object> | null; items: Node<object>[] }[] = [];
+  for (const node of collection) {
+    if (node.type === 'section') {
+      const items = [...collection.getChildren!(node.key)].filter((child) => child.type === 'item');
+      groups.push({ section: node, items });
+      continue;
+    }
+    const last = groups.at(-1);
+    if (last?.section === null) last.items.push(node);
+    else groups.push({ section: null, items: [node] });
+  }
+  return groups;
+}
+
+/** The name of a section's group: its `aria-label`, else its subheader. */
+function sectionNaming(section: { title?: ReactNode; 'aria-label'?: string }, headingId: string) {
+  return section['aria-label'] != null
+    ? { 'aria-label': section['aria-label'] }
+    : { 'aria-labelledby': headingId };
+}
+
+/** A section of a plain list: a subheader and a nested list named by it. */
+function StaticSection({
+  section,
+  variant,
+  classNames,
+  children,
+}: {
+  section: ListSectionProps;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  children: ReactNode;
+}) {
+  const headingId = useId();
+  const styles = listStyles({ variant, titled: section.title != null });
+  return (
+    <li className={styles.section({ class: cn(classNames?.section, section.className) })}>
+      {section.title != null && (
+        <div id={headingId} className={styles.subheader({ class: classNames?.subheader })}>
+          {section.title}
+        </div>
+      )}
+      <ul {...sectionNaming(section, headingId)} className={styles.group()}>
+        {children}
+      </ul>
+    </li>
   );
 }
 
@@ -621,7 +802,6 @@ function GridList({
   const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
   const state = useListState(options);
   const { gridProps } = useGridList(options, state, rootRef);
-  const nodes = [...state.collection];
   return (
     <div
       {...mergeProps(data, gridProps)}
@@ -632,16 +812,77 @@ function GridList({
       style={style}
       className={className}
     >
-      {nodes.map((node, index) => (
-        <GridListRow
-          key={node.key}
-          node={node}
-          state={state}
-          variant={variant}
-          classNames={classNames}
-          position={position(index, nodes.length)}
-        />
-      ))}
+      {groupNodes(state.collection).map((group) => {
+        const rows = group.items.map((node, index) => (
+          <GridListRow
+            key={node.key}
+            node={node}
+            state={state}
+            variant={variant}
+            classNames={classNames}
+            position={position(index, group.items.length)}
+          />
+        ));
+        return group.section ? (
+          <GridListSection
+            key={group.section.key}
+            node={group.section}
+            state={state}
+            variant={variant}
+            classNames={classNames}
+          >
+            {rows}
+          </GridListSection>
+        ) : (
+          rows
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * A section of a grid list: a row group named by its subheader, a header row holding a row
+ * header (React Aria's `GridListSection` structure), then the items' rows.
+ */
+function GridListSection({
+  node,
+  state,
+  variant,
+  classNames,
+  children,
+}: {
+  node: Node<object>;
+  state: ListState<object>;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const section = node.props as ListSectionProps;
+  const { rowProps, rowHeaderProps, rowGroupProps } = useGridListSection(
+    { 'aria-label': section['aria-label'] },
+    state,
+    ref,
+  );
+  const styles = listStyles({ variant, titled: section.title != null });
+  return (
+    <div
+      {...rowGroupProps}
+      {...(section['aria-label'] != null && { 'aria-labelledby': undefined })}
+      ref={ref}
+      className={styles.section({ class: cn(classNames?.section, section.className) })}
+    >
+      {section.title != null && (
+        <div {...rowProps}>
+          <div {...rowHeaderProps} className={styles.subheader({ class: classNames?.subheader })}>
+            {section.title}
+          </div>
+        </div>
+      )}
+      <div role="presentation" className={styles.group()}>
+        {children}
+      </div>
     </div>
   );
 }
@@ -735,7 +976,6 @@ function ListBoxList({
   const listBoxOptions = options as unknown as AriaListBoxOptions<object>;
   const state = useListState(listBoxOptions);
   const { listBoxProps } = useListBox(listBoxOptions, state, rootRef);
-  const nodes = [...state.collection];
   return (
     <div
       {...mergeProps(data, listBoxProps)}
@@ -746,16 +986,69 @@ function ListBoxList({
       style={style}
       className={className}
     >
-      {nodes.map((node, index) => (
-        <OptionRow
-          key={node.key}
-          node={node}
-          state={state}
-          variant={variant}
-          classNames={classNames}
-          position={position(index, nodes.length)}
-        />
-      ))}
+      {groupNodes(state.collection).map((group) => {
+        const rows = group.items.map((node, index) => (
+          <OptionRow
+            key={node.key}
+            node={node}
+            state={state}
+            variant={variant}
+            classNames={classNames}
+            position={position(index, group.items.length)}
+          />
+        ));
+        return group.section ? (
+          <ListBoxSection
+            key={group.section.key}
+            node={group.section}
+            variant={variant}
+            classNames={classNames}
+          >
+            {rows}
+          </ListBoxSection>
+        ) : (
+          rows
+        );
+      })}
+    </div>
+  );
+}
+
+/** A section of a list box: a subheader and a group of options named by it. */
+function ListBoxSection({
+  node,
+  variant,
+  classNames,
+  children,
+}: {
+  node: Node<object>;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  children: ReactNode;
+}) {
+  const section = node.props as ListSectionProps;
+  const { itemProps, headingProps, groupProps } = useListBoxSection({
+    heading: section.title,
+    'aria-label': section['aria-label'],
+  });
+  const styles = listStyles({ variant, titled: section.title != null });
+  return (
+    <div
+      {...itemProps}
+      className={styles.section({ class: cn(classNames?.section, section.className) })}
+    >
+      {section.title != null && (
+        <div {...headingProps} className={styles.subheader({ class: classNames?.subheader })}>
+          {section.title}
+        </div>
+      )}
+      <div
+        {...groupProps}
+        {...(section['aria-label'] != null && { 'aria-labelledby': undefined })}
+        className={styles.group()}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -997,6 +1290,7 @@ function disabledItemKeys(
   const keys = new Set<Key>(disabledKeys ?? []);
   const visit = (node: ReactNode) => {
     if (Array.isArray(node)) node.forEach(visit);
+    else if (isValidElement(node) && isSection(node)) visit(node.props.children);
     else if (isValidElement<ListItemProps>(node) && node.key != null) {
       if (all || node.props.disabled) keys.add(node.key);
     }

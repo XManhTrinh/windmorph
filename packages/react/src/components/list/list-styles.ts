@@ -26,6 +26,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `outline-variant` on the item's bottom edge, full width or 16dp in from each side, drawn
  * by its `::after` (the state layer uses its background), never under the last item.
  *
+ * Sections (`ListSection`) put a subheader above their items: 48dp tall, `title-small`
+ * `on-surface-variant`, 16dp from each side. The M3 spec defines no list subheader, so this
+ * follows the deprecated navigation drawer's section headline. Items take their position
+ * (segmented corners, dividers) within their section.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -33,6 +38,14 @@ import { tv, type VariantProps } from '../../utils/tv';
 export const listStyles = tv({
   slots: {
     root: 'm-0 flex list-none flex-col p-0 outline-none',
+    // A `ListSection`: its subheader, then its items' group.
+    section: 'flex flex-col',
+    // The M3 spec has no list subheader; this follows the deprecated navigation drawer's
+    // section headline (`title-small`, `on-surface-variant`), on a 48dp row with the items'
+    // 16dp side padding, so its text lines up with the headlines below it.
+    subheader:
+      'flex min-h-[48px] items-center ps-[16px] pe-[16px] text-title-small text-on-surface-variant',
+    group: 'm-0 flex list-none flex-col p-0',
     item: [
       'group/list-item flex ps-[16px] pe-[16px] pt-[10px] pb-[10px] text-start outline-none',
       'data-selected:bg-secondary-container',
@@ -97,7 +110,7 @@ export const listStyles = tv({
     variant: {
       // Standard items take their container's colour (a sheet, a card); see the doc note.
       standard: { item: 'bg-transparent' },
-      segmented: { root: 'gap-[2px]', item: 'bg-surface' },
+      segmented: { root: 'gap-[2px]', group: 'gap-[2px]', item: 'bg-surface' },
     },
     interactive: {
       true: {
@@ -150,6 +163,8 @@ export const listStyles = tv({
       true: { item: 'ps-[calc(16px+var(--m3-list-level,0)*16px)]' },
       false: {},
     },
+    // Whether a section shows a subheader.
+    titled: { true: {}, false: {} },
     // Overrides the alignment that follows from the line count.
     align: {
       center: { item: 'items-center', cell: 'items-center' },
@@ -157,6 +172,8 @@ export const listStyles = tv({
     },
   },
   compoundVariants: [
+    // Segmented sections without a subheader stand 16dp apart, so each reads as its own group.
+    { variant: 'segmented', titled: false, class: { section: 'not-first:pt-[16px]' } },
     // Segmented lists round the outer corners of the group at rest (static items too).
     {
       variant: 'segmented',

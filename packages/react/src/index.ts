@@ -441,9 +441,11 @@ export {
 export {
   List,
   ListItem,
+  ListSection,
   type LineLimit,
   type ListClassNames,
   type ListItemProps,
+  type ListSectionProps,
   type ListProps,
 } from './components/list/List';
 export {
