@@ -164,6 +164,26 @@ test.describe('Date picker', () => {
     await expect(page.getByTestId('value')).toHaveText('Value 2030-04-02');
   });
 
+  // The range band follows a nested theme scope (it used `--color-*`, which resolves once at
+  // the root, so a dark scope kept the root's light band).
+  test('the range band follows a dark theme scope', async ({ page }) => {
+    await openStory(page, 'components-pickers--date-range');
+    const picker = page.getByTestId('picker');
+    await picker.evaluate((el) => {
+      const root = document.querySelector('[data-mode]') ?? document.documentElement;
+      for (const name of root.getAttributeNames().filter((n) => n.startsWith('data-'))) {
+        el.setAttribute(name, root.getAttribute(name)!);
+      }
+      el.setAttribute('data-mode', 'dark');
+    });
+    const band = picker.locator('[data-range="middle"]').first();
+    const image = await band.evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(image).toContain(await roleColor(band, 'secondary-container'));
+    expect(await roleColor(band, 'secondary-container')).not.toBe(
+      await roleColor(page.locator('body'), 'secondary-container'),
+    );
+  });
+
   test('the range picker scrolls through the months', async ({ page }) => {
     await openStory(page, 'components-pickers--date-range');
     const picker = page.getByTestId('picker');
@@ -216,6 +236,144 @@ test.describe('Time picker', () => {
     // 6 o'clock on the minute face: 30 minutes.
     await page.mouse.click(cx, cy + 101);
     await expect(page.getByTestId('value')).toHaveText('Value 15:30:00');
+  });
+
+  /** The handle's centre in dial units, every frame for `ms`. */
+  const sampleHandle = (page: Page, ms: number) =>
+    page.evaluate((duration) => {
+      const handle = document.querySelector('svg[role="group"] circle.fill-primary[r="24"]')!;
+      const frames: { x: number; y: number }[] = [];
+      const start = performance.now();
+      return new Promise<typeof frames>((resolve) => {
+        const tick = () => {
+          frames.push({
+            x: Number(handle.getAttribute('cx')),
+            y: Number(handle.getAttribute('cy')),
+          });
+          if (performance.now() - start < duration) requestAnimationFrame(tick);
+          else resolve(frames);
+        };
+        tick();
+      });
+    }, ms);
+
+  // M3 motion: "Spatial springs apply to … rotation"; Compose turns the selector the short way.
+  test('the hand turns on a spring along the shortest arc', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12');
+    const dial = page.getByRole('group', { name: 'Clock' });
+    const box = await rect(dial);
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    // From 2 to 11 o'clock: the short way passes 12 at the top, never the bottom half.
+    await page.mouse.move(cx - 101 * Math.sin(Math.PI / 6), cy - 101 * Math.cos(Math.PI / 6));
+    await page.mouse.down();
+    const frames = await sampleHandle(page, 400);
+    await page.mouse.up();
+    const end = frames.at(-1)!;
+    expect(end.x).toBeCloseTo(128 - 101 * Math.sin(Math.PI / 6), 0);
+    // It starts at 2 o'clock and moves through more than two positions on the way.
+    expect(frames[0]!.x).toBeGreaterThan(128);
+    expect(new Set(frames.map((f) => Math.round(f.x))).size).toBeGreaterThan(4);
+    expect(Math.max(...frames.map((f) => f.y))).toBeLessThan(128);
+    // Releasing on the hour face crossfades to the minute face.
+    await expect(page.getByRole('textbox', { name: 'Minute' })).toHaveAttribute(
+      'data-selected',
+      'true',
+    );
+    expect(
+      await page.evaluate(() =>
+        document
+          .getAnimations()
+          .some((a) => a instanceof CSSTransition && a.transitionProperty === 'opacity'),
+      ),
+    ).toBe(true);
+  });
+
+  test('reduced motion: the hand jumps', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-pickers--time-12');
+    const box = await rect(page.getByRole('group', { name: 'Clock' }));
+    await page.mouse.move(
+      box.x + 128 - 101 * Math.sin(Math.PI / 6),
+      box.y + 128 - 101 * Math.cos(Math.PI / 6),
+    );
+    await page.mouse.down();
+    const frames = await sampleHandle(page, 100);
+    await page.mouse.up();
+    // Every frame already shows 11 o'clock.
+    for (const frame of frames) expect(frame.x).toBeCloseTo(128 - 101 * Math.sin(Math.PI / 6), 1);
+  });
+
+  test('minute taps snap to five; the numbers under the handle are on-primary', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-pickers--time-12');
+    await page.getByRole('textbox', { name: 'Minute' }).focus();
+    const dial = page.getByRole('group', { name: 'Clock' });
+    const box = await rect(dial);
+    // 7 minutes: 42° clockwise from 12.
+    const angle = (7 / 60) * 2 * Math.PI;
+    await page.mouse.click(
+      box.x + 128 + 101 * Math.sin(angle),
+      box.y + 128 - 101 * Math.cos(angle),
+    );
+    await expect(page.getByTestId('value')).toHaveText('Value 14:05:00');
+    // Typed minutes stay exact, and the handle half covers "05": its covered part is on-primary.
+    const minute = page.getByRole('textbox', { name: 'Minute' });
+    await minute.fill('07');
+    await expect(page.getByTestId('value')).toHaveText('Value 14:07:00');
+    await settle(page);
+    const copy = dial.locator('g[clip-path] text', { hasText: '05' });
+    expect(await copy.evaluate((el) => getComputedStyle(el).fill)).toBe(
+      await roleColor(dial, 'on-primary'),
+    );
+    const centre = (selector: string) =>
+      dial
+        .locator(selector)
+        .evaluate((el) => [Number(el.getAttribute('cx')), Number(el.getAttribute('cy'))]);
+    // The hand has turned to 7 minutes.
+    const seven = 128 + 101 * Math.sin(angle);
+    await expect
+      .poll(async () => (await centre('circle.fill-primary[r="24"]'))[0])
+      .toBeCloseTo(seven, 3);
+    const clip = await centre('clipPath circle');
+    const handle = await centre('circle.fill-primary[r="24"]');
+    expect(clip[0]).toBeCloseTo(handle[0]!, 3);
+    expect(clip[1]).toBeCloseTo(handle[1]!, 3);
+  });
+
+  test('a press within 74px of the centre picks the inner 24-hour ring', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-24');
+    const box = await rect(page.getByRole('group', { name: 'Clock' }));
+    const hour = page.getByRole('textbox', { name: 'Hour' });
+    await page.mouse.click(box.x + 128 + 78, box.y + 128);
+    await expect(hour).toHaveValue('03');
+    await hour.focus();
+    await page.mouse.click(box.x + 128 + 70, box.y + 128);
+    await expect(hour).toHaveValue('15');
+  });
+
+  test('selectors show hover and pressed state layers', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12');
+    const minute = page.getByRole('textbox', { name: 'Minute' });
+    const layer = () =>
+      minute.evaluate((el) => getComputedStyle(el).getPropertyValue('--m3-state-opacity'));
+    const rest = await layer();
+    await minute.hover();
+    await expect(minute).toHaveAttribute('data-hovered', 'true');
+    await expect.poll(layer).not.toBe(rest);
+    await page.mouse.down();
+    await expect(minute).toHaveAttribute('data-pressed', 'true');
+    await expect.poll(layer).toBe('0.1');
+    await page.mouse.up();
+  });
+
+  test('the time reads left to right in a right-to-left layout', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12', { dir: 'rtl' });
+    const x = (name: string) => rect(page.getByRole('textbox', { name })).then((r) => r.x);
+    const am = await rect(page.getByRole('radio', { name: 'AM' }));
+    expect(await x('Hour')).toBeLessThan(await x('Minute'));
+    expect(await x('Minute')).toBeLessThan(am.x);
   });
 
   test('the dial numbers are 48px buttons you can Tab to and press', async ({ page }) => {

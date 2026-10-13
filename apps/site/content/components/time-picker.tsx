@@ -96,7 +96,9 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             <li>
               The hour and minute selectors are text inputs: type the value, or focus one to pick
               which the dial edits; ↑ / ↓ step and wrap, and an out-of-range value is marked{' '}
-              <InlineCode>aria-invalid</InlineCode>. AM / PM is a radio group.
+              <InlineCode>aria-invalid</InlineCode>. In input mode a complete hour moves on to the
+              minute. AM / PM is a radio group: one Tab stop, with the arrow keys moving the choice.
+              The time reads left to right in right-to-left layouts too.
             </li>
             <li>
               <InlineCode>TimePickerModeToggle</InlineCode> is the keyboard / clock button
@@ -104,9 +106,10 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
               dialog&apos;s <InlineCode>modeToggleButton</InlineCode>.
             </li>
             <li>
-              Pressing or dragging the dial picks the nearest hour (the inner ring when nearer the
-              centre than halfway, on a 24-hour clock) or minute; releasing on the hour face
-              switches to minutes.
+              Pressing or dragging the dial picks the nearest hour (the inner ring within 74px of
+              the centre, on a 24-hour clock) or five minutes; releasing on the hour face switches
+              to minutes. The hand turns there on a spring, the short way round (it jumps under
+              reduced motion).
             </li>
           </ul>
         </section>
