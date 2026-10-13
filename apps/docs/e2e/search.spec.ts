@@ -270,3 +270,43 @@ test.describe('Search layout safety', () => {
     },
   });
 });
+
+test.describe('Search under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the full-screen view fades in over the window instead of growing', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground', {}, { view: 'full-screen' });
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    const style = await dialog.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return { clip: computed.clipPath, property: computed.transitionProperty };
+    });
+    expect(style).toEqual({ clip: 'inset(0px)', property: 'opacity' });
+    // The field is in place at once.
+    expect(await rect(dialog.getByRole('searchbox').locator('..'))).toMatchObject({
+      x: 16,
+      y: 8,
+    });
+    await dialog.getByRole('button', { name: 'Back' }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test('the docked view is at its focused width at once and the dropdown only fades', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-search--playground', {}, { view: 'docked' });
+    const bar = await rect(page.getByTestId('search'));
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    expect((await rect(dialog)).width).toBe(bar.width + 24);
+    const translate = await dialog
+      .locator('[tabindex="-1"]')
+      .last()
+      .evaluate((el) => getComputedStyle(el).translate);
+    expect(translate).toMatch(/^(none|0px)$/);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+});

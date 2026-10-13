@@ -83,7 +83,7 @@ describe('SearchBar', () => {
     expect(panel).toHaveClass(
       'left-(--m3-search-focused-left)',
       'w-(--m3-search-focused-width)',
-      'starting:w-(--m3-search-width)',
+      'motion-safe:starting:w-(--m3-search-width)',
     );
     const width = Number.parseFloat(panel.style.getPropertyValue('--m3-search-width'));
     expect(panel.style.getPropertyValue('--m3-search-focused-width')).toBe(`${width + 24}px`);

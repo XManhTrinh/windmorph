@@ -15,6 +15,7 @@ import {
   type Ref,
   type RefObject,
 } from 'react';
+import { useReducedMotion } from 'motion/react';
 import { mergeProps, useDialog, useFocusRing, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
@@ -228,9 +229,11 @@ export function SearchBar(props: SearchBarProps) {
   const appBar = useContext(SearchAppBarContext);
   const rootRef = useObjectRef(ref);
   const [rect, setRect] = useState<BarRect | null>(null);
+  // Under reduced motion the full-screen view fades instead of growing.
+  const reduceMotion = useReducedMotion();
   const { isPresent, isExiting, exitProps } = usePresence(
     state.isOpen,
-    view === 'full-screen' ? 'clip-path' : 'opacity',
+    view === 'full-screen' && !reduceMotion ? 'clip-path' : 'opacity',
   );
 
   // The expanded view starts from the bar's bounds; measure them when it opens.
