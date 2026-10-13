@@ -138,9 +138,15 @@ test.describe('Menu behaviour', () => {
     expect(await layer()).not.toBe(closedLayer);
   });
 
-  test('opening with the mouse moves focus into the menu', async ({ page }) => {
-    const menu = await openGrouped(page);
-    expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  test('opening with the mouse focuses the first item', async ({ page }) => {
+    await openGrouped(page);
+    // M3: "When a menu opens, focus should be placed on the first menu item."
+    await expect(page.getByRole('menuitem').first()).toBeFocused();
+    // The focus ring is for keyboard focus only.
+    await expect(page.getByRole('menuitem').first()).not.toHaveAttribute('data-focus-visible');
+    // The arrow keys carry on from there.
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem').nth(1)).toBeFocused();
   });
 
   test('runs an action and closes; Escape and outside clicks close too', async ({ page }) => {
@@ -245,6 +251,7 @@ test.describe('Menu behaviour', () => {
     await page.mouse.click(target.x + 40, target.y + 30, { button: 'right' });
     const menu = page.getByRole('menu', { name: 'Card actions' });
     await expect(menu).toBeVisible();
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
     const m = await box(menu);
     expect(Math.round(m.x)).toBe(Math.round(target.x + 40));
     expect(Math.round(m.y)).toBe(Math.round(target.y + 30));

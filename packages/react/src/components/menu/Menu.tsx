@@ -469,7 +469,7 @@ function MenuPopover({
                   variant={variant}
                   level={0}
                   onClose={trigger.state.close}
-                  autoFocus={trigger.state.focusStrategy || true}
+                  autoFocus={trigger.state.focusStrategy ?? 'first'}
                 />
               </MenuTreeContext>
             </I18nProvider>

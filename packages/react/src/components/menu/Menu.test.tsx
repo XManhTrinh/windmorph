@@ -431,6 +431,8 @@ describe('Menu', () => {
     expect(wrapper).not.toHaveAttribute('aria-haspopup');
     fireEvent.contextMenu(screen.getByText('Selected text'), { clientX: 40, clientY: 60 });
     expect(await screen.findByRole('menu', { name: 'Text' })).toBeInTheDocument();
+    // M3: "When a menu opens, focus should be placed on the first menu item."
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus());
     await userEvent.click(screen.getByRole('menuitem', { name: 'Copy' }));
     expect(onAction.mock.calls[0]?.[0]).toBe('copy');
     await closed();
