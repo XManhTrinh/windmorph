@@ -18,7 +18,11 @@ describe('LoadingIndicator', () => {
     const indicator = screen.getByRole('progressbar', { name: 'Loading messages' });
     expect(indicator).not.toHaveAttribute('aria-valuenow');
     expect(indicator).toHaveAttribute('data-indeterminate', 'true');
-    expect(indicator).toHaveClass('size-(--m3-loading-indicator-size,48px)', 'rounded-corner-full', 'text-primary');
+    expect(indicator).toHaveClass(
+      'size-(--m3-loading-indicator-size,48px)',
+      'rounded-corner-full',
+      'text-primary',
+    );
     expect(indicator.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(await axeViolations(container)).toEqual([]);
   });
