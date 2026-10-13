@@ -164,6 +164,62 @@ test.describe('TopAppBar geometry and scrolling', () => {
     await expect.poll(colour).not.toBe(surface);
     expect(await visibleHeight(page)).toBe(64);
   });
+
+  for (const [variant, height] of [
+    ['medium', 112],
+    ['large', 120],
+  ] as const) {
+    test(`a pinned ${variant} bar fills with surface-container once content is under it`, async ({
+      page,
+    }) => {
+      await openStory(
+        page,
+        'components-topappbar--scrolling',
+        {},
+        { variant, scrollBehavior: 'pinned' },
+      );
+      const bar = page.getByTestId('bar');
+      // The bar's colour against the roles, as canvas pixels (its `color-mix` computes to
+      // `oklab(…)`), and the top row's own background.
+      const colours = () =>
+        bar.evaluate((el) => {
+          const context = document.createElement('canvas').getContext('2d')!;
+          const pixel = (css: string) => {
+            context.clearRect(0, 0, 1, 1);
+            context.fillStyle = css;
+            context.fillRect(0, 0, 1, 1);
+            return [...context.getImageData(0, 0, 1, 1).data].join();
+          };
+          const role = (name: string) => {
+            const probe = document.createElement('div');
+            probe.style.backgroundColor = `var(--color-${name})`;
+            el.append(probe);
+            const css = getComputedStyle(probe).backgroundColor;
+            probe.remove();
+            return pixel(css);
+          };
+          const fill = pixel(getComputedStyle(el).backgroundColor);
+          return {
+            fill:
+              fill === role('surface')
+                ? 'surface'
+                : fill === role('surface-container')
+                  ? 'surface-container'
+                  : fill,
+            row: getComputedStyle(el.firstElementChild!).backgroundColor,
+          };
+        });
+      expect((await colours()).fill).toBe('surface');
+      await scrollTo(page, 200);
+      await expect(bar).toHaveAttribute('data-scrolled', 'true');
+      // M3: app bars "fill with a contrasting color on scroll"; pinned, it never collapses.
+      await expect.poll(async () => (await colours()).fill).toBe('surface-container');
+      expect((await colours()).row).toBe('rgba(0, 0, 0, 0)');
+      expect(await visibleHeight(page)).toBe(height);
+      await scrollTo(page, 0);
+      await expect.poll(async () => (await colours()).fill).toBe('surface');
+    });
+  }
 });
 
 test.describe('TopAppBar layout safety', () => {

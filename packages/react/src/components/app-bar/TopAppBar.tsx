@@ -89,6 +89,7 @@ export function TopAppBar({
     hasNavigation: navigationIcon != null,
     hasSubtitle: subtitle != null,
     scrolling: scrollBehavior != null,
+    pinned: scrollBehavior === 'pinned',
     twoRows,
   });
   // Only one of a two-row bar's titles is announced: the expanded one until it is half collapsed.

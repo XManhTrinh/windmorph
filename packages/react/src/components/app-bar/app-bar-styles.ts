@@ -5,9 +5,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * LargeFlexibleTopAppBar, TopAppBarLayout; AppBar / AppBarSmall / AppBarMediumFlexible /
  * AppBarLargeFlexible tokens).
  *
- * Container `surface`, turning `surface-container` when content scrolls under it (single
- * row: animated on the default effects spring) or as a two-row bar collapses (blended in
- * Oklab with fast-out-linear-in, as Compose's lerp). No elevation.
+ * Container `surface`, turning `surface-container` when content scrolls under it (a single
+ * row, or a pinned two-row bar: animated on the default effects spring) or as a two-row bar
+ * collapses (blended in Oklab with fast-out-linear-in, as Compose's lerp). No elevation.
  *
  * Rows: the top row is 64px. Navigation icon `on-surface`, title `on-surface`, subtitle and
  * actions `on-surface-variant`. Compose's icon buttons take 48px of layout and ours 40px,
@@ -83,6 +83,11 @@ export const topAppBarStyles = tv({
       false: { title: 'ps-[16px]' },
     },
     hasSubtitle: { true: {}, false: {} },
+    /**
+     * Set for `scrollBehavior="pinned"`: a two-row bar never collapses, so it changes colour
+     * as a whole once content scrolls under it, like a single row.
+     */
+    pinned: { true: {}, false: {} },
     /** Set when the bar responds to scrolling: it sticks, and its offset follows the scroll. */
     scrolling: {
       true: { root: 'sticky top-(--m3-app-bar-offset) z-(--md-sys-z-sticky)' },
@@ -108,6 +113,18 @@ export const topAppBarStyles = tv({
     },
   },
   compoundVariants: [
+    {
+      twoRows: true,
+      pinned: true,
+      class: {
+        root: [
+          '[transition-property:background-color]',
+          '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+        ],
+        row: 'bg-transparent',
+      },
+    },
     { variant: 'medium', hasSubtitle: false, class: { expandedRow: 'min-h-[48px]' } },
     { variant: 'medium', hasSubtitle: true, class: { expandedRow: 'min-h-[72px]' } },
     { variant: 'large', hasSubtitle: false, class: { expandedRow: 'min-h-[56px]' } },
@@ -119,6 +136,7 @@ export const topAppBarStyles = tv({
     hasNavigation: false,
     hasSubtitle: false,
     scrolling: false,
+    pinned: false,
     twoRows: false,
   },
 });

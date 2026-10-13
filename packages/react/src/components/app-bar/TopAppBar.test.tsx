@@ -109,6 +109,27 @@ describe('TopAppBar', () => {
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
   });
 
+  it('fills a pinned two-row bar as a whole once content scrolls under it', async () => {
+    render(<TopAppBar variant="medium" title="Inbox" scrollBehavior="pinned" data-testid="bar" />);
+    const bar = screen.getByTestId('bar');
+    const [row, expanded] = Array.from(bar.children) as [HTMLElement, HTMLElement];
+    Object.defineProperty(expanded, 'offsetHeight', { configurable: true, value: 48 });
+    // The whole bar fades its colour (the row is see-through), as a single row does.
+    expect(bar).toHaveClass('[transition-property:background-color]');
+    expect(row).toHaveClass('bg-transparent');
+    await nextFrame();
+    expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('0%');
+    await scrollWindow(10);
+    expect(bar).toHaveAttribute('data-scrolled', 'true');
+    expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('100%');
+    // It never collapses: the expanded title stays and is the one announced.
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
+    expect(bar.style.getPropertyValue('--m3-app-bar-bottom-alpha')).toBe('1');
+    expect(bar.style.getPropertyValue('--m3-app-bar-top-alpha')).toBe('0');
+    expect(bar).not.toHaveAttribute('data-collapsed');
+    expect(expanded).not.toHaveAttribute('aria-hidden');
+  });
+
   it('hides an enter-always bar on scroll down and brings it back on any scroll up', async () => {
     render(<TopAppBar title="Inbox" scrollBehavior="enter-always" data-testid="bar" />);
     const bar = screen.getByTestId('bar');

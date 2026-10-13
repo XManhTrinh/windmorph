@@ -34,7 +34,8 @@ export interface AppBarScrollState {
  * changing its layout height and the content below never shifts. Colour and title alphas
  * are written as custom properties too, so scrolling causes no React renders.
  *
- * - `pinned`: the bar stays; only its colour responds.
+ * - `pinned`: the bar stays; only its colour responds, switching once content is under it
+ *   (a two-row bar too, keeping its expanded title).
  * - `enter-always`: scrolling down hides the bar, any scroll up brings it back. A two-row
  *   bar first collapses to its top row, which then hides and comes back on scroll up, but
  *   stays small until the page is back at the top (M3).
@@ -91,12 +92,18 @@ export function useAppBarScroll({
       const fraction = limit > 0 ? -(twoRows ? collapse : offset) / limit : 0;
 
       root.style.setProperty('--m3-app-bar-offset', `${offset}px`);
-      if (twoRows) {
+      // A pinned bar never collapses, so a two-row one fills like a single row (M3: app bars
+      // "fill with a contrasting color on scroll").
+      if (twoRows && behavior !== 'pinned') {
         root.style.setProperty('--m3-app-bar-scrolled', `${fastOutLinearIn(fraction) * 100}%`);
         root.style.setProperty('--m3-app-bar-top-alpha', String(topTitleAlpha(fraction)));
         root.style.setProperty('--m3-app-bar-bottom-alpha', String(1 - fraction));
       } else {
         root.style.setProperty('--m3-app-bar-scrolled', scroll > 0 ? '100%' : '0%');
+        if (twoRows) {
+          root.style.setProperty('--m3-app-bar-top-alpha', '0');
+          root.style.setProperty('--m3-app-bar-bottom-alpha', '1');
+        }
       }
       const next = { scrolled: scroll > 0, collapsed: twoRows && fraction >= 0.5 };
       if (next.scrolled !== current.scrolled || next.collapsed !== current.collapsed) {

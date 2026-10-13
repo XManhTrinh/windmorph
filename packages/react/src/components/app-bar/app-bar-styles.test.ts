@@ -13,17 +13,19 @@ function* outputs() {
       for (const hasNavigation of [false, true])
         for (const hasSubtitle of [false, true])
           for (const scrolling of [false, true])
-            for (const twoRows of [false, true]) {
-              const slots = topAppBarStyles({
-                variant,
-                titleAlign,
-                hasNavigation,
-                hasSubtitle,
-                scrolling,
-                twoRows,
-              });
-              for (const slot of Object.values(slots)) yield slot();
-            }
+            for (const pinned of [false, true])
+              for (const twoRows of [false, true]) {
+                const slots = topAppBarStyles({
+                  variant,
+                  titleAlign,
+                  hasNavigation,
+                  hasSubtitle,
+                  scrolling,
+                  pinned,
+                  twoRows,
+                });
+                for (const slot of Object.values(slots)) yield slot();
+              }
 }
 
 describe('topAppBarStyles', () => {
