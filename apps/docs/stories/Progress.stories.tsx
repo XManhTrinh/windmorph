@@ -126,6 +126,20 @@ export const Handoff: Story = {
   },
 };
 
+/** A value change: the indicators ease to the new value instead of jumping. */
+export const ValueChange: Story = {
+  render: function Render() {
+    const [value, setValue] = useState(0.2);
+    return (
+      <div className="flex w-[280px] flex-col gap-6">
+        <LinearProgressIndicator value={value} aria-label="Changing linear" />
+        <CircularProgressIndicator value={value} aria-label="Changing circular" />
+        <Button onPress={() => setValue(value === 0.2 ? 0.8 : 0.2)}>Change</Button>
+      </div>
+    );
+  },
+};
+
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;
   transformedAncestor: boolean;

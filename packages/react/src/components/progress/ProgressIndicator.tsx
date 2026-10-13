@@ -73,6 +73,64 @@ function useAmplitude(target: number, reduceMotion: boolean) {
   };
 }
 
+interface ValueAnimation {
+  from: number;
+  to: number;
+  /** When the animation started (frame time), null until the next frame. */
+  start: number | null;
+  /** The last value drawn. */
+  last: number;
+}
+
+/** Compose's `ProgressIndicatorDefaults.ProgressAnimationSpec`: spring(1, 50), no bounce. */
+const VALUE_SPRING_OMEGA = Math.sqrt(50);
+/** Compose's wavy `ProgressAnimationSpec` lasts 500ms. */
+const WAVY_VALUE_DURATION_MS = 500;
+
+/**
+ * A determinate value change eases instead of jumping ("Linear indicators animate from the
+ * leading to the trailing edge along the track"): flat indicators on Compose's critically
+ * damped spring (stiffness 50), wavy ones over 500ms (standard easing). Returns a reader for
+ * animation frames and whether an animation is running; reduced motion jumps.
+ */
+function useAnimatedValue(
+  target: number,
+  wavy: boolean,
+  indeterminate: boolean,
+  reduceMotion: boolean,
+) {
+  const anim = useRef<ValueAnimation>({ from: target, to: target, start: 0, last: target });
+  const wasIndeterminate = useRef(indeterminate);
+  useLayoutEffect(() => {
+    const a = anim.current;
+    // Leaving indeterminate, the handoff eases into the value: start there, don't animate twice.
+    if (indeterminate || wasIndeterminate.current) {
+      anim.current = { from: target, to: target, start: 0, last: target };
+    } else if (a.to !== target) {
+      anim.current = { from: a.last, to: target, start: null, last: a.last };
+    }
+    wasIndeterminate.current = indeterminate;
+  }, [target, indeterminate]);
+  const read = (time: number) => {
+    const a = anim.current;
+    if (reduceMotion || a.from === a.to) return (a.last = a.to);
+    if (a.start === null) a.start = time;
+    const elapsed = Math.max(time - a.start, 0);
+    let progress: number;
+    if (wavy) {
+      progress = standard(Math.min(elapsed / WAVY_VALUE_DURATION_MS, 1));
+    } else {
+      // Critically damped from rest: x(t) = 1 − (1 + ωt)·e^(−ωt).
+      const wt = (VALUE_SPRING_OMEGA * elapsed) / 1000;
+      progress = 1 - (1 + wt) * Math.exp(-wt);
+      if (progress > 0.999) progress = 1;
+    }
+    if (progress >= 1) a.from = a.to;
+    return (a.last = a.from + (a.to - a.from) * progress);
+  };
+  return { read, active: () => !reduceMotion && anim.current.from !== anim.current.to };
+}
+
 /**
  * When an indicator turns determinate, its last indeterminate frame eases into the value over
  * 500ms (standard easing) instead of jumping, as the spec shows. `record` keeps the frame the
@@ -202,6 +260,7 @@ export function LinearProgressIndicator({
   const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
   const amplitude = useAmplitude(ampTarget, reduceMotion);
   const handoff = useHandoff<number[]>(indeterminate, reduceMotion);
+  const drawnValue = useAnimatedValue(v, wavy, indeterminate, reduceMotion);
   const { progressBarProps } = useProgressBar({
     ...rest,
     value: indeterminate ? undefined : v,
@@ -221,8 +280,8 @@ export function LinearProgressIndicator({
   const firstRef = useRef<SVGPathElement>(null);
   const secondRef = useRef<SVGPathElement>(null);
   useAnimationFrame((time) => {
-    if (!indeterminate && !wavy && !handoff.active()) return;
-    let fractions = determinate;
+    if (!indeterminate && !wavy && !handoff.active() && !drawnValue.active()) return;
+    let fractions = indeterminate ? determinate : [0, drawnValue.read(time), 0, 0];
     let wavelength = LINEAR_WAVELENGTH;
     if (indeterminate) {
       fractions = indeterminateLinearFractions(time);
@@ -392,6 +451,7 @@ export function CircularProgressIndicator({
   const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
   const amplitude = useAmplitude(ampTarget, reduceMotion);
   const handoff = useHandoff<CircularFrame>(indeterminate, reduceMotion);
+  const drawnValue = useAnimatedValue(v, wavy, indeterminate, reduceMotion);
   const { progressBarProps } = useProgressBar({
     ...rest,
     value: indeterminate ? undefined : v,
@@ -412,8 +472,8 @@ export function CircularProgressIndicator({
   const trackRef = useRef<SVGPathElement>(null);
   const activeRef = useRef<SVGPathElement>(null);
   useAnimationFrame((time) => {
-    if (!indeterminate && !wavy && !handoff.active()) return;
-    let frame = determinate;
+    if (!indeterminate && !wavy && !handoff.active() && !drawnValue.active()) return;
+    let frame = indeterminate ? determinate : { rotation: 0, sweep: drawnValue.read(time) };
     if (indeterminate) {
       frame = indeterminateCircular(time);
       handoff.record(frame);

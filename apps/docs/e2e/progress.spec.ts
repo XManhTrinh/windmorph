@@ -95,6 +95,43 @@ test.describe('Progress handoff', () => {
   });
 });
 
+test.describe('Progress value changes', () => {
+  /** The drawn width of the linear indicator's active line. */
+  const activeWidth = (page: Page) =>
+    page
+      .getByRole('progressbar', { name: 'Changing linear' })
+      .evaluate((el) => (el.querySelectorAll('path')[1] as SVGPathElement).getBBox().width);
+
+  test('a new value eases along the track instead of jumping', async ({ page }) => {
+    await openStory(page, 'components-progress--value-change');
+    await expect.poll(() => activeWidth(page)).toBeGreaterThan(0);
+    const from = await activeWidth(page);
+    await page.getByRole('button', { name: 'Change' }).click();
+    await expect(page.getByRole('progressbar', { name: 'Changing linear' })).toHaveAttribute(
+      'aria-valuenow',
+      '0.8',
+    );
+    // Shortly after the change the line is between the old and the new width ...
+    await page.waitForTimeout(80);
+    const during = await activeWidth(page);
+    // ... and it settles at the new value.
+    await expect.poll(() => activeWidth(page), { timeout: 3000 }).toBeGreaterThan(from * 3.5);
+    const settled = await activeWidth(page);
+    expect(during).toBeGreaterThan(from);
+    expect(during).toBeLessThan(settled);
+  });
+
+  test('reduced motion jumps to the new value', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-progress--value-change');
+    await expect.poll(() => activeWidth(page)).toBeGreaterThan(0);
+    const from = await activeWidth(page);
+    await page.getByRole('button', { name: 'Change' }).click();
+    await page.waitForTimeout(50);
+    expect(await activeWidth(page)).toBeGreaterThan(from * 3.5);
+  });
+});
+
 test.describe('Progress layout safety', () => {
   layoutSafetySuite('components-progress--layout-override', {
     height: 4,
