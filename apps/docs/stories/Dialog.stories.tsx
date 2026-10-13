@@ -191,7 +191,7 @@ export const FullScreenCompact: Story = {
             >
               Edit name
             </DialogHeader>
-            <DialogContent>
+            <DialogContent data-testid="content">
               <TextField label="Name" defaultValue="Sam Taylor" className="w-full" />
             </DialogContent>
             <DialogActions>

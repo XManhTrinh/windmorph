@@ -125,6 +125,15 @@ test.describe('Dialog behaviour', () => {
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('0px');
     const header = dialog.getByRole('heading', { name: 'Edit name' }).locator('xpath=..');
     expect((await header.boundingBox())!.height).toBe(56);
+    // The spec: content 24px from the top, and an on-surface close icon like the headline.
+    const content = page.getByTestId('content');
+    expect(await content.evaluate((el) => getComputedStyle(el).paddingTop)).toBe('24px');
+    const headline = dialog.getByRole('heading', { name: 'Edit name' });
+    expect(
+      await dialog
+        .getByRole('button', { name: 'Close' })
+        .evaluate((el) => getComputedStyle(el).color),
+    ).toBe(await headline.evaluate((el) => getComputedStyle(el).color));
     // One Save (the header's); the DialogActions row is hidden.
     await expect(dialog.getByRole('button', { name: 'Save' })).toHaveCount(1);
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
@@ -147,6 +156,8 @@ test.describe('Dialog behaviour', () => {
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('28px');
     await expect(dialog.getByRole('button', { name: 'Close' })).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    // Initial focus skips the header's hidden close button.
+    await expect(dialog.getByRole('textbox', { name: 'Name' })).toBeFocused();
   });
 
   test('a placed dialog keeps 56px from the edge of a wide window', async ({ page }) => {

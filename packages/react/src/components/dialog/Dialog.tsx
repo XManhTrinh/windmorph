@@ -177,7 +177,7 @@ export interface DialogProps
  * surrounding theme. It's an alert dialog (described by its `DialogContent`). Focus moves
  * to its first interactive element (or one marked `autoFocus`), is contained, and is
  * restored on close; Escape closes it; the page behind does not scroll and is hidden from
- * assistive tech. It expands downward from its top edge as it opens. Name it with a
+ * assistive tech. It expands away from the window edge it sits against as it opens. Name it with a
  * `DialogTitle` (or `aria-label`).
  *
  * `className`, `style`, `ref` and other attributes go on the dialog panel.
@@ -396,7 +396,7 @@ export function DialogHeader({
           icon={<CloseIcon />}
           aria-label={closeLabel}
           onPress={close}
-          className={styles.headerButton({ class: classNames?.close })}
+          className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}
         />
       )}
       <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>

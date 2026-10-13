@@ -37,4 +37,15 @@ describe('firstTabbable', () => {
     expect(firstTabbable(root)?.textContent).toBe('e');
     expect(firstTabbable(document.createElement('div'))).toBeNull();
   });
+
+  it('skips elements that are not rendered, and those the caller skips', () => {
+    const root = document.createElement('div');
+    root.innerHTML = `
+      <button class="gone">a</button>
+      <div tabindex="0" data-skip>b</div>
+      <button>c</button>`;
+    root.querySelector<HTMLElement>('.gone')!.checkVisibility = () => false;
+    expect(firstTabbable(root, (el) => el.hasAttribute('data-skip'))?.textContent).toBe('c');
+    expect(firstTabbable(root)?.textContent).toBe('b');
+  });
 });

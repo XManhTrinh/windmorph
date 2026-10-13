@@ -132,9 +132,50 @@ describe('Dialog', () => {
     render(<DeleteDialog placement="top" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const motion = screen.getByTestId('panel').parentElement!;
-    expect(motion.className).toContain('starting:[clip-path:inset(-32px_-32px_100%_-32px)]');
+    expect(motion).toHaveClass(
+      '[--m3-dialog-collapsed:inset(-32px_-32px_100%_-32px)]',
+      'starting:[clip-path:var(--m3-dialog-collapsed)]',
+      'data-exiting:[clip-path:var(--m3-dialog-collapsed)]',
+    );
     expect(motion.className).not.toMatch(/scale/);
     expect(motion.parentElement).toHaveClass('items-start', 'medium:p-[56px]', 'p-[24px]');
+  });
+
+  it.each([
+    ['bottom', ['[--m3-dialog-collapsed:inset(100%_-32px_-32px_-32px)]']],
+    [
+      'start',
+      [
+        '[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
+        'rtl:[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
+      ],
+    ],
+    [
+      'end',
+      [
+        '[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
+        'rtl:[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
+      ],
+    ],
+  ] as const)('expands away from the %s edge', async (placement, classes) => {
+    render(<DeleteDialog placement={placement} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const motion = screen.getByTestId('panel').parentElement!;
+    expect(motion).toHaveClass(...classes);
+    expect(motion).not.toHaveClass('[--m3-dialog-collapsed:inset(-32px_-32px_100%_-32px)]');
+  });
+
+  it('keeps only the fades under reduced motion, and is at least 280px wide', async () => {
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel.parentElement).toHaveClass(
+      'motion-reduce:[transition-property:opacity]',
+      'motion-reduce:starting:[clip-path:inset(-32px)]',
+      'motion-reduce:data-exiting:[clip-path:inset(-32px)]',
+    );
+    // The minimum is capped by the window's margins, not by the content-sized wrapper.
+    expect(panel).toHaveClass('min-w-[min(280px,calc(100vw-48px))]');
   });
 
   it('keeps the dialog mounted while it animates out', async () => {
@@ -273,6 +314,11 @@ describe('Dialog full screen', () => {
     );
     expect(screen.getByRole('heading', { name: 'Edit name' })).toHaveClass('text-title-large');
     expect(screen.getByTestId('actions')).toHaveClass('hidden');
+    // The spec: 24px top, left and right padding; an on-surface close icon.
+    expect(screen.getByText('Name field')).toHaveClass('pt-[24px]', 'px-[24px]');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass(
+      '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenCalledOnce();
   });
@@ -295,6 +341,24 @@ describe('Dialog full screen', () => {
     expect(panel).toHaveClass('max-medium:size-full', 'rounded-corner-extra-large');
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('medium:hidden');
     expect(screen.getByTestId('actions')).toHaveClass('max-medium:hidden');
+    expect(screen.getByText('Name field')).toHaveClass('max-medium:pt-[24px]');
+  });
+
+  it('focuses the first rendered control, skipping the hidden close button on wide windows', async () => {
+    // jsdom has no layout: report the `medium:hidden` header parts as not rendered.
+    Object.defineProperty(HTMLElement.prototype, 'checkVisibility', {
+      configurable: true,
+      value(this: HTMLElement) {
+        return this.closest('.medium\\:hidden') === null;
+      },
+    });
+    try {
+      render(<EditDialog fullScreen="compact" />);
+      await userEvent.click(screen.getByRole('button', { name: 'Edit name' }));
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, 'checkVisibility');
+    }
   });
 
   it('is a plain title without close or action when never full screen', async () => {

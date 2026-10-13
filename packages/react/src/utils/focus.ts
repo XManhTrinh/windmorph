@@ -12,13 +12,27 @@ const TABBABLE = [
 ].join(',');
 
 /**
- * The first element inside `root` that Tab would reach: focusable, not disabled, not
- * `tabindex="-1"`, and not in an `inert` or `hidden` subtree. Null when there's none.
- * (React Aria's tree walker isn't part of its public API.)
+ * Whether an element is rendered: not under `display: none` (a responsive `hidden` class,
+ * say) or `content-visibility: hidden`. Environments without `checkVisibility` (jsdom)
+ * count every element as rendered.
  */
-export function firstTabbable(root: Element): HTMLElement | null {
+function isRendered(el: HTMLElement): boolean {
+  return !('checkVisibility' in el) || el.checkVisibility();
+}
+
+/**
+ * The first element inside `root` that Tab would reach: focusable, not disabled, not
+ * `tabindex="-1"`, not in an `inert` or `hidden` subtree, and rendered. Null when there's
+ * none. `skip` leaves out elements the caller doesn't want to start on. (React Aria's tree
+ * walker isn't part of its public API.)
+ */
+export function firstTabbable(
+  root: Element,
+  skip?: (el: HTMLElement) => boolean,
+): HTMLElement | null {
   for (const el of root.querySelectorAll<HTMLElement>(TABBABLE)) {
     if (el.tabIndex < 0 || el.matches(':disabled') || el.closest('[inert], [hidden]')) continue;
+    if (!isRendered(el) || skip?.(el)) continue;
     return el;
   }
   return null;
