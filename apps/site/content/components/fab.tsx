@@ -135,8 +135,10 @@ export async function FabBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>ExtendedFab</InlineCode> is named by its label; a text-only extended FAB
-              needs no extra name. The label stays in the accessible name while collapsed. It needs
-              no tooltip.
+              needs no extra name. The label stays in the accessible name while collapsed. Expanded,
+              it needs no tooltip; collapsed to the icon, it shows its label in a tooltip on hover
+              and keyboard focus, like a FAB (<InlineCode>tooltip={'{false}'}</InlineCode> turns it
+              off).
             </li>
             <li>
               A hidden FAB (<InlineCode>visible={'{false}'}</InlineCode>) is{' '}
@@ -169,7 +171,7 @@ export async function FabBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>elevation</InlineCode> is <InlineCode>default</InlineCode> (level 3, hover
-              4), <InlineCode>lowered</InlineCode> (level 1, hover 2) or{' '}
+              4, pressed 3), <InlineCode>lowered</InlineCode> (level 1, hover 2, pressed 1) or{' '}
               <InlineCode>flat</InlineCode> (level 0, for a FAB nested in another component such as
               the navigation rail). There is no press morph and no disabled state — the types
               enforce the latter.
