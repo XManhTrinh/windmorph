@@ -61,6 +61,34 @@ export const BottomTall: Story = {
 };
 
 /**
+ * Content that scrolls, with a row of filters that scrolls sideways. On a touch screen, a
+ * drag down on the content at its top moves the sheet; otherwise the content scrolls.
+ */
+export const BottomScrolling: Story = {
+  render: () => (
+    <SheetTrigger>
+      <Button>Open sheet</Button>
+      <BottomSheet aria-label="Places" data-testid="sheet">
+        {({ close }) => (
+          <>
+            <div className="flex gap-2 overflow-x-auto px-4 pb-2" data-testid="filters">
+              {['Cafés', 'Parks', 'Museums', 'Markets', 'Libraries', 'Galleries', 'Gardens'].map(
+                (name) => (
+                  <Button key={name} variant="tonal" className="shrink-0">
+                    {name}
+                  </Button>
+                ),
+              )}
+            </div>
+            <Options count={24} onPick={close} />
+          </>
+        )}
+      </BottomSheet>
+    </SheetTrigger>
+  ),
+};
+
+/**
  * A standard bottom sheet sits over the page without a scrim, collapsed to its peek height;
  * the page behind stays usable. Here it is placed in a bounded region.
  */
@@ -103,10 +131,19 @@ const footer = ({ close }: { close: () => void }) => (
   </>
 );
 
-/** A modal side sheet, docked or detached, with its built-in close button and bottom actions. */
-export const Side: StoryObj<{ detached: boolean; back: boolean }> = {
-  args: { detached: false, back: false },
-  render: ({ detached, back }) => (
+/**
+ * A modal side sheet, docked or detached, with its built-in close button and bottom actions.
+ * `wide` adds content wider than the sheet, which is clipped: side sheets never scroll sideways.
+ * `widePanel` asks for a 480px sheet, which stops at the spec's 400px maximum.
+ */
+export const Side: StoryObj<{
+  detached: boolean;
+  back: boolean;
+  wide: boolean;
+  widePanel: boolean;
+}> = {
+  args: { detached: false, back: false, wide: false, widePanel: false },
+  render: ({ detached, back, wide, widePanel }) => (
     <SheetTrigger>
       <Button>Open filters</Button>
       <SideSheet
@@ -115,11 +152,17 @@ export const Side: StoryObj<{ detached: boolean; back: boolean }> = {
         onBack={back ? () => undefined : undefined}
         footer={footer}
         footerDivider
+        className={widePanel ? 'w-[480px]' : undefined}
         data-testid="sheet"
       >
         <p className="text-body-medium text-on-surface-variant">
           Filter the results by date, type and owner.
         </p>
+        {wide && (
+          <p className="w-[600px] text-body-medium text-on-surface-variant" data-testid="wide">
+            Results shared by Alex, Sam and Priya across every team this quarter.
+          </p>
+        )}
       </SideSheet>
     </SheetTrigger>
   ),

@@ -14,8 +14,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Active track and handle `primary`, inactive track `secondary-container`; the handle is
  * 4px wide, 2px while pressed, dragged or focused, with a 6px gap to the track (10px while
- * keyboard-focused, for the focus ring). Stop indicators are 4px `primary` dots; ticks on
- * the active track are `secondary-container`, on the inactive track `primary`. Disabled:
+ * keyboard-focused, for the focus ring). Stop indicators and ticks are 4px dots,
+ * `on-primary` on the active track and `on-secondary-container` on the inactive one
+ * (`inverse-on-surface` / `on-surface` 38% disabled; m3.material.io tokens). Disabled:
  * active track `on-surface` 38%, inactive 12%, handle `on-surface` 38% over `surface`.
  * Inset icons sit 10px inside the track, `on-primary` / `on-secondary-container` (MDC);
  * when the active track is too short for the start icon, it moves to the inactive track
@@ -46,13 +47,19 @@ export const sliderStyles = tv({
       'group-data-disabled/slider:data-[tone=active]:bg-on-surface/38',
       'group-data-disabled/slider:data-[tone=inactive]:bg-on-surface/12',
     ],
+    // Stop indicators follow the live m3.material.io token table (2026-10-13): on the active
+    // track `on-primary`, on the inactive track `on-secondary-container`; disabled,
+    // `inverse-on-surface` and `on-surface` at the table's 0.38 disabled stop opacity.
     stop: [
-      'size-[4px] shrink-0 rounded-full bg-primary group-data-disabled/slider:bg-on-surface/38',
+      'size-[4px] shrink-0 rounded-full',
+      'in-data-[tone=active]:bg-on-primary in-data-[tone=inactive]:bg-on-secondary-container',
+      'group-data-disabled/slider:in-data-[tone=active]:bg-inverse-on-surface',
+      'group-data-disabled/slider:in-data-[tone=inactive]:bg-on-surface/38',
     ],
     tick: [
       'col-start-1 row-start-1 size-[4px] rounded-full',
-      'data-active:bg-secondary-container not-data-active:bg-primary',
-      'group-data-disabled/slider:data-active:bg-on-surface/12',
+      'data-active:bg-on-primary not-data-active:bg-on-secondary-container',
+      'group-data-disabled/slider:data-active:bg-inverse-on-surface',
       'group-data-disabled/slider:not-data-active:bg-on-surface/38',
     ],
     icon: [
@@ -73,7 +80,7 @@ export const sliderStyles = tv({
     handle: [
       '[inline-size:4px] [block-size:100%] rounded-full bg-primary',
       'data-active:[inline-size:2px]',
-      'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--color-on-surface)_38%,var(--color-surface))]',
+      'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_38%,var(--md-sys-color-surface))]',
     ],
     // A zero-size box at the thumb that the value indicator hangs from.
     // It sits 12px before the row's block start (above, or left of a vertical slider).

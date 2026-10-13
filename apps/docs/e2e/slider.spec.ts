@@ -46,7 +46,123 @@ test.describe('Slider visual regression', () => {
   });
 });
 
+/**
+ * Paints `layers` (CSS colours, bottom first) over the scope's `surface` and returns the
+ * resulting sRGB pixel, so translucent and `color-mix` colours compare as they look.
+ */
+const paint = (scope: Locator, layers: string[]) =>
+  scope.evaluate((root, layers) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext('2d')!;
+    const surface = document.createElement('div');
+    surface.className = 'bg-surface';
+    root.append(surface);
+    for (const color of [getComputedStyle(surface).backgroundColor, ...layers]) {
+      context.fillStyle = color;
+      context.fillRect(0, 0, 1, 1);
+    }
+    surface.remove();
+    return Array.from(context.getImageData(0, 0, 1, 1).data.slice(0, 3));
+  }, layers);
+/** A class's computed background inside the scope (for semantic colour roles). */
+const roleBackground = (scope: Locator, className: string) =>
+  scope.evaluate((root, className) => {
+    const probe = document.createElement('div');
+    probe.className = className;
+    root.append(probe);
+    const color = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return color;
+  }, className);
+const background = (locator: Locator) =>
+  locator.evaluate((el) => getComputedStyle(el).backgroundColor);
+const contrast = (a: number[], b: number[]) => {
+  const luminance = (rgb: number[]) => {
+    const [r, g, b] = rgb.map((v) => {
+      const c = v / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  };
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+};
+
+test.describe('Slider stop indicators (m3.material.io tokens)', () => {
+  for (const mode of MODES) {
+    test(`colours and contrast · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-slider--variants', { mode });
+      const scope = page.getByTestId('variants');
+      const discrete = page.getByRole('group', { name: 'Discrete', exact: true });
+      const activeTick = discrete.locator('[data-active]').first();
+      const inactiveTick = discrete
+        .locator('span[aria-hidden]:not([data-active]).size-\\[4px\\]')
+        .last();
+      const [onPrimary, onSecondaryContainer] = [
+        await roleBackground(scope, 'bg-on-primary'),
+        await roleBackground(scope, 'bg-on-secondary-container'),
+      ];
+      expect(await background(activeTick)).toBe(onPrimary);
+      expect(await background(inactiveTick)).toBe(onSecondaryContainer);
+
+      // The end stop sits on the inactive track.
+      const continuous = page.getByRole('group', { name: 'Centred', exact: true });
+      const endStop = continuous.locator('[data-tone="inactive"] > span').last();
+      expect(await background(endStop)).toBe(onSecondaryContainer);
+
+      // Enabled dots keep 3:1 against their track (WCAG 1.4.11).
+      const active = await roleBackground(scope, 'bg-primary');
+      const inactive = await roleBackground(scope, 'bg-secondary-container');
+      expect(
+        contrast(await paint(scope, [active, onPrimary]), await paint(scope, [active])),
+      ).toBeGreaterThanOrEqual(3);
+      expect(
+        contrast(
+          await paint(scope, [inactive, onSecondaryContainer]),
+          await paint(scope, [inactive]),
+        ),
+      ).toBeGreaterThanOrEqual(3);
+
+      // Disabled: inverse-on-surface on the active track, on-surface 38% on the inactive one.
+      const disabled = page.getByRole('group', { name: 'Disabled', exact: true });
+      expect(await background(disabled.locator('[data-tone="inactive"] > span').last())).toBe(
+        await roleBackground(scope, 'bg-on-surface/38'),
+      );
+    });
+  }
+});
+
 test.describe('Slider geometry and interaction', () => {
+  test('a disabled handle takes its colours from a dark theme scope', async ({ page }) => {
+    await openStory(page, 'components-slider--variants', { mode: 'dark' });
+    const handle = page
+      .getByRole('group', { name: 'Disabled', exact: true })
+      .locator('[data-thumb] > span')
+      .first();
+    // on-surface 38% over surface, resolved inside the story's scope, not at the root.
+    const expected = await page.getByTestId('variants').evaluate((root) => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor =
+        'color-mix(in srgb, var(--md-sys-color-on-surface) 38%, var(--md-sys-color-surface))';
+      root.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    const atRoot = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor =
+        'color-mix(in srgb, var(--md-sys-color-on-surface) 38%, var(--md-sys-color-surface))';
+      document.body.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    expect(expected).not.toBe(atRoot);
+    expect(await handle.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(expected);
+  });
+
   test('track, gap and handle follow Compose', async ({ page }) => {
     await openStory(page, 'components-slider--playground', {}, { showValueLabel: false });
     const slider = page.getByTestId('slider');

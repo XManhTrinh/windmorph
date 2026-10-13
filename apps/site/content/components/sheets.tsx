@@ -124,6 +124,14 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               still drags it.
             </li>
             <li>
+              On a touch screen, a drag down that starts on the content while it is scrolled to its
+              top moves the sheet, with the handle&apos;s settling and dismissal. A drag up, or any
+              drag while the content is scrolled, scrolls it; each gesture keeps its first choice
+              until the finger lifts. Sideways drags, form fields and elements that handle their own
+              drags (such as sliders) are left alone, and a mouse drag on the content selects text
+              as usual.
+            </li>
+            <li>
               A modal bottom sheet that fills the window shows a close button (
               <InlineCode>labels.close</InlineCode>); a standard one shows a collapse button.{' '}
               <InlineCode>closeButton=&#123;false&#125;</InlineCode> hides it.
@@ -159,7 +167,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               ): up to 640px wide, a 72px top margin (56px, with 56px side margins, above 640px),
               28px top corners, <InlineCode>surface-container-low</InlineCode> at level 1, a 32×4px
               handle and a 32% scrim; it shows on the default spatial spring and hides on the fast
-              spatial spring. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
+              spatial spring, moving 112% of its size so the spring&apos;s overshoot stays out of
+              view. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
               <InlineCode>BottomSheetScaffold</InlineCode> does.
             </li>
             <li>
@@ -169,13 +178,15 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material
-              Components Android (256px wide, 16px corners on the free edge, standard sheets open a
-              grid track behind an <InlineCode>outline-variant</InlineCode> divider; a 72px bottom
-              action row from <InlineCode>footer</InlineCode>).
+              Components Android (256px wide and at most 400px, 16px corners on the free edge,
+              standard sheets open a grid track behind an <InlineCode>outline-variant</InlineCode>{' '}
+              divider; a 72px bottom action row from <InlineCode>footer</InlineCode>). Their content
+              scrolls vertically only: anything wider than the sheet is clipped (m3.material.io:
+              &ldquo;Side sheets cannot scroll horizontally&rdquo;).
             </li>
             <li>
-              Not in v1: dragging through nested scrolling, predictive back, and detents beyond half
-              / full (modal) or peek / full (standard).
+              Not in v1: predictive back, and detents beyond half / full (modal) or peek / full
+              (standard).
             </li>
           </ul>
         </section>

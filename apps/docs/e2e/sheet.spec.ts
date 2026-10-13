@@ -15,6 +15,34 @@ const rect = (locator: Locator) =>
       right: Math.round(r.right),
     };
   });
+/**
+ * Samples the panel's leading edge (its top, or the edge facing the page for a side sheet)
+ * every frame from the moment `close` runs until the panel unmounts.
+ */
+async function exitFrames(page: Page, edge: 'top' | 'left' | 'right', close: () => Promise<void>) {
+  await page.evaluate((edge) => {
+    const frames: number[] = [];
+    (window as unknown as { exitFrames: number[] }).exitFrames = frames;
+    const sample = () => {
+      const panel = document.querySelector('[role="dialog"]');
+      if (!panel) return;
+      frames.push(panel.getBoundingClientRect()[edge]);
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }, edge);
+  await close();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  return page.evaluate(() => (window as unknown as { exitFrames: number[] }).exitFrames);
+}
+
+/** Once a frame leaves the window, no later frame comes back into it. */
+function neverReturns(frames: number[], outside: (value: number) => boolean) {
+  const left = frames.findIndex(outside);
+  expect(left).toBeGreaterThan(0);
+  expect(frames.slice(left).filter((value) => !outside(value))).toEqual([]);
+}
+
 const settle = (page: Page) =>
   page.evaluate(() =>
     Promise.allSettled(document.getAnimations().map((a) => a.finished)).then(() => undefined),
@@ -122,6 +150,15 @@ test.describe('Bottom sheet', () => {
     await expect(sheet).toHaveAttribute('data-detent', 'collapsed');
   });
 
+  test('the exit leaves the window for good, never springing back into view', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-sheet--bottom');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    await settle(page);
+    const frames = await exitFrames(page, 'top', () => page.keyboard.press('Escape'));
+    neverReturns(frames, (top) => top >= 800);
+  });
+
   test('pressing the scrim closes it', async ({ page }) => {
     await page.setViewportSize({ width: 412, height: 800 });
     await openStory(page, 'components-sheet--bottom');
@@ -129,6 +166,81 @@ test.describe('Bottom sheet', () => {
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.mouse.click(200, 50);
     await expect(page.getByRole('dialog')).toBeHidden();
+  });
+});
+
+/** A one-finger touch drag through the browser's own gesture handling (scrolling included). */
+async function touchDrag(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  steps = 12,
+) {
+  const cdp = await page.context().newCDPSession(page);
+  const point = (t: number) => ({
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t,
+  });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
+  for (let step = 1; step <= steps; step++) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [point(step / steps)],
+    });
+    await page.waitForTimeout(16);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await cdp.detach();
+}
+
+test.describe('Bottom sheet drags from its content (touch)', () => {
+  test.use({ hasTouch: true, viewport: { width: 412, height: 800 } });
+
+  const open = async (page: Page) => {
+    await openStory(page, 'components-sheet--bottom-scrolling');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    const sheet = page.getByRole('dialog');
+    await settle(page);
+    const content = page.getByTestId('filters').locator('..');
+    return { sheet, content };
+  };
+  const scrollTop = (content: Locator) => content.evaluate((el) => el.scrollTop);
+
+  test('a drag down with the content at its top closes the sheet', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    expect((await rect(sheet)).y).toBe(400);
+    expect(await scrollTop(content)).toBe(0);
+    await touchDrag(page, { x: 200, y: 600 }, { x: 200, y: 790 });
+    await expect(sheet).toBeHidden();
+  });
+
+  test('a drag down while the content is scrolled scrolls it back', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    await content.evaluate((el) => el.scrollTo({ top: 300 }));
+    await touchDrag(page, { x: 200, y: 500 }, { x: 200, y: 650 });
+    await settle(page);
+    expect(await scrollTop(content)).toBeLessThan(300);
+    expect((await rect(sheet)).y).toBe(400);
+    await expect(sheet).toBeVisible();
+  });
+
+  test('a drag up scrolls the content, even at its top', async ({ page }) => {
+    const { sheet, content } = await open(page);
+    await touchDrag(page, { x: 200, y: 700 }, { x: 200, y: 550 });
+    await settle(page);
+    expect(await scrollTop(content)).toBeGreaterThan(0);
+    expect((await rect(sheet)).y).toBe(400);
+  });
+
+  test('a sideways drag scrolls a horizontal scroller inside', async ({ page }) => {
+    const { sheet } = await open(page);
+    const filters = page.getByTestId('filters');
+    const row = await rect(filters);
+    const y = row.y + row.height / 2;
+    await touchDrag(page, { x: 350, y }, { x: 100, y: y + 20 });
+    await settle(page);
+    expect(await filters.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    expect((await rect(sheet)).y).toBe(400);
   });
 });
 
@@ -148,6 +260,45 @@ test.describe('Side sheet', () => {
       await expect(sheet).toBeHidden();
     });
   }
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`the exit leaves the window for good · ${dir}`, async ({ page }) => {
+      await page.setViewportSize({ width: 800, height: 600 });
+      await openStory(page, 'components-sheet--side', { dir });
+      await page.getByRole('button', { name: 'Open filters' }).click();
+      await settle(page);
+      const frames = await exitFrames(page, dir === 'ltr' ? 'left' : 'right', () =>
+        page.getByRole('button', { name: 'Close' }).click(),
+      );
+      neverReturns(frames, (edge) => (dir === 'ltr' ? edge >= 800 : edge <= 0));
+    });
+  }
+
+  test('content never scrolls horizontally', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await openStory(page, 'components-sheet--side', {}, { wide: true });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    const content = page.getByTestId('wide').locator('..');
+    expect(await rect(sheet)).toMatchObject({ width: 256 });
+    expect(await content.evaluate((el) => getComputedStyle(el).overflowX)).toBe('hidden');
+    await page.mouse.move(700, 100);
+    await page.mouse.wheel(200, 0);
+    expect(await content.evaluate((el) => el.scrollLeft)).toBe(0);
+  });
+
+  test('a wider sheet stops at 400px', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await openStory(page, 'components-sheet--side', {}, { widePanel: true });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    expect(await rect(sheet)).toMatchObject({ width: 400, right: 800 });
+    // In a narrow window it still fits the window.
+    await page.setViewportSize({ width: 360, height: 600 });
+    expect((await rect(sheet)).width).toBe(360);
+  });
 
   test('a back button insets the header to 16px', async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });

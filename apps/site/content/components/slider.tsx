@@ -142,12 +142,19 @@ export async function SliderBody(): Promise<ComponentDoc> {
               measuring; range and centred tracks carry stop indicators at both ends.
             </li>
             <li>
+              Stop indicators and ticks use the M3 token table&apos;s colours, not Compose&apos;s
+              code: <InlineCode>on-primary</InlineCode> on the active track and{' '}
+              <InlineCode>on-secondary-container</InlineCode> on the inactive one (disabled,{' '}
+              <InlineCode>inverse-on-surface</InlineCode> and <InlineCode>on-surface</InlineCode> at
+              38%).
+            </li>
+            <li>
               Inset icons follow MDC — a <InlineCode>startIcon</InlineCode> 10px inside the active
               track&apos;s start and an <InlineCode>endIcon</InlineCode> 10px inside the inactive
               end (replacing the stop) on sizes md and up. When the active track is too short for
-              the start icon, it moves to the start of the inactive track (M3). Centred sliders
-              ignore inset icons, as M3 advises. The value indicator pill is not in Compose&apos;s
-              default slider.
+              the start icon, it moves to the start of the inactive track (M3). Centred sliders and
+              XS / S sliders ignore inset icons (with a development warning), as M3 advises. The
+              value indicator pill is not in Compose&apos;s default slider.
             </li>
             <li>
               <strong>Deviation:</strong> pressing the track maps linearly to the value while

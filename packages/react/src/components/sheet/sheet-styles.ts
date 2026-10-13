@@ -7,10 +7,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * corners, `surface-container-low` at level 1, a 32 × 4px `on-surface-variant` drag handle
  * with 22px above and below it, and (modal) a 32% scrim fading on the default effects
  * spring. It shows on the default spatial spring and hides on the fast spatial spring: the
- * exit moves the sheet, and position moves on spatial springs (2026-10-13).
+ * exit moves the sheet, and position moves on spatial springs (2026-10-13). The exit
+ * travels 112% of the sheet's size, so the spring's overshoot (under 10.5% of the
+ * distance) settles out of view and the sheet never springs back into the window.
  *
  * Side sheets aren't in Compose; values follow m3.material.io and Material Components
- * Android (`m3_comp_sheet_side_*`): 256px wide; standard `surface` at level 0 with no
+ * Android (`m3_comp_sheet_side_*`): 256px wide, at most 400px; standard `surface` at level 0 with no
  * corners and an `outline-variant` divider on its content edge; modal
  * `surface-container-low` at level 1 with 16px corners on its free edge, over a 32% scrim;
  * detached sheets sit 16px from the edges with 16px corners all round. The header has 24px
@@ -30,7 +32,10 @@ const scrim = [
   'starting:opacity-0 data-exiting:opacity-0',
 ];
 
-/** Shows on the default spatial spring, hides on the fast spatial spring. */
+/**
+ * Shows on the default spatial spring, hides on the fast spatial spring. Exits translate
+ * 112% of the sheet's size, so the spring's overshoot stays off-screen.
+ */
 const sheetMotion = [
   '[transition-property:translate]',
   '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
@@ -49,7 +54,7 @@ export const bottomSheetStyles = tv({
       'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px]',
       'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
-      'translate-y-(--m3-sheet-offset) starting:translate-y-full data-exiting:translate-y-full',
+      'translate-y-(--m3-sheet-offset) starting:translate-y-full data-exiting:translate-y-[112%]',
       ...sheetMotion,
     ],
     panel: [
@@ -63,7 +68,9 @@ export const bottomSheetStyles = tv({
     ],
     handleBar: 'h-[4px] w-[32px] rounded-corner-extra-large bg-on-surface-variant',
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
-    content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain',
+    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
+    content:
+      'min-h-0 flex-1 overflow-y-auto overscroll-contain data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
   },
   variants: {
     variant: {
@@ -83,16 +90,21 @@ export const sideSheetStyles = tv({
     scrim,
     motion: [
       'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
-      'translate-x-0 starting:translate-x-full data-exiting:translate-x-full',
-      'rtl:starting:-translate-x-full rtl:data-exiting:-translate-x-full',
+      'translate-x-0 starting:translate-x-full data-exiting:translate-x-[112%]',
+      'rtl:starting:-translate-x-full rtl:data-exiting:-translate-x-[112%]',
       ...sheetMotion,
     ],
-    panel: 'flex w-[256px] max-w-full flex-col text-on-surface outline-none',
+    // 256px by default; a consumer width can't pass the spec's 400px maximum. A fixed
+    // maximum (not a percentage) also caps the wrapper's shrink-to-fit width, and `min-w-0`
+    // lets the panel shrink with the wrapper in a narrow window.
+    panel: 'flex w-[256px] max-w-[400px] min-w-0 flex-col text-on-surface outline-none',
     header:
       'flex min-h-[72px] shrink-0 items-center gap-[12px] ps-[24px] pe-[12px] pt-[12px] pb-[12px]',
     title: 'min-w-0 flex-1 text-title-large font-brand text-on-surface-variant',
     headerActions: 'ms-auto flex shrink-0 items-center gap-[12px]',
-    content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain ps-[24px] pe-[24px]',
+    // m3.material.io: "Side sheets cannot scroll horizontally."
+    content:
+      'min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain ps-[24px] pe-[24px]',
     footer: [
       'flex min-h-[72px] shrink-0 flex-wrap items-center justify-start gap-[8px]',
       'ps-[24px] pe-[24px] pt-[16px] pb-[24px]',

@@ -1,9 +1,24 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
 
 const dashOffset = (path: Locator) =>
   path.evaluate((el) => Number.parseFloat(getComputedStyle(el).strokeDashoffset));
+const borderColor = (box: Locator) => box.evaluate((el) => getComputedStyle(el).borderTopColor);
+/** A colour role resolved inside the story's theme scope, in the `rgb()` form computed styles use. */
+const role = (page: Page, name: string) =>
+  page
+    .locator('#storybook-root > *')
+    .first()
+    .evaluate((root, name) => {
+      const probe = document.createElement('div');
+      probe.style.color = `var(--md-sys-color-${name})`;
+      root.append(probe);
+      const color = getComputedStyle(probe).color;
+      probe.remove();
+      return color;
+    }, name);
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 
 test.describe('Checkbox visual regression', () => {
   for (const theme of THEMES) {
@@ -52,6 +67,62 @@ test.describe('Checkbox interaction', () => {
     await expect(control).toHaveAttribute('data-focus-visible', 'true');
     await shotWithMargin(page, control, 'state-focus.png');
   });
+
+  for (const mode of MODES) {
+    test(`the unselected outline turns on-surface on hover, focus and press · ${mode}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-checkbox--playground', { mode });
+      const control = page.locator('.state-layer');
+      const box = control.locator('[aria-hidden="true"].rounded-\\[2px\\]');
+      const [rest, active] = [
+        await role(page, 'on-surface-variant'),
+        await role(page, 'on-surface'),
+      ];
+      await expect.poll(() => borderColor(box)).toBe(rest);
+      await control.hover();
+      await expect.poll(() => borderColor(box)).toBe(active);
+      await page.mouse.down();
+      await expect(control).toHaveAttribute('data-pressed', 'true');
+      await expect.poll(() => borderColor(box)).toBe(active);
+      // Released away from the control, the press is cancelled and the box stays unchecked.
+      await page.mouse.move(0, 0);
+      await page.mouse.up();
+      await expect(page.getByRole('checkbox')).not.toBeChecked();
+      await page.keyboard.press('Tab');
+      await expect(control).toHaveAttribute('data-focus-visible', 'true');
+      await expect(control).not.toHaveAttribute('data-hovered', 'true');
+      await expect.poll(() => borderColor(box)).toBe(active);
+    });
+
+    test(`a checked or indeterminate box has no outline, invalid included · ${mode}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-checkbox--states', { mode });
+      const boxes = page.getByTestId('states').locator('[aria-hidden="true"].rounded-\\[2px\\]');
+      // Columns: enabled, invalid, disabled; rows: unchecked, checked, indeterminate.
+      for (const index of [1, 2, 4, 5, 7, 8]) {
+        await expect.poll(() => borderColor(boxes.nth(index))).toBe(TRANSPARENT);
+      }
+      const error = await role(page, 'error');
+      await expect.poll(() => borderColor(boxes.nth(3))).toBe(error);
+      for (const index of [4, 5]) {
+        expect(await boxes.nth(index).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
+          error,
+        );
+      }
+      // Pressing an invalid box keeps its error outline, and a checked one stays outline-free.
+      const controls = page.getByTestId('states').locator('.state-layer');
+      await controls.nth(3).hover();
+      await page.mouse.down();
+      await expect.poll(() => borderColor(boxes.nth(3))).toBe(error);
+      await page.mouse.up();
+      await controls.nth(4).hover();
+      await page.mouse.down();
+      await expect.poll(() => borderColor(boxes.nth(4))).toBe(TRANSPARENT);
+      await page.mouse.up();
+    });
+  }
 
   test('the 48px touch target extends past the 40px state layer', async ({ page }) => {
     await openStory(page, 'components-checkbox--playground');

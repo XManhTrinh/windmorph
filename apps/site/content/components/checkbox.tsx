@@ -107,6 +107,10 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
               Uses Compose&apos;s <strong>M3 styling</strong> (
               <InlineCode>isCheckboxStylingFixEnabled = true</InlineCode>), which Compose itself
               defaults to off (keeping M2 styling): an 18px box with 2px corners and a 2px outline.
+              The outline is <InlineCode>on-surface-variant</InlineCode>, darkening to{' '}
+              <InlineCode>on-surface</InlineCode> on hover, focus and press; a checked or
+              indeterminate box has no outline, so an invalid one is a plain{' '}
+              <InlineCode>error</InlineCode> fill.
             </li>
             <li>
               Motion: the check draws on the default spatial spring and snaps away 100ms after

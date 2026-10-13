@@ -82,11 +82,12 @@ export type SliderProps = SliderCommonProps &
      */
     centered?: boolean;
     /**
-     * An icon inside the active track at its start (sizes md and up). When the active track
-     * is too short for it, it moves to the start of the inactive track.
+     * An icon inside the active track at its start (sizes md and up; ignored, with a dev
+     * warning, on xs and sm). When the active track is too short for it, it moves to the
+     * start of the inactive track.
      */
     startIcon?: ReactNode;
-    /** An icon inside the inactive track at its end (sizes md and up). */
+    /** An icon inside the inactive track at its end (sizes md and up; ignored on xs and sm). */
     endIcon?: ReactNode;
   };
 
@@ -160,7 +161,12 @@ function SliderRoot(props: RootProps) {
     onChangeEnd,
     ...rest
   } = props;
-  const { centered = false, startIcon, endIcon } = props as SliderProps;
+  const { centered = false, startIcon: startIconProp, endIcon: endIconProp } = props as SliderProps;
+  // M3: only M, L and XL standard sliders take inset icons ("Avoid adding inset icons to XS
+  // or S"; none on centred sliders).
+  const iconSize = size === 'md' || size === 'lg' || size === 'xl';
+  const startIcon = iconSize && !centered ? startIconProp : undefined;
+  const endIcon = iconSize && !centered ? endIconProp : undefined;
   const thumbLabels = (props as RangeSliderProps).thumbLabels ?? ['Minimum', 'Maximum'];
   const { data, rest: labelling } = splitDataAttributes(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
@@ -197,8 +203,14 @@ function SliderRoot(props: RootProps) {
   const fractions = state.values.map((_, index) => state.getThumbPercent(index));
   const geometry = trackGeometry({ fractions, ticks: tickFractions, centered: centered && !range });
   const styles = sliderStyles({ size, orientation });
-  if (process.env.NODE_ENV !== 'production' && centered && (startIcon || endIcon)) {
-    console.warn('Slider: inset icons are not used on centred sliders (M3), so they are ignored.');
+  if (process.env.NODE_ENV !== 'production' && (startIconProp != null || endIconProp != null)) {
+    if (centered) {
+      console.warn(
+        'Slider: inset icons are not used on centred sliders (M3), so they are ignored.',
+      );
+    } else if (!iconSize) {
+      console.warn('Slider: inset icons need size md, lg or xl (M3), so they are ignored.');
+    }
   }
   if (process.env.NODE_ENV !== 'production' && range && orientation === 'vertical') {
     console.warn('RangeSlider: M3 advises against vertical range sliders.');
