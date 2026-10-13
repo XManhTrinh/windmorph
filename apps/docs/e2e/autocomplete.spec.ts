@@ -137,6 +137,13 @@ test.describe('Autocomplete behaviour', () => {
     await expect(page.getByTestId('value')).toHaveText('(none)');
   });
 
+  // M3: "A menu should open when a person … Selects an element, such as … a text field".
+  test('pressing the field opens the menu', async ({ page }) => {
+    await openStory(page, 'components-autocomplete--interactive');
+    await page.getByRole('combobox', { name: 'City' }).click();
+    await expect(page.getByRole('option')).toHaveCount(9);
+  });
+
   test('Escape closes the menu, then clears the text', async ({ page }) => {
     await openStory(page, 'components-autocomplete--interactive');
     const input = page.getByRole('combobox', { name: 'City' });

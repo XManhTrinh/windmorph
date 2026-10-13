@@ -279,6 +279,16 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     }
   };
 
+  // M3: "A menu should open when a person … Selects an element, such as … a text field", as
+  // Compose's editable anchor opens on press. A press on the input or the field opens the
+  // whole list, as the arrow does; keyboard focus alone doesn't (unless `menuTrigger="focus"`),
+  // and `menuTrigger="manual"` leaves opening to the arrow and the arrow keys.
+  const openOnPress = () => {
+    if (!state.isOpen && !disabled && !readOnly && ariaProps.menuTrigger !== 'manual') {
+      state.open(null, 'manual');
+    }
+  };
+
   const focused = isFocused || state.isOpen;
   const floated = focused || state.inputValue !== '' || chips.length > 0;
   const showClear = clearable && state.inputValue !== '' && !disabled && !readOnly;
@@ -324,10 +334,11 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         containerRef={containerRef}
         containerProps={mergeProps(hoverProps, focusProps)}
         onContainerPointerDown={(event) => {
-          // A press on the field's empty space puts the caret in the input.
+          // A press on the field's empty space puts the caret in the input and opens the menu.
           if (event.target === event.currentTarget && !disabled) {
             event.preventDefault();
             inputRef.current?.focus();
+            openOnPress();
           }
         }}
         rootProps={rootData}
@@ -359,6 +370,10 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             onKeyDown={(event) => {
               onKeyDown(event);
               inputProps.onKeyDown?.(event);
+            }}
+            onClick={(event) => {
+              inputProps.onClick?.(event);
+              openOnPress();
             }}
             ref={inputRef}
             className={cn(
