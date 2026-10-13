@@ -81,6 +81,20 @@ test.describe('TextField label', () => {
     ).toBe('2px');
   });
 
+  test('outlined: the resting label darkens to on-surface on hover', async ({ page }) => {
+    await openStory(page, 'components-textfield--playground', {}, { variant: 'outlined' });
+    const label = page.locator('label', { hasText: 'Label' });
+    await containerOf(page, 'Label').hover();
+    await settle(page);
+    const onSurface = await page.evaluate(() =>
+      getComputedStyle(document.querySelector('[data-theme]')!)
+        .getPropertyValue('--md-sys-color-on-surface')
+        .trim(),
+    );
+    const n = Number.parseInt(onSurface.slice(1), 16);
+    await expect(label).toHaveCSS('color', `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`);
+  });
+
   test('outlined with a leading icon: the label moves from after the icon to 16px', async ({
     page,
   }) => {
@@ -119,7 +133,45 @@ test.describe('TextField label', () => {
 });
 
 test.describe('TextField behaviour', () => {
-  test('multiline grows with content up to maxRows, then scrolls', async ({ page }) => {
+  test('a text area keeps its height and scrolls', async ({ page }) => {
+    await openStory(page, 'components-textfield--text-area');
+    const message = page.getByLabel('Message');
+    const height = (await box(message)).height;
+    expect(height).toBeCloseTo(96, 0); // four 24px lines
+    await message.fill('1\n2\n3\n4\n5\n6\n7\n8');
+    expect((await box(message)).height).toBe(height);
+    expect(await message.evaluate((el) => getComputedStyle(el).overflowY)).toBe('auto');
+  });
+
+  test('an invalid field shows the error icon and colours its supporting text', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-textfield--variants');
+    const field = fieldOf(page, 'Password').first();
+    await expect(field.getByRole('img', { name: 'Error' })).toBeVisible();
+    const error = await page.evaluate(() =>
+      getComputedStyle(document.querySelector('[data-theme]')!)
+        .getPropertyValue('--md-sys-color-error')
+        .trim(),
+    );
+    const n = Number.parseInt(error.slice(1), 16);
+    await expect(field.getByText('At least 8 characters')).toHaveCSS(
+      'color',
+      `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`,
+    );
+  });
+
+  test('supporting text can show only on focus', async ({ page }) => {
+    await openStory(page, 'components-textfield--supporting-text-on-focus');
+    const text = page.getByText('Shown on your profile');
+    await expect(text).toHaveCSS('opacity', '0');
+    await page.getByLabel('Display name').focus();
+    await expect(text).toHaveCSS('opacity', '1');
+  });
+
+  test('multiline with autoGrow grows with content up to maxRows, then scrolls', async ({
+    page,
+  }) => {
     await openStory(page, 'components-textfield--multiline');
     const notes = page.getByLabel('Notes');
     const one = (await box(notes)).height;

@@ -32,7 +32,12 @@ import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { BottomSheet } from '../sheet/BottomSheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 import { DropdownArrow, FieldShell, fieldState, type FieldShellClassNames } from './field-shell';
-import { OptionList, OptionPopover, type OptionListClassNames } from './option-list';
+import {
+  FOCUSABLE_DISABLED_OPTIONS,
+  OptionList,
+  OptionPopover,
+  type OptionListClassNames,
+} from './option-list';
 import { SearchList } from './search-list';
 import { useSelectionCap } from './selection-cap';
 
@@ -51,6 +56,8 @@ export interface SelectLabels {
   search: string;
   /** With `searchable`: shown when no option matches the search. */
   noResults: string;
+  /** The error icon's name (M3: "Error"). */
+  error: string;
 }
 
 const DEFAULT_LABELS: SelectLabels = {
@@ -59,6 +66,7 @@ const DEFAULT_LABELS: SelectLabels = {
   more: (count) => `+${count}`,
   search: 'Search',
   noResults: 'No results',
+  error: 'Error',
 };
 
 /** A chosen option, as `renderValue` receives it. */
@@ -97,14 +105,30 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
     'aria-label'?: string;
-    /** Shown in the field when nothing is chosen. */
+    /**
+     * Shown in the field when nothing is chosen. With a `label`, it appears once the label
+     * floats (on focus), as in `TextField`.
+     */
     placeholder?: string;
-    /** Helper text below the field. Replaced visually by the error when invalid. */
+    /**
+     * Helper text below the field. Replaced visually by the error when invalid, and shown in
+     * the error colour while the field is invalid.
+     */
     supportingText?: ReactNode;
     invalid?: boolean;
     required?: boolean;
     disabled?: boolean;
+    /**
+     * The choice can be seen but not changed: the menu doesn't open and the keyboard doesn't
+     * change it. The root gets `data-readonly`; say so in the supporting text (M3).
+     */
+    readOnly?: boolean;
     leadingIcon?: ReactNode;
+    /**
+     * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
+     * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
+     */
+    errorIcon?: ReactNode | false;
     /** Whether the menu is open (controlled); with `defaultOpen` and `onOpenChange`. */
     open?: boolean;
     /**
@@ -157,6 +181,15 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
 
 const COMPACT_WINDOW = '(max-width: 599.98px)';
 
+/** A read-only Select's keyboard finds no option, so arrows and typeahead change nothing. */
+const READ_ONLY_DELEGATE: NonNullable<AriaSelectOptions<object>['keyboardDelegate']> = {
+  getFirstKey: () => null,
+  getLastKey: () => null,
+  getKeyBelow: () => null,
+  getKeyAbove: () => null,
+  getKeyForSearch: () => null,
+};
+
 function subscribeToWindow(onChange: () => void) {
   const query = window.matchMedia(COMPACT_WINDOW);
   query.addEventListener('change', onChange);
@@ -186,7 +219,9 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     invalid,
     required,
     disabled = false,
+    readOnly = false,
     leadingIcon,
+    errorIcon,
     open,
     maxSelections,
     presentation = 'menu',
@@ -242,7 +277,10 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     isInvalid: invalid,
     isRequired: required,
     isDisabled: disabled,
-    ...(open !== undefined && { isOpen: open }),
+    ...FOCUSABLE_DISABLED_OPTIONS,
+    ...(readOnly
+      ? { isOpen: false, keyboardDelegate: READ_ONLY_DELEGATE }
+      : open !== undefined && { isOpen: open }),
     placeholder,
     name,
     autoComplete,
@@ -305,16 +343,16 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       ? `${chosen.slice(0, 2).join(', ')} ${labels.more(chosen.length - 2)}`
       : chosen.join(', ');
   const hasValue = chosen.length > 0;
+  const hasLabel = label !== undefined && label !== null;
   const focused = isFocused || state.isOpen;
   const resolvedError =
     typeof errorMessage === 'function'
       ? errorMessage({ isInvalid, validationErrors, validationDetails })
       : (errorMessage ?? validationErrors.join(' '));
 
-  const searchLabelling =
-    label !== undefined && label !== null
-      ? { 'aria-labelledby': labelProps.id }
-      : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] };
+  const searchLabelling = hasLabel
+    ? { 'aria-labelledby': labelProps.id }
+    : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] };
   const list = searchable ? (
     <SearchList
       listProps={{
@@ -364,10 +402,13 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
         labelProps={labelProps}
         required={required}
         state={fieldState({ disabled, invalid: isInvalid, focused, hovered: isHovered })}
-        floated={hasValue || focused || Boolean(placeholder)}
+        floated={hasValue || focused}
         open={state.isOpen}
         leadingIcon={leadingIcon}
         trailing={<DropdownArrow open={state.isOpen} />}
+        errorIcon={errorIcon}
+        errorIconLabel={labels.error}
+        readOnly={readOnly}
         supportingText={supportingText}
         descriptionProps={descriptionProps}
         errorText={resolvedError}
@@ -381,7 +422,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
           event.preventDefault();
           releaseFocusRef.current = false;
           triggerRef.current?.focus();
-          state.toggle();
+          if (!readOnly) state.toggle();
         }}
         rootProps={{ ...rootData, 'data-focus-visible': isFocusVisible || undefined }}
         rootRef={ref}
@@ -432,6 +473,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
             className={cn(
               'min-w-0 flex-1 truncate text-body-large',
               hasValue ? 'text-on-surface' : 'text-on-surface-variant',
+              // With a label, the placeholder shows once the label floats (as TextField).
+              !hasValue && hasLabel && 'opacity-0 group-data-floated/field:opacity-100',
               'group-data-[field-state=disabled]/field:text-on-surface/38',
               classNames?.value,
             )}

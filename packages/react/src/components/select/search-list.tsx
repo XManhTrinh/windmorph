@@ -14,7 +14,7 @@ import type { ListProps } from 'react-stately/useListState';
 import { cn } from '../../utils/cn';
 import { menuStyles } from '../menu/menu-styles';
 import { searchBarStyles } from '../search/search-styles';
-import { OptionList, type OptionListClassNames } from './option-list';
+import { FOCUSABLE_DISABLED_OPTIONS, OptionList, type OptionListClassNames } from './option-list';
 
 /** Material Symbols `search`. */
 const SearchIcon = () => (
@@ -91,7 +91,7 @@ export function SearchList<T>({
       filter ? filterNodes(nodes, (node) => filter(node.textValue, search, node.key)) : [...nodes],
     [filter, search],
   );
-  const state = useListState<T>({ ...listProps, filter: matches });
+  const state = useListState<T>({ ...listProps, ...FOCUSABLE_DISABLED_OPTIONS, filter: matches });
 
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -141,6 +141,7 @@ export function SearchList<T>({
       </div>
       <OptionList
         embedded
+        animateFiltering
         listBoxProps={{
           ...collectionProps,
           ...labelling,

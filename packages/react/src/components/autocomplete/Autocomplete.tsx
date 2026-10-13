@@ -1,6 +1,13 @@
 'use client';
 
-import { useRef, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import {
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import {
   mergeProps,
   useButton,
@@ -8,6 +15,7 @@ import {
   useFocusRing,
   useHover,
   useObjectRef,
+  ListKeyboardDelegate,
   type AriaComboBoxOptions,
 } from 'react-aria';
 import {
@@ -27,7 +35,12 @@ import {
   fieldState,
   type FieldShellClassNames,
 } from '../select/field-shell';
-import { OptionList, OptionPopover, type OptionListClassNames } from '../select/option-list';
+import {
+  FOCUSABLE_DISABLED_OPTIONS,
+  OptionList,
+  OptionPopover,
+  type OptionListClassNames,
+} from '../select/option-list';
 import { useSelectionCap } from '../select/selection-cap';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 
@@ -41,6 +54,10 @@ export interface AutocompleteLabels {
   showOptions: string;
   /** A chip's remove button; the chip's text follows it ("Remove London"). */
   remove: string;
+  /** With `clearable`: the clear button's name. */
+  clear: string;
+  /** The error icon's name (M3: "Error"). */
+  error: string;
 }
 
 const DEFAULT_LABELS: AutocompleteLabels = {
@@ -48,12 +65,23 @@ const DEFAULT_LABELS: AutocompleteLabels = {
   loading: 'Loading options',
   showOptions: 'Show options',
   remove: 'Remove',
+  clear: 'Clear',
+  error: 'Error',
 };
 
 export interface AutocompleteClassNames extends FieldShellClassNames, OptionListClassNames {
   input?: string;
   chip?: string;
+  /** With `clearable`: the clear button. */
+  clear?: string;
 }
+
+/** Material Symbols `close`. */
+const ClearIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
+    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+  </svg>
+);
 
 /** React Aria props this API names the library's way (`disabled`, `readOnly`…), or leaves out. */
 type RenamedProps =
@@ -75,14 +103,28 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
     'aria-label'?: string;
+    /** Shown in the empty input. With a `label`, it appears once the label floats (on focus). */
     placeholder?: string;
-    /** Helper text below the field. Replaced visually by the error when invalid. */
+    /**
+     * Helper text below the field. Replaced visually by the error when invalid, and shown in
+     * the error colour while the field is invalid.
+     */
     supportingText?: ReactNode;
     invalid?: boolean;
     required?: boolean;
     disabled?: boolean;
     readOnly?: boolean;
     leadingIcon?: ReactNode;
+    /**
+     * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
+     * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
+     */
+    errorIcon?: ReactNode | false;
+    /**
+     * A clear button (M3's clear icon) that appears while there's typed text and empties it,
+     * and a single choice with it. It's skipped by Tab: Escape clears from the keyboard.
+     */
+    clearable?: boolean;
     /**
      * With `selectionMode="multiple"`, the most options that can be chosen; the rest show as
      * disabled until one is removed.
@@ -129,6 +171,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     disabled = false,
     readOnly = false,
     leadingIcon,
+    errorIcon,
+    clearable = false,
     maxSelections,
     loading = false,
     labels: labelsProp,
@@ -186,9 +230,22 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
 
   const state = useComboBoxState<T, M>({
     ...(ariaProps as unknown as ComboBoxStateOptions<T, M>),
+    ...FOCUSABLE_DISABLED_OPTIONS,
     defaultFilter: filter ?? matchesSearch,
     allowsEmptyCollection: true,
   });
+  const { collection } = state;
+  const { disabledKeys } = state.selectionManager;
+  const keyboardDelegate = useMemo(
+    () =>
+      new ListKeyboardDelegate({
+        collection,
+        disabledKeys,
+        disabledBehavior: 'selection',
+        ref: listBoxRef,
+      }),
+    [collection, disabledKeys],
+  );
   const {
     buttonProps,
     inputProps,
@@ -199,7 +256,14 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     isInvalid,
     validationErrors,
     validationDetails,
-  } = useComboBox<T, M>(ariaProps, state);
+  } = useComboBox<T, M>(
+    {
+      ...ariaProps,
+      // The input's arrow keys reach disabled options too (M3: they "can receive focus").
+      keyboardDelegate,
+    },
+    state,
+  );
   const { buttonProps: arrowProps } = useButton(buttonProps, buttonRef);
   const { focusProps, isFocused } = useFocusRing({ within: true, isTextInput: true });
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
@@ -216,7 +280,13 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
   };
 
   const focused = isFocused || state.isOpen;
-  const floated = focused || state.inputValue !== '' || chips.length > 0 || Boolean(placeholder);
+  const floated = focused || state.inputValue !== '' || chips.length > 0;
+  const showClear = clearable && state.inputValue !== '' && !disabled && !readOnly;
+  const clear = () => {
+    if (!multiple) state.setValue(null);
+    state.setInputValue('');
+    inputRef.current?.focus();
+  };
   const resolvedError =
     typeof errorMessage === 'function'
       ? errorMessage({ isInvalid, validationErrors, validationDetails })
@@ -233,6 +303,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         floated={floated}
         open={state.isOpen}
         leadingIcon={leadingIcon}
+        errorIcon={errorIcon}
+        errorIconLabel={labels.error}
+        readOnly={readOnly}
         trailing={
           <button
             {...arrowProps}
@@ -296,10 +369,27 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
               classNames?.input,
             )}
           />
+          {showClear ? (
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={labels.clear}
+              // Keeps focus (and the open menu) in the input.
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={clear}
+              className={cn(
+                '-me-[4px] flex size-[40px] shrink-0 items-center justify-center rounded-corner-full text-on-surface-variant outline-none state-layer [&>svg]:size-[24px]',
+                classNames?.clear,
+              )}
+            >
+              <ClearIcon />
+            </button>
+          ) : null}
         </div>
       </FieldShell>
       <OptionPopover state={state} triggerRef={containerRef} popoverRef={popoverRef} isNonModal>
         <OptionList
+          animateFiltering
           listBoxProps={listBoxProps}
           state={state}
           listBoxRef={listBoxRef}

@@ -90,6 +90,53 @@ test.describe('Autocomplete behaviour', () => {
     await expect(input).toBeFocused();
   });
 
+  test('the clear button empties the text and the choice', async ({ page }) => {
+    await openStory(page, 'components-autocomplete--interactive');
+    const input = page.getByRole('combobox', { name: 'City' });
+    const clear = page.getByRole('button', { name: 'Clear' });
+    await expect(clear).toHaveCount(0);
+    await input.fill('zurich');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('value')).toHaveText('zrh');
+    await clear.click();
+    await expect(input).toHaveValue('');
+    await expect(input).toBeFocused();
+    await expect(page.getByTestId('value')).toHaveText('(none)');
+  });
+
+  test('options ease into their new places as the list filters', async ({ page }) => {
+    await openStory(page, 'components-autocomplete--interactive');
+    const input = page.getByRole('combobox', { name: 'City' });
+    await input.focus();
+    await page.getByRole('button', { name: 'Show options' }).click();
+    await expect(page.getByRole('option')).toHaveCount(9);
+    const sydney = page.getByRole('option', { name: /Sydney/ });
+    await input.pressSequentially('y');
+    // Sydney moves up and springs home from where it was, then settles.
+    await expect
+      .poll(() => sydney.evaluate((el) => getComputedStyle(el).transform))
+      .not.toBe('none');
+    await expect
+      .poll(() => sydney.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m42))
+      .toBe(0);
+  });
+
+  test('the keyboard reaches a disabled option without choosing it', async ({ page }) => {
+    await openStory(page, 'components-autocomplete--interactive');
+    const input = page.getByRole('combobox', { name: 'City' });
+    await input.fill('mala');
+    await page.keyboard.press('ArrowDown');
+    const malaga = page.getByRole('option', { name: /Málaga/ });
+    await expect(malaga).toHaveAttribute('aria-disabled', 'true');
+    await expect(input).toHaveAttribute(
+      'aria-activedescendant',
+      (await malaga.getAttribute('id'))!,
+    );
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('value')).toHaveText('(none)');
+  });
+
   test('Escape closes the menu, then clears the text', async ({ page }) => {
     await openStory(page, 'components-autocomplete--interactive');
     const input = page.getByRole('combobox', { name: 'City' });

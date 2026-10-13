@@ -44,7 +44,22 @@ export const Variants: Story = {
             invalid
             errorMessage="Enter a complete email address"
           />
-          <TextField variant={variant} label="Disabled" defaultValue="Read only value" disabled />
+          <TextField
+            variant={variant}
+            label="Password"
+            type="password"
+            defaultValue="abc"
+            invalid
+            supportingText="At least 8 characters"
+          />
+          <TextField variant={variant} label="Disabled" defaultValue="Disabled value" disabled />
+          <TextField
+            variant={variant}
+            label="Account number"
+            defaultValue="A-1024"
+            readOnly
+            supportingText="Read-only"
+          />
           <TextField
             variant={variant}
             label="Search"
@@ -52,12 +67,20 @@ export const Variants: Story = {
             trailingIcon={<IconButton icon={<ClearIcon />} aria-label="Clear" />}
             defaultValue="Kyoto"
           />
-          <TextField variant={variant} label="Price" prefix="$" suffix="USD" defaultValue="42" />
+          <TextField
+            variant={variant}
+            label="Price"
+            prefix="$"
+            prefixLabel="US dollars"
+            suffix="USD"
+            defaultValue="42"
+          />
           <TextField variant={variant} aria-label="No label" placeholder="Placeholder only" />
           <TextField
             variant={variant}
             label="Bio"
             multiline
+            rows={3}
             maxLength={120}
             defaultValue="Line one"
           />
@@ -67,10 +90,40 @@ export const Variants: Story = {
   ),
 };
 
-/** A multiline field that grows to five lines, then scrolls. */
+/**
+ * A text area: `multiline` keeps a fixed height of `rows` lines (4 by default) and scrolls,
+ * which M3 recommends over growing fields on the web.
+ */
+export const TextArea: Story = {
+  render: () => (
+    <TextField
+      label="Message"
+      multiline
+      data-testid="message"
+      variant="outlined"
+      supportingText="Tell us what happened"
+    />
+  ),
+};
+
+/** A multiline field with `autoGrow`: it grows to five lines, then scrolls. */
 export const Multiline: Story = {
   render: () => (
-    <TextField label="Notes" multiline maxRows={5} data-testid="notes" variant="outlined" />
+    <TextField
+      label="Notes"
+      multiline
+      autoGrow
+      maxRows={5}
+      data-testid="notes"
+      variant="outlined"
+    />
+  ),
+};
+
+/** Supporting text that shows only while the field has focus. */
+export const SupportingTextOnFocus: Story = {
+  render: () => (
+    <TextField label="Display name" supportingText="Shown on your profile" supportingTextOnFocus />
   ),
 };
 

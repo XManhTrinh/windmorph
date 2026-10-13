@@ -1,5 +1,5 @@
 import type { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, Ref } from 'react';
-import { ErrorText, FieldLabel, SupportingText } from '../../primitives/Field';
+import { ErrorText, FieldErrorIcon, FieldLabel, SupportingText } from '../../primitives/Field';
 import { cn } from '../../utils/cn';
 import { textFieldStyles, type TextFieldVariant } from '../text-field/text-field-styles';
 
@@ -47,6 +47,8 @@ export interface FieldShellClassNames {
   trailingIcon?: string;
   supportingText?: string;
   errorText?: string;
+  /** The built-in error icon. */
+  errorIcon?: string;
 }
 
 export interface FieldShellProps {
@@ -61,6 +63,14 @@ export interface FieldShellProps {
   leadingIcon?: ReactNode;
   /** The arrow, or a button holding it. */
   trailing: ReactNode;
+  /**
+   * The icon shown before `trailing` while the field is invalid (M3 strongly recommends one);
+   * `undefined` for the default `error` icon, `false` for none.
+   */
+  errorIcon?: ReactNode | false;
+  /** The error icon's accessible name (M3: "Error"). */
+  errorIconLabel: string;
+  readOnly?: boolean | undefined;
   /** What the field holds: the Select's button or the Autocomplete's chips and input. */
   children: ReactNode;
   supportingText?: ReactNode;
@@ -95,6 +105,9 @@ export function FieldShell({
   open,
   leadingIcon,
   trailing,
+  errorIcon,
+  errorIconLabel,
+  readOnly = false,
   children,
   supportingText,
   descriptionProps,
@@ -119,7 +132,9 @@ export function FieldShell({
     hasTrailingIcon: true,
     multiline,
   });
-  const requiredMark = required ? <span aria-hidden="true"> *</span> : null;
+  // Part of the accessible name (M3); the notch's copy is hidden with the fieldset.
+  const requiredMark = required ? ' *' : null;
+  const showErrorIcon = state.startsWith('error') && errorIcon !== false;
 
   return (
     <div
@@ -132,6 +147,7 @@ export function FieldShell({
       data-focused={state === 'focus' || state === 'error-focus' || undefined}
       data-invalid={state.startsWith('error') || undefined}
       data-disabled={state === 'disabled' || undefined}
+      data-readonly={readOnly || undefined}
       data-floated={floated || undefined}
       data-open={open || undefined}
     >
@@ -159,6 +175,15 @@ export function FieldShell({
           </span>
         )}
         <div className={styles.field({ class: classNames?.field })}>{children}</div>
+        {showErrorIcon ? (
+          <span className={styles.icon({ class: styles.trailingIcon() })}>
+            <FieldErrorIcon
+              label={errorIconLabel}
+              icon={errorIcon}
+              className={styles.errorIcon({ class: classNames?.errorIcon })}
+            />
+          </span>
+        ) : null}
         <span
           className={styles.icon({ class: cn(styles.trailingIcon(), classNames?.trailingIcon) })}
         >

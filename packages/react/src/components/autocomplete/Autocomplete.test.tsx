@@ -112,9 +112,64 @@ describe('Autocomplete', () => {
   });
 
   it('announces an error and is disabled', () => {
-    render(<Cities invalid errorMessage="Choose a city" disabled />);
-    expect(screen.getByText('Choose a city')).toBeInTheDocument();
+    const { rerender } = render(<Cities invalid errorMessage="Choose a city" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose a city');
+    expect(screen.getByRole('img', { name: 'Error' })).toBeInTheDocument();
+    rerender(<Cities invalid errorMessage="Choose a city" disabled />);
     expect(input()).toBeDisabled();
+  });
+
+  it('keeps the label resting with a placeholder until focused', async () => {
+    render(<Cities placeholder="Start typing" required />);
+    const field = input().closest('[data-field-state]');
+    expect(field).not.toHaveAttribute('data-floated');
+    expect(screen.getByRole('combobox', { name: 'City *' })).toBeInTheDocument();
+    await userEvent.click(input());
+    expect(field).toHaveAttribute('data-floated', 'true');
+  });
+
+  it('lets the arrow keys reach disabled options without choosing them', async () => {
+    const onChange = vi.fn();
+    render(<Cities disabledKeys={['sp']} onChange={onChange} />);
+    await userEvent.click(input());
+    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    const disabled = screen.getByRole('option', { name: 'São Paulo' });
+    expect(disabled).toHaveAttribute('aria-disabled', 'true');
+    expect(input()).toHaveAttribute('aria-activedescendant', disabled.id);
+    await userEvent.keyboard('{Enter}');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('clears the typed text and the choice with clearable', async () => {
+    const onChange = vi.fn();
+    render(<Cities clearable defaultValue="ldn" onChange={onChange} />);
+    expect(input()).toHaveValue('London');
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    expect(input()).toHaveValue('');
+    expect(input()).toHaveFocus();
+    expect(onChange).toHaveBeenLastCalledWith(null);
+    expect(screen.queryByRole('button', { name: 'Clear' })).not.toBeInTheDocument();
+  });
+
+  it('eases filtered options into their new places', async () => {
+    // jsdom has no layout: each option's top is its index × 44px in the current list.
+    const spy = vi.spyOn(HTMLElement.prototype, 'offsetTop', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.getAttribute('role') !== 'option') return 0;
+      const options = [...(this.parentElement?.children ?? [])];
+      return options.indexOf(this) * 44;
+    });
+    render(<Cities />);
+    await userEvent.click(input());
+    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
+    await userEvent.type(input(), 'o');
+    // "London" moved up from the 4th row; it starts where it was and springs home.
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'London' }).style.transform).not.toBe(''),
+    );
+    spy.mockRestore();
   });
 
   it('has no axe violations', async () => {
@@ -122,6 +177,7 @@ describe('Autocomplete', () => {
       <div>
         <Cities supportingText="Where you live" />
         <Cities variant="outlined" selectionMode="multiple" defaultValue={['zrh']} />
+        <Cities clearable defaultValue="ldn" required invalid errorMessage="Choose a city" />
       </div>,
     );
     expect(await axeViolations(container)).toEqual([]);

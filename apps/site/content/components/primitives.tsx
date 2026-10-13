@@ -15,7 +15,7 @@ const importSnippet = `import {
   // Interaction & structure
   useM3Interaction, ButtonBase, Surface, Overlay, TouchTarget,
   // Form field parts
-  FieldLabel, SupportingText, ErrorText, CharacterCounter, SelectionControl,
+  FieldLabel, SupportingText, ErrorText, CharacterCounter, FieldErrorIcon, SelectionControl,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Building your own component
@@ -155,8 +155,11 @@ export async function PrimitivesBody() {
           <li>
             Field parts (<code className="text-on-surface">FieldLabel</code>,{' '}
             <code className="text-on-surface">SupportingText</code>,{' '}
-            <code className="text-on-surface">ErrorText</code>,{' '}
-            <code className="text-on-surface">CharacterCounter</code>) and{' '}
+            <code className="text-on-surface">ErrorText</code> with the{' '}
+            <code className="text-on-surface">alert</code> role,{' '}
+            <code className="text-on-surface">CharacterCounter</code> read as its{' '}
+            <code className="text-on-surface">label</code>, and the named{' '}
+            <code className="text-on-surface">FieldErrorIcon</code>) and{' '}
             <code className="text-on-surface">SelectionControl</code> (the shared Checkbox / Radio /
             Switch control).
           </li>

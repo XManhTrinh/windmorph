@@ -10,6 +10,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { animate, useReducedMotion } from 'motion/react';
 import {
   DismissButton,
   mergeProps,
@@ -28,11 +29,19 @@ import {
   type Node,
   type OverlayTriggerState,
 } from 'react-stately';
+import { useM3Spring } from '../../motion/use-m3-spring';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { LoadingIndicator } from '../loading-indicator/LoadingIndicator';
 import { menuStyles } from '../menu/menu-styles';
+
+/**
+ * Disabled options stay focusable but can't be chosen (M3 menus: "Disabled menu items can
+ * receive focus but aren't selectable"). React Stately reads it from the state options,
+ * though its types don't list it.
+ */
+export const FOCUSABLE_DISABLED_OPTIONS = { disabledBehavior: 'selection' as const };
 
 /** Props of an option in a `Select` or `Autocomplete`; the React `key` identifies it. */
 export interface OptionItemProps {
@@ -93,6 +102,7 @@ export function OptionList<T>({
   loadingLabel,
   isBlocked,
   embedded = false,
+  animateFiltering = false,
   classNames,
 }: {
   listBoxProps: AriaListBoxOptions<T>;
@@ -107,9 +117,15 @@ export function OptionList<T>({
   isBlocked?: ((key: Key) => boolean) | undefined;
   /** Inside a surface of its own (a sheet, or the search list's panel): no menu panel. */
   embedded?: boolean;
+  /**
+   * The list filters as someone types: options that stay ease into their new places (M3:
+   * "Menu items ease into their new position as the menu is filtered").
+   */
+  animateFiltering?: boolean;
   classNames?: OptionListClassNames | undefined;
 }) {
   const { listBoxProps: props } = useListBox(listBoxProps, state, listBoxRef);
+  useFilterMotion(listBoxRef, state.collection, animateFiltering);
   const menu = menuStyles({ variant: 'standard', groupPosition: 'only' });
   const nodes = [...state.collection];
   // Options, not sections: a section left with no matches doesn't count.
@@ -135,7 +151,18 @@ export function OptionList<T>({
         classNames?.list,
       )}
     >
-      <ul {...props} ref={listBoxRef} className="min-h-0 flex-1 overflow-y-auto outline-none">
+      <ul
+        {...props}
+        ref={listBoxRef}
+        className={cn(
+          'min-h-0 flex-1 overflow-y-auto outline-none',
+          // M3: a menu that scrolls "show[s] a persistent scrollbar". A styled WebKit
+          // scrollbar is always drawn (overlay scrollbars hide); elsewhere, a thin one.
+          '[&::-webkit-scrollbar]:w-[12px] [&::-webkit-scrollbar-track]:bg-transparent',
+          '[&::-webkit-scrollbar-thumb]:rounded-corner-full [&::-webkit-scrollbar-thumb]:border-[4px] [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-outline [&::-webkit-scrollbar-thumb]:bg-clip-padding',
+          'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
+        )}
+      >
         {nodes.map((node, index) =>
           node.type === 'section' ? (
             <OptionSection key={node.key} section={node} divided={index > 0} {...itemOptions} />
@@ -155,6 +182,37 @@ export function OptionList<T>({
       ) : null}
     </div>
   );
+}
+
+/**
+ * FLIP for a filtered list: after the options change, each one still there starts where it
+ * was and springs to its new place (default spatial spring). Positions are read only when
+ * the collection changes; nothing moves under reduced motion.
+ */
+function useFilterMotion(
+  listRef: RefObject<HTMLUListElement | null>,
+  collection: unknown,
+  enabled: boolean,
+) {
+  const spring = useM3Spring('spatial', 'default');
+  const reducedMotion = useReducedMotion();
+  const positions = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!enabled || !list) return;
+    const previous = positions.current;
+    const next = new Map<string, number>();
+    for (const item of list.querySelectorAll<HTMLElement>('[role="option"][data-key]')) {
+      const key = item.dataset.key!;
+      // offsetTop ignores transforms, so a moving option reports where it lands.
+      const top = item.offsetTop;
+      next.set(key, top);
+      const from = previous.get(key);
+      if (from === undefined || from === top || reducedMotion) continue;
+      animate(item, { y: [from - top, 0] }, spring);
+    }
+    positions.current = next;
+  }, [collection, enabled, listRef, reducedMotion, spring]);
 }
 
 interface ItemOptions<T> {
@@ -206,15 +264,12 @@ function OptionItem<T>({
   classNames,
 }: ItemOptions<T> & { item: Node<T> }) {
   const ref = useRef<HTMLLIElement>(null);
-  const { optionProps, isSelected, isDisabled, isFocusVisible } = useOption(
-    {
-      key: item.key,
-      // A blocked option is disabled; otherwise the collection's `disabledKeys` decide.
-      ...(isBlocked?.(item.key) && { isDisabled: true }),
-    },
-    state,
-    ref,
-  );
+  // Disabled options keep focus (the state's `disabledBehavior: 'selection'`), so React Aria
+  // treats them as enabled; they're marked disabled here, and the state (`disabledKeys`) or
+  // the selection cap (blocked options) turns their choice away.
+  const { optionProps, isSelected, isFocusVisible } = useOption({ key: item.key }, state, ref);
+  const isDisabled =
+    state.selectionManager.disabledKeys.has(item.key) || (isBlocked?.(item.key) ?? false);
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { leadingIcon, description, trailing } = item.props as OptionItemProps;
   const menu = menuStyles({
@@ -228,6 +283,8 @@ function OptionItem<T>({
     <li
       {...mergeProps(optionProps, hoverProps)}
       ref={ref}
+      aria-disabled={isDisabled || undefined}
+      data-key={String(item.key)}
       className={menu.item({ class: classNames?.item })}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}

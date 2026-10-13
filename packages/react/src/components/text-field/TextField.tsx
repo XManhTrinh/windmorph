@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  useId,
   useLayoutEffect,
   type CSSProperties,
   type PointerEvent,
@@ -17,7 +18,13 @@ import {
   type AriaTextFieldProps,
 } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
-import { CharacterCounter, ErrorText, FieldLabel, SupportingText } from '../../primitives/Field';
+import {
+  CharacterCounter,
+  ErrorText,
+  FieldErrorIcon,
+  FieldLabel,
+  SupportingText,
+} from '../../primitives/Field';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
@@ -34,7 +41,22 @@ export interface TextFieldClassNames {
   supportingText?: string;
   errorText?: string;
   counter?: string;
+  /** The built-in error icon. */
+  errorIcon?: string;
 }
+
+/** Words the text field announces; override them for other languages. */
+export interface TextFieldLabels {
+  /** The error icon's name (M3: "Error"). */
+  error: string;
+  /** What screen readers hear for the character counter (M3 calls it the "character count"). */
+  characterCount: (count: number, max: number) => string;
+}
+
+const DEFAULT_LABELS: TextFieldLabels = {
+  error: 'Error',
+  characterCount: (count, max) => `Character count: ${count} of ${max}`,
+};
 
 type FieldState = 'disabled' | 'error-focus' | 'error-hover' | 'error' | 'focus' | 'hover' | 'rest';
 
@@ -57,29 +79,68 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
-  /** Helper text below the field. Replaced visually by the error message when invalid. */
+  /**
+   * Helper text below the field. Replaced visually by the error message when invalid, and
+   * shown in the error colour while the field is invalid.
+   */
   supportingText?: ReactNode;
+  /**
+   * Shows the supporting text only while the field has focus (M3 allows it "persistently
+   * visible or visible only on focus"). Its space is kept, and screen readers always get it.
+   */
+  supportingTextOnFocus?: boolean;
   /** Marks the field invalid (in addition to `validate` and native constraints). */
   invalid?: boolean;
   required?: boolean;
   disabled?: boolean;
+  /**
+   * The value can be read and copied but not changed. M3 styles it as a regular field and
+   * asks for it to be "clearly labeled as read-only", e.g. in the supporting text. The root
+   * gets `data-readonly`.
+   */
   readOnly?: boolean;
   /** Decorative icon at the start, in a 48px box. */
   leadingIcon?: ReactNode;
-  /** Icon or icon button at the end (e.g. clear, visibility toggle), in a 48px box. */
+  /**
+   * Icon or icon button at the end (e.g. clear, visibility toggle), in a 48px box. It takes
+   * the place of the error icon.
+   */
   trailingIcon?: ReactNode;
+  /**
+   * The icon shown at the end while the field is invalid and has no `trailingIcon` (M3
+   * strongly recommends one). Defaults to Material Symbols `error`, named by `labels.error`;
+   * `false` turns it off.
+   */
+  errorIcon?: ReactNode | false;
   /** Text before the input, e.g. "$". Shown once the label floats. */
   prefix?: ReactNode;
+  /**
+   * What screen readers hear for the prefix, e.g. "US dollars" for "$". The prefix is in the
+   * input's description either way; without this, its visible text is read.
+   */
+  prefixLabel?: string;
   /** Text after the input, e.g. "kg". Shown once the label floats. */
   suffix?: ReactNode;
-  /** Renders a `<textarea>` that grows with its content. */
+  /** What screen readers hear for the suffix, e.g. "kilograms" for "kg". */
+  suffixLabel?: string;
+  /**
+   * Renders a `<textarea>`. By default it's an M3 text area: a fixed height of `rows` lines
+   * that scrolls vertically, which M3 recommends over growing fields on the web.
+   */
   multiline?: boolean;
-  /** Minimum visible lines for a multiline field. @default 1 */
+  /**
+   * With `multiline`: grow with the content from `rows` up to `maxRows` (M3's multi-line
+   * field) instead of keeping a fixed height.
+   */
+  autoGrow?: boolean;
+  /** Visible lines of a multiline field. @default 4, or 1 with `autoGrow` */
   rows?: number;
-  /** Lines after which a multiline field scrolls instead of growing. */
+  /** With `autoGrow`: lines after which the field scrolls instead of growing. */
   maxRows?: number;
   /** Shows `count/maxLength` below the field. Defaults to `true` when `maxLength` is set. */
   showCharacterCount?: boolean;
+  /** Words the field announces, for other languages. */
+  labels?: Partial<TextFieldLabels>;
   /** Classes for the root element; consumer classes always win. */
   className?: string;
   classNames?: TextFieldClassNames;
@@ -102,8 +163,8 @@ const INTERACTIVE = 'input, textarea, button, a, [role="button"]';
 
 /**
  * M3 text field: filled or outlined, with a floating label, leading / trailing icons,
- * prefix and suffix, supporting text, error message, character counter and an
- * auto-growing multiline form. Built on React Aria `useTextField`, so labelling,
+ * prefix and suffix, supporting text, error message and icon, character counter, and a
+ * multiline form (a fixed-height text area, or a growing field with `autoGrow`). Built on React Aria `useTextField`, so labelling,
  * descriptions, `validate` and native constraints work as in React Aria.
  *
  * `className` and `style` go on the root; `inputRef` reaches the input.
@@ -120,6 +181,7 @@ export function TextField(props: TextFieldProps) {
     defaultValue,
     onChange,
     supportingText,
+    supportingTextOnFocus = false,
     errorMessage,
     invalid,
     required,
@@ -127,12 +189,17 @@ export function TextField(props: TextFieldProps) {
     readOnly,
     leadingIcon,
     trailingIcon,
+    errorIcon,
     prefix,
+    prefixLabel,
     suffix,
+    suffixLabel,
     multiline = false,
-    rows = 1,
+    autoGrow = false,
+    rows = autoGrow ? 1 : 4,
     maxRows,
     showCharacterCount,
+    labels: labelsProp,
     className,
     classNames,
     style,
@@ -144,6 +211,10 @@ export function TextField(props: TextFieldProps) {
   // `data-*` attributes describe the component, so they go on the root with `className`;
   // everything else (ARIA, input attributes, events) goes to the input via React Aria.
   const { data: rootData, rest: ariaProps } = splitDataAttributes(otherProps);
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const prefixId = useId();
+  const suffixId = useId();
+  const counterId = useId();
 
   const [value, setValue] = useControlledState(valueProp, defaultValue ?? '', onChange);
   const domInputRef = useObjectRef(inputRef as Ref<HTMLInputElement>);
@@ -174,16 +245,17 @@ export function TextField(props: TextFieldProps) {
   const { focusProps, isFocused } = useFocusRing({ isTextInput: true });
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
+  const growing = multiline && autoGrow;
   // Grow a multiline field with its content, up to maxRows.
   useLayoutEffect(() => {
     const element = domInputRef.current as HTMLTextAreaElement | null;
-    if (!multiline || !element) return;
+    if (!growing || !element) return;
     element.style.height = 'auto';
     const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight) || 24;
     const max = maxRows ? lineHeight * maxRows : Number.POSITIVE_INFINITY;
     element.style.height = `${Math.min(element.scrollHeight, max)}px`;
     element.style.overflowY = element.scrollHeight > max ? 'auto' : 'hidden';
-  }, [value, multiline, maxRows, domInputRef]);
+  }, [value, growing, maxRows, domInputRef]);
 
   const hasLabel = label !== undefined && label !== null;
   const floated = hasLabel && (isFocused || value.length > 0);
@@ -208,14 +280,27 @@ export function TextField(props: TextFieldProps) {
   const showError = isInvalid && Boolean(resolvedError);
   const maxLength = ariaProps.maxLength;
   const showCounter = maxLength !== undefined && showCharacterCount !== false;
+  const showErrorIcon = isInvalid && !trailingIcon && errorIcon !== false;
 
   const styles = textFieldStyles({
     variant,
     hasLabel,
     hasLeadingIcon: Boolean(leadingIcon),
-    hasTrailingIcon: Boolean(trailingIcon),
+    hasTrailingIcon: Boolean(trailingIcon) || showErrorIcon,
     multiline,
+    fixedHeight: multiline && !autoGrow,
+    supportingTextOnFocus,
   });
+  // The affixes and the counter join React Aria's description (supporting text, then error).
+  const describedBy =
+    [
+      prefix ? prefixId : null,
+      suffix ? suffixId : null,
+      inputProps['aria-describedby'],
+      showCounter ? counterId : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   // Pressing the container (not an icon button) focuses the input, like Compose.
   const focusInput = (event: PointerEvent<HTMLDivElement>) => {
@@ -224,7 +309,9 @@ export function TextField(props: TextFieldProps) {
     domInputRef.current?.focus();
   };
 
-  const requiredMark = required ? <span aria-hidden="true"> *</span> : null;
+  // Part of the accessible name, as M3 asks ("The accessibility label must include the
+  // asterisk"); the copy in the outline's notch is hidden with the fieldset.
+  const requiredMark = required ? ' *' : null;
   const Input = multiline ? 'textarea' : 'input';
 
   return (
@@ -239,6 +326,7 @@ export function TextField(props: TextFieldProps) {
       data-hovered={(isHovered && !disabled) || undefined}
       data-invalid={isInvalid || undefined}
       data-disabled={disabled || undefined}
+      data-readonly={readOnly || undefined}
       data-floated={floated || undefined}
     >
       <div
@@ -265,23 +353,30 @@ export function TextField(props: TextFieldProps) {
         )}
         <div className={styles.field()}>
           {prefix && (
-            <span className={styles.affix({ class: cn(styles.prefix(), classNames?.prefix) })}>
-              {prefix}
+            <span
+              id={prefixId}
+              className={styles.affix({ class: cn(styles.prefix(), classNames?.prefix) })}
+            >
+              <Affix text={prefix} label={prefixLabel} />
             </span>
           )}
           <Input
             {...(mergeProps(inputProps, focusProps) as object)}
+            aria-describedby={describedBy}
             ref={domInputRef as Ref<never>}
             rows={multiline ? rows : undefined}
             className={styles.input({ class: classNames?.input })}
           />
           {suffix && (
-            <span className={styles.affix({ class: cn(styles.suffix(), classNames?.suffix) })}>
-              {suffix}
+            <span
+              id={suffixId}
+              className={styles.affix({ class: cn(styles.suffix(), classNames?.suffix) })}
+            >
+              <Affix text={suffix} label={suffixLabel} />
             </span>
           )}
         </div>
-        {trailingIcon && (
+        {trailingIcon ? (
           <span
             className={styles.icon({
               class: cn(styles.trailingIcon(), classNames?.trailingIcon),
@@ -289,7 +384,15 @@ export function TextField(props: TextFieldProps) {
           >
             {trailingIcon}
           </span>
-        )}
+        ) : showErrorIcon ? (
+          <span className={styles.icon({ class: styles.trailingIcon() })}>
+            <FieldErrorIcon
+              label={labels.error}
+              icon={errorIcon}
+              className={styles.errorIcon({ class: classNames?.errorIcon })}
+            />
+          </span>
+        ) : null}
         {hasLabel && (
           <FieldLabel {...labelProps} className={styles.label({ class: classNames?.label })}>
             {label}
@@ -314,20 +417,36 @@ export function TextField(props: TextFieldProps) {
           {showError && (
             <ErrorText
               {...errorMessageProps}
-              className={styles.supportingText({ class: classNames?.errorText })}
+              className={styles.supportingText({
+                supportingTextOnFocus: false,
+                class: classNames?.errorText,
+              })}
             >
               {resolvedError}
             </ErrorText>
           )}
           {showCounter && (
             <CharacterCounter
+              id={counterId}
               count={value.length}
               max={maxLength}
+              label={labels.characterCount(value.length, maxLength)}
               className={styles.counter({ class: classNames?.counter })}
             />
           )}
         </div>
       )}
     </div>
+  );
+}
+
+/** An affix's visible text, read as its `label` when there is one. */
+function Affix({ text, label }: { text: ReactNode; label: string | undefined }) {
+  if (label === undefined) return text;
+  return (
+    <>
+      <span aria-hidden="true">{text}</span>
+      <span className="sr-only">{label}</span>
+    </>
   );
 }

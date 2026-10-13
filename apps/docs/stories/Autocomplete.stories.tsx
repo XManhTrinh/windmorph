@@ -206,6 +206,8 @@ export const Interactive: Story = {
           defaultItems={CITIES}
           value={city}
           onChange={setCity}
+          clearable
+          disabledKeys={['mlg']}
         >
           {renderCity}
         </Autocomplete>

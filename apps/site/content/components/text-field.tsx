@@ -69,7 +69,7 @@ export async function TextFieldBody() {
           <TextFieldStates />
         </ExampleViewer>
         <ExampleViewer
-          title="Multiline with character counter"
+          title="Text area, growing field and character counter"
           code={multiline}
           html={multilineHtml}
           fileName="text-field-multiline.tsx"
@@ -97,8 +97,30 @@ export async function TextFieldBody() {
             description (<code className="text-on-surface">sr-only</code>).
           </li>
           <li>
-            <code className="text-on-surface">required</code> adds a visual{' '}
-            <code className="text-on-surface">*</code> and{' '}
+            The error message has the <code className="text-on-surface">alert</code> role, so it is
+            announced as it appears. While invalid, the field shows an error icon named
+            &quot;Error&quot; (<code className="text-on-surface">labels.error</code>;{' '}
+            <code className="text-on-surface">errorIcon</code> replaces it or{' '}
+            <code className="text-on-surface">false</code> turns it off), and the supporting text
+            takes the error colour.
+          </li>
+          <li>
+            The character counter is read as &quot;Character count: 12 of 80&quot; (
+            <code className="text-on-surface">labels.characterCount</code>), and the prefix and
+            suffix join the description, read as{' '}
+            <code className="text-on-surface">prefixLabel</code> /{' '}
+            <code className="text-on-surface">suffixLabel</code> when given (&quot;US dollars&quot;
+            for &quot;$&quot;).
+          </li>
+          <li>
+            A read-only field looks like a regular one and gets{' '}
+            <code className="text-on-surface">data-readonly</code>; say &quot;Read-only&quot; in its
+            supporting text, as M3 asks.
+          </li>
+          <li>
+            <code className="text-on-surface">required</code> adds a{' '}
+            <code className="text-on-surface">*</code> that is part of the accessible name (M3:
+            &quot;The accessibility label must include the asterisk&quot;) and{' '}
             <code className="text-on-surface">aria-required</code>; validation uses React Aria{' '}
             <code className="text-on-surface">useTextField</code> (
             <code className="text-on-surface">validate</code>,{' '}
@@ -137,6 +159,13 @@ export async function TextFieldBody() {
             <code className="text-on-surface">legend</code> carrying the label text, so the gap
             matches the label exactly. With a label the placeholder, prefix and suffix appear only
             once it floats.
+          </li>
+          <li>
+            <code className="text-on-surface">multiline</code> is a fixed-height text area by
+            default, which M3 recommends over growing fields on the web;{' '}
+            <code className="text-on-surface">autoGrow</code> gives Compose&apos;s growing field.{' '}
+            <code className="text-on-surface">supportingTextOnFocus</code> shows the supporting text
+            only while the field has focus.
           </li>
           <li>
             <strong>Not in v1:</strong> the composable TextField parts (the &quot;two API

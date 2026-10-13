@@ -25,10 +25,12 @@ export {
 export {
   CharacterCounter,
   ErrorText,
+  FieldErrorIcon,
   FieldLabel,
   SupportingText,
   type CharacterCounterProps,
   type ErrorTextProps,
+  type FieldErrorIconProps,
   type FieldLabelProps,
   type SupportingTextProps,
 } from './primitives/Field';

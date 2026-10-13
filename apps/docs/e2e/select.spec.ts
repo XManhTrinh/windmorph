@@ -107,6 +107,30 @@ test.describe('Select behaviour', () => {
     await expect(page.getByTestId('value')).toHaveText('near');
   });
 
+  test('a placeholder waits for the label to float', async ({ page }) => {
+    await openStory(page, 'components-select--variants');
+    const field = page.getByRole('button', { name: /Sort by/ }).nth(1);
+    const placeholder = field.getByText('Choose an order');
+    await expect(placeholder).toHaveCSS('opacity', '0');
+    await field.focus();
+    await expect(placeholder).toHaveCSS('opacity', '1');
+  });
+
+  test('the keyboard reaches a disabled option, which stays unchosen', async ({ page }) => {
+    await openStory(page, 'components-select--open');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('End');
+    const near = page.getByRole('option', { name: 'Nearest to you' });
+    await expect(near).toBeFocused();
+    await expect(near).toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Enter');
+    await expect(near).toHaveAttribute('aria-selected', 'false');
+    await expect(page.getByRole('option', { name: /low to high/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+
   test('one press outside closes the menu and leaves the field', async ({ page }) => {
     await openStory(page, 'components-select--interactive');
     const field = page.getByRole('button', { name: /Sort by/ });

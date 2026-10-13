@@ -17,6 +17,7 @@ const CITIES = [
 /**
  * Type to find an option in a long list. Matching ignores case and accents, so "zurich"
  * finds "Zürich"; the arrow keys move through the matches while focus stays in the field.
+ * `clearable` adds a clear icon while there's text.
  */
 export function AutocompleteBasic() {
   const [city, setCity] = useState<AutocompleteKey | null>(null);
@@ -27,6 +28,7 @@ export function AutocompleteBasic() {
       defaultItems={CITIES}
       value={city}
       onChange={setCity}
+      clearable
     >
       {(item) => (
         <AutocompleteItem key={item.id} description={item.country}>

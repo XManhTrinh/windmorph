@@ -122,7 +122,18 @@ export async function SelectBody() {
           </li>
           <li>
             Supporting text is the field&apos;s description; an error replaces it visually and is
-            announced, while the supporting text stays in the description.
+            announced as an alert, while the supporting text stays in the description. An invalid
+            field shows an error icon named &quot;Error&quot; before the arrow. The required{' '}
+            <code className="text-on-surface">*</code> is part of the field&apos;s name.
+          </li>
+          <li>
+            Disabled options can take keyboard focus but can&apos;t be chosen, as M3 menus ask. When
+            the menu opens, focus goes to the chosen option, or the first one: the listbox pattern,
+            kept on purpose over M3&apos;s &quot;first item&quot; rule for action menus.
+          </li>
+          <li>
+            <code className="text-on-surface">readOnly</code> shows the choice without opening the
+            menu or changing it from the keyboard.
           </li>
           <li>
             With <code className="text-on-surface">selectionMode=&quot;multiple&quot;</code> the

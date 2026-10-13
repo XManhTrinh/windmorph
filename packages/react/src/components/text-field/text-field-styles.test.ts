@@ -12,16 +12,19 @@ function* outputs() {
     for (const hasLabel of [false, true])
       for (const hasLeadingIcon of [false, true])
         for (const hasTrailingIcon of [false, true])
-          for (const multiline of [false, true]) {
-            const slots = textFieldStyles({
-              variant,
-              hasLabel,
-              hasLeadingIcon,
-              hasTrailingIcon,
-              multiline,
-            });
-            for (const slot of Object.values(slots)) yield slot();
-          }
+          for (const multiline of [false, true])
+            for (const flag of [false, true]) {
+              const slots = textFieldStyles({
+                variant,
+                hasLabel,
+                hasLeadingIcon,
+                hasTrailingIcon,
+                multiline,
+                fixedHeight: flag,
+                supportingTextOnFocus: flag,
+              });
+              for (const slot of Object.values(slots)) yield slot();
+            }
 }
 
 describe('textFieldStyles', () => {

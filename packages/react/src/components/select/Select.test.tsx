@@ -54,10 +54,53 @@ describe('Select', () => {
     expect(sortField()).toHaveTextContent('Newest first');
   });
 
-  it('shows the placeholder and floats the label', () => {
+  it('keeps the label resting with a placeholder, which shows once it floats on focus', async () => {
     render(<Sort placeholder="Choose an order" />);
-    expect(sortField()).toHaveTextContent('Choose an order');
-    expect(sortField().closest('[data-field-state]')).toHaveAttribute('data-floated', 'true');
+    const field = sortField().closest('[data-field-state]');
+    expect(field).not.toHaveAttribute('data-floated');
+    expect(screen.getByText('Choose an order')).toHaveClass(
+      'opacity-0',
+      'group-data-floated/field:opacity-100',
+    );
+    await userEvent.tab();
+    expect(field).toHaveAttribute('data-floated', 'true');
+  });
+
+  it('includes the required asterisk in the name', () => {
+    render(<Sort required />);
+    expect(screen.getByRole('button', { name: /Sort by \*/ })).toBeInTheDocument();
+  });
+
+  it('lets the keyboard reach disabled options without choosing them', async () => {
+    const onChange = vi.fn();
+    render(<Sort disabledKeys={['low']} onChange={onChange} />);
+    await userEvent.tab();
+    // Opens on Newest first; the next arrow lands on the disabled option.
+    await userEvent.keyboard('{ArrowDown}');
+    const disabled = screen.getByRole('option', { name: /low to high/ });
+    expect(disabled).toHaveAttribute('aria-disabled', 'true');
+    expect(disabled).toHaveAttribute('data-disabled', 'true');
+    await userEvent.keyboard('{ArrowDown}');
+    expect(disabled).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('is read-only: shows the choice, opens no menu and ignores the keyboard', async () => {
+    render(<Sort readOnly defaultValue="high" />);
+    expect(sortField().closest('[data-field-state]')).toHaveAttribute('data-readonly', 'true');
+    await userEvent.click(sortField());
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await userEvent.keyboard('{ArrowDown}n');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(sortField()).toHaveTextContent('Price, high to low');
+  });
+
+  it('draws a persistent scrollbar on the list', async () => {
+    render(<Sort />);
+    await userEvent.click(sortField());
+    expect(screen.getByRole('listbox')).toHaveClass('[&::-webkit-scrollbar-thumb]:bg-outline');
   });
 
   it('chooses several options, lists them in the field and keeps the menu open', async () => {
@@ -142,10 +185,13 @@ describe('Select', () => {
     expect(container.querySelector('select[name="sort"]')).not.toBeNull();
   });
 
-  it('announces an error', () => {
-    render(<Sort invalid errorMessage="Choose an order" />);
-    expect(screen.getByText('Choose an order')).toBeInTheDocument();
+  it('announces an error as an alert, with an error icon', () => {
+    const { rerender } = render(<Sort invalid errorMessage="Choose an order" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose an order');
+    expect(screen.getByRole('img', { name: 'Error' })).toBeInTheDocument();
     expect(sortField().closest('[data-field-state]')).toHaveAttribute('data-field-state', 'error');
+    rerender(<Sort invalid errorMessage="Choose an order" errorIcon={false} />);
+    expect(screen.queryByRole('img', { name: 'Error' })).not.toBeInTheDocument();
   });
 
   it('opens in a bottom sheet with presentation="sheet"', async () => {
@@ -179,7 +225,8 @@ describe('Select', () => {
     const { container } = render(
       <div>
         <Sort supportingText="How results are ordered" />
-        <Sort variant="outlined" invalid errorMessage="Required" />
+        <Sort variant="outlined" required invalid errorMessage="Required" />
+        <Sort placeholder="Choose" readOnly />
       </div>,
     );
     expect(await axeViolations(container)).toEqual([]);

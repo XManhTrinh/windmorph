@@ -25,7 +25,10 @@ const sortOptions = [
   <SelectItem key="near">Nearest to you</SelectItem>,
 ];
 
-/** Both variants: empty, a placeholder, chosen, a leading icon, invalid and disabled. */
+/**
+ * Both variants: empty, a placeholder (shown once the label floats), chosen, a leading icon,
+ * invalid (with the error icon), disabled and read-only.
+ */
 export const Variants: Story = {
   render: () => (
     <div className="grid gap-6 bg-surface p-4 medium:grid-cols-2" data-testid="variants">
@@ -50,6 +53,15 @@ export const Variants: Story = {
             {sortOptions}
           </Select>
           <Select variant={variant} label="Sort by" defaultValue="newest" disabled>
+            {sortOptions}
+          </Select>
+          <Select
+            variant={variant}
+            label="Sort by"
+            defaultValue="near"
+            readOnly
+            supportingText="Read-only"
+          >
             {sortOptions}
           </Select>
         </div>

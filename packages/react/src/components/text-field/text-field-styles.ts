@@ -91,11 +91,24 @@ export const textFieldStyles = tv({
     prefix: 'pe-[2px]',
     suffix: 'ps-[2px]',
     supporting: 'flex gap-[16px] px-[16px] pt-[4px]',
+    // Error colour whenever the field is invalid, with or without a message (Compose's
+    // `ErrorSupportingColor`), so the supporting text reads as the error's explanation.
     supportingText: [
       'min-w-0 flex-1',
+      'group-data-[field-state=error]/field:text-error',
+      'group-data-[field-state=error-hover]/field:text-error',
+      'group-data-[field-state=error-focus]/field:text-error',
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],
-    counter: 'ms-auto group-data-[field-state=disabled]/field:text-on-surface/38',
+    counter: [
+      'ms-auto',
+      'group-data-[field-state=error]/field:text-error',
+      'group-data-[field-state=error-hover]/field:text-error',
+      'group-data-[field-state=error-focus]/field:text-error',
+      'group-data-[field-state=disabled]/field:text-on-surface/38',
+    ],
+    // The built-in error icon's own box; the trailing slot colours it.
+    errorIcon: '[&>svg]:size-[24px]',
     required: 'text-inherit',
   },
   variants: {
@@ -108,6 +121,8 @@ export const textFieldStyles = tv({
       outlined: {
         container: 'rounded-corner-extra-small',
         indicator: 'hidden',
+        // OutlinedTextFieldTokens.HoverLabelColor (filled keeps on-surface-variant).
+        label: 'group-data-[field-state=hover]/field:text-on-surface',
       },
     },
     // With a label the outline starts 8px higher, so its border runs through the middle of
@@ -123,6 +138,22 @@ export const textFieldStyles = tv({
     },
     multiline: {
       true: { field: 'items-start', input: 'block' },
+      false: {},
+    },
+    // A text area keeps its height and scrolls (M3: "a fixed height and scroll vertically").
+    fixedHeight: {
+      true: { input: 'overflow-y-auto' },
+      false: {},
+    },
+    // M3: supporting text can be "visible only on focus". It keeps its space, so nothing
+    // jumps, and stays in the accessible description.
+    supportingTextOnFocus: {
+      true: {
+        supportingText: [
+          'opacity-0 transition-opacity group-data-focused/field:opacity-100',
+          effectsTransition,
+        ],
+      },
       false: {},
     },
   },
@@ -172,6 +203,8 @@ export const textFieldStyles = tv({
     hasLeadingIcon: false,
     hasTrailingIcon: false,
     multiline: false,
+    fixedHeight: false,
+    supportingTextOnFocus: false,
   },
 });
 

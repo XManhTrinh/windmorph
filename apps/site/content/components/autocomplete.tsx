@@ -132,6 +132,21 @@ export async function AutocompleteBody() {
             option; Backspace in the empty field removes the last one. While the menu is open, only
             the field and the menu are exposed to assistive technology, so Escape first.
           </li>
+          <li>
+            Disabled options can take keyboard focus but can&apos;t be chosen (M3 menus). The error
+            message is announced as an alert, an invalid field shows an error icon named
+            &quot;Error&quot;, and the required <code className="text-on-surface">*</code> is part
+            of the field&apos;s name.
+          </li>
+          <li>
+            <code className="text-on-surface">clearable</code> adds M3&apos;s clear icon while
+            there&apos;s text, named &quot;Clear&quot;. It&apos;s left out of the Tab order, since
+            Escape clears from the keyboard.
+          </li>
+          <li>
+            As the list filters, the options that stay ease into their new places on the default
+            spatial spring (M3), with no movement under reduced motion.
+          </li>
         </ul>
       </section>
 

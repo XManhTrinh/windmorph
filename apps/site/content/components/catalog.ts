@@ -257,7 +257,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Inputs & selection',
     railGroup: 'inputs',
     summary:
-      'Filled or outlined text input with a floating label, icons, affixes, counter and multiline.',
+      'Filled or outlined text input with a floating label, icons, affixes, counter, error icon and a text area.',
     propsComponents: ['TextField'],
     playground: 'full',
     specs: {

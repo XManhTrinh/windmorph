@@ -244,6 +244,7 @@ export { cardStyles, type CardStyleProps, type CardVariant } from './components/
 export {
   TextField,
   type TextFieldClassNames,
+  type TextFieldLabels,
   type TextFieldProps,
 } from './components/text-field/TextField';
 export {
