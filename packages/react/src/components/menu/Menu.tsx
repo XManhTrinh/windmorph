@@ -49,7 +49,7 @@ import {
   type SubmenuTriggerState,
   type TreeState,
 } from 'react-stately';
-import { localeWithDirection } from '../../primitives/DomDirectionLocale';
+import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { Overlay } from '../../primitives/Overlay';
 import {
   TriggerContext,

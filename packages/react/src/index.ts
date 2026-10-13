@@ -15,7 +15,8 @@ export {
 } from './theme/state';
 
 // Motion
-export { getM3Spring, useM3Spring } from './motion/use-m3-spring';
+export { getM3Spring } from './motion/get-m3-spring';
+export { useM3Spring } from './motion/use-m3-spring';
 
 // Utilities
 export { cn, twMergeConfig } from './utils/cn';
@@ -78,9 +79,9 @@ export {
 } from './components/icon-button/icon-button-styles';
 
 // Composites
+export { buttonGroupStyles } from './composites/button-group/button-group-styles';
 export {
   ButtonGroup,
-  buttonGroupStyles,
   type ButtonGroupLabels,
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,

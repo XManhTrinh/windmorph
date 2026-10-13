@@ -2,23 +2,8 @@
 
 import { useReducedMotion } from 'motion/react';
 import { useThemeScope } from '../theme/context';
-import {
-  SPRINGS,
-  toMotionSpring,
-  type MotionScheme,
-  type MotionSpring,
-  type SpringFamily,
-  type SpringSpeed,
-} from '../tokens/motion';
-
-/** The Motion spring for a motion scheme, family and speed. */
-export function getM3Spring(
-  scheme: MotionScheme,
-  family: SpringFamily,
-  speed: SpringSpeed = 'default',
-): MotionSpring {
-  return toMotionSpring(SPRINGS[scheme][family][speed]);
-}
+import type { MotionSpring, SpringFamily, SpringSpeed } from '../tokens/motion';
+import { getM3Spring } from './get-m3-spring';
 
 /**
  * The Motion spring for the active motion scheme (from `ThemeProvider` / `ThemeScope`).

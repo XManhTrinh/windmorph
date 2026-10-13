@@ -3,7 +3,7 @@
 import { useAnimationFrame, useReducedMotion } from 'motion/react';
 import { useMemo, useRef, type ComponentPropsWithRef, type CSSProperties } from 'react';
 import { mergeProps, useProgressBar } from 'react-aria';
-import type { MorphShape } from '../../primitives/use-m3-morph';
+import type { MorphShape } from '../../primitives/morph-path';
 import type { RoundedPolygon } from '../../shapes/rounded-polygon';
 import { cn } from '../../utils/cn';
 import {

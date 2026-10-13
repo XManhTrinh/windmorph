@@ -3,7 +3,8 @@ import { motionValue } from 'motion/react';
 import { describe, expect, it } from 'vitest';
 import { MaterialShapes } from '../shapes/material-shapes';
 import { polygonToPath } from '../shapes/path';
-import { getMorph, morphPathAt, useM3Morph, type MorphShape } from './use-m3-morph';
+import { getMorph, morphPathAt, type MorphShape } from './morph-path';
+import { useM3Morph } from './use-m3-morph';
 
 describe('morphPathAt', () => {
   it('caches morphs per shape pair', () => {

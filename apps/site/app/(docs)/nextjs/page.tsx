@@ -169,23 +169,48 @@ export default async function NextjsPage() {
         </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
-            Interactive component files ship with <InlineCode>&quot;use client&quot;</InlineCode>;
-            server-safe utilities (<InlineCode>cn</InlineCode>, tokens,{' '}
-            <InlineCode>createTheme</InlineCode>, <InlineCode>getThemeFromCookies</InlineCode>,{' '}
-            <InlineCode>getThemeScriptSource</InlineCode>) run on the server.
+            Every export of <InlineCode>@windmorph/react</InlineCode>,{' '}
+            <InlineCode>/primitives</InlineCode> and <InlineCode>/next</InlineCode> can be imported
+            into a Server Component (checked 2026-10-13: a test page imports them all into one and
+            renders it under <InlineCode>next start</InlineCode> and{' '}
+            <InlineCode>next dev</InlineCode>). Interactive component files ship with{' '}
+            <InlineCode>&quot;use client&quot;</InlineCode>, so a Server Component renders them as
+            client components.
+          </li>
+          <li>
+            Every function, class and constant runs on the server: <InlineCode>cn</InlineCode>,{' '}
+            <InlineCode>tv</InlineCode>, <InlineCode>createTheme</InlineCode>, the theme state
+            helpers (<InlineCode>getThemeFromCookies</InlineCode>,{' '}
+            <InlineCode>themeAttributes</InlineCode>, <InlineCode>getThemeScriptSource</InlineCode>,
+            …), the tokens, <InlineCode>getM3Spring</InlineCode>, every{' '}
+            <InlineCode>*Styles</InlineCode> recipe, <InlineCode>SnackbarHostState</InlineCode> and
+            the shape library. Hooks (<InlineCode>use*</InlineCode>) run only in client components.
+          </li>
+          <li>
+            Pass only serialisable props from a Server Component: text, numbers, plain objects and
+            elements such as icons. Event handlers, render functions and class instances (a{' '}
+            <InlineCode>SnackbarHostState</InlineCode>,{' '}
+            <InlineCode>@internationalized/date</InlineCode> values) can&apos;t cross to the client,
+            so render a component that needs one (such as <InlineCode>SnackbarHost</InlineCode>)
+            from a client component. Contexts such as <InlineCode>ButtonContext</InlineCode> render
+            as providers from a Server Component.
           </li>
           <li>
             No <InlineCode>window</InlineCode> or <InlineCode>document</InlineCode> access at module
             load; overlays portal only on the client.
           </li>
           <li>
-            Build the items of a <InlineCode>Menu</InlineCode>, <InlineCode>Tabs</InlineCode> or
-            interactive <InlineCode>List</InlineCode> (<InlineCode>MenuItem</InlineCode>,{' '}
-            <InlineCode>MenuGroup</InlineCode>, <InlineCode>Tab</InlineCode>,{' '}
-            <InlineCode>ListItem</InlineCode>) in a client component, including a menu passed to{' '}
-            <InlineCode>SplitButton</InlineCode>. React Aria reads each item&apos;s element type,
-            and items created in a Server Component arrive as client references it can&apos;t read.
-            In development the library throws an error saying so.
+            Build the items of a <InlineCode>Menu</InlineCode>, <InlineCode>Select</InlineCode>,{' '}
+            <InlineCode>Autocomplete</InlineCode>, <InlineCode>Tabs</InlineCode> or interactive{' '}
+            <InlineCode>List</InlineCode> (<InlineCode>MenuItem</InlineCode>,{' '}
+            <InlineCode>MenuGroup</InlineCode>, <InlineCode>SelectItem</InlineCode>,{' '}
+            <InlineCode>Tab</InlineCode>, <InlineCode>ListItem</InlineCode>, …) in a client
+            component, including a menu passed to <InlineCode>SplitButton</InlineCode>. React Aria
+            reads each item&apos;s element type, and items created in a Server Component arrive as
+            client references it can&apos;t read. In development the library throws an error saying
+            so. A static <InlineCode>List</InlineCode> (no <InlineCode>onAction</InlineCode>,
+            selection or nested items) takes its <InlineCode>ListItem</InlineCode> and{' '}
+            <InlineCode>ListSection</InlineCode> elements from a Server Component.
           </li>
           <li>
             Client links are one line: <InlineCode>NextRouterProvider</InlineCode> wraps React

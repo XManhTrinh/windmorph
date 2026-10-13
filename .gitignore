@@ -4,6 +4,7 @@ coverage/
 .turbo/
 storybook-static/
 .next/
+.next-e2e/
 test-results/
 playwright-report/
 *.tsbuildinfo

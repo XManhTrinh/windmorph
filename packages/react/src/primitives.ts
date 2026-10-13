@@ -34,7 +34,8 @@ export {
   type FieldLabelProps,
   type SupportingTextProps,
 } from './primitives/Field';
-export { getM3Spring, useM3Spring } from './motion/use-m3-spring';
+export { getM3Spring } from './motion/get-m3-spring';
+export { useM3Spring } from './motion/use-m3-spring';
 export {
   SelectionControl,
   type SelectionControlClassNames,
@@ -47,18 +48,15 @@ export {
   type TriggerContextValue,
 } from './primitives/TriggerContext';
 export { usePresence } from './primitives/use-presence';
-export {
-  DomDirectionLocale,
-  localeWithDirection,
-  type DomDirectionLocaleProps,
-} from './primitives/DomDirectionLocale';
+export { DomDirectionLocale, type DomDirectionLocaleProps } from './primitives/DomDirectionLocale';
+export { localeWithDirection } from './primitives/locale-with-direction';
 export {
   getMorph,
   morphPathAt,
-  useM3Morph,
   type M3MorphOptions,
   type MorphShape,
-} from './primitives/use-m3-morph';
+} from './primitives/morph-path';
+export { useM3Morph } from './primitives/use-m3-morph';
 
 export { splitDataAttributes } from './utils/split-data-attributes';
 export { ThemeScopeContext } from './theme/context';
