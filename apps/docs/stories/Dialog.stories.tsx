@@ -14,6 +14,11 @@ import {
 } from '@windmorph/react';
 import { useState } from 'react';
 import { AddIcon, DeleteIcon } from './icons';
+import {
+  LAYOUT_OVERRIDE_NAMES,
+  LAYOUT_OVERRIDES,
+  type LayoutOverrideName,
+} from './layout-overrides';
 
 const meta = {
   title: 'Components/Dialog',
@@ -339,6 +344,72 @@ export const PlacementStart: Story = {
         )}
       </Dialog>
     </DialogTrigger>
+  ),
+};
+
+/** Custom-positioned with `classNames.positioner`: the top end corner, within the 56px margin. */
+export const CustomPosition: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog classNames={{ positioner: 'items-start justify-end' }} data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Sync across devices?</DialogTitle>
+            <DialogContent>
+              Your theme and layout will match on every device where you sign in.
+            </DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Not now
+              </Button>
+              <Button variant="text" onPress={close}>
+                Sync
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/**
+ * Layout safety (architecture §10) for `classNames.positioner`: a consumer layout class on
+ * the positioner, opened from inside an optional transformed ancestor. The panel keeps its
+ * size, corners, motion and focus ring, the scrim covers the window, and pressing outside
+ * still dismisses this plain dialog.
+ */
+export const PositionerOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: ({ override, transformedAncestor }) => (
+    <div className={transformedAncestor ? 'translate-x-2' : undefined}>
+      <DialogTrigger>
+        <Button variant="tonal">Open dialog</Button>
+        <Dialog role="dialog" classNames={{ positioner: LAYOUT_OVERRIDES[override] }}>
+          {({ close }) => (
+            <>
+              <DialogTitle>Sync across devices?</DialogTitle>
+              <DialogContent>
+                Your theme and layout will match on every device where you sign in.
+              </DialogContent>
+              <DialogActions>
+                <Button variant="text" onPress={close}>
+                  Not now
+                </Button>
+                <Button variant="text" onPress={close}>
+                  Sync
+                </Button>
+              </DialogActions>
+            </>
+          )}
+        </Dialog>
+      </DialogTrigger>
+    </div>
   ),
 };
 

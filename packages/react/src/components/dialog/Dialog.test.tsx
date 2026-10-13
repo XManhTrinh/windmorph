@@ -258,6 +258,22 @@ describe('Dialog', () => {
     expect(panel).toHaveStyle({ padding: '32px' });
   });
 
+  it('merges classNames.positioner into the positioner, so it can sit anywhere', async () => {
+    render(<DeleteDialog classNames={{ positioner: 'items-start justify-end' }} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const positioner = screen.getByTestId('panel').parentElement!.parentElement!;
+    expect(positioner).toHaveClass(
+      'items-start',
+      'justify-end',
+      'fixed',
+      'inset-0',
+      'p-[24px]',
+      'medium:p-[56px]',
+    );
+    expect(positioner).not.toHaveClass('items-center');
+    expect(positioner).not.toHaveClass('justify-center');
+  });
+
   it('draws the optional dividers around its content', async () => {
     render(
       <Dialog defaultOpen aria-label="Ringtone">

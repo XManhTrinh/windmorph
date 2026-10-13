@@ -54,7 +54,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       { name: 'Full-screen dialog', kind: 'variant', examples: ['dialog/dialog-full-screen'] },
       { name: 'Icon (optional)', kind: 'configuration', examples: ['dialog/dialog-icon'] },
-      { name: 'Custom position', kind: 'configuration', examples: ['dialog/dialog-placement'] },
+      {
+        name: 'Custom position',
+        kind: 'configuration',
+        examples: ['dialog/dialog-placement', 'dialog/dialog-custom-position'],
+      },
       { name: 'Scrolling content', kind: 'configuration', examples: ['dialog/dialog-scrollable'] },
       {
         name: 'Confirm a high-risk action',

@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { DialogAlert } from '../../examples/dialog/dialog-alert';
 import { DialogBasic } from '../../examples/dialog/dialog-basic';
+import { DialogCustomPosition } from '../../examples/dialog/dialog-custom-position';
 import { DialogContainerTransform } from '../../examples/dialog/dialog-container-transform';
 import { DialogDiscard } from '../../examples/dialog/dialog-discard';
 import { DialogDividers } from '../../examples/dialog/dialog-dividers';
@@ -51,6 +52,9 @@ export async function DialogBody(): Promise<ComponentDoc> {
   const placement = await readExampleSource('dialog/dialog-placement.tsx');
   const placementHtml = await highlightSource(placement);
 
+  const customPosition = await readExampleSource('dialog/dialog-custom-position.tsx');
+  const customPositionHtml = await highlightSource(customPosition);
+
   return {
     overview: (
       <>
@@ -97,6 +101,14 @@ export async function DialogBody(): Promise<ComponentDoc> {
             fileName="dialog-placement.tsx"
           >
             <DialogPlacement />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Custom position"
+            code={customPosition}
+            html={customPositionHtml}
+            fileName="dialog-custom-position.tsx"
+          >
+            <DialogCustomPosition />
           </ExampleViewer>
           <ExampleViewer
             title="Dividers and a choice"
@@ -171,7 +183,10 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <InlineCode>top</InlineCode>, <InlineCode>bottom</InlineCode>,{' '}
             <InlineCode>start</InlineCode>, <InlineCode>end</InlineCode>) moves it, keeping 56px
             from the edges of wider windows (24px on compact ones). It expands away from the edge it
-            sits against as it opens.
+            sits against as it opens. For any other spot, such as a corner near the controls that
+            opened it, align it with <InlineCode>classNames.positioner</InlineCode> (
+            <InlineCode>items-*</InlineCode> and <InlineCode>justify-*</InlineCode> classes): the
+            positioner&apos;s padding keeps the same margin.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>dividers</InlineCode> on <InlineCode>DialogContent</InlineCode> draws the
