@@ -155,7 +155,8 @@ function TabsInner({
     swipeable = false,
     classNames,
   } = props;
-  assertCollectionChildren(props.children, 'Tabs', 'Tab elements');
+  // A Tab's children are its panel content, which can be server-rendered: check only the Tabs.
+  assertCollectionChildren(props.children, 'Tabs', 'Tab elements', { nested: false });
   const ariaProps = {
     ...props,
     keyboardActivation: props.keyboardActivation ?? 'manual',

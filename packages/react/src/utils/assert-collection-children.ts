@@ -6,9 +6,15 @@ import { Children, isValidElement, type ReactNode } from 'react';
  * references, not as the item component, and React Stately fails with "Unknown element
  * <[object Object]> in collection". This throws a message that names the cause instead.
  *
- * Development only; nested `MenuGroup`-style children are checked one level down.
+ * Development only; nested `MenuGroup`-style children are checked one level down unless
+ * `nested` is false (a `Tab`'s children are its panel, which may come from the server).
  */
-export function assertCollectionChildren(children: ReactNode, component: string, items: string) {
+export function assertCollectionChildren(
+  children: ReactNode,
+  component: string,
+  items: string,
+  { nested = true }: { nested?: boolean } = {},
+) {
   if (process.env.NODE_ENV === 'production') return;
   const check = (nodes: ReactNode, depth: number) => {
     Children.forEach(nodes, (child) => {
@@ -21,7 +27,7 @@ export function assertCollectionChildren(children: ReactNode, component: string,
             `its items into a client component, or render them from one.`,
         );
       }
-      if (depth === 0) check((child.props as { children?: ReactNode }).children, 1);
+      if (nested && depth === 0) check((child.props as { children?: ReactNode }).children, 1);
     });
   };
   check(children, 0);

@@ -42,6 +42,20 @@ describe('assertCollectionChildren', () => {
     ).toThrow(/client component/);
   });
 
+  it("with nested: false checks only the items, not their content (a Tab's panel)", () => {
+    const tab = (
+      <MenuItem key="t">
+        <ObjectTyped />
+      </MenuItem>
+    );
+    expect(() =>
+      assertCollectionChildren(tab, 'Tabs', 'Tab elements', { nested: false }),
+    ).not.toThrow();
+    expect(() =>
+      assertCollectionChildren(<ObjectTyped />, 'Tabs', 'Tab elements', { nested: false }),
+    ).toThrow(/client component/);
+  });
+
   it('is what an open Menu reports instead of React Stately’s message', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() =>
