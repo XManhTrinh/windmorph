@@ -17,7 +17,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   state layer is the selected colour.
  * - Indicator (m3.material.io specs, 2026-10-13): `primary`, 3px high on primary tabs with
  *   only its top corners rounded (3, 3, 0, 0), as wide as the content (min 24px); 2px high
- *   on secondary tabs, the whole tab wide. It slides on the default spatial spring.
+ *   on secondary tabs, the whole tab wide. It slides on the default spatial spring, and
+ *   follows the selected tab's content when that resizes on its own (a web font loading).
+ * - Only a selection change animates (the row's `data-animate` turns on the indicator and
+ *   colour transitions): the first placement, the default selection and resizes appear in
+ *   place, so nothing slides or fades in on mount.
  * - Scrollable rows: tabs at least 90px wide, 52px start inset.
  * - Fixed rows aligned `start` or `center` are only as wide as their tabs, each as wide as
  *   the widest (a `max-content` grid of `1fr` columns), with the row's divider kept full
@@ -34,7 +38,7 @@ export const tabsStyles = tv({
     root: 'flex min-w-0 flex-col',
     scroller: '',
     list: [
-      'grid grid-rows-[auto] bg-surface',
+      'group/tabs grid grid-rows-[auto] bg-surface',
       'shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
     ],
     tab: [
@@ -43,8 +47,8 @@ export const tabsStyles = tv({
       'state-layer focus-ring-inset',
       'not-data-selected:data-hovered:text-on-surface not-data-selected:data-focus-visible:text-on-surface not-data-selected:data-pressed:text-on-surface',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
-      // Colour: in on default effects, out on fast effects.
-      '[--m3-transition-property:color] [--m3-transition-delay:0s]',
+      // Colour: in on default effects, out on fast effects, when the selection changes.
+      'group-data-animate/tabs:[--m3-transition-property:color] [--m3-transition-delay:0s]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] [--m3-transition-easing:var(--md-sys-motion-spring-effects-fast-easing)]',
       'data-selected:[--m3-transition-duration:var(--md-sys-motion-spring-effects-default-duration)] data-selected:[--m3-transition-easing:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
@@ -54,7 +58,7 @@ export const tabsStyles = tv({
     text: 'inline-flex min-w-0 items-center gap-[4px]',
     indicator: [
       'pointer-events-none row-start-1 self-end [justify-self:left] bg-primary opacity-0 data-ready:opacity-100',
-      '[transition-property:translate,width]',
+      '[transition-property:none] group-data-animate/tabs:[transition-property:translate,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
     ],

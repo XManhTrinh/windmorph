@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -270,6 +270,83 @@ describe('Tabs', () => {
     rerender(<Row keys={['all', 'flights', 'hotels']} />);
     expect(indicator()?.style.translate).toBe('0px 0');
     expect(indicator()?.style.width).toBe('100px');
+    vi.restoreAllMocks();
+  });
+
+  it('animates only selection changes: the first placement appears in place', async () => {
+    const tabs = ['flights', 'hotels', 'cars'];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const index = tabs.indexOf(this.dataset.key ?? '');
+      const box =
+        this.getAttribute('role') === 'tab' && index >= 0
+          ? { left: index * 100, width: 100 }
+          : { left: 0, width: 300 };
+      return DOMRect.fromRect({ x: box.left, y: 0, width: box.width, height: 48 });
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.getAttribute('role') === 'tab' ? 100 : 300;
+    });
+    const { container } = render(<Trip variant="secondary" />);
+    const list = screen.getByRole('tablist');
+    const indicator = container.querySelector<HTMLElement>('[data-ready]')!;
+    // Transitions are gated on the row's data-animate.
+    expect(indicator).toHaveClass('group-data-animate/tabs:[transition-property:translate,width]');
+    expect(screen.getByRole('tab', { name: 'Flights' })).toHaveClass(
+      'group-data-animate/tabs:[--m3-transition-property:color]',
+    );
+    expect(indicator.style.translate).toBe('0px 0');
+    expect(list).not.toHaveAttribute('data-animate');
+    await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
+    expect(indicator.style.translate).toBe('100px 0');
+    expect(list).toHaveAttribute('data-animate', 'true');
+    vi.restoreAllMocks();
+  });
+
+  it('re-measures the indicator when the selected tab’s content resizes on its own', () => {
+    const observed: Element[] = [];
+    let notify = () => {};
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          notify = callback;
+        }
+        observe(element: Element) {
+          observed.push(element);
+        }
+        disconnect() {
+          observed.length = 0;
+        }
+      },
+    );
+    let labelWidth = 40;
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.hasAttribute('data-tab-part'))
+        return DOMRect.fromRect({ x: 50 - labelWidth / 2, y: 0, width: labelWidth, height: 20 });
+      const tab = this.getAttribute('role') === 'tab';
+      return DOMRect.fromRect({ x: 0, y: 0, width: tab ? 100 : 300, height: 48 });
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.getAttribute('role') === 'tab' ? 100 : 300;
+    });
+    const { container } = render(<Trip />);
+    const flights = screen.getByRole('tab', { name: 'Flights' });
+    expect(observed).toContain(flights.querySelector('[data-tab-part]'));
+    const indicator = container.querySelector<HTMLElement>('[data-ready]')!;
+    expect(indicator.style.width).toBe('40px');
+    // A web font loads: the label widens but the row doesn't resize.
+    labelWidth = 48;
+    act(() => notify());
+    expect(indicator.style.width).toBe('48px');
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
