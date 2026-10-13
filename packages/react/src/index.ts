@@ -121,6 +121,7 @@ export {
   RichTooltip,
   RichTooltipTrigger,
   Tooltip,
+  TooltipPlacementContext,
   TooltipTrigger,
   type RichTooltipClassNames,
   type RichTooltipProps,

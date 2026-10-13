@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { IconButton } from '../icon-button/IconButton';
@@ -22,6 +23,12 @@ afterEach(() => {
 });
 
 describe('TopAppBar', () => {
+  it('opens its icon buttons’ tooltips below them (M3: in an app bar, below the element)', async () => {
+    render(<TopAppBar title="Inbox" navigationIcon={menu} actions={search} />);
+    await userEvent.tab();
+    expect(await screen.findByRole('tooltip')).toHaveAttribute('data-placement', 'bottom');
+  });
+
   it('renders a 64px small bar with navigation, title, subtitle and actions', async () => {
     const { container } = render(
       <TopAppBar

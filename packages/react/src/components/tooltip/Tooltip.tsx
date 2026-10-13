@@ -18,6 +18,7 @@ import {
 import {
   mergeProps,
   useDialog,
+  useInteractOutside,
   useLongPress,
   useOverlayPosition,
   useOverlayTrigger,
@@ -94,6 +95,15 @@ function usePhysicalPlacement(
 }
 
 /**
+ * The side to reveal from: React Aria's resolved one, or until it has measured (its first
+ * render reports none) the requested side, so the element is inserted with a placement and
+ * its `@starting-style` clip applies.
+ */
+function revealSide(resolved: string | null | undefined, requested: Placement): string {
+  return resolved ?? requested.split(' ')[0] ?? requested;
+}
+
+/**
  * The spec's touch trigger: "tap and hold the element on mobile". A touch long press opens
  * the tooltip (without pressing the button), and it closes 1.5s after the finger lifts.
  */
@@ -128,8 +138,8 @@ function useTouchLongPress(
 }
 
 /** The caret points at the anchor from whichever side the tooltip ended up on. */
-function caretStyle(placement: string | null | undefined, arrow: HTMLAttributes<HTMLElement>) {
-  const side = (placement ?? 'top').split(' ')[0];
+function caretStyle(placement: string, arrow: HTMLAttributes<HTMLElement>) {
+  const side = placement.split(' ')[0];
   const rotation =
     { top: 0, bottom: 180, left: -90, right: 90 }[side as 'top' | 'bottom' | 'left' | 'right'] ?? 0;
   const style: CSSProperties = {
@@ -159,6 +169,14 @@ interface TooltipContextValue {
 
 const TooltipContext = createContext<TooltipContextValue | null>(null);
 
+/**
+ * The default placement of the plain tooltips inside, where a container calls for one other
+ * than `top`. App bars provide `bottom` (the spec: "If the element is in an app bar, the plain
+ * tooltip appears below the element"), so their icon buttons' tooltips open below. A
+ * trigger's own `placement` wins.
+ */
+export const TooltipPlacementContext = createContext<TooltipPlacement | null>(null);
+
 export interface TooltipTriggerProps {
   /** The trigger (a library button or anything reading `TriggerContext`), then a `<Tooltip>`. */
   children: ReactNode;
@@ -166,7 +184,7 @@ export interface TooltipTriggerProps {
   delay?: number;
   /** Milliseconds before hiding after the pointer leaves or a touch lifts (the spec's 1.5s). @default 1500 */
   closeDelay?: number;
-  /** @default "top" */
+  /** @default "top", or the enclosing `TooltipPlacementContext` (`bottom` in app bars) */
   placement?: TooltipPlacement;
   /** Distance from the anchor in px: 4 for an anchor with a visual boundary, 8 for text. @default 4 */
   offset?: number;
@@ -191,13 +209,15 @@ export function TooltipTrigger({
   children,
   delay = 0,
   closeDelay = CLOSE_DELAY,
-  placement = 'top',
+  placement: placementProp,
   offset = DEFAULT_OFFSET,
   isDisabled,
   isOpen,
   defaultOpen,
   onOpenChange,
 }: TooltipTriggerProps) {
+  const contextPlacement = useContext(TooltipPlacementContext);
+  const placement = placementProp ?? contextPlacement ?? 'top';
   const options = { delay, closeDelay, isDisabled, isOpen, defaultOpen, onOpenChange };
   const state = useTooltipTriggerState(options);
   const triggerRef = useRef<HTMLElement>(null);
@@ -261,20 +281,22 @@ function TooltipPopup({
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const { tooltipProps } = useTooltip(context.tooltipProps, context.state);
+  const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { overlayProps, arrowProps, placement } = useOverlayPosition({
     targetRef: context.triggerRef,
     overlayRef,
-    placement: usePhysicalPlacement(context.placement, context.triggerRef),
+    placement: requested,
     offset: offsetFor(context.offset, caret),
     containerPadding: CONTAINER_PADDING,
     isOpen: true,
   });
+  const side = revealSide(placement, requested);
   const styles = tooltipStyles();
   return (
     <div
       {...mergeProps(overlayProps, tooltipProps, exitProps)}
       ref={overlayRef}
-      data-placement={placement ?? undefined}
+      data-placement={side}
       data-exiting={isExiting || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -282,7 +304,7 @@ function TooltipPopup({
       {caret && (
         <span
           aria-hidden="true"
-          style={caretStyle(placement, arrowProps)}
+          style={caretStyle(side, arrowProps)}
           className={styles.caret({ class: classNames?.caret })}
         />
       )}
@@ -307,8 +329,9 @@ export interface RichTooltipTriggerProps {
   /** The trigger (a library button), then a `<RichTooltip>`. */
   children: ReactNode;
   /**
-   * A persistent rich tooltip opens when the trigger is pressed and stays until it's pressed
-   * again, Escape or a press outside; it's a non-modal dialog whose actions keyboard users
+   * A persistent rich tooltip opens when the trigger is pressed and stays, even after the
+   * pointer leaves, until the trigger is pressed again, Escape, or a press anywhere outside it
+   * (on another element or on empty space); it's a non-modal dialog whose actions keyboard users
    * can reach. A transient one (the spec's default) works like a plain tooltip: hover, focus
    * or a touch long press opens it, and it leaves 1.5s after the pointer or focus does.
    * @default false
@@ -330,7 +353,8 @@ export interface RichTooltipTriggerProps {
 /**
  * Shows a {@link RichTooltip} for its trigger. Transient by default (hover, keyboard focus or a
  * touch long press; it stays while hovered or focused within and leaves 1.5s later), or
- * `persistent`: opened by a press and kept until pressed again, Escape or a press outside.
+ * `persistent`: opened by a press and kept until the trigger is pressed again, Escape, or a
+ * press anywhere outside it.
  * Use `persistent` when the tooltip holds actions keyboard users must reach.
  */
 export function RichTooltipTrigger({ persistent = false, ...props }: RichTooltipTriggerProps) {
@@ -457,18 +481,32 @@ function PersistentRichPopup({
 }: PopupProps<Extract<RichContextValue, { persistent: true }>>) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const requested = usePhysicalPlacement(context.placement, context.triggerRef);
+  const { state, triggerRef } = context;
+  // The trigger toggles it itself: focus or a press moving to it isn't "outside".
+  const isOutside = (element: Element | null) => !triggerRef.current?.contains(element);
   const { popoverProps, arrowProps, placement } = usePopover(
     {
-      triggerRef: context.triggerRef,
+      triggerRef,
       popoverRef,
-      placement: usePhysicalPlacement(context.placement, context.triggerRef),
+      placement: requested,
       offset: offsetFor(context.offset, props.caret ?? false),
       containerPadding: CONTAINER_PADDING,
       isNonModal: true,
       isKeyboardDismissDisabled: false,
+      shouldCloseOnInteractOutside: isOutside,
     },
-    context.state,
+    state,
   );
+  // "They only disappear once a person interacts with another UI element": a press anywhere
+  // else closes it, which a non-modal popover doesn't do on its own.
+  useInteractOutside({
+    ref: popoverRef,
+    isDisabled: isExiting,
+    onInteractOutside: (event) => {
+      if (isOutside(event.target as Element | null)) state.close();
+    },
+  });
   const { dialogProps } = useDialog(
     props.title != null ? { 'aria-labelledby': titleId } : { 'aria-label': props['aria-label'] },
     popoverRef,
@@ -479,7 +517,7 @@ function PersistentRichPopup({
       ref={popoverRef}
       titleId={titleId}
       domProps={mergeProps(popoverProps, dialogProps, context.overlayProps, exitProps)}
-      placement={placement}
+      placement={revealSide(placement, requested)}
       arrowProps={arrowProps}
       isExiting={isExiting}
     />
@@ -496,10 +534,11 @@ function TransientRichPopup({
   const titleId = useId();
   const { state } = context;
   const { tooltipProps } = useTooltip(context.tooltipProps, state);
+  const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { overlayProps, arrowProps, placement } = useOverlayPosition({
     targetRef: context.triggerRef,
     overlayRef,
-    placement: usePhysicalPlacement(context.placement, context.triggerRef),
+    placement: requested,
     offset: offsetFor(context.offset, props.caret ?? false),
     containerPadding: CONTAINER_PADDING,
     isOpen: true,
@@ -517,7 +556,7 @@ function TransientRichPopup({
       ref={overlayRef}
       titleId={titleId}
       domProps={mergeProps(overlayProps, tooltipProps, focusProps, exitProps)}
-      placement={placement}
+      placement={revealSide(placement, requested)}
       arrowProps={arrowProps}
       isExiting={isExiting}
     />
@@ -541,7 +580,7 @@ function RichBody({
   ref: RefObject<HTMLDivElement | null>;
   titleId: string;
   domProps: HTMLAttributes<HTMLElement>;
-  placement: string | null | undefined;
+  placement: string;
   arrowProps: HTMLAttributes<HTMLElement>;
   isExiting: boolean;
 }) {
@@ -550,7 +589,7 @@ function RichBody({
     <div
       {...domProps}
       ref={ref}
-      data-placement={placement ?? undefined}
+      data-placement={placement}
       data-exiting={isExiting || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

@@ -285,6 +285,17 @@ describe('SearchAppBar', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('opens its icon buttons’ tooltips below them (M3: in an app bar, below the element)', async () => {
+    render(
+      <SearchAppBar navigationIcon={<IconButton icon={<Icon />} aria-label="Menu" />}>
+        <SearchBar aria-label="Search" />
+      </SearchAppBar>,
+    );
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+    expect(await screen.findByRole('tooltip')).toHaveAttribute('data-placement', 'bottom');
+  });
+
   it('raises the search bar colour once content scrolls under it', async () => {
     render(
       <SearchAppBar data-testid="bar" scrollBehavior="pinned">

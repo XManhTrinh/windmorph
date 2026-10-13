@@ -81,7 +81,8 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               <InlineCode>role=&quot;tooltip&quot;</InlineCode> describing its trigger, and stays
               while the pointer or focus is inside it. With <InlineCode>persistent</InlineCode>, a
               press opens it as a non-modal popover dialog whose actions keyboard users can reach;
-              press again, Escape, or a press outside closes it. A persistent one is named by its{' '}
+              it stays when the pointer leaves, and pressing the trigger again, Escape, or a press
+              anywhere outside it closes it. A persistent one is named by its{' '}
               <InlineCode>title</InlineCode> or by <InlineCode>aria-label</InlineCode>.
             </li>
             <li>
@@ -113,9 +114,12 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               Both sit 4px from the anchor (<InlineCode>offset</InlineCode>; use 8 for text anchors,
               and the optional 16×8 caret adds 8px) and keep 8px from the screen edge. Plain
               tooltips default to <InlineCode>top</InlineCode>, rich ones to{' '}
-              <InlineCode>bottom start</InlineCode> (bottom right in left-to-right layouts). They
-              expand from the anchor&apos;s side along one axis while fading in, rather than
-              scaling, since the spec avoids scale motion.
+              <InlineCode>bottom start</InlineCode> (bottom right in left-to-right layouts); in a
+              top app bar or search app bar, plain tooltips open below (
+              <InlineCode>TooltipPlacementContext</InlineCode>). At the screen edge they keep their
+              natural width and move inside the margin. They expand from the anchor&apos;s side
+              along one axis while fading in, rather than scaling, since the spec avoids scale
+              motion.
             </li>
           </ul>
         </section>

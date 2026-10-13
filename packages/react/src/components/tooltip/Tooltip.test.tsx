@@ -7,7 +7,13 @@ import { Dialog, DialogActions, DialogTitle, DialogTrigger } from '../dialog/Dia
 import { IconButton } from '../icon-button/IconButton';
 import { BottomSheet } from '../sheet/BottomSheet';
 import { SheetTrigger } from '../sheet/SheetTrigger';
-import { RichTooltip, RichTooltipTrigger, Tooltip, TooltipTrigger } from './Tooltip';
+import {
+  RichTooltip,
+  RichTooltipTrigger,
+  Tooltip,
+  TooltipPlacementContext,
+  TooltipTrigger,
+} from './Tooltip';
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 
@@ -90,6 +96,7 @@ describe('Tooltip', () => {
       'rounded-corner-extra-small',
       'px-[8px]',
       'py-[4px]',
+      'w-max',
       'max-w-[200px]',
       'starting:opacity-0',
     );
@@ -116,6 +123,23 @@ describe('Tooltip', () => {
     await hover(screen.getByRole('button'));
     const tooltip = await screen.findByRole('tooltip');
     expect(tooltip.querySelector('[aria-hidden="true"]')).toHaveClass('border-t-inverse-surface');
+  });
+
+  it('takes its default placement from TooltipPlacementContext; its own placement wins', async () => {
+    render(
+      <TooltipPlacementContext value="bottom">
+        <TooltipTrigger defaultOpen>
+          <IconButton icon={<Icon />} aria-label="Edit" tooltip={false} />
+          <Tooltip>Edit message</Tooltip>
+        </TooltipTrigger>
+        <TooltipTrigger defaultOpen placement="right">
+          <IconButton icon={<Icon />} aria-label="Share" tooltip={false} />
+          <Tooltip>Share message</Tooltip>
+        </TooltipTrigger>
+      </TooltipPlacementContext>,
+    );
+    expect(screen.getByText('Edit message')).toHaveAttribute('data-placement', 'bottom');
+    expect(screen.getByText('Share message')).toHaveAttribute('data-placement', 'right');
   });
 
   it('requires a trigger', () => {
@@ -147,7 +171,8 @@ describe('RichTooltip', () => {
       'bg-surface-container',
       'shadow-elevation-2',
       'rounded-corner-medium',
-      'max-w-[320px]',
+      'w-max',
+      'max-w-[min(320px,100vw_-_16px)]',
       'px-[16px]',
     );
     expect(screen.getByText('Grouped tabs')).toHaveClass('text-title-small', 'pt-[13px]');
@@ -175,6 +200,30 @@ describe('RichTooltip', () => {
     await screen.findByRole('dialog');
     await userEvent.click(screen.getByRole('button', { name: 'Elsewhere' }));
     await gone('dialog');
+  });
+
+  it('closes on a press on empty space, where focus does not move', async () => {
+    render(
+      <>
+        <p>Plain text</p>
+        <Rich />
+      </>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'What’s this?' }));
+    await screen.findByRole('dialog');
+    await userEvent.click(screen.getByText('Plain text'));
+    await gone('dialog');
+  });
+
+  it('stays open on a press inside it, and a press on its trigger closes it', async () => {
+    render(<Rich />);
+    const trigger = screen.getByRole('button', { name: 'What’s this?' });
+    await userEvent.click(trigger);
+    await userEvent.click(await screen.findByText('Tabs from the same site stay together.'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await userEvent.click(trigger);
+    await gone('dialog');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('pads 12px above and 8px below without a subhead or action', async () => {
