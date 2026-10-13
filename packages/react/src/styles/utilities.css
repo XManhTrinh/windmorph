@@ -185,7 +185,8 @@
  * spec drives "rounded corners" with spatial springs and all component motion with the
  * fast speeds (2026-10-13). A press that starts while the last morph is still running
  * (`data-rapid-press`, set by `useM3Interaction`) uses the fast effects spring instead,
- * the web's modified curve that keeps rapid clicks from resonating.
+ * the web's modified curve that keeps rapid clicks from resonating. Under reduced motion the
+ * corners snap to their new shape.
  */
 @utility container-motion {
   --m3-shape-duration: var(--md-sys-motion-spring-spatial-fast-duration);
@@ -208,6 +209,13 @@
   &[data-rapid-press] {
     --m3-shape-duration: var(--md-sys-motion-spring-effects-fast-duration);
     --m3-shape-easing: var(--md-sys-motion-spring-effects-fast-easing);
+  }
+  /* Reduced motion: the corners snap; colours and elevation still fade (2026-10-13). */
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &[data-rapid-press] {
+      --m3-shape-duration: 0s;
+    }
   }
 }
 

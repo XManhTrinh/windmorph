@@ -81,6 +81,7 @@ export {
 export {
   ButtonGroup,
   buttonGroupStyles,
+  type ButtonGroupLabels,
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,
   type ButtonGroupVariant,

@@ -3,6 +3,7 @@
 import {
   cloneElement,
   useContext,
+  useMemo,
   type ComponentPropsWithRef,
   type ReactElement,
   type ReactNode,
@@ -16,7 +17,7 @@ import {
   type ButtonBaseLinkProps,
 } from '../../primitives/ButtonBase';
 import { TouchTarget } from '../../primitives/TouchTarget';
-import { TriggerContext } from '../../primitives/TriggerContext';
+import { TriggerContext, type TriggerContextValue } from '../../primitives/TriggerContext';
 import { cn } from '../../utils/cn';
 import { MenuTrigger, type MenuProps } from '../menu/Menu';
 import {
@@ -180,10 +181,14 @@ export function SplitButton(props: SplitButtonProps) {
   if (menu) {
     trailing = (
       <MenuTrigger open={isOpen} onOpenChange={setOpen}>
-        <TrailingButton {...trailingProps} open={isOpen} onPress={onTrailingPress} />
+        <OpenOnMouseRelease>
+          <TrailingButton {...trailingProps} open={isOpen} onPress={onTrailingPress} />
+        </OpenOnMouseRelease>
         {cloneElement(menu, {
           placement: menu.props.placement ?? 'bottom end',
           offset: menu.props.offset ?? 4,
+          // Aligned with the trailing button even against the window's edge.
+          containerPadding: menu.props.containerPadding ?? 0,
         })}
       </MenuTrigger>
     );
@@ -231,6 +236,35 @@ export function SplitButton(props: SplitButtonProps) {
       {trailing}
     </div>
   );
+}
+
+/**
+ * A menu trigger opens on pointer down for a mouse (React Aria, like native menus). The
+ * split button opens it on release instead, so the trailing button's pressed shape shows
+ * while it's held, as the spec draws it ("Pressed" before "Selected"; 2026-10-13). A
+ * release outside the button doesn't open it. Keyboard and touch are unchanged.
+ */
+function OpenOnMouseRelease({ children }: { children: ReactNode }) {
+  const trigger = useContext(TriggerContext);
+  const value = useMemo<TriggerContextValue | null>(() => {
+    if (!trigger) return null;
+    const { onPressStart, onPress } = trigger;
+    return {
+      ...trigger,
+      onPressStart: (event) => {
+        if (event.pointerType !== 'mouse') onPressStart?.(event);
+      },
+      onPress: (event) => {
+        if (event.pointerType === 'mouse') {
+          // Focus the trigger first, so closing the menu returns focus to it.
+          (event.target as Element).closest<HTMLElement>('button')?.focus({ preventScroll: true });
+          onPressStart?.(event);
+        }
+        onPress?.(event);
+      },
+    };
+  }, [trigger]);
+  return <TriggerContext value={value}>{children}</TriggerContext>;
 }
 
 interface TrailingButtonProps {

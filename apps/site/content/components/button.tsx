@@ -104,6 +104,27 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             button should compete for attention in a given area.
           </p>
         </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="usage" className="text-headline-small text-on-surface">
+            Usage
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              Use one filled button per page or view, for its most important action; give the others
+              less emphasis.
+            </li>
+            <li>
+              Keep labels short. A label never wraps or truncates, so a long one can be wider than a
+              phone screen: at compact widths use a smaller size, a shorter label, or a{' '}
+              <InlineCode>ButtonGroup</InlineCode> with <InlineCode>overflow</InlineCode>.
+            </li>
+            <li>
+              Keep a toggle&apos;s label about the same length in both states (Star / Starred), so
+              the button doesn&apos;t jump in width when it changes. Pair an outlined icon with its
+              filled form through <InlineCode>selectedLeadingIcon</InlineCode>.
+            </li>
+          </ul>
+        </section>
       </>
     ),
     accessibility: (
@@ -123,7 +144,9 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             </li>
             <li>
               With <InlineCode>href</InlineCode> the button renders an{' '}
-              <InlineCode>&lt;a&gt;</InlineCode> and behaves as a link.
+              <InlineCode>&lt;a&gt;</InlineCode> and behaves as a link: Enter follows it, and Space
+              scrolls the page as it does on any link, rather than activating it. Use a button
+              without <InlineCode>href</InlineCode> for actions.
             </li>
             <li>
               A toggle button exposes <InlineCode>aria-pressed</InlineCode>; its label should still
@@ -162,6 +185,26 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             <li>
               Disabled is container <InlineCode>on-surface</InlineCode> 10% and content{' '}
               <InlineCode>on-surface-variant</InlineCode> 38% for every variant.
+            </li>
+            <li>
+              A pressed button shows the pressed elevation (elevated level 1, filled and tonal 0)
+              even while the pointer is over it.
+            </li>
+            <li>
+              The leading and trailing space is measured from the container&apos;s edge, so the
+              outlined style&apos;s outline comes out of its padding and an outlined button is the
+              same size as a filled one. Change the outline width with{' '}
+              <InlineCode>--m3-button-border</InlineCode>, which sets the border and the padding
+              together.
+            </li>
+            <li>
+              Toggles take <InlineCode>selectedLeadingIcon</InlineCode>, shown instead of{' '}
+              <InlineCode>leadingIcon</InlineCode> while selected (the filled form of the outlined
+              icon), so an uncontrolled toggle can swap its icon too.
+            </li>
+            <li>
+              Under reduced motion the press and selection morphs snap to their new corners; colours
+              and elevation still fade.
             </li>
             <li>
               XS and S buttons get a 48px touch target inside the library-owned inner wrapper; the

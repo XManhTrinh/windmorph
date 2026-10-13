@@ -245,3 +245,142 @@ test.describe('ButtonGroup layout safety', () => {
     }
   }
 });
+
+test.describe('ButtonGroup spec fixes (2026-10-13)', () => {
+  test('connected buttons share the width equally', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    const widths = await Promise.all((await page.getByRole('radio').all()).map(width));
+    // 480px, 3 × 2px gaps, four buttons.
+    for (const w of widths) expect(Math.abs(w - (480 - 6) / 4)).toBeLessThan(0.5);
+  });
+
+  test('an XS connected press tightens the inner corners to 2px', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--connected-multiple-selection');
+    const italic = page.getByRole('button', { name: 'Italic' });
+    expect((await radii(italic)).topLeft).toBe('4px');
+    const box = (await italic.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await settle(page);
+    expect(await radii(italic)).toEqual({
+      topLeft: '2px',
+      topRight: '2px',
+      bottomLeft: '2px',
+      bottomRight: '2px',
+    });
+    await page.mouse.up();
+  });
+
+  test('under reduced motion a press changes no widths', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'composites-buttongroup--standard');
+    const buttons = await page.getByRole('toolbar').getByRole('button').all();
+    const before = await Promise.all(buttons.map(width));
+    const box = (await buttons[1]!.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(buttons[1]!).toHaveAttribute('data-pressed', 'true');
+    await settle(page);
+    expect(await Promise.all(buttons.map(width))).toEqual(before);
+    await page.mouse.up();
+  });
+
+  test('a group variant reaches its icon buttons', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--sizes');
+    const group = page.getByRole('toolbar', { name: 'Standard sm' });
+    const [copy, search] = await Promise.all([
+      group
+        .getByRole('button', { name: 'One' })
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+      group
+        .getByRole('button', { name: 'Search' })
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ]);
+    expect(search).toBe(copy);
+  });
+});
+
+test.describe('ButtonGroup overflow', () => {
+  const shown = (group: Locator) =>
+    group.evaluate((el) =>
+      [...el.children]
+        .filter((child) => getComputedStyle(child).display !== 'none')
+        .map((child) => child.getAttribute('aria-label') ?? child.textContent),
+    );
+
+  test('folds the trailing buttons that do not fit, and brings them back with room', async ({
+    page,
+  }) => {
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '320' });
+    const group = page.getByTestId('standard');
+    expect(await shown(group)).toEqual(['Reply', 'Forward', 'More options']);
+    // The indicator sits within the group, the gap after the last button.
+    const more = group.getByRole('button', { name: 'More options' });
+    const groupBox = (await group.boundingBox())!;
+    const moreBox = (await more.boundingBox())!;
+    expect(moreBox.x + moreBox.width).toBeLessThanOrEqual(groupBox.x + groupBox.width + 0.5);
+
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '720' });
+    expect(await shown(page.getByTestId('standard'))).toEqual([
+      'Reply',
+      'Forward',
+      'Star',
+      'Archive',
+      'Delete',
+    ]);
+
+    // Resizing re-measures.
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '720' });
+    await page.getByTestId('overflow').evaluate((el) => (el.style.width = '200px'));
+    await expect.poll(() => shown(page.getByTestId('standard'))).toEqual(['Reply', 'More options']);
+  });
+
+  test('the menu holds the folded buttons: actions, toggles and disabled ones', async ({
+    page,
+  }) => {
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '320' });
+    const group = page.getByTestId('standard');
+    await group.getByRole('button', { name: 'More options' }).click();
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    await expect(menu.getByRole('menuitemcheckbox')).toHaveText(['Star', 'Archive', 'Delete']);
+    await expect(menu.getByRole('menuitemcheckbox', { name: 'Delete' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    await menu.getByRole('menuitemcheckbox', { name: 'Star' }).click();
+    await expect(menu.getByRole('menuitemcheckbox', { name: 'Star' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await menu.getByRole('menuitemcheckbox', { name: 'Archive' }).click();
+    await expect(page.getByTestId('last')).toContainText('Last: archive');
+  });
+
+  test('keyboard: arrows reach the indicator, Enter opens the menu, a choice selects', async ({
+    page,
+  }) => {
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '200' });
+    const connected = page.getByTestId('connected');
+    expect((await shown(connected)).length).toBeLessThan(5);
+    const more = connected.getByRole('button', { name: 'More options' });
+    // The indicator takes the trailing corners.
+    const r = await radii(more);
+    expect(r.topRight).toBe('20px');
+    await more.focus();
+    await page.keyboard.press('Enter');
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    await menu.getByRole('menuitemradio', { name: 'Year' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toContainText('View: year');
+  });
+
+  test('mirrors in RTL: the indicator is at the trailing (left) end', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--overflow', { dir: 'rtl' }, { width: '320' });
+    const group = page.getByTestId('standard');
+    const more = (await group.getByRole('button', { name: 'More options' }).boundingBox())!;
+    const reply = (await group.getByRole('button', { name: 'Reply' }).boundingBox())!;
+    expect(more.x).toBeLessThan(reply.x);
+  });
+});

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ButtonContext } from '../button/ButtonContext';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { Menu, MenuItem, MenuTrigger } from '../menu/Menu';
 import { IconButton } from './IconButton';
 
 const Star = () => <svg data-testid="star" viewBox="0 0 24 24" />;
@@ -141,6 +142,24 @@ describe('IconButton', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Favourite');
   });
 
+  it("doesn't describe itself with a tooltip that repeats its name", async () => {
+    const user = userEvent.setup();
+    render(
+      <MenuTrigger>
+        <IconButton icon={<Star />} aria-label="More" />
+        <Menu>
+          <MenuItem key="a">A</MenuItem>
+        </Menu>
+      </MenuTrigger>,
+    );
+    const button = screen.getByRole('button', { name: 'More' });
+    await user.hover(button);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('More');
+    // Announced once: the tooltip isn't linked, and the menu trigger's props still arrive.
+    expect(button).not.toHaveAttribute('aria-describedby');
+    expect(button).toHaveAttribute('aria-haspopup', 'true');
+  });
+
   it('skips its tooltip when turned off, labelled elsewhere or already in a TooltipTrigger', async () => {
     const user = userEvent.setup();
     render(
@@ -250,5 +269,28 @@ describe('IconButton toggle', () => {
       <IconButton toggle variant="standard" defaultSelected icon={<Star />} aria-label="Fav" />,
     );
     expect(screen.getByRole('button')).toHaveClass('data-selected:not-data-disabled:text-primary');
+  });
+
+  it('dims a disabled outline and drops the outline of a selected outlined toggle', () => {
+    render(
+      <>
+        <IconButton variant="outlined" disabled icon={<Star />} aria-label="Off" />
+        <IconButton
+          toggle
+          variant="outlined"
+          defaultSelected
+          disabled
+          icon={<Star />}
+          aria-label="Selected off"
+        />
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Off' })).toHaveClass(
+      'data-disabled:not-data-selected:border-outline-variant/10',
+    );
+    const selected = screen.getByRole('button', { name: 'Selected off' });
+    expect(selected).toHaveAttribute('data-selected');
+    expect(selected).toHaveClass('data-selected:border-transparent');
+    expect(selected.className).not.toMatch(/not-data-disabled:border-transparent/);
   });
 });

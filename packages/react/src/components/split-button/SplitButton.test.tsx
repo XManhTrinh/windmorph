@@ -45,8 +45,8 @@ describe('SplitButton', () => {
     expect(trailing()).toHaveAttribute('aria-expanded', 'false');
     expect(leading()).toHaveClass(
       'h-[40px]',
-      'ps-[16px]',
-      'pe-[12px]',
+      'ps-[calc(16px-var(--m3-button-border,0px))]',
+      'pe-[calc(12px-var(--m3-button-border,0px))]',
       'bg-primary',
       'rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
       'rounded-e-corner-extra-small',
@@ -54,7 +54,7 @@ describe('SplitButton', () => {
     );
     expect(trailing()).toHaveClass(
       'h-[40px]',
-      'ps-[13px]',
+      'ps-[calc(13px-var(--m3-button-border,0px))]',
       'rounded-e-[min(var(--md-sys-shape-corner-full),20px)]',
       'rounded-s-corner-extra-small',
       '[--m3-optical:-1px]',
@@ -96,7 +96,7 @@ describe('SplitButton', () => {
     [
       'xs',
       'h-[32px]',
-      'ps-[12px]',
+      'ps-[calc(12px-var(--m3-button-border,0px))]',
       'rounded-e-corner-extra-small',
       'size-[22px]',
       '[--m3-optical:-1px]',
@@ -104,16 +104,23 @@ describe('SplitButton', () => {
     [
       'md',
       'h-[56px]',
-      'ps-[24px]',
+      'ps-[calc(24px-var(--m3-button-border,0px))]',
       'rounded-e-corner-extra-small',
       'size-[26px]',
       '[--m3-optical:-2px]',
     ],
-    ['lg', 'h-[96px]', 'ps-[48px]', 'rounded-e-corner-small', 'size-[38px]', '[--m3-optical:-3px]'],
+    [
+      'lg',
+      'h-[96px]',
+      'ps-[calc(48px-var(--m3-button-border,0px))]',
+      'rounded-e-corner-small',
+      'size-[38px]',
+      '[--m3-optical:-3px]',
+    ],
     [
       'xl',
       'h-[136px]',
-      'ps-[64px]',
+      'ps-[calc(64px-var(--m3-button-border,0px))]',
       'rounded-e-corner-medium',
       'size-[50px]',
       '[--m3-optical:-6px]',
@@ -201,7 +208,34 @@ describe('SplitButton', () => {
       'in-data-open:ltr:rotate-180',
       'in-data-open:rtl:-rotate-180',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+      'motion-reduce:transition-none',
     );
+  });
+
+  it('opens its menu when a mouse press is released, so the pressed shape shows', async () => {
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Send onOpenChange={onOpenChange} />);
+    const button = trailing();
+    await user.pointer({ keys: '[MouseLeft>]', target: button });
+    expect(button).toHaveAttribute('data-pressed');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await user.pointer({ keys: '[/MouseLeft]', target: button });
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('does not open its menu when the mouse is released elsewhere', async () => {
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Send onOpenChange={onOpenChange} />);
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: trailing() },
+      { target: document.body },
+      { keys: '[/MouseLeft]', target: document.body },
+    ]);
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('can show only an icon in the leading button, named by leadingLabel', async () => {

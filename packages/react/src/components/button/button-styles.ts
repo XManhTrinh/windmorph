@@ -86,16 +86,23 @@ const shapeVariants = SIZES.flatMap((size) => [
 /**
  * Colours and elevation of each button variant, shared with the split button's halves.
  * Disabled is `on-surface` 10% / `on-surface-variant` 38% for every variant.
+ *
+ * Hover raises a button only while it isn't pressed, so a press shows the pressed level
+ * (elevated 1, filled and tonal 0) even under the pointer (2026-10-13).
+ *
+ * The outlined style's outline is drawn inside the container's edge spacing: its width is
+ * `--m3-button-border` (1px; 2px at L, 3px at XL), and the padding subtracts it, so an
+ * outlined button is the same size as the other styles with the same content (2026-10-13).
  */
 export const buttonVariantClasses = {
   filled:
-    'bg-primary text-on-primary data-hovered:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-primary text-on-primary data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
   elevated:
-    'bg-surface-container-low text-primary shadow-elevation-1 data-hovered:shadow-elevation-2 data-disabled:bg-on-surface/10',
+    'bg-surface-container-low text-primary shadow-elevation-1 data-hovered:not-data-pressed:shadow-elevation-2 data-disabled:bg-on-surface/10',
   tonal:
-    'bg-secondary-container text-on-secondary-container data-hovered:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-secondary-container text-on-secondary-container data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
   outlined:
-    'border border-solid border-outline-variant bg-transparent text-on-surface-variant data-disabled:border-outline-variant/10',
+    '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-outline-variant bg-transparent text-on-surface-variant data-disabled:border-outline-variant/10',
   text: 'bg-transparent text-primary',
 } as const;
 
@@ -123,27 +130,27 @@ export const buttonStyles = tv({
     },
     size: {
       xs: {
-        root: 'h-[32px] min-w-[58px] px-[16px] text-label-large',
+        root: 'h-[32px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
         content: 'gap-[8px]',
         icon: 'size-[20px]',
       },
       sm: {
-        root: 'h-[40px] min-w-[58px] px-[16px] text-label-large',
+        root: 'h-[40px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
         content: 'gap-[8px]',
         icon: 'size-[20px]',
       },
       md: {
-        root: 'h-[56px] px-[24px] text-title-medium',
+        root: 'h-[56px] px-[calc(24px-var(--m3-button-border,0px))] text-title-medium',
         content: 'gap-[8px]',
         icon: 'size-[24px]',
       },
       lg: {
-        root: 'h-[96px] px-[48px] font-brand text-headline-small',
+        root: 'h-[96px] px-[calc(48px-var(--m3-button-border,0px))] font-brand text-headline-small',
         content: 'gap-[12px]',
         icon: 'size-[32px]',
       },
       xl: {
-        root: 'h-[136px] px-[64px] font-brand text-headline-large',
+        root: 'h-[136px] px-[calc(64px-var(--m3-button-border,0px))] font-brand text-headline-large',
         content: 'gap-[16px]',
         icon: 'size-[40px]',
       },
@@ -163,8 +170,8 @@ export const buttonStyles = tv({
     ...shapeVariants,
     ...connectedShapeVariants,
     // Outline width grows with size.
-    { variant: 'outlined', size: 'lg', class: { root: 'border-2' } },
-    { variant: 'outlined', size: 'xl', class: { root: 'border-3' } },
+    { variant: 'outlined', size: 'lg', class: { root: '[--m3-button-border:2px]' } },
+    { variant: 'outlined', size: 'xl', class: { root: '[--m3-button-border:3px]' } },
     // Toggle colours: unselected → selected.
     {
       variant: 'filled',

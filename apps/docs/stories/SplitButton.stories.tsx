@@ -67,6 +67,18 @@ export const Playground: Story = {
   },
 };
 
+/**
+ * Against the window's end edge: the menu still lines up with the trailing button's end
+ * edge (no 12px inset from the window).
+ */
+export const AtTheEdge: Story = {
+  render: (args) => (
+    <div className="fixed inset-x-0 top-0 flex justify-end">
+      <SplitButton {...args} />
+    </div>
+  ),
+};
+
 /** Every style at every size. */
 export const VariantsAndSizes: Story = {
   render: () => (

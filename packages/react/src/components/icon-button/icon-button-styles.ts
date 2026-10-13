@@ -12,6 +12,11 @@ import { connectedShapeVariants } from '../button/connected-shapes';
  * another content colour for its standard and outlined icon buttons (a vibrant toolbar, a
  * snackbar) sets `--md-comp-icon-button-icon-color` on an ancestor, e.g. to `currentColor`
  * to inherit its own text colour.
+ *
+ * A disabled outlined icon button's outline is `outline-variant` at 10%, the same as a
+ * disabled outlined Button (the tokens keep `outline-variant` and give no opacity of their
+ * own; Button's is the disabled container opacity). A selected outlined toggle has no
+ * outline, disabled or not (2026-10-13).
  */
 const full = {
   xs: 'rounded-[min(var(--md-sys-shape-corner-full),16px)]',
@@ -113,7 +118,7 @@ export const iconButtonStyles = tv({
         root: 'bg-secondary-container text-on-secondary-container data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
       },
       outlined: {
-        root: 'border border-solid border-outline-variant bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:text-on-surface/38',
+        root: 'border border-solid border-outline-variant bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:not-data-selected:border-outline-variant/10 data-disabled:text-on-surface/38',
       },
     },
     size: {
@@ -166,7 +171,7 @@ export const iconButtonStyles = tv({
       variant: 'outlined',
       toggle: true,
       class: {
-        root: 'data-disabled:data-selected:bg-on-surface/10 data-selected:not-data-disabled:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
+        root: 'data-disabled:data-selected:bg-on-surface/10 data-selected:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
       },
     },
     // In a vibrant toolbar (M3 toolbar colour spec, FloatingToolbarTokens.VibrantButton*),

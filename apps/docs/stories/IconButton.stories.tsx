@@ -67,6 +67,36 @@ export const Variants: Story = {
   ),
 };
 
+/** Disabled, per style: a plain button, an unselected toggle and a selected toggle. */
+export const Disabled: Story = {
+  render: () => (
+    <div className="flex flex-col gap-4" data-testid="disabled">
+      {VARIANTS.map((variant) => (
+        <div key={variant} className="flex items-center gap-4">
+          <span className="w-24 text-label-medium text-on-surface-variant">{variant}</span>
+          <IconButton variant={variant} icon={<SearchIcon />} aria-label="Search" disabled />
+          <IconButton
+            toggle
+            variant={variant}
+            icon={<StarOutlineIcon />}
+            aria-label="Star"
+            disabled
+          />
+          <IconButton
+            toggle
+            defaultSelected
+            variant={variant}
+            icon={<StarOutlineIcon />}
+            selectedIcon={<StarIcon />}
+            aria-label="Starred"
+            disabled
+          />
+        </div>
+      ))}
+    </div>
+  ),
+};
+
 /**
  * A container sets `--md-comp-icon-button-icon-color` to give its standard and outlined
  * icon buttons another content colour; `currentColor` inherits its own.

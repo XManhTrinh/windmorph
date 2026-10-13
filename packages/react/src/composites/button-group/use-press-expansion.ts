@@ -1,6 +1,7 @@
 'use client';
 
 import { useLayoutEffect, type RefObject } from 'react';
+import { OVERFLOW_HIDDEN } from './use-overflow';
 
 interface Pinned {
   /** Width at rest, before the group changed it. */
@@ -33,6 +34,8 @@ function settleDuration(element: HTMLElement): number {
  * Watches the public `data-pressed` attribute of the group's direct children and animates
  * their `flex-basis` (the `container-motion` utility transitions it on the fast spatial
  * spring). At rest no inline sizing remains, so consumer sizing such as `flex-1` applies.
+ * Buttons folded into the overflow menu don't take part. Under reduced motion there's no
+ * bump at all: it's movement that only decorates the press (architecture §6).
  */
 export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expandedRatio: number) {
   useLayoutEffect(() => {
@@ -73,15 +76,18 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
       }, settleDuration(element));
     };
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => {
-      const items = [...group.children] as HTMLElement[];
+      const items = ([...group.children] as HTMLElement[]).filter(
+        (element) => !element.hasAttribute(OVERFLOW_HIDDEN),
+      );
       const next =
         items.find((el) => el.hasAttribute('data-pressed') && !el.hasAttribute('data-disabled')) ??
         null;
       if (next === pressed) return;
       pressed = next;
       for (const element of pinned.keys()) release(element);
-      if (!next || items.length < 2) return;
+      if (!next || items.length < 2 || reducedMotion.matches) return;
 
       const index = items.indexOf(next);
       const neighbours = [items[index - 1], items[index + 1]].filter(

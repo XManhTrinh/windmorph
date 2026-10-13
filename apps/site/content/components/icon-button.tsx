@@ -98,6 +98,22 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             <InlineCode>aria-labelledby</InlineCode> (the types enforce it).
           </p>
         </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="icons" className="text-headline-small text-on-surface">
+            Icons
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              Use a system icon whose meaning is clear on its own (search, delete, share), not a
+              decorative or custom one people have to learn.
+            </li>
+            <li>
+              For a toggle, show the outlined icon when unselected and its filled form when selected
+              (<InlineCode>selectedIcon</InlineCode>). If an icon has no filled version, use a
+              semibold weight of it for the selected state instead.
+            </li>
+          </ul>
+        </section>
       </>
     ),
     accessibility: (
@@ -117,7 +133,8 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             </li>
             <li>
               On hover and keyboard focus the <InlineCode>aria-label</InlineCode> shows as a plain
-              tooltip, as M3 asks of icon buttons on the web.{' '}
+              tooltip, as M3 asks of icon buttons on the web. It only repeats the name, so it
+              isn&apos;t linked as a description and screen readers announce the name once.{' '}
               <InlineCode>tooltip=&#123;false&#125;</InlineCode> turns it off, and it steps aside
               inside a <InlineCode>TooltipTrigger</InlineCode> of your own.
             </li>
@@ -158,7 +175,12 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               Selected toggles: standard turns <InlineCode>primary</InlineCode>, filled{' '}
               <InlineCode>primary</InlineCode>/<InlineCode>on-primary</InlineCode>, tonal{' '}
               <InlineCode>secondary</InlineCode>/<InlineCode>on-secondary</InlineCode>, outlined
-              inverse-surface with no border; shape swaps round ↔ square.
+              inverse-surface with no border, disabled or not; shape swaps round ↔ square.
+            </li>
+            <li>
+              A disabled outlined icon button&apos;s outline dims to{' '}
+              <InlineCode>outline-variant</InlineCode> at 10%, the same as a disabled outlined
+              button (Compose&apos;s code draws it at 38% of the content colour).
             </li>
             <li>
               Reads <InlineCode>size</InlineCode> / <InlineCode>shape</InlineCode> /{' '}
