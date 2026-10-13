@@ -155,3 +155,44 @@ test.describe('SplitButton layout safety', () => {
     },
   });
 });
+
+test.describe('SplitButton spec fixes (2026-10-13)', () => {
+  test('outlined halves keep their outline inside the padding', async ({ page }) => {
+    for (const [size, trailing, leadingStart] of [
+      ['xs', 48, 12],
+      ['sm', 48, 16],
+      ['md', 56, 24],
+      ['lg', 96, 48],
+      ['xl', 136, 64],
+    ] as const) {
+      await openStory(
+        page,
+        'components-splitbutton--playground',
+        {},
+        { size, variant: 'outlined' },
+      );
+      const leading = page.getByRole('button', { name: 'Send', exact: true });
+      const more = page.getByRole('button', { name: 'More send options' });
+      expect((await more.boundingBox())!.width).toBe(trailing);
+      const inset = await leading.evaluate(
+        (el) =>
+          el.querySelector('span')!.getBoundingClientRect().left - el.getBoundingClientRect().left,
+      );
+      expect(inset).toBe(leadingStart);
+    }
+  });
+
+  test('a pressed half takes the pressed elevation', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--playground', {}, { variant: 'elevated' });
+    const leading = page.getByRole('button', { name: 'Send', exact: true });
+    const rest = await leading.evaluate((el) => getComputedStyle(el).boxShadow);
+    const box = (await leading.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await expect
+      .poll(() => leading.evaluate((el) => getComputedStyle(el).boxShadow))
+      .not.toBe(rest);
+    await page.mouse.down();
+    await expect.poll(() => leading.evaluate((el) => getComputedStyle(el).boxShadow)).toBe(rest);
+    await page.mouse.up();
+  });
+});
