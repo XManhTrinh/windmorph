@@ -1,11 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { CheckboxBasic } from '../../examples/checkbox/checkbox-basic';
-import { CheckboxIndeterminate } from '../../examples/checkbox/checkbox-indeterminate';
-import { CheckboxStates } from '../../examples/checkbox/checkbox-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CheckboxBasic = lazyExample('checkbox/checkbox-basic', 'CheckboxBasic');
+const CheckboxIndeterminate = lazyExample(
+  'checkbox/checkbox-indeterminate',
+  'CheckboxIndeterminate',
+);
+const CheckboxStates = lazyExample('checkbox/checkbox-states', 'CheckboxStates');
 
 /** Checkbox page body. */
 export async function CheckboxBody(): Promise<ComponentDoc> {

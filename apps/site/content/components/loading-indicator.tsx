@@ -1,11 +1,19 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { LoadingDeterminate } from '../../examples/loading-indicator/loading-determinate';
-import { LoadingIndeterminate } from '../../examples/loading-indicator/loading-indeterminate';
-import { LoadingShapes } from '../../examples/loading-indicator/loading-shapes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const LoadingDeterminate = lazyExample(
+  'loading-indicator/loading-determinate',
+  'LoadingDeterminate',
+);
+const LoadingIndeterminate = lazyExample(
+  'loading-indicator/loading-indeterminate',
+  'LoadingIndeterminate',
+);
+const LoadingShapes = lazyExample('loading-indicator/loading-shapes', 'LoadingShapes');
 
 /** Loading indicator page body. */
 export async function LoadingIndicatorBody(): Promise<ComponentDoc> {

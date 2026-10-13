@@ -2,11 +2,19 @@ import type { ComponentDoc } from './doc';
 import { reactionSummaryTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { ReactionSummaryVariants } from '../../examples/reaction-summary/reaction-summary-variants';
-import { ReactionSummarySizes } from '../../examples/reaction-summary/reaction-summary-sizes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ReactionSummaryVariants = lazyExample(
+  'reaction-summary/reaction-summary-variants',
+  'ReactionSummaryVariants',
+);
+const ReactionSummarySizes = lazyExample(
+  'reaction-summary/reaction-summary-sizes',
+  'ReactionSummarySizes',
+);
 
 /** ReactionSummary page body: purpose, example, behaviour, accessibility and tokens. */
 export async function ReactionSummaryBody(): Promise<ComponentDoc> {

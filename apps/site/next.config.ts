@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
   // run while a developer's own `next dev` (which holds the `.next` dev lock) is open.
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
+  experimental: {
+    // Rewrites imports from the libraries' entry files to the modules that define them, so a
+    // server component that imports one export (a token set, say) doesn't put every client
+    // component the entry re-exports into the page's bundle.
+    optimizePackageImports: [
+      '@windmorph/react',
+      '@windmorph/react-pro',
+      '@windmorph/react-pro/rich-text',
+    ],
+  },
   // No next/image is used in this phase; a later phase that adds one must set
   // images.unoptimized = true, which output: 'export' requires.
 };

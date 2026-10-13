@@ -17,7 +17,6 @@ import { DrawerNav } from '../../components/nav/drawer-nav';
 import { Footer } from '../../components/footer';
 import { PageOutline } from '../../components/page-outline';
 import { DocsSearch } from './docs-search';
-import type { SearchEntry } from './search-index';
 import { DisplaySettingsButton, DisplaySettingsProvider } from './display-settings';
 import { SiteSnackbarProvider } from '../../components/site-snackbar';
 
@@ -40,13 +39,7 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
  * component pages. Every element is a Windmorph component or site-owned nav markup;
  * active-route state comes from `usePathname()`.
  */
-export function DocsShell({
-  children,
-  searchEntries,
-}: {
-  children: ReactNode;
-  searchEntries: SearchEntry[];
-}) {
+export function DocsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   // On a guide or component page the panel is pinned in the layout, so the content column
@@ -94,7 +87,6 @@ export function DocsShell({
               title={null}
               actions={
                 <DocsSearch
-                  entries={searchEntries}
                   view="docked"
                   // 48px (M3's minimum touch target) in the 64px bar; M3's 360px minimum
                   // width, narrowing only when the window leaves less room.
@@ -115,7 +107,7 @@ export function DocsShell({
               }
               actions={<DisplaySettingsButton />}
             >
-              <DocsSearch entries={searchEntries} view="full-screen" />
+              <DocsSearch view="full-screen" />
             </SearchAppBar>
             <main id="main-content" className="min-w-0 flex-1 p-6 pb-28 medium:pb-6">
               {/* Page changes run M3's shared-axis (Y) transition; see globals.css. */}

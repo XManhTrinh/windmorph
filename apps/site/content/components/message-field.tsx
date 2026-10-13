@@ -2,15 +2,26 @@ import type { ComponentDoc } from './doc';
 import { messageFieldTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { MessageFieldChat } from '../../examples/message-field/message-field-chat';
-import { MessageFieldComment } from '../../examples/message-field/message-field-comment';
-import { MessageFieldDocked } from '../../examples/message-field/message-field-docked';
-import { MessageFieldLimit } from '../../examples/message-field/message-field-limit';
-import { MessageFieldTriggerExample } from '../../examples/message-field/message-field-trigger';
-import { MessageFieldVariants } from '../../examples/message-field/message-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const MessageFieldChat = lazyExample('message-field/message-field-chat', 'MessageFieldChat');
+const MessageFieldComment = lazyExample(
+  'message-field/message-field-comment',
+  'MessageFieldComment',
+);
+const MessageFieldDocked = lazyExample('message-field/message-field-docked', 'MessageFieldDocked');
+const MessageFieldLimit = lazyExample('message-field/message-field-limit', 'MessageFieldLimit');
+const MessageFieldTriggerExample = lazyExample(
+  'message-field/message-field-trigger',
+  'MessageFieldTriggerExample',
+);
+const MessageFieldVariants = lazyExample(
+  'message-field/message-field-variants',
+  'MessageFieldVariants',
+);
 
 /** Message field page body: purpose, examples, behaviour, motion, accessibility and tokens. */
 export async function MessageFieldBody(): Promise<ComponentDoc> {

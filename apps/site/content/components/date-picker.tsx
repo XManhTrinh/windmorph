@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { DateFieldExample } from '../../examples/date-picker/date-field';
-import { DatePickerBasic } from '../../examples/date-picker/date-picker-basic';
-import { DateRangeExample } from '../../examples/date-picker/date-range';
-import { DateInput } from '../../examples/date-picker/date-input';
-import { DateRangeModal } from '../../examples/date-picker/date-range-modal';
-import { DatePickerModal } from '../../examples/date-picker/date-picker-modal';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const DateFieldExample = lazyExample('date-picker/date-field', 'DateFieldExample');
+const DatePickerBasic = lazyExample('date-picker/date-picker-basic', 'DatePickerBasic');
+const DateRangeExample = lazyExample('date-picker/date-range', 'DateRangeExample');
+const DateInput = lazyExample('date-picker/date-input', 'DateInput');
+const DateRangeModal = lazyExample('date-picker/date-range-modal', 'DateRangeModal');
+const DatePickerModal = lazyExample('date-picker/date-picker-modal', 'DatePickerModal');
 
 const c = 'text-on-surface';
 

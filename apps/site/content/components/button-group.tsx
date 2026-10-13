@@ -1,14 +1,31 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ButtonGroupConnected } from '../../examples/button-group/button-group-connected';
-import { ButtonGroupMultiple } from '../../examples/button-group/button-group-multiple';
-import { ButtonGroupStandard } from '../../examples/button-group/button-group-standard';
-import { ButtonGroupSizes } from '../../examples/button-group/button-group-sizes';
-import { ButtonGroupPressBump } from '../../examples/button-group/button-group-press-bump';
-import { ButtonGroupOverflow } from '../../examples/button-group/button-group-overflow';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ButtonGroupConnected = lazyExample(
+  'button-group/button-group-connected',
+  'ButtonGroupConnected',
+);
+const ButtonGroupMultiple = lazyExample(
+  'button-group/button-group-multiple',
+  'ButtonGroupMultiple',
+);
+const ButtonGroupStandard = lazyExample(
+  'button-group/button-group-standard',
+  'ButtonGroupStandard',
+);
+const ButtonGroupSizes = lazyExample('button-group/button-group-sizes', 'ButtonGroupSizes');
+const ButtonGroupPressBump = lazyExample(
+  'button-group/button-group-press-bump',
+  'ButtonGroupPressBump',
+);
+const ButtonGroupOverflow = lazyExample(
+  'button-group/button-group-overflow',
+  'ButtonGroupOverflow',
+);
 
 /** ButtonGroup page body. */
 export async function ButtonGroupBody(): Promise<ComponentDoc> {

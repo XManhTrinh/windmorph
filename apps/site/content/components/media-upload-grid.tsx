@@ -1,11 +1,22 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { MediaUploadGridComposer } from '../../examples/media-upload-grid/media-upload-grid-composer';
-import { MediaUploadGridDisabled } from '../../examples/media-upload-grid/media-upload-grid-disabled';
-import { MediaUploadGridRow } from '../../examples/media-upload-grid/media-upload-grid-row';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const MediaUploadGridComposer = lazyExample(
+  'media-upload-grid/media-upload-grid-composer',
+  'MediaUploadGridComposer',
+);
+const MediaUploadGridDisabled = lazyExample(
+  'media-upload-grid/media-upload-grid-disabled',
+  'MediaUploadGridDisabled',
+);
+const MediaUploadGridRow = lazyExample(
+  'media-upload-grid/media-upload-grid-row',
+  'MediaUploadGridRow',
+);
 
 /** Media upload grid page body: purpose, examples, the app's part, accessibility and theming. */
 export async function MediaUploadGridBody(): Promise<ComponentDoc> {

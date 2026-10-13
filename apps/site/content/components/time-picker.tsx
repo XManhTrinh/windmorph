@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { TimePickerDial } from '../../examples/time-picker/time-picker-dial';
-import { TimePickerModes } from '../../examples/time-picker/time-picker-modes';
-import { TimePickerModal } from '../../examples/time-picker/time-picker-modal';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const TimePickerDial = lazyExample('time-picker/time-picker-dial', 'TimePickerDial');
+const TimePickerModes = lazyExample('time-picker/time-picker-modes', 'TimePickerModes');
+const TimePickerModal = lazyExample('time-picker/time-picker-modal', 'TimePickerModal');
 
 /** Time picker page body. */
 export async function TimePickerBody(): Promise<ComponentDoc> {

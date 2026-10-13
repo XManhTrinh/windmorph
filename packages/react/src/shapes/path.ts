@@ -48,8 +48,11 @@ export function morphToPath(
 }
 
 // Four decimals stays sub-pixel even for unit-square shapes drawn large, and keeps paths short.
+// The value is first snapped to nine decimals: Node and browsers can differ in the last bits
+// of `Math.sin` / `Math.cos`, which can tip a coordinate sitting on a rounding boundary
+// (0.45625) either way, so a path rendered on the server wouldn't match the one hydrated.
 const fmt = (n: number) => {
-  const r = Math.round(n * 10000) / 10000;
+  const r = Math.round(Number(n.toFixed(9)) * 10000) / 10000;
   return Object.is(r, -0) ? '0' : String(r);
 };
 

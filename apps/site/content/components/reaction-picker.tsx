@@ -1,11 +1,22 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ReactionPickerMessage } from '../../examples/reaction-picker/reaction-picker-message';
-import { ReactionPickerPost } from '../../examples/reaction-picker/reaction-picker-post';
-import { ReactionPickerVariants } from '../../examples/reaction-picker/reaction-picker-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ReactionPickerMessage = lazyExample(
+  'reaction-picker/reaction-picker-message',
+  'ReactionPickerMessage',
+);
+const ReactionPickerPost = lazyExample(
+  'reaction-picker/reaction-picker-post',
+  'ReactionPickerPost',
+);
+const ReactionPickerVariants = lazyExample(
+  'reaction-picker/reaction-picker-variants',
+  'ReactionPickerVariants',
+);
 
 /** Reaction picker page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function ReactionPickerBody(): Promise<ComponentDoc> {

@@ -2,11 +2,13 @@ import type { ComponentDoc } from './doc';
 import { loadMoreTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { LoadMoreList } from '../../examples/load-more/load-more-list';
-import { LoadMoreAuto } from '../../examples/load-more/load-more-auto';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const LoadMoreList = lazyExample('load-more/load-more-list', 'LoadMoreList');
+const LoadMoreAuto = lazyExample('load-more/load-more-auto', 'LoadMoreAuto');
 
 /** LoadMore page body: purpose, example, behaviour, accessibility and tokens. */
 export async function LoadMoreBody(): Promise<ComponentDoc> {

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { IntentLink } from './intent-link';
 import type { ReactElement } from 'react';
 import {
   GALLERY_RAIL_GROUPS,
@@ -85,7 +85,7 @@ export function GalleryCard({
   pro?: boolean;
 }): ReactElement {
   return (
-    <Link
+    <IntentLink
       href={`/components/${slug}`}
       className="state-layer focus-ring group/card flex h-full flex-col gap-3 rounded-corner-large border border-outline-variant bg-surface-container-low p-3 pb-5 transition-[box-shadow,border-color] duration-200 hover:border-outline hover:shadow-elevation-2 motion-reduce:transition-none"
     >
@@ -103,6 +103,6 @@ export function GalleryCard({
         </span>
       </div>
       <span className="px-2 text-body-medium text-on-surface-variant">{summary}</span>
-    </Link>
+    </IntentLink>
   );
 }

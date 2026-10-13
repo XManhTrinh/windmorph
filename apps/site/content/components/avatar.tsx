@@ -1,14 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { AvatarBadges } from '../../examples/avatar/avatar-badges';
-import { AvatarFallbacks } from '../../examples/avatar/avatar-fallbacks';
-import { AvatarGroupExample } from '../../examples/avatar/avatar-group';
-import { AvatarPhotos } from '../../examples/avatar/avatar-photos';
-import { AvatarShapes } from '../../examples/avatar/avatar-shapes';
-import { AvatarTones } from '../../examples/avatar/avatar-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const AvatarBadges = lazyExample('avatar/avatar-badges', 'AvatarBadges');
+const AvatarFallbacks = lazyExample('avatar/avatar-fallbacks', 'AvatarFallbacks');
+const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExample');
+const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
+const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
+const AvatarTones = lazyExample('avatar/avatar-tones', 'AvatarTones');
 
 /** Avatar page body: purpose, examples, accessibility and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {

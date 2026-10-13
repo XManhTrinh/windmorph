@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ChipsAssistSuggestion } from '../../examples/chips/chips-assist-suggestion';
-import { ChipsFilter } from '../../examples/chips/chips-filter';
-import { ChipsInput } from '../../examples/chips/chips-input';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ChipsAssistSuggestion = lazyExample('chips/chips-assist-suggestion', 'ChipsAssistSuggestion');
+const ChipsFilter = lazyExample('chips/chips-filter', 'ChipsFilter');
+const ChipsInput = lazyExample('chips/chips-input', 'ChipsInput');
 
 /** Chips page body: assist, suggestion, filter and input chips, and the chip set. */
 export async function ChipsBody(): Promise<ComponentDoc> {

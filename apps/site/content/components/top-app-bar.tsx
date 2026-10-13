@@ -1,14 +1,19 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SearchAppBarDemo } from '../../examples/search/search-app-bar';
-import { TopAppBarFlexible } from '../../examples/top-app-bar/top-app-bar-flexible';
-import { TopAppBarChips } from '../../examples/top-app-bar/top-app-bar-chips';
-import { TopAppBarScrolling } from '../../examples/top-app-bar/top-app-bar-scrolling';
-import { TopAppBarTransparent } from '../../examples/top-app-bar/top-app-bar-transparent';
-import { TopAppBarVariants } from '../../examples/top-app-bar/top-app-bar-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SearchAppBarDemo = lazyExample('search/search-app-bar', 'SearchAppBarDemo');
+const TopAppBarFlexible = lazyExample('top-app-bar/top-app-bar-flexible', 'TopAppBarFlexible');
+const TopAppBarChips = lazyExample('top-app-bar/top-app-bar-chips', 'TopAppBarChips');
+const TopAppBarScrolling = lazyExample('top-app-bar/top-app-bar-scrolling', 'TopAppBarScrolling');
+const TopAppBarTransparent = lazyExample(
+  'top-app-bar/top-app-bar-transparent',
+  'TopAppBarTransparent',
+);
+const TopAppBarVariants = lazyExample('top-app-bar/top-app-bar-variants', 'TopAppBarVariants');
 
 /** Top app bar page body: the three sizes, centred text, scroll behaviour and search. */
 export async function TopAppBarBody(): Promise<ComponentDoc> {

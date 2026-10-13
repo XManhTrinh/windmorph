@@ -1,13 +1,24 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { InlineCode } from '../../components/inline-code';
-import { PullToRefreshBasic } from '../../examples/pull-to-refresh/pull-to-refresh-basic';
-import { PullToRefreshButton } from '../../examples/pull-to-refresh/pull-to-refresh-button';
-import { PullToRefreshFeed } from '../../examples/pull-to-refresh/pull-to-refresh-feed';
-import { PullToRefreshRtl } from '../../examples/pull-to-refresh/pull-to-refresh-rtl';
-import { PullToRefreshThreshold } from '../../examples/pull-to-refresh/pull-to-refresh-threshold';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { lazyExample } from '../../lib/lazy-example';
+
+const PullToRefreshBasic = lazyExample(
+  'pull-to-refresh/pull-to-refresh-basic',
+  'PullToRefreshBasic',
+);
+const PullToRefreshButton = lazyExample(
+  'pull-to-refresh/pull-to-refresh-button',
+  'PullToRefreshButton',
+);
+const PullToRefreshFeed = lazyExample('pull-to-refresh/pull-to-refresh-feed', 'PullToRefreshFeed');
+const PullToRefreshRtl = lazyExample('pull-to-refresh/pull-to-refresh-rtl', 'PullToRefreshRtl');
+const PullToRefreshThreshold = lazyExample(
+  'pull-to-refresh/pull-to-refresh-threshold',
+  'PullToRefreshThreshold',
+);
 
 const list = 'flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc';
 const heading = 'text-headline-small text-on-surface';

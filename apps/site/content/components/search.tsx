@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SearchAppBarDemo } from '../../examples/search/search-app-bar';
-import { SearchDocked } from '../../examples/search/search-docked';
-import { SearchFullScreen } from '../../examples/search/search-full-screen';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SearchAppBarDemo = lazyExample('search/search-app-bar', 'SearchAppBarDemo');
+const SearchDocked = lazyExample('search/search-docked', 'SearchDocked');
+const SearchFullScreen = lazyExample('search/search-full-screen', 'SearchFullScreen');
 
 /** Search page body: docked and full-screen search, and the app bar with search. */
 export async function SearchBody(): Promise<ComponentDoc> {

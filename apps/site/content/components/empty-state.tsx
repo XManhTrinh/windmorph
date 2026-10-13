@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { EmptyStateNoPosts } from '../../examples/empty-state/empty-state-no-posts';
-import { EmptyStateRetry } from '../../examples/empty-state/empty-state-retry';
-import { EmptyStateSearch } from '../../examples/empty-state/empty-state-search';
-import { EmptyStateVariants } from '../../examples/empty-state/empty-state-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const EmptyStateNoPosts = lazyExample('empty-state/empty-state-no-posts', 'EmptyStateNoPosts');
+const EmptyStateRetry = lazyExample('empty-state/empty-state-retry', 'EmptyStateRetry');
+const EmptyStateSearch = lazyExample('empty-state/empty-state-search', 'EmptyStateSearch');
+const EmptyStateVariants = lazyExample('empty-state/empty-state-variants', 'EmptyStateVariants');
 
 /** Empty state page body: when to use it, examples, accessibility and theming. */
 export async function EmptyStateBody(): Promise<ComponentDoc> {

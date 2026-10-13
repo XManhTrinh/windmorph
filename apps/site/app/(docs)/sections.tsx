@@ -5,6 +5,7 @@ import {
   CodeIcon,
   HomeIcon,
   MotionIcon,
+  NewReleasesIcon,
   PaletteIcon,
   SwapHorizIcon,
   TuneIcon,
@@ -30,4 +31,5 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { href: '/nextjs', label: 'Next.js', icon: <CodeIcon /> },
   { href: '/from-compose', label: 'From Compose', icon: <SwapHorizIcon /> },
   { href: '/spec-status', label: 'Spec status', icon: <ChecklistIcon /> },
+  { href: '/whats-new', label: "What's new", icon: <NewReleasesIcon /> },
 ];

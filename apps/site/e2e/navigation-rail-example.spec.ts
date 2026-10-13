@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { gotoReady } from './navigate';
 
 /**
  * The navigation rail component (the "Expandable rail" example), not the site's own rail.
@@ -44,7 +45,7 @@ function expectAllOnLine(frames: number[][], line: number) {
 test.describe('Navigation rail icons stay on one line', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/navigation-rail');
+    await gotoReady(page, '/components/navigation-rail');
   });
 
   test('through the middle of the 96px collapsed rail, expanding and collapsing', async ({
@@ -68,7 +69,7 @@ test.describe('Navigation rail icons stay on one line', () => {
 test.describe('Expanded navigation rail', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
-    await page.goto('/components/navigation-rail');
+    await gotoReady(page, '/components/navigation-rail');
     await page
       .getByRole('navigation', { name: 'Mail' })
       .getByRole('button', { name: 'Expand navigation' })

@@ -5,14 +5,12 @@ import {
   Avatar,
   FileTrigger,
   ImageCropDialog,
-  MediaUploadGrid,
   MessageField,
-  PhoneField,
   PinInput,
   type MediaUploadItem,
 } from '@windmorph/react-pro';
-import { RichMessageField, type MentionSuggestion } from '@windmorph/react-pro/rich-text';
-import { createElement, useState } from 'react';
+import type { MentionSuggestion } from '@windmorph/react-pro/rich-text';
+import { createElement, lazy, useState } from 'react';
 import {
   AddAPhotoIcon,
   ArrowForwardIcon,
@@ -28,12 +26,23 @@ import { SAMPLE_PHOTOS } from '../../../examples/media-upload-grid/sample-photos
 import { loose, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
 
 const PinInputAny = loose(PinInput);
-const PhoneFieldAny = loose(PhoneField);
 const MessageFieldAny = loose(MessageField);
-const RichMessageFieldAny = loose(RichMessageField);
 const FileTriggerAny = loose(FileTrigger);
 const ImageCropDialogAny = loose(ImageCropDialog);
-const MediaUploadGridAny = loose(MediaUploadGrid);
+/*
+ * The phone field (its country metadata), the rich message field (Tiptap) and the upload
+ * grid weigh a few hundred KB between them, so they load with their own pages' playgrounds
+ * instead of with every component page.
+ */
+const PhoneFieldAny = lazy(async () => ({
+  default: loose((await import('@windmorph/react-pro')).PhoneField),
+}));
+const RichMessageFieldAny = lazy(async () => ({
+  default: loose((await import('@windmorph/react-pro/rich-text')).RichMessageField),
+}));
+const MediaUploadGridAny = lazy(async () => ({
+  default: loose((await import('@windmorph/react-pro')).MediaUploadGrid),
+}));
 
 /** Remounts a preview when a prop that only counts on mount (`autoFocus`, `defaultOpen`) changes. */
 const mountKey = (props: Record<string, unknown>, names: string[]) =>
@@ -59,7 +68,7 @@ function messageFieldSlots(props: Record<string, unknown>, update: PlaygroundUpd
     sendIcon: props.sendIcon ? <ArrowForwardIcon /> : undefined,
     closeIcon: props.closeIcon ? <DeleteIcon /> : undefined,
     attachments: props.attachments ? (
-      <MediaUploadGrid
+      <MediaUploadGridAny
         aria-label="Photos to send"
         layout="row"
         items={SAMPLE_PHOTOS.slice(0, 2).map((photo, index) => ({

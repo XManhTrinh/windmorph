@@ -23,6 +23,7 @@ import {
   type ComponentPropsFile,
   type HookDocFile,
 } from './component-props';
+import { componentSizes, formatKilobytes } from './bundle-size';
 
 const docs = new Map<string, Promise<ComponentDoc>>();
 
@@ -106,6 +107,7 @@ async function OverviewTab({ page, doc }: { page: ComponentPageMeta; doc: Compon
 }
 
 async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDoc }) {
+  const sizes = page.pro ? [] : await componentSizes(page.propsComponents);
   const tables = (await readTables(page)).filter(
     // A component with no props and no classNames slots has nothing to list.
     ({ json, slots }) => json && (json.props.length > 0 || (slots && slots.length > 0)),
@@ -155,6 +157,29 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
         </section>
       )}
       {specData && <SpecStatus slug={page.slug} title={page.title} data={specData} />}
+      {sizes.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <SectionHeading id="bundle-size">Bundle size</SectionHeading>
+          <p className="text-body-large text-on-surface-variant">
+            Gzipped, as published: the component and the library code it imports. React, React Aria,
+            Motion and the other dependencies aren&apos;t counted, and your bundler&apos;s minifier
+            makes it smaller still. CI fails a change that grows it past its budget.
+          </p>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            {sizes.map(({ names, gzip }) => (
+              <li key={names.join()}>
+                {names.map((name, index) => (
+                  <span key={name}>
+                    {index > 0 && ', '}
+                    <InlineCode>{name}</InlineCode>
+                  </span>
+                ))}
+                : {formatKilobytes(gzip)}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {page.specs && <SpecsCard specs={page.specs} />}
       {doc.api}
     </>

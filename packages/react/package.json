@@ -30,6 +30,7 @@
   ],
   "files": [
     "dist",
+    "!dist/bundle-size.json",
     "NOTICE"
   ],
   "exports": {
@@ -58,11 +59,13 @@
   },
   "scripts": {
     "generate": "tsx scripts/generate.ts",
-    "build": "tsdown && tsx scripts/build-css.ts && tsx scripts/check-dist.ts",
+    "build": "tsdown && tsx scripts/build-css.ts && tsx scripts/check-dist.ts && tsx scripts/bundle-size.ts report",
     "prepare": "pnpm run generate && pnpm run build",
     "typecheck": "tsc -p tsconfig.json",
     "lint": "eslint --max-warnings 0 .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "size": "tsx scripts/bundle-size.ts check",
+    "size:update": "tsx scripts/bundle-size.ts check --update"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",

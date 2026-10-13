@@ -1,7 +1,7 @@
 'use client';
 
 import { NavigationRail } from '@windmorph/react';
-import Link from 'next/link';
+import { IntentLink } from '../intent-link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { DOCS_SECTIONS } from '../../app/(docs)/sections';
@@ -211,7 +211,7 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
             the effective top inset is a balanced ~12px — kept site-side (core is read-only).
             The tile brings its own dark background, so it reads the same in every theme. */}
         <div className="-mt-8 flex shrink-0 justify-center pb-6">
-          <Link
+          <IntentLink
             href="/"
             aria-label="Home"
             aria-current={pathname === '/' ? 'page' : undefined}
@@ -224,7 +224,7 @@ export function DocsRail({ settings }: { settings: ReactNode }) {
               height={56}
               className="size-full rounded-corner-large"
             />
-          </Link>
+          </IntentLink>
         </div>
 
         {/* Middle zone: the scrollable group destinations, with M3 rail item rhythm. */}

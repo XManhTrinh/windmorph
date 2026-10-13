@@ -1,9 +1,11 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SkipLinkPage } from '../../examples/skip-link/skip-link-page';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SkipLinkPage = lazyExample('skip-link/skip-link-page', 'SkipLinkPage');
 
 /** Skip link page body: purpose, example, accessibility and placement. */
 export async function SkipLinkBody(): Promise<ComponentDoc> {

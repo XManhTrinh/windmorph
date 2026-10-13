@@ -1,11 +1,22 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ExpandableTextCollapsible } from '../../examples/expandable-text/expandable-text-collapsible';
-import { ExpandableTextPost } from '../../examples/expandable-text/expandable-text-post';
-import { ExpandableTextControlled } from '../../examples/expandable-text/expandable-text-controlled';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ExpandableTextCollapsible = lazyExample(
+  'expandable-text/expandable-text-collapsible',
+  'ExpandableTextCollapsible',
+);
+const ExpandableTextPost = lazyExample(
+  'expandable-text/expandable-text-post',
+  'ExpandableTextPost',
+);
+const ExpandableTextControlled = lazyExample(
+  'expandable-text/expandable-text-controlled',
+  'ExpandableTextControlled',
+);
 
 /** Expandable text page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function ExpandableTextBody(): Promise<ComponentDoc> {

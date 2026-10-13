@@ -1,11 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { TooltipPlain } from '../../examples/tooltip/tooltip-plain';
-import { TooltipRich } from '../../examples/tooltip/tooltip-rich';
-import { TooltipRichConfigurations } from '../../examples/tooltip/tooltip-rich-configurations';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const TooltipPlain = lazyExample('tooltip/tooltip-plain', 'TooltipPlain');
+const TooltipRich = lazyExample('tooltip/tooltip-rich', 'TooltipRich');
+const TooltipRichConfigurations = lazyExample(
+  'tooltip/tooltip-rich-configurations',
+  'TooltipRichConfigurations',
+);
 
 /** Tooltip page body: plain and rich tooltips. */
 export async function TooltipBody(): Promise<ComponentDoc> {

@@ -1,11 +1,16 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { RadioGroupBasic } from '../../examples/radio-group/radio-group-basic';
-import { RadioGroupHorizontal } from '../../examples/radio-group/radio-group-horizontal';
-import { RadioGroupStates } from '../../examples/radio-group/radio-group-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const RadioGroupBasic = lazyExample('radio-group/radio-group-basic', 'RadioGroupBasic');
+const RadioGroupHorizontal = lazyExample(
+  'radio-group/radio-group-horizontal',
+  'RadioGroupHorizontal',
+);
+const RadioGroupStates = lazyExample('radio-group/radio-group-states', 'RadioGroupStates');
 
 /** RadioGroup + Radio page body. */
 export async function RadioGroupBody(): Promise<ComponentDoc> {

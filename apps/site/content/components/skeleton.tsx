@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { SkeletonAnimations } from '../../examples/skeleton/skeleton-animations';
-import { SkeletonCards } from '../../examples/skeleton/skeleton-cards';
-import { SkeletonVariants } from '../../examples/skeleton/skeleton-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const SkeletonAnimations = lazyExample('skeleton/skeleton-animations', 'SkeletonAnimations');
+const SkeletonCards = lazyExample('skeleton/skeleton-cards', 'SkeletonCards');
+const SkeletonVariants = lazyExample('skeleton/skeleton-variants', 'SkeletonVariants');
 
 /** Skeleton page body: when to use it, examples, accessibility and theming. */
 export async function SkeletonBody(): Promise<ComponentDoc> {

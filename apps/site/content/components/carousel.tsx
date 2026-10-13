@@ -1,13 +1,15 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { CarouselActions } from '../../examples/carousel/carousel-actions';
-import { CarouselLayouts } from '../../examples/carousel/carousel-layouts';
-import { CarouselMultiBrowse } from '../../examples/carousel/carousel-multibrowse';
-import { CarouselVariants } from '../../examples/carousel/carousel-variants';
-import { CarouselHero } from '../../examples/carousel/carousel-hero';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CarouselActions = lazyExample('carousel/carousel-actions', 'CarouselActions');
+const CarouselLayouts = lazyExample('carousel/carousel-layouts', 'CarouselLayouts');
+const CarouselMultiBrowse = lazyExample('carousel/carousel-multibrowse', 'CarouselMultiBrowse');
+const CarouselVariants = lazyExample('carousel/carousel-variants', 'CarouselVariants');
+const CarouselHero = lazyExample('carousel/carousel-hero', 'CarouselHero');
 
 /** Carousel page body: multi-browse, uncontained, multi-aspect, hero and full-screen. */
 export async function CarouselBody(): Promise<ComponentDoc> {

@@ -1,12 +1,14 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { ProgressCircular } from '../../examples/progress/progress-circular';
-import { ProgressLinear } from '../../examples/progress/progress-linear';
-import { ProgressSizes } from '../../examples/progress/progress-sizes';
-import { ProgressTrack } from '../../examples/progress/progress-track';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const ProgressCircular = lazyExample('progress/progress-circular', 'ProgressCircular');
+const ProgressLinear = lazyExample('progress/progress-linear', 'ProgressLinear');
+const ProgressSizes = lazyExample('progress/progress-sizes', 'ProgressSizes');
+const ProgressTrack = lazyExample('progress/progress-track', 'ProgressTrack');
 
 /** Progress indicators page body. */
 export async function ProgressBody(): Promise<ComponentDoc> {

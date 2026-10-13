@@ -1,84 +1,61 @@
-import { readdirSync, existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { gotoReady } from './navigate';
+import { exportedPages, isTabPage } from './pages';
 
 /**
  * One data-driven smoke suite covering EVERY page of the static export: the home page, the
- * guide pages, the component gallery, all component slugs under `/components/<slug>` and their
- * tabs under `/components/<slug>/<tab>`.
+ * guides, the component gallery, every component page and every one of its tabs. The pages
+ * are enumerated from the export's HTML (`exportedPages`), never a hand-kept list; the suite
+ * builds first via the `test:e2e` turbo task (`dependsOn: ["build"]`), so `out/` exists at
+ * collection time.
  *
- * The slug list is ENUMERATED from the static export output (`out/components`), which is produced
- * by the `[slug]` route's `generateStaticParams()` (i.e. the component registry) — never a stale
- * hardcoded list. The suite builds first via the `test:e2e` turbo task (`dependsOn: ["build"]`),
- * so `out/` exists at collection time.
- *
- * For each page it asserts: it renders (a `main` landmark + a visible level-1 heading), it emits
- * NO console errors / page errors, it passes an axe accessibility scan, and it works in RTL and
- * in dark mode. Tabs-based ExampleViewer panels (date-/time-picker) hydrate client-side and are
- * empty at SSR; Playwright always queries the hydrated DOM, so these pass legitimately.
+ * For each page it asserts, in light and in dark mode: it renders (a `main` landmark + a
+ * visible level-1 heading), it emits NO console errors / page errors, and it passes an axe
+ * accessibility scan. Every page but the component tabs is also checked right to left; the
+ * tabs share one template, so RTL is checked on the Button page's tabs, and a tab's dark
+ * scan switches the loaded page to dark rather than loading it again.
  */
-const here = dirname(fileURLToPath(import.meta.url));
-const outDir = resolve(here, '../out');
-const componentsOut = join(outDir, 'components');
 
 /** Matches the port in `playwright.config.ts`; only used if the baseURL fixture is unset. */
 const DEFAULT_BASE_URL = 'http://localhost:4317';
 
-/** The fixed guide routes (from `app/(docs)/sections.tsx`), plus home and the gallery. */
-const GUIDE_ROUTES = [
-  '/getting-started',
-  '/theming',
-  '/motion',
-  '/customisation',
-  '/accessibility',
-  '/nextjs',
-  '/from-compose',
-  '/spec-status',
-] as const;
-
-/** Enumerate component slugs from the export output (the real `generateStaticParams` result). */
-function enumerateSlugs(): string[] {
-  if (!existsSync(outDir)) {
-    throw new Error(
-      `[smoke] no static export at ${outDir}. Build the site first ` +
-        `(the \`test:e2e\` turbo task depends on \`build\`).`,
-    );
-  }
-  const slugs = new Set<string>();
-  for (const entry of readdirSync(componentsOut, { withFileTypes: true })) {
-    if (entry.isFile() && entry.name.endsWith('.html')) {
-      slugs.add(entry.name.slice(0, -'.html'.length));
-    } else if (entry.isDirectory() && existsSync(join(componentsOut, entry.name, 'index.html'))) {
-      slugs.add(entry.name);
-    }
-  }
-  return [...slugs].sort();
-}
-
-/** Each component page's other tabs (`/components/<slug>/<tab>`), from the export output. */
-function enumerateTabRoutes(): string[] {
-  const routes: string[] = [];
-  for (const entry of readdirSync(componentsOut, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    for (const file of readdirSync(join(componentsOut, entry.name))) {
-      if (file.endsWith('.html')) routes.push(`/components/${entry.name}/${file.slice(0, -5)}`);
-    }
-  }
-  return routes.sort();
-}
-
-const SLUGS = enumerateSlugs();
-const COMPONENT_ROUTES = SLUGS.map((slug) => `/components/${slug}`);
-const ALL_ROUTES = ['/', ...GUIDE_ROUTES, '/components', ...COMPONENT_ROUTES] as const;
-const TAB_ROUTES = enumerateTabRoutes();
+const PAGES = exportedPages();
+const TAB_ROUTES = PAGES.filter(isTabPage);
+const SLUGS = PAGES.filter((path) => /^\/components\/[^/]+$/.test(path)).map((path) =>
+  path.slice('/components/'.length),
+);
 
 interface Variant {
   dir?: 'rtl';
   dark?: boolean;
   /** Open the search with a query before the scan: docked (1280px) or full screen (390px). */
   search?: 'docked' | 'full-screen';
+  /**
+   * After the light-mode scan, switches the loaded page to dark mode (`data-mode`, which the
+   * theme CSS keys on) and scans again: the dark check without a second page load, for the
+   * component tabs, which share one template. Other pages load in dark mode (`dark`).
+   */
+  thenDark?: boolean;
+}
+
+/** Waits until nothing is mid-animation, then expects an axe scan to find no violations. */
+async function expectNoAxeViolations(page: Page, label: string): Promise<void> {
+  // Anything that still animates under reduced motion finishes before the scan. Looping
+  // animations, such as a loading indicator, never finish, so they're left out.
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+        .map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  );
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(
+    results.violations,
+    `axe violations on ${label}: ${results.violations.map((v) => v.id).join(', ')}`,
+  ).toEqual([]);
 }
 
 /**
@@ -129,7 +106,7 @@ async function assertPageHealthy(
     );
   }
 
-  await page.goto(url);
+  await gotoReady(page, url);
 
   await expect(page.locator('main')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
@@ -157,52 +134,31 @@ async function assertPageHealthy(
     );
   }
 
-  // Anything that still animates under reduced motion finishes before the scan. Looping
-  // animations, such as a loading indicator, never finish, so they're left out.
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  );
-
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(
-    results.violations,
-    `axe violations on ${url}: ${results.violations.map((v) => v.id).join(', ')}`,
-  ).toEqual([]);
+  await expectNoAxeViolations(page, url);
+  if (variant.thenDark) {
+    await page.evaluate(() => document.documentElement.setAttribute('data-mode', 'dark'));
+    await expectNoAxeViolations(page, `${url} (dark)`);
+  }
 
   await page.waitForLoadState('load');
   expect(errors, `console/page errors on ${url}:\n${errors.join('\n')}`).toEqual([]);
 }
 
-for (const url of ALL_ROUTES) {
+for (const url of PAGES) {
   test.describe(url, () => {
-    test('renders (LTR / default mode)', async ({ page, baseURL }) => {
-      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, {});
-    });
-    test('renders in dark mode', async ({ page, baseURL }) => {
-      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dark: true });
-    });
-    test('renders in RTL', async ({ page, baseURL }) => {
-      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dir: 'rtl' });
-    });
-  });
-}
-
-// The tab pages share one template, so dark mode and RTL are checked on one component's tabs;
-// every tab page gets the default check.
-for (const url of TAB_ROUTES) {
-  test.describe(url, () => {
-    test('renders (LTR / default mode)', async ({ page, baseURL }) => {
-      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, {});
-    });
-    if (url.startsWith('/components/button/')) {
+    if (isTabPage(url)) {
+      test('renders in light and dark mode', async ({ page, baseURL }) => {
+        await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { thenDark: true });
+      });
+    } else {
+      test('renders (LTR / default mode)', async ({ page, baseURL }) => {
+        await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, {});
+      });
       test('renders in dark mode', async ({ page, baseURL }) => {
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dark: true });
       });
+    }
+    if (!isTabPage(url) || url.startsWith('/components/button/')) {
       test('renders in RTL', async ({ page, baseURL }) => {
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dir: 'rtl' });
       });

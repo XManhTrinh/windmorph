@@ -1,11 +1,13 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { FileTriggerFolder } from '../../examples/file-trigger/file-trigger-folder';
-import { FileTriggerMenu } from '../../examples/file-trigger/file-trigger-menu';
-import { FileTriggerPhoto } from '../../examples/file-trigger/file-trigger-photo';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const FileTriggerFolder = lazyExample('file-trigger/file-trigger-folder', 'FileTriggerFolder');
+const FileTriggerMenu = lazyExample('file-trigger/file-trigger-menu', 'FileTriggerMenu');
+const FileTriggerPhoto = lazyExample('file-trigger/file-trigger-photo', 'FileTriggerPhoto');
 
 /** File trigger page body: purpose, examples, the hook and accessibility. */
 export async function FileTriggerBody(): Promise<ComponentDoc> {

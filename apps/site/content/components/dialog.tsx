@@ -1,18 +1,23 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { DialogAlert } from '../../examples/dialog/dialog-alert';
-import { DialogBasic } from '../../examples/dialog/dialog-basic';
-import { DialogCustomPosition } from '../../examples/dialog/dialog-custom-position';
-import { DialogContainerTransform } from '../../examples/dialog/dialog-container-transform';
-import { DialogDiscard } from '../../examples/dialog/dialog-discard';
-import { DialogDividers } from '../../examples/dialog/dialog-dividers';
-import { DialogFullScreen } from '../../examples/dialog/dialog-full-screen';
-import { DialogScrollable } from '../../examples/dialog/dialog-scrollable';
-import { DialogIcon } from '../../examples/dialog/dialog-icon';
-import { DialogPlacement } from '../../examples/dialog/dialog-placement';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const DialogAlert = lazyExample('dialog/dialog-alert', 'DialogAlert');
+const DialogBasic = lazyExample('dialog/dialog-basic', 'DialogBasic');
+const DialogCustomPosition = lazyExample('dialog/dialog-custom-position', 'DialogCustomPosition');
+const DialogContainerTransform = lazyExample(
+  'dialog/dialog-container-transform',
+  'DialogContainerTransform',
+);
+const DialogDiscard = lazyExample('dialog/dialog-discard', 'DialogDiscard');
+const DialogDividers = lazyExample('dialog/dialog-dividers', 'DialogDividers');
+const DialogFullScreen = lazyExample('dialog/dialog-full-screen', 'DialogFullScreen');
+const DialogScrollable = lazyExample('dialog/dialog-scrollable', 'DialogScrollable');
+const DialogIcon = lazyExample('dialog/dialog-icon', 'DialogIcon');
+const DialogPlacement = lazyExample('dialog/dialog-placement', 'DialogPlacement');
 
 /**
  * Dialog page body: the flat parts, basic, alert, scrollable, divided and full-screen

@@ -1,12 +1,17 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
-import { RailHideOnCollapse } from '../../examples/navigation-rail/rail-hide-on-collapse';
-import { RailInline } from '../../examples/navigation-rail/rail-inline';
-import { RailModal } from '../../examples/navigation-rail/rail-modal';
-import { RailStates } from '../../examples/navigation-rail/rail-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const RailHideOnCollapse = lazyExample(
+  'navigation-rail/rail-hide-on-collapse',
+  'RailHideOnCollapse',
+);
+const RailInline = lazyExample('navigation-rail/rail-inline', 'RailInline');
+const RailModal = lazyExample('navigation-rail/rail-modal', 'RailModal');
+const RailStates = lazyExample('navigation-rail/rail-states', 'RailStates');
 
 /** Navigation rail page body: an expandable rail, its layouts and the modal rail. */
 export async function NavigationRailBody(): Promise<ComponentDoc> {

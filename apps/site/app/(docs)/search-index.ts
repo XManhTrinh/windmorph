@@ -64,8 +64,8 @@ export const GUIDES_CATEGORY = 'Guides';
 
 /**
  * The guide pages plus the components gallery index, with the summaries the search shows.
- * (Individual component pages are added to the index from `COMPONENT_PAGES` in the root
- * layout; this list is the non-component destinations.)
+ * (Individual component pages are added to the index from `COMPONENT_PAGES` by
+ * `app/search-index.json/route.ts`; this list is the non-component destinations.)
  */
 export const GUIDE_ENTRIES: SearchEntry[] = [
   {
@@ -128,6 +128,13 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
       'What each component covers of the M3 Expressive spec, its deliberate differences and its extensions.',
     href: '/spec-status',
     keywords: ['M3 spec', 'coverage', 'differences', 'extensions', 'Material 3 Expressive'],
+  },
+  {
+    title: "What's new",
+    summary: 'Release notes for each version of @windmorph/react, newest first.',
+    href: '/whats-new',
+    kind: 'guide',
+    keywords: ['changelog', 'release notes', 'releases', 'version'],
   },
 ];
 

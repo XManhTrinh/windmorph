@@ -2,11 +2,13 @@ import type { ComponentDoc } from './doc';
 import { mediaGridTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { TokenTable } from '../../components/token-table';
-import { MediaGridViewer } from '../../examples/media-grid/media-grid-viewer';
-import { MediaGridColumns } from '../../examples/media-grid/media-grid-columns';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const MediaGridViewer = lazyExample('media-grid/media-grid-viewer', 'MediaGridViewer');
+const MediaGridColumns = lazyExample('media-grid/media-grid-columns', 'MediaGridColumns');
 
 /** MediaGrid page body: purpose, example, behaviour, accessibility and tokens. */
 export async function MediaGridBody(): Promise<ComponentDoc> {

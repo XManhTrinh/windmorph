@@ -48,6 +48,71 @@ import {
   type SearchResult,
 } from './search-index';
 
+/** The index's URL: a static file built by `app/search-index.json/route.ts`. */
+const INDEX_URL = '/search-index.json';
+
+let indexRequest: Promise<SearchEntry[]> | null = null;
+
+/** Fetches the search index once per session; a failed request is retried on the next call. */
+function loadIndex(): Promise<SearchEntry[]> {
+  indexRequest ??= fetch(INDEX_URL)
+    .then((response) => {
+      if (!response.ok) throw new Error(`${INDEX_URL} answered ${response.status}`);
+      return response.json() as Promise<SearchEntry[]>;
+    })
+    .catch((error: unknown) => {
+      indexRequest = null;
+      throw error;
+    });
+  return indexRequest;
+}
+
+type IndexState = { status: 'loading' | 'error' } | { status: 'ready'; entries: SearchEntry[] };
+
+const NO_ENTRIES: SearchEntry[] = [];
+
+/** Runs `callback` once the browser is idle (or after a second where it can't say). */
+function whenIdle(callback: () => void): () => void {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(callback, { timeout: 3000 });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(callback, 1000);
+  return () => window.clearTimeout(id);
+}
+
+/**
+ * The search's pages: `given` when passed, otherwise the static index (about 8 KB gzipped),
+ * fetched once the page is idle, or at once when the search opens first, so no page carries
+ * it in its HTML and it's there before anyone types. A failed request is retried when the
+ * search opens again.
+ */
+function useSearchEntries(given: SearchEntry[] | undefined, wanted: boolean): IndexState {
+  const [state, setState] = useState<IndexState>({ status: 'loading' });
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    if (given) return;
+    return whenIdle(() => setIdle(true));
+  }, [given]);
+  const needed = !given && (wanted || idle) && state.status !== 'ready';
+  useEffect(() => {
+    if (!needed) return;
+    let current = true;
+    loadIndex().then(
+      (entries) => {
+        if (current) setState({ status: 'ready', entries });
+      },
+      () => {
+        if (current) setState({ status: 'error' });
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [needed, wanted]);
+  return given ? { status: 'ready', entries: given } : state;
+}
+
 /** The search's name, which is also its hinted text (M3: the hint labels the bar). */
 const LABEL = 'Search documentation';
 
@@ -126,7 +191,8 @@ export function DocsSearch({
   className,
   classNames,
 }: {
-  entries: SearchEntry[];
+  /** The pages to search; by default the static index, fetched after the page loads. */
+  entries?: SearchEntry[];
   /** Docked under the bar (medium windows and wider) or full screen (compact ones). */
   view: 'docked' | 'full-screen';
   className?: string;
@@ -140,7 +206,9 @@ export function DocsSearch({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const apple = useAppleKeyboard();
   const recents = useRecentSearches();
-  const index = useMemo(() => createSearchIndex(entries), [entries]);
+  const loaded = useSearchEntries(entries, expanded);
+  const ready = loaded.status === 'ready' ? loaded.entries : NO_ENTRIES;
+  const index = useMemo(() => createSearchIndex(ready), [ready]);
   const results = useMemo(() => searchPages(index, query), [index, query]);
   const suggestions = useMemo(() => suggestedResults(index), [index]);
   const searching = query.trim() !== '';
@@ -268,7 +336,19 @@ export function DocsSearch({
       expanded={expanded}
       onExpandedChange={setExpanded}
       onSubmit={() => {
-        if (results[0]) open(results[0]);
+        if (loaded.status === 'ready') {
+          if (results[0]) open(results[0]);
+          return;
+        }
+        // Enter before the index has arrived: open the query's first result once it has.
+        const submitted = query;
+        void loadIndex().then(
+          (all) => {
+            const first = searchPages(createSearchIndex(all), submitted)[0];
+            if (first) open(first);
+          },
+          () => undefined,
+        );
       }}
       resultsAnnouncement={announcement}
       className={className}
@@ -278,23 +358,31 @@ export function DocsSearch({
         trailing: cn(view === 'docked' && !expanded && 'min-w-0', classNames?.trailing),
       }}
     >
-      <SearchResults
-        groups={groups}
-        query={query}
-        searching={searching}
-        recents={searching ? [] : recents}
-        suggestions={suggestions}
-        onOpen={open}
-        onRecent={(recent) => {
-          setQuery(recent);
-          focusInput();
-        }}
-        onRemoveRecent={(recent) => {
-          removeRecentSearch(recent);
-          focusInput();
-        }}
-        onLeaveTop={focusInput}
-      />
+      {loaded.status !== 'ready' ? (
+        <p role="status" className="px-4 py-6 text-center text-body-medium text-on-surface-variant">
+          {loaded.status === 'error'
+            ? 'The search could not load. Close it and try again.'
+            : 'Loading pages…'}
+        </p>
+      ) : (
+        <SearchResults
+          groups={groups}
+          query={query}
+          searching={searching}
+          recents={searching ? [] : recents}
+          suggestions={suggestions}
+          onOpen={open}
+          onRecent={(recent) => {
+            setQuery(recent);
+            focusInput();
+          }}
+          onRemoveRecent={(recent) => {
+            removeRecentSearch(recent);
+            focusInput();
+          }}
+          onLeaveTop={focusInput}
+        />
+      )}
     </SearchBar>
   );
 }
