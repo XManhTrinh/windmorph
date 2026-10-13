@@ -24,8 +24,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   tertiary-container; vibrant: tertiary-container, on-tertiary-container content
  *   (icons turn tertiary on hover, focus and press), selected tertiary;
  * - the menu is revealed from its anchored edge (a clip) as it fades in, on the fast springs
- *   (M3 motion: components enter along the x or y axis; scale is avoided); the exposed
- *   dropdown menus keep Compose's scale from 80% (`motion`);
+ *   (M3 motion: components enter along the x or y axis; scale is avoided), as do the
+ *   exposed dropdown menus (Select, Autocomplete) and the docked date picker;
  * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped.
  * Every class is written out in full so Tailwind can find it.
  */
@@ -34,17 +34,6 @@ import { tv, type VariantProps } from '../../utils/tv';
 export const menuStyles = tv({
   slots: {
     popover: 'z-(--md-sys-z-menu)',
-    // The exposed dropdown menus' (Select, Autocomplete) enter and exit: scales from 80%.
-    motion: [
-      'scale-none opacity-100',
-      '[transition-property:opacity,scale]',
-      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
-      'starting:scale-80 starting:opacity-0',
-      'data-exiting:scale-80 data-exiting:opacity-0',
-      'origin-top-left rtl:origin-top-right',
-      'data-[placement=top]:origin-bottom-left rtl:data-[placement=top]:origin-bottom-right',
-    ],
     // The menu's enter and exit: revealed from its anchored edge with a clip (24px of room
     // for the shadows) as it fades in. M3 motion avoids scale, and a clip leaves the items'
     // layout untouched, so a submenu opened mid-animation is placed against its item's final

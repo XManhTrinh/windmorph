@@ -119,7 +119,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
             <li>
               Enter, Space or the arrow keys open the menu from its trigger and focus the first (or
               last) item. ↑ / ↓ move between items, Home / End jump to the ends, and typing a few
-              letters jumps to a matching label (typeahead).
+              letters jumps to a matching label (typeahead); a letter, or the same letter again,
+              moves to the next item starting with it.
             </li>
             <li>
               Enter or Space fires <InlineCode>onAction</InlineCode> with the item&apos;s key; in a

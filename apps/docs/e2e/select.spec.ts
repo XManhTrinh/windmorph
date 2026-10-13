@@ -82,13 +82,46 @@ test.describe('Select behaviour', () => {
     const list = page.getByRole('listbox');
     await expect(list).toBeVisible();
     await expect(field).toHaveAttribute('aria-expanded', 'true');
-    // The menu's panel (around the list's 4px padding), once its open motion (a scale from
-    // 80%) has settled.
+    // The menu's panel (around the list's 4px padding), once its open motion has settled.
     const panel = list.locator('..');
     await expect
       .poll(async () => (await panel.boundingBox())!.width)
       .toBeGreaterThanOrEqual(box.width - 1);
     expect((await panel.boundingBox())!.y).toBeGreaterThan(box.y + box.height - 1);
+  });
+
+  // M3 motion: the menu expands from the field's edge (a clip) as it fades in, as Menu does;
+  // no scale.
+  test('the menu opens with a reveal from the field, not a scale', async ({ page }) => {
+    await openStory(page, 'components-select--interactive');
+    await page.getByRole('button', { name: /Sort by/ }).focus();
+    // Record the panel's clip and scale every frame while it opens.
+    await page.evaluate(() => {
+      const frames: { clip: string; scale: string }[] = [];
+      (window as unknown as { frames_: typeof frames }).frames_ = frames;
+      const start = performance.now();
+      const tick = () => {
+        const motion = document.querySelector('[role="listbox"]')?.closest('[data-placement]');
+        if (motion) {
+          const style = getComputedStyle(motion);
+          frames.push({ clip: style.clipPath, scale: style.scale });
+        }
+        if (performance.now() - start < 1500) requestAnimationFrame(tick);
+      };
+      tick();
+    });
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { frames_: unknown[] }).frames_.length))
+      .toBeGreaterThan(20);
+    const frames = await page.evaluate(
+      () => (window as unknown as { frames_: { clip: string; scale: string }[] }).frames_,
+    );
+    expect(frames.every((frame) => frame.scale === 'none')).toBe(true);
+    // It opens from a clip at the field's edge to its full size.
+    expect(frames.some((frame) => frame.clip !== 'inset(-24px)')).toBe(true);
+    expect(frames.at(-1)!.clip).toBe('inset(-24px)');
   });
 
   test('keyboard: open, move, choose, and focus returns to the field', async ({ page }) => {

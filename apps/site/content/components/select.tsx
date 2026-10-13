@@ -137,8 +137,9 @@ export async function SelectBody(): Promise<ComponentDoc> {
             <li>
               The field is a button with <InlineCode>aria-haspopup</InlineCode> and{' '}
               <InlineCode>aria-expanded</InlineCode>, named by its label and its value. Enter, Space
-              or the arrow keys open the menu; ↑ / ↓ move, typing jumps to a match, Enter chooses
-              and Escape closes. Focus returns to the field.
+              or the arrow keys open the menu; ↑ / ↓ move, typing jumps to a match (a letter, or the
+              same letter again, moves to the next option starting with it, as M3 asks), Enter
+              chooses and Escape closes. Focus returns to the field.
             </li>
             <li>
               Typing on the closed field jumps straight to a matching option, as a native select
@@ -205,7 +206,9 @@ export async function SelectBody(): Promise<ComponentDoc> {
               list is its Menu, so neither can drift: Compose&apos;s{' '}
               <InlineCode>ExposedDropdownMenuBox</InlineCode> with a{' '}
               <InlineCode>PrimaryNotEditable</InlineCode> anchor. The menu is as wide as the field,
-              and the arrow turns over while it&apos;s open.
+              and the arrow turns over while it&apos;s open. It opens as the Menu does, expanding
+              from the field&apos;s edge, rather than Compose&apos;s 80% scale, which the M3 motion
+              spec avoids.
             </li>
             <li>
               <InlineCode>presentation</InlineCode> adds what Compose leaves to apps:{' '}

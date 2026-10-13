@@ -128,7 +128,9 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
               <InlineCode>allowsCustomValue</InlineCode> keeps text that matches no option;{' '}
               <InlineCode>menuTrigger</InlineCode> (<InlineCode>&quot;input&quot;</InlineCode> by
               default, <InlineCode>&quot;focus&quot;</InlineCode> or{' '}
-              <InlineCode>&quot;manual&quot;</InlineCode>) sets when the menu opens.
+              <InlineCode>&quot;manual&quot;</InlineCode>) sets when the menu opens. Pressing the
+              field opens every option, as M3 asks, unless it is{' '}
+              <InlineCode>&quot;manual&quot;</InlineCode>.
             </li>
           </ul>
         </section>

@@ -49,6 +49,22 @@ describe('Autocomplete', () => {
     expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(4);
   });
 
+  // M3: "A menu should open when a person … Selects an element, such as … a text field".
+  it('opens all options when the field is pressed, but not on keyboard focus', async () => {
+    render(<Cities defaultInputValue="Zürich" />);
+    await userEvent.tab();
+    expect(input()).toHaveFocus();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await userEvent.click(input());
+    expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(4);
+  });
+
+  it('leaves opening to the arrow with menuTrigger="manual"', async () => {
+    render(<Cities menuTrigger="manual" />);
+    await userEvent.click(input());
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
   it('takes a custom filter', async () => {
     render(<Cities filter={(text, query) => text.toLowerCase().startsWith(query.toLowerCase())} />);
     await userEvent.type(input(), 'on');
@@ -78,8 +94,8 @@ describe('Autocomplete', () => {
   it('chooses several options as input chips, removable by button and Backspace', async () => {
     const onChange = vi.fn();
     render(<Cities selectionMode="multiple" onChange={onChange} />);
+    // Pressing the field opens the whole list (M3).
     await userEvent.click(input());
-    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
     await userEvent.click(screen.getByRole('option', { name: 'Zürich' }));
     await userEvent.click(screen.getByRole('option', { name: 'London' }));
     expect(onChange).toHaveBeenLastCalledWith(['zrh', 'ldn']);
@@ -101,8 +117,8 @@ describe('Autocomplete', () => {
   it('caps multiple selection with maxSelections, for the keyboard too', async () => {
     const onChange = vi.fn();
     render(<Cities selectionMode="multiple" maxSelections={1} onChange={onChange} />);
+    // Pressing the field opens the whole list (M3).
     await userEvent.click(input());
-    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
     await userEvent.click(screen.getByRole('option', { name: 'Zürich' }));
     expect(onChange).toHaveBeenLastCalledWith(['zrh']);
     expect(screen.getByRole('option', { name: 'London' })).toHaveAttribute('aria-disabled', 'true');
@@ -131,8 +147,8 @@ describe('Autocomplete', () => {
   it('lets the arrow keys reach disabled options without choosing them', async () => {
     const onChange = vi.fn();
     render(<Cities disabledKeys={['sp']} onChange={onChange} />);
+    // Pressing the field opens the whole list (M3).
     await userEvent.click(input());
-    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     const disabled = screen.getByRole('option', { name: 'São Paulo' });
     expect(disabled).toHaveAttribute('aria-disabled', 'true');
@@ -162,8 +178,8 @@ describe('Autocomplete', () => {
       return options.indexOf(this) * 44;
     });
     render(<Cities />);
+    // Pressing the field opens the whole list (M3).
     await userEvent.click(input());
-    await userEvent.click(screen.getByRole('button', { name: /Show options/ }));
     await userEvent.type(input(), 'o');
     // "London" moved up from the 4th row; it starts where it was and springs home.
     await waitFor(() =>

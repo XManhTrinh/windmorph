@@ -81,6 +81,82 @@ test.describe('TextField label', () => {
     ).toBe('2px');
   });
 
+  // Compose sizes the cut-out from the label as it moves; the notch opens on the label's
+  // spring from its own width, so the two keep pace.
+  test('outlined: the notch opens in step with the label', async ({ page }) => {
+    await openStory(page, 'components-textfield--playground', {}, { variant: 'outlined' });
+    const field = fieldOf(page, 'Label');
+    await page.getByLabel('Label', { exact: true }).focus();
+    const frames = await field.evaluate(
+      (root) =>
+        new Promise<{ notch: number; top: number }[]>((resolve) => {
+          const legend = root.querySelector('legend')!;
+          const label = root.querySelector('label')!;
+          const out: { notch: number; top: number }[] = [];
+          const start = performance.now();
+          const tick = () => {
+            out.push({
+              notch: legend.getBoundingClientRect().width,
+              top: parseFloat(getComputedStyle(label).top),
+            });
+            if (performance.now() - start < 400) requestAnimationFrame(tick);
+            else resolve(out);
+          };
+          tick();
+        }),
+    );
+    const end = frames.at(-1)!;
+    const restTop = 16;
+    for (const frame of frames) {
+      const labelProgress = (restTop - frame.top) / (restTop - end.top);
+      const notchProgress = frame.notch / end.notch;
+      expect(Math.abs(labelProgress - notchProgress)).toBeLessThan(0.2);
+    }
+  });
+
+  test('filled: the placeholder fades in; the indicator thickens on the spatial spring', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-textfield--playground', {}, { placeholder: 'Type here' });
+    const input = page.getByLabel('Label', { exact: true });
+    const timing = await input.evaluate((el) => {
+      // Chromium doesn't compute ::placeholder transitions, so read the rule that applies.
+      const rules = [...document.styleSheets].flatMap((sheet) => {
+        const walk = (list: CSSRuleList): CSSStyleRule[] =>
+          [...list].flatMap((rule) =>
+            rule instanceof CSSStyleRule
+              ? [rule, ...walk(rule.cssRules)]
+              : 'cssRules' in rule
+                ? walk((rule as CSSGroupingRule).cssRules)
+                : [],
+          );
+        return walk(sheet.cssRules);
+      });
+      const placeholder = rules.find(
+        (rule) =>
+          rule.style.transitionProperty === 'opacity' &&
+          [...el.classList].some(
+            (name) =>
+              rule.selectorText.includes(CSS.escape(name)) &&
+              name.startsWith('placeholder:transition'),
+          ),
+      );
+      const indicator = el
+        .closest('[data-field-state]')!
+        .querySelector('[class*="bottom-0"][class*="h-px"]')!;
+      const style = getComputedStyle(indicator);
+      return {
+        placeholder: placeholder !== undefined,
+        indicator: [style.transitionProperty, style.transitionDuration],
+      };
+    });
+    expect(timing.placeholder).toBe(true);
+    expect(timing.indicator[0]).toBe('background-color, height');
+    // Colour on the fast effects spring, thickness on the (longer) fast spatial spring.
+    const [colour, height] = timing.indicator[1]!.split(', ').map(parseFloat);
+    expect(height).toBeGreaterThan(colour!);
+  });
+
   test('outlined: the resting label darkens to on-surface on hover', async ({ page }) => {
     await openStory(page, 'components-textfield--playground', {}, { variant: 'outlined' });
     const label = page.locator('label', { hasText: 'Label' });

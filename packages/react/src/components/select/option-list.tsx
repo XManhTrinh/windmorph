@@ -33,6 +33,7 @@ import { useM3Spring } from '../../motion/use-m3-spring';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { LoadingIndicator } from '../loading-indicator/LoadingIndicator';
 import { menuStyles } from '../menu/menu-styles';
 
@@ -124,7 +125,13 @@ export function OptionList<T>({
   animateFiltering?: boolean;
   classNames?: OptionListClassNames | undefined;
 }) {
-  const { listBoxProps: props } = useListBox(listBoxProps, state, listBoxRef);
+  // M3: a letter moves focus to the next option starting with it.
+  const typeaheadDelegate = useTypeaheadDelegate(state, listBoxRef);
+  const { listBoxProps: props } = useListBox(
+    { ...listBoxProps, keyboardDelegate: listBoxProps.keyboardDelegate ?? typeaheadDelegate },
+    state,
+    listBoxRef,
+  );
   useFilterMotion(listBoxRef, state.collection, animateFiltering);
   const menu = menuStyles({ variant: 'standard', groupPosition: 'only' });
   const nodes = [...state.collection];
@@ -320,7 +327,7 @@ function OptionItem<T>({
 /**
  * The list's popover: anchored to the field, at least as wide as it (Compose's
  * `exposedDropdownSize`), above it when there's no room below, with the menu's open and
- * close motion. `isNonModal` keeps an `Autocomplete`'s input usable while it's open.
+ * close motion: revealed from the field's edge as it fades in (M3 motion avoids scale). `isNonModal` keeps an `Autocomplete`'s input usable while it's open.
  */
 export function OptionPopover({
   state,
@@ -426,7 +433,7 @@ function PopoverBody({
           {...exitProps}
           data-exiting={isExiting || undefined}
           data-placement={placement ?? undefined}
-          className={cn(menu.motion(), 'flex max-h-[inherit] min-h-0 flex-col')}
+          className={cn(menu.reveal(), 'min-h-0')}
         >
           {children}
         </div>

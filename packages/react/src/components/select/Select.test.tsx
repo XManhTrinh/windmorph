@@ -54,6 +54,24 @@ describe('Select', () => {
     expect(sortField()).toHaveTextContent('Newest first');
   });
 
+  // M3 menus keyboard table: "Letters — Focus moves to the next menu item starting with letter".
+  it('moves typeahead to the next option starting with the letter, wrapping', async () => {
+    render(<Sort defaultValue="low" />);
+    await userEvent.tab();
+    // On the closed field, a letter picks the next match after the chosen option.
+    await userEvent.keyboard('p');
+    expect(sortField()).toHaveTextContent('Price, high to low');
+    await userEvent.keyboard('{ArrowDown}');
+    const list = screen.getByRole('listbox');
+    const option = (name: RegExp) => within(list).getByRole('option', { name });
+    expect(option(/Price, high to low/)).toHaveFocus();
+    await userEvent.keyboard('p');
+    expect(option(/Price, low to high/)).toHaveFocus();
+    // The same letter again moves on.
+    await userEvent.keyboard('p');
+    expect(option(/Price, high to low/)).toHaveFocus();
+  });
+
   it('keeps the label resting with a placeholder, which shows once it floats on focus', async () => {
     render(<Sort placeholder="Choose an order" />);
     const field = sortField().closest('[data-field-state]');

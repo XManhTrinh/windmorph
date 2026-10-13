@@ -29,6 +29,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { BottomSheet } from '../sheet/BottomSheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 import { DropdownArrow, FieldShell, fieldState, type FieldShellClassNames } from './field-shell';
@@ -289,6 +290,12 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
 
   const state = useSelectState<T, M>(ariaProps);
   const triggerRef = useObjectRef(triggerRefProp);
+  // Typeahead on the closed field moves to the next option starting with the letter (M3),
+  // and still skips disabled options.
+  const typeaheadDelegate = useTypeaheadDelegate(state, triggerRef, {
+    disabledBehavior: 'all',
+    currentKey: state.selectionManager.selectionMode === 'single' ? state.selectedKey : null,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   // Set by a press outside the menu and the field: the focus the menu hands back to the
   // field on closing (WAI-ARIA, right after Escape or a choice) is let go, so one press
@@ -307,7 +314,11 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     isInvalid,
     validationErrors,
     validationDetails,
-  } = useSelect<T, M>(ariaProps, state, triggerRef);
+  } = useSelect<T, M>(
+    readOnly ? ariaProps : { ...ariaProps, keyboardDelegate: typeaheadDelegate },
+    state,
+    triggerRef,
+  );
   const isCompact = useSyncExternalStore(
     subscribeToWindow,
     () => window.matchMedia(COMPACT_WINDOW).matches,

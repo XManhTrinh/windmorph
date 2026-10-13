@@ -470,6 +470,8 @@ function MenuButton({
         variant="text"
         aria-label={label}
         aria-expanded={open}
+        // M3 menus: while its list is open the button looks the same, plus a pressed state.
+        data-menu-open={open || undefined}
         disabled={disabled}
         onPress={onPress}
         className={styles.menuButton()}

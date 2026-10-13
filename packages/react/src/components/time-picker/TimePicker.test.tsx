@@ -99,6 +99,75 @@ describe('TimePicker', () => {
     expect(onChange).toHaveBeenLastCalledWith(new Time(11, 31));
   });
 
+  // M3: AM / PM is a "Radio button (in list)": one Tab stop, the arrows move the choice.
+  it('makes AM / PM one Tab stop moved with the arrow keys', async () => {
+    const onChange = vi.fn();
+    render(<TimePicker defaultValue={new Time(9, 30)} hourCycle={12} onChange={onChange} />);
+    const am = screen.getByRole('radio', { name: 'AM' });
+    const pm = screen.getByRole('radio', { name: 'PM' });
+    expect(am).toHaveAttribute('tabindex', '0');
+    expect(pm).toHaveAttribute('tabindex', '-1');
+    screen.getByRole('textbox', { name: 'Minute' }).focus();
+    await userEvent.tab();
+    expect(am).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(pm).toHaveFocus();
+    expect(pm).toBeChecked();
+    expect(onChange).toHaveBeenLastCalledWith(new Time(21, 30));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(am).toHaveFocus();
+    expect(onChange).toHaveBeenLastCalledWith(new Time(9, 30));
+    // Tab leaves the group for the dial.
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: '30 minutes of 60' })).toHaveFocus();
+  });
+
+  it('keeps the time left to right in a right-to-left layout', () => {
+    render(
+      <div dir="rtl">
+        <TimePicker defaultValue={new Time(9, 30)} hourCycle={12} />
+      </div>,
+    );
+    const hour = screen.getByRole('textbox', { name: 'Hour' });
+    expect(hour.closest('[dir]')).toHaveAttribute('dir', 'ltr');
+  });
+
+  it('moves on to the minute once a typed hour is complete', async () => {
+    render(<TimePicker defaultValue={new Time(9, 30)} hourCycle={12} mode="input" />);
+    const hour = screen.getByRole('textbox', { name: 'Hour' });
+    const minute = screen.getByRole('textbox', { name: 'Minute' });
+    await userEvent.click(hour);
+    await userEvent.keyboard('1');
+    // "1" can still become 10, 11 or 12.
+    expect(hour).toHaveFocus();
+    await userEvent.keyboard('0');
+    expect(minute).toHaveFocus();
+    await userEvent.click(hour);
+    await userEvent.keyboard('7');
+    expect(minute).toHaveFocus();
+  });
+
+  it('gives the selectors hover and pressed state layers', () => {
+    render(<TimePicker defaultValue={new Time(9, 30)} hourCycle={12} />);
+    const minute = screen.getByRole('textbox', { name: 'Minute' });
+    expect(minute).toHaveClass('state-layer');
+    fireEvent.pointerDown(minute);
+    expect(minute).toHaveAttribute('data-pressed', 'true');
+    fireEvent.pointerUp(minute);
+    expect(minute).not.toHaveAttribute('data-pressed');
+  });
+
+  it('draws the numbers under the handle in on-primary, clipped to the handle', () => {
+    const { container } = render(<TimePicker defaultValue={new Time(14, 7)} hourCycle={12} />);
+    const clip = container.querySelector('clipPath circle');
+    const handle = container.querySelector('circle.fill-primary[r="24"]');
+    expect(clip?.getAttribute('cx')).toBe(handle?.getAttribute('cx'));
+    expect(clip?.getAttribute('cy')).toBe(handle?.getAttribute('cy'));
+    const copy = container.querySelector('g[clip-path]');
+    expect(copy).toHaveAttribute('aria-hidden', 'true');
+    expect(copy?.querySelectorAll('text.fill-on-primary')).toHaveLength(12);
+  });
+
   it('turns horizontal on a short window and to input mode with no room for the dial', () => {
     function Demo() {
       const [mode, setMode] = useState<TimePickerMode>('dial');

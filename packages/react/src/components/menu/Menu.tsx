@@ -59,6 +59,7 @@ import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
+import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { Divider } from '../divider/Divider';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 
@@ -554,7 +555,13 @@ function MenuList({
   });
   const ownRef = useRef<HTMLDivElement>(null);
   const ref = listRef ?? ownRef;
-  const { menuProps } = useMenu(props as AriaMenuOptions<object>, state, ref);
+  // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
+  const keyboardDelegate = useTypeaheadDelegate(state, ref);
+  const { menuProps } = useMenu(
+    { ...(props as AriaMenuOptions<object>), keyboardDelegate },
+    state,
+    ref,
+  );
   const groups = toGroups([...state.collection]);
   const scrolled = useHasScrolled(ref, requestedLayout === 'gap');
   const layout: MenuLayout = scrolled ? 'divider' : requestedLayout;

@@ -8,7 +8,8 @@ import { useState } from 'react';
  * The modal date input: the modal picker opened in its typed mode with
  * `defaultMode="input"`, for a date that's quicker to type than to find, such as a date of
  * birth. The edit / calendar button in its header switches between typing and the calendar.
- * A range types a start and an end date.
+ * The typed mode is titled "Enter date" ("Enter dates" for a range); `strings.inputTitle`
+ * words it for the task. A range types a start and an end date.
  */
 export function DateInput() {
   const [open, setOpen] = useState<'single' | 'range' | null>(null);
@@ -40,7 +41,11 @@ export function DateInput() {
         {open === 'range' ? (
           <DateRangePicker defaultMode="input" />
         ) : (
-          <DatePicker defaultMode="input" defaultValue={new CalendarDate(1990, 6, 21)} />
+          <DatePicker
+            defaultMode="input"
+            defaultValue={new CalendarDate(1990, 6, 21)}
+            strings={{ inputTitle: 'Enter your date of birth' }}
+          />
         )}
       </PickerDialog>
     </div>

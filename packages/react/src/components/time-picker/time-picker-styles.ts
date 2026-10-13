@@ -15,7 +15,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `on-surface-variant`. The 256px `surface-container-highest` dial sits 36px below the time
  * (vertical) or 36px beside it (horizontal), with `body-large` `on-surface` numbers on a
  * 101px ring (69px for the inner 24-hour ring), each a 48px target; a 48px `primary`
- * handle with `on-primary` text, a 2px track and an 8px centre.
+ * handle with `on-primary` text, a 2px track and an 8px centre. The numbers are drawn again
+ * in `on-primary`, clipped to the handle, so any part of a number under it stays legible.
  *
  * Input mode: 96 × 72px fields (24 hours too, `TimeInputTokens.TimeFieldContainerWidth`)
  * in `display-medium` with `body-small` labels 7px below; focused fields are
@@ -35,6 +36,9 @@ export const timePickerStyles = tv({
       'cursor-pointer caret-transparent tabular-nums',
       'bg-surface-container-highest text-on-surface',
       'data-selected:bg-primary-container data-selected:text-on-primary-container',
+      // Hover, focus and pressed layers in the text colour (M3 states; Compose's clickable
+      // Surface). An input has no ripple, so pressing shows the pressed layer instead.
+      'state-layer data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]!',
       'aria-invalid:outline-2 aria-invalid:outline-error',
     ],
     separator: 'flex w-[24px] items-center justify-center text-display-large text-on-surface',
@@ -49,6 +53,17 @@ export const timePickerStyles = tv({
     dialNumber: 'cursor-pointer outline-none',
     dialNumberHit: 'fill-transparent',
     dialNumberText: 'fill-on-surface text-body-large data-selected:fill-on-primary',
+    // The copy of the numbers clipped to the handle.
+    dialNumberOnHandle: 'fill-on-primary text-body-large',
+    // The hour and minute faces crossfade on the default effects spring (Compose).
+    dialFaceEntering: [
+      'transition-opacity starting:opacity-0',
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    ],
+    dialFaceLeaving: [
+      'pointer-events-none opacity-0 transition-opacity starting:opacity-100',
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    ],
     dialFocus: 'fill-none stroke-secondary',
     dialHandle: 'fill-primary',
     dialTrack: 'stroke-primary',
