@@ -58,7 +58,13 @@ export function Control({
   onChange: (value: unknown) => void;
 }) {
   if (def.kind === 'enum' && def.options && def.options.length > 0) {
-    return <SegmentedControl def={def} value={value as string | undefined} onChange={onChange} />;
+    return (
+      <SegmentedControl
+        def={def}
+        value={value === undefined ? undefined : String(value)}
+        onChange={(next) => onChange(def.numeric ? Number(next) : next)}
+      />
+    );
   }
   if (def.kind === 'boolean') {
     return (

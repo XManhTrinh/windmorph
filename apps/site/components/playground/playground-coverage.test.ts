@@ -45,7 +45,10 @@ function isExempt(prop: PropsRecord): boolean {
     name.startsWith('aria-') ||
     name === 'id' ||
     // Render props and other functions (`filter`, `renderValue`, `isDateUnavailable`).
-    /=>/.test(type)
+    /=>/.test(type) ||
+    // Required props (a FAB's `icon`, a picker dialog's `confirmButton`): the preview always
+    // passes one and the snippet always writes it, so there is nothing to switch.
+    prop.required
   );
 }
 
@@ -64,6 +67,25 @@ function twinsOf(name: string): string[] {
 describe('playground coverage', () => {
   const fullPages = COMPONENT_META.filter((meta) => meta.playground === 'full');
 
+  /** The public props of `component` with no control, read as `prefix + name`. */
+  function uncovered(
+    component: string,
+    prefix: string,
+    surfaced: Set<string>,
+    allowed: Record<string, string>,
+  ): string[] {
+    return readProps(component)
+      .filter((prop) => !isExempt(prop))
+      .map((prop) => ({ ...prop, name: `${prefix}${prop.name}` }))
+      .filter((prop) => !surfaced.has(prop.name))
+      .filter(
+        (prop) =>
+          !twinsOf(prop.name.slice(prefix.length)).some((twin) => surfaced.has(prefix + twin)),
+      )
+      .filter((prop) => !(prop.name in allowed))
+      .map((prop) => prop.name);
+  }
+
   for (const meta of fullPages) {
     const descriptor = PLAYGROUND_DESCRIPTORS[meta.slug];
     it(`${meta.slug}: every public prop of its component has a control`, () => {
@@ -71,12 +93,13 @@ describe('playground coverage', () => {
       if (!descriptor) return;
       const surfaced = new Set(descriptor.surfacedProps);
       const allowed = descriptor.notControlled ?? {};
-      const missing = readProps(descriptor.component)
-        .filter((prop) => !isExempt(prop))
-        .filter((prop) => !surfaced.has(prop.name))
-        .filter((prop) => !twinsOf(prop.name).some((twin) => surfaced.has(twin)))
-        .filter((prop) => !(prop.name in allowed))
-        .map((prop) => prop.name);
+      const missing = [
+        ...uncovered(descriptor.component, '', surfaced, allowed),
+        // A slot's own component (`fab: 'ToolbarFab'`) has `fab.prop` controls.
+        ...Object.entries(descriptor.slotComponents ?? {}).flatMap(([slot, component]) =>
+          uncovered(component, `${slot}.`, surfaced, allowed),
+        ),
+      ];
       expect(
         missing,
         `${descriptor.component} props with no control on /components/${meta.slug}: add a ` +
@@ -87,11 +110,14 @@ describe('playground coverage', () => {
 
   it('allowlists only props that exist and have no control, each with a reason', () => {
     for (const [slug, descriptor] of Object.entries(PLAYGROUND_DESCRIPTORS)) {
-      const names = new Set(readProps(descriptor.component).map((prop) => prop.name));
       for (const [name, reason] of Object.entries(descriptor.notControlled ?? {})) {
-        expect(names.has(name), `${slug}: ${name} is not a prop of ${descriptor.component}`).toBe(
-          true,
-        );
+        const [slot, slotProp] = name.includes('.') ? name.split('.') : [undefined, name];
+        const component = slot ? descriptor.slotComponents?.[slot] : descriptor.component;
+        expect(component, `${slug}: ${name} names no slot component`).toBeDefined();
+        if (!component) continue;
+        const prop = readProps(component).find((candidate) => candidate.name === slotProp);
+        expect(prop, `${slug}: ${name} is not a prop of ${component}`).toBeDefined();
+        expect(prop && isExempt(prop), `${slug}: ${name} is exempt already`).toBe(false);
         expect(descriptor.surfacedProps, `${slug}: ${name} has a control now`).not.toContain(name);
         expect(reason.length, `${slug}: ${name} needs a reason`).toBeGreaterThan(10);
       }

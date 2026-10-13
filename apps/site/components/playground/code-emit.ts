@@ -16,9 +16,9 @@ export interface EmitInput {
   /** Extra import lines prepended verbatim (one per line), for non-`@windmorph/react` sources. */
   codeImports?: string[];
   /** Verbatim JSX per ReactNode-valued slot/prop, e.g. `{ icon: '<FavoriteIcon />' }`. */
-  codeSlots?: Record<string, string>;
+  codeSlots?: Record<string, string | ((values: Record<string, unknown>) => string | null)>;
   /** Slots switched on and off by a boolean control: their JSX, written only while on. */
-  toggledSlots?: Record<string, string>;
+  toggledSlots?: Record<string, string | ((values: Record<string, unknown>) => string)>;
   /** Verbatim children JSX, e.g. label text. */
   codeChildren?: string;
   /**
@@ -81,18 +81,24 @@ function attribute(name: string, value: unknown): string | null {
 export function emitSnippet(input: EmitInput): string {
   const attrs: string[] = [];
   for (const name of input.surfacedProps) {
+    // A `slot.prop` control is written inside its slot's JSX, not on the element.
+    if (name.includes('.')) continue;
     const value = input.values[name];
     const slot = input.toggledSlots?.[name];
     if (slot !== undefined) {
-      if (value === true) attrs.push(`${name}={${slot}}`);
+      if (value === true) {
+        attrs.push(`${name}={${typeof slot === 'function' ? slot(input.values) : slot}}`);
+      }
       continue;
     }
     if (isDefault(name, value, input)) continue;
     const attr = attribute(name, value);
     if (attr) attrs.push(attr);
   }
-  for (const [name, jsx] of Object.entries(input.codeSlots ?? {})) {
-    attrs.push(`${name}={${jsx}}`);
+  for (const [name, slot] of Object.entries(input.codeSlots ?? {})) {
+    // A function writes the prop only when the values call for it (null leaves it out).
+    const jsx = typeof slot === 'function' ? slot(input.values) : slot;
+    if (jsx !== null) attrs.push(`${name}={${jsx}}`);
   }
 
   const open =
@@ -117,10 +123,15 @@ export function emitSnippet(input: EmitInput): string {
     input.component,
     ...(input.importMembers ?? []).filter((member) => uses(member)),
   ];
-  const extraImports = (input.codeImports ?? []).filter((line) => {
-    const named = /\{([^}]*)\}/.exec(line)?.[1];
-    if (!named) return true;
-    return named.split(',').some((name) => uses(name.trim()));
+  // A named import keeps only the names the snippet uses, and goes when it uses none.
+  const extraImports = (input.codeImports ?? []).flatMap((line) => {
+    const named = /\{([^}]*)\}/.exec(line);
+    if (!named) return [line];
+    const used = named[1]!
+      .split(',')
+      .map((name) => name.trim())
+      .filter((name) => name && uses(name));
+    return used.length > 0 ? [line.replace(named[0], `{ ${used.join(', ')} }`)] : [];
   });
   const importLines = [
     ...extraImports,

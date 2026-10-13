@@ -440,6 +440,14 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         item: 'Appear and disappear',
         note: "`visible` and `appear` give the menu's FAB the FAB's own disappear and reappear motion.",
       },
+      {
+        item: '`iconTransition="rotate"`',
+        note: "Not in the M3 spec, which swaps `icon` for `openIcon` halfway through the morph: the outgoing icon turns 90° and fades out as the incoming one turns in. Matches Google's Expressive showcase motion; reduced motion keeps only the crossfade.",
+      },
+      {
+        item: '`elevation`',
+        note: "As on `Fab`: `lowered` (level 1) or `flat` (level 0, the spec's level for a FAB nested in another surface) for the button and its items.",
+      },
     ],
     compose: [
       {

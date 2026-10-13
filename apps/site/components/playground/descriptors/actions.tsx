@@ -14,7 +14,16 @@ import {
 import { ReactionPicker, ReactionSummary } from '@windmorph/react-pro';
 import { createElement } from 'react';
 import { AddIcon, CloseIcon, EditIcon, SendIcon, StarIcon, StarOutlineIcon } from '../../icons';
-import { ADD, EDIT, type PlaygroundDescriptor, SEND, STAR, loose, svg } from './shared';
+import {
+  ADD,
+  adjustToggleForm,
+  EDIT,
+  loose,
+  type PlaygroundDescriptor,
+  SEND,
+  STAR,
+  svg,
+} from './shared';
 
 const ButtonAny = loose(Button);
 const IconButtonAny = loose(IconButton);
@@ -34,9 +43,6 @@ const CLOSE = svg(
   'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
 );
 
-/** Why a required icon has no control: it is always there, and any other icon looks the same. */
-const REQUIRED_ICON =
-  'Required: the preview and the snippet always pass an icon, and swapping it for another icon shows nothing new.';
 /** Why `elementType` and `preventFocusOnPress` have no control. */
 const NO_VISIBLE_EFFECT = {
   elementType: 'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
@@ -106,6 +112,9 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'href',
     ],
     initialState: { variant: 'filled', size: 'sm', leadingIcon: true },
+    // Text buttons have no toggle form, and a toggle is never a link (the types say so).
+    adjust: (values, changed) =>
+      adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
     controlKinds: { leadingIcon: 'boolean' },
     toggledSlots: { leadingIcon: EDIT },
     notControlled: NO_VISIBLE_EFFECT,
@@ -151,9 +160,11 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'href',
     ],
     initialState: { variant: 'filled', size: 'sm', width: 'default' },
+    // `selected` and `selectedIcon` belong to the toggle form, which is never a link.
+    adjust: adjustToggleForm,
     controlKinds: { selectedIcon: 'boolean' },
     toggledSlots: { selectedIcon: STAR },
-    notControlled: { icon: REQUIRED_ICON, ...NO_VISIBLE_EFFECT },
+    notControlled: NO_VISIBLE_EFFECT,
     codeSlots: { icon: STAR_OUTLINE, 'aria-label': '"Favourite"' },
   },
   'button-group': {
@@ -285,7 +296,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'href',
     ],
     initialState: { size: 'default', color: 'primary-container' },
-    notControlled: { icon: REQUIRED_ICON, ...NO_VISIBLE_EFFECT },
+    notControlled: NO_VISIBLE_EFFECT,
     codeSlots: { icon: ADD, 'aria-label': '"Add"' },
   },
   'fab-menu': {
@@ -316,15 +327,26 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       color: 'primary',
       presentation: 'list',
       openIcon: false,
+      iconTransition: 'swap',
+      elevation: 'default',
       open: false,
       visible: true,
       appear: false,
     },
-    surfacedProps: ['size', 'color', 'presentation', 'openIcon', 'open', 'visible', 'appear'],
+    surfacedProps: [
+      'size',
+      'color',
+      'elevation',
+      'presentation',
+      'openIcon',
+      'iconTransition',
+      'open',
+      'visible',
+      'appear',
+    ],
     initialState: { size: 'default', color: 'primary', openIcon: true },
     controlKinds: { openIcon: 'boolean' },
     toggledSlots: { openIcon: CLOSE },
-    notControlled: { icon: REQUIRED_ICON },
     importMembers: ['FabMenuItem'],
     codeSlots: { icon: ADD, 'aria-label': '"Create"' },
     codeChildren: `<FabMenuItem icon={${EDIT}}>Edit</FabMenuItem>\n  <FabMenuItem icon={${SEND}}>Send</FabMenuItem>`,
@@ -368,9 +390,6 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       value: REACTION_IDS,
       defaultOption: REACTION_IDS,
     },
-    notControlled: {
-      options: 'The list of reactions, each with an id, label, icon and colour.',
-    },
     codeSlots: { options: REACTIONS_CODE },
   },
   'reaction-summary': {
@@ -386,10 +405,6 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     surfacedProps: ['variant', 'size', 'total', 'maxIcons'],
     initialState: { total: 128 },
     enumOptions: { variant: ['stacked', 'chip'], size: ['sm', 'md'] },
-    notControlled: {
-      items:
-        'The reactions to show, most used first, each with an id and an icon; `maxIcons` sets how many show.',
-    },
     codeSlots: { items: SUMMARY_ITEMS_CODE },
   },
 };

@@ -18,6 +18,7 @@ import { Link } from '@windmorph/react-pro';
 import { createElement, useRef } from 'react';
 import {
   ArrowBackIcon,
+  CloseIcon,
   DeleteIcon,
   EditIcon,
   FormatBoldIcon,
@@ -41,6 +42,7 @@ const NavigationBarAny = loose(NavigationBar);
 const TopAppBarAny = loose(TopAppBar);
 const SearchBarAny = loose(SearchBar);
 const FloatingToolbarAny = loose(FloatingToolbar);
+const ToolbarFabAny = loose(ToolbarFab);
 
 /** The segmented control's value for "leave the prop unset", so the component decides. */
 const UNSET = 'auto';
@@ -207,6 +209,66 @@ const FORMATTING = [
   <IconButton key="underline" toggle icon={<FormatUnderlinedIcon />} aria-label="Underline" />,
 ];
 
+/** The toolbar's own props, without the `fab.*` controls its FAB reads. */
+function ownProps(values: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(values).filter(([name]) => !name.includes('.')));
+}
+
+/** The toolbar FAB's props from its `fab.*` controls, as the live element takes them. */
+function toolbarFabProps(values: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...(values['fab.color'] !== UNSET && { color: values['fab.color'] }),
+    ...(values['fab.expandedIcon'] === true && { expandedIcon: <CloseIcon /> }),
+    iconTransition: values['fab.iconTransition'],
+    elevation: values['fab.elevation'],
+    tooltip: values['fab.tooltip'],
+    dragged: values['fab.dragged'],
+    ...(typeof values['fab.href'] === 'string' && { href: '#' }),
+  };
+}
+
+/** The toolbar's FAB, live. */
+function toolbarFab(values: Record<string, unknown>) {
+  return <ToolbarFabAny {...toolbarFabProps(values)} icon={<EditIcon />} aria-label="Compose" />;
+}
+
+/** The toolbar's FAB in the snippet: only the props that differ from its defaults. */
+function toolbarFabCode(values: Record<string, unknown>): string {
+  const attrs = [
+    values['fab.color'] !== UNSET && `color="${String(values['fab.color'])}"`,
+    'icon={<EditIcon />}',
+    values['fab.expandedIcon'] === true && 'expandedIcon={<CloseIcon />}',
+    values['fab.expandedIcon'] === true &&
+      values['fab.iconTransition'] === 'rotate' &&
+      'iconTransition="rotate"',
+    values['fab.elevation'] !== 'default' && `elevation="${String(values['fab.elevation'])}"`,
+    values['fab.tooltip'] === false && 'tooltip={false}',
+    values['fab.dragged'] === true && 'dragged',
+    typeof values['fab.href'] === 'string' && `href="${values['fab.href']}"`,
+    'aria-label="Compose"',
+  ].filter(Boolean);
+  return `<ToolbarFab ${attrs.join(' ')} />`;
+}
+
+/**
+ * A floating toolbar holds leading and trailing content or a FAB, never both (the types say
+ * so): turning one on turns the other off, and the FAB's own controls turn the FAB on.
+ */
+function adjustToolbarContent(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  const fabControl = changed === 'fabPosition' || changed.startsWith('fab.');
+  if ((changed === 'fab' && values.fab === true) || fabControl) {
+    return { ...values, fab: true, leading: false, trailing: false };
+  }
+  if ((changed === 'leading' || changed === 'trailing') && values[changed] === true) {
+    return { ...values, fab: false, fabPosition: 'end' };
+  }
+  if (changed === 'fab' && values.fab === false) return { ...values, fabPosition: 'end' };
+  return values;
+}
+
 /** Playgrounds for Navigation, by page slug. */
 export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'navigation-rail': {
@@ -219,10 +281,19 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       header: false,
       itemAlignment: 'top',
       divider: false,
+      indicatorMotion: 'expand',
     },
-    surfacedProps: ['expanded', 'modal', 'hideOnCollapse', 'header', 'itemAlignment', 'divider'],
+    surfacedProps: [
+      'expanded',
+      'modal',
+      'hideOnCollapse',
+      'header',
+      'itemAlignment',
+      'divider',
+      'indicatorMotion',
+    ],
     initialState: { header: true },
-    enumOptions: { itemAlignment: ['top', 'center'] },
+    enumOptions: { itemAlignment: ['top', 'center'], indicatorMotion: ['expand', 'slide'] },
     controlKinds: { header: 'boolean' },
     toggledSlots: {
       header:
@@ -404,6 +475,10 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     enumOptions: { view: ['docked', 'full-screen'], textAlign: ['start', 'center'] },
     controlKinds: { leadingIcon: 'boolean', trailingIcon: 'boolean' },
+    notControlled: {
+      inputProps:
+        'Input attributes such as `enterKeyHint`, `autoComplete` or `inputMode`, which change the keyboard and form wiring, nothing the preview shows.',
+    },
     toggledSlots: {
       leadingIcon: '<SearchIcon />',
       trailingIcon:
@@ -416,27 +491,28 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   toolbars: {
     component: 'FloatingToolbar',
-    render: ({ leading, trailing, fab, ...props }) => (
-      <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-corner-large border border-outline-variant bg-surface-container-lowest">
-        {createElement(
-          FloatingToolbarAny,
-          {
-            ...props,
-            'aria-label': 'Formatting',
-            ...(leading === true && {
-              leading: <IconButton icon={<EditIcon />} aria-label="Edit" />,
-            }),
-            ...(trailing === true && {
-              trailing: <IconButton icon={<DeleteIcon />} aria-label="Delete" />,
-            }),
-            ...(fab === true && {
-              fab: <ToolbarFab icon={<EditIcon />} aria-label="Compose" />,
-            }),
-          },
-          FORMATTING,
-        )}
-      </div>
-    ),
+    render: (values) => {
+      const { leading, trailing, fab, ...props } = ownProps(values);
+      return (
+        <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-corner-large border border-outline-variant bg-surface-container-lowest">
+          {createElement(
+            FloatingToolbarAny,
+            {
+              ...props,
+              'aria-label': 'Formatting',
+              ...(leading === true && {
+                leading: <IconButton icon={<EditIcon />} aria-label="Edit" />,
+              }),
+              ...(trailing === true && {
+                trailing: <IconButton icon={<DeleteIcon />} aria-label="Delete" />,
+              }),
+              ...(fab === true && { fab: toolbarFab(values) }),
+            },
+            FORMATTING,
+          )}
+        </div>
+      );
+    },
     defaultProps: {
       orientation: 'horizontal',
       color: 'standard',
@@ -448,6 +524,12 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       trailing: false,
       fab: false,
       fabPosition: 'end',
+      'fab.color': UNSET,
+      'fab.expandedIcon': false,
+      'fab.iconTransition': 'swap',
+      'fab.elevation': 'default',
+      'fab.tooltip': true,
+      'fab.dragged': false,
     },
     surfacedProps: [
       'orientation',
@@ -460,23 +542,49 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'trailing',
       'fab',
       'fabPosition',
+      'fab.color',
+      'fab.expandedIcon',
+      'fab.iconTransition',
+      'fab.elevation',
+      'fab.tooltip',
+      'fab.dragged',
+      'fab.href',
     ],
     initialState: { leading: true, trailing: true },
+    slotComponents: { fab: 'ToolbarFab' },
+    adjust: adjustToolbarContent,
     enumOptions: {
       orientation: ['horizontal', 'vertical'],
       color: ['standard', 'vibrant'],
       exitEdge: ['bottom', 'top', 'start', 'end'],
       fabPosition: ['end', 'start', 'top', 'bottom'],
+      'fab.color': [UNSET, 'standard', 'vibrant'],
+      'fab.iconTransition': ['swap', 'rotate'],
+      'fab.elevation': ['default', 'lowered', 'flat'],
     },
-    controlKinds: { leading: 'boolean', trailing: 'boolean', fab: 'boolean' },
+    controlKinds: {
+      leading: 'boolean',
+      trailing: 'boolean',
+      fab: 'boolean',
+      'fab.expandedIcon': 'boolean',
+      'fab.tooltip': 'boolean',
+      'fab.dragged': 'boolean',
+      'fab.href': 'string',
+    },
+    notControlled: {
+      'fab.elementType':
+        'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
+      'fab.preventFocusOnPress':
+        'Only keeps focus where it was on press; nothing the preview shows.',
+    },
     toggledSlots: {
       leading: '<IconButton icon={<EditIcon />} aria-label="Edit" />',
       trailing: '<IconButton icon={<DeleteIcon />} aria-label="Delete" />',
-      fab: '<ToolbarFab icon={<EditIcon />} aria-label="Compose" />',
+      fab: toolbarFabCode,
     },
     importMembers: ['IconButton', 'ToolbarFab'],
     codeImports: [
-      "import { DeleteIcon, EditIcon, FormatBoldIcon, FormatItalicIcon, FormatUnderlinedIcon } from './icons';",
+      "import { CloseIcon, DeleteIcon, EditIcon, FormatBoldIcon, FormatItalicIcon, FormatUnderlinedIcon } from './icons';",
     ],
     codeSlots: { 'aria-label': '"Formatting"' },
     codeChildren:

@@ -118,7 +118,7 @@ Every piece of the layout is a library component (see "Only our components"): na
 8. **Spec status:** every component's status from the spec data, linked to its API tab.
 9. **Components** (about 60 pages), each with:
    - What it is for, and when to use something else.
-   - A playground with a control for every public prop (tested; the few that can't have one are allowlisted with a reason).
+   - A playground with a control for every public prop (tested; the few that can't have one are allowlisted with a reason), whose copied snippet compiles for every control value (`scripts/check-snippets.ts`, part of `typecheck`).
    - Live examples of its variants, sizes and states: one for every variant and configuration in the M3 spec, mapped in its spec data (tested).
    - The generated props table for every exported part (and `classNames` slots), and its hooks as functions (tested against the core's exports).
    - A spec status: what it covers of the M3 Expressive spec, its deliberate differences and its extensions, from its spec data.

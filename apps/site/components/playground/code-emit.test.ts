@@ -151,3 +151,18 @@ describe('emitSnippet toggled slots', () => {
     expect(emitSnippet({ ...input, values: { leadingIcon: false } })).not.toContain('leadingIcon');
   });
 });
+
+describe('emitSnippet slot controls', () => {
+  it("writes a slot's JSX from the values and keeps `slot.prop` controls off the element", () => {
+    const code = emitSnippet({
+      component: 'FloatingToolbar',
+      values: { fab: true, 'fab.iconTransition': 'rotate' },
+      surfacedProps: ['fab', 'fab.iconTransition'],
+      toggledSlots: {
+        fab: (values) => `<ToolbarFab iconTransition="${String(values['fab.iconTransition'])}" />`,
+      },
+    });
+    expect(code).toContain('fab={<ToolbarFab iconTransition="rotate" />}');
+    expect(code).not.toContain('fab.iconTransition=');
+  });
+});

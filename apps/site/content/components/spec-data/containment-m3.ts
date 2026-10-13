@@ -363,6 +363,12 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       { name: 'Images, video and avatars', kind: 'use case', examples: ['list/list-media'] },
       { name: 'Dividers and line limits', kind: 'use case', examples: ['list/list-dividers'] },
     ],
+    extensions: [
+      {
+        item: '`ListSection`',
+        note: "M3 defines no list subheader: `ListSection` groups items under a title styled after the navigation drawer's section headline. Items take their corners within their section, and the arrow keys move across sections as through one list.",
+      },
+    ],
     differences: [
       {
         item: 'Standard item colour',
@@ -388,7 +394,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'leadingContent, trailingContent', windmorph: 'leading, trailing' },
           { compose: 'onClick', windmorph: 'List onAction', note: "or the item's `href`" },
           {
-            compose: 'selected, onSelectedChange',
+            compose: 'selected, onClick',
             windmorph: 'List selectionMode, selectedKeys, onSelectionChange',
           },
           { compose: 'checked, onCheckedChange', windmorph: 'control, checked, onCheckedChange' },

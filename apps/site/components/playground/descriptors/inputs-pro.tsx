@@ -441,8 +441,6 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: { layout: 'grid', disabled: false },
     surfacedProps: ['layout', 'maxItems', 'disabled'],
     notControlled: {
-      items:
-        "The photos and each one's upload status, a list the preview keeps so adding, removing and reordering work.",
       accept: 'The file types the add tile and a drop take, a list; the preview takes images.',
     },
     initialState: { maxItems: 6 },

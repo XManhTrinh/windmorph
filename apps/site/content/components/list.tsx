@@ -8,6 +8,7 @@ import { ListMedia } from '../../examples/list/list-media';
 import { ListRadio } from '../../examples/list/list-radio';
 import { ListStatic } from '../../examples/list/list-static';
 import { ListToggles } from '../../examples/list/list-toggles';
+import { ListSections } from '../../examples/list/list-sections';
 import { ListSelection } from '../../examples/list/list-selection';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -51,6 +52,8 @@ export async function ListBody(): Promise<ComponentDoc> {
 
   const selection = await readExampleSource('list/list-selection.tsx');
   const selectionHtml = await highlightSource(selection);
+  const sections = await readExampleSource('list/list-sections.tsx');
+  const sectionsHtml = await highlightSource(sections);
 
   return {
     overview: (
@@ -101,6 +104,14 @@ export async function ListBody(): Promise<ComponentDoc> {
             fileName="list-selection.tsx"
           >
             <ListSelection />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Sections"
+            code={sections}
+            html={sectionsHtml}
+            fileName="list-sections.tsx"
+          >
+            <ListSections />
           </ExampleViewer>
           <ExampleViewer
             title="Switch and checkbox items"

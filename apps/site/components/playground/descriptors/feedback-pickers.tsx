@@ -120,8 +120,8 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         ...(shapes === true && { shapes: LOADING_SHAPES }),
         'aria-label': 'Loading',
       }),
-    defaultProps: { variant: 'default', shapes: false },
-    surfacedProps: ['variant', 'value', 'shapes'],
+    defaultProps: { variant: 'default', size: 48, shapes: false },
+    surfacedProps: ['variant', 'size', 'value', 'shapes'],
     controlKinds: { shapes: 'boolean' },
     toggledSlots: { shapes: LOADING_SHAPES_CODE },
     codeSlots: { 'aria-label': '"Loading"' },
@@ -153,6 +153,14 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     },
     surfacedProps: ['variant', 'animation', 'corner', 'tone', 'typescale', 'lines'],
     initialState: { variant: 'text', lines: 3, animation: 'pulse' },
+    // `lines` and `typescale` belong to the text variant (the types say so).
+    adjust: (values, changed) => {
+      if (changed === 'lines' || changed === 'typescale') return { ...values, variant: 'text' };
+      if (changed === 'variant' && values.variant !== 'text') {
+        return { ...values, lines: 1, typescale: 'body-medium' };
+      }
+      return values;
+    },
     enumOptions: {
       variant: ['rectangle', 'text', 'circle'],
       animation: ['pulse', 'shimmer', 'none'],
@@ -252,9 +260,6 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     },
     controlKinds: { title: 'string', description: 'string', actions: 'boolean' },
     toggledSlots: { actions: '<Button variant="tonal">Create a post</Button>' },
-    notControlled: {
-      icon: 'Required, so there is nothing to switch: the preview and the snippet always show the feed icon.',
-    },
     codeImports: [BUTTON_IMPORT, "import { DynamicFeedIcon } from './icons';"],
     codeSlots: { icon: '<DynamicFeedIcon />' },
   },
@@ -396,6 +401,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     initialState: { hourCycle: 12, layout: 'vertical' },
     // 12 or 24, a number: a number field writes `hourCycle={12}`, as the type wants.
     controlKinds: { hourCycle: 'number' },
+    enumOptions: { hourCycle: ['12', '24'] },
     notControlled: {
       value:
         'A `Time` that the picker sets as you pick: the preview starts on `defaultValue` and is picked in place.',
@@ -437,10 +443,6 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       dismissButton: '<Button variant="text">Cancel</Button>',
       modeToggleButton: '<TimePickerModeToggle mode="dial" onModeChange={() => {}} />',
       closeIcon: CLOSE,
-    },
-    notControlled: {
-      confirmButton:
-        'Required, so there is nothing to switch: the preview and the snippet always have the OK button.',
     },
     importMembers: ['Button', 'DatePicker', 'TimePicker', 'TimePickerModeToggle'],
     codeImports: [CALENDAR_DATE_IMPORT, "import { Time } from '@internationalized/date';"],

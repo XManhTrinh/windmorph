@@ -7,7 +7,7 @@
     "build": "next build --webpack",
     "generate": "tsx scripts/generate-props.ts",
     "preview": "sirv out --port 3000",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && tsx scripts/check-snippets.ts",
     "lint": "eslint --max-warnings 0 .",
     "test:e2e": "playwright test",
     "link-check": "tsx scripts/check-links.ts",

@@ -94,6 +94,11 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     defaultProps: { variant: 'filled', href: '', disabled: false, dragged: false },
     surfacedProps: ['variant', 'href', 'disabled', 'dragged'],
     initialState: { variant: 'elevated' },
+    // Only an interactive card (a link or an action) can be disabled or dragged.
+    codeSlots: {
+      onPress: (values) =>
+        !values.href && (values.disabled === true || values.dragged === true) ? '() => {}' : null,
+    },
     notControlled: {
       preventFocusOnPress:
         'Only stops a press from moving focus (menu triggers set it); the preview looks the same.',
@@ -156,6 +161,11 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'keyboardDismissDisabled',
     ],
     enumOptions: { role: ['alertdialog', 'dialog'] },
+    // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role
+    // change resets it to the new default, and the snippet writes it only when it differs.
+    codeDefaults: (values) => ({ dismissable: values.role !== 'alertdialog' }),
+    adjust: (values, changed) =>
+      changed === 'role' ? { ...values, dismissable: values.role !== 'alertdialog' } : values,
     controlKinds: { icon: 'boolean' },
     toggledSlots: { icon: DELETE },
     importMembers: ['Button', 'DialogActions', 'DialogContent', 'DialogHeader', 'DialogTrigger'],
@@ -206,6 +216,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     surfacedProps: ['variant', 'layout', 'density', 'placement', 'offset'],
     enumOptions: {
       placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
+      density: ['0', '-1', '-2', '-3'],
     },
     // `density` is a number (0 to -3), so the snippet writes it as one.
     controlKinds: { density: 'number' },

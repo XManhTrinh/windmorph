@@ -63,8 +63,14 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     if (!descriptor) return;
     const decoded = decodeState(new URLSearchParams(window.location.search), controls);
     if (Object.keys(decoded).length === 0) return;
+    // A shared URL can hold any combination, so each restored value is adjusted in turn.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setValues((prev) => ({ ...prev, ...decoded }));
+    setValues((prev) =>
+      Object.keys(decoded).reduce(
+        (next, name) => (descriptor.adjust ? descriptor.adjust(next, name) : next),
+        { ...prev, ...decoded },
+      ),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -90,7 +96,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     component: descriptor.component,
     values,
     surfacedProps: descriptor.surfacedProps,
-    defaultProps: descriptor.defaultProps,
+    defaultProps: { ...descriptor.defaultProps, ...descriptor.codeDefaults?.(values) },
     propDefaults,
     importMembers: descriptor.importMembers,
     codeImports: descriptor.codeImports,
@@ -116,7 +122,11 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     });
   const setFromControl = (name: string, value: unknown) => {
     markPreview(name, false);
-    set(name, value);
+    setValues((prev) => {
+      if (prev[name] === value) return prev;
+      const next = { ...prev, [name]: value };
+      return descriptor.adjust ? descriptor.adjust(next, name) : next;
+    });
   };
   const setFromPreview = (name: string, value: unknown) => {
     markPreview(name, true);

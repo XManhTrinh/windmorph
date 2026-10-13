@@ -725,7 +725,14 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'containment',
     summary:
       'Rows with headline, overline, supporting text and leading or trailing content (icons, avatars, images, video thumbnails); items can be links, switches, checkboxes or radio buttons.',
-    propsComponents: ['List', 'ListItem', 'ListItemImage', 'ListItemVideo', 'ListItemAvatar'],
+    propsComponents: [
+      'List',
+      'ListItem',
+      'ListSection',
+      'ListItemImage',
+      'ListItemVideo',
+      'ListItemAvatar',
+    ],
     keywords: [
       'settings',
       'image list',

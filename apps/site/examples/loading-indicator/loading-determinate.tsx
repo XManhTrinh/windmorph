@@ -2,8 +2,9 @@ import { LoadingIndicator } from '@windmorph/react';
 
 /**
  * Passing `value` (0–1) makes the indicator follow a gesture's progress (pull to refresh): a
- * circle morphs into a soft burst as it fills. Never switch one instance between the two modes. The box is 48px; `className` (`size-6`, `size-16`…) resizes it and the shape
- * scales with it.
+ * circle morphs into a soft burst as it fills. Never switch one instance between the two modes.
+ * The box is 48px by default; `size` sets it anywhere in the spec's 24–240px range (a `size-*`
+ * class works too), and the shape scales with it.
  */
 export function LoadingDeterminate() {
   return (
@@ -14,13 +15,13 @@ export function LoadingDeterminate() {
         ))}
       </div>
       <div className="flex items-center gap-6">
-        {['size-6', 'size-10', 'size-16', 'size-24'].map((size) => (
+        {[24, 40, 64, 96].map((size) => (
           <LoadingIndicator
             key={size}
             variant="contained"
             value={0.6}
-            className={size}
-            aria-label={`60% ${size}`}
+            size={size}
+            aria-label={`60%, ${size}px`}
           />
         ))}
       </div>

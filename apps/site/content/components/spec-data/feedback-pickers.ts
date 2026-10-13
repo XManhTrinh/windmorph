@@ -143,6 +143,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'progress', windmorph: 'value', note: 'Leave it out for indeterminate.' },
           {
+            compose: 'Modifier.size(…)',
+            windmorph: 'size',
+            note: 'In px, clamped to the spec’s 24–240px.',
+          },
+          {
             compose: 'strokeCap, gapSize',
             windmorph: '—',
             note: 'Fixed to the spec: round caps and a 4px gap.',
@@ -207,11 +212,10 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['loading-indicator/loading-determinate'],
       },
-    ],
-    extensions: [
       {
-        item: 'Sizing with `className`',
-        note: 'The spec has one 48px size; a size class (`size-24`) resizes the box and the shape scales with it.',
+        name: 'Size: 48dp by default, flexible from 24 to 240dp',
+        kind: 'configuration',
+        examples: ['loading-indicator/loading-determinate'],
       },
     ],
     compose: [

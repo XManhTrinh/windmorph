@@ -129,11 +129,6 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     toggledSlots: {
       back: '<IconButton variant="standard" aria-label="Back to settings" icon={<ArrowBackIcon />} href="/settings" />',
     },
-    notControlled: {
-      list: "The list pane's content, usually a `List` of links: the preview fills it with settings sections.",
-      detail:
-        "The detail pane's content, the open item: the preview fills it with a settings section.",
-    },
     codeImports: [
       "import { IconButton, List, ListItem } from '@windmorph/react';",
       "import { ArrowBackIcon } from './icons';",
@@ -160,10 +155,6 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     defaultProps: { columns: 3 },
     surfacedProps: ['max', 'columns'],
     initialState: { max: 6, columns: 3 },
-    notControlled: {
-      items:
-        'The photos, a list of `{ key, src, alt }` objects: the preview shows eight samples, and `max` sets how many show.',
-    },
     codeImports: ["import { photos } from './photos';"],
     codeSlots: {
       items: 'photos',
@@ -204,10 +195,6 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     initialState: { actions: true },
     controlKinds: { actions: 'boolean' },
     toggledSlots: { actions: '<Button variant="text" href="/posts/42">View post</Button>' },
-    notControlled: {
-      items:
-        'The photos, a list of `{ key, src, alt, width, height, caption }` objects: the preview opens four samples.',
-    },
     codeImports: [
       "import { Button } from '@windmorph/react';",
       "import { photos } from './photos';",
@@ -279,12 +266,6 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     initialState: { bubble: 'Is the cooking class open to beginners?' },
     enumOptions: { as: ['div', 'article', 'li'] },
     controlKinds: { bubble: 'string', below: 'boolean' },
-    notControlled: {
-      avatar:
-        "Required content of every comment, the writer's `Avatar`: the preview always shows one.",
-      actions:
-        'Required content of every comment, its row of actions (when, Like, Reply): the preview always shows one.',
-    },
     toggledSlots: {
       below:
         '<img src="/photos/lunch.jpg" alt="A bowl of phở" className="size-40 rounded-corner-large object-cover" />',
@@ -421,6 +402,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       badgePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
     },
     controlKinds: { src: 'boolean', icon: 'boolean' },
+    // A decorative avatar has no `alt` (the name is written beside it): the types say so.
+    adjust: (values, changed) => {
+      if (changed === 'decorative' && values.decorative === true) return { ...values, alt: '' };
+      if (changed === 'alt' && values.alt) return { ...values, decorative: false };
+      return values;
+    },
     toggledSlots: { src: '"/avatars/nora.jpg"', icon: STAR },
     notControlled: {
       srcSet:
@@ -457,6 +444,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     surfacedProps: ['variant', 'tone', 'size', 'shape', 'dot', 'icon', 'fullLabel', 'maxWidth'],
     initialState: { tone: 'success', dot: true },
+    // A tag shows a status dot or a leading icon, not both (the types say so).
+    adjust: (values, changed) => {
+      if (changed === 'dot' && values.dot === true) return { ...values, icon: false };
+      if (changed === 'icon' && values.icon === true) return { ...values, dot: false };
+      return values;
+    },
     enumOptions: {
       variant: ['tonal', 'filled', 'outlined'],
       tone: ['neutral', 'primary', 'secondary', 'tertiary', 'error', 'success', 'warning'],

@@ -41,7 +41,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'listPane', windmorph: 'list' },
           { compose: 'detailPane', windmorph: 'detail' },
           {
-            compose: 'navigator',
+            compose: 'directive, value (from rememberListDetailPaneScaffoldNavigator())',
             windmorph: 'active, detailKey',
             note: "The app's route picks the pane that shows; there's no navigator object.",
           },

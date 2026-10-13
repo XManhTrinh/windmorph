@@ -94,6 +94,10 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         item: '`--m3-rail-collapsed-width`',
         note: "A narrower collapsed rail, such as M3's 80px baseline, keeps the expand motion and every inset.",
       },
+      {
+        item: '`indicatorMotion="slide"`',
+        note: "Not in the M3 spec, where the active indicator expands from the centre of the icon: on the expanded rail the pill slides from the previous item on the fast spatial spring, as in Google's Expressive showcase. The collapsed rail always expands, and reduced motion fades the pill in place.",
+      },
     ],
     notBuilt: [
       {
@@ -345,6 +349,12 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       },
       { name: 'Search app bar', kind: 'use case', examples: ['search/search-app-bar'] },
     ],
+    extensions: [
+      {
+        item: '`inputProps`',
+        note: 'Attributes for both inputs, the bar and the expanded view, such as `enterKeyHint` or `inputMode`, in place of the defaults (`enterKeyHint="search"`, no autocomplete or spellcheck).',
+      },
+    ],
     notBuilt: [
       {
         item: 'Style: divided',
@@ -426,6 +436,16 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         name: 'Collapsing or leaving the screen on scroll',
         kind: 'use case',
         examples: ['toolbars/toolbar-fab-scroll', 'toolbars/toolbar-scroll-exit'],
+      },
+    ],
+    extensions: [
+      {
+        item: '`ToolbarFab` `iconTransition="rotate"`',
+        note: "Not in the M3 spec: with `expandedIcon`, the FAB's icon turns 90° and fades into the other as the toolbar expands or collapses, instead of swapping halfway, as in Google's Expressive showcase. Reduced motion keeps only the crossfade.",
+      },
+      {
+        item: '`ToolbarFab` `elevation`',
+        note: 'As on `Fab`: `lowered` (level 1) or `flat` (level 0) for a FAB beside a flat toolbar.',
       },
     ],
     differences: [

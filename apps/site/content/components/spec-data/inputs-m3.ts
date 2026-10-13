@@ -148,7 +148,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'expanded, onExpandedChange', windmorph: '`open`, `onOpenChange`' },
           {
-            compose: 'TextField(readOnly, MenuAnchorType.PrimaryNotEditable)',
+            compose: 'TextField(readOnly, ExposedDropdownMenuAnchorType.PrimaryNotEditable)',
             windmorph: '`variant`, `label`, `supportingText`',
             note: 'The field is built in.',
           },
@@ -216,7 +216,8 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'Autocomplete',
         params: [
           {
-            compose: 'TextField(value, onValueChange, MenuAnchorType.PrimaryEditable)',
+            compose:
+              'TextField(value, onValueChange, ExposedDropdownMenuAnchorType.PrimaryEditable)',
             windmorph: '`inputValue`, `onInputChange`',
             note: 'The field is built in.',
           },
@@ -419,9 +420,9 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'Slider orientation="vertical"',
         params: [
           {
-            compose: 'reverseDirection',
+            compose: 'topToBottom',
             windmorph: '(none)',
-            note: 'Vertical sliders always run bottom to top.',
+            note: "Vertical sliders always run bottom to top, as `topToBottom = false` does; Compose's default is top to bottom.",
           },
         ],
       },

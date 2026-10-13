@@ -11,6 +11,11 @@ export interface ControlDef {
   label: string;
   /** Enum members, for the segmented control. */
   options?: string[];
+  /**
+   * A choice of numbers (`controlKinds: 'number'` with `enumOptions`, e.g. an hour cycle of
+   * 12 or 24): the segmented control's value is the number, so the snippet writes `{12}`.
+   */
+  numeric?: boolean;
 }
 
 /**
@@ -32,16 +37,26 @@ export function inferControls(
   return surfacedProps.map((name) => {
     const record = byName.get(name);
     const override = controlKinds?.[name];
+    // A number with listed options is a choice of numbers.
+    const numeric = override === 'number' && Boolean(enumOptions?.[name]?.length);
     const options =
-      override && override !== 'enum' ? undefined : (enumOptions?.[name] ?? record?.options);
+      override && override !== 'enum' && !numeric
+        ? undefined
+        : (enumOptions?.[name] ?? record?.options);
     let kind: ControlKind;
-    if (override && override !== 'enum') kind = override;
+    if (override && override !== 'enum' && !numeric) kind = override;
     else if (options && options.length > 0) kind = 'enum';
     else if (record ? record.type === 'boolean' : typeof defaultProps?.[name] === 'boolean')
       kind = 'boolean';
     else if (record ? record.type === 'number' : typeof defaultProps?.[name] === 'number')
       kind = 'number';
     else kind = 'string';
-    return { name, kind, label: name, ...(options ? { options } : {}) };
+    return {
+      name,
+      kind,
+      label: name,
+      ...(options ? { options } : {}),
+      ...(numeric && { numeric: true }),
+    };
   });
 }

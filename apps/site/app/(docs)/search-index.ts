@@ -115,6 +115,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   },
   {
     title: 'From Compose',
+    kind: 'guide',
     summary:
       'Jetpack Compose Material 3 composables and their key parameters, mapped to Windmorph components and props.',
     href: '/from-compose',
@@ -122,6 +123,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   },
   {
     title: 'Spec status',
+    kind: 'guide',
     summary:
       'What each component covers of the M3 Expressive spec, its deliberate differences and its extensions.',
     href: '/spec-status',

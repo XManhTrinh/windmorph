@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { FabMenuBasic } from '../../examples/fab-menu/fab-menu-basic';
 import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
+import { FabMenuRotate } from '../../examples/fab-menu/fab-menu-rotate';
 import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -9,15 +10,17 @@ import { InlineCode } from '../../components/inline-code';
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody(): Promise<ComponentDoc> {
-  const [basic, colors, web] = await Promise.all([
+  const [basic, colors, web, rotate] = await Promise.all([
     readExampleSource('fab-menu/fab-menu-basic.tsx'),
     readExampleSource('fab-menu/fab-menu-colors.tsx'),
     readExampleSource('fab-menu/fab-menu-web.tsx'),
+    readExampleSource('fab-menu/fab-menu-rotate.tsx'),
   ]);
-  const [basicHtml, colorsHtml, webHtml] = await Promise.all([
+  const [basicHtml, colorsHtml, webHtml, rotateHtml] = await Promise.all([
     highlightSource(basic),
     highlightSource(colors),
     highlightSource(web),
+    highlightSource(rotate),
   ]);
 
   return {
@@ -50,6 +53,14 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             fileName="fab-menu-web.tsx"
           >
             <FabMenuWeb />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Rotating icons, lowered"
+            code={rotate}
+            html={rotateHtml}
+            fileName="fab-menu-rotate.tsx"
+          >
+            <FabMenuRotate />
           </ExampleViewer>
         </section>
       </>

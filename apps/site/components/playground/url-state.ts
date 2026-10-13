@@ -30,7 +30,7 @@ export function decodeState(
     const raw = params.get(control.name)!;
     switch (control.kind) {
       case 'enum':
-        if (control.options?.includes(raw)) out[control.name] = raw;
+        if (control.options?.includes(raw)) out[control.name] = control.numeric ? Number(raw) : raw;
         break;
       case 'boolean':
         if (raw === 'true' || raw === 'false') out[control.name] = raw === 'true';
