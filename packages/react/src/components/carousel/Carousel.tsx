@@ -22,6 +22,7 @@ import {
   createStrategy,
   heroKeylineList,
   keylinesForScrollOffset,
+  MAX_SMALL_ITEM_SIZE,
   maxScrollOffset,
   multiBrowseKeylineList,
   placeItem,
@@ -233,7 +234,14 @@ export function Carousel({
             maxSmallItemSize,
           );
     const result = masked
-      ? createStrategy(keylines, space, itemSpacing, padding.start, padding.end)
+      ? createStrategy(
+          keylines,
+          space,
+          itemSpacing,
+          padding.start,
+          padding.end,
+          maxSmallItemSize ?? MAX_SMALL_ITEM_SIZE,
+        )
       : createStrategy(keylines, space, itemSpacing);
     return result.isValid ? result : null;
   }

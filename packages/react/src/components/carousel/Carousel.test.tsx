@@ -58,10 +58,11 @@ describe('Carousel', () => {
     );
     const groups = screen.getAllByRole('group');
     expect(groups[0]!.style.width).toBe('186px');
-    // The 16px leading padding shrinks the first item's mask and moves it in by 16px.
+    // The 16px leading padding comes out of the large and medium items (8px each), so the
+    // first item's mask is 178px and moves in by 16px; the small item stays 40px.
     const first = mask(0).style;
-    expect(first.clipPath).toMatch(/^inset\(0 2\.67px 0 2\.67px round/);
-    expect(first.translate).toBe('13.33px 0');
+    expect(first.clipPath).toMatch(/^inset\(0 4px 0 4px round/);
+    expect(first.translate).toBe('12px 0');
     // The scroller pads only across the carousel: the keylines handle the main-axis padding.
     const scroller = groups[0]!.parentElement!;
     expect(scroller.style.paddingBlock).toBe('8px');

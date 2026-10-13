@@ -494,8 +494,13 @@ function isLastFocalAtEnd(list: KeylineList, mainAxis: number) {
 
 /**
  * Compose's `createShiftedKeylineListForContentPadding`: `from` shifted by `padding` (negative
- * for the end), each item shrinking by an equal share of it. The unadjusted offsets stay
+ * for the end), the items giving up the padding between them. The unadjusted offsets stay
  * those of `from`, since items keep their natural slots.
+ *
+ * Unlike Compose, which takes an equal share from every item, only the large and medium
+ * items give it up: small items (at most `smallMax`) keep their size, so they never drop
+ * below the spec's 40dp minimum at the start or end. The total is the same, so the anchors,
+ * snap positions and scroll range don't change.
  */
 function shiftedForPadding(
   from: KeylineList,
@@ -503,15 +508,23 @@ function shiftedForPadding(
   itemSpacing: number,
   padding: number,
   pivotIndex: number,
+  smallMax: number,
 ): KeylineList {
-  const nonAnchors = from.filter((k) => !k.isAnchor).length;
-  const reduction = padding / nonAnchors;
+  const nonAnchors = from.filter((k) => !k.isAnchor);
+  const large = nonAnchors.filter((k) => k.size > smallMax);
+  // Every item small (a degenerate fit): share it as Compose does.
+  const shrinks = (k: Keyline) => !k.isAnchor && (large.length === 0 || k.size > smallMax);
+  const reduction = padding / (large.length || nonAnchors.length);
+  const pivotReduction = shrinks(from[pivotIndex]!) ? reduction : 0;
   const shifted = keylineListWithPivot(
     mainAxis,
     itemSpacing,
     pivotIndex,
-    from[pivotIndex]!.offset - reduction / 2 + padding,
-    from.map((k) => ({ size: k.size - Math.abs(reduction), isAnchor: k.isAnchor })),
+    from[pivotIndex]!.offset - pivotReduction / 2 + padding,
+    from.map((k) => ({
+      size: shrinks(k) ? k.size - Math.abs(reduction) : k.size,
+      isAnchor: k.isAnchor,
+    })),
   );
   return shifted.map((k, i) => ({ ...k, unadjustedOffset: from[i]!.unadjustedOffset }));
 }
@@ -521,13 +534,21 @@ function startSteps(
   mainAxis: number,
   itemSpacing: number,
   padding: number,
+  smallMax: number,
 ): KeylineList[] {
   if (defaults.length === 0) return [];
   const steps = [defaults];
   if (isFirstFocalAtStart(defaults)) {
     if (padding !== 0)
       steps.push(
-        shiftedForPadding(defaults, mainAxis, itemSpacing, padding, firstFocalIndex(defaults)),
+        shiftedForPadding(
+          defaults,
+          mainAxis,
+          itemSpacing,
+          padding,
+          firstFocalIndex(defaults),
+          smallMax,
+        ),
       );
     return steps;
   }
@@ -555,6 +576,7 @@ function startSteps(
       itemSpacing,
       padding,
       firstFocalIndex(last),
+      smallMax,
     );
   }
   return steps;
@@ -565,13 +587,21 @@ function endSteps(
   mainAxis: number,
   itemSpacing: number,
   padding: number,
+  smallMax: number,
 ): KeylineList[] {
   if (defaults.length === 0) return [];
   const steps = [defaults];
   if (isLastFocalAtEnd(defaults, mainAxis)) {
     if (padding !== 0)
       steps.push(
-        shiftedForPadding(defaults, mainAxis, itemSpacing, -padding, lastFocalIndex(defaults)),
+        shiftedForPadding(
+          defaults,
+          mainAxis,
+          itemSpacing,
+          -padding,
+          lastFocalIndex(defaults),
+          smallMax,
+        ),
       );
     return steps;
   }
@@ -599,6 +629,7 @@ function endSteps(
       itemSpacing,
       -padding,
       lastFocalIndex(last),
+      smallMax,
     );
   }
   return steps;
@@ -638,7 +669,8 @@ export interface Strategy {
 /**
  * Compose's `Strategy`. The content padding before the first item and after the last one is
  * handled by the keylines (the last start and end steps are shifted by it), not by the
- * scroller, so items bleed over it while scrolling, as Compose's do.
+ * scroller, so items bleed over it while scrolling, as Compose's do. Small items, up to
+ * `maxSmallItemSize`, keep their size in those steps (see `shiftedForPadding`).
  */
 export function createStrategy(
   defaults: KeylineList,
@@ -646,9 +678,22 @@ export function createStrategy(
   itemSpacing: number,
   beforeContentPadding = 0,
   afterContentPadding = 0,
+  maxSmallItemSize = MAX_SMALL_ITEM_SIZE,
 ): Strategy {
-  const start = startSteps(defaults, availableSpace, itemSpacing, beforeContentPadding);
-  const end = endSteps(defaults, availableSpace, itemSpacing, afterContentPadding);
+  const start = startSteps(
+    defaults,
+    availableSpace,
+    itemSpacing,
+    beforeContentPadding,
+    maxSmallItemSize,
+  );
+  const end = endSteps(
+    defaults,
+    availableSpace,
+    itemSpacing,
+    afterContentPadding,
+    maxSmallItemSize,
+  );
   const startShiftDistance =
     start.length === 0
       ? 0

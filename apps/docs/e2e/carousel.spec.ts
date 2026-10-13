@@ -115,11 +115,12 @@ test.describe('Carousel keylines', () => {
   }) => {
     await openStory(page, 'components-carousel--multi-browse');
     const [a, b, c] = await visible(page, 3);
-    // Compose's content padding: each item gives up a third of the 16px leading padding.
+    // The 16px leading padding comes out of the large and medium items (Compose shares it
+    // with the small one too, leaving it 34.67px); small items keep the spec's 40px minimum.
     expect(a!.x).toBe(16);
-    expect(a!.size).toBe(181);
-    expect(b!.size).toBe(113);
-    expect(c!.size).toBe(35);
+    expect(a!.size).toBe(178);
+    expect(b!.size).toBe(110);
+    expect(c!.size).toBe(40);
     expect(c!.x + c!.size).toBe(360);
     const corner = await page
       .getByTestId('slide-0')
@@ -135,10 +136,33 @@ test.describe('Carousel keylines', () => {
     const all = await visible(page, 10);
     // The arrangement ends 16px before the end edge (the trailing padding).
     expect(all[9]!.x + all[9]!.size).toBe(344);
-    expect(all[9]!.size).toBe(181);
-    expect(all[8]!.size).toBe(113);
-    expect(all[7]!.size).toBe(35);
+    expect(all[9]!.size).toBe(178);
+    expect(all[8]!.size).toBe(110);
+    expect(all[7]!.size).toBe(40);
   });
+
+  for (const story of ['multi-browse', 'hero'] as const) {
+    test(`small items stay 40–56px at the start and the end · ${story}`, async ({ page }) => {
+      await openStory(page, `components-carousel--${story}`);
+      const carousel = page.getByTestId('carousel').first();
+      const scroller = carousel.locator('> div');
+      const width = await carousel.evaluate((el) => el.getBoundingClientRect().width);
+      for (const end of [false, true]) {
+        if (end)
+          await scroller.evaluate((el) =>
+            el.scrollTo({ left: el.scrollWidth, behavior: 'instant' }),
+          );
+        await frame(page);
+        const count = await carousel.locator('[role="group"]').count();
+        const items = (await visible(page, count)).filter(
+          (item) => item.x + item.size > 0 && item.x < width && item.size > 0,
+        );
+        // Whatever is on screen, cut by neither edge, is at least the small minimum.
+        for (const item of items.filter((i) => i.x >= 0 && i.x + i.size <= width))
+          expect(item.size).toBeGreaterThanOrEqual(40);
+      }
+    });
+  }
 
   test('items take focus (not the container); arrows move it and scroll to the item', async ({
     page,
@@ -228,7 +252,7 @@ test.describe('Carousel keylines', () => {
     await openStory(page, 'components-carousel--multi-browse', { dir: 'rtl' });
     const [a, b] = await visible(page, 2);
     expect(a!.x + a!.size).toBe(344);
-    expect(b!.size).toBe(113);
+    expect(b!.size).toBe(110);
   });
 
   test('vertical carousels scroll on y with the same keylines', async ({ page }) => {

@@ -76,4 +76,44 @@ describe('carousel keylines (Compose Keylines.kt / Strategy.kt)', () => {
     const middle = keylinesForScrollOffset(strategy, max / 2, max);
     expect(sizes(middle)).toEqual([10, 186, 118, 40, 10]);
   });
+
+  it('takes the padding from the large and medium items, so small items stay 40px', () => {
+    // Compose shares the 16px among all three (181 · 113 · 34.7); the spec's 40dp minimum wins.
+    const strategy = createStrategy(multiBrowseKeylineList(360, 186, 8, 10), 360, 8, 16, 16);
+    const max = maxScrollOffset(strategy, 10);
+    expect(sizes(keylinesForScrollOffset(strategy, 0, max)).slice(1, 4)).toEqual([178, 110, 40]);
+    expect(sizes(keylinesForScrollOffset(strategy, max, max)).slice(-4, -1)).toEqual([
+      40, 110, 178,
+    ]);
+  });
+
+  const layouts: [string, (width: number) => KeylineList][] = [
+    ['multi-browse', (width) => multiBrowseKeylineList(width, 186, 8, 10)],
+    ['hero', (width) => heroKeylineList(width, undefined, 8, 10, false)],
+    ['centre-aligned hero', (width) => heroKeylineList(width, undefined, 8, 10, true)],
+  ];
+  for (const [name, keylines] of layouts) {
+    for (const width of [360, 412, 840]) {
+      it(`keeps small items 40–56px at the start and end · ${name} · ${width}px`, () => {
+        const strategy = createStrategy(keylines(width), width, 8, 16, 16);
+        const max = maxScrollOffset(strategy, 10);
+        for (const offset of [0, max]) {
+          const list = keylinesForScrollOffset(strategy, offset, max);
+          const items = list.filter((k) => !k.isAnchor);
+          // The items still fill the width inside the padding, gaps included.
+          const used = items.reduce((sum, k) => sum + k.size, 0) + 8 * (items.length - 1);
+          expect(used).toBeCloseTo(width - 16);
+          for (const k of items) expect(k.size).toBeGreaterThanOrEqual(40);
+          const focal = Math.max(...items.map((k) => k.size));
+          for (const k of items.filter((k) => k.size < focal && k.size <= 56))
+            expect(k.size).toBeLessThanOrEqual(56);
+          // Every item placed on screen is at least the minimum too.
+          for (let index = 0; index < 10; index++) {
+            const { size } = placeItem(strategy, list, index, offset);
+            if (size > 10) expect(size).toBeGreaterThanOrEqual(40 - 1e-6);
+          }
+        }
+      });
+    }
+  }
 });
