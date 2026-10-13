@@ -1,0 +1,193 @@
+# Releases `@windmorph/react` to npm with Changesets (see "Releasing" in docs/architecture.md).
+#
+# On every push to `main`, `select-mode` asks Changesets what to do:
+# - `version`: pending `.changeset/*.md` files exist, so `version` opens or updates the
+#   "Version packages" pull request (bumped version, CHANGELOG, changesets removed).
+# - `publish`: no pending changesets and the package's version isn't on npm yet (the release
+#   pull request was just merged, or 0.1.0 was never published), so `pack` runs the same checks
+#   as CI and packs the tarball, and `publish` publishes it with npm provenance and tags the
+#   release on GitHub.
+# - `none`: nothing to do.
+#
+# Only `@windmorph/react` publishes: every other workspace package is private, and Windmorph Pro
+# lives in its own repository.
+#
+# npm authentication: trusted publishing (OIDC, `id-token: write`) once it's configured for the
+# package on npmjs.com; until then, the `NPM_TOKEN` secret (a granular access token with
+# publish rights on `@windmorph/react`). The provenance statement needs `id-token: write` either
+# way.
+#
+# The checks install Windmorph Pro for the docs site exactly as CI does (`PRO_READ_TOKEN`, see
+# ci.yml). The other jobs install only the root workspace, which holds the Changesets CLI.
+name: Release
+
+on:
+  push:
+    branches: ['main']
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  select-mode:
+    name: Select mode
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+      publish-plan-artifact-id: ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The pnpm version comes from package.json's `packageManager`.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install the Changesets CLI
+        run: pnpm install --frozen-lockfile --filter windmorph --ignore-scripts
+
+      - name: Select mode
+        id: select-mode
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+
+  version:
+    name: Open the release pull request
+    needs: select-mode
+    if: ${{ needs.select-mode.outputs.mode == 'version' }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install the Changesets CLI
+        run: pnpm install --frozen-lockfile --filter windmorph --ignore-scripts
+
+      - name: Create or update the release pull request
+        uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          commit-message: 'chore(release): version packages'
+          pr-title: 'chore(release): version packages'
+
+  pack:
+    name: Check & pack
+    needs: select-mode
+    if: ${{ needs.select-mode.outputs.mode == 'publish' }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+    outputs:
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Lets pnpm fetch Windmorph Pro from its private repo (see ci.yml).
+      - name: Allow installing Windmorph Pro
+        if: ${{ env.PRO_READ_TOKEN != '' }}
+        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The same checks as CI's build-and-check job.
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Check for traces
+        run: pnpm check:traces
+
+      - name: Build, typecheck, lint & test
+        run: pnpm turbo run build typecheck lint test
+
+      # Packs each package in the publish plan with `pnpm pack`, which rebuilds it (`prepare`) and
+      # turns `workspace:` ranges into versions.
+      - name: Pack
+        id: pack
+        uses: changesets/action/pack@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
+
+  publish:
+    name: Publish to npm
+    needs: pack
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install the Changesets CLI
+        run: pnpm install --frozen-lockfile --filter windmorph --ignore-scripts
+
+      # pnpm reads registry credentials from the user's .npmrc, not from environment variables in
+      # the project's. Without NPM_TOKEN, publishing relies on trusted publishing alone.
+      - name: Authenticate to npm with a token
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+
+      # Publishes the packed tarballs (`publishConfig` adds provenance), then pushes a git tag and
+      # a GitHub release per package.
+      - name: Publish
+        uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
