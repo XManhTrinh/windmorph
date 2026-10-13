@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, type ReactElement } from 'react';
+import { useContext, useEffect, type ReactElement } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -110,11 +110,15 @@ export function IconButton(props: IconButtonProps) {
   const inTooltipTrigger = useInTooltipTrigger();
   const size = sizeProp ?? context.size ?? 'sm';
   const shape = shapeProp ?? context.shape ?? 'round';
-  if (process.env.NODE_ENV !== 'production' && toolbar?.kind === 'floating' && shape === 'square') {
-    console.warn(
-      '[@windmorph/react] Avoid square icon buttons in a floating toolbar (M3): their shape conflicts with its fully rounded container.',
-    );
-  }
+  const squareInFloatingToolbar = toolbar?.kind === 'floating' && shape === 'square';
+  // Once per button, not on every render.
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && squareInFloatingToolbar) {
+      console.warn(
+        '[@windmorph/react] Avoid square icon buttons in a floating toolbar (M3): their shape conflicts with its fully rounded container.',
+      );
+    }
+  }, [squareInFloatingToolbar]);
   const styles = iconButtonStyles({
     variant: variantProp ?? context.iconButtonVariant ?? 'filled',
     size,

@@ -147,13 +147,16 @@ describe('FloatingToolbar', () => {
     expect(bold).not.toHaveClass('data-selected:not-data-disabled:bg-secondary');
   });
 
-  it('warns about square icon buttons in a floating toolbar', () => {
+  it('warns once about square icon buttons in a floating toolbar, not on every render', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    render(
+    const toolbar = (label: string) => (
       <FloatingToolbar aria-label="Tools">
-        <IconButton shape="square" icon={<Icon />} aria-label="Pen" />
-      </FloatingToolbar>,
+        <IconButton shape="square" icon={<Icon />} aria-label={label} />
+      </FloatingToolbar>
     );
+    const { rerender } = render(toolbar('Pen'));
+    rerender(toolbar('Marker'));
+    expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('square icon buttons'));
     warn.mockRestore();
   });
