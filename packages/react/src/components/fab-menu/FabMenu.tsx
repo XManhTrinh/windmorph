@@ -30,6 +30,7 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { Menu, MenuItem, MenuTrigger, type MenuItemProps } from '../menu/Menu';
 import type { FabElevation } from '../fab/fab-styles';
+import { FabTooltip } from '../fab/FabTooltip';
 import { staggerSteps } from './fab-menu-stagger';
 import { fabMenuStyles, type FabMenuColor, type FabMenuSize } from './fab-menu-styles';
 
@@ -102,6 +103,12 @@ interface FabMenuOwnProps {
   /** @default "list" */
   presentation?: FabMenuPresentation;
   /**
+   * While closed, shows `aria-label` in a plain tooltip on hover and keyboard focus, as M3
+   * asks of FABs on the web. Open, the button is the close button and has no tooltip. It
+   * steps aside inside your own `TooltipTrigger`. @default true
+   */
+  tooltip?: boolean;
+  /**
    * Shows the button. Hiding it closes the menu, shrinks the button towards its centre and
    * fades it out; showing it expands it back (the FAB's appear / disappear motion). A
    * hidden menu is `inert`. @default true
@@ -133,7 +140,8 @@ const ITEM_SELECTOR = '[data-fab-menu-item]:not([inert])';
  * they scroll behind the close button. Position the menu on the window's trailing edge
  * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows).
  *
- * The button is named by `aria-label` and reports `aria-expanded`. Tab or ↓ moves from the
+ * The button is named by `aria-label`, which it shows in a tooltip while closed, and reports
+ * `aria-expanded`. Tab or ↓ moves from the
  * button to the top item; ↑ / ↓ move between items and back to the button. Escape, an
  * outside press or choosing an item closes the menu. With `presentation="menu"` the
  * button opens a standard `Menu` instead, with menu semantics and keyboard support.
@@ -155,6 +163,7 @@ export function FabMenu({
   color,
   elevation,
   presentation = 'list',
+  tooltip = true,
   visible = true,
   appear = false,
   children,
@@ -247,39 +256,49 @@ export function FabMenu({
     onLastExit: exitProps.onTransitionEnd,
   };
 
+  const toggle = (
+    <ButtonBase
+      ref={buttonRef}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      {...(isMenu
+        ? {}
+        : {
+            'aria-expanded': isOpen,
+            'aria-controls': isPresent ? listId : undefined,
+            onPress: () => setOpen(!isOpen),
+          })}
+      data-open={(isOpen && !isMenu) || undefined}
+      className={styles.button({ class: classNames?.button })}
+    >
+      <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
+        {openIcon ? (
+          <IconFaces
+            icon={icon}
+            alternateIcon={openIcon}
+            alternate={isOpen && !isMenu}
+            transition={iconTransition}
+          />
+        ) : (
+          icon
+        )}
+      </span>
+    </ButtonBase>
+  );
+
   const button = (
     <span
       data-hidden={visible ? undefined : true}
       data-appear={appear || undefined}
       className={styles.anchor({ class: classNames?.anchor })}
     >
-      <ButtonBase
-        ref={buttonRef}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        {...(isMenu
-          ? {}
-          : {
-              'aria-expanded': isOpen,
-              'aria-controls': isPresent ? listId : undefined,
-              onPress: () => setOpen(!isOpen),
-            })}
-        data-open={(isOpen && !isMenu) || undefined}
-        className={styles.button({ class: classNames?.button })}
-      >
-        <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-          {openIcon ? (
-            <IconFaces
-              icon={icon}
-              alternateIcon={openIcon}
-              alternate={isOpen && !isMenu}
-              transition={iconTransition}
-            />
-          ) : (
-            icon
-          )}
-        </span>
-      </ButtonBase>
+      {tooltip && ariaLabel ? (
+        <FabTooltip available={!isOpen} label={ariaLabel}>
+          {toggle}
+        </FabTooltip>
+      ) : (
+        toggle
+      )}
     </span>
   );
 

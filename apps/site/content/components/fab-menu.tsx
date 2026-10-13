@@ -108,6 +108,11 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
               The button&apos;s name (<InlineCode>aria-label</InlineCode> or{' '}
               <InlineCode>aria-labelledby</InlineCode>) is required; it reports{' '}
               <InlineCode>aria-expanded</InlineCode> and <InlineCode>aria-controls</InlineCode>.
+              While closed, its <InlineCode>aria-label</InlineCode> shows in a tooltip on hover and
+              keyboard focus, as M3 asks of FABs on the web; open, it is the close button and has
+              none. It steps aside when you wrap the menu in your own{' '}
+              <InlineCode>TooltipTrigger</InlineCode>; <InlineCode>tooltip={'{false}'}</InlineCode>{' '}
+              turns it off.
             </li>
             <li>
               DOM order is the button then the items (shown above it), so Tab moves from the button
@@ -140,8 +145,9 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             <li>
               The toggle button keeps its FAB&apos;s layout box (56 / 80 / 96px) in a library-owned
               anchor; open, it becomes the 56px close button with 28px corners and a 20px icon.
-              Size, corners, container colour (<InlineCode>*-container</InlineCode> → the vibrant
-              role) and icon all follow one fast spatial spring. Elevation is level 3.
+              Size, corners and icon follow the fast spatial spring; the colours move from the{' '}
+              <InlineCode>*-container</InlineCode> role to the vibrant role on the fast effects
+              spring, so they never overshoot. Elevation is level 3.
             </li>
             <li>
               Items are 56px pills (min 56px wide, 24px padding, 8px icon gap, 24px icon,{' '}

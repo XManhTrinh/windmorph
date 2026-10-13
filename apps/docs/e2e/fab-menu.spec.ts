@@ -101,6 +101,70 @@ test.describe('FabMenu behaviour', () => {
   });
 });
 
+test.describe('FabMenu tooltip and colour motion', () => {
+  test('the closed button shows its label in a tooltip; the open one doesn’t', async ({ page }) => {
+    await openStory(page, 'components-fabmenu--playground');
+    const button = page.getByRole('button', { name: 'Create' });
+    await page.mouse.move(5, 5);
+    await button.hover();
+    await expect(page.getByRole('tooltip')).toHaveText('Create');
+    await expect(button).toHaveAttribute('aria-describedby', /.+/);
+
+    await button.click();
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await page.mouse.move(0, 0);
+    await button.hover();
+    await expect(button).toHaveAttribute('data-hovered', 'true');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await expect(button).not.toHaveAttribute('aria-describedby');
+  });
+
+  test('the button’s colours change without overshooting', async ({ page }) => {
+    await openStory(page, 'components-fabmenu--playground');
+    const button = page.getByRole('button', { name: 'Create' });
+    const colours = () =>
+      button.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { bg: style.backgroundColor, fg: style.color };
+      });
+    const from = await colours();
+    // Samples every frame while it opens.
+    const frames = await button.evaluate(
+      (el) =>
+        new Promise<{ bg: string; fg: string }[]>((resolve) => {
+          const samples: { bg: string; fg: string }[] = [];
+          const start = performance.now();
+          const sample = () => {
+            const style = getComputedStyle(el);
+            samples.push({ bg: style.backgroundColor, fg: style.color });
+            if (performance.now() - start < 800) requestAnimationFrame(sample);
+            else resolve(samples);
+          };
+          (el as HTMLElement).click();
+          requestAnimationFrame(sample);
+        }),
+    );
+    const to = frames.at(-1)!;
+    expect(to).not.toEqual(from);
+    const channels = (colour: string) =>
+      colour
+        .match(/\d+(\.\d+)?/g)!
+        .slice(0, 3)
+        .map(Number);
+    // Every channel of every frame stays between the closed and the open colour.
+    for (const key of ['bg', 'fg'] as const) {
+      const [a, b] = [channels(from[key]), channels(to[key])];
+      for (const frame of frames) {
+        channels(frame[key]).forEach((value, i) => {
+          expect(value).toBeGreaterThanOrEqual(Math.min(a[i]!, b[i]!) - 1);
+          expect(value).toBeLessThanOrEqual(Math.max(a[i]!, b[i]!) + 1);
+        });
+      }
+    }
+  });
+});
+
 test.describe('FabMenu short windows and web menu', () => {
   test('items scroll behind the close button, which stays reachable', async ({ page }) => {
     await page.setViewportSize({ width: 640, height: 280 });
