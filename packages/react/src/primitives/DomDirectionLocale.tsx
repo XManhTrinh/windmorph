@@ -2,6 +2,7 @@
 
 import { useCallback, useState, type ReactNode, type RefCallback } from 'react';
 import { I18nProvider, useLocale } from 'react-aria';
+import { localeWithDirection } from './locale-with-direction';
 
 export interface DomDirectionLocaleProps {
   /**
@@ -9,19 +10,6 @@ export interface DomDirectionLocaleProps {
    * drive React Aria (usually the component's root).
    */
   children: (directionRef: RefCallback<HTMLElement>) => ReactNode;
-}
-
-/**
- * The locale with the given direction, keeping its language and region so dates and
- * numbers still format the same: only the script changes (`en-US` → `en-Arab-US` for RTL,
- * `ar` → `ar-Latn` for LTR), which React Aria's `isRTL` reads.
- */
-export function localeWithDirection(locale: string, direction: 'ltr' | 'rtl'): string {
-  try {
-    return new Intl.Locale(locale, { script: direction === 'rtl' ? 'Arab' : 'Latn' }).toString();
-  } catch {
-    return direction === 'rtl' ? 'ar' : 'en-US';
-  }
 }
 
 /**

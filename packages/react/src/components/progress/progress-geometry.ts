@@ -1,4 +1,4 @@
-import { getMorph } from '../../primitives/use-m3-morph';
+import { getMorph } from '../../primitives/morph-path';
 import { CornerRounding } from '../../shapes/corner-rounding';
 import { cubicsToPath, polygonToPath } from '../../shapes/path';
 import type { RoundedPolygon } from '../../shapes/rounded-polygon';

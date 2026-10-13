@@ -1,4 +1,4 @@
-import { getMorph, type MorphShape } from '../../primitives/use-m3-morph';
+import { getMorph, type MorphShape } from '../../primitives/morph-path';
 import { MaterialShapes, type MaterialShapeName } from '../../shapes/material-shapes';
 import type { Morph } from '../../shapes/morph';
 import { cubicsToPath } from '../../shapes/path';

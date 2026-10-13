@@ -26,7 +26,7 @@ import {
 import { Item, useTabListState, type Key, type Node, type TabListState } from 'react-stately';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
-import { localeWithDirection } from '../../primitives/DomDirectionLocale';
+import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
