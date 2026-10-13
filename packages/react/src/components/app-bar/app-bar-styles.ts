@@ -7,7 +7,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Container `surface`, turning `surface-container` when content scrolls under it (a single
  * row, or a pinned two-row bar: animated on the default effects spring) or as a two-row bar
- * collapses (blended in Oklab with fast-out-linear-in, as Compose's lerp). No elevation.
+ * collapses (blended in Oklab with fast-out-linear-in, as Compose's lerp), or turning
+ * see-through with `scrolledColor="transparent"`. No elevation.
  *
  * Rows: the top row is 64px. Navigation icon `on-surface`, title `on-surface`, subtitle and
  * actions `on-surface-variant`. Compose's icon buttons take 48px of layout and ours 40px,
@@ -28,12 +29,12 @@ export const topAppBarStyles = tv({
   slots: {
     root: [
       'flex w-full flex-col text-on-surface',
-      'bg-[color:color-mix(in_oklab,var(--md-sys-color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
+      'bg-[color:color-mix(in_oklab,var(--m3-app-bar-scrolled-color,var(--md-sys-color-surface-container))_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
     ],
     // The top row: navigation icon, title and actions.
     row: [
       'grid h-[64px] shrink-0 items-center',
-      'bg-[color:color-mix(in_oklab,var(--md-sys-color-surface-container)_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
+      'bg-[color:color-mix(in_oklab,var(--m3-app-bar-scrolled-color,var(--md-sys-color-surface-container))_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
     ],
     // Icon buttons take each slot's content colour.
     navigation:
@@ -48,6 +49,8 @@ export const topAppBarStyles = tv({
     // M3: a long headline wraps to two lines at most.
     expandedTitle: 'line-clamp-2 text-on-surface',
     expandedSubtitle: 'text-on-surface-variant',
+    // The accessory row (`bottom`): on the bar's colour, laid out by its content.
+    bottom: 'flex min-w-0 shrink-0 flex-col',
   },
   variants: {
     variant: {
@@ -88,6 +91,14 @@ export const topAppBarStyles = tv({
      * as a whole once content scrolls under it, like a single row.
      */
     pinned: { true: {}, false: {} },
+    /**
+     * The colour content scrolls under: `surface-container`, or `transparent` (the bar fades
+     * from `surface` to see-through).
+     */
+    scrolledColor: {
+      container: {},
+      transparent: { root: '[--m3-app-bar-scrolled-color:transparent]' },
+    },
     /** Set when the bar responds to scrolling: it sticks, and its offset follows the scroll. */
     scrolling: {
       true: { root: 'sticky top-(--m3-app-bar-offset) z-(--md-sys-z-sticky)' },
@@ -138,6 +149,7 @@ export const topAppBarStyles = tv({
     scrolling: false,
     pinned: false,
     twoRows: false,
+    scrolledColor: 'container',
   },
 });
 

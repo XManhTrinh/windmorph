@@ -1,6 +1,8 @@
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TopAppBarChips } from '../../examples/top-app-bar/top-app-bar-chips';
 import { TopAppBarScrolling } from '../../examples/top-app-bar/top-app-bar-scrolling';
+import { TopAppBarTransparent } from '../../examples/top-app-bar/top-app-bar-transparent';
 import { TopAppBarVariants } from '../../examples/top-app-bar/top-app-bar-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -8,13 +10,17 @@ import { InlineCode } from '../../components/inline-code';
 
 /** Top app bar page body: the three sizes and scroll behaviour. */
 export async function TopAppBarBody(): Promise<ComponentDoc> {
-  const [variants, scrolling] = await Promise.all([
+  const [variants, scrolling, chips, transparent] = await Promise.all([
     readExampleSource('top-app-bar/top-app-bar-variants.tsx'),
     readExampleSource('top-app-bar/top-app-bar-scrolling.tsx'),
+    readExampleSource('top-app-bar/top-app-bar-chips.tsx'),
+    readExampleSource('top-app-bar/top-app-bar-transparent.tsx'),
   ]);
-  const [variantsHtml, scrollingHtml] = await Promise.all([
+  const [variantsHtml, scrollingHtml, chipsHtml, transparentHtml] = await Promise.all([
     highlightSource(variants),
     highlightSource(scrolling),
+    highlightSource(chips),
+    highlightSource(transparent),
   ]);
 
   return {
@@ -39,6 +45,22 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
             fileName="top-app-bar-scrolling.tsx"
           >
             <TopAppBarScrolling />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A row of chips in the bar"
+            code={chips}
+            html={chipsHtml}
+            fileName="top-app-bar-chips.tsx"
+          >
+            <TopAppBarChips />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Transparent on scroll"
+            code={transparent}
+            html={transparentHtml}
+            fileName="top-app-bar-transparent.tsx"
+          >
+            <TopAppBarTransparent />
           </ExampleViewer>
         </section>
       </>

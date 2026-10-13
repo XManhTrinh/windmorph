@@ -250,6 +250,53 @@ test.describe('TopAppBar theming', () => {
   }
 });
 
+test.describe('TopAppBar bottom slot and scrolled colour', () => {
+  test('the bottom row stays below the collapsed top row and takes the bar colour', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-topappbar--scrolling', {}, { bottom: true });
+    const chips = page.getByTestId('chips');
+    const rows = (await rect(chips)).bottom - (await rect(chips)).y;
+    expect(await visibleHeight(page)).toBe(112 + rows);
+    await scrollTo(page, 500);
+    // Collapsed: the 64px top row with the chips right below it.
+    expect(await visibleHeight(page)).toBe(64 + rows);
+    const scroller = await rect(page.getByTestId('scroller'));
+    expect((await rect(chips)).y).toBe(scroller.y + 1 + 64);
+    await expect
+      .poll(async () => (await barColours(page.getByTestId('bar'))).fill)
+      .toBe('surface-container');
+  });
+
+  test('the bottom row hides and comes back with an enter-always bar', async ({ page }) => {
+    await openStory(
+      page,
+      'components-topappbar--scrolling',
+      {},
+      { variant: 'small', scrollBehavior: 'enter-always', bottom: true },
+    );
+    await scrollTo(page, 600);
+    expect(await visibleHeight(page)).toBe(0);
+    await scrollTo(page, 560);
+    expect(await visibleHeight(page)).toBe(40);
+  });
+
+  test('scrolledColor="transparent" fades the bar to see-through', async ({ page }) => {
+    await openStory(
+      page,
+      'components-topappbar--scrolling',
+      {},
+      { variant: 'small', scrollBehavior: 'pinned', scrolledColor: 'transparent' },
+    );
+    const bar = page.getByTestId('bar');
+    expect((await barColours(bar)).fill).toBe('surface');
+    await scrollTo(page, 200);
+    await expect.poll(async () => (await barColours(bar)).fill).toBe('0,0,0,0');
+    await scrollTo(page, 0);
+    await expect.poll(async () => (await barColours(bar)).fill).toBe('surface');
+  });
+});
+
 test.describe('TopAppBar layout safety', () => {
   layoutSafetySuite('components-topappbar--layout-override', {
     height: 64,

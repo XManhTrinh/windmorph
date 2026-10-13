@@ -386,6 +386,7 @@ export {
   TopAppBar,
   type TopAppBarClassNames,
   type TopAppBarProps,
+  type TopAppBarScrolledColor,
 } from './components/app-bar/TopAppBar';
 export {
   topAppBarStyles,

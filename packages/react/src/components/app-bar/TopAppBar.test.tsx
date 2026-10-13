@@ -130,6 +130,37 @@ describe('TopAppBar', () => {
     expect(expanded).not.toHaveAttribute('aria-hidden');
   });
 
+  it('renders the bottom slot as the last row of the bar', () => {
+    render(
+      <TopAppBar
+        variant="medium"
+        title="Inbox"
+        bottom={<button type="button">Unread</button>}
+        classNames={{ bottom: 'px-[8px]' }}
+        data-testid="bar"
+      />,
+    );
+    const bar = screen.getByTestId('bar');
+    const last = bar.lastElementChild!;
+    expect(last).toContainElement(screen.getByRole('button', { name: 'Unread' }));
+    expect(last).toHaveClass('flex', 'px-[8px]');
+  });
+
+  it('turns see-through on scroll with scrolledColor="transparent"', async () => {
+    render(
+      <TopAppBar
+        title="Inbox"
+        scrollBehavior="pinned"
+        scrolledColor="transparent"
+        data-testid="bar"
+      />,
+    );
+    const bar = screen.getByTestId('bar');
+    expect(bar).toHaveClass('[--m3-app-bar-scrolled-color:transparent]');
+    await scrollWindow(10);
+    expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('100%');
+  });
+
   it('hides an enter-always bar on scroll down and brings it back on any scroll up', async () => {
     render(<TopAppBar title="Inbox" scrollBehavior="enter-always" data-testid="bar" />);
     const bar = screen.getByTestId('bar');

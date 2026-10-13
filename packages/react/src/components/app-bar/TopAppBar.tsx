@@ -17,6 +17,8 @@ export interface TopAppBarClassNames {
   actions?: string;
   /** The expanded title row of medium and large bars. */
   expandedRow?: string;
+  /** The accessory row below the title rows (`bottom`). */
+  bottom?: string;
 }
 
 interface TopAppBarOwnProps {
@@ -42,8 +44,28 @@ interface TopAppBarOwnProps {
   scrollBehavior?: TopAppBarScrollBehavior;
   /** The scroll container the bar responds to. Defaults to the window. */
   scrollRef?: RefObject<HTMLElement | null>;
+  /**
+   * An accessory row below the title rows, such as a row of filter chips or tabs (M3: app
+   * bars "can animate on and off screen with another bar of controls, like a row of chips").
+   * It's part of the bar: it takes the bar's colour, stays below the collapsed top row of
+   * a medium or large bar, and hides and comes back with the bar under `enter-always` and
+   * a small bar's `exit-until-collapsed`. Give it its own padding.
+   */
+  bottom?: ReactNode;
+  /**
+   * The container's colour once content scrolls under the bar. `container` fills it with
+   * `surface-container` (M3's default); `transparent` lets the content show through (M3:
+   * "consider setting the app bar container to be transparent on scroll"); give the icon
+   * buttons a container fill then (e.g. `variant="tonal"`), so they stay legible over the
+   * content.
+   * @default "container"
+   */
+  scrolledColor?: TopAppBarScrolledColor;
   classNames?: TopAppBarClassNames;
 }
+
+/** The colour a {@link TopAppBar} takes when content scrolls under it. */
+export type TopAppBarScrolledColor = 'container' | 'transparent';
 
 export type TopAppBarProps = TopAppBarOwnProps &
   Omit<ComponentPropsWithRef<'header'>, keyof TopAppBarOwnProps | 'children'>;
@@ -68,6 +90,8 @@ export function TopAppBar({
   actions,
   scrollBehavior,
   scrollRef,
+  bottom,
+  scrolledColor = 'container',
   classNames,
   className,
   ref,
@@ -91,6 +115,7 @@ export function TopAppBar({
     scrolling: scrollBehavior != null,
     pinned: scrollBehavior === 'pinned',
     twoRows,
+    scrolledColor,
   });
   // Only one of a two-row bar's titles is announced: the expanded one until it is half collapsed.
   const hideTopTitle = twoRows && !scroll.collapsed;
@@ -130,6 +155,9 @@ export function TopAppBar({
             <div className={styles.expandedTitle()}>{title}</div>
             {subtitle != null && <div className={styles.expandedSubtitle()}>{subtitle}</div>}
           </div>
+        )}
+        {bottom != null && (
+          <div className={styles.bottom({ class: classNames?.bottom })}>{bottom}</div>
         )}
       </ButtonContext>
     </header>
