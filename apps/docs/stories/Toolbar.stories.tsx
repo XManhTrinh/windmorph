@@ -4,6 +4,7 @@ import {
   FloatingToolbar,
   IconButton,
   ToolbarFab,
+  useToolbarScrollExit,
   useToolbarScrollExpansion,
   type FloatingToolbarColor,
 } from '@windmorph/react';
@@ -95,6 +96,35 @@ export const Floating: Story = {
           {formatting}
         </FloatingToolbar>
       ))}
+    </div>
+  ),
+};
+
+/**
+ * The icon-button roles of each colour scheme (M3 toolbar colour spec): filled, a selected
+ * tonal toggle and standard buttons; vibrant toolbars recolour the toggle and the standard
+ * buttons. Last, a toolbar without elevation for visually distinct content.
+ */
+export const ButtonColors: Story = {
+  render: () => (
+    <div className="flex flex-col items-start gap-6" data-testid="button-colors">
+      {(['standard', 'vibrant'] as const).map((color) => (
+        <FloatingToolbar key={color} aria-label={color} color={color}>
+          <IconButton variant="filled" icon={<EditIcon />} aria-label="Compose" />
+          <IconButton
+            toggle
+            variant="tonal"
+            defaultSelected
+            icon={<FormatBoldIcon />}
+            aria-label="Bold"
+          />
+          <IconButton toggle variant="tonal" icon={<FormatItalicIcon />} aria-label="Italic" />
+          <IconButton icon={<SearchIcon />} aria-label="Search" />
+        </FloatingToolbar>
+      ))}
+      <FloatingToolbar aria-label="flat" elevated={false}>
+        {formatting}
+      </FloatingToolbar>
     </div>
   ),
 };
@@ -221,11 +251,54 @@ export const ScrollExpansion: Story = {
   },
 };
 
-/** The docked toolbar, spread out and centred. */
+/**
+ * `useToolbarScrollExit`: scroll down 40px and the toolbars slide off the screen, back up
+ * 40px and they return.
+ */
+export const ScrollExit: Story = {
+  render: function ScrollExitStory({ color }) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const visible = useToolbarScrollExit({ scrollRef });
+    return (
+      <div className="relative h-[480px] w-[360px] overflow-hidden rounded-corner-large border border-outline-variant">
+        <div ref={scrollRef} className="h-full overflow-y-auto p-4" data-testid="scroller">
+          {Array.from({ length: 40 }, (_, index) => (
+            <p key={index} className="py-2 text-body-large">
+              Message {index + 1}
+            </p>
+          ))}
+        </div>
+        <FloatingToolbar
+          aria-label="Formatting"
+          data-testid="floating"
+          color={color}
+          visible={visible}
+          exitEdge="end"
+          orientation="vertical"
+          className="absolute end-6 top-6"
+        >
+          {formatting}
+        </FloatingToolbar>
+        <DockedToolbar
+          aria-label="Message actions"
+          data-testid="docked"
+          visible={visible}
+          className="absolute inset-x-0 bottom-0"
+        >
+          <IconButton icon={<SearchIcon />} aria-label="Search" />
+          <IconButton icon={<StarIcon />} aria-label="Starred" />
+          <IconButton icon={<SendIcon />} aria-label="Sent" />
+        </DockedToolbar>
+      </div>
+    );
+  },
+};
+
+/** The docked toolbar, centred (the default) and spread out (for compact windows). */
 export const Docked: Story = {
   render: () => (
     <div className="flex w-[412px] flex-col gap-6" data-testid="docked">
-      {(['space-between', 'centered'] as const).map((arrangement) => (
+      {(['centered', 'space-between'] as const).map((arrangement) => (
         <DockedToolbar key={arrangement} aria-label={arrangement} arrangement={arrangement}>
           <IconButton icon={<SearchIcon />} aria-label="Search" />
           <IconButton icon={<StarIcon />} aria-label="Starred" />

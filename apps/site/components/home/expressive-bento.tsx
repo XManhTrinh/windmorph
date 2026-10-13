@@ -79,7 +79,9 @@ function Tile({ className, children }: { className?: string; children: ReactNode
  * A bento grid of live M3 Expressive components that switch between a resting and an active
  * state on a loop: a FAB menu, a toolbar with its FAB, a button group, progress indicators,
  * a toolbar selection, the loading indicator, an icon button's shape morph and an expanded
- * navigation rail, in the baseline theme and flat (no elevation), like M3's own showcase. Each change is a real press on the control, so its
+ * navigation rail, in the baseline theme and flat (no elevation), like M3's own showcase:
+ * the toolbars and the rail's FAB through their flat options, the FAB menu and the toolbar's
+ * FAB through classes. Each change is a real press on the control, so its
  * press animation plays first. It's decorative (`inert`, hidden from assistive
  * technology), pauses off screen and holds the active state when the visitor prefers reduced
  * motion.
@@ -95,7 +97,7 @@ export function ExpressiveBento() {
       theme="baseline"
       inert
       aria-hidden="true"
-      className="grid auto-rows-[220px] [&_*]:shadow-none! grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6"
+      className="grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6"
     >
       {/* FAB menu: the FAB opens into its actions */}
       <Tile className="col-span-2 row-span-2 large:col-span-1 large:col-start-1 large:row-span-6 large:row-start-1">
@@ -104,16 +106,23 @@ export function ExpressiveBento() {
           <FabMenu
             open={active}
             color="primary"
-            align="end"
             icon={<EditIcon />}
             openIcon={<CloseIcon />}
             aria-label="Album actions"
-            classNames={{ button: 'bg-primary text-on-primary' }}
+            classNames={{ button: 'bg-primary text-on-primary shadow-none' }}
           >
-            <FabMenuItem icon={<CheckCircleFilledIcon />}>Select</FabMenuItem>
-            <FabMenuItem icon={<AddAPhotoIcon />}>Add photos</FabMenuItem>
-            <FabMenuItem icon={<ShareIcon />}>Share album</FabMenuItem>
-            <FabMenuItem icon={<SearchIcon />}>Search</FabMenuItem>
+            <FabMenuItem className="shadow-none" icon={<CheckCircleFilledIcon />}>
+              Select
+            </FabMenuItem>
+            <FabMenuItem className="shadow-none" icon={<AddAPhotoIcon />}>
+              Add photos
+            </FabMenuItem>
+            <FabMenuItem className="shadow-none" icon={<ShareIcon />}>
+              Share album
+            </FabMenuItem>
+            <FabMenuItem className="shadow-none" icon={<SearchIcon />}>
+              Search
+            </FabMenuItem>
           </FabMenu>
         </div>
       </Tile>
@@ -122,11 +131,14 @@ export function ExpressiveBento() {
       <Tile className="col-span-2 large:col-span-1 large:col-start-2 large:row-span-4 large:row-start-1">
         <FloatingToolbar
           aria-label="Note actions"
+          elevated={false}
           expanded={active}
           classNames={{ fab: 'data-collapsed:size-[56px]' }}
           fab={
             <ToolbarFab
               data-press="on off"
+              className="shadow-none"
+              tooltip={false}
               color="vibrant"
               icon={active ? <CloseIcon /> : <EditIcon />}
               aria-label="Edit"
@@ -184,7 +196,7 @@ export function ExpressiveBento() {
 
       {/* Toolbar: one tool becomes the selected, wide button */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-1 large:row-span-4 large:row-start-7">
-        <FloatingToolbar aria-label="Photo tools">
+        <FloatingToolbar aria-label="Photo tools" elevated={false}>
           <IconButton toggle variant="filled" icon={<InkPenIcon />} aria-label="Markup" />
           <IconButton toggle variant="filled" icon={<CropIcon />} aria-label="Crop" />
           <IconButton toggle variant="filled" icon={<TuneIcon />} aria-label="Adjust" />
@@ -231,7 +243,7 @@ export function ExpressiveBento() {
           header={
             <div className="flex flex-col items-start gap-6">
               <IconButton icon={<MenuOpenIcon />} aria-label="Collapse" />
-              <ExtendedFab color="tertiary-container" icon={<PersonAddIcon />}>
+              <ExtendedFab color="tertiary-container" elevation="flat" icon={<PersonAddIcon />}>
                 Add friend
               </ExtendedFab>
             </div>

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
 import { useThemeScope } from '../theme/context';
 import { themeAttributes } from '../theme/state';
+import { ToolbarContext } from './ToolbarContext';
 
 export interface OverlayProps {
   children: ReactNode;
@@ -66,7 +67,8 @@ export function Overlay({
           data-react-aria-top-layer={topLayer || undefined}
           style={{ display: 'contents', color: 'var(--md-sys-color-on-surface)' }}
         >
-          {children}
+          {/* An overlay opened from a toolbar isn't part of it. */}
+          <ToolbarContext value={null}>{children}</ToolbarContext>
         </div>
       </AriaOverlay>
     </>

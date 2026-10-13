@@ -234,6 +234,8 @@ export const iconButtonStyles = tv({
     toggle: { true: {}, false: {} },
     /** Position in a connected button group, set by `ButtonGroup`. */
     connected: { none: {}, leading: {}, middle: {}, trailing: {} },
+    /** The colour scheme of an enclosing toolbar, set from its context. */
+    toolbar: { none: {}, standard: {}, vibrant: {} },
   },
   compoundVariants: [
     ...sizeVariants,
@@ -267,6 +269,18 @@ export const iconButtonStyles = tv({
         root: 'data-selected:not-data-disabled:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
       },
     },
+    // In a vibrant toolbar (M3 toolbar colour spec, FloatingToolbarTokens.VibrantButton*):
+    // standard buttons are on-primary-container, and selected tonal toggles turn
+    // surface-container / on-surface.
+    { variant: 'standard', toolbar: 'vibrant', class: { root: 'text-on-primary-container' } },
+    {
+      variant: 'tonal',
+      toggle: true,
+      toolbar: 'vibrant',
+      class: {
+        root: 'data-selected:not-data-disabled:bg-surface-container data-selected:not-data-disabled:text-on-surface',
+      },
+    },
   ],
   defaultVariants: {
     variant: 'standard',
@@ -275,6 +289,7 @@ export const iconButtonStyles = tv({
     shape: 'round',
     toggle: false,
     connected: 'none',
+    toolbar: 'none',
   },
 });
 

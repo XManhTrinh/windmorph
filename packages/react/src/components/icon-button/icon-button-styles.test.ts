@@ -13,10 +13,19 @@ function* outputs() {
       for (const width of ['narrow', 'default', 'wide'] as const)
         for (const shape of ['round', 'square'] as const)
           for (const toggle of [false, true])
-            for (const connected of ['none', 'leading', 'middle', 'trailing'] as const) {
-              const slots = iconButtonStyles({ variant, size, width, shape, toggle, connected });
-              yield* [slots.root(), slots.content(), slots.icon()];
-            }
+            for (const connected of ['none', 'leading', 'middle', 'trailing'] as const)
+              for (const toolbar of ['none', 'standard', 'vibrant'] as const) {
+                const slots = iconButtonStyles({
+                  variant,
+                  size,
+                  width,
+                  shape,
+                  toggle,
+                  connected,
+                  toolbar,
+                });
+                yield* [slots.root(), slots.content(), slots.icon()];
+              }
 }
 
 describe('iconButtonStyles', () => {

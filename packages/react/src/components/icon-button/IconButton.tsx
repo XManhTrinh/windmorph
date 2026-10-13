@@ -12,6 +12,7 @@ import { TouchTarget } from '../../primitives/TouchTarget';
 import { cn } from '../../utils/cn';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
+import { ToolbarContext } from '../../primitives/ToolbarContext';
 import {
   iconButtonStyles,
   type IconButtonVariant,
@@ -91,14 +92,22 @@ export function IconButton(props: IconButtonProps) {
   } = props as IconButtonToggleProps & IconButtonProps;
 
   const context = useContext(ButtonContext);
+  const toolbar = useContext(ToolbarContext);
   const size = sizeProp ?? context.size ?? 'sm';
+  const shape = shapeProp ?? context.shape ?? 'round';
+  if (process.env.NODE_ENV !== 'production' && toolbar?.kind === 'floating' && shape === 'square') {
+    console.warn(
+      '[@windmorph/react] Avoid square icon buttons in a floating toolbar (M3): their shape conflicts with its fully rounded container.',
+    );
+  }
   const styles = iconButtonStyles({
     variant,
     size,
     width,
-    shape: shapeProp ?? context.shape ?? 'round',
+    shape,
     toggle: base.toggle === true,
     connected: context.connected ?? 'none',
+    toolbar: toolbar?.color ?? 'none',
   });
 
   // Destructuring a union merges its members (see Button); `base` holds one member's props.

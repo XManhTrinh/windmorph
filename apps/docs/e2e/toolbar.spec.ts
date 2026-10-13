@@ -36,6 +36,13 @@ test.describe('Toolbar visual regression', () => {
     });
   }
 
+  for (const mode of MODES) {
+    test(`button colours · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--button-colors', { mode });
+      await expect(page.getByTestId('button-colors')).toHaveScreenshot(`button-colors-${mode}.png`);
+    });
+  }
+
   test('with FAB · rtl', async ({ page }) => {
     await openStory(page, 'components-toolbar--with-fab', { dir: 'rtl' });
     await expect(page.getByTestId('with-fab')).toHaveScreenshot('with-fab-rtl.png');
@@ -61,15 +68,21 @@ test.describe('Toolbar geometry', () => {
     const toolbar = page.getByTestId('toolbar');
     await page.getByRole('button', { name: 'Collapse' }).click();
     await expect.poll(async () => (await box(toolbar)).width).toBe(160);
-    await expect(page.getByRole('button', { name: 'Edit' })).toBeHidden();
+    // Clipped to nothing once the track has closed, but still in the accessibility tree.
+    const clip = () =>
+      page
+        .getByRole('button', { name: 'Edit' })
+        .evaluate((el) => getComputedStyle(el.parentElement!.parentElement!).clipPath);
+    await expect.poll(clip).toBe('inset(50%)');
 
-    // Keyboard focus expands the toolbar so the hidden controls can be reached.
+    // Focus reaching the collapsed controls expands the toolbar.
     await page.getByRole('button', { name: 'Expand' }).focus();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
-    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
-    await page.keyboard.press('ArrowLeft');
     await expect(page.getByRole('button', { name: 'Edit' })).toBeFocused();
+    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    await expect.poll(clip).not.toBe('inset(50%)');
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'After' })).toBeFocused();
     await expect(toolbar).toHaveAttribute('data-expanded', 'false');
@@ -100,7 +113,13 @@ test.describe('Toolbar geometry', () => {
       const fabBox = await box(fab);
       if (dir === 'ltr') expect(fabBox.x + fabBox.width).toBe(expanded.x + expanded.width);
       else expect(fabBox.x).toBe(expanded.x);
-      await expect(page.getByRole('button', { name: 'Bold' })).toBeHidden();
+      // The toolbar has faded to nothing; its controls stay reachable by focus.
+      const surface = page.getByRole('button', { name: 'Bold' }).locator('../..');
+      await expect.poll(() => surface.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+      await page.getByRole('button', { name: 'Expand' }).focus();
+      await page.keyboard.press('Tab');
+      await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
+      await expect(toolbar).toHaveAttribute('data-expanded', 'true');
     });
   }
 
@@ -112,6 +131,35 @@ test.describe('Toolbar geometry', () => {
     await expect(toolbar).toHaveAttribute('data-expanded', 'false');
     await scroller.evaluate((el) => el.scrollTo(0, 100));
     await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+  });
+});
+
+test.describe('Toolbar scroll exit', () => {
+  test('scrolling slides both toolbars off the screen and back', async ({ page }) => {
+    await openStory(page, 'components-toolbar--scroll-exit');
+    const scroller = page.getByTestId('scroller');
+    const docked = page.getByTestId('docked');
+    const floating = page.getByTestId('floating');
+    const transform = (locator: Locator) =>
+      locator.evaluate((el) => getComputedStyle(el).transform);
+    expect(await transform(docked)).toBe('none');
+    // A floating toolbar is elevated by default.
+    expect(await floating.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe('none');
+
+    await scroller.evaluate((el) => el.scrollTo(0, 200));
+    await expect(docked).toHaveAttribute('data-hidden', 'true');
+    await expect(docked).toHaveAttribute('inert');
+    // Off the bottom edge (64px), and the vertical toolbar off the end edge.
+    await expect.poll(() => transform(docked)).toBe('matrix(1, 0, 0, 1, 0, 64)');
+    await expect
+      .poll(() => docked.evaluate((el) => getComputedStyle(el).visibility))
+      .toBe('hidden');
+    await expect.poll(() => transform(floating)).toBe('matrix(1, 0, 0, 1, 88, 0)');
+
+    await scroller.evaluate((el) => el.scrollTo(0, 100));
+    await expect(docked).not.toHaveAttribute('data-hidden');
+    await expect.poll(() => transform(docked)).toBe('none');
+    await expect.poll(() => transform(floating)).toBe('none');
   });
 });
 

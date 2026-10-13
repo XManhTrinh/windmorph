@@ -189,6 +189,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       elevation: 'level3',
     },
     related: ['fab-menu', 'icon-button', 'button'],
+    keywords: ['floating action button', 'extended FAB', 'tooltip', 'show', 'hide', 'flat'],
     whenNotToUse: 'For secondary actions use a Button or IconButton; a screen has one FAB at most.',
   },
   {
@@ -196,7 +197,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     title: 'FAB menu',
     group: 'Actions',
     railGroup: 'actions',
-    summary: 'A FAB that opens a stack of related actions above it.',
+    summary: 'A FAB that opens two to six related actions above it, or a menu on the web.',
     propsComponents: ['FabMenu', 'FabMenuItem'],
     playground: 'full',
     expressive: true,
@@ -205,6 +206,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       elevation: 'level3',
     },
     related: ['fab', 'menu', 'toolbars'],
+    keywords: ['speed dial', 'menu', 'actions'],
     whenNotToUse: 'For a single action use a plain FAB; for a long list of choices use a Menu.',
   },
   {
@@ -1081,15 +1083,16 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Navigation',
     railGroup: 'navigation',
     summary:
-      'Docked and floating toolbars of related actions, with an optional FAB and scroll collapse.',
+      'Docked and floating toolbars of related actions, with an optional FAB, scroll collapse and scroll exit.',
     propsComponents: ['DockedToolbar', 'FloatingToolbar', 'ToolbarFab'],
-    hooks: ['useToolbarScrollExpansion'],
+    hooks: ['useToolbarScrollExpansion', 'useToolbarScrollExit'],
     playground: 'showcase',
     expressive: true,
     specs: {
       variants: ['docked', 'floating'],
     },
     related: ['top-app-bar', 'fab', 'icon-button'],
+    keywords: ['bottom app bar', 'action bar', 'overflow menu', 'scroll'],
     whenNotToUse: 'For the screen title and global actions use a Top app bar.',
   },
   {

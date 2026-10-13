@@ -1,18 +1,27 @@
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
- * Values follow Compose Material 3 (FloatingToolbar.kt, AppBar.kt's FlexibleBottomAppBar
- * and the FloatingToolbar / DockedToolbar token files).
+ * Values follow the M3 Expressive spec and its tokens (the FloatingToolbar / DockedToolbar
+ * token files), with Compose Material 3's FloatingToolbar.kt and AppBar.kt's
+ * FlexibleBottomAppBar as the recipe.
  *
  * Docked: 64px, `surface-container`, square corners, no elevation, 16px at each end; items
- * spread out (space-between) or sit 32px apart in the centre.
+ * sit 32px apart in the centre (the default) or spread out (space-between, for compact
+ * windows).
  *
  * Floating: at least 64px across, full corners, 8px padding, `surface-container` (standard)
- * or `primary-container` (vibrant). Compose's icon buttons take up 48px of layout while
+ * or `primary-container` (vibrant), level 1 by default (M3: floating toolbars have
+ * elevation by default). Content is `on-surface-variant` (standard, the icon-button role)
+ * or `on-primary-container` (vibrant). Compose's icon buttons take up 48px of layout while
  * ours take 40px (the 48px touch target is overlaid), so every content group adds 4px at
  * its ends and 8px between items, which reproduces Compose's spacing for icon buttons.
  * Leading / trailing content collapses on the fast spatial spring (grid 0fr ↔ 1fr), so the
- * root's size follows it without transforms.
+ * root's size follows it without transforms. Collapsed content stays in the tab order and
+ * the accessibility tree, clipped to nothing, and focusing it expands the toolbar.
+ *
+ * Exiting on scroll (`visible={false}`): the toolbar slides off its edge on the fast
+ * spatial spring (a `transform` set only while hidden, so it composes with Tailwind's
+ * `translate-*` utilities); reduced motion fades it instead.
  *
  * With a FAB: the toolbar is level 1 expanded and level 0 collapsed, 8px from the FAB.
  * Collapsing shrinks the toolbar's width to 0 towards the FAB while the FAB grows from 56px
@@ -26,10 +35,34 @@ const spatialFast = [
   '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
 ];
 
+/** The root's exit-on-scroll motion; each edge variant sets the hidden transform. */
+const exitMotion = [
+  'data-hidden:invisible motion-reduce:data-hidden:opacity-0 motion-reduce:data-hidden:[transform:none]',
+  '[transition-property:transform,opacity,visibility]',
+  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+  '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
+];
+
+/** Where a hidden toolbar goes: past its edge plus the 24px margin of a vertical toolbar. */
+const exitEdges = {
+  bottom: { root: 'data-hidden:[transform:translateY(calc(100%+24px))]' },
+  top: { root: 'data-hidden:[transform:translateY(calc(-100%-24px))]' },
+  start: {
+    root: 'data-hidden:[transform:translateX(calc(-100%-24px))] rtl:data-hidden:[transform:translateX(calc(100%+24px))]',
+  },
+  end: {
+    root: 'data-hidden:[transform:translateX(calc(100%+24px))] rtl:data-hidden:[transform:translateX(calc(-100%-24px))]',
+  },
+} as const;
+
 /** Variant definitions for {@link DockedToolbar}; extend them to add variants. */
 export const dockedToolbarStyles = tv({
   slots: {
-    root: 'flex h-[64px] w-full items-center bg-surface-container ps-[16px] pe-[16px] text-on-surface',
+    root: [
+      'flex h-[64px] w-full items-center bg-surface-container ps-[16px] pe-[16px] text-on-surface-variant',
+      ...exitMotion,
+      'data-hidden:[transform:translateY(100%)]',
+    ],
   },
   variants: {
     arrangement: {
@@ -37,47 +70,47 @@ export const dockedToolbarStyles = tv({
       centered: { root: 'justify-center gap-[32px]' },
     },
   },
-  defaultVariants: { arrangement: 'space-between' },
+  defaultVariants: { arrangement: 'centered' },
 });
 
 /** Variant definitions for {@link FloatingToolbar}; extend them to add colour styles. */
 export const floatingToolbarStyles = tv({
   slots: {
-    root: 'inline-flex shrink-0 items-center justify-center',
+    root: ['inline-flex shrink-0 items-center justify-center', ...exitMotion],
     // A group of items (main, leading or trailing content).
     items: 'flex shrink-0 items-center',
     // Collapsible leading / trailing content: a grid track that animates 0fr ↔ 1fr.
-    // Collapsed content turns invisible once the track has closed (visibility switches at
-    // the end of its linear transition), so no sliver stays visible. Expanding uses the
-    // spatial spring; collapsing uses the effects spring, which doesn't overshoot, because
-    // a size can't overshoot below 0 and would bounce back open by a pixel or two.
+    // Expanding uses the spatial spring; collapsing uses the effects spring, which doesn't
+    // overshoot, because a size can't overshoot below 0 and would bounce back open by a
+    // pixel or two. Collapsed content stays focusable and in the accessibility tree.
     collapse: [
-      'grid visible data-collapsed:invisible',
-      '[transition-property:grid-template-columns,grid-template-rows,visibility]',
-      // Visible at once when expanding (so keyboard focus can reach the content in the
-      // first frame); invisible only after the track has closed.
-      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),0s]',
-      'data-collapsed:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),linear]',
-      'data-collapsed:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
+      'grid',
+      '[transition-property:grid-template-columns,grid-template-rows]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+      'data-collapsed:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
     // Clips the content horizontally (or vertically) while it collapses, leaving room for
-    // focus rings and touch targets on the other axis.
-    clip: 'flex min-h-0 min-w-0',
+    // focus rings and touch targets on the other axis. Once the track has closed (a delay
+    // as long as the collapse) it clips everything, so no sliver stays visible.
+    clip: [
+      'flex min-h-0 min-w-0 data-collapsed:[clip-path:inset(50%)]',
+      '[transition-property:clip-path] [transition-duration:0s]',
+      'data-collapsed:[transition-delay:var(--md-sys-motion-spring-effects-fast-duration)]',
+    ],
     // FAB layout: the toolbar's slot keeps the expanded width while the surface shrinks,
     // collapsing on the effects spring for the same reason as `collapse`.
     toolbarSlot: 'flex shrink-0',
     surface: [
-      'visible overflow-hidden rounded-corner-full opacity-100 shadow-elevation-1',
-      'data-collapsed:invisible data-collapsed:opacity-0 data-collapsed:shadow-elevation-0',
-      // Width, height and shadow move on the spatial spring; the surface also fades (on the
-      // default effects spring while collapsing), so the last pixels of a collapse never show
-      // as a thin line.
-      '[transition-property:width,height,box-shadow,visibility,opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),0s,var(--md-sys-motion-spring-effects-fast-duration)]',
-      'data-collapsed:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),linear,var(--md-sys-motion-spring-effects-fast-easing)]',
-      'data-collapsed:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear,var(--md-sys-motion-spring-effects-default-easing)]',
+      'overflow-hidden rounded-corner-full opacity-100',
+      'data-collapsed:opacity-0 data-collapsed:shadow-elevation-0',
+      // Width, height and shadow move on the spatial spring; the surface also fades on the
+      // fast effects spring, so the last pixels of a collapse never show as a thin line.
+      // Collapsed, it stays focusable and in the accessibility tree, clipped to nothing.
+      '[transition-property:width,height,box-shadow,opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
+      'data-collapsed:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
     content: 'flex items-center',
     fabSlot: 'flex shrink-0 items-center',
@@ -111,9 +144,12 @@ export const floatingToolbarStyles = tv({
       },
     },
     color: {
-      standard: { root: 'text-on-surface' },
+      standard: { root: 'text-on-surface-variant' },
       vibrant: { root: 'text-on-primary-container' },
     },
+    /** Level 1 by default; turn it off over visually distinct content. */
+    elevated: { true: {}, false: {} },
+    exitEdge: exitEdges,
     /** Paints the container on the root (no FAB) or on the toolbar surface (with a FAB). */
     hasFab: {
       false: { root: 'rounded-corner-full p-[8px]' },
@@ -126,6 +162,9 @@ export const floatingToolbarStyles = tv({
     },
   },
   compoundVariants: [
+    { hasFab: false, elevated: true, class: { root: 'shadow-elevation-1' } },
+    // With a FAB, the toolbar's own surface is level 1 expanded and level 0 collapsed.
+    { hasFab: true, elevated: true, class: { surface: 'shadow-elevation-1' } },
     { hasFab: false, color: 'standard', class: { root: 'bg-surface-container' } },
     { hasFab: false, color: 'vibrant', class: { root: 'bg-primary-container' } },
     { hasFab: true, color: 'standard', class: { surface: 'bg-surface-container' } },
@@ -141,7 +180,14 @@ export const floatingToolbarStyles = tv({
     },
     { hasFab: true, fabAt: 'start', orientation: 'vertical', class: { root: 'flex-col-reverse' } },
   ],
-  defaultVariants: { orientation: 'horizontal', color: 'standard', hasFab: false, fabAt: 'end' },
+  defaultVariants: {
+    orientation: 'horizontal',
+    color: 'standard',
+    elevated: true,
+    exitEdge: 'bottom',
+    hasFab: false,
+    fabAt: 'end',
+  },
 });
 
 /**
@@ -195,3 +241,4 @@ export type DockedToolbarArrangement = NonNullable<DockedToolbarStyleProps['arra
 export type FloatingToolbarStyleProps = VariantProps<typeof floatingToolbarStyles>;
 export type FloatingToolbarColor = NonNullable<FloatingToolbarStyleProps['color']>;
 export type ToolbarOrientation = NonNullable<FloatingToolbarStyleProps['orientation']>;
+export type ToolbarExitEdge = NonNullable<FloatingToolbarStyleProps['exitEdge']>;

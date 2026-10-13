@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  createContext,
   useContext,
   useLayoutEffect,
   useMemo,
@@ -9,6 +8,7 @@ import {
   useState,
   type ComponentPropsWithRef,
   type CSSProperties,
+  type FocusEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -23,6 +23,8 @@ import {
 } from '../../primitives/ButtonBase';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
+import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { ToolbarContext } from '../../primitives/ToolbarContext';
 import {
   dockedToolbarStyles,
   floatingToolbarStyles,
@@ -30,10 +32,17 @@ import {
   toolbarFabStyles,
   type DockedToolbarArrangement,
   type FloatingToolbarColor,
+  type ToolbarExitEdge,
   type ToolbarOrientation,
 } from './toolbar-styles';
 
-const ToolbarColorContext = createContext<FloatingToolbarColor>('standard');
+const DOCKED = { kind: 'docked', color: 'standard' } as const;
+
+/** The `data-*` and `inert` attributes of a toolbar that has exited the screen. */
+const exitProps = (visible: boolean) => ({
+  'data-hidden': visible ? undefined : true,
+  inert: !visible || undefined,
+});
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
@@ -62,8 +71,16 @@ export interface DockedToolbarClassNames {
 }
 
 interface DockedToolbarOwnProps {
-  /** Spread the items across the toolbar, or centre them 32px apart. @default "space-between" */
+  /**
+   * Centre the items 32px apart (M3's default), or spread them across the toolbar, which
+   * M3 recommends in compact windows. @default "centered"
+   */
   arrangement?: DockedToolbarArrangement;
+  /**
+   * Shows the toolbar. Hiding it slides it off the bottom of the window, e.g. while the
+   * page scrolls (`useToolbarScrollExit`). A hidden toolbar is `inert`. @default true
+   */
+  visible?: boolean;
   /** The toolbar's controls, e.g. icon buttons, buttons or a FAB. */
   children: ReactNode;
   classNames?: DockedToolbarClassNames;
@@ -91,6 +108,7 @@ export function DockedToolbar(props: DockedToolbarProps) {
 
 function DockedToolbarRoot({
   arrangement,
+  visible = true,
   children,
   classNames,
   className,
@@ -105,12 +123,13 @@ function DockedToolbarRoot({
   return (
     <div
       {...mergeProps(rest, toolbarProps)}
+      {...exitProps(visible)}
       ref={rootRef}
       className={dockedToolbarStyles({ arrangement }).root({
         class: cn(classNames?.root, className),
       })}
     >
-      {children}
+      <ToolbarContext value={DOCKED}>{children}</ToolbarContext>
     </div>
   );
 }
@@ -133,11 +152,26 @@ interface FloatingToolbarBaseProps {
   /** @default "standard" (`surface-container`); "vibrant" is `primary-container`. */
   color?: FloatingToolbarColor;
   /**
+   * Level 1 elevation, which M3 gives floating toolbars by default. Remove it when the
+   * content beneath is visually distinct. @default true
+   */
+  elevated?: boolean;
+  /**
    * Shows the leading and trailing content, or (with a FAB) the toolbar itself. Collapse
-   * it while the page scrolls, e.g. with `useToolbarScrollExpansion`. Keyboard focus
-   * inside the toolbar expands it, so every control stays reachable. @default true
+   * it while the page scrolls, e.g. with `useToolbarScrollExpansion`. Collapsed controls
+   * stay in the tab order and the accessibility tree, and keyboard focus inside the
+   * toolbar expands it, so every control stays reachable. @default true
    */
   expanded?: boolean;
+  /**
+   * Shows the toolbar. Hiding it slides it off `exitEdge`, e.g. while the page scrolls
+   * (`useToolbarScrollExit`). A hidden toolbar is `inert`. Don't combine it with
+   * collapsing: M3 says a toolbar shouldn't both collapse and leave the screen.
+   * @default true
+   */
+  visible?: boolean;
+  /** The window edge a hidden toolbar slides past (logical). @default "bottom" */
+  exitEdge?: ToolbarExitEdge;
   /** The main controls, always shown. */
   children: ReactNode;
   classNames?: FloatingToolbarClassNames;
@@ -202,7 +236,10 @@ export function FloatingToolbar(props: FloatingToolbarProps) {
 function FloatingToolbarRoot({
   orientation = 'horizontal',
   color = 'standard',
+  elevated = true,
   expanded: expandedProp = true,
+  visible = true,
+  exitEdge,
   leading,
   trailing,
   fab,
@@ -216,17 +253,40 @@ function FloatingToolbarRoot({
   ...rest
 }: FloatingToolbarProps & { directionRef: RefCallback<HTMLElement> }) {
   const { rootRef, toolbarProps } = useToolbarRoot(ref, directionRef, { ...rest, orientation });
-  // Keyboard focus inside expands the toolbar, so collapsed controls stay reachable.
+  // Keyboard focus inside expands the toolbar. So does any focus that lands on collapsed
+  // content (only the keyboard or assistive tech can reach it), so collapsed controls stay
+  // reachable. Pointer focus on the always-shown controls doesn't.
   const { isFocusVisible, focusProps } = useFocusRing({ within: true });
-  const expanded = expandedProp || isFocusVisible;
+  const [focusInCollapsed, setFocusInCollapsed] = useState(false);
+  const expanded = expandedProp || isFocusVisible || focusInCollapsed;
+  const collapsedFocusProps = {
+    onFocus: (event: FocusEvent<HTMLElement>) => {
+      if (!expanded && isInCollapsed(event.target)) setFocusInCollapsed(true);
+    },
+    onBlur: (event: FocusEvent<HTMLElement>) => {
+      if (!isInCollapsed(event.relatedTarget)) setFocusInCollapsed(false);
+    },
+  };
   const hasFab = fab != null;
   const fabAt = fabPosition === 'start' || fabPosition === 'top' ? 'start' : 'end';
-  const styles = floatingToolbarStyles({ orientation, color, hasFab, fabAt });
+  const styles = floatingToolbarStyles({
+    orientation,
+    color,
+    elevated,
+    exitEdge: exitEdge ?? 'bottom',
+    hasFab,
+    fabAt,
+  });
   const [contentRef, toolbarSize] = useContentSize(hasFab, orientation);
+  const context = useMemo(() => ({ kind: 'floating', color }) as const, [color]);
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (
-      <div data-collapsed={!expanded || undefined} inert={!expanded} className={styles.collapse()}>
+      <div
+        data-collapsed={!expanded || undefined}
+        data-toolbar-collapsible=""
+        className={styles.collapse()}
+      >
         <div
           data-collapsed={!expanded || undefined}
           className={styles.clip({ class: toolbarCollapseAnchor({ slot, orientation }) })}
@@ -238,7 +298,8 @@ function FloatingToolbarRoot({
 
   return (
     <div
-      {...mergeProps(rest, toolbarProps, focusProps)}
+      {...mergeProps(rest, toolbarProps, focusProps, collapsedFocusProps)}
+      {...exitProps(visible)}
       ref={rootRef}
       data-expanded={expanded}
       style={
@@ -248,13 +309,13 @@ function FloatingToolbarRoot({
       }
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <ToolbarColorContext value={color}>
+      <ToolbarContext value={context}>
         {hasFab ? (
           <>
             <div className={styles.toolbarSlot()}>
               <div
                 data-collapsed={!expanded || undefined}
-                inert={!expanded}
+                data-toolbar-collapsible=""
                 className={styles.surface({ class: classNames?.surface })}
               >
                 <div ref={contentRef} className={styles.content({ class: classNames?.items })}>
@@ -278,9 +339,14 @@ function FloatingToolbarRoot({
             {collapsible('trailing', trailing)}
           </>
         )}
-      </ToolbarColorContext>
+      </ToolbarContext>
     </div>
   );
+}
+
+/** Whether an element sits in collapsible content (leading, trailing or the FAB's toolbar). */
+function isInCollapsed(element: EventTarget | null) {
+  return element instanceof Element && element.closest('[data-toolbar-collapsible]') !== null;
 }
 
 /**
@@ -318,6 +384,11 @@ interface ToolbarFabOwnProps {
   icon: ReactElement;
   /** Defaults to the toolbar's colour: `primary-container` (standard) or `tertiary-container` (vibrant). */
   color?: FloatingToolbarColor;
+  /**
+   * Shows `aria-label` in a plain tooltip on hover and keyboard focus, as M3 asks of FABs
+   * on the web. @default true
+   */
+  tooltip?: boolean;
   classNames?: ToolbarFabClassNames;
 }
 
@@ -335,18 +406,33 @@ export type ToolbarFabProps = ToolbarFabOwnProps &
  * `VibrantFloatingActionButton`): it fills the toolbar's FAB box, 56px or 80px while the
  * toolbar is collapsed, with 16px corners at level 2.
  */
-export function ToolbarFab({ icon, color, classNames, className, ...base }: ToolbarFabProps) {
-  const toolbarColor = useContext(ToolbarColorContext);
-  const styles = toolbarFabStyles({ color: color ?? toolbarColor });
+export function ToolbarFab({
+  icon,
+  color,
+  tooltip = true,
+  classNames,
+  className,
+  ...base
+}: ToolbarFabProps) {
+  const toolbar = useContext(ToolbarContext);
+  const styles = toolbarFabStyles({ color: color ?? toolbar?.color ?? 'standard' });
   const baseProps = {
     ...base,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
-  return (
+  const fab = (
     <ButtonBase {...baseProps}>
       <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
         {icon}
       </span>
     </ButtonBase>
+  );
+  const label = base['aria-label'];
+  if (!tooltip || !label) return fab;
+  return (
+    <TooltipTrigger>
+      {fab}
+      <Tooltip>{label}</Tooltip>
+    </TooltipTrigger>
   );
 }

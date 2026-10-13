@@ -99,6 +99,7 @@ export {
   type ExtendedFabSize,
   type ExtendedFabStyleProps,
   type FabColor,
+  type FabElevation,
   type FabSize,
   type FabStyleProps,
 } from './components/fab/fab-styles';
@@ -214,11 +215,11 @@ export {
   type FabMenuClassNames,
   type FabMenuItemClassNames,
   type FabMenuItemProps,
+  type FabMenuPresentation,
   type FabMenuProps,
 } from './components/fab-menu/FabMenu';
 export {
   fabMenuStyles,
-  type FabMenuAlign,
   type FabMenuColor,
   type FabMenuSize,
   type FabMenuStyleProps,
@@ -351,10 +352,13 @@ export {
   type DockedToolbarStyleProps,
   type FloatingToolbarColor,
   type FloatingToolbarStyleProps,
+  type ToolbarExitEdge,
   type ToolbarOrientation,
 } from './components/toolbar/toolbar-styles';
 export {
+  useToolbarScrollExit,
   useToolbarScrollExpansion,
+  type ToolbarScrollExitOptions,
   type ToolbarScrollExpansionOptions,
 } from './components/toolbar/use-toolbar-scroll-expansion';
 export {

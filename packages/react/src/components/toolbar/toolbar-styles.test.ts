@@ -18,10 +18,19 @@ function* outputs() {
   for (const orientation of ['horizontal', 'vertical'] as const) {
     for (const color of ['standard', 'vibrant'] as const)
       for (const hasFab of [false, true])
-        for (const fabAt of ['start', 'end'] as const) {
-          const slots = floatingToolbarStyles({ orientation, color, hasFab, fabAt });
-          for (const slot of Object.values(slots)) yield slot();
-        }
+        for (const fabAt of ['start', 'end'] as const)
+          for (const elevated of [false, true])
+            for (const exitEdge of ['bottom', 'top', 'start', 'end'] as const) {
+              const slots = floatingToolbarStyles({
+                orientation,
+                color,
+                hasFab,
+                fabAt,
+                elevated,
+                exitEdge,
+              });
+              for (const slot of Object.values(slots)) yield slot();
+            }
     for (const slot of ['leading', 'trailing'] as const)
       yield toolbarCollapseAnchor({ slot, orientation });
   }

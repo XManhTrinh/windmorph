@@ -61,6 +61,7 @@ describe('searchPages', () => {
       ['IconButton', '/components/icon-button'],
       ['useSnackbarHostState', '/components/snackbar'],
       ['useToolbarScrollExpansion', '/components/toolbars'],
+      ['useToolbarScrollExit', '/components/toolbars'],
       ['useTheme', '/theming'],
       ['useNavigationGuard', '/nextjs'],
     ] as const;
