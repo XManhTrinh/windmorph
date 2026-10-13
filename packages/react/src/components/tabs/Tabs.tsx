@@ -1,0 +1,329 @@
+'use client';
+
+import { animate } from 'motion/react';
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type JSX,
+  type ReactNode,
+} from 'react';
+import {
+  I18nProvider,
+  mergeProps,
+  useLocale,
+  useObjectRef,
+  useTab,
+  useTabList,
+  useTabPanel,
+  type AriaTabListProps,
+} from 'react-aria';
+import { Item, useTabListState, type Node, type TabListState } from 'react-stately';
+import { useM3Spring } from '../../motion/use-m3-spring';
+import { useM3Interaction } from '../../primitives/use-m3-interaction';
+import { localeWithDirection } from '../../primitives/DomDirectionLocale';
+import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { cn } from '../../utils/cn';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { tabsStyles, type TabsVariant } from './tabs-styles';
+
+/** Props of a {@link Tab}; the React `key` identifies it for selection. */
+export interface TabProps {
+  /** The tab's label. Optional for icon-only tabs, which then need `aria-label`. */
+  title?: ReactNode;
+  /** Icon above (or before) the label. Hidden from assistive tech. */
+  icon?: ReactNode;
+  /** The panel shown while this tab is selected. Leave it out for tabs that only navigate. */
+  children?: ReactNode;
+  /** Plain-text label when `title` is not a string. */
+  textValue?: string;
+  'aria-label'?: string;
+}
+
+/** A tab in {@link Tabs} (a React Stately collection item: identify it with `key`). */
+export const Tab = Item as unknown as (props: TabProps) => JSX.Element;
+
+export interface TabsClassNames {
+  root?: string;
+  list?: string;
+  tab?: string;
+  indicator?: string;
+  panel?: string;
+}
+
+export interface TabsProps extends Omit<
+  AriaTabListProps<object>,
+  'children' | 'orientation' | 'items'
+> {
+  children: ReactNode;
+  /** @default "primary" */
+  variant?: TabsVariant;
+  /** Tabs keep their natural width (at least 90px) and the row scrolls. @default false */
+  scrollable?: boolean;
+  /** Icons above the label (64px tabs) or before it (48px). @default "top" */
+  iconPlacement?: 'top' | 'start';
+  className?: string;
+  style?: CSSProperties;
+  classNames?: TabsClassNames;
+  ref?: React.Ref<HTMLDivElement>;
+}
+
+/**
+ * M3 tabs: a row of tabs with an indicator that slides to the selection, and the selected
+ * tab's panel. Primary tabs mark the selection with a content-width indicator and
+ * `primary` label; secondary tabs with a full-width indicator. Arrow keys move between
+ * tabs (mirrored in RTL), Home / End jump to the ends.
+ *
+ * @example
+ * <Tabs aria-label="Trip">
+ *   <Tab key="flights" title="Flights" icon={<FlightIcon />}>Flight details…</Tab>
+ *   <Tab key="hotels" title="Hotels" icon={<HotelIcon />}>Hotel details…</Tab>
+ * </Tabs>
+ */
+export function Tabs(props: TabsProps) {
+  const { className, style, classNames, ref, ...rest } = props;
+  const { data, rest: ariaProps } = splitDataAttributes(rest);
+  const rootRef = useObjectRef(ref);
+  // React Aria takes arrow-key direction from its locale, not the DOM `dir`; follow the
+  // direction the tabs are actually laid out in.
+  const { locale, direction: localeDirection } = useLocale();
+  const [direction, setDirection] = useState(localeDirection);
+  useLayoutEffect(() => {
+    if (rootRef.current) setDirection(getComputedStyle(rootRef.current).direction as 'ltr' | 'rtl');
+  }, [rootRef]);
+  const effectiveLocale =
+    direction === localeDirection ? locale : localeWithDirection(locale, direction);
+
+  return (
+    <div
+      {...data}
+      ref={rootRef}
+      style={style}
+      className={tabsStyles().root({ class: cn(classNames?.root, className) })}
+    >
+      <I18nProvider locale={effectiveLocale}>
+        <TabsInner
+          {...(ariaProps as Omit<TabsProps, 'className' | 'style' | 'ref'>)}
+          classNames={classNames}
+        />
+      </I18nProvider>
+    </div>
+  );
+}
+
+function TabsInner(props: Omit<TabsProps, 'className' | 'style' | 'ref'>) {
+  const { variant, scrollable = false, iconPlacement = 'top', classNames } = props;
+  assertCollectionChildren(props.children, 'Tabs', 'Tab elements');
+  const state = useTabListState(props as AriaTabListProps<object>);
+  const listRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const { tabListProps } = useTabList(props as AriaTabListProps<object>, state, listRef);
+  const items = [...state.collection];
+  const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
+  const hasText = items.some((item) => (item.props as TabProps).title != null);
+  const hasPanels = items.some((item) => (item.props as TabProps).children != null);
+  const layout =
+    hasIcon && hasText
+      ? iconPlacement === 'start'
+        ? 'icon-start'
+        : 'icon-top'
+      : hasIcon
+        ? 'icon-only'
+        : 'text';
+  const styles = tabsStyles({ variant, scrollable, layout });
+
+  const indicator = useIndicator(
+    listRef,
+    state.selectedKey,
+    variant ?? 'primary',
+    state.collection,
+  );
+  useScrollToSelection(scrollerRef, listRef, state.selectedKey, scrollable);
+
+  return (
+    <>
+      <div ref={scrollerRef} className={styles.scroller()}>
+        <div {...tabListProps} ref={listRef} className={styles.list({ class: classNames?.list })}>
+          {items.map((item, index) => (
+            <TabButton
+              key={item.key}
+              item={item}
+              index={index}
+              state={state}
+              hasPanels={hasPanels}
+              styles={styles}
+              className={classNames?.tab}
+            />
+          ))}
+          <span
+            aria-hidden="true"
+            data-ready={indicator ? '' : undefined}
+            className={styles.indicator({ class: classNames?.indicator })}
+            style={{
+              // Span every column so the indicator's origin is the row's left edge in both
+              // directions; translate then positions it.
+              gridColumn: `1 / span ${Math.max(items.length, 1)}`,
+              ...(indicator && { width: indicator.width, translate: `${indicator.x}px 0` }),
+            }}
+          />
+        </div>
+      </div>
+      {hasPanels && (
+        <TabPanel
+          key={state.selectedKey}
+          state={state}
+          className={styles.panel({ class: classNames?.panel })}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Measures the selected tab: its content (primary) or the whole tab (secondary). Again when
+ * the tabs change, as tabs added or removed move the selected one without resizing the row.
+ */
+function useIndicator(
+  listRef: React.RefObject<HTMLDivElement | null>,
+  selectedKey: React.Key | null,
+  variant: TabsVariant,
+  tabs: unknown,
+) {
+  const [indicator, setIndicator] = useState<{ x: number; width: number } | null>(null);
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const measure = () => {
+      const tab = [...list.querySelectorAll<HTMLElement>('[role="tab"]')].find(
+        (el) => el.dataset.key === String(selectedKey),
+      );
+      if (!tab) return setIndicator(null);
+      // Measured in the list's own pixels: an ancestor scaling in (a dialog opening) shrinks
+      // the client rects, and no resize follows when it ends, so divide its scale out.
+      const listRect = list.getBoundingClientRect();
+      const scale = list.offsetWidth > 0 ? listRect.width / list.offsetWidth : 1;
+      // Grid items sit in the content box, so measure from inside the start padding
+      // (52px on scrollable rows; on the right in RTL, where paddingLeft is 0).
+      const listLeft = listRect.left + parseFloat(getComputedStyle(list).paddingLeft) * scale;
+      const tabRect = tab.getBoundingClientRect();
+      const tabX = (tabRect.left - listLeft) / scale;
+      const tabWidth = tabRect.width / scale;
+      if (variant === 'secondary') {
+        setIndicator({ x: tabX, width: tabWidth });
+        return;
+      }
+      // Compose: the content width less the 16px padding each side, at least 24px.
+      const parts = [...tab.querySelectorAll('[data-tab-part]')].map((el) =>
+        el.getBoundingClientRect(),
+      );
+      const contentWidth = parts.length
+        ? (Math.max(...parts.map((r) => r.right)) - Math.min(...parts.map((r) => r.left))) / scale
+        : 0;
+      const width = Math.max(Math.min(contentWidth, tabWidth - 32), 24);
+      setIndicator({ x: tabX + (tabWidth - width) / 2, width });
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [listRef, selectedKey, variant, tabs]);
+  return indicator;
+}
+
+/** Scrollable rows centre the selected tab on the default spatial spring (Compose). */
+function useScrollToSelection(
+  scrollerRef: React.RefObject<HTMLDivElement | null>,
+  listRef: React.RefObject<HTMLDivElement | null>,
+  selectedKey: React.Key | null,
+  scrollable: boolean,
+) {
+  const spring = useM3Spring('spatial', 'default');
+  const first = useRef(true);
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    const tab = [...(listRef.current?.querySelectorAll<HTMLElement>('[role="tab"]') ?? [])].find(
+      (el) => el.dataset.key === String(selectedKey),
+    );
+    if (!scrollable || !scroller || !tab) return;
+    const rtl = getComputedStyle(scroller).direction === 'rtl';
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    const tabRect = tab.getBoundingClientRect();
+    const scrollerRect = scroller.getBoundingClientRect();
+    const delta = tabRect.left + tabRect.width / 2 - (scrollerRect.left + scrollerRect.width / 2);
+    // RTL scroll positions run from 0 down to −max.
+    const target = Math.min(Math.max(scroller.scrollLeft + delta, rtl ? -max : 0), rtl ? 0 : max);
+    if (first.current) {
+      first.current = false;
+      scroller.scrollLeft = target;
+      return;
+    }
+    const controls = animate(scroller.scrollLeft, target, {
+      ...spring,
+      onUpdate: (value) => {
+        scroller.scrollLeft = value;
+      },
+    });
+    return () => controls.stop();
+    // The spring only matters for the next selection change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey, scrollable]);
+}
+
+interface TabButtonProps {
+  item: Node<object>;
+  index: number;
+  state: TabListState<object>;
+  hasPanels: boolean;
+  styles: ReturnType<typeof tabsStyles>;
+  className?: string;
+}
+
+function TabButton({ item, index, state, hasPanels, styles, className }: TabButtonProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
+  const { interactionProps, dataAttributes } = useM3Interaction(
+    {
+      isDisabled: state.disabledKeys.has(item.key),
+      isPressed,
+      isSelected: state.selectedKey === item.key,
+    },
+    ref,
+  );
+  const { icon } = item.props as TabProps;
+  // Without panels there is nothing for aria-controls to point at.
+  const { 'aria-controls': controls, ...ownProps } = tabProps;
+  return (
+    <div
+      {...mergeProps(ownProps, interactionProps)}
+      {...dataAttributes}
+      aria-controls={hasPanels ? controls : undefined}
+      data-key={String(item.key)}
+      ref={ref}
+      style={{ gridColumnStart: index + 1 }}
+      className={styles.tab({ class: className })}
+    >
+      {icon != null && (
+        <span aria-hidden="true" data-tab-part="" className={styles.icon()}>
+          {icon}
+        </span>
+      )}
+      {item.rendered != null && (
+        <span data-tab-part="" className={styles.label()}>
+          {item.rendered}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function TabPanel({ state, className }: { state: TabListState<object>; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { tabPanelProps } = useTabPanel({}, state, ref);
+  return (
+    <div {...tabPanelProps} ref={ref} className={className}>
+      {(state.selectedItem?.props as TabProps | undefined)?.children}
+    </div>
+  );
+}

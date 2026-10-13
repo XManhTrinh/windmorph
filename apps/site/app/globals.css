@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+@import '@windmorph/react/styles.css';
+@import '@windmorph/react-pro/styles.css';
+@source '../node_modules/@windmorph/react';
+@source '../node_modules/@windmorph/react-pro';
+
+/* Second-rail (drawer) inner content fade: re-runs on a keyed remount when the group
+   changes, cross-fading the heading + links. Gated by motion-safe so reduced motion snaps. */
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,95 @@
+# CI for Windmorph's public repo: builds, typechecks, lints and tests `@windmorph/react`,
+# Storybook, the Next.js playground and the docs site, then runs the site's internal link check
+# and Playwright smoke suite against its static export.
+#
+# The docs site also documents Windmorph Pro, which it installs from the private
+# `windmorph-pro` repo's `dist` branch (an optional dependency). `PRO_READ_TOKEN` is a
+# fine-grained token with read-only access to that repo. A pull request from a fork gets no
+# secrets, so pnpm skips Pro (it's optional) and the site's build and smoke suite fail there.
+name: CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+
+jobs:
+  build-and-check:
+    name: Build, typecheck, lint & test
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # The pnpm version comes from package.json's `packageManager` (pnpm@12.8.1); giving
+      # `version` as well makes the action fail with two versions specified.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Lets pnpm fetch Windmorph Pro from its private repo (see the note at the top).
+      - name: Allow installing Windmorph Pro
+        if: ${{ env.PRO_READ_TOKEN != '' }}
+        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      # Public files stay neutral: see scripts/check-traces.mjs.
+      - name: Check for traces
+        run: pnpm check:traces
+
+      # Builds `@windmorph/react` and `apps/site`, then typechecks, lints (--max-warnings 0) and runs
+      # the library's Vitest suite across the whole monorepo.
+      - name: Build, typecheck, lint & test
+        run: pnpm turbo run build typecheck lint test
+
+  site-e2e:
+    name: Site link check & Playwright smoke suite
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # The pnpm version comes from package.json's `packageManager` (pnpm@12.8.1); giving
+      # `version` as well makes the action fail with two versions specified.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Lets pnpm fetch Windmorph Pro from its private repo (see the note at the top).
+      - name: Allow installing Windmorph Pro
+        if: ${{ env.PRO_READ_TOKEN != '' }}
+        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter site exec playwright install --with-deps chromium
+
+      # `link-check` and `test:e2e` both depend on `site#build`, so turbo builds the static export
+      # first, then the link checker and the full Playwright smoke suite run against `out/`.
+      - name: Link check & Playwright smoke suite
+        run: pnpm turbo run link-check test:e2e --filter=site

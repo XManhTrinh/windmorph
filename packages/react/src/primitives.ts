@@ -1,0 +1,84 @@
+export {
+  useM3Interaction,
+  type M3InteractionDataAttributes,
+  type M3InteractionOptions,
+  type M3InteractionResult,
+  type M3InteractionState,
+} from './primitives/use-m3-interaction';
+export {
+  Surface,
+  surfaceStyles,
+  type SurfaceProps,
+  type SurfaceVariants,
+} from './primitives/Surface';
+export { Overlay, type OverlayProps } from './primitives/Overlay';
+export { TouchTarget, type TouchTargetProps } from './primitives/TouchTarget';
+export {
+  ButtonBase,
+  type ButtonBaseActionProps,
+  type ButtonBaseDivActionProps,
+  type ButtonBaseLinkProps,
+  type ButtonBaseProps,
+  type ButtonBaseRenderState,
+  type ButtonBaseToggleProps,
+} from './primitives/ButtonBase';
+export {
+  CharacterCounter,
+  ErrorText,
+  FieldLabel,
+  SupportingText,
+  type CharacterCounterProps,
+  type ErrorTextProps,
+  type FieldLabelProps,
+  type SupportingTextProps,
+} from './primitives/Field';
+export { getM3Spring, useM3Spring } from './motion/use-m3-spring';
+export {
+  SelectionControl,
+  type SelectionControlClassNames,
+  type SelectionControlProps,
+} from './primitives/SelectionControl';
+export { selectionControlStyles } from './primitives/selection-control-styles';
+export {
+  TriggerContext,
+  useTriggerProps,
+  type TriggerContextValue,
+} from './primitives/TriggerContext';
+export { usePresence } from './primitives/use-presence';
+export {
+  DomDirectionLocale,
+  localeWithDirection,
+  type DomDirectionLocaleProps,
+} from './primitives/DomDirectionLocale';
+export {
+  getMorph,
+  morphPathAt,
+  useM3Morph,
+  type M3MorphOptions,
+  type MorphShape,
+} from './primitives/use-m3-morph';
+
+export { splitDataAttributes } from './utils/split-data-attributes';
+export { ThemeScopeContext } from './theme/context';
+export { generateSchemeColors } from './theme/scheme';
+
+// Shape library (port of androidx.graphics.shapes + Compose MaterialShapes)
+export { CornerRounding } from './shapes/corner-rounding';
+export { Cubic } from './shapes/cubic';
+export {
+  MaterialShapes,
+  materialShapeNames,
+  type MaterialShapeName,
+} from './shapes/material-shapes';
+export { materialShapeMask } from './shapes/mask';
+export { Morph } from './shapes/morph';
+export {
+  cubicsToPath,
+  morphToPath,
+  polygonToPath,
+  type MorphPathOptions,
+  type PathOptions,
+} from './shapes/path';
+export type { PointTransformer } from './shapes/point';
+export { RoundedPolygon } from './shapes/rounded-polygon';
+export { circle, pill, pillStar, rectangle, star } from './shapes/shapes';

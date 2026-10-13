@@ -1,0 +1,23 @@
+@windmorph/react
+Copyright (c) 2026 the Windmorph authors. Licensed under the MIT License.
+
+This package bundles @material/material-color-utilities
+(https://github.com/material-foundation/material-color-utilities),
+Copyright 2021 Google LLC, licensed under the Apache License, Version 2.0
+(https://www.apache.org/licenses/LICENSE-2.0).
+
+Design tokens are derived from Jetpack Compose Material 3
+(https://android.googlesource.com/platform/frameworks/support), Copyright The
+Android Open Source Project, licensed under the Apache License, Version 2.0.
+
+The shape library (androidx.graphics.shapes and Compose Material 3 MaterialShapes) is a
+TypeScript port of code from the Android Open Source Project
+(https://android.googlesource.com/platform/frameworks/support), Copyright 2022-2025 The
+Android Open Source Project, licensed under the Apache License, Version 2.0. It was
+modified: translated to TypeScript with 64-bit arithmetic, the SVG parser, serializer and
+validation were left out, a bounds calculation was fixed for shapes in negative space, and
+paths are emitted as SVG path data.
+
+The icons drawn inside components (such as send, close and the formatting buttons) are
+Material Symbols path data (https://github.com/google/material-design-icons), Copyright
+Google LLC, licensed under the Apache License, Version 2.0.

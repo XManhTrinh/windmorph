@@ -1,0 +1,763 @@
+# @windmorph/react — Architecture
+
+Status: **Tier 3 complete** · Last updated: 2026-10-13 (rev. 43 — the core on its own; Windmorph Pro has its own architecture)
+
+A production-ready React component library implementing the **latest Material Design 3 Expressive** specification, consumed by many React and Next.js projects. This is the free, MIT-licensed core: M3 Expressive components only.
+
+```tsx
+import { Button, Dialog, DialogTrigger, ThemeProvider } from '@windmorph/react';
+```
+
+---
+
+## 1. Decisions
+
+| # | Decision | Value |
+|---|---|---|
+| 1 | Package name | `@windmorph/react`, in `packages/react` (each package's folder is named after its npm name) |
+| 2 | React | Latest only (React 19+). `ref` as a normal prop, **no `forwardRef`** |
+| 3 | Spec source of truth | **m3.material.io** for design intent; **Jetpack Compose Material 3 token files** for exact values (dp → CSS px 1:1). Material Web is in maintenance mode and will not implement Expressive, so it is *not* a reference |
+| 4 | Themes | 6 built-in colour themes × light/dark, generated with `ColorSpec2025` (see §5) |
+| 5 | Contrast | Standard, medium and high contrast shipped in v1 |
+| 6 | Motion | Two motion schemes, `expressive` (default) and `standard`, independent of colour theme (see §6) |
+| 7 | Styling | Tailwind-first. Also ship one precompiled CSS file for non-Tailwind projects |
+| 8 | Frameworks | Plain React (Vite etc.) **and** Next.js 15/16 (App Router first, Pages Router supported) |
+| 9 | Overrides | Consumers can override at every level (see §8) |
+| 10 | Layout safety | Consumer layout classes never break a component (see §10) |
+| 11 | Icons | No bundled icon font. Components accept any icon as a React element; docs recommend Material Symbols SVGs |
+| 12 | Fonts | Roboto Flex **not bundled**. Documented setup for `next/font` / Google Fonts, system-font fallback |
+| 13 | Breakpoints | M3 window size classes added as Tailwind breakpoints alongside Tailwind's defaults (see §7) |
+| 14 | Browser baseline | Safari 17.2+, Chrome 113+, Firefox 128+ (needed for `linear()` springs, `@property`, `color-mix()`) |
+| 15 | Density | Not in v1 (planned later) |
+| 16 | Stability labels | Expressive-only components marked **Preview** in docs while the upstream spec is still experimental in Compose |
+| 17 | Licence | **MIT** for the core (root `LICENSE`; third-party notices in the package's `NOTICE`, §16) |
+| 18 | Monorepo tooling | **pnpm workspaces + Turborepo** |
+| 19 | Toolchain | Node 24 (`.nvmrc`), pnpm 12 (`packageManager`), **TypeScript 6.0**: TS 7 is out, but typescript-eslint only supports TS < 6.1, so type-aware linting pins 6.0 |
+| 20 | Library build | **tsdown** in unbundle mode (one output file per module, so per-file `"use client"` survives). `scripts/check-dist.ts` verifies directives, extensions and paths after every build |
+| 21 | Colour library | `@material/material-color-utilities` is a devDependency **bundled into `dist/vendor/`** (Apache-2.0 notice in `NOTICE`), because its published ESM cannot be loaded by plain Node (§17) |
+| 22 | Non-M3 components | The core holds **M3 Expressive components only**. Components outside M3 (a code block, an avatar, a skeleton, rich text, …) live in **Windmorph Pro** (`@windmorph/react-pro`, a separate package and repo), never improvised in an app. Pro builds only on the core's public entries, and the core never imports Pro; see §3 |
+| 23 | Consumer docs site | A **Next.js App Router static-export app at `apps/site`** (MDX guides, generated props tables, live examples), built **only with Windmorph: the core and Windmorph Pro** (`@windmorph/react`, `/next`, `@windmorph/react-pro` and its `/rich-text` entry; enforced by `no-restricted-imports`). Pro's pages are documented publicly in full (API, props tables, guides and live examples) and marked with a "Pro" chip (the catalog's `pro` flag); the site installs Pro from its private repo with a read-only token. It is the library's first real consumer and doubles as proof of Next.js support; Storybook (`apps/docs`) stays the workbench, not the consumer docs. **Shell:** a top app bar (medium+) or an app bar with search (compact) holding the page search (a `SearchBar` listing guides and components that match by title, summary or catalog `keywords`, built from the registry on the server) and a "Display settings" side sheet (theme, mode, contrast, motion and a right-to-left switch, whose choice a pre-paint script applies on every page). See §13 |
+
+## 2. Stack
+
+| Concern | Choice | Notes |
+|---|---|---|
+| Framework | React 19 + TypeScript strict | |
+| Accessibility | **React Aria** (`react-aria` + `react-stately`) | Keyboard, focus, ARIA, RTL, i18n. Exposes pressed/hovered/focus-visible states needed for M3 state layers. Replaces Radix |
+| Styling | **Tailwind CSS v4** | `@theme`, `@theme inline`, `@custom-variant`, `@utility`. No `tailwind.config.js` |
+| Variants | **tailwind-variants v3** (slots) | Replaces CVA — slots style multi-part components in one call |
+| Class merge | `cn()` = tailwind-merge (extended) + clsx | `packages/react/src/utils/cn.ts`; its token lists are generated from the token source (§4) |
+| Motion | **Motion** (`motion/react`) | Spring choreography, enter/exit, layout, morph. `LazyMotion` + `m`. Simple state transitions use CSS `linear()` springs |
+| Colour | `@material/material-color-utilities` 0.4.0 with **`ColorSpec2025`** | Vendored into the build (decision #21) |
+| Dates | `@internationalized/date` | A dependency (React Aria's own date library); picker values are its `CalendarDate` / `Time` |
+| Shapes | Port of Android `androidx.graphics.shapes` | Feature-matched morph across M3's 35 shapes. Replaces Flubber. Vendored with Apache-2.0 NOTICE |
+| Fonts | Roboto Flex (variable: wght, wdth, opsz, GRAD) | Consumer-loaded |
+| Repo tooling | pnpm workspaces + Turborepo | Cached builds/tests across packages and apps |
+
+## 3. Composition architecture (DRY)
+
+Four layers. **Dependencies only point downward**, enforced by `eslint-plugin-boundaries` in `eslint.config.js`. In source, the layers are `src/tokens` → `src/utils` → `src/theme` / `src/motion` → `src/primitives` → `src/components` → `src/composites`. Composites may not import `src/primitives`. `src/shapes` (the androidx.graphics.shapes port) is pure geometry: it imports nothing, and primitives and components may import it.
+
+**Windmorph Pro (decision #22):** components outside the M3 spec are not in this package, so `src/components` stays M3 only. They live in Windmorph Pro (`@windmorph/react-pro`), which lists `@windmorph/react` as a peer dependency and imports only its public entries (`@windmorph/react`, `/primitives`, `/next`). The core never imports Pro: `no-restricted-imports` forbids `@windmorph/react-pro` in `packages/react`. What Pro needs to build its components (the token value helpers, `defineComponentTokens`, `componentTokensCss`, `OptionPopover`, `useTriggerProps`, `splitDataAttributes`, `ThemeScopeContext`, `generateSchemeColors`, `materialShapeMask`) is public API, documented on the docs site's Primitives page.
+
+**Every new component is also added to the docs site** (2026-10-08): a catalog entry in `apps/site/content/components/catalog.ts` puts it in the side nav under the right category, in the components listing and in the component count (both computed from the catalog), and in the search index, with `keywords` for the words people search for that aren't in its title or summary; plus its page body, examples and playground.
+
+1. **Tokens** — CSS variables for colour, shape, type, motion, elevation, state opacity, z-index.
+2. **Primitives** (internal; also exported from `@windmorph/react/primitives`)
+   - `useM3Interaction` — wraps React Aria `usePress` / `useHover` / `useFocusRing` / drag → emits `data-pressed`, `data-hovered`, `data-focus-visible`, `data-dragged`, `data-disabled`, `data-selected`. Pass `isPressed` from another React Aria hook (e.g. `useButton`) to skip its own press handling. It also sets the ripple origin on pointer-down (primary button) or Enter/Space. The **ripple follows Compose's `RippleAnimation`**: it fades in over 75ms; its radius grows from 30% of the longer side to half the diagonal + 10px over 225ms (fast-out-slow-in) while its centre moves to the middle; it fades out over 150ms. `data-rippling` (from `useRippleHold`, also used by Checkbox, Radio and Switch) stays on from press start until release, but for at least 225ms, so a quick tap still grows to the edges before fading. Earlier the growth was tied to `data-pressed` and froze wherever it was on a short press. Every press starts a **fresh** ripple, as in Compose, even while the last one is still growing or fading: `restartRipple` pins the ripple's animated properties to the new press's start values with transitions off, flushes, and releases them. Otherwise the delayed reset of the idle ripple made a press grow from the previous press's position.
+   - `ButtonBase` — unstyled button behaviour shared by every button-like component: `<button>`, link (`href`, via `useLink`) or toggle (`toggle`, via `useToggleButton`), with `useM3Interaction` applied. `children` may be a function of `{ isSelected }`. Button, IconButton and later FAB / chips render it and only add styling.
+   - `TouchTarget` — 48×48px hit area for small controls, placed in the inner wrapper.
+   - State layer + ripple as **background-layer utilities** on the root (no child elements — see §10): `state-layer`, plus `focus-ring` / `focus-ring-inset` (outline). `Surface` (`container` role + `elevation` 0–5 + `shape`) covers elevation; there is no separate `Elevation` component.
+   - `Overlay`: portal to `body` that **re-applies the theme attributes and text direction (`dir`) of where it was rendered**, so overlays opened inside a `ThemeScope` or an RTL region keep them. Passes `isExiting` to React Aria so focus containment is released while animating out. `topLayer` marks the overlay as React Aria's top layer (`data-react-aria-top-layer`, as its toasts use): a portalled overlay sits outside any open modal, whose `ariaHideOutside` would otherwise mark it `aria-hidden`; a top-layer one stays visible to assistive tech, focus may reach it and a press on it is not a press outside the modal. Tooltips and rich tooltips use it, so they work inside dialogs, sheets and viewers.
+   - `TriggerContext`: an overlay trigger (DialogTrigger, MenuTrigger, SheetTrigger, the tooltip triggers) passes its press handler, ARIA attributes and ref to whichever button-like child opens it. `ButtonBase` merges them in, so no cloning or private React Aria APIs are needed. Triggers nest: each merges its props into an enclosing trigger's (`useTriggerProps`, React Aria `mergeProps`: handlers chained, refs merged), so `<TooltipTrigger><MenuTrigger><IconButton/>…` gives a menu button its tooltip. Overlays, and a FAB menu's items, reset it to `null`.
+   - `DomDirectionLocale`: React Aria takes keyboard direction from its locale, not the DOM `dir`. This render-prop component reads an element's computed direction and, when it differs from the locale's, provides **the same locale with only its script changed** (`localeWithDirection`: `en-US` → `en-Arab-US`, `ar` → `ar-Latn`), which React Aria's `isRTL` reads, so dates and numbers keep the app's language. Toolbars, lists, sliders and the pickers use it, and Tabs uses `localeWithDirection`. (Before rev. 35 it switched to `ar` / `en-US`, which also changed formatting; found when the date picker printed Arabic month names in an RTL region.)
+   - `usePresence(isOpen, property = 'opacity')`: keeps an overlay mounted until its exit transition of `property` ends (fallback 800ms). The full-screen search view ends on `clip-path`. Dismissal, focus containment and scroll lock come from the React Aria overlay hooks (`useModalOverlay`, `usePopover`, …) used by each component.
+   - `useM3Morph` (built): `useM3Morph(shapes, progress, { size, startAngle })` returns a Motion value of SVG path data for an `m.path`'s `d`. `shapes` are `MaterialShapes` names or any normalized `RoundedPolygon`; progress `0…n-1` walks the sequence, and values outside it extrapolate the first or last morph, so springs can overshoot. Morph matching is cached per shape pair. Reduced motion is the caller's job (snap `progress`). `morphPathAt` is the same thing as a plain function.
+   - **Shape library** (`src/shapes`, exported from `@windmorph/react/primitives`): a TypeScript port of `androidx.graphics.shapes` (`RoundedPolygon`, `CornerRounding`, `Morph`, `circle` / `rectangle` / `star` / `pill` / `pillStar`) and Compose's 35 `MaterialShapes`, from androidx `120345129e`. The androidx commonTest suites are ported too. Deviations: 64-bit numbers (so the tests androidx skips on JS for float rounding pass here); `calculateBounds` seeds with ±Infinity, fixing shapes in negative space; no SVG parser, serializer or validation. `polygonToPath` / `morphToPath` port Compose's internal `ShapeUtil.kt` but emit SVG path data (4 decimals) and rotate about the pivot, since SVG has no re-centering step. **Note:** morphs use each polygon's unsplit feature cubics, so mid-morph control points can sit up to ~1% outside the unit square (as upstream); render with `overflow="visible"` or padding.
+   - `useM3Spring` (resolves the active motion scheme → Motion spring config)
+   - `Field` parts: `FieldLabel`, `SupportingText`, `ErrorText`, `CharacterCounter`
+3. **Components** — Button, IconButton, FAB, Card, TextField, Checkbox, Radio, Switch… assembled from primitives.
+4. **Composites** — built **only from public components** (dogfooding the public API):
+   - Button group (connected) = Buttons / IconButtons + group context
+   - Select / Combobox reuse `Field` parts + Menu list
+
+### Rules
+- **Flat named exports** for multi-part components: `Dialog`, `DialogTrigger`, `DialogTitle`, `DialogContent`, `DialogActions`. No dot-notation (`Dialog.Title`) — it breaks in Next.js Server Components.
+- **Two API levels**: a convenient "batteries-included" form (`<TextField label="Email" />`) built from exported parts for full control. One implementation, not two.
+- **Context cascade**: parents pass shared props to children (`ButtonGroup size="sm"` → Buttons). Child's explicit prop wins.
+- **Shared style fragments**: state-layer, focus-ring, disabled styles defined once and reused; never copy class strings.
+- Because composites use public components, a theme or `className` override on Button also applies to the Button inside SplitButton.
+
+## 4. Tokens — single source of truth
+
+One token source file (TypeScript) generates **all** of:
+- the CSS variables in `styles.css` (`@theme` / `@theme inline`)
+- the token lists used by `cn()`'s tailwind-merge config
+- the Motion spring configs used by `useM3Spring`
+
+so CSS, class merging and JS motion can never drift apart.
+
+In practice the source is `packages/react/src/tokens/*.ts`. `pnpm generate` writes `src/styles/generated/{tokens,themes,theme}.css`; those files are gitignored and Turborepo regenerates them before build, typecheck, lint and test. `cn()` and `useM3Spring` import the token objects directly.
+
+Tailwind utility names:
+
+| Token | Utilities |
+|---|---|
+| Colour roles | `bg-primary`, `text-on-surface`, `border-outline-variant`, … |
+| Type scale | `text-<role>` sets size, line height, tracking and weight (`text-body-large`, `text-label-large-emphasized`); typeface via `font-brand` / `font-plain` |
+| Corners | `rounded-corner-<name>` (`rounded-corner-full`, `rounded-corner-medium`, …) |
+| Elevation | `shadow-elevation-0` … `shadow-elevation-5` |
+| Springs | `ease-m3-<family>-<speed>` and `duration-m3-<family>-<speed>`; legacy curves are `ease-m3-emphasized`, … |
+| Variants | `medium:` / `expanded:` / `large:` / `xlarge:`; `dark:` follows `data-mode` (including `system`); `motion-standard:` |
+
+### Shape (corner) scale — spec tokens only
+| Token | Value |
+|---|---|
+| none | 0 |
+| extra-small | 4px |
+| small | 8px |
+| medium | 12px |
+| large | 16px |
+| large-increased | 20px |
+| extra-large | 28px |
+| extra-large-increased | 32px |
+| extra-extra-large | 48px |
+| full | 9999px |
+
+No invented radii (e.g. the earlier `m3-expressive-1` / `m3-expressive-2` are removed). The 35 Expressive *shapes* (cookie, clover, burst, …) are path shapes in the shape library, not radii.
+
+### State layer opacities
+hover 8% · focus 10% · pressed 10% · dragged 16% · disabled content 38% · disabled container 12%.
+
+### Typography
+Full baseline type scale + Expressive **emphasized** variants for every role (display/headline/title/body/label × large/medium/small).
+
+## 5. Theming
+
+### Token layering
+```css
+/* Layer 1 — theme sets M3 system tokens */
+[data-theme="ocean"][data-mode="dark"] { --md-sys-color-primary: …; }
+
+/* Layer 2 — Tailwind utilities reference them at runtime */
+@theme inline { --color-primary: var(--md-sys-color-primary); }
+```
+- Components use **only semantic M3 roles** (`bg-primary`, `text-on-surface`, `bg-surface-container-high`, …), never raw colours → every component is themed automatically.
+- Switching theme = changing attributes on an ancestor. No re-render, SSR-safe.
+
+### Attributes
+- `data-theme` — colour theme
+- `data-mode` — `light` | `dark` (or system)
+- `data-contrast` — `standard` | `medium` | `high`
+- `data-motion` — `expressive` | `standard`
+
+### Built-in themes (ColorSpec2025)
+| Theme | Seed | Scheme |
+|---|---|---|
+| `baseline` (default) | `#6750A4` | Tonal spot |
+| `ocean` | `#0061A4` | Tonal spot |
+| `forest` | `#386A20` | Tonal spot |
+| `sunset` | `#A04100` | Tonal spot |
+| `rose` | `#9C4146` | Tonal spot |
+| `slate` | `#545F71` | Neutral |
+
+Each: light + dark × 3 contrast levels, generated at **build time** into static CSS. Mode follows system preference unless set.
+
+### API
+- `<ThemeProvider defaultTheme defaultMode defaultContrast defaultMotion themes>` + `useTheme()` → `{ theme, setTheme, mode, setMode, resolvedMode, contrast, setContrast, motion, setMotion, themes }`.
+  - Each dimension can also be controlled: `theme` + `onThemeChange`, and likewise for the others.
+  - `storage`: `"cookie"` (default), `"local-storage"` or `"none"`. The key is `windmorph-theme` (`storageKey`) and the value is URL-encoded `theme=…&mode=…&contrast=…&motion=…`.
+  - The stored value is read with `useSyncExternalStore`, so there's no hydration mismatch or extra render.
+  - `applyToDocument={false}` stops it from writing to `<html>`.
+  - `createTheme()` results passed in `themes` are injected as hoisted React 19 `<style precedence>` tags.
+- `<ThemeScope theme mode contrast motion>` — theme a subtree; nestable. It writes all four attributes, inheriting the ones you don't set, and adds `text-on-surface`, which `className` can override. `useThemeScope()` reads the effective state.
+- Attribute fallbacks: a missing `data-contrast` behaves as `standard`, a missing `data-mode` as `light`, and a root without `data-theme` gets `baseline`.
+- `createTheme({ name, seed, variant, contrast })` — runtime custom theme. `contrast` takes one level or a list (default: all three).
+- `palettes` (on `createTheme`, `ThemeSeed` and the CLI's repeatable `--palette <name>=<source>`) takes any of the scheme's six palettes (`primary`, `secondary`, `tertiary`, `error`, `neutral`, `neutralVariant`) from another variant of the same seed or from a hex colour, as Material Theme Builder's core colours do (2026-10-08; docs/plans/create-theme-palettes.md). Roles still take their tones from the theme's own variant, so contrast holds. Without `palettes`, output is byte-for-byte unchanged. The common case is vivid accents on calm surfaces: `variant: 'vibrant'` with `palettes: { neutral: 'tonal-spot', neutralVariant: 'tonal-spot' }`.
+- **Success and warning** (2026-10-10; docs/plans/custom-colors.md): every theme has `success`, `on-success`, `success-container`, `on-success-container` and the same for `warning`, made the way Material Theme Builder makes custom colours. Each colour's tonal palette (green `#1E8E3E`, amber `#F9AB00`) is harmonised toward the seed (`Blend.harmonize`, up to 15° of hue) and takes the error roles' tone rules, so it has error's contrast in every mode and at every contrast level (a test checks 4.5:1 for content and 3:1 against `surface` for every built-in theme). `customColors` and `harmonize: false` on `createTheme`, `ThemeSeed` and the CLI (`--custom`, `--no-harmonize`) set a brand's own.
+- CLI: `npx @windmorph/react theme --seed <hex> --name <name> [--variant] [--contrast] [--out]` → static CSS (no flash). The bin is `windmorph`.
+
+## 6. Motion system (M3 Expressive)
+
+Springs replace duration + easing pairs.
+
+- **Two motion schemes**: `expressive` (visible overshoot/bounce, **default**) and `standard` (restrained, no visible overshoot). Set via `data-motion` / `ThemeProvider` / `ThemeScope`, independent of colour theme.
+- **Two spring families**:
+  - **Spatial** — position, size, shape, rotation. May overshoot.
+  - **Effects** — colour, opacity. Never overshoot (critically damped).
+- **Three speeds** each: fast, default, slow.
+- Expressive spatial overshoot: fast ≈ 9%, default/slow ≈ 1.5%. Standard spatial: no visible overshoot. Exact damping/stiffness taken from Compose `MotionScheme` tokens (decision #3).
+- **Delivery**:
+  - CSS: `--md-sys-motion-spring-{spatial|effects}-{fast|default|slow}-{easing|duration}`, easing as `linear()` approximations; values switch with `data-motion`. Utilities like `ease-m3-spatial-fast` read these variables, so they follow the scheme automatically.
+  - JS: `useM3Spring('spatial', 'fast')` → Motion `{ type: 'spring', stiffness, damping, mass }` for the active scheme.
+- **Reduced motion**: `prefers-reduced-motion` forces `standard` springs and removes non-essential movement (morphs, overshoot).
+- Legacy M3 easing/duration tokens kept only for consumers migrating from baseline M3.
+
+## 7. Layout & breakpoints
+
+M3 window size classes as Tailwind custom breakpoints (alongside Tailwind defaults):
+
+| Class | Width | Utility prefix |
+|---|---|---|
+| Compact | < 600px | default (mobile-first) |
+| Medium | 600–839px | `medium:` |
+| Expanded | 840–1199px | `expanded:` |
+| Large | 1200–1599px | `large:` |
+| Extra-large | ≥ 1600px | `xlarge:` |
+
+Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ full-screen dialogs, sheets) use these.
+
+## 8. Consumer overrides (broad → narrow)
+
+1. **Tokens via CSS** — globally or per theme:
+   ```css
+   :root { --md-sys-shape-corner-full: 12px; --md-ref-typeface-brand: "Inter"; }
+   [data-theme="ocean"] { --md-sys-color-primary: #0050C8; }
+   ```
+2. **Brand theme** — `createTheme({ seed })` or the CLI.
+3. **Restrict the picker** — `<ThemeProvider themes={['baseline','ocean','acme']}>`.
+4. **Subtree** — `<ThemeScope theme="forest" mode="dark">`.
+5. **Component** — `className`, `classNames={{ root, label, icon }}` (consumer always wins via `cn()`); exported variant definitions (`buttonStyles`, …) can be extended with new variants.
+
+## 9. Component API conventions
+
+- `variant`, `size`, `className`, `classNames` (per slot), `ref` as prop.
+- Controlled + uncontrolled (`value`/`defaultValue`, `open`/`defaultOpen`, `selected`/`defaultSelected`, `onChange`/`onOpenChange`/`onSelectedChange`).
+- State exposed as `data-*` attributes for consumer styling.
+- Icons passed as React elements (`icon`, `leadingIcon`, `trailingIcon`).
+- Accessibility target **WCAG 2.2 AA**: keyboard, visible focus, 48px touch targets (even for XS visuals), `prefers-reduced-motion`, RTL, screen-reader labels required by types where needed (e.g. icon-only buttons require `aria-label`).
+- Links (`href`) use client-side routing via React Aria `RouterProvider`.
+
+### Expressive Button family (API fixed from day one)
+- **Button** (built): `variant` = `elevated | filled | tonal | outlined | text`; `size` = `xs | sm | md | lg | xl`; `shape` = `round | square`; `toggle` + `selected`/`defaultSelected`/`onSelectedChange` (selected state changes colour and shape); **press morph** — corners animate squarer on press. Also `leadingIcon` / `trailingIcon`, `href` (renders `<a>` via React Aria `useLink`), `disabled`, `classNames` slots `root | content | label | icon`, and `ButtonContext` so a parent (button group) can cascade `variant` / `size` / `shape` / `disabled`.
+  - **Values come from what Compose's `Button.kt` / `ToggleButton.kt` actually use**, which in places overrides their token files: text buttons use `primary` (the token file says `on-surface-variant`, flagged by a Compose TODO); XS padding is 12px with a 4px icon gap; small toggle buttons press to a 6px corner. Label type: `label-large` (XS, S), `title-medium` (M), `headline-small` (L), `headline-large` (XL).
+  - **Press morph** is a CSS `border-radius` transition on the root (border-radius is not a transform, so §10 rule 4 holds). It uses the **effects default** spring, which never bounces, matching Compose. Toggle buttons use the **fast spatial** spring, which does bounce. Full corners are capped at half the container height (`min(var(--md-sys-shape-corner-full), h/2)`) so the transition interpolates smoothly.
+  - **Toggle shape:** selected round buttons become square, as Compose does. Selected square buttons become round, which follows m3.material.io; Compose only ships round toggles. Text buttons have no toggle form, which the types enforce.
+  - **Disabled:** container `on-surface` 10% and content `on-surface-variant` 38% for every variant (the Expressive token files). Compose's older `FilledTonalButtonTokens` (12%, `on-surface`) are not used.
+  - **Touch targets:** XS and S get a 48px `TouchTarget` inside the library-owned inner wrapper. Layout height stays 32 / 40px.
+- **IconButton** (built): `variant` = `standard | filled | tonal | outlined` (Compose's icon button variants: no elevated or text); same `size` / `shape` / `toggle`, plus `width` = `narrow | default | wide`, `icon`, an optional `selectedIcon` for toggles, and `href`.
+  - **Name required by the types:** either `aria-label` or `aria-labelledby`.
+  - **Width** = icon size + leading + trailing space. Compose's `Uniform` option is the default width, which resolves the `LargeIconButtonTokens` naming gap. In px (narrow / default / wide): XS 28/32/40, S 32/40/52, M 48/56/72, L 64/96/128, XL 104/136/184. Icons are 20/24/24/32/40px.
+  - **Colour:** standard and outlined icon buttons **inherit the surrounding text colour**, like Compose's `LocalContentColor`. The outlined border is drawn in that colour, and disabled is that colour at 38%. Filled and tonal use their tokens, with disabled container `on-surface` 10% and icon `on-surface` 38%. Compose's "vibrant" icon button colours are just the token colours (`on-surface-variant` / `outline-variant`); inside a toolbar the inherited content colour covers them, so there is no separate variant (§9 Toolbars).
+  - **Selected toggles:** standard turns `primary`, filled `primary`/`on-primary` (unselected `surface-container`), tonal `secondary`/`on-secondary`, and outlined `inverse-surface`/`inverse-on-surface` with no border. Shape swaps round ↔ square (Compose tokens). Every icon button morph, toggles included, uses the non-bouncing effects spring, as Compose does.
+  - Reads `size` / `shape` / `disabled` from `ButtonContext`, but not `variant`, because the variant sets differ.
+- **Colour note:** the 2025 colour spec makes `inverse-on-surface` noticeably muted (baseline light `#a09ba1` on `#0f0d12`, about 7:1 contrast). Selected outlined buttons and icon buttons look greyer than the 2021 palette did. That's correct, not a bug.
+- **Button group** (built, `ButtonGroup`, a composite): `variant` = `standard | connected`; shares `size` / `shape` / `disabled` and `buttonVariant` (Buttons only) through `ButtonContext`, and the child's own props win.
+  - **Press expansion:** neighbours react to a pressed button (Compose `ButtonGroup`). The pressed item grows by `expandedRatio` (0.15) of its width, and its neighbours shrink by the same amount. Each neighbour gives up at most its compression limit, which is half the space around its content (Compose: the item's end padding). Middle items split the growth across both sides, so the group's total width stays constant.
+  - **How it works on the web:** the group watches its children's public `data-pressed` attribute (a MutationObserver), pins their `flex-basis` to the measured width, and animates it on the fast spatial spring (added to `container-motion`). While pinned, `min-width` is 0 (Compose forces exact widths too). Inline styles are removed once the release settles, so consumer sizing such as `flex-1` applies again. `expandedRatio={0}` turns it off.
+  - **Connected:** 2px gap. Outer corners stay full, inner corners are small (8px) and extra-small (4px) when pressed, and selected buttons become fully round. These are logical corners, so they mirror in RTL. Children get `connected` = `leading | middle | trailing` through a per-child `ButtonContext` provider; Button and IconButton apply it in their recipes, and it replaces their normal shape classes.
+  - **Selection:** `selectionMode` = `none | single | multiple` with `selectedKeys` / `defaultSelectedKeys` / `onSelectionChange` / `disallowEmptySelection`. Toggle buttons with a `value` join the group's React Aria toggle-group state (`ToggleGroupStateContext`, read by `ButtonBase`). Single selection renders as a `radiogroup` of `radio`s. React Aria keeps every option tabbable and adds arrow-key movement. No-op changes that React Stately reports (same keys) are not passed to `onSelectionChange`.
+  - **Spec gaps:** Compose only has *Small* tokens for groups (standard gap 12px; connected gap 2px, inner corners 8/4px). They are used at every size until per-size values are published. The Compose **overflow menu** is deferred until Menu exists.
+  - Children must be direct elements (each is wrapped in its own context provider).
+- **FAB** (built, `Fab` + `ExtendedFab`): `Fab` `size` = `default | medium | large` (56 / 80 / 96px; small FAB deprecated); `ExtendedFab` `size` = `sm | md | lg` (56 / 80 / 96px tall).
+  - **Shared:** `color`, `lowered` and `href`.
+  - **Shapes and icons follow Compose's code:** corners are large (16px) / large-increased (20px) / extra-large (28px). Compose's code uses `LargeIncreased` for medium FABs, which **resolves the §17 gap**. Icons are 24 / 28 / 36px; the large icon is 36px, because Compose marks the 32px token incorrect.
+  - **Extended FAB:** padding 16 / 26 / 28px; icon gap 8 / 12 / 16px (Compose overrides the medium and large token gaps); label `title-medium` / `title-large` / `headline-small`.
+  - **Elevation:** level 3, hover 4; `lowered` is level 1, hover 2. There's no press morph, and no `disabled` (FABs have none in M3; the types enforce it).
+  - **Colour styles:** `primary-container` (default), `secondary-container`, `tertiary-container`, `primary`, `secondary`, `tertiary`, each a role + on-role pair. Compose only ships tokens for the first two; the other four follow m3.material.io's colour styles.
+  - **`expanded` (Extended FAB):** collapses to an icon-only square. The label sits in a CSS grid column that transitions between `0fr` and `1fr`, so the FAB's natural width animates without JavaScript or transforms. It expands on the fast spatial + default effects springs and collapses on default spatial + fast effects, as Compose does. The label stays in the accessible name while collapsed.
+  - **Deferred:** Compose's show/hide (`animateFloatingActionButton`, scale to 0.2 + fade) scales the whole FAB, which conflicts with §10 rule 4. It needs its own design, likely a wrapper element the consumer positions.
+
+### Card (built)
+- `variant` = `filled | elevated | outlined` (default `filled`, as Compose's `Card`). All have 12px corners and `on-surface` content: filled is `surface-container-highest`, elevated is `surface-container-low` at level 1, outlined is `surface` with a 1px `outline-variant` border.
+- **Clipping:** cards clip content to their corners (`overflow-hidden`, as Compose clips), so media gets rounded edges; `overflow-visible` turns it off. They're `flex flex-col` with no padding, and content sets its own.
+- **Three forms:**
+  - **Static** (`<div>`).
+  - **Pressable** (`onPress`): renders `<div role="button">` through `ButtonBase`'s new `elementType: 'div'`, because a `<button>` may only contain phrasing content and cards hold headings, media and blocks.
+  - **Link** (`href`, `<a>`).
+- **Interactive cards** fill their container's width (`w-full`), get state layers and the focus ring, and should be named with `aria-labelledby` (their headline). In development they warn if they contain buttons, links or fields, since interactive content can't nest; use a static card with its own actions instead.
+- **Elevation and disabled state follow Compose's code:** filled rises 0→1 on hover, elevated 1→2, dragged 3 / 4 / 3. Outlined cards **don't rise on hover**: the code keeps hover, focus and press at the default level although the token says level 1. Disabled colours are Compose's composites, done with `color-mix`: filled `surface-variant` 38% over its container, elevated `surface`, the outlined border `outline` 12% over `surface-container-low`. Content is `on-surface` 38%.
+- No anatomy sub-components (headline, media, actions) in v1. Compose doesn't ship them, and layout utilities cover them.
+
+### TextField (built)
+- `variant` = `filled | outlined`, a floating `label`, `supportingText`, `errorMessage` / `invalid` / `validate` (React Aria `useTextField`), `required` (visual `*`, `aria-required`), `disabled`, `readOnly`, `leadingIcon`, `trailingIcon` (may be an `IconButton`), `prefix`, `suffix`, `maxLength` with a `count/max` counter, and `multiline` (`<textarea>` that grows from `rows` up to `maxRows`, then scrolls). It's controlled or uncontrolled through `value` / `defaultValue` / `onChange(value)`.
+- **Naming:** a `label` **or** `aria-label` / `aria-labelledby` is required by the types.
+- **Where props go:** `ref`, `className`, `style` and `data-*` go on the root; `inputRef` and every other attribute go to the input.
+- **Values from Compose** (`TextFieldImpl.kt` + tokens):
+  - 56px minimum height, 280px default width (`max-w-full`).
+  - 16px padding; next to an icon it drops to 4px, because icons sit in 48px boxes.
+  - Filled with a label: 8px padding, label floated 8px from the top. 4px above supporting text, 2px around affixes.
+  - Filled has `surface-container-highest` with an `on-surface-variant` indicator (2px `primary` on focus). Outlined has a 1px `outline` border, 2px `primary` on focus, and the label centred on the border at 16px inside a notch with 4px padding.
+  - With a leading icon, an outlined label moves from after the icon to 16px when it floats, while a filled label stays aligned with the text.
+  - Hovered labels stay `on-surface-variant` on filled fields and darken to `on-surface` on outlined ones. Error-hover switches to `on-error-container`.
+  - The label floats on the fast spatial spring and recolours on fast effects.
+- **One state:** colours follow a single computed `data-field-state` (`disabled > error-focus > error-hover > error > focus > hover > rest`), so the styles of each part never compete on CSS order. `data-focused` / `data-hovered` / `data-invalid` / `data-disabled` / `data-floated` are exposed too.
+- **Floating label:** an absolutely positioned `<label>` that transitions `top`, `inset-inline-start` and the type-scale properties, so it needs no transforms and mirrors in RTL. It also floats for browser autofill (`:has(:autofill)`), since autofilled values are hidden from JavaScript until the user interacts.
+- **Outlined notch:** a hidden `fieldset`/`legend` carrying the label text, so the gap matches the label exactly. The outline is shifted up 8px only when there is a label.
+- **Errors:** the error message replaces the supporting text visually, but the supporting text stays in the accessible description (`sr-only`).
+- With a label, the placeholder, prefix and suffix appear only once the label floats (Compose).
+- Pressing the container focuses the input (not when pressing an icon button).
+- **Not in v1:** composable TextField parts (the doc's "two API levels"); only the batteries-included form is exported, built from the Field primitives.
+
+### Selection controls (built: Checkbox, RadioGroup + Radio, Switch)
+- **Shared anatomy:** the `SelectionControl` primitive + `selectionControlStyles`.
+  - A root `<label>` (`ref`, `className`, `style`, `data-*`) with a visually hidden native input (`inputRef`) from React Aria (`useCheckbox` / `useRadio` / `useSwitch`), so forms, labels and assistive tech work natively.
+  - A control holding the focus ring and a 48px touch target, and the label text (`text-body-large`).
+  - `kind: 'circle'` (Checkbox, Radio) makes the control the 40px state-layer circle: `on-surface` unselected, `primary` selected, inverted while pressed, `error` when invalid (M3 spec; this token set has no state-layer colours).
+  - `kind: 'track'` (Switch) makes the control the track, with a state layer that follows the thumb.
+  - The types require a label or an accessible name. Selection is `selected` / `defaultSelected` / `onSelectedChange` (Checkbox, Switch) or the group's `value` / `defaultValue` / `onChange` (RadioGroup).
+- **Checkbox:** Compose's **M3 styling**, i.e. `ComposeMaterial3Flags.isCheckboxStylingFixEnabled = true`. Compose defaults that flag to false, which keeps M2 styling.
+  - Geometry: an 18px box with 2px corners and a 2px outline; check path (0.25, 0.5) → (0.4, 0.65) → (0.75, 0.3), 2px square cap.
+  - Motion: the check draws on default spatial and snaps away 100ms after unchecking; the box fills on default effects and empties on fast effects.
+  - `indeterminate` draws a dash path. **Deviation:** Compose morphs the check into the dash, but CSS can't animate a path shape in Safari, so the dash draws on its own.
+  - Error uses `error` / `on-error`. Disabled checked is `on-surface` 38% with a `surface` check.
+- **Radio:** a 20px ring (2px). The dot is 10px and grows on fast spatial; colour changes on default effects.
+  - The unselected ring darkens to `on-surface` on hover, focus and press. Disabled is `on-surface` 38%, which also overrides the selected colour (stacked variant).
+  - M3 radios have **no error colour**; an invalid `RadioGroup` shows its error text.
+  - `RadioGroup` provides the state, arrow keys, label (`text-title-small`), supporting/error text and orientation. A `Radio` outside a group throws.
+- **Switch:** a 52×32px track (2px outline).
+  - Thumb geometry is computed like Compose's `ThumbNode`: 16px off, 24px on or with an icon, 28px pressed, centred 16 / 36px from the start. It's passed as `--m3-thumb-size` / `--m3-thumb-center`, so no CSS state selectors compete.
+  - Pressing snaps the thumb; release animates `width` / `height` / `top` / `inset-inline-start` on fast spatial. Mirrors in RTL.
+  - Hover, focus and press change the thumb to `on-surface-variant` (off) / `primary-container` (on). Disabled colours are Compose's composites over `surface` (`color-mix`).
+  - `icons` shows the default check / close icons; `selectedIcon` / `unselectedIcon` override them. The focus ring surrounds the track.
+- **No CheckboxGroup** in v1. Compose has none, and a fieldset of Checkboxes with `name` covers forms.
+- `splitDataAttributes` (utils) routes `data-*` to the root for components whose remaining props go to a React Aria hook (TextField, the selection controls). Those hooks forward only the attributes they know, so consumer `data-*` attributes were being dropped.
+
+### Dialog (built; a component, not a composite)
+- `DialogTrigger` (trigger + dialog, `open` / `defaultOpen` / `onOpenChange`) or a standalone controlled `Dialog`. Flat parts: `DialogTitle`, `DialogContent`, `DialogActions`. Children may be `({ close }) => …`. `icon` centres the title. `role="alertdialog"` is not dismissed by pressing outside. `dismissable` and `keyboardDismissDisabled` are configurable.
+- **Built on** `Overlay` + React Aria `useModalOverlay` (dismissal, scroll lock, hiding the rest of the page) + `useDialog` (labelling, initial focus). Focus is contained and returns to the trigger. React Aria sets no `aria-haspopup` for dialog triggers; it does set `aria-expanded` / `aria-controls`.
+- **Values** (Compose `AlertDialog.kt`, `DialogTokens`):
+  - Size: 280–560px wide, 24px padding, 28px corners, `surface-container-high`, level 3.
+  - Text: a 24px `secondary` icon, a `headline-small` title and `body-medium` `on-surface-variant` text.
+  - Spacing: 16px below the icon and the title, 24px below the text, 8px between actions.
+  - Stacked actions put the confirm action (last) **on top**, matching Compose's flipped `FlowRow` (`flex-wrap-reverse`).
+  - Long content scrolls inside the panel. The scrim is `scrim` at 32%.
+- **Motion (not from Compose,** which uses platform window animations):
+  - Enter: the scrim fades and the panel fades + scales from 90% on the default springs (CSS `@starting-style`).
+  - Exit: fade + scale to 95% on the fast springs.
+  - It runs on a library-owned wrapper that rests at `scale: none`, so it isn't a lasting containing block for fixed children.
+- **Moved to the components layer:** the doc listed Dialog as a composite, but its core is the `Overlay` primitive and React Aria hooks, which composites may not import. Consumers' buttons go in `DialogActions`.
+- **Deferred:** full-screen dialogs (compact windows) need the Tier 3 top app bar.
+
+### Menu (built)
+- `MenuTrigger` (trigger + `Menu`, `open` / `defaultOpen` / `onOpenChange`) and `Menu` with `MenuItem` / `MenuGroup` children. These are typed aliases of React Stately's collection `Item` / `Section`, identified by React `key`.
+- **Built on** React Aria `useMenuTrigger`, `usePopover`, `useMenu`, `useMenuItem`, `useMenuSection`. You get `onAction(key)`, `selectionMode` `none | single | multiple` with `selectedKeys` / `onSelectionChange`, `disabledKeys`, arrow keys, typeahead, Escape / outside-press dismissal and focus return.
+- **Item props:** `leadingIcon`, `selectedIcon`, `description` (accessible description), `shortcut` (rendered as `<kbd>`), `trailingIcon`.
+- **Expressive grouped menu** (Compose `Menu.kt`, `MenuDefaults.kt`, Menu / Standard / Vibrant / Segmented tokens):
+  - **Groups:** each `MenuGroup` is its own surface at elevation 2, 2px apart, with 4px padding on every side (the SegmentedMenu `GroupPadding` token; Compose's code insets items only 2px vertically, which left the first and last items closer to the edge than the sides). Corners: only 16px; first 16 / 8px; middle 8px; last 8 / 16px. Loose items form implicit groups. Labels start 12px and end 4px from the group's edge (Compose).
+  - **Items:** at least 44px tall, 112–280px wide, 12px padding, `label-large`, 20px icons with an 8px gap.
+  - **Item corners nest inside the group's:** where an item meets a 16px group corner it gets 12px (16 − the 4px padding), and every other corner is 4px; a heading above the first item takes the group's top edge. **Deviation:** Compose picks item shapes per group alone (first 12 / 4px, last 4 / 12px), so the last item of a leading group was rounder than the group's 8px corner around it. Selected items are 12px, morphing on fast spatial.
+  - **Selection:** selectable menus show a check that expands in (grid `0fr → 1fr`) when the item has no leading icon.
+  - **`variant`:** `standard` is `surface-container-low` with on-surface content and selects with `tertiary-container`. `vibrant` is `tertiary-container` with `on-tertiary-container` content (icons turn `tertiary` on hover, focus and press) and selects with `tertiary`. Disabled is 38%.
+  - **Shadows and scrolling:** the list scrolls when tall, and a scroll container clips its children's shadows to its box, which cut the groups' elevation-2 shadow off at a square edge around the rounded corners. The list therefore has 8px of padding cancelled by a −8px margin (nothing moves; group widths stay 112–280px), and that ring is `pointer-events: none` (groups re-enable it) so a press just outside the menu still dismisses it. A Playwright test checks the 8px inset.
+  - **Motion:** scales from 80% and fades in from the anchor side (transform origin follows placement and direction) on fast spatial / fast effects, settling to `scale: none`.
+- **Placement:** `placement` defaults to `bottom start` with no offset. React Aria resolves `start` / `end` from its locale, not the DOM `dir`, so `Menu` converts them to physical sides from the trigger's computed direction (read with `useSyncExternalStore`).
+- **Focus fix:** a menu opens on pointer down and takes focus. React Aria then hides the rest of the page, trigger included, from assistive tech. The browser's follow-up `mousedown` on the trigger would then drop focus on `<body>`, so Escape did nothing. `MenuTrigger` cancels the trigger's `mousedown`; React Aria has already focused it on pointer down. A browser test asserts focus is inside the menu after a mouse open.
+- **Not in v1:** submenus, and the ButtonGroup overflow menu (now unblocked).
+
+### Select and Autocomplete (built; plan `docs/plans/select-autocomplete.md`)
+- M3's **exposed dropdown menu**, from Compose's `ExposedDropdownMenuBox`: `Select` is the read-only anchor (`MenuAnchorType.PrimaryNotEditable`), `Autocomplete` the editable one (`PrimaryEditable`). Built on React Aria `useSelect` / `useComboBox`, so they follow WAI-ARIA's select-only combobox and editable combobox with list autocomplete.
+- **One field, one list, shared:** the field is `select/field-shell.tsx`, the Text field's markup and `textFieldStyles` (both variants, floating label, notch, indicator, supporting text, errors, the `data-field-state` machine); the list is `select/option-list.tsx`, drawn with `menuStyles` (the `surface-container-low` panel at elevation 2, 44px items, `tertiary-container` and a check for chosen options, sections with headings and dividers, the inset focus ring). Neither can drift from Text field or Menu.
+- **Items:** `SelectItem` / `SelectSection` / `AutocompleteItem` / `AutocompleteSection`, typed aliases of React Stately's `Item` / `Section` identified by React `key`, with `leadingIcon`, `description`, `trailing` and `textValue`. They must be created in client components (`assertCollectionChildren`).
+- **Menu:** under the field, at least as wide (Compose's `exposedDropdownSize`), above it when there's no room, with the Menu's open and close springs. The arrow (`arrow_drop_down`) turns over on the fast spatial spring. `Select`'s `presentation` is `menu` (default, M3's baseline on every window), `sheet` (the library's bottom sheet, with the list but not its panel) or `auto` (a sheet below 600px). `Autocomplete`'s popover is non-modal so the input keeps working, and its options show keyboard focus while DOM focus stays in the input.
+- **Selection:** `selectionMode` `single | multiple` with `value` / `defaultValue` / `onChange` (React Aria's newer value API, not `selectedKeys`). Multiple `Select` lists the chosen options in the field (two, then `+N` from `labels.more`); multiple `Autocomplete` shows them as `InputChip`s in a growing field, removed by their close button or Backspace in the empty input. `maxSelections` owns the chosen keys (`select/selection-cap.ts`): options past the cap are disabled, and a change past it (a click or Enter) is turned away.
+- **Filtering:** `matchesSearch` (exported with `normalizeSearch`) matches anywhere, ignoring case and accents, `đ` included, so "zurich" finds "Zürich" and "dakovo" finds "Đakovo". `filter` replaces it; controlled `items` are left to the app, with `loading` showing a `LoadingIndicator` row. An empty list shows a `role="status"` row.
+- **Naming:** React Aria's `isDisabled`, `isRequired`, `isInvalid`, `isReadOnly` and `isOpen` become `disabled`, `required`, `invalid`, `readOnly` and `open`; the deprecated `validationState` is left out. Words the components show or announce are in `labels`.
+- **Behaviour notes:** a press anywhere on a `Select` field opens it (as Compose); on an `Autocomplete` it puts the caret in the input. Focus returns to the field a frame after the menu unmounts. While an `Autocomplete` menu is open, React Aria hides the rest of the page (chips included) from assistive technology, as the combobox pattern expects.
+- **Searchable** (`docs/plans/select-searchable.md`): `searchable` puts a search at the top of the menu or sheet (`select/search-list.tsx`), wired to the list with React Aria `useAutocomplete` + `useSearchField` as one editable combobox with list autocomplete. The field then has `aria-haspopup="dialog"`; in the menu the panel is the dialog, named by the label. Filtering is section-aware through `useListState`'s `filter` (a section with no matches hides with its heading), with `matchesSearch` by default, `filter(textValue, search, key)` to replace it, and none when the app handles `onSearchChange`. The search takes focus in the menu; a sheet shows the list first (the keyboard would cover half of it), and `useDialog` focuses the sheet. Escape clears the search, then closes; the list's own Escape handling is off (`escapeKeyBehavior: 'none'`), since it read `disallowEmptySelection` from props and swallowed Escape whenever an option was chosen. Multiple selection keeps the dialog and the search. The search is the M3 search bar's field at **48px** (M3's minimum touch target) rather than 56px, so it doesn't dominate the 44px rows, and a searchable menu is at least 280px wide. React Stately's `useAutocompleteState` is private, so `Select` keeps the two values it holds (the text and the active option's id) itself. `UNSTABLE_useFilteredListState` needs a `BaseCollection`, which `Item`/`Section` children don't build.
+- **`renderValue`:** what the field shows for the chosen option(s) (`SelectedOption`: key, text, item); the rendered value is `aria-hidden` and the options' text stays in the field's name.
+- **Hidden select:** rendered only with `name`, `autoComplete`, `form` or native validation. Otherwise a long list's text was server-rendered twice, and `Intl.DisplayNames` country names can differ between Node and the browser, which broke `PhoneField`'s hydration.
+- **Not in v1:** virtualised lists (plain DOM is fine for a few hundred options, the 245 countries included).
+
+### Progress indicators (built, Tier 2)
+- `LinearProgressIndicator`: `value` (0–1; leave it out for indeterminate), `wavy`, `stopIndicator` (default on). `CircularProgressIndicator`: `value` (required) and `wavy`. **There's no indeterminate circular indicator**: it's deprecated in Expressive and `LoadingIndicator` replaces it. Both are React Aria progress bars that need a name.
+- **Values** (Compose `ProgressIndicator.kt`, `WavyProgressIndicator.kt`, `Linear/CircularWavyProgressModifiers.kt`, and the ProgressIndicator / Linear / Circular tokens):
+  - Shared: `primary` active indicator and stop dot on a `secondary-container` track, with 4px round strokes and a 4px gap.
+  - Linear: 240px wide (resize with `className`, e.g. `w-full`), 4px tall, 10px when wavy.
+  - Circular: 40px flat, 48px wavy.
+- **Linear drawing** ports `LinearProgressDrawingCache.updateDrawPaths`:
+  - Segments are inset for the round caps. The track fills the gaps between active segments, after a gap that shrinks while progress enters. The stop dot shrinks once progress reaches it.
+  - The wave is Compose's run of quadratic half-waves, each control point halfway along. It peaks at (height − stroke) / 2 = 3px, is scaled by amplitude about the centre line, and is drawn as exact SVG quadratics.
+  - Wavelength 40px (20px indeterminate), travelling a wavelength per second.
+  - A wavy determinate indicator flattens below 10% and above 95% (`indicatorAmplitude`). The amplitude changes over 500ms: standard easing as it grows, emphasized-accelerate as it shrinks.
+- **Indeterminate linear:** Compose's four keyframed curves over a 1750ms cycle (first head 0–1000ms, first tail 250–1250ms, second head 650–1500ms, second tail 900–1750ms, emphasized-accelerate), drawn as two lines.
+- **Circular drawing:**
+  - Flat: arcs from 12 o'clock with a gap of (4px + stroke) of circumference either side, drawn as dashes on a `pathLength="1"` circle.
+  - Wavy: Compose's `CircularShapes` from our shape library. The active ring is `star(n, innerRadius 0.75, rounding 0.35 / smoothing 0.4, innerRounding 0.5)`, with n = round(2πr / 15px) (9 at 48px), morphed from an n-vertex circle by amplitude.
+  - The ring is drawn twice (`pathLength="2"`, Compose's `repeatPath`). The dash shifts along it while the group rotates back, so the wave travels while the arc stays put: one revolution per n seconds.
+- **Rendering:** geometry and timing are pure functions (`progress-geometry.ts`), unit-tested against Compose's numbers. Animated variants write paths to the SVG from Motion's `useAnimationFrame`. The first render is a deterministic frame at t = 0, so it's SSR-safe. The SVG mirrors in RTL.
+- **Reduced motion:** the wave stops travelling and amplitude changes snap. Indeterminate motion stays, because it conveys activity.
+
+### Tooltip (built, Tier 2)
+- **Plain:** `TooltipTrigger` (trigger then `<Tooltip>`) on React Aria `useTooltipTrigger` / `useTooltip`. It shows on hover or keyboard focus, describes the trigger (`aria-describedby`), stays while hovered, and Escape hides it. `delay` / `closeDelay` default to 0, since Compose shows at once. `placement` = `top | bottom | left | right`, flipping when there's no room.
+- **Rich:** `RichTooltipTrigger` (trigger then `<RichTooltip title action>`). It can hold actions, so it's a **non-modal popover dialog** (`useOverlayTrigger` type `dialog` + `usePopover isNonModal` + `useDialog`), named by its subhead (or `aria-label`). A press opens it; a press again, Escape or a press outside closes it, which is Compose's persistent rich tooltip.
+- **Values** (Compose `Tooltip.kt`, Plain / RichTooltipTokens):
+  - Plain: `inverse-surface`, `body-small`, 8 × 4px padding, at least 40×24px, at most 200px wide, 4px corners.
+  - Rich: `surface-container` at level 2, 12px corners, 16px sides, up to 320px. A `title-small` subhead with its first baseline 28px down. `body-medium` text with its first baseline 24px below the subhead and 16px under it, or 4px above and below without a subhead or action. The action row is at least 36px tall with 8px under it.
+  - Baselines become padding from Roboto Flex metrics: subhead 13px, text 9px.
+  - Both sit 4px from the anchor (12px with the optional 16×8 caret) and scale from 80% on fast spatial while fading on fast effects, from the anchor's side.
+- **Deviations:**
+  - A focus-triggered plain tooltip doesn't auto-hide after 1.5s (Compose's `TooltipDuration`); it stays until blur, leave or Escape (WCAG 1.4.13).
+  - Plain tooltips don't open on touch long-press; React Aria tooltips are pointer and keyboard only.
+  - Triggers must read `TriggerContext` (library buttons do), as with `MenuTrigger`. A button that opens a menu, dialog or sheet takes a tooltip by putting that trigger inside the `TooltipTrigger`; pressing it opens the overlay and hides the tooltip.
+- **Testing note:** React Aria counts a hover only after a pointer move has set its interaction modality. Tests move the pointer before hovering, as any real approach does.
+
+### Snackbar (built, Tier 2)
+- `Snackbar`: the message as `children`, `actionLabel` + `onAction`, `onDismiss` (shows the × button; Escape inside it also dismisses), `dismissLabel`, `actionOnNewLine`.
+- `SnackbarHostState` (from `useSnackbarHostState()`) ports Compose's queue. `showSnackbar({ message, actionLabel, withDismissAction, actionOnNewLine, duration })` shows one snackbar at a time and resolves `'action-performed'` or `'dismissed'`. `SnackbarHost` renders it; the consumer positions it with `className`.
+- **Values** (Compose `Snackbar.kt` with its `isSnackbarStylingFixEnabled` layout, `SnackbarHost.kt`, `SnackbarTokens`):
+  - Container: `inverse-surface`, level 3, 4px corners, 48px minimum height, up to 600px wide.
+  - Text and spacing: `body-medium` `inverse-on-surface` with 16px before it and 14px above and below; 8px after the action when there's no dismiss button.
+  - Actions: the action is our text `Button` in `inverse-primary` (a component-to-component dependency); the dismiss is a standard `IconButton`.
+  - On a new line, the actions sit at the end, 4px from the bottom.
+  - The host pads each snackbar by 12px.
+- **Motion and timing:**
+  - Snackbars fade on fast effects and scale from 80% on fast spatial, on a host-owned wrapper (not the snackbar's root). A leaving snackbar stays, `inert`, while the next one appears, both sharing one grid cell.
+  - Durations: short 4s, long 10s, indefinite by default when there's an action (Compose). There's no platform accessibility multiplier.
+  - **Addition:** the timer pauses while the pointer or focus is on the snackbar (WCAG 2.2.1).
+- **Accessibility:** the host is a persistent `aria-live="polite"` region, so new messages are announced. Snackbars don't take focus.
+
+### Navigation rail and flexible navigation bar (built, Tier 2)
+- `NavigationRail` with `NavigationRailItem`, and `NavigationBar` with `NavigationBarItem`. Items are links (`href`) or buttons (`onPress`) with `icon`, optional `selectedIcon` and a label; `selected` marks the current destination with `aria-current="page"` (`data-current`, since `ButtonBase` owns `data-selected`). Each is a `nav` landmark that needs a name.
+- **Rail** (Compose `WideNavigationRail.kt`):
+  - Props: `expanded` / `defaultExpanded` / `onExpandedChange`, `header` (a node, or a function of `{ expanded, toggle }` for the menu button), `modal`, `hideOnCollapse`.
+  - Collapsed: 96px, `surface`, items 4px apart. Content starts 44px down, with the header 40px above the items. The width is `--m3-rail-collapsed-width` (a registered `<length>`, default 96px), so a consumer can set M3's 80px baseline width and keep the expand motion.
+  - **Icons stay on one line** in both states, through the middle of the collapsed rail, as in M3's rail motion: only the labels and the rail's edge move (2026-10-11). Nothing is centred in the animated width. Every inset derives from the collapsed width: the item inset is (collapsed − 56) / 2 (20px at 96px), collapsed items are exactly the collapsed width, and the header is a 56px column at the item inset with `justify-items: safe center`, so a menu button or FAB is centred on the icon line and an extended FAB starts at the column's edge. The modal sheet is portalled, so it copies the rail's computed collapsed width.
+  - Expanded: as wide as the widest label + the item chrome (two item insets, 16px pill padding each side, 24px icon, 8px gap: 104px at the default width), clamped to 220–360px. The width springs on the default spatial spring. It's the `--m3-rail-width` variable, so a consumer `w-*` class still wins.
+  - **Modal** (`modal`): the in-flow rail stays collapsed (or is hidden with `hideOnCollapse`). The expanded rail opens as a dialog sheet (`useModalOverlay` + `useDialog`): `surface-container`, level 2, 16px end corners, over a 32% scrim. It grows from the collapsed width, or slides in from the start edge when the collapsed rail is hidden, on the fast spatial spring. Escape, an outside press or choosing an item collapses it.
+- **Bar** (Compose `ShortNavigationBar.kt`): 64px `surface-container`, no elevation. `iconPosition` = `top` (compact) or `start` (the flexible bar's inline items in medium windows). `arrangement` = `equal`, or `centered` with Compose's side padding of (100% − 10% × (n + 3)) / 2 for up to 6 items.
+- **Items** (Compose `NavigationItem.kt` and tokens):
+  - Rail collapsed: a 56×32 pill centred in the collapsed width (the item is that wide, even while the rail animates); the `label-medium` label sits 4px below and may use all of it, at least 64px tall.
+  - Rail expanded: a 56px pill holding icon · 8px · `label-large`, 16px inside, one item inset (20px) from the rail's start edge, which keeps the icon on the collapsed rail's centre line. **The pill hugs its icon and label** (2026-10-11), as in M3 Expressive; the full-width pill was the deprecated navigation drawer's. The whole row stays the link or button, a larger target than Compose's pill-only one (a deliberate difference), with the state layer and focus ring on the pill. An item can still stretch its pill with `classNames={{ root: 'justify-items-stretch' }}`; there's no prop for it until something needs one.
+  - **The expanded pill slides** (2026-10-11, from M3's expanded-rail motion): when the current item changes, its pill starts at the previous current item's place and width and springs home on the fast spatial spring (Motion, `useM3Spring`), so one pill travels, changing width between labels of different lengths, and the old one goes at once. Once settled it sizes itself to its content again. Nothing slides on the first render or under reduced motion. The item list is isolated and each item's content sits above every pill, so a moving pill never covers a label. The collapsed rail and the bar keep the pill that grows from its centre.
+  - With a `selectedIcon`, the outline and filled icons share one cell and cross-fade on default effects (every layout).
+  - Bar stacked: 6px · 56×32 pill · 4px · `label-medium` · 6px.
+  - Bar inline: a 40px pill holding icon · 4px · `label-medium`, 16px inside.
+  - Colours: `on-surface-variant`. The current item has `on-secondary-container` on a `secondary-container` pill; its label is `secondary` under the icon or `on-secondary-container` beside it. Disabled is 38%.
+  - Pill and states: the pill grows from its centre (`clip-path`) on the default spatial spring, as Compose animates its width. The state layer (`on-secondary-container`) and the focus ring are pill-shaped, as in Compose's indicator ripple.
+- **Layout safety:** the pill, its state layer and its content share one grid cell, so nothing is positioned. The content is `relative` because the indicator's `opacity` / `clip-path` paint it in the positioned layer above plain in-flow content.
+- **Deviation:** when the rail changes mode, Compose cross-fades each label while sliding it. Here items switch layout at once, the labels fade in at their new place (`@starting-style`), and the rail's width does the spring.
+
+### Tabs (built, Tier 2)
+- `Tabs` with `Tab` children, typed aliases of React Stately's collection `Item`, identified by `key`, with `title`, `icon` and the panel as `children`. Props: `variant` = `primary | secondary`, `scrollable`, `iconPlacement` = `top | start`, `selectedKey` / `defaultSelectedKey` / `onSelectionChange`, `disabledKeys`, `aria-label`.
+- **Built on** React Aria `useTabList` / `useTab` / `useTabPanel`: arrow keys, Home / End, automatic activation. The panel is keyed by the selection (React Aria's pattern) so its id follows it. Tabs with no panels (navigation rows) render no panel and drop `aria-controls`.
+- **Values** (Compose `Tab.kt`, `TabRow.kt`, Primary / SecondaryNavigationTab tokens):
+  - Row and tabs: `surface` row with a 1px `outline-variant` divider; 48px tabs; `title-small`, 16px side padding, 24px icons.
+  - **Icon above label: 64px** (rev. 41). That is the M3 token (`PrimaryNavigationTabTokens.IconAndLabelTextContainerHeight`) and what Material Web uses: the icon, a 2px gap and the label, centred (9px above and below). Compose's `Tab.kt` (`LargeTabHeight`) and MDC's `TabLayout` still hard-code 72dp, the Material Design 1 value, so this is a deliberate exception to following Compose's code over its tokens. Until rev. 41 the tabs were 72px with Compose's baseline layout.
+  - Colours: labels `on-surface-variant`, `on-surface` on hover / focus / press. Selected labels are `primary` (primary) or `on-surface` (secondary). Selection recolours on default effects, deselection on fast effects. The state layer is the selected colour.
+  - Indicator: 3px `primary`, sliding on the default spatial spring. Primary tabs: as wide as the content (min 24px) with 3px corners. Secondary: the whole tab (Compose's default 3px height).
+  - Scrollable: tabs at least 90px, a 52px start inset, and the selection animates to the centre on the default spatial spring (`scrollLeft` driven by Motion). The indicator is measured from the row's content box (inside the inset), since grid items sit there; measuring from the border box once shifted it 52px in LTR.
+- **Colour deviation:** Compose's `Tab` defaults its unselected colour to the selected one; the token colours are used instead.
+- **Layout safety:** the indicator shares the tab row's grid cell, spans every column, sits at the bottom edge and moves with `translate`, so no element is positioned. Each tab is placed in its grid column explicitly, and the divider is an inset shadow so the indicator paints over it.
+- **RTL:** React Aria takes arrow-key direction from its locale, not the DOM `dir`, so `Tabs` reads its laid-out direction and supplies an `I18nProvider` with a matching locale when they differ (as `Menu` does for placement).
+
+### Chips (built, Tier 2)
+- `AssistChip` (button or link; `leadingIcon`, `trailingIcon`, `elevated`), `SuggestionChip` (button; `leadingIcon`, `elevated`), `FilterChip` (toggle with `aria-pressed`; `selected` / `defaultSelected` / `onSelectedChange`, `leadingIcon`, `trailingIcon`, `elevated`) and `InputChip` (`avatar` or `leadingIcon`, `onPress`, `selected`, `onRemove`, `removeLabel`). There's no chip group; chips are laid out with flex.
+- **Values** (Compose `Chip.kt` and the chip token files):
+  - Size and type: 32px tall (48px touch target), `label-large`, 18px icons, 24px round avatars.
+  - Flat chips have a 1px `outline-variant` border. Elevated chips are `surface-container-low` at level 1 (hover 2, dragged 4).
+  - Disabled: content `on-surface` 38%, borders `on-surface` 12%, containers `on-surface` 12% at level 0.
+  - Colours: assist labels `on-surface`; suggestion, filter and input labels `on-surface-variant`. Assist / suggestion icons are `primary`.
+  - Selected filter and input chips are `secondary-container` with no border. A selected input chip's leading icon is `primary`.
+- **Shapes:** assist and suggestion chips keep 8px corners. Filter and input chips use Compose's **Expressive `shapes` overload**: 12px, 8px while pressed, round when selected, on the fast spatial spring, with the tonal colours (unselected leading icons `on-surface-variant`). The classic 8px filter and input chips aren't offered.
+- **Padding:** reproduces Compose's `ChipArrangement`, which spaces the label asymmetrically, for each icon combination:
+  - Assist / suggestion: 16px without icons, 8px beside an icon, 8px gaps.
+  - Filter: 16 | 16 with no icons; 8 · icon · 4 | 16 with a leading icon; 12 | 8 · icon · 8 with a trailing one; 8 · 4 | 4 · 8 with both.
+  - Input: 12 | 12; 8 · 4 | 12 with an icon; 4 · 4 | 12 with an avatar; trailing gaps 8, or 4 with a leading element; 8px end.
+- **Filter check:** without a `leadingIcon`, a selected filter chip grows a check (grid `0fr → 1fr`, fast spatial + default effects), and its start padding moves 16 → 8px, as in Compose's samples.
+- **Input chip structure:** a chip container holding two buttons, the primary action and a separate remove button (`aria-labelledby` "Remove" + label, so "Remove Alice"), because interactive content can't nest. Backspace / Delete on the chip also removes it. The container shows the state layer of whichever button is interacted with; each button has its own focus ring.
+- **Icon colours:** disabled and selected-input colours on icons go through a named group (`group/chip`), so they win on specificity rather than CSS order.
+
+### Split button (built, Tier 2; a component, not a composite)
+- `SplitButton`: a leading action (`children` label, `leadingIcon`, `onPress` or `href`) and a trailing button that opens `menu` (a `<Menu>` element, through `MenuTrigger`). Props: `variant` = `filled | tonal | outlined | elevated` (Compose has no text split button), `size` = `xs`–`xl`, `menuLabel` (the trailing button's required name), `open` / `defaultOpen` / `onOpenChange`, `disabled` (both halves), `menuIcon`.
+- **Values** (Compose `SplitButton.kt`, `SplitButton{XSmall…XLarge}Tokens`):
+  - Geometry: two buttons 2px apart, each at least 48px wide, with full outer corners.
+  - Inner corners are 4 / 4 / 4 / 8 / 12px and press to 8 / 12 / 12 / 20 / 20px. Compose's code uses only the pressed corners; the hovered tokens are unused.
+  - Padding: leading 12/10, 16/12, 24, 48 and 64px; trailing 13, 13, 15, 29 and 43px, with a 22 / 22 / 26 / 38 / 50px icon.
+  - Colours and elevation: Button's, shared through `buttonVariantClasses`.
+- **Menu open (Compose `checked`):** the trailing button becomes a circle with a persistent 10% layer of its content colour. It's an `inset-shadow`, so it composes with elevation shadows.
+  - The chevron turns over on the effects default spring, as Compose's sample does with a default no-bounce spring.
+  - The trailing icon is **optically centred** like Compose's `horizontalCenterOptically`: shifted by 0.11 × (start − end corner), rounded. That's −1 / −2 / −3 / −4 / −6px at rest, −1 / −1 / −2 / −3 / −5px pressed, and 0 when round. It's a logical `inset-inline-start` that animates with the corners.
+- **Label type:** follows the Button scale per size. Compose's split button provides `label-large` at every size and leaves larger text to the caller.
+- **Component layer:** the per-size asymmetric corners, pressed shapes and optical offset aren't expressible through the public `Button` / `IconButton`, so the halves use `ButtonBase`. The leading half is shielded from the menu's `TriggerContext`. React Aria names the menu after its trigger.
+
+### FAB menu (built, Tier 2; a component, not a composite)
+- `FabMenu` with `FabMenuItem` children: `open` / `defaultOpen` / `onOpenChange`, `icon` and an optional `openIcon` (usually add / close), `size` = `default | medium | large` (the FAB the button starts as), `color` = `primary | secondary | tertiary`, and `align` = `start | center | end` (logical). The button's name (`aria-label` / `aria-labelledby`) is required by the types. Items take `icon`, a label and `onPress` or `href`. Position the menu with `className` (`fixed end-4 bottom-4`); the items open upwards.
+- **No shape morph:** Compose's FAB menu doesn't use the shape library. Earlier revisions of this doc assumed it did; the Loading indicator was the only Tier 2 consumer.
+- **Values** (Compose `FloatingActionButtonMenu.kt`, `FabMenuBaselineTokens`):
+  - **Toggle button:** keeps its FAB's layout box (56 / 80 / 96px, corners 16 / 20 / 28px, icons 24 / 28 / 36px) in a library-owned anchor box. Open, it becomes the 56px close button with 28px corners and a 20px icon. Compose's `TopEnd` alignment inside the box becomes the `align` side here.
+  - **Button motion:** size, corners, container colour (`*-container` → the vibrant role) and icon all follow one fast spatial spring, as Compose's single `checkedProgress` does. Elevation is level 3.
+  - **Items:** 56px pills (min 56px wide, 24px side padding, 8px icon gap, 24px icon, `title-medium`), 4px apart and 8px above the button's box. They're `*-container` / `on-*-container`.
+  - **Item elevation:** none, because Compose's item `Surface` sets no elevation (the token's level 3 is unused).
+- **Stagger:** Compose animates the visible item count as an `Int` on the slow effects spring (ratio 1, stiffness 800, the same in both schemes), truncating it and ending within one item of the target.
+  - `fab-menu-stagger.ts` solves that spring for the step times. Opening shows the item nearest the button first (3 items: ~42ms, then the top two together at ~81ms). Closing hides the top item at once.
+  - Each item then springs its width (fast spatial, overshoot included) between 0 and its measured content width (`ResizeObserver`), and its opacity on fast effects, clipping its content from the aligned side. The list stays laid out until the bottom item has faded.
+- **Accessibility and keyboard:** the button has `aria-expanded` / `aria-controls`. DOM order is button then items (shown above it with `flex-col-reverse`), so Tab goes from the button to the top item, as in Compose. ↓ from the button and ↑ / ↓ between items move focus; ↑ from the top item and ↓ from the bottom one return to the button. Hidden items are `inert`.
+- **Closing:** Escape, choosing an item, or an outside press (React Aria `useInteractOutside`) closes the menu, and focus returns to the button if it was inside. Compose relies on the system back button, which the web lacks, so outside press is our equivalent.
+- **Colour sets:** primary / secondary / tertiary follow m3.material.io; Compose's defaults are the primary set.
+- **Component layer:** the toggle button needs `ButtonBase` and a size morph the public `Fab` doesn't offer, and composites may not import primitives.
+- **Not in v1:** Compose's scroll when the items exceed the available height; the icon swap happens on the state change rather than at 50% progress.
+
+### Loading indicator (built, Tier 2)
+- `LoadingIndicator`: indeterminate by default; `value` (0–1) makes it determinate. `variant` = `default | contained`, and `shapes` takes at least two `MaterialShapes` names or `RoundedPolygon`s. It's a React Aria `useProgressBar` (`role="progressbar"`, `aria-valuenow` / `aria-valuetext` when determinate), and the types require `aria-label` or `aria-labelledby`.
+- **Values** (Compose `LoadingIndicator.kt`, `LoadingIndicatorTokens`):
+  - Box: 48px, full corners. The indicator is 38px (`ActiveIndicatorScale` 38/48) times Compose's `calculateScaleFactor`, so no shape clips as it rotates.
+  - Colours: `primary`; contained is `on-primary-container` on `primary-container`.
+  - Each frame is centred by its control-point bounds, like Compose's `processPath`.
+- **Indeterminate:** Compose's seven shapes (soft burst, 9-sided cookie, pentagon, pill, sunny, 4-sided cookie, oval) in a loop.
+  - Every 650ms a morph springs to the next shape (damping 0.6, stiffness 200). It ends at Compose's estimated duration for a 0.1 visibility threshold, **297ms**, then the next morph starts at 0 and the target angle gains a quarter turn.
+  - The rotation is `progress × 90°` plus the target angle plus a linear full turn every 4666ms.
+  - The morph uses the **raw spring value**, overshoot included. A Compose comment says the value is coerced, but the code isn't.
+- **Determinate:** a circle (rotated 18°) morphs into a soft burst as `value` rises, turning counter-clockwise by up to 180°. It draws whatever `value` is, so consumers animate it.
+- **Rendering:** every frame is a pure function of elapsed time (`loading-indicator-frames.ts`, unit-tested against Compose's numbers). Motion's `useAnimationFrame` writes the path `d` and the `<g>` rotation straight to the SVG, so animation causes no React renders. The rotation is on the inner `<g>`, never the root (§10 rule 4).
+- **Reduced motion** (§6): the indeterminate indicator only rotates (the first shape at the global rate), with no morphs or springy quarter turns. Compose has no reduced-motion handling here.
+- **Sizing:** there's a single spec size, so there's no `size` prop. `className` (`size-24`) resizes the box; the SVG's viewBox scales the shape and keeps it square and centred.
+- **Tests:** indeterminate screenshots are taken at fixed times under a **paused** Playwright fake clock (`clock.install` + `pauseAt` before navigation). An unpaused installed clock keeps running in real time, which made a frame flaky under parallel load. The layout-safety suite has a non-interactive mode for components without press or focus.
+
+### Toolbars (built, Tier 3)
+- `DockedToolbar` (`arrangement` = `space-between | centered`), `FloatingToolbar` (`orientation` = `horizontal | vertical`, `color` = `standard | vibrant`, `expanded`, `leading` / `trailing`, or `fab` + `fabPosition`), `ToolbarFab`, and `useToolbarScrollExpansion`. Both toolbars are React Aria `useToolbar`: `role="toolbar"`, a required name, and arrow keys between controls, following the DOM direction (`DomDirectionLocale`).
+- **Values** (Compose `FloatingToolbar.kt`, `AppBar.kt`'s `FlexibleBottomAppBar`, `FloatingToolbarTokens`, `DockedToolbarTokens`):
+  - Docked: 64px, `surface-container`, square corners, no elevation, 16px at each end. Items spread out, or sit 32px apart in the centre (`FlexibleFixedHorizontalArrangement`).
+  - Floating: at least 64px across, full corners, 8px padding. Standard is `surface-container` / `on-surface`; vibrant is `primary-container` / `on-primary-container`. Level 0 on its own.
+  - **Spacing for icon buttons:** Compose's icon buttons take 48px of layout, ours 40px (the touch target is overlaid). Each content group adds 4px at its ends and 8px between items, so a toolbar of icon buttons matches Compose (12px from the edge, 8px between). The docked toolbar keeps the literal token spacing.
+  - With a FAB: 8px between them; the toolbar is level 1 expanded and level 0 collapsed. `ToolbarFab` is Compose's `Standard/VibrantFloatingActionButton`: 16px corners, level 2 (hover 3), `primary-container` on a standard toolbar and `tertiary-container` on a vibrant one, a 24px icon.
+- **Collapsing:**
+  - Leading / trailing content closes on the fast spatial spring through a grid track (`1fr → 0fr`); it turns visible at once when expanding (0s visibility transition), so keyboard focus can reach it in the first frame, anchored like Compose's `AnimatedVisibility` (horizontally, leading content expands from the start and shrinks towards the end; vertically, leading stays at the bottom and trailing at the top). A `clip-path` clips only along the toolbar, so focus rings and touch targets survive. Collapsed content is `inert` and turns `invisible` when the track has closed.
+  - With a FAB, the component keeps its expanded size (Compose's layout): the toolbar's slot holds the measured width (`ResizeObserver`, `--m3-toolbar-size`) while the surface's width springs to 0 towards the FAB, and the FAB's box grows 56 → 80px from its own edge. The root is 80px tall (wide, vertically) for the grown FAB.
+- **Keyboard (deviation):** Compose forces the toolbar open when a screen reader is on and adds expand / collapse accessibility actions. The web can't detect either, so keyboard focus inside the toolbar (`useFocusRing({ within: true })`) counts as expanded. Pointer focus doesn't.
+- **`fabPosition`:** `start | end | top | bottom`, where `top` means `start` and `bottom` means `end`, so it can stay put when the orientation adapts. The FAB comes after the toolbar in reading order wherever it sits, as in Compose.
+- **`useToolbarScrollExpansion`** ports `floatingToolbarVerticalNestedScroll`: 40px of scrolling down collapses, 40px back up expands; window or a scroll container; `reverse` for bottom-anchored content. It returns `expanded`. There's no `onExpandedChange`, since nothing inside the toolbar changes it.
+- **Unused tokens:** `FloatingToolbarTokens.ContainerBetweenSpace` (4px) and the `VibrantButton*` colours aren't used by Compose's code either; buttons in a vibrant toolbar inherit `on-primary-container`.
+- **Deferred:** `exitAlwaysScrollBehavior` (slides the toolbar off-screen by transforming it, which breaks §10 rule 4, like the FAB show/hide), the docked toolbar's scroll collapse, and `AppBarRow`'s overflow menu.
+
+### Top app bars (built, Tier 3)
+- `TopAppBar` with `variant` = `small | medium | large` (Compose's `TopAppBar`, `MediumFlexibleTopAppBar`, `LargeFlexibleTopAppBar`; the non-flexible medium / large bars and `CenterAlignedTopAppBar` are superseded), `title`, `subtitle`, `titleAlign` = `start | center`, `navigationIcon`, `actions`, `scrollBehavior` = `pinned | enter-always | exit-until-collapsed` and `scrollRef` (the window by default). It renders a `<header>`; consumers wrap the title in a heading when it names the page.
+- **Values** (Compose `AppBar.kt`, `AppBar` / `AppBarSmall` / `AppBarMediumFlexible` / `AppBarLargeFlexible` tokens):
+  - Heights: small 64px; medium 112px (136px with a subtitle); large 120px (152px); both collapse to 64px.
+  - Type: small `title-large` + `label-medium`; medium `headline-medium` + `label-large`; large `display-small` + `title-medium`. The collapsed top row uses the small type.
+  - Colours: `surface`, turning `surface-container` (`OnScrollContainerColor`); navigation icon and title `on-surface`; subtitle and actions `on-surface-variant`. No elevation (the code draws no shadow; the level 2 on-scroll token is unused).
+  - Spacing with our 40px icon buttons reproduces Compose's 48px ones: the navigation icon 8px from the start, the title 56px in (16px with no icon), actions 8px apart and 8px from the end.
+  - Centred titles use a grid of equal side columns (`minmax(max-content, 1fr)`), so the title is centred in the whole bar until a side needs more room, as Compose's clamped placement does.
+  - **Expanded title:** Compose places it by its baseline, 24px (medium) / 28px (large) above the row's bottom, then clamps that padding when the row is too short. With the M3 type scale it is always clamped, which puts the title at the top of the row, and a wrapped title grows the row. Top-aligning the title in a min-height row (48 / 72 / 56 / 88px) reproduces that exactly. With a custom type scale small enough to avoid the clamp, ours would differ.
+- **Scrolling on the web:**
+  - Compose shrinks the bar's height through nested scrolling while the content stops scrolling. On the web, shrinking an in-flow bar would move the content twice as fast. So with a `scrollBehavior` the bar is `sticky` (with the `--md-sys-z-sticky` layer) and keeps its layout height. Compose's `heightOffset` (0 down to minus the collapsible height) becomes its `top`, `--m3-app-bar-offset`, so the bar slides up instead and the content moves exactly with the scroll.
+  - In two-row bars the top row is itself `sticky top-0`, so the expanded row scrolls up beneath it. The collapsible height is measured each frame (the expanded row, or the whole small bar).
+  - Offsets: `exit-until-collapsed` = −min(scroll, limit); `enter-always` moves by each scroll delta within [−limit, 0] (any scroll up brings it back); `pinned` = 0.
+  - Colour: a single row switches when content is under it (scroll > 0) on the default effects spring. Two-row bars blend with the collapsed fraction through fast-out-linear-in in Oklab (`color-mix`), as Compose's `lerp`. The collapsed title's alpha follows `TopTitleAlphaEasing` (0.8, 0, 0.8, 0.15), the expanded title's 1 − fraction.
+  - Everything is written as custom properties from a `requestAnimationFrame` scroll handler, so scrolling causes no React renders. React state flips only when the bar starts or stops being scrolled (`data-scrolled`) or crosses half collapsed (`data-collapsed`, which also swaps which title is `aria-hidden`, as Compose clears one title's semantics).
+- **Deviations:** no fling settle / snap (Compose snaps a part-collapsed bar after a fling; here the offset follows the scroll position or delta exactly), and no dragging the bar itself. A consumer `fixed` class replaces `sticky`; the offset still applies as `top`.
+
+### Search (built, Tier 3)
+- `SearchBar`: `value` / `defaultValue` / `onChange`, `onSubmit` (Enter, the keyboard's search action), `expanded` / `defaultExpanded` / `onExpandedChange`, `view` = `docked | full-screen`, `placeholder`, `leadingIcon` / `trailingIcon` (nodes, or functions of `{ expanded, collapse }` so a back or clear button can appear while expanded), and the expanded content as `children`. A name is required by the types. `SearchAppBar` (Compose's `AppBarWithSearch`) holds a `SearchBar` with `navigationIcon`, `actions` and `scrollBehavior` = `pinned | enter-always`.
+- **Values** (Compose `SearchBar.kt`: `SearchBar`, `AppBarWithSearch`, `ExpandedDockedSearchBarWithGap`, `ExpandedFullScreenSearchBar`, `SearchBarDefaults.InputField`; SearchBar / SearchView tokens):
+  - Field: 56px, full corners, `surface-container-high`; 360px wide by default, at most 720px (Compose's `sizeIn`; a consumer `w-*` wins). `body-large` text `on-surface`, placeholder `on-surface-variant`.
+  - Icons sit in 48px boxes shifted 4px inwards (leading `on-surface`, trailing `on-surface-variant`, plain SVGs at 24px); text starts 52px in after a leading icon, 16px without one.
+  - Compose shows an inset focus ring around the pill whenever the field is focused outside touch mode; ours appears while the input has keyboard focus (React Aria's text-input focus-visible), via `focus-ring-inset`.
+  - App bar: `surface`, becoming `surface-container` when content is under it (default effects spring); its search bar becomes `surface-container-highest` at once (Compose doesn't animate it). Navigation icon 8px from the start, the search bar 8px from its neighbours and 4px from the top and bottom (64px tall), actions 8px apart and 8px from the end.
+- **Expanded views:**
+  - Like Compose, which renders the input field again in its popup, the expanded view has its own input; the collapsed one becomes `inert` and `aria-hidden` while it is open, and focus returns to it on close. The collapsed input is a `combobox` with `aria-haspopup="dialog"` and `aria-expanded`; the view is a modal dialog named like the bar (`useModalOverlay` + `useDialog`, portalled through `Overlay`).
+  - **Docked** (Compose's default with-gap style): the expanded field sits exactly over the bar; a dropdown 2px below (12px corners, `surface-container-high`, at most half the window tall minus the field) slides down from half its height on the default spatial spring (fast spatial back) while fading over 100ms after 50ms (standard accelerate; out over 100ms standard decelerate). A 32% scrim covers the page; pressing it collapses the view.
+  - **Full screen:** a `surface-container-high` surface grows from the bar's bounds (28px corners) to the window through `clip-path: inset(… round …)` on the slow spatial spring (default spatial back), so nothing is transformed. The field moves to 8px from the top at full width (Compose's `inputFieldPadding` is empty there) and is transparent on the surface; the content starts 72px down and fades like the dropdown.
+- **Keyboard and expansion** follow Compose's input field: a press, typing (the query getting longer) or ↓ expands the bar; Tab focus alone doesn't. In the expanded view ↓ moves focus to the first focusable element of the content (Compose moves focus down); Escape or a press outside collapses it.
+- **Deviations / not in v1:** no predictive back, no contained full-screen variant (`ExpandedFullScreenContainedSearchBar`), and the docked view without a gap isn't offered. The content is any node; with Lists built, the suggestion list is composed from them.
+
+### Badges and dividers (built, Tier 3)
+- `Badge`: no children = Compose's small 6px dot; children = the large badge (at least 16px, full corners, 4px side padding, `label-small`), both `error` / `on-error` (`BadgeTokens`). Give the anchor an accessible name that includes the badge's meaning ("Inbox, 3 new").
+- `BadgedBox` (`badge`, anchor as `children`) places it like Compose's `BadgedBox`: a small badge starts 6px inside the anchor's end with its top on the anchor's top; a large one starts 12px inside the end with its bottom 14px below the anchor's top (so it hangs 2px above and past the end).
+  - **No positioning:** the anchor and a zero-size box share one grid cell; the box sits at `margin-inline-start: calc(100% − offset)` and bottom-aligns the badge (flex `items-end`), so the badge overflows it without changing the anchor's size, and mirrors in RTL. Compose's badge rulers (clamping to an outer bound) aren't ported.
+  - A bare SVG anchor gets Compose's default 24px icon size; other sizes go in a sized wrapper.
+- `Divider`: `orientation` = `horizontal | vertical`, `inset` = `none | start | middle` (16px at the start or both ends, from m3.material.io; Compose leaves insets to padding), `decorative` (role `none`). 1px of `outline-variant` (`DividerTokens`), drawn as the background clipped to the content box so insets are padding and the root keeps no margins. It is a `div` with `role="separator"`, since an `<hr>` can't take a vertical orientation.
+
+### Lists (built, Tier 3)
+- `List` with `ListItem` children (typed aliases of React Stately's collection `Item`, identified by `key`): `variant` = `standard | segmented`; items take the headline as `children`, `overline`, `supportingText`, `leading`, `trailing`, `href` and `textValue`. A name is required by the types.
+- **Two forms:** with `onAction`, `selectionMode` or link items, the list is a React Aria grid list (`useGridList` / `useGridListItem`): ↑ / ↓ between items, ← / → into trailing controls (following the DOM direction via `DomDirectionLocale`), type-ahead, `selectedKeys` / `onSelectionChange` / `disabledKeys`. Otherwise it is a plain `ul` of `li`s that nothing focuses. This covers Compose's clickable, selectable and checkable `ListItem` overloads and `SegmentedListItem`.
+- **Values** (Compose `ListItem.kt` interactive overloads, `ListItemDefaults`, `ListTokens`):
+  - Padding 16px start / end, 10px top / bottom; 12px between leading content, the text and trailing content.
+  - Heights: at least 56px (one line), 72px (overline or supporting text) and 88px (both). Three-line items align to the top, the others to the centre (Compose's breakpoint). Compose also treats a multi-line supporting text as three lines; that needs measuring and isn't done.
+  - Type and colour: headline `body-large` `on-surface`; supporting `body-medium`, overline `label-small`, leading content (`title-medium` for avatar letters, 24px icons) and trailing content (`label-small` text) `on-surface-variant`. Selected items are `secondary-container` with `on-secondary-container` content; disabled content `on-surface` 38%. Segmented items are `surface` (`ItemSegmentedContainerColor`), so segmented lists usually sit on a `surface-container` background. **Deviation:** standard items are transparent rather than `ItemContainerColor` (`surface`), so a list takes the colour of its sheet, card or pane; in Compose consumers override the colour for that.
+  - **Shapes:** Compose's precedence is pressed, then selected or focused (all 16px), then hovered (12px), else 4px. They're computed into one `data-shape` (`rest | hovered | active`), so no two rules compete, and morph on the fast spatial spring while colours change on the default effects spring. Segmented lists are 2px apart and round the outer corners of the first and last items to 16px at rest (`data-position`), as `segmentedShapes` does. Static items in a standard list have no corners.
+- **Not in v1:** drag-to-reorder (`ReorderListTokens`), swipe-to-reveal, expandable items, and leading video/image size presets (consumers size their media).
+
+### Sliders (built, Tier 3)
+- `Slider` (`value` / `defaultValue` / `onChange` / `onChangeEnd`, `centered`, `startIcon`, `endIcon`) and `RangeSlider` (`[start, end]`, `thumbLabels`), sharing `size` = `xs | sm | md | lg | xl`, `orientation`, `minValue` / `maxValue` / `step` (React Aria's 0–100 by 1), `ticks`, `disabled`, `showValueLabel`, `formatOptions` and `name`. Built on React Aria `useSlider` / `useSliderThumb` (hidden range inputs, arrows, Page Up / Down, Home / End), following the DOM direction via `DomDirectionLocale`. A name is required by the types.
+- **Sizes:** Compose's code ships one size (16px track, 44px handle). The Expressive sizes come from the M3 token values in Material Components Android (`m3_comp_slider_{xsmall…xlarge}_*`), generated from the same token database: track 16 / 24 / 40 / 56 / 96px, corner 8 / 8 / 12 / 16 / 28px, handle 44 / 44 / 44 / 68 / 108px, inset icons 24 / 24 / 32px (md, lg, xl). **The medium handle is 44px** (an earlier assumption of 52px was wrong).
+- **Values** (Compose `Slider.kt`, `SliderTokens`): active track and handle `primary`, inactive track `secondary-container`; a 4px handle that narrows to 2px while pressed, dragged or focused; a 6px gap each side (10px while keyboard-focused, Compose's inset focus ring padding); 2px inside corners; 4px `primary` stop indicators a corner's length from the ends; ticks `secondary-container` on the active track and `primary` on the inactive one. Disabled: active `on-surface` 38%, inactive 12%, handle `on-surface` 38% over `surface`.
+- **Track drawing** ports `SliderDefaults.drawTrack` and `SliderImpl`'s placement as CSS length expressions (`slider-geometry.ts`, unit-tested): discrete values sit between the corners (except at the ends); segments draw only past Compose's thresholds, done with `min(len, max(0, (len − threshold) × 10⁴))`; the centred track leaves a plain 6px gap at the centre; range and centred tracks have stops at both ends; ticks under a thumb, at the centre, or replaced by a stop are left out. Because it is all CSS on the custom properties, the first server render is exact and resizing needs no measuring.
+- **Layout:** the track is one grid cell; segments, ticks, thumbs and the value indicator are placed with logical margins (`margin-inline-start`, `inline-size`), so nothing is positioned (the layout-safety check now ignores visually hidden inputs). A vertical slider writes its track with `writing-mode: vertical-lr` + `direction: rtl`, so the inline axis runs bottom to top and the same geometry and logical radii serve both orientations and RTL. Vertical sliders run bottom to top (Compose's `reverseVerticalDirection = true`) and default to 240px tall; horizontal ones fill the width.
+- **Inset icons** follow MDC (`BaseSlider`): the start icon 10px inside the active track's start, the end icon 10px inside the inactive track's end (replacing the stop indicator), each shown only when its segment fits it plus 20px; `on-primary` / `on-secondary-container`. MDC's other two positions (active end, inactive start) aren't offered.
+- **Value indicator** (`showValueLabel`): while dragging or keyboard-focused, a 44px `inverse-surface` pill with `label-large` `inverse-on-surface` text, 12px above the handle (left of a vertical one), from `ValueIndicator*` tokens. Compose's default slider has none.
+- **Deviations:** pressing the track maps linearly to the value (React Aria) while discrete thumbs are drawn between the corners, so a press near the ends of a discrete track can land one step off Compose; no haptics.
+
+### Sheets (built, Tier 3)
+- `SheetTrigger` (trigger + sheet, `open` / `defaultOpen` / `onOpenChange`, like `DialogTrigger`), `BottomSheet` (modal) and `SideSheet` (`variant` = `modal | standard`, `detached`, `title`, `actions`). Modal sheets are `useModalOverlay` + `useDialog` dialogs portalled through `Overlay`; children and `actions` may be functions of `{ close }`. Names: `aria-label` / `aria-labelledby`, or a side sheet's `title`.
+- **Bottom sheet values** (Compose `ModalBottomSheet.kt`, `BottomSheet.kt`, `SheetDefaults.kt`, `SheetBottomTokens`): at most 640px wide, centred; 28px top corners; `surface-container-low` (Compose's level 1 is tonal, not a shadow); a 32 × 4px `on-surface-variant` handle with 22px above and below; a 32% scrim on the default effects spring. It shows on the default spatial spring and hides on the fast effects spring (`showMotionSpec` / `hideMotionSpec`).
+- **Detents:** like Compose's legacy anchors, a sheet taller than half the window opens to half (`PartiallyExpanded` at window / 2) and can expand to its full height (up to the window); shorter sheets open fully. `skipPartiallyExpanded` opens fully.
+- **Handle and dragging:** the handle is a button. Pressed (or Enter / Space), it expands a half-open sheet and closes a fully open one, as Compose's handle click does; its label says which ("Expand sheet" / "Close sheet", configurable). Dragging it moves the sheet (pointer capture, no transition while dragging) and releasing settles with Compose's `AnchoredDraggableState` rules (`sheet-settle.ts`, unit-tested): a fling over 125px/s goes to the next anchor in its direction; otherwise the sheet moves on after 56px and springs back if not; settling past the bottom closes it.
+- **Dismissal:** a press on the scrim closes the sheet (Compose's `animateToDismiss`); Escape behaves like the back button (`settleToDismiss`): a fully open sheet with a half detent returns to half, otherwise it closes.
+- **Side sheets** aren't in Compose; values follow Material Components Android (`m3_comp_sheet_side_*`): 256px wide; modal `surface-container-low` at level 1 with 16px corners on its free (start) edge over a 32% scrim, sliding in from the end edge (mirrored in RTL); detached sheets float 16px from the edges with 16px corners all round; standard sheets are `surface`, level 0, no corners, and sit in the layout, opening and closing their width on a grid track (`0fr ↔ 1fr`, default spatial) and becoming `inert` while closed. They use the bottom sheet's springs rather than MDC's 275ms tween.
+  - **Header:** a `title-large` `on-surface-variant` headline with `actions` after it (the library bundles no close icon, decision #11), in a 72px row with 24px / 12px side padding; content has 24px sides. MDC has no header; these follow m3.material.io's side sheet layout and are not from token files, so treat them as provisional.
+- **Motion and layout safety:** sheets move by `translate` on a library-owned wrapper; the consumer's `className` and `style` go on the panel. The in-flow standard side sheet runs the layout-safety matrix.
+- **Not in v1:** the standard (non-modal) bottom sheet (`BottomSheetScaffold`), dragging from anywhere on the sheet or through nested scrolling (only the handle drags), predictive back, and detents beyond half / full.
+
+### Carousel (built, Tier 3)
+- `Carousel` with `variant` = `multi-browse | uncontained | hero`, `orientation`, `preferredItemSize` (multi-browse 186px by default, hero the whole carousel), `itemSize` (uncontained, 240px), `itemSpacing` (8px), `heroAlignment` = `start | center`, `minSmallItemSize` / `maxSmallItemSize` (40 / 56px). Children are the items (any elements, usually images), each filling its slot. The consumer gives the carousel its cross-axis size. It is a `region` with `aria-roledescription="carousel"` and a required name; items are `group`s labelled "n of N" (`slide`).
+- **Keylines** are a TypeScript port of Compose's `carousel` package (`carousel-keylines.ts`, unit-tested): `Arrangement` (lowest-cost fit of large / medium / small items, the 10% medium flex), `multiBrowseKeylineList`, `uncontainedKeylineList`, `heroKeylineList`, keyline lists with pivots and cutoffs, `Strategy` (start / end shift steps and interpolation points; no content padding), `getKeylineListForScrollOffset`, `getSnapPositionOffset` and `carouselItem`'s placement (keyline before / after the item's centre, interpolated size and offset, out-of-bounds offset). With 360px, 186px preferred and 8px spacing that gives 186 · 118 · 40, mirrored at the end, as Compose does.
+- **Web rendering:** Compose drives a pager; here the carousel scrolls natively. Each item keeps a natural slot the size of the large item (so the scroll range is Compose's `calculateMaxScrollOffset`), and on every scroll frame a library-owned mask layer inside it is translated and clipped (`clip-path: inset(… round var(--m3-carousel-corner))`) to its keyline. The root and slots are never transformed; nothing re-renders while scrolling. `--m3-carousel-item-size` on each mask exposes the visible size (Compose's `carouselItemDrawInfo`) for parallax.
+- **Snapping:** multi-browse and hero snap one item at a time (`scroll-snap-stop: always`, Compose's `singleAdvanceFlingBehavior`), each item's snap point placed by `scroll-margin` from `getSnapPositionOffset`; uncontained doesn't snap (`noSnapFlingBehavior`). Mouse drag scrolls (snapping pauses while dragging); touch, trackpads and the arrow keys (the scroller is focusable) scroll natively. RTL reads the absolute scroll offset and mirrors the translation.
+- **Corners and spacing:** items are masked with 28px (extra-large) corners, as Compose's samples use `maskClip(MaterialTheme.shapes.extraLarge)`; `--m3-carousel-corner` overrides it. Spacing defaults to 8px (m3.material.io; Compose's default is 0 and its samples use 8dp).
+- **Deviations / not in v1:** no content padding (Compose's padding-aware shift steps), no parallax helper, items aren't z-ordered by distance from the current item, and before hydration items render unmasked at the preferred size.
+
+### Date and time pickers (built, Tier 3)
+- `DatePicker` and `DateRangePicker` (the picker content, Compose's `DatePicker` / `DateRangePicker`), `TimePicker` (dial or input, Compose's `TimePicker` / `TimeInput`) and `PickerDialog` (the modal form of both, Compose's `DatePickerDialog` / `TimePickerDialog`, with `confirmButton`, `dismissButton` and `modeToggleButton` slots). Values are `@internationalized/date` `CalendarDate` / `{ start, end }` / `Time`; all are controlled or uncontrolled. Labels are props (`strings`) for localisation.
+- **Date pickers** (Compose `DatePicker.kt`, `DateRangePicker.kt`, `DatePickerModalTokens`), on React Aria `useCalendar` / `useRangeCalendar` / `useCalendarGrid` / `useCalendarCell` (arrow keys, Page Up / Down, Home / End, min / max, unavailable dates, the locale's calendar and first weekday):
+  - 360px wide. Header at least 120px (128px for ranges): `label-large` title ("Select date" / "Select dates"), `headline-large` headline (`title-large` for a range: "Mar 10 – Mar 13"), both `on-surface-variant`, the mode toggle at the end, an `outline-variant` divider below.
+  - Body with 12px sides: a 56px month row (a text button with the month and a dropdown arrow that turns over, `on-surface-variant`; previous / next icon buttons), a 48px weekday row (`body-large` `on-surface`) and six 48px week rows, always six as Compose keeps the height. Days are 40px circles: selected `primary` / `on-primary`; today a 1px `primary` outline with `primary` text; disabled 38%.
+  - **Ranges:** the ends are filled; the days between sit on a 40px `secondary-container` band with `on-secondary-container` text, drawn as cell background gradients (half a cell at each end, mirrored in RTL) so nothing is positioned. **Deviation:** Compose's range picker scrolls through a vertical list of months; here it pages month by month like the date picker.
+  - **Year list:** 72 × 36px pills, three columns 16px apart, in a 335px scroll area opened on the focused year; selected `primary`, this year outlined; arrow keys move between years (a radio group).
+  - **Input mode:** Compose's outlined "Date" field is rebuilt for React Aria `useDateField` segments (56px, 1px `outline`, 2px `primary` while focused, `error` when invalid). A range has start and end fields.
+  - Chrome icons (chevrons, dropdown, edit, calendar) are inline Material Symbols SVGs, as other components' own controls are; the chevrons mirror in RTL.
+- **Time picker** (Compose `TimePicker.kt`, `TimePickerTokens`), portrait layout:
+  - 96 × 80px hour and minute selectors (114px wide for 24 hours) in `display-large`, 8px corners, selected `primary-container`, unselected `surface-container-highest`, a 24px ":" between; a 52 × 80px AM / PM selector 12px away with a 1px `outline` border. Its selected colour is the token's `tertiary-container`: Compose's `isUpdatedTimepickerToggleEnabled` flag would switch it to `primary-container`, and the token was kept, as with the checkbox flag.
+  - The dial, 36px below: 256px `surface-container-highest`, numbers on a 101px ring (69px inner ring for 12–23 on a 24-hour clock), a 48px `primary` handle with `on-primary` text, a 2px track and an 8px centre. It is an **SVG** (`role="slider"`, arrow keys step by one), so nothing is positioned. Pressing or dragging picks the nearest hour (the inner ring nearer the centre than halfway) or minute; releasing on the hour face switches to minutes (Compose's `autoSwitchToMinute`).
+  - **Input mode** (provisional sizes, not from token files): 96 × 72px numeric fields in `display-medium` with `body-small` "Hour" / "Minute" labels below, `primary-container` with a 2px `primary` border while focused; ↑ / ↓ step and wrap.
+  - The hour cycle defaults to the locale's (`Intl.DateTimeFormat` `hourCycle`).
+- **Picker dialog:** `surface-container-high`, 28px corners, level 3, on the dialog's scrim and motion. The date variant holds the picker edge to edge with actions 8px apart, 8px below and 6px from the end; the time variant pads 24px and shows a `label-medium` `on-surface-variant` title and the mode toggle at the start of the actions.
+- **Not in v1:** the docked date picker (a text field with a dropdown calendar; Compose has none), landscape layouts, Compose's selectable-dates callbacks beyond `isDateUnavailable`, and time input validation messages.
+
+## 10. Layout safety (consumer positioning never breaks a component)
+
+**Principle:** a component's internal visuals never depend on the root element's `position`, `overflow`, `display` or `transform`. Consumers may put any layout class on any component — e.g. `<Button className="fixed bottom-4 right-4">` — and it must look and behave the same.
+
+### Failure modes this prevents
+- `static` on a root that relied on `relative` → absolutely-positioned state layer escapes and covers the parent/page.
+- `overflow-visible` → ripple spills outside rounded corners.
+- Motion animating the root's `transform` → fights consumer `translate`/`rotate`/`style.transform`, and turns the component into the containing block for any `fixed` descendant.
+- `className` landing on an inner element of a multi-part component → `fixed` moves only part of it.
+
+### Rules
+1. **`className` and `style` always go on the outermost element.** Layout utilities apply to the whole component. `style` is merged, never replaced.
+2. **State layer and ripple are painted as background layers on the root**, not as absolutely-positioned children: state layer = `linear-gradient` overlay using state colour × state opacity token; ripple = `radial-gradient` animated via registered `@property` custom properties. They follow `border-radius` automatically and need neither `relative` nor `overflow-hidden`. Components add their own transitions (corners, colours, elevation) through the `--m3-transition-{property,duration,easing,delay}` lists, which the `container-motion` utility fills. Setting `transition-*` directly would cancel the state layer's transitions.
+3. **Unavoidable inner overlays** (FAB morph shape, badges, touch targets) live inside a library-owned inner wrapper with its own `relative`/clipping. Consumer classes go on the outer element.
+4. **Motion never animates the root's `transform`.** Springs, press-scale and morph run on inner layers.
+5. **Containers never trap `fixed` children.** Card, Dialog content, Sheet etc. never put `transform`, `filter`, `backdrop-filter`, `contain` or `will-change: transform` on their root.
+6. **Focus ring = CSS `outline` (+ `outline-offset`)**, so `overflow-hidden`, `fixed` or clipping ancestors can't hide it.
+7. **Layout-neutral roots**: no outer margins, no own `z-index`, no own positioning. Overlays portal to `body` with a z-index token scale (`--md-sys-z-*`) consumers can override.
+8. **`cn()` conflict resolution** guarantees the consumer's layout class wins whenever the library does set a conflicting one.
+
+### Verification
+An **override matrix** in CI: every component rendered with `fixed`, `absolute`, `sticky`, `static`, `overflow-hidden`, `overflow-visible`, `w-full`, a transform, inside a transformed ancestor, and in RTL — Playwright visual snapshots plus interaction checks. Each component gets a `LayoutOverride` story (`apps/docs`) and a Playwright test that checks layout size, the background state layer, corner radius, the absence of positioned children, pressing and the keyboard focus ring for every combination.
+
+## 11. Next.js support
+
+- Next.js 15/16, App Router primary, Pages Router supported; Turbopack + webpack.
+- `"use client"` preserved at the top of every interactive component file in the build; utilities (`cn`, tokens, `createTheme`) are server-safe.
+- **Collection items must be created in client components.** `Menu`, `Tabs` and interactive `List` are React Aria collections, which read each item's element type (`MenuItem` / `MenuGroup` / `Tab` / `ListItem` are React Stately's `Item` / `Section`). Items created in a Server Component reach the client as client references, so React Stately fails with "Unknown element <[object Object]> in collection" (found in the docs site, where a server-rendered example passed a `Menu` to `SplitButton`). In development the components check their children (`utils/assert-collection-children.ts`) and throw an error naming the cause. The site's `menus.spec.ts` opens every menu on every component page, against the static export and again under `next dev`, where the failure shows first.
+- No `window`/`document` access at module load; overlays portal only on the client.
+- **No theme flash**:
+  - Cookie (recommended): `getThemeFromCookies()` from `@windmorph/react/next` → render `<html data-theme data-mode data-contrast data-motion>` on the server.
+  - Script: `<ThemeScript />` in `<head>` for static/exported sites (`suppressHydrationWarning` on `<html>`).
+- `<NextRouterProvider>` — one-line client routing integration.
+- Roboto Flex via `next/font`, wired to `--md-ref-typeface-*`.
+- No `transpilePackages` needed (ships compiled ESM).
+
+## 12. Package & install
+
+### Exports
+- `@windmorph/react` — components, ThemeProvider, hooks, `cn`, tokens and the component-token helpers
+- `@windmorph/react/primitives` — building blocks
+- `@windmorph/react/next` — Next.js helpers
+- `@windmorph/react/styles.css` — tokens + themes for Tailwind projects
+- `@windmorph/react/styles.compiled.css` — precompiled for non-Tailwind projects
+- The `windmorph` bin (the theme CLI, §5)
+- ESM + `.d.ts`, `sideEffects: ["*.css"]`, modules preserved for tree-shaking.
+
+### Install (Tailwind project / Next.js)
+```bash
+npm i @windmorph/react motion
+```
+```css
+/* globals.css */
+@import "tailwindcss";
+@import "@windmorph/react/styles.css";
+@source "../node_modules/@windmorph/react";
+```
+```tsx
+// app/layout.tsx
+<ThemeProvider defaultTheme="baseline">{children}</ThemeProvider>
+```
+Plus font setup (Roboto Flex via `next/font` or Google Fonts) — documented, not bundled.
+
+## 13. Repo layout (pnpm workspaces + Turborepo)
+
+```
+docs/architecture.md   # this file
+docs/plans/            # one plan per feature, approved before it's built
+pnpm-workspace.yaml
+turbo.json
+packages/react         # @windmorph/react (MIT)
+packages/test-utils    # @windmorph/test-utils: axe checks, Tailwind class checks and the Vitest setup, shared with Windmorph Pro
+apps/docs              # Storybook 10 (theme/mode/contrast/motion/direction toolbars) + Playwright visual tests
+apps/next-playground   # Next.js App Router + Pages Router test app, Playwright e2e (pnpm test:e2e)
+apps/site              # Consumer docs site: Next.js App Router, static export (output: 'export'), MDX guides + generated per-component props tables + live examples, built only with @windmorph/react and Windmorph Pro
+```
+
+Windmorph Pro (`@windmorph/react-pro`) lives in its own private repository.
+
+## 14. Quality
+
+- Vitest + Testing Library (unit/behaviour). The helpers live in `packages/test-utils` (`@windmorph/test-utils`), so Windmorph Pro uses the same ones; `packages/react/test` keeps thin wrappers that point the class checks at this package's stylesheet.
+- axe accessibility checks per component
+- Playwright visual regression: every component × 6 themes × light/dark (+ contrast levels on key components) × both motion schemes where relevant
+  - Screenshots are taken against the static Storybook build (`pnpm test:e2e`), with the font loaded locally (`@fontsource-variable/roboto-flex`) so results don't depend on the network.
+  - Baselines are platform-specific (`*-darwin.png` today). CI has to render them in a pinned container image and commit that platform's baselines.
+  - Every class a `tv` recipe can emit is checked to appear literally in its source and to compile in Tailwind. A class assembled at runtime would never be generated.
+  - **Docs site e2e projects:** `chromium` runs every suite against the static export; `next-dev` runs the menu suite under `next dev` with its own build directory (`NEXT_DIST_DIR=.next-e2e`), so it can run while a developer's `next dev` holds the `.next` lock.
+  - **Turbo env:** `NODE_EXTRA_CA_CERTS` is a global pass-through variable, so builds behind a TLS-intercepting proxy can still download fonts for `next/font` (strict env mode dropped it).
+  - **CI** (`.github/workflows/ci.yml`): builds, typechecks, lints and tests everything, then runs the site's link check and smoke suite. The pnpm version comes from `packageManager`; also passing `version` to `pnpm/action-setup` fails the job. Storybook screenshots aren't in CI until Linux baselines exist.
+  - **Wait for animations before measuring** an element for a screenshot clip: an entering overlay is still scaling, and a baseline taken mid-animation is cut off (found in the rich tooltip test).
+  - **Screenshot tolerance:** `maxDiffPixelRatio` is 0.0002 (0.02%). Playwright's per-pixel colour `threshold` stays at its default 0.2, which ignores colour shifts as small as `surface` → `surface-container` (found with the list container change): after colour changes, re-baseline with `--update-snapshots=all` and review the images. At 0.2%, a moved hairline (FAB collapse width, TextField outline offset) still matched an outdated baseline. Re-baseline deliberately after visual changes and review the images.
+  - **Storybook server:** the static build is served with `sirv --dev`, which reads files per request, so a server reused across rebuilds never returns 404s for new asset hashes.
+- Layout-safety override matrix (§10)
+- Next playground build + Playwright in CI
+- Docs site (`apps/site`, §1 #23): build + static export, an internal link checker over `out/`, and a registry-driven Playwright smoke suite over every page (home, guides, all component slugs) asserting render, no console errors, an axe scan, RTL and dark mode — all run in CI
+- Changesets for versioning/changelog
+
+## 15. Component roadmap (M3 Expressive set)
+
+- **Tier 1**: Button, IconButton, **Button group** (standard + connected), FAB + Extended FAB, Card, TextField, Checkbox, Radio, Switch, Dialog, Menu (Expressive: standard + vibrant colours, grouped items with gaps, selected state), **Select** and **Autocomplete** (exposed dropdown menus; built)
+- **Tier 2**: Split button (built), **FAB menu** (built), Chips (built), Tabs (built), **Navigation rail** (collapsed / expanded / modal expanded, built), **Flexible navigation bar** (built), Snackbar (built), Tooltip (built), **Loading indicator** (shape morph, built), Progress indicators (linear + circular, wavy, with stop indicator; built)
+- **Tier 3**: **Toolbars** (floating + docked; built), Flexible app bars (built) + search app bar (built), Slider (XS–XL, vertical, centred, range, inset icons; built), Expressive lists (segmented/grouped; built), Carousel (incl. vertical; built), Bottom/side sheets (built), Date & time pickers (built), Badges (built), Dividers (built), Search (built)
+
+Build order: Foundations (token source, 6 themes × modes × contrast, motion schemes, ThemeProvider, `cn`, primitives) → Tier 1 → Tier 2 → Tier 3.
+
+### Not built (deprecated in M3 Expressive)
+| Deprecated | Replaced by |
+|---|---|
+| Navigation drawer | Navigation rail (expanded / modal expanded) |
+| Original navigation bar | Flexible navigation bar |
+| Small FAB | FAB sizes default / medium / large |
+| Segmented button | Connected button group |
+| Bottom app bar | Docked toolbar |
+| Indeterminate circular progress | Loading indicator |
+
+## 16. Licences & attribution
+
+- `@windmorph/react` — **MIT**
+- Bundled `@material/material-color-utilities` — Apache-2.0; attribution in `NOTICE` (decision #21)
+- Token values derived from Jetpack Compose Material 3 — Apache-2.0; attribution in `NOTICE`
+- Roboto Flex — SIL OFL 1.1 (consumer-loaded)
+- Material Symbols — Apache-2.0 (recommended for consumers' icons, not bundled as a font; the few icons drawn inside components are its path data, attributed in `NOTICE`)
+- Vendored androidx.graphics.shapes + Compose `MaterialShapes` port — Apache-2.0; attribution and the list of modifications are in `NOTICE` and `src/shapes/LICENSE-androidx.md`
+- Material Design guidelines/tokens — Google, referenced per decision #3
+
+## 17. Open checks before / during Foundations
+
+- ✅ **`ColorSpec2025` confirmed** (2026-10-01): `@material/material-color-utilities@0.4.0` exposes `SpecVersion = '2021' | '2025'` via the scheme constructors (`new SchemeTonalSpot(hct, isDark, contrast, '2025')`). 2025 applies to Tonal spot, Neutral, Vibrant and Expressive (other variants fall back to 2021), which covers all six built-in themes. **Caveat:** 0.4.0's published ESM has extensionless relative imports (`'../dynamiccolor/dynamic_scheme'`), so plain Node ESM fails to load it. The build-time theme generator and the CLI must run through a bundler (esbuild/tsup/Vite). Browser consumers are unaffected because their bundlers resolve these imports.
+- ✅ **Compose tokens pulled** (2026-10-01, androidx `120345129e`, `compose/material3/material3/src/commonMain/.../tokens/`). Shape scale (§4) and state opacities match. Springs (Compose `dampingRatio` / `stiffness`, mass 1; Motion `damping` = 2·ratio·√stiffness):
+
+  | Scheme | Spatial fast | Spatial default | Spatial slow | Effects fast / default / slow |
+  |---|---|---|---|---|
+  | expressive | 0.6 / 800 | 0.8 / 380 | 0.8 / 200 | 1.0 / 3800 · 1600 · 800 |
+  | standard | 0.9 / 1400 | 0.9 / 700 | 0.9 / 300 | 1.0 / 3800 · 1600 · 800 |
+
+  Overshoot: expressive spatial 9.5% fast, 1.5% default/slow; standard spatial 0.15%; effects 0%. This matches §6.
+- ✅ Spec gaps resolved: medium FABs use `LargeIncreased` (20px) in Compose's code (§9). `LargeIconButtonTokens` `Uniform` is the default width (§9).
+
+### Remaining Foundations work
+- ✅ **Shape library port + `useM3Morph`** (2026-10-02): see §3. Stories under Foundations/Shapes; Playwright covers the gallery, morph frames, extrapolation, settling and the reduced-motion snap.
+- **Vite 8 directive warnings:** Vite 8 (rolldown) logs `MODULE_LEVEL_DIRECTIVE` for every `"use client"` file when a client-only app bundles the library. The warnings are harmless. The `build.rolldownOptions.onLog` filter is in `packages/react/README.md` and `apps/docs/.storybook/main.ts`.
+- **Stylesheet size:** the six themes × three contrast levels × light/dark/system are about 120 KB unminified, most of the shipped CSS. If that matters to consumers, a later option is to split medium/high contrast into opt-in files.
+
+## 18. Related
+
+- Closest existing project: `m3-expressive-react` (CSS Modules, early stage). No mature Tailwind-based M3 Expressive library exists.

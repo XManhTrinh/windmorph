@@ -1,0 +1,13 @@
+pnpm-lock.yaml
+dist
+coverage
+.next
+storybook-static
+**/generated/**
+.changeset/*.md
+/docs/
+CLAUDE.md
+**/out
+.agents/
+**/.next-e2e
+apps/site/.generated

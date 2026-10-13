@@ -1,0 +1,207 @@
+/*
+ * Interaction utilities. State layers and ripples are painted as background layers
+ * on the element itself, so they follow its border-radius and never depend on the
+ * element's position, overflow or transform (architecture §10).
+ */
+
+@property --m3-state-opacity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --m3-ripple-opacity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --m3-ripple-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* The ripple centre travels from the press point to the middle while it grows. */
+@property --m3-ripple-x {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --m3-ripple-y {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+/*
+ * The navigation rail's collapsed width. Its icons sit on the line through the middle of
+ * the collapsed rail in both states, so the rail derives every inset from it. Registered
+ * so it inherits and resolves to px wherever it's read.
+ */
+@property --m3-rail-collapsed-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 96px;
+}
+
+/* `dark:` follows `data-mode`, including `system`. */
+@custom-variant dark {
+  &:where([data-mode='dark'], [data-mode='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-mode='system'], [data-mode='system'] *) {
+      @slot;
+    }
+  }
+}
+
+/* `motion-standard:` applies under the standard motion scheme or reduced motion. */
+@custom-variant motion-standard {
+  &:where([data-motion='standard'], [data-motion='standard'] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+}
+
+/*
+ * M3 state layer + ripple. The layer colour defaults to the element's content colour
+ * (`currentColor`); override it with `--m3-state-layer-color`. Pair with
+ * `useM3Interaction`, which sets the `data-*` attributes and the ripple origin.
+ *
+ * The ripple follows Compose's `RippleAnimation`: on press it fades in over 75ms while its
+ * radius grows from `--m3-ripple-start` (30% of the longer side) to `--m3-ripple-size` over
+ * 225ms (fast-out-slow-in) and its centre moves from the press point to the middle. It is
+ * driven by `data-rippling`, which outlasts a quick tap until the growth is done, so the
+ * ripple always reaches the edges; then it fades out over 150ms and resets unseen.
+ */
+@utility state-layer {
+  --m3-state-opacity: 0;
+  --m3-ripple-opacity: 0;
+  --m3-ripple-radius: var(--m3-ripple-start, 0px);
+  --m3-ripple-x: var(--m3-ripple-origin-x, 50%);
+  --m3-ripple-y: var(--m3-ripple-origin-y, 50%);
+  background-image:
+    radial-gradient(
+      circle at var(--m3-ripple-x) var(--m3-ripple-y),
+      color-mix(
+          in srgb,
+          var(--m3-state-layer-color, currentColor) calc(var(--m3-ripple-opacity) * 100%),
+          transparent
+        )
+        var(--m3-ripple-radius),
+      transparent var(--m3-ripple-radius)
+    ),
+    linear-gradient(
+      color-mix(
+        in srgb,
+        var(--m3-state-layer-color, currentColor) calc(var(--m3-state-opacity) * 100%),
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--m3-state-layer-color, currentColor) calc(var(--m3-state-opacity) * 100%),
+        transparent
+      )
+    );
+  /* After the ripple: fade it out, then reset its radius and centre once it is invisible. */
+  /* Components append their own transitions through the --m3-transition-* lists. */
+  transition-property:
+    --m3-state-opacity, --m3-ripple-opacity, --m3-ripple-radius, --m3-ripple-x, --m3-ripple-y,
+    var(--m3-transition-property, --m3-none);
+  transition-duration:
+    var(--md-sys-motion-spring-effects-fast-duration), 150ms, 0s, 0s, 0s,
+    var(--m3-transition-duration, 0s);
+  transition-delay: 0s, 0s, 150ms, 150ms, 150ms, var(--m3-transition-delay, 0s);
+  transition-timing-function:
+    var(--md-sys-motion-spring-effects-fast-easing), linear, linear, linear, linear,
+    var(--m3-transition-easing, linear);
+
+  &[data-hovered] {
+    --m3-state-opacity: var(--md-sys-state-hover-state-layer-opacity);
+  }
+  &[data-focus-visible] {
+    --m3-state-opacity: var(--md-sys-state-focus-state-layer-opacity);
+  }
+  &[data-dragged] {
+    --m3-state-opacity: var(--md-sys-state-dragged-state-layer-opacity);
+  }
+  &[data-rippling] {
+    --m3-ripple-opacity: var(--md-sys-state-pressed-state-layer-opacity);
+    --m3-ripple-radius: var(--m3-ripple-size, 0px);
+    --m3-ripple-x: var(--m3-ripple-center-x, 50%);
+    --m3-ripple-y: var(--m3-ripple-center-y, 50%);
+    transition-duration:
+      var(--md-sys-motion-spring-effects-fast-duration), 75ms, 225ms, 225ms, 225ms,
+      var(--m3-transition-duration, 0s);
+    transition-delay: 0s, 0s, 0s, 0s, 0s, var(--m3-transition-delay, 0s);
+    transition-timing-function:
+      var(--md-sys-motion-spring-effects-fast-easing), linear, cubic-bezier(0.4, 0, 0.2, 1), linear,
+      linear, var(--m3-transition-easing, linear);
+  }
+  &[data-disabled] {
+    --m3-state-opacity: 0;
+    --m3-ripple-opacity: 0;
+  }
+  /* Reduced motion: the ripple appears at full size where it ends, with no growth or travel. */
+  @media (prefers-reduced-motion: reduce) {
+    &[data-rippling] {
+      transition-duration:
+        var(--md-sys-motion-spring-effects-fast-duration), 75ms, 0s, 0s, 0s,
+        var(--m3-transition-duration, 0s);
+    }
+  }
+}
+
+/*
+ * Transitions for an interactive container: corner radius (the press / selection
+ * morph) plus colours, elevation, outline and flex-basis, appended to the state layer's own.
+ * Corners use the effects spring, which never bounces (as Compose's Button does);
+ * add `container-motion-spatial` for the bouncy fast spatial spring of toggle buttons.
+ */
+@utility container-motion {
+  --m3-shape-duration: var(--md-sys-motion-spring-effects-default-duration);
+  --m3-shape-easing: var(--md-sys-motion-spring-effects-default-easing);
+  /* flex-basis animates a button group's press-to-expand on the fast spatial spring. */
+  --m3-transition-property:
+    border-radius, background-color, color, box-shadow, border-color, flex-basis;
+  --m3-transition-duration:
+    var(--m3-shape-duration), var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-spatial-fast-duration);
+  --m3-transition-easing:
+    var(--m3-shape-easing), var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing), var(--md-sys-motion-spring-spatial-fast-easing);
+  --m3-transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
+}
+
+@utility container-motion-spatial {
+  --m3-shape-duration: var(--md-sys-motion-spring-spatial-fast-duration);
+  --m3-shape-easing: var(--md-sys-motion-spring-spatial-fast-easing);
+}
+
+/* M3 focus indicator: an outline, so clipping ancestors and `overflow-hidden` never hide it. */
+@utility focus-ring {
+  outline: none;
+  &[data-focus-visible] {
+    outline: var(--md-sys-focus-indicator-thickness) solid var(--md-sys-color-secondary);
+    outline-offset: var(--md-sys-focus-indicator-offset);
+  }
+}
+
+/* Same indicator drawn inside the element, for full-bleed items such as list rows. */
+@utility focus-ring-inset {
+  outline: none;
+  &[data-focus-visible] {
+    outline: var(--md-sys-focus-indicator-thickness) solid var(--md-sys-color-secondary);
+    outline-offset: calc(var(--md-sys-focus-indicator-thickness) * -1);
+  }
+}

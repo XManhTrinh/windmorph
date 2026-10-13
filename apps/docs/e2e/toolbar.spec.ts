@@ -1,0 +1,129 @@
+import { expect, test, type Locator } from '@playwright/test';
+import { layoutSafetySuite } from './layout-safety';
+import { MODES, THEMES } from './shots';
+import { openStory } from './story';
+
+const box = (locator: Locator) =>
+  locator.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      x: Math.round(rect.x),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  });
+
+test.describe('Toolbar visual regression', () => {
+  for (const theme of THEMES) {
+    for (const mode of MODES) {
+      test(`floating · ${theme} · ${mode}`, async ({ page }) => {
+        await openStory(page, 'components-toolbar--floating', { theme, mode });
+        await expect(page.getByTestId('floating')).toHaveScreenshot(
+          `floating-${theme}-${mode}.png`,
+        );
+      });
+    }
+  }
+
+  for (const mode of MODES) {
+    test(`with FAB · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--with-fab', { mode });
+      await expect(page.getByTestId('with-fab')).toHaveScreenshot(`with-fab-${mode}.png`);
+    });
+    test(`docked · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--docked', { mode });
+      await expect(page.getByTestId('docked')).toHaveScreenshot(`docked-${mode}.png`);
+    });
+  }
+
+  test('with FAB · rtl', async ({ page }) => {
+    await openStory(page, 'components-toolbar--with-fab', { dir: 'rtl' });
+    await expect(page.getByTestId('with-fab')).toHaveScreenshot('with-fab-rtl.png');
+  });
+});
+
+test.describe('Toolbar geometry', () => {
+  test('floating toolbar spacing reproduces Compose for 40px icon buttons', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse');
+    const toolbar = page.getByTestId('toolbar');
+    // 8px padding + 4px each end of every group + 8px between items:
+    // leading 48 + main 3×40 + 2×8 + 8 + trailing 48 + 16 = 256.
+    expect(await box(toolbar)).toMatchObject({ width: 256, height: 64 });
+    const edit = await box(page.getByRole('button', { name: 'Edit' }));
+    const bold = await box(page.getByRole('button', { name: 'Bold' }));
+    const start = (await box(toolbar)).x;
+    expect(edit.x - start).toBe(12);
+    expect(bold.x - (edit.x + edit.width)).toBe(8);
+  });
+
+  test('collapsing hides leading and trailing content and Tab skips it', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse');
+    const toolbar = page.getByTestId('toolbar');
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await box(toolbar)).width).toBe(160);
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeHidden();
+
+    // Keyboard focus expands the toolbar so the hidden controls can be reached.
+    await page.getByRole('button', { name: 'Expand' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
+    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'After' })).toBeFocused();
+    await expect(toolbar).toHaveAttribute('data-expanded', 'false');
+  });
+
+  test('vertical collapse shrinks the height', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse', {}, { vertical: true });
+    const toolbar = page.getByTestId('toolbar');
+    expect(await box(toolbar)).toMatchObject({ width: 64, height: 256 });
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await box(toolbar)).height).toBe(160);
+  });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`with a FAB, collapsing keeps the size and grows the FAB · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--collapse', { dir }, { withFab: true });
+      const toolbar = page.getByTestId('toolbar');
+      const fab = page.getByTestId('fab');
+      const expanded = await box(toolbar);
+      // Toolbar 12 + 3×40 + 2×8 + 12 = 160, gap 8, FAB 56; 80px tall for the grown FAB.
+      expect(expanded).toMatchObject({ width: 224, height: 80 });
+      expect(await box(fab)).toMatchObject({ width: 56, height: 56 });
+
+      await page.getByRole('button', { name: 'Collapse' }).click();
+      await expect.poll(async () => (await box(fab)).width).toBe(80);
+      expect(await box(toolbar)).toEqual(expanded);
+      // The FAB stays at the end edge and grows towards the toolbar.
+      const fabBox = await box(fab);
+      if (dir === 'ltr') expect(fabBox.x + fabBox.width).toBe(expanded.x + expanded.width);
+      else expect(fabBox.x).toBe(expanded.x);
+      await expect(page.getByRole('button', { name: 'Bold' })).toBeHidden();
+    });
+  }
+
+  test('scrolling collapses and expands the toolbar', async ({ page }) => {
+    await openStory(page, 'components-toolbar--scroll-expansion');
+    const toolbar = page.getByTestId('toolbar');
+    const scroller = page.getByTestId('scroller');
+    await scroller.evaluate((el) => el.scrollTo(0, 200));
+    await expect(toolbar).toHaveAttribute('data-expanded', 'false');
+    await scroller.evaluate((el) => el.scrollTo(0, 100));
+    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+  });
+});
+
+test.describe('Toolbar layout safety', () => {
+  layoutSafetySuite('components-toolbar--layout-override', {
+    height: 64,
+    width: 160,
+    radius: '9999px',
+    interactive: false,
+    async check(page, target) {
+      await target.getByRole('button', { name: 'Bold' }).click();
+      await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+    },
+  });
+});

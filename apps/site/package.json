@@ -1,0 +1,61 @@
+{
+  "name": "site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm generate:props && next dev --webpack",
+    "build": "pnpm generate:props && next build --webpack",
+    "preview": "sirv out --port 3000",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint --max-warnings 0 .",
+    "test:e2e": "playwright test",
+    "link-check": "tsx scripts/check-links.ts",
+    "generate:props": "tsx scripts/generate-props.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@internationalized/date": "^3.12.4",
+    "@mdx-js/react": "^3.1.1",
+    "@next/mdx": "^16.4.0",
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-bold": "3.31.4",
+    "@tiptap/extension-italic": "3.31.4",
+    "@tiptap/extension-mention": "3.31.4",
+    "@tiptap/extension-strike": "3.31.4",
+    "@tiptap/extensions": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/react": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "@tiptap/suggestion": "3.31.4",
+    "@windmorph/react": "workspace:*",
+    "motion": "^14.0.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@mdx-js/loader": "^3.1.1",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
+    "jsdom": "^30.1.2",
+    "react-docgen-typescript": "^2.4.0",
+    "shiki": "^4.5.0",
+    "sirv-cli": "^3.0.1",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.3"
+  },
+  "optionalDependencies": {
+    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#5a196c1fdf8aecd15d219de7448fdc153e1f581d"
+  }
+}
