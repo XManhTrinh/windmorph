@@ -88,9 +88,10 @@ export function restartRipple(element: HTMLElement) {
 /**
  * Positions a new ripple at the press point (Compose `RippleAnimation`): it grows from 30%
  * of the element's longer side to half its diagonal plus 10px while its centre moves to the
- * middle.
+ * middle. Without a point (a key press) it starts in the middle. For a state layer on a
+ * child of the pressed element (a navigation item's pill), pass that child.
  */
-function setRippleOrigin(element: HTMLElement, clientX?: number, clientY?: number) {
+export function setRippleOrigin(element: HTMLElement, clientX?: number, clientY?: number) {
   const rect = element.getBoundingClientRect();
   const x = clientX === undefined ? rect.width / 2 : clientX - rect.left;
   const y = clientY === undefined ? rect.height / 2 : clientY - rect.top;

@@ -12,7 +12,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * collapsed rail is hidden) on the fast spatial spring.
  *
  * Icons stay on one line in both states, through the middle of the collapsed rail, as in
- * M3's rail motion: only the labels and the rail's edge move. So nothing is centred in
+ * M3's rail motion: only the labels and the rail's edge move. While the width springs open
+ * (and while the modal sheet shrinks away) labels stay on one line, clipped by the rail, so
+ * none wraps letter by letter in a rail that is still narrow and no item grows taller. So nothing is centred in
  * the animated width. The collapsed width is `--m3-rail-collapsed-width` (96px), and the
  * item inset `--m3-rail-item-inset` is half of what's left beside a 56px pill (20px). The
  * header is a 56px column at that inset: anything up to 56px (the menu button, a FAB) is
@@ -39,6 +41,12 @@ import { tv, type VariantProps } from '../../utils/tv';
 /** Half of what's left beside a 56px pill in the collapsed rail. */
 const itemInset = '[--m3-rail-item-inset:calc((var(--m3-rail-collapsed-width)_-_56px)/2)]';
 
+/**
+ * While the expanded rail is still widening (`data-widening`), labels stay on one line and
+ * the rail clips them, so the items keep their height and the icons their places.
+ */
+const oneLineWhileResizing = '[&[data-widening]_[data-nav-label]]:text-nowrap';
+
 const widthMotion = [
   '[transition-property:width]',
   '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
@@ -51,6 +59,7 @@ export const navigationRailStyles = tv({
     root: [
       'flex w-(--m3-rail-width) shrink-0 flex-col bg-surface text-on-surface',
       itemInset,
+      oneLineWhileResizing,
       ...widthMotion,
     ],
     // Library-owned wrapper: clips labels while the width animates.
@@ -71,6 +80,8 @@ export const navigationRailStyles = tv({
       'fixed inset-y-0 start-0 z-(--md-sys-z-sheet) flex w-(--m3-rail-width) flex-col overflow-x-clip overflow-y-auto pt-[44px]',
       'rounded-e-corner-large bg-surface-container text-on-surface shadow-elevation-2 outline-none',
       itemInset,
+      oneLineWhileResizing,
+      '[&[data-exiting]_[data-nav-label]]:text-nowrap',
       '[transition-property:width,translate]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',

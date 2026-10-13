@@ -77,6 +77,41 @@ describe('NavigationRail', () => {
     expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument();
   });
 
+  it('keeps labels on one line while it widens, then lets them wrap', async () => {
+    let finishWidth = () => {};
+    // jsdom has no Web Animations: a running width transition stands in for the spring.
+    Object.defineProperty(HTMLElement.prototype, 'getAnimations', {
+      configurable: true,
+      value(this: HTMLElement) {
+        if (this.tagName !== 'NAV' || !this.hasAttribute('data-expanded')) return [];
+        finishWidth = () => {
+          const event = new Event('transitionend') as TransitionEvent;
+          Object.defineProperty(event, 'propertyName', { value: 'width' });
+          this.dispatchEvent(event);
+        };
+        return [{ transitionProperty: 'width' }];
+      },
+    });
+    render(<Rail />);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveClass('[&[data-widening]_[data-nav-label]]:text-nowrap');
+    expect(nav).not.toHaveAttribute('data-widening');
+    await userEvent.click(screen.getByRole('button', { name: 'Expand' }));
+    expect(nav).toHaveAttribute('data-widening', 'true');
+    act(() => finishWidth());
+    expect(nav).not.toHaveAttribute('data-widening');
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse' }));
+    expect(nav).not.toHaveAttribute('data-widening');
+    Reflect.deleteProperty(HTMLElement.prototype, 'getAnimations');
+  });
+
+  it('doesn’t hold labels on one line when the width doesn’t animate', async () => {
+    render(<Rail />);
+    await userEvent.click(screen.getByRole('button', { name: 'Expand' }));
+    // jsdom runs no transitions (as under reduced motion).
+    expect(screen.getByRole('navigation')).not.toHaveAttribute('data-widening');
+  });
+
   it('keeps its header on the icon line in both states', async () => {
     render(<Rail />);
     const header = () => screen.getByRole('button', { name: /Expand|Collapse/ }).parentElement!;
@@ -578,6 +613,36 @@ describe('NavigationBar', () => {
     const search = screen.getByRole('link', { name: 'Search' });
     expect(search).toHaveClass('flex-initial');
     expect(search).not.toHaveClass('flex-1');
+  });
+
+  it('stretches items to the bar height, so the whole bar is the touch target', () => {
+    const { rerender } = render(<Bar />);
+    const home = () => screen.getByRole('link', { name: 'Home' });
+    expect(home()).toHaveClass('self-stretch', 'content-start');
+    expect(home()).not.toHaveClass('h-full');
+    rerender(<Bar iconPosition="start" />);
+    expect(home()).toHaveClass('self-stretch', 'content-center');
+    expect(home()).not.toHaveClass('h-full');
+  });
+
+  it('ripples through the pill from the press point', async () => {
+    render(<Bar />);
+    const search = screen.getByRole('link', { name: 'Search' });
+    const stateLayer = search.querySelector<HTMLElement>('.state-layer')!;
+    expect(stateLayer.parentElement).toHaveClass('rounded-full');
+    expect(stateLayer).toHaveClass(
+      '[--m3-state-layer-color:var(--md-sys-color-on-secondary-container)]',
+    );
+    vi.spyOn(stateLayer, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ x: 100, y: 10, width: 56, height: 32 }),
+    );
+    fireEvent.pointerDown(search, { button: 0, clientX: 110, clientY: 20, pointerId: 1 });
+    expect(stateLayer).toHaveAttribute('data-rippling', 'true');
+    // The origin is in the pill's own box, not the item's.
+    expect(stateLayer.style.getPropertyValue('--m3-ripple-origin-x')).toBe('10px');
+    expect(stateLayer.style.getPropertyValue('--m3-ripple-origin-y')).toBe('10px');
+    fireEvent.pointerUp(search, { button: 0, clientX: 110, clientY: 20, pointerId: 1 });
+    await waitFor(() => expect(stateLayer).not.toHaveAttribute('data-rippling'));
   });
 
   it('can still share the width equally with icons beside labels', () => {

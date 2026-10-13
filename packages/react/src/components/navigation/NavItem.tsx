@@ -6,11 +6,15 @@ import {
   useId,
   useLayoutEffect,
   useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
   type ReactElement,
   type ReactNode,
   type RefObject,
 } from 'react';
 import { useM3Spring } from '../../motion/use-m3-spring';
+import { setRippleOrigin, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -171,12 +175,37 @@ export function NavItem({
     icon
   );
   const action = base as ButtonBaseActionProps;
+  // M3: a press ripples through the pill. The item is the pressable element, so the pill's
+  // state layer gets its own press state and a ripple origin in its own box.
+  const stateLayerRef = useRef<HTMLSpanElement>(null);
+  const [pressed, setPressed] = useState(false);
+  const rippling = useRippleHold(pressed && !action.disabled);
   return (
     <ButtonBase
       {...action}
       onPress={(event) => {
         action.onPress?.(event);
         if (selected) onReselect?.();
+      }}
+      onPressChange={(isPressed) => {
+        action.onPressChange?.(isPressed);
+        setPressed(isPressed);
+      }}
+      onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+        action.onPointerDown?.(event);
+        if (stateLayerRef.current && !action.disabled && event.button === 0) {
+          setRippleOrigin(stateLayerRef.current, event.clientX, event.clientY);
+        }
+      }}
+      onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+        action.onKeyDown?.(event);
+        if (
+          stateLayerRef.current &&
+          !action.disabled &&
+          (event.key === 'Enter' || event.key === ' ')
+        ) {
+          setRippleOrigin(stateLayerRef.current);
+        }
       }}
       data-nav-item=""
       aria-current={selected ? 'page' : undefined}
@@ -194,7 +223,13 @@ export function NavItem({
           aria-hidden="true"
           className={styles.indicator({ class: classNames?.indicator })}
         />
-        <span aria-hidden="true" className={styles.stateLayer()} />
+        <span
+          ref={stateLayerRef}
+          aria-hidden="true"
+          data-rippling={rippling || undefined}
+          data-disabled={action.disabled || undefined}
+          className={styles.stateLayer()}
+        />
         <span className={styles.content()}>
           <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
             {badge && !badgeAfterLabel ? (

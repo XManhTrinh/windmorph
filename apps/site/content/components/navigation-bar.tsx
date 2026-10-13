@@ -126,7 +126,9 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The pill grows from its centre on the default spatial spring, and the state layer and
-              focus ring are pill-shaped, as in Compose&apos;s indicator ripple.
+              focus ring are pill-shaped, as in Compose&apos;s indicator ripple: a press ripples
+              through the pill from the press point. Items fill the bar&apos;s height, so the whole
+              64px is the touch target and inline pills sit in its middle.
             </li>
           </ul>
         </section>
