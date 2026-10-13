@@ -26,6 +26,13 @@ test.describe('Tabs visual regression', () => {
     await openStory(page, 'components-tabs--variants', { dir: 'rtl' });
     await expect(page.getByTestId('variants')).toHaveScreenshot('variants-rtl.png');
   });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`badges and alignment · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-tabs--badges', { dir });
+      await expect(page.getByTestId('badges')).toHaveScreenshot(`badges-${dir}.png`);
+    });
+  }
 });
 
 test.describe('Tabs behaviour', () => {
@@ -57,13 +64,13 @@ test.describe('Tabs behaviour', () => {
         })
         .toBe(true);
 
-      // Arrow keys follow the laid-out direction.
+      // Arrow keys follow the laid-out direction and move focus; Enter selects (M3).
       await page.keyboard.press(dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight');
-      await expect(page.getByRole('tab', { name: 'Drafts' })).toBeFocused();
-      await expect(page.getByRole('tab', { name: 'Drafts' })).toHaveAttribute(
-        'aria-selected',
-        'true',
-      );
+      const drafts = page.getByRole('tab', { name: 'Drafts' });
+      await expect(drafts).toBeFocused();
+      await expect(drafts).toHaveAttribute('aria-selected', 'false');
+      await page.keyboard.press('Enter');
+      await expect(drafts).toHaveAttribute('aria-selected', 'true');
     });
   }
 
@@ -93,6 +100,50 @@ test.describe('Tabs behaviour', () => {
         };
       });
     expect(layout).toEqual({ iconTop: 9, iconBottom: 33 });
+  });
+
+  test('indicators: primary 3px with rounded top corners, secondary 2px', async ({ page }) => {
+    await openStory(page, 'components-tabs--variants');
+    const bar = (name: string) =>
+      indicator(page, page.getByRole('tablist', { name })).evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          height: Math.round(el.getBoundingClientRect().height),
+          top: style.borderTopLeftRadius,
+          bottom: style.borderBottomLeftRadius,
+        };
+      });
+    expect(await bar('primary text')).toEqual({ height: 3, top: '3px', bottom: '0px' });
+    expect((await bar('secondary text')).height).toBe(2);
+  });
+
+  test('centred fixed tabs are as wide as the widest', async ({ page }) => {
+    await openStory(page, 'components-tabs--badges');
+    const list = page.getByRole('tablist', { name: 'Updates' });
+    const widths = await list
+      .getByRole('tab')
+      .evaluateAll((tabs) => tabs.map((tab) => Math.round(tab.getBoundingClientRect().width)));
+    expect(widths[0]).toBe(widths[1]);
+    expect((await box(list)).width).toBeLessThan(560);
+    await expect(page.getByRole('tab', { name: 'New' })).toHaveAccessibleDescription('999+');
+  });
+
+  test('a swipe on a swipeable panel changes tab', async ({ page }) => {
+    await openStory(page, 'components-tabs--playground', {}, { swipeable: true });
+    const panel = page.getByRole('tabpanel');
+    const swipe = (from: number, to: number) =>
+      panel.evaluate(
+        (el, [start, end]) => {
+          const init = { pointerId: 7, pointerType: 'touch', bubbles: true, clientY: 10 };
+          el.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: start }));
+          el.dispatchEvent(new PointerEvent('pointerup', { ...init, clientX: end }));
+        },
+        [from, to],
+      );
+    await swipe(300, 100);
+    await expect(page.getByRole('tabpanel')).toHaveText('Messages you sent.');
+    await swipe(100, 300);
+    await expect(page.getByRole('tabpanel')).toHaveText('Everything in one place.');
   });
 
   test('secondary indicators span the tab', async ({ page }) => {

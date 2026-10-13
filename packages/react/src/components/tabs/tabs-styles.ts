@@ -15,9 +15,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   defaults the unselected colour to the selected one; the token colours are used.
  * - Selection recolours on the default effects spring, deselection on fast effects; the
  *   state layer is the selected colour.
- * - Indicator: 3px `primary`. Primary tabs: as wide as the content (min 24px), 3px corners.
- *   Secondary: the whole tab. It slides on the default spatial spring.
+ * - Indicator (m3.material.io specs, 2026-10-13): `primary`, 3px high on primary tabs with
+ *   only its top corners rounded (3, 3, 0, 0), as wide as the content (min 24px); 2px high
+ *   on secondary tabs, the whole tab wide. It slides on the default spatial spring.
  * - Scrollable rows: tabs at least 90px wide, 52px start inset.
+ * - Fixed rows aligned `start` or `center` are only as wide as their tabs, each as wide as
+ *   the widest (a `max-content` grid of `1fr` columns), with the row's divider kept full
+ *   width on the scroller.
+ * - Badges: 4px after an inline label; on a stacked icon through `BadgedBox`.
  *
  * The indicator shares the tab row's first grid cell (no positioning) and is moved with
  * `translate`. Every class is written out in full so Tailwind can find it.
@@ -45,8 +50,10 @@ export const tabsStyles = tv({
     ],
     icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
     label: 'line-clamp-2 text-center',
+    // The label and an inline badge, 4px apart.
+    text: 'inline-flex min-w-0 items-center gap-[4px]',
     indicator: [
-      'pointer-events-none row-start-1 h-[3px] self-end [justify-self:left] bg-primary opacity-0 data-ready:opacity-100',
+      'pointer-events-none row-start-1 self-end [justify-self:left] bg-primary opacity-0 data-ready:opacity-100',
       '[transition-property:translate,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
@@ -57,10 +64,11 @@ export const tabsStyles = tv({
     variant: {
       primary: {
         tab: 'data-selected:text-primary [--m3-state-layer-color:var(--md-sys-color-primary)]',
-        indicator: 'rounded-[3px]',
+        indicator: 'h-[3px] rounded-t-[3px]',
       },
       secondary: {
         tab: 'data-selected:text-on-surface [--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+        indicator: 'h-[2px]',
       },
     },
     scrollable: {
@@ -71,6 +79,19 @@ export const tabsStyles = tv({
       },
       false: { list: 'auto-cols-fr' },
     },
+    // A swipeable panel takes horizontal gestures and leaves vertical ones to scrolling.
+    swipeable: { true: { panel: 'touch-pan-y' }, false: {} },
+    align: {
+      stretch: {},
+      start: {
+        scroller: 'bg-surface shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
+        list: 'w-max max-w-full',
+      },
+      center: {
+        scroller: 'bg-surface shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
+        list: 'mx-auto w-max max-w-full',
+      },
+    },
     layout: {
       text: { tab: 'h-[48px]' },
       'icon-top': { tab: 'h-[64px] flex-col justify-center gap-[2px]' },
@@ -78,7 +99,13 @@ export const tabsStyles = tv({
       'icon-only': { tab: 'h-[48px]' },
     },
   },
-  defaultVariants: { variant: 'primary', scrollable: false, layout: 'text' },
+  defaultVariants: {
+    variant: 'primary',
+    scrollable: false,
+    layout: 'text',
+    align: 'stretch',
+    swipeable: false,
+  },
 });
 
 export type TabsStyleProps = VariantProps<typeof tabsStyles>;

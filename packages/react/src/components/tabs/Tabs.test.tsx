@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { Badge } from '../badge/Badge';
 import { Tab, Tabs, type TabsProps } from './Tabs';
 
 const Icon = ({ id }: { id: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
@@ -44,7 +45,7 @@ describe('Tabs', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('selects with a press and with the arrow keys', async () => {
+  it('selects with a press; arrows move focus and Space / Enter select (the M3 keyboard)', async () => {
     const onSelectionChange = vi.fn();
     render(<Trip onSelectionChange={onSelectionChange} />);
     await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
@@ -52,9 +53,105 @@ describe('Tabs', () => {
     expect(screen.getByRole('tabpanel')).toHaveTextContent('Hotel details');
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('tab', { name: 'Cars' })).toHaveFocus();
+    expect(screen.getByRole('tab', { name: 'Hotels' })).toHaveAttribute('aria-selected', 'true');
+    await userEvent.keyboard('{Enter}');
     expect(onSelectionChange).toHaveBeenLastCalledWith('cars');
-    await userEvent.keyboard('{Home}');
+    await userEvent.keyboard('{Home}{ }');
     expect(screen.getByRole('tab', { name: 'Flights' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('selects on focus with keyboardActivation="automatic"', async () => {
+    render(<Trip keyboardActivation="automatic" />);
+    await userEvent.click(screen.getByRole('tab', { name: 'Flights' }));
+    await userEvent.keyboard('{ArrowRight}');
+    expect(screen.getByRole('tab', { name: 'Hotels' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('draws a 3px indicator with top corners on primary tabs and a 2px one on secondary', () => {
+    const { container, unmount } = render(<Trip />);
+    const indicator = () => container.querySelector('[role="tablist"] > span[aria-hidden]');
+    expect(indicator()).toHaveClass('h-[3px]', 'rounded-t-[3px]');
+    unmount();
+    const { container: secondary } = render(<Trip variant="secondary" />);
+    const line = secondary.querySelector('[role="tablist"] > span[aria-hidden]');
+    expect(line).toHaveClass('h-[2px]');
+    expect(line).not.toHaveClass('h-[3px]', 'rounded-t-[3px]');
+  });
+
+  it('aligns fixed tabs as wide as the widest at the start or centre', () => {
+    const { rerender } = render(<Trip align="center" />);
+    const list = screen.getByRole('tablist');
+    expect(list).toHaveClass('auto-cols-fr', 'w-max', 'max-w-full', 'mx-auto');
+    expect(list.parentElement).toHaveClass('bg-surface');
+    rerender(<Trip align="start" />);
+    expect(screen.getByRole('tablist')).not.toHaveClass('mx-auto');
+    rerender(<Trip align="center" scrollable />);
+    expect(screen.getByRole('tablist')).not.toHaveClass('max-w-full');
+  });
+
+  it('shows badges after the label or on a stacked icon, and describes the tab with them', async () => {
+    const { container, unmount } = render(
+      <Tabs aria-label="Mail">
+        <Tab key="inbox" title="Inbox" badge={<Badge>3</Badge>} />
+        <Tab key="sent" title="Sent" />
+      </Tabs>,
+    );
+    const inbox = screen.getByRole('tab', { name: 'Inbox' });
+    expect(inbox).toHaveAccessibleDescription('3');
+    expect(screen.getByText('3').parentElement).toHaveClass('gap-[4px]');
+    expect(await axeViolations(container)).toEqual([]);
+    unmount();
+    render(
+      <Tabs aria-label="Mail">
+        <Tab key="inbox" title="Inbox" icon={<Icon id="i" />} badge={<Badge>12</Badge>} />
+        <Tab key="sent" title="Sent" icon={<Icon id="s" />} />
+      </Tabs>,
+    );
+    expect(screen.getByRole('tab', { name: 'Inbox' })).toHaveAccessibleDescription('12');
+    // BadgedBox hangs the badge from the icon's top end.
+    expect(screen.getByTestId('i').parentElement?.parentElement).toContainElement(
+      screen.getByText('12'),
+    );
+  });
+
+  it('changes tab with a horizontal swipe on a swipeable panel', () => {
+    const onSelectionChange = vi.fn();
+    render(<Trip swipeable disabledKeys={['hotels']} onSelectionChange={onSelectionChange} />);
+    const swipe = (dx: number, dy = 0, pointerType = 'touch') => {
+      const panel = screen.getByRole('tabpanel');
+      fireEvent.pointerDown(panel, { pointerId: 1, pointerType, clientX: 200, clientY: 100 });
+      fireEvent.pointerUp(panel, {
+        pointerId: 1,
+        pointerType,
+        clientX: 200 + dx,
+        clientY: 100 + dy,
+      });
+    };
+    expect(screen.getByRole('tabpanel')).toHaveClass('touch-pan-y');
+    onSelectionChange.mockClear();
+    swipe(-30);
+    swipe(-80, 120);
+    swipe(-120, 0, 'mouse');
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    // Swiping towards the start shows the next tab, skipping the disabled one.
+    swipe(-80);
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Car details');
+    swipe(-80);
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Car details');
+    swipe(80);
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Flight details');
+  });
+
+  it('mirrors the swipe in right-to-left layouts', () => {
+    render(
+      <div dir="rtl" style={{ direction: 'rtl' }}>
+        <Trip swipeable />
+      </div>,
+    );
+    const panel = screen.getByRole('tabpanel');
+    fireEvent.pointerDown(panel, { pointerId: 1, pointerType: 'touch', clientX: 100, clientY: 0 });
+    fireEvent.pointerUp(panel, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 0 });
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Hotel details');
   });
 
   it('can be controlled and disable tabs', async () => {

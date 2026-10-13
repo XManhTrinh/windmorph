@@ -2,11 +2,16 @@
 
 import { animate } from 'motion/react';
 import {
+  cloneElement,
+  useId,
   useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
+  type HTMLAttributes,
   type JSX,
+  type PointerEvent,
+  type ReactElement,
   type ReactNode,
 } from 'react';
 import {
@@ -19,14 +24,18 @@ import {
   useTabPanel,
   type AriaTabListProps,
 } from 'react-aria';
-import { Item, useTabListState, type Node, type TabListState } from 'react-stately';
+import { Item, useTabListState, type Key, type Node, type TabListState } from 'react-stately';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { localeWithDirection } from '../../primitives/DomDirectionLocale';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
+
+/** How far (px) a horizontal swipe on a swipeable panel travels before it changes tab. */
+export const TAB_SWIPE_THRESHOLD = 56;
 
 /** Props of a {@link Tab}; the React `key` identifies it for selection. */
 export interface TabProps {
@@ -38,6 +47,11 @@ export interface TabProps {
   children?: ReactNode;
   /** Plain-text label when `title` is not a string. */
   textValue?: string;
+  /**
+   * A {@link Badge} for news in this tab (at most four characters, "+" included). It sits on
+   * a stacked icon, otherwise 4px after the label, and describes the tab to assistive tech.
+   */
+  badge?: ReactElement<BadgeProps>;
   'aria-label'?: string;
 }
 
@@ -63,6 +77,23 @@ export interface TabsProps extends Omit<
   scrollable?: boolean;
   /** Icons above the label (64px tabs) or before it (48px). @default "top" */
   iconPlacement?: 'top' | 'start';
+  /**
+   * Fixed tabs: `stretch` fills the row; `start` and `center` make every tab as wide as
+   * the widest and place the group at the leading edge or the centre (M3's layout for wide
+   * windows). Ignored when `scrollable`. @default "stretch"
+   */
+  align?: 'stretch' | 'start' | 'center';
+  /**
+   * A horizontal swipe on the panel selects the next or previous tab (mirrored in RTL), as
+   * M3 tabs do. Vertical gestures still scroll. Avoid it when the panel holds swipeable
+   * content such as a map or a carousel. @default false
+   */
+  swipeable?: boolean;
+  /**
+   * `manual`: the arrow keys move focus and Space / Enter selects the focused tab, the M3
+   * keyboard pattern. `automatic` selects on focus. @default "manual"
+   */
+  keyboardActivation?: 'manual' | 'automatic';
   className?: string;
   style?: CSSProperties;
   classNames?: TabsClassNames;
@@ -72,8 +103,8 @@ export interface TabsProps extends Omit<
 /**
  * M3 tabs: a row of tabs with an indicator that slides to the selection, and the selected
  * tab's panel. Primary tabs mark the selection with a content-width indicator and
- * `primary` label; secondary tabs with a full-width indicator. Arrow keys move between
- * tabs (mirrored in RTL), Home / End jump to the ends.
+ * `primary` label; secondary tabs with a full-width indicator. Arrow keys move focus
+ * between tabs (mirrored in RTL), Home / End jump to the ends, and Space / Enter selects.
  *
  * @example
  * <Tabs aria-label="Trip">
@@ -106,19 +137,34 @@ export function Tabs(props: TabsProps) {
         <TabsInner
           {...(ariaProps as Omit<TabsProps, 'className' | 'style' | 'ref'>)}
           classNames={classNames}
+          rtl={direction === 'rtl'}
         />
       </I18nProvider>
     </div>
   );
 }
 
-function TabsInner(props: Omit<TabsProps, 'className' | 'style' | 'ref'>) {
-  const { variant, scrollable = false, iconPlacement = 'top', classNames } = props;
+function TabsInner({
+  rtl,
+  ...props
+}: Omit<TabsProps, 'className' | 'style' | 'ref'> & { rtl: boolean }) {
+  const {
+    variant,
+    scrollable = false,
+    iconPlacement = 'top',
+    align = 'stretch',
+    swipeable = false,
+    classNames,
+  } = props;
   assertCollectionChildren(props.children, 'Tabs', 'Tab elements');
-  const state = useTabListState(props as AriaTabListProps<object>);
+  const ariaProps = {
+    ...props,
+    keyboardActivation: props.keyboardActivation ?? 'manual',
+  } as AriaTabListProps<object>;
+  const state = useTabListState(ariaProps);
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const { tabListProps } = useTabList(props as AriaTabListProps<object>, state, listRef);
+  const { tabListProps } = useTabList(ariaProps, state, listRef);
   const items = [...state.collection];
   const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
   const hasText = items.some((item) => (item.props as TabProps).title != null);
@@ -131,7 +177,13 @@ function TabsInner(props: Omit<TabsProps, 'className' | 'style' | 'ref'>) {
       : hasIcon
         ? 'icon-only'
         : 'text';
-  const styles = tabsStyles({ variant, scrollable, layout });
+  const styles = tabsStyles({
+    variant,
+    scrollable,
+    layout,
+    align: scrollable ? 'stretch' : align,
+    swipeable,
+  });
 
   const indicator = useIndicator(
     listRef,
@@ -152,6 +204,7 @@ function TabsInner(props: Omit<TabsProps, 'className' | 'style' | 'ref'>) {
               index={index}
               state={state}
               hasPanels={hasPanels}
+              layout={layout}
               styles={styles}
               className={classNames?.tab}
             />
@@ -173,6 +226,8 @@ function TabsInner(props: Omit<TabsProps, 'className' | 'style' | 'ref'>) {
         <TabPanel
           key={state.selectedKey}
           state={state}
+          swipeable={swipeable}
+          rtl={rtl}
           className={styles.panel({ class: classNames?.panel })}
         />
       )}
@@ -276,11 +331,12 @@ interface TabButtonProps {
   index: number;
   state: TabListState<object>;
   hasPanels: boolean;
+  layout: 'text' | 'icon-top' | 'icon-start' | 'icon-only';
   styles: ReturnType<typeof tabsStyles>;
   className?: string;
 }
 
-function TabButton({ item, index, state, hasPanels, styles, className }: TabButtonProps) {
+function TabButton({ item, index, state, hasPanels, layout, styles, className }: TabButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
   const { interactionProps, dataAttributes } = useM3Interaction(
@@ -291,14 +347,24 @@ function TabButton({ item, index, state, hasPanels, styles, className }: TabButt
     },
     ref,
   );
-  const { icon } = item.props as TabProps;
+  const { icon, badge } = item.props as TabProps;
+  const badgeId = useId();
   // Without panels there is nothing for aria-controls to point at.
   const { 'aria-controls': controls, ...ownProps } = tabProps;
+  // On a stacked icon the badge overlaps it (`BadgedBox`); otherwise it follows the label.
+  const badgeOnIcon =
+    badge != null && icon != null && (layout === 'icon-top' || item.rendered == null);
+  // The badge describes the tab rather than adding to its name.
+  const badgeNode =
+    badge != null
+      ? cloneElement(badge, { id: badge.props.id ?? badgeId, 'aria-hidden': true })
+      : null;
   return (
     <div
       {...mergeProps(ownProps, interactionProps)}
       {...dataAttributes}
       aria-controls={hasPanels ? controls : undefined}
+      aria-describedby={badgeNode?.props.id}
       data-key={String(item.key)}
       ref={ref}
       style={{ gridColumnStart: index + 1 }}
@@ -306,23 +372,88 @@ function TabButton({ item, index, state, hasPanels, styles, className }: TabButt
     >
       {icon != null && (
         <span aria-hidden="true" data-tab-part="" className={styles.icon()}>
-          {icon}
+          {badgeOnIcon && badgeNode ? <BadgedBox badge={badgeNode}>{icon}</BadgedBox> : icon}
         </span>
       )}
-      {item.rendered != null && (
-        <span data-tab-part="" className={styles.label()}>
-          {item.rendered}
-        </span>
-      )}
+      {item.rendered != null &&
+        (badge != null && !badgeOnIcon ? (
+          <span data-tab-part="" className={styles.text()}>
+            <span className={styles.label()}>{item.rendered}</span>
+            {badgeNode}
+          </span>
+        ) : (
+          <span data-tab-part="" className={styles.label()}>
+            {item.rendered}
+          </span>
+        ))}
     </div>
   );
 }
 
-function TabPanel({ state, className }: { state: TabListState<object>; className?: string }) {
+/** The next (or previous) enabled tab after the selected one, if any. */
+function adjacentKey(state: TabListState<object>, forward: boolean) {
+  const step = (key: Key | null) =>
+    key == null
+      ? null
+      : forward
+        ? state.collection.getKeyAfter(key)
+        : state.collection.getKeyBefore(key);
+  let key = step(state.selectedKey);
+  while (key != null && state.disabledKeys.has(key)) key = step(key);
+  return key;
+}
+
+/**
+ * A horizontal touch or pen swipe of at least {@link TAB_SWIPE_THRESHOLD} px selects the
+ * neighbouring tab: towards the end edge for the previous one, as content follows the
+ * finger. Mouse drags are left to text selection.
+ */
+function useSwipeToSelect(
+  state: TabListState<object>,
+  rtl: boolean,
+  enabled: boolean,
+): HTMLAttributes<HTMLDivElement> {
+  const start = useRef<{ x: number; y: number; id: number } | null>(null);
+  if (!enabled) return {};
+  return {
+    onPointerDown: (event: PointerEvent<HTMLDivElement>) => {
+      start.current =
+        event.pointerType === 'mouse'
+          ? null
+          : { x: event.clientX, y: event.clientY, id: event.pointerId };
+    },
+    onPointerUp: (event: PointerEvent<HTMLDivElement>) => {
+      const origin = start.current;
+      start.current = null;
+      if (!origin || origin.id !== event.pointerId || state.isDisabled) return;
+      const dx = event.clientX - origin.x;
+      const dy = event.clientY - origin.y;
+      if (Math.abs(dx) < TAB_SWIPE_THRESHOLD || Math.abs(dx) <= Math.abs(dy)) return;
+      const key = adjacentKey(state, rtl ? dx > 0 : dx < 0);
+      if (key != null) state.setSelectedKey(key);
+    },
+    onPointerCancel: () => {
+      start.current = null;
+    },
+  };
+}
+
+function TabPanel({
+  state,
+  swipeable,
+  rtl,
+  className,
+}: {
+  state: TabListState<object>;
+  swipeable: boolean;
+  rtl: boolean;
+  className?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const { tabPanelProps } = useTabPanel({}, state, ref);
+  const swipeProps = useSwipeToSelect(state, rtl, swipeable);
   return (
-    <div {...tabPanelProps} ref={ref} className={className}>
+    <div {...mergeProps(tabPanelProps, swipeProps)} ref={ref} className={className}>
       {(state.selectedItem?.props as TabProps | undefined)?.children}
     </div>
   );

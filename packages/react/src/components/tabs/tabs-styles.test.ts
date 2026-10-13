@@ -10,10 +10,11 @@ import { tabsStyles } from './tabs-styles';
 function* outputs() {
   for (const variant of ['primary', 'secondary'] as const)
     for (const scrollable of [false, true])
-      for (const layout of ['text', 'icon-top', 'icon-start', 'icon-only'] as const) {
-        const slots = tabsStyles({ variant, scrollable, layout });
-        for (const slot of Object.values(slots)) yield slot();
-      }
+      for (const layout of ['text', 'icon-top', 'icon-start', 'icon-only'] as const)
+        for (const align of ['stretch', 'start', 'center'] as const) {
+          const slots = tabsStyles({ variant, scrollable, layout, align, swipeable: true });
+          for (const slot of Object.values(slots)) yield slot();
+        }
 }
 
 describe('tabsStyles', () => {

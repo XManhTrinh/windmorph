@@ -1041,6 +1041,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Primary and secondary tab rows with a sliding indicator, scrollable when they overflow.',
     propsComponents: ['Tabs', 'Tab'],
+    keywords: ['tab bar', 'badge', 'swipe', 'segmented sections'],
     playground: 'full',
     specs: {
       variants: ['primary', 'secondary'],
