@@ -159,7 +159,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               ): up to 640px wide, a 72px top margin (56px, with 56px side margins, above 640px),
               28px top corners, <InlineCode>surface-container-low</InlineCode> at level 1, a 32×4px
               handle and a 32% scrim; it shows on the default spatial spring and hides on the fast
-              spatial spring. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
+              spatial spring, moving 112% of its size so the spring&apos;s overshoot stays out of
+              view. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
               <InlineCode>BottomSheetScaffold</InlineCode> does.
             </li>
             <li>
@@ -171,7 +172,9 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material
               Components Android (256px wide, 16px corners on the free edge, standard sheets open a
               grid track behind an <InlineCode>outline-variant</InlineCode> divider; a 72px bottom
-              action row from <InlineCode>footer</InlineCode>).
+              action row from <InlineCode>footer</InlineCode>). Their content scrolls vertically
+              only: anything wider than the sheet is clipped (m3.material.io: &ldquo;Side sheets
+              cannot scroll horizontally&rdquo;).
             </li>
             <li>
               Not in v1: dragging through nested scrolling, predictive back, and detents beyond half

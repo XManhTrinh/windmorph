@@ -103,10 +103,13 @@ const footer = ({ close }: { close: () => void }) => (
   </>
 );
 
-/** A modal side sheet, docked or detached, with its built-in close button and bottom actions. */
-export const Side: StoryObj<{ detached: boolean; back: boolean }> = {
-  args: { detached: false, back: false },
-  render: ({ detached, back }) => (
+/**
+ * A modal side sheet, docked or detached, with its built-in close button and bottom actions.
+ * `wide` adds content wider than the sheet, which is clipped: side sheets never scroll sideways.
+ */
+export const Side: StoryObj<{ detached: boolean; back: boolean; wide: boolean }> = {
+  args: { detached: false, back: false, wide: false },
+  render: ({ detached, back, wide }) => (
     <SheetTrigger>
       <Button>Open filters</Button>
       <SideSheet
@@ -120,6 +123,11 @@ export const Side: StoryObj<{ detached: boolean; back: boolean }> = {
         <p className="text-body-medium text-on-surface-variant">
           Filter the results by date, type and owner.
         </p>
+        {wide && (
+          <p className="w-[600px] text-body-medium text-on-surface-variant" data-testid="wide">
+            Results shared by Alex, Sam and Priya across every team this quarter.
+          </p>
+        )}
       </SideSheet>
     </SheetTrigger>
   ),

@@ -15,6 +15,34 @@ const rect = (locator: Locator) =>
       right: Math.round(r.right),
     };
   });
+/**
+ * Samples the panel's leading edge (its top, or the edge facing the page for a side sheet)
+ * every frame from the moment `close` runs until the panel unmounts.
+ */
+async function exitFrames(page: Page, edge: 'top' | 'left' | 'right', close: () => Promise<void>) {
+  await page.evaluate((edge) => {
+    const frames: number[] = [];
+    (window as unknown as { exitFrames: number[] }).exitFrames = frames;
+    const sample = () => {
+      const panel = document.querySelector('[role="dialog"]');
+      if (!panel) return;
+      frames.push(panel.getBoundingClientRect()[edge]);
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  }, edge);
+  await close();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  return page.evaluate(() => (window as unknown as { exitFrames: number[] }).exitFrames);
+}
+
+/** Once a frame leaves the window, no later frame comes back into it. */
+function neverReturns(frames: number[], outside: (value: number) => boolean) {
+  const left = frames.findIndex(outside);
+  expect(left).toBeGreaterThan(0);
+  expect(frames.slice(left).filter((value) => !outside(value))).toEqual([]);
+}
+
 const settle = (page: Page) =>
   page.evaluate(() =>
     Promise.allSettled(document.getAnimations().map((a) => a.finished)).then(() => undefined),
@@ -122,6 +150,15 @@ test.describe('Bottom sheet', () => {
     await expect(sheet).toHaveAttribute('data-detent', 'collapsed');
   });
 
+  test('the exit leaves the window for good, never springing back into view', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-sheet--bottom');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    await settle(page);
+    const frames = await exitFrames(page, 'top', () => page.keyboard.press('Escape'));
+    neverReturns(frames, (top) => top >= 800);
+  });
+
   test('pressing the scrim closes it', async ({ page }) => {
     await page.setViewportSize({ width: 412, height: 800 });
     await openStory(page, 'components-sheet--bottom');
@@ -148,6 +185,33 @@ test.describe('Side sheet', () => {
       await expect(sheet).toBeHidden();
     });
   }
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`the exit leaves the window for good · ${dir}`, async ({ page }) => {
+      await page.setViewportSize({ width: 800, height: 600 });
+      await openStory(page, 'components-sheet--side', { dir });
+      await page.getByRole('button', { name: 'Open filters' }).click();
+      await settle(page);
+      const frames = await exitFrames(page, dir === 'ltr' ? 'left' : 'right', () =>
+        page.getByRole('button', { name: 'Close' }).click(),
+      );
+      neverReturns(frames, (edge) => (dir === 'ltr' ? edge >= 800 : edge <= 0));
+    });
+  }
+
+  test('content never scrolls horizontally', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await openStory(page, 'components-sheet--side', {}, { wide: true });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    const content = page.getByTestId('wide').locator('..');
+    expect(await rect(sheet)).toMatchObject({ width: 256 });
+    expect(await content.evaluate((el) => getComputedStyle(el).overflowX)).toBe('hidden');
+    await page.mouse.move(700, 100);
+    await page.mouse.wheel(200, 0);
+    expect(await content.evaluate((el) => el.scrollLeft)).toBe(0);
+  });
 
   test('a back button insets the header to 16px', async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });
