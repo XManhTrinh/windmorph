@@ -4,6 +4,7 @@ import { DatePickerBasic } from '../../examples/date-picker/date-picker-basic';
 import { DateRangeExample } from '../../examples/date-picker/date-range';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const c = 'text-on-surface';
 
@@ -26,21 +27,21 @@ export async function DatePickerBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Date pickers let someone choose a date, or a range of dates. M3 has three variants: the{' '}
-          <strong className={c}>docked date picker</strong> (<code className={c}>DateField</code>),
-          a date field with a calendar just below it, best on medium and larger windows; the{' '}
-          <strong className={c}>modal date picker</strong> (<code className={c}>DatePicker</code> or{' '}
-          <code className={c}>DateRangePicker</code> in a <code className={c}>PickerDialog</code>),
-          full screen on compact windows; and the <strong className={c}>modal date input</strong>,
-          the modal picker&apos;s typed mode behind its edit button.
+          <strong className={c}>docked date picker</strong> (<InlineCode>DateField</InlineCode>), a
+          date field with a calendar just below it, best on medium and larger windows; the{' '}
+          <strong className={c}>modal date picker</strong> (<InlineCode>DatePicker</InlineCode> or{' '}
+          <InlineCode>DateRangePicker</InlineCode> in a <InlineCode>PickerDialog</InlineCode>), full
+          screen on compact windows; and the <strong className={c}>modal date input</strong>, the
+          modal picker&apos;s typed mode behind its edit button.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Values are <code className={c}>@internationalized/date</code>{' '}
-          <code className={c}>CalendarDate</code>s (a <code className={c}>{'{ start, end }'}</code>{' '}
-          pair for a range). Each is controlled (<code className={c}>value</code> /{' '}
-          <code className={c}>onChange</code>) or uncontrolled (
-          <code className={c}>defaultValue</code>), and words are localised through the{' '}
-          <code className={c}>strings</code> prop. For a date far in the past or future, such as a
-          date of birth, prefer the docked picker or the typed input to paging the calendar.
+          Values are <InlineCode>@internationalized/date</InlineCode>{' '}
+          <InlineCode>CalendarDate</InlineCode>s (a <InlineCode>{'{ start, end }'}</InlineCode> pair
+          for a range). Each is controlled (<InlineCode>value</InlineCode> /{' '}
+          <InlineCode>onChange</InlineCode>) or uncontrolled (<InlineCode>defaultValue</InlineCode>
+          ), and words are localised through the <InlineCode>strings</InlineCode> prop. For a date
+          far in the past or future, such as a date of birth, prefer the docked picker or the typed
+          input to paging the calendar.
         </p>
       </section>
 
@@ -81,14 +82,14 @@ export async function DatePickerBody() {
           <li>
             The grid is a React Aria calendar: arrow keys move by day, Page Up / Down by month,
             Shift+Page Up / Down by year, Home / End to the ends of the month, honouring{' '}
-            <code className={c}>minValue</code> / <code className={c}>maxValue</code> and{' '}
-            <code className={c}>isDateUnavailable</code>. Each day is named by its full date, and
-            the weekdays are column headers named by their full name (also shown on hover).
+            <InlineCode>minValue</InlineCode> / <InlineCode>maxValue</InlineCode> and{' '}
+            <InlineCode>isDateUnavailable</InlineCode>. Each day is named by its full date, and the
+            weekdays are column headers named by their full name (also shown on hover).
           </li>
           <li>
             Enter on a day closes the calendar and saves it: in the docked picker, and in a{' '}
-            <code className={c}>PickerDialog</code> given <code className={c}>onConfirm</code> (for
-            a range, once both ends are picked). Shift+M moves to the month menu and Shift+Y to the
+            <InlineCode>PickerDialog</InlineCode> given <InlineCode>onConfirm</InlineCode> (for a
+            range, once both ends are picked). Shift+M moves to the month menu and Shift+Y to the
             year menu; the previous / next buttons&apos; tooltips name their shortcuts.
           </li>
           <li>
@@ -99,8 +100,8 @@ export async function DatePickerBody() {
           </li>
           <li>
             Years and months are radio groups; arrow keys move between them, and those outside{' '}
-            <code className={c}>minValue</code> / <code className={c}>maxValue</code> are shown
-            disabled. The headline is an <code className={c}>aria-live=&quot;polite&quot;</code>{' '}
+            <InlineCode>minValue</InlineCode> / <InlineCode>maxValue</InlineCode> are shown
+            disabled. The headline is an <InlineCode>aria-live=&quot;polite&quot;</InlineCode>{' '}
             region, so the selection is announced. Every day, year and month is a 48px target.
           </li>
         </ul>
@@ -112,25 +113,25 @@ export async function DatePickerBody() {
           <li>
             360px wide with Compose&apos;s header, 56px month row, weekday row and six 48px week
             rows (the height is kept at six). Days are 40px circles: selected{' '}
-            <code className={c}>primary</code> / <code className={c}>on-primary</code>, today a 1px{' '}
-            <code className={c}>primary</code> outline, disabled at 38%.
+            <InlineCode>primary</InlineCode> / <InlineCode>on-primary</InlineCode>, today a 1px{' '}
+            <InlineCode>primary</InlineCode> outline, disabled at 38%.
           </li>
           <li>
             The modal picker pages months with the arrows, a horizontal swipe or the keyboard, and
             each month slides in from its side (a fade with reduced motion). The range picker
-            scrolls a vertical list of months, each under a <code className={c}>title-small</code>{' '}
-            subhead; <code className={c}>monthLayout=&quot;paged&quot;</code> pages it instead.
+            scrolls a vertical list of months, each under a <InlineCode>title-small</InlineCode>{' '}
+            subhead; <InlineCode>monthLayout=&quot;paged&quot;</InlineCode> pages it instead.
           </li>
           <li>
             In a range, the ends are filled and the days between sit on a 40px{' '}
-            <code className={c}>secondary-container</code> band drawn as cell background gradients,
-            so nothing is positioned (it mirrors in RTL).
+            <InlineCode>secondary-container</InlineCode> band drawn as cell background gradients, so
+            nothing is positioned (it mirrors in RTL).
           </li>
           <li>
-            The docked calendar is a <code className={c}>surface-container-high</code> panel with
-            16px corners at level 3, with month and year menu buttons between previous / next
-            buttons, the days of the months around in <code className={c}>on-surface-variant</code>,
-            and Cancel / OK.
+            The docked calendar is a <InlineCode>surface-container-high</InlineCode> panel with 16px
+            corners at level 3, with month and year menu buttons between previous / next buttons,
+            the days of the months around in <InlineCode>on-surface-variant</InlineCode>, and Cancel
+            / OK.
           </li>
         </ul>
       </section>

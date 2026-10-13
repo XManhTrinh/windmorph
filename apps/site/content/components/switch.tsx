@@ -4,6 +4,7 @@ import { SwitchIcons } from '../../examples/switch/switch-icons';
 import { SwitchStates } from '../../examples/switch/switch-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Switch page body. */
 export async function SwitchBody() {
@@ -24,14 +25,13 @@ export async function SwitchBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           A switch toggles a single setting on or off and takes effect immediately, like a system
-          preference. Use a <code className="text-on-surface">Checkbox</code> instead when the
-          choice is part of a form that is submitted later, or when you need an indeterminate state.
+          preference. Use a <InlineCode>Checkbox</InlineCode> instead when the choice is part of a
+          form that is submitted later, or when you need an indeterminate state.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Give the switch an accessible name through its label{' '}
-          <code className="text-on-surface">children</code> or an{' '}
-          <code className="text-on-surface">aria-label</code> /{' '}
-          <code className="text-on-surface">aria-labelledby</code> (the types enforce one).
+          Give the switch an accessible name through its label <InlineCode>children</InlineCode> or
+          an <InlineCode>aria-label</InlineCode> / <InlineCode>aria-labelledby</InlineCode> (the
+          types enforce one).
         </p>
       </section>
 
@@ -62,9 +62,8 @@ export async function SwitchBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            A visually hidden native input with{' '}
-            <code className="text-on-surface">role=&quot;switch&quot;</code> (React Aria{' '}
-            <code className="text-on-surface">useSwitch</code>) carries the state, so forms and
+            A visually hidden native input with <InlineCode>role=&quot;switch&quot;</InlineCode>{' '}
+            (React Aria <InlineCode>useSwitch</InlineCode>) carries the state, so forms and
             assistive tech work natively.
           </li>
           <li>
@@ -72,10 +71,9 @@ export async function SwitchBody() {
             surrounds the track, which has a 48px touch target.
           </li>
           <li>
-            An accessible name is required; the thumb icons (
-            <code className="text-on-surface">icons</code>,{' '}
-            <code className="text-on-surface">selectedIcon</code>,{' '}
-            <code className="text-on-surface">unselectedIcon</code>) are decorative.
+            An accessible name is required; the thumb icons (<InlineCode>icons</InlineCode>,{' '}
+            <InlineCode>selectedIcon</InlineCode>, <InlineCode>unselectedIcon</InlineCode>) are
+            decorative.
           </li>
         </ul>
       </section>
@@ -85,30 +83,27 @@ export async function SwitchBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             A 52×32px track with a 2px outline. The thumb geometry is computed like Compose&apos;s{' '}
-            <code className="text-on-surface">ThumbNode</code>: 16px off, 24px on or with an icon,
-            28px pressed, centred 16 / 36px from the start.
+            <InlineCode>ThumbNode</InlineCode>: 16px off, 24px on or with an icon, 28px pressed,
+            centred 16 / 36px from the start.
           </li>
           <li>
             The thumb can be dragged: it follows the pointer between its off and on positions, and
             releasing sets the switch from the half it&apos;s in (a tap still toggles).
           </li>
           <li>
-            Pressing snaps the thumb; releasing animates its{' '}
-            <code className="text-on-surface">width</code> /{' '}
-            <code className="text-on-surface">height</code> / position on the fast spatial spring,
-            and it mirrors in RTL. The geometry is passed as CSS variables so no state selectors
-            compete.
+            Pressing snaps the thumb; releasing animates its <InlineCode>width</InlineCode> /{' '}
+            <InlineCode>height</InlineCode> / position on the fast spatial spring, and it mirrors in
+            RTL. The geometry is passed as CSS variables so no state selectors compete.
           </li>
           <li>
-            Hover, focus and press recolour the thumb to{' '}
-            <code className="text-on-surface">on-surface-variant</code> (off) /{' '}
-            <code className="text-on-surface">primary-container</code> (on); disabled colours are
-            Compose&apos;s composites over <code className="text-on-surface">surface</code>.
+            Hover, focus and press recolour the thumb to <InlineCode>on-surface-variant</InlineCode>{' '}
+            (off) / <InlineCode>primary-container</InlineCode> (on); disabled colours are
+            Compose&apos;s composites over <InlineCode>surface</InlineCode>.
           </li>
           <li>
-            <code className="text-on-surface">icons</code> shows the default check / close marks;{' '}
-            <code className="text-on-surface">selectedIcon</code> /{' '}
-            <code className="text-on-surface">unselectedIcon</code> override them.
+            <InlineCode>icons</InlineCode> shows the default check / close marks;{' '}
+            <InlineCode>selectedIcon</InlineCode> / <InlineCode>unselectedIcon</InlineCode> override
+            them.
           </li>
         </ul>
       </section>

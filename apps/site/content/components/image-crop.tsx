@@ -3,6 +3,7 @@ import { ImageCropAvatar } from '../../examples/image-crop/image-crop-avatar';
 import { ImageCropInline } from '../../examples/image-crop/image-crop-inline';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const EXAMPLES = [
   { file: 'image-crop-avatar.tsx', title: 'A profile photo', Example: ImageCropAvatar },
@@ -24,10 +25,9 @@ export async function ImageCropBody() {
           An image crop frames a photo before it&apos;s uploaded: people drag and zoom the photo
           behind a fixed frame, then confirm. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>: it comes from{' '}
-          <code className="text-on-surface">@windmorph/react-pro</code>, built from the
-          library&apos;s Dialog, Slider and Icon buttons.{' '}
-          <code className="text-on-surface">ImageCropDialog</code> is full screen on compact windows
-          and a basic dialog on larger ones; <code className="text-on-surface">ImageCropper</code>{' '}
+          <InlineCode>@windmorph/react-pro</InlineCode>, built from the library&apos;s Dialog,
+          Slider and Icon buttons. <InlineCode>ImageCropDialog</InlineCode> is full screen on
+          compact windows and a basic dialog on larger ones; <InlineCode>ImageCropper</InlineCode>{' '}
           is the same area inline.
         </p>
         <p className="text-body-large text-on-surface-variant">
@@ -35,7 +35,7 @@ export async function ImageCropBody() {
           crop in the original photo&apos;s pixels. Upload the original file with it and crop on the
           server, so the photo keeps its full quality and nothing is re-encoded in the browser. The
           rectangle is measured after the photo&apos;s EXIF orientation, so rotate first:{' '}
-          <code className="text-on-surface">sharp(file).rotate().extract(crop)</code>.
+          <InlineCode>sharp(file).rotate().extract(crop)</InlineCode>.
         </p>
       </section>
 
@@ -74,8 +74,8 @@ export async function ImageCropBody() {
           <li>
             A photo that can&apos;t be opened (HEIC in some browsers, or a file that isn&apos;t an
             image) shows a message announced as an alert, and the confirm button stays disabled.
-            While <code className="text-on-surface">busy</code>, a progress bar shows and the dialog
-            can&apos;t be dismissed.
+            While <InlineCode>busy</InlineCode>, a progress bar shows and the dialog can&apos;t be
+            dismissed.
           </li>
         </ul>
       </section>
@@ -84,15 +84,14 @@ export async function ImageCropBody() {
         <h2 className="text-headline-small text-on-surface">Theming</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The area is <code className="text-on-surface">surface-container-highest</code> with
-            medium corners; outside the frame the photo is dimmed with{' '}
-            <code className="text-on-surface">scrim</code> at 56%, stronger than a dialog&apos;s 32%
-            so the frame reads over any photo.
+            The area is <InlineCode>surface-container-highest</InlineCode> with medium corners;
+            outside the frame the photo is dimmed with <InlineCode>scrim</InlineCode> at 56%,
+            stronger than a dialog&apos;s 32% so the frame reads over any photo.
           </li>
           <li>
-            The frame is a 2px <code className="text-on-surface">outline-variant</code> edge, and{' '}
-            <code className="text-on-surface">guide=&quot;circle&quot;</code> adds a dashed circle
-            showing what a round avatar shows. Forced colours draw both in the system text colour.
+            The frame is a 2px <InlineCode>outline-variant</InlineCode> edge, and{' '}
+            <InlineCode>guide=&quot;circle&quot;</InlineCode> adds a dashed circle showing what a
+            round avatar shows. Forced colours draw both in the system text colour.
           </li>
           <li>Resetting eases back on the M3 spatial spring; with reduced motion it jumps.</li>
         </ul>

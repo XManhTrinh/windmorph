@@ -5,6 +5,7 @@ import { TextFieldStates } from '../../examples/text-field/text-field-states';
 import { TextFieldVariants } from '../../examples/text-field/text-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** TextField page body: purpose, live examples, accessibility and Compose differences. */
 export async function TextFieldBody() {
@@ -27,18 +28,16 @@ export async function TextFieldBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Text fields let people enter and edit text. Reach for one for free-form input like a name,
-          email or message; use a <code className="text-on-surface">Select</code>,{' '}
-          <code className="text-on-surface">RadioGroup</code> or{' '}
-          <code className="text-on-surface">Checkbox</code> when the choices are fixed.
+          email or message; use a <InlineCode>Select</InlineCode>,{' '}
+          <InlineCode>RadioGroup</InlineCode> or <InlineCode>Checkbox</InlineCode> when the choices
+          are fixed.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Every field needs a name: pass a visible <code className="text-on-surface">label</code>{' '}
-          or, when the context already makes the purpose clear, an{' '}
-          <code className="text-on-surface">aria-label</code> /{' '}
-          <code className="text-on-surface">aria-labelledby</code> (the types enforce one). The
-          value is controlled through <code className="text-on-surface">value</code> /{' '}
-          <code className="text-on-surface">onChange(value)</code> or left uncontrolled with{' '}
-          <code className="text-on-surface">defaultValue</code>.
+          Every field needs a name: pass a visible <InlineCode>label</InlineCode> or, when the
+          context already makes the purpose clear, an <InlineCode>aria-label</InlineCode> /{' '}
+          <InlineCode>aria-labelledby</InlineCode> (the types enforce one). The value is controlled
+          through <InlineCode>value</InlineCode> / <InlineCode>onChange(value)</InlineCode> or left
+          uncontrolled with <InlineCode>defaultValue</InlineCode>.
         </p>
       </section>
 
@@ -82,10 +81,9 @@ export async function TextFieldBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            A <code className="text-on-surface">label</code> or{' '}
-            <code className="text-on-surface">aria-label</code> /{' '}
-            <code className="text-on-surface">aria-labelledby</code> is required; leading and
-            trailing icons are decorative and hidden from assistive tech.
+            A <InlineCode>label</InlineCode> or <InlineCode>aria-label</InlineCode> /{' '}
+            <InlineCode>aria-labelledby</InlineCode> is required; leading and trailing icons are
+            decorative and hidden from assistive tech.
           </li>
           <li>
             Tab moves focus to the input; pressing anywhere in the container (except an icon button)
@@ -94,37 +92,33 @@ export async function TextFieldBody() {
           <li>
             Supporting text is exposed as the field&apos;s description. When the field is invalid
             the error message is shown in its place, but the supporting text stays in the accessible
-            description (<code className="text-on-surface">sr-only</code>).
+            description (<InlineCode>sr-only</InlineCode>).
           </li>
           <li>
-            The error message has the <code className="text-on-surface">alert</code> role, so it is
-            announced as it appears. While invalid, the field shows an error icon named
-            &quot;Error&quot; (<code className="text-on-surface">labels.error</code>;{' '}
-            <code className="text-on-surface">errorIcon</code> replaces it or{' '}
-            <code className="text-on-surface">false</code> turns it off), and the supporting text
-            takes the error colour.
+            The error message has the <InlineCode>alert</InlineCode> role, so it is announced as it
+            appears. While invalid, the field shows an error icon named &quot;Error&quot; (
+            <InlineCode>labels.error</InlineCode>; <InlineCode>errorIcon</InlineCode> replaces it or{' '}
+            <InlineCode>false</InlineCode> turns it off), and the supporting text takes the error
+            colour.
           </li>
           <li>
             The character counter is read as &quot;Character count: 12 of 80&quot; (
-            <code className="text-on-surface">labels.characterCount</code>), and the prefix and
-            suffix join the description, read as{' '}
-            <code className="text-on-surface">prefixLabel</code> /{' '}
-            <code className="text-on-surface">suffixLabel</code> when given (&quot;US dollars&quot;
-            for &quot;$&quot;).
+            <InlineCode>labels.characterCount</InlineCode>), and the prefix and suffix join the
+            description, read as <InlineCode>prefixLabel</InlineCode> /{' '}
+            <InlineCode>suffixLabel</InlineCode> when given (&quot;US dollars&quot; for
+            &quot;$&quot;).
           </li>
           <li>
             A read-only field looks like a regular one and gets{' '}
-            <code className="text-on-surface">data-readonly</code>; say &quot;Read-only&quot; in its
-            supporting text, as M3 asks.
+            <InlineCode>data-readonly</InlineCode>; say &quot;Read-only&quot; in its supporting
+            text, as M3 asks.
           </li>
           <li>
-            <code className="text-on-surface">required</code> adds a{' '}
-            <code className="text-on-surface">*</code> that is part of the accessible name (M3:
-            &quot;The accessibility label must include the asterisk&quot;) and{' '}
-            <code className="text-on-surface">aria-required</code>; validation uses React Aria{' '}
-            <code className="text-on-surface">useTextField</code> (
-            <code className="text-on-surface">validate</code>,{' '}
-            <code className="text-on-surface">invalid</code> and native constraints).
+            <InlineCode>required</InlineCode> adds a <InlineCode>*</InlineCode> that is part of the
+            accessible name (M3: &quot;The accessibility label must include the asterisk&quot;) and{' '}
+            <InlineCode>aria-required</InlineCode>; validation uses React Aria{' '}
+            <InlineCode>useTextField</InlineCode> (<InlineCode>validate</InlineCode>,{' '}
+            <InlineCode>invalid</InlineCode> and native constraints).
           </li>
         </ul>
       </section>
@@ -133,39 +127,34 @@ export async function TextFieldBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Values come from Compose&apos;s{' '}
-            <code className="text-on-surface">TextFieldImpl.kt</code> and the token files: a 56px
-            minimum height, a 280px default width, 16px padding that drops to 4px next to an icon
-            (icons sit in 48px boxes).
+            Values come from Compose&apos;s <InlineCode>TextFieldImpl.kt</InlineCode> and the token
+            files: a 56px minimum height, a 280px default width, 16px padding that drops to 4px next
+            to an icon (icons sit in 48px boxes).
           </li>
           <li>
-            Colours follow a single computed{' '}
-            <code className="text-on-surface">data-field-state</code> (
-            <code className="text-on-surface">
+            Colours follow a single computed <InlineCode>data-field-state</InlineCode> (
+            <InlineCode>
               disabled &gt; error-focus &gt; error-hover &gt; error &gt; focus &gt; hover &gt; rest
-            </code>
-            ), so the parts never compete on CSS order;{' '}
-            <code className="text-on-surface">data-floated</code> and friends are exposed too.
+            </InlineCode>
+            ), so the parts never compete on CSS order; <InlineCode>data-floated</InlineCode> and
+            friends are exposed too.
           </li>
           <li>
-            The floating label is an absolutely positioned{' '}
-            <code className="text-on-surface">&lt;label&gt;</code> that transitions{' '}
-            <code className="text-on-surface">top</code>,{' '}
-            <code className="text-on-surface">inset-inline-start</code> and the type scale, so it
-            needs no transforms and mirrors in RTL (it also floats for browser autofill).
+            The floating label is an absolutely positioned <InlineCode>&lt;label&gt;</InlineCode>{' '}
+            that transitions <InlineCode>top</InlineCode>,{' '}
+            <InlineCode>inset-inline-start</InlineCode> and the type scale, so it needs no
+            transforms and mirrors in RTL (it also floats for browser autofill).
           </li>
           <li>
-            The outlined notch is a hidden <code className="text-on-surface">fieldset</code> /{' '}
-            <code className="text-on-surface">legend</code> carrying the label text, so the gap
-            matches the label exactly. With a label the placeholder, prefix and suffix appear only
-            once it floats.
+            The outlined notch is a hidden <InlineCode>fieldset</InlineCode> /{' '}
+            <InlineCode>legend</InlineCode> carrying the label text, so the gap matches the label
+            exactly. With a label the placeholder, prefix and suffix appear only once it floats.
           </li>
           <li>
-            <code className="text-on-surface">multiline</code> is a fixed-height text area by
-            default, which M3 recommends over growing fields on the web;{' '}
-            <code className="text-on-surface">autoGrow</code> gives Compose&apos;s growing field.{' '}
-            <code className="text-on-surface">supportingTextOnFocus</code> shows the supporting text
-            only while the field has focus.
+            <InlineCode>multiline</InlineCode> is a fixed-height text area by default, which M3
+            recommends over growing fields on the web; <InlineCode>autoGrow</InlineCode> gives
+            Compose&apos;s growing field. <InlineCode>supportingTextOnFocus</InlineCode> shows the
+            supporting text only while the field has focus.
           </li>
           <li>
             <strong>Not in v1:</strong> the composable TextField parts (the &quot;two API

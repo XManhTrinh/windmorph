@@ -5,8 +5,7 @@ import { FileTriggerMenu } from '../../examples/file-trigger/file-trigger-menu';
 import { FileTriggerPhoto } from '../../examples/file-trigger/file-trigger-photo';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** File trigger page body: purpose, examples, the hook and accessibility. */
 export async function FileTriggerBody() {
@@ -27,14 +26,15 @@ export async function FileTriggerBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Makes a library button open the system file picker, or the camera on phones. Browsers open
-          the picker only through a file input, so {code('FileTrigger')} keeps one hidden and lets
-          the button you wrap be the control, as {code('DialogTrigger')} and {code('MenuTrigger')}{' '}
-          do for dialogs and menus. It is{' '}
-          <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
-          {code('@windmorph/react-pro')}.
+          the picker only through a file input, so <InlineCode>FileTrigger</InlineCode> keeps one
+          hidden and lets the button you wrap be the control, as{' '}
+          <InlineCode>DialogTrigger</InlineCode> and <InlineCode>MenuTrigger</InlineCode> do for
+          dialogs and menus. It is <strong className="text-on-surface">not an M3 component</strong>,
+          so it comes from <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          To frame a photo before upload, pass the chosen file to {code('ImageCropDialog')}.
+          To frame a photo before upload, pass the chosen file to{' '}
+          <InlineCode>ImageCropDialog</InlineCode>.
         </p>
       </section>
 
@@ -62,22 +62,24 @@ export async function FileTriggerBody() {
         <h2 className="text-headline-small text-on-surface">Options</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            {code('onSelect')} gets the chosen files as an array, never empty. Choosing the same
-            file again still calls it.
+            <InlineCode>onSelect</InlineCode> gets the chosen files as an array, never empty.
+            Choosing the same file again still calls it.
           </li>
           <li>
-            {code('accept')} lists MIME types or extensions; check the real type on the server,
-            since a file&apos;s name and type can lie.
+            <InlineCode>accept</InlineCode> lists MIME types or extensions; check the real type on
+            the server, since a file&apos;s name and type can lie.
           </li>
           <li>
-            {code('multiple')} allows several files, {code('capture')} opens the front (
-            {code('user')}) or back ({code('environment')}) camera on phones, and{' '}
-            {code('directory')} chooses a folder where the browser supports it.
+            <InlineCode>multiple</InlineCode> allows several files, <InlineCode>capture</InlineCode>{' '}
+            opens the front (<InlineCode>user</InlineCode>) or back (
+            <InlineCode>environment</InlineCode>) camera on phones, and{' '}
+            <InlineCode>directory</InlineCode> chooses a folder where the browser supports it.
           </li>
           <li>
-            {code('useFileTrigger(options)')} returns {code('{ open, input }')} for triggers that
-            can&apos;t be wrapped, such as a menu item: call {code('open()')} from its action and
-            render {code('input')} once.
+            <InlineCode>useFileTrigger(options)</InlineCode> returns{' '}
+            <InlineCode>{'{ open, input }'}</InlineCode> for triggers that can&apos;t be wrapped,
+            such as a menu item: call <InlineCode>open()</InlineCode> from its action and render{' '}
+            <InlineCode>input</InlineCode> once.
           </li>
         </ul>
       </section>
@@ -85,9 +87,10 @@ export async function FileTriggerBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">useFileTrigger</h2>
         <p className="text-body-large text-on-surface-variant">
-          {code('useFileTrigger(options, inputRef?)')} opens the picker from a trigger that
-          can&apos;t be wrapped, such as a menu item. It takes the same options as{' '}
-          {code('FileTrigger')} and returns {code('{ open, input }')}.
+          <InlineCode>useFileTrigger(options, inputRef?)</InlineCode> opens the picker from a
+          trigger that can&apos;t be wrapped, such as a menu item. It takes the same options as{' '}
+          <InlineCode>FileTrigger</InlineCode> and returns{' '}
+          <InlineCode>{'{ open, input }'}</InlineCode>.
         </p>
         <PropsTable caption="useFileTrigger options" rows={options} />
         <PropsTable
@@ -115,12 +118,13 @@ export async function FileTriggerBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>The button is the control: Tab reaches it, and Enter or Space opens the picker.</li>
           <li>
-            The input is hidden from everyone ({code('hidden')}, {code('aria-hidden')}, out of the
-            tab order), so nothing is announced twice.
+            The input is hidden from everyone (<InlineCode>hidden</InlineCode>,{' '}
+            <InlineCode>aria-hidden</InlineCode>, out of the tab order), so nothing is announced
+            twice.
           </li>
           <li>
-            Put it inside a {code('TooltipTrigger')}: the tooltip keeps working. To stop it, disable
-            the button.
+            Put it inside a <InlineCode>TooltipTrigger</InlineCode>: the tooltip keeps working. To
+            stop it, disable the button.
           </li>
         </ul>
       </section>

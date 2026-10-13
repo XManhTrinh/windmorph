@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '@windmorph/react-pro';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/accessibility');
 
@@ -68,8 +69,8 @@ export default async function AccessibilityPage() {
         <h1 className="text-headline-large text-on-surface">Accessibility</h1>
         <p className="text-body-large text-on-surface-variant">
           Components target WCAG 2.2 AA: full keyboard operation, visible focus, 48px touch targets,{' '}
-          <code className="text-on-surface">prefers-reduced-motion</code>, RTL support, and
-          screen-reader names required by the types where one is needed.
+          <InlineCode>prefers-reduced-motion</InlineCode>, RTL support, and screen-reader names
+          required by the types where one is needed.
         </p>
       </header>
 
@@ -82,8 +83,7 @@ export default async function AccessibilityPage() {
             48px touch target while their layout height stays 32 / 40px.
           </li>
           <li>
-            <code className="text-on-surface">prefers-reduced-motion</code> removes non-essential
-            movement (see the{' '}
+            <InlineCode>prefers-reduced-motion</InlineCode> removes non-essential movement (see the{' '}
             <a className="text-primary underline" href="/motion">
               Motion guide
             </a>
@@ -97,12 +97,11 @@ export default async function AccessibilityPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Focus rings</h2>
         <p className="text-body-large text-on-surface-variant">
-          Focus rings are a CSS <code className="text-on-surface">outline</code> with{' '}
-          <code className="text-on-surface">outline-offset</code> (the{' '}
-          <code className="text-on-surface">focus-ring</code> /{' '}
-          <code className="text-on-surface">focus-ring-inset</code> utilities), so clipping,{' '}
-          <code className="text-on-surface">overflow-hidden</code> or{' '}
-          <code className="text-on-surface">fixed</code> ancestors can never hide them.
+          Focus rings are a CSS <InlineCode>outline</InlineCode> with{' '}
+          <InlineCode>outline-offset</InlineCode> (the <InlineCode>focus-ring</InlineCode> /{' '}
+          <InlineCode>focus-ring-inset</InlineCode> utilities), so clipping,{' '}
+          <InlineCode>overflow-hidden</InlineCode> or <InlineCode>fixed</InlineCode> ancestors can
+          never hide them.
         </p>
       </section>
 
@@ -127,7 +126,7 @@ export default async function AccessibilityPage() {
             {NAMES.map(([component, requirement]) => (
               <tr key={component}>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
-                  <code className="text-on-surface">{component}</code>
+                  <InlineCode>{component}</InlineCode>
                 </td>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
                   {requirement}
@@ -160,7 +159,7 @@ export default async function AccessibilityPage() {
             {KEYBOARD.map(([component, keys]) => (
               <tr key={component}>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
-                  <code className="text-on-surface">{component}</code>
+                  <InlineCode>{component}</InlineCode>
                 </td>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
                   {keys}
@@ -175,13 +174,11 @@ export default async function AccessibilityPage() {
         <h2 className="text-headline-small text-on-surface">Right-to-left</h2>
         <p className="text-body-large text-on-surface-variant">
           Components use logical properties, so they mirror in RTL. React Aria, though, takes
-          keyboard direction (arrow keys, <code className="text-on-surface">start</code> /{' '}
-          <code className="text-on-surface">end</code>) from its locale rather than the DOM{' '}
-          <code className="text-on-surface">dir</code>.{' '}
-          <code className="text-on-surface">DomDirectionLocale</code> bridges that gap and is used
-          internally by Tabs, Toolbar, Slider, DatePicker and List. It lives in{' '}
-          <code className="text-on-surface">@windmorph/react/primitives</code>, shown here for
-          reference.
+          keyboard direction (arrow keys, <InlineCode>start</InlineCode> /{' '}
+          <InlineCode>end</InlineCode>) from its locale rather than the DOM{' '}
+          <InlineCode>dir</InlineCode>. <InlineCode>DomDirectionLocale</InlineCode> bridges that gap
+          and is used internally by Tabs, Toolbar, Slider, DatePicker and List. It lives in{' '}
+          <InlineCode>@windmorph/react/primitives</InlineCode>, shown here for reference.
         </p>
         <CodeBlock code={RTL_SNIPPET} html={rtlHtml} lang="tsx" title="rtl.tsx" />
       </section>

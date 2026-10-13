@@ -3,8 +3,7 @@ import { ReactionPickerMessage } from '../../examples/reaction-picker/reaction-p
 import { ReactionPickerPost } from '../../examples/reaction-picker/reaction-picker-post';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** Reaction picker page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function ReactionPickerBody() {
@@ -28,13 +27,15 @@ export async function ReactionPickerBody() {
           press against a tap, hover intent), the row&apos;s keyboard and focus, and sliding a
           finger along the row are easy to get wrong, so they live in one component. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
-          {code('@windmorph/react-pro')}.
+          <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          The reactions are yours: each option is {code('{ id, label, icon, color }')}, where{' '}
-          {code('icon')} is any node (an emoji or an SVG) and {code('color')} is the colour role the
-          button takes once that reaction is picked. For a single on/off action, use a toggle{' '}
-          {code('IconButton')} or {code('Button')} instead.
+          The reactions are yours: each option is{' '}
+          <InlineCode>{'{ id, label, icon, color }'}</InlineCode>, where{' '}
+          <InlineCode>icon</InlineCode> is any node (an emoji or an SVG) and{' '}
+          <InlineCode>color</InlineCode> is the colour role the button takes once that reaction is
+          picked. For a single on/off action, use a toggle <InlineCode>IconButton</InlineCode> or{' '}
+          <InlineCode>Button</InlineCode> instead.
         </p>
       </section>
 
@@ -62,15 +63,17 @@ export async function ReactionPickerBody() {
         <h2 className="text-headline-small text-on-surface">Behaviour</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Without a reaction, the button shows the default option ({code('defaultOption')}, or the
-            first) with its {code('outlineIcon')}, and a tap picks it. With one, it shows that
+            Without a reaction, the button shows the default option (
+            <InlineCode>defaultOption</InlineCode>, or the first) with its{' '}
+            <InlineCode>outlineIcon</InlineCode>, and a tap picks it. With one, it shows that
             reaction&apos;s icon and label in its colour, and a tap removes it.
           </li>
           <li>
-            {code('variant')}: {code('text')} (transparent, the default) or {code('tonal')} (on a
-            pill, as in a post&apos;s action row). {code('showIdleIcon={false}')} makes the button a
-            word (&quot;Like&quot;) until there&apos;s a reaction, as under a comment. Pair it with
-            a Reaction summary to show the reactions so far.
+            <InlineCode>variant</InlineCode>: <InlineCode>text</InlineCode> (transparent, the
+            default) or <InlineCode>tonal</InlineCode> (on a pill, as in a post&apos;s action row).{' '}
+            <InlineCode>{'showIdleIcon={false}'}</InlineCode> makes the button a word
+            (&quot;Like&quot;) until there&apos;s a reaction, as under a comment. Pair it with a
+            Reaction summary to show the reactions so far.
           </li>
           <li>
             The row opens on a 500ms long press, after the mouse rests on the button for 600ms (it
@@ -83,8 +86,10 @@ export async function ReactionPickerBody() {
             leaves the row open; a tap elsewhere closes it.
           </li>
           <li>
-            {code('value')} / {code('onChange')} (or {code('defaultValue')}) hold the reaction id or{' '}
-            {code('null')}; {code('isOpen')} / {code('onOpenChange')} control the row.
+            <InlineCode>value</InlineCode> / <InlineCode>onChange</InlineCode> (or{' '}
+            <InlineCode>defaultValue</InlineCode>) hold the reaction id or{' '}
+            <InlineCode>null</InlineCode>; <InlineCode>isOpen</InlineCode> /{' '}
+            <InlineCode>onOpenChange</InlineCode> control the row.
           </li>
         </ul>
       </section>
@@ -93,18 +98,18 @@ export async function ReactionPickerBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The button is a toggle ({code('aria-pressed')}) named by the reaction it shows, and
-            describes how to open the row ({code('labels.openPicker')}).
+            The button is a toggle (<InlineCode>aria-pressed</InlineCode>) named by the reaction it
+            shows, and describes how to open the row (<InlineCode>labels.openPicker</InlineCode>).
           </li>
           <li>
             Enter or Space toggles the reaction. ArrowUp or Alt+ArrowDown opens the row on the
             picked reaction, or the first.
           </li>
           <li>
-            The row is a {code('toolbar')} ({code('labels.reactions')}) of buttons named by each
-            reaction. Arrow keys move between them (reversed right-to-left), Enter or Space picks,
-            and Escape closes and returns focus to the button. Tab leaves the row as if it sat right
-            after the button.
+            The row is a <InlineCode>toolbar</InlineCode> (<InlineCode>labels.reactions</InlineCode>
+            ) of buttons named by each reaction. Arrow keys move between them (reversed
+            right-to-left), Enter or Space picks, and Escape closes and returns focus to the button.
+            Tab leaves the row as if it sat right after the button.
           </li>
           <li>
             Every target is at least 48px. In forced-colours mode the row keeps a border and a
@@ -117,20 +122,23 @@ export async function ReactionPickerBody() {
         <h2 className="text-headline-small text-on-surface">Theming &amp; tokens</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The button is transparent with {code('on-surface-variant')} content, and{' '}
-            {code('--wm-reaction-color')} (the option&apos;s colour role) once picked. Prefer{' '}
-            {code('primary')}, {code('error')}, {code('warning')} or {code('tertiary')}: they keep
-            4.5:1 on the surface in every theme, mode and contrast level.
+            The button is transparent with <InlineCode>on-surface-variant</InlineCode> content, and{' '}
+            <InlineCode>--wm-reaction-color</InlineCode> (the option&apos;s colour role) once
+            picked. Prefer <InlineCode>primary</InlineCode>, <InlineCode>error</InlineCode>,{' '}
+            <InlineCode>warning</InlineCode> or <InlineCode>tertiary</InlineCode>: they keep 4.5:1
+            on the surface in every theme, mode and contrast level.
           </li>
           <li>
-            The row is a {code('surface-container-high')} pill at elevation 3. It scales and fades
-            in from its anchor on the default spatial spring, and the option under the pointer grows
-            1.5× on the fast spatial spring. Under reduced motion both happen at once.
+            The row is a <InlineCode>surface-container-high</InlineCode> pill at elevation 3. It
+            scales and fades in from its anchor on the default spatial spring, and the option under
+            the pointer grows 1.5× on the fast spatial spring. Under reduced motion both happen at
+            once.
           </li>
           <li>
-            {code('classNames')} styles the {code('button')}, {code('icon')}, {code('label')},{' '}
-            {code('row')} and each {code('option')}; {code('reactionPickerStyles')} can be extended
-            with new variants.
+            <InlineCode>classNames</InlineCode> styles the <InlineCode>button</InlineCode>,{' '}
+            <InlineCode>icon</InlineCode>, <InlineCode>label</InlineCode>,{' '}
+            <InlineCode>row</InlineCode> and each <InlineCode>option</InlineCode>;{' '}
+            <InlineCode>reactionPickerStyles</InlineCode> can be extended with new variants.
           </li>
         </ul>
       </section>

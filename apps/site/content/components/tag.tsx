@@ -5,6 +5,7 @@ import { TagTokens } from '../../examples/tag/tag-tokens';
 import { TagVariants } from '../../examples/tag/tag-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Tag page body: when to use it (and not a chip or a badge), examples, a11y and tokens. */
 export async function TagBody() {
@@ -29,8 +30,8 @@ export async function TagBody() {
           A tag is a small, static label about the thing beside it: a status (Sold, Open now), a
           category (Full-time) or a quality (Featured). It never does anything when pressed. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>: it comes from{' '}
-          <code className="text-on-surface">@windmorph/react-pro</code> and is built from M3&apos;s
-          colour roles, type scale and shape scale, with its own component tokens.
+          <InlineCode>@windmorph/react-pro</InlineCode> and is built from M3&apos;s colour roles,
+          type scale and shape scale, with its own component tokens.
         </p>
       </section>
 
@@ -94,12 +95,12 @@ export async function TagBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>A tag is plain text: it has no role and is never focusable.</li>
           <li>
-            <code className="text-on-surface">fullLabel</code> replaces a short label for screen
-            readers (&quot;M3E&quot; reads &quot;Expressive&quot;), and shows on hover.
+            <InlineCode>fullLabel</InlineCode> replaces a short label for screen readers
+            (&quot;M3E&quot; reads &quot;Expressive&quot;), and shows on hover.
           </li>
           <li>
-            <code className="text-on-surface">TagGroup</code> is a list, so screen readers say how
-            many tags there are; give it an <code className="text-on-surface">aria-label</code>.
+            <InlineCode>TagGroup</InlineCode> is a list, so screen readers say how many tags there
+            are; give it an <InlineCode>aria-label</InlineCode>.
           </li>
           <li>Dots and icons are decorative. In forced-colours mode every tag keeps a border.</li>
         </ul>
@@ -113,19 +114,15 @@ export async function TagBody() {
             every label at 4.5:1 in every theme, mode and contrast level.
           </li>
           <li>
-            Set <code className="text-on-surface">--wm-tag-container</code>,{' '}
-            <code className="text-on-surface">-content</code>,{' '}
-            <code className="text-on-surface">-outline</code>,{' '}
-            <code className="text-on-surface">-dot</code>,{' '}
-            <code className="text-on-surface">-height</code>,{' '}
-            <code className="text-on-surface">-padding-inline</code>,{' '}
-            <code className="text-on-surface">-gap</code>,{' '}
-            <code className="text-on-surface">-icon-size</code> or{' '}
-            <code className="text-on-surface">-corner</code> on a tag or an ancestor.
+            Set <InlineCode>--wm-tag-container</InlineCode>, <InlineCode>-content</InlineCode>,{' '}
+            <InlineCode>-outline</InlineCode>, <InlineCode>-dot</InlineCode>,{' '}
+            <InlineCode>-height</InlineCode>, <InlineCode>-padding-inline</InlineCode>,{' '}
+            <InlineCode>-gap</InlineCode>, <InlineCode>-icon-size</InlineCode> or{' '}
+            <InlineCode>-corner</InlineCode> on a tag or an ancestor.
           </li>
           <li>
-            <code className="text-on-surface">tagTokens</code> exports every size and colour role,
-            for building on the tag in code.
+            <InlineCode>tagTokens</InlineCode> exports every size and colour role, for building on
+            the tag in code.
           </li>
         </ul>
       </section>

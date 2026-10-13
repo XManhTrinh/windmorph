@@ -4,6 +4,7 @@ import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
 import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody() {
@@ -26,27 +27,23 @@ export async function FabMenuBody() {
           A FAB menu is a FAB that opens two to six closely related actions above it. Use it when
           one surface needs a few primary actions rather than a single one, but not beside a
           floating toolbar or navigation rail. The button shrinks into a 56px close button while the
-          items (<code className="text-on-surface">FabMenuItem</code>, given directly as children)
-          appear one after another. Every item has a label; keep its icon unless you really must
-          drop it, since icons tell the items apart.
+          items (<InlineCode>FabMenuItem</InlineCode>, given directly as children) appear one after
+          another. Every item has a label; keep its icon unless you really must drop it, since icons
+          tell the items apart.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Anchor the menu to the window&apos;s trailing edge with{' '}
-          <code className="text-on-surface">className</code>: 16px margins (
-          <code className="text-on-surface">fixed end-4 bottom-4</code>), rising to 24px in large
-          and extra-large windows (
-          <code className="text-on-surface">large:end-6 large:bottom-6</code>
+          Anchor the menu to the window&apos;s trailing edge with <InlineCode>className</InlineCode>
+          : 16px margins (<InlineCode>fixed end-4 bottom-4</InlineCode>), rising to 24px in large
+          and extra-large windows (<InlineCode>large:end-6 large:bottom-6</InlineCode>
           ). The items open upwards and line up on the trailing edge, which mirrors in RTL. On short
           windows they scroll behind the close button, which stays reachable.
         </p>
         <p className="text-body-large text-on-surface-variant">
           On the web and in large windows, M3 has the FAB open a standard menu instead: set{' '}
-          <code className="text-on-surface">presentation=&quot;menu&quot;</code>, and choose it per
-          window size class if you like. Items run <code className="text-on-surface">onAction</code>{' '}
-          (or follow <code className="text-on-surface">href</code>) in either presentation.{' '}
-          <code className="text-on-surface">visible</code> and{' '}
-          <code className="text-on-surface">appear</code> work as on{' '}
-          <code className="text-on-surface">Fab</code>.
+          <InlineCode>presentation=&quot;menu&quot;</InlineCode>, and choose it per window size
+          class if you like. Items run <InlineCode>onAction</InlineCode> (or follow{' '}
+          <InlineCode>href</InlineCode>) in either presentation. <InlineCode>visible</InlineCode>{' '}
+          and <InlineCode>appear</InlineCode> work as on <InlineCode>Fab</InlineCode>.
         </p>
       </section>
 
@@ -82,10 +79,9 @@ export async function FabMenuBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The button&apos;s name (<code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code>) is required; it reports{' '}
-            <code className="text-on-surface">aria-expanded</code> and{' '}
-            <code className="text-on-surface">aria-controls</code>.
+            The button&apos;s name (<InlineCode>aria-label</InlineCode> or{' '}
+            <InlineCode>aria-labelledby</InlineCode>) is required; it reports{' '}
+            <InlineCode>aria-expanded</InlineCode> and <InlineCode>aria-controls</InlineCode>.
           </li>
           <li>
             DOM order is the button then the items (shown above it), so Tab moves from the button to
@@ -94,14 +90,14 @@ export async function FabMenuBody() {
           </li>
           <li>
             Escape, an outside press, or choosing an item closes the menu. Hidden items are{' '}
-            <code className="text-on-surface">inert</code>, so they are skipped while closed.
+            <InlineCode>inert</InlineCode>, so they are skipped while closed.
           </li>
           <li>Each item is named by its label; its icon is hidden from assistive tech.</li>
           <li>
-            With <code className="text-on-surface">presentation=&quot;menu&quot;</code> it follows
-            the menu pattern: the button has <code className="text-on-surface">aria-haspopup</code>,
-            the items are <code className="text-on-surface">menuitem</code>s, and arrows, typeahead
-            and Escape work as in any <code className="text-on-surface">Menu</code>.
+            With <InlineCode>presentation=&quot;menu&quot;</InlineCode> it follows the menu pattern:
+            the button has <InlineCode>aria-haspopup</InlineCode>, the items are{' '}
+            <InlineCode>menuitem</InlineCode>s, and arrows, typeahead and Escape work as in any{' '}
+            <InlineCode>Menu</InlineCode>.
           </li>
         </ul>
       </section>
@@ -113,13 +109,12 @@ export async function FabMenuBody() {
           <li>
             The toggle button keeps its FAB&apos;s layout box (56 / 80 / 96px) in a library-owned
             anchor; open, it becomes the 56px close button with 28px corners and a 20px icon. Size,
-            corners, container colour (<code className="text-on-surface">*-container</code> → the
-            vibrant role) and icon all follow one fast spatial spring. Elevation is level 3.
+            corners, container colour (<InlineCode>*-container</InlineCode> → the vibrant role) and
+            icon all follow one fast spatial spring. Elevation is level 3.
           </li>
           <li>
             Items are 56px pills (min 56px wide, 24px padding, 8px icon gap, 24px icon,{' '}
-            <code className="text-on-surface">title-medium</code>) at level 3, 4px apart and 8px
-            above the button.
+            <InlineCode>title-medium</InlineCode>) at level 3, 4px apart and 8px above the button.
           </li>
           <li>
             Opening staggers the visible item count on the slow effects spring (the item nearest the
@@ -127,7 +122,7 @@ export async function FabMenuBody() {
             on fast effects. Closing hides the top item first.
           </li>
           <li>
-            Colour sets are <code className="text-on-surface">primary | secondary | tertiary</code>{' '}
+            Colour sets are <InlineCode>primary | secondary | tertiary</InlineCode>{' '}
             (m3.material.io&apos;s sets; Compose&apos;s default is primary).
           </li>
           <li>A development warning flags a menu with fewer than two or more than six items.</li>

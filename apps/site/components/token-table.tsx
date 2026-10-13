@@ -1,4 +1,5 @@
 import type { ComponentTokenSet } from '@windmorph/react';
+import { InlineCode } from './inline-code';
 
 /**
  * A component's tokens, generated from the same set that writes its CSS variables, so the
@@ -36,7 +37,7 @@ export function TokenTable({ set, caption }: { set: ComponentTokenSet; caption: 
           {Object.entries(set.tokens).map(([token, { value, description }]) => (
             <tr key={token} className="border-t border-outline-variant align-top">
               <th scope="row" className="px-4 py-3 text-start font-plain">
-                <code className="text-on-surface">{`--${set.name}-${token}`}</code>
+                <InlineCode>{`--${set.name}-${token}`}</InlineCode>
               </th>
               <td className="px-4 py-3">
                 <code className="break-all text-on-surface-variant">{value}</code>

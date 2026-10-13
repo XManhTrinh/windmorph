@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '@windmorph/react-pro';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/customisation');
 
@@ -68,36 +69,35 @@ export default async function CustomisationPage() {
         <ol className="list-decimal ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
-            <code className="text-on-surface">--md-sys-*</code> globally on{' '}
-            <code className="text-on-surface">:root</code> or per theme on{' '}
-            <code className="text-on-surface">[data-theme=&quot;ocean&quot;]</code>.
+            <InlineCode>--md-sys-*</InlineCode> globally on <InlineCode>:root</InlineCode> or per
+            theme on <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode>.
           </li>
           <li>
             <span className="text-on-surface">Brand theme</span> — generate one with{' '}
-            <code className="text-on-surface">createTheme()</code> or the CLI.
+            <InlineCode>createTheme()</InlineCode> or the CLI.
           </li>
           <li>
             <span className="text-on-surface">Restrict the picker</span> —{' '}
-            <code className="text-on-surface">
+            <InlineCode>
               &lt;ThemeProvider themes={'{'}['baseline', 'ocean', 'acme']{'}'}&gt;
-            </code>
+            </InlineCode>
             .
           </li>
           <li>
             <span className="text-on-surface">Scope a subtree</span> —{' '}
-            <code className="text-on-surface">
+            <InlineCode>
               &lt;ThemeScope theme=&quot;forest&quot; mode=&quot;dark&quot;&gt;
-            </code>
+            </InlineCode>
             .
           </li>
           <li>
             <span className="text-on-surface">Component level</span> —{' '}
-            <code className="text-on-surface">className</code> /{' '}
-            <code className="text-on-surface">
+            <InlineCode>className</InlineCode> /{' '}
+            <InlineCode>
               classNames={'{'}
               {'{'} root, label, icon {'}'}
               {'}'}
-            </code>
+            </InlineCode>
             , or extend the exported variant definitions.
           </li>
         </ol>
@@ -113,12 +113,11 @@ export default async function CustomisationPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">className &amp; classNames</h2>
         <p className="text-body-large text-on-surface-variant">
-          Every component takes <code className="text-on-surface">className</code> for the root and{' '}
-          <code className="text-on-surface">classNames</code> for its named slots (for example a
-          button’s <code className="text-on-surface">root</code>,{' '}
-          <code className="text-on-surface">content</code>,{' '}
-          <code className="text-on-surface">label</code> and{' '}
-          <code className="text-on-surface">icon</code>). The consumer’s class always wins.
+          Every component takes <InlineCode>className</InlineCode> for the root and{' '}
+          <InlineCode>classNames</InlineCode> for its named slots (for example a button’s{' '}
+          <InlineCode>root</InlineCode>, <InlineCode>content</InlineCode>,{' '}
+          <InlineCode>label</InlineCode> and <InlineCode>icon</InlineCode>). The consumer’s class
+          always wins.
         </p>
         <CodeBlock code={CLASSNAME_SNIPPET} html={classNameHtml} lang="tsx" title="overrides.tsx" />
       </section>
@@ -126,17 +125,13 @@ export default async function CustomisationPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Extending variants</h2>
         <p className="text-body-large text-on-surface-variant">
-          Each component exports its variant recipe as a{' '}
-          <code className="text-on-surface">*Styles</code> definition —{' '}
-          <code className="text-on-surface">buttonStyles</code>,{' '}
-          <code className="text-on-surface">iconButtonStyles</code>,{' '}
-          <code className="text-on-surface">cardStyles</code>,{' '}
-          <code className="text-on-surface">chipStyles</code>,{' '}
-          <code className="text-on-surface">textFieldStyles</code>,{' '}
-          <code className="text-on-surface">menuStyles</code> and many more. Compose a new variant
-          on top of one with <code className="text-on-surface">tv</code> (a pre-configured{' '}
-          <code className="text-on-surface">tailwind-variants</code> re-export) and{' '}
-          <code className="text-on-surface">VariantProps</code>.
+          Each component exports its variant recipe as a <InlineCode>*Styles</InlineCode> definition
+          — <InlineCode>buttonStyles</InlineCode>, <InlineCode>iconButtonStyles</InlineCode>,{' '}
+          <InlineCode>cardStyles</InlineCode>, <InlineCode>chipStyles</InlineCode>,{' '}
+          <InlineCode>textFieldStyles</InlineCode>, <InlineCode>menuStyles</InlineCode> and many
+          more. Compose a new variant on top of one with <InlineCode>tv</InlineCode> (a
+          pre-configured <InlineCode>tailwind-variants</InlineCode> re-export) and{' '}
+          <InlineCode>VariantProps</InlineCode>.
         </p>
         <CodeBlock code={TV_SNIPPET} html={tvHtml} lang="tsx" title="brand-button.ts" />
       </section>
@@ -144,13 +139,12 @@ export default async function CustomisationPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Why the consumer wins: cn()</h2>
         <p className="text-body-large text-on-surface-variant">
-          <code className="text-on-surface">cn()</code> is{' '}
-          <code className="text-on-surface">tailwind-merge</code> extended with the library’s theme
-          keys — colour roles, type roles, <code className="text-on-surface">corner-*</code> radii,{' '}
-          <code className="text-on-surface">elevation-*</code> shadows and{' '}
-          <code className="text-on-surface">m3-*</code> easings. Later classes override earlier
-          conflicting ones, which is why a <code className="text-on-surface">className</code> you
-          pass always beats the library’s own class for that property.
+          <InlineCode>cn()</InlineCode> is <InlineCode>tailwind-merge</InlineCode> extended with the
+          library’s theme keys — colour roles, type roles, <InlineCode>corner-*</InlineCode> radii,{' '}
+          <InlineCode>elevation-*</InlineCode> shadows and <InlineCode>m3-*</InlineCode> easings.
+          Later classes override earlier conflicting ones, which is why a{' '}
+          <InlineCode>className</InlineCode> you pass always beats the library’s own class for that
+          property.
         </p>
         <CodeBlock code={CN_SNIPPET} html={cnHtml} lang="ts" title="cn" />
       </section>
@@ -158,51 +152,44 @@ export default async function CustomisationPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Layout safety</h2>
         <p className="text-body-large text-on-surface-variant">
-          A component’s internals never depend on the root’s{' '}
-          <code className="text-on-surface">position</code>,{' '}
-          <code className="text-on-surface">overflow</code>,{' '}
-          <code className="text-on-surface">display</code> or{' '}
-          <code className="text-on-surface">transform</code>, so you can put any layout class on any
-          component and it looks and behaves the same.
+          A component’s internals never depend on the root’s <InlineCode>position</InlineCode>,{' '}
+          <InlineCode>overflow</InlineCode>, <InlineCode>display</InlineCode> or{' '}
+          <InlineCode>transform</InlineCode>, so you can put any layout class on any component and
+          it looks and behaves the same.
         </p>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
-            <code className="text-on-surface">className</code> and{' '}
-            <code className="text-on-surface">style</code> always land on the outermost element;{' '}
-            <code className="text-on-surface">style</code> is merged, never replaced.
+            <InlineCode>className</InlineCode> and <InlineCode>style</InlineCode> always land on the
+            outermost element; <InlineCode>style</InlineCode> is merged, never replaced.
           </li>
           <li>
             State layer and ripple are painted as background layers, so they follow{' '}
-            <code className="text-on-surface">border-radius</code> and need neither{' '}
-            <code className="text-on-surface">relative</code> nor{' '}
-            <code className="text-on-surface">overflow-hidden</code>.
+            <InlineCode>border-radius</InlineCode> and need neither{' '}
+            <InlineCode>relative</InlineCode> nor <InlineCode>overflow-hidden</InlineCode>.
           </li>
           <li>
-            Motion never animates the root’s <code className="text-on-surface">transform</code>, and
-            containers never set <code className="text-on-surface">transform</code>/
-            <code className="text-on-surface">filter</code>/
-            <code className="text-on-surface">contain</code>/
-            <code className="text-on-surface">will-change</code> on their root, so{' '}
-            <code className="text-on-surface">fixed</code> children are never trapped.
+            Motion never animates the root’s <InlineCode>transform</InlineCode>, and containers
+            never set <InlineCode>transform</InlineCode>/<InlineCode>filter</InlineCode>/
+            <InlineCode>contain</InlineCode>/<InlineCode>will-change</InlineCode> on their root, so{' '}
+            <InlineCode>fixed</InlineCode> children are never trapped.
           </li>
           <li>
-            The focus ring is a CSS <code className="text-on-surface">outline</code>, so clipping or{' '}
-            <code className="text-on-surface">fixed</code> ancestors can’t hide it.
+            The focus ring is a CSS <InlineCode>outline</InlineCode>, so clipping or{' '}
+            <InlineCode>fixed</InlineCode> ancestors can’t hide it.
           </li>
         </ul>
         <CodeBlock code={LAYOUT_SNIPPET} html={layoutHtml} lang="tsx" title="layout.tsx" />
         <p className="text-body-large text-on-surface-variant">
-          Three documented exceptions: overlays portal to{' '}
-          <code className="text-on-surface">body</code> on a z-index token scale (
-          <code className="text-on-surface">--md-sys-z-*</code>, which you can override);
-          scroll-driven app bars and toolbars manage their own expansion (
-          <code className="text-on-surface">useToolbarScrollExpansion</code>,{' '}
-          <code className="text-on-surface">TopAppBarScrollBehavior</code>); and a FAB or toolbar
-          that you hide (<code className="text-on-surface">visible={'{false}'}</code>) scales or
-          slides with a <code className="text-on-surface">transform</code> on its root while hidden.
-          That uses the <code className="text-on-surface">transform</code> property only, so
-          Tailwind&apos;s <code className="text-on-surface">translate-*</code> and{' '}
-          <code className="text-on-surface">scale-*</code> classes still apply.
+          Three documented exceptions: overlays portal to <InlineCode>body</InlineCode> on a z-index
+          token scale (<InlineCode>--md-sys-z-*</InlineCode>, which you can override); scroll-driven
+          app bars and toolbars manage their own expansion (
+          <InlineCode>useToolbarScrollExpansion</InlineCode>,{' '}
+          <InlineCode>TopAppBarScrollBehavior</InlineCode>); and a FAB or toolbar that you hide (
+          <InlineCode>visible={'{false}'}</InlineCode>) scales or slides with a{' '}
+          <InlineCode>transform</InlineCode> on its root while hidden. That uses the{' '}
+          <InlineCode>transform</InlineCode> property only, so Tailwind&apos;s{' '}
+          <InlineCode>translate-*</InlineCode> and <InlineCode>scale-*</InlineCode> classes still
+          apply.
         </p>
       </section>
     </article>

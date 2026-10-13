@@ -10,6 +10,7 @@ import {
 import { Playground } from '../../../../components/playground/playground';
 import { SpecsCard } from '../../../../components/specs-card';
 import { readComponentPropsSafe } from '../../../../lib/component-props';
+import { InlineCode } from '../../../../components/inline-code';
 
 interface PageParams {
   params: Promise<{ slug: string }>;
@@ -109,7 +110,7 @@ export default async function ComponentPage({ params }: PageParams) {
                   {slots.map((slot, index) => (
                     <span key={slot}>
                       {index > 0 && ', '}
-                      <code className="text-on-surface">{slot}</code>
+                      <InlineCode>{slot}</InlineCode>
                     </span>
                   ))}
                 </p>

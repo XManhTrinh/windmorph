@@ -14,3 +14,24 @@
     opacity: 1;
   }
 }
+
+/* Code inside running text: a quiet chip (monospace, `surface-container-high`, 4px corners).
+   `InlineCode` sets the class; plain prose `<code>` outside a code block gets the same look.
+   In the base layer and under `:where()`, so a component's own code styles (CodeBlock,
+   PropsTable) and utility classes always win. Long tokens wrap at their hyphens (a normal
+   break opportunity), and only as a last resort mid-word, so nothing overflows a phone. */
+@layer base {
+  :where(.inline-code),
+  :where(main code:not(pre code)) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-container-high);
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    padding-inline: 0.3em;
+    padding-block: 0.05em;
+    overflow-wrap: break-word;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+}

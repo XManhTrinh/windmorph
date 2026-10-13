@@ -5,6 +5,7 @@ import { MenuSelection } from '../../examples/menu/menu-selection';
 import { MenuSubmenu } from '../../examples/menu/menu-submenu';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody() {
@@ -28,29 +29,25 @@ export async function MenuBody() {
         <p className="text-body-large text-on-surface-variant">
           A menu shows a temporary list of choices anchored to the button that opened it. Use it for
           actions or options that don&apos;t need to be visible all the time; for a persistent list
-          of items use a <code className="text-on-surface">List</code>, and for choosing one value
-          in a form use a selection control.
+          of items use a <InlineCode>List</InlineCode>, and for choosing one value in a form use a
+          selection control.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          A <code className="text-on-surface">Menu</code> must sit inside a{' '}
-          <code className="text-on-surface">MenuTrigger</code> (trigger first, menu second), or a{' '}
-          <code className="text-on-surface">ContextMenuTrigger</code> for a context menu. Items are{' '}
-          <code className="text-on-surface">MenuItem</code>s, optionally gathered into{' '}
-          <code className="text-on-surface">MenuGroup</code>s; both are identified by a React{' '}
-          <code className="text-on-surface">key</code>. A{' '}
-          <code className="text-on-surface">SubmenuTrigger</code> gives an item a submenu. The{' '}
-          <code className="text-on-surface">variant</code> is{' '}
-          <code className="text-on-surface">standard</code> or{' '}
-          <code className="text-on-surface">vibrant</code>.
+          A <InlineCode>Menu</InlineCode> must sit inside a <InlineCode>MenuTrigger</InlineCode>{' '}
+          (trigger first, menu second), or a <InlineCode>ContextMenuTrigger</InlineCode> for a
+          context menu. Items are <InlineCode>MenuItem</InlineCode>s, optionally gathered into{' '}
+          <InlineCode>MenuGroup</InlineCode>s; both are identified by a React{' '}
+          <InlineCode>key</InlineCode>. A <InlineCode>SubmenuTrigger</InlineCode> gives an item a
+          submenu. The <InlineCode>variant</InlineCode> is <InlineCode>standard</InlineCode> or{' '}
+          <InlineCode>vibrant</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Groups are set apart by dividers on one surface (
-          <code className="text-on-surface">layout=&quot;divider&quot;</code>, the default, as M3
-          recommends on the web) or by 2px gaps between separate surfaces (
-          <code className="text-on-surface">layout=&quot;gap&quot;</code>). M3 doesn&apos;t use gaps
-          in menus that scroll, so a gap menu that has to scroll switches to dividers.{' '}
-          <code className="text-on-surface">density</code> (0 to −3) tightens items for dense
-          desktop layouts.
+          <InlineCode>layout=&quot;divider&quot;</InlineCode>, the default, as M3 recommends on the
+          web) or by 2px gaps between separate surfaces (
+          <InlineCode>layout=&quot;gap&quot;</InlineCode>). M3 doesn&apos;t use gaps in menus that
+          scroll, so a gap menu that has to scroll switches to dividers.{' '}
+          <InlineCode>density</InlineCode> (0 to −3) tightens items for dense desktop layouts.
         </p>
       </section>
 
@@ -99,26 +96,24 @@ export async function MenuBody() {
             letters jumps to a matching label (typeahead).
           </li>
           <li>
-            Enter or Space fires <code className="text-on-surface">onAction</code> with the
-            item&apos;s key; in a selectable menu it toggles selection, and a multi-select menu
-            stays open until it&apos;s dismissed. Escape or a press outside closes the menu and
-            returns focus to the trigger, which shows a pressed state while the menu is open.
+            Enter or Space fires <InlineCode>onAction</InlineCode> with the item&apos;s key; in a
+            selectable menu it toggles selection, and a multi-select menu stays open until it&apos;s
+            dismissed. Escape or a press outside closes the menu and returns focus to the trigger,
+            which shows a pressed state while the menu is open.
           </li>
           <li>
             → opens a submenu and focuses its first item, ← closes it (mirrored in right-to-left).
             Shift + F10 or the context-menu key opens a context menu.
           </li>
           <li>
-            Items in <code className="text-on-surface">disabledKeys</code> can take focus but do
-            nothing, as M3 asks; dividers can&apos;t take focus. A{' '}
-            <code className="text-on-surface">description</code> becomes the item&apos;s accessible
-            description and a <code className="text-on-surface">shortcut</code> renders as a{' '}
-            <code className="text-on-surface">kbd</code>.
+            Items in <InlineCode>disabledKeys</InlineCode> can take focus but do nothing, as M3
+            asks; dividers can&apos;t take focus. A <InlineCode>description</InlineCode> becomes the
+            item&apos;s accessible description and a <InlineCode>shortcut</InlineCode> renders as a{' '}
+            <InlineCode>kbd</InlineCode>.
           </li>
           <li>
-            Give an icon-only trigger an <code className="text-on-surface">aria-label</code>; a
-            group with no visible title should take an{' '}
-            <code className="text-on-surface">aria-label</code>.
+            Give an icon-only trigger an <InlineCode>aria-label</InlineCode>; a group with no
+            visible title should take an <InlineCode>aria-label</InlineCode>.
           </li>
         </ul>
       </section>
@@ -127,11 +122,10 @@ export async function MenuBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The Expressive grouped menu (Compose&apos;s{' '}
-            <code className="text-on-surface">Menu.kt</code>) is the{' '}
-            <code className="text-on-surface">gap</code> layout: each group is its own surface at
-            elevation 2, 2px apart; loose items form implicit groups. The default{' '}
-            <code className="text-on-surface">divider</code> layout follows the M3 spec for the web.
+            The Expressive grouped menu (Compose&apos;s <InlineCode>Menu.kt</InlineCode>) is the{' '}
+            <InlineCode>gap</InlineCode> layout: each group is its own surface at elevation 2, 2px
+            apart; loose items form implicit groups. The default <InlineCode>divider</InlineCode>{' '}
+            layout follows the M3 spec for the web.
           </li>
           <li>
             Submenus aren&apos;t in Compose. While one is open, the focused menu takes 24px corners
@@ -143,28 +137,24 @@ export async function MenuBody() {
             scale, which the M3 motion spec avoids.
           </li>
           <li>
-            <code className="text-on-surface">standard</code> uses{' '}
-            <code className="text-on-surface">surface-container-low</code> and selects with{' '}
-            <code className="text-on-surface">tertiary-container</code>;{' '}
-            <code className="text-on-surface">vibrant</code> is{' '}
-            <code className="text-on-surface">tertiary-container</code> with icons turning{' '}
-            <code className="text-on-surface">tertiary</code> on interaction and selects with{' '}
-            <code className="text-on-surface">tertiary</code>.
+            <InlineCode>standard</InlineCode> uses <InlineCode>surface-container-low</InlineCode>{' '}
+            and selects with <InlineCode>tertiary-container</InlineCode>;{' '}
+            <InlineCode>vibrant</InlineCode> is <InlineCode>tertiary-container</InlineCode> with
+            icons turning <InlineCode>tertiary</InlineCode> on interaction and selects with{' '}
+            <InlineCode>tertiary</InlineCode>.
           </li>
           <li>
             In a selectable menu an item with no leading icon grows a check in (grid{' '}
-            <code className="text-on-surface">0fr → 1fr</code>) when selected, as in Compose.
+            <InlineCode>0fr → 1fr</InlineCode>) when selected, as in Compose.
           </li>
           <li>
-            <code className="text-on-surface">placement</code> defaults to{' '}
-            <code className="text-on-surface">bottom start</code> with no offset; because React Aria
-            resolves start / end from its locale, the menu converts them to physical sides from the
-            trigger&apos;s computed direction.
+            <InlineCode>placement</InlineCode> defaults to <InlineCode>bottom start</InlineCode>{' '}
+            with no offset; because React Aria resolves start / end from its locale, the menu
+            converts them to physical sides from the trigger&apos;s computed direction.
           </li>
           <li>
-            A focus fix cancels the trigger&apos;s follow-up{' '}
-            <code className="text-on-surface">mousedown</code> so focus stays inside the menu after
-            a mouse open.
+            A focus fix cancels the trigger&apos;s follow-up <InlineCode>mousedown</InlineCode> so
+            focus stays inside the menu after a mouse open.
           </li>
         </ul>
       </section>

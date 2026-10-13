@@ -1,4 +1,5 @@
 import type { ComponentSpecs } from '../content/components/registry';
+import { InlineCode } from './inline-code';
 
 /**
  * The M3 Expressive specs summary card: sizes / shape / variants / elevation, each derived
@@ -22,7 +23,7 @@ export function SpecsCard({ specs }: { specs: ComponentSpecs }) {
           <div key={label} className="flex flex-col gap-1 bg-surface p-4">
             <dt className="text-label-medium text-on-surface-variant">{label}</dt>
             <dd className="text-body-medium text-on-surface">
-              <code>{value}</code>
+              <InlineCode>{value}</InlineCode>
             </dd>
           </div>
         ))}

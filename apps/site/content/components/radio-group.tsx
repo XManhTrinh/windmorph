@@ -4,6 +4,7 @@ import { RadioGroupHorizontal } from '../../examples/radio-group/radio-group-hor
 import { RadioGroupStates } from '../../examples/radio-group/radio-group-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** RadioGroup + Radio page body. */
 export async function RadioGroupBody() {
@@ -24,15 +25,14 @@ export async function RadioGroupBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Radio buttons let people pick exactly one option from a set. Use them when all the options
-          should be visible at once; for many options a{' '}
-          <code className="text-on-surface">Select</code> is tidier, and for independent on/off
-          choices use <code className="text-on-surface">Checkbox</code>.
+          should be visible at once; for many options a <InlineCode>Select</InlineCode> is tidier,
+          and for independent on/off choices use <InlineCode>Checkbox</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Always wrap <code className="text-on-surface">Radio</code> options in a{' '}
-          <code className="text-on-surface">RadioGroup</code> — the group owns the selection, the
-          label, arrow-key navigation and validation. A{' '}
-          <code className="text-on-surface">Radio</code> rendered outside a group throws.
+          Always wrap <InlineCode>Radio</InlineCode> options in a{' '}
+          <InlineCode>RadioGroup</InlineCode> — the group owns the selection, the label, arrow-key
+          navigation and validation. A <InlineCode>Radio</InlineCode> rendered outside a group
+          throws.
         </p>
       </section>
 
@@ -63,11 +63,9 @@ export async function RadioGroupBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The group is a <code className="text-on-surface">radiogroup</code> (React Aria{' '}
-            <code className="text-on-surface">useRadioGroup</code>); give it a{' '}
-            <code className="text-on-surface">label</code> or an{' '}
-            <code className="text-on-surface">aria-label</code> /{' '}
-            <code className="text-on-surface">aria-labelledby</code>.
+            The group is a <InlineCode>radiogroup</InlineCode> (React Aria{' '}
+            <InlineCode>useRadioGroup</InlineCode>); give it a <InlineCode>label</InlineCode> or an{' '}
+            <InlineCode>aria-label</InlineCode> / <InlineCode>aria-labelledby</InlineCode>.
           </li>
           <li>
             Tab moves focus into the group; the arrow keys move the selection between options and
@@ -78,9 +76,8 @@ export async function RadioGroupBody() {
             message is shown below the options.
           </li>
           <li>
-            A <code className="text-on-surface">Radio</code> must live inside a{' '}
-            <code className="text-on-surface">RadioGroup</code> — using one on its own throws at
-            render.
+            A <InlineCode>Radio</InlineCode> must live inside a <InlineCode>RadioGroup</InlineCode>{' '}
+            — using one on its own throws at render.
           </li>
         </ul>
       </section>
@@ -93,18 +90,18 @@ export async function RadioGroupBody() {
             recolours on default effects.
           </li>
           <li>
-            The unselected ring darkens to <code className="text-on-surface">on-surface</code> on
-            hover, focus and press. Disabled is <code className="text-on-surface">on-surface</code>{' '}
-            at 38%, which also overrides the selected colour.
+            The unselected ring darkens to <InlineCode>on-surface</InlineCode> on hover, focus and
+            press. Disabled is <InlineCode>on-surface</InlineCode> at 38%, which also overrides the
+            selected colour.
           </li>
           <li>
             M3 radios have <strong>no error colour</strong> of their own; an invalid{' '}
-            <code className="text-on-surface">RadioGroup</code> shows its error text instead.
+            <InlineCode>RadioGroup</InlineCode> shows its error text instead.
           </li>
           <li>
-            The <code className="text-on-surface">RadioGroup</code> provides the state, arrow keys,
-            the label (<code className="text-on-surface">text-title-small</code>), supporting /
-            error text and <code className="text-on-surface">orientation</code>.
+            The <InlineCode>RadioGroup</InlineCode> provides the state, arrow keys, the label (
+            <InlineCode>text-title-small</InlineCode>), supporting / error text and{' '}
+            <InlineCode>orientation</InlineCode>.
           </li>
         </ul>
       </section>

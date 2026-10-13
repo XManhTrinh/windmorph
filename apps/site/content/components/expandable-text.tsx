@@ -3,8 +3,7 @@ import { ExpandableTextCollapsible } from '../../examples/expandable-text/expand
 import { ExpandableTextPost } from '../../examples/expandable-text/expandable-text-post';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** Expandable text page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function ExpandableTextBody() {
@@ -27,11 +26,11 @@ export async function ExpandableTextBody() {
           one line of CSS, but showing the button only when the text is actually cut needs
           measuring, again whenever the width changes, and expanding has to keep focus where the
           reader is. It is <strong className="text-on-surface">not an M3 component</strong>, so it
-          comes from {code('@windmorph/react-pro')}.
+          comes from <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
           To hide whole sections behind a heading, use a list or a disclosure instead; to open the
-          full text somewhere else, use a {code('Link')} to its page.
+          full text somewhere else, use a <InlineCode>Link</InlineCode> to its page.
         </p>
       </section>
 
@@ -59,8 +58,8 @@ export async function ExpandableTextBody() {
         <h2 className="text-headline-small text-on-surface">Behaviour</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            {code('lines')} sets how many lines show (5 by default). Line breaks in the text are
-            kept, and it can hold inline content such as links and mentions.
+            <InlineCode>lines</InlineCode> sets how many lines show (5 by default). Line breaks in
+            the text are kept, and it can hold inline content such as links and mentions.
           </li>
           <li>
             &quot;See more&quot; shows only when the text is cut, measured again when the width
@@ -69,11 +68,13 @@ export async function ExpandableTextBody() {
           </li>
           <li>
             Expanding is instant, with no height animation, so the text never moves under the
-            reader. There is no &quot;See less&quot; by default; {code('collapsible')} adds one.
+            reader. There is no &quot;See less&quot; by default;{' '}
+            <InlineCode>collapsible</InlineCode> adds one.
           </li>
           <li>
-            {code('expanded')} and {code('onExpandedChange')} control it, for example to keep a post
-            open when a virtualised feed mounts it again; {code('defaultExpanded')} starts it open.
+            <InlineCode>expanded</InlineCode> and <InlineCode>onExpandedChange</InlineCode> control
+            it, for example to keep a post open when a virtualised feed mounts it again;{' '}
+            <InlineCode>defaultExpanded</InlineCode> starts it open.
           </li>
           <li>
             Server-rendered pages show the text clamped from the first paint, with no layout shift.
@@ -86,8 +87,8 @@ export async function ExpandableTextBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            &quot;See more&quot; is a button with {code('aria-expanded')} and{' '}
-            {code('aria-controls')}, a 48px touch target and the M3 focus ring.
+            &quot;See more&quot; is a button with <InlineCode>aria-expanded</InlineCode> and{' '}
+            <InlineCode>aria-controls</InlineCode>, a 48px touch target and the M3 focus ring.
           </li>
           <li>
             Pressing it moves focus to the start of the text, so the reader carries on from there;
@@ -98,8 +99,9 @@ export async function ExpandableTextBody() {
             them.
           </li>
           <li>
-            The words come from {code('labels')} ({code('more')}, {code('less')}), so they can be
-            translated. Set {code('lang')} when the text is in another language than the page.
+            The words come from <InlineCode>labels</InlineCode> (<InlineCode>more</InlineCode>,{' '}
+            <InlineCode>less</InlineCode>), so they can be translated. Set{' '}
+            <InlineCode>lang</InlineCode> when the text is in another language than the page.
           </li>
           <li>In forced-colours mode the buttons use the system button colour, underlined.</li>
         </ul>
@@ -109,10 +111,11 @@ export async function ExpandableTextBody() {
         <h2 className="text-headline-small text-on-surface">Theming &amp; tokens</h2>
         <p className="text-body-large text-on-surface-variant">
           The text and the buttons take the surrounding type and colour: set them with{' '}
-          {code('className')} (a type role and a colour role, such as{' '}
-          {code('text-body-large text-on-surface')}). The buttons use the label roles&apos; weight
-          and underline on hover, focus and press. Style the parts with {code('classNames')} (
-          {code('root')}, {code('content')}, {code('button')}).
+          <InlineCode>className</InlineCode> (a type role and a colour role, such as{' '}
+          <InlineCode>text-body-large text-on-surface</InlineCode>). The buttons use the label
+          roles&apos; weight and underline on hover, focus and press. Style the parts with{' '}
+          <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+          <InlineCode>content</InlineCode>, <InlineCode>button</InlineCode>).
         </p>
       </section>
     </>

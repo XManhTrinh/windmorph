@@ -4,6 +4,7 @@ import { AlertFormError } from '../../examples/alert/alert-form-error';
 import { AlertTones } from '../../examples/alert/alert-tones';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Alert page body: when to use it, examples, accessibility and tokens. */
 export async function AlertBody() {
@@ -26,9 +27,8 @@ export async function AlertBody() {
           An alert is a message that stays until it&apos;s resolved: a form&apos;s error, a
           page&apos;s warning, a system notice. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>: M3 Expressive has no
-          persistent message, so it comes from{' '}
-          <code className="text-on-surface">@windmorph/react-pro</code>, built from M3&apos;s colour
-          roles, type and shape scales, Button and IconButton.
+          persistent message, so it comes from <InlineCode>@windmorph/react-pro</InlineCode>, built
+          from M3&apos;s colour roles, type and shape scales, Button and IconButton.
         </p>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>Brief feedback that goes away by itself: a Snackbar.</li>
@@ -36,7 +36,7 @@ export async function AlertBody() {
           <li>A region with no content, or that couldn&apos;t load: an Empty state.</li>
           <li>
             A decision that blocks the page (what Apple and Android call an alert): a Dialog with{' '}
-            <code className="text-on-surface">role=&quot;alertdialog&quot;</code>.
+            <InlineCode>role=&quot;alertdialog&quot;</InlineCode>.
           </li>
         </ul>
       </section>
@@ -73,16 +73,15 @@ export async function AlertBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Errors are <code className="text-on-surface">role=&quot;alert&quot;</code>, read at
-            once; other tones are <code className="text-on-surface">role=&quot;status&quot;</code>,
-            read politely.
+            Errors are <InlineCode>role=&quot;alert&quot;</InlineCode>, read at once; other tones
+            are <InlineCode>role=&quot;status&quot;</InlineCode>, read politely.
           </li>
           <li>
-            <code className="text-on-surface">focusOnMount</code> moves focus to an alert that
-            blocks a form, after a failed submit.
+            <InlineCode>focusOnMount</InlineCode> moves focus to an alert that blocks a form, after
+            a failed submit.
           </li>
           <li>
-            The close button is named by <code className="text-on-surface">labels.close</code>.
+            The close button is named by <InlineCode>labels.close</InlineCode>.
           </li>
           <li>The icon is decorative. In forced-colours mode every alert keeps a border.</li>
         </ul>
@@ -94,11 +93,9 @@ export async function AlertBody() {
           Tonal alerts use the tone&apos;s container and on-container roles; outlined ones the
           surface, with the border and icon in the tone&apos;s colour. A test keeps the text at
           4.5:1 in every theme, mode and contrast level. Set{' '}
-          <code className="text-on-surface">--wm-alert-container</code>,{' '}
-          <code className="text-on-surface">-content</code>,{' '}
-          <code className="text-on-surface">-outline</code>,{' '}
-          <code className="text-on-surface">-icon</code> or{' '}
-          <code className="text-on-surface">-corner</code> on an alert or an ancestor.
+          <InlineCode>--wm-alert-container</InlineCode>, <InlineCode>-content</InlineCode>,{' '}
+          <InlineCode>-outline</InlineCode>, <InlineCode>-icon</InlineCode> or{' '}
+          <InlineCode>-corner</InlineCode> on an alert or an ancestor.
         </p>
       </section>
     </>

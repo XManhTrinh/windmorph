@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '@windmorph/react-pro';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/getting-started');
 
@@ -121,8 +122,8 @@ export default async function GettingStartedPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Install</h2>
         <p className="text-body-large text-on-surface-variant">
-          Install the package together with <code className="text-on-surface">motion</code>, which
-          is a peer dependency used by the animated components.
+          Install the package together with <InlineCode>motion</InlineCode>, which is a peer
+          dependency used by the animated components.
         </p>
         <CodeBlock code={INSTALL_SNIPPET} html={installHtml} lang="bash" title="Terminal" />
       </section>
@@ -131,10 +132,9 @@ export default async function GettingStartedPage() {
         <h2 className="text-headline-small text-on-surface">Add the stylesheet</h2>
         <p className="text-body-large text-on-surface-variant">
           In a Tailwind v4 project (Vite or Next.js), import Tailwind and the library tokens into
-          your CSS entry. The <code className="text-on-surface">@source</code> line tells Tailwind
-          to scan the compiled library so it generates the utility classes the components use. The
-          library’s own stylesheet does the same with{' '}
-          <code className="text-on-surface">@source &apos;../&apos;</code>.
+          your CSS entry. The <InlineCode>@source</InlineCode> line tells Tailwind to scan the
+          compiled library so it generates the utility classes the components use. The library’s own
+          stylesheet does the same with <InlineCode>@source &apos;../&apos;</InlineCode>.
         </p>
         <CodeBlock code={CSS_SNIPPET} html={cssHtml} lang="css" title="globals.css" />
         <p className="text-body-large text-on-surface-variant">
@@ -151,9 +151,8 @@ export default async function GettingStartedPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Wrap your app</h2>
         <p className="text-body-large text-on-surface-variant">
-          Wrap the tree in <code className="text-on-surface">ThemeProvider</code>. It provides the
-          colour theme, mode, contrast level and motion scheme, and remembers the selection between
-          visits.
+          Wrap the tree in <InlineCode>ThemeProvider</InlineCode>. It provides the colour theme,
+          mode, contrast level and motion scheme, and remembers the selection between visits.
         </p>
         <CodeBlock code={PROVIDER_SNIPPET} html={providerHtml} lang="tsx" title="App.tsx" />
       </section>
@@ -168,10 +167,10 @@ export default async function GettingStartedPage() {
           >
             Roboto Flex
           </a>{' '}
-          with <code className="text-on-surface">next/font</code> (or Google Fonts) and map it to
-          the brand typeface variable. Without it, the system UI font is used. The{' '}
-          <code className="text-on-surface">--md-ref-typeface-plain</code> variable points at the
-          brand variable so body text picks it up too.
+          with <InlineCode>next/font</InlineCode> (or Google Fonts) and map it to the brand typeface
+          variable. Without it, the system UI font is used. The{' '}
+          <InlineCode>--md-ref-typeface-plain</InlineCode> variable points at the brand variable so
+          body text picks it up too.
         </p>
         <CodeBlock code={FONT_SNIPPET} html={fontHtml} lang="tsx" title="app/layout.tsx" />
       </section>
@@ -180,10 +179,9 @@ export default async function GettingStartedPage() {
         <h2 className="text-headline-small text-on-surface">Icons</h2>
         <p className="text-body-large text-on-surface-variant">
           Icons are plain Material Symbols SVGs passed as React elements to props like{' '}
-          <code className="text-on-surface">icon</code> or{' '}
-          <code className="text-on-surface">leadingIcon</code>. Using{' '}
-          <code className="text-on-surface">fill=&quot;currentColor&quot;</code> lets each icon
-          inherit the colour role of the component it sits in. There is no icon font.
+          <InlineCode>icon</InlineCode> or <InlineCode>leadingIcon</InlineCode>. Using{' '}
+          <InlineCode>fill=&quot;currentColor&quot;</InlineCode> lets each icon inherit the colour
+          role of the component it sits in. There is no icon font.
         </p>
         <CodeBlock code={ICON_SNIPPET} html={iconHtml} lang="tsx" title="icon.tsx" />
       </section>
@@ -191,17 +189,16 @@ export default async function GettingStartedPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Links &amp; routing</h2>
         <p className="text-body-large text-on-surface-variant">
-          Links are an <code className="text-on-surface">href</code> on buttons, menu items and
-          tabs, routed client-side through React Aria’s{' '}
-          <code className="text-on-surface">RouterProvider</code>. For non-Next apps, wrap the tree
-          in <code className="text-on-surface">RouterProvider</code> from{' '}
-          <code className="text-on-surface">react-aria</code> with your router’s navigate helper.
+          Links are an <InlineCode>href</InlineCode> on buttons, menu items and tabs, routed
+          client-side through React Aria’s <InlineCode>RouterProvider</InlineCode>. For non-Next
+          apps, wrap the tree in <InlineCode>RouterProvider</InlineCode> from{' '}
+          <InlineCode>react-aria</InlineCode> with your router’s navigate helper.
         </p>
         <CodeBlock code={ROUTER_SNIPPET} html={routerHtml} lang="tsx" title="providers.tsx" />
         <p className="text-body-large text-on-surface-variant">
-          On Next.js, use <code className="text-on-surface">NextRouterProvider</code> from{' '}
-          <code className="text-on-surface">@windmorph/react/next</code> — a one-liner that wires{' '}
-          <code className="text-on-surface">RouterProvider</code> to the Next router. See the{' '}
+          On Next.js, use <InlineCode>NextRouterProvider</InlineCode> from{' '}
+          <InlineCode>@windmorph/react/next</InlineCode> — a one-liner that wires{' '}
+          <InlineCode>RouterProvider</InlineCode> to the Next router. See the{' '}
           <a className="text-primary underline" href="/nextjs">
             Next.js guide
           </a>
@@ -213,10 +210,9 @@ export default async function GettingStartedPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Vite 8 note</h2>
         <p className="text-body-large text-on-surface-variant">
-          Interactive modules ship with a{' '}
-          <code className="text-on-surface">&quot;use client&quot;</code> directive. Vite 8
-          (rolldown) logs a harmless <code className="text-on-surface">MODULE_LEVEL_DIRECTIVE</code>{' '}
-          warning for each one in client-only builds. Silence it in your Vite config.
+          Interactive modules ship with a <InlineCode>&quot;use client&quot;</InlineCode> directive.
+          Vite 8 (rolldown) logs a harmless <InlineCode>MODULE_LEVEL_DIRECTIVE</InlineCode> warning
+          for each one in client-only builds. Silence it in your Vite config.
         </p>
         <CodeBlock code={VITE_SNIPPET} html={viteHtml} lang="ts" title="vite.config.ts" />
       </section>

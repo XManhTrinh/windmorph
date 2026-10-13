@@ -3,6 +3,7 @@ import { TopAppBarScrolling } from '../../examples/top-app-bar/top-app-bar-scrol
 import { TopAppBarVariants } from '../../examples/top-app-bar/top-app-bar-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Top app bar page body: the three sizes and scroll behaviour. */
 export async function TopAppBarBody() {
@@ -21,20 +22,18 @@ export async function TopAppBarBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           A top app bar shows the current screen&apos;s title and its most important actions along
-          the top. <code className="text-on-surface">small</code> is a single 64px row;{' '}
-          <code className="text-on-surface">medium</code> and{' '}
-          <code className="text-on-surface">large</code> are flexible two-row bars whose big title
-          collapses into the top row as the page scrolls. A title can carry a{' '}
-          <code className="text-on-surface">subtitle</code> and be centred with{' '}
-          <code className="text-on-surface">titleAlign</code>.
+          the top. <InlineCode>small</InlineCode> is a single 64px row;{' '}
+          <InlineCode>medium</InlineCode> and <InlineCode>large</InlineCode> are flexible two-row
+          bars whose big title collapses into the top row as the page scrolls. A title can carry a{' '}
+          <InlineCode>subtitle</InlineCode> and be centred with <InlineCode>titleAlign</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          It renders a <code className="text-on-surface">&lt;header&gt;</code> with a leading{' '}
-          <code className="text-on-surface">navigationIcon</code> and trailing{' '}
-          <code className="text-on-surface">actions</code>. Wrap the title in a heading element when
-          it names the page. Add <code className="text-on-surface">scrollBehavior</code> and point{' '}
-          <code className="text-on-surface">scrollRef</code> at the scroll container to react to
-          content scrolling under the bar; leave them out for a static bar you position.
+          It renders a <InlineCode>&lt;header&gt;</InlineCode> with a leading{' '}
+          <InlineCode>navigationIcon</InlineCode> and trailing <InlineCode>actions</InlineCode>.
+          Wrap the title in a heading element when it names the page. Add{' '}
+          <InlineCode>scrollBehavior</InlineCode> and point <InlineCode>scrollRef</InlineCode> at
+          the scroll container to react to content scrolling under the bar; leave them out for a
+          static bar you position.
         </p>
       </section>
 
@@ -62,15 +61,13 @@ export async function TopAppBarBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The bar is a <code className="text-on-surface">&lt;header&gt;</code> (a{' '}
-            <code className="text-on-surface">banner</code> landmark at the top level). It does not
-            name the page itself: wrap the <code className="text-on-surface">title</code> in a
-            heading when it is the page&apos;s name.
+            The bar is a <InlineCode>&lt;header&gt;</InlineCode> (a <InlineCode>banner</InlineCode>{' '}
+            landmark at the top level). It does not name the page itself: wrap the{' '}
+            <InlineCode>title</InlineCode> in a heading when it is the page&apos;s name.
           </li>
           <li>
-            The navigation icon and actions are ordinary{' '}
-            <code className="text-on-surface">IconButton</code>s, so each needs an{' '}
-            <code className="text-on-surface">aria-label</code>; Tab reaches them in order.
+            The navigation icon and actions are ordinary <InlineCode>IconButton</InlineCode>s, so
+            each needs an <InlineCode>aria-label</InlineCode>; Tab reaches them in order.
           </li>
           <li>
             In a two-row bar only one title is announced at a time — the expanded one until it is
@@ -84,19 +81,17 @@ export async function TopAppBarBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             These are Compose&apos;s flexible bars; the non-flexible medium / large bars and the
-            centre-aligned bar are superseded by <code className="text-on-surface">titleAlign</code>
-            .
+            centre-aligned bar are superseded by <InlineCode>titleAlign</InlineCode>.
           </li>
           <li>
             Compose shrinks the bar&apos;s height through nested scrolling. On the web the bar is{' '}
-            <code className="text-on-surface">sticky</code> and keeps its layout height, sliding up
-            via a <code className="text-on-surface">top</code> offset so the content moves exactly
-            with the scroll. The offset differs per behaviour:{' '}
-            <code className="text-on-surface">pinned</code> stays,{' '}
-            <code className="text-on-surface">exit-until-collapsed</code> collapses once, and{' '}
-            <code className="text-on-surface">enter-always</code> comes back on any scroll up. A
-            medium or large <code className="text-on-surface">enter-always</code> bar comes back
-            small and expands only at the top of the page, as M3 asks.
+            <InlineCode>sticky</InlineCode> and keeps its layout height, sliding up via a{' '}
+            <InlineCode>top</InlineCode> offset so the content moves exactly with the scroll. The
+            offset differs per behaviour: <InlineCode>pinned</InlineCode> stays,{' '}
+            <InlineCode>exit-until-collapsed</InlineCode> collapses once, and{' '}
+            <InlineCode>enter-always</InlineCode> comes back on any scroll up. A medium or large{' '}
+            <InlineCode>enter-always</InlineCode> bar comes back small and expands only at the top
+            of the page, as M3 asks.
           </li>
           <li>A long expanded title wraps to two lines at most (M3).</li>
           <li>

@@ -4,6 +4,7 @@ import { LoadingIndeterminate } from '../../examples/loading-indicator/loading-i
 import { LoadingShapes } from '../../examples/loading-indicator/loading-shapes';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Loading indicator page body. */
 export async function LoadingIndicatorBody() {
@@ -25,8 +26,8 @@ export async function LoadingIndicatorBody() {
         <p className="text-body-large text-on-surface-variant">
           The M3 Expressive loading indicator is a shape that morphs through Material shapes while
           it rotates. Use it for short, indeterminate waits (under 5 seconds). Pass{' '}
-          <code className="text-on-surface">value</code> (0–1) only to follow a gesture&apos;s
-          progress, such as pull to refresh: it morphs from a circle to a soft burst as it fills.
+          <InlineCode>value</InlineCode> (0–1) only to follow a gesture&apos;s progress, such as
+          pull to refresh: it morphs from a circle to a soft burst as it fills.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Don&apos;t switch one loading indicator from indeterminate to determinate. When a
@@ -35,8 +36,8 @@ export async function LoadingIndicatorBody() {
         </p>
         <p className="text-body-large text-on-surface-variant">
           For a horizontal track, a ring over a track, or longer work, use{' '}
-          <code className="text-on-surface">LinearProgressIndicator</code> or{' '}
-          <code className="text-on-surface">CircularProgressIndicator</code> instead.
+          <InlineCode>LinearProgressIndicator</InlineCode> or{' '}
+          <InlineCode>CircularProgressIndicator</InlineCode> instead.
         </p>
       </section>
 
@@ -72,17 +73,16 @@ export async function LoadingIndicatorBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            It is a React Aria <code className="text-on-surface">useProgressBar</code> (
-            <code className="text-on-surface">role=&quot;progressbar&quot;</code>), so the types
-            require an <code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code>. A determinate indicator
-            exposes <code className="text-on-surface">aria-valuenow</code> /{' '}
-            <code className="text-on-surface">aria-valuetext</code>.
+            It is a React Aria <InlineCode>useProgressBar</InlineCode> (
+            <InlineCode>role=&quot;progressbar&quot;</InlineCode>), so the types require an{' '}
+            <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>. A
+            determinate indicator exposes <InlineCode>aria-valuenow</InlineCode> /{' '}
+            <InlineCode>aria-valuetext</InlineCode>.
           </li>
           <li>It is not focusable and has no keyboard interaction; the drawing is decorative.</li>
           <li>
-            Under <code className="text-on-surface">prefers-reduced-motion</code> the indeterminate
-            indicator only rotates, with no morphs or springy quarter turns.
+            Under <InlineCode>prefers-reduced-motion</InlineCode> the indeterminate indicator only
+            rotates, with no morphs or springy quarter turns.
           </li>
         </ul>
       </section>
@@ -91,31 +91,27 @@ export async function LoadingIndicatorBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            A single 48px box with full corners and no <code className="text-on-surface">size</code>{' '}
-            prop — there is one spec size. <code className="text-on-surface">className</code> (e.g.{' '}
-            <code className="text-on-surface">size-24</code>) resizes the box and the shape scales
-            with it, kept square and centred by the viewBox.
+            A single 48px box with full corners and no <InlineCode>size</InlineCode> prop — there is
+            one spec size. <InlineCode>className</InlineCode> (e.g. <InlineCode>size-24</InlineCode>
+            ) resizes the box and the shape scales with it, kept square and centred by the viewBox.
           </li>
           <li>
-            <code className="text-on-surface">variant</code> is{' '}
-            <code className="text-on-surface">default</code> (a{' '}
-            <code className="text-on-surface">primary</code> indicator) or{' '}
-            <code className="text-on-surface">contained</code> (
-            <code className="text-on-surface">on-primary-container</code> on a{' '}
-            <code className="text-on-surface">primary-container</code> circle).
+            <InlineCode>variant</InlineCode> is <InlineCode>default</InlineCode> (a{' '}
+            <InlineCode>primary</InlineCode> indicator) or <InlineCode>contained</InlineCode> (
+            <InlineCode>on-primary-container</InlineCode> on a{' '}
+            <InlineCode>primary-container</InlineCode> circle).
           </li>
           <li>
             Indeterminate loops Compose&apos;s seven shapes, springing to the next every 650ms with
             a quarter-turn of rotation; determinate morphs a circle into a soft burst as{' '}
-            <code className="text-on-surface">value</code> rises.{' '}
-            <code className="text-on-surface">shapes</code> overrides the sequence with two or more{' '}
-            <code className="text-on-surface">MaterialShapes</code> names or{' '}
-            <code className="text-on-surface">RoundedPolygon</code>s.
+            <InlineCode>value</InlineCode> rises. <InlineCode>shapes</InlineCode> overrides the
+            sequence with two or more <InlineCode>MaterialShapes</InlineCode> names or{' '}
+            <InlineCode>RoundedPolygon</InlineCode>s.
           </li>
           <li>
             Every frame is a pure function of elapsed time (tested against Compose&apos;s numbers);
-            Motion writes the path and the inner <code className="text-on-surface">&lt;g&gt;</code>{' '}
-            rotation straight to the SVG, so animation causes no React renders.
+            Motion writes the path and the inner <InlineCode>&lt;g&gt;</InlineCode> rotation
+            straight to the SVG, so animation causes no React renders.
           </li>
         </ul>
       </section>

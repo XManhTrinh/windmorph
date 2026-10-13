@@ -4,6 +4,7 @@ import { CheckboxIndeterminate } from '../../examples/checkbox/checkbox-indeterm
 import { CheckboxStates } from '../../examples/checkbox/checkbox-states';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Checkbox page body. */
 export async function CheckboxBody() {
@@ -24,16 +25,13 @@ export async function CheckboxBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Checkboxes let people select any number of options from a set, or turn a single option on
-          or off. Use a <code className="text-on-surface">Switch</code> for an immediate on/off
-          setting, and a <code className="text-on-surface">RadioGroup</code> when only one choice in
-          a set is allowed.
+          or off. Use a <InlineCode>Switch</InlineCode> for an immediate on/off setting, and a{' '}
+          <InlineCode>RadioGroup</InlineCode> when only one choice in a set is allowed.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          A checkbox needs an accessible name — give it label{' '}
-          <code className="text-on-surface">children</code>, or an{' '}
-          <code className="text-on-surface">aria-label</code> /{' '}
-          <code className="text-on-surface">aria-labelledby</code> when there is no visible text
-          (the types enforce one).
+          A checkbox needs an accessible name — give it label <InlineCode>children</InlineCode>, or
+          an <InlineCode>aria-label</InlineCode> / <InlineCode>aria-labelledby</InlineCode> when
+          there is no visible text (the types enforce one).
         </p>
       </section>
 
@@ -64,22 +62,21 @@ export async function CheckboxBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            A visually hidden native checkbox (React Aria{' '}
-            <code className="text-on-surface">useCheckbox</code>) carries the state, so forms,
-            labels and assistive tech work natively.
+            A visually hidden native checkbox (React Aria <InlineCode>useCheckbox</InlineCode>)
+            carries the state, so forms, labels and assistive tech work natively.
           </li>
           <li>
             Tab moves focus; Space toggles the box. The control has a 40px state layer and a 48px
             touch target.
           </li>
           <li>
-            <code className="text-on-surface">indeterminate</code> is purely visual (a dash); the
-            underlying checked state is unchanged until the user acts.
+            <InlineCode>indeterminate</InlineCode> is purely visual (a dash); the underlying checked
+            state is unchanged until the user acts.
           </li>
           <li>
-            An accessible name is required; <code className="text-on-surface">required</code> maps
-            to <code className="text-on-surface">aria-required</code> and{' '}
-            <code className="text-on-surface">invalid</code> exposes the error state.
+            An accessible name is required; <InlineCode>required</InlineCode> maps to{' '}
+            <InlineCode>aria-required</InlineCode> and <InlineCode>invalid</InlineCode> exposes the
+            error state.
           </li>
         </ul>
       </section>
@@ -89,9 +86,8 @@ export async function CheckboxBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Uses Compose&apos;s <strong>M3 styling</strong> (
-            <code className="text-on-surface">isCheckboxStylingFixEnabled = true</code>), which
-            Compose itself defaults to off (keeping M2 styling): an 18px box with 2px corners and a
-            2px outline.
+            <InlineCode>isCheckboxStylingFixEnabled = true</InlineCode>), which Compose itself
+            defaults to off (keeping M2 styling): an 18px box with 2px corners and a 2px outline.
           </li>
           <li>
             Motion: the check draws on the default spatial spring and snaps away 100ms after
@@ -102,14 +98,13 @@ export async function CheckboxBody() {
             CSS can&apos;t animate a path shape in Safari, so the dash draws on its own.
           </li>
           <li>
-            Error uses the <code className="text-on-surface">error</code> /{' '}
-            <code className="text-on-surface">on-error</code> roles; disabled-checked is{' '}
-            <code className="text-on-surface">on-surface</code> at 38% with a{' '}
-            <code className="text-on-surface">surface</code> check.
+            Error uses the <InlineCode>error</InlineCode> / <InlineCode>on-error</InlineCode> roles;
+            disabled-checked is <InlineCode>on-surface</InlineCode> at 38% with a{' '}
+            <InlineCode>surface</InlineCode> check.
           </li>
           <li>
             <strong>No CheckboxGroup</strong> in v1 (Compose has none); a fieldset of checkboxes
-            with a shared <code className="text-on-surface">name</code> covers forms.
+            with a shared <InlineCode>name</InlineCode> covers forms.
           </li>
         </ul>
       </section>

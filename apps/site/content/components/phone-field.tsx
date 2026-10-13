@@ -4,6 +4,7 @@ import { PhoneFieldSignup } from '../../examples/phone-field/phone-field-signup'
 import { PhoneFieldVariants } from '../../examples/phone-field/phone-field-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const EXAMPLES = [
   {
@@ -32,19 +33,18 @@ export async function PhoneFieldBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           A phone field takes a phone number with its country: people pick their country (or a
-          pasted or autofilled <code className="text-on-surface">+…</code> number picks it), type
-          the number in their country&apos;s usual format, and the app gets one international{' '}
-          <code className="text-on-surface">E.164</code> value such as{' '}
-          <code className="text-on-surface">+447911123456</code>. It is{' '}
+          pasted or autofilled <InlineCode>+…</InlineCode> number picks it), type the number in
+          their country&apos;s usual format, and the app gets one international{' '}
+          <InlineCode>E.164</InlineCode> value such as <InlineCode>+447911123456</InlineCode>. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>: it comes from{' '}
-          <code className="text-on-surface">@windmorph/react-pro</code>, and its number is the
-          library&apos;s Text field.
+          <InlineCode>@windmorph/react-pro</InlineCode>, and its number is the library&apos;s Text
+          field.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          The phone rules come from <code className="text-on-surface">libphonenumber-js</code>{' '}
-          (Google&apos;s phone data), loaded only on pages that use the field. Country names come
-          from the browser in the page&apos;s language, so no names ship with the library. Servers
-          can check a value the same way with <code className="text-on-surface">phoneProblem</code>.
+          The phone rules come from <InlineCode>libphonenumber-js</InlineCode> (Google&apos;s phone
+          data), loaded only on pages that use the field. Country names come from the browser in the
+          page&apos;s language, so no names ship with the library. Servers can check a value the
+          same way with <InlineCode>phoneProblem</InlineCode>.
         </p>
       </section>
 
@@ -78,10 +78,9 @@ export async function PhoneFieldBody() {
             the number next; a press outside leaves it.
           </li>
           <li>
-            The number uses <code className="text-on-surface">type=&quot;tel&quot;</code>, the phone
-            keypad and <code className="text-on-surface">autocomplete=&quot;tel&quot;</code>, so
-            browsers can fill the whole number. An invalid number is announced when the field loses
-            focus.
+            The number uses <InlineCode>type=&quot;tel&quot;</InlineCode>, the phone keypad and{' '}
+            <InlineCode>autocomplete=&quot;tel&quot;</InlineCode>, so browsers can fill the whole
+            number. An invalid number is announced when the field loses focus.
           </li>
           <li>
             On compact windows the list opens in a bottom sheet, showing the list first so the
@@ -97,21 +96,21 @@ export async function PhoneFieldBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             The country field is a Select, so it has the Text field&apos;s tokens in both variants:
-            the <code className="text-on-surface">outline</code> or filled container, 2px{' '}
-            <code className="text-on-surface">primary</code> when focused or open, and{' '}
-            <code className="text-on-surface">error</code> when the number is invalid.
+            the <InlineCode>outline</InlineCode> or filled container, 2px{' '}
+            <InlineCode>primary</InlineCode> when focused or open, and{' '}
+            <InlineCode>error</InlineCode> when the number is invalid.
           </li>
           <li>
             The search is the M3 search bar&apos;s field at 48px (M3&apos;s minimum touch target, so
             it doesn&apos;t dominate the 44px rows), with full corners,{' '}
-            <code className="text-on-surface">surface-container-high</code>, and the focus ring for
-            keyboard focus only.
+            <InlineCode>surface-container-high</InlineCode>, and the focus ring for keyboard focus
+            only.
           </li>
           <li>
             The list is the one Select and Autocomplete use: the M3 menu&apos;s{' '}
-            <code className="text-on-surface">surface-container-low</code> panel at elevation 2,
-            with the chosen country in <code className="text-on-surface">tertiary-container</code>{' '}
-            with a check, and state layers for hover and keyboard focus.
+            <InlineCode>surface-container-low</InlineCode> panel at elevation 2, with the chosen
+            country in <InlineCode>tertiary-container</InlineCode> with a check, and state layers
+            for hover and keyboard focus.
           </li>
         </ul>
       </section>

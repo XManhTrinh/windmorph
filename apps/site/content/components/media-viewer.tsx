@@ -3,6 +3,7 @@ import { MediaViewerActions } from '../../examples/media-viewer/media-viewer-act
 import { MediaViewerGallery } from '../../examples/media-viewer/media-viewer-gallery';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const EXAMPLES = [
   {
@@ -16,8 +17,6 @@ const EXAMPLES = [
     Example: MediaViewerActions,
   },
 ];
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
 
 /** Media viewer page body: purpose, examples, gestures, accessibility and theming. */
 export async function MediaViewerBody() {
@@ -35,13 +34,15 @@ export async function MediaViewerBody() {
           moves between them, zooms, and shows each one&apos;s caption and position (&quot;Photo 2
           of 7&quot;). Use it wherever photos are shown as thumbnails: posts, listings, profiles and
           catalogues. It is <strong className="text-on-surface">not an M3 component</strong>, so it
-          comes from {code('@windmorph/react-pro')}.
+          comes from <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Control it with {code('open')} and {code('index')} (or leave them uncontrolled with{' '}
-          {code('defaultOpen')} and {code('defaultIndex')}), name it with {code('aria-label')}, and
-          pass every word through {code('labels')} from your translations. {code('actions')} adds
-          controls to the top bar, such as a menu with &quot;Open post&quot;.
+          Control it with <InlineCode>open</InlineCode> and <InlineCode>index</InlineCode> (or leave
+          them uncontrolled with <InlineCode>defaultOpen</InlineCode> and{' '}
+          <InlineCode>defaultIndex</InlineCode>), name it with <InlineCode>aria-label</InlineCode>,
+          and pass every word through <InlineCode>labels</InlineCode> from your translations.{' '}
+          <InlineCode>actions</InlineCode> adds controls to the top bar, such as a menu with
+          &quot;Open post&quot;.
         </p>
       </section>
 
@@ -75,9 +76,10 @@ export async function MediaViewerBody() {
           </li>
           <li>Swipe down on touch to close.</li>
           <li>
-            The two photos on each side are loaded ahead. Give each photo its {code('width')} and{' '}
-            {code('height')}, so it&apos;s laid out before it loads, and a {code('srcSet')} for
-            sharp zooming on large screens.
+            The two photos on each side are loaded ahead. Give each photo its{' '}
+            <InlineCode>width</InlineCode> and <InlineCode>height</InlineCode>, so it&apos;s laid
+            out before it loads, and a <InlineCode>srcSet</InlineCode> for sharp zooming on large
+            screens.
           </li>
         </ul>
       </section>
@@ -86,9 +88,9 @@ export async function MediaViewerBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            It&apos;s a modal dialog named by {code('aria-label')}: focus moves into it and stays
-            there, the page behind is hidden from assistive tech, and when it closes focus returns
-            to the thumbnail that opened it.
+            It&apos;s a modal dialog named by <InlineCode>aria-label</InlineCode>: focus moves into
+            it and stays there, the page behind is hidden from assistive tech, and when it closes
+            focus returns to the thumbnail that opened it.
           </li>
           <li>
             The arrow keys move between photos (reversed in right-to-left), Home and End go to the
@@ -114,10 +116,11 @@ export async function MediaViewerBody() {
         <h2 className="text-headline-small text-on-surface">Theming</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Photos read best on black, so the viewer fills the window with {code('scrim')} at full
-            strength and shows its controls in the theme&apos;s dark colour scheme, in light and
-            dark mode alike. The controls take {code('on-surface')}, and Previous and Next are tonal
-            so they stay visible over a bright photo. A menu passed in {code('actions')} matches.
+            Photos read best on black, so the viewer fills the window with{' '}
+            <InlineCode>scrim</InlineCode> at full strength and shows its controls in the
+            theme&apos;s dark colour scheme, in light and dark mode alike. The controls take{' '}
+            <InlineCode>on-surface</InlineCode>, and Previous and Next are tonal so they stay
+            visible over a bright photo. A menu passed in <InlineCode>actions</InlineCode> matches.
           </li>
           <li>
             It fades in on the default effects spring while the photos scale up from 92% on the
@@ -125,9 +128,11 @@ export async function MediaViewerBody() {
             change and zoom without moving.
           </li>
           <li>
-            {code('className')} and {code('classNames.root')} style the dialog, and{' '}
-            {code('classNames')} reaches the {code('toolbar')}, the {code('media')} area and the{' '}
-            {code('caption')}. Forced colours keep every control and the focus ring visible.
+            <InlineCode>className</InlineCode> and <InlineCode>classNames.root</InlineCode> style
+            the dialog, and <InlineCode>classNames</InlineCode> reaches the{' '}
+            <InlineCode>toolbar</InlineCode>, the <InlineCode>media</InlineCode> area and the{' '}
+            <InlineCode>caption</InlineCode>. Forced colours keep every control and the focus ring
+            visible.
           </li>
         </ul>
       </section>

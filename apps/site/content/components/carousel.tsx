@@ -5,6 +5,7 @@ import { CarouselMultiBrowse } from '../../examples/carousel/carousel-multibrows
 import { CarouselVariants } from '../../examples/carousel/carousel-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Carousel page body: multi-browse, uncontained, multi-aspect, hero and full-screen. */
 export async function CarouselBody() {
@@ -31,14 +32,13 @@ export async function CarouselBody() {
           static grid of equal items use a layout utility instead.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          The <code className="text-on-surface">variant</code> is{' '}
-          <code className="text-on-surface">multi-browse</code> (large, medium and small items),{' '}
-          <code className="text-on-surface">uncontained</code> (fixed-size items, the last cut off),{' '}
-          <code className="text-on-surface">multi-aspect</code> (uncontained, with items of their
-          own widths from 9:16 to 16:9), <code className="text-on-surface">hero</code> (one large
-          item with small ones beside it) or <code className="text-on-surface">full-screen</code>{' '}
-          (one edge-to-edge item at a time, vertical by default). Give the carousel its cross-axis
-          size with <code className="text-on-surface">className</code>.
+          The <InlineCode>variant</InlineCode> is <InlineCode>multi-browse</InlineCode> (large,
+          medium and small items), <InlineCode>uncontained</InlineCode> (fixed-size items, the last
+          cut off), <InlineCode>multi-aspect</InlineCode> (uncontained, with items of their own
+          widths from 9:16 to 16:9), <InlineCode>hero</InlineCode> (one large item with small ones
+          beside it) or <InlineCode>full-screen</InlineCode> (one edge-to-edge item at a time,
+          vertical by default). Give the carousel its cross-axis size with{' '}
+          <InlineCode>className</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
           On a vertically scrolling page, put a &quot;Show all&quot; button (or an arrow icon button
@@ -88,15 +88,14 @@ export async function CarouselBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The carousel is a <code className="text-on-surface">region</code> with{' '}
-            <code className="text-on-surface">aria-roledescription=&quot;carousel&quot;</code> and
-            needs a name (<code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code>).
+            The carousel is a <InlineCode>region</InlineCode> with{' '}
+            <InlineCode>aria-roledescription=&quot;carousel&quot;</InlineCode> and needs a name (
+            <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>).
           </li>
           <li>
-            Each item is a <code className="text-on-surface">group</code> described as a
-            &quot;slide&quot; and labelled &quot;n of N&quot; with numbers in the locale;{' '}
-            <code className="text-on-surface">labels.slide</code> translates it.
+            Each item is a <InlineCode>group</InlineCode> described as a &quot;slide&quot; and
+            labelled &quot;n of N&quot; with numbers in the locale;{' '}
+            <InlineCode>labels.slide</InlineCode> translates it.
           </li>
           <li>
             The container never takes focus: Tab lands on the first item, and Tab or the arrow keys
@@ -105,9 +104,8 @@ export async function CarouselBody() {
             the next or previous control.
           </li>
           <li>
-            With <code className="text-on-surface">onAction</code>, Space or Enter activates the
-            focused item, as does a press; <code className="text-on-surface">disabledIndexes</code>{' '}
-            turns items off.
+            With <InlineCode>onAction</InlineCode>, Space or Enter activates the focused item, as
+            does a press; <InlineCode>disabledIndexes</InlineCode> turns items off.
           </li>
           <li>
             Under reduced motion items don&apos;t change size as they scroll: every item keeps the
@@ -122,9 +120,9 @@ export async function CarouselBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The keylines are a TypeScript port of Compose&apos;s{' '}
-            <code className="text-on-surface">carousel</code> package; with 360px, a 186px preferred
-            size and 8px spacing that gives 186 · 118 · 40, mirrored at the end, as Compose does.
+            The keylines are a TypeScript port of Compose&apos;s <InlineCode>carousel</InlineCode>{' '}
+            package; with 360px, a 186px preferred size and 8px spacing that gives 186 · 118 · 40,
+            mirrored at the end, as Compose does.
           </li>
           <li>
             Compose drives a pager; here the carousel scrolls natively and a library-owned mask
@@ -134,13 +132,13 @@ export async function CarouselBody() {
           <li>
             Hero and full-screen snap one item at a time; a multi-browse fling crosses several items
             and then snaps; uncontained and multi-aspect scroll freely unless{' '}
-            <code className="text-on-surface">snap=&quot;item&quot;</code>.
+            <InlineCode>snap=&quot;item&quot;</InlineCode>.
           </li>
           <li>
             Padding follows the spec: 16px before and after the items and 8px across them
             (uncontained and multi-aspect: 16px before only; full-screen: none), set with{' '}
-            <code className="text-on-surface">contentPadding</code>. As in Compose, items scroll
-            over the start and end padding.
+            <InlineCode>contentPadding</InlineCode>. As in Compose, items scroll over the start and
+            end padding.
           </li>
           <li>
             Items are masked with 28px (extra-large) corners, tightening to 20px while pressed, and

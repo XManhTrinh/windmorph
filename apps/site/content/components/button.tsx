@@ -5,6 +5,7 @@ import { ButtonToggle } from '../../examples/button/button-toggle';
 import { ButtonVariants } from '../../examples/button/button-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Button page body: purpose, live examples, accessibility and Compose differences. */
 export async function ButtonBody() {
@@ -27,9 +28,8 @@ export async function ButtonBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Buttons let people take action with a single tap. Reach for a button when the action has a
-          short text label; use an <code className="text-on-surface">IconButton</code> when an icon
-          alone is clear, and a <code className="text-on-surface">Fab</code> for the one primary
-          action on a screen.
+          short text label; use an <InlineCode>IconButton</InlineCode> when an icon alone is clear,
+          and a <InlineCode>Fab</InlineCode> for the one primary action on a screen.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Pick a variant by emphasis: filled for the most important action, then elevated and tonal,
@@ -76,12 +76,12 @@ export async function ButtonBody() {
             navigating by keyboard.
           </li>
           <li>
-            With <code className="text-on-surface">href</code> the button renders an{' '}
-            <code className="text-on-surface">&lt;a&gt;</code> and behaves as a link.
+            With <InlineCode>href</InlineCode> the button renders an{' '}
+            <InlineCode>&lt;a&gt;</InlineCode> and behaves as a link.
           </li>
           <li>
-            A toggle button exposes <code className="text-on-surface">aria-pressed</code>; its label
-            should still read correctly in both states.
+            A toggle button exposes <InlineCode>aria-pressed</InlineCode>; its label should still
+            read correctly in both states.
           </li>
         </ul>
       </section>
@@ -94,14 +94,14 @@ export async function ButtonBody() {
             overrides them: XS padding is 16px with an 8px icon gap, small text buttons have the
             same 16px padding as the other small buttons, and toggle buttons press to the same
             corners as the others (8 / 8 / 12 / 16 / 16px). Text buttons use{' '}
-            <code className="text-on-surface">primary</code>.
+            <InlineCode>primary</InlineCode>.
           </li>
           <li>
-            The press morph is a CSS <code className="text-on-surface">border-radius</code>{' '}
-            transition on the fast spatial spring, which bounces in the expressive scheme (Compose
-            uses a non-bouncing effects spring; the spec puts corners on spatial springs). A press
-            that starts while the last morph is still settling uses the fast effects spring instead,
-            the web&apos;s modified curve against rapid-click resonance.
+            The press morph is a CSS <InlineCode>border-radius</InlineCode> transition on the fast
+            spatial spring, which bounces in the expressive scheme (Compose uses a non-bouncing
+            effects spring; the spec puts corners on spatial springs). A press that starts while the
+            last morph is still settling uses the fast effects spring instead, the web&apos;s
+            modified curve against rapid-click resonance.
           </li>
           <li>
             Selected round toggle buttons become square and selected square ones become round (the
@@ -109,9 +109,8 @@ export async function ButtonBody() {
             toggle form, enforced by the types.
           </li>
           <li>
-            Disabled is container <code className="text-on-surface">on-surface</code> 10% and
-            content <code className="text-on-surface">on-surface-variant</code> 38% for every
-            variant.
+            Disabled is container <InlineCode>on-surface</InlineCode> 10% and content{' '}
+            <InlineCode>on-surface-variant</InlineCode> 38% for every variant.
           </li>
           <li>
             XS and S buttons get a 48px touch target inside the library-owned inner wrapper; the

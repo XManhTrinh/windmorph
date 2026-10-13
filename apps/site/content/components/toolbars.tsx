@@ -6,6 +6,7 @@ import { ToolbarOverflow } from '../../examples/toolbars/toolbar-overflow';
 import { ToolbarScrollExit } from '../../examples/toolbars/toolbar-scroll-exit';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Toolbars page body: docked, floating, overflow, scroll expansion and scroll exit. */
 export async function ToolbarsBody() {
@@ -31,38 +32,33 @@ export async function ToolbarsBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
-          Toolbars gather a set of related actions. A{' '}
-          <code className="text-on-surface">DockedToolbar</code> is a full-width 64px bar, usually
-          along the bottom of the window (it replaces the bottom app bar), with its items centred
-          32px apart or, in compact windows, spread out. A{' '}
-          <code className="text-on-surface">FloatingToolbar</code> is a pill that floats above the
-          content, horizontal (16px from the window&apos;s edge) or vertical (24px), in{' '}
-          <code className="text-on-surface">standard</code> or{' '}
-          <code className="text-on-surface">vibrant</code> colours. It is elevated by default; set{' '}
-          <code className="text-on-surface">elevated={'{false}'}</code> over visually distinct
-          content. Avoid square icon buttons in it (a development warning flags them).
+          Toolbars gather a set of related actions. A <InlineCode>DockedToolbar</InlineCode> is a
+          full-width 64px bar, usually along the bottom of the window (it replaces the bottom app
+          bar), with its items centred 32px apart or, in compact windows, spread out. A{' '}
+          <InlineCode>FloatingToolbar</InlineCode> is a pill that floats above the content,
+          horizontal (16px from the window&apos;s edge) or vertical (24px), in{' '}
+          <InlineCode>standard</InlineCode> or <InlineCode>vibrant</InlineCode> colours. It is
+          elevated by default; set <InlineCode>elevated={'{false}'}</InlineCode> over visually
+          distinct content. Avoid square icon buttons in it (a development warning flags them).
         </p>
         <p className="text-body-large text-on-surface-variant">
           Icon buttons take the toolbar&apos;s colours: standard buttons are{' '}
-          <code className="text-on-surface">on-surface-variant</code> in a standard toolbar and{' '}
-          <code className="text-on-surface">on-primary-container</code> in a vibrant one, where a
-          selected tonal toggle turns <code className="text-on-surface">surface-container</code> /{' '}
-          <code className="text-on-surface">on-surface</code>. When the actions don&apos;t fit, put
-          the rest in an overflow menu in the trailing slot.
+          <InlineCode>on-surface-variant</InlineCode> in a standard toolbar and{' '}
+          <InlineCode>on-primary-container</InlineCode> in a vibrant one, where a selected tonal
+          toggle turns <InlineCode>surface-container</InlineCode> /{' '}
+          <InlineCode>on-surface</InlineCode>. When the actions don&apos;t fit, put the rest in an
+          overflow menu in the trailing slot.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          A floating toolbar&apos;s <code className="text-on-surface">leading</code> and{' '}
-          <code className="text-on-surface">trailing</code> groups collapse with{' '}
-          <code className="text-on-surface">expanded</code>; alternatively pair it with a{' '}
-          <code className="text-on-surface">fab</code> (a{' '}
-          <code className="text-on-surface">ToolbarFab</code>), and collapsing hides the toolbar
-          while the FAB grows. <code className="text-on-surface">useToolbarScrollExpansion</code>{' '}
-          derives <code className="text-on-surface">expanded</code> from a scroll container. Either
-          toolbar can instead leave the screen on scroll:{' '}
-          <code className="text-on-surface">useToolbarScrollExit</code> drives its{' '}
-          <code className="text-on-surface">visible</code> prop (and{' '}
-          <code className="text-on-surface">exitEdge</code> picks the floating toolbar&apos;s edge).
-          Use one behaviour or the other, never both.
+          A floating toolbar&apos;s <InlineCode>leading</InlineCode> and{' '}
+          <InlineCode>trailing</InlineCode> groups collapse with <InlineCode>expanded</InlineCode>;
+          alternatively pair it with a <InlineCode>fab</InlineCode> (a{' '}
+          <InlineCode>ToolbarFab</InlineCode>), and collapsing hides the toolbar while the FAB
+          grows. <InlineCode>useToolbarScrollExpansion</InlineCode> derives{' '}
+          <InlineCode>expanded</InlineCode> from a scroll container. Either toolbar can instead
+          leave the screen on scroll: <InlineCode>useToolbarScrollExit</InlineCode> drives its{' '}
+          <InlineCode>visible</InlineCode> prop (and <InlineCode>exitEdge</InlineCode> picks the
+          floating toolbar&apos;s edge). Use one behaviour or the other, never both.
         </p>
       </section>
 
@@ -114,16 +110,15 @@ export async function ToolbarsBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Both toolbars are React Aria toolbars:{' '}
-            <code className="text-on-surface">role=&quot;toolbar&quot;</code>, a required name (
-            <code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code>), and arrow keys between the
-            controls, following the DOM direction.
+            Both toolbars are React Aria toolbars: <InlineCode>role=&quot;toolbar&quot;</InlineCode>
+            , a required name (<InlineCode>aria-label</InlineCode> or{' '}
+            <InlineCode>aria-labelledby</InlineCode>), and arrow keys between the controls,
+            following the DOM direction.
           </li>
           <li>
             The controls are ordinary buttons, so each icon button still needs its own{' '}
-            <code className="text-on-surface">aria-label</code>; the{' '}
-            <code className="text-on-surface">ToolbarFab</code> is named the same way.
+            <InlineCode>aria-label</InlineCode>; the <InlineCode>ToolbarFab</InlineCode> is named
+            the same way.
           </li>
           <li>
             Collapsed controls stay in the tab order and the accessibility tree, clipped to nothing,
@@ -132,9 +127,8 @@ export async function ToolbarsBody() {
             expanded; pointer focus on the always-shown controls doesn&apos;t.
           </li>
           <li>
-            A toolbar that has left the screen (
-            <code className="text-on-surface">visible={'{false}'}</code>) is{' '}
-            <code className="text-on-surface">inert</code>.
+            A toolbar that has left the screen (<InlineCode>visible={'{false}'}</InlineCode>) is{' '}
+            <InlineCode>inert</InlineCode>.
           </li>
         </ul>
       </section>
@@ -154,23 +148,20 @@ export async function ToolbarsBody() {
             and the FAB&apos;s box grows 56 → 80px.
           </li>
           <li>
-            <code className="text-on-surface">useToolbarScrollExpansion</code> ports Compose&apos;s
-            vertical nested-scroll behaviour: 40px down collapses, 40px back up expands. There is no{' '}
-            <code className="text-on-surface">onExpandedChange</code>, since nothing inside changes
-            it.
+            <InlineCode>useToolbarScrollExpansion</InlineCode> ports Compose&apos;s vertical
+            nested-scroll behaviour: 40px down collapses, 40px back up expands. There is no{' '}
+            <InlineCode>onExpandedChange</InlineCode>, since nothing inside changes it.
           </li>
           <li>
-            <code className="text-on-surface">useToolbarScrollExit</code> follows Compose&apos;s
-            exit-always behaviour with the same 40px thresholds: the toolbar slides past its edge on
-            the fast spatial spring (a <code className="text-on-surface">transform</code> set only
-            while hidden, so it composes with Tailwind&apos;s{' '}
-            <code className="text-on-surface">translate-*</code> utilities). It doesn&apos;t follow
-            the finger.
+            <InlineCode>useToolbarScrollExit</InlineCode> follows Compose&apos;s exit-always
+            behaviour with the same 40px thresholds: the toolbar slides past its edge on the fast
+            spatial spring (a <InlineCode>transform</InlineCode> set only while hidden, so it
+            composes with Tailwind&apos;s <InlineCode>translate-*</InlineCode> utilities). It
+            doesn&apos;t follow the finger.
           </li>
           <li>
-            There is no built-in overflow row: compose a{' '}
-            <code className="text-on-surface">MenuTrigger</code> in the trailing slot, as in the
-            example.
+            There is no built-in overflow row: compose a <InlineCode>MenuTrigger</InlineCode> in the
+            trailing slot, as in the example.
           </li>
         </ul>
       </section>

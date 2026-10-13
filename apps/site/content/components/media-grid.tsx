@@ -4,8 +4,7 @@ import { TokenTable } from '../../components/token-table';
 import { MediaGridViewer } from '../../examples/media-grid/media-grid-viewer';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** MediaGrid page body: purpose, example, behaviour, accessibility and tokens. */
 export async function MediaGridBody() {
@@ -19,9 +18,9 @@ export async function MediaGridBody() {
         <p className="text-body-large text-on-surface-variant">
           Square photo tiles: a row that scrolls sideways on compact windows and a grid from medium
           windows up, such as a profile&apos;s photos or a listing&apos;s gallery. Pressing a tile
-          tells the app which, so it can open {code('MediaViewer')} there with what it wants around
-          it. It is <strong className="text-on-surface">not an M3 component</strong>, so it comes
-          from {code('@windmorph/react-pro')}.
+          tells the app which, so it can open <InlineCode>MediaViewer</InlineCode> there with what
+          it wants around it. It is <strong className="text-on-surface">not an M3 component</strong>
+          , so it comes from <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
       </section>
 
@@ -41,7 +40,8 @@ export async function MediaGridBody() {
         <h2 className="text-headline-small text-on-surface">Behaviour</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            {code('max')} caps the tiles shown; {code('columns')} sets the grid from medium up (3).
+            <InlineCode>max</InlineCode> caps the tiles shown; <InlineCode>columns</InlineCode> sets
+            the grid from medium up (3).
           </li>
           <li>
             On compact windows the row scrolls with snap points; from medium up the grid&apos;s
@@ -55,12 +55,12 @@ export async function MediaGridBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The list is named by {code('aria-label')} and is focusable, so keyboards can scroll the
-            compact row (WCAG 2.1.1).
+            The list is named by <InlineCode>aria-label</InlineCode> and is focusable, so keyboards
+            can scroll the compact row (WCAG 2.1.1).
           </li>
           <li>
-            Each tile is a button named by its photo&apos;s {code('alt')}, with the state layer and
-            an inset focus ring.
+            Each tile is a button named by its photo&apos;s <InlineCode>alt</InlineCode>, with the
+            state layer and an inset focus ring.
           </li>
         </ul>
       </section>
@@ -68,8 +68,10 @@ export async function MediaGridBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Theming &amp; tokens</h2>
         <p className="text-body-large text-on-surface-variant">
-          Set the tokens below on a grid or any ancestor. Style the parts with {code('classNames')}{' '}
-          ({code('root')}, {code('item')}, {code('tile')}, {code('image')}).
+          Set the tokens below on a grid or any ancestor. Style the parts with{' '}
+          <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+          <InlineCode>item</InlineCode>, <InlineCode>tile</InlineCode>,{' '}
+          <InlineCode>image</InlineCode>).
         </p>
         <TokenTable set={mediaGridTokenSet} caption="Media grid tokens" />
       </section>

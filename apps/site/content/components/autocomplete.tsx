@@ -4,6 +4,7 @@ import { AutocompleteBasic } from '../../examples/autocomplete/autocomplete-basi
 import { AutocompleteMultiple } from '../../examples/autocomplete/autocomplete-multiple';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const EXAMPLES = [
   { file: 'autocomplete-basic.tsx', title: 'Type to find', Example: AutocompleteBasic },
@@ -31,19 +32,16 @@ export async function AutocompleteBody() {
           <strong className="text-on-surface">exposed dropdown menu</strong> in its editable form:
           type in the field and the menu below it shows the matching options. Use it when typing
           finds an option faster than scrolling: countries, cities, categories, or options loaded
-          from a server. For a short list, use a <code className="text-on-surface">Select</code>.
+          from a server. For a short list, use a <InlineCode>Select</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Matching ignores case and accents by default (&quot;zurich&quot; finds
-          &quot;Zürich&quot;), anywhere in the option&apos;s text;{' '}
-          <code className="text-on-surface">filter</code> replaces it. For server results, control{' '}
-          <code className="text-on-surface">items</code> and{' '}
-          <code className="text-on-surface">inputValue</code> and set{' '}
-          <code className="text-on-surface">loading</code> while they load.{' '}
-          <code className="text-on-surface">allowsCustomValue</code> keeps text that matches no
-          option. Options are <code className="text-on-surface">AutocompleteItem</code>s (and{' '}
-          <code className="text-on-surface">AutocompleteSection</code>s), created in a client
-          component.
+          &quot;Zürich&quot;), anywhere in the option&apos;s text; <InlineCode>filter</InlineCode>{' '}
+          replaces it. For server results, control <InlineCode>items</InlineCode> and{' '}
+          <InlineCode>inputValue</InlineCode> and set <InlineCode>loading</InlineCode> while they
+          load. <InlineCode>allowsCustomValue</InlineCode> keeps text that matches no option.
+          Options are <InlineCode>AutocompleteItem</InlineCode>s (and{' '}
+          <InlineCode>AutocompleteSection</InlineCode>s), created in a client component.
         </p>
       </section>
 
@@ -69,45 +67,37 @@ export async function AutocompleteBody() {
         </p>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            <code className="text-on-surface">selectionMode</code>:{' '}
-            <code className="text-on-surface">&quot;single&quot;</code> (default) or{' '}
-            <code className="text-on-surface">&quot;multiple&quot;</code>.{' '}
-            <code className="text-on-surface">value</code> /{' '}
-            <code className="text-on-surface">defaultValue</code> /{' '}
-            <code className="text-on-surface">onChange</code> take a key (or{' '}
-            <code className="text-on-surface">null</code>), or an array of keys when multiple.
+            <InlineCode>selectionMode</InlineCode>: <InlineCode>&quot;single&quot;</InlineCode>{' '}
+            (default) or <InlineCode>&quot;multiple&quot;</InlineCode>.{' '}
+            <InlineCode>value</InlineCode> / <InlineCode>defaultValue</InlineCode> /{' '}
+            <InlineCode>onChange</InlineCode> take a key (or <InlineCode>null</InlineCode>), or an
+            array of keys when multiple.
           </li>
           <li>
-            <code className="text-on-surface">defaultItems</code> (filtered for you) or{' '}
-            <code className="text-on-surface">items</code> (filtered by you) with a render function
-            as children, or <code className="text-on-surface">AutocompleteItem</code>s written out;{' '}
-            <code className="text-on-surface">disabledKeys</code> disables options.
+            <InlineCode>defaultItems</InlineCode> (filtered for you) or{' '}
+            <InlineCode>items</InlineCode> (filtered by you) with a render function as children, or{' '}
+            <InlineCode>AutocompleteItem</InlineCode>s written out;{' '}
+            <InlineCode>disabledKeys</InlineCode> disables options.
           </li>
           <li>
-            <code className="text-on-surface">onOpenChange</code> reports when the menu opens and
-            closes.
+            <InlineCode>onOpenChange</InlineCode> reports when the menu opens and closes.
           </li>
           <li>
-            <code className="text-on-surface">name</code> and{' '}
-            <code className="text-on-surface">form</code> for forms;{' '}
-            <code className="text-on-surface">validate</code> and{' '}
-            <code className="text-on-surface">validationBehavior</code> as in Text field;{' '}
-            <code className="text-on-surface">autoFocus</code>,{' '}
-            <code className="text-on-surface">onFocus</code>,{' '}
-            <code className="text-on-surface">onBlur</code>.
+            <InlineCode>name</InlineCode> and <InlineCode>form</InlineCode> for forms;{' '}
+            <InlineCode>validate</InlineCode> and <InlineCode>validationBehavior</InlineCode> as in
+            Text field; <InlineCode>autoFocus</InlineCode>, <InlineCode>onFocus</InlineCode>,{' '}
+            <InlineCode>onBlur</InlineCode>.
           </li>
           <li>
-            <code className="text-on-surface">inputValue</code> /{' '}
-            <code className="text-on-surface">defaultInputValue</code> /{' '}
-            <code className="text-on-surface">onInputChange</code> for the typed text;{' '}
-            <code className="text-on-surface">placeholder</code>.
+            <InlineCode>inputValue</InlineCode> / <InlineCode>defaultInputValue</InlineCode> /{' '}
+            <InlineCode>onInputChange</InlineCode> for the typed text;{' '}
+            <InlineCode>placeholder</InlineCode>.
           </li>
           <li>
-            <code className="text-on-surface">allowsCustomValue</code> keeps text that matches no
-            option; <code className="text-on-surface">menuTrigger</code> (
-            <code className="text-on-surface">&quot;input&quot;</code> by default,{' '}
-            <code className="text-on-surface">&quot;focus&quot;</code> or{' '}
-            <code className="text-on-surface">&quot;manual&quot;</code>) sets when the menu opens.
+            <InlineCode>allowsCustomValue</InlineCode> keeps text that matches no option;{' '}
+            <InlineCode>menuTrigger</InlineCode> (<InlineCode>&quot;input&quot;</InlineCode> by
+            default, <InlineCode>&quot;focus&quot;</InlineCode> or{' '}
+            <InlineCode>&quot;manual&quot;</InlineCode>) sets when the menu opens.
           </li>
         </ul>
       </section>
@@ -116,32 +106,32 @@ export async function AutocompleteBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The field is a <code className="text-on-surface">combobox</code> with list autocomplete.
-            Typing opens the menu and filters it; ↑ / ↓ move through the matches while focus stays
-            in the field (<code className="text-on-surface">aria-activedescendant</code>), Enter
-            chooses, and Escape closes the menu, then clears the text.
+            The field is a <InlineCode>combobox</InlineCode> with list autocomplete. Typing opens
+            the menu and filters it; ↑ / ↓ move through the matches while focus stays in the field (
+            <InlineCode>aria-activedescendant</InlineCode>), Enter chooses, and Escape closes the
+            menu, then clears the text.
           </li>
           <li>
             The arrow button opens every option and is named &quot;Show options&quot; (set{' '}
-            <code className="text-on-surface">labels</code> for other languages). &quot;No
-            results&quot; and the loading indicator are announced.
+            <InlineCode>labels</InlineCode> for other languages). &quot;No results&quot; and the
+            loading indicator are announced.
           </li>
           <li>
-            With <code className="text-on-surface">selectionMode=&quot;multiple&quot;</code>, each
-            chosen option is an input chip whose close button is named &quot;Remove&quot; with the
-            option; Backspace in the empty field removes the last one. While the menu is open, only
-            the field and the menu are exposed to assistive technology, so Escape first.
+            With <InlineCode>selectionMode=&quot;multiple&quot;</InlineCode>, each chosen option is
+            an input chip whose close button is named &quot;Remove&quot; with the option; Backspace
+            in the empty field removes the last one. While the menu is open, only the field and the
+            menu are exposed to assistive technology, so Escape first.
           </li>
           <li>
             Disabled options can take keyboard focus but can&apos;t be chosen (M3 menus). The error
             message is announced as an alert, an invalid field shows an error icon named
-            &quot;Error&quot;, and the required <code className="text-on-surface">*</code> is part
-            of the field&apos;s name.
+            &quot;Error&quot;, and the required <InlineCode>*</InlineCode> is part of the
+            field&apos;s name.
           </li>
           <li>
-            <code className="text-on-surface">clearable</code> adds M3&apos;s clear icon while
-            there&apos;s text, named &quot;Clear&quot;. It&apos;s left out of the Tab order, since
-            Escape clears from the keyboard.
+            <InlineCode>clearable</InlineCode> adds M3&apos;s clear icon while there&apos;s text,
+            named &quot;Clear&quot;. It&apos;s left out of the Tab order, since Escape clears from
+            the keyboard.
           </li>
           <li>
             As the list filters, the options that stay ease into their new places on the default
@@ -154,18 +144,17 @@ export async function AutocompleteBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Compose&apos;s <code className="text-on-surface">ExposedDropdownMenuBox</code> with a{' '}
-            <code className="text-on-surface">PrimaryEditable</code> anchor leaves filtering to the
-            app; here it&apos;s built in, accent-insensitive, and replaceable.
+            Compose&apos;s <InlineCode>ExposedDropdownMenuBox</InlineCode> with a{' '}
+            <InlineCode>PrimaryEditable</InlineCode> anchor leaves filtering to the app; here
+            it&apos;s built in, accent-insensitive, and replaceable.
           </li>
           <li>
             The menu always opens under the field (above it when there&apos;s no room), never in a
             sheet, so the text being typed stays visible.
           </li>
           <li>
-            Multiple selection as M3 input chips, with{' '}
-            <code className="text-on-surface">maxSelections</code>, which Compose&apos;s exposed
-            dropdown doesn&apos;t have.
+            Multiple selection as M3 input chips, with <InlineCode>maxSelections</InlineCode>, which
+            Compose&apos;s exposed dropdown doesn&apos;t have.
           </li>
         </ul>
       </section>

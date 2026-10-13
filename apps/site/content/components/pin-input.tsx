@@ -5,6 +5,7 @@ import { PinInputVariants } from '../../examples/pin-input/pin-input-variants';
 import { PinInputVerification } from '../../examples/pin-input/pin-input-verification';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 const EXAMPLES = [
   {
@@ -40,14 +41,14 @@ export async function PinInputBody() {
           A PIN input takes a short code of fixed length, one character per box: email and SMS
           verification codes, password reset and two-factor codes, PINs, and invite or voucher
           codes. It is <strong className="text-on-surface">not an M3 component</strong>: it comes
-          from <code className="text-on-surface">@windmorph/react-pro</code>, and each box is drawn
-          with the M3 text field&apos;s tokens, so it sits naturally next to a Text field.
+          from <InlineCode>@windmorph/react-pro</InlineCode>, and each box is drawn with the M3 text
+          field&apos;s tokens, so it sits naturally next to a Text field.
         </p>
         <p className="text-body-large text-on-surface-variant">
           One real input sits invisibly over the boxes. Typing, pasting (&quot;123 456&quot; or
-          &quot;Code: 123456&quot; both become <code className="text-on-surface">123456</code>),
-          one-time-code autofill on phones and password managers all work as in a normal field.
-          Codes of up to six characters fit a 320px phone in every size.
+          &quot;Code: 123456&quot; both become <InlineCode>123456</InlineCode>), one-time-code
+          autofill on phones and password managers all work as in a normal field. Codes of up to six
+          characters fit a 320px phone in every size.
         </p>
       </section>
 
@@ -79,10 +80,10 @@ export async function PinInputBody() {
             move between boxes, and typing over a filled box replaces its character.
           </li>
           <li>
-            <code className="text-on-surface">otp</code> (on by default) sets{' '}
-            <code className="text-on-surface">autocomplete=&quot;one-time-code&quot;</code>, and
-            numeric codes open the number pad. <code className="text-on-surface">mask</code> makes
-            the input a password field, so the code is never read aloud.
+            <InlineCode>otp</InlineCode> (on by default) sets{' '}
+            <InlineCode>autocomplete=&quot;one-time-code&quot;</InlineCode>, and numeric codes open
+            the number pad. <InlineCode>mask</InlineCode> makes the input a password field, so the
+            code is never read aloud.
           </li>
           <li>
             The boxes keep reading left to right in right-to-left layouts. The caret stops blinking
@@ -96,18 +97,16 @@ export async function PinInputBody() {
         <h2 className="text-headline-small text-on-surface">Theming</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            <code className="text-on-surface">outlined</code> boxes have an{' '}
-            <code className="text-on-surface">outline</code> border that turns{' '}
-            <code className="text-on-surface">on-surface</code> on hover and 2px{' '}
-            <code className="text-on-surface">primary</code> in the active box;{' '}
-            <code className="text-on-surface">filled</code> boxes have a{' '}
-            <code className="text-on-surface">surface-container-highest</code> container and an
-            active indicator. Errors use <code className="text-on-surface">error</code>, so every
-            theme, mode and contrast level follows.
+            <InlineCode>outlined</InlineCode> boxes have an <InlineCode>outline</InlineCode> border
+            that turns <InlineCode>on-surface</InlineCode> on hover and 2px{' '}
+            <InlineCode>primary</InlineCode> in the active box; <InlineCode>filled</InlineCode>{' '}
+            boxes have a <InlineCode>surface-container-highest</InlineCode> container and an active
+            indicator. Errors use <InlineCode>error</InlineCode>, so every theme, mode and contrast
+            level follows.
           </li>
           <li>
-            <code className="text-on-surface">corner</code> takes any step of the M3 shape scale;
-            the default is the text field&apos;s extra-small.
+            <InlineCode>corner</InlineCode> takes any step of the M3 shape scale; the default is the
+            text field&apos;s extra-small.
           </li>
           <li>
             New characters pop in on the fast spatial spring, and border changes use the fast

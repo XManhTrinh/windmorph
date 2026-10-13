@@ -5,6 +5,7 @@ import { SheetSide } from '../../examples/sheets/sheet-side';
 import { SheetStandard } from '../../examples/sheets/sheet-standard';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Sheets page body: modal and standard bottom sheets, modal and standard side sheets. */
 export async function SheetsBody() {
@@ -27,20 +28,17 @@ export async function SheetsBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Sheets hold supplementary content anchored to an edge of the window. A{' '}
-          <code className="text-on-surface">BottomSheet</code> rises from the bottom for actions or
-          content on a compact screen; a <code className="text-on-surface">SideSheet</code> sits at
-          the end edge for filters or details. For a focused task or a decision use a dialog
-          instead.
+          <InlineCode>BottomSheet</InlineCode> rises from the bottom for actions or content on a
+          compact screen; a <InlineCode>SideSheet</InlineCode> sits at the end edge for filters or
+          details. For a focused task or a decision use a dialog instead.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Modal sheets open from a <code className="text-on-surface">SheetTrigger</code> and cover a
-          scrim. Either sheet can instead be{' '}
-          <code className="text-on-surface">variant=&quot;standard&quot;</code>: a standard bottom
-          sheet sits over the page without a scrim, collapsed to a peek height, and a standard side
-          sheet sits in the layout and opens and closes its width. Every sheet needs a name (
-          <code className="text-on-surface">aria-label</code>,{' '}
-          <code className="text-on-surface">aria-labelledby</code>, or a side sheet&apos;s{' '}
-          <code className="text-on-surface">title</code>).
+          Modal sheets open from a <InlineCode>SheetTrigger</InlineCode> and cover a scrim. Either
+          sheet can instead be <InlineCode>variant=&quot;standard&quot;</InlineCode>: a standard
+          bottom sheet sits over the page without a scrim, collapsed to a peek height, and a
+          standard side sheet sits in the layout and opens and closes its width. Every sheet needs a
+          name (<InlineCode>aria-label</InlineCode>, <InlineCode>aria-labelledby</InlineCode>, or a
+          side sheet&apos;s <InlineCode>title</InlineCode>).
         </p>
       </section>
 
@@ -95,15 +93,14 @@ export async function SheetsBody() {
             A bottom sheet taller than half the window opens to half; the drag handle is a button —
             press it (or Enter / Space) to expand a half-open sheet, collapse a standard one, or
             close a fully open modal one, and its label says which (
-            <code className="text-on-surface">labels.expand</code>,{' '}
-            <code className="text-on-surface">labels.collapse</code>,{' '}
-            <code className="text-on-surface">labels.dismiss</code>). Without a handle, the top 48px
-            of the sheet still drags it.
+            <InlineCode>labels.expand</InlineCode>, <InlineCode>labels.collapse</InlineCode>,{' '}
+            <InlineCode>labels.dismiss</InlineCode>). Without a handle, the top 48px of the sheet
+            still drags it.
           </li>
           <li>
             A modal bottom sheet that fills the window shows a close button (
-            <code className="text-on-surface">labels.close</code>); a standard one shows a collapse
-            button. <code className="text-on-surface">closeButton=&#123;false&#125;</code> hides it.
+            <InlineCode>labels.close</InlineCode>); a standard one shows a collapse button.{' '}
+            <InlineCode>closeButton=&#123;false&#125;</InlineCode> hides it.
           </li>
           <li>
             Escape behaves like the back button: a fully open sheet with a half detent returns to
@@ -111,14 +108,11 @@ export async function SheetsBody() {
           </li>
           <li>
             Side sheets, modal and standard, are dialogs named by their{' '}
-            <code className="text-on-surface">title</code> (or{' '}
-            <code className="text-on-surface">aria-label</code>). M3 requires a close button in
-            every side sheet, so one is built in (
-            <code className="text-on-surface">labels.close</code>,{' '}
-            <code className="text-on-surface">closeIcon</code>);{' '}
-            <code className="text-on-surface">onBack</code> adds a back button (
-            <code className="text-on-surface">labels.back</code>). A standard side sheet becomes{' '}
-            <code className="text-on-surface">inert</code> while closed.
+            <InlineCode>title</InlineCode> (or <InlineCode>aria-label</InlineCode>). M3 requires a
+            close button in every side sheet, so one is built in (
+            <InlineCode>labels.close</InlineCode>, <InlineCode>closeIcon</InlineCode>);{' '}
+            <InlineCode>onBack</InlineCode> adds a back button (<InlineCode>labels.back</InlineCode>
+            ). A standard side sheet becomes <InlineCode>inert</InlineCode> while closed.
           </li>
         </ul>
       </section>
@@ -128,25 +122,23 @@ export async function SheetsBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Bottom sheet values follow m3.material.io and Compose (
-            <code className="text-on-surface">ModalBottomSheet.kt</code>,{' '}
-            <code className="text-on-surface">SheetDefaults.kt</code>): up to 640px wide, a 72px top
-            margin (56px, with 56px side margins, above 640px), 28px top corners,{' '}
-            <code className="text-on-surface">surface-container-low</code> at level 1, a 32×4px
-            handle and a 32% scrim; it shows on the default spatial spring and hides on the fast
-            spatial spring. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
-            <code className="text-on-surface">BottomSheetScaffold</code> does.
+            <InlineCode>ModalBottomSheet.kt</InlineCode>, <InlineCode>SheetDefaults.kt</InlineCode>
+            ): up to 640px wide, a 72px top margin (56px, with 56px side margins, above 640px), 28px
+            top corners, <InlineCode>surface-container-low</InlineCode> at level 1, a 32×4px handle
+            and a 32% scrim; it shows on the default spatial spring and hides on the fast spatial
+            spring. A standard sheet peeks 56px by default, as Compose&apos;s{' '}
+            <InlineCode>BottomSheetScaffold</InlineCode> does.
           </li>
           <li>
             Detents follow Compose&apos;s legacy anchors — half the window when taller, else full;{' '}
-            <code className="text-on-surface">skipPartiallyExpanded</code> opens fully. Dragging and
-            settling port Compose&apos;s{' '}
-            <code className="text-on-surface">AnchoredDraggableState</code> rules.
+            <InlineCode>skipPartiallyExpanded</InlineCode> opens fully. Dragging and settling port
+            Compose&apos;s <InlineCode>AnchoredDraggableState</InlineCode> rules.
           </li>
           <li>
             Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material
             Components Android (256px wide, 16px corners on the free edge, standard sheets open a
-            grid track behind an <code className="text-on-surface">outline-variant</code> divider; a
-            72px bottom action row from <code className="text-on-surface">footer</code>).
+            grid track behind an <InlineCode>outline-variant</InlineCode> divider; a 72px bottom
+            action row from <InlineCode>footer</InlineCode>).
           </li>
           <li>
             Not in v1: dragging through nested scrolling, predictive back, and detents beyond half /

@@ -3,6 +3,7 @@ import { PickerDialogDate } from '../../examples/picker-dialog/picker-dialog-dat
 import { PickerDialogTime } from '../../examples/picker-dialog/picker-dialog-time';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Picker dialog page body. */
 export async function PickerDialogBody() {
@@ -17,27 +18,26 @@ export async function PickerDialogBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
-          <code className="text-on-surface">PickerDialog</code> is the modal form of a date or time
-          picker: it puts a <code className="text-on-surface">DatePicker</code>,{' '}
-          <code className="text-on-surface">DateRangePicker</code> or{' '}
-          <code className="text-on-surface">TimePicker</code> on a dialog surface with confirm and
-          dismiss actions. Use it when a picker should interrupt the task; render the picker inline
-          when it should sit in the layout.
+          <InlineCode>PickerDialog</InlineCode> is the modal form of a date or time picker: it puts
+          a <InlineCode>DatePicker</InlineCode>, <InlineCode>DateRangePicker</InlineCode> or{' '}
+          <InlineCode>TimePicker</InlineCode> on a dialog surface with confirm and dismiss actions.
+          Use it when a picker should interrupt the task; render the picker inline when it should
+          sit in the layout.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          It is controlled with <code className="text-on-surface">open</code> /{' '}
-          <code className="text-on-surface">onOpenChange</code> (or uncontrolled with{' '}
-          <code className="text-on-surface">defaultOpen</code>). The common pattern is to edit a
-          draft value and apply it in <code className="text-on-surface">onConfirm</code> (and the{' '}
-          <code className="text-on-surface">confirmButton</code>), so cancelling leaves the
-          committed value untouched.
+          It is controlled with <InlineCode>open</InlineCode> /{' '}
+          <InlineCode>onOpenChange</InlineCode> (or uncontrolled with{' '}
+          <InlineCode>defaultOpen</InlineCode>). The common pattern is to edit a draft value and
+          apply it in <InlineCode>onConfirm</InlineCode> (and the{' '}
+          <InlineCode>confirmButton</InlineCode>), so cancelling leaves the committed value
+          untouched.
         </p>
         <p className="text-body-large text-on-surface-variant">
           On compact windows M3 recommends a full-screen date picker:{' '}
-          <code className="text-on-surface">fullScreen=&quot;compact&quot;</code> (below 600px) or{' '}
-          <code className="text-on-surface">&quot;always&quot;</code> fills the window and puts a
-          close (x) button and a Save button, which calls{' '}
-          <code className="text-on-surface">onConfirm</code>, at the top instead of the actions.
+          <InlineCode>fullScreen=&quot;compact&quot;</InlineCode> (below 600px) or{' '}
+          <InlineCode>&quot;always&quot;</InlineCode> fills the window and puts a close (x) button
+          and a Save button, which calls <InlineCode>onConfirm</InlineCode>, at the top instead of
+          the actions.
         </p>
       </section>
 
@@ -66,24 +66,22 @@ export async function PickerDialogBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             It is a React Aria modal dialog: focus is contained while open and restored to the
-            trigger on close, and the types require an{' '}
-            <code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code> (the time variant&apos;s{' '}
-            <code className="text-on-surface">title</code> can also name it).
+            trigger on close, and the types require an <InlineCode>aria-label</InlineCode> or{' '}
+            <InlineCode>aria-labelledby</InlineCode> (the time variant&apos;s{' '}
+            <InlineCode>title</InlineCode> can also name it).
           </li>
           <li>
             Escape closes it, and a press outside closes it when{' '}
-            <code className="text-on-surface">dismissable</code> (the default). The picker inside
-            keeps its own keyboard model (calendar grid or dial). With{' '}
-            <code className="text-on-surface">onConfirm</code>, Enter on a day (or in a typed date)
-            closes the dialog and saves, as the M3 date picker keyboard table asks;{' '}
-            <code className="text-on-surface">onConfirm</code> runs once the picker&apos;s new value
-            has rendered.
+            <InlineCode>dismissable</InlineCode> (the default). The picker inside keeps its own
+            keyboard model (calendar grid or dial). With <InlineCode>onConfirm</InlineCode>, Enter
+            on a day (or in a typed date) closes the dialog and saves, as the M3 date picker
+            keyboard table asks; <InlineCode>onConfirm</InlineCode> runs once the picker&apos;s new
+            value has rendered.
           </li>
           <li>
-            Actions read in order: the <code className="text-on-surface">modeToggleButton</code> at
-            the start, then the <code className="text-on-surface">dismissButton</code> and{' '}
-            <code className="text-on-surface">confirmButton</code> at the end.
+            Actions read in order: the <InlineCode>modeToggleButton</InlineCode> at the start, then
+            the <InlineCode>dismissButton</InlineCode> and <InlineCode>confirmButton</InlineCode> at
+            the end.
           </li>
         </ul>
       </section>
@@ -92,31 +90,28 @@ export async function PickerDialogBody() {
         <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            One component covers Compose&apos;s{' '}
-            <code className="text-on-surface">DatePickerDialog</code> and{' '}
-            <code className="text-on-surface">TimePickerDialog</code> through{' '}
-            <code className="text-on-surface">variant</code>:{' '}
-            <code className="text-on-surface">date</code> holds the picker edge to edge with the
-            actions below; <code className="text-on-surface">time</code> pads the content 24px and
-            shows a <code className="text-on-surface">label-medium</code> title.
+            One component covers Compose&apos;s <InlineCode>DatePickerDialog</InlineCode> and{' '}
+            <InlineCode>TimePickerDialog</InlineCode> through <InlineCode>variant</InlineCode>:{' '}
+            <InlineCode>date</InlineCode> holds the picker edge to edge with the actions below;{' '}
+            <InlineCode>time</InlineCode> pads the content 24px and shows a{' '}
+            <InlineCode>label-medium</InlineCode> title.
           </li>
           <li>
-            The panel is <code className="text-on-surface">surface-container-high</code> with 28px
-            corners at elevation 3, on the dialog&apos;s scrim and motion. Date actions sit 8px
-            apart with 8px below and 6px from the end; the time variant puts the mode toggle at the
-            start of the actions row.
+            The panel is <InlineCode>surface-container-high</InlineCode> with 28px corners at
+            elevation 3, on the dialog&apos;s scrim and motion. Date actions sit 8px apart with 8px
+            below and 6px from the end; the time variant puts the mode toggle at the start of the
+            actions row.
           </li>
           <li>
-            Full screen follows the M3 full-screen dialog, as{' '}
-            <code className="text-on-surface">Dialog</code> does: the panel fills the window on{' '}
-            <code className="text-on-surface">surface</code> with no corners or elevation, under a
-            64px row holding the close button and Save; the range picker&apos;s month list fills the
-            height.
+            Full screen follows the M3 full-screen dialog, as <InlineCode>Dialog</InlineCode> does:
+            the panel fills the window on <InlineCode>surface</InlineCode> with no corners or
+            elevation, under a 64px row holding the close button and Save; the range picker&apos;s
+            month list fills the height.
           </li>
           <li>
-            <code className="text-on-surface">children</code> may be a function of{' '}
-            <code className="text-on-surface">{'{ close }'}</code>, so a confirm action can apply
-            its value and close in one place.
+            <InlineCode>children</InlineCode> may be a function of{' '}
+            <InlineCode>{'{ close }'}</InlineCode>, so a confirm action can apply its value and
+            close in one place.
           </li>
         </ul>
       </section>

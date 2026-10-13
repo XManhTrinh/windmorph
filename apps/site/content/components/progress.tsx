@@ -3,6 +3,7 @@ import { ProgressCircular } from '../../examples/progress/progress-circular';
 import { ProgressLinear } from '../../examples/progress/progress-linear';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Progress indicators page body. */
 export async function ProgressBody() {
@@ -21,26 +22,24 @@ export async function ProgressBody() {
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
           Progress indicators show the status of an ongoing process. Use a determinate indicator (
-          <code className="text-on-surface">value</code> 0–1) when you know how far along the work
-          is, and an indeterminate one when you do not. Both come in a flat and an M3 Expressive{' '}
-          <code className="text-on-surface">wavy</code> form.
+          <InlineCode>value</InlineCode> 0–1) when you know how far along the work is, and an
+          indeterminate one when you do not. Both come in a flat and an M3 Expressive{' '}
+          <InlineCode>wavy</InlineCode> form.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          <code className="text-on-surface">LinearProgressIndicator</code> is a horizontal track;{' '}
-          <code className="text-on-surface">CircularProgressIndicator</code> is a ring. For short
-          indeterminate waits (under 5 seconds) the{' '}
-          <code className="text-on-surface">LoadingIndicator</code> is recommended. When a
-          process&apos;s progress becomes known, give an indeterminate indicator its{' '}
-          <code className="text-on-surface">value</code>: the moving line eases into it.
+          <InlineCode>LinearProgressIndicator</InlineCode> is a horizontal track;{' '}
+          <InlineCode>CircularProgressIndicator</InlineCode> is a ring. For short indeterminate
+          waits (under 5 seconds) the <InlineCode>LoadingIndicator</InlineCode> is recommended. When
+          a process&apos;s progress becomes known, give an indeterminate indicator its{' '}
+          <InlineCode>value</InlineCode>: the moving line eases into it.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          <code className="text-on-surface">thickness</code> and{' '}
-          <code className="text-on-surface">trackThickness</code> set the strokes (4px by default);
-          8px is the spec&apos;s thick configuration, and the indicator grows to fit. Inside a
-          button, remove the track with <code className="text-on-surface">track={'{false}'}</code>{' '}
-          and colour the indicator like the label with{' '}
-          <code className="text-on-surface">classNames.indicator</code> set to{' '}
-          <code className="text-on-surface">stroke-current</code>.
+          <InlineCode>thickness</InlineCode> and <InlineCode>trackThickness</InlineCode> set the
+          strokes (4px by default); 8px is the spec&apos;s thick configuration, and the indicator
+          grows to fit. Inside a button, remove the track with{' '}
+          <InlineCode>track={'{false}'}</InlineCode> and colour the indicator like the label with{' '}
+          <InlineCode>classNames.indicator</InlineCode> set to{' '}
+          <InlineCode>stroke-current</InlineCode>.
         </p>
       </section>
 
@@ -68,20 +67,18 @@ export async function ProgressBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Both are React Aria progress bars (
-            <code className="text-on-surface">role=&quot;progressbar&quot;</code>), so the types
-            require an <code className="text-on-surface">aria-label</code> or{' '}
-            <code className="text-on-surface">aria-labelledby</code>. They are not focusable and
-            have no keyboard interaction — they report, they do not accept input.
+            Both are React Aria progress bars (<InlineCode>role=&quot;progressbar&quot;</InlineCode>
+            ), so the types require an <InlineCode>aria-label</InlineCode> or{' '}
+            <InlineCode>aria-labelledby</InlineCode>. They are not focusable and have no keyboard
+            interaction — they report, they do not accept input.
           </li>
           <li>
             A determinate indicator exposes its value; an indeterminate one announces that work is
-            in progress. The animated SVG is <code className="text-on-surface">aria-hidden</code>.
+            in progress. The animated SVG is <InlineCode>aria-hidden</InlineCode>.
           </li>
           <li>
-            Under <code className="text-on-surface">prefers-reduced-motion</code> the wave stops
-            travelling and amplitude changes snap; indeterminate motion stays, because it conveys
-            activity.
+            Under <InlineCode>prefers-reduced-motion</InlineCode> the wave stops travelling and
+            amplitude changes snap; indeterminate motion stays, because it conveys activity.
           </li>
         </ul>
       </section>
@@ -95,17 +92,17 @@ export async function ProgressBody() {
             track, which the spec shows (Compose&apos;s flat one hides it).
           </li>
           <li>
-            Shared values: a <code className="text-on-surface">primary</code> active indicator and
-            stop dot on a <code className="text-on-surface">secondary-container</code> track, with
-            4px round strokes and a 4px gap. Linear is 240px wide (4px tall, 10px wavy); circular is
-            40px (48px wavy). Thicker strokes grow the box by the extra thickness (Compose&apos;s
-            thick samples: 14px linear, 52px wavy circular at 8px).
+            Shared values: a <InlineCode>primary</InlineCode> active indicator and stop dot on a{' '}
+            <InlineCode>secondary-container</InlineCode> track, with 4px round strokes and a 4px
+            gap. Linear is 240px wide (4px tall, 10px wavy); circular is 40px (48px wavy). Thicker
+            strokes grow the box by the extra thickness (Compose&apos;s thick samples: 14px linear,
+            52px wavy circular at 8px).
           </li>
           <li>
             Linear draws Compose&apos;s wavy quadratics and keyframed indeterminate curves; a wavy
             determinate indicator flattens below 10% and above 95%. The{' '}
-            <code className="text-on-surface">stopIndicator</code> dot (on by default) shrinks once
-            progress reaches it.
+            <InlineCode>stopIndicator</InlineCode> dot (on by default) shrinks once progress reaches
+            it.
           </li>
           <li>
             Geometry and timing are pure functions tested against Compose&apos;s numbers; the first

@@ -4,8 +4,7 @@ import { TokenTable } from '../../components/token-table';
 import { CommentRowThread } from '../../examples/comment-row/comment-row-thread';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** CommentRow page body: purpose, example, behaviour, accessibility and tokens. */
 export async function CommentRowBody() {
@@ -22,7 +21,7 @@ export async function CommentRowBody() {
           comment from the next, so a list of them needs no gaps, and every place that shows
           comments looks the same. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
-          {code('@windmorph/react-pro')}.
+          <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
       </section>
 
@@ -37,25 +36,27 @@ export async function CommentRowBody() {
         <h2 className="text-headline-small text-on-surface">Behaviour</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The bubble is static, a button ({code('onPress')}, e.g. opening the conversation) or a
-            link ({code('href')}), with the state layer and focus ring when pressable.
+            The bubble is static, a button (<InlineCode>onPress</InlineCode>, e.g. opening the
+            conversation) or a link (<InlineCode>href</InlineCode>), with the state layer and focus
+            ring when pressable.
           </li>
           <li>
-            {code('variant="outlined"')} draws a dashed bubble, for a removed comment only its
-            writer sees.
+            <InlineCode>{'variant="outlined"'}</InlineCode> draws a dashed bubble, for a removed
+            comment only its writer sees.
           </li>
           <li>
-            {code('isPending')} lightens the bubble while it&apos;s being sent, keeping the words at
-            full contrast, and sets {code('aria-busy')}; say it in the actions row too
-            (&quot;Sending…&quot;).
+            <InlineCode>isPending</InlineCode> lightens the bubble while it&apos;s being sent,
+            keeping the words at full contrast, and sets <InlineCode>aria-busy</InlineCode>; say it
+            in the actions row too (&quot;Sending…&quot;).
           </li>
           <li>
-            What goes in {code('below')} keeps 4dp off the bubble; the actions row sits right under
-            it.
+            What goes in <InlineCode>below</InlineCode> keeps 4dp off the bubble; the actions row
+            sits right under it.
           </li>
           <li>
             The words, the actions and what they do are the app&apos;s: pass a{' '}
-            {code('ReactionPicker')}, Reply and a menu in {code('actions')}.
+            <InlineCode>ReactionPicker</InlineCode>, Reply and a menu in{' '}
+            <InlineCode>actions</InlineCode>.
           </li>
         </ul>
       </section>
@@ -64,8 +65,9 @@ export async function CommentRowBody() {
         <h2 className="text-headline-small text-on-surface">Keyboard &amp; screen reader</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            {code('as')} renders the root as an {code('article')} (name it with {code('aria-label')}
-            , such as &quot;Comment by Ada&quot;), an {code('li')} in a list, or a {code('div')}.
+            <InlineCode>as</InlineCode> renders the root as an <InlineCode>article</InlineCode>{' '}
+            (name it with <InlineCode>aria-label</InlineCode>, such as &quot;Comment by Ada&quot;),
+            an <InlineCode>li</InlineCode> in a list, or a <InlineCode>div</InlineCode>.
           </li>
           <li>
             A pressable bubble is a button or link named by its content; the avatar should be
@@ -78,8 +80,10 @@ export async function CommentRowBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Theming &amp; tokens</h2>
         <p className="text-body-large text-on-surface-variant">
-          Set the tokens below on a row or any ancestor. Style the parts with {code('classNames')} (
-          {code('root')}, {code('avatar')}, {code('bubble')}, {code('below')}, {code('actions')}).
+          Set the tokens below on a row or any ancestor. Style the parts with{' '}
+          <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+          <InlineCode>avatar</InlineCode>, <InlineCode>bubble</InlineCode>,{' '}
+          <InlineCode>below</InlineCode>, <InlineCode>actions</InlineCode>).
         </p>
         <TokenTable set={commentRowTokenSet} caption="Comment row tokens" />
       </section>

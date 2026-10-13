@@ -4,8 +4,7 @@ import { TokenTable } from '../../components/token-table';
 import { LoadMoreList } from '../../examples/load-more/load-more-list';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
-
-const code = (text: string) => <code className="text-on-surface">{text}</code>;
+import { InlineCode } from '../../components/inline-code';
 
 /** LoadMore page body: purpose, example, behaviour, accessibility and tokens. */
 export async function LoadMoreBody() {
@@ -21,7 +20,7 @@ export async function LoadMoreBody() {
           near, with Load more as the keyboard and screen-reader fallback, shows what the app wants
           while loading, and offers Retry when a page fails. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
-          {code('@windmorph/react-pro')}.
+          <InlineCode>@windmorph/react-pro</InlineCode>.
         </p>
       </section>
 
@@ -41,21 +40,23 @@ export async function LoadMoreBody() {
         <h2 className="text-headline-small text-on-surface">Behaviour</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            {code('status')} is the app&apos;s: {code('idle')}, {code('loading')}, {code('error')}{' '}
-            or {code('done')}.
+            <InlineCode>status</InlineCode> is the app&apos;s: <InlineCode>idle</InlineCode>,{' '}
+            <InlineCode>loading</InlineCode>, <InlineCode>error</InlineCode> or{' '}
+            <InlineCode>done</InlineCode>.
           </li>
           <li>
-            With {code('auto')} (default) it calls {code('onLoadMore')} once per idle state as the
-            end comes within {code('rootMargin')} (800px) of the viewport. A list in its own
-            scrolling box should turn {code('auto')} off, as in the example.
+            With <InlineCode>auto</InlineCode> (default) it calls{' '}
+            <InlineCode>onLoadMore</InlineCode> once per idle state as the end comes within{' '}
+            <InlineCode>rootMargin</InlineCode> (800px) of the viewport. A list in its own scrolling
+            box should turn <InlineCode>auto</InlineCode> off, as in the example.
           </li>
           <li>
             It never retries by itself after a failure, so a failing page isn&apos;t requested in a
             loop.
           </li>
           <li>
-            {code('loading')} replaces the default loading indicator (e.g. a skeleton of one item);{' '}
-            {code('end')} shows once everything is loaded.
+            <InlineCode>loading</InlineCode> replaces the default loading indicator (e.g. a skeleton
+            of one item); <InlineCode>end</InlineCode> shows once everything is loaded.
           </li>
         </ul>
       </section>
@@ -65,17 +66,20 @@ export async function LoadMoreBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Load more and Retry are buttons; the failure&apos;s message is announced politely (
-            {code('role="status"')}).
+            <InlineCode>{'role="status"'}</InlineCode>).
           </li>
-          <li>Every word comes from {code('labels')}.</li>
+          <li>
+            Every word comes from <InlineCode>labels</InlineCode>.
+          </li>
         </ul>
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Theming &amp; tokens</h2>
         <p className="text-body-large text-on-surface-variant">
-          Set the tokens below on it or any ancestor. Style the parts with {code('classNames')} (
-          {code('root')}, {code('button')}, {code('error')}).
+          Set the tokens below on it or any ancestor. Style the parts with{' '}
+          <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+          <InlineCode>button</InlineCode>, <InlineCode>error</InlineCode>).
         </p>
         <TokenTable set={loadMoreTokenSet} caption="Load more tokens" />
       </section>

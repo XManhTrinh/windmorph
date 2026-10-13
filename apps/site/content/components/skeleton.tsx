@@ -3,6 +3,7 @@ import { SkeletonAnimations } from '../../examples/skeleton/skeleton-animations'
 import { SkeletonCards } from '../../examples/skeleton/skeleton-cards';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
 
 /** Skeleton page body: when to use it, examples, accessibility and theming. */
 export async function SkeletonBody() {
@@ -23,8 +24,8 @@ export async function SkeletonBody() {
           A skeleton holds the place of content that is loading, in the shape of that content, so
           the page keeps its layout and people can see what is coming. It is{' '}
           <strong className="text-on-surface">not an M3 component</strong>: it comes from{' '}
-          <code className="text-on-surface">@windmorph/react-pro</code> and is built to M3&apos;s
-          colour roles, shape scale, type scale and motion tokens.
+          <InlineCode>@windmorph/react-pro</InlineCode> and is built to M3&apos;s colour roles,
+          shape scale, type scale and motion tokens.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Use a skeleton when the layout of the coming content is known (cards, list rows, text).
@@ -64,9 +65,9 @@ export async function SkeletonBody() {
             Placeholders are hidden from assistive technology; nothing in a skeleton is focusable.
           </li>
           <li>
-            <code className="text-on-surface">SkeletonGroup</code> requires a{' '}
-            <code className="text-on-surface">label</code>, read once as status text, and marks the
-            region <code className="text-on-surface">aria-busy</code> until the content replaces it.
+            <InlineCode>SkeletonGroup</InlineCode> requires a <InlineCode>label</InlineCode>, read
+            once as status text, and marks the region <InlineCode>aria-busy</InlineCode> until the
+            content replaces it.
           </li>
           <li>
             Both animations stop under reduced motion. In forced-colours mode each placeholder keeps
@@ -79,17 +80,17 @@ export async function SkeletonBody() {
         <h2 className="text-headline-small text-on-surface">Theming</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            The fill is <code className="text-on-surface">surface-container-highest</code> (or{' '}
-            <code className="text-on-surface">surface-container-high</code> with{' '}
-            <code className="text-on-surface">tone=&quot;high&quot;</code>), so it follows every
-            theme, mode and contrast level.
+            The fill is <InlineCode>surface-container-highest</InlineCode> (or{' '}
+            <InlineCode>surface-container-high</InlineCode> with{' '}
+            <InlineCode>tone=&quot;high&quot;</InlineCode>), so it follows every theme, mode and
+            contrast level.
           </li>
           <li>
             Corners come from the shape scale; text lines take the line height of a type-scale role.
           </li>
           <li>
-            The shimmer highlight is <code className="text-on-surface">on-surface</code> at the
-            hover state-layer opacity, and both animations use the M3 duration and easing tokens.
+            The shimmer highlight is <InlineCode>on-surface</InlineCode> at the hover state-layer
+            opacity, and both animations use the M3 duration and easing tokens.
           </li>
         </ul>
       </section>

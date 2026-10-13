@@ -4,6 +4,7 @@ import { SpringDemo } from '../../../examples/motion/spring-demo';
 import { readExampleSource } from '../../../lib/example-source';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/motion');
 
@@ -72,7 +73,7 @@ export default async function MotionPage() {
         <p className="text-body-large text-on-surface-variant">
           M3 Expressive motion uses springs instead of duration-and-easing pairs. Two schemes, two
           spring families and three speeds cover every component, and they follow the active{' '}
-          <code className="text-on-surface">data-motion</code> setting automatically.
+          <InlineCode>data-motion</InlineCode> setting automatically.
         </p>
       </header>
 
@@ -81,8 +82,7 @@ export default async function MotionPage() {
         <p className="text-body-large text-on-surface-variant">
           The box below springs with the fast spatial spring. In the expressive scheme it
           overshoots; switch the top-bar motion toggle to standard (or enable{' '}
-          <code className="text-on-surface">prefers-reduced-motion</code>) and the overshoot
-          disappears.
+          <InlineCode>prefers-reduced-motion</InlineCode>) and the overshoot disappears.
         </p>
         <SpringDemo family="spatial" speed="fast" />
         <CodeBlock code={demoSource} html={demoHtml} lang="tsx" title="spring-demo.tsx" />
@@ -92,24 +92,19 @@ export default async function MotionPage() {
         <h2 className="text-headline-small text-on-surface">Schemes, families &amp; speeds</h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
-            <span className="text-on-surface">Schemes</span> —{' '}
-            <code className="text-on-surface">expressive</code> (visible overshoot, the default) and{' '}
-            <code className="text-on-surface">standard</code> (restrained). Set via{' '}
-            <code className="text-on-surface">data-motion</code>,{' '}
-            <code className="text-on-surface">ThemeProvider</code> or{' '}
-            <code className="text-on-surface">ThemeScope</code>.
+            <span className="text-on-surface">Schemes</span> — <InlineCode>expressive</InlineCode>{' '}
+            (visible overshoot, the default) and <InlineCode>standard</InlineCode> (restrained). Set
+            via <InlineCode>data-motion</InlineCode>, <InlineCode>ThemeProvider</InlineCode> or{' '}
+            <InlineCode>ThemeScope</InlineCode>.
           </li>
           <li>
-            <span className="text-on-surface">Families</span> —{' '}
-            <code className="text-on-surface">spatial</code> (position, size, shape — may overshoot)
-            and <code className="text-on-surface">effects</code> (colour, opacity — never overshoot,
-            critically damped).
+            <span className="text-on-surface">Families</span> — <InlineCode>spatial</InlineCode>{' '}
+            (position, size, shape — may overshoot) and <InlineCode>effects</InlineCode> (colour,
+            opacity — never overshoot, critically damped).
           </li>
           <li>
-            <span className="text-on-surface">Speeds</span> —{' '}
-            <code className="text-on-surface">fast</code>,{' '}
-            <code className="text-on-surface">default</code> and{' '}
-            <code className="text-on-surface">slow</code>.
+            <span className="text-on-surface">Speeds</span> — <InlineCode>fast</InlineCode>,{' '}
+            <InlineCode>default</InlineCode> and <InlineCode>slow</InlineCode>.
           </li>
         </ul>
       </section>
@@ -118,7 +113,7 @@ export default async function MotionPage() {
         <h2 className="text-headline-small text-on-surface">Spring tokens</h2>
         <p className="text-body-large text-on-surface-variant">
           Compose springs, given as damping ratio / stiffness (mass 1). Motion’s damping coefficient
-          is derived as <code className="text-on-surface">2 · dampingRatio · √stiffness</code>.
+          is derived as <InlineCode>2 · dampingRatio · √stiffness</InlineCode>.
         </p>
         <table className="w-full border-collapse text-body-medium">
           <thead>
@@ -172,19 +167,17 @@ export default async function MotionPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Using springs</h2>
         <p className="text-body-large text-on-surface-variant">
-          In JS, <code className="text-on-surface">useM3Spring(family, speed)</code> returns a
-          Motion spring for the active scheme (read from{' '}
-          <code className="text-on-surface">useThemeScope</code>);{' '}
-          <code className="text-on-surface">getM3Spring(scheme, family, speed)</code> takes an
-          explicit scheme. Speed defaults to <code className="text-on-surface">default</code>.
+          In JS, <InlineCode>useM3Spring(family, speed)</InlineCode> returns a Motion spring for the
+          active scheme (read from <InlineCode>useThemeScope</InlineCode>);{' '}
+          <InlineCode>getM3Spring(scheme, family, speed)</InlineCode> takes an explicit scheme.
+          Speed defaults to <InlineCode>default</InlineCode>.
         </p>
         <CodeBlock code={HOOK_SNIPPET} html={hookHtml} lang="tsx" title="useM3Spring" />
         <p className="text-body-large text-on-surface-variant">
-          In CSS, the <code className="text-on-surface">--md-sys-motion-spring-*</code> variables
-          and the generated{' '}
-          <code className="text-on-surface">ease-m3-&lt;family&gt;-&lt;speed&gt;</code> /{' '}
-          <code className="text-on-surface">duration-m3-&lt;family&gt;-&lt;speed&gt;</code>{' '}
-          utilities switch with <code className="text-on-surface">data-motion</code>.
+          In CSS, the <InlineCode>--md-sys-motion-spring-*</InlineCode> variables and the generated{' '}
+          <InlineCode>ease-m3-&lt;family&gt;-&lt;speed&gt;</InlineCode> /{' '}
+          <InlineCode>duration-m3-&lt;family&gt;-&lt;speed&gt;</InlineCode> utilities switch with{' '}
+          <InlineCode>data-motion</InlineCode>.
         </p>
         <CodeBlock code={CSS_SNIPPET} html={cssHtml} lang="tsx" title="motion utilities" />
       </section>
@@ -192,12 +185,10 @@ export default async function MotionPage() {
       <section className="flex flex-col gap-4">
         <h2 className="text-headline-small text-on-surface">Reduced motion</h2>
         <p className="text-body-large text-on-surface-variant">
-          <code className="text-on-surface">useM3Spring</code> forces the{' '}
-          <code className="text-on-surface">standard</code> scheme when{' '}
-          <code className="text-on-surface">prefers-reduced-motion</code> is set (via Motion’s{' '}
-          <code className="text-on-surface">useReducedMotion</code>), so it never visibly
-          overshoots. Morphs and overshoot are removed; indeterminate motion that conveys activity
-          stays.
+          <InlineCode>useM3Spring</InlineCode> forces the <InlineCode>standard</InlineCode> scheme
+          when <InlineCode>prefers-reduced-motion</InlineCode> is set (via Motion’s{' '}
+          <InlineCode>useReducedMotion</InlineCode>), so it never visibly overshoots. Morphs and
+          overshoot are removed; indeterminate motion that conveys activity stays.
         </p>
       </section>
 
@@ -205,9 +196,8 @@ export default async function MotionPage() {
         <h2 className="text-headline-small text-on-surface">Legacy tokens</h2>
         <p className="text-body-large text-on-surface-variant">
           For consumers migrating from baseline M3, legacy durations (
-          <code className="text-on-surface">short-1</code> = 50ms …{' '}
-          <code className="text-on-surface">extra-long-4</code> = 1000ms, in 50ms steps) and the
-          legacy easing curves are kept:
+          <InlineCode>short-1</InlineCode> = 50ms … <InlineCode>extra-long-4</InlineCode> = 1000ms,
+          in 50ms steps) and the legacy easing curves are kept:
         </p>
         <table className="w-full border-collapse text-body-medium">
           <thead>
@@ -224,10 +214,10 @@ export default async function MotionPage() {
             {LEGACY_EASINGS.map(([name, curve]) => (
               <tr key={name}>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
-                  <code className="text-on-surface">{name}</code>
+                  <InlineCode>{name}</InlineCode>
                 </td>
                 <td className="border-b border-outline-variant p-2 text-on-surface-variant">
-                  <code className="text-on-surface">{curve}</code>
+                  <InlineCode>{curve}</InlineCode>
                 </td>
               </tr>
             ))}
