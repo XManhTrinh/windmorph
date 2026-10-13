@@ -7,7 +7,6 @@
 export const MIN_SMALL_ITEM_SIZE = 40;
 export const MAX_SMALL_ITEM_SIZE = 56;
 const ANCHOR_SIZE = 10;
-const MEDIUM_LARGE_ITEM_DIFF_THRESHOLD = 0.85;
 const MEDIUM_ITEM_FLEX_PERCENTAGE = 0.1;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -403,36 +402,6 @@ export function multiBrowseKeylineList(
   }
   if (!arrangement) return [];
   return leftAligned(carouselMainAxisSize, itemSpacing, ANCHOR_SIZE, ANCHOR_SIZE, arrangement);
-}
-
-/** Compose's `uncontainedKeylineList`: fixed-size items, the last one cut off. */
-export function uncontainedKeylineList(
-  carouselMainAxisSize: number,
-  itemSize: number,
-  itemSpacing: number,
-): KeylineList {
-  if (carouselMainAxisSize === 0 || itemSize === 0) return [];
-  const largeItemSize = Math.min(itemSize + itemSpacing, carouselMainAxisSize);
-  const largeCount = Math.max(1, Math.floor(carouselMainAxisSize / largeItemSize));
-  const remainingSpace = carouselMainAxisSize - largeCount * largeItemSize;
-  const mediumCount = remainingSpace > 0 ? 1 : 0;
-  let mediumItemSize = Math.max(remainingSpace * 1.5, ANCHOR_SIZE);
-  const largeItemThreshold = largeItemSize * MEDIUM_LARGE_ITEM_DIFF_THRESHOLD;
-  if (mediumItemSize > largeItemThreshold) {
-    mediumItemSize = Math.min(Math.max(largeItemThreshold, remainingSpace * 1.2), largeItemSize);
-  }
-  const arrangement: Arrangement = {
-    priority: 0,
-    smallSize: 0,
-    smallCount: 0,
-    mediumSize: mediumItemSize,
-    mediumCount,
-    largeSize: largeItemSize,
-    largeCount,
-  };
-  const xSmallSize = Math.min(ANCHOR_SIZE, itemSize);
-  const leftAnchorSize = Math.max(xSmallSize, mediumItemSize * 0.5);
-  return leftAligned(carouselMainAxisSize, itemSpacing, leftAnchorSize, ANCHOR_SIZE, arrangement);
 }
 
 /** Compose's `heroKeylineList`: one (or more) large items with small ones beside them. */

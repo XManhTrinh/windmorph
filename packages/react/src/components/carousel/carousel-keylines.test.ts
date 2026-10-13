@@ -8,7 +8,6 @@ import {
   multiBrowseKeylineList,
   placeItem,
   snapPositionOffset,
-  uncontainedKeylineList,
   type KeylineList,
 } from './carousel-keylines';
 
@@ -31,11 +30,6 @@ describe('carousel keylines (Compose Keylines.kt / Strategy.kt)', () => {
     const list = multiBrowseKeylineList(360, 186, 8, 2);
     expect(sizes(list)).not.toContain(40);
     expect(list.every((k) => k.isAnchor || k.size > 56)).toBe(true);
-  });
-
-  it('fits uncontained items with a cut-off medium item', () => {
-    // 360 / (240 + 8): one 248px item; 112px left gives a 168px medium (1.5 × the rest).
-    expect(sizes(uncontainedKeylineList(360, 240, 8))).toEqual([84, 248, 168, 10]);
   });
 
   it('centres a hero item between small items', () => {
@@ -81,16 +75,5 @@ describe('carousel keylines (Compose Keylines.kt / Strategy.kt)', () => {
     // In the middle the keylines use the whole width again.
     const middle = keylinesForScrollOffset(strategy, max / 2, max);
     expect(sizes(middle)).toEqual([10, 186, 118, 40, 10]);
-  });
-
-  it('shifts an uncontained carousel by its leading padding only', () => {
-    const strategy = createStrategy(uncontainedKeylineList(360, 240, 8), 360, 8, 16, 0);
-    const start = keylinesForScrollOffset(strategy, 0, maxScrollOffset(strategy, 6));
-    const first = start.find((k) => k.isFocal)!;
-    expect(first.offset - first.size / 2).toBeCloseTo(16);
-    const max = maxScrollOffset(strategy, 6);
-    const end = keylinesForScrollOffset(strategy, max, max);
-    const last = end.filter((k) => k.isFocal).pop()!;
-    expect(last.offset + last.size / 2).toBeCloseTo(360);
   });
 });

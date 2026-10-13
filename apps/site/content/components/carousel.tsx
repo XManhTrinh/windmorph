@@ -85,11 +85,11 @@ export async function CarouselBody(): Promise<ComponentDoc> {
           </p>
           <p className="text-body-large text-on-surface-variant">
             The <InlineCode>variant</InlineCode> is <InlineCode>multi-browse</InlineCode> (large,
-            medium and small items), <InlineCode>uncontained</InlineCode> (fixed-size items, the
-            last cut off), <InlineCode>multi-aspect</InlineCode> (uncontained, with items of their
-            own widths from 9:16 to 16:9), <InlineCode>hero</InlineCode> (one large item with small
-            ones beside it) or <InlineCode>full-screen</InlineCode> (one edge-to-edge item at a
-            time, vertical by default). Give the carousel its cross-axis size with{' '}
+            medium and small items), <InlineCode>uncontained</InlineCode> (items of one size that
+            flow past the end edge), <InlineCode>multi-aspect</InlineCode> (uncontained, with items
+            of their own widths from 9:16 to 16:9), <InlineCode>hero</InlineCode> (one large item
+            with small ones beside it) or <InlineCode>full-screen</InlineCode> (one edge-to-edge
+            item at a time, vertical by default). Give the carousel its cross-axis size with{' '}
             <InlineCode>className</InlineCode>.
           </p>
           <p className="text-body-large text-on-surface-variant">
@@ -148,7 +148,9 @@ export async function CarouselBody(): Promise<ComponentDoc> {
             <li>
               The keylines are a TypeScript port of Compose&apos;s <InlineCode>carousel</InlineCode>{' '}
               package; with 360px, a 186px preferred size and 8px spacing that gives 186 · 118 · 40,
-              mirrored at the end, as Compose does.
+              mirrored at the end, as Compose does. Uncontained items don&apos;t follow keylines: as
+              the spec says, they keep one size and flow past the edge, where Compose shrinks and
+              crops them.
             </li>
             <li>
               Compose drives a pager; here the carousel scrolls natively and a library-owned mask
@@ -167,9 +169,10 @@ export async function CarouselBody(): Promise<ComponentDoc> {
               and end padding.
             </li>
             <li>
-              Items are masked with 28px (extra-large) corners, tightening to 20px while pressed,
-              and spacing defaults to 8px (16px full-screen). Deviations: no parallax helper, and
-              before hydration items render unmasked at the preferred size.
+              Items are masked with 28px (extra-large) corners, tightening to 20px while pressed
+              (full-screen items have none), on a <InlineCode>surface</InlineCode> fill, and spacing
+              defaults to 8px (16px full-screen). Deviations: no parallax helper, and before
+              hydration items render unmasked at the preferred size.
             </li>
           </ul>
         </section>
