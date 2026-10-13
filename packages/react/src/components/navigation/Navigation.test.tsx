@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { animate } from 'motion/react';
+import { animate, useReducedMotion } from 'motion/react';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Badge } from '../badge/Badge';
 import { NavigationBar, NavigationBarItem } from './NavigationBar';
@@ -11,6 +11,7 @@ import { NavigationRail, NavigationRailItem, type NavigationRailProps } from './
 vi.mock('motion/react', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   animate: vi.fn(),
+  useReducedMotion: vi.fn(() => false),
 }));
 
 const Icon = ({ id }: { id: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
@@ -383,6 +384,131 @@ describe('NavigationRail', () => {
     expect(() =>
       render(<NavigationRailItem icon={<Icon id="x" />}>Lost</NavigationRailItem>),
     ).toThrow(/inside a NavigationRail/);
+  });
+});
+
+describe('NavigationRail indicatorMotion="slide"', () => {
+  /** jsdom has no layout: each item's pill sits 56px below the one before. */
+  function layOut(boxes: Record<string, { top: number; width: number }>) {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const box = boxes[this.closest('a, button')?.textContent ?? ''] ?? { top: 0, width: 0 };
+      return DOMRect.fromRect({ x: 0, y: box.top, width: box.width, height: 56 });
+    });
+  }
+
+  function SlideRail({
+    names = ['Inbox', 'Sent'],
+    ...props
+  }: Partial<NavigationRailProps> & { names?: string[] }) {
+    const [current, setCurrent] = useState(names[0]);
+    return (
+      <NavigationRail aria-label="Main" indicatorMotion="slide" {...(props as object)}>
+        {names.map((name) => (
+          <NavigationRailItem
+            key={name}
+            icon={<Icon id={name} />}
+            selected={current === name}
+            onPress={() => setCurrent(name)}
+          >
+            {name}
+          </NavigationRailItem>
+        ))}
+      </NavigationRail>
+    );
+  }
+
+  const pillOf = (item: HTMLElement) =>
+    item.querySelector<HTMLElement>('[class*="bg-secondary-container"]')!;
+
+  afterEach(() => {
+    vi.mocked(animate).mockReset();
+    vi.mocked(useReducedMotion).mockReturnValue(false);
+    vi.restoreAllMocks();
+  });
+
+  it('slides the expanded pill from the previous current item on the fast spatial spring', async () => {
+    layOut({ Inbox: { top: 0, width: 110 }, Sent: { top: 56, width: 110 } });
+    const { container } = render(<SlideRail expanded />);
+    // Nothing slides on the first render.
+    expect(animate).not.toHaveBeenCalled();
+    const sent = screen.getByRole('button', { name: 'Sent' });
+    const pill = pillOf(sent);
+    // Whole while current, with no clip or fade to run: Motion moves it.
+    expect(pill).toHaveClass(
+      'group-data-current/nav:[clip-path:inset(0_0_round_9999px)]',
+      '[transition-property:none]',
+    );
+    expect(pill).not.toHaveClass('[transition-property:clip-path,opacity]');
+    await userEvent.click(sent);
+    // Sent's pill starts at Inbox's, 56px up, and springs home; the old pill goes at once.
+    expect(animate).toHaveBeenCalledExactlyOnceWith(
+      pill,
+      { y: [-56, 0] },
+      expect.objectContaining({ type: 'spring' }),
+    );
+    expect(pill.style.transform).toBe('translateY(-56px)');
+    expect(pillOf(screen.getByRole('button', { name: 'Inbox' }))).toHaveClass(
+      '[transition-property:none]',
+    );
+    // Labels and icons sit above every pill in the isolated list.
+    expect(sent.querySelector('.z-\\[1\\]')).not.toBeNull();
+    expect(screen.getByRole('navigation').querySelector('.isolate')).not.toBeNull();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('changes the pill’s width on the way between labels of different lengths', async () => {
+    layOut({ Inbox: { top: 0, width: 110 }, 'Sent mail': { top: 56, width: 140 } });
+    vi.mocked(animate).mockReturnValue(Promise.resolve() as unknown as ReturnType<typeof animate>);
+    render(<SlideRail expanded names={['Inbox', 'Sent mail']} />);
+    const sent = screen.getByRole('button', { name: 'Sent mail' });
+    const pill = pillOf(sent);
+    await userEvent.click(sent);
+    expect(animate).toHaveBeenCalledExactlyOnceWith(
+      pill,
+      { y: [-56, 0], width: [110, 140] },
+      expect.objectContaining({ type: 'spring' }),
+    );
+    // Once settled, the pill sizes itself to its content again.
+    await waitFor(() => expect(pill.style.width).toBe(''));
+  });
+
+  it('slides in the modal expanded rail too', async () => {
+    layOut({ Inbox: { top: 0, width: 110 }, Sent: { top: 56, width: 110 } });
+    render(<SlideRail modal expanded />);
+    const sheet = screen.getByRole('dialog');
+    const sent = within(sheet).getByRole('button', { name: 'Sent' });
+    await userEvent.click(sent);
+    expect(animate).toHaveBeenCalledExactlyOnceWith(
+      pillOf(sent),
+      { y: [-56, 0] },
+      expect.objectContaining({ type: 'spring' }),
+    );
+  });
+
+  it('keeps the centre expand in the collapsed rail', async () => {
+    render(<SlideRail />);
+    const sent = screen.getByRole('button', { name: 'Sent' });
+    expect(pillOf(sent)).toHaveClass(
+      '[clip-path:inset(0_50%_round_9999px)]',
+      '[transition-property:clip-path,opacity]',
+    );
+    expect(screen.getByRole('navigation').querySelector('.isolate')).toBeNull();
+    await userEvent.click(sent);
+    expect(animate).not.toHaveBeenCalled();
+  });
+
+  it('fades the pill in place under reduced motion', async () => {
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+    layOut({ Inbox: { top: 0, width: 110 }, Sent: { top: 56, width: 110 } });
+    render(<SlideRail expanded />);
+    const sent = screen.getByRole('button', { name: 'Sent' });
+    expect(pillOf(sent)).toHaveClass('motion-reduce:[transition-property:opacity]');
+    await userEvent.click(sent);
+    expect(sent).toHaveAttribute('data-current', 'true');
+    expect(animate).not.toHaveBeenCalled();
+    expect(pillOf(sent).style.transform).toBe('');
   });
 });
 

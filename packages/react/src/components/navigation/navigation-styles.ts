@@ -91,6 +91,14 @@ export const navigationRailStyles = tv({
       true: { root: 'border-e border-outline-variant' },
       false: {},
     },
+    /**
+     * `indicatorMotion="slide"` in the expanded rail: the list is isolated, so the items'
+     * raised content stays above a sliding pill and no higher.
+     */
+    slidingIndicator: {
+      true: { items: 'isolate' },
+      false: {},
+    },
     /** Modal sheet entry: from the collapsed width, or sliding in from the start edge. */
     sheetEntry: {
       grow: {
@@ -102,7 +110,13 @@ export const navigationRailStyles = tv({
       },
     },
   },
-  defaultVariants: { expanded: false, sheetEntry: 'grow', itemAlignment: 'top', divider: false },
+  defaultVariants: {
+    expanded: false,
+    sheetEntry: 'grow',
+    itemAlignment: 'top',
+    divider: false,
+    slidingIndicator: false,
+  },
 });
 
 /** Variant definitions for {@link NavigationBar}; extend them to add variants. */

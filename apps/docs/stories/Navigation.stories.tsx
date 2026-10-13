@@ -36,6 +36,7 @@ interface Args {
   defaultExpanded: boolean;
   itemAlignment: 'top' | 'center';
   divider: boolean;
+  indicatorMotion: 'expand' | 'slide';
 }
 
 const meta = {
@@ -46,14 +47,25 @@ const meta = {
     defaultExpanded: false,
     itemAlignment: 'top',
     divider: false,
+    indicatorMotion: 'expand',
   },
-  argTypes: { itemAlignment: { control: 'inline-radio', options: ['top', 'center'] } },
+  argTypes: {
+    itemAlignment: { control: 'inline-radio', options: ['top', 'center'] },
+    indicatorMotion: { control: 'inline-radio', options: ['expand', 'slide'] },
+  },
 } satisfies Meta<Args>;
 
 export default meta;
 type Story = StoryObj<Args>;
 
-function RailDemo({ modal, hideOnCollapse, defaultExpanded, itemAlignment, divider }: Args) {
+function RailDemo({
+  modal,
+  hideOnCollapse,
+  defaultExpanded,
+  itemAlignment,
+  divider,
+  indicatorMotion,
+}: Args) {
   const [current, setCurrent] = useState('home');
   const [expanded, setExpanded] = useState(defaultExpanded);
   return (
@@ -65,6 +77,7 @@ function RailDemo({ modal, hideOnCollapse, defaultExpanded, itemAlignment, divid
         hideOnCollapse={hideOnCollapse}
         itemAlignment={itemAlignment}
         divider={divider}
+        indicatorMotion={indicatorMotion}
         expanded={expanded}
         onExpandedChange={setExpanded}
         header={({ expanded: open, toggle }) => (
@@ -111,6 +124,16 @@ export const Rail: Story = { render: (args) => <RailDemo {...args} /> };
 
 /** The modal expanded rail: opens over the page with a scrim. */
 export const ModalRail: Story = { args: { modal: true }, render: (args) => <RailDemo {...args} /> };
+
+/**
+ * `indicatorMotion="slide"`: in the expanded rail the pill slides from the previous item to
+ * the chosen one, as in Google's Expressive showcase (an extension beyond the M3 spec, which
+ * expands it from the centre of the icon). Collapsed, it still expands in place.
+ */
+export const SlidingRail: Story = {
+  args: { defaultExpanded: true, indicatorMotion: 'slide' },
+  render: (args) => <RailDemo {...args} />,
+};
 
 /** Items centred as a group (M3's tablet layout), with a divider on the content edge. */
 export const CenteredRail: Story = {

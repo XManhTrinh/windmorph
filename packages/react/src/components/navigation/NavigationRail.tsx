@@ -45,6 +45,8 @@ function expandedChrome(el: HTMLElement) {
 interface RailContextValue {
   layout: NavItemLayout;
   enterLabel: boolean;
+  /** The expanded list's last current pill, which the next current item's pill slides from. */
+  lastIndicatorRef?: RefObject<HTMLElement | null>;
   /** The modal rail collapses after an item is chosen. */
   onNavigate?: () => void;
 }
@@ -86,6 +88,15 @@ interface NavigationRailOwnProps {
   itemAlignment?: 'top' | 'center';
   /** Draw a divider on the edge next to the content. @default false */
   divider?: boolean;
+  /**
+   * How the current item's pill moves to a newly chosen item. `expand` (M3: "the active
+   * indicator expands from the center of the icon") grows it in place. `slide` moves it from
+   * the previously chosen item on the fast spatial spring while the rail is expanded (in
+   * place or modal), as in Google's Expressive showcase; an extension beyond the M3 spec.
+   * The collapsed rail always expands, and reduced motion fades the pill in place.
+   * @default "expand"
+   */
+  indicatorMotion?: 'expand' | 'slide';
   /** `NavigationRailItem` elements. */
   children: ReactNode;
   classNames?: NavigationRailClassNames;
@@ -153,6 +164,7 @@ export function NavigationRail({
   header,
   itemAlignment = 'top',
   divider = false,
+  indicatorMotion = 'expand',
   children,
   classNames,
   className,
@@ -163,6 +175,8 @@ export function NavigationRail({
   const toggle = () => setExpanded(!isExpanded);
   const inlineExpanded = isExpanded && !modal;
   const rootRef = useRef<HTMLElement>(null);
+  const lastIndicatorRef = useRef<HTMLElement>(null);
+  const slide = indicatorMotion === 'slide';
   const width = useExpandedWidth(rootRef, inlineExpanded, children);
   // Labels fade in at their new place once the rail has changed mode (not on first render).
   const [mode, setMode] = useState(inlineExpanded);
@@ -172,7 +186,12 @@ export function NavigationRail({
     setModeChanged(true);
   }
 
-  const styles = navigationRailStyles({ expanded: inlineExpanded, itemAlignment, divider });
+  const styles = navigationRailStyles({
+    expanded: inlineExpanded,
+    itemAlignment,
+    divider,
+    slidingIndicator: slide && inlineExpanded,
+  });
   const headerContent =
     typeof header === 'function' ? header({ expanded: isExpanded, toggle }) : header;
   const showInline = !(modal && hideOnCollapse);
@@ -207,6 +226,7 @@ export function NavigationRail({
                 value={{
                   layout: inlineExpanded ? 'rail-start' : 'rail-top',
                   enterLabel: modeChanged,
+                  ...(slide && inlineExpanded && { lastIndicatorRef }),
                 }}
               >
                 {children}
@@ -223,6 +243,7 @@ export function NavigationRail({
           naming={rest as Naming}
           slide={hideOnCollapse}
           itemAlignment={itemAlignment}
+          slidingIndicator={slide}
           railRef={rootRef}
           classNames={classNames}
         >
@@ -240,6 +261,7 @@ function ModalRail({
   naming,
   slide,
   itemAlignment,
+  slidingIndicator,
   railRef,
   classNames,
   children,
@@ -250,6 +272,8 @@ function ModalRail({
   naming: Naming;
   slide: boolean;
   itemAlignment: 'top' | 'center';
+  /** `indicatorMotion="slide"`: the pill slides between items. */
+  slidingIndicator: boolean;
   railRef: RefObject<HTMLElement | null>;
   classNames?: NavigationRailClassNames;
   children: ReactNode;
@@ -272,6 +296,7 @@ function ModalRail({
         naming={naming}
         slide={slide}
         itemAlignment={itemAlignment}
+        slidingIndicator={slidingIndicator}
         railRef={railRef}
         classNames={classNames}
       >
@@ -289,6 +314,7 @@ function ModalSheet({
   naming,
   slide,
   itemAlignment,
+  slidingIndicator,
   railRef,
   classNames,
   children,
@@ -300,11 +326,14 @@ function ModalSheet({
   naming: Naming;
   slide: boolean;
   itemAlignment: 'top' | 'center';
+  /** `indicatorMotion="slide"`: the pill slides between items. */
+  slidingIndicator: boolean;
   railRef: RefObject<HTMLElement | null>;
   classNames?: NavigationRailClassNames;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const lastIndicatorRef = useRef<HTMLElement>(null);
   const { modalProps, underlayProps } = useModalOverlay({ isDismissable: !isExiting }, state, ref);
   const { dialogProps } = useDialog(naming, ref);
   // The sheet is portalled out of the rail, so it can't inherit a collapsed width set on the
@@ -328,6 +357,7 @@ function ModalSheet({
     expanded: true,
     sheetEntry: slide ? 'slide' : 'grow',
     itemAlignment,
+    slidingIndicator,
   });
   const exiting = isExiting || undefined;
   return (
@@ -358,7 +388,14 @@ function ModalSheet({
           onKeyDown={onItemArrowKeys('vertical')}
           className={styles.items({ class: classNames?.items })}
         >
-          <RailContext value={{ layout: 'rail-start', enterLabel: false, onNavigate: state.close }}>
+          <RailContext
+            value={{
+              layout: 'rail-start',
+              enterLabel: false,
+              ...(slidingIndicator && { lastIndicatorRef }),
+              onNavigate: state.close,
+            }}
+          >
             {children}
           </RailContext>
         </nav>
@@ -378,6 +415,7 @@ export function NavigationRailItem({ onPress, ...props }: NavigationRailItemProp
       {...(props as NavItemProps)}
       layout={rail.layout}
       enterLabel={rail.enterLabel}
+      {...(rail.lastIndicatorRef && { lastIndicatorRef: rail.lastIndicatorRef })}
       onPress={(event) => {
         onPress?.(event);
         rail.onNavigate?.();

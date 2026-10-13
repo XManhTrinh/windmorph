@@ -1,10 +1,37 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
 const width = (locator: Locator) =>
   locator.evaluate((el) => Math.round(el.getBoundingClientRect().width));
+
+/** An item's pill (the indicator: the first layer in its pill area). */
+const indicator = (item: Locator) => item.locator(':scope > span > span').first();
+
+type Box = { x: number; y: number; width: number };
+
+/**
+ * Records `target`'s box every frame from just before `act` until it has been still for a
+ * while (or 1.5s), so a test can see where it was mid-transition.
+ */
+async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>) {
+  const handle = await target.elementHandle();
+  await page.evaluate((el) => {
+    const samples: Box[] = [];
+    (window as unknown as { __samples: Box[] }).__samples = samples;
+    const start = performance.now();
+    const tick = () => {
+      const { x, y, width } = el!.getBoundingClientRect();
+      samples.push({ x, y, width });
+      if (performance.now() - start < 1500) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, handle);
+  await act();
+  await page.waitForTimeout(1600);
+  return page.evaluate(() => (window as unknown as { __samples: Box[] }).__samples);
+}
 
 test.describe('Navigation visual regression', () => {
   for (const theme of THEMES) {
@@ -86,6 +113,73 @@ test.describe('NavigationRail behaviour', () => {
     expect(await pill.evaluate((el) => getComputedStyle(el).clipPath)).toContain('28px');
     await starred.click();
     await expect.poll(() => pill.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`indicatorMotion="slide" slides the expanded pill to the chosen item · ${dir}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-navigation--sliding-rail', { dir });
+      const home = page.getByRole('button', { name: 'Home' });
+      const sent = page.getByRole('button', { name: 'Sent mail' });
+      await expect(page.getByTestId('rail')).toHaveAttribute('data-expanded', 'true');
+      // Let the rail's width settle before measuring.
+      await page.waitForTimeout(800);
+      const from = (await indicator(home).boundingBox())!;
+      const samples = await sampleWhile(page, indicator(sent), () => sent.click());
+      await expect(sent).toHaveAttribute('aria-current', 'page');
+      const to = (await indicator(sent).boundingBox())!;
+      // It ends on Sent mail's row, wider for the longer label, and passed between the two.
+      expect(to.y).toBeGreaterThan(from.y + 100);
+      expect(to.width).toBeGreaterThan(from.width);
+      const between = samples.filter((box) => box.y > from.y + 20 && box.y < to.y - 20);
+      expect(between.length).toBeGreaterThan(0);
+      // Its start edge never moves (left in LTR, right in RTL); only its width changes.
+      for (const box of samples) {
+        if (dir === 'ltr') expect(Math.abs(box.x - to.x)).toBeLessThan(1);
+        else expect(Math.abs(box.x + box.width - (to.x + to.width))).toBeLessThan(1);
+      }
+      // The old pill goes at once.
+      expect(await indicator(home).evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+      await page.mouse.move(0, 0);
+      await expect(sent.locator(':scope > span').first()).toHaveScreenshot(
+        `rail-slide-settled-${dir}.png`,
+      );
+    });
+  }
+
+  test('by default the expanded pill expands in place', async ({ page }) => {
+    await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: true });
+    const sent = page.getByRole('button', { name: 'Sent mail' });
+    await page.waitForTimeout(800);
+    const samples = await sampleWhile(page, indicator(sent), () => sent.click());
+    const to = (await indicator(sent).boundingBox())!;
+    expect(samples.length).toBeGreaterThan(0);
+    for (const box of samples) expect(Math.abs(box.y - to.y)).toBeLessThan(1);
+  });
+
+  test('indicatorMotion="slide" still expands in place in the collapsed rail', async ({ page }) => {
+    await openStory(page, 'components-navigation--sliding-rail', {}, { defaultExpanded: false });
+    const sent = page.getByRole('button', { name: 'Sent mail' });
+    const samples = await sampleWhile(page, indicator(sent), () => sent.click());
+    const to = (await indicator(sent).boundingBox())!;
+    for (const box of samples) expect(Math.abs(box.y - to.y)).toBeLessThan(1);
+    expect(await indicator(sent).evaluate((el) => getComputedStyle(el).transitionProperty)).toBe(
+      'clip-path, opacity',
+    );
+  });
+
+  test('indicatorMotion="slide" fades in place under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-navigation--sliding-rail');
+    const sent = page.getByRole('button', { name: 'Sent mail' });
+    await page.waitForTimeout(800);
+    const samples = await sampleWhile(page, indicator(sent), () => sent.click());
+    const to = (await indicator(sent).boundingBox())!;
+    for (const box of samples) expect(Math.abs(box.y - to.y)).toBeLessThan(1);
+    expect(await indicator(sent).evaluate((el) => getComputedStyle(el).transitionProperty)).toBe(
+      'opacity',
+    );
   });
 
   test('centred items sit in the middle of the space below the header', async ({ page }) => {

@@ -25,6 +25,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * The current label is bold (the emphasized label role). With a `selectedIcon`, the two
  * icons cross-fade on default effects.
  *
+ * `slide` (the expanded rail's `indicatorMotion="slide"`, an extension beyond the spec that
+ * matches Google's Expressive showcase): the pill is whole while current and Motion moves it
+ * from the previous current item on the fast spatial spring; the old pill goes at once, and
+ * the content sits above every pill so a moving one never covers another item's label.
+ * Under reduced motion it fades in place instead.
+ *
  * Labels never truncate (M3: "Don't truncate or display an ellipsis in place of label
  * text"): they wrap, breaking between words first, and the item grows taller, so the full
  * label stays visible under large text sizes.
@@ -136,8 +142,16 @@ export const navItemStyles = tv({
     },
     /** Labels that move when the rail changes width fade in at their new place. */
     enterLabel: { true: { label: 'starting:opacity-0' }, false: {} },
+    /** The pill slides between items (Motion moves it) instead of expanding in place. */
+    slide: {
+      true: {
+        indicator: '[transition-property:none] motion-reduce:[transition-property:opacity]',
+        content: 'z-[1]',
+      },
+      false: {},
+    },
   },
-  defaultVariants: { layout: 'bar-top', enterLabel: false },
+  defaultVariants: { layout: 'bar-top', enterLabel: false, slide: false },
 });
 
 export type NavItemLayout = NonNullable<VariantProps<typeof navItemStyles>['layout']>;
