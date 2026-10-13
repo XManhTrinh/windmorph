@@ -11,6 +11,7 @@ import {
   DialogActions,
   DialogContent,
   DialogHeader,
+  DialogTrigger,
   Divider,
   IconButton,
   List,
@@ -109,39 +110,31 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   dialog: {
     component: 'Dialog',
-    // A button opens the dialog; closing it in any way sets `open` back to false.
-    render: ({ icon, open, ...props }, update) =>
-      createElement(
-        'div',
-        null,
-        <Button key="open" variant="tonal" onPress={() => update('open', true)}>
-          Open dialog
-        </Button>,
-        createElement(
-          DialogAny,
-          {
-            key: 'dialog',
-            ...props,
-            open: Boolean(open),
-            onOpenChange: (next: boolean) => update('open', next),
-            ...(icon === true && { icon: <DeleteIcon /> }),
-          },
-          <DialogHeader key="title" closeLabel="Close">
-            Delete draft?
-          </DialogHeader>,
-          <DialogContent key="content">
+    // The trigger's button opens the dialog (and is the container transform's origin);
+    // closing it in any way sets `open` back to false.
+    render: ({ icon, open, origin, ...props }, update) => (
+      <DialogTrigger open={Boolean(open)} onOpenChange={(next) => update('open', next)}>
+        <Button variant="tonal">Open dialog</Button>
+        <DialogAny
+          {...props}
+          {...(icon === true && { icon: <DeleteIcon /> })}
+          {...(origin === true && { origin: 'trigger' })}
+        >
+          <DialogHeader closeLabel="Close">Delete draft?</DialogHeader>
+          <DialogContent>
             The draft and its attachments will be removed from this device.
-          </DialogContent>,
-          <DialogActions key="actions">
+          </DialogContent>
+          <DialogActions>
             <Button variant="text" onPress={() => update('open', false)}>
               Cancel
             </Button>
             <Button variant="text" onPress={() => update('open', false)}>
               Delete
             </Button>
-          </DialogActions>,
-        ),
-      ),
+          </DialogActions>
+        </DialogAny>
+      </DialogTrigger>
+    ),
     defaultProps: {
       open: false,
       role: 'alertdialog',
@@ -150,12 +143,14 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       placement: 'center',
       dismissable: false,
       keyboardDismissDisabled: false,
+      origin: false,
     },
     surfacedProps: [
       'open',
       'role',
       'icon',
       'fullScreen',
+      'origin',
       'placement',
       'dismissable',
       'keyboardDismissDisabled',
@@ -164,10 +159,17 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role
     // change resets it to the new default, and the snippet writes it only when it differs.
     codeDefaults: (values) => ({ dismissable: values.role !== 'alertdialog' }),
-    adjust: (values, changed) =>
-      changed === 'role' ? { ...values, dismissable: values.role !== 'alertdialog' } : values,
-    controlKinds: { icon: 'boolean' },
-    toggledSlots: { icon: DELETE },
+    // `origin` grows only a full-screen dialog out of the trigger, so turning it on makes a
+    // basic dialog full screen.
+    adjust: (values, changed) => {
+      if (changed === 'role') return { ...values, dismissable: values.role !== 'alertdialog' };
+      if (changed === 'origin' && values.origin === true && values.fullScreen === 'never') {
+        return { ...values, fullScreen: 'always' };
+      }
+      return values;
+    },
+    controlKinds: { icon: 'boolean', origin: 'boolean' },
+    toggledSlots: { icon: DELETE, origin: '"trigger"' },
     importMembers: ['Button', 'DialogActions', 'DialogContent', 'DialogHeader', 'DialogTrigger'],
     codeWrap: {
       before: '<DialogTrigger>\n  <Button variant="tonal">Open dialog</Button>',

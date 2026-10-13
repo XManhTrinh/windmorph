@@ -86,6 +86,16 @@ describe('emitSnippet', () => {
     expect(code).not.toContain('RetryIcon');
   });
 
+  it('writes a toggled string literal as an attribute string', () => {
+    const code = emitSnippet({
+      component: 'Dialog',
+      values: { origin: true, icon: true },
+      surfacedProps: ['origin', 'icon'],
+      toggledSlots: { origin: '"trigger"', icon: '<DeleteIcon />' },
+    });
+    expect(code).toContain('<Dialog\n  origin="trigger"\n  icon={<DeleteIcon />}\n');
+  });
+
   it('wraps the element, indented, in its trigger', () => {
     const code = emitSnippet({
       component: 'Dialog',
