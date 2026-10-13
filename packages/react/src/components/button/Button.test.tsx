@@ -14,7 +14,13 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Save' });
     expect(button.tagName).toBe('BUTTON');
     expect(button).toHaveAttribute('type', 'button');
-    expect(button).toHaveClass('bg-primary', 'text-on-primary', 'h-[40px]', 'text-label-large');
+    expect(button).toHaveClass(
+      'bg-primary',
+      'text-on-primary',
+      'h-fit',
+      'min-h-[40px]',
+      'text-label-large',
+    );
     expect(button).toHaveClass('rounded-[min(var(--md-sys-shape-corner-full),20px)]');
     expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
   });
@@ -73,13 +79,13 @@ describe('Button', () => {
   it.each([
     [
       'xs',
-      ['h-[32px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      ['h-fit', 'min-h-[32px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
       'gap-[8px]',
       'size-[20px]',
     ],
     [
       'sm',
-      ['h-[40px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      ['h-fit', 'min-h-[40px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
       'gap-[8px]',
       'size-[20px]',
     ],
@@ -275,7 +281,7 @@ describe('Button', () => {
     );
     expect(inherited).toBeDisabled();
     const own = screen.getByRole('button', { name: 'Own' });
-    expect(own).toHaveClass('h-[32px]');
+    expect(own).toHaveClass('min-h-[32px]');
     expect(own).toBeEnabled();
   });
 

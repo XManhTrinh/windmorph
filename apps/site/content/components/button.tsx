@@ -200,6 +200,11 @@ export async function ButtonBody(): Promise<ComponentDoc> {
               together.
             </li>
             <li>
+              XS and S buttons are at least 32 and 40px tall and grow with a large browser font
+              size, as Compose&apos;s buttons do; a stretching flex or grid parent doesn&apos;t make
+              them taller. The XS split button&apos;s halves do the same.
+            </li>
+            <li>
               A disabled outlined button dims its outline to 10%; a selected outlined toggle has no
               outline, disabled or not.
             </li>

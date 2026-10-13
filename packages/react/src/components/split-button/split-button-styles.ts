@@ -23,6 +23,9 @@ import { buttonVariantClasses } from '../button/button-styles';
  *   button uses the standard motion scheme … when rotating the menu button"): the icon
  *   carries `data-motion="standard"`. Under reduced motion it turns without animating.
  *
+ * The XS halves take a 32px minimum height rather than a fixed one, so they grow around
+ * text at a large browser font size, as Compose's `heightIn(min)` does (2026-10-13).
+ *
  * Label type and icon sizes follow the Button scale per size; Compose's split button
  * provides `label-large` and leaves larger text to the caller. Every class is written out
  * in full so Tailwind can find it.
@@ -70,15 +73,18 @@ export const splitButtonStyles = tv({
     variant,
     size: {
       xs: {
+        // The halves have a minimum height and grow with larger text; they stretch to the
+        // taller one, and the root keeps its content height in a stretching parent.
+        root: 'h-fit items-stretch',
         leading: [
-          'h-[32px] ps-[calc(12px-var(--m3-button-border,0px))] pe-[calc(10px-var(--m3-button-border,0px))] text-label-large',
+          'min-h-[32px] ps-[calc(12px-var(--m3-button-border,0px))] pe-[calc(10px-var(--m3-button-border,0px))] text-label-large',
           'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-small data-focus-visible:rounded-e-corner-small data-pressed:rounded-e-corner-small',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
-          'h-[32px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
+          'min-h-[32px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
           'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-small not-data-open:data-focus-visible:rounded-s-corner-small data-pressed:rounded-s-corner-small',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',

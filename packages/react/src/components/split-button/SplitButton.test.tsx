@@ -95,7 +95,7 @@ describe('SplitButton', () => {
   it.each([
     [
       'xs',
-      'h-[32px]',
+      'min-h-[32px]',
       'ps-[calc(12px-var(--m3-button-border,0px))]',
       'rounded-e-corner-extra-small',
       'size-[22px]',
@@ -130,6 +130,14 @@ describe('SplitButton', () => {
     expect(leading()).toHaveClass(height, padding, inner);
     expect(trailing()).toHaveClass(height, optical);
     expect(trailing().querySelector('[data-motion]')).toHaveClass(iconSize);
+  });
+
+  it('grows its XS halves with the text, together, without a stretching parent', () => {
+    render(<Send size="xs" />);
+    // A minimum height (Compose's heightIn), both halves stretched to the taller one, and a
+    // root that keeps its content height in a flex or grid parent.
+    expect(leading()).not.toHaveClass('h-[32px]');
+    expect(leading().parentElement).toHaveClass('h-fit', 'items-stretch');
   });
 
   it.each([

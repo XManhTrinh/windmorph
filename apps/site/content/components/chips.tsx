@@ -129,8 +129,9 @@ export async function ChipsBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              32px tall with a 48px touch target, 8px corners for every chip type,{' '}
-              <InlineCode>label-large</InlineCode>, 18px icons, 24px avatars with 12px corners.
+              32px tall (a minimum: a chip grows with a large browser font size) with a 48px touch
+              target, 8px corners for every chip type, <InlineCode>label-large</InlineCode>, 18px
+              icons, 24px avatars with 12px corners.
             </li>
             <li>
               16px at an edge without an icon, 8px beside one (4px beside an avatar), 8px between

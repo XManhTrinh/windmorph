@@ -16,7 +16,8 @@ describe('AssistChip', () => {
     );
     const chip = screen.getByRole('button', { name: 'Add to calendar' });
     expect(chip).toHaveClass(
-      'h-[32px]',
+      'h-fit',
+      'min-h-[32px]',
       'rounded-corner-small',
       'border-outline-variant',
       'text-on-surface',

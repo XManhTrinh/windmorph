@@ -37,7 +37,7 @@ describe('ButtonGroup', () => {
       'bg-secondary-container',
     );
     // A child's own prop wins.
-    expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('h-[32px]');
+    expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('min-h-[32px]');
     // Icon buttons share the size and the variant, so the group never mixes styles.
     expect(screen.getByRole('button', { name: 'More' })).toHaveClass(
       'h-[56px]',

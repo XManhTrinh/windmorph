@@ -131,6 +131,43 @@ test.describe('Containers grow around 200% text instead of clipping it', () => {
     }
   });
 
+  test('XS and S buttons grow to fit their labels', async ({ page }) => {
+    await openStory(page, 'components-button--sizes-and-shapes');
+    await setRootFontSize(page, 32);
+    for (const [name, min] of [
+      ['XS', 32],
+      ['SM', 40],
+    ] as const) {
+      const button = page.getByRole('button', { name, exact: true }).first();
+      expect(await overflow(button.getByText(name, { exact: true }), button), name).toBe(0);
+      // At least its minimum, and never shorter than its 40px label line.
+      expect((await button.boundingBox())!.height, name).toBeGreaterThanOrEqual(Math.max(min, 40));
+    }
+  });
+
+  test('the XS split button grows to fit its label, both halves together', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--variants-and-sizes');
+    await setRootFontSize(page, 32);
+    const trailing = page.getByRole('button', { name: 'filled xs options' });
+    const root = trailing.locator('xpath=..');
+    const leading = root.getByRole('button', { name: 'Edit' });
+    expect(await overflow(leading.getByText('Edit'), leading)).toBe(0);
+    const [lead, trail] = [(await leading.boundingBox())!, (await trailing.boundingBox())!];
+    expect(lead.height).toBeGreaterThan(32);
+    expect(trail.height).toBe(lead.height);
+  });
+
+  test('chips grow to fit their labels', async ({ page }) => {
+    await openStory(page, 'components-chips--types');
+    await setRootFontSize(page, 32);
+    const chips = page.getByTestId('types');
+    for (const name of ['Assist', 'Suggestion', 'Filter']) {
+      const chip = chips.getByRole('button', { name, exact: true }).first();
+      expect(await overflow(chip.getByText(name, { exact: true }), chip), name).toBe(0);
+      expect((await chip.boundingBox())!.height, name).toBeGreaterThan(32);
+    }
+  });
+
   test('a large badge grows around its label', async ({ page }) => {
     await openStory(page, 'components-badge--badges');
     await setRootFontSize(page, 32);

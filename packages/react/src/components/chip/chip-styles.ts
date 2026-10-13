@@ -4,7 +4,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Values follow the M3 chips spec (m3.material.io, Specs and Accessibility tabs), with
  * Compose Material 3's chip token files for what the spec leaves out (2026-10-13):
  *
- * - 32px tall, 8px corners for every chip, `label-large`, 18px icons, 24px avatars with
+ * - At least 32px tall (a minimum, so a chip grows around text at a large browser font
+ *   size, as Compose's `defaultMinSize` does; `h-fit` keeps a stretching parent from making
+ *   it taller; 2026-10-13), 8px corners for every chip, `label-large`, 18px icons, 24px avatars with
  *   12px corners, a 1px `outline-variant` border when flat (`outline` with the strong
  *   outline). Elevated chips are `surface-container-low` at level 1 (hover 2, dragged 4).
  * - Padding: 16px at an edge without an icon, 8px beside an icon (4px beside an avatar),
@@ -44,7 +46,7 @@ const containerStates = [
 export const chipStyles = tv({
   slots: {
     root: [
-      'group/chip inline-flex h-[32px] max-w-full shrink-0 cursor-pointer items-center align-middle',
+      'group/chip inline-flex h-fit min-h-[32px] max-w-full shrink-0 cursor-pointer items-center align-middle',
       'rounded-corner-small font-plain text-label-large whitespace-nowrap select-none',
       'state-layer focus-ring',
       ...motion,

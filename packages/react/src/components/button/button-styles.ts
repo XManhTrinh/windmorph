@@ -94,6 +94,10 @@ const shapeVariants = SIZES.flatMap((size) => [
  * `--m3-button-border` (1px; 2px at L, 3px at XL), and the padding subtracts it, so an
  * outlined button is the same size as the other styles with the same content (2026-10-13).
  * A selected outlined toggle has no outline, disabled or not, as on IconButton (2026-10-13).
+ *
+ * XS and S take a minimum height (32 / 40px) rather than a fixed one, so they grow around
+ * text at a large browser font size, as Compose's `defaultMinSize` does; `h-fit` keeps a
+ * stretching flex or grid parent from making them taller (2026-10-13).
  */
 export const buttonVariantClasses = {
   filled:
@@ -131,12 +135,12 @@ export const buttonStyles = tv({
     },
     size: {
       xs: {
-        root: 'h-[32px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
+        root: 'h-fit min-h-[32px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
         content: 'gap-[8px]',
         icon: 'size-[20px]',
       },
       sm: {
-        root: 'h-[40px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
+        root: 'h-fit min-h-[40px] min-w-[58px] px-[calc(16px-var(--m3-button-border,0px))] text-label-large',
         content: 'gap-[8px]',
         icon: 'size-[20px]',
       },
