@@ -151,6 +151,10 @@ export const dialogStyles = tv({
     bottomBar: { true: {}, false: {} },
     /** A divider under the full-screen header. */
     divider: { true: {}, false: {} },
+    /** The basic dialog's optional dividers above and below `DialogContent`. */
+    dividers: { true: {}, false: {} },
+    /** A container transform from a trigger (`origin`) into the full-screen dialog. */
+    origin: { true: {}, false: {} },
   },
   compoundVariants: [
     {
@@ -176,8 +180,92 @@ export const dialogStyles = tv({
       divider: true,
       class: { header: 'max-medium:border-b max-medium:border-outline-variant' },
     },
+    /*
+     * Dividers run the panel's full width, 1px `outline-variant`, with 8px between them and
+     * the content; the body keeps 24px to the actions below the bottom one.
+     */
+    {
+      fullScreen: 'never',
+      dividers: true,
+      class: {
+        content: '-mx-[24px] mb-[24px] border-y border-outline-variant px-[24px] py-[8px]',
+      },
+    },
+    {
+      fullScreen: 'compact',
+      dividers: true,
+      class: {
+        content: [
+          'medium:-mx-[24px] medium:mb-[24px] medium:border-y medium:border-outline-variant',
+          'medium:px-[24px] medium:py-[8px]',
+        ],
+      },
+    },
+    /*
+     * Container transform (the spec: "Use a container transform pattern to transition a FAB
+     * into a full-screen dialog"): the clip starts on the origin's box and corners
+     * (`--m3-dialog-origin`, measured by the dialog) and opens to the window on the slow
+     * spatial spring, while the container colour moves from the origin's
+     * (`--m3-dialog-origin-color`) and the content fades in. Leaving collapses back into the
+     * origin on the fast springs. Reduced motion keeps only the fades (the dialog's and its
+     * content's).
+     */
+    {
+      fullScreen: 'always',
+      origin: true,
+      class: {
+        motion: [
+          '[clip-path:inset(0_round_0)] [transition-property:opacity,clip-path]',
+          'starting:translate-none starting:[clip-path:var(--m3-dialog-origin)]',
+          'data-exiting:translate-none motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
+          '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+        ],
+        panel: [
+          '[transition-property:background-color] motion-reduce:[transition-property:none]',
+          '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
+          'starting:bg-(--m3-dialog-origin-color) motion-safe:data-exiting:bg-(--m3-dialog-origin-color)',
+          'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          '*:[transition-property:opacity] *:starting:opacity-0 data-exiting:*:opacity-0',
+          '*:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
+          '*:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
+        ],
+      },
+    },
+    {
+      fullScreen: 'compact',
+      origin: true,
+      class: {
+        motion: [
+          'max-medium:[clip-path:inset(0_round_0)] max-medium:[transition-property:opacity,clip-path]',
+          'max-medium:starting:translate-none max-medium:starting:[clip-path:var(--m3-dialog-origin)]',
+          'max-medium:data-exiting:translate-none',
+          'max-medium:motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
+          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+        ],
+        panel: [
+          'max-medium:[transition-property:background-color]',
+          'max-medium:motion-reduce:[transition-property:none]',
+          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
+          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
+          'max-medium:starting:bg-(--m3-dialog-origin-color)',
+          'max-medium:motion-safe:data-exiting:bg-(--m3-dialog-origin-color)',
+          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          'max-medium:*:[transition-property:opacity] max-medium:*:starting:opacity-0',
+          'max-medium:data-exiting:*:opacity-0',
+          'max-medium:*:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
+          'max-medium:*:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
+        ],
+      },
+    },
   ],
   defaultVariants: {
+    dividers: false,
+    origin: false,
     hasIcon: false,
     fullScreen: 'never',
     placement: 'center',

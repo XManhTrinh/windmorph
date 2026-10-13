@@ -14,7 +14,15 @@ describe('dialogStyles', () => {
       (['never', 'always', 'compact'] as const).flatMap((fullScreen) =>
         placements.flatMap((placement) =>
           Object.values(
-            dialogStyles({ hasIcon: flag, fullScreen, placement, bottomBar: flag, divider: flag }),
+            dialogStyles({
+              hasIcon: flag,
+              fullScreen,
+              placement,
+              bottomBar: flag,
+              divider: flag,
+              dividers: flag,
+              origin: flag,
+            }),
           ).map((slot) => slot()),
         ),
       ),

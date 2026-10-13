@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Button } from '../button/Button';
@@ -258,7 +258,75 @@ describe('Dialog', () => {
     expect(panel).toHaveStyle({ padding: '32px' });
   });
 
+  it('draws the optional dividers around its content', async () => {
+    render(
+      <Dialog defaultOpen aria-label="Ringtone">
+        <DialogContent dividers data-testid="content">
+          Options
+        </DialogContent>
+      </Dialog>,
+    );
+    expect(await screen.findByTestId('content')).toHaveClass(
+      'border-y',
+      'border-outline-variant',
+      '-mx-[24px]',
+      'px-[24px]',
+    );
+  });
+
   it('has no axe violations when open', async () => {
+    const { baseElement } = render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});
+
+describe('Dialog scrolling content', () => {
+  /** Content taller than its box, and a `ResizeObserver` that reports at once. */
+  function overflowEverything() {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(private readonly callback: () => void) {}
+        observe() {
+          this.callback();
+        }
+        disconnect() {}
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(800);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(200);
+  }
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('is focusable while it scrolls, after the first control, with a focus ring', async () => {
+    overflowEverything();
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const content = screen.getByText('It will be removed from all devices.');
+    expect(content).toHaveAttribute('tabindex', '0');
+    expect(content).toHaveAttribute('data-scrollable');
+    expect(content).toHaveClass('focus-ring');
+    // Initial focus still goes to the first control.
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(content).toHaveFocus();
+    expect(content).toHaveAttribute('data-focus-visible');
+  });
+
+  it('is not focusable when it fits', async () => {
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const content = screen.getByText('It will be removed from all devices.');
+    expect(content).not.toHaveAttribute('tabindex');
+    expect(content).not.toHaveAttribute('data-scrollable');
+  });
+
+  it('has no axe violations while it scrolls', async () => {
+    overflowEverything();
     const { baseElement } = render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(await axeViolations(baseElement)).toEqual([]);

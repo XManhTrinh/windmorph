@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ComponentPropsWithRef,
+  type RefObject,
   type CSSProperties,
   type DOMAttributes,
   type ReactNode,
@@ -17,6 +18,7 @@ import {
 import {
   mergeProps,
   useDialog,
+  useFocusRing,
   useModalOverlay,
   useObjectRef,
   useOverlayTrigger,
@@ -257,11 +259,12 @@ function DialogModal({
 
   // The spec: "focus should automatically land on the first interactive element within the
   // dialog". `useDialog` focuses the panel itself unless something inside took focus
-  // (`autoFocus`); move on from the panel to its first interactive element.
+  // (`autoFocus`); move on from the panel to its first interactive element. A scrolling
+  // `DialogContent` is focusable (so the keyboard can scroll it) but isn't a control.
   useEffect(() => {
     const panel = panelRef.current;
     if (!panel || document.activeElement !== panel) return;
-    firstTabbable(panel)?.focus();
+    firstTabbable(panel, (el) => el.hasAttribute('data-scrollable'))?.focus();
   }, [panelRef]);
 
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
@@ -409,22 +412,56 @@ export function DialogHeader({
   );
 }
 
-export type DialogContentProps = ComponentPropsWithRef<'div'>;
+export interface DialogContentProps extends ComponentPropsWithRef<'div'> {
+  /**
+   * The basic dialog's optional dividers: 1px `outline-variant` lines across the panel
+   * above and below the content, e.g. around a scrolling list. Not drawn in full screen.
+   * @default false
+   */
+  dividers?: boolean;
+}
+
+/**
+ * Whether an element's content is taller than its box, from a `ResizeObserver` on it and
+ * its children (so it is measured only when a size changes).
+ */
+function useOverflows(ref: RefObject<HTMLElement | null>) {
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() =>
+      setOverflows(element.scrollHeight > element.clientHeight + 1),
+    );
+    observer.observe(element);
+    for (const child of element.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, [ref]);
+  return overflows;
+}
 
 /**
  * The dialog's supporting text or content; scrolls when the dialog is too tall. It describes
- * an alert dialog.
+ * an alert dialog. While it scrolls it is focusable (with a focus ring), so the keyboard can
+ * scroll it (`data-scrollable`); the dialog's initial focus still goes to its first control.
  */
-export function DialogContent({ className, ...props }: DialogContentProps) {
+export function DialogContent({ className, dividers = false, ref, ...props }: DialogContentProps) {
   const { fullScreen, contentProps, setHasContent } = useContext(DialogPartsContext);
+  const contentRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  const overflows = useOverflows(contentRef);
+  const { isFocusVisible, focusProps } = useFocusRing();
   useLayoutEffect(() => {
     setHasContent(true);
     return () => setHasContent(false);
   }, [setHasContent]);
   return (
     <div
-      {...mergeProps(contentProps, props)}
-      className={dialogStyles({ fullScreen }).content({ class: className })}
+      {...mergeProps(contentProps, overflows ? focusProps : {}, props)}
+      ref={contentRef}
+      tabIndex={props.tabIndex ?? (overflows ? 0 : undefined)}
+      data-scrollable={overflows || undefined}
+      data-focus-visible={(overflows && isFocusVisible) || undefined}
+      className={dialogStyles({ fullScreen, dividers }).content({ class: className })}
     />
   );
 }
