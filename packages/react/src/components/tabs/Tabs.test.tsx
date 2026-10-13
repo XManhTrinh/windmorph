@@ -98,7 +98,7 @@ describe('Tabs', () => {
     );
     const inbox = screen.getByRole('tab', { name: 'Inbox' });
     expect(inbox).toHaveAccessibleDescription('3');
-    expect(screen.getByText('3').parentElement).toHaveClass('gap-[4px]');
+    expect(screen.getByText('3').closest('[data-size]')!.parentElement).toHaveClass('gap-[4px]');
     expect(await axeViolations(container)).toEqual([]);
     unmount();
     render(

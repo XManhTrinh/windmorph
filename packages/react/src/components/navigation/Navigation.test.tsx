@@ -353,7 +353,9 @@ describe('NavigationRail', () => {
     expect(screen.getByRole('button', { name: 'Chat' })).not.toHaveAttribute('aria-describedby');
     expect(await axeViolations(container)).toEqual([]);
     rerender(<Badged expanded />);
-    const badge = within(screen.getByRole('button', { name: 'Inbox' })).getByText('3');
+    const badge = within(screen.getByRole('button', { name: 'Inbox' }))
+      .getByText('3')
+      .closest('[data-size]')!;
     expect(badge.parentElement).toHaveClass('-ms-[4px]');
     expect(badge.parentElement!.previousElementSibling).toHaveTextContent('Inbox');
   });
