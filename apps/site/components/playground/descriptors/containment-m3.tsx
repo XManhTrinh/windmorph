@@ -178,7 +178,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   menu: {
     component: 'Menu',
-    render: ({ density, offset, ...props }) =>
+    render: ({ density, offset, containerPadding, ...props }) =>
       createElement(
         MenuTrigger,
         null,
@@ -187,7 +187,13 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         </Button>,
         createElement(
           MenuAny,
-          { key: 'menu', ...props, density: asNumber(density), offset: asNumber(offset) },
+          {
+            key: 'menu',
+            ...props,
+            density: asNumber(density),
+            offset: asNumber(offset),
+            containerPadding: asNumber(containerPadding),
+          },
           <MenuGroup key="edit" aria-label="Edit">
             <MenuItem key="edit" leadingIcon={<EditIcon />}>
               Edit
@@ -212,8 +218,9 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       density: 0,
       placement: 'bottom start',
       offset: 0,
+      containerPadding: 12,
     },
-    surfacedProps: ['variant', 'layout', 'density', 'placement', 'offset'],
+    surfacedProps: ['variant', 'layout', 'density', 'placement', 'offset', 'containerPadding'],
     enumOptions: {
       placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],

@@ -21,7 +21,7 @@ import { buttonVariantClasses } from '../button/button-styles';
  * - The icon turns over inwards (towards the leading button, so the other way in RTL) on
  *   the standard scheme's fast spatial spring whatever the active scheme ("The split
  *   button uses the standard motion scheme … when rotating the menu button"): the icon
- *   carries `data-motion="standard"`.
+ *   carries `data-motion="standard"`. Under reduced motion it turns without animating.
  *
  * Label type and icon sizes follow the Button scale per size; Compose's split button
  * provides `label-large` and leaves larger text to the caller. Every class is written out
@@ -62,6 +62,8 @@ export const splitButtonStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
       'in-data-open:ltr:rotate-180 in-data-open:rtl:-rotate-180',
+      // Reduced motion: the chevron and its offset snap (architecture §6).
+      'motion-reduce:transition-none',
     ],
   },
   variants: {

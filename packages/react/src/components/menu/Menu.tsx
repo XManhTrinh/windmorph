@@ -305,6 +305,12 @@ export interface MenuProps extends Omit<
   placement?: Placement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
+  /**
+   * The least space kept between the menu and the window's edges, in px. A split button
+   * passes 0, so its menu lines up with the trailing button even at the edge of the screen.
+   * @default 12
+   */
+  containerPadding?: number;
   className?: string;
   classNames?: MenuClassNames;
   style?: CSSProperties;
@@ -384,6 +390,7 @@ function MenuPopover({
   exitProps,
   placement = 'bottom start',
   offset = 0,
+  containerPadding = 12,
   layout = 'divider',
   variant = 'standard',
   ...props
@@ -418,6 +425,7 @@ function MenuPopover({
       popoverRef,
       placement: toPhysicalPlacement(placement, direction),
       offset,
+      containerPadding,
     },
     trigger.state,
   );

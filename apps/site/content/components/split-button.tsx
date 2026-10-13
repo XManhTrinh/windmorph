@@ -81,6 +81,18 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
             &ldquo;Save draft&rdquo;.
           </p>
         </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="usage" className="text-headline-small text-on-surface">
+            Usage
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              Keep the leading label brief, one or two words (&ldquo;Send&rdquo;, &ldquo;Save
+              as&rdquo;): the trailing button already says there are more choices.
+            </li>
+            <li>Don&apos;t change the trailing icon; it turns over to show the menu is open.</li>
+          </ul>
+        </section>
       </>
     ),
     accessibility: (
@@ -124,7 +136,16 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
               The two halves sit 2px apart, each at least 48px wide, with full outer corners. Inner
               corners are 4 / 4 / 4 / 8 / 12px and change to 8 / 12 / 12 / 20 / 20px when hovered,
               keyboard-focused or pressed (Compose uses only the pressed tokens). The menu opens 4px
-              below, aligned with the trailing button&apos;s end edge.
+              below, aligned with the trailing button&apos;s end edge, even against the edge of the
+              window (the menu&apos;s <InlineCode>containerPadding</InlineCode> is 0).
+            </li>
+            <li>
+              With a mouse the menu opens when the press is released, not on pointer down as React
+              Aria&apos;s menu triggers do, so the trailing button&apos;s pressed shape shows while
+              it&apos;s held. Keyboard and touch are unchanged.
+            </li>
+            <li>
+              Under reduced motion the chevron turns and the corners change without animating.
             </li>
             <li>
               While its menu is open the trailing button becomes a circle with a persistent 10%

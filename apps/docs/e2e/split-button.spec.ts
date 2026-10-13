@@ -196,3 +196,51 @@ test.describe('SplitButton spec fixes (2026-10-13)', () => {
     await page.mouse.up();
   });
 });
+
+test.describe('SplitButton menu behaviour (2026-10-13)', () => {
+  test('at the window edge the menu lines up with the trailing button', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await openStory(page, 'components-splitbutton--at-the-edge');
+    const trigger = page.getByRole('button', { name: 'More send options' });
+    await trigger.click();
+    const menu = page.getByRole('menu');
+    await expect(menu).toBeVisible();
+    await page.waitForTimeout(500);
+    const button = (await trigger.boundingBox())!;
+    const list = (await menu.boundingBox())!;
+    expect(Math.round(button.x + button.width)).toBe(360);
+    expect(Math.abs(list.x + list.width - (button.x + button.width))).toBeLessThan(1);
+  });
+
+  test('a mouse press shows the pressed shape and opens the menu on release', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--playground');
+    const trigger = page.getByRole('button', { name: 'More send options' });
+    const box = (await trigger.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(trigger).toHaveAttribute('data-pressed', 'true');
+    await page.waitForTimeout(500);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    // Pressed inner corner (S: 12px), not the open circle.
+    expect(await trigger.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('12px');
+    await page.mouse.up();
+    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    // Pressing the trigger again closes the menu.
+    await page.mouse.down();
+    await page.mouse.up();
+    await expect(page.getByRole('menu')).toBeHidden();
+  });
+
+  test('under reduced motion the chevron turns without animating', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-splitbutton--playground');
+    const trigger = page.getByRole('button', { name: 'More send options' });
+    const icon = trigger.locator('[data-motion]');
+    expect(await icon.evaluate((el) => getComputedStyle(el).transitionProperty)).toBe('none');
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('menu')).toBeVisible();
+    expect(await icon.evaluate((el) => getComputedStyle(el).rotate)).toBe('180deg');
+  });
+});

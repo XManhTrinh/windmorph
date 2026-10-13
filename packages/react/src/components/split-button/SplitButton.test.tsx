@@ -208,7 +208,34 @@ describe('SplitButton', () => {
       'in-data-open:ltr:rotate-180',
       'in-data-open:rtl:-rotate-180',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+      'motion-reduce:transition-none',
     );
+  });
+
+  it('opens its menu when a mouse press is released, so the pressed shape shows', async () => {
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Send onOpenChange={onOpenChange} />);
+    const button = trailing();
+    await user.pointer({ keys: '[MouseLeft>]', target: button });
+    expect(button).toHaveAttribute('data-pressed');
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await user.pointer({ keys: '[/MouseLeft]', target: button });
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('does not open its menu when the mouse is released elsewhere', async () => {
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(<Send onOpenChange={onOpenChange} />);
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: trailing() },
+      { target: document.body },
+      { keys: '[/MouseLeft]', target: document.body },
+    ]);
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('can show only an icon in the leading button, named by leadingLabel', async () => {
