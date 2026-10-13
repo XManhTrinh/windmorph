@@ -21,9 +21,11 @@ export const Badges: Story = {
     <div className="flex flex-col gap-8" data-testid="badges">
       <div className="flex items-center gap-6">
         <Badge />
-        <Badge>3</Badge>
-        <Badge>999+</Badge>
+        <Badge>{3}</Badge>
+        <Badge>{1200}</Badge>
+        <Badge max={99}>{120}</Badge>
         <Badge>New</Badge>
+        <Badge>Longer</Badge>
       </div>
       <div className="flex items-center gap-10 text-on-surface-variant">
         <BadgedBox badge={<Badge />} data-testid="small">
@@ -31,12 +33,12 @@ export const Badges: Story = {
             <StarIcon />
           </span>
         </BadgedBox>
-        <BadgedBox badge={<Badge>3</Badge>} data-testid="large">
+        <BadgedBox badge={<Badge>{3}</Badge>} data-testid="large">
           <span className="size-6" data-testid="large-icon">
             <SendIcon />
           </span>
         </BadgedBox>
-        <BadgedBox badge={<Badge>999+</Badge>}>
+        <BadgedBox badge={<Badge>{1200}</Badge>}>
           <span className="size-6">
             <HomeIcon />
           </span>
@@ -46,7 +48,7 @@ export const Badges: Story = {
         <NavigationBarItem
           selected
           icon={
-            <BadgedBox badge={<Badge>3</Badge>}>
+            <BadgedBox badge={<Badge>{3}</Badge>}>
               <span className="size-6">
                 <HomeIcon />
               </span>
@@ -71,7 +73,7 @@ export const Badges: Story = {
       <IconButton
         aria-label="Messages, 12 unread"
         icon={
-          <BadgedBox badge={<Badge>12</Badge>}>
+          <BadgedBox badge={<Badge>{12}</Badge>}>
             <SendIcon />
           </BadgedBox>
         }

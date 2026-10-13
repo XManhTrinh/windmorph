@@ -400,9 +400,16 @@ export {
   type SearchAppBarStyleProps,
   type SearchBarStyleProps,
 } from './components/search/search-styles';
-export { Divider, type DividerProps } from './components/divider/Divider';
+export {
+  Divider,
+  LabeledDivider,
+  type DividerProps,
+  type LabeledDividerClassNames,
+  type LabeledDividerProps,
+} from './components/divider/Divider';
 export {
   dividerStyles,
+  labeledDividerStyles,
   type DividerInset,
   type DividerOrientation,
   type DividerStyleProps,
@@ -410,8 +417,10 @@ export {
 export {
   Badge,
   BadgedBox,
+  type BadgeClassNames,
   type BadgedBoxClassNames,
   type BadgedBoxProps,
+  type BadgeLabels,
   type BadgeProps,
 } from './components/badge/Badge';
 export {

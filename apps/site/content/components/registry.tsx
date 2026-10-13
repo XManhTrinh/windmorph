@@ -269,7 +269,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   FilterChip: ['root', 'content', 'leading', 'label', 'trailing', 'primary', 'remove'],
   InputChip: ['root', 'content', 'leading', 'label', 'trailing', 'primary', 'avatar', 'remove'],
   ChipSet: ['root'],
-  // Containment & overlays. Card, Badge and Divider export no `*ClassNames`, so they are omitted.
+  // Containment & overlays. Card and Divider export no `*ClassNames`, so they are omitted.
   Dialog: ['scrim', 'panel', 'icon'],
   Menu: ['group', 'item'],
   Tooltip: ['root', 'caret'],
@@ -298,6 +298,8 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
     'control',
   ],
   Carousel: ['root', 'scroller', 'item', 'mask'],
+  Badge: ['root', 'label'],
+  LabeledDivider: ['root', 'divider', 'label'],
   BadgedBox: ['root', 'anchor'],
   // Navigation. The rail/bar items both use `NavItemClassNames`; `Tab` exports no `*ClassNames`.
   NavigationRail: ['root', 'header', 'items', 'sheet', 'scrim'],

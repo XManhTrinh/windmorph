@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Divider } from '@windmorph/react';
+import { Divider, LabeledDivider } from '@windmorph/react';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -31,6 +31,10 @@ export const Dividers: Story = {
         <Divider orientation="vertical" inset="middle" />
         <span>Three</span>
       </div>
+      <LabeledDivider>Supporting text</LabeledDivider>
+      <LabeledDivider inset="start" data-testid="labeled">
+        Inset supporting text
+      </LabeledDivider>
     </div>
   ),
 };

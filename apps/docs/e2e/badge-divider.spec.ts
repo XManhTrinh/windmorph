@@ -44,6 +44,17 @@ test.describe('Badge', () => {
     });
   }
 
+  test('caps counts, truncates at 34px and is announced', async ({ page }) => {
+    await openStory(page, 'components-badge--badges');
+    const badges = page.getByTestId('badges');
+    await expect(badges.getByText('999+', { exact: true }).first()).toBeVisible();
+    await expect(badges.getByText('99+', { exact: true })).toBeVisible();
+    const longer = await rect(badges.getByText('Longer').locator('..'));
+    expect(longer.width).toBe(34);
+    await expect(page.getByTestId('small')).toContainText('New notification');
+    await expect(page.getByRole('button', { name: 'Messages, 12 unread' })).toBeVisible();
+  });
+
   test.describe('layout safety', () => {
     layoutSafetySuite('components-badge--layout-override', {
       height: 24,
@@ -61,6 +72,15 @@ test.describe('Divider', () => {
       await expect(page.getByTestId('dividers')).toHaveScreenshot(`dividers-${mode}.png`);
     });
   }
+
+  test('a labeled divider puts its text 4px below the line', async ({ page }) => {
+    await openStory(page, 'components-divider--dividers');
+    const root = page.getByTestId('labeled');
+    const line = await rect(root.getByRole('separator'));
+    const text = await rect(root.getByText('Inset supporting text'));
+    expect(text.y - line.bottom).toBe(4);
+    expect((await rect(root)).bottom - text.bottom).toBe(8);
+  });
 
   test.describe('layout safety', () => {
     // Full width follows the containing block, which `fixed` / `absolute` change.

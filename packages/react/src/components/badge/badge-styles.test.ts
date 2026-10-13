@@ -10,7 +10,8 @@ import { badgedBoxStyles, badgeStyles } from './badge-styles';
 describe('badge styles', () => {
   function* outputs() {
     for (const size of ['small', 'large'] as const) {
-      yield badgeStyles({ size });
+      for (const count of [false, true])
+        for (const slot of Object.values(badgeStyles({ size, count }))) yield slot();
       const slots = badgedBoxStyles({ size });
       for (const slot of Object.values(slots)) yield slot();
     }

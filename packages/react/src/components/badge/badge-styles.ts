@@ -4,7 +4,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Values follow Compose Material 3 (Badge.kt, BadgeTokens).
  *
  * Small badge: a 6px `error` dot. Large badge: at least 16px, full corners, 4px side
- * padding, `label-small` `on-error`.
+ * padding, `label-small` `on-error`. Counts are capped ("999+"); text labels stop at 34px
+ * wide (m3.material.io's "16x34dp" for the four-character maximum) and truncate.
  *
  * Placement (BadgedBox): a small badge's start edge sits 6px inside the anchor's end and
  * its top on the anchor's top; a large badge starts 12px inside the end with its bottom
@@ -17,14 +18,26 @@ import { tv, type VariantProps } from '../../utils/tv';
 
 /** Variant definitions for {@link Badge}; extend them to add colour styles. */
 export const badgeStyles = tv({
-  base: 'inline-flex shrink-0 items-center justify-center rounded-corner-full bg-error text-on-error',
+  slots: {
+    root: 'inline-flex shrink-0 items-center justify-center rounded-corner-full bg-error text-on-error',
+    // M3's four-character limit: a text badge stops at 34px wide and truncates its text.
+    label: 'min-w-0 truncate',
+  },
   variants: {
     size: {
-      small: 'size-[6px]',
-      large: 'h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+      small: { root: 'size-[6px]' },
+      large: {
+        root: 'h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+      },
+    },
+    /** Text labels stop at 34px and truncate; counts are already capped by `max`. */
+    count: {
+      true: {},
+      false: {},
     },
   },
-  defaultVariants: { size: 'small' },
+  compoundVariants: [{ size: 'large', count: false, class: { root: 'max-w-[34px]' } }],
+  defaultVariants: { size: 'small', count: false },
 });
 
 /** Variant definitions for {@link BadgedBox}. */

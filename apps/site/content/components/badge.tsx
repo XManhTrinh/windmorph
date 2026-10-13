@@ -20,8 +20,9 @@ export async function BadgeBody() {
         </p>
         <p className="text-body-large text-on-surface-variant">
           A <code className="text-on-surface">Badge</code> with no children is the small dot; with
-          children it is the large badge. Because the badge itself is decorative, give the anchor an
-          accessible name that includes the badge&apos;s meaning, such as &quot;Inbox, 3 new&quot;.
+          children it is the large badge. Keep large badges to four characters, including a
+          &quot;+&quot;: numbers are capped at <code className="text-on-surface">max</code> (999, so
+          &quot;999+&quot;), and longer text is truncated at the badge&apos;s 34px maximum width.
         </p>
       </section>
 
@@ -42,10 +43,16 @@ export async function BadgeBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>A badge adds no interaction of its own; it rides on whatever it is placed on.</li>
           <li>
-            The badge&apos;s number or dot is not announced on its own, so put its meaning in the
-            anchor&apos;s accessible name (e.g. an{' '}
-            <code className="text-on-surface">IconButton</code> labelled &quot;Messages, 12
-            unread&quot;).
+            Badges are announced as part of the text around them, as M3 asks: a count is read, a dot
+            reads &quot;New notification&quot; (change it with{' '}
+            <code className="text-on-surface">labels</code>), and{' '}
+            <code className="text-on-surface">label</code> replaces either (&quot;3 unread
+            messages&quot;).
+          </li>
+          <li>
+            An anchor with its own <code className="text-on-surface">aria-label</code> (an{' '}
+            <code className="text-on-surface">IconButton</code>, say) hides the badge&apos;s text,
+            so put the badge&apos;s meaning in that label: &quot;Messages, 12 unread&quot;.
           </li>
           <li>
             A bare SVG anchor gets Compose&apos;s default 24px icon size; wrap it in a sized element
@@ -55,11 +62,11 @@ export async function BadgeBody() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
+        <h2 className="text-headline-small text-on-surface">Spec values</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            No children is Compose&apos;s small 6px dot; children give the large badge (at least
-            16px, full corners, 4px side padding,{' '}
+            No children is the small 6px dot; children give the large badge (16px tall, 16 to 34px
+            wide, full corners, 4px side padding,{' '}
             <code className="text-on-surface">label-small</code>), both in{' '}
             <code className="text-on-surface">error</code> /{' '}
             <code className="text-on-surface">on-error</code>.

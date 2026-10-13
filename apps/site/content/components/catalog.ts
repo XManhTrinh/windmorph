@@ -961,7 +961,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary: 'A thin line that separates content, horizontal or vertical, with optional insets.',
-    propsComponents: ['Divider'],
+    propsComponents: ['Divider', 'LabeledDivider'],
     playground: 'full',
     related: ['list', 'card'],
     whenNotToUse: 'When whitespace already groups content, a divider adds visual noise.',

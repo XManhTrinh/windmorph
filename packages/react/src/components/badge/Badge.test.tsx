@@ -6,19 +6,19 @@ import { Badge, BadgedBox } from './Badge';
 const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
 
 describe('Badge', () => {
-  it('renders a 6px error dot without content', () => {
-    render(<Badge data-testid="badge" />);
-    expect(screen.getByTestId('badge')).toHaveClass(
-      'size-[6px]',
-      'rounded-corner-full',
-      'bg-error',
-    );
-    expect(screen.getByTestId('badge')).toBeEmptyDOMElement();
+  it('renders a 6px error dot that announces a new notification', async () => {
+    const { container } = render(<Badge data-testid="badge" />);
+    const badge = screen.getByTestId('badge');
+    expect(badge).toHaveClass('size-[6px]', 'rounded-corner-full', 'bg-error');
+    expect(badge).toHaveTextContent('New notification');
+    expect(badge.firstElementChild).toHaveStyle({ position: 'absolute' });
+    expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('renders a large 16px label-small badge with content', () => {
-    render(<Badge data-testid="badge">999+</Badge>);
-    expect(screen.getByTestId('badge')).toHaveClass(
+  it('renders a large 16px label-small badge that reads its count', () => {
+    render(<Badge data-testid="badge">{3}</Badge>);
+    const badge = screen.getByTestId('badge');
+    expect(badge).toHaveClass(
       'h-[16px]',
       'min-w-[16px]',
       'ps-[4px]',
@@ -26,7 +26,54 @@ describe('Badge', () => {
       'text-label-small',
       'text-on-error',
     );
-    expect(screen.getByTestId('badge')).toHaveTextContent('999+');
+    expect(badge).toHaveTextContent(/^3$/);
+    expect(badge.firstElementChild).toHaveClass('truncate');
+    expect(badge.firstElementChild).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('stops text badges at 34px, truncating', () => {
+    render(<Badge data-testid="badge">Longer</Badge>);
+    expect(screen.getByTestId('badge')).toHaveClass('max-w-[34px]');
+    expect(screen.getByTestId('badge').firstElementChild).toHaveClass('truncate');
+  });
+
+  it('caps counts at max with a "+" and formats them for the locale', () => {
+    render(
+      <>
+        <Badge data-testid="default">{1200}</Badge>
+        <Badge data-testid="99" max={99}>
+          {120}
+        </Badge>
+        <Badge data-testid="under">{42}</Badge>
+      </>,
+    );
+    expect(screen.getByTestId('default')).toHaveTextContent('999+');
+    expect(screen.getByTestId('99')).toHaveTextContent('99+');
+    expect(screen.getByTestId('under')).toHaveTextContent('42');
+  });
+
+  it('announces its label instead of the visible content', () => {
+    render(
+      <>
+        <Badge data-testid="large" label="3 unread messages">
+          {3}
+        </Badge>
+        <Badge data-testid="small" labels={{ newNotification: 'Update available' }} />
+      </>,
+    );
+    const large = screen.getByTestId('large');
+    expect(large.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+    expect(large).toHaveTextContent('3 unread messages');
+    expect(screen.getByTestId('small')).toHaveTextContent('Update available');
+  });
+
+  it('is part of its button’s name', () => {
+    render(
+      <button type="button">
+        Inbox <Badge>{5}</Badge>
+      </button>,
+    );
+    expect(screen.getByRole('button', { name: 'Inbox 5' })).toBeInTheDocument();
   });
 });
 

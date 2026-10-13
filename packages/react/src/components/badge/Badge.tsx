@@ -1,28 +1,85 @@
+'use client';
+
 import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
+import { useNumberFormatter, VisuallyHidden } from 'react-aria';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
 
-export interface BadgeProps extends ComponentPropsWithRef<'span'> {
+/** Words a {@link Badge} announces. */
+export interface BadgeLabels {
+  /** What a small badge (a dot) announces. @default "New notification" */
+  newNotification?: string;
+}
+
+export interface BadgeClassNames {
+  root?: string;
+  /** The large badge's text, which truncates at the badge's maximum width. */
+  label?: string;
+}
+
+export interface BadgeProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   /**
-   * A short count or label (large badge). Leave it out for the small dot. Give the anchor
-   * an accessible name that includes what the badge means, e.g. "Inbox, 3 new".
+   * A count or a short label (large badge); leave it out for the small dot. Numbers are
+   * formatted for the locale and capped at `max` ("999+"). M3 allows four characters,
+   * including the "+"; text badges stop at 34px wide and truncate longer text.
    */
   children?: ReactNode;
+  /** The highest count shown; larger counts show as `max` + "+". @default 999 */
+  max?: number;
+  /**
+   * What assistive tech reads instead of the visible content, e.g. "3 unread messages".
+   * Without it, a large badge reads its content and a small one `labels.newNotification`.
+   */
+  label?: string;
+  labels?: BadgeLabels;
+  classNames?: BadgeClassNames;
 }
 
 /**
- * M3 badge: a small 6px dot, or a large 16px badge holding a short count or label, in
- * `error` colours. Place it on an icon with {@link BadgedBox}.
+ * M3 badge: a small 6px dot, or a large 16px badge holding a count or a short label, in
+ * `error` colours. Place it on an icon with {@link BadgedBox}. It is announced: a count is
+ * read, a dot reads "New notification" (`labels`), and `label` replaces either.
  *
  * @example
  * <Badge />
- * <Badge>3</Badge>
+ * <Badge>{3}</Badge>
+ * <Badge max={99}>{120}</Badge> // "99+"
  */
-export function Badge({ children, className, ...rest }: BadgeProps) {
+export function Badge({
+  children,
+  max = 999,
+  label,
+  labels,
+  classNames,
+  className,
+  ...rest
+}: BadgeProps) {
+  const format = useNumberFormatter();
   const size = children == null || children === false ? 'small' : 'large';
+  const styles = badgeStyles({ size, count: typeof children === 'number' });
+  const content =
+    typeof children === 'number'
+      ? children > max
+        ? `${format.format(max)}+`
+        : format.format(children)
+      : children;
+  const announcement =
+    label ?? (size === 'small' ? (labels?.newNotification ?? 'New notification') : null);
   return (
-    <span {...rest} data-size={size} className={badgeStyles({ size, class: className })}>
-      {size === 'large' ? children : null}
+    <span
+      {...rest}
+      data-size={size}
+      className={styles.root({ class: cn(classNames?.root, className) })}
+    >
+      {size === 'large' && (
+        <span
+          aria-hidden={announcement != null || undefined}
+          className={styles.label({ class: classNames?.label })}
+        >
+          {content}
+        </span>
+      )}
+      {announcement != null && <VisuallyHidden elementType="span">{announcement}</VisuallyHidden>}
     </span>
   );
 }
@@ -42,10 +99,11 @@ export interface BadgedBoxProps extends Omit<ComponentPropsWithRef<'span'>, 'chi
 
 /**
  * Places a badge at the top end of its anchor (Compose's `BadgedBox`), e.g. on a
- * navigation icon.
+ * navigation icon. The badge's announcement is part of the text around it, so a
+ * navigation item reads its icon's badge with its label.
  *
  * @example
- * <NavigationBarItem icon={<BadgedBox badge={<Badge>3</Badge>}><MailIcon /></BadgedBox>}>Mail</NavigationBarItem>
+ * <NavigationBarItem icon={<BadgedBox badge={<Badge>{3}</Badge>}><MailIcon /></BadgedBox>}>Mail</NavigationBarItem>
  */
 export function BadgedBox({ badge, children, classNames, className, ...rest }: BadgedBoxProps) {
   const badgeContent = badge.props.children;

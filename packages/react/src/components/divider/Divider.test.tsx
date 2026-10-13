@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
-import { Divider } from './Divider';
+import { Divider, LabeledDivider } from './Divider';
 
 describe('Divider', () => {
   it('renders a 1px outline-variant horizontal separator', async () => {
@@ -35,5 +35,25 @@ describe('Divider', () => {
     render(<Divider decorative data-testid="d" />);
     expect(screen.queryByRole('separator')).toBe(null);
     expect(screen.getByTestId('d')).toHaveAttribute('role', 'none');
+  });
+});
+
+describe('LabeledDivider', () => {
+  it('puts supporting text 4px below the line, 8px clear at the end and below', async () => {
+    const { container } = render(
+      <LabeledDivider inset="start" data-testid="root" classNames={{ label: 'custom' }}>
+        Earlier this week
+      </LabeledDivider>,
+    );
+    const root = screen.getByTestId('root');
+    expect(root).toHaveClass('flex-col', 'gap-[4px]', 'pe-[8px]', 'pb-[8px]');
+    expect(screen.getByRole('separator')).toHaveClass('ps-[16px]');
+    expect(screen.getByText('Earlier this week')).toHaveClass(
+      'text-label-small',
+      'text-on-surface-variant',
+      'ps-[16px]',
+      'custom',
+    );
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

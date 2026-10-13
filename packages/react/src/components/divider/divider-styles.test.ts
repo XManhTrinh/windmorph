@@ -5,13 +5,15 @@ import {
   nonLiteralClasses,
   uncompiledClasses,
 } from '../../../test/tailwind-classes';
-import { dividerStyles } from './divider-styles';
+import { dividerStyles, labeledDividerStyles } from './divider-styles';
 
 describe('dividerStyles', () => {
   function* outputs() {
     for (const orientation of ['horizontal', 'vertical'] as const)
       for (const inset of ['none', 'start', 'middle'] as const)
         yield dividerStyles({ orientation, inset });
+    for (const inset of ['none', 'start', 'middle'] as const)
+      for (const slot of Object.values(labeledDividerStyles({ inset }))) yield slot();
   }
   const classes = collectClasses(outputs());
 

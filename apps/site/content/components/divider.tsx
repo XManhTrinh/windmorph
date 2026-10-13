@@ -21,7 +21,9 @@ export async function DividerBody() {
           <code className="text-on-surface">orientation</code> is{' '}
           <code className="text-on-surface">horizontal</code> (full width) or{' '}
           <code className="text-on-surface">vertical</code> (full height of a flex row), and{' '}
-          <code className="text-on-surface">inset</code> leaves 16px at the start or at both ends.
+          <code className="text-on-surface">inset</code> leaves 16px at the start or at both ends.{' '}
+          <code className="text-on-surface">LabeledDivider</code> adds supporting text 4px below the
+          line, with 8px clear at the end and below, such as the name of the section that follows.
         </p>
       </section>
 
