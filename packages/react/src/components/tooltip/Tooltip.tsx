@@ -17,7 +17,6 @@ import {
 } from 'react';
 import {
   mergeProps,
-  useDialog,
   useInteractOutside,
   useLongPress,
   useOverlayPosition,
@@ -41,6 +40,7 @@ import {
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { tabbables } from '../../utils/focus';
 import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
 
 /**
@@ -331,8 +331,10 @@ export interface RichTooltipTriggerProps {
   /**
    * A persistent rich tooltip opens when the trigger is pressed and stays, even after the
    * pointer leaves, until the trigger is pressed again, Escape, or a press anywhere outside it
-   * (on another element or on empty space); it's a non-modal dialog whose actions keyboard users
-   * can reach. A transient one (the spec's default) works like a plain tooltip: hover, focus
+   * (on another element or on empty space), or focus moving to another element. It's a
+   * non-modal dialog: opening it leaves focus on the trigger, and it comes next in the Tab
+   * order (trigger → its links and buttons → the rest of the page) without trapping focus.
+   * A transient one (the spec's default) works like a plain tooltip: hover, focus
    * or a touch long press opens it, and it leaves 1.5s after the pointer or focus does.
    * @default false
    */
@@ -354,7 +356,7 @@ export interface RichTooltipTriggerProps {
  * Shows a {@link RichTooltip} for its trigger. Transient by default (hover, keyboard focus or a
  * touch long press; it stays while hovered or focused within and leaves 1.5s later), or
  * `persistent`: opened by a press and kept until the trigger is pressed again, Escape, or a
- * press anywhere outside it.
+ * press anywhere outside it. Focus stays on the trigger, and Tab moves on into the tooltip.
  * Use `persistent` when the tooltip holds actions keyboard users must reach.
  */
 export function RichTooltipTrigger({ persistent = false, ...props }: RichTooltipTriggerProps) {
@@ -457,7 +459,10 @@ export function RichTooltip(props: RichTooltipProps) {
   if (!isPresent) return null;
   const shared = { isExiting, exitProps };
   return (
-    <Overlay isExiting={isExiting} topLayer>
+    // A persistent one handles its own Tab order and focus return (`useTabOrderAfterTrigger`):
+    // the overlay's restoring focus scope would send Shift+Tab from its first control to
+    // whatever precedes the trigger.
+    <Overlay isExiting={isExiting} topLayer disableFocusManagement={context.persistent}>
       {context.persistent ? (
         <PersistentRichPopup {...props} {...shared} context={context} />
       ) : (
@@ -507,10 +512,17 @@ function PersistentRichPopup({
       if (isOutside(event.target as Element | null)) state.close();
     },
   });
-  const { dialogProps } = useDialog(
-    props.title != null ? { 'aria-labelledby': titleId } : { 'aria-label': props['aria-label'] },
-    popoverRef,
-  );
+  useTabOrderAfterTrigger(popoverRef, triggerRef, state, isExiting);
+  // A non-modal dialog (no `aria-modal`), named by its subhead. Not React Aria's `useDialog`,
+  // which moves focus into it: focus stays on the trigger. `tabIndex={-1}` (not in the Tab
+  // order) lets a press on its text take focus, so Escape still closes it then.
+  const dialogProps = {
+    role: 'dialog',
+    tabIndex: -1,
+    ...(props.title != null
+      ? { 'aria-labelledby': titleId }
+      : { 'aria-label': props['aria-label'] }),
+  };
   return (
     <RichBody
       {...props}
@@ -522,6 +534,59 @@ function PersistentRichPopup({
       isExiting={isExiting}
     />
   );
+}
+
+/**
+ * Puts a persistent rich tooltip next in the Tab order after its trigger, though it's
+ * portalled to the end of the document (the spec: focus goes parent element → link → button,
+ * and people "move linearly through the rest of the page"). Tab from the trigger enters it,
+ * Tab from its last control goes on to whatever follows the trigger, and Shift+Tab reverses
+ * both. Escape on the trigger or inside closes it, putting focus back on the trigger.
+ */
+function useTabOrderAfterTrigger(
+  popoverRef: RefObject<HTMLElement | null>,
+  triggerRef: RefObject<HTMLElement | null>,
+  state: OverlayTriggerState,
+  isExiting: boolean,
+) {
+  useEffect(() => {
+    if (isExiting) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const popover = popoverRef.current;
+      const trigger = triggerRef.current;
+      if (event.defaultPrevented || !popover || !trigger) return;
+      const active = document.activeElement;
+      const onTrigger = active === trigger;
+      if (event.key === 'Escape' && (onTrigger || popover.contains(active))) {
+        // Before any enclosing overlay (a dialog) sees it: the tooltip is on top.
+        event.preventDefault();
+        event.stopPropagation();
+        state.close();
+        trigger.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
+      const inside = tabbables(popover);
+      if (inside.length === 0) return;
+      // The first tabbable after the trigger in the page, leaving the tooltip out.
+      const following = () =>
+        tabbables(document.body, (el) => popover.contains(el) || trigger.contains(el)).find(
+          (el) => trigger.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+      let target: HTMLElement | undefined;
+      if (!event.shiftKey) {
+        if (onTrigger) target = inside[0];
+        else if (active === inside.at(-1)) target = following();
+      } else if (active === inside[0]) target = trigger;
+      else if (active instanceof HTMLElement && active === following()) target = inside.at(-1);
+      if (!target) return;
+      event.preventDefault();
+      target.focus();
+    };
+    // Capture: before the trigger's and the popover's own key handling.
+    document.addEventListener('keydown', onKeyDown, true);
+    return () => document.removeEventListener('keydown', onKeyDown, true);
+  }, [popoverRef, triggerRef, state, isExiting]);
 }
 
 function TransientRichPopup({

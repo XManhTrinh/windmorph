@@ -83,13 +83,75 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               press opens it as a non-modal popover dialog whose actions keyboard users can reach;
               it stays when the pointer leaves, and pressing the trigger again, Escape, or a press
               anywhere outside it closes it. A persistent one is named by its{' '}
-              <InlineCode>title</InlineCode> or by <InlineCode>aria-label</InlineCode>.
+              <InlineCode>title</InlineCode> or by <InlineCode>aria-label</InlineCode>. Opening it
+              leaves focus on the trigger, and it comes next in the Tab order (see below).
             </li>
             <li>
               A focus-triggered tooltip does not auto-hide (it stays until blur, leave or Escape),
               following WCAG 1.4.13.
             </li>
+            <li>
+              A persistent rich tooltip is a non-modal{' '}
+              <InlineCode>role=&quot;dialog&quot;</InlineCode> (no{' '}
+              <InlineCode>aria-modal</InlineCode>), so screen readers don&apos;t announce a modal;
+              its trigger has <InlineCode>aria-expanded</InlineCode> and{' '}
+              <InlineCode>aria-controls</InlineCode> pointing at it. It never traps focus.
+            </li>
           </ul>
+          <div className="overflow-x-auto rounded-corner-large border border-outline-variant">
+            <table className="w-full text-start text-body-medium text-on-surface">
+              <caption className="sr-only">Tooltip keyboard interactions</caption>
+              <thead className="bg-surface-container text-label-large text-on-surface-variant">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-start">
+                    Key
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-start">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-outline-variant align-top">
+                  <th scope="row" className="px-4 py-3 text-start font-plain whitespace-nowrap">
+                    <kbd>Tab</kbd>
+                  </th>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    On a trigger with a persistent rich tooltip open: moves into it, to its first
+                    link or button. From its last control: on to whatever follows the trigger on the
+                    page, which closes it, since focus moved to another element.
+                  </td>
+                </tr>
+                <tr className="border-t border-outline-variant align-top">
+                  <th scope="row" className="px-4 py-3 text-start font-plain whitespace-nowrap">
+                    <kbd>Shift+Tab</kbd>
+                  </th>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    Back through the tooltip&apos;s controls to its trigger. From whatever follows
+                    the trigger: into the tooltip, at its last control.
+                  </td>
+                </tr>
+                <tr className="border-t border-outline-variant align-top">
+                  <th scope="row" className="px-4 py-3 text-start font-plain whitespace-nowrap">
+                    <kbd>Enter or Space</kbd>
+                  </th>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    On a persistent trigger: opens or closes its rich tooltip. Focus stays on the
+                    trigger.
+                  </td>
+                </tr>
+                <tr className="border-t border-outline-variant align-top">
+                  <th scope="row" className="px-4 py-3 text-start font-plain whitespace-nowrap">
+                    <kbd>Escape</kbd>
+                  </th>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    Hides a plain or transient tooltip. Closes a persistent rich tooltip from its
+                    trigger or from inside it, with focus back on the trigger.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       </>
     ),

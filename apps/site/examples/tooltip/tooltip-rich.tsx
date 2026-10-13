@@ -7,7 +7,8 @@ import { Button, RichTooltip, RichTooltipTrigger } from '@windmorph/react';
  * transient, like a plain tooltip: hover, focus or a touch long press shows it below and to
  * the end of its trigger, and it leaves 1.5s after the pointer or focus does. With an action
  * keyboard users must reach, make it `persistent`: a press opens it as a non-modal popover,
- * and pressing it again, Escape or a press anywhere outside closes it. The `title` names it.
+ * and pressing it again, Escape or a press anywhere outside closes it. Focus stays on the
+ * trigger, and Tab moves on into the tooltip's action. The `title` names it.
  */
 export function TooltipRich() {
   return (

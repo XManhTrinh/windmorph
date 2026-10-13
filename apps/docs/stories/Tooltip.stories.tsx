@@ -125,6 +125,36 @@ export const Rich: Story = {
   ),
 };
 
+/**
+ * Keyboard order: a persistent rich tooltip is next in the Tab order after its trigger
+ * (trigger → link → button → the rest of the page), though it's portalled. Opening it leaves
+ * focus on the trigger.
+ */
+export const RichKeyboard: Story = {
+  render: () => (
+    <div className="flex items-start gap-4 p-48" data-testid="rich-keyboard">
+      <Button variant="outlined">Before</Button>
+      <RichTooltipTrigger persistent>
+        <Button variant="tonal">What are grouped tabs?</Button>
+        <RichTooltip
+          title="Grouped tabs"
+          action={
+            <>
+              <Button variant="text" href="#grouped-tabs">
+                Learn more
+              </Button>
+              <Button variant="text">Got it</Button>
+            </>
+          }
+        >
+          Tabs from the same site stay together, so related pages are easy to find.
+        </RichTooltip>
+      </RichTooltipTrigger>
+      <Button variant="outlined">After</Button>
+    </div>
+  ),
+};
+
 /** A transient rich tooltip (the default): hover, focus or long-press; below and to the end. */
 export const RichTransient: Story = {
   args: { placement: 'bottom start' },

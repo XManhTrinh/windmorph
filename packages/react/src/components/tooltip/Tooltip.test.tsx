@@ -189,6 +189,82 @@ describe('RichTooltip', () => {
     await gone('dialog');
   });
 
+  it('leaves focus on its trigger, as a non-modal dialog the trigger controls', async () => {
+    const { container } = render(<Rich />);
+    const trigger = screen.getByRole('button', { name: 'What’s this?' });
+    await userEvent.tab();
+    await userEvent.keyboard('{Enter}');
+    const dialog = await screen.findByRole('dialog', { name: 'Grouped tabs' });
+    expect(trigger).toHaveFocus();
+    expect(dialog).not.toHaveAttribute('aria-modal');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(trigger).toHaveAttribute('aria-controls', dialog.id);
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('is next in the Tab order after its trigger, both ways, without trapping focus', async () => {
+    render(
+      <>
+        <button type="button">Before</button>
+        <RichTooltipTrigger persistent defaultOpen>
+          <Button variant="text">What’s this?</Button>
+          <RichTooltip
+            title="Grouped tabs"
+            action={
+              <>
+                <a href="#help">Help</a>
+                <Button variant="text">Got it</Button>
+              </>
+            }
+          >
+            Tabs from the same site stay together.
+          </RichTooltip>
+        </RichTooltipTrigger>
+        <button type="button">After</button>
+      </>,
+    );
+    const focused = () => document.activeElement?.textContent;
+    await screen.findByRole('dialog');
+    // Shift+Tab from what follows the trigger enters the tooltip from its end.
+    act(() => screen.getByRole('button', { name: 'After' }).focus());
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('Got it');
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('Help');
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('What’s this?');
+    await userEvent.tab({ shift: true });
+    expect(focused()).toBe('Before');
+    // And forwards: trigger, link, button, then on to the page, which closes it (focus moved
+    // to another element).
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(focused()).toBe('Help');
+    await userEvent.tab();
+    expect(focused()).toBe('Got it');
+    await userEvent.tab();
+    expect(focused()).toBe('After');
+    await gone('dialog');
+  });
+
+  it('closes on Escape from its trigger or from inside, with focus on the trigger', async () => {
+    render(<Rich />);
+    const trigger = screen.getByRole('button', { name: 'What’s this?' });
+    await userEvent.tab();
+    await userEvent.keyboard('{Enter}');
+    await screen.findByRole('dialog');
+    await userEvent.keyboard('{Escape}');
+    await gone('dialog');
+    expect(trigger).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    await screen.findByRole('dialog');
+    await userEvent.tab();
+    expect(screen.getByRole('button', { name: 'Learn more' })).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    await gone('dialog');
+    expect(trigger).toHaveFocus();
+  });
+
   it('closes on a press outside', async () => {
     render(
       <>

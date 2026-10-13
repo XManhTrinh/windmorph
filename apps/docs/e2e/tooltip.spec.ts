@@ -178,6 +178,83 @@ test.describe('Tooltip behaviour', () => {
     await expect(trigger).toBeFocused();
   });
 
+  test('a persistent rich tooltip keeps focus on its trigger and sits next in the Tab order', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich-keyboard');
+    const trigger = page.getByRole('button', { name: 'What are grouped tabs?' });
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    const learnMore = dialog.getByRole('link', { name: 'Learn more' });
+    const gotIt = dialog.getByRole('button', { name: 'Got it' });
+    const before = page.getByRole('button', { name: 'Before' });
+    const after = page.getByRole('button', { name: 'After' });
+
+    // Opening from the keyboard or a press leaves focus on the trigger.
+    await before.focus();
+    await page.keyboard.press('Tab');
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await expect(trigger).toBeFocused();
+    await expect(dialog).not.toHaveAttribute('aria-modal');
+    await expect(trigger).toHaveAttribute('aria-controls', (await dialog.getAttribute('id'))!);
+
+    // Tab: trigger → link → button; Shift+Tab back to the trigger and before it.
+    await page.keyboard.press('Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(gotIt).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await expect(dialog).toBeVisible();
+
+    // Escape from inside closes it and returns focus to the trigger; from the trigger too.
+    await page.keyboard.press('Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+
+    // No trap: Tab past its last control goes on to the page (and closes it, as focus moved
+    // to another element).
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(gotIt).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(after).toBeFocused();
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('Shift+Tab from what follows an open persistent rich tooltip enters it from its end', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich-keyboard');
+    const trigger = page.getByRole('button', { name: 'What are grouped tabs?' });
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    // Focus After without a press (a press would be an interaction outside, closing it).
+    await page.getByRole('button', { name: 'After' }).evaluate((el) => (el as HTMLElement).focus());
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialog.getByRole('button', { name: 'Got it' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialog.getByRole('link', { name: 'Learn more' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('button', { name: 'Before' })).toBeFocused();
+  });
+
   /**
    * Records the clip-path of the first element matching `selector` that's inserted, from its
    * insertion for the next `count` frames.
