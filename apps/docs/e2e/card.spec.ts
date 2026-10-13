@@ -16,6 +16,13 @@ test.describe('Card visual regression', () => {
   }
 
   for (const mode of MODES) {
+    test(`dragged · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-card--dragged', { mode });
+      await expect(page.getByTestId('dragged')).toHaveScreenshot(`dragged-${mode}.png`);
+    });
+  }
+
+  for (const mode of MODES) {
     test(`interactive · ${mode}`, async ({ page }) => {
       await openStory(page, 'components-card--interactive', { mode });
       await expect(page.getByTestId('interactive')).toHaveScreenshot(`interactive-${mode}.png`);
@@ -49,14 +56,37 @@ test.describe('Card interaction', () => {
     await expect(card).toContainText('Pressed 1');
   });
 
-  test('outlined cards keep their elevation on hover', async ({ page }) => {
+  test('outlined cards rise on hover and get an on-surface border when focused', async ({
+    page,
+  }) => {
     await openStory(page, 'components-card--interactive');
     const card = page.getByRole('button', { name: 'Pressable outlined' });
     const rest = await card.evaluate((el) => getComputedStyle(el).boxShadow);
+    const border = await card.evaluate((el) => getComputedStyle(el).borderTopColor);
     await card.hover();
     await expect(card).toHaveAttribute('data-hovered', 'true');
-    await page.waitForTimeout(300);
-    expect(await card.evaluate((el) => getComputedStyle(el).boxShadow)).toBe(rest);
+    await expect.poll(() => card.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe(rest);
+
+    await page.mouse.move(0, 0);
+    await card.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(card).toHaveAttribute('data-focus-visible', 'true');
+    await expect
+      .poll(() => card.evaluate((el) => getComputedStyle(el).borderTopColor))
+      .not.toBe(border);
+  });
+
+  test('a pressed card drops back to its resting elevation', async ({ page }) => {
+    await openStory(page, 'components-card--interactive');
+    const card = page.getByRole('button', { name: 'Pressable filled' });
+    const rest = await card.evaluate((el) => getComputedStyle(el).boxShadow);
+    await card.hover();
+    await expect.poll(() => card.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe(rest);
+    await page.mouse.down();
+    await expect(card).toHaveAttribute('data-pressed', 'true');
+    await expect.poll(() => card.evaluate((el) => getComputedStyle(el).boxShadow)).toBe(rest);
+    await page.mouse.up();
   });
 
   test('media is clipped to the rounded corners', async ({ page }) => {

@@ -109,6 +109,22 @@ export const Interactive: Story = {
   },
 };
 
+/** Cards being dragged: raised (filled and outlined to level 3, elevated to 4). */
+export const Dragged: Story = {
+  render: () => (
+    <div className="flex max-w-md flex-col gap-6 p-4" data-testid="dragged">
+      {VARIANTS.map((variant) => (
+        <Card key={variant} variant={variant} dragged>
+          <div className="p-4 text-title-medium">Dragged {variant}</div>
+        </Card>
+      ))}
+      <Card variant="elevated" dragged onPress={() => {}} aria-label="Dragged pressable">
+        <div className="p-4 text-title-medium">Dragged pressable</div>
+      </Card>
+    </div>
+  ),
+};
+
 /** Layout safety (architecture §10). The card content is 96px tall. */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;

@@ -76,19 +76,22 @@ export async function CardBody() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
+        <h2 className="text-headline-small text-on-surface">Spec values</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
-            Variants match Compose&apos;s <code className="text-on-surface">Card</code>: filled is{' '}
-            <code className="text-on-surface">surface-container-highest</code>, elevated is{' '}
-            <code className="text-on-surface">surface-container-low</code> at level 1, outlined is{' '}
-            <code className="text-on-surface">surface</code> with a 1px outline. All have 12px
+            Filled is <code className="text-on-surface">surface-container-highest</code>, elevated
+            is <code className="text-on-surface">surface-container-low</code> at level 1, outlined
+            is <code className="text-on-surface">surface</code> with a 1px outline. All have 12px
             corners and <code className="text-on-surface">on-surface</code> content.
           </li>
           <li>
-            Interactive cards raise on hover following Compose&apos;s code (filled 0→1, elevated
-            1→2); outlined cards do not rise on hover, as Compose keeps that level despite its
-            token.
+            Interactive cards rise one level on hover (filled and outlined 0→1, elevated 1→2) and
+            drop back while pressed or keyboard-focused; a focused outlined card&apos;s border turns{' '}
+            <code className="text-on-surface">on-surface</code>.
+          </li>
+          <li>
+            Set <code className="text-on-surface">dragged</code> while a card is being moved: it
+            rises to level 3 (elevated to 4), as M3 asks when picking up a card.
           </li>
           <li>
             Content is clipped to the corners (
@@ -96,8 +99,7 @@ export async function CardBody() {
             add <code className="text-on-surface">overflow-visible</code> to turn that off.
           </li>
           <li>
-            No anatomy sub-components (headline, media, actions) in v1 — Compose ships none, and
-            layout utilities cover them.
+            No anatomy sub-components (headline, media, actions) in v1; layout utilities cover them.
           </li>
         </ul>
       </section>

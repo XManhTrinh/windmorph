@@ -1,10 +1,16 @@
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
- * Values follow Compose Material 3 (Card.kt and the *CardTokens files). Content is
- * `on-surface`. Interactive cards raise on hover (filled 0→1, elevated 1→2) and when
- * dragged; outlined cards keep their elevation on hover, which Compose's code sets
- * despite its token. Disabled colours are Compose's composites ("A at n% over B").
+ * Values follow the M3 card spec's states (m3.material.io: enabled, disabled, hovered,
+ * focused, pressed, dragged) with the elevations and colours of Compose's *CardTokens
+ * (2026-10-13). Content is `on-surface`.
+ *
+ * Elevation (rest / hover / focus and press / dragged): filled 0 / 1 / 0 / 3, elevated
+ * 1 / 2 / 1 / 4, outlined 0 / 1 / 0 / 3. Hover applies only while the card isn't pressed,
+ * keyboard-focused or dragged, so one rule wins at a time. A focused outlined card's border
+ * is `on-surface`. Disabled: filled `surface-variant` 38% over its container, elevated
+ * `surface`, the outlined border `outline` 12%; content `on-surface` 38%.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -13,9 +19,10 @@ export const cardStyles = tv({
   base: 'flex flex-col overflow-hidden rounded-corner-medium text-on-surface',
   variants: {
     variant: {
-      filled: 'bg-surface-container-highest shadow-elevation-0',
-      elevated: 'bg-surface-container-low shadow-elevation-1',
-      outlined: 'border border-solid border-outline-variant bg-surface shadow-elevation-0',
+      filled: 'bg-surface-container-highest shadow-elevation-0 data-dragged:shadow-elevation-3',
+      elevated: 'bg-surface-container-low shadow-elevation-1 data-dragged:shadow-elevation-4',
+      outlined:
+        'border border-solid border-outline-variant bg-surface shadow-elevation-0 data-dragged:shadow-elevation-3',
     },
     interactive: {
       true: [
@@ -31,7 +38,7 @@ export const cardStyles = tv({
       variant: 'filled',
       interactive: true,
       class: [
-        'data-hovered:shadow-elevation-1 data-dragged:shadow-elevation-3',
+        'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
         'data-disabled:bg-[color-mix(in_srgb,var(--md-sys-color-surface-variant)_38%,var(--md-sys-color-surface-container-highest))]',
         'data-disabled:shadow-elevation-0',
       ],
@@ -39,15 +46,18 @@ export const cardStyles = tv({
     {
       variant: 'elevated',
       interactive: true,
-      class:
-        'data-hovered:shadow-elevation-2 data-dragged:shadow-elevation-4 data-disabled:bg-surface data-disabled:shadow-elevation-1',
+      class: [
+        'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
+        'data-disabled:bg-surface data-disabled:shadow-elevation-1',
+      ],
     },
     {
       variant: 'outlined',
       interactive: true,
       class: [
-        'data-dragged:shadow-elevation-3',
-        'data-disabled:border-[color-mix(in_srgb,var(--md-sys-color-outline)_12%,var(--md-sys-color-surface-container-low))]',
+        'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
+        'data-focus-visible:border-on-surface',
+        'data-disabled:border-outline/12 data-disabled:shadow-elevation-0',
       ],
     },
   ],

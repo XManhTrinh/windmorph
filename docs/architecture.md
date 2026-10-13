@@ -267,7 +267,11 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - **Pressable** (`onPress`): renders `<div role="button">` through `ButtonBase`'s new `elementType: 'div'`, because a `<button>` may only contain phrasing content and cards hold headings, media and blocks.
   - **Link** (`href`, `<a>`).
 - **Interactive cards** fill their container's width (`w-full`), get state layers and the focus ring, and should be named with `aria-labelledby` (their headline). In development they warn if they contain buttons, links or fields, since interactive content can't nest; use a static card with its own actions instead.
-- **Elevation and disabled state follow Compose's code:** filled rises 0→1 on hover, elevated 1→2, dragged 3 / 4 / 3. Outlined cards **don't rise on hover**: the code keeps hover, focus and press at the default level although the token says level 1. Disabled colours are Compose's composites, done with `color-mix`: filled `surface-variant` 38% over its container, elevated `surface`, the outlined border `outline` 12% over `surface-container-low`. Content is `on-surface` 38%.
+- **States follow the spec's state list with the card token values** (2026-10-13; this replaces following Compose's code, which kept outlined cards flat on hover):
+  - Elevation, rest / hover / focus and press / dragged: filled 0 / 1 / 0 / 3, elevated 1 / 2 / 1 / 4, outlined 0 / 1 / 0 / 3. Hover applies only while the card isn't pressed, keyboard-focused or dragged, so exactly one rule wins.
+  - A keyboard-focused outlined card's border is `on-surface` (`FocusOutlineColor`).
+  - **Dragged** ("When moving a card, increase its elevation"): `dragged` sets `data-dragged`, on static and interactive cards alike; interactive cards also show the 16% dragged state layer. The app's drag and drop code sets it. `ButtonBase` owns the `data-*` state attributes and doesn't take a dragged state, so the card sets the attribute itself in a layout effect.
+  - Disabled: filled `surface-variant` 38% over its container (`color-mix`), elevated `surface`, the outlined border `outline` 12% (`DisabledOutlineOpacity`, over the card's own `surface`). Content is `on-surface` 38%.
 - No anatomy sub-components (headline, media, actions) in v1. Compose doesn't ship them, and layout utilities cover them.
 
 ### TextField (built)

@@ -66,7 +66,9 @@ describe('Card', () => {
     expect(card.tagName).toBe('DIV');
     expect(card).toHaveAttribute('tabindex', '0');
     expect(card).toHaveClass('state-layer', 'focus-ring', 'w-full', 'text-start');
-    expect(card).toHaveClass('data-hovered:shadow-elevation-2');
+    expect(card).toHaveClass(
+      'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
+    );
 
     await userEvent.click(card);
     card.focus();
@@ -75,15 +77,56 @@ describe('Card', () => {
     expect(onPress).toHaveBeenCalledTimes(3);
   });
 
-  it('keeps outlined cards at their elevation on hover', () => {
+  it('follows the spec’s state elevations, and an outlined card’s focus border', () => {
     render(
-      <Card variant="outlined" onPress={() => {}} aria-label="Trip">
-        Content
-      </Card>,
+      <>
+        <Card variant="outlined" onPress={() => {}} aria-label="Outlined">
+          Content
+        </Card>
+        <Card onPress={() => {}} aria-label="Filled">
+          Content
+        </Card>
+      </>,
     );
-    const card = screen.getByRole('button');
-    expect(card.className).not.toContain('data-hovered:shadow');
-    expect(card).toHaveClass('data-dragged:shadow-elevation-3');
+    const outlined = screen.getByRole('button', { name: 'Outlined' });
+    expect(outlined).toHaveClass(
+      'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
+      'data-focus-visible:border-on-surface',
+      'data-dragged:shadow-elevation-3',
+      'data-disabled:border-outline/12',
+    );
+    expect(screen.getByRole('button', { name: 'Filled' })).toHaveClass(
+      'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
+      'data-dragged:shadow-elevation-3',
+    );
+  });
+
+  it('marks a dragged card, static or interactive', () => {
+    const { rerender } = render(
+      <>
+        <Card dragged data-testid="static">
+          Static
+        </Card>
+        <Card variant="elevated" dragged onPress={() => {}} aria-label="Trip">
+          Content
+        </Card>
+      </>,
+    );
+    expect(screen.getByTestId('static')).toHaveAttribute('data-dragged');
+    expect(screen.getByTestId('static')).toHaveClass('data-dragged:shadow-elevation-3');
+    const card = screen.getByRole('button', { name: 'Trip' });
+    expect(card).toHaveAttribute('data-dragged');
+    expect(card).toHaveClass('data-dragged:shadow-elevation-4');
+    rerender(
+      <>
+        <Card data-testid="static">Static</Card>
+        <Card variant="elevated" onPress={() => {}} aria-label="Trip">
+          Content
+        </Card>
+      </>,
+    );
+    expect(screen.getByTestId('static')).not.toHaveAttribute('data-dragged');
+    expect(screen.getByRole('button', { name: 'Trip' })).not.toHaveAttribute('data-dragged');
   });
 
   it('does not respond when disabled', async () => {

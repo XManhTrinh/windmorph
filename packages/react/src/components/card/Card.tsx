@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, type ComponentPropsWithRef, type Ref, type RefObject } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  type ComponentPropsWithRef,
+  type Ref,
+  type RefObject,
+} from 'react';
 import { useObjectRef } from 'react-aria';
 import {
   ButtonBase,
@@ -14,6 +20,12 @@ import { cardStyles, type CardVariant } from './card-styles';
 interface CardOwnProps {
   /** @default "filled" */
   variant?: CardVariant;
+  /**
+   * The card is being dragged (picked up to move it): M3 raises it (filled and outlined
+   * to level 3, elevated to 4) and, on an interactive card, shows the dragged state layer.
+   * Set it from your drag and drop code; it sets `data-dragged`.
+   */
+  dragged?: boolean;
 }
 
 /** A container card. */
@@ -55,6 +67,13 @@ function useNoNestedInteractive(ref: RefObject<HTMLElement | null>, interactive:
   });
 }
 
+/** Sets `data-dragged` on the element, which the button primitive otherwise owns. */
+function useDraggedAttribute(ref: RefObject<HTMLElement | null>, dragged: boolean) {
+  useLayoutEffect(() => {
+    ref.current?.toggleAttribute('data-dragged', dragged);
+  });
+}
+
 /**
  * M3 card: filled, elevated or outlined. Static by default; with `onPress` or `href` the
  * whole card is pressable, with M3 state layers, hover elevation and a focus ring.
@@ -71,9 +90,10 @@ export function Card(props: CardProps) {
   const isLink = props.href !== undefined;
   const isAction = !isLink && props.onPress !== undefined;
   const interactive = isLink || isAction;
-  const { variant, className, ref, ...rest } = props;
+  const { variant, dragged = false, className, ref, ...rest } = props;
   const domRef = useObjectRef(ref as Ref<HTMLElement>);
   useNoNestedInteractive(domRef, interactive);
+  useDraggedAttribute(domRef, dragged);
 
   const classes = cn(cardStyles({ variant, interactive }), className);
 
