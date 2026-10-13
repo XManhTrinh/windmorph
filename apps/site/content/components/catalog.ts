@@ -603,8 +603,9 @@ export const COMPONENT_META: ComponentMeta[] = [
     title: 'Chips',
     group: 'Inputs & selection',
     railGroup: 'inputs',
-    summary: 'Assist, suggestion, filter and input chips for compact actions and entries.',
-    propsComponents: ['AssistChip', 'SuggestionChip', 'FilterChip', 'InputChip'],
+    summary:
+      'Assist, suggestion, filter and input chips for compact actions and entries, in a chip set.',
+    propsComponents: ['AssistChip', 'SuggestionChip', 'FilterChip', 'InputChip', 'ChipSet'],
     playground: 'full',
     specs: {
       variants: ['assist', 'suggestion', 'filter', 'input'],
@@ -613,6 +614,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     related: ['button', 'text-field'],
     whenNotToUse:
       'For a primary action use a Button; for picking one of a fixed set in a form use a Radio group.',
+    keywords: ['chip set', 'chip group', 'filter', 'suggestion', 'recipients', 'remove'],
   },
   {
     slug: 'card',

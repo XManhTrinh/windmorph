@@ -5,16 +5,19 @@ import {
   nonLiteralClasses,
   uncompiledClasses,
 } from '../../../test/tailwind-classes';
-import { chipStyles } from './chip-styles';
+import { chipSetStyles, chipStyles } from './chip-styles';
 
 function* outputs() {
   for (const kind of ['assist', 'suggestion', 'filter', 'input'] as const)
-    for (const elevated of [false, true])
-      for (const leading of ['none', 'icon', 'avatar'] as const)
-        for (const trailing of [false, true]) {
-          const slots = chipStyles({ kind, elevated, leading, trailing });
-          for (const slot of Object.values(slots)) yield slot();
-        }
+    for (const split of ['none', 'two', 'removeOnly'] as const)
+      for (const elevated of [false, true])
+        for (const outline of ['standard', 'strong'] as const)
+          for (const leading of ['none', 'icon', 'avatar'] as const)
+            for (const trailing of [false, true]) {
+              const slots = chipStyles({ kind, split, elevated, outline, leading, trailing });
+              for (const slot of Object.values(slots)) yield slot();
+            }
+  for (const layout of ['wrap', 'scroll'] as const) yield chipSetStyles({ layout }).root();
 }
 
 describe('chipStyles', () => {

@@ -1,37 +1,33 @@
 'use client';
 
-import { FilterChip } from '@windmorph/react';
+import { ChipSet, FilterChip } from '@windmorph/react';
 import { useState } from 'react';
 
 const OPTIONS = ['Vegetarian', 'Vegan', 'Spicy', 'Gluten-free'];
 
 /**
- * Filter chips are toggles (`aria-pressed`). Without a leading icon a check grows in when
- * selected; the corners morph to round. Here each chip is controlled with `selected` /
- * `onSelectedChange`.
+ * Filter chips in a `ChipSet` share one selection: give each a `value`, and the set takes
+ * `selectionMode`, `selectedKeys` and `onSelectionChange`. The set is one Tab stop and the
+ * arrow keys move between chips. Without a leading icon, a check grows in when selected.
  */
 export function ChipsFilter() {
-  const [selected, setSelected] = useState<string[]>(['Spicy']);
-  const toggle = (label: string) =>
-    setSelected((current) =>
-      current.includes(label) ? current.filter((x) => x !== label) : [...current, label],
-    );
-
+  const [selected, setSelected] = useState<Set<string | number>>(new Set(['Spicy']));
   return (
     <div className="flex flex-col items-start gap-3">
-      <div className="flex flex-wrap gap-2">
+      <ChipSet
+        aria-label="Diet"
+        selectionMode="multiple"
+        selectedKeys={selected}
+        onSelectionChange={setSelected}
+      >
         {OPTIONS.map((label) => (
-          <FilterChip
-            key={label}
-            selected={selected.includes(label)}
-            onSelectedChange={() => toggle(label)}
-          >
+          <FilterChip key={label} value={label}>
             {label}
           </FilterChip>
         ))}
-      </div>
+      </ChipSet>
       <p className="text-body-medium text-on-surface-variant">
-        Selected: {selected.join(', ') || 'none'}
+        Selected: {[...selected].join(', ') || 'none'}
       </p>
     </div>
   );

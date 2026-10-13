@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { AssistChip, FilterChip, InputChip, SuggestionChip } from '@windmorph/react';
+import { AssistChip, ChipSet, FilterChip, InputChip, SuggestionChip } from '@windmorph/react';
 import { useState } from 'react';
 import { ArrowIcon, EditIcon, SearchIcon, StarIcon } from './icons';
 import {
@@ -12,7 +12,10 @@ const meta = {
   title: 'Components/Chips',
   component: AssistChip,
   args: { children: 'Add to calendar', elevated: false, disabled: false },
-  argTypes: { leadingIcon: { control: false }, trailingIcon: { control: false } },
+  argTypes: {
+    leadingIcon: { control: false },
+    outline: { control: 'inline-radio', options: ['standard', 'strong'] },
+  },
 } satisfies Meta<typeof AssistChip>;
 
 export default meta;
@@ -45,6 +48,9 @@ export const Types: Story = {
             <SuggestionChip disabled={disabled} elevated>
               Elevated suggestion
             </SuggestionChip>
+            <SuggestionChip disabled={disabled} outline="strong">
+              Strong outline
+            </SuggestionChip>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <FilterChip disabled={disabled}>Filter</FilterChip>
@@ -60,11 +66,25 @@ export const Types: Story = {
             <FilterChip disabled={disabled} leadingIcon={<StarIcon />} trailingIcon={<ArrowIcon />}>
               Icons
             </FilterChip>
+            <FilterChip disabled={disabled} defaultSelected leadingIcon={<StarIcon />}>
+              Selected icon
+            </FilterChip>
+            <FilterChip disabled={disabled} defaultSelected onRemove={() => {}}>
+              Removable
+            </FilterChip>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <InputChip disabled={disabled}>Input</InputChip>
             <InputChip disabled={disabled} avatar={<Avatar />} onRemove={() => {}}>
-              Alice
+              Alex
+            </InputChip>
+            <InputChip
+              disabled={disabled}
+              avatar={<Avatar />}
+              onPress={() => {}}
+              onRemove={() => {}}
+            >
+              Editable
             </InputChip>
             <InputChip disabled={disabled} leadingIcon={<SearchIcon />} onRemove={() => {}}>
               Search term
@@ -81,39 +101,61 @@ export const Types: Story = {
 
 const FILTERS = ['Vegan', 'Gluten free', 'Spicy', 'Under 30 min'];
 
-/** A set of filter chips, toggling independently. */
+/** A chip set of filter chips: one Tab stop, arrow keys between chips, shared selection. */
 export const Filters: Story = {
   render: function FiltersStory() {
-    const [selected, setSelected] = useState<string[]>(['Spicy']);
+    const [selected, setSelected] = useState<Set<string | number>>(new Set(['Spicy']));
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2" data-testid="filters">
+        <ChipSet
+          aria-label="Diet"
+          selectionMode="multiple"
+          selectedKeys={selected}
+          onSelectionChange={setSelected}
+          data-testid="filters"
+        >
           {FILTERS.map((label) => (
-            <FilterChip
-              key={label}
-              selected={selected.includes(label)}
-              onSelectedChange={(on) =>
-                setSelected((all) => (on ? [...all, label] : all.filter((x) => x !== label)))
-              }
-            >
+            <FilterChip key={label} value={label}>
               {label}
             </FilterChip>
           ))}
-        </div>
+        </ChipSet>
         <p className="text-body-medium" data-testid="selected">
-          Selected: {selected.join(', ') || 'none'}
+          Selected: {[...selected].join(', ') || 'none'}
         </p>
       </div>
     );
   },
 };
 
-/** Removable input chips, e.g. recipients. */
+/** A single-select chip set (a radio group) that scrolls in one row. */
+export const SingleSelect: Story = {
+  render: () => (
+    <div className="w-[280px]">
+      <ChipSet
+        aria-label="Sort by"
+        selectionMode="single"
+        defaultSelectedKeys={['relevance']}
+        disallowEmptySelection
+        layout="scroll"
+        data-testid="single"
+      >
+        {['Relevance', 'Distance', 'Rating', 'Price', 'Newest'].map((label) => (
+          <FilterChip key={label} value={label.toLowerCase()}>
+            {label}
+          </FilterChip>
+        ))}
+      </ChipSet>
+    </div>
+  ),
+};
+
+/** Removable input chips, e.g. recipients: each is one focus stop, named "Remove …". */
 export const Recipients: Story = {
   render: function RecipientsStory() {
-    const [people, setPeople] = useState(['Alice', 'Bob', 'Carol']);
+    const [people, setPeople] = useState(['Alex', 'Sam', 'Priya']);
     return (
-      <div className="flex flex-wrap gap-2" data-testid="recipients">
+      <ChipSet aria-label="Recipients" data-testid="recipients">
         {people.map((name) => (
           <InputChip
             key={name}
@@ -123,7 +165,7 @@ export const Recipients: Story = {
             {name}
           </InputChip>
         ))}
-      </div>
+      </ChipSet>
     );
   },
 };

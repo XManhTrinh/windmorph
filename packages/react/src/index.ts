@@ -193,12 +193,20 @@ export {
   SuggestionChip,
   type AssistChipProps,
   type ChipClassNames,
+  type FilterChipClassNames,
   type FilterChipProps,
   type InputChipClassNames,
   type InputChipProps,
   type SuggestionChipProps,
 } from './components/chip/Chip';
-export { chipStyles, type ChipStyleProps } from './components/chip/chip-styles';
+export { ChipSet, type ChipSetClassNames, type ChipSetProps } from './components/chip/ChipSet';
+export {
+  chipSetStyles,
+  chipStyles,
+  type ChipOutline,
+  type ChipSetLayout,
+  type ChipStyleProps,
+} from './components/chip/chip-styles';
 export {
   SplitButton,
   type SplitButtonClassNames,

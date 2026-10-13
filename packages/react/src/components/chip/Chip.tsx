@@ -1,15 +1,24 @@
 'use client';
 
-import { useId, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
+import {
+  useContext,
+  useId,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
+import { useToggleState } from 'react-stately';
 import {
   ButtonBase,
+  ToggleGroupStateContext,
   type ButtonBaseActionProps,
   type ButtonBaseLinkProps,
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { cn } from '../../utils/cn';
-import { chipStyles } from './chip-styles';
+import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */
 function CheckIcon() {
@@ -41,6 +50,11 @@ interface ChipCommonProps {
   children: ReactNode;
   /** Icon before the label (18px). Hidden from assistive tech. */
   leadingIcon?: ReactElement;
+  /**
+   * The flat chip's border: `outline-variant`, or `strong` (`outline`) for 3:1 contrast
+   * where nothing else shows the chip is interactive. @default "standard"
+   */
+  outline?: ChipOutline;
   classNames?: ChipClassNames;
 }
 
@@ -52,18 +66,22 @@ function ChipContent({
   leading,
   children,
   trailing,
+  labelId,
 }: {
   styles: Styles;
   classNames?: ChipClassNames;
   leading?: ReactNode;
   children: ReactNode;
   trailing?: ReactNode;
+  labelId?: string;
 }) {
   return (
     <span className={styles.content({ class: classNames?.content })}>
       <TouchTarget />
       {leading}
-      <span className={styles.label({ class: classNames?.label })}>{children}</span>
+      <span id={labelId} className={styles.label({ class: classNames?.label })}>
+        {children}
+      </span>
       {trailing}
     </span>
   );
@@ -76,11 +94,61 @@ const leadingIconOf = (styles: Styles, icon: ReactElement | undefined, className
     </span>
   );
 
+const trailingIconOf = (styles: Styles, icon: ReactElement | undefined, className?: string) =>
+  icon && (
+    <span aria-hidden="true" className={styles.trailing({ class: className })}>
+      {icon}
+    </span>
+  );
+
+/** Backspace or Delete on a removable chip removes it (M3 chips, keyboard navigation). */
+const removeKeys =
+  (onRemove: (() => void) | undefined, disabled: boolean | undefined) =>
+  (event: KeyboardEvent<HTMLElement>) => {
+    if (onRemove && !disabled && (event.key === 'Backspace' || event.key === 'Delete')) {
+      event.preventDefault();
+      onRemove();
+    }
+  };
+
+/** The remove button: named "Remove" + the chip's label, with a 48px target. */
+function RemoveButton({
+  styles,
+  className,
+  labelId,
+  removeLabel,
+  onRemove,
+  disabled,
+}: {
+  styles: Styles;
+  className?: string;
+  labelId: string;
+  removeLabel: string;
+  onRemove: () => void;
+  disabled?: boolean;
+}) {
+  const removeId = useId();
+  return (
+    <ButtonBase
+      disabled={disabled}
+      onPress={onRemove}
+      onKeyDown={removeKeys(onRemove, disabled)}
+      aria-labelledby={`${removeId} ${labelId}`}
+      data-chip-remove=""
+      className={styles.remove({ class: className })}
+    >
+      <TouchTarget />
+      <span id={removeId} hidden>
+        {removeLabel}
+      </span>
+      <CloseIcon />
+    </ButtonBase>
+  );
+}
+
 /* ------------------------------------------------------------------ Assist */
 
 interface AssistChipOwnProps extends ChipCommonProps {
-  /** Icon after the label. Hidden from assistive tech. */
-  trailingIcon?: ReactElement;
   /** `surface-container-low` at level 1 instead of an outline. */
   elevated?: boolean;
 }
@@ -92,7 +160,7 @@ export type AssistChipProps = AssistChipOwnProps &
 
 /**
  * M3 assist chip: a smart or automated action that can span apps, such as opening a calendar
- * event. A button, or a link with `href`.
+ * event. A button, or a link with `href`. Assist chips have no trailing icon.
  *
  * @example
  * <AssistChip leadingIcon={<EventIcon />} onPress={addToCalendar}>Add to calendar</AssistChip>
@@ -100,8 +168,8 @@ export type AssistChipProps = AssistChipOwnProps &
 export function AssistChip({
   children,
   leadingIcon,
-  trailingIcon,
   elevated,
+  outline,
   classNames,
   className,
   ...base
@@ -109,8 +177,8 @@ export function AssistChip({
   const styles = chipStyles({
     kind: 'assist',
     elevated,
+    outline,
     leading: leadingIcon ? 'icon' : 'none',
-    trailing: Boolean(trailingIcon),
   });
   return (
     <ButtonBase
@@ -121,13 +189,6 @@ export function AssistChip({
         styles={styles}
         classNames={classNames}
         leading={leadingIconOf(styles, leadingIcon, classNames?.leading)}
-        trailing={
-          trailingIcon && (
-            <span aria-hidden="true" className={styles.trailing({ class: classNames?.trailing })}>
-              {trailingIcon}
-            </span>
-          )
-        }
       >
         {children}
       </ChipContent>
@@ -155,6 +216,7 @@ export function SuggestionChip({
   children,
   leadingIcon,
   elevated,
+  outline,
   classNames,
   className,
   ...base
@@ -162,6 +224,7 @@ export function SuggestionChip({
   const styles = chipStyles({
     kind: 'suggestion',
     elevated,
+    outline,
     leading: leadingIcon ? 'icon' : 'none',
   });
   return (
@@ -179,47 +242,82 @@ export function SuggestionChip({
 
 /* ------------------------------------------------------------------ Filter */
 
-interface FilterChipOwnProps extends ChipCommonProps {
-  /** Icon after the label, e.g. a dropdown arrow. Hidden from assistive tech. */
+export interface FilterChipClassNames extends ChipClassNames {
+  /** The toggle of a chip with a remove button. */
+  primary?: string;
+  remove?: string;
+}
+
+interface FilterChipOwnProps extends Omit<ChipCommonProps, 'classNames'> {
+  /**
+   * Icon after the label, e.g. a dropdown arrow when the chip opens a menu. Hidden from
+   * assistive tech; the whole chip is the control. Not with `onRemove`.
+   */
   trailingIcon?: ReactElement;
+  /**
+   * Adds a remove button after the label, a second focus stop named "Remove" + the label
+   * (M3: for medium and expanded windows). Backspace or Delete on the chip also calls it.
+   */
+  onRemove?: () => void;
+  /** First word of the remove button's name, which ends with the label. @default "Remove" */
+  removeLabel?: string;
   elevated?: boolean;
+  classNames?: FilterChipClassNames;
 }
 
 export type FilterChipProps = FilterChipOwnProps &
   Omit<ButtonBaseToggleProps, keyof FilterChipOwnProps | 'toggle'>;
 
 /**
- * M3 filter chip: a toggle (`aria-pressed`) for filtering content. Its corners morph from
- * 12px to round when selected; without a `leadingIcon` a check grows in. Controlled with
- * `selected` / `onSelectedChange` or uncontrolled with `defaultSelected`.
+ * M3 filter chip: a toggle (`aria-pressed`, or a radio in a single-select `ChipSet`) for
+ * filtering content. Without a `leadingIcon` a check grows in when selected. Controlled
+ * with `selected` / `onSelectedChange`, uncontrolled with `defaultSelected`, or through a
+ * `ChipSet`'s selection with a `value`.
  *
  * @example
  * <FilterChip selected={vegan} onSelectedChange={setVegan}>Vegan</FilterChip>
  */
-export function FilterChip({
-  children,
-  leadingIcon,
-  trailingIcon,
-  elevated,
-  classNames,
-  className,
-  ...base
-}: FilterChipProps) {
-  const styles = chipStyles({
-    kind: 'filter',
-    elevated,
-    leading: leadingIcon ? 'icon' : 'none',
-    trailing: Boolean(trailingIcon),
-  });
-  const check = (
+export function FilterChip(props: FilterChipProps) {
+  const { onRemove } = props;
+  return onRemove ? (
+    <RemovableFilterChip {...props} onRemove={onRemove} />
+  ) : (
+    <SimpleFilterChip {...props} />
+  );
+}
+
+function filterLeading(styles: Styles, leadingIcon: ReactElement | undefined, className?: string) {
+  if (leadingIcon) return leadingIconOf(styles, leadingIcon, className);
+  return (
     <span aria-hidden="true" className={styles.check()}>
       <span className={styles.checkInner()}>
-        <span className={styles.checkIcon({ class: classNames?.leading })}>
+        <span className={styles.checkIcon({ class: className })}>
           <CheckIcon />
         </span>
       </span>
     </span>
   );
+}
+
+function SimpleFilterChip({
+  children,
+  leadingIcon,
+  trailingIcon,
+  elevated,
+  outline,
+  classNames,
+  className,
+  onRemove: _onRemove,
+  removeLabel: _removeLabel,
+  ...base
+}: FilterChipProps) {
+  const styles = chipStyles({
+    kind: 'filter',
+    elevated,
+    outline,
+    leading: leadingIcon ? 'icon' : 'none',
+    trailing: Boolean(trailingIcon),
+  });
   return (
     <ButtonBase
       {...base}
@@ -229,14 +327,8 @@ export function FilterChip({
       <ChipContent
         styles={styles}
         classNames={classNames}
-        leading={leadingIcon ? leadingIconOf(styles, leadingIcon, classNames?.leading) : check}
-        trailing={
-          trailingIcon && (
-            <span aria-hidden="true" className={styles.trailing({ class: classNames?.trailing })}>
-              {trailingIcon}
-            </span>
-          )
-        }
+        leading={filterLeading(styles, leadingIcon, classNames?.leading)}
+        trailing={trailingIconOf(styles, trailingIcon, classNames?.trailing)}
       >
         {children}
       </ChipContent>
@@ -244,9 +336,91 @@ export function FilterChip({
   );
 }
 
+/** A filter chip with a remove button: a container of the toggle and the remove button. */
+function RemovableFilterChip({
+  children,
+  leadingIcon,
+  trailingIcon: _trailingIcon,
+  elevated,
+  outline,
+  classNames,
+  className,
+  style,
+  onRemove,
+  removeLabel = 'Remove',
+  selected,
+  defaultSelected,
+  onSelectedChange,
+  value,
+  disabled,
+  onKeyDown,
+  ...base
+}: FilterChipProps & { onRemove: () => void }) {
+  const labelId = useId();
+  const groupState = useContext(ToggleGroupStateContext);
+  const inGroup = groupState != null && value !== undefined;
+  const ownState = useToggleState({
+    isSelected: selected,
+    defaultSelected,
+    onChange: onSelectedChange,
+  });
+  const isSelected = inGroup ? groupState.selectedKeys.has(value) : ownState.isSelected;
+  const isDisabled = Boolean(disabled || (inGroup && groupState.isDisabled));
+  const styles = chipStyles({
+    kind: 'filter',
+    split: 'two',
+    elevated,
+    outline,
+    leading: leadingIcon ? 'icon' : 'none',
+    trailing: true,
+  });
+  const toggleProps = inGroup
+    ? { value }
+    : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
+  return (
+    <div
+      data-selected={isSelected || undefined}
+      data-disabled={isDisabled || undefined}
+      style={style}
+      className={styles.root({ class: cn(classNames?.root, className) })}
+    >
+      <ButtonBase
+        {...base}
+        {...toggleProps}
+        toggle
+        disabled={disabled}
+        onKeyDown={(event) => {
+          removeKeys(onRemove, isDisabled)(event);
+          onKeyDown?.(event);
+        }}
+        data-chip-primary=""
+        className={styles.primary({ class: classNames?.primary })}
+      >
+        <ChipContent
+          styles={styles}
+          classNames={classNames}
+          labelId={labelId}
+          leading={filterLeading(styles, leadingIcon, classNames?.leading)}
+        >
+          {children}
+        </ChipContent>
+      </ButtonBase>
+      <RemoveButton
+        styles={styles}
+        className={classNames?.remove}
+        labelId={labelId}
+        removeLabel={removeLabel}
+        onRemove={onRemove}
+        disabled={isDisabled}
+      />
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------- Input */
 
 export interface InputChipClassNames extends ChipClassNames {
+  /** The chip's action (a button with `onPress`), or its label part. */
   primary?: string;
   avatar?: string;
   remove?: string;
@@ -257,20 +431,22 @@ interface InputChipOwnProps {
   children: ReactNode;
   /** Icon before the label (18px). Hidden from assistive tech. */
   leadingIcon?: ReactElement;
-  /** A 24px round image before the label (takes precedence over `leadingIcon`). */
+  /** A 24px image before the label, with 12px corners (takes precedence over `leadingIcon`). */
   avatar?: ReactElement;
-  /** Shows the chip as selected (`aria-pressed`). */
+  /** Shows the chip as selected (`aria-pressed` on its action). */
   selected?: boolean;
-  /** The chip's action, e.g. editing the entry. */
+  /** The chip's action, e.g. editing the entry. Makes the chip's label part a button. */
   onPress?: ButtonBaseActionProps['onPress'];
   /** Shows a remove button; also called on Backspace or Delete. */
   onRemove?: () => void;
   /** First word of the remove button's name, which ends with the label. @default "Remove" */
   removeLabel?: string;
+  /** The flat chip's border. @default "standard" */
+  outline?: ChipOutline;
   disabled?: boolean;
   classNames?: InputChipClassNames;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
 
 export type InputChipProps = InputChipOwnProps &
@@ -278,12 +454,16 @@ export type InputChipProps = InputChipOwnProps &
 
 /**
  * M3 input chip: a discrete piece of information the user entered, such as a recipient.
- * The chip's action and its optional remove button are separate buttons; Backspace or
- * Delete on the chip also removes it. Corners morph to round when `selected`.
+ *
+ * With `onPress` and `onRemove`, the chip's action and its remove button are two focus
+ * stops. With only `onRemove`, the chip is one focus stop (the remove button, named
+ * "Remove" + the label), as M3 asks. Backspace or Delete on the chip removes it. A chip
+ * with a remove button is at least 88px wide, so the button's 48px target never covers
+ * the label.
  *
  * @example
- * <InputChip avatar={<img src={alice.photo} alt="" />} onRemove={() => remove(alice)}>
- *   Alice
+ * <InputChip avatar={<img src={photo} alt="" />} onRemove={() => remove(id)}>
+ *   Alex
  * </InputChip>
  */
 export function InputChip({
@@ -294,15 +474,18 @@ export function InputChip({
   onPress,
   onRemove,
   removeLabel = 'Remove',
+  outline,
   disabled,
   classNames,
   className,
   ...rest
 }: InputChipProps) {
   const labelId = useId();
-  const removeId = useId();
+  const split = onRemove ? (onPress ? 'two' : 'removeOnly') : 'none';
   const styles = chipStyles({
     kind: 'input',
+    split,
+    outline,
     leading: avatar ? 'avatar' : leadingIcon ? 'icon' : 'none',
     trailing: Boolean(onRemove),
   });
@@ -313,13 +496,11 @@ export function InputChip({
   ) : (
     leadingIconOf(styles, leadingIcon, classNames?.leading)
   );
-
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (onRemove && !disabled && (event.key === 'Backspace' || event.key === 'Delete')) {
-      event.preventDefault();
-      onRemove();
-    }
-  };
+  const content = (
+    <ChipContent styles={styles} classNames={classNames} leading={leading} labelId={labelId}>
+      {children}
+    </ChipContent>
+  );
 
   return (
     <div
@@ -328,34 +509,31 @@ export function InputChip({
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <ButtonBase
-        disabled={disabled}
-        onPress={onPress}
-        onKeyDown={onKeyDown}
-        aria-pressed={selected}
-        data-chip-primary=""
-        className={styles.primary({ class: classNames?.primary })}
-      >
-        <span className={styles.content({ class: classNames?.content })}>
-          <TouchTarget />
-          {leading}
-          <span id={labelId} className={styles.label({ class: classNames?.label })}>
-            {children}
-          </span>
-        </span>
-      </ButtonBase>
-      {onRemove && (
+      {onPress ? (
         <ButtonBase
           disabled={disabled}
-          onPress={onRemove}
-          aria-labelledby={`${removeId} ${labelId}`}
-          className={styles.remove({ class: classNames?.remove })}
+          onPress={onPress}
+          onKeyDown={removeKeys(onRemove, disabled)}
+          aria-pressed={selected}
+          data-chip-primary=""
+          className={styles.primary({ class: classNames?.primary })}
         >
-          <span id={removeId} hidden>
-            {removeLabel}
-          </span>
-          <CloseIcon />
+          {content}
         </ButtonBase>
+      ) : (
+        <span data-chip-primary="" className={styles.primary({ class: classNames?.primary })}>
+          {content}
+        </span>
+      )}
+      {onRemove && (
+        <RemoveButton
+          styles={styles}
+          className={classNames?.remove}
+          labelId={labelId}
+          removeLabel={removeLabel}
+          onRemove={onRemove}
+          disabled={disabled}
+        />
       )}
     </div>
   );

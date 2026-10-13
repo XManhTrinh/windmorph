@@ -501,8 +501,8 @@ export const PLAYGROUND_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     component: 'AssistChip',
     render: (props) =>
       createElement(AssistChipAny, { ...props, leadingIcon: <EditIcon /> }, 'Add note'),
-    defaultProps: { elevated: false, disabled: false },
-    surfacedProps: ['elevated', 'disabled'],
+    defaultProps: { elevated: false, outline: 'standard', disabled: false },
+    surfacedProps: ['elevated', 'outline', 'disabled'],
     initialState: {},
     codeSlots: { leadingIcon: EDIT },
     codeChildren: 'Add note',

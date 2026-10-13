@@ -266,8 +266,9 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   RangeSlider: ['root', 'track', 'thumb', 'label'],
   AssistChip: ['root', 'content', 'leading', 'label', 'trailing'],
   SuggestionChip: ['root', 'content', 'leading', 'label', 'trailing'],
-  FilterChip: ['root', 'content', 'leading', 'label', 'trailing'],
+  FilterChip: ['root', 'content', 'leading', 'label', 'trailing', 'primary', 'remove'],
   InputChip: ['root', 'content', 'leading', 'label', 'trailing', 'primary', 'avatar', 'remove'],
+  ChipSet: ['root'],
   // Containment & overlays. Card, Badge and Divider export no `*ClassNames`, so they are omitted.
   Dialog: ['scrim', 'panel', 'icon'],
   Menu: ['group', 'item'],

@@ -1,30 +1,37 @@
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
- * Values follow Compose Material 3 (Chip.kt and the AssistChip / SuggestionChip /
- * FilterChip / InputChip / Chips token files):
+ * Values follow the M3 chips spec (m3.material.io, Specs and Accessibility tabs), with
+ * Compose Material 3's chip token files for what the spec leaves out (2026-10-13):
  *
- * - 32px tall, `label-large`, 18px icons, 24px round avatars, a 1px `outline-variant` border
- *   when flat. Elevated chips are `surface-container-low` at level 1 (hover 2, dragged 4).
- * - Assist and suggestion chips keep 8px corners. Filter and input chips use Compose's
- *   Expressive `shapes` overload: 12px, 8px while pressed and full when selected, morphing
- *   on the fast spatial spring, with its tonal colours (unselected leading icons
- *   `on-surface-variant`).
- * - Padding and gaps are what Compose's `ChipArrangement` produces for each icon
- *   combination (e.g. a filter chip is 16px each side without icons, 8 · icon · 4 · label ·
- *   16px with a leading icon).
+ * - 32px tall, 8px corners for every chip, `label-large`, 18px icons, 24px avatars with
+ *   12px corners, a 1px `outline-variant` border when flat (`outline` with the strong
+ *   outline). Elevated chips are `surface-container-low` at level 1 (hover 2, dragged 4).
+ * - Padding: 16px at an edge without an icon, 8px beside an icon (4px beside an avatar),
+ *   and 8px between elements. Input chips without a leading element keep Compose's 12px.
+ * - Leading icons are `primary`; a selected filter chip's is `on-secondary-container`, a
+ *   selected input chip's `primary`, an unselected input chip's `on-surface-variant`.
+ * - The remove button has a 48px target, and a chip with one is at least 88px wide.
  * - Disabled: content `on-surface` 38%, borders `on-surface` 12%, containers `on-surface`
  *   12% at level 0.
  *
  * Every class is written out in full so Tailwind can find it.
  */
 
-/** Transitions: shape and padding on fast spatial, colours and elevation on fast effects. */
+/** Transitions: padding on fast spatial, colours and elevation on fast effects. */
 const motion = [
-  '[--m3-transition-property:border-radius,padding-inline-start,background-color,color,box-shadow,border-color]',
-  '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
-  '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
-  '[--m3-transition-delay:0s,0s,0s,0s,0s,0s]',
+  '[--m3-transition-property:padding-inline-start,background-color,color,box-shadow,border-color]',
+  '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
+  '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
+  '[--m3-transition-delay:0s,0s,0s,0s,0s]',
+];
+
+/** A container of buttons shows the state layer of whichever one is interacted with. */
+const containerStates = [
+  'min-w-[88px] cursor-default',
+  'has-data-hovered:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
+  'has-data-focus-visible:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
+  'has-data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
 ];
 
 /** Variant definitions for the chips; extend them to add variants. */
@@ -32,7 +39,7 @@ export const chipStyles = tv({
   slots: {
     root: [
       'group/chip inline-flex h-[32px] max-w-full shrink-0 cursor-pointer items-center align-middle',
-      'font-plain text-label-large whitespace-nowrap select-none',
+      'rounded-corner-small font-plain text-label-large whitespace-nowrap select-none',
       'state-layer focus-ring',
       ...motion,
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
@@ -49,50 +56,48 @@ export const chipStyles = tv({
     check: [
       'grid grid-cols-[0fr] opacity-0 in-data-selected:grid-cols-[1fr] in-data-selected:opacity-100',
       '[transition-property:grid-template-columns,opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-default-easing)]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
     checkInner: 'flex min-w-0 overflow-hidden',
-    checkIcon: 'inline-flex size-[18px] shrink-0 me-[4px] [&>svg]:size-full',
+    checkIcon: 'inline-flex size-[18px] shrink-0 me-[8px] [&>svg]:size-full',
     avatar:
-      'size-[24px] shrink-0 overflow-hidden rounded-full [&>img]:size-full [&>img]:object-cover group-data-disabled/chip:opacity-38',
-    // Input chips: the remove button, with its own round state layer and focus ring.
+      'size-[24px] shrink-0 overflow-hidden rounded-corner-medium [&>img]:size-full [&>img]:object-cover group-data-disabled/chip:opacity-38',
+    // The remove button: an 18px icon in a 24px round state layer, with a 48px target. Its
+    // margins put the icon 8px from the label and from the chip's end.
     remove: [
-      'inline-flex size-[24px] shrink-0 -mx-[3px] cursor-pointer items-center justify-center rounded-full',
-      'state-layer focus-ring [&>svg]:size-[18px]',
+      'relative ms-[5px] -me-[3px] inline-flex size-[24px] shrink-0 cursor-pointer items-center justify-center rounded-full',
+      'state-layer [&>svg]:size-[18px]',
       'data-disabled:cursor-default',
     ],
-    // Input chips: the primary action fills the chip.
+    // A two-part chip's main part (its action, selection or label) fills the chip.
     primary:
       'inline-flex min-w-0 flex-1 cursor-pointer items-center self-stretch rounded-[inherit] focus-ring data-disabled:cursor-default',
   },
   variants: {
     kind: {
       assist: {
-        root: 'rounded-corner-small text-on-surface',
+        root: 'text-on-surface',
         leading: 'text-primary',
-        trailing: 'text-primary',
       },
       suggestion: {
-        root: 'rounded-corner-small text-on-surface-variant',
+        root: 'text-on-surface-variant',
         leading: 'text-primary',
       },
       filter: {
         root: [
-          'rounded-corner-medium data-pressed:rounded-corner-small text-on-surface-variant',
-          'data-selected:not-data-pressed:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
+          'text-on-surface-variant',
           'data-selected:bg-secondary-container data-selected:text-on-secondary-container data-selected:data-hovered:shadow-elevation-1',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',
+        ],
+        leading: [
+          'text-primary group-data-selected/chip:text-on-secondary-container',
+          'group-data-disabled/chip:group-data-selected/chip:text-on-surface/38',
         ],
       },
       input: {
         root: [
-          'cursor-default rounded-corner-medium has-data-pressed:rounded-corner-small text-on-surface-variant',
-          // The chip shows the state layer of whichever of its buttons is interacted with.
-          'has-data-hovered:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
-          'has-data-focus-visible:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
-          'has-data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
-          'data-selected:not-has-data-pressed:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
+          'cursor-default text-on-surface-variant',
           'data-selected:bg-secondary-container data-selected:text-on-secondary-container',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',
         ],
@@ -100,18 +105,43 @@ export const chipStyles = tv({
           'group-data-selected/chip:text-primary group-data-disabled/chip:group-data-selected/chip:text-on-surface/38',
       },
     },
+    /**
+     * How the chip is built: one element (`none`); a container of two buttons, its main
+     * part and the remove button (`two`); or a remove-only input chip, whose one focus stop
+     * is the remove button, so its focus ring circles the whole chip (`removeOnly`).
+     */
+    split: {
+      none: {},
+      two: { root: containerStates, remove: 'focus-ring' },
+      removeOnly: {
+        root: [
+          ...containerStates,
+          'has-data-focus-visible:[outline:var(--md-sys-focus-indicator-thickness)_solid_var(--md-sys-color-secondary)]',
+          'has-data-focus-visible:[outline-offset:var(--md-sys-focus-indicator-offset)]',
+        ],
+        remove: 'outline-none',
+        primary: 'cursor-default',
+      },
+    },
     elevated: {
       true: {
         root: 'bg-surface-container-low shadow-elevation-1 data-hovered:shadow-elevation-2 data-dragged:shadow-elevation-4 data-disabled:bg-on-surface/12 data-disabled:shadow-elevation-0',
       },
       false: {
-        root: 'border border-solid border-outline-variant bg-transparent data-dragged:shadow-elevation-4 data-disabled:border-on-surface/12',
+        root: 'border border-solid bg-transparent data-dragged:shadow-elevation-4 data-disabled:border-on-surface/12',
       },
+    },
+    /** `strong` draws the border in `outline` for 3:1 contrast (M3's accessibility guidance). */
+    outline: {
+      standard: {},
+      strong: {},
     },
     leading: { none: {}, icon: {}, avatar: {} },
     trailing: { true: {}, false: {} },
   },
   compoundVariants: [
+    { elevated: false, outline: 'standard', class: { root: 'border-outline-variant' } },
+    { elevated: false, outline: 'strong', class: { root: 'border-outline' } },
     // Selected filter and input chips drop their border (Compose: 0dp, transparent).
     {
       kind: ['filter', 'input'],
@@ -124,86 +154,86 @@ export const chipStyles = tv({
       class: { root: 'data-selected:bg-secondary-container' },
     },
 
-    // Assist and suggestion: arrangement 8px; padding 16px, or 8px beside an icon.
+    // One-part chips: 16px at an edge without an icon, 8px beside one, 8px between.
+    // A filter chip without a leading icon grows a check when selected (8 · check · 8).
     {
-      kind: ['assist', 'suggestion'],
+      kind: ['assist', 'suggestion', 'filter'],
+      split: 'none',
       leading: 'none',
       class: { root: 'ps-[16px]' },
     },
+    { kind: 'filter', split: 'none', leading: 'none', class: { root: 'data-selected:ps-[8px]' } },
     {
-      kind: ['assist', 'suggestion'],
-      leading: ['icon', 'avatar'],
-      class: { root: 'ps-[8px]', leading: 'me-[8px]' },
+      kind: ['assist', 'suggestion', 'filter'],
+      split: 'none',
+      leading: 'icon',
+      class: { root: 'ps-[8px]' },
     },
-    { kind: ['assist', 'suggestion'], trailing: false, class: { root: 'pe-[16px]' } },
     {
-      kind: ['assist', 'suggestion'],
+      kind: ['assist', 'suggestion', 'filter'],
+      split: 'none',
+      trailing: false,
+      class: { root: 'pe-[16px]' },
+    },
+    {
+      kind: ['assist', 'suggestion', 'filter'],
+      split: 'none',
       trailing: true,
-      class: { root: 'pe-[8px]', trailing: 'ms-[8px]' },
+      class: { root: 'pe-[8px]' },
+    },
+    { kind: ['assist', 'suggestion', 'filter'], leading: 'icon', class: { leading: 'me-[8px]' } },
+    { kind: ['assist', 'suggestion', 'filter'], trailing: true, class: { trailing: 'ms-[8px]' } },
+    // A filter chip with a remove button: its toggle holds the start padding.
+    {
+      kind: 'filter',
+      split: 'two',
+      leading: 'none',
+      class: { primary: 'ps-[16px] data-selected:ps-[8px]', root: 'pe-[8px]' },
+    },
+    {
+      kind: 'filter',
+      split: 'two',
+      leading: 'icon',
+      class: { primary: 'ps-[8px]', root: 'pe-[8px]' },
     },
 
-    // Filter: none 16 | 16; leading 8 · 4 | 16; trailing 12 | 8 · 8; both 8 · 4 | 4 · 8.
-    // A filter chip without a leading icon shows a check when selected (8 · check · 4).
-    {
-      kind: 'filter',
-      leading: 'none',
-      trailing: false,
-      class: { root: 'ps-[16px] data-selected:ps-[8px] pe-[16px]' },
-    },
-    {
-      kind: 'filter',
-      leading: 'icon',
-      trailing: false,
-      class: { root: 'ps-[8px] pe-[16px]', leading: 'me-[4px]' },
-    },
-    {
-      kind: 'filter',
-      leading: 'none',
-      trailing: true,
-      class: { root: 'ps-[12px] data-selected:ps-[8px] pe-[8px]', trailing: 'ms-[8px]' },
-    },
-    {
-      kind: 'filter',
-      leading: 'icon',
-      trailing: true,
-      class: { root: 'ps-[8px] pe-[8px]', leading: 'me-[4px]', trailing: 'ms-[4px]' },
-    },
-
-    // Input: none 12 | 12; icon 8 · 4 | 12; avatar 4 · 4 | 12; trailing 8 | 8 · 8;
-    // with both, the trailing gap is 4px.
-    { kind: 'input', leading: 'none', trailing: false, class: { primary: 'ps-[12px] pe-[12px]' } },
-    {
-      kind: 'input',
-      leading: 'icon',
-      trailing: false,
-      class: { primary: 'ps-[8px] pe-[12px]', leading: 'me-[4px]' },
-    },
-    {
-      kind: 'input',
-      leading: 'avatar',
-      trailing: false,
-      class: { primary: 'ps-[4px] pe-[12px]', leading: 'me-[4px]' },
-    },
-    {
-      kind: 'input',
-      leading: 'none',
-      trailing: true,
-      class: { primary: 'ps-[8px] pe-[8px]', root: 'pe-[8px]' },
-    },
-    {
-      kind: 'input',
-      leading: 'icon',
-      trailing: true,
-      class: { primary: 'ps-[8px] pe-[4px]', leading: 'me-[4px]', root: 'pe-[8px]' },
-    },
-    {
-      kind: 'input',
-      leading: 'avatar',
-      trailing: true,
-      class: { primary: 'ps-[4px] pe-[4px]', leading: 'me-[4px]', root: 'pe-[8px]' },
-    },
+    // Input: 12px without a leading element, 8px beside an icon, 4px beside an avatar;
+    // 8px between elements and at the end beside the remove button, 12px without one.
+    { kind: 'input', leading: 'none', class: { primary: 'ps-[12px]' } },
+    { kind: 'input', leading: 'icon', class: { primary: 'ps-[8px]', leading: 'me-[8px]' } },
+    { kind: 'input', leading: 'avatar', class: { primary: 'ps-[4px]', leading: 'me-[8px]' } },
+    { kind: 'input', trailing: false, class: { primary: 'pe-[12px]' } },
+    { kind: 'input', trailing: true, class: { root: 'pe-[8px]' } },
   ],
-  defaultVariants: { kind: 'assist', elevated: false, leading: 'none', trailing: false },
+  defaultVariants: {
+    kind: 'assist',
+    split: 'none',
+    elevated: false,
+    outline: 'standard',
+    leading: 'none',
+    trailing: false,
+  },
+});
+
+/** Variant definitions for {@link ChipSet}. */
+export const chipSetStyles = tv({
+  slots: {
+    root: 'flex max-w-full gap-[8px]',
+  },
+  variants: {
+    layout: {
+      // Rows wrap, 8px apart.
+      wrap: { root: 'flex-wrap' },
+      // One row that scrolls sideways. The padding keeps the chips' 48px targets and focus
+      // rings inside the scroll area.
+      scroll: {
+        root: 'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[8px] pb-[8px] [scrollbar-width:none]',
+      },
+    },
+  },
+  defaultVariants: { layout: 'wrap' },
 });
 
 export type ChipStyleProps = VariantProps<typeof chipStyles>;
+export type ChipOutline = NonNullable<ChipStyleProps['outline']>;
+export type ChipSetLayout = NonNullable<VariantProps<typeof chipSetStyles>['layout']>;
