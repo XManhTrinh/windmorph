@@ -15,6 +15,16 @@ import { tv, type VariantProps } from '../../utils/tv';
 const geometryTransition =
   '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]';
 
+/*
+ * Colour on the fast effects spring, size on the fast spatial spring (Compose animates the
+ * indicator and outline thickness on FastSpatial and their colour on FastEffects).
+ */
+const colourAndSizeTransition =
+  '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]';
+
+const spatialTransition =
+  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]';
+
 const effectsTransition =
   '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]';
 
@@ -27,8 +37,8 @@ export const textFieldStyles = tv({
     outline: [
       'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[12px]',
       'rounded-corner-extra-small border border-solid border-outline',
-      'transition-[border-color,border-width]',
-      effectsTransition,
+      '[transition-property:border-color,border-width]',
+      colourAndSizeTransition,
       'group-data-[field-state=hover]/field:border-on-surface',
       'group-data-[field-state=focus]/field:border-2 group-data-[field-state=focus]/field:border-primary',
       'group-data-[field-state=error]/field:border-error',
@@ -36,18 +46,21 @@ export const textFieldStyles = tv({
       'group-data-[field-state=error-focus]/field:border-2 group-data-[field-state=error-focus]/field:border-error',
       'group-data-[field-state=disabled]/field:border-on-surface/12',
     ],
-    // Hidden text the width of the floated label: cuts the notch in the outline.
+    // Hidden text the width of the floated label: cuts the notch in the outline. It opens
+    // from 0fr to 1fr of the label's own width on the label's spring, so the gap keeps pace
+    // with the label as it moves up.
     notch: [
-      'invisible block h-[16px] max-w-[0.01px] overflow-hidden p-0 text-body-small whitespace-nowrap',
-      'transition-[max-width]',
-      effectsTransition,
-      'group-data-floated/field:max-w-full group-has-[:autofill]/field:max-w-full',
+      'invisible grid h-[16px] grid-cols-[0fr] p-0 text-body-small whitespace-nowrap',
+      'transition-[grid-template-columns]',
+      spatialTransition,
+      'group-data-floated/field:grid-cols-[1fr] group-has-[:autofill]/field:grid-cols-[1fr]',
     ],
+    notchClip: 'min-w-0 overflow-hidden',
     notchText: 'inline-block px-[4px]',
     indicator: [
       'pointer-events-none absolute inset-x-0 bottom-0 h-px bg-on-surface-variant',
-      'transition-[height,background-color]',
-      effectsTransition,
+      '[transition-property:background-color,height]',
+      colourAndSizeTransition,
       'group-data-[field-state=hover]/field:bg-on-surface',
       'group-data-[field-state=focus]/field:h-[2px] group-data-[field-state=focus]/field:bg-primary',
       'group-data-[field-state=error]/field:bg-error',
@@ -191,7 +204,11 @@ export const textFieldStyles = tv({
     {
       hasLabel: true,
       class: {
-        input: 'placeholder:opacity-0 group-data-floated/field:placeholder:opacity-100',
+        // The placeholder fades in as the label floats (Compose fades it on FastEffects).
+        input: [
+          'placeholder:opacity-0 group-data-floated/field:placeholder:opacity-100',
+          'placeholder:transition-opacity placeholder:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] placeholder:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+        ],
         affix: [
           'opacity-0 transition-opacity group-data-floated/field:opacity-100 group-has-[:autofill]/field:opacity-100',
           effectsTransition,

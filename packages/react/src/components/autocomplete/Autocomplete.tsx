@@ -379,7 +379,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             className={cn(
               'min-w-[48px] flex-1 bg-transparent p-0 text-body-large text-on-surface caret-primary outline-none',
               'placeholder:text-on-surface-variant placeholder:opacity-100',
-              label ? 'placeholder:opacity-0 group-data-floated/field:placeholder:opacity-100' : '',
+              label
+                ? 'placeholder:opacity-0 placeholder:transition-opacity group-data-floated/field:placeholder:opacity-100 placeholder:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] placeholder:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]'
+                : '',
               'group-data-invalid/field:caret-error group-data-[field-state=disabled]/field:text-on-surface/38',
               classNames?.input,
             )}

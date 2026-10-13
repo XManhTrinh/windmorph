@@ -338,9 +338,11 @@ export function TextField(props: TextFieldProps) {
           <fieldset aria-hidden="true" className={styles.outline()}>
             {hasLabel && (
               <legend className={styles.notch()}>
-                <span className={styles.notchText()}>
-                  {label}
-                  {requiredMark}
+                <span className={styles.notchClip()}>
+                  <span className={styles.notchText()}>
+                    {label}
+                    {requiredMark}
+                  </span>
                 </span>
               </legend>
             )}
