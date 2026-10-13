@@ -7,6 +7,11 @@ export interface ToolbarContextValue {
   kind: 'docked' | 'floating';
   /** The toolbar's colour scheme; vibrant toolbars recolour their icon buttons (M3). */
   color: 'standard' | 'vibrant';
+  /**
+   * Whether a floating toolbar is expanded; its `ToolbarFab` shows `expandedIcon` while it
+   * is. Docked toolbars leave it out.
+   */
+  expanded?: boolean;
 }
 
 /**

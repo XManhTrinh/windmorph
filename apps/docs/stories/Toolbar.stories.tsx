@@ -7,10 +7,12 @@ import {
   useToolbarScrollExit,
   useToolbarScrollExpansion,
   type FloatingToolbarColor,
+  type IconTransition,
 } from '@windmorph/react';
 import { useRef, useState } from 'react';
 import {
   AddIcon,
+  CloseIcon,
   DeleteIcon,
   EditIcon,
   FormatBoldIcon,
@@ -216,6 +218,38 @@ export const Collapse: StoryObj<{ withFab: boolean; vertical: boolean }> = {
           After
         </button>
       </div>
+    );
+  },
+};
+
+/**
+ * A two-state FAB: `expandedIcon` while the toolbar is expanded, `icon` while collapsed.
+ * `swap` hands over halfway through the spring (the M3 spec); `rotate` turns and crossfades
+ * the icons, beyond the M3 spec, as in Google's Expressive showcase.
+ */
+export const FabIcons: StoryObj<{ iconTransition: IconTransition }> = {
+  args: { iconTransition: 'swap' },
+  argTypes: { iconTransition: { control: 'inline-radio', options: ['swap', 'rotate'] } },
+  render: function FabIconsStory({ iconTransition }) {
+    const [expanded, setExpanded] = useState(false);
+    return (
+      <FloatingToolbar
+        aria-label="Formatting"
+        data-testid="toolbar"
+        expanded={expanded}
+        fab={
+          <ToolbarFab
+            icon={<EditIcon />}
+            expandedIcon={<CloseIcon />}
+            iconTransition={iconTransition}
+            aria-label={expanded ? 'Close formatting' : 'Format'}
+            onPress={() => setExpanded((value) => !value)}
+            data-testid="fab"
+          />
+        }
+      >
+        {formatting}
+      </FloatingToolbar>
     );
   },
 };

@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
@@ -158,6 +159,12 @@ test.describe('FabMenu short windows and web menu', () => {
     await expect(menu).toBeHidden();
     await expect(button).toBeFocused();
   });
+});
+
+test.describe('FabMenu icon transition', () => {
+  iconTransitionSuite('components-fabmenu--icon-transitions', (page) =>
+    page.getByRole('button', { name: 'Create' }),
+  );
 });
 
 test.describe('FabMenu layout safety', () => {

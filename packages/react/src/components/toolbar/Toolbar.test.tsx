@@ -362,6 +362,94 @@ describe('ToolbarFab', () => {
     await userEvent.hover(screen.getByRole('button', { name: 'New' }));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('New');
   });
+
+  it('shows one icon, with no faces, without expandedIcon', () => {
+    const { rerender } = render(
+      <FloatingToolbar aria-label="Actions" fab={<ToolbarFab icon={<Icon />} aria-label="New" />}>
+        {button('Search')}
+      </FloatingToolbar>,
+    );
+    const fab = screen.getByRole('button', { name: 'New' });
+    const icon = fab.firstElementChild!;
+    expect(icon).toHaveClass('inline-flex', 'size-[24px]');
+    expect(icon.firstElementChild!.tagName).toBe('svg');
+    rerender(
+      <FloatingToolbar
+        aria-label="Actions"
+        expanded={false}
+        fab={<ToolbarFab icon={<Icon />} aria-label="New" />}
+      >
+        {button('Search')}
+      </FloatingToolbar>,
+    );
+    expect(fab.querySelector('[data-icon-face]')).toBeNull();
+  });
+
+  const twoIcons = (expanded: boolean, iconTransition?: 'swap' | 'rotate') => (
+    <FloatingToolbar
+      aria-label="Actions"
+      expanded={expanded}
+      fab={
+        <ToolbarFab
+          icon={<svg data-testid="edit" />}
+          expandedIcon={<svg data-testid="close" />}
+          iconTransition={iconTransition}
+          aria-label="Compose"
+        />
+      }
+    >
+      {button('Search')}
+    </FloatingToolbar>
+  );
+
+  it('hands over to expandedIcon halfway through the expand spring by default', async () => {
+    const { container, rerender } = render(twoIcons(false));
+    const collapsedFace = screen.getByTestId('edit').parentElement!;
+    const expandedFace = screen.getByTestId('close').parentElement!;
+    expect(collapsedFace.parentElement).toHaveClass('inline-grid', 'size-[24px]');
+    expect(collapsedFace).toHaveAttribute('data-active', 'true');
+    expect(expandedFace).not.toHaveAttribute('data-active');
+    expect(expandedFace).toHaveClass(
+      'invisible',
+      'data-active:visible',
+      '[transition-delay:calc(var(--md-sys-motion-spring-spatial-fast-duration)/2)]',
+      'motion-reduce:[transition-delay:0s]',
+    );
+    expect(expandedFace).not.toHaveClass('opacity-0');
+
+    rerender(twoIcons(true));
+    expect(expandedFace).toHaveAttribute('data-active', 'true');
+    expect(collapsedFace).not.toHaveAttribute('data-active');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('rotates and crossfades with iconTransition="rotate", mirrored in RTL', () => {
+    const { rerender } = render(twoIcons(true, 'rotate'));
+    const collapsedFace = screen.getByTestId('edit').parentElement!;
+    const expandedFace = screen.getByTestId('close').parentElement!;
+    expect(expandedFace).toHaveAttribute('data-active', 'true');
+    expect(collapsedFace).toHaveClass(
+      'opacity-0',
+      'motion-safe:not-data-active:ltr:rotate-90',
+      'motion-safe:not-data-active:rtl:-rotate-90',
+      '[transition-property:rotate,opacity]',
+    );
+    expect(expandedFace).toHaveClass(
+      'motion-safe:not-data-active:ltr:-rotate-90',
+      'motion-safe:not-data-active:rtl:rotate-90',
+    );
+    expect(expandedFace).not.toHaveClass('invisible');
+
+    rerender(twoIcons(false, 'rotate'));
+    expect(collapsedFace).toHaveAttribute('data-active', 'true');
+    expect(expandedFace).not.toHaveAttribute('data-active');
+  });
+
+  it('shows expandedIcon when focus expands a collapsed toolbar', () => {
+    render(twoIcons(false));
+    act(() => screen.getByRole('button', { name: 'Search' }).focus());
+    expect(screen.getByTestId('close').parentElement).toHaveAttribute('data-active', 'true');
+  });
 });
 
 describe('useToolbarScrollExit', () => {

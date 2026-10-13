@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
@@ -132,6 +133,10 @@ test.describe('Toolbar geometry', () => {
     await scroller.evaluate((el) => el.scrollTo(0, 100));
     await expect(toolbar).toHaveAttribute('data-expanded', 'true');
   });
+});
+
+test.describe('ToolbarFab icon transition', () => {
+  iconTransitionSuite('components-toolbar--fab-icons', (page) => page.getByTestId('fab'));
 });
 
 test.describe('Toolbar scroll exit', () => {

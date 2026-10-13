@@ -226,6 +226,7 @@ export {
   type FabMenuItemProps,
   type FabMenuPresentation,
   type FabMenuProps,
+  type IconTransition,
 } from './components/fab-menu/FabMenu';
 export {
   fabMenuStyles,

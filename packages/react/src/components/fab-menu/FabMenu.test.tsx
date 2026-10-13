@@ -64,8 +64,11 @@ describe('FabMenu', () => {
     // halfway through the morph (a visibility switch delayed by half the spring).
     const closedFace = screen.getByTestId('add').parentElement!;
     const openFace = screen.getByTestId('close').parentElement!;
-    expect(closedFace).toHaveClass('group-data-open/fab-menu:invisible', 'row-start-1');
-    expect(openFace).toHaveClass('invisible', 'group-data-open/fab-menu:visible', 'row-start-1');
+    expect(closedFace).not.toHaveAttribute('data-active');
+    expect(openFace).toHaveAttribute('data-active', 'true');
+    expect(closedFace).toHaveClass('invisible', 'data-active:visible', 'row-start-1');
+    expect(openFace).toHaveClass('invisible', 'data-active:visible', 'row-start-1');
+    expect(openFace).not.toHaveClass('opacity-0');
     expect(openFace).toHaveClass(
       '[transition-delay:calc(var(--md-sys-motion-spring-spatial-fast-duration)/2)]',
       'motion-reduce:[transition-delay:0s]',
@@ -82,6 +85,64 @@ describe('FabMenu', () => {
     expect(screen.getByRole('button', { name: 'Reply' })).not.toHaveAttribute('inert');
     vi.useRealTimers();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('rotates and crossfades its icons with iconTransition="rotate"', async () => {
+    const { container } = render(<Menu iconTransition="rotate" />);
+    const closedFace = screen.getByTestId('add').parentElement!;
+    const openFace = screen.getByTestId('close').parentElement!;
+    // Closed: the open icon waits a quarter turn behind (mirrored in RTL), faded out.
+    expect(closedFace).toHaveAttribute('data-active', 'true');
+    expect(openFace).not.toHaveAttribute('data-active');
+    expect(openFace).toHaveClass(
+      'opacity-0',
+      'motion-safe:not-data-active:ltr:-rotate-90',
+      'motion-safe:not-data-active:rtl:rotate-90',
+      'data-active:opacity-100',
+      'row-start-1',
+    );
+    // Opening, the add icon turns onwards and fades out: rotation on the fast spatial
+    // spring, opacity on the fast effects spring, and no visibility switch.
+    expect(closedFace).toHaveClass(
+      'motion-safe:not-data-active:ltr:rotate-90',
+      'motion-safe:not-data-active:rtl:-rotate-90',
+    );
+    expect(closedFace).toHaveClass(
+      '[transition-property:rotate,opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
+    );
+    expect(closedFace).not.toHaveClass('invisible');
+    // Reduced motion keeps only the crossfade: every rotation is motion-safe.
+    for (const face of [closedFace, openFace]) {
+      const turns = [...face.classList].filter((name) => /(^|:)-?rotate-(?!0)/.test(name));
+      expect(turns.length).toBeGreaterThan(0);
+      expect(turns.every((name) => name.startsWith('motion-safe:'))).toBe(true);
+    }
+
+    fireEvent.click(toggle());
+    expect(openFace).toHaveAttribute('data-active', 'true');
+    expect(closedFace).not.toHaveAttribute('data-active');
+    await settle();
+    vi.useRealTimers();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('keeps one icon without openIcon', () => {
+    render(
+      <FabMenu icon={<Icon id="add" />} iconTransition="rotate" aria-label="Create">
+        <FabMenuItem>Reply</FabMenuItem>
+        <FabMenuItem>Forward</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(document.querySelector('[data-icon-face]')).toBeNull();
+    fireEvent.click(toggle());
+    expect(screen.getByTestId('add').parentElement).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('keeps the closed icon in the menu presentation, which has no morph', () => {
+    render(<Menu presentation="menu" />);
+    fireEvent.click(toggle());
+    expect(screen.getByTestId('add').parentElement).toHaveAttribute('data-active', 'true');
   });
 
   it('closes from the top down and hides the list once the last item has faded', async () => {

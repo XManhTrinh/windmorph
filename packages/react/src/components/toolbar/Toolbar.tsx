@@ -22,6 +22,8 @@ import {
   type ButtonBaseProps,
 } from '../../primitives/ButtonBase';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { IconFaces } from '../../primitives/IconFaces';
+import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
 import type { FabElevation } from '../fab/fab-styles';
@@ -282,7 +284,10 @@ function FloatingToolbarRoot({
     fabAt,
   });
   const [contentRef, toolbarSize] = useContentSize(hasFab, orientation);
-  const context = useMemo(() => ({ kind: 'floating', color }) as const, [color]);
+  const context = useMemo(
+    () => ({ kind: 'floating', color, expanded }) as const,
+    [color, expanded],
+  );
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (
@@ -386,8 +391,24 @@ type AccessibleName =
   | { 'aria-label'?: string; 'aria-labelledby': string };
 
 interface ToolbarFabOwnProps {
-  /** The icon. Hidden from assistive tech; `aria-label` names the FAB. */
+  /**
+   * The icon (while the toolbar is collapsed, when `expandedIcon` is set). Hidden from
+   * assistive tech; `aria-label` names the FAB.
+   */
   icon: ReactElement;
+  /**
+   * The icon while the toolbar is expanded, e.g. "close" for a FAB that collapses the
+   * toolbar. Without it, the FAB always shows `icon`.
+   */
+  expandedIcon?: ReactElement;
+  /**
+   * How the FAB hands over between `icon` and `expandedIcon`: `swap` halfway through the
+   * toolbar's expand / collapse spring, or `rotate`, where the outgoing icon turns 90° and
+   * fades out while the incoming one turns in and fades in. `rotate` goes beyond the M3
+   * spec; it matches Google's Expressive showcase motion. It mirrors in RTL, and reduced
+   * motion keeps only the crossfade. Only used with `expandedIcon`. @default "swap"
+   */
+  iconTransition?: IconTransition;
   /** Defaults to the toolbar's colour: `primary-container` (standard) or `tertiary-container` (vibrant). */
   color?: FloatingToolbarColor;
   /**
@@ -415,10 +436,13 @@ export type ToolbarFabProps = ToolbarFabOwnProps &
 /**
  * The FAB of a {@link FloatingToolbar} (Compose's `StandardFloatingActionButton` /
  * `VibrantFloatingActionButton`): it fills the toolbar's FAB box, 56px or 80px while the
- * toolbar is collapsed, with 16px corners at level 2.
+ * toolbar is collapsed, with 16px corners at level 2. With `expandedIcon` it shows that
+ * icon while the toolbar is expanded and `icon` while it is collapsed.
  */
 export function ToolbarFab({
   icon,
+  expandedIcon,
+  iconTransition,
   color,
   tooltip = true,
   elevation,
@@ -434,8 +458,22 @@ export function ToolbarFab({
   } as ButtonBaseProps;
   const fab = (
     <ButtonBase {...baseProps}>
-      <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-        {icon}
+      <span
+        aria-hidden="true"
+        className={styles.icon({
+          class: cn(expandedIcon && iconFacesStyles().cell(), classNames?.icon),
+        })}
+      >
+        {expandedIcon ? (
+          <IconFaces
+            icon={icon}
+            alternateIcon={expandedIcon}
+            alternate={toolbar?.expanded ?? true}
+            transition={iconTransition}
+          />
+        ) : (
+          icon
+        )}
       </span>
     </ButtonBase>
   );

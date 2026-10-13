@@ -5,6 +5,7 @@ import {
   type FabMenuColor,
   type FabMenuPresentation,
   type FabMenuSize,
+  type IconTransition,
 } from '@windmorph/react';
 import { useState } from 'react';
 import {
@@ -90,6 +91,30 @@ export const Playground: Story = {
       </div>
     );
   },
+};
+
+/**
+ * How the add icon becomes the close icon: `swap` halfway through the morph (the M3 spec
+ * and Compose), or `rotate`, a rotating crossfade beyond the M3 spec, as in Google's
+ * Expressive showcase.
+ */
+export const IconTransitions: StoryObj<{ iconTransition: IconTransition }> = {
+  args: { iconTransition: 'rotate' },
+  argTypes: { iconTransition: { control: 'inline-radio', options: ['swap', 'rotate'] } },
+  render: ({ iconTransition }) => (
+    <div className="relative h-[400px] max-w-[400px] rounded-corner-large bg-surface-container">
+      <FabMenu
+        data-testid="menu"
+        icon={<AddIcon />}
+        openIcon={<CloseIcon />}
+        iconTransition={iconTransition}
+        aria-label="Create"
+        className="absolute end-4 bottom-4"
+      >
+        {actions(3)}
+      </FabMenu>
+    </div>
+  ),
 };
 
 /** The three colour sets, open. */

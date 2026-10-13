@@ -23,6 +23,8 @@ import {
   type ButtonBaseActionProps,
   type ButtonBaseLinkProps,
 } from '../../primitives/ButtonBase';
+import { IconFaces } from '../../primitives/IconFaces';
+import type { IconTransition } from '../../primitives/icon-faces-styles';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
@@ -41,6 +43,8 @@ interface FabMenuContextValue {
   close: () => void;
   onLastExit: (event: TransitionEvent<HTMLElement>) => void;
 }
+
+export type { IconTransition };
 
 const FabMenuContext = createContext<FabMenuContextValue | null>(null);
 const ItemIndexContext = createContext(0);
@@ -78,6 +82,14 @@ interface FabMenuOwnProps {
   icon: ReactElement;
   /** The button's icon while open, usually "close". Defaults to `icon`. */
   openIcon?: ReactElement;
+  /**
+   * How the button hands over from `icon` to `openIcon`: `swap` halfway through the morph
+   * (the M3 spec and Compose), or `rotate`, where the outgoing icon turns 90° and fades
+   * out while the incoming one turns in and fades in. `rotate` goes beyond the M3 spec; it
+   * matches Google's Expressive showcase motion. It mirrors in RTL, and reduced motion keeps
+   * only the crossfade. Only used with `openIcon`. @default "swap"
+   */
+  iconTransition?: IconTransition;
   /** The FAB size the button starts at; open, it is always the 56px close button. @default "default" */
   size?: FabMenuSize;
   /** @default "primary" */
@@ -138,6 +150,7 @@ export function FabMenu({
   onOpenChange,
   icon,
   openIcon,
+  iconTransition,
   size,
   color,
   elevation,
@@ -256,10 +269,12 @@ export function FabMenu({
       >
         <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
           {openIcon ? (
-            <>
-              <span className={styles.iconFace({ class: styles.closedFace() })}>{icon}</span>
-              <span className={styles.iconFace({ class: styles.openFace() })}>{openIcon}</span>
-            </>
+            <IconFaces
+              icon={icon}
+              alternateIcon={openIcon}
+              alternate={isOpen && !isMenu}
+              transition={iconTransition}
+            />
           ) : (
             icon
           )}
