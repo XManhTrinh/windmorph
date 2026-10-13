@@ -6,7 +6,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * ListItemDefaults, ListTokens' `*Expressive*` values; 2026-10-13).
  *
  * Item: 16px start / end and 10px top / bottom padding, 12px between leading content, the
- * text and trailing content. At least 56px tall with one line, 72px with two (overline or
+ * text and trailing content. The 12px belongs to the leading and trailing cells (rendered
+ * only when present), so a text-only item's text spans 16px to 16px. At least 56px tall with one line, 72px with two (overline or
  * supporting text) and 88px with three (both), where content aligns to the top. Headline
  * `body-large` `on-surface`; supporting text `body-medium`, overline `label-small`, leading
  * and trailing content `on-surface-variant` (trailing text `label-small`, 20px icons). Selected
@@ -22,7 +23,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Leading images are 56dp squares and video thumbnails 100 × 56dp (small) or 114 × 64dp
  * (large), all with 8dp corners; avatars are 40dp circles in `primary-container`
  * (`ListMedia.tsx`). The item grows to fit them. Expandable items indent their nested items
- * 16dp per level and end with a chevron that turns over on the fast spatial spring. Dividers (standard lists) are 1px of
+ * 16dp per level and end with a chevron that turns over on the fast spatial spring; their
+ * nested items open and close their height on the default spatial spring while fading on
+ * the default effects spring (only the fade under reduced motion). Dividers (standard lists) are 1px of
  * `outline-variant` on the item's bottom edge, full width or 16dp in from each side, drawn
  * by its `::after` (the state layer uses its background), never under the last item.
  *
@@ -55,9 +58,9 @@ export const listStyles = tv({
       '[--m3-transition-delay:0s,0s,0s]',
     ],
     // The item's content grid (the grid cell of an interactive item).
-    cell: 'grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-x-[12px]',
+    cell: 'grid w-full grid-cols-[auto_minmax(0,1fr)_auto]',
     leading: [
-      'col-start-1 flex items-center gap-x-[12px] text-title-medium text-on-surface-variant [&>svg]:size-[20px]',
+      'col-start-1 me-[12px] flex items-center gap-x-[12px] text-title-medium text-on-surface-variant [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
@@ -78,7 +81,7 @@ export const listStyles = tv({
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     trailing: [
-      'col-start-3 flex items-center gap-x-[12px] text-label-small text-on-surface-variant [&>svg]:size-[20px]',
+      'col-start-3 ms-[12px] flex items-center gap-x-[12px] text-label-small text-on-surface-variant [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
@@ -96,6 +99,19 @@ export const listStyles = tv({
       'group-aria-expanded/list-item:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none',
       'data-disabled:cursor-default',
     ],
+    // A tree row's wrapper: nested rows open and close their height (grid rows 0fr ↔ 1fr)
+    // on the default spatial spring and fade on the default effects spring; under reduced
+    // motion they only fade.
+    reveal: [
+      'grid grid-rows-[1fr] opacity-100',
+      '[transition-property:grid-template-rows,opacity] motion-reduce:[transition-property:opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-effects-default-easing)]',
+      'data-appear:starting:grid-rows-[0fr] data-appear:starting:opacity-0',
+      'data-exiting:grid-rows-[0fr] data-exiting:opacity-0',
+    ],
+    // Lets the row's height close to nothing inside the reveal.
+    revealClip: 'flex min-h-0 flex-col overflow-hidden',
     // The drawn checkbox, radio button or switch of an item that is one. Decorative: the
     // item is the control, so the drawing only follows its state attributes.
     control: 'group/control inline-flex shrink-0 items-center justify-center',

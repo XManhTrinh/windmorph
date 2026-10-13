@@ -57,6 +57,25 @@ describe('List (static)', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('keeps the 12px gaps beside leading and trailing content only when they are there', () => {
+    render(
+      <List aria-label="Contacts">
+        <ListItem key="a" leading={<Icon />} trailing="9:41">
+          Alice
+        </ListItem>
+        <ListItem key="b">Bob</ListItem>
+      </List>,
+    );
+    const [alice, bob] = screen.getAllByRole('listitem') as [HTMLElement, HTMLElement];
+    // The grid has no column gap: empty columns would keep theirs (M3: a text-only item's
+    // label is 16px from each side).
+    const cell = within(alice).getByText('Alice').parentElement!.parentElement!;
+    expect(cell.className).not.toMatch(/(^| )gap-x-/);
+    expect(screen.getByTestId('icon').parentElement).toHaveClass('me-[12px]');
+    expect(within(alice).getByText('9:41')).toHaveClass('ms-[12px]');
+    expect(within(bob).getByText('Bob').parentElement!.parentElement!.children).toHaveLength(1);
+  });
+
   it('separates segmented items by 2px and marks their position', () => {
     render(
       <List aria-label="Settings" variant="segmented">
@@ -542,6 +561,47 @@ describe('List (link items)', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('moves between links with the arrow keys, wrapping, and Home / End', async () => {
+    render(
+      <List aria-label="Settings">
+        <ListItem key="profile" href="/settings">
+          Profile
+        </ListItem>
+        <ListItem key="terms" href="/legal/terms" disabled>
+          Terms of service
+        </ListItem>
+        <ListItem key="account" href="/settings/account" trailing={<button>Help</button>}>
+          Account
+        </ListItem>
+        <ListItem key="privacy" href="/settings/privacy">
+          Privacy
+        </ListItem>
+      </List>,
+    );
+    const [profile, account, privacy] = ['Profile', 'Account', 'Privacy'].map((name) =>
+      screen.getByRole('link', { name }),
+    ) as [HTMLElement, HTMLElement, HTMLElement];
+    profile.focus();
+    // The disabled item has no link, so ↓ skips it.
+    await userEvent.keyboard('{ArrowDown}');
+    expect(account).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(profile).toHaveFocus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(privacy).toHaveFocus();
+    await userEvent.keyboard('{Home}');
+    expect(profile).toHaveFocus();
+    await userEvent.keyboard('{End}');
+    expect(privacy).toHaveFocus();
+    // A control in an item keeps its keys, and Tab still visits every link.
+    screen.getByRole('button', { name: 'Help' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('button', { name: 'Help' })).toHaveFocus();
+    profile.focus();
+    await userEvent.tab();
+    expect(account).toHaveFocus();
+  });
+
   it('takes disabledKeys and the list-wide disabled', () => {
     const { rerender } = render(
       <List aria-label="Pages" disabledKeys={['b']}>
@@ -682,6 +742,43 @@ describe('List (expandable items)', () => {
     expect(photos).toHaveAttribute('aria-expanded', 'true');
     await userEvent.click(chevron);
     expect(photos).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens nested items in, and keeps leaving ones (hidden) until they have closed', async () => {
+    render(folders());
+    const photos = screen.getAllByRole('row')[0]!;
+    const reveal = (row: HTMLElement) => row.parentElement!.parentElement!;
+    // Rows there from the start don't open in; rows added later do.
+    expect(reveal(photos)).not.toHaveAttribute('data-appear');
+    expect(reveal(photos)).toHaveClass(
+      'grid-rows-[1fr]',
+      'data-appear:starting:grid-rows-[0fr]',
+      'data-exiting:grid-rows-[0fr]',
+      'motion-reduce:[transition-property:opacity]',
+    );
+    await userEvent.click(photos);
+    const trips = screen.getByRole('row', { name: 'Trips' });
+    expect(reveal(trips)).toHaveAttribute('data-appear');
+
+    // jsdom runs no transitions; stand in for the closing ones.
+    let finish = () => {};
+    const finished = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    for (const name of ['Trips', 'Family']) {
+      reveal(screen.getByRole('row', { name })).getAnimations = () =>
+        [{ finished }] as unknown as Animation[];
+    }
+    await userEvent.click(photos);
+    expect(screen.queryByRole('row', { name: 'Trips' })).toBeNull();
+    const leaving = screen.getByText('Trips').closest('[data-exiting]') as HTMLElement;
+    expect(leaving).toHaveAttribute('inert');
+    expect(leaving.querySelector('[aria-hidden="true"]')).toHaveTextContent('Trips');
+    await act(async () => {
+      finish();
+      await finished;
+    });
+    expect(screen.queryByText('Trips')).toBeNull();
   });
 
   it('is controlled with expandedKeys, and keeps acting on items with onAction', async () => {

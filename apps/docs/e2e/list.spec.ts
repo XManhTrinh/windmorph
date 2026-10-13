@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
@@ -365,6 +365,106 @@ test.describe('List geometry and interaction', () => {
     await expect
       .poll(() => item.evaluate((el) => getComputedStyle(el).backgroundColor))
       .not.toBe('rgba(0, 0, 0, 0)');
+  });
+});
+
+/**
+ * Samples, on every frame for 700ms, the height and opacity of the tree row wrapper that
+ * holds `text` (absent frames are left out), while `act` runs.
+ */
+async function sampleRow(page: Page, text: string, act: () => Promise<void>) {
+  const samples = page.evaluate(async (text) => {
+    const out: { height: number; opacity: number }[] = [];
+    const start = performance.now();
+    while (performance.now() - start < 700) {
+      const row = [...document.querySelectorAll('[role="treegrid"] > div')].find((el) =>
+        el.textContent?.includes(text),
+      );
+      if (row) {
+        out.push({
+          height: row.getBoundingClientRect().height,
+          opacity: Number(getComputedStyle(row).opacity),
+        });
+      }
+      await new Promise(requestAnimationFrame);
+    }
+    return out;
+  }, text);
+  await act();
+  return samples;
+}
+
+test.describe('List spec measurements', () => {
+  test('an item without leading or trailing content keeps no 12px gap for them', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-list--static', {}, { variant: 'standard' });
+    const list = page.getByRole('list', { name: 'Contacts' });
+    const textOnly = list.getByRole('listitem').filter({ hasText: 'Text only' });
+    const item = await rect(textOnly);
+    const text = await rect(textOnly.getByText('Text only'));
+    // The label spans the item less its 16px padding at each side.
+    expect(text.x - item.x).toBe(16);
+    expect(text.width).toBe(item.width - 32);
+    // No trailing content: the text runs to the end padding.
+    const three = list.getByRole('listitem').filter({ hasText: 'Three lines' });
+    const threeText = await rect(three.getByText('Three lines'));
+    expect(threeText.x + threeText.width).toBe((await rect(three)).x + item.width - 16);
+    // With both, the 12px gaps are there.
+    const one = list.getByRole('listitem').filter({ hasText: 'One line' });
+    const icon = await rect(one.locator('svg').first());
+    const oneText = await rect(one.getByText('One line'));
+    expect(oneText.x - (icon.x + icon.width)).toBe(12);
+  });
+
+  test('nested items open and close their height on a spring, fading', async ({ page }) => {
+    await openStory(page, 'components-list--expandable');
+    const photos = page.getByRole('row', { name: /Photos/ });
+    const full = (await rect(page.getByRole('row', { name: 'Trips' }))).height;
+    await photos.focus();
+    const closing = await sampleRow(page, 'Trips', () => page.keyboard.press('ArrowLeft'));
+    // Kept while it closes: heights between full and nothing, then gone.
+    expect(closing.some((frame) => frame.height > 1 && frame.height < full - 1)).toBe(true);
+    expect(closing.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+    await expect(page.getByText('Trips')).toHaveCount(0);
+
+    const opening = await sampleRow(page, 'Trips', () => page.keyboard.press('ArrowRight'));
+    expect(opening.some((frame) => frame.height > 1 && frame.height < full - 1)).toBe(true);
+    expect(opening.at(-1)).toEqual({ height: full, opacity: 1 });
+    await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+  });
+
+  test('under reduced motion nested items only fade', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-list--expandable');
+    const photos = page.getByRole('row', { name: /Photos/ });
+    const full = (await rect(page.getByRole('row', { name: 'Trips' }))).height;
+    await photos.focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.getByText('Trips')).toHaveCount(0);
+    const opening = await sampleRow(page, 'Trips', () => page.keyboard.press('ArrowRight'));
+    expect(opening.every((frame) => frame.height === full)).toBe(true);
+    expect(opening.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+  });
+
+  test('arrow keys move between the links of a list of links', async ({ page }) => {
+    await openStory(page, 'components-list--links');
+    const profile = page.getByRole('link', { name: 'Profile' });
+    const notifications = page.getByRole('link', { name: 'Notifications' });
+    await profile.focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(notifications).toBeFocused();
+    // About is disabled (no link), so ↓ wraps to the first link.
+    await page.keyboard.press('ArrowDown');
+    await expect(profile).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    await expect(notifications).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(profile).toBeFocused();
+    await page.keyboard.press('End');
+    await expect(notifications).toBeFocused();
+    // The page doesn't scroll on the way.
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 });
 

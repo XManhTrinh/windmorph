@@ -240,8 +240,9 @@ export async function ListBody(): Promise<ComponentDoc> {
             <li>
               Link items in a list without <InlineCode>onAction</InlineCode> or{' '}
               <InlineCode>selectionMode</InlineCode> are real links (
-              <InlineCode>&lt;a href&gt;</InlineCode>): each is a Tab stop, Enter follows it, and
-              the browser&apos;s link menu, status bar and new-tab clicks work. A plain click goes
+              <InlineCode>&lt;a href&gt;</InlineCode>): each is a Tab stop, ↑ / ↓ move between the
+              links (wrapping) and Home / End go to the first and last, Enter follows it, and the
+              browser&apos;s link menu, status bar and new-tab clicks work. A plain click goes
               through the app&apos;s router (<InlineCode>NextRouterProvider</InlineCode>
               ). The link is the headline, with an overlay over the whole item, so buttons in the
               trailing content stay their own controls. <InlineCode>current</InlineCode> sets{' '}
@@ -264,9 +265,10 @@ export async function ListBody(): Promise<ComponentDoc> {
             <li>
               Items with <InlineCode>childItems</InlineCode> expand and collapse (a tree grid with{' '}
               <InlineCode>aria-expanded</InlineCode>): pressing the item or its chevron toggles it,
-              → / ← expand and collapse it, and nested items are indented 16dp per level.{' '}
-              <InlineCode>expandedKeys</InlineCode> / <InlineCode>onExpandedChange</InlineCode>{' '}
-              control it.
+              → / ← expand and collapse it, and nested items are indented 16dp per level. Nested
+              items open and close their height on the default spatial spring while fading (only the
+              fade under reduced motion). <InlineCode>expandedKeys</InlineCode> /{' '}
+              <InlineCode>onExpandedChange</InlineCode> control it.
             </li>
             <li>
               Without those props the list is a plain <InlineCode>ul</InlineCode>; only its link,
@@ -302,6 +304,10 @@ export async function ListBody(): Promise<ComponentDoc> {
             <li>
               Heights follow Compose: at least 56px (one line), 72px (overline or supporting text)
               and 88px (both); three-line items align to the top, others to the centre.
+            </li>
+            <li>
+              16px padding at each side and 12px beside leading and trailing content, only when
+              it&apos;s there: a text-only item&apos;s text spans 16px to 16px.
             </li>
             <li>
               Every <InlineCode>ListItem</InlineCode> and <InlineCode>SegmentedListItem</InlineCode>{' '}

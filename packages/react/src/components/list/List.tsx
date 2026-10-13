@@ -4,13 +4,16 @@ import {
   Children,
   createContext,
   isValidElement,
+  useCallback,
   useContext,
   useEffect,
   useId,
   useRef,
+  useState,
   type CSSProperties,
   type InputHTMLAttributes,
   type JSX,
+  type KeyboardEvent,
   type LabelHTMLAttributes,
   type ReactElement,
   type ReactNode,
@@ -616,6 +619,7 @@ function StaticList({
       style={style}
       aria-label={label}
       aria-labelledby={labelledBy}
+      onKeyDown={onLinkArrowKeys}
       className={root}
     >
       {groupEntries(entries).map((group, index) =>
@@ -634,6 +638,37 @@ function StaticList({
       )}
     </ul>
   );
+}
+
+/**
+ * Arrow keys between a list's links (M3: "navigate within the list using arrow keys"):
+ * ↑ / ↓ move focus to the previous or next link, wrapping at the ends, and Home / End to
+ * the first and last. Each link stays a real anchor and a Tab stop; disabled items have no
+ * link and are skipped.
+ */
+function onLinkArrowKeys(event: KeyboardEvent<HTMLUListElement>) {
+  if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+  if (!['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+  const links = [
+    ...event.currentTarget.querySelectorAll<HTMLAnchorElement>('a[href][data-list-link]'),
+  ];
+  const index = links.indexOf(event.target as HTMLAnchorElement);
+  if (index === -1) return;
+  const last = links.length - 1;
+  const target =
+    event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? last
+        : event.key === 'ArrowDown'
+          ? index === last
+            ? 0
+            : index + 1
+          : index === 0
+            ? last
+            : index - 1;
+  event.preventDefault();
+  links[target]!.focus();
 }
 
 /** Whether a `List` child is a `ListSection`. */
@@ -1131,6 +1166,8 @@ function TreeList({
   const rows = [...state.collection.getKeys()]
     .map((key) => state.collection.getItem(key))
     .filter((node): node is Node<object> => node?.type === 'item');
+  const { shown, onExited } = useRowPresence(rows);
+  const reveal = listStyles();
   return (
     <div
       {...mergeProps(data, gridProps)}
@@ -1141,16 +1178,202 @@ function TreeList({
       style={style}
       className={className}
     >
-      {rows.map((node, index) => (
-        <TreeRow
-          key={node.key}
-          node={node}
-          state={state}
-          variant={variant}
-          classNames={classNames}
-          position={position(index, rows.length)}
-        />
+      {shown.map((row) => (
+        <TreeRowReveal
+          key={row.node.key}
+          row={row}
+          onExited={onExited}
+          className={reveal.reveal()}
+          clipClassName={reveal.revealClip()}
+        >
+          {row.exiting ? (
+            <TreeRowGhost
+              node={row.node}
+              selectable={state.selectionManager.selectionMode !== 'none'}
+              variant={variant}
+              classNames={classNames}
+              position={row.position}
+            />
+          ) : (
+            <TreeRow
+              node={row.node}
+              state={state}
+              variant={variant}
+              classNames={classNames}
+              position={row.position}
+            />
+          )}
+        </TreeRowReveal>
       ))}
+    </div>
+  );
+}
+
+/** A tree row as shown: live, opening in, or gone from the tree and closing. */
+interface ShownRow {
+  node: Node<object>;
+  position: string;
+  /** Added after the tree first rendered (an item was expanded), so it opens in. */
+  appear: boolean;
+  /** No longer in the tree (its parent collapsed); shown until it has closed. */
+  exiting: boolean;
+}
+
+/**
+ * The rows to render: the tree's visible rows, plus rows that just left it (a collapsed
+ * item's nested rows) in their old place until their closing transition ends. Rows added
+ * after the first render are marked to open in.
+ */
+function useRowPresence(rows: Node<object>[]) {
+  const live = (node: Node<object>, index: number, appear: boolean): ShownRow => ({
+    node,
+    position: position(index, rows.length),
+    appear,
+    exiting: false,
+  });
+  const keys = rows.map((node) => node.key);
+  const [presence, setPresence] = useState(() => ({
+    keys,
+    shown: rows.map((node, index) => live(node, index, false)),
+  }));
+  let { shown } = presence;
+  // Follow the tree while rendering (no effect, no extra paint) whenever its rows change.
+  // A collection can be rebuilt with the same rows, so they're compared by key.
+  if (keys.length !== presence.keys.length || keys.some((key, i) => key !== presence.keys[i])) {
+    const indexOf = new Map(rows.map((node, index) => [node.key, index]));
+    const before = new Map(shown.map((row) => [row.node.key, row]));
+    const next: ShownRow[] = [];
+    let cursor = 0;
+    const takeUpTo = (end: number) => {
+      for (; cursor <= end; cursor += 1) {
+        const node = rows[cursor]!;
+        const previous = before.get(node.key);
+        next.push(live(node, cursor, previous ? previous.appear : true));
+      }
+    };
+    for (const row of shown) {
+      const index = indexOf.get(row.node.key);
+      if (index === undefined) next.push({ ...row, exiting: true });
+      else if (index >= cursor) takeUpTo(index);
+    }
+    takeUpTo(rows.length - 1);
+    shown = next;
+    setPresence({ keys, shown });
+  }
+  const onExited = useCallback(
+    (key: Key) =>
+      setPresence((current) => ({
+        ...current,
+        shown: current.shown.filter((row) => !(row.exiting && row.node.key === key)),
+      })),
+    [],
+  );
+  // Live rows render the tree's current nodes; leaving rows keep their last ones.
+  const current = new Map(rows.map((node) => [node.key, node]));
+  return {
+    shown: shown.map((row) => (row.exiting ? row : { ...row, node: current.get(row.node.key)! })),
+    onExited,
+  };
+}
+
+/**
+ * A tree row's wrapper, which opens its height and fades it in when the row appears, and
+ * closes it when the row leaves, then lets it go. Nothing in a leaving row can be focused
+ * or read.
+ */
+function TreeRowReveal({
+  row,
+  onExited,
+  className,
+  clipClassName,
+  children,
+}: {
+  row: ShownRow;
+  onExited: (key: Key) => void;
+  className: string;
+  clipClassName: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { exiting, node } = row;
+  useEffect(() => {
+    if (!exiting) return;
+    // Wait for the closing transitions, if any run (none without CSS or with no motion).
+    const transitions = ref.current?.getAnimations?.() ?? [];
+    if (transitions.length === 0) {
+      onExited(node.key);
+      return;
+    }
+    let current = true;
+    void Promise.allSettled(transitions.map((transition) => transition.finished)).then(() => {
+      if (current) onExited(node.key);
+    });
+    return () => {
+      current = false;
+    };
+  }, [exiting, node.key, onExited]);
+  return (
+    <div
+      ref={ref}
+      data-appear={row.appear || undefined}
+      data-exiting={exiting || undefined}
+      inert={exiting || undefined}
+      className={className}
+    >
+      <div className={clipClassName}>{children}</div>
+    </div>
+  );
+}
+
+/** A leaving row's picture while it closes: the row at rest, hidden from assistive tech. */
+function TreeRowGhost({
+  node,
+  selectable,
+  variant,
+  classNames,
+  position: itemPosition,
+}: {
+  node: Node<object>;
+  selectable: boolean;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  position: string;
+}) {
+  const item = node.props as ListItemProps;
+  const options = useContext(ListOptionsContext);
+  const styles = listStyles({
+    ...itemStylesOptions(item, variant, true, options),
+    nested: node.level > 0,
+  });
+  const check = useSelectionCheck(styles, selectable);
+  const chevron = node.hasChildNodes && (
+    <span className={styles.expand()}>
+      <ExpandMoreIcon />
+    </span>
+  );
+  return (
+    <div
+      aria-hidden="true"
+      style={{ '--m3-list-level': node.level } as CSSProperties}
+      data-shape="rest"
+      data-position={itemPosition}
+      className={styles.item({ class: cn(classNames?.item, item.className) })}
+    >
+      <div className={styles.cell()}>
+        <ItemContent
+          item={item}
+          styles={styles}
+          classNames={classNames}
+          end={
+            check || chevron ? (
+              <>
+                {check}
+                {chevron}
+              </>
+            ) : null
+          }
+        />
+      </div>
     </div>
   );
 }
@@ -1249,14 +1472,16 @@ function TreeRow({
     nested: node.level > 0,
   });
   const check = useSelectionCheck(styles, state.selectionManager.selectionMode !== 'none');
-  const end = (
-    <>
-      {check}
-      {node.hasChildNodes && (
-        <ExpandButton props={{ ...expandButtonProps, isDisabled }} className={styles.expand()} />
-      )}
-    </>
-  );
+  // Only a check or a chevron makes a trailing cell (and its 12px gap).
+  const end =
+    check != null || node.hasChildNodes ? (
+      <>
+        {check}
+        {node.hasChildNodes && (
+          <ExpandButton props={{ ...expandButtonProps, isDisabled }} className={styles.expand()} />
+        )}
+      </>
+    ) : null;
   return (
     <div
       {...mergeProps(rowProps, hoverProps, interactionProps)}
@@ -1645,6 +1870,7 @@ function LinkItem({
               rel={rel}
               download={item.download}
               aria-current={current ? 'page' : undefined}
+              data-list-link=""
               className={styles.link()}
             >
               {children}
