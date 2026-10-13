@@ -2,6 +2,7 @@
 
 import {
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -285,9 +286,24 @@ function FloatingToolbarRoot({
   });
   const [contentRef, toolbarSize] = useContentSize(hasFab, orientation);
   const context = useMemo(
-    () => ({ kind: 'floating', color, expanded }) as const,
-    [color, expanded],
+    () => ({ kind: 'floating', color, expanded, orientation }) as const,
+    [color, expanded, orientation],
   );
+  // Once per toolbar, however often it collapses and leaves while scrolling.
+  const collapsesAndExits = !visible && !expandedProp;
+  const warnedCollapseAndExit = useRef(false);
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      collapsesAndExits &&
+      !warnedCollapseAndExit.current
+    ) {
+      warnedCollapseAndExit.current = true;
+      console.warn(
+        "[@windmorph/react] A FloatingToolbar shouldn't both collapse and leave the screen (M3): use `expanded` or `visible`, not both.",
+      );
+    }
+  }, [collapsesAndExits]);
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (

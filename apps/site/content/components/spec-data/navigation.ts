@@ -430,7 +430,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         name: 'Overflow menu in the trailing slot',
         kind: 'use case',
-        examples: ['toolbars/toolbar-overflow'],
+        examples: ['toolbars/toolbar-overflow', 'toolbars/toolbar-docked-overflow'],
       },
       {
         name: 'Collapsing or leaving the screen on scroll',

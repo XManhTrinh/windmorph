@@ -175,6 +175,52 @@ describe('FloatingToolbar', () => {
     warn.mockRestore();
   });
 
+  it('warns once about wide icon buttons in a vertical toolbar, only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (orientation: 'horizontal' | 'vertical', label: string) => (
+      <FloatingToolbar aria-label="Tools" orientation={orientation}>
+        <IconButton width="wide" icon={<Icon />} aria-label={label} />
+      </FloatingToolbar>
+    );
+    const { unmount } = render(toolbar('horizontal', 'Pen'));
+    expect(warn).not.toHaveBeenCalled();
+    unmount();
+    const { rerender, unmount: unmountVertical } = render(toolbar('vertical', 'Pen'));
+    rerender(toolbar('vertical', 'Marker'));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('wide icon buttons'));
+    unmountVertical();
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar('vertical', 'Pen'));
+    vi.unstubAllEnvs();
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it('warns once when it both collapses and leaves the screen, only in development', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const toolbar = (expanded: boolean, visible: boolean) => (
+      <FloatingToolbar aria-label="Tools" expanded={expanded} visible={visible}>
+        {button('Pen')}
+      </FloatingToolbar>
+    );
+    const { rerender, unmount } = render(toolbar(false, true));
+    rerender(toolbar(true, false));
+    expect(warn).not.toHaveBeenCalled();
+    // Scrolling back and forth with both set warns only the first time.
+    rerender(toolbar(false, false));
+    rerender(toolbar(true, true));
+    rerender(toolbar(false, false));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('both collapse and leave'));
+    unmount();
+    vi.stubEnv('NODE_ENV', 'production');
+    render(toolbar(false, false));
+    vi.unstubAllEnvs();
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
   it('slides off its exit edge when hidden', () => {
     render(
       <FloatingToolbar aria-label="Tools" visible={false} exitEdge="end" orientation="vertical">
