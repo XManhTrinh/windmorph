@@ -82,6 +82,7 @@
  * M3 state layer + ripple. The layer colour defaults to the element's content colour
  * (`currentColor`); override it with `--m3-state-layer-color`. Pair with
  * `useM3Interaction`, which sets the `data-*` attributes and the ripple origin.
+ * `data-menu-open` (set by `MenuTrigger`) adds a persistent pressed layer.
  *
  * The ripple follows Compose's `RippleAnimation`: on press it fades in over 75ms while its
  * radius grows from `--m3-ripple-start` (30% of the longer side) to `--m3-ripple-size` over
@@ -109,12 +110,14 @@
     linear-gradient(
       color-mix(
         in srgb,
-        var(--m3-state-layer-color, currentColor) calc(var(--m3-state-opacity) * 100%),
+        var(--m3-state-layer-color, currentColor)
+          calc((var(--m3-state-opacity) + var(--m3-open-opacity, 0)) * 100%),
         transparent
       ),
       color-mix(
         in srgb,
-        var(--m3-state-layer-color, currentColor) calc(var(--m3-state-opacity) * 100%),
+        var(--m3-state-layer-color, currentColor)
+          calc((var(--m3-state-opacity) + var(--m3-open-opacity, 0)) * 100%),
         transparent
       )
     );
@@ -140,6 +143,13 @@
   &[data-dragged] {
     --m3-state-opacity: var(--md-sys-state-dragged-state-layer-opacity);
   }
+  /*
+   * M3: while its menu is open, a trigger (a button, or a menu item whose submenu is open)
+   * keeps a pressed layer, added to its hover or focus layer.
+   */
+  &[data-menu-open] {
+    --m3-open-opacity: var(--md-sys-state-pressed-state-layer-opacity);
+  }
   &[data-rippling] {
     --m3-ripple-opacity: var(--md-sys-state-pressed-state-layer-opacity);
     --m3-ripple-radius: var(--m3-ripple-size, 0px);
@@ -155,6 +165,7 @@
   }
   &[data-disabled] {
     --m3-state-opacity: 0;
+    --m3-open-opacity: 0;
     --m3-ripple-opacity: 0;
   }
   /* Reduced motion: the ripple appears at full size where it ends, with no growth or travel. */

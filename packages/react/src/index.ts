@@ -331,18 +331,27 @@ export {
 } from './components/dialog/Dialog';
 export { dialogStyles, type DialogStyleProps } from './components/dialog/dialog-styles';
 export {
+  ContextMenuTrigger,
   Menu,
   MenuGroup,
   MenuItem,
   MenuTrigger,
+  SubmenuTrigger,
+  type ContextMenuTriggerProps,
   type MenuClassNames,
   type MenuGroupProps,
   type MenuItemProps,
   type MenuKey,
   type MenuProps,
   type MenuTriggerProps,
+  type SubmenuTriggerProps,
 } from './components/menu/Menu';
-export { menuStyles, type MenuStyleProps, type MenuVariant } from './components/menu/menu-styles';
+export {
+  menuStyles,
+  type MenuLayout,
+  type MenuStyleProps,
+  type MenuVariant,
+} from './components/menu/menu-styles';
 export {
   DockedToolbar,
   FloatingToolbar,

@@ -51,11 +51,9 @@ export const splitButtonStyles = tv({
     trailingContent: 'relative inline-flex items-center justify-center',
     label: 'min-w-0',
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
-    trailing: [
-      ...half,
-      // The checked layer: a full-cover inset shadow, so it composes with elevation.
-      'data-open:not-data-disabled:inset-shadow-[0_0_0_999px_color-mix(in_srgb,currentColor_10%,transparent)]',
-    ],
+    // The checked layer is the state layer's menu-open layer (`MenuTrigger` sets
+    // `data-menu-open`), which adds to the hover and focus layers.
+    trailing: half,
     // Optically centred: offset by --m3-optical (logical, so it mirrors in RTL).
     menuIcon: [
       'relative start-(--m3-optical) inline-flex shrink-0 items-center justify-center [&>svg]:size-full',

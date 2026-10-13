@@ -88,12 +88,14 @@ test.describe('SplitButton spec geometry', () => {
       await expect(menu).toBeVisible();
       await page.waitForTimeout(500);
       const button = (await trigger.boundingBox())!;
-      // The menu list extends 8px past its groups (room for their shadows): inset it.
+      // In the divider layout (the default) the list is the surface; a gap-layout list
+      // extends 8px past its groups (room for their shadows), so inset it.
       const list = (await menu.boundingBox())!;
+      const inset = (await menu.getAttribute('data-layout')) === 'gap' ? 8 : 0;
       const surface = {
-        top: list.y + 8,
-        left: list.x + 8,
-        right: list.x + list.width - 8,
+        top: list.y + inset,
+        left: list.x + inset,
+        right: list.x + list.width - inset,
       };
       expect(Math.round(surface.top - (button.y + button.height))).toBe(4);
       if (dir === 'ltr')

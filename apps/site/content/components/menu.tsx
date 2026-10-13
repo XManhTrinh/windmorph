@@ -1,18 +1,24 @@
 import { ExampleViewer } from '../../components/example-viewer';
 import { MenuBasic } from '../../examples/menu/menu-basic';
+import { MenuContext } from '../../examples/menu/menu-context';
 import { MenuSelection } from '../../examples/menu/menu-selection';
+import { MenuSubmenu } from '../../examples/menu/menu-submenu';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 
-/** Menu page body: grouped actions and single selection. */
+/** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody() {
-  const [basic, selection] = await Promise.all([
+  const [basic, selection, submenu, context] = await Promise.all([
     readExampleSource('menu/menu-basic.tsx'),
     readExampleSource('menu/menu-selection.tsx'),
+    readExampleSource('menu/menu-submenu.tsx'),
+    readExampleSource('menu/menu-context.tsx'),
   ]);
-  const [basicHtml, selectionHtml] = await Promise.all([
+  const [basicHtml, selectionHtml, submenuHtml, contextHtml] = await Promise.all([
     highlightSource(basic),
     highlightSource(selection),
+    highlightSource(submenu),
+    highlightSource(context),
   ]);
 
   return (
@@ -27,13 +33,24 @@ export async function MenuBody() {
         </p>
         <p className="text-body-large text-on-surface-variant">
           A <code className="text-on-surface">Menu</code> must sit inside a{' '}
-          <code className="text-on-surface">MenuTrigger</code> (trigger first, menu second). Items
-          are <code className="text-on-surface">MenuItem</code>s, optionally gathered into{' '}
+          <code className="text-on-surface">MenuTrigger</code> (trigger first, menu second), or a{' '}
+          <code className="text-on-surface">ContextMenuTrigger</code> for a context menu. Items are{' '}
+          <code className="text-on-surface">MenuItem</code>s, optionally gathered into{' '}
           <code className="text-on-surface">MenuGroup</code>s; both are identified by a React{' '}
-          <code className="text-on-surface">key</code>. The{' '}
+          <code className="text-on-surface">key</code>. A{' '}
+          <code className="text-on-surface">SubmenuTrigger</code> gives an item a submenu. The{' '}
           <code className="text-on-surface">variant</code> is{' '}
           <code className="text-on-surface">standard</code> or{' '}
           <code className="text-on-surface">vibrant</code>.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Groups are set apart by dividers on one surface (
+          <code className="text-on-surface">layout=&quot;divider&quot;</code>, the default, as M3
+          recommends on the web) or by 2px gaps between separate surfaces (
+          <code className="text-on-surface">layout=&quot;gap&quot;</code>). M3 doesn&apos;t use gaps
+          in menus that scroll, so a gap menu that has to scroll switches to dividers.{' '}
+          <code className="text-on-surface">density</code> (0 to −3) tightens items for dense
+          desktop layouts.
         </p>
       </section>
 
@@ -55,6 +72,22 @@ export async function MenuBody() {
         >
           <MenuSelection />
         </ExampleViewer>
+        <ExampleViewer
+          title="Submenus"
+          code={submenu}
+          html={submenuHtml}
+          fileName="menu-submenu.tsx"
+        >
+          <MenuSubmenu />
+        </ExampleViewer>
+        <ExampleViewer
+          title="Context menu"
+          code={context}
+          html={contextHtml}
+          fileName="menu-context.tsx"
+        >
+          <MenuContext />
+        </ExampleViewer>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -67,11 +100,17 @@ export async function MenuBody() {
           </li>
           <li>
             Enter or Space fires <code className="text-on-surface">onAction</code> with the
-            item&apos;s key; in a selectable menu it toggles selection. Escape or a press outside
-            closes the menu and returns focus to the trigger.
+            item&apos;s key; in a selectable menu it toggles selection, and a multi-select menu
+            stays open until it&apos;s dismissed. Escape or a press outside closes the menu and
+            returns focus to the trigger, which shows a pressed state while the menu is open.
           </li>
           <li>
-            Items in <code className="text-on-surface">disabledKeys</code> are skipped. A{' '}
+            → opens a submenu and focuses its first item, ← closes it (mirrored in right-to-left).
+            Shift + F10 or the context-menu key opens a context menu.
+          </li>
+          <li>
+            Items in <code className="text-on-surface">disabledKeys</code> can take focus but do
+            nothing, as M3 asks; dividers can&apos;t take focus. A{' '}
             <code className="text-on-surface">description</code> becomes the item&apos;s accessible
             description and a <code className="text-on-surface">shortcut</code> renders as a{' '}
             <code className="text-on-surface">kbd</code>.
@@ -89,8 +128,19 @@ export async function MenuBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             The Expressive grouped menu (Compose&apos;s{' '}
-            <code className="text-on-surface">Menu.kt</code>): each group is its own surface at
-            elevation 2, 2px apart, with morphing corners; loose items form implicit groups.
+            <code className="text-on-surface">Menu.kt</code>) is the{' '}
+            <code className="text-on-surface">gap</code> layout: each group is its own surface at
+            elevation 2, 2px apart; loose items form implicit groups. The default{' '}
+            <code className="text-on-surface">divider</code> layout follows the M3 spec for the web.
+          </li>
+          <li>
+            Submenus aren&apos;t in Compose. While one is open, the focused menu takes 24px corners
+            and the other 8px (the SegmentedMenu active and inactive shapes), as the M3 spec
+            describes.
+          </li>
+          <li>
+            The menu expands along one axis from its anchor instead of Compose&apos;s uniform 80%
+            scale, which the M3 motion spec avoids.
           </li>
           <li>
             <code className="text-on-surface">standard</code> uses{' '}
@@ -112,7 +162,7 @@ export async function MenuBody() {
             trigger&apos;s computed direction.
           </li>
           <li>
-            Not in v1: submenus. A focus fix cancels the trigger&apos;s follow-up{' '}
+            A focus fix cancels the trigger&apos;s follow-up{' '}
             <code className="text-on-surface">mousedown</code> so focus stays inside the menu after
             a mouse open.
           </li>

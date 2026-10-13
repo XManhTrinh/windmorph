@@ -53,7 +53,9 @@ describe('assertCollectionChildren', () => {
           </Menu>
         </MenuTrigger>,
       ),
-    ).toThrow(/\[@windmorph\/react\] Menu: its MenuItem and MenuGroup elements must be created/);
+    ).toThrow(
+      /\[@windmorph\/react\] Menu: its MenuItem, MenuGroup and SubmenuTrigger elements must be created/,
+    );
     error.mockRestore();
   });
 });

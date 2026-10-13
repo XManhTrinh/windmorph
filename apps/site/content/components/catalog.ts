@@ -663,8 +663,16 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A temporary list of choices anchored to a trigger, with groups, selection and typeahead.',
-    propsComponents: ['Menu', 'MenuItem', 'MenuGroup', 'MenuTrigger'],
+      'A temporary list of choices anchored to a trigger, with groups, selection, submenus and context menus.',
+    propsComponents: [
+      'Menu',
+      'MenuItem',
+      'MenuGroup',
+      'MenuTrigger',
+      'SubmenuTrigger',
+      'ContextMenuTrigger',
+    ],
+    keywords: ['submenu', 'context menu', 'right-click', 'dropdown menu', 'overflow menu'],
     playground: 'showcase',
     specs: {
       elevation: 'level2',

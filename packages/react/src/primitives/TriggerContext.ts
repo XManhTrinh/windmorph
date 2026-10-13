@@ -13,6 +13,8 @@ export interface TriggerContextValue extends DOMAttributes<HTMLElement> {
   'aria-haspopup'?: boolean | 'dialog' | 'menu' | 'listbox' | 'tree' | 'grid' | 'true' | 'false';
   'aria-expanded'?: boolean;
   'aria-controls'?: string;
+  /** Set by `MenuTrigger` while its menu is open: the state layer keeps a pressed layer. */
+  'data-menu-open'?: true;
   id?: string;
   /** The trigger element, e.g. for positioning a menu next to it. */
   ref?: Ref<HTMLElement>;

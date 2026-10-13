@@ -1,15 +1,20 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  Badge,
   Button,
+  Card,
+  ContextMenuTrigger,
   IconButton,
   Menu,
   MenuGroup,
   MenuItem,
   MenuTrigger,
+  SubmenuTrigger,
+  type MenuLayout,
   type MenuVariant,
 } from '@windmorph/react';
 import { useState } from 'react';
-import { AddIcon, DeleteIcon, EditIcon, SearchIcon, StarIcon } from './icons';
+import { AddIcon, DeleteIcon, EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
 
 const MoreIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -23,19 +28,30 @@ const meta = {
 } satisfies Meta<typeof Menu>;
 
 export default meta;
-type Story = StoryObj<{ variant: MenuVariant }>;
+type Story = StoryObj<{ variant: MenuVariant; layout: MenuLayout }>;
 
-/** Grouped items with icons, a description and shortcuts. */
+/**
+ * Grouped items with icons, a description and shortcuts. Groups are set apart by dividers
+ * (the default, as M3 recommends on the web) or by gaps.
+ */
 export const Grouped: Story = {
-  args: { variant: 'standard' },
-  argTypes: { variant: { control: 'inline-radio', options: ['standard', 'vibrant'] } },
-  render: function GroupedStory({ variant }) {
+  args: { variant: 'standard', layout: 'divider' },
+  argTypes: {
+    variant: { control: 'inline-radio', options: ['standard', 'vibrant'] },
+    layout: { control: 'inline-radio', options: ['divider', 'gap'] },
+  },
+  render: function GroupedStory({ variant, layout }) {
     const [last, setLast] = useState('none');
     return (
       <div className="flex flex-col items-start gap-4">
         <MenuTrigger>
           <IconButton variant="standard" icon={<MoreIcon />} aria-label="More" />
-          <Menu variant={variant} onAction={(key) => setLast(String(key))} disabledKeys={['star']}>
+          <Menu
+            variant={variant}
+            layout={layout}
+            onAction={(key) => setLast(String(key))}
+            disabledKeys={['star']}
+          >
             <MenuGroup title="Edit">
               <MenuItem key="add" leadingIcon={<AddIcon />} shortcut="⌘N">
                 New
@@ -67,7 +83,7 @@ export const Grouped: Story = {
 
 /** Single selection: the selected item takes the selected shape and a check expands in. */
 export const SingleSelection: Story = {
-  args: { variant: 'standard' },
+  args: { variant: 'standard', layout: 'divider' },
   render: function SelectionStory({ variant }) {
     const [sort, setSort] = useState(new Set(['name']));
     return (
@@ -87,4 +103,105 @@ export const SingleSelection: Story = {
       </MenuTrigger>
     );
   },
+};
+
+/**
+ * Submenus open beside their item on hover, press or the arrow key. While one is open, the
+ * item that opened it keeps a pressed layer and the menu holding focus has rounder corners.
+ */
+export const Submenus: Story = {
+  args: { variant: 'standard', layout: 'divider' },
+  render: function SubmenuStory({ variant, layout }) {
+    const [last, setLast] = useState('none');
+    const run = (key: unknown) => setLast(String(key));
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <MenuTrigger>
+          <Button variant="tonal">File</Button>
+          <Menu variant={variant} layout={layout} onAction={run}>
+            <MenuItem key="new" leadingIcon={<AddIcon />}>
+              New
+            </MenuItem>
+            <SubmenuTrigger>
+              <MenuItem key="share" leadingIcon={<SendIcon />}>
+                Share
+              </MenuItem>
+              <Menu aria-label="Share" onAction={run}>
+                <MenuItem key="email">Email</MenuItem>
+                <MenuItem key="link">Copy link</MenuItem>
+                <SubmenuTrigger>
+                  <MenuItem key="export">Export as</MenuItem>
+                  <Menu aria-label="Export as" onAction={run}>
+                    <MenuItem key="pdf">PDF</MenuItem>
+                    <MenuItem key="csv">CSV</MenuItem>
+                  </Menu>
+                </SubmenuTrigger>
+              </Menu>
+            </SubmenuTrigger>
+            <MenuItem key="inbox" badge={<Badge>3</Badge>}>
+              Inbox
+            </MenuItem>
+          </Menu>
+        </MenuTrigger>
+        <p className="text-body-medium" data-testid="last">
+          Last action: {last}
+        </p>
+      </div>
+    );
+  },
+};
+
+/** A secondary click (or Shift + F10, or a long press) opens a context menu at the pointer. */
+export const ContextMenu: Story = {
+  args: { variant: 'standard', layout: 'divider' },
+  render: function ContextMenuStory({ variant, layout }) {
+    const [last, setLast] = useState('none');
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <ContextMenuTrigger>
+          <Card variant="outlined" className="w-[320px] p-[16px]" data-testid="target">
+            <p className="text-body-large">Right-click this card</p>
+          </Card>
+          <Menu
+            aria-label="Card actions"
+            variant={variant}
+            layout={layout}
+            onAction={(key) => setLast(String(key))}
+          >
+            <MenuItem key="edit" leadingIcon={<EditIcon />}>
+              Edit
+            </MenuItem>
+            <MenuItem key="star" leadingIcon={<StarIcon />}>
+              Favourite
+            </MenuItem>
+            <MenuItem key="delete" leadingIcon={<DeleteIcon />}>
+              Delete
+            </MenuItem>
+          </Menu>
+        </ContextMenuTrigger>
+        <p className="text-body-medium" data-testid="last">
+          Last action: {last}
+        </p>
+      </div>
+    );
+  },
+};
+
+/** A long menu scrolls; a `gap` menu that has to scroll switches to dividers (M3). */
+export const Scrolling: Story = {
+  args: { variant: 'standard', layout: 'gap' },
+  render: ({ variant, layout }) => (
+    <MenuTrigger>
+      <Button variant="outlined">Country</Button>
+      <Menu aria-label="Country" variant={variant} layout={layout}>
+        {Array.from({ length: 4 }, (_, group) => (
+          <MenuGroup key={group} aria-label={`Region ${group + 1}`}>
+            {Array.from({ length: 8 }, (_, item) => (
+              <MenuItem key={`${group}-${item}`}>{`Option ${group * 8 + item + 1}`}</MenuItem>
+            ))}
+          </MenuGroup>
+        ))}
+      </Menu>
+    </MenuTrigger>
+  ),
 };
