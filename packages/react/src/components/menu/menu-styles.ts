@@ -67,11 +67,12 @@ export const menuStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
       'starting:opacity-0 data-exiting:opacity-0',
-      // Below the anchor it opens downwards, above it upwards, beside it sideways.
-      'starting:[clip-path:inset(-24px_-24px_100%_-24px)] data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
-      'data-[placement=top]:starting:[clip-path:inset(100%_-24px_-24px_-24px)] data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
-      'data-[placement=right]:starting:[clip-path:inset(-24px_100%_-24px_-24px)] data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
-      'data-[placement=left]:starting:[clip-path:inset(-24px_-24px_-24px_100%)] data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
+      // Below the anchor it opens downwards, above it upwards, beside it sideways. Under
+      // reduced motion it only fades: the clip stays open.
+      'motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)] motion-safe:data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
+      'motion-safe:data-[placement=top]:starting:[clip-path:inset(100%_-24px_-24px_-24px)] motion-safe:data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
+      'motion-safe:data-[placement=right]:starting:[clip-path:inset(-24px_100%_-24px_-24px)] motion-safe:data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
+      'motion-safe:data-[placement=left]:starting:[clip-path:inset(-24px_-24px_-24px_100%)] motion-safe:data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
     ],
     // The list scrolls when tall, and a scroll container clips its children's shadows to
     // its box. 8px of padding (cancelled by a negative margin, so nothing moves) leaves room

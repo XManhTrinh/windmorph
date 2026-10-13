@@ -442,7 +442,8 @@ describe('Menu', () => {
     render(<EditMenu />);
     await openMenu('Edit');
     const motion = screen.getByRole('menu').parentElement!;
-    expect(motion).toHaveClass('starting:[clip-path:inset(-24px_-24px_100%_-24px)]');
+    // Under reduced motion only the fade is left: the clip stays open.
+    expect(motion).toHaveClass('motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)]');
     expect(motion).not.toHaveClass('starting:scale-80');
   });
 

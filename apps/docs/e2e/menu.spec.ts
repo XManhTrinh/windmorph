@@ -276,3 +276,19 @@ test.describe('Menu behaviour', () => {
     ).toBe(0);
   });
 });
+
+test.describe('Menu under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the menu only fades: its clip stays open', async ({ page }) => {
+    await openStory(page, 'components-menu--grouped');
+    await page.getByRole('button', { name: 'More' }).click();
+    const reveal = page.getByRole('menu').locator('..');
+    // Read at once, while the fade is still running, and again while it fades out.
+    const clip = () => reveal.evaluate((el) => getComputedStyle(el).clipPath);
+    expect(await clip()).toBe('inset(-24px)');
+    await page.keyboard.press('Escape');
+    expect(await clip()).toBe('inset(-24px)');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+  });
+});

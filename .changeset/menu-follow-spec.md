@@ -7,3 +7,5 @@ Menus follow the M3 Expressive spec: Tab or Shift + Tab in an open menu or subme
 A menu opened with the mouse, and a context menu, focus the first item, as M3 asks (they focused the menu itself); ↑ on the trigger still focuses the last item.
 
 A menu that scrolls shows a persistent scrollbar, the same one as the Select and Autocomplete option lists (it had an overlay scrollbar, hidden at rest).
+
+Under reduced motion a menu only fades in and out; it no longer reveals from its edge.
