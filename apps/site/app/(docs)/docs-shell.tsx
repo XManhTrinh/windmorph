@@ -96,8 +96,9 @@ export function DocsShell({
                 <DocsSearch
                   entries={searchEntries}
                   view="docked"
-                  // 48px (M3's minimum touch target) in the 64px bar; the field fills the bar.
-                  className="h-12 w-[260px] min-w-0 max-w-full shrink"
+                  // 48px (M3's minimum touch target) in the 64px bar; M3's 360px minimum
+                  // width, narrowing only when the window leaves less room.
+                  className="h-12 w-[360px] min-w-0 max-w-full shrink large:w-[480px]"
                 />
               }
             />
