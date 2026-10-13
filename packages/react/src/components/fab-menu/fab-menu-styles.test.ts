@@ -9,11 +9,10 @@ import { fabMenuStyles } from './fab-menu-styles';
 
 function* outputs() {
   for (const color of ['primary', 'secondary', 'tertiary'] as const)
-    for (const size of ['default', 'medium', 'large'] as const)
-      for (const align of ['start', 'center', 'end'] as const) {
-        const slots = fabMenuStyles({ color, size, align });
-        for (const slot of Object.values(slots)) yield slot();
-      }
+    for (const size of ['default', 'medium', 'large'] as const) {
+      const slots = fabMenuStyles({ color, size });
+      for (const slot of Object.values(slots)) yield slot();
+    }
 }
 
 describe('fabMenuStyles', () => {

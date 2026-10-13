@@ -26,13 +26,9 @@ import {
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { Menu, MenuItem, MenuTrigger, type MenuItemProps } from '../menu/Menu';
 import { staggerSteps } from './fab-menu-stagger';
-import {
-  fabMenuStyles,
-  type FabMenuAlign,
-  type FabMenuColor,
-  type FabMenuSize,
-} from './fab-menu-styles';
+import { fabMenuStyles, type FabMenuColor, type FabMenuSize } from './fab-menu-styles';
 
 type Styles = ReturnType<typeof fabMenuStyles>;
 
@@ -58,8 +54,18 @@ export interface FabMenuClassNames {
   anchor?: string;
   button?: string;
   icon?: string;
+  /** The list of items (`presentation="list"`). */
   list?: string;
+  /** The menu (`presentation="menu"`). */
+  menu?: string;
 }
+
+/**
+ * `list`: the expressive stack of pills that opens upwards from the button, for compact
+ * and medium windows. `menu`: the FAB opens a standard {@link Menu} 4px above it, as M3
+ * asks for on the web and in large windows.
+ */
+export type FabMenuPresentation = 'list' | 'menu';
 
 interface FabMenuOwnProps {
   /** Whether the menu is open (controlled). */
@@ -75,9 +81,20 @@ interface FabMenuOwnProps {
   size?: FabMenuSize;
   /** @default "primary" */
   color?: FabMenuColor;
-  /** Side the items and button line up on; logical, so it mirrors in RTL. @default "end" */
-  align?: FabMenuAlign;
-  /** `FabMenuItem` elements, top to bottom. */
+  /** @default "list" */
+  presentation?: FabMenuPresentation;
+  /**
+   * Shows the button. Hiding it closes the menu, shrinks the button towards its centre and
+   * fades it out; showing it expands it back (the FAB's appear / disappear motion). A
+   * hidden menu is `inert`. @default true
+   */
+  visible?: boolean;
+  /**
+   * Plays the appearing animation when the menu mounts. Change its `key` on a page or tab
+   * change to replay it. @default false
+   */
+  appear?: boolean;
+  /** Two to six `FabMenuItem` elements, top to bottom. */
   children: ReactNode;
   classNames?: FabMenuClassNames;
 }
@@ -92,14 +109,16 @@ export type FabMenuProps = FabMenuOwnProps &
 const ITEM_SELECTOR = '[data-fab-menu-item]:not([inert])';
 
 /**
- * M3 Expressive FAB menu: a FAB that opens a stack of related actions above it. The button
+ * M3 Expressive FAB menu: a FAB that opens two to six related actions above it. The button
  * shrinks into a 56px close button while the items (`FabMenuItem`) appear one after
- * another from the button upwards, each springing out to its full width. Position the menu
- * with `className` (e.g. `fixed end-4 bottom-4`); the items open upwards.
+ * another from the button upwards, each springing out to its full width; on short windows
+ * they scroll behind the close button. Position the menu on the window's trailing edge
+ * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows).
  *
  * The button is named by `aria-label` and reports `aria-expanded`. Tab or ↓ moves from the
  * button to the top item; ↑ / ↓ move between items and back to the button. Escape, an
- * outside press or choosing an item closes the menu.
+ * outside press or choosing an item closes the menu. With `presentation="menu"` the
+ * button opens a standard `Menu` instead, with menu semantics and keyboard support.
  *
  * @example
  * <FabMenu icon={<AddIcon />} openIcon={<CloseIcon />} aria-label="Create" className="fixed end-4 bottom-4">
@@ -115,7 +134,9 @@ export function FabMenu({
   openIcon,
   size,
   color,
-  align,
+  presentation = 'list',
+  visible = true,
+  appear = false,
   children,
   classNames,
   className,
@@ -124,14 +145,26 @@ export function FabMenu({
   'aria-labelledby': ariaLabelledBy,
   ...rest
 }: FabMenuProps) {
-  const [isOpen, setOpen] = useControlledState(open, defaultOpen, onOpenChange);
-  const items = Children.toArray(children).filter(isValidElement);
+  const [isOpenState, setOpen] = useControlledState(open, defaultOpen, onOpenChange);
+  const isOpen = isOpenState && visible;
+  const items = Children.toArray(children).filter(isValidElement<FabMenuItemProps>);
   const total = items.length;
-  const styles = fabMenuStyles({ size, color, align });
+  if (process.env.NODE_ENV !== 'production' && (total < 2 || total > 6)) {
+    console.warn(
+      `[@windmorph/react] A FabMenu holds 2 to 6 items (M3); this one has ${total}. Use a FAB for a single action.`,
+    );
+  }
+  const isMenu = presentation === 'menu';
+  const styles = fabMenuStyles({ size, color });
   const listId = useId();
   const rootRef = useObjectRef(ref);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Hiding the button closes the menu.
+  useEffect(() => {
+    if (!visible && isOpenState) setOpen(false);
+  }, [visible, isOpenState, setOpen]);
 
   // The visible item count steps through Compose's stagger spring (fab-menu-stagger.ts).
   const [count, setCount] = useState(isOpen ? total : 0);
@@ -155,7 +188,13 @@ export function FabMenu({
     setOpen(false);
   };
 
-  useInteractOutside({ ref: rootRef, onInteractOutside: close, isDisabled: !isOpen });
+  useInteractOutside({ ref: rootRef, onInteractOutside: close, isDisabled: !isOpen || isMenu });
+
+  // A list taller than the window scrolls; it opens showing the items nearest the button.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (isOpen && list) list.scrollTop = list.scrollHeight;
+  }, [isOpen]);
 
   const focusItem = (from: Element, step: 1 | -1) => {
     const all = [...(listRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])];
@@ -165,7 +204,7 @@ export function FabMenu({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!isOpen) return;
+    if (!isOpen || isMenu) return;
     const onButton = event.target === buttonRef.current;
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -188,49 +227,97 @@ export function FabMenu({
     onLastExit: exitProps.onTransitionEnd,
   };
 
+  const button = (
+    <span
+      data-hidden={visible ? undefined : true}
+      data-appear={appear || undefined}
+      className={styles.anchor({ class: classNames?.anchor })}
+    >
+      <ButtonBase
+        ref={buttonRef}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        {...(isMenu
+          ? {}
+          : {
+              'aria-expanded': isOpen,
+              'aria-controls': isPresent ? listId : undefined,
+              onPress: () => setOpen(!isOpen),
+            })}
+        data-open={(isOpen && !isMenu) || undefined}
+        className={styles.button({ class: classNames?.button })}
+      >
+        <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
+          {isOpen && openIcon ? openIcon : icon}
+        </span>
+      </ButtonBase>
+    </span>
+  );
+
   return (
     <div
       {...rest}
       ref={rootRef}
+      inert={!visible || undefined}
       data-open={isOpen || undefined}
+      data-presentation={presentation}
       className={styles.root({ class: cn(classNames?.root, className) })}
       onKeyDown={onKeyDown}
     >
-      <span className={styles.anchor({ class: classNames?.anchor })}>
-        <ButtonBase
-          ref={buttonRef}
-          aria-label={ariaLabel}
-          aria-labelledby={ariaLabelledBy}
-          aria-expanded={isOpen}
-          aria-controls={isPresent ? listId : undefined}
-          data-open={isOpen || undefined}
-          onPress={() => setOpen(!isOpen)}
-          className={styles.button({ class: classNames?.button })}
-        >
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-            {isOpen && openIcon ? openIcon : icon}
-          </span>
-        </ButtonBase>
-      </span>
-      <div
-        ref={listRef}
-        id={listId}
-        hidden={!isPresent}
-        className={styles.list({ class: classNames?.list })}
-      >
-        {/* An enclosing trigger (e.g. a TooltipTrigger) is for the button, not the items. */}
-        <TriggerContext value={null}>
-          <FabMenuContext value={context}>
-            {items.map((item, index) => (
-              <ItemIndexContext key={item.key} value={index}>
-                {item}
-              </ItemIndexContext>
+      {isMenu ? (
+        <MenuTrigger open={isOpen} onOpenChange={setOpen}>
+          {button}
+          <Menu
+            placement="top end"
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            className={styles.menu({ class: classNames?.menu })}
+          >
+            {items.map((item) => (
+              <MenuItem
+                key={item.key ?? undefined}
+                leadingIcon={item.props.icon}
+                {...menuItemAction(item.props)}
+                className={item.props.className}
+              >
+                {item.props.children}
+              </MenuItem>
             ))}
-          </FabMenuContext>
-        </TriggerContext>
-      </div>
+          </Menu>
+        </MenuTrigger>
+      ) : (
+        <>
+          {button}
+          <div
+            ref={listRef}
+            id={listId}
+            hidden={!isPresent}
+            className={styles.list({ class: classNames?.list })}
+          >
+            {/* An enclosing trigger (e.g. a TooltipTrigger) is for the button, not the items. */}
+            <TriggerContext value={null}>
+              <FabMenuContext value={context}>
+                {items.map((item, index) => (
+                  <ItemIndexContext key={item.key} value={index}>
+                    {item}
+                  </ItemIndexContext>
+                ))}
+              </FabMenuContext>
+            </TriggerContext>
+          </div>
+        </>
+      )}
     </div>
   );
+}
+
+/**
+ * A `FabMenuItem`'s action for a `MenuItem`. Menu items are React Stately collection items,
+ * which keep any prop; React Aria's `useMenuItem` runs an item's `onAction` and opens its
+ * `href` through the router.
+ */
+function menuItemAction({ onAction, href }: FabMenuItemProps): Partial<MenuItemProps> {
+  return { onAction, href } as Partial<MenuItemProps>;
 }
 
 export interface FabMenuItemClassNames {
@@ -240,10 +327,18 @@ export interface FabMenuItemClassNames {
 }
 
 interface FabMenuItemOwnProps {
-  /** The item's icon. Hidden from assistive tech; the label names the item. */
-  icon: ReactElement;
-  /** The label. */
+  /**
+   * The item's icon. Hidden from assistive tech; the label names the item. M3 asks for an
+   * icon on every item, since it tells the items apart; leave it out only if necessary.
+   */
+  icon?: ReactElement;
+  /** The label, which M3 always requires. */
   children: ReactNode;
+  /**
+   * Runs when the item is chosen, in either presentation. (`onPress` works only in the
+   * list, since a menu item has no press event.)
+   */
+  onAction?: () => void;
   classNames?: FabMenuItemClassNames;
 }
 
@@ -253,8 +348,9 @@ export type FabMenuItemProps = FabMenuItemOwnProps &
   (OmitItem<ButtonBaseActionProps> | OmitItem<ButtonBaseLinkProps>);
 
 /**
- * An action in a {@link FabMenu}: a 56px pill with an icon and a label. Choosing it calls
- * `onPress` (or follows `href`) and closes the menu.
+ * An action in a {@link FabMenu}: a 56px pill with an icon and a label (or, with
+ * `presentation="menu"`, a menu item). Choosing it calls `onAction` (and, in the list,
+ * `onPress`), or follows `href`, and closes the menu.
  */
 export function FabMenuItem({
   icon,
@@ -263,6 +359,7 @@ export function FabMenuItem({
   className,
   style,
   onPress,
+  onAction,
   ...rest
 }: FabMenuItemProps) {
   const menu = useContext(FabMenuContext);
@@ -295,6 +392,7 @@ export function FabMenuItem({
     className: styles.item({ class: cn(classNames?.root, className) }),
     onPress: (event: Parameters<NonNullable<ButtonBaseActionProps['onPress']>>[0]) => {
       onPress?.(event);
+      onAction?.();
       menu.close();
     },
     onTransitionEnd: isLast ? menu.onLastExit : undefined,
@@ -303,9 +401,11 @@ export function FabMenuItem({
   return (
     <ButtonBase {...(props as ButtonBaseActionProps)}>
       <span ref={contentRef} className={styles.itemContent({ class: classNames?.content })}>
-        <span aria-hidden="true" className={styles.itemIcon({ class: classNames?.icon })}>
-          {icon}
-        </span>
+        {icon && (
+          <span aria-hidden="true" className={styles.itemIcon({ class: classNames?.icon })}>
+            {icon}
+          </span>
+        )}
         {children}
       </span>
     </ButtonBase>

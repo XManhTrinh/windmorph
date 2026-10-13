@@ -158,7 +158,7 @@ describe('FabMenu', () => {
 
   it.each([
     ['medium', 'size-[80px]', 'rounded-corner-large-increased', 'size-[28px]'],
-    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[36px]'],
+    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[32px]'],
   ] as const)('starts as a %s FAB', (size, box, corner, iconSize) => {
     render(<Menu size={size} />);
     expect(toggle()).toHaveClass(box, corner);
@@ -178,10 +178,57 @@ describe('FabMenu', () => {
     expect(item('Reply')).toHaveClass(closed);
   });
 
-  it('lines up on the start side', () => {
-    render(<Menu align="start" data-testid="menu" />);
-    expect(screen.getByTestId('menu')).toHaveClass('items-start');
-    expect(item('Reply')).toHaveClass('justify-start');
+  it('lines up on the trailing edge, with level 3 items', () => {
+    render(<Menu defaultOpen data-testid="menu" />);
+    expect(screen.getByTestId('menu')).toHaveClass('items-end');
+    expect(item('Reply')).toHaveClass('justify-end', 'shadow-elevation-3');
+  });
+
+  it('scrolls its items behind the close button on short windows', () => {
+    render(<Menu defaultOpen size="large" />);
+    const list = document.getElementById(toggle().getAttribute('aria-controls')!)!;
+    // The list scrolls, and reaches under the 96px box that keeps the button above it.
+    expect(list).toHaveClass(
+      'overflow-y-auto',
+      'max-h-[calc(100dvh-16px)]',
+      '-mb-[104px]',
+      'pb-[104px]',
+    );
+    expect(toggle().parentElement).toHaveClass('relative', 'z-[1]');
+  });
+
+  it('allows an item without an icon, and runs onAction', () => {
+    const onAction = vi.fn();
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" defaultOpen>
+        <FabMenuItem onAction={onAction}>Plain</FabMenuItem>
+        <FabMenuItem icon={<Icon id="star" />}>Star</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(item('Plain').querySelector('[aria-hidden]')).toBeNull();
+    fireEvent.click(item('Plain'));
+    expect(onAction).toHaveBeenCalledOnce();
+  });
+
+  it('warns in development when it has fewer than 2 or more than 6 items', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create">
+        <FabMenuItem icon={<Icon id="one" />}>One</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('2 to 6 items'));
+    warn.mockRestore();
+  });
+
+  it('hides its button towards the centre, closing and turning inert', () => {
+    const { rerender } = render(<Menu defaultOpen data-testid="menu" />);
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    rerender(<Menu defaultOpen data-testid="menu" visible={false} />);
+    expect(screen.getByTestId('menu')).toHaveAttribute('inert');
+    expect(toggle().parentElement).toHaveAttribute('data-hidden', 'true');
+    expect(toggle().parentElement).toHaveClass('data-hidden:[transform:scale(0.2)]');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('puts className, style, data-* and ref on the root', () => {
@@ -203,6 +250,30 @@ describe('FabMenu', () => {
     expect(root).toHaveStyle({ zIndex: '3' });
     expect(toggle()).toHaveClass('shadow-elevation-1');
     expect(toggle()).not.toHaveClass('shadow-elevation-3');
+  });
+
+  it('opens a standard menu 4px above the FAB with presentation="menu"', async () => {
+    vi.useRealTimers();
+    const onReply = vi.fn();
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" presentation="menu">
+        <FabMenuItem icon={<Icon id="reply" />} onAction={onReply}>
+          Reply
+        </FabMenuItem>
+        <FabMenuItem icon={<Icon id="forward" />}>Forward</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(toggle()).toHaveAttribute('aria-haspopup', 'true');
+    await userEvent.click(toggle());
+    const menu = await screen.findByRole('menu', { name: 'Create' });
+    expect(menu).toHaveClass('[[data-placement^=top]>&]:-mb-[4px]');
+    expect(screen.getAllByRole('menuitem').map((el) => el.textContent)).toEqual([
+      'Reply',
+      'Forward',
+    ]);
+    expect(await axeViolations(document.body)).toEqual([]);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Reply' }));
+    expect(onReply).toHaveBeenCalledOnce();
   });
 
   it('requires FabMenuItem to be inside a FabMenu', () => {

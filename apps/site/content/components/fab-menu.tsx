@@ -1,18 +1,21 @@
 import { ExampleViewer } from '../../components/example-viewer';
 import { FabMenuBasic } from '../../examples/fab-menu/fab-menu-basic';
 import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
+import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody() {
-  const [basic, colors] = await Promise.all([
+  const [basic, colors, web] = await Promise.all([
     readExampleSource('fab-menu/fab-menu-basic.tsx'),
     readExampleSource('fab-menu/fab-menu-colors.tsx'),
+    readExampleSource('fab-menu/fab-menu-web.tsx'),
   ]);
-  const [basicHtml, colorsHtml] = await Promise.all([
+  const [basicHtml, colorsHtml, webHtml] = await Promise.all([
     highlightSource(basic),
     highlightSource(colors),
+    highlightSource(web),
   ]);
 
   return (
@@ -20,14 +23,30 @@ export async function FabMenuBody() {
       <section className="flex flex-col gap-3">
         <h2 className="text-headline-small text-on-surface">Purpose</h2>
         <p className="text-body-large text-on-surface-variant">
-          A FAB menu is a FAB that opens a short stack of related actions above it. Use it when one
-          surface needs a few primary actions rather than a single one. The button shrinks into a
-          56px close button while the items (<code className="text-on-surface">FabMenuItem</code>)
-          appear one after another.
+          A FAB menu is a FAB that opens two to six closely related actions above it. Use it when
+          one surface needs a few primary actions rather than a single one, but not beside a
+          floating toolbar or navigation rail. The button shrinks into a 56px close button while the
+          items (<code className="text-on-surface">FabMenuItem</code>, given directly as children)
+          appear one after another. Every item has a label; keep its icon unless you really must
+          drop it, since icons tell the items apart.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Position the menu with <code className="text-on-surface">className</code> (for example{' '}
-          <code className="text-on-surface">fixed end-4 bottom-4</code>); the items open upwards.
+          Anchor the menu to the window&apos;s trailing edge with{' '}
+          <code className="text-on-surface">className</code>: 16px margins (
+          <code className="text-on-surface">fixed end-4 bottom-4</code>), rising to 24px in large
+          and extra-large windows (
+          <code className="text-on-surface">large:end-6 large:bottom-6</code>
+          ). The items open upwards and line up on the trailing edge, which mirrors in RTL. On short
+          windows they scroll behind the close button, which stays reachable.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          On the web and in large windows, M3 has the FAB open a standard menu instead: set{' '}
+          <code className="text-on-surface">presentation=&quot;menu&quot;</code>, and choose it per
+          window size class if you like. Items run <code className="text-on-surface">onAction</code>{' '}
+          (or follow <code className="text-on-surface">href</code>) in either presentation.{' '}
+          <code className="text-on-surface">visible</code> and{' '}
+          <code className="text-on-surface">appear</code> work as on{' '}
+          <code className="text-on-surface">Fab</code>.
         </p>
       </section>
 
@@ -48,6 +67,14 @@ export async function FabMenuBody() {
           fileName="fab-menu-colors.tsx"
         >
           <FabMenuColors />
+        </ExampleViewer>
+        <ExampleViewer
+          title="Menu on the web"
+          code={web}
+          html={webHtml}
+          fileName="fab-menu-web.tsx"
+        >
+          <FabMenuWeb />
         </ExampleViewer>
       </section>
 
@@ -70,11 +97,17 @@ export async function FabMenuBody() {
             <code className="text-on-surface">inert</code>, so they are skipped while closed.
           </li>
           <li>Each item is named by its label; its icon is hidden from assistive tech.</li>
+          <li>
+            With <code className="text-on-surface">presentation=&quot;menu&quot;</code> it follows
+            the menu pattern: the button has <code className="text-on-surface">aria-haspopup</code>,
+            the items are <code className="text-on-surface">menuitem</code>s, and arrows, typeahead
+            and Escape work as in any <code className="text-on-surface">Menu</code>.
+          </li>
         </ul>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
+        <h2 className="text-headline-small text-on-surface">Spec values and differences</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>No shape morph: Compose&apos;s FAB menu does not use the shape library.</li>
           <li>
@@ -85,8 +118,8 @@ export async function FabMenuBody() {
           </li>
           <li>
             Items are 56px pills (min 56px wide, 24px padding, 8px icon gap, 24px icon,{' '}
-            <code className="text-on-surface">title-medium</code>), 4px apart and 8px above the
-            button, with no elevation (Compose&apos;s item surface leaves its level-3 token unused).
+            <code className="text-on-surface">title-medium</code>) at level 3, 4px apart and 8px
+            above the button.
           </li>
           <li>
             Opening staggers the visible item count on the slow effects spring (the item nearest the
@@ -95,9 +128,9 @@ export async function FabMenuBody() {
           </li>
           <li>
             Colour sets are <code className="text-on-surface">primary | secondary | tertiary</code>{' '}
-            (m3.material.io&apos;s sets; Compose&apos;s default is primary), and{' '}
-            <code className="text-on-surface">align</code> is logical, so it mirrors in RTL.
+            (m3.material.io&apos;s sets; Compose&apos;s default is primary).
           </li>
+          <li>A development warning flags a menu with fewer than two or more than six items.</li>
         </ul>
       </section>
     </>

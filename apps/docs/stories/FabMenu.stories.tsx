@@ -2,12 +2,21 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   FabMenu,
   FabMenuItem,
-  type FabMenuAlign,
   type FabMenuColor,
+  type FabMenuPresentation,
   type FabMenuSize,
 } from '@windmorph/react';
 import { useState } from 'react';
-import { AddIcon, CloseIcon, DeleteIcon, EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
+import {
+  AddIcon,
+  CloseIcon,
+  DeleteIcon,
+  EditIcon,
+  SearchIcon,
+  SendIcon,
+  HomeIcon,
+  StarIcon,
+} from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -16,7 +25,7 @@ import {
 
 const COLORS: FabMenuColor[] = ['primary', 'secondary', 'tertiary'];
 const SIZES: FabMenuSize[] = ['default', 'medium', 'large'];
-const ALIGNS: FabMenuAlign[] = ['start', 'center', 'end'];
+const PRESENTATIONS: FabMenuPresentation[] = ['list', 'menu'];
 
 const ACTIONS = [
   { label: 'Edit', icon: <EditIcon /> },
@@ -24,32 +33,34 @@ const ACTIONS = [
   { label: 'Star', icon: <StarIcon /> },
   { label: 'Search', icon: <SearchIcon /> },
   { label: 'Delete', icon: <DeleteIcon /> },
+  { label: 'Home', icon: <HomeIcon /> },
 ];
 
 interface PlaygroundArgs {
   size: FabMenuSize;
   color: FabMenuColor;
-  align: FabMenuAlign;
+  presentation: FabMenuPresentation;
   items: number;
 }
 
 const meta = {
   title: 'Components/FabMenu',
-  args: { size: 'default', color: 'primary', align: 'end', items: 4 },
+  args: { size: 'default', color: 'primary', presentation: 'list', items: 4 },
   argTypes: {
     size: { control: 'inline-radio', options: SIZES },
     color: { control: 'inline-radio', options: COLORS },
-    align: { control: 'inline-radio', options: ALIGNS },
-    items: { control: { type: 'range', min: 1, max: 5 } },
+    presentation: { control: 'inline-radio', options: PRESENTATIONS },
+    items: { control: { type: 'range', min: 2, max: 6 } },
   },
 } satisfies Meta<PlaygroundArgs>;
 
 export default meta;
 type Story = StoryObj<PlaygroundArgs>;
 
-function Items({ count, onAction }: { count: number; onAction?: (label: string) => void }) {
+/** The first `count` actions, as the menu's direct `FabMenuItem` children. */
+function actions(count: number, onAction?: (label: string) => void) {
   return ACTIONS.slice(0, count).map(({ label, icon }) => (
-    <FabMenuItem key={label} icon={icon} onPress={() => onAction?.(label)}>
+    <FabMenuItem key={label} icon={icon} onAction={() => onAction?.(label)}>
       {label}
     </FabMenuItem>
   ));
@@ -57,7 +68,7 @@ function Items({ count, onAction }: { count: number; onAction?: (label: string) 
 
 /** Positioned at the bottom end of a frame, the way apps place it. */
 export const Playground: Story = {
-  render: function PlaygroundStory({ size, color, align, items }) {
+  render: function PlaygroundStory({ size, color, presentation, items }) {
     const [last, setLast] = useState('none');
     return (
       <div className="relative h-[480px] max-w-[400px] rounded-corner-large bg-surface-container">
@@ -71,10 +82,10 @@ export const Playground: Story = {
           aria-label="Create"
           size={size}
           color={color}
-          align={align}
+          presentation={presentation}
           className="absolute end-4 bottom-4"
         >
-          <Items count={items} onAction={setLast} />
+          {actions(items, setLast)}
         </FabMenu>
       </div>
     );
@@ -94,7 +105,7 @@ export const Colors: Story = {
           openIcon={<CloseIcon />}
           aria-label={`Create ${color}`}
         >
-          <Items count={3} />
+          {actions(3)}
         </FabMenu>
       ))}
     </div>
@@ -107,7 +118,7 @@ export const Sizes: Story = {
     <div className="flex w-fit items-end gap-8" data-testid="sizes">
       {SIZES.map((size) => (
         <FabMenu key={size} size={size} icon={<AddIcon />} aria-label={`Create ${size}`}>
-          <Items count={2} />
+          {actions(2)}
         </FabMenu>
       ))}
       {SIZES.map((size) => (
@@ -119,31 +130,65 @@ export const Sizes: Story = {
           openIcon={<CloseIcon />}
           aria-label={`Close ${size}`}
         >
-          <Items count={2} />
+          {actions(2)}
         </FabMenu>
       ))}
     </div>
   ),
 };
 
-/** Items line up with the button on the start side, the centre or the end side. */
-export const Alignment: Story = {
+/** The menu sits on the trailing edge, which is the left edge in right-to-left layouts. */
+export const TrailingEdge: Story = {
   render: () => (
-    <div className="flex w-fit items-end gap-8" data-testid="alignment">
-      {ALIGNS.map((align) => (
-        <FabMenu
-          key={align}
-          defaultOpen
-          align={align}
-          icon={<AddIcon />}
-          openIcon={<CloseIcon />}
-          aria-label={`Create ${align}`}
-        >
-          <Items count={3} />
-        </FabMenu>
-      ))}
+    <div
+      className="flex h-[320px] w-[320px] items-end justify-end rounded-corner-large bg-surface-container p-4"
+      data-testid="trailing-edge"
+    >
+      <FabMenu defaultOpen icon={<AddIcon />} openIcon={<CloseIcon />} aria-label="Create">
+        {actions(3)}
+      </FabMenu>
     </div>
   ),
+};
+
+/** On a short window the items scroll behind the close button. */
+export const ShortWindow: Story = {
+  render: () => (
+    <FabMenu
+      data-testid="menu"
+      defaultOpen
+      icon={<AddIcon />}
+      openIcon={<CloseIcon />}
+      aria-label="Create"
+      className="fixed end-4 bottom-4"
+    >
+      {actions(6)}
+    </FabMenu>
+  ),
+};
+
+/** On the web and in large windows, the FAB opens a standard menu 4px above it. */
+export const MenuPresentation: Story = {
+  render: function MenuStory() {
+    const [last, setLast] = useState('none');
+    return (
+      <div className="relative h-[400px] max-w-[480px] rounded-corner-large bg-surface-container">
+        <p className="p-4 text-body-medium" data-testid="last">
+          Last action: {last}
+        </p>
+        <FabMenu
+          presentation="menu"
+          size="large"
+          icon={<AddIcon />}
+          openIcon={<CloseIcon />}
+          aria-label="Create"
+          className="absolute end-6 bottom-6"
+        >
+          {actions(4, setLast)}
+        </FabMenu>
+      </div>
+    );
+  },
 };
 
 export const LayoutOverride: StoryObj<{
@@ -161,7 +206,7 @@ export const LayoutOverride: StoryObj<{
         aria-label="Create"
         className={LAYOUT_OVERRIDES[override]}
       >
-        <Items count={2} />
+        {actions(2)}
       </FabMenu>
     </div>
   ),

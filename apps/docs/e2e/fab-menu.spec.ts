@@ -22,11 +22,18 @@ test.describe('FabMenu visual regression', () => {
   });
 
   for (const dir of ['ltr', 'rtl'] as const) {
-    test(`alignment · ${dir}`, async ({ page }) => {
-      await openStory(page, 'components-fabmenu--alignment', { dir });
-      await expect(page.getByTestId('alignment')).toHaveScreenshot(`alignment-${dir}.png`);
+    test(`trailing edge · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-fabmenu--trailing-edge', { dir });
+      await expect(page.getByTestId('trailing-edge')).toHaveScreenshot(`trailing-edge-${dir}.png`);
     });
   }
+
+  test('menu presentation', async ({ page }) => {
+    await openStory(page, 'components-fabmenu--menu-presentation');
+    await page.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByRole('menu')).toBeVisible();
+    await expect(page).toHaveScreenshot('menu-presentation.png');
+  });
 });
 
 test.describe('FabMenu behaviour', () => {
@@ -90,6 +97,66 @@ test.describe('FabMenu behaviour', () => {
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await page.getByTestId('last').click();
     await expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+test.describe('FabMenu short windows and web menu', () => {
+  test('items scroll behind the close button, which stays reachable', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 280 });
+    await openStory(page, 'components-fabmenu--short-window');
+    const button = page.getByRole('button', { name: 'Create' });
+    const list = page.locator('[data-fab-menu-item]').first().locator('..');
+    await expect(page.locator('[data-fab-menu-item]').last()).toHaveAttribute(
+      'data-visible',
+      'true',
+    );
+    const metrics = () =>
+      list.evaluate((el) => ({
+        scrolls: el.scrollHeight > el.clientHeight,
+        atBottom: Math.abs(el.scrollHeight - el.clientHeight - el.scrollTop) < 2,
+        top: el.getBoundingClientRect().top,
+      }));
+    // It opens showing the items nearest the button, and stays inside the window.
+    expect(await metrics()).toMatchObject({ scrolls: true, atBottom: true });
+    expect((await metrics()).top).toBeGreaterThanOrEqual(0);
+    // The button paints above the list: hit-testing its centre finds the button.
+    const box = (await button.boundingBox())!;
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x!, y!)?.closest('button')?.getAttribute('aria-label'),
+      [box.x + box.width / 2, box.y + box.height / 2],
+    );
+    expect(hit).toBe('Create');
+    await list.evaluate((el) => el.scrollTo(0, 0));
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeInViewport();
+    await button.click();
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('presentation="menu" opens a standard menu 4px above the FAB', async ({ page }) => {
+    await openStory(page, 'components-fabmenu--menu-presentation');
+    const button = page.getByRole('button', { name: 'Create' });
+    await button.focus();
+    await page.keyboard.press('Enter');
+    const menu = page.getByRole('menu', { name: 'Create' });
+    await expect(menu).toBeVisible();
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
+    // Measure once the entry animation (a scale from 80%) has finished.
+    await expect
+      .poll(() => menu.evaluate((el) => getComputedStyle(el.parentElement!).scale))
+      .toBe('none');
+    const gap = await menu.evaluate(
+      (el, buttonTop) => {
+        const group = el.firstElementChild!.getBoundingClientRect();
+        return Math.round(buttonTop - group.bottom);
+      },
+      (await button.boundingBox())!.y,
+    );
+    expect(gap).toBe(4);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last action: Send');
+    await expect(menu).toBeHidden();
+    await expect(button).toBeFocused();
   });
 });
 

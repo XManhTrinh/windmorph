@@ -7,7 +7,7 @@ import { AddIcon, CloseIcon, DeleteIcon, EditIcon, SendIcon } from '../../compon
 /**
  * A FAB menu opens a stack of related actions above the button. It is positioned here at
  * the bottom end of a framed box, the way an app would anchor it with `className`
- * (e.g. `fixed end-4 bottom-4`). Choosing an item runs its `onPress` and closes the menu.
+ * (e.g. `fixed end-4 bottom-4`). Choosing an item runs its `onAction` and closes the menu.
  */
 export function FabMenuBasic() {
   const [last, setLast] = useState('none');
@@ -20,13 +20,13 @@ export function FabMenuBasic() {
         aria-label="Create"
         className="absolute end-4 bottom-4"
       >
-        <FabMenuItem icon={<EditIcon />} onPress={() => setLast('Edit')}>
+        <FabMenuItem icon={<EditIcon />} onAction={() => setLast('Edit')}>
           Edit
         </FabMenuItem>
-        <FabMenuItem icon={<SendIcon />} onPress={() => setLast('Send')}>
+        <FabMenuItem icon={<SendIcon />} onAction={() => setLast('Send')}>
           Send
         </FabMenuItem>
-        <FabMenuItem icon={<DeleteIcon />} onPress={() => setLast('Delete')}>
+        <FabMenuItem icon={<DeleteIcon />} onAction={() => setLast('Delete')}>
           Delete
         </FabMenuItem>
       </FabMenu>
