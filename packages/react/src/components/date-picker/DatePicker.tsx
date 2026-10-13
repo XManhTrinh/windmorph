@@ -59,6 +59,11 @@ import {
 export interface DatePickerStrings extends DateInputStrings {
   /** @default "Select date" (or "Select dates" for a range) */
   title?: string;
+  /**
+   * The title in text input mode (the M3 modal date input's "Enter date").
+   * @default "Enter date" (or "Enter dates" for a range)
+   */
+  inputTitle?: string;
   /** Headline when nothing is selected. @default "Selected date" / "Start date – End date" */
   noSelection?: string;
   /** @default "Previous month" */
@@ -328,9 +333,14 @@ function PickerFrame({
 }) {
   const { data } = splitDataAttributes(rest);
   const [mode, setMode] = useState(defaultMode);
+  // Set once the mode has been switched, so only a switch animates (not the first render).
+  const [switched, setSwitched] = useState(false);
   const [years, setYears] = useState(false);
   const styles = datePickerStyles({ range });
-  const title = strings.title ?? (range ? 'Select dates' : 'Select date');
+  const title =
+    mode === 'input'
+      ? (strings.inputTitle ?? (range ? 'Enter dates' : 'Enter date'))
+      : (strings.title ?? (range ? 'Select dates' : 'Select date'));
   const bodyProps = {
     styles,
     years,
@@ -368,21 +378,26 @@ function PickerFrame({
                     ? (strings.inputMode ?? 'Switch to text input mode')
                     : (strings.calendarMode ?? 'Switch to calendar input mode')
                 }
-                onPress={() => setMode(mode === 'calendar' ? 'input' : 'calendar')}
+                onPress={() => {
+                  setSwitched(true);
+                  setMode(mode === 'calendar' ? 'input' : 'calendar');
+                }}
               />
             )}
           </div>
         </div>
       )}
-      {mode === 'input' ? (
-        <div className={styles.input({ class: classNames?.body })}>{input}</div>
-      ) : range && scroll ? (
-        <RangeMonthList state={state as RangeCalendarState} {...bodyProps} />
-      ) : range ? (
-        <RangeCalendarBody state={state as RangeCalendarState} {...bodyProps} />
-      ) : (
-        <SingleCalendarBody state={state as CalendarState} {...bodyProps} />
-      )}
+      <div key={mode} data-enter={switched ? mode : undefined} className={styles.modeView()}>
+        {mode === 'input' ? (
+          <div className={styles.input({ class: classNames?.body })}>{input}</div>
+        ) : range && scroll ? (
+          <RangeMonthList state={state as RangeCalendarState} {...bodyProps} />
+        ) : range ? (
+          <RangeCalendarBody state={state as RangeCalendarState} {...bodyProps} />
+        ) : (
+          <SingleCalendarBody state={state as CalendarState} {...bodyProps} />
+        )}
+      </div>
     </div>
   );
 }

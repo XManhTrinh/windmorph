@@ -198,7 +198,72 @@ test.describe('Date picker', () => {
   });
 });
 
+test.describe('Date picker motion', () => {
+  /** The CSS transitions running on elements matching `selector`, by property. */
+  const transitions = (page: Page, selector: string) =>
+    page.evaluate(
+      (sel) =>
+        [...document.querySelectorAll(sel)].flatMap((el) =>
+          el.getAnimations().map((a) => (a as CSSTransition).transitionProperty),
+        ),
+      selector,
+    );
+
+  // Compose: the input rises from below and the calendar comes back down, fading in.
+  test('switching to input and back animates the new view in', async ({ page }) => {
+    await openStory(page, 'components-pickers--date');
+    await page.getByRole('button', { name: 'Switch to text input mode' }).click();
+    await expect(page.getByText('Enter date')).toBeVisible();
+    expect(await transitions(page, '[data-enter="input"] > *')).toEqual(
+      expect.arrayContaining(['translate', 'opacity']),
+    );
+    await settle(page);
+    await page.getByRole('button', { name: 'Switch to calendar input mode' }).click();
+    expect(await transitions(page, '[data-enter="calendar"] > *')).toEqual(
+      expect.arrayContaining(['translate', 'opacity']),
+    );
+  });
+
+  // Compose: the year list expands down (`expandVertically`) as it fades in from 60%.
+  test('the year list expands as it fades in', async ({ page }) => {
+    await openStory(page, 'components-pickers--date');
+    await page.getByRole('button', { name: /Switch to selecting a year/ }).click();
+    const list = page.getByRole('radiogroup', { name: 'Year' });
+    await expect(list).toBeVisible();
+    expect(await transitions(page, '[role="radiogroup"]')).toEqual(
+      expect.arrayContaining(['clip-path', 'opacity']),
+    );
+    await settle(page);
+    expect(await list.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(0px)');
+  });
+
+  test('the full-screen range header drops to its content under the top row', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-pickers--date-range-full-screen');
+    const dialog = page.getByRole('dialog');
+    await settle(page);
+    const header = dialog.getByText('Select dates').locator('..');
+    // The 128px minimum less the 60px top-row offset (Compose): 68px, so the header is
+    // as tall as its title and headline row.
+    expect(await header.evaluate((el) => getComputedStyle(el).minHeight)).toBe('68px');
+    expect((await rect(header)).height).toBeLessThan(128);
+  });
+});
+
 test.describe('Docked date picker', () => {
+  // M3 menus: while its list is open, the button keeps a pressed state layer.
+  test('the month menu button shows a pressed layer while its list is open', async ({ page }) => {
+    await openStory(page, 'components-pickers--docked');
+    await page.getByRole('button', { name: 'Open calendar' }).click();
+    const calendar = page.getByRole('dialog', { name: 'Choose a date' });
+    const month = calendar.getByRole('button', { name: /Choose a month/ });
+    const opacity = () =>
+      month.evaluate((el) => getComputedStyle(el).getPropertyValue('--m3-open-opacity'));
+    await month.click();
+    await expect(month).toHaveAttribute('data-menu-open', 'true');
+    await expect.poll(async () => parseFloat(await opacity())).toBe(0.1);
+  });
+
   test('opens below the field, 360px wide, and Enter saves', async ({ page }) => {
     await openStory(page, 'components-pickers--docked');
     const field = page.getByRole('textbox', { name: 'Date' });

@@ -59,6 +59,18 @@ export const datePickerStyles = tv({
       'rtl:data-[direction=previous]:starting:translate-x-[48px]',
       'motion-reduce:starting:translate-none',
     ],
+    // Calendar ↔ text input (Compose's display mode animation, enter side): the input rises
+    // from below its own height, the calendar comes down 48px, both fading in, inside a
+    // clipping view. Reduced motion keeps the fade.
+    modeView: [
+      'flex min-h-0 flex-1 flex-col overflow-hidden',
+      '[&>*]:[transition-property:translate,opacity]',
+      '[&>*]:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
+      '[&>*]:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-effects-default-easing)]',
+      'data-[enter=input]:[&>*]:starting:translate-y-full data-[enter=input]:[&>*]:starting:opacity-0',
+      'data-[enter=calendar]:[&>*]:starting:-translate-y-[48px] data-[enter=calendar]:[&>*]:starting:opacity-0',
+      'motion-reduce:[&>*]:starting:translate-none',
+    ],
     grid: 'w-full table-fixed border-collapse',
     weekday: 'h-[48px] cursor-default p-0 text-center text-body-large font-normal text-on-surface',
     weekdayRow: 'grid shrink-0 grid-cols-7',
@@ -88,6 +100,12 @@ export const datePickerStyles = tv({
     ],
     years: [
       'grid h-[335px] grid-cols-3 content-start justify-items-center gap-y-[16px] overflow-y-auto overscroll-contain pt-[8px] pb-[8px]',
+      // It expands down from the month row as it fades in from 60% (Compose's year picker
+      // `expandVertically` + `fadeIn(initialAlpha = 0.6f)`, default effects); reduced motion
+      // keeps the fade.
+      '[clip-path:inset(0)] [transition-property:clip-path,opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+      'starting:[clip-path:inset(0_0_100%_0)] starting:opacity-60 motion-reduce:starting:[clip-path:inset(0)]',
     ],
     year: [
       // The 36px pill; its ::before makes the touch target 48px tall.
@@ -109,7 +127,12 @@ export const datePickerStyles = tv({
   variants: {
     range: {
       false: { header: 'min-h-[120px]', headline: 'text-headline-large' },
-      true: { header: 'min-h-[128px]', headline: 'text-title-large' },
+      // Full screen, the top row takes the title's space: Compose's range header is the
+      // token's 128px less its 60px `HeaderHeightOffset`.
+      true: {
+        header: 'min-h-[128px] group-data-full-screen/picker-dialog:min-h-[68px]',
+        headline: 'text-title-large',
+      },
     },
     /** The docked picker shows the days of the months around the shown one. */
     docked: {

@@ -134,6 +134,21 @@ describe('DatePicker', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  // M3: the modal date input reads "Enter date"; switching modes animates the new view in.
+  it('titles the input mode "Enter date" and animates only a mode switch', async () => {
+    const { container, rerender } = render(<DatePicker defaultValue={march} />);
+    const view = () => container.querySelector('[data-mode] > div:last-child')!;
+    expect(view()).not.toHaveAttribute('data-enter');
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to text input mode' }));
+    expect(screen.getByText('Enter date')).toHaveClass('text-label-large');
+    expect(view()).toHaveAttribute('data-enter', 'input');
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to calendar input mode' }));
+    expect(screen.getByText('Select date')).toBeInTheDocument();
+    expect(view()).toHaveAttribute('data-enter', 'calendar');
+    rerender(<DateRangePicker defaultMode="input" strings={{ inputTitle: 'Type the dates' }} />);
+    expect(screen.getByText('Type the dates')).toBeInTheDocument();
+  });
+
   it('says when a typed date is out of range', async () => {
     render(<DatePicker defaultMode="input" maxValue={new CalendarDate(2030, 12, 31)} />);
     const field = screen.getByRole('textbox', { name: 'Date' });

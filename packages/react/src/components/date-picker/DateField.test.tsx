@@ -82,10 +82,17 @@ describe('DateField (docked date picker)', () => {
     await userEvent.click(within(calendar).getByRole('button', { name: /^March, Choose a month/ }));
     const months = within(calendar).getByRole('radiogroup', { name: 'Month' });
     expect(within(months).getByRole('radio', { name: 'March' })).toBeChecked();
+    // M3 menus: the open menu's button keeps a pressed state layer.
+    const monthButton = within(calendar).getByRole('button', { name: /Choose a month/ });
+    expect(monthButton).toHaveAttribute('data-menu-open', 'true');
+    expect(monthButton).toHaveClass('state-layer');
     // The other menu button is disabled while a menu is open.
     expect(within(calendar).getByRole('button', { name: /Choose a year/ })).toBeDisabled();
     await userEvent.click(within(months).getByRole('radio', { name: 'July' }));
     expect(within(calendar).getByRole('grid')).toHaveAccessibleName(/July 2031/);
+    expect(within(calendar).getByRole('button', { name: /Choose a month/ })).not.toHaveAttribute(
+      'data-menu-open',
+    );
     await userEvent.click(within(calendar).getByRole('button', { name: /Choose a year/ }));
     const years = within(calendar).getByRole('radiogroup', { name: 'Year' });
     expect(within(years).getAllByRole('radio')).toHaveLength(11);
