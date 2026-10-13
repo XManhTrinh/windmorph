@@ -197,22 +197,31 @@ export function ExpressiveBento() {
         </div>
       </Tile>
 
-      {/* Toolbar: one tool becomes the selected, wide button */}
+      {/* Toolbar: a standard button group, so the pressed tool widens and its neighbours give
+          way (the spec's standard-group motion); the selected tool turns tertiary, as in
+          Google's showcase */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-1 large:row-span-4 large:row-start-7">
-        <FloatingToolbar aria-label="Photo tools" elevated={false}>
-          <IconButton toggle variant="filled" icon={<InkPenIcon />} aria-label="Markup" />
-          <IconButton toggle variant="filled" icon={<CropIcon />} aria-label="Crop" />
-          <IconButton toggle variant="filled" icon={<TuneIcon />} aria-label="Adjust" />
-          <IconButton
-            data-press="on off"
-            toggle
-            selected={active}
-            variant="filled"
-            width="wide"
-            icon={<SettingsIcon />}
-            aria-label="Settings"
-          />
-          <IconButton toggle variant="filled" icon={<EditIcon />} aria-label="Edit" />
+        <FloatingToolbar
+          aria-label="Photo tools"
+          elevated={false}
+          className="bg-surface-container-lowest"
+        >
+          <ButtonGroup aria-label="Tools" buttonVariant="filled" className="gap-[8px]">
+            <IconButton toggle variant="filled" icon={<InkPenIcon />} aria-label="Markup" />
+            <IconButton toggle variant="filled" icon={<CropIcon />} aria-label="Crop" />
+            <IconButton toggle variant="filled" icon={<TuneIcon />} aria-label="Adjust" />
+            <IconButton
+              data-press="on off"
+              toggle
+              selected={active}
+              variant="filled"
+              width="wide"
+              icon={<SettingsIcon />}
+              aria-label="Settings"
+              className="data-selected:not-data-disabled:bg-tertiary data-selected:not-data-disabled:text-on-tertiary"
+            />
+            <IconButton toggle variant="filled" icon={<EditIcon />} aria-label="Edit" />
+          </ButtonGroup>
         </FloatingToolbar>
       </Tile>
 
