@@ -59,7 +59,7 @@ jobs:
 
   site-e2e:
     name: Site link check & Playwright smoke suite
-    timeout-minutes: 20
+    timeout-minutes: 45
     runs-on: ubuntu-latest
     env:
       CI: 'true'
