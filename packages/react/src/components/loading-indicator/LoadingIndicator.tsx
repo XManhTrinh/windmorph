@@ -1,7 +1,7 @@
 'use client';
 
 import { useAnimationFrame, useReducedMotion } from 'motion/react';
-import { useMemo, useRef, type ComponentPropsWithRef } from 'react';
+import { useMemo, useRef, type ComponentPropsWithRef, type CSSProperties } from 'react';
 import { mergeProps, useProgressBar } from 'react-aria';
 import type { MorphShape } from '../../primitives/use-m3-morph';
 import type { RoundedPolygon } from '../../shapes/rounded-polygon';
@@ -19,6 +19,10 @@ import {
   type Frame,
 } from './loading-indicator-frames';
 import { loadingIndicatorStyles, type LoadingIndicatorVariant } from './loading-indicator-styles';
+
+/** The spec's range for a loading indicator's size, in px. */
+const MIN_SIZE = 24;
+const MAX_SIZE = 240;
 
 export interface LoadingIndicatorClassNames {
   root?: string;
@@ -44,6 +48,12 @@ interface LoadingIndicatorOwnProps {
    * determinate.
    */
   shapes?: readonly [MorphShape, MorphShape, ...MorphShape[]];
+  /**
+   * The box's size in px. The spec: "Loading indicators default to 48dp, but the size is
+   * flexible. It should be between 24dp to 240dp"; the shape keeps its ratio to the box.
+   * Values outside that range are clamped. @default 48
+   */
+  size?: number;
   classNames?: LoadingIndicatorClassNames;
 }
 
@@ -68,7 +78,8 @@ const shapeKey = (shape: MorphShape) => {
  * known). Rendered as `role="progressbar"`, so it needs a name. Under
  * `prefers-reduced-motion` the indeterminate indicator only rotates.
  *
- * The box is 48px; size it with `className` (e.g. `size-24`) and the shape scales with it.
+ * The box is 48px; set `size` (24–240px, the spec's range) or a `size-*` class, and the shape
+ * scales with it.
  *
  * @example
  * <LoadingIndicator aria-label="Loading messages" />
@@ -78,8 +89,10 @@ export function LoadingIndicator({
   value,
   variant,
   shapes,
+  size,
   classNames,
   className,
+  style,
   ref,
   ...rest
 }: LoadingIndicatorProps) {
@@ -124,6 +137,14 @@ export function LoadingIndicator({
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
       data-indeterminate={indeterminate || undefined}
+      style={
+        size === undefined
+          ? style
+          : ({
+              '--m3-loading-indicator-size': `${Math.min(Math.max(size, MIN_SIZE), MAX_SIZE)}px`,
+              ...style,
+            } as CSSProperties)
+      }
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <svg

@@ -554,6 +554,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Not in v1:** the icon swap happens on the state change rather than at 50% progress.
 
 ### Loading indicator (built, Tier 2)
+- **Size** (2026-10-13, the spec: "Loading indicators default to 48dp, but the size is flexible. It should be between 24dp to 240dp" and "The ratio between the container and the active indicator stays the same when resizing"): `size` (px, clamped to 24–240, default 48) sets `--m3-loading-indicator-size`; the SVG scales with the box, keeping the 38/48 ratio. A consumer `size-*` class still wins.
 - `LoadingIndicator`: indeterminate by default; `value` (0–1) makes it follow a gesture's progress (pull to refresh). The spec describes it for indeterminate waits and says not to turn one into a progress indicator, so the docs lead with indeterminate and warn against switching one instance between modes (2026-10-13). `variant` = `default | contained`, and `shapes` takes at least two `MaterialShapes` names or `RoundedPolygon`s. It's a React Aria `useProgressBar` (`role="progressbar"`, `aria-valuenow` / `aria-valuetext` when determinate), and the types require `aria-label` or `aria-labelledby`.
 - **Values** (Compose `LoadingIndicator.kt`, `LoadingIndicatorTokens`):
   - Box: 48px, full corners. The indicator is 38px (`ActiveIndicatorScale` 38/48) times Compose's `calculateScaleFactor`, so no shape clips as it rotates.

@@ -18,7 +18,7 @@ describe('LoadingIndicator', () => {
     const indicator = screen.getByRole('progressbar', { name: 'Loading messages' });
     expect(indicator).not.toHaveAttribute('aria-valuenow');
     expect(indicator).toHaveAttribute('data-indeterminate', 'true');
-    expect(indicator).toHaveClass('size-12', 'rounded-corner-full', 'text-primary');
+    expect(indicator).toHaveClass('size-(--m3-loading-indicator-size,48px)', 'rounded-corner-full', 'text-primary');
     expect(indicator.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(await axeViolations(container)).toEqual([]);
   });
@@ -87,7 +87,7 @@ describe('LoadingIndicator', () => {
     const root = screen.getByTestId('indicator');
     expect(root).toBe(node);
     expect(root).toHaveClass('fixed', 'size-24', 'opacity-80');
-    expect(root).not.toHaveClass('size-12');
+    expect(root).not.toHaveClass('size-(--m3-loading-indicator-size,48px)');
     expect(root).toHaveStyle({ top: '4px' });
     expect(root.querySelector('svg')).toHaveClass('size-full', 'fill-current', 'text-tertiary');
   });
@@ -100,5 +100,24 @@ describe('LoadingIndicator', () => {
       </>,
     );
     expect(screen.getByRole('progressbar', { name: 'Syncing' })).toBeInTheDocument();
+  });
+
+  it("takes a size within the spec's 24–240px range, keeping the shape's ratio", () => {
+    render(
+      <>
+        <LoadingIndicator aria-label="Big" size={96} />
+        <LoadingIndicator aria-label="Too big" size={400} />
+        <LoadingIndicator aria-label="Default" />
+      </>,
+    );
+    expect(screen.getByRole('progressbar', { name: 'Big' })).toHaveStyle({
+      '--m3-loading-indicator-size': '96px',
+    });
+    expect(screen.getByRole('progressbar', { name: 'Too big' })).toHaveStyle({
+      '--m3-loading-indicator-size': '240px',
+    });
+    const box = screen.getByRole('progressbar', { name: 'Default' });
+    expect(box).toHaveClass('size-(--m3-loading-indicator-size,48px)');
+    expect(box.style.getPropertyValue('--m3-loading-indicator-size')).toBe('');
   });
 });

@@ -10,7 +10,8 @@ import { tv, type VariantProps } from '../../utils/tv';
 /** Variant definitions for {@link LoadingIndicator}; extend them to add variants. */
 export const loadingIndicatorStyles = tv({
   slots: {
-    root: 'inline-flex size-12 shrink-0 items-center justify-center rounded-corner-full',
+    // 48px by default; `size` sets --m3-loading-indicator-size (24–240px, the spec's range).
+    root: 'inline-flex size-(--m3-loading-indicator-size,48px) shrink-0 items-center justify-center rounded-corner-full',
     indicator: 'size-full fill-current',
   },
   variants: {
