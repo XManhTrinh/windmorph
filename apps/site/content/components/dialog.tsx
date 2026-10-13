@@ -2,6 +2,9 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { DialogAlert } from '../../examples/dialog/dialog-alert';
 import { DialogBasic } from '../../examples/dialog/dialog-basic';
+import { DialogContainerTransform } from '../../examples/dialog/dialog-container-transform';
+import { DialogDiscard } from '../../examples/dialog/dialog-discard';
+import { DialogDividers } from '../../examples/dialog/dialog-dividers';
 import { DialogFullScreen } from '../../examples/dialog/dialog-full-screen';
 import { DialogScrollable } from '../../examples/dialog/dialog-scrollable';
 import { DialogIcon } from '../../examples/dialog/dialog-icon';
@@ -10,19 +13,36 @@ import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
-/** Dialog page body: the flat parts, basic, alert, scrollable and full-screen dialogs. */
+/**
+ * Dialog page body: the flat parts, basic, alert, scrollable, divided and full-screen
+ * dialogs, the container transform from a FAB, discard confirmation, and the spec's rules.
+ */
 export async function DialogBody(): Promise<ComponentDoc> {
-  const [basic, alert, scrollable, fullScreen] = await Promise.all([
+  const [basic, alert, scrollable, dividers, fullScreen, transform, discard] = await Promise.all([
     readExampleSource('dialog/dialog-basic.tsx'),
     readExampleSource('dialog/dialog-alert.tsx'),
     readExampleSource('dialog/dialog-scrollable.tsx'),
+    readExampleSource('dialog/dialog-dividers.tsx'),
     readExampleSource('dialog/dialog-full-screen.tsx'),
+    readExampleSource('dialog/dialog-container-transform.tsx'),
+    readExampleSource('dialog/dialog-discard.tsx'),
   ]);
-  const [basicHtml, alertHtml, scrollableHtml, fullScreenHtml] = await Promise.all([
+  const [
+    basicHtml,
+    alertHtml,
+    scrollableHtml,
+    dividersHtml,
+    fullScreenHtml,
+    transformHtml,
+    discardHtml,
+  ] = await Promise.all([
     highlightSource(basic),
     highlightSource(alert),
     highlightSource(scrollable),
+    highlightSource(dividers),
     highlightSource(fullScreen),
+    highlightSource(transform),
+    highlightSource(discard),
   ]);
 
   const iconDialog = await readExampleSource('dialog/dialog-icon.tsx');
@@ -79,12 +99,36 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <DialogPlacement />
           </ExampleViewer>
           <ExampleViewer
+            title="Dividers and a choice"
+            code={dividers}
+            html={dividersHtml}
+            fileName="dialog-dividers.tsx"
+          >
+            <DialogDividers />
+          </ExampleViewer>
+          <ExampleViewer
             title="Full screen on compact windows"
             code={fullScreen}
             html={fullScreenHtml}
             fileName="dialog-full-screen.tsx"
           >
             <DialogFullScreen />
+          </ExampleViewer>
+          <ExampleViewer
+            title="From a FAB (container transform)"
+            code={transform}
+            html={transformHtml}
+            fileName="dialog-container-transform.tsx"
+          >
+            <DialogContainerTransform />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Discarding unsaved changes"
+            code={discard}
+            html={discardHtml}
+            fileName="dialog-discard.tsx"
+          >
+            <DialogDiscard />
           </ExampleViewer>
         </section>
       </>
@@ -126,8 +170,57 @@ export async function DialogBody(): Promise<ComponentDoc> {
             A basic dialog is centred; <InlineCode>placement</InlineCode> (
             <InlineCode>top</InlineCode>, <InlineCode>bottom</InlineCode>,{' '}
             <InlineCode>start</InlineCode>, <InlineCode>end</InlineCode>) moves it, keeping 56px
-            from the edges of wider windows (24px on compact ones).
+            from the edges of wider windows (24px on compact ones). It expands away from the edge it
+            sits against as it opens.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>dividers</InlineCode> on <InlineCode>DialogContent</InlineCode> draws the
+            spec&apos;s optional dividers above and below the content, for example around a list. A
+            full-screen dialog opened from a FAB can grow out of it:{' '}
+            <InlineCode>origin=&quot;trigger&quot;</InlineCode> (or an element, or a box) gives the
+            container transform the spec asks for.
+          </p>
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="actions-and-writing" className="text-headline-small text-on-surface">
+            Actions and writing
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              Use at most two actions. A single action must be an acknowledgement (&quot;OK&quot;,
+              &quot;Got it&quot;); with two, one confirms and the other dismisses. Don&apos;t add a
+              third such as &quot;Learn more&quot;: it leaves the task unfinished. Show more inline,
+              or before the dialog opens.
+            </li>
+            <li>
+              Put the dismissive action first and the confirming action last, so it sits closest to
+              the trailing edge (and on top when they stack). Both are text buttons.
+            </li>
+            <li>
+              Write the headline as a brief, clear statement or question (&quot;Discard
+              draft?&quot;). Avoid apologies (&quot;Sorry for the interruption&quot;), alarm
+              (&quot;Warning!&quot;) and ambiguity (&quot;Are you sure?&quot;). In a full-screen
+              dialog, put a long headline in the content rather than the header.
+            </li>
+            <li>
+              When the dialog asks for a choice, disable the confirming action until one is made;
+              never disable the dismissive action. A full-screen dialog&apos;s confirming action
+              (&quot;Save&quot;, &quot;Create&quot;, &quot;Send&quot;) says what happens and is
+              never disabled.
+            </li>
+            <li>
+              When a full-screen dialog with unsaved changes is closed, confirm in a basic dialog
+              that the changes should be discarded. Don&apos;t use the confirming action to dismiss.
+            </li>
+            <li>
+              Show errors about fields inline, where they occur, all at once. Show a general error
+              (a failed save) in a basic dialog when the confirming action fails.
+            </li>
+            <li>
+              Use dialogs sparingly, for high-priority information or decisions. A snackbar suits
+              low or medium priority; only a full-screen dialog may have another dialog over it.
+            </li>
+          </ul>
         </section>
       </>
     ),
@@ -156,8 +249,11 @@ export async function DialogBody(): Promise<ComponentDoc> {
               full-screen dialogs), but not the default alert dialog.
             </li>
             <li>
-              Long content scrolls inside the panel; when the actions don&apos;t fit on one line
-              they stack with the confirming action (last) on top.
+              Long content scrolls inside the panel, with the title and actions pinned. While it
+              scrolls, <InlineCode>DialogContent</InlineCode> is focusable (Tab and Shift+Tab reach
+              it, with a focus ring) so the keyboard can scroll it; initial focus still goes to the
+              first control. When the actions don&apos;t fit on one line they stack with the
+              confirming action (last) on top.
             </li>
             <li>
               In full screen, the header&apos;s close button (named by{' '}
@@ -178,7 +274,8 @@ export async function DialogBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               Values follow Compose&apos;s <InlineCode>AlertDialog.kt</InlineCode> and the dialog
-              tokens: 280–560px wide, 24px padding, 28px corners,{' '}
+              tokens: 280–560px wide (the minimum narrows only to keep 24px from a very narrow
+              window&apos;s edges), 24px padding, 28px corners,{' '}
               <InlineCode>surface-container-high</InlineCode> at level 3, a 32% scrim.
             </li>
             <li>
@@ -187,9 +284,10 @@ export async function DialogBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Motion is not from Compose (which uses platform window animations). The spec avoids
-              scale motion, so the panel fades while it expands downward from its top edge (a
-              clip-path reveal) on a library-owned wrapper with no transform. Reduced motion keeps
-              only the fade.
+              scale motion, so the panel fades while it expands away from the window edge it sits
+              against (downward when centred or at the top, upward at the bottom, along the x axis
+              at the start or end; a clip-path reveal) on a library-owned wrapper with no transform.
+              Reduced motion keeps only the fade, entering and leaving.
             </li>
             <li>
               Moved to the components layer because its core is the <InlineCode>Overlay</InlineCode>{' '}
@@ -198,8 +296,12 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <li>
               Compose has no full-screen dialog component; the full-screen type follows the M3
               dialog spec: <InlineCode>surface-container-high</InlineCode> with no corners or
-              elevation, a 56px header with a <InlineCode>title-large</InlineCode> headline, and the
-              panel sliding up 48px as it fades in on the slow springs.
+              elevation, a 56px header with an <InlineCode>on-surface</InlineCode> close icon and a{' '}
+              <InlineCode>title-large</InlineCode> headline, content padded 24px at the top and
+              sides, and the panel sliding up 48px as it fades in on the slow springs. With{' '}
+              <InlineCode>origin</InlineCode> it is a container transform instead: the clip, corners
+              and container colour move from the origin to the window on the slow spatial spring,
+              and back on the fast springs.
             </li>
           </ul>
         </section>
