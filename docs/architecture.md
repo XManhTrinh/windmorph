@@ -408,6 +408,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Shared: `primary` active indicator and stop dot on a `secondary-container` track, with 4px round strokes and a 4px gap.
   - Linear: 240px wide (resize with `className`, e.g. `w-full`), 4px tall, 10px when wavy.
   - Circular: 40px flat, 48px wavy.
+- **Circular `size`** (2026-10-13, the spec: circular indicators "can range from 24dp to 240dp … Avoid exceeding"): the diameter in px, clamped to 24–240 like `LoadingIndicator`'s (no warning, as there). Without it the defaults above apply (40 / 48, plus extra thickness). The strokes keep their `thickness` in px rather than scaling (they used to scale with a `size-*` class, 2.4px at 24px): the SVG's viewBox is the box, so only the ring and its wave grow. The wave follows Compose at every size: the star's inner radius stays 0.75 of the ring and the vertex count is the circumference over the 15px wavelength (at least 5), so a bigger ring gets more waves of the same length.
 - **Linear drawing** ports `LinearProgressDrawingCache.updateDrawPaths`:
   - Segments are inset for the round caps. The track fills the gaps between active segments, after a gap that shrinks while progress enters. The stop dot shrinks once progress reaches it.
   - The wave is Compose's run of quadratic half-waves, each control point halfway along. It peaks at (height − stroke) / 2 = 3px, is scaled by amplitude about the centre line, and is drawn as exact SVG quadratics.

@@ -47,10 +47,20 @@ const MIN_CIRCULAR_VERTICES = 5;
 export const linearHeight = (wavy: boolean, strokes: Strokes = DEFAULT_STROKES) =>
   Math.max(strokes.active, strokes.track) + (wavy ? LINEAR_AMPLITUDE * 2 : 0);
 
-export const circularSize = (wavy: boolean, strokes: Strokes = DEFAULT_STROKES) =>
-  (wavy ? CIRCULAR_WAVE_SIZE : CIRCULAR_FLAT_SIZE) +
-  Math.max(strokes.active, strokes.track) -
-  STROKE;
+/** The spec's range for a circular indicator: "can range from 24dp to 240dp". */
+export const CIRCULAR_MIN_SIZE = 24;
+export const CIRCULAR_MAX_SIZE = 240;
+
+/**
+ * The circular box. An explicit `size` (clamped to the spec's range) is the diameter, whatever
+ * the strokes; as in Compose, only the ring and its wave grow, the strokes keep their width.
+ */
+export const circularSize = (wavy: boolean, strokes: Strokes = DEFAULT_STROKES, size?: number) =>
+  size === undefined
+    ? (wavy ? CIRCULAR_WAVE_SIZE : CIRCULAR_FLAT_SIZE) +
+      Math.max(strokes.active, strokes.track) -
+      STROKE
+    : Math.min(Math.max(size, CIRCULAR_MIN_SIZE), CIRCULAR_MAX_SIZE);
 
 /** The wave travels one wavelength per second (`waveSpeed = wavelength`). */
 export const WAVE_PERIOD_MS = 1000;

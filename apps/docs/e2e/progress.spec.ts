@@ -59,6 +59,34 @@ test.describe('Progress visual regression', () => {
 });
 
 test.describe('Progress behaviour', () => {
+  test('circular size: 24 to 240px, clamped, with 4px strokes at every size', async ({ page }) => {
+    await openStory(page, 'components-progress--sizes');
+    const cases: [string, number][] = [
+      ['Size 24', 24],
+      ['Size 40', 40],
+      ['Size 96', 96],
+      ['Size 240', 240],
+      ['Size 400', 240],
+      ['Size 12', 24],
+    ];
+    for (const [name, expected] of cases) {
+      const ring = page.getByRole('progressbar', { name, exact: true });
+      const box = (await ring.boundingBox())!;
+      expect([Math.round(box.width), Math.round(box.height)]).toEqual([expected, expected]);
+      // The rendered stroke: its width in the SVG's units times the SVG's scale.
+      const strokes = await ring.locator('path').evaluateAll((paths) =>
+        paths.map((path) => {
+          const element = path as SVGPathElement;
+          return (
+            Number(getComputedStyle(element).strokeWidth.replace('px', '')) *
+            element.getScreenCTM()!.a
+          );
+        }),
+      );
+      for (const stroke of strokes) expect(stroke).toBeCloseTo(4, 1);
+    }
+  });
+
   test('the wave travels while the arc stays', async ({ page }) => {
     await openStory(page, 'components-progress--playground', {}, { wavy: true, value: '0.5' });
     const active = page.getByRole('progressbar', { name: 'Linear' }).locator('path').nth(1);

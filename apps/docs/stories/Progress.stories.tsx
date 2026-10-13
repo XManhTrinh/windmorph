@@ -112,6 +112,27 @@ export const Thickness: Story = {
   ),
 };
 
+/**
+ * `size` sets the diameter, from 24 to 240px (the spec's range; other values are clamped).
+ * The strokes keep their thickness; a wavy ring gets more waves of the same length.
+ */
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-6" data-testid="sizes">
+      {[24, 40, 96, 240, 400].map((size) => (
+        <CircularProgressIndicator
+          key={size}
+          value={0.6}
+          wavy={size >= 96}
+          size={size}
+          aria-label={`Size ${size}`}
+        />
+      ))}
+      <CircularProgressIndicator value={0.6} size={12} aria-label="Size 12" />
+    </div>
+  ),
+};
+
 /** Turning determinate: a button switches the indicators from indeterminate to 70%. */
 export const Handoff: Story = {
   render: function Render() {

@@ -172,4 +172,27 @@ describe('CircularProgressIndicator', () => {
     expect(active).toHaveAttribute('pathLength', '2');
     expect(active).toHaveAttribute('stroke-dasharray', '0.4 2');
   });
+
+  it('takes a size from 24 to 240px, keeping the strokes’ thickness', () => {
+    const { rerender } = render(
+      <CircularProgressIndicator value={0.5} size={120} aria-label="x" />,
+    );
+    const ring = screen.getByRole('progressbar');
+    expect(ring).toHaveStyle({ '--m3-progress-size': '120px' });
+    expect(ring.querySelector('svg')).toHaveAttribute('viewBox', '0 0 120 120');
+    for (const path of ring.querySelectorAll('path')) {
+      expect(path).toHaveAttribute('stroke-width', '4');
+    }
+    // Clamped to the spec's range.
+    rerender(<CircularProgressIndicator value={0.5} size={8} aria-label="x" />);
+    expect(ring).toHaveStyle({ '--m3-progress-size': '24px' });
+    rerender(
+      <CircularProgressIndicator value={0.5} size={400} wavy thickness={8} aria-label="x" />,
+    );
+    expect(ring).toHaveStyle({ '--m3-progress-size': '240px' });
+    expect(ring.querySelector('path')).toHaveAttribute('stroke-width', '8');
+    // Without it, the defaults.
+    rerender(<CircularProgressIndicator value={0.5} aria-label="x" />);
+    expect(ring).toHaveStyle({ '--m3-progress-size': '40px' });
+  });
 });
