@@ -1,9 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
-import { elementType } from '../../utils/element-type';
 import { List, ListItem, ListSection, type ListProps } from './List';
 
 type Interaction = Pick<ListProps, 'onAction' | 'selectionMode' | 'variant'>;
@@ -74,25 +73,58 @@ describe('ListSection (static list)', () => {
 });
 
 describe('ListSection (from a server component)', () => {
-  it('renders a section whose type arrives as a loaded lazy client reference', async () => {
-    // A Server Component's client elements reach the client with a lazy type.
-    const ServerSection = lazy(() =>
-      Promise.resolve({ default: ListSection }),
-    ) as unknown as typeof ListSection;
-    try {
-      elementType(<ServerSection aria-label="Loading">{[]}</ServerSection>);
-    } catch (loading) {
-      await loading;
-    }
-    render(
-      <List aria-label="Settings">
-        <ServerSection key="network" title="Network">
-          <ListItem key="wifi">Wi‑Fi</ListItem>
-        </ServerSection>
-      </List>,
+  // A Server Component's client elements reach the client with a lazy type wrapping the
+  // client reference; React resolves it when it renders the element.
+  const lazySection = () =>
+    lazy(() => Promise.resolve({ default: ListSection })) as unknown as typeof ListSection;
+  const lazyItem = () =>
+    lazy(() => Promise.resolve({ default: ListItem })) as unknown as typeof ListItem;
+
+  it('renders a section and items whose types arrive as lazy client references', async () => {
+    const ServerSection = lazySection();
+    const ServerItem = lazyItem();
+    const { container } = render(
+      <Suspense>
+        <List aria-label="Settings" variant="segmented">
+          <ServerSection key="network" title="Network">
+            <ServerItem key="wifi">Wi‑Fi</ServerItem>
+            <ServerItem key="bluetooth">Bluetooth</ServerItem>
+          </ServerSection>
+        </List>
+      </Suspense>,
     );
-    const network = screen.getByRole('list', { name: 'Network' });
-    expect(within(network).getByRole('listitem')).toHaveTextContent('Wi‑Fi');
+    const network = await screen.findByRole('list', { name: 'Network' });
+    expect(
+      within(network)
+        .getAllByRole('listitem')
+        .map((item) => [item.textContent, item.getAttribute('data-position')]),
+    ).toEqual([
+      ['Wi‑Fi', 'first'],
+      ['Bluetooth', 'last'],
+    ]);
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('groups the loose items around a lazy section as a section made in the browser', async () => {
+    const ServerSection = lazySection();
+    render(
+      <Suspense>
+        <List aria-label="Mixed" variant="segmented">
+          <ListItem key="a">Alpha</ListItem>
+          <ListItem key="b">Beta</ListItem>
+          <ServerSection key="s" title="Section">
+            <ListItem key="c">Gamma</ListItem>
+          </ServerSection>
+          <ListItem key="d">Delta</ListItem>
+        </List>
+      </Suspense>,
+    );
+    await screen.findByRole('list', { name: 'Section' });
+    const at = (text: string) => screen.getByText(text).closest('li');
+    expect(at('Alpha')).toHaveAttribute('data-position', 'first');
+    expect(at('Beta')).toHaveAttribute('data-position', 'last');
+    expect(at('Gamma')).toHaveAttribute('data-position', 'only');
+    expect(at('Delta')).toHaveAttribute('data-position', 'only');
   });
 });
 

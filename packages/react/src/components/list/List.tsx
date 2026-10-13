@@ -8,6 +8,8 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -65,7 +67,6 @@ import { RadioRing } from '../radio/RadioGroup';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/Switch';
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
-import { elementType } from '../../utils/element-type';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
@@ -152,7 +153,17 @@ interface ListItemNode {
   childNodes?: () => Iterable<ListItemNode>;
 }
 
-function ListItemElement(_props: ListItemProps): null {
+/**
+ * A `ListItem` renders itself only in a plain or radio list, which hand it its place through
+ * context. Interactive lists read its props through `getCollectionNode` and never render it.
+ */
+function ListItemElement(props: ListItemProps): ReactNode {
+  const entry = useContext(ListEntryContext);
+  const radio = useContext(RadioListContext);
+  const plain = useContext(StaticListContext);
+  if (!entry) return null;
+  if (radio) return <RadioListItem item={props} radio={radio} position={entry.position} />;
+  if (plain) return <StaticListItem item={props} list={plain} entry={entry} />;
   return null;
 }
 
@@ -215,8 +226,49 @@ interface ListSectionNode {
   childNodes: () => Iterable<ListItemNode>;
 }
 
-function ListSectionElement(_props: ListSectionProps): null {
-  return null;
+/**
+ * A `ListSection` renders itself only in a plain list: its subheader, and its items, each
+ * told through context that it sits in this section and where. Interactive lists read it
+ * through `getCollectionNode`. It never needs its type compared, so a section created in a
+ * Server Component (whose type reaches the client as a lazy client reference) renders the
+ * same as one created in the browser.
+ */
+function ListSectionElement(props: ListSectionProps): ReactNode {
+  const entry = useContext(ListEntryContext);
+  const plain = useContext(StaticListContext);
+  if (useContext(RadioListContext)) {
+    throw new Error(
+      "[@windmorph/react] List: a radio list can't hold ListSections. Use one radio list " +
+        'per group, or a list with selectionMode="single".',
+    );
+  }
+  const register = plain?.registerSection;
+  const index = entry?.index;
+  // Tells the list this entry is a section, so the loose items around it form their own
+  // groups. A layout effect, so the corrected corners are drawn before the first paint.
+  useLayoutEffect(() => {
+    if (register == null || index == null || entry?.inSection) return undefined;
+    return register(index);
+  }, [register, index, entry?.inSection]);
+  if (!plain || !entry) return null;
+  const items = listItems(props.children);
+  return (
+    <StaticSection section={props} variant={plain.variant} classNames={plain.classNames}>
+      {items.map((item, itemIndex) => (
+        <ListEntryContext
+          key={item.key ?? itemIndex}
+          value={{
+            index: itemIndex,
+            position: position(itemIndex, items.length),
+            inSection: true,
+            disabled: plain.isKeyDisabled(item.key),
+          }}
+        >
+          {item}
+        </ListEntryContext>
+      ))}
+    </StaticSection>
+  );
 }
 
 /** Describes the section to React Stately's collection builder, as its `Section` does. */
@@ -386,61 +438,42 @@ export function List(props: ListProps) {
   );
 }
 
+const RADIO_ITEM_ERROR =
+  '[@windmorph/react] List: every item of a radio list (one with value, defaultValue or ' +
+  'onValueChange) needs a value, and none can have a control or an href.';
+
+const CONTROL_ERROR =
+  "[@windmorph/react] List: switch and checkbox items (control) can't be in a list with " +
+  'onAction, links, selectionMode or childItems. Put them in their own list, or put a ' +
+  "Switch in an item's trailing content.";
+
+const EXPANDABLE_SECTIONS_ERROR =
+  "[@windmorph/react] List: a list with childItems can't hold ListSections; nest the " +
+  'groups as expandable items instead.';
+
+/**
+ * Picks the list's kind from its own props and its top-level entries' props; it never looks
+ * at an entry's element type. A plain or radio list renders its entries, which place
+ * themselves through context (`ListEntryContext`); an interactive list hands them to React
+ * Stately's collection builder, which reads each through its `getCollectionNode`.
+ */
 function ListBody(props: ListProps) {
   const entries = listItems(props.children);
-  const items = entries.flatMap((entry) =>
-    isSection(entry) ? listItems(entry.props.children) : [entry as ReactElement<ListItemProps>],
-  );
-  const sectioned = entries.some(isSection);
   if (
     props.value !== undefined ||
     props.defaultValue !== undefined ||
     props.onValueChange !== undefined
   ) {
-    const invalid = items.find(
-      (item) => item.props.value == null || item.props.control != null || item.props.href != null,
-    );
-    if (invalid) {
-      throw new Error(
-        '[@windmorph/react] List: every item of a radio list (one with value, defaultValue or ' +
-          'onValueChange) needs a value, and none can have a control or an href.',
-      );
-    }
-    if (sectioned) {
-      throw new Error(
-        "[@windmorph/react] List: a radio list can't hold ListSections. Use one radio list " +
-          'per group, or a list with selectionMode="single".',
-      );
-    }
-    return <RadioList {...props} items={items} />;
+    return <RadioList {...props} entries={entries} />;
   }
   const selectable = props.selectionMode != null && props.selectionMode !== 'none';
-  const expandable = items.some((item) => listItems(item.props.childItems).length > 0);
+  // A section has no `childItems`, so only a top-level item can make the list expandable;
+  // an item inside a section that has them refuses to render (EXPANDABLE_SECTIONS_ERROR).
+  const expandable = entries.some((entry) => listItems(entry.props.childItems).length > 0);
   // Links alone don't make a grid list: they render as real anchors in a plain list.
   const interactive = props.onAction != null || selectable || expandable;
   if (!interactive) return <StaticList {...props} entries={entries} />;
-  if (items.some((item) => item.props.control != null)) {
-    throw new Error(
-      "[@windmorph/react] List: switch and checkbox items (control) can't be in a list with " +
-        'onAction, links, selectionMode or childItems. Put them in their own list, or put a ' +
-        "Switch in an item's trailing content.",
-    );
-  }
-  if (expandable) {
-    if (sectioned) {
-      throw new Error(
-        "[@windmorph/react] List: a list with childItems can't hold ListSections; nest the " +
-          'groups as expandable items instead.',
-      );
-    }
-    return <InteractiveList {...props} kind="tree" />;
-  }
-  // A selection list is a list box (M3: "Container: List box · List item: Option"); a list
-  // whose items also act or link keeps the grid list's separate actions.
-  if (selectable && props.onAction == null && !items.some((item) => item.props.href != null)) {
-    return <InteractiveList {...props} kind="listbox" />;
-  }
-  return <InteractiveList {...props} kind="grid" />;
+  return <InteractiveList {...props} expandable={expandable} />;
 }
 
 function itemLines(item: ListItemProps): 1 | 2 | 3 {
@@ -550,6 +583,50 @@ function ItemContent({
   );
 }
 
+/** What a plain list hands its items and sections. */
+interface StaticListValue {
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  /** Whether the item with this key is disabled by the list (`disabled`, `disabledKeys`). */
+  isKeyDisabled: (key: Key | null) => boolean;
+  /** Marks the top-level entry at `index` as a section; returns its cleanup. */
+  registerSection: (index: number) => () => void;
+}
+
+const StaticListContext = createContext<StaticListValue | null>(null);
+
+/** Where an entry of a plain or radio list sits, from the list or section that renders it. */
+interface ListEntry {
+  index: number;
+  /** Its position in its group (segmented corners, dividers). */
+  position: string;
+  /** Whether a `ListSection` holds it. */
+  inSection: boolean;
+  /** Whether the list disables it by its key. */
+  disabled: boolean;
+}
+
+const ListEntryContext = createContext<ListEntry | null>(null);
+
+/**
+ * The positions of a plain list's top-level entries: each run of items between sections is
+ * its own group. Sections are known once they've told the list (`registerSection`); before
+ * that (the server render and the first client render) every entry counts as an item.
+ */
+function entryPositions(count: number, sections: ReadonlySet<number>): string[] {
+  const positions: string[] = [];
+  let start = 0;
+  for (let index = 0; index <= count; index += 1) {
+    if (index < count && !sections.has(index)) continue;
+    for (let item = start; item < index; item += 1) {
+      positions[item] = position(item - start, index - start);
+    }
+    if (index < count) positions[index] = 'only';
+    start = index + 1;
+  }
+  return positions;
+}
+
 function StaticList({
   variant,
   disabled,
@@ -566,53 +643,27 @@ function StaticList({
     'aria-labelledby'?: string;
   };
   const root = listStyles({ variant }).root({ class: cn(classNames?.root, className) });
-  const options = useContext(ListOptionsContext);
-  const disabledKeySet = new Set<Key>(rest.disabledKeys ?? []);
-  const renderItems = (items: ReactElement<ListItemProps>[]) =>
-    items.map((item, index) => {
-      const isDisabled = Boolean(
-        disabled || item.props.disabled || (item.key != null && disabledKeySet.has(item.key)),
-      );
-      if (item.props.href != null) {
-        return (
-          <LinkItem
-            key={item.key ?? index}
-            item={item.props}
-            variant={variant}
-            classNames={classNames}
-            position={position(index, items.length)}
-            isDisabled={isDisabled}
-          />
-        );
-      }
-      if (item.props.control != null) {
-        return (
-          <li key={item.key ?? index}>
-            <ToggleItem
-              item={item.props}
-              control={item.props.control}
-              variant={variant}
-              classNames={classNames}
-              position={position(index, items.length)}
-              listDisabled={isDisabled}
-            />
-          </li>
-        );
-      }
-      const styles = itemStyles(item.props, variant, false, options);
-      return (
-        <li
-          key={item.key ?? index}
-          data-shape="rest"
-          data-position={position(index, items.length)}
-          className={styles.item({ class: cn(classNames?.item, item.props.className) })}
-        >
-          <span className={styles.cell()}>
-            <ItemContent item={item.props} styles={styles} classNames={classNames} />
-          </span>
-        </li>
-      );
-    });
+  const [sections, setSections] = useState<ReadonlySet<number>>(() => new Set());
+  const registerSection = useCallback((index: number) => {
+    setSections((current) => (current.has(index) ? current : new Set(current).add(index)));
+    return () =>
+      setSections((current) => {
+        const next = new Set(current);
+        next.delete(index);
+        return next;
+      });
+  }, []);
+  const disabledKeys = rest.disabledKeys;
+  const list = useMemo<StaticListValue>(() => {
+    const keys = new Set<Key>(disabledKeys ?? []);
+    return {
+      variant,
+      classNames,
+      isKeyDisabled: (key) => Boolean(disabled) || (key != null && keys.has(key)),
+      registerSection,
+    };
+  }, [variant, classNames, disabled, disabledKeys, registerSection]);
+  const positions = entryPositions(entries.length, sections);
   return (
     <ul
       {...data}
@@ -623,21 +674,77 @@ function StaticList({
       onKeyDown={onLinkArrowKeys}
       className={root}
     >
-      {groupEntries(entries).map((group, index) =>
-        group.section ? (
-          <StaticSection
-            key={group.section.key ?? `section-${index}`}
-            section={group.section.props}
-            variant={variant}
-            classNames={classNames}
+      <StaticListContext value={list}>
+        {entries.map((entry, index) => (
+          <ListEntryContext
+            key={entry.key ?? index}
+            value={{
+              index,
+              position: positions[index]!,
+              inSection: false,
+              disabled: list.isKeyDisabled(entry.key),
+            }}
           >
-            {renderItems(group.items)}
-          </StaticSection>
-        ) : (
-          renderItems(group.items)
-        ),
-      )}
+            {entry}
+          </ListEntryContext>
+        ))}
+      </StaticListContext>
     </ul>
+  );
+}
+
+/** An item of a plain list: a link, a switch or checkbox, or a plain row. */
+function StaticListItem({
+  item,
+  list,
+  entry,
+}: {
+  item: ListItemProps;
+  list: StaticListValue;
+  entry: ListEntry;
+}) {
+  const options = useContext(ListOptionsContext);
+  if (entry.inSection && listItems(item.childItems).length > 0) {
+    throw new Error(EXPANDABLE_SECTIONS_ERROR);
+  }
+  const { variant, classNames } = list;
+  const isDisabled = Boolean(entry.disabled || item.disabled);
+  if (item.href != null) {
+    return (
+      <LinkItem
+        item={item}
+        variant={variant}
+        classNames={classNames}
+        position={entry.position}
+        isDisabled={isDisabled}
+      />
+    );
+  }
+  if (item.control != null) {
+    return (
+      <li>
+        <ToggleItem
+          item={item}
+          control={item.control}
+          variant={variant}
+          classNames={classNames}
+          position={entry.position}
+          listDisabled={isDisabled}
+        />
+      </li>
+    );
+  }
+  const styles = itemStyles(item, variant, false, options);
+  return (
+    <li
+      data-shape="rest"
+      data-position={entry.position}
+      className={styles.item({ class: cn(classNames?.item, item.className) })}
+    >
+      <span className={styles.cell()}>
+        <ItemContent item={item} styles={styles} classNames={classNames} />
+      </span>
+    </li>
   );
 }
 
@@ -670,36 +777,6 @@ function onLinkArrowKeys(event: KeyboardEvent<HTMLUListElement>) {
             : index - 1;
   event.preventDefault();
   links[target]!.focus();
-}
-
-/**
- * Whether a `List` child is a `ListSection`, also when a Server Component created it (its
- * type then arrives as a lazy client reference).
- */
-function isSection(element: ReactElement): element is ReactElement<ListSectionProps> {
-  return elementType(element) === ListSectionElement;
-}
-
-/**
- * The list's children as groups: each `ListSection`, and each run of items outside one, so
- * that items take their position (for segmented corners and dividers) within their group.
- */
-function groupEntries(entries: ReactElement[]) {
-  const groups: {
-    section: ReactElement<ListSectionProps> | null;
-    items: ReactElement<ListItemProps>[];
-  }[] = [];
-  for (const entry of entries) {
-    if (isSection(entry)) {
-      groups.push({ section: entry, items: listItems(entry.props.children) });
-      continue;
-    }
-    const item = entry as ReactElement<ListItemProps>;
-    const last = groups.at(-1);
-    if (last?.section === null) last.items.push(item);
-    else groups.push({ section: null, items: [item] });
-  }
-  return groups;
 }
 
 /** The collection's top-level nodes as groups: each section, and each run of items. */
@@ -755,7 +832,7 @@ function StaticSection({
 
 type InteractiveKind = 'grid' | 'listbox' | 'tree';
 
-function InteractiveList(props: ListProps & { kind: InteractiveKind }) {
+function InteractiveList(props: ListProps & { expandable: boolean }) {
   return (
     <DomDirectionLocale>
       {(directionRef) => <CollectionList {...props} directionRef={directionRef} />}
@@ -785,7 +862,7 @@ function ExpandMoreIcon() {
  * from React Aria's collection hooks. Arrow keys wrap at the ends, as M3 asks.
  */
 function CollectionList({
-  kind,
+  expandable,
   variant,
   disabled,
   classNames,
@@ -794,12 +871,27 @@ function CollectionList({
   ref,
   directionRef,
   ...rest
-}: ListProps & { kind: InteractiveKind; directionRef: (element: HTMLElement | null) => void }) {
+}: ListProps & { expandable: boolean; directionRef: (element: HTMLElement | null) => void }) {
   const { data, rest: ariaProps } = splitDataAttributes(rest);
   assertCollectionChildren(rest.children, 'List', 'ListItem elements');
+  const scan = useCollectionScan(rest.children);
+  if (scan.items.some((item) => item.control != null)) throw new Error(CONTROL_ERROR);
+  if (expandable && scan.sectioned) throw new Error(EXPANDABLE_SECTIONS_ERROR);
+  const selectable = rest.selectionMode != null && rest.selectionMode !== 'none';
+  // A selection list is a list box (M3: "Container: List box · List item: Option"); a list
+  // whose items also act or link keeps the grid list's separate actions.
+  const kind: InteractiveKind = expandable
+    ? 'tree'
+    : selectable && rest.onAction == null && !scan.items.some((item) => item.href != null)
+      ? 'listbox'
+      : 'grid';
+  const disabledKeys = new Set<Key>(rest.disabledKeys ?? []);
+  for (const [key, item] of scan.entries) {
+    if (disabled || item.disabled) disabledKeys.add(key);
+  }
   const options = {
     ...(ariaProps as unknown as AriaGridListProps<object>),
-    disabledKeys: disabledItemKeys(rest.children, rest.disabledKeys, disabled),
+    disabledKeys: disabledKeys.size > 0 ? disabledKeys : rest.disabledKeys,
     shouldFocusWrap: true,
   };
   const root: CollectionRootProps = {
@@ -1510,22 +1602,30 @@ function TreeRow({
   );
 }
 
-/** The keys of disabled items: `disabledKeys`, items with `disabled`, or every item. */
-function disabledItemKeys(
-  children: ReactNode,
-  disabledKeys: Iterable<Key> | undefined,
-  all: boolean | undefined,
-): Iterable<Key> | undefined {
-  const keys = new Set<Key>(disabledKeys ?? []);
-  const visit = (node: ReactNode) => {
-    if (Array.isArray(node)) node.forEach(visit);
-    else if (isValidElement(node) && isSection(node)) visit(node.props.children);
-    else if (isValidElement<ListItemProps>(node) && node.key != null) {
-      if (all || node.props.disabled) keys.add(node.key);
+/**
+ * The items of an interactive list's collection, as React Stately's collection builder reads
+ * them (each entry describes itself through `getCollectionNode`), top-level and in sections,
+ * and whether it has sections. The list picks its kind and its disabled keys from these.
+ */
+function useCollectionScan(children: ReactNode) {
+  const { collection } = useListState<object>({
+    children: children as AriaGridListProps<object>['children'],
+  });
+  return useMemo(() => {
+    const entries: [Key, ListItemProps][] = [];
+    let sectioned = false;
+    for (const node of collection) {
+      if (node.type === 'section') {
+        sectioned = true;
+        for (const child of collection.getChildren!(node.key)) {
+          if (child.type === 'item') entries.push([child.key, child.props as ListItemProps]);
+        }
+      } else if (node.type === 'item') {
+        entries.push([node.key, node.props as ListItemProps]);
+      }
     }
-  };
-  visit(children);
-  return keys.size > 0 ? keys : disabledKeys;
+    return { entries, items: entries.map(([, item]) => item), sectioned };
+  }, [collection]);
 }
 
 /** Ids that name an item that is a control (its headline) and describe it (the rest). */
@@ -1594,7 +1694,6 @@ function RadioList({
   className,
   style,
   ref,
-  items,
   value,
   defaultValue,
   onValueChange,
@@ -1602,8 +1701,9 @@ function RadioList({
   required,
   disabled,
   controlPlacement = 'leading',
+  entries,
   ...rest
-}: ListProps & { items: ReactElement<ListItemProps>[] }) {
+}: ListProps & { entries: ReactElement[] }) {
   const { data } = splitDataAttributes(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
@@ -1628,18 +1728,57 @@ function RadioList({
       style={style}
       className={listStyles({ variant }).root({ class: cn(classNames?.root, className) })}
     >
-      {items.map((item, index) => (
-        <RadioItem
-          key={item.key ?? index}
-          item={item.props}
-          state={state}
-          variant={variant}
-          classNames={classNames}
-          position={position(index, items.length)}
-          placement={item.props.controlPlacement ?? controlPlacement}
-        />
-      ))}
+      <RadioListContext value={{ state, variant, classNames, controlPlacement }}>
+        {entries.map((entry, index) => (
+          <ListEntryContext
+            key={entry.key ?? index}
+            value={{
+              index,
+              position: position(index, entries.length),
+              inSection: false,
+              disabled: false,
+            }}
+          >
+            {entry}
+          </ListEntryContext>
+        ))}
+      </RadioListContext>
     </div>
+  );
+}
+
+/** What a radio list hands its items. */
+interface RadioListValue {
+  state: RadioGroupState;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  controlPlacement: ControlPlacement;
+}
+
+const RadioListContext = createContext<RadioListValue | null>(null);
+
+/** An item of a radio list: a radio button with the item's `value`. */
+function RadioListItem({
+  item,
+  radio,
+  position: itemPosition,
+}: {
+  item: ListItemProps;
+  radio: RadioListValue;
+  position: string;
+}) {
+  if (item.value == null || item.control != null || item.href != null) {
+    throw new Error(RADIO_ITEM_ERROR);
+  }
+  return (
+    <RadioItem
+      item={item}
+      state={radio.state}
+      variant={radio.variant}
+      classNames={radio.classNames}
+      position={itemPosition}
+      placement={item.controlPlacement ?? radio.controlPlacement}
+    />
   );
 }
 
