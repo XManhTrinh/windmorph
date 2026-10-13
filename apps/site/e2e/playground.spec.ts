@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 /**
  * The component Playground island: changing a control updates both the live preview's code
  * snippet and the shareable URL state, and the site-owned copy button writes the snippet to
- * the clipboard and raises an in-island "Copied to clipboard" toast.
+ * the clipboard and raises a "Copied" snackbar.
  *
  * The copy path uses `navigator.clipboard.writeText`, so the test grants the browser's
  * clipboard permission and then reads the clipboard back to assert the copied text.
@@ -46,11 +46,41 @@ test.describe('Component Playground', () => {
 
     await playground.getByRole('button', { name: 'Copy code' }).click();
 
-    // The in-island snackbar confirms the copy.
-    await expect(page.getByText('Copied to clipboard')).toBeVisible();
+    // The site snackbar confirms the copy.
+    await expect(page.getByText('Copied', { exact: true })).toBeVisible();
 
     // The clipboard holds exactly the shown snippet.
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboard.trim()).toBe(snippet);
+  });
+});
+
+test.describe('Playground on a phone', () => {
+  test('the controls live in a peeking bottom sheet that keeps the preview in view', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/components/button');
+    const playground = page.getByRole('region', { name: 'Button playground' });
+    const sheet = playground.getByRole('dialog', { name: 'Button props' });
+    await expect(sheet).toBeVisible();
+    await sheet.getByRole('button', { name: 'Expand sheet' }).click();
+    await sheet.getByRole('radio', { name: 'outlined', exact: true }).click();
+    await expect(page).toHaveURL(/[?&]variant=outlined(&|$)/);
+    // The preview stays above the expanded sheet.
+    const preview = playground.getByRole('button', { name: 'Label' });
+    const previewBox = await preview.boundingBox();
+    const sheetBox = await sheet.boundingBox();
+    expect(previewBox!.y + previewBox!.height).toBeLessThanOrEqual(sheetBox!.y);
+  });
+
+  test("the header's settings button opens the display settings", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/components/button');
+    await page
+      .getByRole('region', { name: 'Button playground' })
+      .getByRole('button', { name: 'Display settings' })
+      .click();
+    await expect(page.getByRole('dialog', { name: 'Display' })).toBeVisible();
   });
 });

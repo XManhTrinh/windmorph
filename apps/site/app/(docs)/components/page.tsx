@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { guideMetadata } from '../../../lib/site-metadata';
-import { ComponentGallery } from '../../../components/gallery';
+import { ComponentIndex } from '../../../components/component-index';
 import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/components');
@@ -16,7 +16,7 @@ export default function ComponentsPage() {
         </p>
       </header>
 
-      <ComponentGallery groupHeadingTag="h2" />
+      <ComponentIndex />
     </article>
   );
 }

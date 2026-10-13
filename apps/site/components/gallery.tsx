@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import type { ReactElement } from 'react';
-import { GALLERY_RAIL_GROUPS, pagesInRailGroup } from '../content/components/catalog';
+import {
+  GALLERY_RAIL_GROUPS,
+  pagesInRailGroup,
+  type ComponentMeta,
+} from '../content/components/catalog';
+import { ComponentPreview } from './component-previews';
 import { ArrowForwardIcon } from './icons';
 import { GROUP_ICONS } from './nav/group-icons';
 import { PageChips } from './page-chips';
@@ -12,17 +17,23 @@ export interface ComponentGalleryProps {
    * @default 'h2'
    */
   groupHeadingTag?: 'h2' | 'h3';
+  /** Shows only the pages it keeps; a group left empty is left out. */
+  filter?: (page: ComponentMeta) => boolean;
 }
 
 /**
  * The grouped component browser, shared by the `/components` route and the homepage. Groups
  * by `RAIL_GROUPS` (full names) and renders each component as a modern, interactive card
- * that links to its page. Server Component — no client state, tokens only, dark + RTL safe.
+ * that links to its page, with a sketch of the component. No client state of its own (the
+ * index filters it through `filter`); tokens only, dark + RTL safe.
  */
-export function ComponentGallery({ groupHeadingTag: GroupHeading = 'h2' }: ComponentGalleryProps) {
+export function ComponentGallery({
+  groupHeadingTag: GroupHeading = 'h2',
+  filter,
+}: ComponentGalleryProps) {
   const groups = GALLERY_RAIL_GROUPS.map((group) => ({
     group,
-    pages: pagesInRailGroup(group.id),
+    pages: pagesInRailGroup(group.id).filter((page) => !filter || filter(page)),
   })).filter(({ pages }) => pages.length > 0);
 
   return (
@@ -44,7 +55,7 @@ export function ComponentGallery({ groupHeadingTag: GroupHeading = 'h2' }: Compo
             {pages.map((page) => (
               <li key={page.slug}>
                 <GalleryCard
-                  href={`/components/${page.slug}`}
+                  slug={page.slug}
                   title={page.title}
                   summary={page.summary}
                   expressive={page.expressive}
@@ -59,14 +70,15 @@ export function ComponentGallery({ groupHeadingTag: GroupHeading = 'h2' }: Compo
   );
 }
 
-function GalleryCard({
-  href,
+/** A component's card: its sketch, name, chips and summary, linking to its page. */
+export function GalleryCard({
+  slug,
   title,
   summary,
   expressive,
   pro,
 }: {
-  href: string;
+  slug: string;
   title: string;
   summary: string;
   expressive?: boolean;
@@ -74,11 +86,12 @@ function GalleryCard({
 }): ReactElement {
   return (
     <Link
-      href={href}
-      className="state-layer focus-ring group/card flex h-full flex-col gap-2 rounded-corner-large border border-outline-variant bg-surface-container-low p-5 transition-[box-shadow,border-color] duration-200 hover:border-outline hover:shadow-elevation-2 motion-reduce:transition-none"
+      href={`/components/${slug}`}
+      className="state-layer focus-ring group/card flex h-full flex-col gap-3 rounded-corner-large border border-outline-variant bg-surface-container-low p-3 pb-5 transition-[box-shadow,border-color] duration-200 hover:border-outline hover:shadow-elevation-2 motion-reduce:transition-none"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
+      <ComponentPreview slug={slug} />
+      <div className="flex items-center justify-between gap-2 px-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="text-title-medium text-on-surface">{title}</span>
           <PageChips expressive={expressive} pro={pro} />
         </div>
@@ -89,7 +102,7 @@ function GalleryCard({
           <ArrowForwardIcon />
         </span>
       </div>
-      <span className="text-body-medium text-on-surface-variant">{summary}</span>
+      <span className="px-2 text-body-medium text-on-surface-variant">{summary}</span>
     </Link>
   );
 }

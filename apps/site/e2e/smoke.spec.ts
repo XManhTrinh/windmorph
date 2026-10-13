@@ -6,7 +6,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 /**
  * One data-driven smoke suite covering EVERY page of the static export: the home page, the six
- * guide pages, the component gallery, and all component slugs under `/components/<slug>`.
+ * guide pages, the component gallery, all component slugs under `/components/<slug>` and their
+ * tabs under `/components/<slug>/<tab>`.
  *
  * The slug list is ENUMERATED from the static export output (`out/components`), which is produced
  * by the `[slug]` route's `generateStaticParams()` (i.e. the component registry) — never a stale
@@ -54,9 +55,22 @@ function enumerateSlugs(): string[] {
   return [...slugs].sort();
 }
 
+/** Each component page's other tabs (`/components/<slug>/<tab>`), from the export output. */
+function enumerateTabRoutes(): string[] {
+  const routes: string[] = [];
+  for (const entry of readdirSync(componentsOut, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    for (const file of readdirSync(join(componentsOut, entry.name))) {
+      if (file.endsWith('.html')) routes.push(`/components/${entry.name}/${file.slice(0, -5)}`);
+    }
+  }
+  return routes.sort();
+}
+
 const SLUGS = enumerateSlugs();
 const COMPONENT_ROUTES = SLUGS.map((slug) => `/components/${slug}`);
 const ALL_ROUTES = ['/', ...GUIDE_ROUTES, '/components', ...COMPONENT_ROUTES] as const;
+const TAB_ROUTES = enumerateTabRoutes();
 
 interface Variant {
   dir?: 'rtl';
@@ -151,6 +165,31 @@ for (const url of ALL_ROUTES) {
     });
   });
 }
+
+// The tab pages share one template, so dark mode and RTL are checked on one component's tabs;
+// every tab page gets the default check.
+for (const url of TAB_ROUTES) {
+  test.describe(url, () => {
+    test('renders (LTR / default mode)', async ({ page, baseURL }) => {
+      await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, {});
+    });
+    if (url.startsWith('/components/button/')) {
+      test('renders in dark mode', async ({ page, baseURL }) => {
+        await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dark: true });
+      });
+      test('renders in RTL', async ({ page, baseURL }) => {
+        await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { dir: 'rtl' });
+      });
+    }
+  });
+}
+
+test('every component has its API and Accessibility tabs', () => {
+  for (const slug of SLUGS) {
+    expect(TAB_ROUTES, slug).toContain(`/components/${slug}/api`);
+    expect(TAB_ROUTES, slug).toContain(`/components/${slug}/accessibility`);
+  }
+});
 
 test('component gallery lists exactly the generated slugs', async ({ page }) => {
   await page.goto('/components');
