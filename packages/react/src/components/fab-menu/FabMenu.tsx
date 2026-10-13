@@ -248,7 +248,14 @@ export function FabMenu({
         className={styles.button({ class: classNames?.button })}
       >
         <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-          {isOpen && openIcon ? openIcon : icon}
+          {openIcon ? (
+            <>
+              <span className={styles.iconFace({ class: styles.closedFace() })}>{icon}</span>
+              <span className={styles.iconFace({ class: styles.openFace() })}>{openIcon}</span>
+            </>
+          ) : (
+            icon
+          )}
         </span>
       </ButtonBase>
     </span>

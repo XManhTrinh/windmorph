@@ -60,6 +60,16 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveAttribute('data-open', 'true');
     expect(toggle()).toHaveClass('data-open:size-[56px]', 'data-open:bg-primary');
     expect(screen.getByTestId('close')).toBeInTheDocument();
+    // The FAB transforms into the close button: both icons share one cell and hand over
+    // halfway through the morph (a visibility switch delayed by half the spring).
+    const closedFace = screen.getByTestId('add').parentElement!;
+    const openFace = screen.getByTestId('close').parentElement!;
+    expect(closedFace).toHaveClass('group-data-open/fab-menu:invisible', 'row-start-1');
+    expect(openFace).toHaveClass('invisible', 'group-data-open/fab-menu:visible', 'row-start-1');
+    expect(openFace).toHaveClass(
+      '[transition-delay:calc(var(--md-sys-motion-spring-spatial-fast-duration)/2)]',
+      'motion-reduce:[transition-delay:0s]',
+    );
     const list = document.getElementById(toggle().getAttribute('aria-controls')!)!;
     expect(list).not.toHaveAttribute('hidden');
     expect(visibleItems()).toEqual([]);
@@ -163,7 +173,7 @@ describe('FabMenu', () => {
     render(<Menu size={size} />);
     expect(toggle()).toHaveClass(box, corner);
     expect(toggle().parentElement).toHaveClass(box);
-    expect(screen.getByTestId('add').parentElement).toHaveClass(
+    expect(screen.getByTestId('add').closest('[aria-hidden="true"]')).toHaveClass(
       iconSize,
       'group-data-open/fab-menu:size-[20px]',
     );

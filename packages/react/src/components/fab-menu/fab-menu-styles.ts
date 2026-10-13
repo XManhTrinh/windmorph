@@ -66,12 +66,22 @@ export const fabMenuStyles = tv({
       '[--m3-transition-delay:0s,0s,0s,0s,0s]',
     ],
     icon: [
-      'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
+      'inline-grid shrink-0 place-items-center [&>svg]:size-full',
       'group-data-open/fab-menu:size-[20px]',
       '[transition-property:width,height]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
     ],
+    // The FAB "transforms into the close button" (M3): the closed and open icons share one
+    // cell and hand over halfway through the morph, as Compose swaps at checkedProgress 0.5.
+    // A delayed visibility switch makes the handover land at the midpoint both ways.
+    iconFace: [
+      'col-start-1 row-start-1 inline-flex size-full items-center justify-center [&>svg]:size-full',
+      '[transition-property:visibility] [transition-duration:0s]',
+      '[transition-delay:calc(var(--md-sys-motion-spring-spatial-fast-duration)/2)] motion-reduce:[transition-delay:0s]',
+    ],
+    closedFace: 'visible group-data-open/fab-menu:invisible',
+    openFace: 'invisible group-data-open/fab-menu:visible',
     list: [
       'flex flex-col items-end gap-[4px] overflow-y-auto overscroll-contain',
       '-ms-[16px] -me-[16px] -mt-[16px] ps-[16px] pe-[16px] pt-[16px] pointer-events-none',
