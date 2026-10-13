@@ -152,6 +152,50 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
   });
 
+  it('closes on Tab, moving focus on past the trigger', async () => {
+    render(
+      <>
+        <EditMenu />
+        <Button>Next</Button>
+      </>,
+    );
+    await openMenu('Edit');
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+    await userEvent.tab();
+    await closed();
+    expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+  });
+
+  it('closes on Tab with nothing after the trigger, returning focus to it', async () => {
+    render(<EditMenu />);
+    await openMenu('Edit');
+    await userEvent.tab();
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
+  });
+
+  it('closes every menu on Tab from a submenu', async () => {
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu aria-label="File">
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share">
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    await userEvent.keyboard('{ArrowRight}');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Email' })).toHaveFocus());
+    await userEvent.tab();
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
+  });
+
   it('opens from the keyboard and navigates with arrows and typeahead', async () => {
     const onAction = vi.fn();
     render(<EditMenu onAction={onAction} />);

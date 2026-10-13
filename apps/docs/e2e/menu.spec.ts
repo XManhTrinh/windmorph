@@ -177,6 +177,26 @@ test.describe('Menu behaviour', () => {
     await expect(page.getByTestId('last')).toHaveText('Last action: search');
   });
 
+  test('Tab closes the menu and its submenus; focus is never left on the body', async ({
+    page,
+  }) => {
+    const focusedTag = () => page.evaluate(() => document.activeElement?.tagName);
+    await openGrouped(page);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect.poll(focusedTag).not.toBe('BODY');
+
+    await openStory(page, 'components-menu--submenus');
+    await page.getByRole('button', { name: 'File' }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitem', { name: 'Share' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect.poll(focusedTag).not.toBe('BODY');
+  });
+
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`submenus open beside their item and morph the corners · ${dir}`, async ({ page }) => {
       await openStory(page, 'components-menu--submenus', { dir });

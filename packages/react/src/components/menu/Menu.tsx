@@ -6,6 +6,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useId,
   useLayoutEffect,
   useRef,
@@ -421,6 +422,22 @@ function MenuPopover({
     },
     trigger.state,
   );
+  const close = trigger.state.close;
+  // Tab moves on from an open menu and closes it and its submenus (the APG menu button
+  // pattern). React Aria's focus scope moves focus past the trigger, or back to it when
+  // nothing follows; without the close, the menu stayed open with focus outside it. That
+  // scope handles Tab on the document's capture phase and stops it, so this listens on the
+  // window's, which comes first.
+  useEffect(() => {
+    const view = container?.ownerDocument.defaultView;
+    if (!container || !view) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (container.contains(container.ownerDocument.activeElement)) close();
+    };
+    view.addEventListener('keydown', onKeyDown, true);
+    return () => view.removeEventListener('keydown', onKeyDown, true);
+  }, [container, close]);
   const styles = menuStyles();
   return (
     <>
