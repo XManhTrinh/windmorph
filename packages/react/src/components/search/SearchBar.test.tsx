@@ -92,6 +92,17 @@ describe('SearchBar', () => {
     expect(screen.getByRole('button', { name: 'Suggestion one' })).toHaveFocus();
   });
 
+  it('opens a 56px docked field centred on a shorter bar', async () => {
+    render(<SearchBar aria-label="Search" className="h-[48px]" data-testid="search" />);
+    const bar = screen.getByTestId('search');
+    vi.spyOn(bar, 'getBoundingClientRect').mockReturnValue(new DOMRect(100, 200, 360, 48));
+    await userEvent.click(screen.getByRole('combobox'));
+    const dialog = screen.getByRole('dialog');
+    // M3: the focused search bar container is 56dp tall, whatever the collapsed height.
+    expect(screen.getByRole('searchbox').parentElement!.parentElement).toHaveClass('h-[56px]');
+    expect(dialog.style.getPropertyValue('--m3-search-top')).toBe('196px');
+  });
+
   it('expands as the user types or presses ↓, and submits with Enter', async () => {
     const onSubmit = vi.fn();
     render(<Controlled onSubmit={onSubmit} />);

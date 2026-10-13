@@ -158,6 +158,8 @@ interface BarRect {
 const FOCUSED_GROWTH = 12;
 /** The search bar's maximum width (M3). */
 const MAX_WIDTH = 720;
+/** The focused search bar's height (M3: "Search bar container Height 56dp"). */
+const FIELD_HEIGHT = 56;
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -501,8 +503,11 @@ function SearchView({
   const width = Math.min(rect.width + 2 * FOCUSED_GROWTH, Math.max(rect.width, MAX_WIDTH));
   const grow = (width - rect.width) / 2;
   const left = Math.max(0, Math.min(rect.left - grow, window.innerWidth - width));
+  // The focused field is 56px whatever the collapsed bar's height (a consumer `h-*`),
+  // centred on the bar and kept within the window.
+  const top = Math.max(0, rect.top + (rect.height - FIELD_HEIGHT) / 2);
   const dockedVars = {
-    '--m3-search-top': `${rect.top}px`,
+    '--m3-search-top': `${top}px`,
     '--m3-search-left': `${rect.left}px`,
     '--m3-search-width': `${rect.width}px`,
     '--m3-search-focused-left': `${left}px`,
@@ -525,10 +530,7 @@ function SearchView({
           data-exiting={exiting}
           className={styles.dockedPanel({ class: classNames?.view })}
         >
-          {/* The docked field opens over the bar at the bar's own height. */}
-          <div style={{ height: rect.height }} className="flex shrink-0">
-            {field(contentRef)}
-          </div>
+          <div className={styles.dockedHeader()}>{field(contentRef)}</div>
           {children != null && (
             <div
               ref={contentRef}

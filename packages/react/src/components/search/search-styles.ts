@@ -10,7 +10,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * in 48px boxes shifted 4px inwards (leading `on-surface`, trailing `on-surface-variant`);
  * text starts 52px in after a leading icon (16px without one).
  *
- * Docked (with gap): the expanded field sits over the collapsed one and widens by 12px on
+ * Docked (with gap): the expanded field, 56px tall whatever the collapsed bar's height
+ * (M3's focused search bar container), sits centred over the collapsed one and widens by 12px on
  * each side (M3 Expressive: the margins change from 24dp to 12dp when focused) on the
  * default spatial spring, and a dropdown 2px below it (12px corners,
  * `surface-container-high`; with the bar, at least 240px and at most 2/3 of the window
@@ -77,6 +78,8 @@ export const searchBarStyles = tv({
       'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
     ],
+    // The focused field is 56px (M3), even when the collapsed bar is resized.
+    dockedHeader: 'flex h-[56px] shrink-0',
     dropdown: [
       'mt-[2px] overflow-y-auto overscroll-contain',
       // 58px is the field and the gap above the dropdown.

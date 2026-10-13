@@ -115,6 +115,22 @@ test.describe('Search geometry and behaviour', () => {
     await expect(page.getByRole('combobox')).toBeFocused();
   });
 
+  test('docked: the focused field is 56px, centred on a shorter bar', async ({ page }) => {
+    await openStory(page, 'components-search--app-bar', {}, { wide: true });
+    const bar = page.getByTestId('app-bar-search');
+    // In the app bar the collapsed field is 56px; a consumer can make it shorter.
+    expect((await rect(bar)).height).toBe(56);
+    await bar.evaluate((el) => (el.style.height = '48px'));
+    const collapsed = await rect(bar);
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await settle(page);
+    // M3: "Search bar container Height 56dp" for the focused bar.
+    const field = await rect(dialog.getByRole('searchbox').locator('..'));
+    expect(field).toMatchObject({ y: collapsed.y - 4, height: 56, width: collapsed.width + 24 });
+  });
+
   test('docked: Escape and a press on the scrim collapse it', async ({ page }) => {
     await openStory(page, 'components-search--playground');
     await page.getByRole('combobox').click();
