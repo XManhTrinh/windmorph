@@ -3,6 +3,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { FabColors } from '../../examples/fab/fab-colors';
 import { FabExtended } from '../../examples/fab/fab-extended';
 import { FabExtendedCollapse } from '../../examples/fab/fab-extended-collapse';
+import { FabExtendedTooltip } from '../../examples/fab/fab-extended-tooltip';
 import { FabVisibility } from '../../examples/fab/fab-visibility';
 import { FabColorStyles } from '../../examples/fab/fab-color-styles';
 import { FabElevation } from '../../examples/fab/fab-elevation';
@@ -25,13 +26,15 @@ export async function FabBody(): Promise<ComponentDoc> {
     highlightSource(visibility),
   ]);
 
-  const [colorStylesSrc, elevationSrc] = await Promise.all([
+  const [colorStylesSrc, elevationSrc, tooltipSrc] = await Promise.all([
     readExampleSource('fab/fab-color-styles.tsx'),
     readExampleSource('fab/fab-elevation.tsx'),
+    readExampleSource('fab/fab-extended-tooltip.tsx'),
   ]);
-  const [colorStylesSrcHtml, elevationSrcHtml] = await Promise.all([
+  const [colorStylesSrcHtml, elevationSrcHtml, tooltipSrcHtml] = await Promise.all([
     highlightSource(colorStylesSrc),
     highlightSource(elevationSrc),
+    highlightSource(tooltipSrc),
   ]);
 
   return {
@@ -80,6 +83,14 @@ export async function FabBody(): Promise<ComponentDoc> {
             fileName="fab-extended-collapse.tsx"
           >
             <FabExtendedCollapse />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Tooltip while collapsed"
+            code={tooltipSrc}
+            html={tooltipSrcHtml}
+            fileName="fab-extended-tooltip.tsx"
+          >
+            <FabExtendedTooltip />
           </ExampleViewer>
           <ExampleViewer
             title="Disappear and reappear"
