@@ -5,8 +5,11 @@ import {
   Button,
   DatePicker,
   LinearProgressIndicator,
+  List,
+  ListItem,
   LoadingIndicator,
   PickerDialog,
+  PullToRefresh,
   Snackbar,
   TimePicker,
   TimePickerModeToggle,
@@ -26,6 +29,7 @@ import { loose, noop, STAR, svg, type PlaygroundDescriptor, type PlaygroundUpdat
 const ButtonAny = loose(Button);
 const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
 const LoadingIndicatorAny = loose(LoadingIndicator);
+const PullToRefreshAny = loose(PullToRefresh);
 const SkeletonAny = loose(Skeleton);
 const EmptyStateAny = loose(EmptyState);
 const AlertAny = loose(Alert);
@@ -47,6 +51,9 @@ const LOADING_SHAPES_CODE = `[${LOADING_SHAPES.map((shape) => `'${shape}'`).join
 const DATE = new CalendarDate(2030, 3, 14);
 const MIN_DATE = new CalendarDate(2030, 3, 5);
 const MAX_DATE = new CalendarDate(2030, 3, 25);
+/** The people in the pull to refresh playground's list. */
+const PULL_SENDERS = ['Alex', 'Sam', 'Priya', 'Zoë', 'Jonas', 'Mei', 'Omar', 'Lena'];
+
 const CALENDAR_DATE_IMPORT = "import { CalendarDate } from '@internationalized/date';";
 const BUTTON_IMPORT = "import { Button } from '@windmorph/react';";
 
@@ -125,6 +132,35 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     controlKinds: { shapes: 'boolean' },
     toggledSlots: { shapes: LOADING_SHAPES_CODE },
     codeSlots: { 'aria-label': '"Loading"' },
+  },
+  'pull-to-refresh': {
+    component: 'PullToRefresh',
+    // A pull sets `refreshing`, and the "refresh" ends 1.5 seconds later, as a request would.
+    render: (props, update) =>
+      createElement(
+        PullToRefreshAny,
+        {
+          ...props,
+          onRefresh: () => {
+            update('refreshing', true);
+            setTimeout(() => update('refreshing', false), 1500);
+          },
+          className:
+            'h-[320px] w-[320px] max-w-full overflow-y-auto rounded-corner-large bg-surface-container-low',
+        },
+        <List aria-label="Messages">
+          {PULL_SENDERS.map((name) => (
+            <ListItem key={name}>{name}</ListItem>
+          ))}
+        </List>,
+      ),
+    defaultProps: { refreshing: false, threshold: 80, disabled: false },
+    surfacedProps: ['refreshing', 'threshold', 'disabled'],
+    controlKinds: { threshold: 'number' },
+    importMembers: ['List', 'ListItem'],
+    codeSlots: { onRefresh: '() => {}', className: '"h-80 overflow-y-auto"' },
+    codeChildren:
+      '<List aria-label="Messages">\n    <ListItem>Alex</ListItem>\n    <ListItem>Sam</ListItem>\n  </List>',
   },
   skeleton: {
     component: 'Skeleton',

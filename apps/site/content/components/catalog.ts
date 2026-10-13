@@ -1222,6 +1222,31 @@ export const COMPONENT_META: ComponentMeta[] = [
     whenNotToUse: 'When progress can be measured, use a determinate Progress indicator instead.',
   },
   {
+    slug: 'pull-to-refresh',
+    title: 'Pull to refresh',
+    group: 'Feedback & pickers',
+    railGroup: 'feedback',
+    summary:
+      'Pull down at the top of a list or page to reload it, with a contained loading indicator that follows the pull.',
+    propsComponents: ['PullToRefresh'],
+    playground: 'full',
+    expressive: true,
+    specs: { shape: 'rounded-corner-full', elevation: 'level0' },
+    related: ['loading-indicator', 'list', 'top-app-bar'],
+    whenNotToUse:
+      'For content that rarely changes, or as the only way to refresh: always offer a refresh button too.',
+    keywords: [
+      'refresh',
+      'reload',
+      'pull down',
+      'swipe to refresh',
+      'swipe down',
+      'update feed',
+      'pull to reload',
+      'ptr',
+    ],
+  },
+  {
     slug: 'skeleton',
     title: 'Skeleton',
     group: 'Feedback & pickers',

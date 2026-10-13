@@ -57,7 +57,7 @@ interface PullToRefreshOwnProps {
    * Whether a refresh is running. While it is, the indicator rests at the threshold as an
    * indeterminate loading indicator; when it turns `false` the indicator leaves. Set it `true`
    * from a refresh button too, and the indicator comes in the same way. Leave it out to let a
-   * promise returned by `onRefresh` drive it.
+   * promise returned by `onRefresh` drive it. @default undefined (driven by `onRefresh`'s promise)
    */
   refreshing?: boolean;
   /**
@@ -70,10 +70,14 @@ interface PullToRefreshOwnProps {
   threshold?: number;
   /** Turns the gesture off. A running refresh still shows its indicator. @default false */
   disabled?: boolean;
-  /** Words the pull to refresh announces, with English defaults. */
+  /**
+   * Words the pull to refresh announces; name them for what refreshes ("Refreshing
+   * messages"). @default { pull: "Pull to refresh", refreshing: "Refreshing", refreshed: "Refreshed" }
+   */
   labels?: Partial<PullToRefreshLabels>;
   /** The content: a scrolling list, grid or card collection, or a whole page. */
   children?: ReactNode;
+  /** Classes for the parts: `root`, `layer` (the sticky layer at the top) and `indicator`. */
   classNames?: PullToRefreshClassNames;
 }
 

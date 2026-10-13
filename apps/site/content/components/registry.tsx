@@ -43,6 +43,7 @@ import { PickerDialogBody } from './picker-dialog';
 import { PinInputBody } from './pin-input';
 import { PrimitivesBody } from './primitives';
 import { ProgressBody } from './progress';
+import { PullToRefreshBody } from './pull-to-refresh';
 import { RadioGroupBody } from './radio-group';
 import { SearchBody } from './search';
 import { SheetsBody } from './sheets';
@@ -132,6 +133,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   snackbar: SnackbarBody,
   progress: ProgressBody,
   'loading-indicator': LoadingIndicatorBody,
+  'pull-to-refresh': PullToRefreshBody,
   skeleton: SkeletonBody,
   tag: TagBody,
   link: LinkBody,
@@ -331,6 +333,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   LinearProgressIndicator: ['root', 'track', 'indicator', 'stop'],
   CircularProgressIndicator: ['root', 'track', 'indicator'],
   LoadingIndicator: ['root', 'indicator'],
+  PullToRefresh: ['root', 'layer', 'indicator'],
   DatePicker: ['root', 'header', 'body'],
   DateRangePicker: ['root', 'header', 'body'],
   TimePicker: ['root', 'dial'],
