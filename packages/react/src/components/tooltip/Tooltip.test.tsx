@@ -262,7 +262,7 @@ describe('tooltips inside a modal', () => {
       </DialogTrigger>,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Open' }));
-    const dialog = screen.getByRole('dialog', { name: 'Photo' });
+    const dialog = screen.getByRole('alertdialog', { name: 'Photo' });
     const trigger = screen.getByRole('button', { name: 'Favourite' });
     await hover(trigger);
     const tooltip = await screen.findByRole('tooltip');
@@ -290,9 +290,9 @@ describe('tooltips inside a modal', () => {
     expect(hiddenFromAT(focusTooltip)).toBe(false);
     await userEvent.keyboard('{Escape}');
     await gone('tooltip');
-    expect(screen.getByRole('dialog', { name: 'Photo' })).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog', { name: 'Photo' })).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 1500 });
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull(), { timeout: 1500 });
   });
 
   it('stay visible to assistive technology in a modal BottomSheet', async () => {
@@ -340,11 +340,11 @@ describe('tooltips inside a modal', () => {
     // A press inside the rich tooltip neither closes it nor the dialog under it.
     await userEvent.click(screen.getByText('Tabs from the same site stay together.'));
     expect(screen.getByRole('dialog', { name: 'Grouped tabs' })).toBeInTheDocument();
-    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog', { name: 'Settings' })).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Grouped tabs' })).toBeNull(), {
       timeout: 1500,
     });
-    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog', { name: 'Settings' })).toBeInTheDocument();
   });
 });

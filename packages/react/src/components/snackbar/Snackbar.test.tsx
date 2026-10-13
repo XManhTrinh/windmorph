@@ -139,7 +139,7 @@ describe('SnackbarHost', () => {
       result = state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
     expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull();
-    screen.getByRole('button', { name: 'Undo' }).focus();
+    act(() => screen.getByRole('button', { name: 'Undo' }).focus());
     await userEvent.keyboard('{Escape}');
     await expect(result).resolves.toBe('dismissed');
   });

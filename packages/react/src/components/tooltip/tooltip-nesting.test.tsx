@@ -169,7 +169,7 @@ describe('a TooltipTrigger around other triggers', () => {
           </Dialog>
         </DialogTrigger>
       ),
-      'dialog',
+      'alertdialog',
     ],
     [
       'SheetTrigger',

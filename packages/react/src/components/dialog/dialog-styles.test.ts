@@ -8,10 +8,15 @@ import {
 import { dialogStyles } from './dialog-styles';
 
 describe('dialogStyles', () => {
+  const placements = ['center', 'top', 'bottom', 'start', 'end'] as const;
   const classes = collectClasses(
-    [false, true].flatMap((hasIcon) =>
+    [false, true].flatMap((flag) =>
       (['never', 'always', 'compact'] as const).flatMap((fullScreen) =>
-        Object.values(dialogStyles({ hasIcon, fullScreen })).map((slot) => slot()),
+        placements.flatMap((placement) =>
+          Object.values(
+            dialogStyles({ hasIcon: flag, fullScreen, placement, bottomBar: flag, divider: flag }),
+          ).map((slot) => slot()),
+        ),
       ),
     ),
   );

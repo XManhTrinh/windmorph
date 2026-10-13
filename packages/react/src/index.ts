@@ -313,6 +313,7 @@ export {
   type DialogClassNames,
   type DialogContentProps,
   type DialogFullScreen,
+  type DialogPlacement,
   type DialogHeaderClassNames,
   type DialogHeaderProps,
   type DialogProps,

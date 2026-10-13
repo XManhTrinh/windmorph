@@ -160,7 +160,7 @@ test.describe('Tooltip behaviour', () => {
     await remove.hover();
     await expect(page.getByRole('tooltip')).toHaveText('Delete message');
     await remove.click();
-    await expect(page.getByRole('dialog', { name: 'Delete message?' })).toBeVisible();
+    await expect(page.getByRole('alertdialog', { name: 'Delete message?' })).toBeVisible();
     await expect(page.getByRole('tooltip')).toHaveCount(0);
   });
 

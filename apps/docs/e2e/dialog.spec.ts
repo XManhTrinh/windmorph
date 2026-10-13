@@ -30,24 +30,26 @@ test.describe('Dialog visual regression', () => {
     await openStory(page, 'components-dialog--long-content', { dir: 'rtl' });
     await settle(page);
     // The dialog is portalled out of the RTL story root but keeps its direction.
-    expect(await page.getByRole('dialog').evaluate((el) => getComputedStyle(el).direction)).toBe(
-      'rtl',
-    );
+    expect(
+      await page.getByRole('alertdialog').evaluate((el) => getComputedStyle(el).direction),
+    ).toBe('rtl');
     await expect(page).toHaveScreenshot('long-content-rtl.png');
   });
 });
 
 test.describe('Dialog behaviour', () => {
-  test('opens with motion that settles to no transform, and is named by its title', async ({
+  test('opens expanding from its top edge, named by its title, focusing its first action', async ({
     page,
   }) => {
     await openStory(page, 'components-dialog--basic');
     await page.getByRole('button', { name: 'Open dialog' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Discard draft?' });
+    const dialog = page.getByRole('alertdialog', { name: 'Discard draft?' });
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused();
     await settle(page);
     const motion = dialog.locator('xpath=..');
     expect(await motion.evaluate((el) => getComputedStyle(el).scale)).toBe('none');
+    expect(await motion.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(-32px)');
     expect(await motion.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
     const box = (await dialog.boundingBox())!;
     expect(box.width).toBeGreaterThanOrEqual(280);
@@ -59,7 +61,7 @@ test.describe('Dialog behaviour', () => {
     await openStory(page, 'components-dialog--basic');
     const trigger = page.getByRole('button', { name: 'Open dialog' });
     await trigger.click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('alertdialog');
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('Tab');
       expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
@@ -69,9 +71,12 @@ test.describe('Dialog behaviour', () => {
     await expect(trigger).toBeFocused();
   });
 
-  test('closes when pressing the scrim; alert dialogs do not', async ({ page }) => {
-    await openStory(page, 'components-dialog--basic');
+  test('a plain dialog closes when pressing the scrim; basic (alert) dialogs do not', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-dialog--plain');
     await page.getByRole('button', { name: 'Open dialog' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
     await page.mouse.click(10, 10);
     await expect(page.getByRole('dialog')).toHaveCount(0);
 
@@ -85,7 +90,7 @@ test.describe('Dialog behaviour', () => {
   test('locks page scroll while open', async ({ page }) => {
     await openStory(page, 'components-dialog--basic');
     await page.getByRole('button', { name: 'Open dialog' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe(
       'hidden',
     );
@@ -97,7 +102,7 @@ test.describe('Dialog behaviour', () => {
     await page.setViewportSize({ width: 420, height: 700 });
     await openStory(page, 'components-dialog--long-content');
     await settle(page);
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('alertdialog');
     const content = page.getByTestId('content');
     expect((await dialog.boundingBox())!.height).toBeLessThanOrEqual(700 - 48);
     expect(await content.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
@@ -118,6 +123,8 @@ test.describe('Dialog behaviour', () => {
     const box = (await dialog.boundingBox())!;
     expect(box).toMatchObject({ x: 0, y: 0, width: 390, height: 760 });
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('0px');
+    const header = dialog.getByRole('heading', { name: 'Edit name' }).locator('xpath=..');
+    expect((await header.boundingBox())!.height).toBe(56);
     // One Save (the header's); the DialogActions row is hidden.
     await expect(dialog.getByRole('button', { name: 'Save' })).toHaveCount(1);
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
@@ -140,5 +147,24 @@ test.describe('Dialog behaviour', () => {
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('28px');
     await expect(dialog.getByRole('button', { name: 'Close' })).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeVisible();
+  });
+
+  test('a placed dialog keeps 56px from the edge of a wide window', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 760 });
+    await openStory(page, 'components-dialog--placement-top');
+    await settle(page);
+    expect((await page.getByRole('alertdialog').boundingBox())!.y).toBe(56);
+  });
+
+  test('full screen without a header action shows a 56px bottom action bar', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 760 });
+    await openStory(page, 'components-dialog--full-screen-bottom-bar');
+    await page.getByRole('button', { name: 'Filters' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    await expect(dialog.getByRole('button', { name: 'Close' })).toBeFocused();
+    const apply = (await dialog.getByRole('button', { name: 'Apply' }).boundingBox())!;
+    expect(apply.y + apply.height).toBeGreaterThan(760 - 56);
+    await expect(page).toHaveScreenshot('full-screen-bottom-bar.png');
   });
 });

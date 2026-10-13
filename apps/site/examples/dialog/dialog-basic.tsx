@@ -13,7 +13,7 @@ import {
  * A basic dialog opened from a `DialogTrigger`: the first child is the trigger, the rest
  * is the `Dialog`. The flat parts `DialogTitle`, `DialogContent` and `DialogActions` set
  * its anatomy; the title also names the dialog. Children may be `({ close }) => …` so the
- * actions can close it. Pressing outside or Escape also closes a basic dialog.
+ * actions can close it. Escape also closes it; a press outside doesn't (it is an alert dialog).
  */
 export function DialogBasic() {
   return (

@@ -4,7 +4,10 @@ import {
   Children,
   createContext,
   useContext,
+  useEffect,
+  useLayoutEffect,
   useRef,
+  useState,
   type ComponentPropsWithRef,
   type CSSProperties,
   type DOMAttributes,
@@ -28,6 +31,7 @@ import {
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { firstTabbable } from '../../utils/focus';
 import { IconButton } from '../icon-button/IconButton';
 import { dialogStyles } from './dialog-styles';
 
@@ -46,6 +50,9 @@ function CloseIcon() {
  */
 export type DialogFullScreen = 'never' | 'always' | 'compact';
 
+/** Where a basic dialog sits in the window, keeping the spec's 56px margin on wider windows. */
+export type DialogPlacement = 'center' | 'top' | 'bottom' | 'start' | 'end';
+
 interface DialogTriggerContextValue {
   state: OverlayTriggerState;
   /** Links the dialog to its trigger (`aria-controls`). */
@@ -56,16 +63,28 @@ const DialogTriggerContext = createContext<DialogTriggerContextValue | null>(nul
 
 interface DialogPartsContextValue {
   titleProps: DOMAttributes<HTMLElement>;
+  /** The id an alert dialog's description (`DialogContent`) takes. */
+  contentProps: DOMAttributes<HTMLElement>;
   hasIcon: boolean;
   fullScreen: DialogFullScreen;
   close: () => void;
+  /** `DialogContent` reports that it's there, so the dialog is described by it. */
+  setHasContent: (has: boolean) => void;
+  /** `DialogHeader` reports whether it holds the confirming action. */
+  setHeaderAction: (has: boolean) => void;
+  /** Full screen without a header action: `DialogActions` become a bottom bar. */
+  bottomBar: boolean;
 }
 
 const DialogPartsContext = createContext<DialogPartsContextValue>({
   titleProps: {},
+  contentProps: {},
   hasIcon: false,
   fullScreen: 'never',
   close: () => undefined,
+  setHasContent: () => undefined,
+  setHeaderAction: () => undefined,
+  bottomBar: false,
 });
 
 export interface DialogTriggerProps {
@@ -123,8 +142,10 @@ export interface DialogProps
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   /**
-   * `alertdialog` for confirmations that need a decision; it is not dismissed by
-   * pressing outside. @default "dialog"
+   * Basic dialogs are alert dialogs on the web (the spec): they need a decision, are
+   * described by their `DialogContent`, and aren't dismissed by pressing outside. A dialog
+   * that can be full screen is a `dialog`.
+   * @default "alertdialog", or "dialog" when `fullScreen` isn't "never"
    */
   role?: 'dialog' | 'alertdialog';
   /** Closes when pressing outside the dialog. @default true (false for `alertdialog`) */
@@ -135,9 +156,17 @@ export interface DialogProps
   icon?: ReactNode;
   /**
    * Fills the window, with a `DialogHeader` holding the close button, title and confirming
-   * action instead of `DialogActions`. `compact` does so only below 600px. @default "never"
+   * action instead of `DialogActions` (or with them as a bottom bar when the header has no
+   * action). `compact`, the spec's recommendation, does so only below 600px; `always` fills
+   * every window. @default "never"
    */
   fullScreen?: DialogFullScreen;
+  /**
+   * Where a basic dialog sits: centred (the spec's default) or against one side of the
+   * window, keeping 24px from its edges on compact windows and 56px on wider ones.
+   * @default "center"
+   */
+  placement?: DialogPlacement;
   children?: ReactNode | ((props: DialogRenderProps) => ReactNode);
   classNames?: DialogClassNames;
   style?: CSSProperties;
@@ -145,9 +174,11 @@ export interface DialogProps
 
 /**
  * M3 basic dialog: a modal panel over a scrim, rendered in a portal that keeps the
- * surrounding theme. Focus is moved in and contained, restored on close; Escape and
- * pressing outside close it; the page behind does not scroll and is hidden from
- * assistive tech. Name it with a `DialogTitle` (or `aria-label`).
+ * surrounding theme. It's an alert dialog (described by its `DialogContent`). Focus moves
+ * to its first interactive element (or one marked `autoFocus`), is contained, and is
+ * restored on close; Escape closes it; the page behind does not scroll and is hidden from
+ * assistive tech. It expands downward from its top edge as it opens. Name it with a
+ * `DialogTitle` (or `aria-label`).
  *
  * `className`, `style`, `ref` and other attributes go on the dialog panel.
  *
@@ -189,11 +220,12 @@ function DialogModal({
   isExiting,
   exitProps,
   triggerOverlayProps,
-  role = 'dialog',
+  role: roleProp,
   dismissable,
   keyboardDismissDisabled,
   icon,
   fullScreen = 'never',
+  placement = 'center',
   children,
   className,
   classNames,
@@ -206,7 +238,10 @@ function DialogModal({
   exitProps: ReturnType<typeof usePresence>['exitProps'];
   triggerOverlayProps?: { id?: string };
 }) {
+  const role = roleProp ?? (fullScreen === 'never' ? 'alertdialog' : 'dialog');
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  const [hasContent, setHasContent] = useState(false);
+  const [headerAction, setHeaderAction] = useState(false);
   const { modalProps, underlayProps } = useModalOverlay(
     {
       isDismissable: (dismissable ?? role !== 'alertdialog') && !isExiting,
@@ -215,9 +250,23 @@ function DialogModal({
     state,
     panelRef,
   );
-  const { dialogProps, titleProps } = useDialog({ ...rest, role }, panelRef);
+  const { dialogProps, titleProps, contentProps } = useDialog({ ...rest, role }, panelRef);
+  // An alert dialog is described by its content; leave the reference out when there's none.
+  const describedBy =
+    rest['aria-describedby'] ?? (hasContent ? dialogProps['aria-describedby'] : undefined);
+
+  // The spec: "focus should automatically land on the first interactive element within the
+  // dialog". `useDialog` focuses the panel itself unless something inside took focus
+  // (`autoFocus`); move on from the panel to its first interactive element.
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel || document.activeElement !== panel) return;
+    firstTabbable(panel)?.focus();
+  }, [panelRef]);
+
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
-  const styles = dialogStyles({ hasIcon, fullScreen });
+  const bottomBar = fullScreen !== 'never' && !headerAction;
+  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar });
   const exiting = isExiting || undefined;
 
   return (
@@ -231,6 +280,7 @@ function DialogModal({
         <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
           <div
             {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
+            aria-describedby={describedBy}
             ref={panelRef}
             style={style}
             data-exiting={exiting}
@@ -238,7 +288,18 @@ function DialogModal({
             className={styles.panel({ class: cn(classNames?.panel, className) })}
           >
             <TriggerContext value={null}>
-              <DialogPartsContext value={{ titleProps, hasIcon, fullScreen, close: state.close }}>
+              <DialogPartsContext
+                value={{
+                  titleProps,
+                  contentProps,
+                  hasIcon,
+                  fullScreen,
+                  close: state.close,
+                  setHasContent,
+                  setHeaderAction,
+                  bottomBar,
+                }}
+              >
                 {hasIcon && (
                   <span
                     aria-hidden="true"
@@ -286,8 +347,13 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
   children: ReactNode;
   /** Accessible name of the close button. */
   closeLabel: string;
-  /** The confirming action, usually a text `Button` ("Save"). Shown in full screen only. */
+  /**
+   * The confirming action, usually a text `Button` ("Save"). Shown in full screen only;
+   * without it, a full-screen dialog shows its `DialogActions` as a bottom bar.
+   */
   action?: ReactNode;
+  /** A 1px `outline-variant` divider under the full-screen header. @default false */
+  divider?: boolean;
   classNames?: DialogHeaderClassNames;
 }
 
@@ -309,12 +375,19 @@ export function DialogHeader({
   children,
   closeLabel,
   action,
+  divider = false,
   className,
   classNames,
   ...props
 }: DialogHeaderProps) {
-  const { titleProps, hasIcon, fullScreen, close } = useContext(DialogPartsContext);
-  const styles = dialogStyles({ hasIcon, fullScreen });
+  const { titleProps, hasIcon, fullScreen, close, setHeaderAction } =
+    useContext(DialogPartsContext);
+  const hasAction = action !== undefined;
+  useLayoutEffect(() => {
+    setHeaderAction(hasAction);
+    return () => setHeaderAction(false);
+  }, [hasAction, setHeaderAction]);
+  const styles = dialogStyles({ hasIcon, fullScreen, divider });
   return (
     <div {...props} className={styles.header({ class: cn(classNames?.root, className) })}>
       {fullScreen !== 'never' && (
@@ -337,20 +410,38 @@ export function DialogHeader({
 
 export type DialogContentProps = ComponentPropsWithRef<'div'>;
 
-/** The dialog's supporting text or content; scrolls when the dialog is too tall. */
+/**
+ * The dialog's supporting text or content; scrolls when the dialog is too tall. It describes
+ * an alert dialog.
+ */
 export function DialogContent({ className, ...props }: DialogContentProps) {
-  const { fullScreen } = useContext(DialogPartsContext);
-  return <div {...props} className={dialogStyles({ fullScreen }).content({ class: className })} />;
+  const { fullScreen, contentProps, setHasContent } = useContext(DialogPartsContext);
+  useLayoutEffect(() => {
+    setHasContent(true);
+    return () => setHasContent(false);
+  }, [setHasContent]);
+  return (
+    <div
+      {...mergeProps(contentProps, props)}
+      className={dialogStyles({ fullScreen }).content({ class: className })}
+    />
+  );
 }
 
 export type DialogActionsProps = ComponentPropsWithRef<'div'>;
 
 /**
  * Row of actions at the end of the dialog, 8px apart. Put the confirming action last:
- * when the actions do not fit on one line they stack with it on top. Hidden while the
- * dialog is full screen, where `DialogHeader` carries the confirming action.
+ * when the actions do not fit on one line they stack with it on top. While the dialog is
+ * full screen they're hidden when `DialogHeader` carries the confirming action, and
+ * otherwise form the spec's 56px bottom action bar.
  */
 export function DialogActions({ className, ...props }: DialogActionsProps) {
-  const { fullScreen } = useContext(DialogPartsContext);
-  return <div {...props} className={dialogStyles({ fullScreen }).actions({ class: className })} />;
+  const { fullScreen, bottomBar } = useContext(DialogPartsContext);
+  return (
+    <div
+      {...props}
+      className={dialogStyles({ fullScreen, bottomBar }).actions({ class: className })}
+    />
+  );
 }

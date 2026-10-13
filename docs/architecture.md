@@ -324,7 +324,10 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - `splitDataAttributes` (utils) routes `data-*` to the root for components whose remaining props go to a React Aria hook (TextField, the selection controls). Those hooks forward only the attributes they know, so consumer `data-*` attributes were being dropped.
 
 ### Dialog (built; a component, not a composite)
-- `DialogTrigger` (trigger + dialog, `open` / `defaultOpen` / `onOpenChange`) or a standalone controlled `Dialog`. Flat parts: `DialogTitle`, `DialogContent`, `DialogActions`. Children may be `({ close }) => …`. `icon` centres the title. `role="alertdialog"` is not dismissed by pressing outside. `dismissable` and `keyboardDismissDisabled` are configurable.
+- `DialogTrigger` (trigger + dialog, `open` / `defaultOpen` / `onOpenChange`) or a standalone controlled `Dialog`. Flat parts: `DialogTitle`, `DialogContent`, `DialogActions`, and `DialogHeader` for dialogs that can be full screen. Children may be `({ close }) => …`. `icon` centres the title. `dismissable`, `keyboardDismissDisabled` and `placement` are configurable.
+- **Role** (2026-10-13, the spec: "On web, basic dialogs should have the alert dialog role"): `role` defaults to `alertdialog` for a basic dialog and to `dialog` when `fullScreen` isn't `never`. An alert dialog is described by its `DialogContent` (React Aria's `contentProps`; the reference is left out when there's no content) and, as before, isn't dismissed by pressing outside, which fits "Basic dialogs require a person to take action before it will close". `role="dialog"` or `dismissable` restores the press-outside dismissal.
+- **Initial focus** (2026-10-13, the spec: "focus should automatically land on the first interactive element within the dialog"): `useDialog` focuses the panel unless something inside took focus (`autoFocus`); an effect then moves focus from the panel to its first tabbable element (`utils/focus.ts` `firstTabbable`). A dialog with no controls keeps focus on the panel.
+- **Placement** (2026-10-13, the spec: basic dialogs are centred by default, "Their position can be overridden", in an area "that respects a 56dp margin from the edges of the screen"): `placement` = `center | top | bottom | start | end` aligns the panel in the positioner, which pads 24px on compact windows and 56px from the medium breakpoint (it was 24px everywhere).
 - **Built on** `Overlay` + React Aria `useModalOverlay` (dismissal, scroll lock, hiding the rest of the page) + `useDialog` (labelling, initial focus). Focus is contained and returns to the trigger. React Aria sets no `aria-haspopup` for dialog triggers; it does set `aria-expanded` / `aria-controls`.
 - **Values** (Compose `AlertDialog.kt`, `DialogTokens`):
   - Size: 280–560px wide, 24px padding, 28px corners, `surface-container-high`, level 3.
@@ -332,12 +335,13 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Spacing: 16px below the icon and the title, 24px below the text, 8px between actions.
   - Stacked actions put the confirm action (last) **on top**, matching Compose's flipped `FlowRow` (`flex-wrap-reverse`).
   - Long content scrolls inside the panel. The scrim is `scrim` at 32%.
-- **Motion (not from Compose,** which uses platform window animations):
-  - Enter: the scrim fades and the panel fades + scales from 90% on the default springs (CSS `@starting-style`).
-  - Exit: fade + scale to 95% on the fast springs.
-  - It runs on a library-owned wrapper that rests at `scale: none`, so it isn't a lasting containing block for fixed children.
+- **Motion (not from Compose,** which uses platform window animations), changed 2026-10-13 to follow the spec's transitions page ("Scale and z-axis motion is avoided"; components "expand and collapse along the x or y axis"); it used to scale from 90%:
+  - Enter: the scrim fades and the panel fades while it **expands downward from its top edge** on the default springs (CSS `@starting-style`): a `clip-path: inset()` whose bottom edge moves from 100% to 32px outside the panel (the margin keeps the shadow).
+  - Exit: the same collapse and fade on the fast springs. Reduced motion keeps only the fades.
+  - It runs on a library-owned wrapper with no transform, so it isn't a containing block for fixed children.
+- **Full screen** (`fullScreen` = `never | always | compact`; `compact`, the spec's recommendation, applies below 600px only): the panel fills the window on `surface-container-high` (2026-10-13, the spec's full-screen colour roles; it was `surface`) with no corners, elevation or padding. `DialogHeader` is a **56px** header (the spec; it was 64px) with the close icon button, a `title-large` headline and the confirming `action`; `divider` adds a 1px `outline-variant` line under it. With a header action the `DialogActions` are hidden; without one they form the spec's **56px bottom action bar** (the header reports its action through context). The panel slides up 48px and fades on the **slow** springs (the spec's speed for full-screen animations). `always` fills wide windows too; the docs point to `compact`, since the spec keeps full-screen dialogs to compact windows, instead of capping the width at 560px.
 - **Moved to the components layer:** the doc listed Dialog as a composite, but its core is the `Overlay` primitive and React Aria hooks, which composites may not import. Consumers' buttons go in `DialogActions`.
-- **Deferred:** full-screen dialogs (compact windows) need the Tier 3 top app bar.
+- **Not built:** automatic dividers above and below scrolling `DialogContent` (the spec's anatomy marks them optional).
 
 ### Menu (built)
 - `MenuTrigger` (trigger + `Menu`, `open` / `defaultOpen` / `onOpenChange`) and `Menu` with `MenuItem` / `MenuGroup` children. These are typed aliases of React Stately's collection `Item` / `Section`, identified by React `key`.
