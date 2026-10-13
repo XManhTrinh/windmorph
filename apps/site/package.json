@@ -3,14 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm generate:props && next dev --webpack",
-    "build": "pnpm generate:props && next build --webpack",
+    "dev": "pnpm generate && next dev --webpack",
+    "build": "next build --webpack",
+    "generate": "tsx scripts/generate-props.ts",
     "preview": "sirv out --port 3000",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint --max-warnings 0 .",
     "test:e2e": "playwright test",
     "link-check": "tsx scripts/check-links.ts",
-    "generate:props": "tsx scripts/generate-props.ts",
     "test": "vitest run"
   },
   "dependencies": {

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ComponentPropsFile } from '../scripts/generate-props';
+import type { HookDocFile } from '../scripts/hook-docs';
 
 /**
  * Resolves against this file's own directory (like `lib/example-source.ts` and
@@ -14,6 +15,7 @@ const propsRoot = resolve(here, '../.generated/props');
 // Re-export the shape the generator writes, so a component page can feed `json.props`
 // straight into `PropsTable` (its rows are `PropsTableRow`).
 export type { ComponentPropsFile, PropsRecord } from '../scripts/generate-props';
+export type { HookDocFile } from '../scripts/hook-docs';
 
 /**
  * Reads the generated props JSON for a component `displayName` from the gitignored
@@ -39,6 +41,20 @@ export async function readComponentPropsSafe(
 ): Promise<ComponentPropsFile | null> {
   try {
     return await readComponentProps(displayName);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
+/**
+ * A hook's generated docs (its signature, parameters and return value), written beside the
+ * components' props JSON. `null` when the file is absent, like {@link readComponentPropsSafe}.
+ */
+export async function readHookDocSafe(name: string): Promise<HookDocFile | null> {
+  try {
+    const source = await readFile(join(propsRoot, `${name}.json`), 'utf8');
+    return JSON.parse(source) as HookDocFile;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
     throw error;

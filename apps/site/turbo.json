@@ -1,8 +1,12 @@
 {
   "extends": ["//"],
   "tasks": {
+    "generate": {
+      "inputs": ["scripts/**", "$TURBO_ROOT$/packages/react/src/**", "$TURBO_ROOT$/pnpm-lock.yaml"],
+      "outputs": [".generated/props/**"]
+    },
     "build": {
-      "outputs": ["out/**", ".next/**", "!.next/cache/**", ".generated/props/**"]
+      "outputs": ["out/**", ".next/**", "!.next/cache/**"]
     }
   }
 }

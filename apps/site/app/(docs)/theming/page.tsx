@@ -6,6 +6,7 @@ import { readExampleSource } from '../../../lib/example-source';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
 import { InlineCode } from '../../../components/inline-code';
+import { GuideApiReference } from '../guide-api';
 
 export const metadata: Metadata = guideMetadata('/theming');
 
@@ -373,6 +374,8 @@ export default async function ThemingPage() {
         </p>
         <CodeBlock code={SCRIPT_SNIPPET} html={scriptHtml} lang="tsx" title="layout.tsx" />
       </section>
+
+      <GuideApiReference path="/theming" />
     </article>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enumOptionsFromType } from './generate-props';
+import { enumOptionsFromType, normalizeDefaultValue } from './generate-props';
 
 describe('enumOptionsFromType', () => {
   it('extracts string-literal union members with quotes stripped', () => {
@@ -26,5 +26,22 @@ describe('enumOptionsFromType', () => {
 
   it('returns undefined for an enum with no usable members', () => {
     expect(enumOptionsFromType({ name: 'enum', value: [{ value: 'undefined' }] })).toBeUndefined();
+  });
+});
+
+describe('normalizeDefaultValue', () => {
+  it("collapses one default repeated by a union's members to a single value", () => {
+    // Button's `variant` is declared in its action, link and toggle forms.
+    expect(normalizeDefaultValue('"filled"\n"filled"')).toBe('"filled"');
+    expect(normalizeDefaultValue('"sm"\n"sm"\n"sm"')).toBe('"sm"');
+  });
+
+  it('keeps a single-line default as it is', () => {
+    expect(normalizeDefaultValue('0.15')).toBe('0.15');
+  });
+
+  it('keeps a default that genuinely spans several lines', () => {
+    const raw = '{ start: 16, end: 16 } (uncontained: no end padding;\nfull-screen: none)';
+    expect(normalizeDefaultValue(raw)).toBe(raw);
   });
 });

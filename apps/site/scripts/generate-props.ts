@@ -1,8 +1,9 @@
 /**
  * Generates one props JSON per public component for `PropsTable`, from the library's
- * TypeScript public API, using `react-docgen-typescript`. Run before `build`/`dev`
- * (see package.json), writing to the gitignored `apps/site/.generated/props/` directory,
- * so the tables can never drift from the code.
+ * TypeScript public API, using `react-docgen-typescript`, plus the hooks' docs. It is the
+ * site's `generate` task, which Turborepo runs once before `build`, `typecheck`, `lint` and
+ * `test` (and `dev` runs first), writing to the gitignored `apps/site/.generated/props/`
+ * directory, so the tables can never drift from the code.
  *
  * The output shape matches `PropsTableRow` (name/type/required/defaultValue?/description?),
  * so a component page can later do `rows={json.props}` straight into `PropsTable`.
@@ -13,6 +14,7 @@ import { argv } from 'node:process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { withCustomConfig } from 'react-docgen-typescript';
+import { documentHooks, type HookDocFile } from './hook-docs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = resolve(here, '..');
@@ -26,11 +28,26 @@ const entryPaths = [
   join(proRoot, 'dist/index.d.ts'),
   join(proRoot, 'dist/rich-text.d.ts'),
 ];
+/** The entries whose `use*` exports are documented as hooks, per package. */
+const hookEntries = [
+  {
+    tsconfigPath: join(uiRoot, 'tsconfig.json'),
+    entries: [join(uiRoot, 'src/index.ts'), join(uiRoot, 'src/primitives.ts')],
+  },
+  {
+    tsconfigPath: join(siteRoot, 'tsconfig.json'),
+    entries: [join(proRoot, 'dist/index.d.ts'), join(proRoot, 'dist/rich-text.d.ts')],
+  },
+];
 /** Each package's component files: the core's sources, and Pro's declarations. */
 const packages = [
   {
     tsconfigPath: join(uiRoot, 'tsconfig.json'),
-    sourceRoots: [join(uiRoot, 'src/components'), join(uiRoot, 'src/composites')],
+    sourceRoots: [
+      join(uiRoot, 'src/components'),
+      join(uiRoot, 'src/composites'),
+      join(uiRoot, 'src/theme'),
+    ],
     extension: '.tsx' as const,
   },
   {
@@ -68,7 +85,7 @@ async function resolveAllowlist(): Promise<Set<string>> {
   const source = (await Promise.all(entryPaths.map((path) => readFile(path, 'utf8')))).join('\n');
   const allow = new Set<string>();
   const block =
-    /export\s*\{([^}]*)\}\s*(?:from\s*['"]\.\/(?:components|composites)\/[^'"]+['"]|;)/g;
+    /export\s*\{([^}]*)\}\s*(?:from\s*['"]\.\/(?:components|composites|theme)\/[^'"]+['"]|;)/g;
   for (const match of source.matchAll(block)) {
     for (const raw of match[1]!.split(',')) {
       const part = raw.trim();
@@ -122,6 +139,16 @@ export function enumOptionsFromType(type: DocgenPropType | undefined): string[] 
   return options.length > 0 ? options : undefined;
 }
 
+/**
+ * Pure core: tidies a docgen default. A prop declared in several members of a union (Button's
+ * `variant`, in its action, link and toggle forms) comes back as each member's default joined
+ * by newlines, so identical lines collapse to one; a genuinely multi-line default is kept.
+ */
+export function normalizeDefaultValue(raw: string): string {
+  const lines = raw.split('\n');
+  return lines.every((line) => line.trim() === lines[0]!.trim()) ? lines[0]!.trim() : raw;
+}
+
 /** Pure core: parse each file and keep the docgen entries in the allowlist. Testable. */
 export function extractProps(
   files: string[],
@@ -142,7 +169,7 @@ export function extractProps(
             type: prop.type?.name ?? 'unknown',
             required: prop.required,
             ...(prop.defaultValue?.value != null
-              ? { defaultValue: String(prop.defaultValue.value) }
+              ? { defaultValue: normalizeDefaultValue(String(prop.defaultValue.value)) }
               : {}),
             ...(prop.description ? { description: prop.description } : {}),
             ...(options && options.length > 0 ? { options } : {}),
@@ -184,11 +211,21 @@ async function main(): Promise<void> {
     records.push(...extractProps(await collectSources(sourceRoots, extension), parser, allow));
   }
 
+  const hooks: HookDocFile[] = [];
+  try {
+    for (const { tsconfigPath, entries } of hookEntries) {
+      hooks.push(...documentHooks(tsconfigPath, entries));
+    }
+  } catch (error) {
+    console.error(`[generate-props] cannot document the hooks: ${(error as Error).message}`);
+    process.exit(1);
+  }
+
   try {
     await rm(outDir, { recursive: true, force: true });
     await mkdir(outDir, { recursive: true });
     await Promise.all(
-      records.map((record) =>
+      [...records, ...hooks].map((record) =>
         writeFile(
           join(outDir, `${record.displayName}.json`),
           `${JSON.stringify(record, null, 2)}\n`,
@@ -200,7 +237,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`[generate-props] wrote ${records.length} files to ${outDir}`);
+  console.log(
+    `[generate-props] wrote ${records.length} components and ${hooks.length} hooks to ${outDir}`,
+  );
 }
 
 // Run only when invoked directly as a script, not when imported (e.g. by a unit test).

@@ -6,7 +6,7 @@ import type { PropsRecord } from '../../lib/component-props';
 import { inferControls } from './controls-model';
 import { PLAYGROUND_DESCRIPTORS } from './descriptors';
 
-/** Reads a generated props JSON if present (it is produced by `generate:props`). */
+/** Reads a generated props JSON if present (it is produced by `generate`). */
 function readProps(name: string): PropsRecord[] | null {
   const file = resolve(process.cwd(), '.generated/props', `${name}.json`);
   if (!existsSync(file)) return null;
