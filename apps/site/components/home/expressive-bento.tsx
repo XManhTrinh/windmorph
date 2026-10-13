@@ -66,7 +66,7 @@ function Tile({ className, children }: { className?: string; children: ReactNode
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center overflow-hidden rounded-corner-extra-large bg-secondary-container p-6',
+        'relative flex items-center justify-center overflow-hidden rounded-corner-extra-large bg-surface-container-high p-6',
         className,
       )}
     >
@@ -109,7 +109,7 @@ export function ExpressiveBento() {
             icon={<EditIcon />}
             openIcon={<CloseIcon />}
             aria-label="Album actions"
-            classNames={{ button: 'bg-primary text-on-primary shadow-none' }}
+            classNames={{ button: 'shadow-none' }}
           >
             <FabMenuItem className="shadow-none" icon={<CheckCircleFilledIcon />}>
               Select
@@ -191,7 +191,6 @@ export function ExpressiveBento() {
               wavy={indicator.wavy}
               aria-label="Progress"
               className="w-full"
-              classNames={{ track: 'stroke-outline-variant' }}
             />
           ))}
         </div>
@@ -201,26 +200,21 @@ export function ExpressiveBento() {
           way (the spec's standard-group motion); the selected tool turns tertiary, as in
           Google's showcase */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-1 large:row-span-4 large:row-start-7">
-        <FloatingToolbar
-          aria-label="Photo tools"
-          elevated={false}
-          className="bg-surface-container-lowest"
-        >
-          <ButtonGroup aria-label="Tools" buttonVariant="filled" className="gap-[8px]">
-            <IconButton toggle variant="filled" icon={<InkPenIcon />} aria-label="Markup" />
-            <IconButton toggle variant="filled" icon={<CropIcon />} aria-label="Crop" />
-            <IconButton toggle variant="filled" icon={<TuneIcon />} aria-label="Adjust" />
+        <FloatingToolbar aria-label="Photo tools" elevated={false}>
+          <ButtonGroup aria-label="Tools" buttonVariant="tonal" className="gap-[8px]">
+            <IconButton toggle variant="tonal" icon={<InkPenIcon />} aria-label="Markup" />
+            <IconButton toggle variant="tonal" icon={<CropIcon />} aria-label="Crop" />
+            <IconButton toggle variant="tonal" icon={<TuneIcon />} aria-label="Adjust" />
             <IconButton
               data-press="on off"
               toggle
               selected={active}
-              variant="filled"
+              variant="tonal"
               width="wide"
               icon={<SettingsIcon />}
               aria-label="Settings"
-              className="data-selected:not-data-disabled:bg-tertiary data-selected:not-data-disabled:text-on-tertiary"
             />
-            <IconButton toggle variant="filled" icon={<EditIcon />} aria-label="Edit" />
+            <IconButton toggle variant="tonal" icon={<EditIcon />} aria-label="Edit" />
           </ButtonGroup>
         </FloatingToolbar>
       </Tile>
@@ -237,8 +231,7 @@ export function ExpressiveBento() {
             selected={active}
             size="md"
             shape="square"
-            variant="filled"
-            className="bg-primary-container text-on-primary-container"
+            variant="tonal"
             icon={<AddIcon />}
             selectedIcon={<CloseIcon />}
             aria-label="Add"
