@@ -109,6 +109,7 @@ export function ExpressiveBento() {
             color="primary"
             icon={<EditIcon />}
             openIcon={<CloseIcon />}
+            iconTransition="rotate"
             aria-label="Album actions"
             elevation="flat"
           >
@@ -133,7 +134,9 @@ export function ExpressiveBento() {
               elevation="flat"
               tooltip={false}
               color="vibrant"
-              icon={active ? <CloseIcon /> : <EditIcon />}
+              icon={<EditIcon />}
+              expandedIcon={<CloseIcon />}
+              iconTransition="rotate"
               aria-label="Edit"
             />
           }
