@@ -164,6 +164,22 @@ export async function ButtonBody(): Promise<ComponentDoc> {
               <InlineCode>on-surface-variant</InlineCode> 38% for every variant.
             </li>
             <li>
+              A pressed button shows the pressed elevation (elevated level 1, filled and tonal 0)
+              even while the pointer is over it.
+            </li>
+            <li>
+              The leading and trailing space is measured from the container&apos;s edge, so the
+              outlined style&apos;s outline comes out of its padding and an outlined button is the
+              same size as a filled one. Change the outline width with{' '}
+              <InlineCode>--m3-button-border</InlineCode>, which sets the border and the padding
+              together.
+            </li>
+            <li>
+              Toggles take <InlineCode>selectedLeadingIcon</InlineCode>, shown instead of{' '}
+              <InlineCode>leadingIcon</InlineCode> while selected (the filled form of the outlined
+              icon), so an uncontrolled toggle can swap its icon too.
+            </li>
+            <li>
               XS and S buttons get a 48px touch target inside the library-owned inner wrapper; the
               layout height stays 32 / 40px.
             </li>

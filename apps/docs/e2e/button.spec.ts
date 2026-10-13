@@ -135,6 +135,75 @@ test.describe('Button interaction states', () => {
   });
 });
 
+test.describe('Button spec fixes (2026-10-13)', () => {
+  const shadow = (el: Element) => getComputedStyle(el).boxShadow;
+
+  test('a pressed button takes the pressed elevation, not the hover one', async ({ page }) => {
+    await openStory(page, 'components-button--variants');
+    const labels = page.getByRole('button', { name: 'Label', exact: true });
+    // Elevated, filled, tonal: rest shadow (elevated level 1) is the pressed shadow.
+    for (const index of [0, 1, 2]) {
+      const button = labels.nth(index);
+      const rest = await button.evaluate(shadow);
+      const box = (await button.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await expect(button).toHaveAttribute('data-hovered', 'true');
+      await expect.poll(() => button.evaluate(shadow)).not.toBe(rest);
+      await page.mouse.down();
+      await expect(button).toHaveAttribute('data-pressed', 'true');
+      await expect.poll(() => button.evaluate(shadow)).toBe(rest);
+      await page.mouse.up();
+      await page.mouse.move(0, 0);
+    }
+  });
+
+  test('an outlined button is the same size as a filled one, its outline inside the padding', async ({
+    page,
+  }) => {
+    for (const [size, border, space] of [
+      ['xs', 1, 16],
+      ['sm', 1, 16],
+      ['md', 1, 24],
+      ['lg', 2, 48],
+      ['xl', 3, 64],
+    ] as const) {
+      const measure = async (variant: string) => {
+        await openStory(page, 'components-button--playground', {}, { size, variant });
+        return page.getByRole('button', { name: 'Button' }).evaluate((el) => {
+          const label = el.querySelector('span')!.getBoundingClientRect();
+          const box = el.getBoundingClientRect();
+          return {
+            width: box.width,
+            inset: label.left - box.left,
+            border: parseFloat(getComputedStyle(el).borderLeftWidth),
+          };
+        });
+      };
+      const filled = await measure('filled');
+      const outlined = await measure('outlined');
+      expect(outlined.border).toBe(border);
+      expect(outlined.width).toBe(filled.width);
+      expect(outlined.inset).toBe(space);
+      expect(filled.inset).toBe(space);
+    }
+  });
+
+  test('a toggle swaps in its selected leading icon', async ({ page }) => {
+    await openStory(page, 'components-button--toggle');
+    const star = page.getByRole('button', { name: 'Star' });
+    const path = () => star.locator('svg path').getAttribute('d');
+    const unselected = await path();
+    await star.click();
+    await expect(page.getByRole('button', { name: 'Starred' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      await page.getByRole('button', { name: 'Starred' }).locator('svg path').getAttribute('d'),
+    ).not.toBe(unselected);
+  });
+});
+
 test.describe('Button ripple', () => {
   /** Samples the ripple's radius and opacity every frame for `ms`. */
   const sample = (page: Page, ms: number) =>

@@ -81,6 +81,10 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'checked', windmorph: 'selected' },
           { compose: 'onCheckedChange', windmorph: 'onSelectedChange' },
+          {
+            compose: 'icon in the content slot, swapped on checked',
+            windmorph: 'leadingIcon, selectedLeadingIcon',
+          },
         ],
         note: '`ElevatedToggleButton`, `TonalToggleButton` and `OutlinedToggleButton` are `Button toggle` with that `variant`.',
       },

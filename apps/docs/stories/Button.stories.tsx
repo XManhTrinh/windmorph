@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button, type ButtonShape, type ButtonSize, type ButtonVariant } from '@windmorph/react';
 import { useState } from 'react';
-import { AddIcon, SendIcon, StarIcon } from './icons';
+import { AddIcon, SendIcon, StarIcon, StarOutlineIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -89,7 +89,10 @@ export const SizesAndShapes: Story = {
   ),
 };
 
-/** Toggle buttons swap shape when selected: round → square, square → round. */
+/**
+ * Toggle buttons swap shape when selected: round → square, square → round. The star swaps
+ * its outlined icon for the filled one (`selectedLeadingIcon`).
+ */
 export const Toggle: Story = {
   render: function ToggleStory() {
     const [starred, setStarred] = useState(false);
@@ -100,7 +103,8 @@ export const Toggle: Story = {
           size="md"
           selected={starred}
           onSelectedChange={setStarred}
-          leadingIcon={<StarIcon />}
+          leadingIcon={<StarOutlineIcon />}
+          selectedLeadingIcon={<StarIcon />}
         >
           {starred ? 'Starred' : 'Star'}
         </Button>

@@ -55,6 +55,11 @@ export interface ButtonToggleProps
   extends Omit<ButtonOwnProps, 'variant'>, Omit<ButtonBaseToggleProps, keyof ButtonOwnProps> {
   /** Text buttons have no toggle form. @default "filled" */
   variant?: Exclude<ButtonVariant, 'text'>;
+  /**
+   * Leading icon shown while selected, e.g. the filled form of `leadingIcon` (M3: "use an
+   * outlined icon when unselected, and a filled version of the icon when selected").
+   */
+  selectedLeadingIcon?: ReactElement;
 }
 
 export type ButtonProps = ButtonActionProps | ButtonLinkProps | ButtonToggleProps;
@@ -68,7 +73,8 @@ export type ButtonProps = ButtonActionProps | ButtonLinkProps | ButtonToggleProp
  *
  * @example
  * <Button variant="tonal" size="md" leadingIcon={<EditIcon />} onPress={edit}>Edit</Button>
- * <Button toggle selected={starred} onSelectedChange={setStarred}>Starred</Button>
+ * <Button toggle leadingIcon={<StarIcon />} selectedLeadingIcon={<StarFilledIcon />}
+ *   selected={starred} onSelectedChange={setStarred}>Starred</Button>
  * <Button href="/docs" variant="text">Docs</Button>
  */
 export function Button({
@@ -80,8 +86,12 @@ export function Button({
   classNames,
   className,
   children,
-  ...base
+  ...rest
 }: ButtonProps) {
+  // Only toggle props carry `selectedLeadingIcon`; the others read it as undefined.
+  const { selectedLeadingIcon, ...base } = rest as typeof rest & {
+    selectedLeadingIcon?: ReactElement;
+  };
   const context = useContext(ButtonContext);
   const toggle = base.toggle === true;
   let variant = variantProp ?? context.variant ?? 'filled';
@@ -110,15 +120,20 @@ export function Button({
 
   return (
     <ButtonBase {...baseProps}>
-      <span className={styles.content({ class: classNames?.content })}>
-        {(size === 'xs' || size === 'sm') && <TouchTarget />}
-        {leadingIcon && (
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-            {leadingIcon}
+      {({ isSelected }) => {
+        const icon = isSelected && selectedLeadingIcon ? selectedLeadingIcon : leadingIcon;
+        return (
+          <span className={styles.content({ class: classNames?.content })}>
+            {(size === 'xs' || size === 'sm') && <TouchTarget />}
+            {icon && (
+              <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
+                {icon}
+              </span>
+            )}
+            <span className={styles.label({ class: classNames?.label })}>{children}</span>
           </span>
-        )}
-        <span className={styles.label({ class: classNames?.label })}>{children}</span>
-      </span>
+        );
+      }}
     </ButtonBase>
   );
 }

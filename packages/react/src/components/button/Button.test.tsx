@@ -64,25 +64,50 @@ describe('Button', () => {
     ['tonal', ['bg-secondary-container', 'text-on-secondary-container']],
     ['outlined', ['border-outline-variant', 'text-on-surface-variant', 'bg-transparent']],
     // Small text buttons take the 16px padding of the other small buttons (M3 Expressive).
-    ['text', ['bg-transparent', 'text-primary', 'px-[16px]']],
+    ['text', ['bg-transparent', 'text-primary', 'px-[calc(16px-var(--m3-button-border,0px))]']],
   ] as const)('styles the %s variant', (variant, classes) => {
     render(<Button variant={variant}>Go</Button>);
     expect(screen.getByRole('button')).toHaveClass(...classes);
   });
 
   it.each([
-    ['xs', ['h-[32px]', 'px-[16px]', 'text-label-large'], 'gap-[8px]', 'size-[20px]'],
-    ['sm', ['h-[40px]', 'px-[16px]', 'text-label-large'], 'gap-[8px]', 'size-[20px]'],
-    ['md', ['h-[56px]', 'px-[24px]', 'text-title-medium'], 'gap-[8px]', 'size-[24px]'],
+    [
+      'xs',
+      ['h-[32px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      'gap-[8px]',
+      'size-[20px]',
+    ],
+    [
+      'sm',
+      ['h-[40px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      'gap-[8px]',
+      'size-[20px]',
+    ],
+    [
+      'md',
+      ['h-[56px]', 'px-[calc(24px-var(--m3-button-border,0px))]', 'text-title-medium'],
+      'gap-[8px]',
+      'size-[24px]',
+    ],
     [
       'lg',
-      ['h-[96px]', 'px-[48px]', 'text-headline-small', 'font-brand'],
+      [
+        'h-[96px]',
+        'px-[calc(48px-var(--m3-button-border,0px))]',
+        'text-headline-small',
+        'font-brand',
+      ],
       'gap-[12px]',
       'size-[32px]',
     ],
     [
       'xl',
-      ['h-[136px]', 'px-[64px]', 'text-headline-large', 'font-brand'],
+      [
+        'h-[136px]',
+        'px-[calc(64px-var(--m3-button-border,0px))]',
+        'text-headline-large',
+        'font-brand',
+      ],
       'gap-[16px]',
       'size-[40px]',
     ],
@@ -119,19 +144,69 @@ describe('Button', () => {
     );
   });
 
-  it('widens the outline for large outlined buttons', () => {
+  it('widens the outline for large outlined buttons and takes it out of the padding', () => {
     render(
       <>
+        <Button variant="outlined">S</Button>
         <Button variant="outlined" size="lg">
           L
         </Button>
         <Button variant="outlined" size="xl">
           XL
         </Button>
+        <Button variant="filled">Filled</Button>
       </>,
     );
-    expect(screen.getByRole('button', { name: 'L' })).toHaveClass('border-2');
-    expect(screen.getByRole('button', { name: 'XL' })).toHaveClass('border-3');
+    expect(screen.getByRole('button', { name: 'S' })).toHaveClass(
+      '[--m3-button-border:1px]',
+      'border-(length:--m3-button-border)',
+      'px-[calc(16px-var(--m3-button-border,0px))]',
+    );
+    expect(screen.getByRole('button', { name: 'L' })).toHaveClass('[--m3-button-border:2px]');
+    expect(screen.getByRole('button', { name: 'L' })).not.toHaveClass('[--m3-button-border:1px]');
+    expect(screen.getByRole('button', { name: 'XL' })).toHaveClass('[--m3-button-border:3px]');
+    expect(screen.getByRole('button', { name: 'Filled' }).className).not.toMatch(
+      /--m3-button-border:/,
+    );
+  });
+
+  it('keeps the hover elevation off while pressed', () => {
+    render(
+      <>
+        <Button variant="elevated">Elevated</Button>
+        <Button variant="filled">Filled</Button>
+        <Button variant="tonal">Tonal</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
+      'shadow-elevation-1',
+      'data-hovered:not-data-pressed:shadow-elevation-2',
+    );
+    for (const name of ['Filled', 'Tonal']) {
+      const button = screen.getByRole('button', { name });
+      expect(button).toHaveClass('data-hovered:not-data-pressed:shadow-elevation-1');
+      expect(button.className).not.toMatch(/(^| )data-hovered:shadow/);
+    }
+  });
+
+  it('swaps in selectedLeadingIcon while a toggle is selected', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <Button
+        toggle
+        leadingIcon={<svg data-testid="outline" />}
+        selectedLeadingIcon={<svg data-testid="filled" />}
+      >
+        Starred
+      </Button>,
+    );
+    expect(screen.getByTestId('outline')).toBeInTheDocument();
+    expect(screen.queryByTestId('filled')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Starred' }));
+    expect(screen.getByRole('button', { name: 'Starred' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('filled').parentElement).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByTestId('outline')).toBeNull();
+    expect(await axeViolations(container)).toEqual([]);
   });
 
   it('adds a 48px touch target to XS and S buttons only', () => {
