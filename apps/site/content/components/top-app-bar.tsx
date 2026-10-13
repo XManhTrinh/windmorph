@@ -2,7 +2,9 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { SearchAppBarDemo } from '../../examples/search/search-app-bar';
 import { TopAppBarFlexible } from '../../examples/top-app-bar/top-app-bar-flexible';
+import { TopAppBarChips } from '../../examples/top-app-bar/top-app-bar-chips';
 import { TopAppBarScrolling } from '../../examples/top-app-bar/top-app-bar-scrolling';
+import { TopAppBarTransparent } from '../../examples/top-app-bar/top-app-bar-transparent';
 import { TopAppBarVariants } from '../../examples/top-app-bar/top-app-bar-variants';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -10,18 +12,23 @@ import { InlineCode } from '../../components/inline-code';
 
 /** Top app bar page body: the three sizes, centred text, scroll behaviour and search. */
 export async function TopAppBarBody(): Promise<ComponentDoc> {
-  const [variants, flexible, scrolling, searchAppBar] = await Promise.all([
+  const [variants, flexible, scrolling, searchAppBar, chips, transparent] = await Promise.all([
     readExampleSource('top-app-bar/top-app-bar-variants.tsx'),
     readExampleSource('top-app-bar/top-app-bar-flexible.tsx'),
     readExampleSource('top-app-bar/top-app-bar-scrolling.tsx'),
     readExampleSource('search/search-app-bar.tsx'),
+    readExampleSource('top-app-bar/top-app-bar-chips.tsx'),
+    readExampleSource('top-app-bar/top-app-bar-transparent.tsx'),
   ]);
-  const [variantsHtml, flexibleHtml, scrollingHtml, searchAppBarHtml] = await Promise.all([
-    highlightSource(variants),
-    highlightSource(flexible),
-    highlightSource(scrolling),
-    highlightSource(searchAppBar),
-  ]);
+  const [variantsHtml, flexibleHtml, scrollingHtml, searchAppBarHtml, chipsHtml, transparentHtml] =
+    await Promise.all([
+      highlightSource(variants),
+      highlightSource(flexible),
+      highlightSource(scrolling),
+      highlightSource(searchAppBar),
+      highlightSource(chips),
+      highlightSource(transparent),
+    ]);
 
   return {
     overview: (
@@ -61,6 +68,22 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
             fileName="search-app-bar.tsx"
           >
             <SearchAppBarDemo />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A row of chips in the bar"
+            code={chips}
+            html={chipsHtml}
+            fileName="top-app-bar-chips.tsx"
+          >
+            <TopAppBarChips />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Transparent on scroll"
+            code={transparent}
+            html={transparentHtml}
+            fileName="top-app-bar-transparent.tsx"
+          >
+            <TopAppBarTransparent />
           </ExampleViewer>
         </section>
       </>

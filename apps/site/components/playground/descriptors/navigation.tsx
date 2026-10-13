@@ -1,7 +1,9 @@
 'use client';
 
 import {
+  ChipSet,
   ExtendedFab,
+  FilterChip,
   FloatingToolbar,
   IconButton,
   NavigationBar,
@@ -151,8 +153,17 @@ function BarPreview(props: Record<string, unknown>) {
   );
 }
 
+/** The top app bar's `bottom` row: filter chips, with the row's own padding. */
+const FILTER_CHIPS = (
+  <ChipSet aria-label="Filter messages" layout="scroll" className="px-[8px] pb-[8px]">
+    <FilterChip value="unread">Unread</FilterChip>
+    <FilterChip value="starred">Starred</FilterChip>
+    <FilterChip value="attachments">Attachments</FilterChip>
+  </ChipSet>
+);
+
 /** The bar over its own scroll container, so each scroll behaviour can be tried. */
-function TopAppBarPreview({ navigationIcon, actions, ...props }: Record<string, unknown>) {
+function TopAppBarPreview({ navigationIcon, actions, bottom, ...props }: Record<string, unknown>) {
   const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div
@@ -176,6 +187,7 @@ function TopAppBarPreview({ navigationIcon, actions, ...props }: Record<string, 
             </>
           ),
         }),
+        ...(bottom === true && { bottom: FILTER_CHIPS }),
       })}
       <Lines label="Message" />
     </div>
@@ -382,7 +394,9 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       titleAlign: 'start',
       navigationIcon: false,
       actions: false,
+      bottom: false,
       scrollBehavior: 'none',
+      scrolledColor: 'container',
     },
     surfacedProps: [
       'variant',
@@ -391,7 +405,9 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'titleAlign',
       'navigationIcon',
       'actions',
+      'bottom',
       'scrollBehavior',
+      'scrolledColor',
     ],
     initialState: {
       variant: 'medium',
@@ -405,19 +421,23 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       variant: ['small', 'medium', 'large'],
       titleAlign: ['start', 'center'],
       scrollBehavior: ['none', 'pinned', 'enter-always', 'exit-until-collapsed'],
+      scrolledColor: ['container', 'transparent'],
     },
     controlKinds: {
       title: 'string',
       subtitle: 'string',
       navigationIcon: 'boolean',
       actions: 'boolean',
+      bottom: 'boolean',
     },
     toggledSlots: {
       navigationIcon: '<IconButton icon={<ArrowBackIcon />} aria-label="Back" />',
       actions:
         '(\n    <>\n      <IconButton icon={<StarIcon />} aria-label="Favourite" />\n      <IconButton icon={<MoreVertIcon />} aria-label="More" />\n    </>\n  )',
+      bottom:
+        '(\n    <ChipSet aria-label="Filter messages" layout="scroll" className="px-[8px] pb-[8px]">\n      <FilterChip value="unread">Unread</FilterChip>\n      <FilterChip value="starred">Starred</FilterChip>\n      <FilterChip value="attachments">Attachments</FilterChip>\n    </ChipSet>\n  )',
     },
-    importMembers: ['IconButton'],
+    importMembers: ['ChipSet', 'FilterChip', 'IconButton'],
     codeImports: ["import { ArrowBackIcon, MoreVertIcon, StarIcon } from './icons';"],
   },
   search: {
@@ -450,7 +470,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       value: '',
       expanded: false,
-      view: 'docked',
+      view: 'auto',
       placeholder: '',
       leadingIcon: false,
       trailingIcon: false,
@@ -473,7 +493,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       trailingIcon: true,
       resultsAnnouncement: 'Suggestions updated',
     },
-    enumOptions: { view: ['docked', 'full-screen'], textAlign: ['start', 'center'] },
+    enumOptions: { view: ['auto', 'docked', 'full-screen'], textAlign: ['start', 'center'] },
     controlKinds: { leadingIcon: 'boolean', trailingIcon: 'boolean' },
     notControlled: {
       inputProps:

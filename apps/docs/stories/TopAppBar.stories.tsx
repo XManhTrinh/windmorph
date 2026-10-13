@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  ChipSet,
+  FilterChip,
   IconButton,
   TopAppBar,
+  type TopAppBarScrolledColor,
   type TopAppBarScrollBehavior,
   type TopAppBarTitleAlign,
   type TopAppBarVariant,
@@ -19,6 +22,9 @@ interface Args {
   titleAlign: TopAppBarTitleAlign;
   subtitle: boolean;
   scrollBehavior: TopAppBarScrollBehavior;
+  /** Show a row of filter chips in the `bottom` slot. */
+  bottom: boolean;
+  scrolledColor: TopAppBarScrolledColor;
 }
 
 const meta = {
@@ -28,6 +34,8 @@ const meta = {
     titleAlign: 'start',
     subtitle: false,
     scrollBehavior: 'exit-until-collapsed',
+    bottom: false,
+    scrolledColor: 'container',
   },
   argTypes: {
     variant: { control: 'inline-radio', options: ['small', 'medium', 'large'] },
@@ -36,6 +44,7 @@ const meta = {
       control: 'inline-radio',
       options: ['pinned', 'enter-always', 'exit-until-collapsed'],
     },
+    scrolledColor: { control: 'inline-radio', options: ['container', 'transparent'] },
   },
 } satisfies Meta<Args>;
 
@@ -97,9 +106,36 @@ export const LongTitle: Story = {
   ),
 };
 
-/** A bar above scrolling content: pinned, enter-always or exit-until-collapsed. */
+const chips = (
+  <ChipSet
+    aria-label="Filter"
+    selectionMode="single"
+    defaultSelectedKeys={['all']}
+    layout="scroll"
+    className="px-[8px] pb-[8px]"
+    data-testid="chips"
+  >
+    <FilterChip value="all">All</FilterChip>
+    <FilterChip value="unread">Unread</FilterChip>
+    <FilterChip value="starred">Starred</FilterChip>
+    <FilterChip value="files">With files</FilterChip>
+  </ChipSet>
+);
+
+/**
+ * A bar above scrolling content: pinned, enter-always or exit-until-collapsed, optionally
+ * with a row of chips in its `bottom` slot and a see-through scrolled colour (with filled
+ * icon buttons).
+ */
 export const Scrolling: Story = {
-  render: function ScrollingStory({ variant, titleAlign, subtitle, scrollBehavior }) {
+  render: function ScrollingStory({
+    variant,
+    titleAlign,
+    subtitle,
+    scrollBehavior,
+    bottom,
+    scrolledColor,
+  }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     return (
       <div
@@ -113,10 +149,24 @@ export const Scrolling: Story = {
           titleAlign={titleAlign}
           title="Inbox"
           subtitle={subtitle ? '24 messages' : undefined}
-          navigationIcon={back}
-          actions={actions}
+          navigationIcon={
+            scrolledColor === 'transparent' ? (
+              <IconButton variant="tonal" icon={<ArrowBackIcon />} aria-label="Back" />
+            ) : (
+              back
+            )
+          }
+          actions={
+            scrolledColor === 'transparent' ? (
+              <IconButton variant="tonal" icon={<MoreVertIcon />} aria-label="More" />
+            ) : (
+              actions
+            )
+          }
           scrollBehavior={scrollBehavior}
           scrollRef={scrollRef}
+          bottom={bottom ? chips : undefined}
+          scrolledColor={scrolledColor}
         />
         {Array.from({ length: 40 }, (_, index) => (
           <p key={index} className="px-4 py-3 text-body-large">

@@ -62,19 +62,21 @@ export async function SearchBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             A <InlineCode>SearchBar</InlineCode> is a 56px pill that expands into a search view
-            holding suggestions or results. With <InlineCode>view=&quot;docked&quot;</InlineCode>{' '}
-            (the default) it opens a dropdown below the bar over a scrim; with{' '}
-            <InlineCode>view=&quot;full-screen&quot;</InlineCode> it grows to fill the window, for
-            compact windows. It is controlled with <InlineCode>value</InlineCode> /{' '}
-            <InlineCode>onChange</InlineCode>, and <InlineCode>onSubmit</InlineCode> fires on Enter.
+            holding suggestions or results. With <InlineCode>view=&quot;docked&quot;</InlineCode> it
+            opens a dropdown below the bar over a scrim; with{' '}
+            <InlineCode>view=&quot;full-screen&quot;</InlineCode> it grows to fill the window. The
+            default, <InlineCode>view=&quot;auto&quot;</InlineCode>, is full screen on compact
+            windows (below 600px wide) and docked on larger ones, as M3 recommends. It is controlled
+            with <InlineCode>value</InlineCode> / <InlineCode>onChange</InlineCode>, and{' '}
+            <InlineCode>onSubmit</InlineCode> fires on Enter.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>leadingIcon</InlineCode> and <InlineCode>trailingIcon</InlineCode> can be
-            functions of <InlineCode>{'{ expanded, collapse }'}</InlineCode>, so a back or clear
-            button appears while the view is open. The trailing slot holds one or two icon buttons,
-            or an avatar (an <InlineCode>img</InlineCode>, drawn at 30px) and one icon button.{' '}
-            <InlineCode>textAlign=&quot;center&quot;</InlineCode> centres the collapsed text.{' '}
-            <InlineCode>SearchAppBar</InlineCode> (Compose&apos;s{' '}
+            functions of <InlineCode>{'{ expanded, collapse, view }'}</InlineCode>, so a back or
+            clear button appears while the view is open. The trailing slot holds one or two icon
+            buttons, or an avatar (an <InlineCode>img</InlineCode>, drawn at 30px) and one icon
+            button. <InlineCode>textAlign=&quot;center&quot;</InlineCode> centres the collapsed
+            text. <InlineCode>SearchAppBar</InlineCode> (Compose&apos;s{' '}
             <InlineCode>AppBarWithSearch</InlineCode>) wraps a search bar in a top bar with a{' '}
             <InlineCode>navigationIcon</InlineCode>, <InlineCode>actions</InlineCode> and{' '}
             <InlineCode>scrollBehavior</InlineCode>.

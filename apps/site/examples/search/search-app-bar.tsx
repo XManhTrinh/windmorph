@@ -23,7 +23,12 @@ export function SearchAppBarDemo() {
         navigationIcon={<IconButton icon={<MenuIcon />} aria-label="Menu" />}
         actions={<IconButton icon={<MicIcon />} aria-label="Voice search" />}
       >
-        <SearchBar aria-label="Search" placeholder="Search" leadingIcon={<SearchIcon />} />
+        <SearchBar
+          aria-label="Search"
+          placeholder="Search"
+          view="docked"
+          leadingIcon={<SearchIcon />}
+        />
       </SearchAppBar>
       {Array.from({ length: 30 }, (_, index) => (
         <p key={index} className="px-4 py-3 text-body-large text-on-surface-variant">

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { IconButton, SearchAppBar, SearchBar } from '@windmorph/react';
+import { IconButton, SearchAppBar, SearchBar, type SearchBarView } from '@windmorph/react';
 import { useRef, useState } from 'react';
 import { ArrowBackIcon, CloseIcon, MenuIcon, MicIcon, SearchIcon } from './icons';
 import {
@@ -9,13 +9,13 @@ import {
 } from './layout-overrides';
 
 interface Args {
-  view: 'docked' | 'full-screen';
+  view: SearchBarView;
 }
 
 const meta = {
   title: 'Components/Search',
-  args: { view: 'docked' },
-  argTypes: { view: { control: 'inline-radio', options: ['docked', 'full-screen'] } },
+  args: { view: 'auto' },
+  argTypes: { view: { control: 'inline-radio', options: ['auto', 'docked', 'full-screen'] } },
 } satisfies Meta<Args>;
 
 export default meta;
@@ -80,8 +80,8 @@ function Demo({ view, defaultExpanded = false }: Args & { defaultExpanded?: bool
         expanded={expanded}
         onExpandedChange={setExpanded}
         resultsAnnouncement={`${count} suggestions`}
-        leadingIcon={({ expanded: open, collapse }) =>
-          open && view === 'full-screen' ? (
+        leadingIcon={({ expanded: open, collapse, view: shown }) =>
+          open && shown === 'full-screen' ? (
             <IconButton
               variant="standard"
               icon={<ArrowBackIcon />}

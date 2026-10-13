@@ -2,7 +2,9 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { MenuBasic } from '../../examples/menu/menu-basic';
 import { MenuContext } from '../../examples/menu/menu-context';
+import { MenuInstant } from '../../examples/menu/menu-instant';
 import { MenuSelection } from '../../examples/menu/menu-selection';
+import { MenuSheet } from '../../examples/menu/menu-sheet';
 import { MenuSubmenu } from '../../examples/menu/menu-submenu';
 import { MenuLayouts } from '../../examples/menu/menu-layouts';
 import { readExampleSource } from '../../lib/example-source';
@@ -11,18 +13,23 @@ import { InlineCode } from '../../components/inline-code';
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {
-  const [basic, selection, submenu, context] = await Promise.all([
+  const [basic, selection, submenu, context, sheet, instant] = await Promise.all([
     readExampleSource('menu/menu-basic.tsx'),
     readExampleSource('menu/menu-selection.tsx'),
     readExampleSource('menu/menu-submenu.tsx'),
     readExampleSource('menu/menu-context.tsx'),
+    readExampleSource('menu/menu-sheet.tsx'),
+    readExampleSource('menu/menu-instant.tsx'),
   ]);
-  const [basicHtml, selectionHtml, submenuHtml, contextHtml] = await Promise.all([
-    highlightSource(basic),
-    highlightSource(selection),
-    highlightSource(submenu),
-    highlightSource(context),
-  ]);
+  const [basicHtml, selectionHtml, submenuHtml, contextHtml, sheetHtml, instantHtml] =
+    await Promise.all([
+      highlightSource(basic),
+      highlightSource(selection),
+      highlightSource(submenu),
+      highlightSource(context),
+      highlightSource(sheet),
+      highlightSource(instant),
+    ]);
 
   const layouts = await readExampleSource('menu/menu-layouts.tsx');
   const layoutsHtml = await highlightSource(layouts);
@@ -73,6 +80,22 @@ export async function MenuBody(): Promise<ComponentDoc> {
             fileName="menu-context.tsx"
           >
             <MenuContext />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A bottom sheet on phones"
+            code={sheet}
+            html={sheetHtml}
+            fileName="menu-sheet.tsx"
+          >
+            <MenuSheet />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Instant menus for a dense desktop menu bar"
+            code={instant}
+            html={instantHtml}
+            fileName="menu-instant.tsx"
+          >
+            <MenuInstant />
           </ExampleViewer>
         </section>
       </>

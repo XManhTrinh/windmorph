@@ -47,6 +47,7 @@ export function SearchDocked() {
       <SearchBar
         aria-label="Search mail"
         placeholder="Search mail"
+        view="docked"
         value={query}
         onChange={setQuery}
         onSubmit={submit}

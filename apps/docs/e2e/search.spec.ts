@@ -170,6 +170,25 @@ test.describe('Search geometry and behaviour', () => {
     await expect(dialog).toBeHidden();
   });
 
+  test('by default: full screen on a compact window, docked from 600px wide', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground');
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    await settle(page);
+    // M3: "Full-screen layout: Default for compact breakpoints".
+    expect(await rect(dialog)).toMatchObject({ x: 0, y: 0, width: 412, height: 640 });
+    await dialog.getByRole('button', { name: 'Back' }).click();
+    await expect(dialog).toBeHidden();
+
+    // "Docked layout: Best for medium and expanded windows."
+    await page.setViewportSize({ width: 600, height: 640 });
+    await expect(page.getByTestId('search')).toHaveAttribute('data-view', 'docked');
+    await page.getByRole('combobox').click();
+    await settle(page);
+    expect((await rect(dialog)).width).toBeLessThan(600);
+  });
+
   test('typing into the collapsed bar expands it with the query', async ({ page }) => {
     await openStory(page, 'components-search--playground');
     await page.getByRole('combobox').focus();
@@ -249,5 +268,104 @@ test.describe('Search layout safety', () => {
           .evaluate((el) => getComputedStyle(el).borderTopLeftRadius),
       ).not.toBe('0px');
     },
+  });
+});
+
+test.describe('Search under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the full-screen view fades in over the window instead of growing', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground', {}, { view: 'full-screen' });
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    const style = await dialog.evaluate((el) => {
+      const computed = getComputedStyle(el);
+      return { clip: computed.clipPath, property: computed.transitionProperty };
+    });
+    expect(style).toEqual({ clip: 'inset(0px)', property: 'opacity' });
+    // The field is in place at once.
+    expect(await rect(dialog.getByRole('searchbox').locator('..'))).toMatchObject({
+      x: 16,
+      y: 8,
+    });
+    await dialog.getByRole('button', { name: 'Back' }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test('the docked view is at its focused width at once and the dropdown only fades', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-search--playground', {}, { view: 'docked' });
+    const bar = await rect(page.getByTestId('search'));
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    expect((await rect(dialog)).width).toBe(bar.width + 24);
+    const translate = await dialog
+      .locator('[tabindex="-1"]')
+      .last()
+      .evaluate((el) => getComputedStyle(el).translate);
+    expect(translate).toMatch(/^(none|0px)$/);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+});
+
+test.describe('Search text padding', () => {
+  /**
+   * The text's start and end (the input's content box) against the pill, the leading slot
+   * and the first trailing tap target, in reading order.
+   */
+  const gaps = (bar: Locator) =>
+    bar.evaluate((root) => {
+      const rtl = getComputedStyle(root).direction === 'rtl';
+      const input = root.querySelector('input')!;
+      const style = getComputedStyle(input);
+      const box = input.getBoundingClientRect();
+      const left = box.left + parseFloat(style.paddingLeft);
+      const right = box.right - parseFloat(style.paddingRight);
+      const field = input.parentElement!;
+      const pill = field.getBoundingClientRect();
+      // The icon slots are the 48px tap-target boxes.
+      const [leading, trailing] = [input.previousElementSibling, input.nextElementSibling].map(
+        (el) => el?.getBoundingClientRect(),
+      );
+      // Distances from the text to whatever comes before and after it.
+      const before = rtl
+        ? (leading ? leading.left : pill.right) - right
+        : left - (leading ? leading.right : pill.left);
+      const after = rtl
+        ? left - (trailing ? trailing.right : pill.left)
+        : (trailing ? trailing.left : pill.right) - right;
+      return { before: Math.round(before), after: Math.round(after), height: pill.height };
+    });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`4px from the tap targets, 16px from the edge without icons · ${dir}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-search--collapsed', { dir });
+      const bars = page.getByTestId('collapsed').locator('> div');
+      // M3: "Leading icon and label padding (from tap target): 4dp", and the same before
+      // the trailing icon.
+      expect(await gaps(bars.nth(0))).toEqual({ before: 4, after: 4, height: 56 });
+      expect(await gaps(bars.nth(1))).toEqual({ before: 16, after: 16, height: 56 });
+      expect(await gaps(page.getByTestId('two-trailing'))).toEqual({
+        before: 4,
+        after: 4,
+        height: 56,
+      });
+      expect(await gaps(page.getByTestId('avatar'))).toEqual({ before: 4, after: 4, height: 56 });
+    });
+  }
+
+  test('the expanded field keeps the same gaps', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground', {}, { view: 'full-screen' });
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    await settle(page);
+    const header = dialog.getByRole('searchbox').locator('../..');
+    expect(await gaps(header)).toEqual({ before: 4, after: 4, height: 56 });
   });
 });

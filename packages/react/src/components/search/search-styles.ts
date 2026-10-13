@@ -8,7 +8,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Field: 56px, full corners, `surface-container-high`, 360px wide by default and at most
  * 720px. Input and placeholder `body-large`, `on-surface` / `on-surface-variant`. Icons sit
  * in 48px boxes shifted 4px inwards (leading `on-surface`, trailing `on-surface-variant`);
- * text starts 52px in after a leading icon (16px without one).
+ * the text keeps 4px from the leading and trailing tap targets (the spec's "Leading icon and
+ * label padding (from tap target): 4dp" and "Label and trailing icon padding"; Compose's
+ * code leaves none), so it starts 56px in after a leading icon, 16px without one.
  *
  * Docked (with gap): the expanded field, 56px tall whatever the collapsed bar's height
  * (M3's focused search bar container), sits centred over the collapsed one and widens by 12px on
@@ -70,8 +72,9 @@ export const searchBarStyles = tv({
     dockedPanel: [
       'fixed top-(--m3-search-top) left-(--m3-search-focused-left) z-(--md-sys-z-sheet)',
       'flex w-(--m3-search-focused-width) flex-col outline-none',
-      'starting:left-(--m3-search-left) starting:w-(--m3-search-width)',
-      'data-exiting:left-(--m3-search-left) data-exiting:w-(--m3-search-width)',
+      // Reduced motion: the field is at its focused width at once.
+      'motion-safe:starting:left-(--m3-search-left) motion-safe:starting:w-(--m3-search-width)',
+      'motion-safe:data-exiting:left-(--m3-search-left) motion-safe:data-exiting:w-(--m3-search-width)',
       '[transition-property:left,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
@@ -85,7 +88,8 @@ export const searchBarStyles = tv({
       // 58px is the field and the gap above the dropdown.
       'min-h-[min(182px,calc(66.67dvh-58px))] max-h-[calc(66.67dvh-58px)]',
       'rounded-[12px] bg-surface-container-high text-on-surface',
-      'translate-y-0 starting:-translate-y-1/2 data-exiting:-translate-y-1/2',
+      // Reduced motion: it only fades.
+      'translate-y-0 motion-safe:starting:-translate-y-1/2 motion-safe:data-exiting:-translate-y-1/2',
       '[transition-property:translate,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),100ms]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),cubic-bezier(0.3,0,1,1)]',
@@ -97,19 +101,24 @@ export const searchBarStyles = tv({
     fullScreenPanel: [
       'fixed inset-0 z-(--md-sys-z-sheet) bg-surface-container-low text-on-surface outline-none',
       '[clip-path:inset(0_round_0)]',
-      'starting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
-      'data-exiting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
-      '[transition-property:clip-path]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-slow-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-slow-easing)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      'motion-safe:starting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
+      'motion-safe:data-exiting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
+      'motion-safe:[transition-property:clip-path]',
+      'motion-safe:[transition-duration:var(--md-sys-motion-spring-spatial-slow-duration)]',
+      'motion-safe:[transition-timing-function:var(--md-sys-motion-spring-spatial-slow-easing)]',
+      'motion-safe:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+      'motion-safe:data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      // Reduced motion: the view fades in and out over the window instead of growing.
+      'motion-reduce:starting:opacity-0 motion-reduce:data-exiting:opacity-0',
+      'motion-reduce:[transition-property:opacity]',
+      'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+      'motion-reduce:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
     fullScreenHeader: [
       // Compose's full-screen field is 56px whatever the bar's size; 16px from each side.
       'absolute start-[16px] top-[8px] h-[56px] w-[calc(100%-32px)]',
-      'starting:start-(--m3-search-start) starting:top-(--m3-search-top) starting:w-(--m3-search-width)',
-      'data-exiting:start-(--m3-search-start) data-exiting:top-(--m3-search-top) data-exiting:w-(--m3-search-width)',
+      'motion-safe:starting:start-(--m3-search-start) motion-safe:starting:top-(--m3-search-top) motion-safe:starting:w-(--m3-search-width)',
+      'motion-safe:data-exiting:start-(--m3-search-start) motion-safe:data-exiting:top-(--m3-search-top) motion-safe:data-exiting:w-(--m3-search-width)',
       '[transition-property:inset-inline-start,top,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-slow-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-slow-easing)]',
@@ -130,8 +139,9 @@ export const searchBarStyles = tv({
      * of it (M3), up to 720px.
      */
     inAppBar: { true: { root: 'w-[max(min(100%,312px),50%)]' }, false: {} },
-    hasLeading: { true: {}, false: { input: 'ps-[16px]' } },
-    hasTrailing: { true: {}, false: { input: 'pe-[16px]' } },
+    // 4px from a tap target (M3), else 16px from the pill's edge.
+    hasLeading: { true: { input: 'ps-[4px]' }, false: { input: 'ps-[16px]' } },
+    hasTrailing: { true: { input: 'pe-[4px]' }, false: { input: 'pe-[16px]' } },
     /**
      * Container colour: the bar's own; in a search app bar `surface-container`, and one
      * step higher than the bar once content scrolls under it.

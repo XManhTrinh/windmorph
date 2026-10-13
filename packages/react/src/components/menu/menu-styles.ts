@@ -26,9 +26,21 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - the menu is revealed from its anchored edge (a clip) as it fades in, on the fast springs
  *   (M3 motion: components enter along the x or y axis; scale is avoided), as do the
  *   exposed dropdown menus (Select, Autocomplete) and the docked date picker;
- * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped.
+ * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped,
+ *   and shows a persistent scrollbar (M3).
  * Every class is written out in full so Tailwind can find it.
  */
+
+/**
+ * M3: a menu that scrolls "show[s] a persistent scrollbar". Overlay scrollbars hide at rest,
+ * so a styled WebKit scrollbar is always drawn (a 4px `outline` thumb in a 12px track);
+ * elsewhere, a thin one. Shared by the menu and the exposed dropdown menus' option list.
+ */
+export const persistentScrollbar = [
+  '[&::-webkit-scrollbar]:w-[12px] [&::-webkit-scrollbar-track]:bg-transparent',
+  '[&::-webkit-scrollbar-thumb]:rounded-corner-full [&::-webkit-scrollbar-thumb]:border-[4px] [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-outline [&::-webkit-scrollbar-thumb]:bg-clip-padding',
+  'supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-width:thin] supports-[not_selector(::-webkit-scrollbar)]:[scrollbar-color:var(--md-sys-color-outline)_transparent]',
+];
 
 /** Variant definitions for {@link Menu} and its parts. */
 export const menuStyles = tv({
@@ -44,11 +56,12 @@ export const menuStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
       'starting:opacity-0 data-exiting:opacity-0',
-      // Below the anchor it opens downwards, above it upwards, beside it sideways.
-      'starting:[clip-path:inset(-24px_-24px_100%_-24px)] data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
-      'data-[placement=top]:starting:[clip-path:inset(100%_-24px_-24px_-24px)] data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
-      'data-[placement=right]:starting:[clip-path:inset(-24px_100%_-24px_-24px)] data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
-      'data-[placement=left]:starting:[clip-path:inset(-24px_-24px_-24px_100%)] data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
+      // Below the anchor it opens downwards, above it upwards, beside it sideways. Under
+      // reduced motion it only fades: the clip stays open.
+      'motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)] motion-safe:data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
+      'motion-safe:data-[placement=top]:starting:[clip-path:inset(100%_-24px_-24px_-24px)] motion-safe:data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
+      'motion-safe:data-[placement=right]:starting:[clip-path:inset(-24px_100%_-24px_-24px)] motion-safe:data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
+      'motion-safe:data-[placement=left]:starting:[clip-path:inset(-24px_-24px_-24px_100%)] motion-safe:data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
     ],
     // The list scrolls when tall, and a scroll container clips its children's shadows to
     // its box. 8px of padding (cancelled by a negative margin, so nothing moves) leaves room
@@ -56,6 +69,7 @@ export const menuStyles = tv({
     // outside the menu still dismisses it. Widths include the padding: 112–280px groups.
     menu: [
       'flex max-h-[inherit] flex-col overflow-y-auto outline-none',
+      ...persistentScrollbar,
       '[--m3-menu-corner:var(--md-sys-shape-corner-large)]',
       'data-[shape=active]:[--m3-menu-corner:24px]',
       'data-[shape=inactive]:[--m3-menu-corner:var(--md-sys-shape-corner-small)]',
@@ -174,6 +188,16 @@ export const menuStyles = tv({
       true: { item: 'py-[calc(8px+var(--m3-menu-density,0)*2px)]' },
       false: {},
     },
+    /** Open and close with no motion (`instant`). */
+    instant: {
+      true: { reveal: '[transition-property:none]' },
+      false: {},
+    },
+    /** In a bottom sheet: the list spans it, on the sheet's own surface. */
+    embedded: {
+      true: {},
+      false: {},
+    },
     /**
      * `gap`: every group is its own surface, and the list only scrolls (its 8px ring keeps
      * the groups' shadows); `divider`: the list is the one surface.
@@ -221,6 +245,13 @@ export const menuStyles = tv({
     },
     // A divider layout's groups are plain sections of the one surface.
     { layout: 'divider', class: { group: 'rounded-none' } },
+    // In a sheet the list has no surface, shadow or width limits of its own.
+    {
+      embedded: true,
+      class: {
+        menu: 'w-full max-w-none min-w-0 rounded-none bg-transparent p-0 shadow-none',
+      },
+    },
   ],
   defaultVariants: {
     variant: 'standard',
@@ -230,6 +261,8 @@ export const menuStyles = tv({
     itemTop: 'plain',
     itemBottom: 'plain',
     hasDescription: false,
+    instant: false,
+    embedded: false,
   },
 });
 

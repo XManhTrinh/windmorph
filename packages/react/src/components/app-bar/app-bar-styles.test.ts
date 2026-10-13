@@ -13,17 +13,21 @@ function* outputs() {
       for (const hasNavigation of [false, true])
         for (const hasSubtitle of [false, true])
           for (const scrolling of [false, true])
-            for (const twoRows of [false, true]) {
-              const slots = topAppBarStyles({
-                variant,
-                titleAlign,
-                hasNavigation,
-                hasSubtitle,
-                scrolling,
-                twoRows,
-              });
-              for (const slot of Object.values(slots)) yield slot();
-            }
+            for (const pinned of [false, true])
+              for (const twoRows of [false, true])
+                for (const scrolledColor of ['container', 'transparent'] as const) {
+                  const slots = topAppBarStyles({
+                    variant,
+                    titleAlign,
+                    hasNavigation,
+                    hasSubtitle,
+                    scrolling,
+                    pinned,
+                    twoRows,
+                    scrolledColor,
+                  });
+                  for (const slot of Object.values(slots)) yield slot();
+                }
 }
 
 describe('topAppBarStyles', () => {
@@ -37,5 +41,13 @@ describe('topAppBarStyles', () => {
 
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
+  });
+
+  it('reads the surface roles where the bar is, so a theme scope or dark mode applies', () => {
+    const { root, row } = topAppBarStyles({ variant: 'medium', twoRows: true });
+    for (const slot of [root(), row()]) {
+      expect(slot).toContain('var(--md-sys-color-surface-container)');
+      expect(slot).not.toContain('var(--color-');
+    }
   });
 });

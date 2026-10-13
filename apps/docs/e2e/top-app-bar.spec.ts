@@ -30,6 +30,42 @@ async function visibleHeight(page: Page) {
   return Math.max(0, bar.bottom - (scroller.y + 1));
 }
 
+/**
+ * The bar's fill named by the colour role it matches in the bar's own theme scope (canvas
+ * pixels, since its `color-mix` computes to `oklab(…)`), its luminance (0–255), and the top
+ * row's own background.
+ */
+const barColours = (bar: Locator) =>
+  bar.evaluate((el) => {
+    const context = document.createElement('canvas').getContext('2d')!;
+    const pixel = (css: string) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = css;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data];
+    };
+    const role = (name: string) => {
+      const probe = document.createElement('div');
+      probe.style.backgroundColor = `var(--md-sys-color-${name})`;
+      el.append(probe);
+      const css = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return pixel(css).join();
+    };
+    const rgba = pixel(getComputedStyle(el).backgroundColor);
+    const fill = rgba.join();
+    return {
+      fill:
+        fill === role('surface')
+          ? 'surface'
+          : fill === role('surface-container')
+            ? 'surface-container'
+            : fill,
+      luminance: Math.round(0.2126 * rgba[0]! + 0.7152 * rgba[1]! + 0.0722 * rgba[2]!),
+      row: getComputedStyle(el.firstElementChild!).backgroundColor,
+    };
+  });
+
 test.describe('TopAppBar visual regression', () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
@@ -163,6 +199,101 @@ test.describe('TopAppBar geometry and scrolling', () => {
     await expect(bar).toHaveAttribute('data-scrolled', 'true');
     await expect.poll(colour).not.toBe(surface);
     expect(await visibleHeight(page)).toBe(64);
+  });
+
+  for (const [variant, height] of [
+    ['medium', 112],
+    ['large', 120],
+  ] as const) {
+    test(`a pinned ${variant} bar fills with surface-container once content is under it`, async ({
+      page,
+    }) => {
+      await openStory(
+        page,
+        'components-topappbar--scrolling',
+        {},
+        { variant, scrollBehavior: 'pinned' },
+      );
+      const bar = page.getByTestId('bar');
+      const colours = () => barColours(bar);
+      expect((await colours()).fill).toBe('surface');
+      await scrollTo(page, 200);
+      await expect(bar).toHaveAttribute('data-scrolled', 'true');
+      // M3: app bars "fill with a contrasting color on scroll"; pinned, it never collapses.
+      await expect.poll(async () => (await colours()).fill).toBe('surface-container');
+      expect((await colours()).row).toBe('rgba(0, 0, 0, 0)');
+      expect(await visibleHeight(page)).toBe(height);
+      await scrollTo(page, 0);
+      await expect.poll(async () => (await colours()).fill).toBe('surface');
+    });
+  }
+});
+
+test.describe('TopAppBar theming', () => {
+  for (const variant of ['small', 'medium'] as const) {
+    test(`a ${variant} bar takes the surface roles of a dark theme scope`, async ({ page }) => {
+      // Storybook renders each story in a ThemeScope driven by the toolbar.
+      await openStory(
+        page,
+        'components-topappbar--scrolling',
+        { mode: 'dark' },
+        { variant, scrollBehavior: 'pinned' },
+      );
+      const bar = page.getByTestId('bar');
+      const before = await barColours(bar);
+      expect(before.fill).toBe('surface');
+      expect(before.luminance).toBeLessThan(64);
+      await scrollTo(page, 200);
+      await expect.poll(async () => (await barColours(bar)).fill).toBe('surface-container');
+      expect((await barColours(bar)).luminance).toBeLessThan(64);
+    });
+  }
+});
+
+test.describe('TopAppBar bottom slot and scrolled colour', () => {
+  test('the bottom row stays below the collapsed top row and takes the bar colour', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-topappbar--scrolling', {}, { bottom: true });
+    const chips = page.getByTestId('chips');
+    const rows = (await rect(chips)).bottom - (await rect(chips)).y;
+    expect(await visibleHeight(page)).toBe(112 + rows);
+    await scrollTo(page, 500);
+    // Collapsed: the 64px top row with the chips right below it.
+    expect(await visibleHeight(page)).toBe(64 + rows);
+    const scroller = await rect(page.getByTestId('scroller'));
+    expect((await rect(chips)).y).toBe(scroller.y + 1 + 64);
+    await expect
+      .poll(async () => (await barColours(page.getByTestId('bar'))).fill)
+      .toBe('surface-container');
+  });
+
+  test('the bottom row hides and comes back with an enter-always bar', async ({ page }) => {
+    await openStory(
+      page,
+      'components-topappbar--scrolling',
+      {},
+      { variant: 'small', scrollBehavior: 'enter-always', bottom: true },
+    );
+    await scrollTo(page, 600);
+    expect(await visibleHeight(page)).toBe(0);
+    await scrollTo(page, 560);
+    expect(await visibleHeight(page)).toBe(40);
+  });
+
+  test('scrolledColor="transparent" fades the bar to see-through', async ({ page }) => {
+    await openStory(
+      page,
+      'components-topappbar--scrolling',
+      {},
+      { variant: 'small', scrollBehavior: 'pinned', scrolledColor: 'transparent' },
+    );
+    const bar = page.getByTestId('bar');
+    expect((await barColours(bar)).fill).toBe('surface');
+    await scrollTo(page, 200);
+    await expect.poll(async () => (await barColours(bar)).fill).toBe('0,0,0,0');
+    await scrollTo(page, 0);
+    await expect.poll(async () => (await barColours(bar)).fill).toBe('surface');
   });
 });
 

@@ -138,9 +138,15 @@ test.describe('Menu behaviour', () => {
     expect(await layer()).not.toBe(closedLayer);
   });
 
-  test('opening with the mouse moves focus into the menu', async ({ page }) => {
-    const menu = await openGrouped(page);
-    expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  test('opening with the mouse focuses the first item', async ({ page }) => {
+    await openGrouped(page);
+    // M3: "When a menu opens, focus should be placed on the first menu item."
+    await expect(page.getByRole('menuitem').first()).toBeFocused();
+    // The focus ring is for keyboard focus only.
+    await expect(page.getByRole('menuitem').first()).not.toHaveAttribute('data-focus-visible');
+    // The arrow keys carry on from there.
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem').nth(1)).toBeFocused();
   });
 
   test('runs an action and closes; Escape and outside clicks close too', async ({ page }) => {
@@ -175,6 +181,26 @@ test.describe('Menu behaviour', () => {
     await expect(page.getByRole('menuitem', { name: /Find/ })).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('last')).toHaveText('Last action: search');
+  });
+
+  test('Tab closes the menu and its submenus; focus is never left on the body', async ({
+    page,
+  }) => {
+    const focusedTag = () => page.evaluate(() => document.activeElement?.tagName);
+    await openGrouped(page);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect.poll(focusedTag).not.toBe('BODY');
+
+    await openStory(page, 'components-menu--submenus');
+    await page.getByRole('button', { name: 'File' }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('menuitem', { name: 'Share' }).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect.poll(focusedTag).not.toBe('BODY');
   });
 
   for (const dir of ['ltr', 'rtl'] as const) {
@@ -225,6 +251,7 @@ test.describe('Menu behaviour', () => {
     await page.mouse.click(target.x + 40, target.y + 30, { button: 'right' });
     const menu = page.getByRole('menu', { name: 'Card actions' });
     await expect(menu).toBeVisible();
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
     const m = await box(menu);
     expect(Math.round(m.x)).toBe(Math.round(target.x + 40));
     expect(Math.round(m.y)).toBe(Math.round(target.y + 30));
@@ -247,5 +274,67 @@ test.describe('Menu behaviour', () => {
         .first()
         .evaluate((el) => el.getBoundingClientRect().width),
     ).toBe(0);
+  });
+});
+
+test.describe('Menu under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the menu only fades: its clip stays open', async ({ page }) => {
+    await openStory(page, 'components-menu--grouped');
+    await page.getByRole('button', { name: 'More' }).click();
+    const reveal = page.getByRole('menu').locator('..');
+    // Read at once, while the fade is still running, and again while it fades out.
+    const clip = () => reveal.evaluate((el) => getComputedStyle(el).clipPath);
+    expect(await clip()).toBe('inset(-24px)');
+    await page.keyboard.press('Escape');
+    expect(await clip()).toBe('inset(-24px)');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+  });
+});
+
+test.describe('Menu presentation and instant', () => {
+  test('presentation="auto" opens a bottom sheet on a phone, with the menu keyboard', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--grouped', {}, { presentation: 'auto' });
+    await page.getByRole('button', { name: 'More' }).click();
+    const sheet = page.getByRole('dialog', { name: 'More' });
+    await expect(sheet).toBeVisible();
+    const menu = sheet.getByRole('menu');
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
+    await settle(page);
+    // It spans the sheet (8px in from each side) and sits at the bottom of the window.
+    const s = await box(sheet);
+    const m = await box(menu);
+    expect(Math.round(s.y + s.height)).toBe(800);
+    expect(Math.round(m.width)).toBe(Math.round(s.width) - 16);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last action: edit');
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole('button', { name: 'More' })).toBeFocused();
+  });
+
+  test('presentation="auto" stays a popover on a wide window', async ({ page }) => {
+    const menu = await openGrouped(page, {}, { presentation: 'auto' });
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test('an instant menu appears and leaves with no motion', async ({ page }) => {
+    await openStory(page, 'components-menu--grouped', {}, { instant: true });
+    await page.getByRole('button', { name: 'More' }).click();
+    const reveal = page.getByRole('menu').locator('..');
+    // Fully shown at once: no fade or clip in progress.
+    expect(
+      await reveal.evaluate((el) => {
+        const computed = getComputedStyle(el);
+        return [computed.opacity, computed.clipPath, computed.transitionProperty];
+      }),
+    ).toEqual(['1', 'inset(-24px)', 'none']);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0, { timeout: 100 });
   });
 });

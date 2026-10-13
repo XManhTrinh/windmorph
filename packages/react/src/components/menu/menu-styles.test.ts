@@ -5,7 +5,7 @@ import {
   nonLiteralClasses,
   uncompiledClasses,
 } from '../../../test/tailwind-classes';
-import { menuStyles } from './menu-styles';
+import { menuStyles, persistentScrollbar } from './menu-styles';
 
 const POSITIONS = ['only', 'first', 'middle', 'last'] as const;
 const CORNERS = ['nested', 'outer', 'plain'] as const;
@@ -42,5 +42,12 @@ describe('menuStyles', () => {
 
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
+  });
+
+  it('gives a scrolling menu the persistent scrollbar (M3)', () => {
+    for (const layout of ['gap', 'divider'] as const) {
+      const menu = menuStyles({ layout }).menu();
+      for (const part of persistentScrollbar) expect(menu).toContain(part);
+    }
   });
 });

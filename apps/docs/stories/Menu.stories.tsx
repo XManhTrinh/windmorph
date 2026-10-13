@@ -11,6 +11,7 @@ import {
   MenuTrigger,
   SubmenuTrigger,
   type MenuLayout,
+  type MenuPresentation,
   type MenuVariant,
 } from '@windmorph/react';
 import { useState } from 'react';
@@ -28,19 +29,27 @@ const meta = {
 } satisfies Meta<typeof Menu>;
 
 export default meta;
-type Story = StoryObj<{ variant: MenuVariant; layout: MenuLayout }>;
+type Story = StoryObj<{
+  variant: MenuVariant;
+  layout: MenuLayout;
+  presentation?: MenuPresentation;
+  instant?: boolean;
+}>;
 
 /**
  * Grouped items with icons, a description and shortcuts. Groups are set apart by dividers
- * (the default, as M3 recommends on the web) or by gaps.
+ * (the default, as M3 recommends on the web) or by gaps. `presentation` opens the menu in
+ * a bottom sheet (`sheet`, or `auto` on compact windows); `instant` drops the motion.
  */
 export const Grouped: Story = {
-  args: { variant: 'standard', layout: 'divider' },
+  args: { variant: 'standard', layout: 'divider', presentation: 'popover', instant: false },
   argTypes: {
     variant: { control: 'inline-radio', options: ['standard', 'vibrant'] },
     layout: { control: 'inline-radio', options: ['divider', 'gap'] },
+    presentation: { control: 'inline-radio', options: ['popover', 'sheet', 'auto'] },
+    instant: { control: 'boolean' },
   },
-  render: function GroupedStory({ variant, layout }) {
+  render: function GroupedStory({ variant, layout, presentation, instant }) {
     const [last, setLast] = useState('none');
     return (
       <div className="flex flex-col items-start gap-4">
@@ -49,6 +58,8 @@ export const Grouped: Story = {
           <Menu
             variant={variant}
             layout={layout}
+            presentation={presentation}
+            instant={instant}
             onAction={(key) => setLast(String(key))}
             disabledKeys={['star']}
           >

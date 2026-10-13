@@ -346,6 +346,7 @@ export {
   type MenuGroupProps,
   type MenuItemProps,
   type MenuKey,
+  type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,
   type SubmenuTriggerProps,
@@ -388,6 +389,7 @@ export {
   TopAppBar,
   type TopAppBarClassNames,
   type TopAppBarProps,
+  type TopAppBarScrolledColor,
 } from './components/app-bar/TopAppBar';
 export {
   topAppBarStyles,
@@ -402,6 +404,7 @@ export {
   type SearchBarIconState,
   type SearchBarInputProps,
   type SearchBarProps,
+  type SearchBarView,
 } from './components/search/SearchBar';
 export {
   SearchAppBar,
