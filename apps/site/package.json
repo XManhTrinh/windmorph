@@ -4,14 +4,15 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm generate && next dev --webpack",
-    "build": "next build --webpack",
+    "build": "next build --webpack && pnpm generate:llms",
     "generate": "tsx scripts/generate-props.ts",
     "preview": "sirv out --port 3000",
     "typecheck": "next typegen && tsc --noEmit && tsx scripts/check-snippets.ts",
     "lint": "eslint --max-warnings 0 .",
     "test:e2e": "playwright test",
     "link-check": "tsx scripts/check-links.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate:llms": "tsx scripts/generate-llms.ts"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",

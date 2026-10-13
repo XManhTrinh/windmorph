@@ -153,7 +153,12 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
   );
 
   return (
-    <section className="flex flex-col gap-4" aria-label={`${componentName} playground`}>
+    // Interactive only, so the Markdown version of the page leaves it out.
+    <section
+      className="flex flex-col gap-4"
+      aria-label={`${componentName} playground`}
+      data-markdown="skip"
+    >
       <div className="flex items-center justify-between gap-2">
         <h2 id="playground" className="text-headline-small text-on-surface">
           Playground

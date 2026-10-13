@@ -168,7 +168,10 @@ export default async function ThemingPage() {
           This live demo drives a <InlineCode>ThemeScope</InlineCode> around the preview card, so
           the controls re-theme the card without touching the rest of the page.
         </p>
-        <ThemeSwitcherDemo />
+        {/* A live demo: the Markdown version of the page leaves it out. */}
+        <div className="contents" data-markdown="skip">
+          <ThemeSwitcherDemo />
+        </div>
         <CodeBlock code={demoSource} html={demoHtml} lang="tsx" title="theme-switcher-demo.tsx" />
       </section>
 
@@ -291,7 +294,10 @@ export default async function ThemingPage() {
           <InlineCode>tonal-spot</InlineCode>. A hex neutral keeps its own chroma, so pick a greyish
           one; a variant source is the easy way to calm surfaces.
         </p>
-        <PalettesDemo />
+        {/* A live demo: the Markdown version of the page leaves it out. */}
+        <div className="contents" data-markdown="skip">
+          <PalettesDemo />
+        </div>
         <CodeBlock code={PALETTES_SNIPPET} html={palettesHtml} lang="tsx" title="palettes" />
         <CodeBlock
           code={palettesDemoSource}

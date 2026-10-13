@@ -86,7 +86,10 @@ export default async function MotionPage() {
           overshoots; switch the top-bar motion toggle to standard (or enable{' '}
           <InlineCode>prefers-reduced-motion</InlineCode>) and the overshoot disappears.
         </p>
-        <SpringDemo family="spatial" speed="fast" />
+        {/* A live demo: the Markdown version of the page leaves it out. */}
+        <div className="contents" data-markdown="skip">
+          <SpringDemo family="spatial" speed="fast" />
+        </div>
         <CodeBlock code={demoSource} html={demoHtml} lang="tsx" title="spring-demo.tsx" />
       </section>
 
