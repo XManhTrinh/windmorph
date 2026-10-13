@@ -119,6 +119,23 @@ export const Toggle: Story = {
   },
 };
 
+/** Disabled outlined buttons: a plain one, an unselected toggle and a selected toggle. */
+export const DisabledOutlined: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-4" data-testid="disabled-outlined">
+      <Button variant="outlined" disabled>
+        Plain
+      </Button>
+      <Button toggle variant="outlined" disabled>
+        Unselected
+      </Button>
+      <Button toggle defaultSelected variant="outlined" disabled>
+        Selected
+      </Button>
+    </div>
+  ),
+};
+
 export const Link: Story = {
   args: { href: 'https://m3.material.io/components/buttons', variant: 'text', children: 'Spec' },
 };

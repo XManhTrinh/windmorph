@@ -93,6 +93,7 @@ const shapeVariants = SIZES.flatMap((size) => [
  * The outlined style's outline is drawn inside the container's edge spacing: its width is
  * `--m3-button-border` (1px; 2px at L, 3px at XL), and the padding subtracts it, so an
  * outlined button is the same size as the other styles with the same content (2026-10-13).
+ * A selected outlined toggle has no outline, disabled or not, as on IconButton (2026-10-13).
  */
 export const buttonVariantClasses = {
   filled:
@@ -102,7 +103,7 @@ export const buttonVariantClasses = {
   tonal:
     'bg-secondary-container text-on-secondary-container data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
   outlined:
-    '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-outline-variant bg-transparent text-on-surface-variant data-disabled:border-outline-variant/10',
+    '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-outline-variant bg-transparent text-on-surface-variant data-disabled:not-data-selected:border-outline-variant/10',
   text: 'bg-transparent text-primary',
 } as const;
 
@@ -198,7 +199,7 @@ export const buttonStyles = tv({
       variant: 'outlined',
       toggle: true,
       class: {
-        root: 'data-disabled:bg-outline-variant/10 data-selected:not-data-disabled:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
+        root: 'data-disabled:bg-outline-variant/10 data-selected:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
       },
     },
   ],

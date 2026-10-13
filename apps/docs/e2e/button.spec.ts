@@ -298,3 +298,18 @@ test.describe('Button ripple origin', () => {
 test.describe('Button layout safety', () => {
   layoutSafetySuite('components-button--layout-override', { height: 40, radius: '20px' });
 });
+
+test.describe('Button disabled outlines (2026-10-13)', () => {
+  test('a disabled outline dims to 10%, and a selected toggle has none', async ({ page }) => {
+    await openStory(page, 'components-button--disabled-outlined');
+    const border = (name: string) =>
+      page
+        .getByRole('button', { name, exact: true })
+        .evaluate((el) => getComputedStyle(el).borderTopColor);
+    // outline-variant at 10% alpha, for a plain button and an unselected toggle.
+    for (const name of ['Plain', 'Unselected']) {
+      expect(await border(name)).toMatch(/(, 0\.1\)|\/ 0\.1\))$/);
+    }
+    expect(await border('Selected')).toBe('rgba(0, 0, 0, 0)');
+  });
+});

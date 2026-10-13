@@ -200,6 +200,10 @@ export async function ButtonBody(): Promise<ComponentDoc> {
               together.
             </li>
             <li>
+              A disabled outlined button dims its outline to 10%; a selected outlined toggle has no
+              outline, disabled or not.
+            </li>
+            <li>
               Toggles take <InlineCode>selectedLeadingIcon</InlineCode>, shown instead of{' '}
               <InlineCode>leadingIcon</InlineCode> while selected (the filled form of the outlined
               icon), so an uncontrolled toggle can swap its icon too.

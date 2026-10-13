@@ -297,6 +297,26 @@ describe('Button', () => {
 });
 
 describe('Button toggle', () => {
+  it('dims a disabled outline and drops the outline of a selected outlined toggle', () => {
+    render(
+      <>
+        <Button variant="outlined" disabled>
+          Off
+        </Button>
+        <Button toggle variant="outlined" defaultSelected disabled>
+          Selected off
+        </Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Off' })).toHaveClass(
+      'data-disabled:not-data-selected:border-outline-variant/10',
+    );
+    const selected = screen.getByRole('button', { name: 'Selected off' });
+    expect(selected).toHaveAttribute('data-selected');
+    expect(selected).toHaveClass('data-selected:border-transparent');
+    expect(selected.className).not.toMatch(/not-data-disabled:border-transparent/);
+  });
+
   it('toggles aria-pressed and the selected state', async () => {
     const onSelectedChange = vi.fn();
     render(
