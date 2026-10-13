@@ -58,6 +58,20 @@ test.describe('Badge', () => {
     await expect(page.getByRole('button', { name: 'Messages, 12 unread' })).toBeVisible();
   });
 
+  test("a navigation item's badge describes it, and a dot reads New notification", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-badge--badges');
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    await expect(nav.getByRole('button', { name: 'Home' })).toHaveAccessibleDescription('3');
+    await expect(nav.getByRole('button', { name: 'Search' })).toHaveAccessibleDescription(
+      'New notification',
+    );
+    await expect(nav.getByRole('button', { name: 'Starred' })).not.toHaveAttribute(
+      'aria-describedby',
+    );
+  });
+
   test('a capped count reads "999+" in right-to-left layouts', async ({ page }) => {
     await openStory(page, 'components-badge--badges', { dir: 'rtl' });
     const label = page.getByTestId('badges').getByText('999+', { exact: true }).first();

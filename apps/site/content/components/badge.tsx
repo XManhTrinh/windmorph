@@ -10,7 +10,6 @@ import { InlineCode } from '../../components/inline-code';
 export async function BadgeBody(): Promise<ComponentDoc> {
   const basic = await readExampleSource('badge/badge-basic.tsx');
   const basicHtml = await highlightSource(basic);
-
   const navigation = await readExampleSource('badge/badge-navigation.tsx');
   const navigationHtml = await highlightSource(navigation);
 
@@ -72,6 +71,13 @@ export async function BadgeBody(): Promise<ComponentDoc> {
               Badges are announced as part of the text around them, as M3 asks: a count is read, a
               dot reads &quot;New notification&quot; (change it with <InlineCode>labels</InlineCode>
               ), and <InlineCode>label</InlineCode> replaces either (&quot;3 unread messages&quot;).
+            </li>
+            <li>
+              On a navigation bar or rail item, pass the badge through the item&apos;s{' '}
+              <InlineCode>badge</InlineCode> prop, not a <InlineCode>BadgedBox</InlineCode> in its
+              icon: the item reads it after its name, as M3 asks. A count reads itself (or{' '}
+              <InlineCode>badgeLabel</InlineCode>, &quot;3 unread messages&quot;), and a dot reads
+              &quot;New notification&quot;.
             </li>
             <li>
               An anchor with its own <InlineCode>aria-label</InlineCode> (an{' '}

@@ -342,6 +342,15 @@ describe('NavigationRail', () => {
           <NavigationRailItem icon={<Icon id="chat" />} badge={<Badge />}>
             Chat
           </NavigationRailItem>
+          <NavigationRailItem
+            icon={<Icon id="posts" />}
+            badge={<Badge labels={{ newNotification: 'New reply' }} />}
+          >
+            Posts
+          </NavigationRailItem>
+          <NavigationRailItem icon={<Icon id="sent" />} badge={<Badge>12</Badge>}>
+            Sent
+          </NavigationRailItem>
         </NavigationRail>
       );
     }
@@ -350,8 +359,13 @@ describe('NavigationRail', () => {
     expect(inbox).toHaveAccessibleDescription('3 new messages');
     // Collapsed: the badge hangs from the icon, inside the hidden icon.
     expect(within(inbox).getByText('3').closest('[aria-hidden="true"]')).toHaveClass('size-[24px]');
-    // A small badge without a label adds no description.
-    expect(screen.getByRole('button', { name: 'Chat' })).not.toHaveAttribute('aria-describedby');
+    // A small badge reads "New notification" (M3: "Non-counting badges will simply announce
+    // New notification"), in the badge's own words when it has them; a count reads itself.
+    expect(screen.getByRole('button', { name: 'Chat' })).toHaveAccessibleDescription(
+      'New notification',
+    );
+    expect(screen.getByRole('button', { name: 'Posts' })).toHaveAccessibleDescription('New reply');
+    expect(screen.getByRole('button', { name: 'Sent' })).toHaveAccessibleDescription('12');
     expect(await axeViolations(container)).toEqual([]);
     rerender(<Badged expanded />);
     const badge = within(screen.getByRole('button', { name: 'Inbox' }))

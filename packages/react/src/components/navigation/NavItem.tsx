@@ -47,7 +47,8 @@ export interface NavItemOwnProps {
   badge?: ReactElement<BadgeProps>;
   /**
    * What the badge means, read after the item's name, e.g. "3 new messages". Defaults to
-   * the badge's text; give one for a small (dot) badge.
+   * the badge's `label` or text; a small (dot) badge reads its `labels.newNotification`
+   * ("New notification"), as M3 asks of badges without a count.
    */
   badgeLabel?: string;
   /**
@@ -107,6 +108,23 @@ function useSlidingIndicator(
   return indicatorRef;
 }
 
+/**
+ * What a badge tells assistive tech about its item: its `label`, its text, or, for a small
+ * badge (no children), "New notification" (`labels.newNotification`).
+ */
+function badgeDescription(badge: ReactElement<BadgeProps> | undefined): string | null {
+  // A badge can arrive as a lazy server reference without props yet (React's dev server
+  // rendering), so read it only from a real element.
+  if (!isValidElement<BadgeProps>(badge)) return null;
+  const { label, labels, children } = badge.props;
+  if (label != null) return label;
+  if (typeof children === 'string' || typeof children === 'number') return String(children);
+  if (children == null || children === false) {
+    return labels?.newNotification ?? 'New notification';
+  }
+  return null;
+}
+
 /** Shared navigation item: a link (`href`) or button with the M3 pill indicator. */
 export function NavItem({
   layout,
@@ -134,12 +152,7 @@ export function NavItem({
   const inline = layout === 'rail-start' || layout === 'bar-start';
   // M3: badges sit on the icon, except in the expanded rail, where they follow the label.
   const badgeAfterLabel = layout === 'rail-start';
-  // A badge can arrive as a lazy server reference without props yet (React's dev
-  // server rendering), so read its text only from a real element.
-  const badgeText = isValidElement<BadgeProps>(badge) ? badge.props.children : undefined;
-  const description =
-    badgeLabel ??
-    (typeof badgeText === 'string' || typeof badgeText === 'number' ? String(badgeText) : null);
+  const description = badgeLabel ?? badgeDescription(badge);
   const label = (
     <span data-nav-label="" className={styles.label({ class: classNames?.label })}>
       {children}

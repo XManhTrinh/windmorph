@@ -5,9 +5,10 @@ import { useState } from 'react';
 import { HomeIcon, NotificationsIcon, SendIcon, StarIcon } from '../../components/icons';
 
 /**
- * Badges on navigation items, their main use: the item's `badge` places it on the icon, at
- * its upper trailing edge. A dot says something is new, a count how many, capped at four
- * characters ("999+"). `badgeLabel` tells assistive tech what the badge means.
+ * Badges on navigation items, their main use: pass the badge through the item's `badge` prop
+ * (not a `BadgedBox` in its icon), and the item places it at the icon's upper trailing edge and
+ * reads it after its name. A count reads itself unless `badgeLabel` says more, capped at four
+ * characters ("999+"); a dot reads "New notification" unless `badgeLabel` says otherwise.
  */
 export function BadgeNavigation() {
   const [current, setCurrent] = useState('home');
@@ -31,8 +32,8 @@ export function BadgeNavigation() {
       id: 'saved',
       label: 'Saved',
       icon: <StarIcon />,
+      // A dot without badgeLabel reads "New notification".
       badge: <Badge />,
-      badgeLabel: 'New saved posts',
     },
   ];
   return (

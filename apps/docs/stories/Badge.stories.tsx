@@ -44,28 +44,12 @@ export const Badges: Story = {
           </span>
         </BadgedBox>
       </div>
+      {/* Navigation items take the badge through `badge`, so it describes the item. */}
       <NavigationBar aria-label="Main" className="w-[412px]">
-        <NavigationBarItem
-          selected
-          icon={
-            <BadgedBox badge={<Badge>{3}</Badge>}>
-              <span className="size-6">
-                <HomeIcon />
-              </span>
-            </BadgedBox>
-          }
-        >
+        <NavigationBarItem selected icon={<HomeIcon />} badge={<Badge>{3}</Badge>}>
           Home
         </NavigationBarItem>
-        <NavigationBarItem
-          icon={
-            <BadgedBox badge={<Badge />}>
-              <span className="size-6">
-                <SearchIcon />
-              </span>
-            </BadgedBox>
-          }
-        >
+        <NavigationBarItem icon={<SearchIcon />} badge={<Badge />}>
           Search
         </NavigationBarItem>
         <NavigationBarItem icon={<StarIcon />}>Starred</NavigationBarItem>
