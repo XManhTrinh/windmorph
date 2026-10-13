@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import { CodeBlock } from '@windmorph/react-pro';
 import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { InstallCommand } from '../../../components/install-command';
 import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/getting-started');
-
-const INSTALL_SNIPPET = `npm i @windmorph/react motion`;
 
 const CSS_SNIPPET = `@import 'tailwindcss';
 @import '@windmorph/react/styles.css';
@@ -87,7 +86,6 @@ export default defineConfig({
 
 export default async function GettingStartedPage() {
   const [
-    installHtml,
     cssHtml,
     compiledHtml,
     providerHtml,
@@ -97,7 +95,6 @@ export default async function GettingStartedPage() {
     nextRouterHtml,
     viteHtml,
   ] = await Promise.all([
-    highlightSource(INSTALL_SNIPPET, 'bash'),
     highlightSource(CSS_SNIPPET, 'css'),
     highlightSource(COMPILED_CSS_SNIPPET, 'ts'),
     highlightSource(PROVIDER_SNIPPET, 'tsx'),
@@ -120,16 +117,20 @@ export default async function GettingStartedPage() {
       </header>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Install</h2>
+        <h2 id="install" className="text-headline-small text-on-surface">
+          Install
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Install the package together with <InlineCode>motion</InlineCode>, which is a peer
           dependency used by the animated components.
         </p>
-        <CodeBlock code={INSTALL_SNIPPET} html={installHtml} lang="bash" title="Terminal" />
+        <InstallCommand packages="@windmorph/react motion" />
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Add the stylesheet</h2>
+        <h2 id="add-the-stylesheet" className="text-headline-small text-on-surface">
+          Add the stylesheet
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           In a Tailwind v4 project (Vite or Next.js), import Tailwind and the library tokens into
           your CSS entry. The <InlineCode>@source</InlineCode> line tells Tailwind to scan the
@@ -149,7 +150,9 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Wrap your app</h2>
+        <h2 id="wrap-your-app" className="text-headline-small text-on-surface">
+          Wrap your app
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Wrap the tree in <InlineCode>ThemeProvider</InlineCode>. It provides the colour theme,
           mode, contrast level and motion scheme, and remembers the selection between visits.
@@ -158,7 +161,9 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Load the font</h2>
+        <h2 id="load-the-font" className="text-headline-small text-on-surface">
+          Load the font
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Fonts are not bundled. Load{' '}
           <a
@@ -176,7 +181,9 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Icons</h2>
+        <h2 id="icons" className="text-headline-small text-on-surface">
+          Icons
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Icons are plain Material Symbols SVGs passed as React elements to props like{' '}
           <InlineCode>icon</InlineCode> or <InlineCode>leadingIcon</InlineCode>. Using{' '}
@@ -187,7 +194,9 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Links &amp; routing</h2>
+        <h2 id="links-and-routing" className="text-headline-small text-on-surface">
+          Links &amp; routing
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Links are an <InlineCode>href</InlineCode> on buttons, menu items and tabs, routed
           client-side through React Aria’s <InlineCode>RouterProvider</InlineCode>. For non-Next
@@ -208,7 +217,9 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-headline-small text-on-surface">Vite 8 note</h2>
+        <h2 id="vite-8-note" className="text-headline-small text-on-surface">
+          Vite 8 note
+        </h2>
         <p className="text-body-large text-on-surface-variant">
           Interactive modules ship with a <InlineCode>&quot;use client&quot;</InlineCode> directive.
           Vite 8 (rolldown) logs a harmless <InlineCode>MODULE_LEVEL_DIRECTIVE</InlineCode> warning

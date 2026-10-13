@@ -2,6 +2,7 @@ import { Button, Card } from '@windmorph/react';
 import { CodeBlock } from '@windmorph/react-pro';
 import type { ReactElement } from 'react';
 import { ComponentGallery } from '../components/gallery';
+import { InstallCommand } from '../components/install-command';
 import { ExpressiveShowcase } from '../components/home/expressive-showcase';
 import { HeroReel } from '../components/home/hero-reel';
 import {
@@ -32,7 +33,8 @@ const STATS: Stat[] = [
  * (apps/site/app/(docs)/getting-started/page.tsx) and the package manifest
  * (packages/react/package.json) — not from the deployed site. Verified in verification.md.
  */
-const INSTALL_SNIPPET = `npm i @windmorph/react motion`;
+const INSTALL_PACKAGES = '@windmorph/react motion';
+const INSTALL_SNIPPET = `pnpm add ${INSTALL_PACKAGES}`;
 
 const CSS_SNIPPET = `@import 'tailwindcss';
 @import '@windmorph/react/styles.css';
@@ -54,6 +56,8 @@ interface QuickStep {
   code: string;
   lang: string;
   fileLabel: string;
+  /** Shows the command for the viewer's package manager. */
+  install?: boolean;
 }
 
 const QUICK_STEPS: QuickStep[] = [
@@ -63,6 +67,7 @@ const QUICK_STEPS: QuickStep[] = [
     code: INSTALL_SNIPPET,
     lang: 'bash',
     fileLabel: 'Terminal',
+    install: true,
   },
   {
     title: 'Import tokens & styles',
@@ -235,12 +240,16 @@ export default async function HomePage() {
                   <h3 className="text-title-medium text-on-surface">{step.title}</h3>
                 </div>
                 <p className="text-body-medium text-on-surface-variant">{step.description}</p>
-                <CodeBlock
-                  code={step.code}
-                  html={stepHtml[index]}
-                  lang={step.lang}
-                  title={step.fileLabel}
-                />
+                {step.install ? (
+                  <InstallCommand packages={INSTALL_PACKAGES} />
+                ) : (
+                  <CodeBlock
+                    code={step.code}
+                    html={stepHtml[index]}
+                    lang={step.lang}
+                    title={step.fileLabel}
+                  />
+                )}
               </li>
             ))}
           </ol>
