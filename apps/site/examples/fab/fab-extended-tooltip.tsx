@@ -22,7 +22,13 @@ export function FabExtendedTooltip() {
   };
   return (
     <div className="relative h-[280px] w-full max-w-[400px] overflow-hidden rounded-corner-large bg-surface-container-low">
-      <div className="h-full overflow-y-auto" onScroll={onScroll}>
+      <div
+        className="h-full overflow-y-auto"
+        role="region"
+        aria-label="Messages"
+        tabIndex={0}
+        onScroll={onScroll}
+      >
         <ul className="flex flex-col p-4 pb-24">
           {MESSAGES.map((name) => (
             <li key={name} className="py-4 text-body-large text-on-surface">

@@ -8,10 +8,10 @@ import { CircularProgressIndicator } from '@windmorph/react';
 export function ProgressSizes() {
   return (
     <div className="flex flex-wrap items-center gap-6">
-      <p className="flex items-center gap-3 text-body-medium text-on-surface">
+      <div className="flex items-center gap-3 text-body-medium text-on-surface">
         <CircularProgressIndicator size={24} aria-label="Syncing contacts" />
         Syncing contacts
-      </p>
+      </div>
       <CircularProgressIndicator value={0.45} size={64} aria-label="Photo upload" />
       <CircularProgressIndicator
         value={0.7}
