@@ -39,4 +39,16 @@ describe('textFieldStyles', () => {
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
+
+  // M3 motion: opacity changes run on the effects springs (Compose `affixOpacity` uses
+  // FastEffects), not Tailwind's default 150ms ease.
+  it('fades the prefix and suffix on the fast effects spring', () => {
+    const affix = textFieldStyles({ hasLabel: true }).affix();
+    expect(affix).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+    );
+    expect(affix).toContain(
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+    );
+  });
 });

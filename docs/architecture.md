@@ -301,7 +301,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Floating label:** an absolutely positioned `<label>` that transitions `top`, `inset-inline-start` and the type-scale properties, so it needs no transforms and mirrors in RTL. It also floats for browser autofill (`:has(:autofill)`), since autofilled values are hidden from JavaScript until the user interacts.
 - **Outlined notch:** a hidden `fieldset`/`legend` carrying the label text, so the gap matches the label exactly. The outline is shifted up 8px only when there is a label.
 - **Errors:** the error message replaces the supporting text visually, but the supporting text stays in the accessible description (`sr-only`).
-- With a label, the placeholder, prefix and suffix appear only once the label floats (Compose).
+- With a label, the placeholder, prefix and suffix appear only once the label floats (Compose). The prefix and suffix fade in on the fast effects spring (M3 motion: opacity uses the effects springs; Compose's `affixOpacity`, 2026-10-13); they used Tailwind's default 150ms ease.
 - Pressing the container focuses the input (not when pressing an icon button).
 - **Not in v1:** composable TextField parts (the doc's "two API levels"); only the batteries-included form is exported, built from the Field primitives.
 

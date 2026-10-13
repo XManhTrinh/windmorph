@@ -192,8 +192,10 @@ export const textFieldStyles = tv({
       hasLabel: true,
       class: {
         input: 'placeholder:opacity-0 group-data-floated/field:placeholder:opacity-100',
-        affix:
+        affix: [
           'opacity-0 transition-opacity group-data-floated/field:opacity-100 group-has-[:autofill]/field:opacity-100',
+          effectsTransition,
+        ],
       },
     },
   ],
