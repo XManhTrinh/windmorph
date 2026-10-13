@@ -57,7 +57,7 @@ export const fabMenuStyles = tv({
     ],
     button: [
       'group/fab-menu inline-flex shrink-0 cursor-pointer items-center justify-center select-none',
-      'shadow-elevation-3 state-layer focus-ring',
+      'state-layer focus-ring',
       // Open: the 56px close button, its corners half its size (a literal, so they interpolate).
       'data-open:size-[56px] data-open:rounded-[28px]',
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
@@ -89,7 +89,7 @@ export const fabMenuStyles = tv({
       'max-h-[calc(100dvh-16px)]',
     ],
     item: [
-      'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden rounded-corner-full shadow-elevation-3 select-none',
+      'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden rounded-corner-full select-none',
       'opacity-0 data-visible:opacity-100',
       'state-layer focus-ring',
       '[--m3-transition-property:width,opacity]',
@@ -108,6 +108,12 @@ export const fabMenuStyles = tv({
   },
   variants: {
     color: colors,
+    /** Like `Fab`: level 3 (the spec), level 1, or level 0 for a flat menu. */
+    elevation: {
+      default: { button: 'shadow-elevation-3', item: 'shadow-elevation-3' },
+      lowered: { button: 'shadow-elevation-1', item: 'shadow-elevation-1' },
+      flat: { button: 'shadow-elevation-0', item: 'shadow-elevation-0' },
+    },
     size: {
       default: {
         anchor: 'size-[56px]',
@@ -129,7 +135,7 @@ export const fabMenuStyles = tv({
       },
     },
   },
-  defaultVariants: { color: 'primary', size: 'default' },
+  defaultVariants: { color: 'primary', elevation: 'default', size: 'default' },
 });
 
 export type FabMenuStyleProps = VariantProps<typeof fabMenuStyles>;

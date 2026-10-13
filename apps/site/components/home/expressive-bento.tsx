@@ -109,20 +109,12 @@ export function ExpressiveBento() {
             icon={<EditIcon />}
             openIcon={<CloseIcon />}
             aria-label="Album actions"
-            classNames={{ button: 'shadow-none' }}
+            elevation="flat"
           >
-            <FabMenuItem className="shadow-none" icon={<CheckCircleFilledIcon />}>
-              Select
-            </FabMenuItem>
-            <FabMenuItem className="shadow-none" icon={<AddAPhotoIcon />}>
-              Add photos
-            </FabMenuItem>
-            <FabMenuItem className="shadow-none" icon={<ShareIcon />}>
-              Share album
-            </FabMenuItem>
-            <FabMenuItem className="shadow-none" icon={<SearchIcon />}>
-              Search
-            </FabMenuItem>
+            <FabMenuItem icon={<CheckCircleFilledIcon />}>Select</FabMenuItem>
+            <FabMenuItem icon={<AddAPhotoIcon />}>Add photos</FabMenuItem>
+            <FabMenuItem icon={<ShareIcon />}>Share album</FabMenuItem>
+            <FabMenuItem icon={<SearchIcon />}>Search</FabMenuItem>
           </FabMenu>
         </div>
       </Tile>
@@ -137,7 +129,7 @@ export function ExpressiveBento() {
           fab={
             <ToolbarFab
               data-press="on off"
-              className="shadow-none"
+              elevation="flat"
               tooltip={false}
               color="vibrant"
               icon={active ? <CloseIcon /> : <EditIcon />}

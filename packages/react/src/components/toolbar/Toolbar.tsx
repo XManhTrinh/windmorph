@@ -24,6 +24,7 @@ import {
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
+import type { FabElevation } from '../fab/fab-styles';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import {
@@ -394,6 +395,11 @@ interface ToolbarFabOwnProps {
    * on the web. @default true
    */
   tooltip?: boolean;
+  /**
+   * As on `Fab`: level 2 by default (hover 3), `lowered` level 1, or `flat` level 0.
+   * @default "default"
+   */
+  elevation?: FabElevation;
   classNames?: ToolbarFabClassNames;
 }
 
@@ -415,12 +421,13 @@ export function ToolbarFab({
   icon,
   color,
   tooltip = true,
+  elevation,
   classNames,
   className,
   ...base
 }: ToolbarFabProps) {
   const toolbar = useContext(ToolbarContext);
-  const styles = toolbarFabStyles({ color: color ?? toolbar?.color ?? 'standard' });
+  const styles = toolbarFabStyles({ color: color ?? toolbar?.color ?? 'standard', elevation });
   const baseProps = {
     ...base,
     className: styles.root({ class: cn(classNames?.root, className) }),

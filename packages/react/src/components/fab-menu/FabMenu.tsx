@@ -27,6 +27,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { Menu, MenuItem, MenuTrigger, type MenuItemProps } from '../menu/Menu';
+import type { FabElevation } from '../fab/fab-styles';
 import { staggerSteps } from './fab-menu-stagger';
 import { fabMenuStyles, type FabMenuColor, type FabMenuSize } from './fab-menu-styles';
 
@@ -81,6 +82,11 @@ interface FabMenuOwnProps {
   size?: FabMenuSize;
   /** @default "primary" */
   color?: FabMenuColor;
+  /**
+   * The button's and items' elevation, as on `Fab`: level 3 by default (the spec), `lowered`
+   * level 1, or `flat` level 0. @default "default"
+   */
+  elevation?: FabElevation;
   /** @default "list" */
   presentation?: FabMenuPresentation;
   /**
@@ -134,6 +140,7 @@ export function FabMenu({
   openIcon,
   size,
   color,
+  elevation,
   presentation = 'list',
   visible = true,
   appear = false,
@@ -155,7 +162,7 @@ export function FabMenu({
     );
   }
   const isMenu = presentation === 'menu';
-  const styles = fabMenuStyles({ size, color });
+  const styles = fabMenuStyles({ size, color, elevation });
   const listId = useId();
   const rootRef = useObjectRef(ref);
   const buttonRef = useRef<HTMLButtonElement>(null);

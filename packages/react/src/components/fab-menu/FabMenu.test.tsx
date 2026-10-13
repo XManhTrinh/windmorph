@@ -207,6 +207,17 @@ describe('FabMenu', () => {
     expect(toggle().parentElement).toHaveClass('relative', 'z-[1]');
   });
 
+  it('takes the same elevation option as Fab, for the button and its items', () => {
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" elevation="flat" defaultOpen>
+        <FabMenuItem icon={<Icon id="star" />}>Star</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(toggle()).toHaveClass('shadow-elevation-0');
+    expect(toggle()).not.toHaveClass('shadow-elevation-3');
+    expect(screen.getByRole('button', { name: 'Star' })).toHaveClass('shadow-elevation-0');
+  });
+
   it('allows an item without an icon, and runs onAction', () => {
     const onAction = vi.fn();
     render(

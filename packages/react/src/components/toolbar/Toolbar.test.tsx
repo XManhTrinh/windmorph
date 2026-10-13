@@ -147,6 +147,20 @@ describe('FloatingToolbar', () => {
     expect(bold).not.toHaveClass('data-selected:not-data-disabled:bg-secondary');
   });
 
+  it('gives the toolbar FAB an elevation option, as Fab has', () => {
+    render(
+      <FloatingToolbar
+        aria-label="Tools"
+        fab={<ToolbarFab icon={<Icon />} aria-label="Add" elevation="flat" />}
+      >
+        {button('Pen')}
+      </FloatingToolbar>,
+    );
+    const fab = screen.getByRole('button', { name: 'Add' });
+    expect(fab).toHaveClass('shadow-elevation-0');
+    expect(fab).not.toHaveClass('shadow-elevation-2');
+  });
+
   it('warns once about square icon buttons in a floating toolbar, not on every render', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const toolbar = (label: string) => (

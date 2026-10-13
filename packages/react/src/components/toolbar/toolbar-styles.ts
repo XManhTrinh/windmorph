@@ -225,7 +225,7 @@ export const toolbarFabStyles = tv({
   slots: {
     root: [
       'inline-flex size-full cursor-pointer items-center justify-center select-none',
-      'rounded-corner-large shadow-elevation-2 data-hovered:shadow-elevation-3',
+      'rounded-corner-large',
       'state-layer focus-ring container-motion',
     ],
     icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
@@ -235,8 +235,14 @@ export const toolbarFabStyles = tv({
       standard: { root: 'bg-primary-container text-on-primary-container' },
       vibrant: { root: 'bg-tertiary-container text-on-tertiary-container' },
     },
+    /** Like `Fab`: level 2 (Compose's toolbar FAB), level 1, or level 0 for a flat FAB. */
+    elevation: {
+      default: { root: 'shadow-elevation-2 data-hovered:shadow-elevation-3' },
+      lowered: { root: 'shadow-elevation-1 data-hovered:shadow-elevation-2' },
+      flat: { root: 'shadow-elevation-0' },
+    },
   },
-  defaultVariants: { color: 'standard' },
+  defaultVariants: { color: 'standard', elevation: 'default' },
 });
 
 export type DockedToolbarStyleProps = VariantProps<typeof dockedToolbarStyles>;
