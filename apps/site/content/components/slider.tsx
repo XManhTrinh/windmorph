@@ -78,8 +78,9 @@ export async function SliderBody() {
           </li>
           <li>
             With a thumb focused: the arrow keys nudge by{' '}
-            <code className="text-on-surface">step</code>, Page Up / Page Down jump by a larger
-            amount, and Home / End go to the minimum / maximum. The directions mirror in RTL.
+            <code className="text-on-surface">step</code>; Page Up / Page Down, or an arrow with
+            Space or Shift held, jump by a larger interval; Home / End go to the minimum / maximum.
+            The directions mirror in RTL.
           </li>
           <li>
             A name is required (<code className="text-on-surface">aria-label</code> /{' '}
@@ -99,13 +100,13 @@ export async function SliderBody() {
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Compose ships one size (16px track, 44px handle); the Expressive sizes{' '}
-            <code className="text-on-surface">xs–xl</code> come from the M3 token values in Material
-            Components Android — tracks 16 / 24 / 40 / 56 / 96px, handles 44 / 44 / 44 / 68 / 108px.
+            <code className="text-on-surface">xs–xl</code> follow the M3 spec&apos;s measurements —
+            tracks 16 / 24 / 40 / 56 / 96px, handles 44 / 44 / 52 / 68 / 108px.
           </li>
           <li>
             Active track and handle are <code className="text-on-surface">primary</code>, the
             inactive track <code className="text-on-surface">secondary-container</code>; the 4px
-            handle narrows to 2px while pressed, dragged or focused, with a gap each side.
+            handle narrows to 2px while pressed, dragged or keyboard-focused, with a gap each side.
           </li>
           <li>
             The track geometry ports Compose&apos;s{' '}
@@ -117,8 +118,9 @@ export async function SliderBody() {
             Inset icons follow MDC — a <code className="text-on-surface">startIcon</code> 10px
             inside the active track&apos;s start and an{' '}
             <code className="text-on-surface">endIcon</code> 10px inside the inactive end (replacing
-            the stop) on sizes md and up; the value indicator pill is not in Compose&apos;s default
-            slider.
+            the stop) on sizes md and up. When the active track is too short for the start icon, it
+            moves to the start of the inactive track (M3). Centred sliders ignore inset icons, as M3
+            advises. The value indicator pill is not in Compose&apos;s default slider.
           </li>
           <li>
             <strong>Deviation:</strong> pressing the track maps linearly to the value while discrete

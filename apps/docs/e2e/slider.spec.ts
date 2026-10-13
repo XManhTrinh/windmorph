@@ -108,6 +108,43 @@ test.describe('Slider geometry and interaction', () => {
   });
 });
 
+test.describe('Slider sizes and inset icons', () => {
+  test('the medium handle is 52px (M3 measurements)', async ({ page }) => {
+    await openStory(page, 'components-slider--sizes');
+    const thumb = page
+      .locator('[data-thumb]')
+      .filter({ has: page.getByRole('slider', { name: 'Volume md' }) });
+    expect((await rect(thumb.locator('> span').first())).height).toBe(52);
+  });
+
+  test('the start icon moves to the inactive track at a low value', async ({ page }) => {
+    await openStory(page, 'components-slider--sizes');
+    const slider = page.getByTestId('moved-icon');
+    const handle = await rect(slider.locator('[data-thumb] > span').first());
+    const moved = await rect(slider.locator('[data-moved-icon]'));
+    expect(moved.width).toBe(24);
+    // 10px after the inactive track's start (the handle, then a 6px gap).
+    expect(moved.x - handle.right).toBeCloseTo(16, 0);
+    // The copy in the active track is hidden.
+    const [active] = await segments(page, slider);
+    expect(active!.width).toBeLessThan(44);
+    const icons = await slider
+      .locator('[data-tone="active"] > span')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(icons.every((width) => width === 0)).toBe(true);
+    await shotWithMargin(page, slider, 'moved-icon.png', 8);
+  });
+
+  test('Space and an arrow step by an interval', async ({ page }) => {
+    await openStory(page, 'components-slider--playground');
+    await page.getByTestId('slider').getByRole('slider').focus();
+    await page.keyboard.down('Space');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.up('Space');
+    await expect(page.getByTestId('value')).toHaveText('Value 50');
+  });
+});
+
 test.describe('Slider layout safety', () => {
   layoutSafetySuite('components-slider--layout-override', {
     height: 44,

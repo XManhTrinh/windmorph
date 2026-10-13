@@ -2,13 +2,13 @@ import { tv, type VariantProps } from '../../utils/tv';
 
 /*
  * Values follow Compose Material 3 (Slider.kt, SliderTokens) and, for the Expressive sizes
- * Compose doesn't ship, the M3 token values in Material Components Android
- * (`m3_comp_slider_{xsmall…xlarge}_*`):
+ * Compose doesn't ship, the M3 spec's measurements table (handle heights) and the M3 token
+ * values in Material Components Android (`m3_comp_slider_{xsmall…xlarge}_*`):
  *
  * | size | track | corner | handle | inset icon |
  * | xs   | 16px  | 8px    | 44px   | —          |
  * | sm   | 24px  | 8px    | 44px   | —          |
- * | md   | 40px  | 12px   | 44px   | 24px       |
+ * | md   | 40px  | 12px   | 52px   | 24px       |
  * | lg   | 56px  | 16px   | 68px   | 24px       |
  * | xl   | 96px  | 28px   | 108px  | 32px       |
  *
@@ -17,7 +17,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * keyboard-focused, for the focus ring). Stop indicators are 4px `primary` dots; ticks on
  * the active track are `secondary-container`, on the inactive track `primary`. Disabled:
  * active track `on-surface` 38%, inactive 12%, handle `on-surface` 38% over `surface`.
- * Inset icons sit 10px inside the track, `on-primary` / `on-secondary-container` (MDC).
+ * Inset icons sit 10px inside the track, `on-primary` / `on-secondary-container` (MDC);
+ * when the active track is too short for the start icon, it moves to the inactive track
+ * (M3 spec).
  * The value indicator is a 44px `inverse-surface` pill with `label-large`
  * `inverse-on-surface` text, 12px above the handle.
  *
@@ -58,6 +60,12 @@ export const sliderStyles = tv({
       'in-data-[tone=active]:text-on-primary in-data-[tone=inactive]:text-on-secondary-container',
       '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
     ],
+    // The start icon, moved to the inactive track while the active one is too short for it.
+    movedIcon: [
+      'col-start-1 row-start-1 flex shrink-0 items-center justify-center overflow-hidden',
+      'text-on-secondary-container',
+      '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
+    ],
     thumb: [
       'col-start-1 row-start-1 flex [inline-size:4px] [block-size:var(--m3-slider-handle)] cursor-pointer justify-center',
       'rounded-full focus-ring group-data-disabled/slider:cursor-default',
@@ -93,7 +101,7 @@ export const sliderStyles = tv({
       xs: { root: '[--m3-slider-track:16px] [--m3-slider-corner:8px] [--m3-slider-handle:44px]' },
       sm: { root: '[--m3-slider-track:24px] [--m3-slider-corner:8px] [--m3-slider-handle:44px]' },
       md: {
-        root: '[--m3-slider-track:40px] [--m3-slider-corner:12px] [--m3-slider-handle:44px] [--m3-slider-icon:24px]',
+        root: '[--m3-slider-track:40px] [--m3-slider-corner:12px] [--m3-slider-handle:52px] [--m3-slider-icon:24px]',
       },
       lg: {
         root: '[--m3-slider-track:56px] [--m3-slider-corner:16px] [--m3-slider-handle:68px] [--m3-slider-icon:24px]',

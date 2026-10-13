@@ -48,7 +48,10 @@ export const Playground: Story = {
   },
 };
 
-/** Every size, with inset icons from medium up. */
+/**
+ * Every size, with inset icons from medium up. At a low value the start icon moves to the
+ * inactive track.
+ */
 export const Sizes: Story = {
   render: () => (
     <div className="flex w-[360px] flex-col gap-6" data-testid="sizes">
@@ -62,6 +65,14 @@ export const Sizes: Story = {
           endIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeUpIcon />}
         />
       ))}
+      <Slider
+        aria-label="Volume low"
+        size="md"
+        defaultValue={3}
+        startIcon={<VolumeDownIcon />}
+        endIcon={<VolumeUpIcon />}
+        data-testid="moved-icon"
+      />
     </div>
   ),
 };
@@ -113,7 +124,6 @@ export const Vertical: Story = {
         ticks
         defaultValue={40}
       />
-      <RangeSlider aria-label="Vertical range" orientation="vertical" defaultValue={[20, 80]} />
     </div>
   ),
 };

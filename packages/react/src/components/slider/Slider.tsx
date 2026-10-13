@@ -1,9 +1,18 @@
 'use client';
 
-import { useRef, type CSSProperties, type ReactNode, type Ref, type RefObject } from 'react';
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
 import {
   mergeProps,
   useFocusRing,
+  useLocale,
   useNumberFormatter,
   useObjectRef,
   useSlider,
@@ -14,7 +23,13 @@ import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
-import { segmentLength, trackGeometry, type TrackSegment } from './slider-geometry';
+import {
+  iconSizeWhenFits,
+  movedStartIcon,
+  segmentLength,
+  trackGeometry,
+  type TrackSegment,
+} from './slider-geometry';
 import { sliderStyles, type SliderOrientation, type SliderSize } from './slider-styles';
 
 export interface SliderClassNames {
@@ -61,9 +76,15 @@ export type SliderProps = SliderCommonProps &
     onChange?: (value: number) => void;
     /** Called when the user stops dragging or releases a key. */
     onChangeEnd?: (value: number) => void;
-    /** Fill the track from its centre (for values around a midpoint). @default false */
+    /**
+     * Fill the track from its centre (for values around a midpoint). M3 doesn't use inset
+     * icons on centred sliders, so `startIcon` and `endIcon` are ignored. @default false
+     */
     centered?: boolean;
-    /** An icon inside the active track at its start (sizes md and up). */
+    /**
+     * An icon inside the active track at its start (sizes md and up). When the active track
+     * is too short for it, it moves to the start of the inactive track.
+     */
     startIcon?: ReactNode;
     /** An icon inside the inactive track at its end (sizes md and up). */
     endIcon?: ReactNode;
@@ -176,6 +197,15 @@ function SliderRoot(props: RootProps) {
   const fractions = state.values.map((_, index) => state.getThumbPercent(index));
   const geometry = trackGeometry({ fractions, ticks: tickFractions, centered: centered && !range });
   const styles = sliderStyles({ size, orientation });
+  if (process.env.NODE_ENV !== 'production' && centered && (startIcon || endIcon)) {
+    console.warn('Slider: inset icons are not used on centred sliders (M3), so they are ignored.');
+  }
+  if (process.env.NODE_ENV !== 'production' && range && orientation === 'vertical') {
+    console.warn('RangeSlider: M3 advises against vertical range sliders.');
+  }
+  const activeSegment = geometry.segments.find((segment) => segment.icon === 'start');
+  const moved =
+    activeSegment && startIcon != null && movedStartIcon(activeSegment, geometry.thumbs[0]!);
 
   return (
     <div
@@ -200,6 +230,16 @@ function SliderRoot(props: RootProps) {
             }
           />
         ))}
+        {moved && (
+          <span
+            aria-hidden="true"
+            data-moved-icon=""
+            style={{ marginInlineStart: moved.start, inlineSize: moved.size }}
+            className={styles.movedIcon()}
+          >
+            {startIcon}
+          </span>
+        )}
         {geometry.ticks.map((tick, index) => (
           <span
             key={index}
@@ -248,8 +288,7 @@ function Segment({
     <span
       aria-hidden="true"
       style={{
-        inlineSize:
-          'min(var(--m3-slider-icon, 0px), max(0px, (100% - var(--m3-slider-icon, 0px) - 20px) * 10000))',
+        inlineSize: iconSizeWhenFits('100%'),
         marginInlineStart: segment.icon === 'start' ? '10px' : 'auto',
         marginInlineEnd: segment.icon === 'end' ? '10px' : undefined,
       }}
@@ -284,6 +323,12 @@ function Segment({
   );
 }
 
+/** Whether each arrow key increases the value (true) or decreases it (false), by direction. */
+const INCREASE_KEYS: Record<'ltr' | 'rtl', Record<string, boolean>> = {
+  ltr: { ArrowRight: true, ArrowUp: true, ArrowLeft: false, ArrowDown: false },
+  rtl: { ArrowLeft: true, ArrowUp: true, ArrowRight: false, ArrowDown: false },
+};
+
 function Thumb({
   index,
   at,
@@ -306,13 +351,38 @@ function Thumb({
   classNames?: SliderClassNames;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { thumbProps, inputProps, isDragging, isFocused } = useSliderThumb(
+  const { thumbProps, inputProps, isDragging } = useSliderThumb(
     { index, trackRef, inputRef, name, 'aria-label': label },
     state,
   );
   const { focusProps, isFocusVisible } = useFocusRing();
-  // Compose narrows the handle to 2px while it is pressed, dragged or focused.
-  const active = isDragging || isFocused;
+  const { direction } = useLocale();
+  // M3: "Space & Arrows — Increase and decrease the value by one interval", so arrows step
+  // by React Aria's page size while Space is held (as Shift + arrows already do).
+  const [spaceHeld, setSpaceHeld] = useState(false);
+  const intervalKeys = {
+    onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === ' ') {
+        event.preventDefault();
+        setSpaceHeld(true);
+        return;
+      }
+      const increase = INCREASE_KEYS[direction][event.key];
+      if (!spaceHeld || increase === undefined) return;
+      event.preventDefault();
+      event.stopPropagation();
+      state.setThumbDragging(index, true);
+      if (increase) state.incrementThumb(index, state.pageSize);
+      else state.decrementThumb(index, state.pageSize);
+      state.setThumbDragging(index, false);
+    },
+    onKeyUp: (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === ' ') setSpaceHeld(false);
+    },
+    onBlur: () => setSpaceHeld(false),
+  };
+  // The handle narrows to 2px while it is pressed or dragged (M3), or keyboard-focused.
+  const active = isDragging || isFocusVisible;
   return (
     <>
       <div
@@ -325,7 +395,7 @@ function Thumb({
       >
         <span data-active={active || undefined} className={styles.handle()} />
         <VisuallyHidden>
-          <input ref={inputRef} {...mergeProps(inputProps, focusProps)} />
+          <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>
       </div>
       {showValueLabel && (isDragging || isFocusVisible) && (

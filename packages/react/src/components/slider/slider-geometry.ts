@@ -61,6 +61,23 @@ export function segmentLength(segment: TrackSegment): string {
   return `max(0px, min(${length}, max(0px, (${length} - ${segment.threshold}) * 10000)))`;
 }
 
+/** Shows an inset icon when `length` fits it plus 10px on each side, else 0 (MDC). */
+const ICON = 'var(--m3-slider-icon, 0px)';
+export const iconSizeWhenFits = (length: string) =>
+  `min(${ICON}, max(0px, (${length} - ${ICON} - 20px) * 10000))`;
+
+/**
+ * Where the start icon goes when the active track is too short for it (M3: "the icon moves
+ * to the inactive track"): 10px after the inactive track's start, shown only while the
+ * active segment (`active`, from {@link trackGeometry}) is shorter than the icon plus 20px.
+ */
+export function movedStartIcon(active: TrackSegment, thumb: string) {
+  return {
+    start: `calc(${thumb} + ${halfAndGap(0)} + 10px)`,
+    size: `min(${ICON}, max(0px, (${ICON} + 20px - ${segmentLength(active)}) * 10000))`,
+  };
+}
+
 export function trackGeometry({ fractions, ticks, centered }: SliderGeometryInput): {
   segments: TrackSegment[];
   ticks: TrackTick[];

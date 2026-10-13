@@ -26,7 +26,7 @@ describe('Slider', () => {
 
   it.each([
     ['sm', '24px', '44px'],
-    ['md', '40px', '44px'],
+    ['md', '40px', '52px'],
     ['lg', '56px', '68px'],
     ['xl', '96px', '108px'],
   ] as const)('sizes %s from the M3 tokens', (size, track, handle) => {
@@ -96,6 +96,47 @@ describe('Slider', () => {
     expect(start!.parentElement!.parentElement).toHaveAttribute('data-tone', 'active');
     expect(end!.parentElement!.parentElement).toHaveAttribute('data-tone', 'inactive');
     expect(start!.parentElement!.style.marginInlineStart).toBe('10px');
+  });
+
+  it('moves the start icon to the inactive track when the active one is too short', () => {
+    render(<Slider aria-label="Volume" size="md" startIcon={<Icon />} defaultValue={2} />);
+    const [inActive, moved] = screen.getAllByTestId('icon');
+    expect(inActive!.parentElement!.parentElement).toHaveAttribute('data-tone', 'active');
+    const movedBox = moved!.parentElement!;
+    expect(movedBox).toHaveAttribute('data-moved-icon');
+    expect(movedBox).toHaveClass('text-on-secondary-container');
+    // It starts 10px after the inactive track's start and shows only while the active
+    // segment is shorter than the icon plus 20px (the active copy shows otherwise).
+    expect(movedBox.style.marginInlineStart).toContain('+ 10px');
+    expect(movedBox.style.inlineSize).toContain('var(--m3-slider-icon, 0px) + 20px');
+    expect(inActive!.parentElement!.style.inlineSize).toContain('- 20px');
+  });
+
+  it('ignores inset icons on a centred slider', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(<Slider aria-label="Balance" size="md" centered startIcon={<Icon />} />);
+    expect(screen.queryByTestId('icon')).toBe(null);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('steps by an interval with Space and an arrow', async () => {
+    const onChange = vi.fn();
+    render(<Slider aria-label="Volume" defaultValue={50} onChange={onChange} />);
+    await userEvent.tab();
+    await userEvent.keyboard('[Space>][ArrowRight][/Space]');
+    expect(onChange).toHaveBeenLastCalledWith(60);
+    await userEvent.keyboard('[Space>][ArrowDown][ArrowDown][/Space]');
+    expect(onChange).toHaveBeenLastCalledWith(40);
+    await userEvent.keyboard('{ArrowRight}');
+    expect(onChange).toHaveBeenLastCalledWith(41);
+  });
+
+  it('keeps the handle 4px after a pointer press while it keeps focus', () => {
+    render(<Slider aria-label="Volume" defaultValue={50} />);
+    const input = screen.getByRole('slider');
+    fireEvent.focus(input);
+    expect(input.closest('[data-thumb]')!.querySelector('[data-active]')).toBe(null);
   });
 
   it('is vertical and disabled on request', () => {
