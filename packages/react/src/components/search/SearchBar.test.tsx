@@ -57,6 +57,17 @@ describe('SearchBar', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('keeps the text 4px from the leading and trailing tap targets', () => {
+    render(
+      <SearchBar
+        aria-label="Search"
+        leadingIcon={<Icon />}
+        trailingIcon={<IconButton icon={<Icon />} aria-label="Voice search" />}
+      />,
+    );
+    expect(screen.getByRole('combobox')).toHaveClass('ps-[4px]', 'pe-[4px]');
+  });
+
   it('pads the input 16px when it has no icons', () => {
     render(<SearchBar aria-label="Search" />);
     expect(screen.getByRole('combobox')).toHaveClass('ps-[16px]', 'pe-[16px]');

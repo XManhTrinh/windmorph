@@ -310,3 +310,62 @@ test.describe('Search under reduced motion', () => {
     await expect(dialog).toBeHidden();
   });
 });
+
+test.describe('Search text padding', () => {
+  /**
+   * The text's start and end (the input's content box) against the pill, the leading slot
+   * and the first trailing tap target, in reading order.
+   */
+  const gaps = (bar: Locator) =>
+    bar.evaluate((root) => {
+      const rtl = getComputedStyle(root).direction === 'rtl';
+      const input = root.querySelector('input')!;
+      const style = getComputedStyle(input);
+      const box = input.getBoundingClientRect();
+      const left = box.left + parseFloat(style.paddingLeft);
+      const right = box.right - parseFloat(style.paddingRight);
+      const field = input.parentElement!;
+      const pill = field.getBoundingClientRect();
+      // The icon slots are the 48px tap-target boxes.
+      const [leading, trailing] = [input.previousElementSibling, input.nextElementSibling].map(
+        (el) => el?.getBoundingClientRect(),
+      );
+      // Distances from the text to whatever comes before and after it.
+      const before = rtl
+        ? (leading ? leading.left : pill.right) - right
+        : left - (leading ? leading.right : pill.left);
+      const after = rtl
+        ? left - (trailing ? trailing.right : pill.left)
+        : (trailing ? trailing.left : pill.right) - right;
+      return { before: Math.round(before), after: Math.round(after), height: pill.height };
+    });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`4px from the tap targets, 16px from the edge without icons · ${dir}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-search--collapsed', { dir });
+      const bars = page.getByTestId('collapsed').locator('> div');
+      // M3: "Leading icon and label padding (from tap target): 4dp", and the same before
+      // the trailing icon.
+      expect(await gaps(bars.nth(0))).toEqual({ before: 4, after: 4, height: 56 });
+      expect(await gaps(bars.nth(1))).toEqual({ before: 16, after: 16, height: 56 });
+      expect(await gaps(page.getByTestId('two-trailing'))).toEqual({
+        before: 4,
+        after: 4,
+        height: 56,
+      });
+      expect(await gaps(page.getByTestId('avatar'))).toEqual({ before: 4, after: 4, height: 56 });
+    });
+  }
+
+  test('the expanded field keeps the same gaps', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 640 });
+    await openStory(page, 'components-search--playground', {}, { view: 'full-screen' });
+    await page.getByRole('combobox').click();
+    const dialog = page.getByRole('dialog');
+    await settle(page);
+    const header = dialog.getByRole('searchbox').locator('../..');
+    expect(await gaps(header)).toEqual({ before: 4, after: 4, height: 56 });
+  });
+});

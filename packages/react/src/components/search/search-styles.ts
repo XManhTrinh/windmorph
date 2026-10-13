@@ -8,7 +8,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Field: 56px, full corners, `surface-container-high`, 360px wide by default and at most
  * 720px. Input and placeholder `body-large`, `on-surface` / `on-surface-variant`. Icons sit
  * in 48px boxes shifted 4px inwards (leading `on-surface`, trailing `on-surface-variant`);
- * text starts 52px in after a leading icon (16px without one).
+ * the text keeps 4px from the leading and trailing tap targets (the spec's "Leading icon and
+ * label padding (from tap target): 4dp" and "Label and trailing icon padding"; Compose's
+ * code leaves none), so it starts 56px in after a leading icon, 16px without one.
  *
  * Docked (with gap): the expanded field, 56px tall whatever the collapsed bar's height
  * (M3's focused search bar container), sits centred over the collapsed one and widens by 12px on
@@ -137,8 +139,9 @@ export const searchBarStyles = tv({
      * of it (M3), up to 720px.
      */
     inAppBar: { true: { root: 'w-[max(min(100%,312px),50%)]' }, false: {} },
-    hasLeading: { true: {}, false: { input: 'ps-[16px]' } },
-    hasTrailing: { true: {}, false: { input: 'pe-[16px]' } },
+    // 4px from a tap target (M3), else 16px from the pill's edge.
+    hasLeading: { true: { input: 'ps-[4px]' }, false: { input: 'ps-[16px]' } },
+    hasTrailing: { true: { input: 'pe-[4px]' }, false: { input: 'pe-[16px]' } },
     /**
      * Container colour: the bar's own; in a search app bar `surface-container`, and one
      * step higher than the bar once content scrolls under it.
