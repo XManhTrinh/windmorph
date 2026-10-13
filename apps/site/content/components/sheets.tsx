@@ -170,11 +170,11 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material
-              Components Android (256px wide, 16px corners on the free edge, standard sheets open a
-              grid track behind an <InlineCode>outline-variant</InlineCode> divider; a 72px bottom
-              action row from <InlineCode>footer</InlineCode>). Their content scrolls vertically
-              only: anything wider than the sheet is clipped (m3.material.io: &ldquo;Side sheets
-              cannot scroll horizontally&rdquo;).
+              Components Android (256px wide and at most 400px, 16px corners on the free edge,
+              standard sheets open a grid track behind an <InlineCode>outline-variant</InlineCode>{' '}
+              divider; a 72px bottom action row from <InlineCode>footer</InlineCode>). Their content
+              scrolls vertically only: anything wider than the sheet is clipped (m3.material.io:
+              &ldquo;Side sheets cannot scroll horizontally&rdquo;).
             </li>
             <li>
               Not in v1: dragging through nested scrolling, predictive back, and detents beyond half

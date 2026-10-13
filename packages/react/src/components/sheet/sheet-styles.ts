@@ -12,7 +12,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * distance) settles out of view and the sheet never springs back into the window.
  *
  * Side sheets aren't in Compose; values follow m3.material.io and Material Components
- * Android (`m3_comp_sheet_side_*`): 256px wide; standard `surface` at level 0 with no
+ * Android (`m3_comp_sheet_side_*`): 256px wide, at most 400px; standard `surface` at level 0 with no
  * corners and an `outline-variant` divider on its content edge; modal
  * `surface-container-low` at level 1 with 16px corners on its free edge, over a 32% scrim;
  * detached sheets sit 16px from the edges with 16px corners all round. The header has 24px
@@ -92,7 +92,10 @@ export const sideSheetStyles = tv({
       'rtl:starting:-translate-x-full rtl:data-exiting:-translate-x-[112%]',
       ...sheetMotion,
     ],
-    panel: 'flex w-[256px] max-w-full flex-col text-on-surface outline-none',
+    // 256px by default; a consumer width can't pass the spec's 400px maximum. A fixed
+    // maximum (not a percentage) also caps the wrapper's shrink-to-fit width, and `min-w-0`
+    // lets the panel shrink with the wrapper in a narrow window.
+    panel: 'flex w-[256px] max-w-[400px] min-w-0 flex-col text-on-surface outline-none',
     header:
       'flex min-h-[72px] shrink-0 items-center gap-[12px] ps-[24px] pe-[12px] pt-[12px] pb-[12px]',
     title: 'min-w-0 flex-1 text-title-large font-brand text-on-surface-variant',

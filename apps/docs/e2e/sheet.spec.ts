@@ -213,6 +213,18 @@ test.describe('Side sheet', () => {
     expect(await content.evaluate((el) => el.scrollLeft)).toBe(0);
   });
 
+  test('a wider sheet stops at 400px', async ({ page }) => {
+    await page.setViewportSize({ width: 800, height: 600 });
+    await openStory(page, 'components-sheet--side', {}, { widePanel: true });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    expect(await rect(sheet)).toMatchObject({ width: 400, right: 800 });
+    // In a narrow window it still fits the window.
+    await page.setViewportSize({ width: 360, height: 600 });
+    expect((await rect(sheet)).width).toBe(360);
+  });
+
   test('a back button insets the header to 16px', async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 600 });
     await openStory(page, 'components-sheet--side', {}, { back: true });

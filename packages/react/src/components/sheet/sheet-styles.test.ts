@@ -49,4 +49,8 @@ describe('sheet styles', () => {
   it('never scrolls side sheet content horizontally', () => {
     expect(sideSheetStyles().content()).toContain('overflow-x-hidden');
   });
+
+  it('caps a side sheet at 400px, even when a consumer widens it', () => {
+    expect(sideSheetStyles().panel({ class: 'w-[480px]' })).toContain('max-w-[400px]');
+  });
 });

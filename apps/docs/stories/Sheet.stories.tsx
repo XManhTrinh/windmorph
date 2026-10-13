@@ -106,10 +106,16 @@ const footer = ({ close }: { close: () => void }) => (
 /**
  * A modal side sheet, docked or detached, with its built-in close button and bottom actions.
  * `wide` adds content wider than the sheet, which is clipped: side sheets never scroll sideways.
+ * `widePanel` asks for a 480px sheet, which stops at the spec's 400px maximum.
  */
-export const Side: StoryObj<{ detached: boolean; back: boolean; wide: boolean }> = {
-  args: { detached: false, back: false, wide: false },
-  render: ({ detached, back, wide }) => (
+export const Side: StoryObj<{
+  detached: boolean;
+  back: boolean;
+  wide: boolean;
+  widePanel: boolean;
+}> = {
+  args: { detached: false, back: false, wide: false, widePanel: false },
+  render: ({ detached, back, wide, widePanel }) => (
     <SheetTrigger>
       <Button>Open filters</Button>
       <SideSheet
@@ -118,6 +124,7 @@ export const Side: StoryObj<{ detached: boolean; back: boolean; wide: boolean }>
         onBack={back ? () => undefined : undefined}
         footer={footer}
         footerDivider
+        className={widePanel ? 'w-[480px]' : undefined}
         data-testid="sheet"
       >
         <p className="text-body-medium text-on-surface-variant">
