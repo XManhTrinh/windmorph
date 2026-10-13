@@ -65,6 +65,7 @@ import { RadioRing } from '../radio/RadioGroup';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/Switch';
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { elementType } from '../../utils/element-type';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
@@ -671,9 +672,12 @@ function onLinkArrowKeys(event: KeyboardEvent<HTMLUListElement>) {
   links[target]!.focus();
 }
 
-/** Whether a `List` child is a `ListSection`. */
+/**
+ * Whether a `List` child is a `ListSection`, also when a Server Component created it (its
+ * type then arrives as a lazy client reference).
+ */
 function isSection(element: ReactElement): element is ReactElement<ListSectionProps> {
-  return element.type === ListSectionElement;
+  return elementType(element) === ListSectionElement;
 }
 
 /**

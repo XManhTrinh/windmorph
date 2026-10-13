@@ -1,7 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
+import { lazy } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { elementType } from '../../utils/element-type';
 import { List, ListItem, ListSection, type ListProps } from './List';
 
 type Interaction = Pick<ListProps, 'onAction' | 'selectionMode' | 'variant'>;
@@ -68,6 +70,29 @@ describe('ListSection (static list)', () => {
     expect(screen.getByText('Alpha').closest('li')).toHaveAttribute('data-position', 'first');
     expect(screen.getByText('Beta').closest('li')).toHaveAttribute('data-position', 'last');
     expect(screen.getByText('Gamma').closest('li')).toHaveAttribute('data-position', 'only');
+  });
+});
+
+describe('ListSection (from a server component)', () => {
+  it('renders a section whose type arrives as a loaded lazy client reference', async () => {
+    // A Server Component's client elements reach the client with a lazy type.
+    const ServerSection = lazy(() =>
+      Promise.resolve({ default: ListSection }),
+    ) as unknown as typeof ListSection;
+    try {
+      elementType(<ServerSection aria-label="Loading">{[]}</ServerSection>);
+    } catch (loading) {
+      await loading;
+    }
+    render(
+      <List aria-label="Settings">
+        <ServerSection key="network" title="Network">
+          <ListItem key="wifi">Wi‑Fi</ListItem>
+        </ServerSection>
+      </List>,
+    );
+    const network = screen.getByRole('list', { name: 'Network' });
+    expect(within(network).getByRole('listitem')).toHaveTextContent('Wi‑Fi');
   });
 });
 
