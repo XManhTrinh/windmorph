@@ -236,10 +236,11 @@ export function ExpressiveBento() {
         </Tile>
       </div>
 
-      {/* Expanded navigation rail: the current destination moves */}
+      {/* Expanded navigation rail: the current destination's pill slides between items */}
       <Tile className="col-span-2 row-span-2 p-0 large:col-span-1 large:col-start-3 large:row-span-6 large:row-start-5">
         <NavigationRail
           expanded
+          indicatorMotion="slide"
           aria-label="Sections"
           className="absolute start-[28%] -end-px top-12 bottom-0 w-auto rounded-ss-corner-extra-large"
           // Clipped by the tile, as in the showcase: its column must not scroll.
