@@ -9,7 +9,11 @@ import { SearchBar } from './SearchBar';
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 
-function Controlled(props: { view?: 'docked' | 'full-screen'; onSubmit?: (v: string) => void }) {
+function Controlled(props: {
+  view?: 'docked' | 'full-screen';
+  onSubmit?: (v: string) => void;
+  resultsAnnouncement?: string;
+}) {
   const [query, setQuery] = useState('');
   return (
     <SearchBar
@@ -19,6 +23,7 @@ function Controlled(props: { view?: 'docked' | 'full-screen'; onSubmit?: (v: str
       onChange={setQuery}
       onSubmit={props.onSubmit}
       view={props.view}
+      resultsAnnouncement={props.resultsAnnouncement}
       leadingIcon={({ expanded, collapse }) =>
         expanded ? <IconButton icon={<Icon />} aria-label="Back" onPress={collapse} /> : <Icon />
       }
@@ -67,7 +72,19 @@ describe('SearchBar', () => {
       'rounded-[12px]',
       'mt-[2px]',
       'bg-surface-container-high',
+      // M3: with the bar, at least 240px and at most 2/3 of the window tall.
+      'min-h-[min(182px,calc(66.67dvh-58px))]',
+      'max-h-[calc(66.67dvh-58px)]',
     );
+    // The focused field widens by 12px on each side, from the bar's own bounds.
+    const panel = dialog;
+    expect(panel).toHaveClass(
+      'left-(--m3-search-focused-left)',
+      'w-(--m3-search-focused-width)',
+      'starting:w-(--m3-search-width)',
+    );
+    const width = Number.parseFloat(panel.style.getPropertyValue('--m3-search-width'));
+    expect(panel.style.getPropertyValue('--m3-search-focused-width')).toBe(`${width + 24}px`);
     // Typing into the expanded input updates the query; ↓ moves focus into the content.
     await userEvent.type(expandedInput, 'ab');
     expect(expandedInput).toHaveValue('ab');
@@ -86,14 +103,65 @@ describe('SearchBar', () => {
     expect(expanded).toHaveValue('c');
     await userEvent.keyboard('{Enter}');
     expect(onSubmit).toHaveBeenCalledWith('c');
+    // M3: the query stays visible but not focused; focus moves to the results.
+    expect(expanded).not.toHaveFocus();
+    expect(expanded).toHaveValue('c');
+    expect(screen.getByText('Suggestion one').parentElement).toHaveFocus();
+  });
+
+  it('announces the results politely while the view is open', async () => {
+    const { rerender } = render(<Controlled resultsAnnouncement="2 suggestions" />);
+    await userEvent.click(screen.getByRole('combobox'));
+    const status = screen.getByRole('status');
+    expect(status).toHaveClass('sr-only');
+    await vi.waitFor(() => expect(status).toHaveTextContent('2 suggestions'));
+    rerender(<Controlled resultsAnnouncement="No results" />);
+    await vi.waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('No results'));
+  });
+
+  it('holds two trailing icon buttons, or an avatar at 30px', () => {
+    render(
+      <SearchBar
+        aria-label="Search"
+        trailingIcon={
+          <>
+            <IconButton icon={<Icon />} aria-label="Voice search" />
+            <IconButton icon={<Icon />} aria-label="Clear" />
+          </>
+        }
+      />,
+    );
+    const trailing = screen.getByRole('button', { name: 'Clear' }).parentElement!;
+    expect(trailing).toContainElement(screen.getByRole('button', { name: 'Voice search' }));
+    expect(trailing).toHaveClass('min-w-[48px]', 'h-[48px]', '[&>img]:size-[30px]');
+    expect(trailing).not.toHaveClass('size-[48px]');
+  });
+
+  it('makes its icon buttons standard', () => {
+    render(
+      <SearchBar
+        aria-label="Search"
+        trailingIcon={<IconButton icon={<Icon />} aria-label="Voice search" />}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Voice search' })).toHaveClass('bg-transparent');
+  });
+
+  it('centres the text while collapsed on request', () => {
+    render(<SearchBar aria-label="Search" textAlign="center" />);
+    expect(screen.getByRole('combobox')).toHaveClass('text-center');
   });
 
   it('opens full screen and collapses from the leading back button', async () => {
     render(<Controlled view="full-screen" />);
     await userEvent.click(screen.getByRole('combobox'));
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('fixed', 'inset-0', 'bg-surface-container-high');
-    expect(screen.getByRole('searchbox').parentElement).toHaveClass('bg-transparent');
+    // M3 Expressive's contained style: a `surface-container-low` view, and the field keeps
+    // its filled pill, 16px from each side.
+    expect(dialog).toHaveClass('fixed', 'inset-0', 'bg-surface-container-low');
+    const field = screen.getByRole('searchbox').parentElement!;
+    expect(field).toHaveClass('bg-surface-container-high', 'rounded-corner-full');
+    expect(field.parentElement).toHaveClass('start-[16px]', 'w-[calc(100%-32px)]');
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByTestId('search')).not.toHaveAttribute('data-expanded');
   });
@@ -133,7 +201,10 @@ describe('SearchAppBar', () => {
     const bar = screen.getByTestId('bar');
     expect(bar.tagName).toBe('HEADER');
     expect(bar).toHaveClass('min-h-[64px]', 'bg-surface', 'data-scrolled:bg-surface-container');
-    expect(screen.getByTestId('search')).toHaveClass('w-full');
+    // M3: it fills the free space up to 312px, then half of it.
+    expect(screen.getByTestId('search')).toHaveClass('w-[max(min(100%,312px),50%)]');
+    // The search container is `surface-container` in an app bar.
+    expect(screen.getByRole('combobox').parentElement).toHaveClass('bg-surface-container');
     expect(screen.getByTestId('search').parentElement).toHaveClass(
       'flex-1',
       'justify-center',

@@ -35,7 +35,9 @@ export interface AppBarScrollState {
  * are written as custom properties too, so scrolling causes no React renders.
  *
  * - `pinned`: the bar stays; only its colour responds.
- * - `enter-always`: scrolling down hides the collapsible part, any scroll up brings it back.
+ * - `enter-always`: scrolling down hides the bar, any scroll up brings it back. A two-row
+ *   bar first collapses to its top row, which then hides and comes back on scroll up, but
+ *   stays small until the page is back at the top (M3).
  * - `exit-until-collapsed`: scrolling down collapses it; it expands only near the top.
  */
 export function useAppBarScroll({
@@ -56,20 +58,37 @@ export function useAppBarScroll({
 
     let last = position();
     let offset = 0;
+    /** A two-row `enter-always` bar's top-row offset: 0 (shown) to minus its height. */
+    let hide = 0;
     let frame = 0;
     let current: AppBarScrollState = { scrolled: false, collapsed: false };
 
     const update = () => {
       frame = 0;
       const scroll = position();
-      const delta = scroll - last;
+      const previous = last;
       last = scroll;
       // The collapsible height, measured each time so wrapped titles and resizes count.
       const limit = collapsibleRef.current?.offsetHeight ?? 0;
-      if (behavior === 'enter-always') offset = Math.min(0, Math.max(-limit, offset - delta));
-      else if (behavior === 'exit-until-collapsed') offset = -Math.min(scroll, limit);
-      else offset = 0;
-      const fraction = limit > 0 ? -offset / limit : 0;
+      let collapse = 0;
+      if (behavior === 'pinned') {
+        offset = 0;
+      } else if (twoRows) {
+        // The expanded row collapses with the scroll and expands only near the top.
+        collapse = -Math.min(scroll, limit);
+        if (behavior === 'enter-always') {
+          // Past that, the top row follows each scroll delta: hidden going down, back going up.
+          const rowHeight = root.offsetHeight - limit;
+          const beyond = Math.max(scroll, limit) - Math.max(previous, limit);
+          hide = Math.min(0, Math.max(-rowHeight, hide - beyond));
+        }
+        offset = collapse + hide;
+      } else if (behavior === 'enter-always') {
+        offset = Math.min(0, Math.max(-limit, offset - (scroll - previous)));
+      } else {
+        offset = -Math.min(scroll, limit);
+      }
+      const fraction = limit > 0 ? -(twoRows ? collapse : offset) / limit : 0;
 
       root.style.setProperty('--m3-app-bar-offset', `${offset}px`);
       if (twoRows) {

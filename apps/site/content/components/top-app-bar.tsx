@@ -94,8 +94,11 @@ export async function TopAppBarBody() {
             with the scroll. The offset differs per behaviour:{' '}
             <code className="text-on-surface">pinned</code> stays,{' '}
             <code className="text-on-surface">exit-until-collapsed</code> collapses once, and{' '}
-            <code className="text-on-surface">enter-always</code> comes back on any scroll up.
+            <code className="text-on-surface">enter-always</code> comes back on any scroll up. A
+            medium or large <code className="text-on-surface">enter-always</code> bar comes back
+            small and expands only at the top of the page, as M3 asks.
           </li>
+          <li>A long expanded title wraps to two lines at most (M3).</li>
           <li>
             There is no fling settle or snap, and you cannot drag the bar itself. Scroll offsets and
             colours are written as custom properties from a scroll handler, so scrolling causes no

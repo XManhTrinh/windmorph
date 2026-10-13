@@ -11,10 +11,11 @@ function* outputs() {
   for (const inAppBar of [false, true])
     for (const hasLeading of [false, true])
       for (const hasTrailing of [false, true])
-        for (const tone of ['default', 'scrolled', 'transparent'] as const) {
-          const slots = searchBarStyles({ inAppBar, hasLeading, hasTrailing, tone });
-          for (const slot of Object.values(slots)) yield slot();
-        }
+        for (const tone of ['default', 'appBar', 'scrolled'] as const)
+          for (const textAlign of ['start', 'center'] as const) {
+            const slots = searchBarStyles({ inAppBar, hasLeading, hasTrailing, tone, textAlign });
+            for (const slot of Object.values(slots)) yield slot();
+          }
   for (const scrolling of [false, true]) {
     const slots = searchAppBarStyles({ scrolling });
     for (const slot of Object.values(slots)) yield slot();

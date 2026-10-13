@@ -150,4 +150,36 @@ describe('TopAppBar', () => {
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
     expect(bar).not.toHaveAttribute('data-collapsed');
   });
+
+  it('keeps an enter-always two-row bar small on scroll up until back at the top', async () => {
+    render(
+      <TopAppBar variant="medium" title="Inbox" scrollBehavior="enter-always" data-testid="bar" />,
+    );
+    const bar = screen.getByTestId('bar');
+    const expanded = bar.children[1] as HTMLElement;
+    Object.defineProperty(expanded, 'offsetHeight', { configurable: true, value: 48 });
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 112 });
+    // Down: the expanded row collapses first, then the 64px top row hides.
+    await scrollWindow(30);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-30px');
+    await scrollWindow(80);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-80px');
+    await scrollWindow(400);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-112px');
+    // Up: the top row comes back, but the large title stays collapsed (M3).
+    await scrollWindow(300);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-48px');
+    expect(Number(bar.style.getPropertyValue('--m3-app-bar-top-alpha'))).toBeCloseTo(1);
+    expect(bar).toHaveAttribute('data-collapsed', 'true');
+    // Back near the top it expands with the scroll.
+    await scrollWindow(24);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-24px');
+    await scrollWindow(0);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
+  });
+
+  it('wraps a long expanded title to two lines at most', () => {
+    render(<TopAppBar variant="large" title="A very long title" data-testid="bar" />);
+    expect(screen.getByTestId('bar').children[1]!.firstElementChild).toHaveClass('line-clamp-2');
+  });
 });

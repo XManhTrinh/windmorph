@@ -45,7 +45,8 @@ export const topAppBarStyles = tv({
       'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant [--md-comp-icon-button-icon-color:currentColor]',
     // Two-row bars: the expanded title row.
     expandedRow: 'flex flex-col ps-[16px] pe-[16px]',
-    expandedTitle: 'text-on-surface',
+    // M3: a long headline wraps to two lines at most.
+    expandedTitle: 'line-clamp-2 text-on-surface',
     expandedSubtitle: 'text-on-surface-variant',
   },
   variants: {

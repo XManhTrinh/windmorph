@@ -82,6 +82,21 @@ export const Variants: Story = {
   ),
 };
 
+/** A long headline wraps to two lines at most (M3). */
+export const LongTitle: Story = {
+  render: () => (
+    <div className="w-[412px]">
+      <TopAppBar
+        data-testid="bar"
+        variant="large"
+        title="Quarterly planning notes for the design systems team"
+        navigationIcon={back}
+        actions={actions}
+      />
+    </div>
+  ),
+};
+
 /** A bar above scrolling content: pinned, enter-always or exit-until-collapsed. */
 export const Scrolling: Story = {
   render: function ScrollingStory({ variant, titleAlign, subtitle, scrollBehavior }) {

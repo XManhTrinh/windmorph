@@ -10,14 +10,22 @@ import { tv, type VariantProps } from '../../utils/tv';
  * in 48px boxes shifted 4px inwards (leading `on-surface`, trailing `on-surface-variant`);
  * text starts 52px in after a leading icon (16px without one).
  *
- * Docked (with gap): the expanded field sits over the collapsed one, and a dropdown 2px
- * below it (12px corners, `surface-container-high`, at most half the window tall) slides
- * down from half its height on the default spatial spring (fast spatial back) while its
- * content fades in over 100ms after 50ms; a 32% scrim covers the page.
+ * Docked (with gap): the expanded field sits over the collapsed one and widens by 12px on
+ * each side (M3 Expressive: the margins change from 24dp to 12dp when focused) on the
+ * default spatial spring, and a dropdown 2px below it (12px corners,
+ * `surface-container-high`; with the bar, at least 240px and at most 2/3 of the window
+ * tall, per the M3 spec) slides down from half its height on the default spatial spring
+ * (fast spatial back) while its content fades in over 100ms after 50ms; a 32% scrim covers
+ * the page.
  *
- * Full screen: a `surface-container-high` surface grows from the bar's bounds (28px corners)
- * to the whole window on the slow spatial spring (default spatial back); the field moves to
- * the top, 8px down and full width, and the content starts 72px down.
+ * Full screen, in M3 Expressive's contained style: a `surface-container-low` surface grows
+ * from the bar's bounds (28px corners) to the whole window on the slow spatial spring
+ * (default spatial back); the field keeps its `surface-container-high` pill and moves to the
+ * top, 8px down and 16px from each side, and the content starts 72px down.
+ *
+ * In a search app bar the field is `surface-container` (`surface-container-highest` once
+ * content scrolls under the bar) and fills the free space up to 312px, then half of it,
+ * at most 720px (M3 app bar guidelines).
  *
  * Every class is written out in full so Tailwind can find it.
  */
@@ -39,8 +47,11 @@ export const searchBarStyles = tv({
       'focus-ring-inset flex h-full w-full min-w-0 items-center rounded-corner-full text-on-surface',
     leading:
       'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-on-surface [&>svg]:size-[24px]',
-    trailing:
-      'me-[4px] flex size-[48px] shrink-0 items-center justify-center text-on-surface-variant [&>svg]:size-[24px]',
+    // One or two trailing icon buttons, or an avatar (30px) and an icon button (M3).
+    trailing: [
+      'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center text-on-surface-variant',
+      '[&>svg]:size-[24px] [&>img]:size-[30px] [&>img]:rounded-full',
+    ],
     input: [
       'h-full min-w-0 flex-1 bg-transparent text-body-large text-on-surface caret-primary outline-none',
       'placeholder:text-on-surface-variant',
@@ -54,9 +65,22 @@ export const searchBarStyles = tv({
       'starting:opacity-0 data-exiting:opacity-0',
     ],
     // Docked view: the panel sits over the collapsed bar.
-    dockedPanel: 'fixed z-(--md-sys-z-sheet) flex flex-col outline-none',
+    // It widens from the bar's bounds (`--m3-search-*`) to the focused ones.
+    dockedPanel: [
+      'fixed top-(--m3-search-top) left-(--m3-search-focused-left) z-(--md-sys-z-sheet)',
+      'flex w-(--m3-search-focused-width) flex-col outline-none',
+      'starting:left-(--m3-search-left) starting:w-(--m3-search-width)',
+      'data-exiting:left-(--m3-search-left) data-exiting:w-(--m3-search-width)',
+      '[transition-property:left,width]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
+    ],
     dropdown: [
-      'mt-[2px] max-h-[calc(50dvh-58px)] overflow-y-auto overscroll-contain',
+      'mt-[2px] overflow-y-auto overscroll-contain',
+      // 58px is the field and the gap above the dropdown.
+      'min-h-[min(182px,calc(66.67dvh-58px))] max-h-[calc(66.67dvh-58px)]',
       'rounded-[12px] bg-surface-container-high text-on-surface',
       'translate-y-0 starting:-translate-y-1/2 data-exiting:-translate-y-1/2',
       '[transition-property:translate,opacity]',
@@ -68,7 +92,7 @@ export const searchBarStyles = tv({
     ],
     // Full-screen view: the surface grows from the bar's bounds to the window.
     fullScreenPanel: [
-      'fixed inset-0 z-(--md-sys-z-sheet) bg-surface-container-high text-on-surface outline-none',
+      'fixed inset-0 z-(--md-sys-z-sheet) bg-surface-container-low text-on-surface outline-none',
       '[clip-path:inset(0_round_0)]',
       'starting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
       'data-exiting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
@@ -79,8 +103,8 @@ export const searchBarStyles = tv({
       'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
     ],
     fullScreenHeader: [
-      // Compose's full-screen field is 56px whatever the bar's size.
-      'absolute start-0 top-[8px] h-[56px] w-full',
+      // Compose's full-screen field is 56px whatever the bar's size; 16px from each side.
+      'absolute start-[16px] top-[8px] h-[56px] w-[calc(100%-32px)]',
       'starting:start-(--m3-search-start) starting:top-(--m3-search-top) starting:w-(--m3-search-width)',
       'data-exiting:start-(--m3-search-start) data-exiting:top-(--m3-search-top) data-exiting:w-(--m3-search-width)',
       '[transition-property:inset-inline-start,top,width]',
@@ -98,19 +122,32 @@ export const searchBarStyles = tv({
     ],
   },
   variants: {
-    /** Inside a search app bar the bar fills the free space, up to 720px. */
-    inAppBar: { true: { root: 'w-full' }, false: {} },
+    /**
+     * Inside a search app bar the bar fills the free space up to 312px, then grows to half
+     * of it (M3), up to 720px.
+     */
+    inAppBar: { true: { root: 'w-[max(min(100%,312px),50%)]' }, false: {} },
     hasLeading: { true: {}, false: { input: 'ps-[16px]' } },
     hasTrailing: { true: {}, false: { input: 'pe-[16px]' } },
-    /** Container colour: the bar's own, or (in a scrolled search app bar) one step higher. */
+    /**
+     * Container colour: the bar's own; in a search app bar `surface-container`, and one
+     * step higher than the bar once content scrolls under it.
+     */
     tone: {
       default: { field: 'bg-surface-container-high' },
+      appBar: { field: 'bg-surface-container' },
       scrolled: { field: 'bg-surface-container-highest' },
-      // The full-screen field is transparent on its surface (Compose's input field colours).
-      transparent: { field: 'bg-transparent' },
     },
+    /** Centre the placeholder and the query while the bar is collapsed. */
+    textAlign: { start: {}, center: { input: 'text-center' } },
   },
-  defaultVariants: { inAppBar: false, hasLeading: false, hasTrailing: false, tone: 'default' },
+  defaultVariants: {
+    inAppBar: false,
+    hasLeading: false,
+    hasTrailing: false,
+    tone: 'default',
+    textAlign: 'start',
+  },
 });
 
 /** Variant definitions for {@link SearchAppBar}. */

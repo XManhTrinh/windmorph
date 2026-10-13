@@ -65,7 +65,7 @@ test.describe('Search geometry and behaviour', () => {
     expect(pill).toMatchObject({ width: 360, height: 56 });
     const input = await rect(field);
     expect(input.x - pill.x).toBe(52);
-    const mic = await rect(page.getByRole('button', { name: 'Voice search' }));
+    const mic = await rect(page.getByRole('button', { name: 'Voice search' }).first());
     // A 40px icon button centred in the 48px box 4px from the end.
     expect(pill.x + pill.width - (mic.x + mic.width)).toBe(8);
   });
@@ -81,16 +81,29 @@ test.describe('Search geometry and behaviour', () => {
     await settle(page);
     const expandedInput = dialog.getByRole('searchbox');
     await expect(expandedInput).toBeFocused();
+    // M3 Expressive: the focused bar widens by 12px on each side (margins 24 → 12dp).
     const panel = await rect(dialog);
-    expect(panel).toMatchObject({ x: collapsed.x, y: collapsed.y, width: collapsed.width });
-    const dropdown = await rect(dialog.locator('> div').last());
+    expect(panel).toMatchObject({
+      x: collapsed.x - 12,
+      y: collapsed.y,
+      width: collapsed.width + 24,
+    });
+    const dropdown = await rect(dialog.locator('> div').nth(1));
     expect(dropdown.y).toBe(collapsed.y + 58);
     expect(
       await dialog
         .locator('> div')
-        .last()
+        .nth(1)
         .evaluate((el) => getComputedStyle(el).borderTopLeftRadius),
     ).toBe('12px');
+
+    // With the bar, the docked view is at least 240px tall, even with no suggestions.
+    await page.keyboard.type('zzz');
+    await expect(page.getByText('No suggestions')).toBeVisible();
+    expect((await rect(dialog.locator('> div').nth(1))).height + 58).toBeGreaterThanOrEqual(240);
+    // The change is announced.
+    await expect(dialog.getByRole('status')).toHaveText('0 suggestions');
+    for (let i = 0; i < 3; i += 1) await page.keyboard.press('Backspace');
 
     // Type to filter, ↓ into the suggestions, Enter picks one and collapses.
     await page.keyboard.type('fl');
@@ -125,8 +138,18 @@ test.describe('Search geometry and behaviour', () => {
     await settle(page);
     expect(await rect(dialog)).toMatchObject({ x: 0, y: 0, width: 412, height: 640 });
     expect(await dialog.evaluate((el) => getComputedStyle(el).clipPath)).toMatch(/inset\(0px/);
+    // The contained style: the filled field sits 16px from each side on a
+    // surface-container-low view.
     const field = await rect(dialog.getByRole('searchbox').locator('..'));
-    expect(field).toMatchObject({ x: 0, y: 8, width: 412, height: 56 });
+    expect(field).toMatchObject({ x: 16, y: 8, width: 380, height: 56 });
+    const [view, pill] = await Promise.all([
+      dialog.evaluate((el) => getComputedStyle(el).backgroundColor),
+      dialog
+        .getByRole('searchbox')
+        .locator('..')
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ]);
+    expect(pill).not.toBe(view);
     await dialog.getByRole('button', { name: 'Back' }).click();
     await expect(dialog).toBeHidden();
   });
@@ -139,6 +162,41 @@ test.describe('Search geometry and behaviour', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('searchbox')).toHaveValue('h');
     await expect(dialog.getByRole('searchbox')).toBeFocused();
+  });
+
+  test('two trailing icon buttons, or an avatar at 30px; centred text', async ({ page }) => {
+    await openStory(page, 'components-search--collapsed');
+    const two = page.getByTestId('two-trailing');
+    const voice = await rect(two.getByRole('button', { name: 'Voice search' }));
+    const clear = await rect(two.getByRole('button', { name: 'Clear' }));
+    expect(clear.x).toBeGreaterThan(voice.x + voice.width - 1);
+    const avatar = await rect(page.getByRole('img', { name: 'Account' }));
+    expect(avatar).toMatchObject({ width: 30, height: 30 });
+    expect(
+      await page
+        .getByTestId('avatar')
+        .getByRole('combobox')
+        .evaluate((el) => getComputedStyle(el).textAlign),
+    ).toBe('center');
+  });
+
+  test('in an app bar the field fills the free space up to 312px, then half of it', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-search--app-bar');
+    // Narrow: the free space is under 312px, so the field fills it (less 8px each side).
+    const narrowSlot = await rect(page.getByTestId('app-bar-search').locator('..'));
+    const narrow = await rect(page.getByTestId('app-bar-search'));
+    expect(narrowSlot.width - 16).toBeLessThan(312);
+    expect(narrow.width).toBe(narrowSlot.width - 16);
+    await openStory(page, 'components-search--app-bar', {}, { wide: true });
+    const slot = await rect(page.getByTestId('app-bar-search').locator('..'));
+    const wide = await rect(page.getByTestId('app-bar-search'));
+    expect(Math.abs(wide.width - (slot.width - 16) / 2)).toBeLessThanOrEqual(1);
+    // Centred in the free space.
+    expect(
+      Math.abs(wide.x - slot.x - (slot.x + slot.width - (wide.x + wide.width))),
+    ).toBeLessThanOrEqual(1);
   });
 
   test('the app bar hides on scroll down and returns on scroll up', async ({ page }) => {

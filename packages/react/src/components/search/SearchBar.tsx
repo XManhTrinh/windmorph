@@ -22,6 +22,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { searchBarStyles } from './search-styles';
 
 /** Set by `SearchAppBar` for the search bar inside it. */
@@ -72,8 +73,22 @@ interface SearchBarOwnProps {
   placeholder?: string;
   /** Leading icon, e.g. a search icon, or a back button while expanded. */
   leadingIcon?: SearchBarIcon;
-  /** Trailing icon, e.g. a voice search or clear button, or an avatar. */
+  /**
+   * Trailing content: one or two icon buttons (e.g. voice search and a clear button), or an
+   * avatar (an `img`, drawn at 30px) with up to one icon button (M3).
+   */
   trailingIcon?: SearchBarIcon;
+  /**
+   * Centre the placeholder and the query while the bar is collapsed (M3's search app bar
+   * supports centred text). @default "start"
+   */
+  textAlign?: 'start' | 'center';
+  /**
+   * What screen readers hear when the suggestions or results change while the view is open
+   * (M3: "the screen reader must announce the change"), e.g. "5 results". Announced
+   * politely whenever it changes.
+   */
+  resultsAnnouncement?: string;
   /**
    * The expanded content: suggestions or results, usually a list. ↓ from the input moves
    * focus into it.
@@ -100,6 +115,11 @@ interface BarRect {
   height: number;
   rtl: boolean;
 }
+
+/** How far the docked field widens on each side when focused (24dp → 12dp margins). */
+const FOCUSED_GROWTH = 12;
+/** The search bar's maximum width (M3). */
+const MAX_WIDTH = 720;
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -128,6 +148,8 @@ export function SearchBar(props: SearchBarProps) {
     placeholder,
     leadingIcon,
     trailingIcon,
+    textAlign = 'start',
+    resultsAnnouncement,
     children,
     inputRef,
     ref,
@@ -177,17 +199,15 @@ export function SearchBar(props: SearchBarProps) {
     inAppBar: appBar != null,
     hasLeading: leading != null,
     hasTrailing: trailing != null,
-    tone: appBar?.scrolled ? 'scrolled' : 'default',
   });
   const { data } = splitDataAttributes(rest);
+  // In an app bar the collapsed field is `surface-container`; the expanded view's field
+  // keeps the search view's own `surface-container-high`.
+  const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';
 
-  const field = (input: ReactNode, tone?: 'transparent') => (
+  const field = (input: ReactNode, tone: 'default' | 'appBar' | 'scrolled') => (
     <SearchField
-      className={searchBarStyles({
-        tone: tone ?? (appBar?.scrolled ? 'scrolled' : 'default'),
-      }).field({
-        class: classNames?.field,
-      })}
+      className={searchBarStyles({ tone }).field({ class: classNames?.field })}
       leading={
         leading != null && (
           <span className={styles.leading({ class: classNames?.leading })}>{leading}</span>
@@ -212,14 +232,21 @@ export function SearchBar(props: SearchBarProps) {
     placeholder,
     'aria-label': label,
     'aria-labelledby': label == null ? labelledBy : undefined,
-    className: styles.input({ class: classNames?.input }),
   };
+  const inputClass = (align: 'start' | 'center') =>
+    searchBarStyles({
+      hasLeading: leading != null,
+      hasTrailing: trailing != null,
+      textAlign: align,
+    }).input({ class: classNames?.input });
 
   const submitOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       event.preventDefault();
       onSubmit?.(query);
+      return true;
     }
+    return false;
   };
 
   return (
@@ -233,6 +260,7 @@ export function SearchBar(props: SearchBarProps) {
       {field(
         <input
           {...inputProps}
+          className={inputClass(textAlign)}
           // The consumer's `inputRef` follows whichever input is live.
           ref={isPresent ? undefined : inputRef}
           inert={isPresent}
@@ -256,6 +284,7 @@ export function SearchBar(props: SearchBarProps) {
             }
           }}
         />,
+        collapsedTone,
       )}
       {isPresent && rect && (
         <Overlay isExiting={isExiting}>
@@ -269,14 +298,21 @@ export function SearchBar(props: SearchBarProps) {
             labelledBy={labelledBy}
             classNames={classNames}
             styles={styles}
+            resultsAnnouncement={resultsAnnouncement}
             field={(contentRef) =>
               field(
                 <ExpandedInput
                   {...inputProps}
+                  className={inputClass('start')}
                   inputRef={inputRef}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {
-                    submitOnEnter(event);
+                    // M3: once results are queried, the query stays visible but not
+                    // focused; focus moves to the results.
+                    if (submitOnEnter(event)) {
+                      contentRef.current?.focus();
+                      return;
+                    }
                     if (event.key === 'ArrowDown') {
                       const first = contentRef.current?.querySelector<HTMLElement>(FOCUSABLE);
                       if (first) {
@@ -286,7 +322,7 @@ export function SearchBar(props: SearchBarProps) {
                     }
                   }}
                 />,
-                view === 'full-screen' ? 'transparent' : undefined,
+                'default',
               )
             }
           >
@@ -313,9 +349,12 @@ function SearchField({
   const { isFocusVisible, focusProps } = useFocusRing({ within: true, isTextInput: true });
   return (
     <div {...focusProps} data-focus-visible={isFocusVisible || undefined} className={className}>
-      {leading}
-      {children}
-      {trailing}
+      {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
+      <ButtonContext value={standardIconButtons}>
+        {leading}
+        {children}
+        {trailing}
+      </ButtonContext>
     </div>
   );
 }
@@ -346,6 +385,7 @@ function SearchView({
   classNames,
   styles,
   field,
+  resultsAnnouncement,
   children,
 }: {
   view: 'docked' | 'full-screen';
@@ -358,6 +398,7 @@ function SearchView({
   classNames?: SearchBarClassNames;
   styles: ReturnType<typeof searchBarStyles>;
   field: (contentRef: RefObject<HTMLDivElement | null>) => ReactNode;
+  resultsAnnouncement?: string;
   children: ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -397,14 +438,28 @@ function SearchView({
         </div>
         <div
           ref={contentRef}
+          tabIndex={-1}
           data-exiting={exiting}
           className={styles.fullScreenContent({ class: classNames?.content })}
         >
           {children}
         </div>
+        <LiveStatus message={resultsAnnouncement} />
       </div>
     );
   }
+  // The docked field widens by 12px on each side (M3 Expressive: margins 24dp → 12dp),
+  // staying within the window and, unless the bar is wider already, 720px.
+  const width = Math.min(rect.width + 2 * FOCUSED_GROWTH, Math.max(rect.width, MAX_WIDTH));
+  const grow = (width - rect.width) / 2;
+  const left = Math.max(0, Math.min(rect.left - grow, window.innerWidth - width));
+  const dockedVars = {
+    '--m3-search-top': `${rect.top}px`,
+    '--m3-search-left': `${rect.left}px`,
+    '--m3-search-width': `${rect.width}px`,
+    '--m3-search-focused-left': `${left}px`,
+    '--m3-search-focused-width': `${Math.min(width, window.innerWidth)}px`,
+  } as CSSProperties;
 
   return (
     <>
@@ -418,7 +473,8 @@ function SearchView({
         <div
           {...panelProps}
           ref={panelRef}
-          style={{ top: rect.top, left: rect.left, width: rect.width }}
+          style={dockedVars}
+          data-exiting={exiting}
           className={styles.dockedPanel({ class: classNames?.view })}
         >
           {/* The docked field opens over the bar at the bar's own height. */}
@@ -428,14 +484,33 @@ function SearchView({
           {children != null && (
             <div
               ref={contentRef}
+              tabIndex={-1}
               data-exiting={exiting}
               className={styles.dropdown({ class: classNames?.content })}
             >
               {children}
             </div>
           )}
+          <LiveStatus message={resultsAnnouncement} />
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * A polite live region inside the search view. It starts empty and takes the message a
+ * moment later, so the first one is announced too, and again whenever it changes.
+ */
+function LiveStatus({ message }: { message?: string }) {
+  const [text, setText] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setText(message ?? ''), 150);
+    return () => clearTimeout(timer);
+  }, [message]);
+  return (
+    <div role="status" className="sr-only">
+      {text}
+    </div>
   );
 }

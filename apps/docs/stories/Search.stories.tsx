@@ -23,8 +23,18 @@ type Story = StoryObj<Args>;
 
 const SUGGESTIONS = ['Holiday photos', 'Flight confirmation', 'Invoice March', 'Team lunch'];
 
+/** A plain round avatar (a tertiary circle with a person glyph). */
+const AVATAR =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="15" fill="#7d5260"/><circle cx="15" cy="12" r="5" fill="#ffd8e4"/><path d="M6 25a9 7 0 0 1 18 0" fill="#ffd8e4"/></svg>',
+  );
+
+const matches = (query: string) =>
+  SUGGESTIONS.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
+
 function Suggestions({ query, onPick }: { query: string; onPick: (value: string) => void }) {
-  const items = SUGGESTIONS.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
+  const items = matches(query);
   return (
     <div className="flex flex-col py-2">
       {items.map((item) => (
@@ -56,6 +66,7 @@ function Demo({ view, defaultExpanded = false }: Args & { defaultExpanded?: bool
     setSubmitted(value);
     setExpanded(false);
   };
+  const count = matches(query).length;
   return (
     <div className="flex flex-col items-start gap-4">
       <SearchBar
@@ -68,6 +79,7 @@ function Demo({ view, defaultExpanded = false }: Args & { defaultExpanded?: bool
         onSubmit={submit}
         expanded={expanded}
         onExpandedChange={setExpanded}
+        resultsAnnouncement={`${count} suggestions`}
         leadingIcon={({ expanded: open, collapse }) =>
           open && view === 'full-screen' ? (
             <IconButton
@@ -119,6 +131,26 @@ export const Collapsed: Story = {
       />
       <SearchBar aria-label="Search" placeholder="Search" />
       <SearchBar aria-label="Search" defaultValue="Holiday photos" leadingIcon={<SearchIcon />} />
+      <SearchBar
+        aria-label="Search"
+        placeholder="Search"
+        leadingIcon={<SearchIcon />}
+        trailingIcon={
+          <>
+            <IconButton icon={<MicIcon />} aria-label="Voice search" />
+            <IconButton icon={<CloseIcon />} aria-label="Clear" />
+          </>
+        }
+        data-testid="two-trailing"
+      />
+      <SearchBar
+        aria-label="Search"
+        placeholder="Search"
+        textAlign="center"
+        leadingIcon={<SearchIcon />}
+        trailingIcon={<img src={AVATAR} alt="Account" />}
+        data-testid="avatar"
+      />
     </div>
   ),
 };
@@ -138,16 +170,17 @@ export const FullScreenExpanded: Story = {
 };
 
 /** The app bar with search, over scrolling content. */
-export const AppBar: StoryObj<{ scrollBehavior: 'pinned' | 'enter-always' }> = {
-  args: { scrollBehavior: 'enter-always' },
+export const AppBar: StoryObj<{ scrollBehavior: 'pinned' | 'enter-always'; wide: boolean }> = {
+  args: { scrollBehavior: 'enter-always', wide: false },
   argTypes: { scrollBehavior: { control: 'inline-radio', options: ['pinned', 'enter-always'] } },
-  render: function AppBarStory({ scrollBehavior }) {
+  render: function AppBarStory({ scrollBehavior, wide }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     return (
       <div
         ref={scrollRef}
         data-testid="scroller"
-        className="h-[480px] w-[412px] overflow-y-auto rounded-corner-large border border-outline-variant"
+        style={{ width: wide ? 1000 : 412 }}
+        className="h-[480px] overflow-y-auto rounded-corner-large border border-outline-variant"
       >
         <SearchAppBar
           data-testid="bar"
@@ -156,7 +189,12 @@ export const AppBar: StoryObj<{ scrollBehavior: 'pinned' | 'enter-always' }> = {
           navigationIcon={<IconButton icon={<MenuIcon />} aria-label="Menu" />}
           actions={<IconButton icon={<MicIcon />} aria-label="Voice search" />}
         >
-          <SearchBar aria-label="Search" placeholder="Search" leadingIcon={<SearchIcon />} />
+          <SearchBar
+            aria-label="Search"
+            placeholder="Search"
+            leadingIcon={<SearchIcon />}
+            data-testid="app-bar-search"
+          />
         </SearchAppBar>
         {Array.from({ length: 40 }, (_, index) => (
           <p key={index} className="px-4 py-3 text-body-large">

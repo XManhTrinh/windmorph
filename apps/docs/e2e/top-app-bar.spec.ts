@@ -114,6 +114,38 @@ test.describe('TopAppBar geometry and scrolling', () => {
     expect(await visibleHeight(page)).toBe(64);
   });
 
+  test('an enter-always medium bar stays small on scroll up until back at the top', async ({
+    page,
+  }) => {
+    await openStory(
+      page,
+      'components-topappbar--scrolling',
+      {},
+      { variant: 'medium', scrollBehavior: 'enter-always' },
+    );
+    await scrollTo(page, 24);
+    expect(await visibleHeight(page)).toBe(88);
+    await scrollTo(page, 400);
+    expect(await visibleHeight(page)).toBe(0);
+    // Scrolling up brings back the 64px top row only (M3: they remain small until the
+    // page is scrolled back to the top).
+    await scrollTo(page, 300);
+    expect(await visibleHeight(page)).toBe(64);
+    await expect(page.getByTestId('bar')).toHaveAttribute('data-collapsed', 'true');
+    await scrollTo(page, 24);
+    expect(await visibleHeight(page)).toBe(88);
+    await scrollTo(page, 0);
+    expect(await visibleHeight(page)).toBe(112);
+  });
+
+  test('a long expanded title wraps to two lines at most', async ({ page }) => {
+    await openStory(page, 'components-topappbar--long-title');
+    const title = page.getByTestId('bar').locator('> div').nth(1).locator('> div').first();
+    const lineHeight = await title.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+    const height = await title.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.round(height)).toBe(Math.round(lineHeight * 2));
+  });
+
   test('a pinned small bar turns surface-container once content is under it', async ({ page }) => {
     await openStory(
       page,
