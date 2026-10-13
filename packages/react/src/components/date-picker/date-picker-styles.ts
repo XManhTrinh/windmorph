@@ -69,11 +69,11 @@ export const datePickerStyles = tv({
       // The range band: a 40px stripe behind the days between the ends.
       // 1px wider than the cell, so neighbouring bands never leave a hairline between them.
       'bg-[length:calc(100%+1px)_40px] bg-center bg-no-repeat',
-      'data-[range=middle]:bg-[linear-gradient(var(--color-secondary-container),var(--color-secondary-container))]',
-      'data-[range=start]:bg-[linear-gradient(to_right,transparent_50%,var(--color-secondary-container)_50%)]',
-      'data-[range=end]:bg-[linear-gradient(to_left,transparent_50%,var(--color-secondary-container)_50%)]',
-      'rtl:data-[range=start]:bg-[linear-gradient(to_left,transparent_50%,var(--color-secondary-container)_50%)]',
-      'rtl:data-[range=end]:bg-[linear-gradient(to_right,transparent_50%,var(--color-secondary-container)_50%)]',
+      'data-[range=middle]:bg-[linear-gradient(var(--md-sys-color-secondary-container),var(--md-sys-color-secondary-container))]',
+      'data-[range=start]:bg-[linear-gradient(to_right,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
+      'data-[range=end]:bg-[linear-gradient(to_left,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
+      'rtl:data-[range=start]:bg-[linear-gradient(to_left,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
+      'rtl:data-[range=end]:bg-[linear-gradient(to_right,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
     ],
     day: [
       // The 40px circle; its ::before widens the touch target to the 48px cell.
