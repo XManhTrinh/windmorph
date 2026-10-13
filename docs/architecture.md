@@ -314,6 +314,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - The types require a label or an accessible name. Selection is `selected` / `defaultSelected` / `onSelectedChange` (Checkbox, Switch) or the group's `value` / `defaultValue` / `onChange` (RadioGroup).
 - **Checkbox:** Compose's **M3 styling**, i.e. `ComposeMaterial3Flags.isCheckboxStylingFixEnabled = true`. Compose defaults that flag to false, which keeps M2 styling.
   - Geometry: an 18px box with 2px corners and a 2px outline; check path (0.25, 0.5) → (0.4, 0.65) → (0.75, 0.3), 2px square cap.
+  - Outline (CheckboxTokens, 2026-10-13): unselected `on-surface-variant`, darkening to `on-surface` on hover, focus and press (`Unselected{Hover,Focus,Pressed}OutlineColor`), and `error` when invalid, pressed included (stacked variant). A checked or indeterminate box has **no outline** (`Selected*OutlineWidth = 0`): its border turns transparent and the fill shows through, so an invalid one is a plain `error` box. Until then the outline stayed `on-surface-variant` in every state and a selected box kept a `primary` border, which ringed an invalid box's `error` fill.
   - Motion: the check draws on default spatial and snaps away 100ms after unchecking; the box fills on default effects and empties on fast effects.
   - `indeterminate` draws a dash path. **Deviation:** Compose morphs the check into the dash, but CSS can't animate a path shape in Safari, so the dash draws on its own.
   - Error uses `error` / `on-error`. Disabled checked is `on-surface` 38% with a `surface` check.

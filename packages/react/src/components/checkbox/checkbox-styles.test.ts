@@ -26,4 +26,22 @@ describe('checkboxStyles', () => {
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
+
+  it('darkens the unselected outline to on-surface on hover, focus and press', () => {
+    const box = slots.box().split(' ');
+    for (const state of ['hovered', 'focus-visible', 'pressed']) {
+      expect(box).toContain(`group-data-${state}/control:border-on-surface`);
+    }
+    // The error outline stays when an invalid box is pressed.
+    expect(box).toContain('group-data-invalid/control:group-data-pressed/control:border-error');
+  });
+
+  it('gives selected boxes no outline, invalid included', () => {
+    const box = slots.box().split(' ');
+    expect(box).toContain('group-data-selected/control:border-transparent');
+    expect(box).not.toContain('group-data-selected/control:border-primary');
+    expect(box).toContain(
+      'group-data-invalid/control:group-data-pressed/control:group-data-selected/control:border-transparent',
+    );
+  });
 });

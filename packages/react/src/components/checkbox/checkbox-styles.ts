@@ -5,11 +5,13 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Values follow Compose Material 3 (Checkbox.kt with M3 styling, i.e.
  * ComposeMaterial3Flags.isCheckboxStylingFixEnabled, and CheckboxTokens): an 18px box
  * with 2px corners and a 2px outline, a 2px square-capped check, a 40px round state
- * layer and a 48px touch target. The box fills on the default effects spring and
- * empties on the fast one; the check draws on the default spatial spring and snaps
- * away 100ms after unchecking. State layers follow the M3 spec: on-surface when
- * unselected, primary when selected, inverted while pressed, error when invalid
- * (shared with radio buttons and switches in `selectionControlStyles`).
+ * layer and a 48px touch target. The unselected outline is on-surface-variant and
+ * darkens to on-surface on hover, focus and press; a selected box has no outline. The
+ * box fills on the default effects spring and empties on the fast one; the check draws
+ * on the default spatial spring and snaps away 100ms after unchecking. State layers
+ * follow the M3 spec: on-surface when unselected, primary when selected, inverted while
+ * pressed, error when invalid (shared with radio buttons and switches in
+ * `selectionControlStyles`).
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -23,11 +25,22 @@ export const checkboxStyles = tv({
       '[transition-property:background-color,border-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
-      'group-data-selected/control:border-primary group-data-selected/control:bg-primary',
+      // The unselected outline darkens on hover, focus and press (CheckboxTokens
+      // Unselected{Hover,Focus,Pressed}OutlineColor = on-surface).
+      'group-data-hovered/control:border-on-surface',
+      'group-data-focus-visible/control:border-on-surface',
+      'group-data-pressed/control:border-on-surface',
+      // Selected boxes have no outline (Selected*OutlineWidth = 0): the border turns
+      // transparent and the fill shows through it, in every state, invalid included.
+      'group-data-selected/control:border-transparent group-data-selected/control:bg-primary',
       'group-data-selected/control:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       'group-data-selected/control:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'group-data-invalid/control:border-error group-data-invalid/control:text-on-error',
       'group-data-invalid/control:group-data-selected/control:bg-error',
+      // Stacked so the error outline also wins over the pressed colour (equal specificity
+      // otherwise), and a pressed selected box still has no outline.
+      'group-data-invalid/control:group-data-pressed/control:border-error',
+      'group-data-invalid/control:group-data-pressed/control:group-data-selected/control:border-transparent',
       'group-data-disabled/control:border-on-surface/38 group-data-disabled/control:text-surface',
       'group-data-disabled/control:group-data-selected/control:border-transparent',
       'group-data-disabled/control:group-data-selected/control:bg-on-surface/38',
