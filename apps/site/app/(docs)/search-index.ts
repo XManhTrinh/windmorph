@@ -129,6 +129,13 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     href: '/spec-status',
     keywords: ['M3 spec', 'coverage', 'differences', 'extensions', 'Material 3 Expressive'],
   },
+  {
+    title: "What's new",
+    summary: 'Release notes for each version of @windmorph/react, newest first.',
+    href: '/whats-new',
+    kind: 'guide',
+    keywords: ['changelog', 'release notes', 'releases', 'version'],
+  },
 ];
 
 /** The pages the search suggests before anything is typed, and when nothing matches. */
