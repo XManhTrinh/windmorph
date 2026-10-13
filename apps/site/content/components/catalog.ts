@@ -246,7 +246,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The reactions so far: the top kinds’ icons and how many, stacked under a post or as a chip in a comment; pressable to see who reacted. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['ReactionSummary'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['reaction-picker', 'comment-row', 'badge'],
     whenNotToUse: 'To react, use the Reaction picker; for an unread count, a Badge.',
@@ -277,7 +277,12 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'inputs',
     summary:
       'A rounded field for writing something to send (a comment, a reply, a chat message) that grows from a pill into a box, with a send button, tools that open into their own row on focus, a reply banner and attachments; plus its trigger. Not an M3 component (@windmorph/react-pro).',
-    propsComponents: ['MessageField', 'MessageFieldFrame', 'MessageFieldTrigger'],
+    propsComponents: [
+      'MessageField',
+      'MessageFieldFrame',
+      'MessageFieldTrigger',
+      'MessageFieldSend',
+    ],
     playground: 'full',
     pro: true,
     specs: {
@@ -320,7 +325,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A message field that formats as you type, as Slack’s: bold, italic, strike, code, links, lists, quotes and code blocks, with a formatting toolbar, and @mentions that suggest people; plus FormattedText, which shows what it wrote. Not an M3 component (@windmorph/react-pro/rich-text, with Tiptap).',
     propsComponents: ['RichMessageField', 'FormattingToolbar', 'FormattedText'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['message-field', 'text-field'],
     whenNotToUse:
@@ -353,7 +358,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'inputs',
     summary:
       'An exposed dropdown menu: a field that opens a menu of options. One or several choices, sections, a search for long lists, a sheet on phones.',
-    propsComponents: ['Select', 'SelectItem'],
+    propsComponents: ['Select', 'SelectItem', 'SelectSection', 'OptionPopover'],
     playground: 'full',
     specs: {
       variants: ['filled', 'outlined'],
@@ -382,7 +387,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'inputs',
     summary:
       'A field you type into, with a menu of matching options. Accent-insensitive filtering, input chips for several choices, server results.',
-    propsComponents: ['Autocomplete', 'AutocompleteItem'],
+    propsComponents: ['Autocomplete', 'AutocompleteItem', 'AutocompleteSection'],
     playground: 'full',
     specs: {
       variants: ['filled', 'outlined'],
@@ -415,7 +420,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'Makes any library button open the file picker, or the camera on phones; useFileTrigger does it from a menu item. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['FileTrigger'],
     hooks: ['useFileTrigger'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['image-crop', 'button', 'icon-button'],
     whenNotToUse:
@@ -439,7 +444,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Frames a photo before upload: drag, pinch or zoom it behind a fixed frame, and get the crop in the original pixels. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['ImageCropDialog', 'ImageCropper'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     specs: {
       shape: 'rounded-corner-medium',
@@ -467,7 +472,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The photos someone is adding: upload progress and errors, remove and retry, drag to reorder (mouse, touch or keyboard), an add tile and file drop. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaUploadGrid'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     specs: {
       shape: 'rounded-corner-medium',
@@ -647,7 +652,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'DialogContent',
       'DialogActions',
     ],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       shape: 'rounded-corner-extra-large',
       elevation: 'level3',
@@ -673,7 +678,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'ContextMenuTrigger',
     ],
     keywords: ['submenu', 'context menu', 'right-click', 'dropdown menu', 'overflow menu'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       elevation: 'level2',
     },
@@ -688,7 +693,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'containment',
     summary: 'A plain label on hover or focus, or a rich tooltip with a subhead and an action.',
     propsComponents: ['Tooltip', 'RichTooltip', 'TooltipTrigger', 'RichTooltipTrigger'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       variants: ['plain', 'rich'],
     },
@@ -703,7 +708,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'containment',
     summary: 'Bottom and side sheets for supplementary content, modal or standing in the layout.',
     propsComponents: ['BottomSheet', 'SideSheet', 'SheetTrigger'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       variants: ['modal', 'standard'],
       shape: 'rounded-corner-large',
@@ -757,7 +762,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       "M3's list-detail canonical layout: one pane at a time on phones, the list beside the open item from 840px. For settings, an inbox or a dashboard. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['ListDetailLayout'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     specs: {
       variants: ['plain', 'filled'],
@@ -786,7 +791,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A scrollable row of items that resize along keylines: multi-browse, uncontained, multi-aspect, hero or full-screen.',
     propsComponents: ['Carousel'],
-    playground: 'showcase',
+    playground: 'full',
     expressive: true,
     keywords: ['slides', 'gallery', 'slideshow', 'image strip', 'stories', 'full-screen feed'],
     specs: {
@@ -804,7 +809,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Square photo tiles, a sideways row on compact windows and a grid from medium up; a tile opens the viewer. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaGrid'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['media-viewer', 'media-upload-grid', 'carousel'],
     whenNotToUse:
@@ -819,7 +824,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A full-screen viewer for a set of photos: swipe between them, zoom, and read each caption and position. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaViewer'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['carousel', 'dialog', 'image-crop'],
     whenNotToUse:
@@ -868,7 +873,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'One comment or message in a thread: avatar, bubble, what goes under it and a 48dp actions row that spaces the comments. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['CommentRow'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['reaction-picker', 'reaction-summary', 'collapse', 'message-field'],
     whenNotToUse: 'For rows of a settings list or a menu use a List.',
@@ -882,7 +887,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Content that opens and folds on its height, as an accordion when two switch together: reply fields, answers, more filters. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['Collapse'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['expandable-text', 'message-field', 'list'],
     whenNotToUse:
@@ -940,7 +945,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'containment',
     summary: 'A small dot or a short count or label, placed on an anchor with BadgedBox.',
     propsComponents: ['Badge', 'BadgedBox'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       sizes: ['small', 'large'],
       shape: 'rounded-corner-full',
@@ -1032,7 +1037,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Top-level destinations along the start edge, collapsed or expanded, in medium windows.',
     propsComponents: ['NavigationRail', 'NavigationRailItem'],
-    playground: 'showcase',
+    playground: 'full',
     expressive: true,
     related: ['navigation-bar', 'tabs'],
     whenNotToUse: 'In compact windows use a Navigation bar; for in-page sections use Tabs.',
@@ -1045,7 +1050,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'navigation',
     summary: '3–5 destinations along the bottom of compact and medium windows, stacked or inline.',
     propsComponents: ['NavigationBar', 'NavigationBarItem'],
-    playground: 'showcase',
+    playground: 'full',
     expressive: true,
     related: ['navigation-rail', 'tabs'],
     whenNotToUse: 'For more than five destinations use a Navigation rail.',
@@ -1074,9 +1079,9 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'navigation',
     summary: 'A header with the screen title and actions, in three sizes, with scroll behaviour.',
     propsComponents: ['TopAppBar'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
-      variants: ['center', 'small', 'medium', 'large'],
+      variants: ['small', 'medium', 'large'],
     },
     related: ['toolbars', 'search', 'navigation-rail'],
     whenNotToUse: 'For actions tied to content rather than the screen, use a Toolbar.',
@@ -1089,7 +1094,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A search bar that expands into a docked or full-screen view, and an app bar with search.',
     propsComponents: ['SearchBar', 'SearchAppBar'],
-    playground: 'showcase',
+    playground: 'full',
     specs: {
       variants: ['docked', 'full-screen'],
     },
@@ -1103,9 +1108,9 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'navigation',
     summary:
       'Docked and floating toolbars of related actions, with an optional FAB, scroll collapse and scroll exit.',
-    propsComponents: ['DockedToolbar', 'FloatingToolbar', 'ToolbarFab'],
+    propsComponents: ['FloatingToolbar', 'DockedToolbar', 'ToolbarFab'],
     hooks: ['useToolbarScrollExpansion', 'useToolbarScrollExit'],
-    playground: 'showcase',
+    playground: 'full',
     expressive: true,
     specs: {
       variants: ['docked', 'floating'],
@@ -1150,7 +1155,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary: 'A brief message with an optional action and dismiss, queued through a host.',
     propsComponents: ['Snackbar', 'SnackbarHost'],
     hooks: ['useSnackbarHostState'],
-    playground: 'showcase',
+    playground: 'full',
     related: ['dialog', 'progress'],
     whenNotToUse:
       'For a message that must be acknowledged use a Dialog; for persistent status use inline text.',
@@ -1179,7 +1184,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The end of a list loaded a page at a time: loads as the end comes near, with Load more, a loading state and Retry. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['LoadMore'],
-    playground: 'showcase',
+    playground: 'full',
     pro: true,
     related: ['loading-indicator', 'skeleton', 'list'],
     whenNotToUse: 'For numbered pages people jump between, use pagination.',
@@ -1265,7 +1270,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Pick a single date or a range on a month grid or by typing, docked below a field or in a dialog.',
     propsComponents: ['DatePicker', 'DateRangePicker', 'DateField'],
-    playground: 'showcase',
+    playground: 'full',
     related: ['time-picker', 'picker-dialog', 'text-field'],
     whenNotToUse:
       'For a date far in the past or future, such as a date of birth, use the docked DateField or the typed input rather than the calendar.',
@@ -1287,7 +1292,8 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'pickers',
     summary: 'Pick an hour and minute on a clock dial or by typing, 12- or 24-hour.',
     propsComponents: ['TimePicker', 'TimePickerModeToggle'],
-    playground: 'showcase',
+    hooks: ['useTimePickerRoom'],
+    playground: 'full',
     related: ['date-picker', 'picker-dialog'],
     whenNotToUse: 'For a rough time of day, a Select of presets may be simpler than a clock dial.',
     keywords: [
@@ -1310,7 +1316,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The modal form of a date or time picker, with confirm, dismiss and mode-toggle slots.',
     propsComponents: ['PickerDialog'],
-    playground: 'showcase',
+    playground: 'full',
     related: ['date-picker', 'time-picker', 'dialog'],
     whenNotToUse: 'When the picker can sit inline in the layout, the docked form avoids a modal.',
     keywords: ['modal date picker', 'full screen', 'time picker dialog', 'save', 'confirm'],

@@ -42,6 +42,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
             descriptor.surfacedProps,
             descriptor.enumOptions,
             descriptor.defaultProps,
+            descriptor.controlKinds,
           )
         : [],
     [descriptor, props],
@@ -52,6 +53,9 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     [descriptor],
   );
   const [values, setValues] = useState<Record<string, unknown>>(initial);
+  // Values the preview set itself (an overlay opening or closing): live state, not a shared
+  // configuration, so they stay out of the URL.
+  const [fromPreview, setFromPreviewNames] = useState<ReadonlySet<string>>(() => new Set());
 
   // Restore shared state from the URL once on mount — a one-way sync from the external URL
   // into state (not an SSR-render read, so it stays hydration-safe for the static export).
@@ -67,10 +71,18 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
   // Reflect state in the URL without navigating.
   useEffect(() => {
     if (!descriptor) return;
-    const query = encodeState(values, controls);
+    // Only what differs from the starting state goes in the URL, so a fresh page keeps a clean one.
+    const changed = Object.fromEntries(
+      Object.entries(values).filter(
+        ([name, value]) => value !== initial[name] && !fromPreview.has(name),
+      ),
+    );
+    const query = encodeState(changed, controls);
     const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-    window.history.replaceState(null, '', url);
-  }, [values, controls, descriptor]);
+    if (url !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, '', url);
+    }
+  }, [values, controls, descriptor, initial, fromPreview]);
 
   if (!descriptor) return null;
 
@@ -83,15 +95,37 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     importMembers: descriptor.importMembers,
     codeImports: descriptor.codeImports,
     codeSlots: descriptor.codeSlots,
-    codeChildren: descriptor.codeChildren,
+    toggledSlots: descriptor.toggledSlots,
+    codeChildren:
+      typeof descriptor.codeChildren === 'function'
+        ? descriptor.codeChildren(values)
+        : descriptor.codeChildren,
+    codeWrap: descriptor.codeWrap,
     importFrom: descriptor.importFrom,
   });
 
-  const set = (name: string, value: unknown) => setValues((prev) => ({ ...prev, [name]: value }));
+  const set = (name: string, value: unknown) =>
+    setValues((prev) => (prev[name] === value ? prev : { ...prev, [name]: value }));
+  const markPreview = (name: string, isPreview: boolean) =>
+    setFromPreviewNames((prev) => {
+      if (prev.has(name) === isPreview) return prev;
+      const next = new Set(prev);
+      if (isPreview) next.add(name);
+      else next.delete(name);
+      return next;
+    });
+  const setFromControl = (name: string, value: unknown) => {
+    markPreview(name, false);
+    set(name, value);
+  };
+  const setFromPreview = (name: string, value: unknown) => {
+    markPreview(name, true);
+    set(name, value);
+  };
 
   const controlsPanel = (
     <>
-      <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface-container-low">
         <h3 className="text-title-small text-on-surface-variant">Props</h3>
         <Button variant="text" size="xs" onPress={() => setValues(initial)}>
           Reset
@@ -102,7 +136,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
           key={def.name}
           def={def}
           value={values[def.name]}
-          onChange={(value) => set(def.name, value)}
+          onChange={(value) => setFromControl(def.name, value)}
         />
       ))}
     </>
@@ -128,9 +162,12 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
       >
         <div className="grid gap-4 p-4 large:grid-cols-[1fr_280px]">
           <div className="flex min-h-[240px] flex-wrap items-center justify-center gap-4 rounded-corner-large bg-surface p-6">
-            {descriptor.render(values)}
+            {descriptor.render(values, setFromPreview)}
           </div>
-          <div className="hidden min-w-0 flex-col gap-4 medium:flex">{controlsPanel}</div>
+          {/* A long set of props scrolls inside its column, so the preview keeps its height. */}
+          <div className="hidden max-h-[560px] min-w-0 flex-col gap-4 overflow-y-auto pe-2 medium:flex">
+            {controlsPanel}
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 px-4 pb-4">

@@ -18,20 +18,25 @@ export interface ControlDef {
  * ordered by the descriptor's `surfacedProps`. Enum members come from the JSON `options`
  * (emitted by `generate-props`) unless an `enumOptions` override re-orders/subsets them.
  * A prop missing from the JSON (one inherited from React Aria, say) takes its kind from its
- * default value, so a `false` default still gets a switch.
+ * default value, so a `false` default still gets a switch. A `controlKinds` override wins, for
+ * a slot switched on and off or a ReactNode edited as text.
  */
 export function inferControls(
   props: PropsRecord[],
   surfacedProps: string[],
   enumOptions?: Record<string, string[]>,
   defaultProps?: Record<string, unknown>,
+  controlKinds?: Record<string, ControlKind>,
 ): ControlDef[] {
   const byName = new Map(props.map((prop) => [prop.name, prop]));
   return surfacedProps.map((name) => {
     const record = byName.get(name);
-    const options = enumOptions?.[name] ?? record?.options;
+    const override = controlKinds?.[name];
+    const options =
+      override && override !== 'enum' ? undefined : (enumOptions?.[name] ?? record?.options);
     let kind: ControlKind;
-    if (options && options.length > 0) kind = 'enum';
+    if (override && override !== 'enum') kind = override;
+    else if (options && options.length > 0) kind = 'enum';
     else if (record ? record.type === 'boolean' : typeof defaultProps?.[name] === 'boolean')
       kind = 'boolean';
     else if (record ? record.type === 'number' : typeof defaultProps?.[name] === 'number')

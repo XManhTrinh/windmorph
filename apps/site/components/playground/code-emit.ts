@@ -17,8 +17,16 @@ export interface EmitInput {
   codeImports?: string[];
   /** Verbatim JSX per ReactNode-valued slot/prop, e.g. `{ icon: '<FavoriteIcon />' }`. */
   codeSlots?: Record<string, string>;
+  /** Slots switched on and off by a boolean control: their JSX, written only while on. */
+  toggledSlots?: Record<string, string>;
   /** Verbatim children JSX, e.g. label text. */
   codeChildren?: string;
+  /**
+   * JSX around the element, e.g. the trigger an overlay needs:
+   * `{ before: '<DialogTrigger>\n  <Button>Open</Button>', after: '</DialogTrigger>' }`. The
+   * element is indented one level inside it.
+   */
+  codeWrap?: { before: string; after: string };
   /** The entry the component is imported from. @default '@windmorph/react' */
   importFrom?: string;
 }
@@ -74,6 +82,11 @@ export function emitSnippet(input: EmitInput): string {
   const attrs: string[] = [];
   for (const name of input.surfacedProps) {
     const value = input.values[name];
+    const slot = input.toggledSlots?.[name];
+    if (slot !== undefined) {
+      if (value === true) attrs.push(`${name}={${slot}}`);
+      continue;
+    }
     if (isDefault(name, value, input)) continue;
     const attr = attribute(name, value);
     if (attr) attrs.push(attr);
@@ -82,21 +95,37 @@ export function emitSnippet(input: EmitInput): string {
     attrs.push(`${name}={${jsx}}`);
   }
 
-  const members = [input.component, ...(input.importMembers ?? [])];
-  const importLines = [
-    ...(input.codeImports ?? []),
-    `import { ${members.join(', ')} } from '${input.importFrom ?? '@windmorph/react'}';`,
-  ];
-
   const open =
     attrs.length > 0 ? `<${input.component}\n  ${attrs.join('\n  ')}\n` : `<${input.component}`;
   let element: string;
   if (input.codeChildren != null && input.codeChildren !== '') {
-    const head = attrs.length > 0 ? `${open}>` : `${open}>`;
-    element = `${head}\n  ${input.codeChildren}\n</${input.component}>`;
+    element = `${open}>\n  ${input.codeChildren}\n</${input.component}>`;
   } else {
     element = attrs.length > 0 ? `${open}/>` : `${open} />`;
   }
+  if (input.codeWrap) {
+    const indented = element
+      .split('\n')
+      .map((line) => (line ? `  ${line}` : line))
+      .join('\n');
+    element = `${input.codeWrap.before}\n${indented}\n${input.codeWrap.after}`;
+  }
+
+  // Only what the snippet uses is imported: a member for a slot that's switched off isn't.
+  const uses = (name: string) => new RegExp(`\\b${name}\\b`).test(element);
+  const members = [
+    input.component,
+    ...(input.importMembers ?? []).filter((member) => uses(member)),
+  ];
+  const extraImports = (input.codeImports ?? []).filter((line) => {
+    const named = /\{([^}]*)\}/.exec(line)?.[1];
+    if (!named) return true;
+    return named.split(',').some((name) => uses(name.trim()));
+  });
+  const importLines = [
+    ...extraImports,
+    `import { ${members.join(', ')} } from '${input.importFrom ?? '@windmorph/react'}';`,
+  ];
 
   return `${importLines.join('\n')}\n\n${element}\n`;
 }

@@ -21,10 +21,11 @@ test.describe('Component Playground', () => {
     const playground = page.getByRole('region', { name: 'Button playground' });
     await expect(playground).toBeVisible();
 
-    // At the defaults (filled/sm) every value is a default, so the snippet is the bare element
-    // (the emitter pretty-prints children onto their own line).
+    // At the defaults (filled/sm) the snippet has no variant or size, only the leading icon
+    // the playground starts with (the emitter pretty-prints children onto their own line).
     const code = playground.getByRole('region', { name: 'tsx code' });
-    await expect(code).toContainText('<Button>');
+    await expect(code).toContainText('<Button');
+    await expect(code).toContainText('leadingIcon=');
     await expect(code).toContainText('Label');
     await expect(code).not.toContainText('variant=');
 
@@ -36,6 +37,8 @@ test.describe('Component Playground', () => {
     await expect(code).toContainText('variant="outlined"');
     // … and the choice is reflected in the shareable URL (discrete query key).
     await expect(page).toHaveURL(/[?&]variant=outlined(&|$)/);
+    // Only what differs from the playground's starting state is in the URL.
+    expect(new URL(page.url()).searchParams.has('size')).toBe(false);
   });
 
   test('the copy button writes the snippet to the clipboard and toasts', async ({ page }) => {
@@ -67,6 +70,8 @@ test.describe('Playground on a phone', () => {
     await sheet.getByRole('button', { name: 'Expand sheet' }).click();
     await sheet.getByRole('radio', { name: 'outlined', exact: true }).click();
     await expect(page).toHaveURL(/[?&]variant=outlined(&|$)/);
+    // Only what differs from the playground's starting state is in the URL.
+    expect(new URL(page.url()).searchParams.has('size')).toBe(false);
     // The preview stays above the expanded sheet.
     const preview = playground.getByRole('button', { name: 'Label' });
     const previewBox = await preview.boundingBox();

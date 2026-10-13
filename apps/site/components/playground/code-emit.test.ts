@@ -66,9 +66,39 @@ describe('emitSnippet', () => {
       values: {},
       surfacedProps: [],
       importMembers: ['Menu', 'MenuItem'],
+      codeSlots: { menu: '<Menu aria-label="More"><MenuItem>Rename</MenuItem></Menu>' },
       codeChildren: 'Save',
     });
     expect(code).toContain("import { SplitButton, Menu, MenuItem } from '@windmorph/react';");
+  });
+
+  it('leaves out the members and import lines the snippet does not use', () => {
+    const code = emitSnippet({
+      component: 'Alert',
+      values: { actions: false },
+      surfacedProps: ['actions'],
+      toggledSlots: { actions: '<Button>Retry</Button>' },
+      importMembers: ['Button'],
+      codeImports: ["import { RetryIcon } from './icons';"],
+      codeChildren: 'Failed.',
+    });
+    expect(code).toContain("import { Alert } from '@windmorph/react';");
+    expect(code).not.toContain('RetryIcon');
+  });
+
+  it('wraps the element, indented, in its trigger', () => {
+    const code = emitSnippet({
+      component: 'Dialog',
+      values: {},
+      surfacedProps: [],
+      importMembers: ['Button', 'DialogTrigger'],
+      codeWrap: { before: '<DialogTrigger>\n  <Button>Open</Button>', after: '</DialogTrigger>' },
+      codeChildren: 'Body',
+    });
+    expect(code).toContain(
+      '<DialogTrigger>\n  <Button>Open</Button>\n  <Dialog>\n    Body\n  </Dialog>\n</DialogTrigger>',
+    );
+    expect(code).toContain("import { Dialog, Button, DialogTrigger } from '@windmorph/react';");
   });
 
   it('emits an icon slot that is self-contained (inline SVG, no site-local identifier)', () => {
@@ -100,5 +130,24 @@ describe('emitSnippet import source', () => {
     expect(emitSnippet({ component: 'Button', values: {}, surfacedProps: [] })).toContain(
       "from '@windmorph/react';",
     );
+  });
+});
+
+describe('emitSnippet toggled slots', () => {
+  const input = {
+    component: 'Button',
+    surfacedProps: ['leadingIcon'],
+    toggledSlots: { leadingIcon: '<EditIcon />' },
+    codeChildren: 'Edit',
+  };
+
+  it('writes the slot while its switch is on', () => {
+    expect(emitSnippet({ ...input, values: { leadingIcon: true } })).toContain(
+      'leadingIcon={<EditIcon />}',
+    );
+  });
+
+  it('writes nothing while its switch is off', () => {
+    expect(emitSnippet({ ...input, values: { leadingIcon: false } })).not.toContain('leadingIcon');
   });
 });

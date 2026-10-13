@@ -14,7 +14,8 @@ function SegmentedControl({
   onChange: (value: string) => void;
 }) {
   const options = def.options ?? [];
-  const selected = value && options.includes(value) ? value : options[0];
+  // An unset value (the component's own default applies) selects nothing.
+  const selected = value !== undefined && options.includes(value) ? value : undefined;
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <span className="text-label-medium text-on-surface-variant">{def.label}</span>
@@ -27,7 +28,7 @@ function SegmentedControl({
         variant="standard"
         size="xs"
         selectionMode="single"
-        disallowEmptySelection
+        disallowEmptySelection={selected !== undefined}
         aria-label={def.label}
         className="flex-wrap gap-1.5"
         selectedKeys={selected ? [selected] : []}

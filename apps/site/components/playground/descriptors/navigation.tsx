@@ -1,0 +1,517 @@
+'use client';
+
+import {
+  ExtendedFab,
+  FloatingToolbar,
+  IconButton,
+  NavigationBar,
+  NavigationBarItem,
+  NavigationRail,
+  NavigationRailItem,
+  SearchBar,
+  Tab,
+  Tabs,
+  ToolbarFab,
+  TopAppBar,
+} from '@windmorph/react';
+import { Link } from '@windmorph/react-pro';
+import { createElement, useRef } from 'react';
+import {
+  ArrowBackIcon,
+  DeleteIcon,
+  EditIcon,
+  FormatBoldIcon,
+  FormatItalicIcon,
+  FormatUnderlinedIcon,
+  HomeIcon,
+  MenuIcon,
+  MicIcon,
+  MoreVertIcon,
+  SearchIcon,
+  SendIcon,
+  StarIcon,
+} from '../../icons';
+import { type PlaygroundDescriptor, type PlaygroundUpdate, loose } from './shared';
+
+const TabsAny = loose(Tabs);
+const TabAny = loose(Tab);
+const LinkAny = loose(Link);
+const NavigationRailAny = loose(NavigationRail);
+const NavigationBarAny = loose(NavigationBar);
+const TopAppBarAny = loose(TopAppBar);
+const SearchBarAny = loose(SearchBar);
+const FloatingToolbarAny = loose(FloatingToolbar);
+
+/** The segmented control's value for "leave the prop unset", so the component decides. */
+const UNSET = 'auto';
+
+/** Drops a prop whose control is set to `value`, so the component uses its own default. */
+function unset(props: Record<string, unknown>, name: string, value: string = UNSET) {
+  return props[name] === value ? { ...props, [name]: undefined } : props;
+}
+
+const DESTINATIONS = [
+  { id: 'home', label: 'Home', icon: <HomeIcon /> },
+  { id: 'search', label: 'Search', icon: <SearchIcon /> },
+  { id: 'starred', label: 'Starred', icon: <StarIcon /> },
+  { id: 'sent', label: 'Sent', icon: <SendIcon /> },
+];
+
+/** Scroll content for the previews of bars that respond to scrolling. */
+function Lines({ label }: { label: string }) {
+  return Array.from({ length: 24 }, (_, index) => (
+    <p key={index} className="px-4 py-3 text-body-large text-on-surface-variant">
+      {label} {index + 1}
+    </p>
+  ));
+}
+
+/** The rail in a bounded frame; the menu button and the modal sheet set `expanded` back. */
+function RailPreview({
+  header,
+  update,
+  ...props
+}: Record<string, unknown> & { update: PlaygroundUpdate }) {
+  return (
+    <div className="flex h-[420px] w-full overflow-hidden rounded-corner-large border border-outline-variant">
+      {createElement(
+        NavigationRailAny,
+        {
+          ...props,
+          'aria-label': 'Folders',
+          onExpandedChange: (next: boolean) => update('expanded', next),
+          ...(header === true && {
+            header: ({ expanded, toggle }: { expanded: boolean; toggle: () => void }) => (
+              <>
+                <IconButton
+                  variant="standard"
+                  icon={<MenuIcon />}
+                  aria-label={expanded ? 'Collapse navigation' : 'Expand navigation'}
+                  onPress={toggle}
+                />
+                <ExtendedFab
+                  icon={<EditIcon />}
+                  expanded={expanded}
+                  elevation="flat"
+                  className="mt-1"
+                >
+                  Compose
+                </ExtendedFab>
+              </>
+            ),
+          }),
+        },
+        DESTINATIONS.map(({ id, label, icon }) => (
+          <NavigationRailItem key={id} icon={icon} selected={id === 'home'}>
+            {label}
+          </NavigationRailItem>
+        )),
+      )}
+      <div className="flex-1 bg-surface-container-low p-4 text-body-large text-on-surface-variant">
+        {props.modal === true && props.hideOnCollapse === true && (
+          // A rail hidden while collapsed needs a way in from the page.
+          <IconButton
+            variant="standard"
+            icon={<MenuIcon />}
+            aria-label="Open navigation"
+            onPress={() => update('expanded', true)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** The bar at the bottom of a scrolling frame, so `hide-on-scroll` has something to follow. */
+function BarPreview(props: Record<string, unknown>) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  return (
+    <div className="h-[320px] w-[412px] max-w-full overflow-hidden rounded-corner-large border border-outline-variant">
+      <div
+        ref={scrollRef}
+        tabIndex={0}
+        role="region"
+        aria-label="Messages"
+        className="h-full overflow-y-auto"
+      >
+        <Lines label="Message" />
+        {createElement(
+          NavigationBarAny,
+          { ...unset(props, 'arrangement'), 'aria-label': 'Mail', scrollRef },
+          DESTINATIONS.map(({ id, label, icon }) => (
+            <NavigationBarItem key={id} icon={icon} selected={id === 'home'}>
+              {label}
+            </NavigationBarItem>
+          )),
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** The bar over its own scroll container, so each scroll behaviour can be tried. */
+function TopAppBarPreview({ navigationIcon, actions, ...props }: Record<string, unknown>) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  return (
+    <div
+      ref={scrollRef}
+      tabIndex={0}
+      role="region"
+      aria-label="Messages"
+      className="h-[320px] w-[412px] max-w-full overflow-y-auto rounded-corner-large border border-outline-variant"
+    >
+      {createElement(TopAppBarAny, {
+        ...unset(props, 'scrollBehavior', 'none'),
+        scrollRef,
+        ...(navigationIcon === true && {
+          navigationIcon: <IconButton icon={<ArrowBackIcon />} aria-label="Back" />,
+        }),
+        ...(actions === true && {
+          actions: (
+            <>
+              <IconButton icon={<StarIcon />} aria-label="Favourite" />
+              <IconButton icon={<MoreVertIcon />} aria-label="More" />
+            </>
+          ),
+        }),
+      })}
+      <Lines label="Message" />
+    </div>
+  );
+}
+
+const SUGGESTIONS = ['Holiday photos', 'Flight confirmation', 'Invoice March', 'Team lunch'];
+
+/** The search view's suggestions, filtered by the query. */
+function Suggestions({ query, onPick }: { query: string; onPick: (value: string) => void }) {
+  const items = SUGGESTIONS.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div className="flex flex-col py-2">
+      {items.map((item) => (
+        <button
+          key={item}
+          type="button"
+          onClick={() => onPick(item)}
+          className="flex h-14 items-center gap-4 px-4 text-start text-body-large text-on-surface outline-none hover:bg-on-surface/8 focus-visible:bg-on-surface/10"
+        >
+          {item}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const FORMATTING = [
+  <IconButton key="bold" toggle icon={<FormatBoldIcon />} aria-label="Bold" />,
+  <IconButton key="italic" toggle icon={<FormatItalicIcon />} aria-label="Italic" />,
+  <IconButton key="underline" toggle icon={<FormatUnderlinedIcon />} aria-label="Underline" />,
+];
+
+/** Playgrounds for Navigation, by page slug. */
+export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
+  'navigation-rail': {
+    component: 'NavigationRail',
+    render: (props, update) => <RailPreview {...props} update={update} />,
+    defaultProps: {
+      expanded: false,
+      modal: false,
+      hideOnCollapse: false,
+      header: false,
+      itemAlignment: 'top',
+      divider: false,
+    },
+    surfacedProps: ['expanded', 'modal', 'hideOnCollapse', 'header', 'itemAlignment', 'divider'],
+    initialState: { header: true },
+    enumOptions: { itemAlignment: ['top', 'center'] },
+    controlKinds: { header: 'boolean' },
+    toggledSlots: {
+      header:
+        '({ expanded, toggle }) => (\n    <>\n      <IconButton\n        variant="standard"\n        icon={<MenuIcon />}\n        aria-label={expanded ? \'Collapse navigation\' : \'Expand navigation\'}\n        onPress={toggle}\n      />\n      <ExtendedFab icon={<EditIcon />} expanded={expanded} elevation="flat">\n        Compose\n      </ExtendedFab>\n    </>\n  )',
+    },
+    importMembers: ['NavigationRailItem', 'IconButton', 'ExtendedFab'],
+    codeImports: ["import { EditIcon, HomeIcon, MenuIcon, SearchIcon } from './icons';"],
+    codeSlots: { 'aria-label': '"Folders"' },
+    codeChildren:
+      '<NavigationRailItem icon={<HomeIcon />} selected>Home</NavigationRailItem>\n  <NavigationRailItem icon={<SearchIcon />}>Search</NavigationRailItem>',
+  },
+  'navigation-bar': {
+    component: 'NavigationBar',
+    render: (props) => <BarPreview {...props} />,
+    defaultProps: { iconPosition: 'top', arrangement: UNSET, scrollBehavior: 'pinned' },
+    surfacedProps: ['iconPosition', 'arrangement', 'scrollBehavior'],
+    enumOptions: {
+      iconPosition: ['top', 'start'],
+      arrangement: [UNSET, 'equal', 'centered'],
+      scrollBehavior: ['pinned', 'hide-on-scroll'],
+    },
+    importMembers: ['NavigationBarItem'],
+    codeImports: ["import { HomeIcon, SearchIcon } from './icons';"],
+    codeSlots: { 'aria-label': '"Mail"' },
+    codeChildren:
+      '<NavigationBarItem icon={<HomeIcon />} selected>Home</NavigationBarItem>\n  <NavigationBarItem icon={<SearchIcon />}>Search</NavigationBarItem>',
+  },
+  tabs: {
+    component: 'Tabs',
+    render: (props) =>
+      createElement(
+        TabsAny,
+        { ...props, 'aria-label': 'Inbox', className: 'w-full max-w-[480px]' },
+        createElement(
+          TabAny,
+          { key: 'all', title: 'All', icon: <StarIcon /> },
+          <p key="p" className="p-4 text-body-large text-on-surface-variant">
+            Everything in one place.
+          </p>,
+        ),
+        createElement(
+          TabAny,
+          { key: 'sent', title: 'Sent', icon: <SendIcon /> },
+          <p key="p" className="p-4 text-body-large text-on-surface-variant">
+            Messages you sent.
+          </p>,
+        ),
+        createElement(
+          TabAny,
+          { key: 'drafts', title: 'Drafts', icon: <EditIcon /> },
+          <p key="p" className="p-4 text-body-large text-on-surface-variant">
+            Unfinished messages.
+          </p>,
+        ),
+      ),
+    defaultProps: {
+      variant: 'primary',
+      scrollable: false,
+      iconPlacement: 'top',
+      align: 'stretch',
+      swipeable: false,
+      keyboardActivation: 'manual',
+    },
+    surfacedProps: [
+      'variant',
+      'scrollable',
+      'iconPlacement',
+      'align',
+      'swipeable',
+      'keyboardActivation',
+    ],
+    initialState: { variant: 'primary' },
+    importMembers: ['Tab'],
+    codeImports: ["import { EditIcon, SendIcon, StarIcon } from './icons';"],
+    codeSlots: { 'aria-label': '"Inbox"' },
+    codeChildren:
+      '<Tab key="all" title="All" icon={<StarIcon />}>\n    <p>Everything in one place.</p>\n  </Tab>\n  <Tab key="sent" title="Sent" icon={<SendIcon />}>\n    <p>Messages you sent.</p>\n  </Tab>\n  <Tab key="drafts" title="Drafts" icon={<EditIcon />}>\n    <p>Unfinished messages.</p>\n  </Tab>',
+  },
+  'top-app-bar': {
+    component: 'TopAppBar',
+    render: (props) => <TopAppBarPreview {...props} />,
+    defaultProps: {
+      variant: 'small',
+      title: '',
+      subtitle: '',
+      titleAlign: 'start',
+      navigationIcon: false,
+      actions: false,
+      scrollBehavior: 'none',
+    },
+    surfacedProps: [
+      'variant',
+      'title',
+      'subtitle',
+      'titleAlign',
+      'navigationIcon',
+      'actions',
+      'scrollBehavior',
+    ],
+    initialState: {
+      variant: 'medium',
+      title: 'Inbox',
+      subtitle: '24 messages',
+      navigationIcon: true,
+      actions: true,
+      scrollBehavior: 'exit-until-collapsed',
+    },
+    enumOptions: {
+      variant: ['small', 'medium', 'large'],
+      titleAlign: ['start', 'center'],
+      scrollBehavior: ['none', 'pinned', 'enter-always', 'exit-until-collapsed'],
+    },
+    controlKinds: {
+      title: 'string',
+      subtitle: 'string',
+      navigationIcon: 'boolean',
+      actions: 'boolean',
+    },
+    toggledSlots: {
+      navigationIcon: '<IconButton icon={<ArrowBackIcon />} aria-label="Back" />',
+      actions:
+        '(\n    <>\n      <IconButton icon={<StarIcon />} aria-label="Favourite" />\n      <IconButton icon={<MoreVertIcon />} aria-label="More" />\n    </>\n  )',
+    },
+    importMembers: ['IconButton'],
+    codeImports: ["import { ArrowBackIcon, MoreVertIcon, StarIcon } from './icons';"],
+  },
+  search: {
+    component: 'SearchBar',
+    render: ({ leadingIcon, trailingIcon, value, ...props }, update) => {
+      const query = typeof value === 'string' ? value : '';
+      return (
+        <div className="w-full max-w-[360px]">
+          {createElement(
+            SearchBarAny,
+            {
+              ...props,
+              'aria-label': 'Search mail',
+              className: 'w-full',
+              value: query,
+              onChange: (next: string) => update('value', next),
+              onExpandedChange: (next: boolean) => update('expanded', next),
+              ...(leadingIcon === true && { leadingIcon: <SearchIcon /> }),
+              ...(trailingIcon === true && {
+                trailingIcon: (
+                  <IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />
+                ),
+              }),
+            },
+            <Suggestions query={query} onPick={(item) => update('value', item)} />,
+          )}
+        </div>
+      );
+    },
+    defaultProps: {
+      value: '',
+      expanded: false,
+      view: 'docked',
+      placeholder: '',
+      leadingIcon: false,
+      trailingIcon: false,
+      textAlign: 'start',
+      resultsAnnouncement: '',
+    },
+    surfacedProps: [
+      'value',
+      'expanded',
+      'view',
+      'placeholder',
+      'leadingIcon',
+      'trailingIcon',
+      'textAlign',
+      'resultsAnnouncement',
+    ],
+    initialState: {
+      placeholder: 'Search mail',
+      leadingIcon: true,
+      trailingIcon: true,
+      resultsAnnouncement: 'Suggestions updated',
+    },
+    enumOptions: { view: ['docked', 'full-screen'], textAlign: ['start', 'center'] },
+    controlKinds: { leadingIcon: 'boolean', trailingIcon: 'boolean' },
+    toggledSlots: {
+      leadingIcon: '<SearchIcon />',
+      trailingIcon:
+        '<IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />',
+    },
+    importMembers: ['IconButton'],
+    codeImports: ["import { MicIcon, SearchIcon } from './icons';"],
+    codeSlots: { 'aria-label': '"Search mail"' },
+    codeChildren: '{/* Suggestions or results, usually a List */}',
+  },
+  toolbars: {
+    component: 'FloatingToolbar',
+    render: ({ leading, trailing, fab, ...props }) => (
+      <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-corner-large border border-outline-variant bg-surface-container-lowest">
+        {createElement(
+          FloatingToolbarAny,
+          {
+            ...props,
+            'aria-label': 'Formatting',
+            ...(leading === true && {
+              leading: <IconButton icon={<EditIcon />} aria-label="Edit" />,
+            }),
+            ...(trailing === true && {
+              trailing: <IconButton icon={<DeleteIcon />} aria-label="Delete" />,
+            }),
+            ...(fab === true && {
+              fab: <ToolbarFab icon={<EditIcon />} aria-label="Compose" />,
+            }),
+          },
+          FORMATTING,
+        )}
+      </div>
+    ),
+    defaultProps: {
+      orientation: 'horizontal',
+      color: 'standard',
+      elevated: true,
+      expanded: true,
+      visible: true,
+      exitEdge: 'bottom',
+      leading: false,
+      trailing: false,
+      fab: false,
+      fabPosition: 'end',
+    },
+    surfacedProps: [
+      'orientation',
+      'color',
+      'elevated',
+      'expanded',
+      'visible',
+      'exitEdge',
+      'leading',
+      'trailing',
+      'fab',
+      'fabPosition',
+    ],
+    initialState: { leading: true, trailing: true },
+    enumOptions: {
+      orientation: ['horizontal', 'vertical'],
+      color: ['standard', 'vibrant'],
+      exitEdge: ['bottom', 'top', 'start', 'end'],
+      fabPosition: ['end', 'start', 'top', 'bottom'],
+    },
+    controlKinds: { leading: 'boolean', trailing: 'boolean', fab: 'boolean' },
+    toggledSlots: {
+      leading: '<IconButton icon={<EditIcon />} aria-label="Edit" />',
+      trailing: '<IconButton icon={<DeleteIcon />} aria-label="Delete" />',
+      fab: '<ToolbarFab icon={<EditIcon />} aria-label="Compose" />',
+    },
+    importMembers: ['IconButton', 'ToolbarFab'],
+    codeImports: [
+      "import { DeleteIcon, EditIcon, FormatBoldIcon, FormatItalicIcon, FormatUnderlinedIcon } from './icons';",
+    ],
+    codeSlots: { 'aria-label': '"Formatting"' },
+    codeChildren:
+      '<IconButton toggle icon={<FormatBoldIcon />} aria-label="Bold" />\n  <IconButton toggle icon={<FormatItalicIcon />} aria-label="Italic" />\n  <IconButton toggle icon={<FormatUnderlinedIcon />} aria-label="Underline" />',
+  },
+  link: {
+    component: 'Link',
+    importFrom: '@windmorph/react-pro',
+    // The preview never leaves the page: with any `href`, it points at this spot. Without
+    // one, the link is a button.
+    render: ({ href, ...props }) =>
+      createElement(
+        LinkAny,
+        { ...props, ...(typeof href === 'string' && href !== '' && { href: '#' }) },
+        'Terms of service',
+      ),
+    defaultProps: {
+      href: '',
+      variant: 'inline',
+      tone: 'primary',
+      size: 'inherit',
+      external: false,
+      dragged: false,
+    },
+    surfacedProps: ['href', 'variant', 'tone', 'size', 'external', 'dragged'],
+    initialState: { href: '/legal/terms' },
+    notControlled: {
+      preventFocusOnPress:
+        'It only stops the link taking focus when pressed (menu triggers set it): nothing the preview can show.',
+    },
+    enumOptions: {
+      variant: ['inline', 'standalone', 'plain'],
+      tone: ['primary', 'inherit'],
+      size: ['inherit', 'small', 'medium', 'large'],
+    },
+    codeChildren: 'Terms of service',
+  },
+};

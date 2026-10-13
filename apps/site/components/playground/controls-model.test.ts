@@ -52,4 +52,27 @@ describe('inferControls', () => {
       expect(control.options?.length ?? 0).toBeGreaterThan(0);
     }
   });
+
+  it('an override picks the control for a prop with no natural one', () => {
+    const slots: PropsRecord[] = [
+      { name: 'leadingIcon', type: 'ReactElement', required: false },
+      { name: 'title', type: 'ReactNode', required: false },
+      { name: 'variant', type: 'enum', required: false, options: ['a', 'b'] },
+    ];
+    const controls = inferControls(
+      slots,
+      ['leadingIcon', 'title', 'variant'],
+      undefined,
+      {},
+      {
+        leadingIcon: 'boolean',
+        title: 'string',
+      },
+    );
+    expect(controls.map((control) => [control.name, control.kind])).toEqual([
+      ['leadingIcon', 'boolean'],
+      ['title', 'string'],
+      ['variant', 'enum'],
+    ]);
+  });
 });
