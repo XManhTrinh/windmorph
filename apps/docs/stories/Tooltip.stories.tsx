@@ -26,7 +26,23 @@ interface Args {
 const meta = {
   title: 'Components/Tooltip',
   args: { placement: 'top', caret: false },
-  argTypes: { placement: { control: 'inline-radio', options: ['top', 'bottom', 'left', 'right'] } },
+  argTypes: {
+    placement: {
+      control: 'select',
+      options: [
+        'top',
+        'bottom',
+        'left',
+        'right',
+        'start',
+        'end',
+        'top start',
+        'top end',
+        'bottom start',
+        'bottom end',
+      ],
+    },
+  },
 } satisfies Meta<Args>;
 
 export default meta;
@@ -90,11 +106,11 @@ export const OnOverlayTriggers: Story = {
   ),
 };
 
-/** A rich tooltip with a subhead and an action; press to open, Escape or outside to close. */
+/** A persistent rich tooltip with a subhead and an action; press to open, Escape or outside to close. */
 export const Rich: Story = {
   render: ({ placement, caret }) => (
     <div className="flex p-48" data-testid="rich">
-      <RichTooltipTrigger placement={placement}>
+      <RichTooltipTrigger persistent placement={placement}>
         <Button variant="tonal">What are grouped tabs?</Button>
         <RichTooltip
           caret={caret}
@@ -108,10 +124,25 @@ export const Rich: Story = {
   ),
 };
 
+/** A transient rich tooltip (the default): hover, focus or long-press; below and to the end. */
+export const RichTransient: Story = {
+  args: { placement: 'bottom start' },
+  render: ({ placement, caret }) => (
+    <div className="flex p-48" data-testid="rich-transient">
+      <RichTooltipTrigger placement={placement}>
+        <Button variant="tonal">Grouped tabs</Button>
+        <RichTooltip caret={caret} title="Grouped tabs">
+          Tabs from the same site stay together, so related pages are easy to find.
+        </RichTooltip>
+      </RichTooltipTrigger>
+    </div>
+  ),
+};
+
 /** Open tooltips for visual regression. */
 export const Open: Story = {
   render: () => (
-    <div className="flex w-fit items-end gap-24 px-16 pt-40 pb-56" data-testid="open">
+    <div className="flex w-fit items-end gap-24 ps-16 pe-48 pt-40 pb-56" data-testid="open">
       <TooltipTrigger defaultOpen>
         <IconButton icon={<StarIcon />} aria-label="Favourite" />
         <Tooltip>Add to favourites</Tooltip>
@@ -120,6 +151,10 @@ export const Open: Story = {
         <IconButton icon={<EditIcon />} aria-label="Edit" />
         <Tooltip caret>Edit message</Tooltip>
       </TooltipTrigger>
+      <RichTooltipTrigger defaultOpen>
+        <Button variant="text">Info</Button>
+        <RichTooltip>Synced just now</RichTooltip>
+      </RichTooltipTrigger>
     </div>
   ),
 };

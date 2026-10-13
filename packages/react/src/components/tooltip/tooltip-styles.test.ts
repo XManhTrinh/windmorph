@@ -9,8 +9,9 @@ import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
 
 function* outputs() {
   for (const slot of Object.values(tooltipStyles())) yield slot();
-  for (const spaced of [false, true])
-    for (const slot of Object.values(richTooltipStyles({ spaced }))) yield slot();
+  for (const subhead of [false, true])
+    for (const action of [false, true])
+      for (const slot of Object.values(richTooltipStyles({ subhead, action }))) yield slot();
 }
 
 describe('tooltip styles', () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -24,14 +24,57 @@ const gone = (role: string) =>
   waitFor(() => expect(screen.queryByRole(role)).toBeNull(), { timeout: 1500 });
 
 describe('Tooltip', () => {
-  function Favourite(props: { caret?: boolean }) {
+  function Favourite(props: { caret?: boolean; closeDelay?: number }) {
     return (
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={props.closeDelay ?? 0}>
         <IconButton icon={<Icon />} aria-label="Favourite" />
         <Tooltip caret={props.caret}>Add to favourites</Tooltip>
       </TooltipTrigger>
     );
   }
+
+  it('stays 1.5s after the pointer leaves', async () => {
+    render(
+      <TooltipTrigger>
+        <IconButton icon={<Icon />} aria-label="Favourite" />
+        <Tooltip>Add to favourites</Tooltip>
+      </TooltipTrigger>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Favourite' });
+    await hover(trigger);
+    await screen.findByRole('tooltip');
+    await userEvent.unhover(trigger);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull(), { timeout: 2000 });
+  });
+
+  it('opens on a touch long press without pressing the button, closing 1.5s after release', () => {
+    vi.useFakeTimers();
+    try {
+      const onPress = vi.fn();
+      render(
+        <TooltipTrigger>
+          <IconButton icon={<Icon />} aria-label="Favourite" onPress={onPress} />
+          <Tooltip>Add to favourites</Tooltip>
+        </TooltipTrigger>,
+      );
+      const trigger = screen.getByRole('button', { name: 'Favourite' });
+      fireEvent.pointerDown(trigger, { pointerType: 'touch', pointerId: 1, button: 0 });
+      act(() => vi.advanceTimersByTime(500));
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Add to favourites');
+      fireEvent.pointerUp(window, { pointerType: 'touch', pointerId: 1 });
+      act(() => vi.advanceTimersByTime(1400));
+      expect(screen.getByRole('tooltip')).toBeInTheDocument();
+      // Then the exit transition (or its fallback) runs.
+      act(() => vi.advanceTimersByTime(200));
+      act(() => vi.advanceTimersByTime(1000));
+      expect(screen.queryByRole('tooltip')).toBeNull();
+      expect(onPress).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('shows on hover and describes its trigger', async () => {
     const { container } = render(<Favourite />);
@@ -48,8 +91,13 @@ describe('Tooltip', () => {
       'px-[8px]',
       'py-[4px]',
       'max-w-[200px]',
-      'starting:scale-80',
+      'starting:opacity-0',
     );
+    // It expands along one axis from the anchor's side instead of scaling.
+    expect(tooltip.className).toContain(
+      'data-[placement=top]:starting:[clip-path:inset(100%_-16px_-16px_-16px)]',
+    );
+    expect(tooltip.className).not.toMatch(/scale/);
     expect(await axeViolations(container)).toEqual([]);
     await userEvent.unhover(trigger);
     await gone('tooltip');
@@ -79,7 +127,7 @@ describe('Tooltip', () => {
 describe('RichTooltip', () => {
   function Rich() {
     return (
-      <RichTooltipTrigger>
+      <RichTooltipTrigger persistent>
         <Button variant="text">What’s this?</Button>
         <RichTooltip title="Grouped tabs" action={<Button variant="text">Learn more</Button>}>
           Tabs from the same site stay together.
@@ -129,15 +177,55 @@ describe('RichTooltip', () => {
     await gone('dialog');
   });
 
-  it('pads plain text 4px without a subhead or action', async () => {
+  it('pads 12px above and 8px below without a subhead or action', async () => {
     render(
-      <RichTooltipTrigger defaultOpen>
+      <RichTooltipTrigger persistent defaultOpen>
         <Button>Info</Button>
         <RichTooltip aria-label="Info">Just text</RichTooltip>
       </RichTooltipTrigger>,
     );
-    expect(await screen.findByRole('dialog', { name: 'Info' })).toBeInTheDocument();
-    expect(screen.getByText('Just text')).toHaveClass('py-[4px]');
+    expect(await screen.findByRole('dialog', { name: 'Info' })).toHaveClass(
+      'pt-[12px]',
+      'pb-[8px]',
+    );
+  });
+
+  it('is transient by default: a tooltip on hover, below and to the end of its trigger', async () => {
+    const { container } = render(
+      <RichTooltipTrigger closeDelay={0}>
+        <Button variant="text">What’s this?</Button>
+        <RichTooltip title="Grouped tabs">Tabs from the same site stay together.</RichTooltip>
+      </RichTooltipTrigger>,
+    );
+    const trigger = screen.getByRole('button', { name: 'What’s this?' });
+    expect(trigger).not.toHaveAttribute('aria-expanded');
+    await hover(trigger);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Grouped tabs');
+    expect(trigger).toHaveAttribute('aria-describedby', tooltip.id);
+    // `bottom start` is below the anchor.
+    expect(tooltip).toHaveAttribute('data-placement', 'bottom');
+    expect(await axeViolations(container)).toEqual([]);
+    await userEvent.unhover(trigger);
+    await gone('tooltip');
+  });
+
+  it('keeps a transient tooltip open while focus is inside it', async () => {
+    render(
+      <RichTooltipTrigger closeDelay={0}>
+        <Button variant="text">What’s this?</Button>
+        <RichTooltip title="Grouped tabs" action={<Button variant="text">Learn more</Button>}>
+          Tabs from the same site stay together.
+        </RichTooltip>
+      </RichTooltipTrigger>,
+    );
+    await userEvent.tab();
+    await screen.findByRole('tooltip');
+    act(() => screen.getByRole('button', { name: 'Learn more' }).focus());
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+    act(() => screen.getByRole('button', { name: 'Learn more' }).blur());
+    await gone('tooltip');
   });
 });
 
@@ -147,7 +235,7 @@ const hiddenFromAT = (element: Element) => element.closest('[aria-hidden="true"]
 describe('tooltips inside a modal', () => {
   function Favourite() {
     return (
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={0}>
         <IconButton icon={<Icon />} aria-label="Favourite" />
         <Tooltip>Add to favourites</Tooltip>
       </TooltipTrigger>
@@ -234,7 +322,7 @@ describe('tooltips inside a modal', () => {
         <Dialog>
           <DialogTitle>Settings</DialogTitle>
           <DialogActions>
-            <RichTooltipTrigger>
+            <RichTooltipTrigger persistent>
               <Button variant="text">What’s this?</Button>
               <RichTooltip title="Grouped tabs" action={<Button variant="text">Learn more</Button>}>
                 Tabs from the same site stay together.

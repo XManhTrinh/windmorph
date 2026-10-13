@@ -13,7 +13,8 @@ import { SheetTrigger } from '../sheet/SheetTrigger';
 import { RichTooltip, RichTooltipTrigger, Tooltip, TooltipTrigger } from './Tooltip';
 
 // Triggers pass props to their button through TriggerContext; nested triggers must merge
-// them, so a tooltip still works on a button that opens a menu, dialog or sheet.
+// them, so a tooltip still works on a button that opens a menu, dialog or sheet. These tests
+// are about the merging, so tooltips close at once (`closeDelay={0}`).
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 
@@ -51,7 +52,7 @@ async function expectHoverTooltip(trigger: HTMLElement, text: string) {
 describe('a TooltipTrigger around a MenuTrigger', () => {
   function TooltipMenu({ onAction }: { onAction?: (key: string) => void }) {
     return (
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={0}>
         <MenuTrigger>
           <IconButton icon={<Icon />} aria-label="More" />
           <MoreMenu onAction={onAction} />
@@ -118,7 +119,7 @@ describe('a TooltipTrigger around a MenuTrigger', () => {
   it('keeps the button’s own ref', async () => {
     let element: HTMLButtonElement | null = null;
     render(
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={0}>
         <MenuTrigger>
           <IconButton
             ref={(node) => {
@@ -143,7 +144,7 @@ describe('a MenuTrigger around a TooltipTrigger', () => {
   it('shows the tooltip and opens the menu', async () => {
     render(
       <MenuTrigger>
-        <TooltipTrigger>
+        <TooltipTrigger closeDelay={0}>
           <IconButton icon={<Icon />} aria-label="More" />
           <Tooltip>More options</Tooltip>
         </TooltipTrigger>
@@ -185,7 +186,7 @@ describe('a TooltipTrigger around other triggers', () => {
     [
       'RichTooltipTrigger',
       (button) => (
-        <RichTooltipTrigger>
+        <RichTooltipTrigger persistent>
           {button}
           <RichTooltip title="About">Version 1</RichTooltip>
         </RichTooltipTrigger>
@@ -196,7 +197,7 @@ describe('a TooltipTrigger around other triggers', () => {
 
   it.each(cases)('%s: shows the tooltip, then opens and hides it', async (_, wrap, role) => {
     render(
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={0}>
         {wrap(<IconButton icon={<Icon />} aria-label="Info" />)}
         <Tooltip>About this app</Tooltip>
       </TooltipTrigger>,
@@ -216,7 +217,7 @@ describe('a TooltipTrigger around other triggers', () => {
 describe('a TooltipTrigger around a FabMenu', () => {
   it('describes the FAB only, not its items', async () => {
     render(
-      <TooltipTrigger>
+      <TooltipTrigger closeDelay={0}>
         <FabMenu icon={<Icon />} aria-label="Create">
           <FabMenuItem icon={<Icon />}>Reply</FabMenuItem>
         </FabMenu>

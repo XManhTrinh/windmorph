@@ -7,7 +7,11 @@ test.describe('Tooltip visual regression', () => {
     for (const mode of MODES) {
       test(`plain · ${theme} · ${mode}`, async ({ page }) => {
         await openStory(page, 'components-tooltip--open', { theme, mode });
-        await expect(page.getByRole('tooltip')).toHaveCount(2);
+        await expect(page.getByRole('tooltip')).toHaveCount(3);
+        // Wait for the entry reveal before the screenshot.
+        await page.evaluate(() =>
+          Promise.allSettled(document.getAnimations().map((animation) => animation.finished)),
+        );
         // The padded container holds both tooltips; the screenshot includes the overlays.
         await expect(page.getByTestId('open')).toHaveScreenshot(`open-${theme}-${mode}.png`);
       });
@@ -20,7 +24,7 @@ test.describe('Tooltip visual regression', () => {
     const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
     await expect(dialog).toBeVisible();
     await page.mouse.move(0, 0);
-    // Measure once the entry animation (a scale from 80%) has finished, or the clip moves.
+    // Measure once the entry reveal has finished.
     await page.evaluate(() =>
       Promise.allSettled(document.getAnimations().map((animation) => animation.finished)),
     );
@@ -59,8 +63,52 @@ test.describe('Tooltip behaviour', () => {
     // Hoverable: moving onto the tooltip keeps it open (WCAG 1.4.13).
     await tooltip.hover();
     await expect(tooltip).toBeVisible();
+    // It stays 1.5s after the pointer leaves, then goes.
     await page.mouse.move(0, 0);
-    await expect(tooltip).toHaveCount(0);
+    await page.waitForTimeout(1000);
+    await expect(tooltip).toBeVisible();
+    await expect(tooltip).toHaveCount(0, { timeout: 3000 });
+  });
+
+  test('it expands from the anchor side along one axis, without scaling', async ({ page }) => {
+    await openStory(page, 'components-tooltip--plain');
+    await page.mouse.move(5, 5);
+    await page.getByRole('button', { name: 'Edit' }).hover();
+    const tooltip = page.getByRole('tooltip');
+    await expect(tooltip).toBeVisible();
+    expect(await tooltip.evaluate((el) => getComputedStyle(el).scale)).toBe('none');
+    await expect
+      .poll(() => tooltip.evaluate((el) => getComputedStyle(el).clipPath))
+      .toBe('inset(-16px)');
+  });
+
+  test('a touch long press shows it', async ({ browser }) => {
+    const context = await browser.newContext({ hasTouch: true });
+    const page = await context.newPage();
+    await openStory(page, 'components-tooltip--plain');
+    const box = (await page.getByRole('button', { name: 'Edit' }).boundingBox())!;
+    const client = await context.newCDPSession(page);
+    const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
+    await expect(page.getByRole('tooltip')).toHaveText('Edit message');
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(page.getByRole('tooltip')).toHaveCount(0, { timeout: 3000 });
+    await context.close();
+  });
+
+  test('a transient rich tooltip shows on hover, below and to the end of its anchor', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich-transient');
+    const trigger = page.getByRole('button', { name: 'Grouped tabs' });
+    await page.mouse.move(5, 5);
+    await trigger.hover();
+    const tooltip = page.getByRole('tooltip');
+    await expect(tooltip).toContainText('Tabs from the same site');
+    const anchor = (await trigger.boundingBox())!;
+    const tip = (await tooltip.boundingBox())!;
+    expect(Math.round(tip.y - (anchor.y + anchor.height))).toBe(4);
+    expect(Math.round(tip.x)).toBe(Math.round(anchor.x));
   });
 
   test('keyboard focus shows it and Escape hides it', async ({ page }) => {
