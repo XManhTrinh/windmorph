@@ -137,8 +137,9 @@ export async function SelectBody(): Promise<ComponentDoc> {
             <li>
               The field is a button with <InlineCode>aria-haspopup</InlineCode> and{' '}
               <InlineCode>aria-expanded</InlineCode>, named by its label and its value. Enter, Space
-              or the arrow keys open the menu; ↑ / ↓ move, typing jumps to a match, Enter chooses
-              and Escape closes. Focus returns to the field.
+              or the arrow keys open the menu; ↑ / ↓ move, typing jumps to a match (a letter, or the
+              same letter again, moves to the next option starting with it, as M3 asks), Enter
+              chooses and Escape closes. Focus returns to the field.
             </li>
             <li>
               Typing on the closed field jumps straight to a matching option, as a native select

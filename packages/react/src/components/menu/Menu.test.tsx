@@ -166,6 +166,17 @@ describe('Menu', () => {
     expect(onAction.mock.calls[0]?.[0]).toBe('delete');
   });
 
+  // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
+  it('moves typeahead to the next item starting with the letter, wrapping', async () => {
+    render(<EditMenu />);
+    await openMenu('Edit');
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('menuitem', { name: /Copy/ })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+  });
+
   it('closes on Escape', async () => {
     render(<EditMenu />);
     await openMenu('Edit');
