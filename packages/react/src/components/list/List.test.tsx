@@ -123,9 +123,9 @@ describe('List (interactive)', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('selects items with secondary-container colours', async () => {
+  it('is a list box of options when it selects, with a check besides the colour', async () => {
     const onSelectionChange = vi.fn();
-    render(
+    const { container } = render(
       <List
         aria-label="Labels"
         selectionMode="multiple"
@@ -136,7 +136,10 @@ describe('List (interactive)', () => {
         <ListItem key="home">Home</ListItem>
       </List>,
     );
-    const [work, home] = screen.getAllByRole('row') as [HTMLElement, HTMLElement];
+    const listbox = screen.getByRole('listbox', { name: 'Labels' });
+    expect(listbox).toHaveAttribute('aria-multiselectable', 'true');
+    const [work, home] = within(listbox).getAllByRole('option') as [HTMLElement, HTMLElement];
+    expect(work).toHaveAccessibleName('Work');
     expect(work).toHaveAttribute('aria-selected', 'true');
     expect(work).toHaveAttribute('data-selected', 'true');
     expect(work).toHaveAttribute('data-shape', 'active');
@@ -144,9 +147,56 @@ describe('List (interactive)', () => {
     expect(within(work).getByText('Work')).toHaveClass(
       'group-data-selected/list-item:text-on-secondary-container',
     );
+    expect(work.querySelector('[data-selection-indicator]')).toHaveClass(
+      'opacity-0',
+      'group-data-selected/list-item:opacity-100',
+      'size-[20px]',
+    );
     await userEvent.click(home);
     expect(onSelectionChange).toHaveBeenCalled();
     expect(home).toHaveAttribute('aria-selected', 'true');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('can leave out the selection check, and keeps a grid list when items also act', () => {
+    render(
+      <>
+        <List aria-label="Sizes" selectionMode="single" selectionIndicator={false}>
+          <ListItem key="s">Small</ListItem>
+        </List>
+        <List aria-label="Files" selectionMode="multiple" onAction={() => {}}>
+          <ListItem key="a">Report</ListItem>
+        </List>
+      </>,
+    );
+    expect(screen.getByRole('option').querySelector('[data-selection-indicator]')).toBeNull();
+    expect(screen.getByRole('grid', { name: 'Files' })).toBeInTheDocument();
+    expect(screen.getByRole('row').querySelector('[data-selection-indicator]')).not.toBeNull();
+  });
+
+  it('wraps the arrow keys at the ends', async () => {
+    render(
+      <>
+        <List aria-label="Mail" onAction={() => {}}>
+          <ListItem key="inbox">Inbox</ListItem>
+          <ListItem key="sent">Sent</ListItem>
+        </List>
+        <List aria-label="Sort" selectionMode="single">
+          <ListItem key="new">Newest</ListItem>
+          <ListItem key="old">Oldest</ListItem>
+        </List>
+      </>,
+    );
+    const [inbox, sent] = screen.getAllByRole('row') as [HTMLElement, HTMLElement];
+    inbox.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(sent).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(inbox).toHaveFocus();
+    const [newest, oldest] = screen.getAllByRole('option') as [HTMLElement, HTMLElement];
+    newest.focus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(oldest).toHaveFocus();
   });
 
   it('lets ← / → reach a trailing control and disables items', async () => {
@@ -579,5 +629,66 @@ describe('List (link items)', () => {
     await userEvent.tab();
     expect(confirm).toHaveFocus();
     expect(link.closest('li')).not.toHaveAttribute('data-focus-visible');
+  });
+});
+
+describe('List (expandable items)', () => {
+  const folders = (props: Partial<Parameters<typeof List>[0]> = {}) => (
+    <List aria-label="Folders" {...props}>
+      <ListItem
+        key="photos"
+        supportingText="3 albums"
+        childItems={[
+          <ListItem key="trips">Trips</ListItem>,
+          <ListItem key="family">Family</ListItem>,
+        ]}
+      >
+        Photos
+      </ListItem>
+      <ListItem key="music">Music</ListItem>
+    </List>
+  );
+
+  it('expands and collapses an item with nested items, with a chevron and the arrow keys', async () => {
+    const onExpandedChange = vi.fn();
+    const { container } = render(folders({ onExpandedChange }));
+    const tree = screen.getByRole('treegrid', { name: 'Folders' });
+    const photos = within(tree).getAllByRole('row')[0]!;
+    expect(photos).toHaveAttribute('aria-expanded', 'false');
+    expect(photos).toHaveAttribute('aria-level', '1');
+    expect(screen.queryByText('Trips')).toBeNull();
+    const chevron = within(photos).getByRole('button', { name: /expand/i });
+    expect(chevron).toHaveAttribute('tabindex', '-1');
+    expect(chevron.querySelector('[data-touch-target]')).not.toBeNull();
+
+    await userEvent.click(photos);
+    expect(photos).toHaveAttribute('aria-expanded', 'true');
+    expect(onExpandedChange).toHaveBeenLastCalledWith(new Set(['photos']));
+    const trips = screen.getByRole('row', { name: 'Trips' });
+    expect(trips).toHaveAttribute('aria-level', '2');
+    expect(trips).toHaveAttribute('aria-posinset', '1');
+    expect(trips).toHaveAttribute('aria-setsize', '2');
+    expect(screen.getByRole('row', { name: 'Family' })).toHaveAttribute('aria-posinset', '2');
+    expect(screen.getByRole('row', { name: 'Music' })).toHaveAttribute('aria-posinset', '2');
+    expect(screen.getByRole('row', { name: 'Music' })).toHaveAttribute('aria-setsize', '2');
+    expect(trips).toHaveClass('ps-[calc(16px+var(--m3-list-level,0)*16px)]');
+    expect(trips.style.getPropertyValue('--m3-list-level')).toBe('1');
+    expect(await axeViolations(container)).toEqual([]);
+
+    photos.focus();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(photos).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.keyboard('{ArrowRight}');
+    expect(photos).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(chevron);
+    expect(photos).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('is controlled with expandedKeys, and keeps acting on items with onAction', async () => {
+    const onAction = vi.fn();
+    render(folders({ expandedKeys: ['photos'], onAction }));
+    expect(screen.getByRole('row', { name: 'Trips' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('row', { name: 'Trips' }));
+    expect(onAction).toHaveBeenCalledWith('trips');
   });
 });

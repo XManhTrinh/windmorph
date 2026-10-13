@@ -95,6 +95,13 @@ test.describe('List visual regression', () => {
     await expect(page.getByTestId('toggles')).toHaveScreenshot('toggles-rtl.png');
   });
 
+  for (const mode of MODES) {
+    test(`expandable · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-list--expandable', { mode });
+      await expect(page.getByTestId('expandable')).toHaveScreenshot(`expandable-${mode}.png`);
+    });
+  }
+
   test('selection · rtl', async ({ page }) => {
     await openStory(page, 'components-list--selection', { dir: 'rtl' });
     await expect(page.getByTestId('selection')).toHaveScreenshot('selection-rtl.png');
@@ -112,7 +119,11 @@ test.describe('List geometry and interaction', () => {
     expect(await rect(frame(rows.nth(0)))).toMatchObject({ width: 56, height: 56 });
     expect(await rect(frame(rows.nth(3)))).toMatchObject({ width: 100, height: 56 });
     const large = rows.nth(4);
-    expect(await rect(frame(large))).toMatchObject({ width: 100, height: 69 });
+    expect(await rect(frame(large))).toMatchObject({ width: 114, height: 64 });
+    // M3 Expressive: 8dp corners on images and videos.
+    expect(
+      await frame(rows.nth(0)).evaluate((el) => getComputedStyle(el).borderTopLeftRadius),
+    ).toBe('8px');
     // Top-aligned: the thumbnail starts at the item's top padding.
     expect((await rect(frame(large))).y - (await rect(large)).y).toBe(10);
     // The broken image shows its fallback icon, not a broken-image glyph.
@@ -166,8 +177,10 @@ test.describe('List geometry and interaction', () => {
     const first = await rect(items.nth(0));
     const icon = await rect(items.nth(0).locator('svg').first());
     expect(icon.x - first.x).toBe(16);
+    // M3 Expressive: 20dp leading and trailing icons.
+    expect(icon.width).toBe(20);
     const text = await rect(items.nth(0).getByText('One line'));
-    expect(text.x - first.x).toBe(16 + 24 + 12);
+    expect(text.x - first.x).toBe(16 + 20 + 12);
     // Segmented: 2px apart, outer corners 16px, inner 4px.
     expect((await rect(items.nth(1))).y - (first.y + first.height)).toBe(2);
     expect(await radius(items.nth(0))).toEqual(['16px', '4px']);
@@ -203,12 +216,50 @@ test.describe('List geometry and interaction', () => {
     await expect(page.getByRole('switch', { name: 'Notify for sent mail' })).toBeFocused();
   });
 
-  test('selection toggles the selected colours', async ({ page }) => {
+  test('selection is a list box whose options show a check', async ({ page }) => {
     await openStory(page, 'components-list--selection');
-    const home = page.getByRole('row', { name: /Home/ });
+    await expect(page.getByRole('listbox', { name: 'Labels' })).toBeVisible();
+    const home = page.getByRole('option', { name: /Home/ });
+    const check = home.locator('[data-selection-indicator]');
+    await expect.poll(() => check.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
     await home.click();
     await expect(home).toHaveAttribute('aria-selected', 'true');
     await expect.poll(() => radius(home)).toEqual(['16px', '16px']);
+    await expect.poll(() => check.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  });
+
+  test('arrow keys wrap at the ends', async ({ page }) => {
+    await openStory(page, 'components-list--interactive');
+    await page.keyboard.press('Tab');
+    const first = page.getByRole('row').first();
+    await expect(first).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    await expect(page.getByRole('row').last()).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(first).toBeFocused();
+  });
+
+  test('items with nested items expand and collapse', async ({ page }) => {
+    await openStory(page, 'components-list--expandable');
+    const photos = page.getByRole('row', { name: /Photos/ });
+    await expect(photos).toHaveAttribute('aria-expanded', 'true');
+    const trips = page.getByRole('row', { name: 'Trips' });
+    // Nested items are indented 16dp per level.
+    expect(await trips.evaluate((el) => getComputedStyle(el).paddingInlineStart)).toBe('32px');
+    const avatar = await rect(trips.getByText('T', { exact: true }).locator('..'));
+    expect(avatar).toMatchObject({ width: 40, height: 40 });
+    await photos.click();
+    await expect(photos).toHaveAttribute('aria-expanded', 'false');
+    await expect(trips).toHaveCount(0);
+    await page.keyboard.press('ArrowRight');
+    await expect(photos).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('ArrowDown');
+    await expect(trips).toBeFocused();
+    await page.keyboard.press('ArrowLeft');
+    await expect(photos).toBeFocused();
+    const chevron = page.getByRole('row', { name: /Documents/ }).getByRole('button');
+    await chevron.click();
+    await expect(page.getByRole('row', { name: 'Taxes' })).toBeVisible();
   });
 
   test('link items are real anchors that morph on hover and focus', async ({ page }) => {

@@ -15,12 +15,13 @@ function* outputs() {
         for (const slot of Object.values(slots)) yield slot();
       }
   for (const dividers of ['full', 'inset'] as const) yield listStyles({ dividers }).item();
+  yield listStyles({ nested: true }).item();
   for (const lines of [1, 2, 3] as const) {
     const slots = listStyles({ headlineLines: lines, supportingTextLines: lines });
     yield slots.headline();
     yield slots.supporting();
   }
-  for (const kind of ['image', 'video'] as const)
+  for (const kind of ['image', 'video', 'avatar'] as const)
     for (const size of ['small', 'large'] as const) {
       const slots = listMediaStyles({ kind, size });
       for (const slot of Object.values(slots)) yield slot();

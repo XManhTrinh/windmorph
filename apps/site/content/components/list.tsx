@@ -1,5 +1,6 @@
 import { ExampleViewer } from '../../components/example-viewer';
 import { ListDividers } from '../../examples/list/list-dividers';
+import { ListExpandable } from '../../examples/list/list-expandable';
 import { ListInteractive } from '../../examples/list/list-interactive';
 import { ListLinks } from '../../examples/list/list-links';
 import { ListMedia } from '../../examples/list/list-media';
@@ -11,28 +12,39 @@ import { highlightSource } from '../../lib/highlight';
 
 /**
  * List page body: static, media, dividers and line limits, link, interactive, switch and
- * checkbox, and radio lists.
+ * checkbox, radio and expandable lists.
  */
 export async function ListBody() {
-  const [staticSrc, media, dividers, links, interactive, toggles, radio] = await Promise.all([
-    readExampleSource('list/list-static.tsx'),
-    readExampleSource('list/list-media.tsx'),
-    readExampleSource('list/list-dividers.tsx'),
-    readExampleSource('list/list-links.tsx'),
-    readExampleSource('list/list-interactive.tsx'),
-    readExampleSource('list/list-toggles.tsx'),
-    readExampleSource('list/list-radio.tsx'),
-  ]);
-  const [staticHtml, mediaHtml, dividersHtml, linksHtml, interactiveHtml, togglesHtml, radioHtml] =
+  const [staticSrc, media, dividers, links, interactive, toggles, radio, expandable] =
     await Promise.all([
-      highlightSource(staticSrc),
-      highlightSource(media),
-      highlightSource(dividers),
-      highlightSource(links),
-      highlightSource(interactive),
-      highlightSource(toggles),
-      highlightSource(radio),
+      readExampleSource('list/list-static.tsx'),
+      readExampleSource('list/list-media.tsx'),
+      readExampleSource('list/list-dividers.tsx'),
+      readExampleSource('list/list-links.tsx'),
+      readExampleSource('list/list-interactive.tsx'),
+      readExampleSource('list/list-toggles.tsx'),
+      readExampleSource('list/list-radio.tsx'),
+      readExampleSource('list/list-expandable.tsx'),
     ]);
+  const [
+    staticHtml,
+    mediaHtml,
+    dividersHtml,
+    linksHtml,
+    interactiveHtml,
+    togglesHtml,
+    radioHtml,
+    expandableHtml,
+  ] = await Promise.all([
+    highlightSource(staticSrc),
+    highlightSource(media),
+    highlightSource(dividers),
+    highlightSource(links),
+    highlightSource(interactive),
+    highlightSource(toggles),
+    highlightSource(radio),
+    highlightSource(expandable),
+  ]);
 
   return (
     <>
@@ -102,6 +114,14 @@ export async function ListBody() {
         <ExampleViewer title="Radio list" code={radio} html={radioHtml} fileName="list-radio.tsx">
           <ListRadio />
         </ExampleViewer>
+        <ExampleViewer
+          title="Expandable items"
+          code={expandable}
+          html={expandableHtml}
+          fileName="list-expandable.tsx"
+        >
+          <ListExpandable />
+        </ExampleViewer>
       </section>
 
       <section className="flex flex-col gap-3">
@@ -117,16 +137,18 @@ export async function ListBody() {
             or when it fails to load.
           </li>
           <li>
-            <code className="text-on-surface">ListItemVideo</code> is a video&apos;s thumbnail,
-            100dp wide and 56dp tall (
-            <code className="text-on-surface">size=&quot;large&quot;</code>: 69dp), with a play
-            badge and its <code className="text-on-surface">duration</code>. Pressing it is pressing
-            the item.
+            <code className="text-on-surface">ListItemVideo</code> is a video&apos;s thumbnail, 100
+            × 56dp (<code className="text-on-surface">size=&quot;large&quot;</code>: 114 × 64dp),
+            with a play badge and its <code className="text-on-surface">duration</code>. Pressing it
+            is pressing the item.
           </li>
           <li>
-            Media are square, as M3 specifies. Round them with the list&apos;s{' '}
+            Images and videos have 8dp corners (M3 Expressive). Change them with the list&apos;s{' '}
             <code className="text-on-surface">classNames.media</code> or their own{' '}
-            <code className="text-on-surface">className</code>.
+            <code className="text-on-surface">className</code>.{' '}
+            <code className="text-on-surface">ListItemAvatar</code> is M3&apos;s 40dp avatar: a
+            photo, or initials on <code className="text-on-surface">primary-container</code>. Icons
+            in the leading and trailing content are 20dp.
           </li>
           <li>
             <code className="text-on-surface">headlineLines</code> and{' '}
@@ -195,10 +217,15 @@ export async function ListBody() {
             <code className="text-on-surface">aria-current=&quot;page&quot;</code>.
           </li>
           <li>
-            With <code className="text-on-surface">onAction</code> or{' '}
-            <code className="text-on-surface">selectionMode</code> the list is a grid list: ↑ / ↓
-            move between items, ← / → reach a trailing control (such as a switch), and typeahead
-            jumps by headline.
+            With <code className="text-on-surface">selectionMode</code> (and no{' '}
+            <code className="text-on-surface">onAction</code> or links) the list is a{' '}
+            <code className="text-on-surface">listbox</code> of options, as M3 asks on the web, and
+            selected items show a check besides their colour (
+            <code className="text-on-surface">selectionIndicator=&#123;false&#125;</code> hides it).
+            Options can&apos;t hold buttons or links. With{' '}
+            <code className="text-on-surface">onAction</code> the list is a grid list where ← / →
+            reach a trailing control (such as a switch). ↑ / ↓ move between items and wrap at the
+            ends; typeahead jumps by headline.
           </li>
           <li>
             Press or Enter fires <code className="text-on-surface">onAction</code> with the
@@ -206,6 +233,13 @@ export async function ListBody() {
             <code className="text-on-surface">selectedKeys</code> /{' '}
             <code className="text-on-surface">onSelectionChange</code>,{' '}
             <code className="text-on-surface">disabledKeys</code>).
+          </li>
+          <li>
+            Items with <code className="text-on-surface">childItems</code> expand and collapse (a
+            tree grid with <code className="text-on-surface">aria-expanded</code>): pressing the
+            item or its chevron toggles it, → / ← expand and collapse it, and nested items are
+            indented 16dp per level. <code className="text-on-surface">expandedKeys</code> /{' '}
+            <code className="text-on-surface">onExpandedChange</code> control it.
           </li>
           <li>
             Without those props the list is a plain <code className="text-on-surface">ul</code>;
@@ -232,7 +266,7 @@ export async function ListBody() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-headline-small text-on-surface">Differences from Compose</h2>
+        <h2 className="text-headline-small text-on-surface">Spec values and differences</h2>
         <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
           <li>
             Heights follow Compose: at least 56px (one line), 72px (overline or supporting text) and
@@ -262,7 +296,8 @@ export async function ListBody() {
           <li>
             Deviation: standard items are transparent rather than Compose&apos;s{' '}
             <code className="text-on-surface">surface</code>, so a list takes the colour of its
-            sheet, card or pane. Not in v1: drag-to-reorder, swipe-to-reveal and expandable items.
+            sheet, card or pane. Not in v1: drag-to-reorder (and its dragged state) and
+            swipe-to-reveal (Android only in M3).
           </li>
         </ul>
       </section>

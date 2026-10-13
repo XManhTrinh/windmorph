@@ -5,6 +5,7 @@ import {
   createContext,
   isValidElement,
   useContext,
+  useEffect,
   useId,
   useRef,
   type CSSProperties,
@@ -18,31 +19,41 @@ import {
 } from 'react';
 import {
   mergeProps,
+  useButton,
   useCheckbox,
   useFocusRing,
   useGridList,
   useGridListItem,
   useHover,
   useLink,
+  useListBox,
   useObjectRef,
+  useOption,
   useRadio,
   useRadioGroup,
+  useTree,
+  useTreeItem,
   VisuallyHidden,
+  type AriaButtonProps,
   type AriaCheckboxProps,
   type AriaGridListProps,
+  type AriaListBoxOptions,
   type AriaRadioGroupProps,
+  type AriaTreeOptions,
   type Key,
 } from 'react-aria';
 import {
-  Item,
   useListState,
   useRadioGroupState,
   useToggleState,
+  useTreeState,
   type ListState,
   type Node,
   type RadioGroupState,
+  type TreeState,
 } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { TouchTarget } from '../../primitives/TouchTarget';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from '../checkbox/Checkbox';
 import { RadioRing } from '../radio/RadioGroup';
@@ -110,6 +121,12 @@ export interface ListItemProps {
   headlineLines?: LineLimit;
   /** The most lines the supporting text shows, then "…" (overrides the list's). */
   supportingTextLines?: LineLimit;
+  /**
+   * Nested `ListItem`s (each with its own `key`): the item expands and collapses to show
+   * them, in a folder-like way (M3's expand interaction). It ends with a chevron, and → / ←
+   * expand and collapse it.
+   */
+  childItems?: ReactElement<ListItemProps> | ReactElement<ListItemProps>[];
 }
 
 /** How many lines a text shows before it ends with "…"; the full text stays in the DOM. */
@@ -117,11 +134,56 @@ export type LineLimit = 1 | 2 | 3;
 
 type ControlPlacement = 'leading' | 'trailing';
 
+/** A collection node as React Stately's collection builder reads it. */
+interface ListItemNode {
+  type: 'item';
+  props?: ListItemProps;
+  rendered?: ReactNode;
+  textValue?: string;
+  'aria-label'?: string | undefined;
+  hasChildNodes?: boolean;
+  element?: ReactElement;
+  childNodes?: () => Iterable<ListItemNode>;
+}
+
+function ListItemElement(_props: ListItemProps): null {
+  return null;
+}
+
 /**
- * An item of a {@link List}. It is React Stately's collection `Item`, so the list reads its
+ * Describes the item to React Stately's collection builder, as its `Item` does: the
+ * headline is the item's content, and `childItems` are its nested items.
+ */
+ListItemElement.getCollectionNode = function* getCollectionNode(
+  props: ListItemProps,
+): Generator<ListItemNode> {
+  const rendered = props.children;
+  const textValue =
+    props.textValue || (typeof rendered === 'string' ? rendered : '') || props['aria-label'] || '';
+  if (!textValue && process.env.NODE_ENV !== 'production') {
+    console.warn(
+      '[@windmorph/react] A ListItem whose headline is not plain text needs a textValue for type-ahead.',
+    );
+  }
+  const children = listItems(props.childItems);
+  yield {
+    type: 'item',
+    props,
+    rendered,
+    textValue,
+    'aria-label': props['aria-label'],
+    hasChildNodes: children.length > 0,
+    *childNodes() {
+      for (const element of children) yield { type: 'item', element };
+    },
+  };
+};
+
+/**
+ * An item of a {@link List}. Like React Stately's collection `Item`, the list reads its
  * props; identify it with a React `key`.
  */
-export const ListItem = Item as unknown as (props: ListItemProps) => JSX.Element;
+export const ListItem = ListItemElement as unknown as (props: ListItemProps) => JSX.Element;
 
 export interface ListClassNames {
   root?: string;
@@ -175,6 +237,16 @@ interface ListOwnProps {
    * lists only (segmented items are already apart).
    */
   dividers?: ListDividers;
+  /**
+   * Selected items show a check at their end besides their colour, so selection never
+   * relies on colour alone (M3 lists accessibility). @default true
+   */
+  selectionIndicator?: boolean;
+  /** The expanded items of a list with `childItems` (controlled). */
+  expandedKeys?: Iterable<Key>;
+  /** The items expanded at first (uncontrolled). */
+  defaultExpandedKeys?: Iterable<Key>;
+  onExpandedChange?: (keys: Set<Key>) => void;
   /** The most lines each item's headline shows, then "…". M3: one or two. */
   headlineLines?: LineLimit;
   /**
@@ -197,6 +269,7 @@ interface ListOptions {
   headlineLines?: LineLimit | undefined;
   supportingTextLines?: LineLimit | undefined;
   dividers?: ListDividers | undefined;
+  selectionIndicator?: boolean | undefined;
 }
 
 const ListOptionsContext = createContext<ListOptions>({});
@@ -205,9 +278,11 @@ const ListOptionsContext = createContext<ListOptions>({});
  * M3 Expressive list: items with a headline, optional overline and supporting text, and
  * leading and trailing content, flush (standard) or segmented into rounded groups.
  *
- * With `onAction`, links or selection it is an interactive grid list: items get state
- * layers and morph their corners on hover, focus, press and selection; ↑ / ↓ move between
- * items and ← / → into their trailing controls. Otherwise it is a plain `ul`.
+ * With `selectionMode` it is a list box of options (`listbox` / `option`), and selected items
+ * show a check. With `onAction` or links it is an interactive grid list, where ← / → reach
+ * trailing controls. Items with `childItems` expand and collapse (a tree grid). Interactive
+ * items get state layers and morph their corners on hover, focus, press and selection, and
+ * ↑ / ↓ move between them, wrapping at the ends. Otherwise it is a plain `ul`.
  *
  * Items can lead with M3's image or video thumbnail (`ListItemImage`, `ListItemVideo`),
  * limit their lines (`headlineLines`, `supportingTextLines`), and standard lists can draw
@@ -220,14 +295,16 @@ const ListOptionsContext = createContext<ListOptions>({});
  * </List>
  */
 export function List(props: ListProps) {
-  const { headlineLines, supportingTextLines, dividers, classNames } = props;
+  const { headlineLines, supportingTextLines, dividers, selectionIndicator, classNames } = props;
   if (dividers != null && props.variant === 'segmented') {
     throw new Error(
       '[@windmorph/react] List: dividers are for standard lists; segmented items are already apart.',
     );
   }
   return (
-    <ListOptionsContext value={{ headlineLines, supportingTextLines, dividers }}>
+    <ListOptionsContext
+      value={{ headlineLines, supportingTextLines, dividers, selectionIndicator }}
+    >
       <ListMediaContext value={classNames?.media}>
         <ListBody {...props} />
       </ListMediaContext>
@@ -253,23 +330,49 @@ function ListBody(props: ListProps) {
     }
     return <RadioList {...props} items={items} />;
   }
+  const selectable = props.selectionMode != null && props.selectionMode !== 'none';
+  const expandable = items.some((item) => listItems(item.props.childItems).length > 0);
   // Links alone don't make a grid list: they render as real anchors in a plain list.
-  const interactive =
-    props.onAction != null || (props.selectionMode != null && props.selectionMode !== 'none');
+  const interactive = props.onAction != null || selectable || expandable;
   if (!interactive) return <StaticList {...props} items={items} />;
   if (items.some((item) => item.props.control != null)) {
     throw new Error(
       "[@windmorph/react] List: switch and checkbox items (control) can't be in a list with " +
-        'onAction, links or selectionMode. Put them in their own list, or put a Switch in an ' +
-        "item's trailing content.",
+        'onAction, links, selectionMode or childItems. Put them in their own list, or put a ' +
+        "Switch in an item's trailing content.",
     );
   }
-  return <InteractiveList {...props} />;
+  if (expandable) return <InteractiveList {...props} kind="tree" />;
+  // A selection list is a list box (M3: "Container: List box · List item: Option"); a list
+  // whose items also act or link keeps the grid list's separate actions.
+  if (selectable && props.onAction == null && !items.some((item) => item.props.href != null)) {
+    return <InteractiveList {...props} kind="listbox" />;
+  }
+  return <InteractiveList {...props} kind="grid" />;
 }
 
 function itemLines(item: ListItemProps): 1 | 2 | 3 {
   const extra = Number(item.overline != null) + Number(item.supportingText != null);
   return extra === 2 ? 3 : extra === 1 ? 2 : 1;
+}
+
+function itemStylesOptions(
+  item: ListItemProps,
+  variant: ListVariant | undefined,
+  interactive: boolean,
+  options: ListOptions,
+) {
+  const headlineLines = item.headlineLines ?? options.headlineLines;
+  const supportingTextLines = item.supportingTextLines ?? options.supportingTextLines;
+  return {
+    variant,
+    interactive,
+    lines: itemLines(item),
+    ...(item.verticalAlignment && { align: item.verticalAlignment }),
+    ...(options.dividers && { dividers: options.dividers }),
+    ...(headlineLines && { headlineLines }),
+    ...(supportingTextLines && { supportingTextLines }),
+  };
 }
 
 function itemStyles(
@@ -278,17 +381,7 @@ function itemStyles(
   interactive: boolean,
   options: ListOptions,
 ) {
-  const headlineLines = item.headlineLines ?? options.headlineLines;
-  const supportingTextLines = item.supportingTextLines ?? options.supportingTextLines;
-  return listStyles({
-    variant,
-    interactive,
-    lines: itemLines(item),
-    ...(item.verticalAlignment && { align: item.verticalAlignment }),
-    ...(options.dividers && { dividers: options.dividers }),
-    ...(headlineLines && { headlineLines }),
-    ...(supportingTextLines && { supportingTextLines }),
-  });
+  return listStyles(itemStylesOptions(item, variant, interactive, options));
 }
 
 function position(index: number, count: number) {
@@ -312,6 +405,7 @@ function ItemContent({
   controlPlacement,
   headline,
   sideClassName,
+  end,
 }: {
   item: ListItemProps;
   styles: ReturnType<typeof listStyles>;
@@ -319,13 +413,15 @@ function ItemContent({
   ids?: ItemIds;
   control?: ReactNode;
   controlPlacement?: ControlPlacement;
+  /** What the list adds after the trailing content: the selection check, the chevron. */
+  end?: ReactNode;
   /** Wraps the headline (a link item's anchor). */
   headline?: (children: ReactNode) => ReactNode;
   /** Classes for the leading and trailing content (a link item raises its controls). */
   sideClassName?: string;
 }) {
   const leading = controlPlacement === 'leading' ? control : null;
-  const trailing = controlPlacement === 'trailing' ? control : null;
+  const trailing = controlPlacement === 'trailing' ? control : end;
   return (
     <>
       {(item.leading != null || leading != null) && (
@@ -437,15 +533,39 @@ function StaticList({
   );
 }
 
-function InteractiveList(props: ListProps) {
+type InteractiveKind = 'grid' | 'listbox' | 'tree';
+
+function InteractiveList(props: ListProps & { kind: InteractiveKind }) {
   return (
     <DomDirectionLocale>
-      {(directionRef) => <GridList {...props} directionRef={directionRef} />}
+      {(directionRef) => <CollectionList {...props} directionRef={directionRef} />}
     </DomDirectionLocale>
   );
 }
 
-function GridList({
+/** Material Symbols "check" and "expand_more" (Apache-2.0). */
+function CheckIcon20() {
+  return (
+    <svg viewBox="0 -960 960 960" fill="currentColor">
+      <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+    </svg>
+  );
+}
+
+function ExpandMoreIcon() {
+  return (
+    <svg viewBox="0 -960 960 960">
+      <path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z" />
+    </svg>
+  );
+}
+
+/**
+ * A grid list (`onAction`, links), a list box (selection) or a tree grid (`childItems`),
+ * from React Aria's collection hooks. Arrow keys wrap at the ends, as M3 asks.
+ */
+function CollectionList({
+  kind,
   variant,
   disabled,
   classNames,
@@ -454,16 +574,53 @@ function GridList({
   ref,
   directionRef,
   ...rest
-}: ListProps & { directionRef: (element: HTMLElement | null) => void }) {
+}: ListProps & { kind: InteractiveKind; directionRef: (element: HTMLElement | null) => void }) {
   const { data, rest: ariaProps } = splitDataAttributes(rest);
   assertCollectionChildren(rest.children, 'List', 'ListItem elements');
-  const gridProps_ = {
+  const options = {
     ...(ariaProps as unknown as AriaGridListProps<object>),
     disabledKeys: disabledItemKeys(rest.children, rest.disabledKeys, disabled),
+    shouldFocusWrap: true,
   };
-  const state = useListState(gridProps_);
-  const rootRef = useObjectRef(ref as Ref<HTMLDivElement>);
-  const { gridProps } = useGridList(gridProps_, state, rootRef);
+  const root: CollectionRootProps = {
+    options,
+    listRef: ref,
+    directionRef,
+    data,
+    style,
+    className: listStyles({ variant }).root({ class: cn(classNames?.root, className) }),
+    variant,
+    classNames,
+  };
+  if (kind === 'tree') return <TreeList {...root} />;
+  if (kind === 'listbox') return <ListBoxList {...root} />;
+  return <GridList {...root} />;
+}
+
+interface CollectionRootProps {
+  options: AriaGridListProps<object> & { shouldFocusWrap: boolean };
+  listRef: Ref<HTMLElement> | undefined;
+  directionRef: (element: HTMLElement | null) => void;
+  data: Record<string, unknown>;
+  style?: CSSProperties | undefined;
+  className: string;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+}
+
+function GridList({
+  options,
+  listRef,
+  directionRef,
+  data,
+  style,
+  className,
+  variant,
+  classNames,
+}: CollectionRootProps) {
+  const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
+  const state = useListState(options);
+  const { gridProps } = useGridList(options, state, rootRef);
   const nodes = [...state.collection];
   return (
     <div
@@ -473,7 +630,7 @@ function GridList({
         directionRef(element);
       }}
       style={style}
-      className={listStyles({ variant }).root({ class: cn(classNames?.root, className) })}
+      className={className}
     >
       {nodes.map((node, index) => (
         <GridListRow
@@ -489,6 +646,31 @@ function GridList({
   );
 }
 
+/** Compose's shape precedence: pressed, then selected or focused (16px), then hovered (12px). */
+function shapeOf(state: {
+  isPressed: boolean;
+  isSelected: boolean;
+  isFocusVisible: boolean;
+  isHovered: boolean;
+  isDisabled: boolean;
+}) {
+  if ((state.isPressed && !state.isDisabled) || state.isSelected || state.isFocusVisible) {
+    return 'active';
+  }
+  return state.isHovered && !state.isDisabled ? 'hovered' : 'rest';
+}
+
+/** The check a selected item shows at its end, when the list selects and shows it. */
+function useSelectionCheck(styles: ReturnType<typeof listStyles>, selectable: boolean): ReactNode {
+  const { selectionIndicator = true } = useContext(ListOptionsContext);
+  if (!selectable || !selectionIndicator) return null;
+  return (
+    <span aria-hidden="true" data-selection-indicator="" className={styles.selectionIndicator()}>
+      <CheckIcon20 />
+    </span>
+  );
+}
+
 function GridListRow({
   node,
   state,
@@ -498,8 +680,8 @@ function GridListRow({
 }: {
   node: Node<object>;
   state: ListState<object>;
-  variant?: ListVariant;
-  classNames?: ListClassNames;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
   position: string;
 }) {
   const item = node.props as ListItemProps;
@@ -509,11 +691,10 @@ function GridListRow({
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
-  // Compose's shape precedence: pressed, then selected or focused (16px), then hovered (12px).
-  const shape =
-    isPressed || isSelected || isFocusVisible ? 'active' : isHovered ? 'hovered' : 'rest';
+  const shape = shapeOf({ isPressed, isSelected, isFocusVisible, isHovered, isDisabled });
   const options = useContext(ListOptionsContext);
   const styles = itemStyles(item, variant, true, options);
+  const check = useSelectionCheck(styles, state.selectionManager.selectionMode !== 'none');
   return (
     <div
       {...mergeProps(rowProps, hoverProps, interactionProps)}
@@ -530,6 +711,277 @@ function GridListRow({
           styles={styles}
           classNames={classNames}
           ids={{ supporting: descriptionProps.id }}
+          end={check}
+        />
+      </div>
+    </div>
+  );
+}
+
+const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/** A list box of options: M3's single- and multi-select lists on the web. */
+function ListBoxList({
+  options,
+  listRef,
+  directionRef,
+  data,
+  style,
+  className,
+  variant,
+  classNames,
+}: CollectionRootProps) {
+  const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
+  const listBoxOptions = options as unknown as AriaListBoxOptions<object>;
+  const state = useListState(listBoxOptions);
+  const { listBoxProps } = useListBox(listBoxOptions, state, rootRef);
+  const nodes = [...state.collection];
+  return (
+    <div
+      {...mergeProps(data, listBoxProps)}
+      ref={(element) => {
+        rootRef.current = element;
+        directionRef(element);
+      }}
+      style={style}
+      className={className}
+    >
+      {nodes.map((node, index) => (
+        <OptionRow
+          key={node.key}
+          node={node}
+          state={state}
+          variant={variant}
+          classNames={classNames}
+          position={position(index, nodes.length)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function OptionRow({
+  node,
+  state,
+  variant,
+  classNames,
+  position: itemPosition,
+}: {
+  node: Node<object>;
+  state: ListState<object>;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  position: string;
+}) {
+  const item = node.props as ListItemProps;
+  const ref = useRef<HTMLDivElement>(null);
+  const { optionProps, labelProps, descriptionProps, isPressed, isSelected, isDisabled } =
+    useOption({ key: node.key }, state, ref);
+  const { hoverProps, isHovered } = useHover({ isDisabled });
+  const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
+  const isFocusVisible = dataAttributes['data-focus-visible'] != null;
+  const shape = shapeOf({ isPressed, isSelected, isFocusVisible, isHovered, isDisabled });
+  const options = useContext(ListOptionsContext);
+  const styles = itemStyles(item, variant, true, options);
+  const check = useSelectionCheck(styles, true);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    const nested = ref.current?.querySelector(FOCUSABLE);
+    if (nested) {
+      console.warn(
+        '[@windmorph/react] List: an item of a selection list is one option and must not hold ' +
+          'buttons, links or fields. Give the list onAction to keep separate trailing actions.',
+        nested,
+      );
+    }
+  });
+  return (
+    <div
+      {...mergeProps(optionProps, hoverProps, interactionProps)}
+      {...dataAttributes}
+      ref={ref}
+      data-selected={isSelected || undefined}
+      data-shape={shape}
+      data-position={itemPosition}
+      className={styles.item({ class: cn(classNames?.item, item.className) })}
+    >
+      <span className={styles.cell()}>
+        <ItemContent
+          item={item}
+          styles={styles}
+          classNames={classNames}
+          ids={{ headline: labelProps.id, supporting: descriptionProps.id }}
+          end={check}
+        />
+      </span>
+    </div>
+  );
+}
+
+/** A tree grid: items with `childItems` expand and collapse to show their nested items. */
+function TreeList({
+  options,
+  listRef,
+  directionRef,
+  data,
+  style,
+  className,
+  variant,
+  classNames,
+}: CollectionRootProps) {
+  const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
+  // `options` carries the list's `expandedKeys`, `defaultExpandedKeys` and `onExpandedChange`.
+  const treeOptions = options as unknown as AriaTreeOptions<object> &
+    Pick<ListProps, 'expandedKeys' | 'defaultExpandedKeys' | 'onExpandedChange'>;
+  const state = useTreeState(treeOptions);
+  const { gridProps } = useTree(treeOptions, state, rootRef);
+  const rows = [...state.collection.getKeys()]
+    .map((key) => state.collection.getItem(key))
+    .filter((node): node is Node<object> => node?.type === 'item');
+  return (
+    <div
+      {...mergeProps(data, gridProps)}
+      ref={(element) => {
+        rootRef.current = element;
+        directionRef(element);
+      }}
+      style={style}
+      className={className}
+    >
+      {rows.map((node, index) => (
+        <TreeRow
+          key={node.key}
+          node={node}
+          state={state}
+          variant={variant}
+          classNames={classNames}
+          position={position(index, rows.length)}
+        />
+      ))}
+    </div>
+  );
+}
+
+type TreeCollection = TreeState<object>['collection'] & {
+  getChildren?: (key: Key) => Iterable<Node<object>>;
+};
+
+/**
+ * React Aria's tree item reads a row's siblings (for `aria-posinset` and `aria-setsize`)
+ * through `collection.getChildren` and each sibling's `nextKey`, which React Stately's
+ * `TreeCollection` doesn't provide: its `nextKey` and `index` follow the visible rows, as
+ * keyboard navigation needs. While the row's hook runs, this gives the collection the
+ * nested items' own order, and the returned function restores it. React Aria keys its
+ * per-list data by the state object, so the state itself has to be the one patched.
+ */
+function withSiblingOrder(state: TreeState<object>, node: Node<object>) {
+  const collection = state.collection as TreeCollection;
+  const visibleItem = collection.getItem.bind(collection);
+  const siblingsOf = (parentKey: Key | null | undefined) =>
+    (parentKey == null ? [...collection] : [...(visibleItem(parentKey)?.childNodes ?? [])]).filter(
+      (sibling) => sibling.type === 'item',
+    );
+  const inSiblingOrder = (item: Node<object>): Node<object> => {
+    const siblings = siblingsOf(item.parentKey);
+    const index = siblings.findIndex((sibling) => sibling.key === item.key);
+    return { ...item, index, nextKey: siblings[index + 1]?.key ?? null };
+  };
+  collection.getItem = (key: Key) => {
+    const item = visibleItem(key);
+    return item ? inSiblingOrder(item) : null;
+  };
+  collection.getChildren = (key: Key) => siblingsOf(key).map(inSiblingOrder);
+  return {
+    node: inSiblingOrder(node),
+    restore: () => {
+      delete (collection as Partial<TreeCollection>).getItem;
+      delete collection.getChildren;
+    },
+  };
+}
+
+function ExpandButton({ props, className }: { props: AriaButtonProps; className: string }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const { buttonProps, isPressed } = useButton(props, ref);
+  const { interactionProps, dataAttributes } = useM3Interaction(
+    { isDisabled: props.isDisabled, isPressed },
+    ref,
+  );
+  return (
+    <button
+      {...mergeProps(buttonProps, interactionProps)}
+      {...dataAttributes}
+      ref={ref}
+      className={className}
+    >
+      <TouchTarget />
+      <ExpandMoreIcon />
+    </button>
+  );
+}
+
+function TreeRow({
+  node,
+  state,
+  variant,
+  classNames,
+  position: itemPosition,
+}: {
+  node: Node<object>;
+  state: TreeState<object>;
+  variant?: ListVariant | undefined;
+  classNames?: ListClassNames | undefined;
+  position: string;
+}) {
+  const item = node.props as ListItemProps;
+  const ref = useRef<HTMLDivElement>(null);
+  const siblingOrder = withSiblingOrder(state, node);
+  const {
+    rowProps,
+    gridCellProps,
+    descriptionProps,
+    expandButtonProps,
+    isPressed,
+    isSelected,
+    isDisabled,
+  } = useTreeItem({ node: siblingOrder.node, hasChildItems: node.hasChildNodes }, state, ref);
+  siblingOrder.restore();
+  const { hoverProps, isHovered } = useHover({ isDisabled });
+  const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
+  const isFocusVisible = dataAttributes['data-focus-visible'] != null;
+  const shape = shapeOf({ isPressed, isSelected, isFocusVisible, isHovered, isDisabled });
+  const options = useContext(ListOptionsContext);
+  const styles = listStyles({
+    ...itemStylesOptions(item, variant, true, options),
+    nested: node.level > 0,
+  });
+  const check = useSelectionCheck(styles, state.selectionManager.selectionMode !== 'none');
+  const end = (
+    <>
+      {check}
+      {node.hasChildNodes && (
+        <ExpandButton props={{ ...expandButtonProps, isDisabled }} className={styles.expand()} />
+      )}
+    </>
+  );
+  return (
+    <div
+      {...mergeProps(rowProps, hoverProps, interactionProps)}
+      {...dataAttributes}
+      ref={ref}
+      style={{ '--m3-list-level': node.level } as CSSProperties}
+      data-selected={isSelected || undefined}
+      data-shape={shape}
+      data-position={itemPosition}
+      className={styles.item({ class: cn(classNames?.item, item.className) })}
+    >
+      <div {...gridCellProps} className={styles.cell()}>
+        <ItemContent
+          item={item}
+          styles={styles}
+          classNames={classNames}
+          ids={{ supporting: descriptionProps.id }}
+          end={end}
         />
       </div>
     </div>

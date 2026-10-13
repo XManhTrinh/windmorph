@@ -1,14 +1,5 @@
-import { List, ListItem } from '@windmorph/react';
+import { List, ListItem, ListItemAvatar } from '@windmorph/react';
 import { HomeIcon, StarIcon } from '../../components/icons';
-
-/** A round avatar placeholder for leading content. */
-function Avatar({ letter }: { letter: string }) {
-  return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
-      {letter}
-    </span>
-  );
-}
 
 /**
  * A plain, non-interactive list (a `ul`): one-, two- and three-line items with leading
@@ -24,7 +15,7 @@ export function ListStatic() {
         </ListItem>
         <ListItem
           key="two"
-          leading={<Avatar letter="B" />}
+          leading={<ListItemAvatar>B</ListItemAvatar>}
           supportingText="Supporting text"
           trailing="9:41"
         >
@@ -32,7 +23,7 @@ export function ListStatic() {
         </ListItem>
         <ListItem
           key="three"
-          leading={<Avatar letter="C" />}
+          leading={<ListItemAvatar>C</ListItemAvatar>}
           overline="Overline"
           supportingText="Supporting text"
         >

@@ -2,12 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { List, ListItem } from './List';
-import { ListItemImage, ListItemVideo } from './ListMedia';
+import { ListItemAvatar, ListItemImage, ListItemVideo } from './ListMedia';
 
 const Icon = () => <svg data-testid="fallback" viewBox="0 0 24 24" />;
 
 describe('ListItemImage', () => {
-  it("is M3's 56dp square, cropped to fill, loading lazily", () => {
+  it("is M3's 56dp square with 8dp corners, cropped to fill, loading lazily", () => {
     render(
       <List aria-label="Saved">
         <ListItem
@@ -33,7 +33,7 @@ describe('ListItemImage', () => {
     expect(image).toHaveAttribute('decoding', 'async');
     expect(image.parentElement).toHaveClass(
       'size-[56px]',
-      'rounded-none',
+      'rounded-corner-small',
       '[&>img]:object-cover',
       'group-data-disabled/list-item:opacity-38',
     );
@@ -89,12 +89,12 @@ describe('ListItemImage', () => {
     );
     const frame = screen.getByTestId('own').parentElement;
     expect(frame).toHaveClass('size-[56px]', 'rounded-corner-medium', 'ring-1');
-    expect(frame).not.toHaveClass('rounded-none');
+    expect(frame).not.toHaveClass('rounded-corner-small');
   });
 });
 
 describe('ListItemVideo', () => {
-  it("is M3's 100dp-wide thumbnail, small or large, with its length and a play badge", () => {
+  it("is M3's 100 × 56 or 114 × 64dp thumbnail, with its length and a play badge", () => {
     const { rerender } = render(
       <List aria-label="Videos">
         <ListItem key="a" leading={<ListItemVideo src="/t.jpg" alt="" duration="2:41" />}>
@@ -103,7 +103,7 @@ describe('ListItemVideo', () => {
       </List>,
     );
     const frame = document.querySelector('img')!.parentElement!;
-    expect(frame).toHaveClass('w-[100px]', 'h-[56px]', 'rounded-none');
+    expect(frame).toHaveClass('w-[100px]', 'h-[56px]', 'rounded-corner-small');
     expect(screen.getByText('2:41')).toBeInTheDocument();
     expect(frame.querySelector('[aria-hidden="true"] svg')).not.toBeNull();
 
@@ -114,8 +114,38 @@ describe('ListItemVideo', () => {
         </ListItem>
       </List>,
     );
-    expect(document.querySelector('img')!.parentElement).toHaveClass('h-[69px]');
+    expect(document.querySelector('img')!.parentElement).toHaveClass('w-[114px]', 'h-[64px]');
     expect(screen.queryByText('2:41')).toBeNull();
+  });
+});
+
+describe('ListItemAvatar', () => {
+  it("is M3's 40dp primary-container circle, with a photo or initials", async () => {
+    const { container } = render(
+      <List aria-label="People">
+        <ListItem key="a" leading={<ListItemAvatar>AL</ListItemAvatar>}>
+          Alex Lee
+        </ListItem>
+        <ListItem key="b" leading={<ListItemAvatar src="/sam.jpg">SK</ListItemAvatar>}>
+          Sam Kim
+        </ListItem>
+      </List>,
+    );
+    const initials = screen.getByText('AL');
+    expect(initials).toHaveAttribute('aria-hidden', 'true');
+    expect(initials.parentElement).toHaveClass(
+      'size-[40px]',
+      'rounded-full',
+      'bg-primary-container',
+      'text-on-primary-container',
+      'text-title-medium',
+    );
+    const photo = document.querySelector('img')!;
+    expect(photo).toHaveAttribute('alt', '');
+    expect(screen.queryByText('SK')).toBeNull();
+    fireEvent.error(photo);
+    expect(screen.getByText('SK')).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
   });
 });
 

@@ -1,14 +1,16 @@
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
- * Values follow Compose Material 3's Expressive list items (ListItem.kt's interactive
- * overloads, SegmentedListItem, ListItemDefaults, ListTokens).
+ * Values follow the M3 Expressive list spec (m3.material.io) with Compose Material 3's
+ * Expressive list tokens (ListItem.kt's interactive overloads, SegmentedListItem,
+ * ListItemDefaults, ListTokens' `*Expressive*` values; 2026-10-13).
  *
  * Item: 16px start / end and 10px top / bottom padding, 12px between leading content, the
  * text and trailing content. At least 56px tall with one line, 72px with two (overline or
  * supporting text) and 88px with three (both), where content aligns to the top. Headline
  * `body-large` `on-surface`; supporting text `body-medium`, overline `label-small`, leading
- * and trailing content `on-surface-variant` (trailing text `label-small`). Selected items
+ * and trailing content `on-surface-variant` (trailing text `label-small`, 20px icons). Selected
+ * items show a trailing check as a second cue besides colour. Selected items
  * are `secondary-container` with `on-secondary-container` content; disabled content is
  * `on-surface` 38%.
  *
@@ -17,8 +19,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Segmented lists put 2px between items and round the outer corners of the first and last
  * items to 16px at rest. Static items in a standard list have no corners.
  *
- * Leading images are 56dp squares and video thumbnails 100 × 56 or 69dp, square-cornered
- * (`ListMedia.tsx`); the item grows to fit them. Dividers (standard lists) are 1px of
+ * Leading images are 56dp squares and video thumbnails 100 × 56dp (small) or 114 × 64dp
+ * (large), all with 8dp corners; avatars are 40dp circles in `primary-container`
+ * (`ListMedia.tsx`). The item grows to fit them. Expandable items indent their nested items
+ * 16dp per level and end with a chevron that turns over on the fast spatial spring. Dividers (standard lists) are 1px of
  * `outline-variant` on the item's bottom edge, full width or 16dp in from each side, drawn
  * by its `::after` (the state layer uses its background), never under the last item.
  *
@@ -40,7 +44,7 @@ export const listStyles = tv({
     // The item's content grid (the grid cell of an interactive item).
     cell: 'grid w-full grid-cols-[auto_minmax(0,1fr)_auto] gap-x-[12px]',
     leading: [
-      'col-start-1 flex items-center gap-x-[12px] text-title-medium text-on-surface-variant [&>svg]:size-[24px]',
+      'col-start-1 flex items-center gap-x-[12px] text-title-medium text-on-surface-variant [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
@@ -61,9 +65,23 @@ export const listStyles = tv({
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     trailing: [
-      'col-start-3 flex items-center gap-x-[12px] text-label-small text-on-surface-variant [&>svg]:size-[24px]',
+      'col-start-3 flex items-center gap-x-[12px] text-label-small text-on-surface-variant [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
+    ],
+    // The check a selected item shows besides its colour (M3: two cues for selection).
+    selectionIndicator: [
+      'inline-flex size-[20px] shrink-0 items-center justify-center opacity-0 [&>svg]:size-full',
+      'group-data-selected/list-item:opacity-100 group-data-selected/list-item:text-on-secondary-container',
+      'transition-opacity duration-(--md-sys-motion-spring-effects-fast-duration) ease-(--md-sys-motion-spring-effects-fast-easing)',
+    ],
+    // An expandable item's chevron: a button (out of the Tab order) with a 48px target.
+    expand: [
+      'relative inline-flex size-[24px] shrink-0 cursor-pointer items-center justify-center rounded-full',
+      'state-layer [&>svg]:size-[20px] [&>svg]:fill-current',
+      '[&>svg]:transition-transform [&>svg]:duration-(--md-sys-motion-spring-spatial-fast-duration) [&>svg]:ease-(--md-sys-motion-spring-spatial-fast-easing)',
+      'group-aria-expanded/list-item:[&>svg]:rotate-180 motion-reduce:[&>svg]:transition-none',
+      'data-disabled:cursor-default',
     ],
     // The drawn checkbox, radio button or switch of an item that is one. Decorative: the
     // item is the control, so the drawing only follows its state attributes.
@@ -127,6 +145,11 @@ export const listStyles = tv({
       2: { supporting: 'line-clamp-2' },
       3: { supporting: 'line-clamp-3' },
     },
+    // Nested items of an expandable list, indented 16dp per level (`--m3-list-level`).
+    nested: {
+      true: { item: 'ps-[calc(16px+var(--m3-list-level,0)*16px)]' },
+      false: {},
+    },
     // Overrides the alignment that follows from the line count.
     align: {
       center: { item: 'items-center', cell: 'items-center' },
@@ -154,13 +177,13 @@ export type ListStyleProps = VariantProps<typeof listStyles>;
 export type ListVariant = NonNullable<ListStyleProps['variant']>;
 export type ListDividers = Exclude<NonNullable<ListStyleProps['dividers']>, 'none'>;
 
-/** Variant definitions for `ListItemImage` and `ListItemVideo` (M3's leading media). */
+/** Variant definitions for `ListItemImage`, `ListItemVideo` and `ListItemAvatar` (M3's leading media). */
 export const listMediaStyles = tv({
   slots: {
-    // Square by default (M3's `corner-none`), the image cropped to fill, faded with a disabled
-    // item. The tonal fill shows behind a fallback icon.
+    // 8dp corners (M3 Expressive's `corner-small`), the image cropped to fill, faded with a
+    // disabled item. The tonal fill shows behind a fallback icon.
     frame: [
-      'relative flex shrink-0 items-center justify-center overflow-hidden rounded-none',
+      'relative flex shrink-0 items-center justify-center overflow-hidden',
       'bg-secondary-container text-on-secondary-container [&>svg]:size-[24px] [&>svg]:fill-current',
       '[&>img]:size-full [&>img]:object-cover',
       'group-data-disabled/list-item:opacity-38',
@@ -175,8 +198,13 @@ export const listMediaStyles = tv({
   },
   variants: {
     kind: {
-      image: { frame: 'size-[56px]' },
-      video: { frame: 'w-[100px]' },
+      image: { frame: 'size-[56px] rounded-corner-small' },
+      video: { frame: 'rounded-corner-small' },
+      // A 40dp circle in `primary-container`, its initials `title-medium`.
+      avatar: {
+        frame:
+          'size-[40px] rounded-full bg-primary-container text-title-medium text-on-primary-container',
+      },
     },
     size: {
       small: {},
@@ -184,8 +212,8 @@ export const listMediaStyles = tv({
     },
   },
   compoundVariants: [
-    { kind: 'video', size: 'small', class: { frame: 'h-[56px]' } },
-    { kind: 'video', size: 'large', class: { frame: 'h-[69px]' } },
+    { kind: 'video', size: 'small', class: { frame: 'h-[56px] w-[100px]' } },
+    { kind: 'video', size: 'large', class: { frame: 'h-[64px] w-[114px]' } },
   ],
   defaultVariants: { kind: 'image', size: 'small' },
 });

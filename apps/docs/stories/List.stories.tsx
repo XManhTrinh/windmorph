@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   List,
   ListItem,
+  ListItemAvatar,
   ListItemImage,
   ListItemVideo,
   Switch,
@@ -28,12 +29,6 @@ const meta = {
 export default meta;
 type Story = StoryObj<Args>;
 
-const Avatar = ({ letter }: { letter: string }) => (
-  <span className="flex size-10 items-center justify-center rounded-full bg-primary-container text-on-primary-container">
-    {letter}
-  </span>
-);
-
 /** One-, two- and three-line items with leading and trailing content. */
 export const Static: Story = {
   render: ({ variant }) => (
@@ -47,7 +42,7 @@ export const Static: Story = {
         </ListItem>
         <ListItem
           key="b"
-          leading={<Avatar letter="B" />}
+          leading={<ListItemAvatar>B</ListItemAvatar>}
           supportingText="Supporting text"
           trailing="9:41"
         >
@@ -55,7 +50,7 @@ export const Static: Story = {
         </ListItem>
         <ListItem
           key="c"
-          leading={<Avatar letter="C" />}
+          leading={<ListItemAvatar>C</ListItemAvatar>}
           overline="Overline"
           supportingText="Supporting text"
         >
@@ -104,7 +99,10 @@ export const Interactive: Story = {
   },
 };
 
-/** Multiple selection: selected items turn secondary-container with 16px corners. */
+/**
+ * Multiple selection: a list box of options. Selected items turn secondary-container with
+ * 16px corners and show a check, so selection never relies on colour alone.
+ */
 export const Selection: Story = {
   render: function SelectionStory({ variant }) {
     const [selected, setSelected] = useState<Set<string | number> | 'all'>(new Set(['work']));
@@ -125,6 +123,52 @@ export const Selection: Story = {
               {key[0]!.toUpperCase() + key.slice(1)}
             </ListItem>
           ))}
+        </List>
+      </div>
+    );
+  },
+};
+
+/** Items with nested items expand and collapse; → / ← too. */
+export const Expandable: Story = {
+  render: function ExpandableStory({ variant }) {
+    const [expanded, setExpanded] = useState<Set<string | number>>(new Set(['photos']));
+    return (
+      <div
+        className="w-[360px] rounded-corner-extra-large bg-surface-container p-3"
+        data-testid="expandable"
+      >
+        <List
+          aria-label="Folders"
+          variant={variant}
+          expandedKeys={expanded}
+          onExpandedChange={setExpanded}
+        >
+          <ListItem
+            key="photos"
+            leading={<StarIcon />}
+            supportingText="2 albums"
+            childItems={[
+              <ListItem key="trips" leading={<ListItemAvatar>T</ListItemAvatar>}>
+                Trips
+              </ListItem>,
+              <ListItem key="family" leading={<ListItemAvatar>F</ListItemAvatar>}>
+                Family
+              </ListItem>,
+            ]}
+          >
+            Photos
+          </ListItem>
+          <ListItem
+            key="documents"
+            leading={<FeedIcon />}
+            childItems={[<ListItem key="taxes">Taxes</ListItem>]}
+          >
+            Documents
+          </ListItem>
+          <ListItem key="music" leading={<HomeIcon />}>
+            Music
+          </ListItem>
         </List>
       </div>
     );
@@ -270,7 +314,7 @@ export const Media: Story = {
           overline="Workshop"
           leading={
             <ListItemVideo
-              src={picture('#a3b18a', 400, 276)}
+              src={picture('#a3b18a', 456, 256)}
               alt=""
               size="large"
               duration="14:05"

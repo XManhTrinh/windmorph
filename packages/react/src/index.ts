@@ -437,8 +437,10 @@ export {
   type ListProps,
 } from './components/list/List';
 export {
+  ListItemAvatar,
   ListItemImage,
   ListItemVideo,
+  type ListItemAvatarProps,
   type ListItemImageProps,
   type ListItemVideoProps,
 } from './components/list/ListMedia';
