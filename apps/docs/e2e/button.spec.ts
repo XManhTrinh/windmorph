@@ -204,6 +204,25 @@ test.describe('Button spec fixes (2026-10-13)', () => {
   });
 });
 
+test.describe('Button reduced motion (2026-10-13)', () => {
+  test('the press morph snaps to the pressed corners', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-button--playground', {}, { size: 'md' });
+    const button = page.getByRole('button', { name: 'Button' });
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(button).toHaveAttribute('data-pressed', 'true');
+    // The very next frame already has the pressed 12px corners.
+    const radius = await button.evaluate(async (el) => {
+      await new Promise(requestAnimationFrame);
+      return getComputedStyle(el).borderTopLeftRadius;
+    });
+    expect(radius).toBe('12px');
+    await page.mouse.up();
+  });
+});
+
 test.describe('Button ripple', () => {
   /** Samples the ripple's radius and opacity every frame for `ms`. */
   const sample = (page: Page, ms: number) =>

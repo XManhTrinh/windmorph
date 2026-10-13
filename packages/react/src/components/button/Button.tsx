@@ -58,6 +58,7 @@ export interface ButtonToggleProps
   /**
    * Leading icon shown while selected, e.g. the filled form of `leadingIcon` (M3: "use an
    * outlined icon when unselected, and a filled version of the icon when selected").
+   * @default leadingIcon
    */
   selectedLeadingIcon?: ReactElement;
 }
