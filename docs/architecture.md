@@ -273,7 +273,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Elevation, rest / hover / focus and press / dragged: filled 0 / 1 / 0 / 3, elevated 1 / 2 / 1 / 4, outlined 0 / 1 / 0 / 3. Hover applies only while the card isn't pressed, keyboard-focused or dragged, so exactly one rule wins.
   - A keyboard-focused outlined card's border is `on-surface` (`FocusOutlineColor`).
   - **Dragged** ("When moving a card, increase its elevation"): `dragged` sets `data-dragged`, on static and interactive cards alike; interactive cards also show the 16% dragged state layer. The app's drag and drop code sets it. An interactive card passes it to `ButtonBase`'s `dragged` input (2026-10-13; before, the card set the attribute in a layout effect because `ButtonBase` took no dragged state), and a static card renders the attribute itself.
-  - Disabled: filled `surface-variant` 38% over its container (`color-mix`), elevated `surface`, the outlined border `outline` 12% (`DisabledOutlineOpacity`, over the card's own `surface`). Content is `on-surface` 38%.
+  - Disabled: filled `surface-variant` 38% over its container (`color-mix`), elevated `surface` 38% over `surface-container-low` (`DisabledContainerOpacity`, 2026-10-13; it was solid `surface` before), the outlined border `outline` 12% (`DisabledOutlineOpacity`, over the card's own `surface`). Content is `on-surface` 38%.
 - No anatomy sub-components (headline, media, actions) in v1. Compose doesn't ship them, and layout utilities cover them.
 
 ### TextField (built)

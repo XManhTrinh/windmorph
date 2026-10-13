@@ -9,7 +9,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * 1 / 2 / 1 / 4, outlined 0 / 1 / 0 / 3. Hover applies only while the card isn't pressed,
  * keyboard-focused or dragged, so one rule wins at a time. A focused outlined card's border
  * is `on-surface`. Disabled: filled `surface-variant` 38% over its container, elevated
- * `surface`, the outlined border `outline` 12%; content `on-surface` 38%.
+ * `surface` 38% over its container (`DisabledContainerOpacity`), the outlined border
+ * `outline` 12%; content `on-surface` 38%.
  *
  * Every class is written out in full so Tailwind can find it.
  */
@@ -48,7 +49,8 @@ export const cardStyles = tv({
       interactive: true,
       class: [
         'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
-        'data-disabled:bg-surface data-disabled:shadow-elevation-1',
+        'data-disabled:bg-[color-mix(in_srgb,var(--md-sys-color-surface)_38%,var(--md-sys-color-surface-container-low))]',
+        'data-disabled:shadow-elevation-1',
       ],
     },
     {

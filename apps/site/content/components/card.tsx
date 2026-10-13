@@ -125,6 +125,13 @@ export async function CardBody(): Promise<ComponentDoc> {
               (elevated to 4), as M3 asks when picking up a card.
             </li>
             <li>
+              Disabled cards keep a faded container, as M3&apos;s disabled tokens ask: filled is{' '}
+              <InlineCode>surface-variant</InlineCode> and elevated <InlineCode>surface</InlineCode>
+              , each at 38% over the card&apos;s own colour, and the outlined border is{' '}
+              <InlineCode>outline</InlineCode> at 12%. Content is{' '}
+              <InlineCode>on-surface</InlineCode> at 38%.
+            </li>
+            <li>
               Content is clipped to the corners (<InlineCode>overflow-hidden</InlineCode>), so media
               gets rounded edges; add <InlineCode>overflow-visible</InlineCode> to turn that off.
             </li>

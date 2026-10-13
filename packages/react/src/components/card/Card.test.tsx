@@ -101,6 +101,19 @@ describe('Card', () => {
     );
   });
 
+  it('fades a disabled card’s container like the spec’s disabled tokens', () => {
+    render(
+      <Card variant="elevated" onPress={() => {}} disabled aria-label="Trip">
+        Content
+      </Card>,
+    );
+    // Elevated: `surface` at 38% over its own container, still at level 1.
+    expect(screen.getByRole('button', { name: 'Trip' })).toHaveClass(
+      'data-disabled:bg-[color-mix(in_srgb,var(--md-sys-color-surface)_38%,var(--md-sys-color-surface-container-low))]',
+      'data-disabled:shadow-elevation-1',
+    );
+  });
+
   it('marks a dragged card, static or interactive', () => {
     const { rerender } = render(
       <>
