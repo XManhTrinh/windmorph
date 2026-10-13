@@ -203,6 +203,16 @@ export const menuStyles = tv({
      * `gap`: every group is its own surface, and the list only scrolls (its 8px ring keeps
      * the groups' shadows); `divider`: the list is the one surface.
      */
+    /** Open and close with no motion (`instant`). */
+    instant: {
+      true: { reveal: '[transition-property:none]' },
+      false: {},
+    },
+    /** In a bottom sheet: the list spans it, on the sheet's own surface. */
+    embedded: {
+      true: {},
+      false: {},
+    },
     layout: {
       gap: {
         menu: [
@@ -246,6 +256,13 @@ export const menuStyles = tv({
     },
     // A divider layout's groups are plain sections of the one surface.
     { layout: 'divider', class: { group: 'rounded-none' } },
+    // In a sheet the list has no surface, shadow or width limits of its own.
+    {
+      embedded: true,
+      class: {
+        menu: 'w-full max-w-none min-w-0 rounded-none bg-transparent p-0 shadow-none',
+      },
+    },
   ],
   defaultVariants: {
     variant: 'standard',
@@ -255,6 +272,8 @@ export const menuStyles = tv({
     itemTop: 'plain',
     itemBottom: 'plain',
     hasDescription: false,
+    instant: false,
+    embedded: false,
   },
 });
 

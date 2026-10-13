@@ -60,7 +60,9 @@ import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
+import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
+import { BottomSheet } from '../sheet/BottomSheet';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 
 const CheckIcon = () => (
@@ -306,10 +308,27 @@ export interface MenuProps extends Omit<
   placement?: Placement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
+  /**
+   * Where the menu opens. `popover`: anchored to its trigger. `sheet`: in a modal bottom
+   * sheet. `auto`: a sheet on compact windows (below 600px wide) and a popover on larger
+   * ones (M3: "Consider adapting menus into bottom sheets on small screens"). Set it on the
+   * root menu.
+   * @default "popover"
+   */
+  presentation?: MenuPresentation;
+  /**
+   * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
+   * open instantly to reduce motion"). Submenus follow their root menu.
+   * @default false
+   */
+  instant?: boolean;
   className?: string;
   classNames?: MenuClassNames;
   style?: CSSProperties;
 }
+
+/** Where a {@link Menu} opens. */
+export type MenuPresentation = 'popover' | 'sheet' | 'auto';
 
 /**
  * M3 Expressive menu: items on one surface with dividers between groups (or on grouped
@@ -332,15 +351,84 @@ export interface MenuProps extends Omit<
  *   </Menu>
  * </MenuTrigger>
  */
-export function Menu(props: MenuProps) {
+export function Menu({ presentation = 'popover', instant = false, ...props }: MenuProps) {
   const trigger = useContext(MenuTriggerContext);
   if (!trigger) throw new Error('[@windmorph/react] <Menu> must be used inside <MenuTrigger>.');
-  const { isPresent, isExiting, exitProps } = usePresence(trigger.state.isOpen);
+  const compact = useMediaQuery(COMPACT_WINDOW);
+  const presence = usePresence(trigger.state.isOpen);
+  if (presentation === 'sheet' || (presentation === 'auto' && compact))
+    return <MenuSheet {...props} trigger={trigger} />;
+  // An instant menu leaves at once, without waiting for an exit transition.
+  const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
+  const isExiting = !instant && presence.isExiting;
   if (!isPresent) return null;
   return (
     <Overlay isExiting={isExiting}>
-      <MenuPopover {...props} trigger={trigger} isExiting={isExiting} exitProps={exitProps} />
+      <MenuPopover
+        {...props}
+        trigger={trigger}
+        instant={instant}
+        isExiting={isExiting}
+        exitProps={presence.exitProps}
+      />
     </Overlay>
+  );
+}
+
+/**
+ * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
+ * screens). The sheet is a dialog named like the menu; the menu inside keeps its role,
+ * keyboard, typeahead and initial focus, and spans the sheet without a surface of its own.
+ */
+function MenuSheet({
+  trigger,
+  layout: _layout,
+  placement: _placement,
+  offset: _offset,
+  variant = 'standard',
+  ...props
+}: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const [activeLevel, setActiveLevel] = useState(0);
+  const menuProps = mergeProps(trigger.menuProps, props);
+  const label = menuProps['aria-label'];
+  const naming =
+    label != null
+      ? { 'aria-label': label }
+      : { 'aria-labelledby': menuProps['aria-labelledby'] ?? '' };
+  return (
+    <BottomSheet
+      {...naming}
+      open={trigger.state.isOpen}
+      onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
+    >
+      <div ref={setContainer} className="flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]">
+        <TriggerContext value={null}>
+          <MenuTreeContext
+            value={{
+              rootState: trigger.state,
+              container,
+              activeLevel,
+              setActiveLevel,
+              layout: 'divider',
+              variant,
+              density: props.density,
+              instant: false,
+            }}
+          >
+            <MenuList
+              {...menuProps}
+              layout="divider"
+              variant={variant}
+              level={0}
+              embedded
+              onClose={trigger.state.close}
+              autoFocus={trigger.state.focusStrategy ?? 'first'}
+            />
+          </MenuTreeContext>
+        </TriggerContext>
+      </div>
+    </BottomSheet>
   );
 }
 
@@ -356,6 +444,8 @@ interface MenuTreeContextValue {
   layout: MenuLayout;
   variant: MenuVariant;
   density: MenuProps['density'];
+  /** Submenus open and close with no motion too. */
+  instant: boolean;
 }
 
 const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
@@ -381,6 +471,7 @@ type ExitProps = ReturnType<typeof usePresence>['exitProps'];
 
 function MenuPopover({
   trigger,
+  instant,
   isExiting,
   exitProps,
   placement = 'bottom start',
@@ -388,7 +479,12 @@ function MenuPopover({
   layout = 'divider',
   variant = 'standard',
   ...props
-}: MenuProps & { trigger: MenuTriggerContextValue; isExiting: boolean; exitProps: ExitProps }) {
+}: Omit<MenuProps, 'presentation' | 'instant'> & {
+  trigger: MenuTriggerContextValue;
+  instant: boolean;
+  isExiting: boolean;
+  exitProps: ExitProps;
+}) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const setPopover = useCallback((element: HTMLDivElement | null) => {
@@ -448,7 +544,7 @@ function MenuPopover({
           {...exitProps}
           data-exiting={isExiting || undefined}
           data-placement={actualPlacement ?? undefined}
-          className={styles.reveal()}
+          className={menuStyles({ instant }).reveal()}
         >
           <TriggerContext value={null}>
             <I18nProvider locale={menuLocale}>
@@ -461,6 +557,7 @@ function MenuPopover({
                   layout,
                   variant,
                   density: props.density,
+                  instant,
                 }}
               >
                 <MenuList
@@ -510,13 +607,18 @@ function toGroups(nodes: Node<object>[]): (Node<object> | Node<object>[])[] {
   return groups;
 }
 
-type MenuListProps = Omit<MenuProps, 'placement' | 'layout' | 'variant'> &
+type MenuListProps = Omit<
+  MenuProps,
+  'placement' | 'layout' | 'variant' | 'presentation' | 'instant'
+> &
   Pick<AriaMenuOptions<object>, 'onClose' | 'autoFocus' | 'onKeyDown' | 'onKeyUp'> & {
     layout: MenuLayout;
     variant: MenuVariant;
     /** 0 for the root menu, then one more per submenu. */
     level: number;
     listRef?: RefObject<HTMLDivElement | null>;
+    /** In a sheet: the list spans it, with no surface of its own. */
+    embedded?: boolean;
   };
 
 /**
@@ -547,6 +649,7 @@ function MenuList({
   classNames,
   style,
   listRef,
+  embedded = false,
   ...props
 }: MenuListProps) {
   // MenuItem / MenuGroup are React Stately Item / Section, so children are a collection.
@@ -567,7 +670,7 @@ function MenuList({
   const groups = toGroups([...state.collection]);
   const scrolled = useHasScrolled(ref, requestedLayout === 'gap');
   const layout: MenuLayout = scrolled ? 'divider' : requestedLayout;
-  const styles = menuStyles({ variant, layout });
+  const styles = menuStyles({ variant, layout, embedded });
   // While a submenu is open, the menu holding focus is rounder than the others (M3).
   const submenuOpen = Boolean(tree && tree.rootState.expandedKeysStack.length > 0);
   const shape = !submenuOpen ? undefined : tree?.activeLevel === level ? 'active' : 'inactive';
@@ -783,7 +886,10 @@ interface SubmenuPopoverProps {
 
 function SubmenuPopover(props: SubmenuPopoverProps) {
   const tree = useContext(MenuTreeContext)!;
-  const { isPresent, isExiting, exitProps } = usePresence(props.state.isOpen);
+  const presence = usePresence(props.state.isOpen);
+  const isPresent = tree.instant ? props.state.isOpen : presence.isPresent;
+  const isExiting = !tree.instant && presence.isExiting;
+  const { exitProps } = presence;
   if (!isPresent || !tree.container) return null;
   // Inside the root popover: its focus scope and outside-press handling cover the submenu,
   // and the modal root menu doesn't make it inert.
@@ -832,7 +938,7 @@ function SubmenuPopoverContent({
         {...exitProps}
         data-exiting={isExiting || undefined}
         data-placement={placement ?? undefined}
-        className={styles.reveal()}
+        className={menuStyles({ instant: tree.instant }).reveal()}
       >
         <MenuList
           {...mergeProps(ariaMenuProps, own)}

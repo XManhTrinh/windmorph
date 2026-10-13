@@ -343,6 +343,7 @@ export {
   type MenuGroupProps,
   type MenuItemProps,
   type MenuKey,
+  type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,
   type SubmenuTriggerProps,

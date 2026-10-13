@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { setMediaQueries } from '../../../test/setup';
+import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
@@ -436,6 +438,58 @@ describe('Menu', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Copy' }));
     expect(onAction.mock.calls[0]?.[0]).toBe('copy');
     await closed();
+  });
+
+  it('opens in a bottom sheet with presentation="sheet", keeping the menu keyboard', async () => {
+    const onAction = vi.fn();
+    const { baseElement } = render(<EditMenu presentation="sheet" onAction={onAction} />);
+    await openMenu('Edit');
+    const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+    const menu = within(sheet).getByRole('menu', { name: 'Edit' });
+    // The list spans the sheet, on its surface.
+    expect(menu).toHaveClass('w-full', 'bg-transparent', 'shadow-none');
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus());
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: /Copy/ })).toHaveFocus();
+    expect(await axeViolations(baseElement)).toEqual([]);
+    await userEvent.keyboard('{Enter}');
+    expect(onAction.mock.calls[0]?.[0]).toBe('copy');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
+  });
+
+  it('closes its sheet on Escape', async () => {
+    render(<EditMenu presentation="sheet" />);
+    await openMenu('Edit');
+    await screen.findByRole('dialog', { name: 'Edit' });
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+  });
+
+  it('presentation="auto" opens a sheet on compact windows and a popover on larger ones', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    const { unmount } = render(<EditMenu presentation="auto" />);
+    await openMenu('Edit');
+    expect(await screen.findByRole('dialog', { name: 'Edit' })).toBeInTheDocument();
+    unmount();
+    setMediaQueries({ [COMPACT_WINDOW]: false });
+    render(<EditMenu presentation="auto" />);
+    await openMenu('Edit');
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).toBe(null);
+  });
+
+  it('opens and closes at once when instant', async () => {
+    render(<EditMenu instant />);
+    await openMenu('Edit');
+    expect(screen.getByRole('menu').parentElement).toHaveClass('[transition-property:none]');
+    await userEvent.keyboard('{Escape}');
+    // No exit transition to wait for.
+    expect(screen.queryByRole('menu')).toBe(null);
   });
 
   it('expands along the axis away from its anchor', async () => {

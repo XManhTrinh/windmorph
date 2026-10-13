@@ -292,3 +292,49 @@ test.describe('Menu under reduced motion', () => {
     await expect(page.getByRole('menu')).toHaveCount(0);
   });
 });
+
+test.describe('Menu presentation and instant', () => {
+  test('presentation="auto" opens a bottom sheet on a phone, with the menu keyboard', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--grouped', {}, { presentation: 'auto' });
+    await page.getByRole('button', { name: 'More' }).click();
+    const sheet = page.getByRole('dialog', { name: 'More' });
+    await expect(sheet).toBeVisible();
+    const menu = sheet.getByRole('menu');
+    await expect(menu.getByRole('menuitem').first()).toBeFocused();
+    await settle(page);
+    // It spans the sheet (8px in from each side) and sits at the bottom of the window.
+    const s = await box(sheet);
+    const m = await box(menu);
+    expect(Math.round(s.y + s.height)).toBe(800);
+    expect(Math.round(m.width)).toBe(Math.round(s.width) - 16);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last action: edit');
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole('button', { name: 'More' })).toBeFocused();
+  });
+
+  test('presentation="auto" stays a popover on a wide window', async ({ page }) => {
+    const menu = await openGrouped(page, {}, { presentation: 'auto' });
+    await expect(menu).toBeVisible();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test('an instant menu appears and leaves with no motion', async ({ page }) => {
+    await openStory(page, 'components-menu--grouped', {}, { instant: true });
+    await page.getByRole('button', { name: 'More' }).click();
+    const reveal = page.getByRole('menu').locator('..');
+    // Fully shown at once: no fade or clip in progress.
+    expect(
+      await reveal.evaluate((el) => {
+        const computed = getComputedStyle(el);
+        return [computed.opacity, computed.clipPath, computed.transitionProperty];
+      }),
+    ).toEqual(['1', 'inset(-24px)', 'none']);
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0, { timeout: 100 });
+  });
+});
