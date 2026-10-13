@@ -173,6 +173,8 @@ export const coreChecks = {
   },
   circularProgressStyles: { kind: 'value', run: () => Core.circularProgressStyles() },
   linearProgressStyles: { kind: 'value', run: () => Core.linearProgressStyles() },
+  PullToRefresh: { kind: 'client', reason: 'its onRefresh prop is a function' },
+  pullToRefreshStyles: { kind: 'value', run: () => Core.pullToRefreshStyles() },
 
   Tooltip: {
     kind: 'component',
@@ -208,6 +210,14 @@ export const coreChecks = {
         <Core.IconButton icon={icon} aria-label="About sharing" />
         <Core.RichTooltip title="Shared folder">Everyone can edit.</Core.RichTooltip>
       </Core.RichTooltipTrigger>
+    ),
+  },
+  TooltipPlacementContext: {
+    kind: 'context',
+    render: () => (
+      <Core.TooltipPlacementContext value="bottom">
+        <span>Tooltips below</span>
+      </Core.TooltipPlacementContext>
     ),
   },
   richTooltipStyles: { kind: 'value', run: () => Core.richTooltipStyles() },

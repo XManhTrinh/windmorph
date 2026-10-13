@@ -11,6 +11,7 @@ import {
   MenuItem,
   MenuTrigger,
   OptionPopover,
+  PullToRefresh,
   Select,
   SelectItem,
   SelectSection,
@@ -131,6 +132,11 @@ const tabs = (
 /** The exports a server component can import but can't render with server-made props. */
 const EXAMPLES: Record<string, () => ReactNode> = {
   SnackbarHost: () => <SnackbarHostExample />,
+  PullToRefresh: () => (
+    <PullToRefresh onRefresh={() => undefined} className="h-24 overflow-y-auto">
+      <p className="p-2">Pull down to refresh</p>
+    </PullToRefresh>
+  ),
   Tabs: () => tabs,
   Tab: () => tabs,
   SplitButton: () => (
