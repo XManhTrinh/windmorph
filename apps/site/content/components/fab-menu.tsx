@@ -3,6 +3,7 @@ import { ExampleViewer } from '../../components/example-viewer';
 import { FabMenuBasic } from '../../examples/fab-menu/fab-menu-basic';
 import { FabMenuColors } from '../../examples/fab-menu/fab-menu-colors';
 import { FabMenuRotate } from '../../examples/fab-menu/fab-menu-rotate';
+import { FabMenuTooltip } from '../../examples/fab-menu/fab-menu-tooltip';
 import { FabMenuWeb } from '../../examples/fab-menu/fab-menu-web';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -10,17 +11,19 @@ import { InlineCode } from '../../components/inline-code';
 
 /** FabMenu page body (FabMenu + FabMenuItem). */
 export async function FabMenuBody(): Promise<ComponentDoc> {
-  const [basic, colors, web, rotate] = await Promise.all([
+  const [basic, colors, web, rotate, tooltip] = await Promise.all([
     readExampleSource('fab-menu/fab-menu-basic.tsx'),
     readExampleSource('fab-menu/fab-menu-colors.tsx'),
     readExampleSource('fab-menu/fab-menu-web.tsx'),
     readExampleSource('fab-menu/fab-menu-rotate.tsx'),
+    readExampleSource('fab-menu/fab-menu-tooltip.tsx'),
   ]);
-  const [basicHtml, colorsHtml, webHtml, rotateHtml] = await Promise.all([
+  const [basicHtml, colorsHtml, webHtml, rotateHtml, tooltipHtml] = await Promise.all([
     highlightSource(basic),
     highlightSource(colors),
     highlightSource(web),
     highlightSource(rotate),
+    highlightSource(tooltip),
   ]);
 
   return {
@@ -61,6 +64,14 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             fileName="fab-menu-rotate.tsx"
           >
             <FabMenuRotate />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Tooltip"
+            code={tooltip}
+            html={tooltipHtml}
+            fileName="fab-menu-tooltip.tsx"
+          >
+            <FabMenuTooltip />
           </ExampleViewer>
         </section>
       </>
