@@ -468,3 +468,111 @@ describe('Dialog full screen', () => {
     expect(await axeViolations(baseElement)).toEqual([]);
   });
 });
+
+describe('Dialog container transform', () => {
+  function NewEvent({
+    origin,
+    fullScreen = 'always',
+  }: {
+    origin: React.ComponentProps<typeof Dialog>['origin'];
+    fullScreen?: DialogFullScreen;
+  }) {
+    return (
+      <DialogTrigger>
+        <Button>New event</Button>
+        <Dialog fullScreen={fullScreen} origin={origin} data-testid="panel">
+          <DialogHeader closeLabel="Close">New event</DialogHeader>
+          <DialogContent>Title field</DialogContent>
+        </Dialog>
+      </DialogTrigger>
+    );
+  }
+  const rect = (left: number, top: number, size: number) =>
+    ({
+      left,
+      top,
+      right: left + size,
+      bottom: top + size,
+      width: size,
+      height: size,
+    }) as DOMRectReadOnly;
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('starts on an origin element: its box, corners and container colour', async () => {
+    const fab = document.createElement('button');
+    fab.style.borderTopLeftRadius = '16px';
+    fab.style.backgroundColor = 'rgb(1, 2, 3)';
+    document.body.append(fab);
+    vi.spyOn(fab, 'getBoundingClientRect').mockReturnValue(rect(952, 696, 56) as DOMRect);
+    render(<NewEvent origin={fab} />);
+    await userEvent.click(screen.getByRole('button', { name: 'New event' }));
+    const panel = screen.getByTestId('panel');
+    const motion = panel.parentElement!;
+    // jsdom's window is 1024 × 768.
+    expect(motion.style.getPropertyValue('--m3-dialog-origin')).toBe(
+      'inset(696px 16px 16px 952px round 16px)',
+    );
+    expect(motion.style.getPropertyValue('--m3-dialog-origin-color')).toBe('rgb(1, 2, 3)');
+    expect(panel).toHaveAttribute('data-origin');
+    expect(motion).toHaveClass(
+      'starting:[clip-path:var(--m3-dialog-origin)]',
+      'motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
+      'starting:translate-none',
+    );
+    expect(panel).toHaveClass('starting:bg-(--m3-dialog-origin-color)', '*:starting:opacity-0');
+    fab.remove();
+  });
+
+  it('starts on the trigger, or on a box, with the dialog colour when it has none', async () => {
+    const { unmount } = render(<NewEvent origin="trigger" />);
+    const trigger = screen.getByRole('button', { name: 'New event' });
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue(rect(16, 16, 40) as DOMRect);
+    await userEvent.click(trigger);
+    const motion = screen.getByTestId('panel').parentElement!;
+    expect(motion.style.getPropertyValue('--m3-dialog-origin')).toMatch(
+      /^inset\(16px 968px 712px 16px round /,
+    );
+    unmount();
+
+    render(<NewEvent origin={rect(100, 50, 20)} />);
+    await userEvent.click(screen.getByRole('button', { name: 'New event' }));
+    const boxMotion = screen.getByTestId('panel').parentElement!;
+    expect(boxMotion.style.getPropertyValue('--m3-dialog-origin')).toBe(
+      'inset(50px 904px 698px 100px round 0px)',
+    );
+    expect(boxMotion.style.getPropertyValue('--m3-dialog-origin-color')).toBe(
+      'var(--md-sys-color-surface-container-high)',
+    );
+  });
+
+  it('applies only below 600px with "compact", and never to a basic dialog', async () => {
+    const { unmount } = render(<NewEvent origin={rect(0, 0, 56)} fullScreen="compact" />);
+    await userEvent.click(screen.getByRole('button', { name: 'New event' }));
+    expect(screen.getByTestId('panel').parentElement).toHaveClass(
+      'max-medium:starting:[clip-path:var(--m3-dialog-origin)]',
+    );
+    unmount();
+
+    render(<NewEvent origin={rect(0, 0, 56)} fullScreen="never" />);
+    await userEvent.click(screen.getByRole('button', { name: 'New event' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel).not.toHaveAttribute('data-origin');
+    expect(panel.parentElement!.style.getPropertyValue('--m3-dialog-origin')).toBe('');
+  });
+
+  it('opens without a transform when "trigger" has no trigger', async () => {
+    render(
+      <Dialog defaultOpen fullScreen="always" origin="trigger" data-testid="panel">
+        <DialogHeader closeLabel="Close">New event</DialogHeader>
+      </Dialog>,
+    );
+    expect(await screen.findByTestId('panel')).not.toHaveAttribute('data-origin');
+  });
+
+  it('has no axe violations', async () => {
+    const { baseElement } = render(<NewEvent origin="trigger" />);
+    await userEvent.click(screen.getByRole('button', { name: 'New event' }));
+    expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});

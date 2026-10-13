@@ -55,10 +55,52 @@ export type DialogFullScreen = 'never' | 'always' | 'compact';
 /** Where a basic dialog sits in the window, keeping the spec's 56px margin on wider windows. */
 export type DialogPlacement = 'center' | 'top' | 'bottom' | 'start' | 'end';
 
+/**
+ * What a full-screen dialog grows out of (a container transform): `"trigger"` for the
+ * `DialogTrigger`'s button, an element such as a FAB, or a box in window coordinates.
+ */
+export type DialogOrigin = 'trigger' | Element | DOMRectReadOnly;
+
 interface DialogTriggerContextValue {
   state: OverlayTriggerState;
   /** Links the dialog to its trigger (`aria-controls`). */
   overlayProps: { id?: string };
+  /** The trigger, for `origin="trigger"`. */
+  triggerRef: RefObject<HTMLElement | null>;
+}
+
+/** Where a container transform starts, measured from its origin. */
+interface OriginBox {
+  /** The origin's box and corners as a `clip-path` of the window. */
+  clip: string;
+  /** The origin's container colour, or the dialog's own when it has none. */
+  color: string;
+}
+
+/** How browsers serialise a computed `transparent`. */
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
+
+/** A corner radius in px; a percentage resolves against the origin's shorter side. */
+function cornerRadius(value: string, rect: DOMRectReadOnly): string {
+  if (!value.endsWith('%')) return value || '0px';
+  return `${(parseFloat(value) / 100) * Math.min(rect.width, rect.height)}px`;
+}
+
+/** The origin's box as insets from the window (the full-screen dialog's box). */
+function measureOrigin(origin: Element | DOMRectReadOnly): OriginBox {
+  const isElement = origin instanceof Element;
+  const rect = isElement ? origin.getBoundingClientRect() : origin;
+  const style = isElement ? getComputedStyle(origin) : null;
+  const radius = cornerRadius(style?.borderTopLeftRadius ?? '0px', rect);
+  const top = rect.top;
+  const left = rect.left;
+  const right = window.innerWidth - rect.right;
+  const bottom = window.innerHeight - rect.bottom;
+  const background = style?.backgroundColor ?? TRANSPARENT;
+  return {
+    clip: `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius})`,
+    color: background === TRANSPARENT ? 'var(--md-sys-color-surface-container-high)' : background,
+  };
 }
 
 const DialogTriggerContext = createContext<DialogTriggerContextValue | null>(null);
@@ -119,7 +161,7 @@ export function DialogTrigger({ children, open, defaultOpen, onOpenChange }: Dia
   });
   const [trigger, ...dialog] = Children.toArray(children);
   return (
-    <DialogTriggerContext value={{ state, overlayProps }}>
+    <DialogTriggerContext value={{ state, overlayProps, triggerRef }}>
       <TriggerContext value={triggerValue}>{trigger}</TriggerContext>
       {dialog}
     </DialogTriggerContext>
@@ -164,6 +206,14 @@ export interface DialogProps
    */
   fullScreen?: DialogFullScreen;
   /**
+   * Grows the full-screen dialog out of this origin and shrinks it back into it on close,
+   * the spec's container transform from a FAB: `"trigger"` (the `DialogTrigger`'s button),
+   * an element, or a box in window coordinates. The clip, corners and container colour
+   * move from the origin to the window on the slow spatial spring and the content fades
+   * in; reduced motion keeps only the fades. Used only while the dialog is full screen.
+   */
+  origin?: DialogOrigin;
+  /**
    * Where a basic dialog sits: centred (the spec's default) or against one side of the
    * window, keeping 24px from its edges on compact windows and 56px on wider ones.
    * @default "center"
@@ -198,12 +248,26 @@ export interface DialogProps
  *   )}
  * </Dialog>
  */
-export function Dialog({ open, defaultOpen, onOpenChange, ...props }: DialogProps) {
+export function Dialog({ open, defaultOpen, onOpenChange, origin, ...props }: DialogProps) {
   const trigger = useContext(DialogTriggerContext);
   const ownState = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const state = trigger?.state ?? ownState;
   const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
-  if (!isPresent) return null;
+  const usesOrigin = origin !== undefined && (props.fullScreen ?? 'never') !== 'never';
+  // The origin is measured before the dialog is in the document (a layout effect, then a
+  // synchronous re-render before paint), so the dialog's first style already starts on the
+  // origin; and again as it closes, in case the origin moved. `box` is null when there's
+  // nothing to measure (`"trigger"` outside a `DialogTrigger`).
+  const [measured, setMeasured] = useState<{ box: OriginBox | null } | null>(null);
+  if (!isPresent && measured !== null) setMeasured(null);
+  const triggerRef = trigger?.triggerRef;
+  const isOpen = state.isOpen;
+  useLayoutEffect(() => {
+    if (!usesOrigin || !isPresent) return;
+    const target = origin === 'trigger' ? triggerRef?.current : origin;
+    setMeasured({ box: target ? measureOrigin(target) : null });
+  }, [usesOrigin, origin, triggerRef, isOpen, isPresent]);
+  if (!isPresent || (usesOrigin && measured === null)) return null;
   return (
     <Overlay isExiting={isExiting}>
       <DialogModal
@@ -212,6 +276,7 @@ export function Dialog({ open, defaultOpen, onOpenChange, ...props }: DialogProp
         isExiting={isExiting}
         exitProps={exitProps}
         triggerOverlayProps={trigger?.overlayProps}
+        originBox={usesOrigin ? (measured?.box ?? null) : null}
       />
     </Overlay>
   );
@@ -222,6 +287,7 @@ function DialogModal({
   isExiting,
   exitProps,
   triggerOverlayProps,
+  originBox,
   role: roleProp,
   dismissable,
   keyboardDismissDisabled,
@@ -239,6 +305,7 @@ function DialogModal({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
   triggerOverlayProps?: { id?: string };
+  originBox: OriginBox | null;
 }) {
   const role = roleProp ?? (fullScreen === 'never' ? 'alertdialog' : 'dialog');
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
@@ -269,7 +336,8 @@ function DialogModal({
 
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;
-  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar });
+  const origin = originBox !== null;
+  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar, origin });
   const exiting = isExiting || undefined;
 
   return (
@@ -280,7 +348,19 @@ function DialogModal({
         className={styles.scrim({ class: classNames?.scrim })}
       />
       <div {...underlayProps} className={styles.positioner()}>
-        <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
+        <div
+          {...exitProps}
+          data-exiting={exiting}
+          style={
+            originBox
+              ? ({
+                  '--m3-dialog-origin': originBox.clip,
+                  '--m3-dialog-origin-color': originBox.color,
+                } as CSSProperties)
+              : undefined
+          }
+          className={styles.motion()}
+        >
           <div
             {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
             aria-describedby={describedBy}
@@ -288,6 +368,7 @@ function DialogModal({
             style={style}
             data-exiting={exiting}
             data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
+            data-origin={origin || undefined}
             className={styles.panel({ class: cn(classNames?.panel, className) })}
           >
             <TriggerContext value={null}>

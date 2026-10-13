@@ -7,9 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Fab,
+  Radio,
+  RadioGroup,
   TextField,
 } from '@windmorph/react';
-import { DeleteIcon } from './icons';
+import { useState } from 'react';
+import { AddIcon, DeleteIcon } from './icons';
 
 const meta = {
   title: 'Components/Dialog',
@@ -265,3 +269,234 @@ export const FullScreenBottomBar: Story = {
     </DialogTrigger>
   ),
 };
+
+/** A single action only acknowledges; short text still gets the 280px minimum width. */
+export const Acknowledgement: Story = {
+  render: () => (
+    <DialogTrigger defaultOpen>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Saved</DialogTitle>
+            <DialogContent>Done.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                OK
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/** At the bottom of the window: it expands upward, away from the edge. */
+export const PlacementBottom: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog placement="bottom" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Discard draft?</DialogTitle>
+            <DialogContent>Your changes to this message will be lost.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Discard
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/** Against the start edge: it expands along the x axis, away from that edge. */
+export const PlacementStart: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog placement="start" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Discard draft?</DialogTitle>
+            <DialogContent>Your changes to this message will be lost.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Discard
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+const RINGTONES = ['Callisto', 'Ganymede', 'Luna', 'Oberon', 'Phobos', 'Titania', 'Umbriel'];
+
+function RingtoneDialog() {
+  const [choice, setChoice] = useState('');
+  return (
+    <DialogTrigger defaultOpen>
+      <Button variant="tonal">Ringtone</Button>
+      <Dialog data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Phone ringtone</DialogTitle>
+            <DialogContent dividers data-testid="content">
+              <RadioGroup aria-label="Ringtone" value={choice} onChange={setChoice}>
+                {RINGTONES.map((name) => (
+                  <Radio key={name} value={name}>
+                    {name}
+                  </Radio>
+                ))}
+              </RadioGroup>
+            </DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" disabled={choice === ''} onPress={close}>
+                OK
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  );
+}
+
+/**
+ * The optional dividers around a list, and the confirming action disabled until a choice is
+ * made (the dismissive action never is).
+ */
+export const Dividers: Story = { render: () => <RingtoneDialog /> };
+
+/** A FAB grows into a full-screen dialog (a container transform) on compact windows. */
+export const ContainerTransform: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Fab
+        icon={<AddIcon />}
+        aria-label="New event"
+        tooltip={false}
+        className="fixed end-[16px] bottom-[16px]"
+      />
+      <Dialog fullScreen="compact" origin="trigger" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogHeader
+              closeLabel="Close"
+              action={
+                <Button variant="text" onPress={close}>
+                  Save
+                </Button>
+              }
+            >
+              New event
+            </DialogHeader>
+            <DialogContent>
+              <TextField label="Title" className="w-full" />
+            </DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Save
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+function EventEditor() {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [title, setTitle] = useState('');
+  const [error, setError] = useState('');
+  const finish = () => {
+    setTitle('');
+    setError('');
+    setOpen(false);
+  };
+  const requestClose = (next: boolean) => {
+    if (next) setOpen(true);
+    else if (title !== '') setConfirming(true);
+    else finish();
+  };
+  const save = () => {
+    if (title.trim() === '') setError('Enter a title');
+    else finish();
+  };
+  return (
+    <>
+      <DialogTrigger open={open} onOpenChange={requestClose}>
+        <Button variant="tonal">New event</Button>
+        <Dialog fullScreen="always" data-testid="dialog">
+          <DialogHeader
+            closeLabel="Close"
+            action={
+              <Button variant="text" onPress={save}>
+                Save
+              </Button>
+            }
+          >
+            New event
+          </DialogHeader>
+          <DialogContent>
+            <TextField
+              label="Title"
+              value={title}
+              onChange={(value) => {
+                setTitle(value);
+                setError('');
+              }}
+              invalid={error !== ''}
+              errorMessage={error}
+              className="w-full"
+            />
+          </DialogContent>
+        </Dialog>
+      </DialogTrigger>
+      <Dialog open={confirming} onOpenChange={setConfirming}>
+        <DialogTitle>Discard event?</DialogTitle>
+        <DialogContent>The title you entered will be lost.</DialogContent>
+        <DialogActions>
+          <Button variant="text" onPress={() => setConfirming(false)}>
+            Keep editing
+          </Button>
+          <Button
+            variant="text"
+            onPress={() => {
+              setConfirming(false);
+              finish();
+            }}
+          >
+            Discard
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * Closing a full-screen dialog with unsaved changes asks to discard them in a basic dialog;
+ * Save reports a missing title inline.
+ */
+export const DiscardConfirmation: Story = { render: () => <EventEditor /> };
