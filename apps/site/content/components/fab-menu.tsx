@@ -88,11 +88,13 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             short windows they scroll behind the close button, which stays reachable.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            On the web and in large windows, M3 has the FAB open a standard menu instead: set{' '}
-            <InlineCode>presentation=&quot;menu&quot;</InlineCode>, and choose it per window size
-            class if you like. Items run <InlineCode>onAction</InlineCode> (or follow{' '}
-            <InlineCode>href</InlineCode>) in either presentation. <InlineCode>visible</InlineCode>{' '}
-            and <InlineCode>appear</InlineCode> work as on <InlineCode>Fab</InlineCode>.
+            On the web, M3 has the FAB open a standard menu: use{' '}
+            <InlineCode>presentation=&quot;menu&quot;</InlineCode> on large screens (the expanded
+            window class, 840px and up), and keep the default <InlineCode>list</InlineCode> in
+            compact and medium windows, choosing it per window size class. Items run{' '}
+            <InlineCode>onAction</InlineCode> (or follow <InlineCode>href</InlineCode>) in either
+            presentation. <InlineCode>visible</InlineCode> and <InlineCode>appear</InlineCode> work
+            as on <InlineCode>Fab</InlineCode>.
           </p>
         </section>
       </>
