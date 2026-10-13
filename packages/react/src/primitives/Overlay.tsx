@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
 import { useThemeScope } from '../theme/context';
 import { themeAttributes } from '../theme/state';
@@ -41,6 +41,7 @@ export function Overlay({
   topLayer,
 }: OverlayProps) {
   const scope = useThemeScope();
+  const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
 
@@ -51,10 +52,25 @@ export function Overlay({
       scopeRef.current.dir = getComputedStyle(markerRef.current).direction;
     }
   });
+  // On mount, copy it before the content's own layout effects run: they may read layout
+  // (React Aria's scroll lock does), which resolves the content's first style, and so its
+  // `@starting-style` transitions, in the wrong direction. The marker's ref is attached
+  // before them, and `:dir()` reads the direction without resolving styles.
+  const attachMarker = useCallback(
+    (marker: HTMLSpanElement | null) => {
+      markerRef.current = marker;
+      if (!marker || typeof CSS === 'undefined' || !CSS.supports('selector(:dir(rtl))')) return;
+      const wrapper = marker.ownerDocument.querySelector<HTMLElement>(
+        `[data-overlay-scope="${CSS.escape(scopeId)}"]`,
+      );
+      if (wrapper) wrapper.dir = marker.matches(':dir(rtl)') ? 'rtl' : 'ltr';
+    },
+    [scopeId],
+  );
 
   return (
     <>
-      <span ref={markerRef} hidden />
+      <span ref={attachMarker} hidden />
       <AriaOverlay
         portalContainer={portalContainer}
         disableFocusManagement={disableFocusManagement}
@@ -63,7 +79,7 @@ export function Overlay({
         <div
           ref={scopeRef}
           {...themeAttributes(scope)}
-          data-overlay-scope=""
+          data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
           style={{ display: 'contents', color: 'var(--md-sys-color-on-surface)' }}
         >
