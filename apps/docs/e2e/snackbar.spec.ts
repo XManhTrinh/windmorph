@@ -82,6 +82,43 @@ test.describe('SnackbarHost behaviour', () => {
     await page.clock.runFor(4500);
     await expect(message).toHaveCount(0);
   });
+  test('a snackbar shown at launch goes into the live region after the region is on the page', async ({
+    page,
+  }) => {
+    // Record what the host's live region held when it was inserted, and when the snackbar came.
+    await page.addInitScript(() => {
+      const log: { regionChildren?: number; regionAt?: number; snackbarAt?: number } = {};
+      (window as unknown as { liveLog: typeof log }).liveLog = log;
+      new MutationObserver(() => {
+        const host = document.querySelector('[data-testid="host"]');
+        if (host && log.regionAt === undefined) {
+          log.regionAt = performance.now();
+          log.regionChildren = host.childElementCount;
+        }
+        if (host?.querySelector('[data-snackbar-id]') && log.snackbarAt === undefined) {
+          log.snackbarAt = performance.now();
+        }
+      }).observe(document, { childList: true, subtree: true });
+    });
+    await openStory(page, 'components-snackbar--at-launch');
+    const host = page.getByTestId('host');
+    await expect(host).toHaveAttribute('aria-live', 'polite');
+    await expect(host).toContainText('Welcome back, Priya');
+    const log = await page.evaluate(
+      () => (window as unknown as { liveLog: Record<string, number> }).liveLog,
+    );
+    expect(log.regionChildren).toBe(0);
+    expect(log.snackbarAt! - log.regionAt!).toBeGreaterThanOrEqual(90);
+  });
+
+  test('a snackbar without a host announces its message politely', async ({ page }) => {
+    await openStory(page, 'components-snackbar--playground');
+    const region = page.locator('[data-windmorph-announcer]');
+    await expect(region).toHaveAttribute('aria-live', 'polite');
+    await expect(region).toHaveText('Message archived');
+    // Visually hidden.
+    expect((await region.boundingBox())!.width).toBeLessThanOrEqual(1);
+  });
 });
 
 test.describe('Snackbar layout safety', () => {

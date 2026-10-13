@@ -21,21 +21,28 @@ function isRendered(el: HTMLElement): boolean {
 }
 
 /**
- * The first element inside `root` that Tab would reach: focusable, not disabled, not
- * `tabindex="-1"`, not in an `inert` or `hidden` subtree, and rendered. Null when there's
- * none. `skip` leaves out elements the caller doesn't want to start on. (React Aria's tree
- * walker isn't part of its public API.)
+ * The elements inside `root` that Tab would reach, in document order: focusable, not
+ * disabled, not `tabindex="-1"`, not in an `inert` or `hidden` subtree, and rendered. `skip`
+ * leaves out elements the caller doesn't want. (React Aria's tree walker isn't part of its
+ * public API.)
  */
+export function tabbables(root: Element, skip?: (el: HTMLElement) => boolean): HTMLElement[] {
+  return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
+    (el) =>
+      el.tabIndex >= 0 &&
+      !el.matches(':disabled') &&
+      !el.closest('[inert], [hidden]') &&
+      isRendered(el) &&
+      !skip?.(el),
+  );
+}
+
+/** The first of {@link tabbables}, or null when there's none. */
 export function firstTabbable(
   root: Element,
   skip?: (el: HTMLElement) => boolean,
 ): HTMLElement | null {
-  for (const el of root.querySelectorAll<HTMLElement>(TABBABLE)) {
-    if (el.tabIndex < 0 || el.matches(':disabled') || el.closest('[inert], [hidden]')) continue;
-    if (!isRendered(el) || skip?.(el)) continue;
-    return el;
-  }
-  return null;
+  return tabbables(root, skip)[0] ?? null;
 }
 
 /** A key combination such as `"Alt+G"` or `"Control+Shift+K"`, matched against an event. */

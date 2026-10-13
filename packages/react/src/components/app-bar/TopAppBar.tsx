@@ -3,7 +3,7 @@
 import { useRef, type ComponentPropsWithRef, type ReactNode, type RefObject } from 'react';
 import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
-import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
+import { AppBarItems } from './AppBarItems';
 import { topAppBarStyles, type TopAppBarTitleAlign, type TopAppBarVariant } from './app-bar-styles';
 import { useAppBarScroll, type TopAppBarScrollBehavior } from './use-app-bar-scroll';
 
@@ -102,7 +102,7 @@ export function TopAppBar({
       data-collapsed={scroll.collapsed || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <ButtonContext value={standardIconButtons}>
+      <AppBarItems>
         <div className={styles.row({ class: classNames?.row })}>
           {navigationIcon != null && (
             <div className={styles.navigation({ class: classNames?.navigation })}>
@@ -130,7 +130,7 @@ export function TopAppBar({
             {subtitle != null && <div className={styles.expandedSubtitle()}>{subtitle}</div>}
           </div>
         )}
-      </ButtonContext>
+      </AppBarItems>
     </header>
   );
 }

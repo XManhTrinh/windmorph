@@ -11,6 +11,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   Without a subhead the text starts 12px down, and without an action it ends 8px from the
  *   bottom (the spec's 12 / 8px padding); with an action it has 16px under it, and the action
  *   row is at least 36px tall with 8px under it.
+ * - Both take their natural width (`w-max`) up to the maximum, so React Aria measures it and
+ *   shifts the box inside the 8px screen margin rather than squeezing it against the edge; a
+ *   rich tooltip never gets wider than the window less those margins.
  * - Both sit 4px from the anchor. They expand along the axis facing the anchor (a clip-path
  *   reveal from the anchor's side) on the fast spatial spring while fading on fast effects:
  *   the spec avoids scale motion. The clip rests 16px outside the box, so the shadow and the
@@ -38,7 +41,7 @@ const motion = [
 export const tooltipStyles = tv({
   slots: {
     root: [
-      'z-(--md-sys-z-tooltip) min-h-[24px] min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
+      'z-(--md-sys-z-tooltip) min-h-[24px] w-max min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
       'rounded-corner-extra-small bg-inverse-surface font-plain text-body-small text-inverse-on-surface',
       ...motion,
     ],
@@ -50,7 +53,7 @@ export const tooltipStyles = tv({
 export const richTooltipStyles = tv({
   slots: {
     root: [
-      'z-(--md-sys-z-tooltip) flex min-h-[24px] min-w-[40px] max-w-[320px] flex-col px-[16px] outline-none',
+      'z-(--md-sys-z-tooltip) flex min-h-[24px] w-max min-w-[40px] max-w-[min(320px,100vw_-_16px)] flex-col px-[16px] outline-none',
       'rounded-corner-medium bg-surface-container font-plain text-on-surface-variant shadow-elevation-2',
       ...motion,
     ],

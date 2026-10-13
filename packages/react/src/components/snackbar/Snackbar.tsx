@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  createContext,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -11,12 +13,16 @@ import {
 } from 'react';
 import { useObjectRef } from 'react-aria';
 import { usePresence } from '../../primitives/use-presence';
+import { announcePolite, LIVE_REGION_DELAY } from '../../utils/announce';
 import { cn } from '../../utils/cn';
 import { firstTabbable, matchesShortcut } from '../../utils/focus';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { durationMillis, SnackbarHostState, type SnackbarData } from './snackbar-state';
 import { snackbarHostStyles, snackbarStyles } from './snackbar-styles';
+
+/** Whether a snackbar is inside a {@link SnackbarHost}, whose live region announces it. */
+const InSnackbarHost = createContext(false);
 
 /** Material Symbols "close" (Apache-2.0). */
 function CloseIcon() {
@@ -63,6 +69,9 @@ export type SnackbarProps = SnackbarOwnProps &
  * button. Usually shown through a {@link SnackbarHost}; render it directly for custom
  * placement. Escape dismisses it while focus is inside (`onEscape`, or `onDismiss`).
  *
+ * Outside a host it announces its message politely itself, when it appears and when the
+ * message changes, without moving focus (the host's live region does this inside one).
+ *
  * @example
  * <Snackbar actionLabel="Undo" onAction={undo} onDismiss={close}>Message archived</Snackbar>
  */
@@ -84,6 +93,17 @@ export function Snackbar({
     dismissible: onDismiss !== undefined,
   });
   const hasActions = actionLabel !== undefined || onDismiss !== undefined;
+  const inHost = useContext(InSnackbarHost);
+  const messageRef = useRef<HTMLDivElement>(null);
+  const announced = useRef('');
+  // Runs after every render, but announces only a new message.
+  useEffect(() => {
+    if (inHost) return;
+    const text = messageRef.current?.textContent?.trim() ?? '';
+    if (!text || text === announced.current) return;
+    announced.current = text;
+    announcePolite(text);
+  });
   return (
     <div
       {...rest}
@@ -96,7 +116,9 @@ export function Snackbar({
       }}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <div className={styles.message({ class: classNames?.message })}>{children}</div>
+      <div ref={messageRef} className={styles.message({ class: classNames?.message })}>
+        {children}
+      </div>
       {hasActions && (
         <div className={styles.actions({ class: classNames?.actions })}>
           {actionLabel !== undefined && (
@@ -152,6 +174,8 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
  *   while the pointer or focus is on the snackbar. On the web, use an auto-dismissing
  *   snackbar only alongside inline feedback for the same event: it may be gone before
  *   someone reads it. Snackbars with an action stay until acted on or dismissed.
+ * - The live region is rendered empty first: a snackbar shown before the host mounts (one
+ *   at launch) appears once the region has been registered, so it's announced.
  * - `focusShortcut` (Alt+G) moves focus to a snackbar with actions; Escape dismisses it.
  *   When it leaves, focus returns to where it was before it entered the snackbar.
  *
@@ -178,6 +202,13 @@ export function SnackbarHost({
     if (current && !items.includes(current)) setItems([...items, current]);
   }
   const rootRef = useObjectRef(ref);
+  // Screen readers often skip content that arrives with its live region, so snackbars go in
+  // only once the empty region has been on the page for a moment.
+  const [regionReady, setRegionReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setRegionReady(true), LIVE_REGION_DELAY);
+    return () => clearTimeout(timer);
+  }, []);
 
   // The shortcut focuses the shown snackbar's first control, if it has one.
   useEffect(() => {
@@ -203,7 +234,7 @@ export function SnackbarHost({
       aria-atomic="false"
       className={styles.root({ class: className })}
     >
-      {items.map((data) => (
+      {(regionReady ? items : []).map((data) => (
         <HostItem
           key={data.id}
           data={data}
@@ -306,7 +337,7 @@ function HostItem({
       }}
       className={className}
     >
-      {children}
+      <InSnackbarHost value>{children}</InSnackbarHost>
     </div>
   );
 }

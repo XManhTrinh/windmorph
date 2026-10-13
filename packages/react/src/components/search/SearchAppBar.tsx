@@ -3,7 +3,7 @@
 import type { ComponentPropsWithRef, ReactNode, RefObject } from 'react';
 import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
-import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
+import { AppBarItems } from '../app-bar/AppBarItems';
 import { useAppBarScroll } from '../app-bar/use-app-bar-scroll';
 import { SearchAppBarContext } from './SearchBar';
 import { searchAppBarStyles } from './search-styles';
@@ -74,7 +74,7 @@ export function SearchAppBar({
       data-scrolled={scroll.scrolled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <ButtonContext value={standardIconButtons}>
+      <AppBarItems>
         {navigationIcon != null && (
           <div className={styles.navigation({ class: classNames?.navigation })}>
             {navigationIcon}
@@ -88,7 +88,7 @@ export function SearchAppBar({
         {actions != null && (
           <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
         )}
-      </ButtonContext>
+      </AppBarItems>
     </header>
   );
 }

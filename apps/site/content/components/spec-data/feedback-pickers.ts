@@ -125,6 +125,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['progress/progress-linear', 'progress/progress-circular'],
       },
       {
+        name: 'Size: circular, 24 to 240dp',
+        kind: 'configuration',
+        examples: ['progress/progress-sizes'],
+      },
+      {
         name: 'Inside a button, without a track',
         kind: 'use case',
         examples: ['progress/progress-track'],
@@ -143,9 +148,9 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'progress', windmorph: 'value', note: 'Leave it out for indeterminate.' },
           {
-            compose: 'Modifier.size(…)',
-            windmorph: 'size',
-            note: 'In px, clamped to the spec’s 24–240px.',
+            compose: 'Modifier.width(…)',
+            windmorph: 'className',
+            note: '240px by default; `w-full` spans the container.',
           },
           {
             compose: 'strokeCap, gapSize',
@@ -172,6 +177,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         component: 'CircularProgressIndicator',
         params: [
           { compose: 'progress', windmorph: 'value' },
+          {
+            compose: 'Modifier.size(…)',
+            windmorph: 'size',
+            note: 'In px, clamped to the spec’s 24–240px; the strokes keep their thickness.',
+          },
           { compose: 'strokeWidth', windmorph: 'thickness' },
           { compose: 'trackColor = Color.Transparent', windmorph: 'track={false}' },
         ],

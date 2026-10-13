@@ -148,6 +148,20 @@ describe('thickness', () => {
     expect(circularSize(false, { active: 4, track: 8 })).toBe(44);
   });
 
+  it('takes an explicit circular size within the spec’s 24–240px, whatever the strokes', () => {
+    expect(circularSize(false, undefined, 96)).toBe(96);
+    expect(circularSize(true, thick, 96)).toBe(96);
+    expect(circularSize(false, undefined, 12)).toBe(24);
+    expect(circularSize(true, undefined, 1000)).toBe(240);
+  });
+
+  it('keeps Compose’s wavelength at other sizes: more waves around a bigger ring', () => {
+    // 2πr / 15px, r = (size − stroke) / 2.
+    expect(circularWavyShapes(48).vertices).toBe(Math.round((Math.PI * 44) / 15));
+    expect(circularWavyShapes(240).vertices).toBe(Math.round((Math.PI * 236) / 15));
+    expect(circularWavyShapes(24).vertices).toBe(5);
+  });
+
   it('insets the line for the thicker cap and keeps the 3px wave', () => {
     const { active } = linearPaths(240, 8, [0, 0.5], 0, 0, 40, thick);
     expect(active).toEqual(['M4 4L120 4']);

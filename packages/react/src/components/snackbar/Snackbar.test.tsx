@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { LIVE_REGION_DELAY } from '../../utils/announce';
 import { Snackbar, SnackbarHost } from './Snackbar';
 import { durationMillis, SnackbarHostState } from './snackbar-state';
 
@@ -94,12 +95,19 @@ describe('Snackbar', () => {
   });
 });
 
+/** Lets a newly mounted host's live region settle, as it does before showing snackbars. */
+async function hostReady() {
+  if (vi.isFakeTimers()) act(() => vi.advanceTimersByTime(LIVE_REGION_DELAY));
+  else await act(() => new Promise((resolve) => setTimeout(resolve, LIVE_REGION_DELAY)));
+}
+
 describe('SnackbarHost', () => {
   afterEach(() => vi.useRealTimers());
 
   it('shows the current snackbar in a polite live region and resolves the action', async () => {
     const state = new SnackbarHostState();
     render(<SnackbarHost state={state} data-testid="host" />);
+    await hostReady();
     expect(screen.getByTestId('host')).toHaveAttribute('aria-live', 'polite');
     let result: Promise<string> | undefined;
     act(() => {
@@ -112,10 +120,11 @@ describe('SnackbarHost', () => {
     expect(screen.getByText('Archived').closest('[inert]')).not.toBeNull();
   });
 
-  it('dismisses a short snackbar after 4s, pausing while hovered', () => {
+  it('dismisses a short snackbar after 4s, pausing while hovered', async () => {
     vi.useFakeTimers();
     const state = new SnackbarHostState();
     render(<SnackbarHost state={state} />);
+    await hostReady();
     const done = vi.fn();
     act(() => {
       void state.showSnackbar('Saved').then(done);
@@ -134,6 +143,7 @@ describe('SnackbarHost', () => {
   it('dismisses on Escape even without the × button', async () => {
     const state = new SnackbarHostState();
     render(<SnackbarHost state={state} />);
+    await hostReady();
     let result: Promise<string> | undefined;
     act(() => {
       result = state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
@@ -152,6 +162,7 @@ describe('SnackbarHost', () => {
         <SnackbarHost state={state} data-testid="host" />
       </>,
     );
+    await hostReady();
     const archive = screen.getByRole('button', { name: 'Archive' });
     archive.focus();
     act(() => {
@@ -167,9 +178,10 @@ describe('SnackbarHost', () => {
     expect(archive).toHaveFocus();
   });
 
-  it('can change or turn off the shortcut, and leaves snackbars without actions alone', () => {
+  it('can change or turn off the shortcut, and leaves snackbars without actions alone', async () => {
     const state = new SnackbarHostState();
     const { rerender } = render(<SnackbarHost state={state} focusShortcut={false} />);
+    await hostReady();
     act(() => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
@@ -187,9 +199,10 @@ describe('SnackbarHost', () => {
     );
   });
 
-  it('expands upward with a clip instead of scaling', () => {
+  it('expands upward with a clip instead of scaling', async () => {
     const state = new SnackbarHostState();
     render(<SnackbarHost state={state} />);
+    await hostReady();
     act(() => {
       void state.showSnackbar('Saved');
     });
@@ -198,10 +211,11 @@ describe('SnackbarHost', () => {
     expect(item.className).not.toMatch(/scale/);
   });
 
-  it('removes a snackbar once it has faded out', () => {
+  it('removes a snackbar once it has faded out', async () => {
     vi.useFakeTimers();
     const state = new SnackbarHostState();
     render(<SnackbarHost state={state} />);
+    await hostReady();
     act(() => {
       void state.showSnackbar({ message: 'Bye', withDismissAction: true });
     });
@@ -209,5 +223,72 @@ describe('SnackbarHost', () => {
     expect(screen.getByText('Bye')).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1000));
     expect(screen.queryByText('Bye')).toBeNull();
+  });
+
+  it('renders its live region empty first, so a snackbar shown before it mounts is announced', () => {
+    vi.useFakeTimers();
+    const state = new SnackbarHostState();
+    // Shown at launch, before the host is on the page.
+    void state.showSnackbar('Welcome back');
+    render(<SnackbarHost state={state} data-testid="host" />);
+    const host = screen.getByTestId('host');
+    expect(host).toHaveAttribute('aria-live', 'polite');
+    expect(host).toBeEmptyDOMElement();
+    act(() => vi.advanceTimersByTime(LIVE_REGION_DELAY - 1));
+    expect(host).toBeEmptyDOMElement();
+    act(() => vi.advanceTimersByTime(1));
+    expect(host).toHaveTextContent('Welcome back');
+    // Its 4s starts once it's shown.
+    act(() => vi.advanceTimersByTime(3999));
+    expect(state.currentSnackbarData).not.toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(state.currentSnackbarData).toBeNull();
+  });
+
+  it('announces through its own region, not a second one', async () => {
+    document.querySelector('[data-windmorph-announcer]')?.remove();
+    const state = new SnackbarHostState();
+    render(<SnackbarHost state={state} />);
+    await hostReady();
+    act(() => {
+      void state.showSnackbar('Saved');
+    });
+    await new Promise((resolve) => setTimeout(resolve, LIVE_REGION_DELAY + 50));
+    expect(document.querySelector('[data-windmorph-announcer]')?.textContent ?? '').toBe('');
+  });
+});
+
+describe('Snackbar without a host', () => {
+  const announcer = () => document.querySelector('[data-windmorph-announcer]');
+  // Earlier tests' snackbars announced into the page's region; start with none.
+  beforeEach(() => announcer()?.remove());
+
+  it('announces its message politely once the region is registered, and again when it changes', () => {
+    vi.useFakeTimers();
+    try {
+      const { rerender, unmount } = render(
+        <Snackbar actionLabel="Undo">Message archived</Snackbar>,
+      );
+      const region = announcer();
+      expect(region).toHaveAttribute('aria-live', 'polite');
+      // Empty while screen readers register it.
+      expect(region).toBeEmptyDOMElement();
+      act(() => vi.advanceTimersByTime(LIVE_REGION_DELAY));
+      expect(region).toHaveTextContent(/^Message archived$/);
+      // A re-render with the same message doesn't repeat it.
+      rerender(<Snackbar actionLabel="Undo">Message archived</Snackbar>);
+      expect(region?.childElementCount).toBe(1);
+      rerender(<Snackbar actionLabel="Undo">2 messages archived</Snackbar>);
+      expect(region?.lastElementChild).toHaveTextContent('2 messages archived');
+      // Announcements are cleared after they've been read; the region stays for the next.
+      act(() => vi.advanceTimersByTime(7000));
+      expect(region).toBeEmptyDOMElement();
+      unmount();
+      render(<Snackbar>Saved</Snackbar>);
+      expect(announcer()).toBe(region);
+      expect(region).toHaveTextContent('Saved');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

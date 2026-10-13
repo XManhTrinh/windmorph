@@ -14,9 +14,10 @@ import {
   RichTooltipTrigger,
   Tooltip,
   TooltipTrigger,
+  TopAppBar,
   type TooltipPlacement,
 } from '@windmorph/react';
-import { DeleteIcon, EditIcon, MoreVertIcon, SearchIcon, StarIcon } from './icons';
+import { ArrowBackIcon, DeleteIcon, EditIcon, MoreVertIcon, SearchIcon, StarIcon } from './icons';
 
 interface Args {
   placement: TooltipPlacement;
@@ -124,6 +125,36 @@ export const Rich: Story = {
   ),
 };
 
+/**
+ * Keyboard order: a persistent rich tooltip is next in the Tab order after its trigger
+ * (trigger → link → button → the rest of the page), though it's portalled. Opening it leaves
+ * focus on the trigger.
+ */
+export const RichKeyboard: Story = {
+  render: () => (
+    <div className="flex items-start gap-4 p-48" data-testid="rich-keyboard">
+      <Button variant="outlined">Before</Button>
+      <RichTooltipTrigger persistent>
+        <Button variant="tonal">What are grouped tabs?</Button>
+        <RichTooltip
+          title="Grouped tabs"
+          action={
+            <>
+              <Button variant="text" href="#grouped-tabs">
+                Learn more
+              </Button>
+              <Button variant="text">Got it</Button>
+            </>
+          }
+        >
+          Tabs from the same site stay together, so related pages are easy to find.
+        </RichTooltip>
+      </RichTooltipTrigger>
+      <Button variant="outlined">After</Button>
+    </div>
+  ),
+};
+
 /** A transient rich tooltip (the default): hover, focus or long-press; below and to the end. */
 export const RichTransient: Story = {
   args: { placement: 'bottom start' },
@@ -135,6 +166,45 @@ export const RichTransient: Story = {
           Tabs from the same site stay together, so related pages are easy to find.
         </RichTooltip>
       </RichTooltipTrigger>
+    </div>
+  ),
+};
+
+/**
+ * Anchors at the window's end edge: the tooltips keep their natural width and move inside
+ * the 8px margin instead of being squeezed. Try it at phone width.
+ */
+export const AtTheEdge: Story = {
+  render: () => (
+    <div className="flex flex-col items-end gap-24 py-16" data-testid="edge">
+      <TooltipTrigger placement="bottom">
+        <IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" tooltip={false} />
+        <Tooltip>Search messages in all folders</Tooltip>
+      </TooltipTrigger>
+      <RichTooltipTrigger persistent>
+        <Button variant="tonal">Tabs</Button>
+        <RichTooltip title="Grouped tabs" action={<Button variant="text">Learn more</Button>}>
+          Tabs from the same site stay together, so related pages are easy to find.
+        </RichTooltip>
+      </RichTooltipTrigger>
+    </div>
+  ),
+};
+
+/** In an app bar, icon buttons' tooltips open below them (M3). */
+export const InAppBar: Story = {
+  render: () => (
+    <div className="w-[412px] pt-64" data-testid="app-bar">
+      <TopAppBar
+        title="Inbox"
+        navigationIcon={<IconButton icon={<ArrowBackIcon />} aria-label="Back" />}
+        actions={
+          <>
+            <IconButton icon={<StarIcon />} aria-label="Favourite" />
+            <IconButton icon={<MoreVertIcon />} aria-label="More" />
+          </>
+        }
+      />
     </div>
   ),
 };

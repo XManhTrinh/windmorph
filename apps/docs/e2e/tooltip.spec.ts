@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -176,5 +176,220 @@ test.describe('Tooltip behaviour', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
+  });
+
+  test('a persistent rich tooltip keeps focus on its trigger and sits next in the Tab order', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich-keyboard');
+    const trigger = page.getByRole('button', { name: 'What are grouped tabs?' });
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    const learnMore = dialog.getByRole('link', { name: 'Learn more' });
+    const gotIt = dialog.getByRole('button', { name: 'Got it' });
+    const before = page.getByRole('button', { name: 'Before' });
+    const after = page.getByRole('button', { name: 'After' });
+
+    // Opening from the keyboard or a press leaves focus on the trigger.
+    await before.focus();
+    await page.keyboard.press('Tab');
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await expect(trigger).toBeFocused();
+    await expect(dialog).not.toHaveAttribute('aria-modal');
+    await expect(trigger).toHaveAttribute('aria-controls', (await dialog.getAttribute('id'))!);
+
+    // Tab: trigger → link → button; Shift+Tab back to the trigger and before it.
+    await page.keyboard.press('Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(gotIt).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await expect(dialog).toBeVisible();
+
+    // Escape from inside closes it and returns focus to the trigger; from the trigger too.
+    await page.keyboard.press('Tab');
+    await expect(learnMore).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+
+    // No trap: Tab past its last control goes on to the page (and closes it, as focus moved
+    // to another element).
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await expect(gotIt).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(after).toBeFocused();
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('Shift+Tab from what follows an open persistent rich tooltip enters it from its end', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich-keyboard');
+    const trigger = page.getByRole('button', { name: 'What are grouped tabs?' });
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    // Focus After without a press (a press would be an interaction outside, closing it).
+    await page.getByRole('button', { name: 'After' }).evaluate((el) => (el as HTMLElement).focus());
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialog.getByRole('button', { name: 'Got it' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialog.getByRole('link', { name: 'Learn more' })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(trigger).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('button', { name: 'Before' })).toBeFocused();
+  });
+
+  /**
+   * Records the clip-path of the first element matching `selector` that's inserted, from its
+   * insertion for the next `count` frames.
+   */
+  async function recordEntry(page: Page, selector: string, count = 8) {
+    await page.evaluate(
+      ([selector, count]) => {
+        const frames: string[] = [];
+        (window as unknown as { entryFrames: string[] }).entryFrames = frames;
+        const observer = new MutationObserver(() => {
+          const element = document.querySelector(selector);
+          if (!element) return;
+          observer.disconnect();
+          const record = () => {
+            frames.push(getComputedStyle(element).clipPath);
+            if (frames.length < count) requestAnimationFrame(record);
+          };
+          record();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      },
+      [selector, count] as const,
+    );
+    return async () => {
+      await expect
+        .poll(() =>
+          page.evaluate(() => (window as unknown as { entryFrames: string[] }).entryFrames.length),
+        )
+        .toBe(count);
+      return page.evaluate(() => (window as unknown as { entryFrames: string[] }).entryFrames);
+    };
+  }
+
+  test('a plain tooltip is revealed from the anchor side on entry, not only faded', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--plain');
+    await page.mouse.move(5, 5);
+    const frames = await recordEntry(page, '[role="tooltip"]');
+    await page.getByRole('button', { name: 'Edit' }).hover();
+    const clips = await frames();
+    // Above the anchor, the clip starts at the bottom edge (`inset(100% …)`) and opens upwards.
+    expect(clips[0]).toMatch(/^inset\((100|9\d(\.\d+)?)%/);
+    expect(clips.some((clip) => clip !== clips[0])).toBe(true);
+    await expect
+      .poll(() => page.getByRole('tooltip').evaluate((el) => getComputedStyle(el).clipPath))
+      .toBe('inset(-16px)');
+  });
+
+  test('a persistent rich tooltip in RTL is revealed downwards on entry', async ({ page }) => {
+    await openStory(
+      page,
+      'components-tooltip--rich',
+      { dir: 'rtl' },
+      { placement: 'bottom start' },
+    );
+    const frames = await recordEntry(page, '[role="dialog"]');
+    await page.getByRole('button', { name: 'What are grouped tabs?' }).click();
+    const clips = await frames();
+    // Below the anchor, the clip starts at the top edge and opens downwards.
+    expect(clips[0]).toMatch(/^inset\(-16px -16px (100|9\d(\.\d+)?)%/);
+    expect(clips.some((clip) => clip !== clips[0])).toBe(true);
+  });
+
+  test('a persistent rich tooltip closes on a press on empty space or on another element', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tooltip--rich');
+    const trigger = page.getByRole('button', { name: 'What are grouped tabs?' });
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    // Moving away keeps it open (it's persistent)…
+    await page.mouse.move(600, 500);
+    await page.waitForTimeout(1800);
+    await expect(dialog).toBeVisible();
+    // …a press inside it keeps it open…
+    await dialog.getByText('Tabs from the same site').click();
+    await expect(dialog).toBeVisible();
+    // …and a press on empty space closes it.
+    await page.mouse.click(600, 500);
+    await expect(dialog).toHaveCount(0);
+    // The trigger toggles it.
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await trigger.click();
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('a persistent rich tooltip closes on a press on another button', async ({ page }) => {
+    await openStory(page, 'components-tooltip--at-the-edge');
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await page.getByRole('button', { name: 'Tabs' }).click();
+    await expect(dialog).toBeVisible();
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('at the screen edge tooltips keep their natural width and move inside the margin', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 800 });
+    await openStory(page, 'components-tooltip--at-the-edge');
+    await page.getByRole('button', { name: 'Tabs' }).click();
+    const rich = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await expect(rich).toBeVisible();
+    const richBox = (await rich.boundingBox())!;
+    // The full 320px, ending 8px from the edge, rather than squeezed against it.
+    expect(Math.round(richBox.width)).toBe(320);
+    expect(Math.round(richBox.x + richBox.width)).toBe(360 - 8);
+    await page.keyboard.press('Escape');
+    await expect(rich).toHaveCount(0);
+
+    const search = page.getByRole('button', { name: 'Search' });
+    await search.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    const plain = page.getByRole('tooltip');
+    await expect(plain).toHaveText('Search messages in all folders');
+    const plainBox = (await plain.boundingBox())!;
+    // One line (24px tall), shifted to keep 8px from the edge.
+    expect(Math.round(plainBox.height)).toBe(24);
+    expect(Math.round(plainBox.x + plainBox.width)).toBeLessThanOrEqual(360 - 8);
+  });
+
+  test('icon buttons in a top app bar show their tooltips below', async ({ page }) => {
+    await openStory(page, 'components-tooltip--in-app-bar');
+    const favourite = page.getByRole('button', { name: 'Favourite' });
+    await page.mouse.move(5, 5);
+    await favourite.hover();
+    const tooltip = page.getByRole('tooltip');
+    await expect(tooltip).toHaveText('Favourite');
+    const anchor = (await favourite.boundingBox())!;
+    const tip = (await tooltip.boundingBox())!;
+    // Room above (the bar sits 64px down), yet it opens 4px below.
+    expect(Math.round(tip.y - (anchor.y + anchor.height))).toBe(4);
   });
 });

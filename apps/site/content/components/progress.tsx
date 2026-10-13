@@ -2,6 +2,7 @@ import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { ProgressCircular } from '../../examples/progress/progress-circular';
 import { ProgressLinear } from '../../examples/progress/progress-linear';
+import { ProgressSizes } from '../../examples/progress/progress-sizes';
 import { ProgressTrack } from '../../examples/progress/progress-track';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
@@ -9,14 +10,16 @@ import { InlineCode } from '../../components/inline-code';
 
 /** Progress indicators page body. */
 export async function ProgressBody(): Promise<ComponentDoc> {
-  const [linear, circular, progressTrack] = await Promise.all([
+  const [linear, circular, sizes, progressTrack] = await Promise.all([
     readExampleSource('progress/progress-linear.tsx'),
     readExampleSource('progress/progress-circular.tsx'),
+    readExampleSource('progress/progress-sizes.tsx'),
     readExampleSource('progress/progress-track.tsx'),
   ]);
-  const [linearHtml, circularHtml, progressTrackHtml] = await Promise.all([
+  const [linearHtml, circularHtml, sizesHtml, progressTrackHtml] = await Promise.all([
     highlightSource(linear),
     highlightSource(circular),
+    highlightSource(sizes),
     highlightSource(progressTrack),
   ]);
 
@@ -42,6 +45,14 @@ export async function ProgressBody(): Promise<ComponentDoc> {
             fileName="progress-circular.tsx"
           >
             <ProgressCircular />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Circular sizes"
+            code={sizes}
+            html={sizesHtml}
+            fileName="progress-sizes.tsx"
+          >
+            <ProgressSizes />
           </ExampleViewer>
           <ExampleViewer
             title="Track, stop dot and in a button"

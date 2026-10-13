@@ -86,8 +86,14 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               The host is a persistent <InlineCode>aria-live=&quot;polite&quot;</InlineCode> region,
-              so each new message is announced without moving focus. Snackbars never take focus
-              themselves.
+              so each new message is announced without moving focus. The region goes on the page
+              empty and snackbars follow, so one shown at launch is announced too. Snackbars never
+              take focus themselves.
+            </li>
+            <li>
+              A <InlineCode>Snackbar</InlineCode> rendered without a host announces its message
+              politely itself, when it appears and when the message changes. Don&apos;t also put it
+              in a live region of your own.
             </li>
             <li>
               <kbd className="text-on-surface">Alt+G</kbd> moves focus to a snackbar with an action

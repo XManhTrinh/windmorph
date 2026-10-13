@@ -364,6 +364,13 @@ export interface CircularProgressIndicatorClassNames {
 }
 
 interface CircularOwnProps extends SharedOwnProps {
+  /**
+   * The diameter in px. The spec: circular indicators "can range from 24dp to 240dp"; values
+   * outside that range are clamped. The strokes keep their `thickness`; the ring and its wave
+   * grow (more waves of the same length, as in Compose).
+   * @default 40, or 48 when wavy (plus any extra thickness)
+   */
+  size?: number;
   classNames?: CircularProgressIndicatorClassNames;
 }
 
@@ -424,7 +431,8 @@ function circularAttributes(
  * M3 circular progress indicator: determinate (`value`) or indeterminate, flat (40px) or wavy
  * (48px), drawn clockwise from 12 o'clock over a track. A wavy indicator's wave travels
  * around the ring. `thickness` and `trackThickness` set the strokes (4px by default); the spec's
- * thick configuration (8px) makes it 44px, or 52px wavy. It isn't mirrored in right-to-left
+ * thick configuration (8px) makes it 44px, or 52px wavy. `size` sets the diameter (24–240px).
+ * It isn't mirrored in right-to-left
  * layouts. For short waits, {@link LoadingIndicator} is recommended.
  *
  * @example
@@ -434,6 +442,7 @@ function circularAttributes(
 export function CircularProgressIndicator({
   value,
   wavy = false,
+  size: sizeProp,
   thickness = STROKE,
   trackThickness,
   track: showTrack = true,
@@ -447,7 +456,7 @@ export function CircularProgressIndicator({
   const v = clamp01(value ?? 0);
   const reduceMotion = useReducedMotion() ?? false;
   const strokes = strokesFor(thickness, trackThickness);
-  const size = circularSize(wavy, strokes);
+  const size = circularSize(wavy, strokes, sizeProp);
   const ampTarget = wavy ? (indeterminate ? 1 : amplitudeFor(v)) : 0;
   const amplitude = useAmplitude(ampTarget, reduceMotion);
   const handoff = useHandoff<CircularFrame>(indeterminate, reduceMotion);

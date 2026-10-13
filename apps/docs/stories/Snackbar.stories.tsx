@@ -38,6 +38,22 @@ export const Layouts: Story = {
   ),
 };
 
+/**
+ * A snackbar shown at launch, before its host mounts: the host's live region goes in empty and
+ * the snackbar follows once screen readers have registered it, so it's announced.
+ */
+export const AtLaunch: Story = {
+  render: function AtLaunchStory() {
+    const snackbar = useSnackbarHostState();
+    useState(() => void snackbar.showSnackbar('Welcome back, Priya'));
+    return (
+      <div className="relative h-[200px] max-w-[640px] overflow-hidden rounded-corner-large bg-surface-container">
+        <SnackbarHost state={snackbar} data-testid="host" className="absolute inset-x-0 bottom-0" />
+      </div>
+    );
+  },
+};
+
 /** `SnackbarHost` with a queue: each button queues a snackbar. */
 export const Host: Story = {
   render: function HostStory() {
