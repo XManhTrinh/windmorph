@@ -20,6 +20,12 @@ export interface SearchEntry {
    * one opens the page's API tab.
    */
   codeNames?: string[];
+  /**
+   * The public prop names a component page documents (`scrolledColor`, `iconTransition`),
+   * leaving out the ones most components share (see {@link searchablePropNames}). A match
+   * opens the page's API tab.
+   */
+  propNames?: string[];
   /** A component page's tabs beyond Overview, by tab, for queries such as "slider keyboard". */
   tabHrefs?: Partial<Record<SubTab, string>>;
 }
@@ -58,6 +64,35 @@ const TAB_WORDS: Record<string, SubTab> = {
   usage: 'guidelines',
   'when to use': 'guidelines',
 };
+
+/**
+ * A prop name on more pages than this is shared API (`size`, `variant`, `className`), which
+ * finds nothing in particular, so it is left out of the index.
+ */
+export const MAX_PAGES_PER_PROP = 3;
+
+/**
+ * Each page's prop names worth searching for: its components' props, minus the ones shared
+ * by more than {@link MAX_PAGES_PER_PROP} pages and the ARIA attributes. Keeps the static
+ * index small while every distinctive prop still finds its page.
+ */
+export function searchablePropNames(
+  pages: readonly { slug: string; props: readonly string[] }[],
+): Map<string, string[]> {
+  const pagesPerProp = new Map<string, number>();
+  const unique = pages.map(({ slug, props }) => ({ slug, props: [...new Set(props)] }));
+  for (const { props } of unique) {
+    for (const prop of props) pagesPerProp.set(prop, (pagesPerProp.get(prop) ?? 0) + 1);
+  }
+  return new Map(
+    unique.map(({ slug, props }) => [
+      slug,
+      props.filter(
+        (prop) => !prop.startsWith('aria-') && (pagesPerProp.get(prop) ?? 0) <= MAX_PAGES_PER_PROP,
+      ),
+    ]),
+  );
+}
 
 /** The heading guide and gallery results are grouped under. */
 export const GUIDES_CATEGORY = 'Guides';
@@ -121,7 +156,16 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     summary:
       'Jetpack Compose Material 3 composables and their key parameters, mapped to Windmorph components and props.',
     href: '/from-compose',
-    keywords: ['Jetpack Compose', 'Android', 'composable', 'migrate', 'port'],
+    keywords: [
+      'Jetpack Compose',
+      'Android',
+      'composable',
+      'migrate',
+      'port',
+      'Compose tokens',
+      'token mapping',
+      'FilledButtonTokens',
+    ],
   },
   {
     title: 'Spec status',
@@ -151,7 +195,8 @@ export const SUGGESTED_HREFS = [
 
 /**
  * A component page's search entry. Its code names (the components it documents and its
- * hooks) find it too, opening its API tab; `tabs` are the tabs the page has.
+ * hooks) and its distinctive prop names find it too, opening its API tab; `tabs` are the
+ * tabs the page has.
  */
 export function componentSearchEntry(
   page: {
@@ -164,6 +209,7 @@ export function componentSearchEntry(
     hooks?: string[];
   },
   tabs: readonly ComponentTab[] = ['overview', 'api', 'accessibility', 'guidelines'],
+  propNames: readonly string[] = [],
 ): SearchEntry {
   const tabHrefs: SearchEntry['tabHrefs'] = {};
   for (const tab of tabs) if (tab !== 'overview') tabHrefs[tab] = componentTabHref(page.slug, tab);
@@ -175,6 +221,7 @@ export function componentSearchEntry(
     group: page.railGroup,
     keywords: page.keywords,
     codeNames: [...page.propsComponents, ...(page.hooks ?? [])],
+    ...(propNames.length > 0 && { propNames: [...propNames] }),
     tabHrefs,
   };
 }
@@ -186,6 +233,7 @@ interface IndexedEntry {
   summary: string;
   keywords: string[];
   codeNames: string[];
+  propNames: string[];
   /** Everything above, for queries whose words match in different places. */
   all: string;
 }
@@ -203,12 +251,14 @@ export function createSearchIndex(entries: readonly SearchEntry[]): SearchIndex 
       const summary = entry.summary.toLowerCase();
       const keywords = (entry.keywords ?? []).map((keyword) => keyword.toLowerCase());
       const codeNames = (entry.codeNames ?? []).map((name) => name.toLowerCase());
+      const propNames = (entry.propNames ?? []).map((name) => name.toLowerCase());
       return {
         entry,
         title,
         summary,
         keywords,
         codeNames,
+        propNames,
         all: [title, summary, ...keywords, ...codeNames].join('\n'),
       };
     }),
@@ -249,10 +299,16 @@ function tabMatches(index: SearchIndex, q: string): SearchResult[] {
   return [];
 }
 
+/** A prop name matches a query that is the name, or (from four characters) its start. */
+function propMatches(name: string, q: string): boolean {
+  return name === q || (q.length >= 4 && name.startsWith(q));
+}
+
 /**
  * Pages matching a query, at most `limit` of them, best first: a component asked for on a
- * tab, then matches on the title, the summary, keywords and code names (which open the API
- * tab), then pages holding every word of the query somewhere. An empty query finds nothing.
+ * tab, then matches on the title, the summary, keywords, code names and prop names (which
+ * open the API tab), then pages holding every word of the query somewhere. An empty query
+ * finds nothing.
  */
 export function searchPages(index: SearchIndex, query: string, limit = 12): SearchResult[] {
   const q = query.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -278,6 +334,12 @@ export function searchPages(index: SearchIndex, query: string, limit = 12): Sear
     const at = item.codeNames.findIndex((name) => name.includes(q));
     if (at < 0) continue;
     const matched = item.entry.codeNames?.[at];
+    add(tabResult(item.entry, 'api', terms, matched) ?? pageResult(item.entry, terms, matched));
+  }
+  for (const item of rest()) {
+    const at = item.propNames.findIndex((name) => propMatches(name, q));
+    if (at < 0) continue;
+    const matched = item.entry.propNames?.[at];
     add(tabResult(item.entry, 'api', terms, matched) ?? pageResult(item.entry, terms, matched));
   }
   const words = q.split(' ');

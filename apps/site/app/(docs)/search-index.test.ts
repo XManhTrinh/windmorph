@@ -1,21 +1,43 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { COMPONENT_META } from '../../content/components/catalog';
+import type { ComponentPropsFile } from '../../lib/component-props';
 import {
   componentSearchEntry,
   createSearchIndex,
   GUIDE_ENTRIES,
   groupResults,
   highlightParts,
+  MAX_PAGES_PER_PROP,
   resultTypeLabel,
+  searchablePropNames,
   searchPages,
   suggestedResults,
   SUGGESTED_HREFS,
   type SearchEntry,
 } from './search-index';
 
+/** A component's generated prop names (`pnpm --filter site generate`), as the index reads them. */
+function propNamesOf(name: string): string[] {
+  const file = resolve(process.cwd(), '.generated/props', `${name}.json`);
+  if (!existsSync(file)) return [];
+  return (JSON.parse(readFileSync(file, 'utf8')) as ComponentPropsFile).props.map(
+    (prop) => prop.name,
+  );
+}
+
+const propNames = searchablePropNames(
+  COMPONENT_META.map((page) => ({
+    slug: page.slug,
+    props: page.propsComponents.flatMap(propNamesOf),
+  })),
+);
 const entries: SearchEntry[] = [
   ...GUIDE_ENTRIES,
-  ...COMPONENT_META.map((page) => componentSearchEntry(page)),
+  ...COMPONENT_META.map((page) =>
+    componentSearchEntry(page, undefined, propNames.get(page.slug) ?? []),
+  ),
 ];
 const index = createSearchIndex(entries);
 
@@ -96,6 +118,43 @@ describe('searchPages', () => {
     }
   });
 
+  it('finds a component by its prop names, on its API tab', () => {
+    const cases = [
+      ['scrolledColor', '/components/top-app-bar/api'],
+      ['expandedRatio', '/components/button-group/api'],
+      ['iconTransition', '/components/icon-button/api'],
+      ['containerPadding', '/components/menu/api'],
+      ['selectedLeadingIcon', '/components/button/api'],
+      ['stopIndicator', '/components/progress/api'],
+      ['origin', '/components/dialog/api'],
+    ] as const;
+    for (const [query, href] of cases) {
+      const result = searchPages(index, query).find((found) => found.href === href);
+      expect(result, query).toMatchObject({ tab: 'api', matched: query });
+    }
+  });
+
+  it('finds the new features by the words people use for them', () => {
+    const cases = [
+      ['menu as a bottom sheet', '/components/menu'],
+      ['container padding', '/components/menu'],
+      ['transparent app bar', '/components/top-app-bar'],
+      ['app bar chips row', '/components/top-app-bar'],
+      ['dialog position', '/components/dialog'],
+      ['stop indicator', '/components/progress'],
+      ['rotating icon', '/components/icon-button'],
+      ['overflow menu', '/components/button-group'],
+      ['component tokens', '/customisation'],
+      ['token mapping', '/from-compose'],
+    ] as const;
+    for (const [query, href] of cases) {
+      expect(
+        searchPages(index, query).map((result) => result.href),
+        query,
+      ).toContain(href);
+    }
+  });
+
   it('opens a component on the tab a query asks for', () => {
     const [first] = searchPages(index, 'slider keyboard');
     expect(first).toMatchObject({ href: '/components/slider/accessibility', tab: 'accessibility' });
@@ -141,6 +200,24 @@ describe('searchPages', () => {
       entries.flatMap((entry) => [...(entry.keywords ?? []), ...(entry.codeNames ?? [])]),
     );
     expect([...exported].filter((hook) => !searchable.has(hook))).toEqual([]);
+  });
+});
+
+describe('searchablePropNames', () => {
+  it('keeps distinctive props and drops shared ones and ARIA attributes', () => {
+    const pages = Array.from({ length: MAX_PAGES_PER_PROP + 1 }, (_, at) => ({
+      slug: `page-${at}`,
+      props: ['className', 'aria-label', ...(at === 0 ? ['scrolledColor', 'scrolledColor'] : [])],
+    }));
+    const names = searchablePropNames(pages);
+    expect(names.get('page-0')).toEqual(['scrolledColor']);
+    expect(names.get('page-1')).toEqual([]);
+  });
+
+  it('keeps the static index small', () => {
+    const indexed = entries.flatMap((entry) => entry.propNames ?? []);
+    expect(indexed.length).toBeGreaterThan(100);
+    expect(JSON.stringify(indexed).length).toBeLessThan(16_000);
   });
 });
 
