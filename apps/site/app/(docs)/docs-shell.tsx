@@ -24,6 +24,15 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/**
+ * The page a path belongs to, for the page transition: a component page's tabs
+ * (`/components/button/api`) are one page, so only a move to another page transitions.
+ */
+function pageKey(pathname: string): string {
+  const component = /^\/components\/[^/]+/.exec(pathname);
+  return component ? component[0] : pathname;
+}
+
 /** The three compact bottom-bar destinations, defined independently of `DOCS_SECTIONS`. */
 const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[] = [
   { href: '/', label: 'Home', icon: <HomeIcon /> },
@@ -110,8 +119,17 @@ export function DocsShell({ children }: { children: ReactNode }) {
               <DocsSearch view="full-screen" />
             </SearchAppBar>
             <main id="main-content" className="min-w-0 flex-1 p-6 pb-28 medium:pb-6">
-              {/* Page changes run M3's shared-axis (Y) transition; see globals.css. */}
-              <ViewTransition update="page-axis" default="none">
+              {/*
+               * Moving to another page runs M3's shared-axis (Y) transition (see globals.css).
+               * It is keyed on the page, not the URL, so a query change (the playground's
+               * state) or a component tab change never transitions the whole page.
+               */}
+              <ViewTransition
+                key={pageKey(pathname)}
+                enter="page-axis"
+                exit="page-axis"
+                default="none"
+              >
                 {withOutline ? (
                   <div className="flex justify-center gap-8">
                     <div className="min-w-0 flex-1">{children}</div>

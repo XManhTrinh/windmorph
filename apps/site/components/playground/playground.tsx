@@ -56,27 +56,36 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
   // Values the preview set itself (an overlay opening or closing): live state, not a shared
   // configuration, so they stay out of the URL.
   const [fromPreview, setFromPreviewNames] = useState<ReadonlySet<string>>(() => new Set());
+  // Whether the state has changed here since it was last read from the URL.
+  const [syncUrl, setSyncUrl] = useState(false);
 
-  // Restore shared state from the URL once on mount — a one-way sync from the external URL
-  // into state (not an SSR-render read, so it stays hydration-safe for the static export).
+  // Restore shared state from the URL on mount, and again when the browser's back or forward
+  // lands on this page with another query: a one-way sync from the external URL into state
+  // (not an SSR-render read, so it stays hydration-safe for the static export).
   useEffect(() => {
     if (!descriptor) return;
-    const decoded = decodeState(new URLSearchParams(window.location.search), controls);
-    if (Object.keys(decoded).length === 0) return;
-    // A shared URL can hold any combination, so each restored value is adjusted in turn.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setValues((prev) =>
-      Object.keys(decoded).reduce(
-        (next, name) => (descriptor.adjust ? descriptor.adjust(next, name) : next),
-        { ...prev, ...decoded },
-      ),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const restore = () => {
+      const decoded = decodeState(new URLSearchParams(window.location.search), controls);
+      // A shared URL can hold any combination, so each restored value is adjusted in turn.
+      setValues(
+        Object.keys(decoded).reduce(
+          (next, name) => (descriptor.adjust ? descriptor.adjust(next, name) : next),
+          { ...initial, ...decoded },
+        ),
+      );
+      setFromPreviewNames(new Set());
+      setSyncUrl(false);
+    };
+    restore();
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  }, [descriptor, controls, initial]);
 
-  // Reflect state in the URL without navigating.
+  // Reflect a change made here in the URL by replacing the history entry: no new entry and
+  // no page change, so the page never transitions and the back button still leaves the page.
+  // A state read from the URL isn't written back, so the URL stays the source until then.
   useEffect(() => {
-    if (!descriptor) return;
+    if (!descriptor || !syncUrl) return;
     // Only what differs from the starting state goes in the URL, so a fresh page keeps a clean one.
     const changed = Object.fromEntries(
       Object.entries(values).filter(
@@ -88,7 +97,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     if (url !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', url);
     }
-  }, [values, controls, descriptor, initial, fromPreview]);
+  }, [syncUrl, values, controls, descriptor, initial, fromPreview]);
 
   if (!descriptor) return null;
 
@@ -121,6 +130,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
       return next;
     });
   const setFromControl = (name: string, value: unknown) => {
+    setSyncUrl(true);
     markPreview(name, false);
     setValues((prev) => {
       if (prev[name] === value) return prev;
@@ -129,6 +139,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     });
   };
   const setFromPreview = (name: string, value: unknown) => {
+    setSyncUrl(true);
     markPreview(name, true);
     set(name, value);
   };
@@ -137,7 +148,14 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     <>
       <div className="sticky top-0 z-10 flex items-center justify-between bg-surface-container-low">
         <h3 className="text-title-small text-on-surface-variant">Props</h3>
-        <Button variant="text" size="xs" onPress={() => setValues(initial)}>
+        <Button
+          variant="text"
+          size="xs"
+          onPress={() => {
+            setSyncUrl(true);
+            setValues(initial);
+          }}
+        >
           Reset
         </Button>
       </div>
