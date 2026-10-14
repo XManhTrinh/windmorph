@@ -137,7 +137,7 @@ describe('PropsList', () => {
     );
     expect(
       screen.getAllByRole('heading', { level: 4 }).map((heading) => heading.textContent),
-    ).toEqual(['Props', 'Events', 'Styling (1)']);
+    ).toEqual(['Events', 'Styling (1)']);
     // Required props lead their group.
     const [first] = screen.getAllByRole('listitem');
     expect(first).toHaveAttribute('data-prop', 'children');

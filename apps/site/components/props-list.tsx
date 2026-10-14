@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { codeNameHref } from '../lib/code-name-href';
 import type { PropsRecord } from '../lib/component-props';
 import { markdownParagraphs } from '../lib/inline-markdown';
@@ -54,8 +53,9 @@ function TypeText({ members }: { members: readonly string[] }) {
 }
 
 /**
- * One prop, the same two parts everywhere: a first line with its name, type, a "Required"
- * label and `= default`, left-aligned and wrapping like text, then its description at the
+ * One prop, the same structure in every row: its name, type, a "Required" label and
+ * `= default`, left-aligned and wrapping like text (on one run in a wide list; in a narrow
+ * one the type and default take the line under the name), then its description at the
  * list's full width. An object prop's keys fold under it. The item's data attributes give the
  * Markdown twin its table row and the filter its text.
  */
@@ -69,27 +69,36 @@ function PropEntry({ item }: { item: PropItem }) {
       data-required={item.required || undefined}
       className="flex scroll-mt-20 flex-col gap-1 py-3"
     >
-      <div data-prop-header="" className="group/prop text-body-small">
+      {/* Wide lists read the first line as one run of text; narrower ones (under a 42rem list)
+          give the name, Required and the anchor a line, and the type and default the next. */}
+      <div
+        data-prop-header=""
+        className="group/prop flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-body-small @2xl:block"
+      >
         <code
           data-prop-name=""
           dir="ltr"
-          className={`me-3 ${PLAIN_CODE} text-title-small text-on-surface [overflow-wrap:anywhere]`}
+          className={`order-1 ${PLAIN_CODE} text-title-small text-on-surface [overflow-wrap:anywhere] @2xl:me-3`}
         >
           {item.name}
         </code>
-        <span className="sr-only">type </span>
-        <TypeText members={item.typeMembers} />
+        <span className="order-5 min-w-0">
+          <span className="sr-only">type </span>
+          <TypeText members={item.typeMembers} />
+        </span>
         {item.required && (
-          <span className="ms-3 whitespace-nowrap text-label-medium text-error">Required</span>
+          <span className="order-2 whitespace-nowrap text-label-medium text-error @2xl:ms-3">
+            Required
+          </span>
         )}
         {item.defaultValue && (
           <span
-            className={
+            className={`order-6 min-w-0 @2xl:ms-3 ${
               item.defaultValue.kind === 'code' &&
               item.defaultValue.text.length <= UNBROKEN_MEMBER_MAX
-                ? 'ms-3 whitespace-nowrap'
-                : 'ms-3'
-            }
+                ? 'whitespace-nowrap'
+                : ''
+            }`}
           >
             <span aria-hidden="true" className="font-mono text-on-surface-variant">
               ={' '}
@@ -106,9 +115,10 @@ function PropEntry({ item }: { item: PropItem }) {
             )}
           </span>
         )}
-        <span className="ms-1 inline-flex -my-2 align-middle">
+        <span className="order-3 -my-2 inline-flex align-middle @2xl:ms-1">
           <PropLink id={item.id} name={item.name} />
         </span>
+        <span aria-hidden="true" className="order-4 basis-full @2xl:hidden" />
       </div>
       {item.description && (
         <div
@@ -156,8 +166,8 @@ export interface PropsListProps {
   props: PropsRecord[];
   /**
    * Sorts a component's props into Props (required first), Events (`on…`), Text (`labels`,
-   * `strings`, the ARIA naming props) and Styling (folded), each under a subhead when there
-   * is more than one. A hook's parameters keep their order. @default false
+   * `strings`, the ARIA naming props) and Styling (folded); each group after the main one has
+   * a subhead. A hook's parameters keep their order. @default false
    */
   grouped?: boolean;
 }
@@ -172,7 +182,7 @@ export function PropsList({ caption, scope, props, grouped = false }: PropsListP
   const items = propListItems(scope, props);
   const groups = grouped ? groupPropItems(items) : [];
   return (
-    <section aria-label={caption} data-props-list="" className="flex flex-col gap-4">
+    <section aria-label={caption} data-props-list="" className="@container flex flex-col gap-4">
       {groups.length > 1 ? (
         groups.map((group) => (
           <div key={group.id} data-prop-group={group.id} className="flex flex-col gap-1">
@@ -182,7 +192,10 @@ export function PropsList({ caption, scope, props, grouped = false }: PropsListP
               </PropGroupFold>
             ) : (
               <>
-                <h4 className="text-label-large text-on-surface-variant">{group.label}</h4>
+                {/* The main group sits under the component's heading; the rest are named. */}
+                {group.id !== 'props' && (
+                  <h4 className="text-label-large text-on-surface-variant">{group.label}</h4>
+                )}
                 <PropItems items={group.items} />
               </>
             )}
@@ -195,11 +208,10 @@ export function PropsList({ caption, scope, props, grouped = false }: PropsListP
   );
 }
 
-/** One component's props on a page: its name, the list, and anything the page adds after. */
+/** One component's props on a page. */
 export interface ComponentPropsEntry {
   name: string;
   props: PropsRecord[];
-  after?: ReactNode;
 }
 
 /** The id of a component's heading in the props section: `props-Dialog`. */
@@ -207,7 +219,7 @@ export function componentPropsId(name: string): string {
   return `props-${name}`;
 }
 
-function ComponentProps({ name, props, after }: ComponentPropsEntry) {
+function ComponentProps({ name, props }: ComponentPropsEntry) {
   return (
     <div data-props-component={name} className="flex flex-col gap-4">
       <h3
@@ -223,7 +235,6 @@ function ComponentProps({ name, props, after }: ComponentPropsEntry) {
       {props.length > 0 && (
         <PropsList caption={`${name} props`} scope={name} props={props} grouped />
       )}
-      {after}
     </div>
   );
 }
