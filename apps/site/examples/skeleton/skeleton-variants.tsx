@@ -3,7 +3,8 @@ import { Skeleton, SkeletonGroup } from '@windmorph/react-pro';
 /**
  * The three shapes: `rectangle` for media and blocks (any `corner`), `circle` for avatars,
  * and `text` for lines sized to a type scale (`typescale`, with `lines` for a paragraph).
- * `tone="high"` is a step lighter, for placeholders on a darker container.
+ * `tone="high"` (`surface-container-high`) is a subtler fill: here it sits on a
+ * `surface-container-highest` container, where the default fill wouldn't show.
  */
 export function SkeletonVariants() {
   return (

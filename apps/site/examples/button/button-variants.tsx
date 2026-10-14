@@ -1,6 +1,6 @@
 import { Button } from '@windmorph/react';
 
-/** The five button variants, from highest to lowest emphasis. */
+/** The five button variants, in M3's order: filled has the highest emphasis, text the lowest. */
 export function ButtonVariants() {
   return (
     <>

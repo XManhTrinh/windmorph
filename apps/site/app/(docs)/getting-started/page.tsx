@@ -184,9 +184,9 @@ export default async function GettingStartedPage() {
             Roboto Flex
           </a>{' '}
           with <InlineCode>next/font</InlineCode> (or Google Fonts) and map it to the brand typeface
-          variable. Without it, the system UI font is used. The{' '}
-          <InlineCode>--md-ref-typeface-plain</InlineCode> variable points at the brand variable so
-          body text picks it up too.
+          variable. Without it, the type falls back to Roboto if the device has it, then the system
+          UI font. The <InlineCode>--md-ref-typeface-plain</InlineCode> variable points at the brand
+          variable so body text picks it up too.
         </p>
         <CodeBlock code={FONT_SNIPPET} html={fontHtml} lang="tsx" title="app/layout.tsx" />
         <p className="text-body-large text-on-surface-variant">

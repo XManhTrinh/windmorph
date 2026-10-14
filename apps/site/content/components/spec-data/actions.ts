@@ -124,16 +124,14 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['icon-button/icon-button-sizes'],
       },
     ],
-    differences: [
-      {
-        item: 'Shape morph spring',
-        note: 'Icon buttons morph on the non-bouncing fast effects spring, as Compose does, where buttons use the fast spatial spring the spec gives rounded corners.',
-      },
-    ],
     extensions: [
       {
         item: 'Links',
         note: '`href` renders an `<a>` that routes through React Aria’s `RouterProvider`.',
+      },
+      {
+        item: '`iconTransition="rotate"`',
+        note: "Not in the M3 spec, which swaps `icon` for `selectedIcon`: the icon turns and crossfades into the other, counter-clockwise as it selects (mirrored in RTL). Matches Google's Expressive showcase motion; reduced motion keeps only the crossfade.",
       },
       {
         item: 'Content colour token',
@@ -450,7 +448,7 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: '`iconTransition="rotate"`',
-        note: "Not in the M3 spec, which swaps `icon` for `openIcon` halfway through the morph: the outgoing icon turns 90° and fades out as the incoming one turns in. Matches Google's Expressive showcase motion; reduced motion keeps only the crossfade.",
+        note: "Not in the M3 spec, which swaps `icon` for `openIcon` halfway through the morph: the outgoing icon turns 90° counter-clockwise on open (mirrored in RTL) and fades out as the incoming one turns in. Matches Google's Expressive showcase motion; reduced motion keeps only the crossfade.",
       },
       {
         item: '`elevation`',

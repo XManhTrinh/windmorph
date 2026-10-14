@@ -120,12 +120,12 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               hide the page, which stays usable around it.
             </li>
             <li>
-              A bottom sheet taller than half the window opens to half; the drag handle is a button
-              — press it (or Enter / Space) to expand a half-open sheet, collapse a standard one, or
-              close a fully open modal one, and its label says which (
-              <InlineCode>labels.expand</InlineCode>, <InlineCode>labels.collapse</InlineCode>,{' '}
-              <InlineCode>labels.dismiss</InlineCode>). Without a handle, the top 48px of the sheet
-              still drags it.
+              A modal bottom sheet taller than half the window opens to half, and a standard one
+              opens collapsed to its peek height; the drag handle is a button — press it (or Enter /
+              Space) to expand a half-open sheet, collapse a standard one, or close a fully open
+              modal one, and its label says which (<InlineCode>labels.expand</InlineCode>,{' '}
+              <InlineCode>labels.collapse</InlineCode>, <InlineCode>labels.dismiss</InlineCode>).
+              Without a handle, the top 48px of the sheet still drags it.
             </li>
             <li>
               On a touch screen, a drag down that starts on the content while it is scrolled to its
@@ -141,8 +141,10 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               <InlineCode>closeButton=&#123;false&#125;</InlineCode> hides it.
             </li>
             <li>
-              Escape behaves like the back button: a fully open sheet with a half detent returns to
-              half, otherwise it closes. A press on the scrim closes a dismissable modal sheet.
+              Escape behaves like the back button: a fully open modal bottom sheet with a half
+              detent returns to half, otherwise a modal sheet closes; a fully open standard bottom
+              sheet collapses to its peek height. A press on the scrim closes a dismissable modal
+              sheet.
             </li>
             <li>
               Side sheets, modal and standard, are dialogs named by their{' '}
@@ -189,8 +191,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               &ldquo;Side sheets cannot scroll horizontally&rdquo;).
             </li>
             <li>
-              Not in v1: predictive back, and detents beyond half / full (modal) or peek / full
-              (standard).
+              Not yet supported: predictive back, and detents beyond half / full (modal) or peek /
+              full (standard).
             </li>
           </ul>
         </section>

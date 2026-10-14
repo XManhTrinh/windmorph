@@ -60,6 +60,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         examples: ['dialog/dialog-placement', 'dialog/dialog-custom-position'],
       },
       { name: 'Scrolling content', kind: 'configuration', examples: ['dialog/dialog-scrollable'] },
+      { name: 'Dividers (optional)', kind: 'configuration', examples: ['dialog/dialog-dividers'] },
       {
         name: 'Confirm a high-risk action',
         kind: 'use case',
@@ -74,12 +75,6 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       {
         item: 'Dismissal options',
         note: '`dismissable` lets a press outside close an alert dialog, and `keyboardDismissDisabled` keeps Escape from closing one.',
-      },
-    ],
-    notBuilt: [
-      {
-        item: 'Dividers around scrolling content',
-        note: "The spec's optional dividers above and below scrolling content aren't drawn automatically; add a `Divider` where needed.",
       },
     ],
     compose: [
@@ -136,6 +131,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       { name: 'Selection states', kind: 'use case', examples: ['menu/menu-selection'] },
       { name: 'Submenus', kind: 'use case', examples: ['menu/menu-submenu'] },
       { name: 'Context menu', kind: 'use case', examples: ['menu/menu-context'] },
+      {
+        name: 'Bottom sheet on small screens',
+        kind: 'use case',
+        examples: ['menu/menu-sheet'],
+      },
     ],
     extensions: [
       {
@@ -292,8 +292,8 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     notBuilt: [
       {
-        item: 'Predictive back and nested scrolling',
-        note: "Dragging a sheet through its scrolling content and the predictive back gesture aren't built.",
+        item: 'Predictive back and upward nested scrolling',
+        note: "The predictive back gesture isn't built. A downward drag on content scrolled to its top moves the sheet, but an upward drag scrolls the content rather than expanding a half-open sheet first.",
       },
       {
         item: 'More detents',
@@ -496,7 +496,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
     extensions: [
       {
         item: 'Count cap',
-        note: '`max` sets the highest count shown (999 by default, "999+"), and a text badge truncates past 34px.',
+        note: '`max` sets the highest count shown (999 by default, "999+"), and text longer than four characters stops at 34px and truncates.',
       },
     ],
     compose: [

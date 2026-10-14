@@ -96,8 +96,9 @@ export interface TooltipTriggerProps {
   /** Milliseconds before hiding after the pointer leaves or a touch lifts (the spec's 1.5s). @default 1500 */
   closeDelay?: number;
   /**
-   * Side of the anchor the tooltip prefers; it flips when there's no room.
-   * @default "top", or the enclosing `TooltipPlacementContext` (`bottom` in app bars)
+   * Side of the anchor the tooltip prefers; it flips when there's no room. Inside a
+   * `TooltipPlacementContext`, the context's side is the default (`"bottom"` in app bars).
+   * @default "top", or "bottom" in app bars
    */
   placement?: TooltipPlacement;
   /** Distance from the anchor in px: 4 for an anchor with a visual boundary, 8 for text. @default 4 */

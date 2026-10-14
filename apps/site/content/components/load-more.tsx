@@ -73,7 +73,8 @@ export async function LoadMoreBody(): Promise<ComponentDoc> {
               With <InlineCode>auto</InlineCode> (default) it calls{' '}
               <InlineCode>onLoadMore</InlineCode> once per idle state as the end comes within{' '}
               <InlineCode>rootMargin</InlineCode> (800px) of the viewport. A list in its own
-              scrolling box should turn <InlineCode>auto</InlineCode> off, as in the example.
+              scrolling box should turn <InlineCode>auto</InlineCode> off, as in the first example,
+              since the end is measured against the viewport.
             </li>
             <li>
               It never retries by itself after a failure, so a failing page isn&apos;t requested in

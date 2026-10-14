@@ -38,7 +38,8 @@ const REGIONS = [
 /**
  * A long list with a search at the top: typing filters it ("thai" finds "Thailand"), and
  * sections with no matches hide. With `presentation="auto"`, phones get a bottom sheet that
- * shows the list first; `renderValue` shows the chosen country's code in the field.
+ * shows the list first; `renderValue` adds the chosen country's code to its name in the
+ * field.
  */
 export function SelectSearchable() {
   const [country, setCountry] = useState<SelectKey | null>('GB');

@@ -2,7 +2,7 @@ import { RangeSlider, Slider } from '@windmorph/react';
 
 /**
  * `orientation="vertical"` stands a slider up: it runs bottom to top and is 240px tall
- * unless its container sets a height. Every size and variant works vertically; M3 advises
+ * unless you set a height through `className`. Every size and variant works vertically; M3 advises
  * against vertical range sliders, so this one is horizontal beside them.
  */
 export function SliderVertical() {

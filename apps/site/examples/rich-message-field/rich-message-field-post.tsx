@@ -6,7 +6,8 @@ import { useState } from 'react';
 
 /**
  * A post's composer: longer writing, so Enter is a new line and Ctrl or ⌘+Enter posts, the
- * formatting toolbar always shows, and the dialog's own button posts instead of Send.
+ * formatting toolbar always shows above the text, and the form's own Post button posts
+ * instead of Send.
  */
 export function RichMessageFieldPost() {
   const [text, setText] = useState('');

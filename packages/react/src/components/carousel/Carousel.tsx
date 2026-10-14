@@ -97,7 +97,7 @@ interface CarouselOwnProps {
   variant?: CarouselVariant;
   /**
    * The direction the items scroll in.
-   * @default "horizontal" ("vertical" for full-screen)
+   * @default "horizontal", or "vertical" when full-screen
    */
   orientation?: 'horizontal' | 'vertical';
   /**
@@ -107,7 +107,7 @@ interface CarouselOwnProps {
   preferredItemSize?: number;
   /** Size of the items along the carousel (uncontained). @default 240 */
   itemSize?: number;
-  /** Space between items, px. @default 8 (16 for full-screen) */
+  /** Space between items, px. @default 8, or 16 when full-screen */
   itemSpacing?: number;
   /** Centre the large hero item between small ones. @default "start" */
   heroAlignment?: 'start' | 'center';

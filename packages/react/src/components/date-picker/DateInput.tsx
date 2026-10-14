@@ -10,7 +10,7 @@ import { dateFormat, parseDate } from './date-format';
 export interface DateInputStrings {
   /**
    * The format hint shown below the field and as its placeholder.
-   * @default the locale's format, e.g. "MM/DD/YYYY"
+   * @default the locale's format, such as "MM/DD/YYYY" in en-US
    */
   dateFormatHint?: string;
   /** Error when the text isn't a date. @default "Enter a date as {hint}" */

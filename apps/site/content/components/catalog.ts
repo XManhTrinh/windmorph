@@ -661,7 +661,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A modal surface for a focused task or a decision, with flat title, content and actions, or full screen on compact windows.',
+      'A modal surface for a focused task or a decision, with a title, content and actions, or full screen on compact windows.',
     propsComponents: [
       'Dialog',
       'DialogTrigger',
@@ -696,7 +696,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A temporary list of choices anchored to a trigger, with groups, selection, submenus and context menus.',
+      'A temporary list of choices anchored to a trigger, with groups, selection, submenus and context menus, or a bottom sheet on phones.',
     propsComponents: [
       'Menu',
       'MenuItem',
@@ -1024,7 +1024,8 @@ export const COMPONENT_META: ComponentMeta[] = [
     title: 'Divider',
     group: 'Containment & overlays',
     railGroup: 'containment',
-    summary: 'A thin line that separates content, horizontal or vertical, with optional insets.',
+    summary:
+      'A thin line that separates content, horizontal or vertical, with optional insets or a label.',
     propsComponents: ['Divider', 'LabeledDivider'],
     playground: 'full',
     related: ['list', 'card'],
@@ -1150,11 +1151,11 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Navigation',
     railGroup: 'navigation',
     summary:
-      'A search bar that expands into a docked or full-screen view, and an app bar with search.',
+      'A search bar that opens a full-screen view on phones and a docked view on larger windows, and an app bar with search.',
     propsComponents: ['SearchBar', 'SearchAppBar'],
     playground: 'full',
     specs: {
-      variants: ['docked', 'full-screen'],
+      variants: ['auto', 'docked', 'full-screen'],
     },
     related: ['top-app-bar', 'text-field'],
     keywords: [

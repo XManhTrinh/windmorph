@@ -15,7 +15,7 @@ export function TopAppBarFlexible() {
       <TopAppBar
         variant="medium"
         title="Weekend menu"
-        subtitle="Phở, bánh mì and bún chả"
+        subtitle="Soups, sandwiches and salads"
         titleAlign="center"
         navigationIcon={back}
         actions={<IconButton icon={<MoreVertIcon />} aria-label="More" />}

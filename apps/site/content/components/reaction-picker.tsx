@@ -171,8 +171,10 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              The button is transparent with <InlineCode>on-surface-variant</InlineCode> content,
-              and <InlineCode>--wm-reaction-color</InlineCode> (the option&apos;s colour role) once
+              The button is transparent (<InlineCode>tonal</InlineCode>: a{' '}
+              <InlineCode>surface-container-high</InlineCode> pill) with{' '}
+              <InlineCode>on-surface-variant</InlineCode> content, and{' '}
+              <InlineCode>--wm-reaction-color</InlineCode> (the option&apos;s colour role) once
               picked. Prefer <InlineCode>primary</InlineCode>, <InlineCode>error</InlineCode>,{' '}
               <InlineCode>warning</InlineCode> or <InlineCode>tertiary</InlineCode>: they keep 4.5:1
               on the surface in every theme, mode and contrast level.

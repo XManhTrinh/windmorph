@@ -153,8 +153,8 @@ export async function SearchBody(): Promise<ComponentDoc> {
               <InlineCode>sizeIn</InlineCode>); a consumer <InlineCode>w-*</InlineCode> class wins.
             </li>
             <li>
-              Not in v1: predictive back, the divided (baseline) style, and the docked view without
-              a gap.
+              Not yet supported: predictive back, the divided (baseline) style, and the docked view
+              without a gap.
             </li>
           </ul>
         </section>

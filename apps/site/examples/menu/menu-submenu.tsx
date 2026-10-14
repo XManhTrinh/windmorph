@@ -6,7 +6,7 @@ import { AddIcon, ContentCopyIcon, SendIcon } from '../../components/icons';
 
 /**
  * A `SubmenuTrigger` pairs an item with its submenu. The submenu opens beside the item on
- * hover, press, Enter or → (← in right-to-left) and closes with the opposite arrow or
+ * hover, press, Enter, Space or → (← in right-to-left) and closes with the opposite arrow or
  * Escape. While it's open the item stays pressed and the focused menu is the rounder one.
  */
 export function MenuSubmenu() {

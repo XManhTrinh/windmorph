@@ -155,7 +155,8 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
               The field is a <InlineCode>combobox</InlineCode> with list autocomplete. Typing opens
               the menu and filters it; ↑ / ↓ move through the matches while focus stays in the field
               (<InlineCode>aria-activedescendant</InlineCode>), Enter chooses, and Escape closes the
-              menu, then clears the text.
+              menu and puts back the chosen option&apos;s text (or empties the field when nothing is
+              chosen).
             </li>
             <li>
               The arrow button opens every option and is named &quot;Show options&quot; (set{' '}
@@ -164,9 +165,10 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
             </li>
             <li>
               With <InlineCode>selectionMode=&quot;multiple&quot;</InlineCode>, each chosen option
-              is an input chip whose close button is named &quot;Remove&quot; with the option;
-              Backspace in the empty field removes the last one. While the menu is open, only the
-              field and the menu are exposed to assistive technology, so Escape first.
+              is an input chip whose close button is named &quot;Remove&quot; with the option
+              (&quot;Remove London&quot;); Backspace in the empty field removes the last one. While
+              the menu is open, only the field and the menu are exposed to assistive technology, so
+              close it with Escape to reach the chips.
             </li>
             <li>
               Disabled options can take keyboard focus but can&apos;t be chosen (M3 menus). The
@@ -176,8 +178,8 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>clearable</InlineCode> adds M3&apos;s clear icon while there&apos;s text,
-              named &quot;Clear&quot;. It&apos;s left out of the Tab order, since Escape clears from
-              the keyboard.
+              named &quot;Clear&quot;. It&apos;s left out of the Tab order, since the text can be
+              deleted from the keyboard.
             </li>
             <li>
               As the list filters, the options that stay ease into their new places on the default

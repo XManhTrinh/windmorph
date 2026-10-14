@@ -174,7 +174,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         composable: 'AnimatedVisibility(enter = expandVertically(), exit = shrinkVertically())',
         component: 'Collapse',
         params: [{ compose: 'visible', windmorph: 'isOpen' }],
-        note: "Compose's animation API, not a Material 3 component. `Collapse` folds its measured height on the default spatial spring, with the content fading on the effects spring.",
+        note: "Compose's animation API, not a Material 3 component. `Collapse` folds its height (a CSS grid row, so nothing is measured) on the default spatial spring, with the content fading on the effects spring.",
       },
     ],
   },

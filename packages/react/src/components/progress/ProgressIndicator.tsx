@@ -198,7 +198,7 @@ interface SharedOwnProps {
    * track); the indicator grows to fit, keeping room for the wave. @default 4
    */
   thickness?: number;
-  /** Thickness of the track in px. @default the `thickness` */
+  /** Thickness of the track in px. @default thickness */
   trackThickness?: number;
   /**
    * Draw the track (and the linear stop dot). Remove it inside a button, colouring the
@@ -382,7 +382,7 @@ interface CircularOwnProps extends SharedOwnProps {
    * The diameter in px. The spec: circular indicators "can range from 24dp to 240dp"; values
    * outside that range are clamped. The strokes keep their `thickness`; the ring and its wave
    * grow (more waves of the same length, as in Compose).
-   * @default 40, or 48 when wavy (plus any extra thickness)
+   * @default 40, or 48 when wavy, plus any extra thickness
    */
   size?: number;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */

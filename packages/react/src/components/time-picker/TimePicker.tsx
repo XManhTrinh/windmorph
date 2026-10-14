@@ -95,7 +95,7 @@ export interface TimePickerProps {
   defaultValue?: Time;
   /** Called with the new time when the user changes it. */
   onChange?: (value: Time) => void;
-  /** 12- or 24-hour clock. @default the locale's */
+  /** 12- or 24-hour clock. Left out, the locale's hour cycle (12 in en-US, 24 in en-GB). */
   hourCycle?: 12 | 24;
   /** The clock dial, or typed hour and minute fields (controlled). */
   mode?: TimePickerMode;

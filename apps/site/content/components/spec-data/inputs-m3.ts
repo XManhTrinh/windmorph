@@ -62,7 +62,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
     notBuilt: [
       {
         item: 'Composable field parts',
-        note: 'Only the complete `TextField` is exported; the parts it is built from stay internal.',
+        note: 'Only the complete `TextField` is exported as a field. Its label, supporting text, error text, counter and error icon are in `@windmorph/react/primitives`, but the container, outline and active indicator stay internal.',
       },
     ],
     compose: [
@@ -275,7 +275,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
           {
             compose: 'state = ToggleableState.Indeterminate',
             windmorph: '`indeterminate`',
-            note: 'Purely visual; the checkbox is still checked or not.',
+            note: "Shows a dash and is announced as mixed; the checked state underneath doesn't change.",
           },
         ],
       },
@@ -303,7 +303,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: '`orientation`',
-        note: 'Lays the options out in a column or a row, with matching arrow keys.',
+        note: 'Lays the options out in a column or a row; the arrow keys move the selection either way, and in a row Left and Right follow the reading direction.',
       },
     ],
     compose: [

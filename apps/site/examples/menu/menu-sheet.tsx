@@ -8,7 +8,8 @@ import { ContentCopyIcon, DeleteIcon, EditIcon, ShareIcon } from '../../componen
  * `presentation="auto"` keeps the menu anchored to its button on larger windows and opens
  * it in a bottom sheet on phones (below 600px wide), where a sheet is easier to reach with
  * a thumb. The menu inside keeps its keyboard, typeahead and focus; the sheet is a dialog
- * named like the menu. `presentation="sheet"` always uses the sheet.
+ * named like the menu, and a submenu replaces the menu's content, below a back button.
+ * `presentation="sheet"` always uses the sheet.
  */
 export function MenuSheet() {
   const [last, setLast] = useState('none');

@@ -193,7 +193,10 @@ export async function DialogBody(): Promise<ComponentDoc> {
             sits against as it opens. For any other spot, such as a corner near the controls that
             opened it, align it with <InlineCode>classNames.positioner</InlineCode> (
             <InlineCode>items-*</InlineCode> and <InlineCode>justify-*</InlineCode> classes): the
-            positioner&apos;s padding keeps the same margin.
+            positioner&apos;s padding keeps the same margin. <InlineCode>className</InlineCode> and{' '}
+            <InlineCode>style</InlineCode> go on the outermost element, a full-window layer around
+            the positioner; style the dialog&apos;s surface with{' '}
+            <InlineCode>classNames.panel</InlineCode>.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>dividers</InlineCode> on <InlineCode>DialogContent</InlineCode> draws the
@@ -311,10 +314,6 @@ export async function DialogBody(): Promise<ComponentDoc> {
               against (downward when centred or at the top, upward at the bottom, along the x axis
               at the start or end; a clip-path reveal) on a library-owned wrapper with no transform.
               Reduced motion keeps only the fade, entering and leaving.
-            </li>
-            <li>
-              Moved to the components layer because its core is the <InlineCode>Overlay</InlineCode>{' '}
-              primitive and React Aria hooks.
             </li>
             <li>
               Compose has no full-screen dialog component; the full-screen type follows the M3

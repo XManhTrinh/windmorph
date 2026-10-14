@@ -140,8 +140,8 @@ export async function CardBody(): Promise<ComponentDoc> {
               gets rounded edges; add <InlineCode>overflow-visible</InlineCode> to turn that off.
             </li>
             <li>
-              No anatomy sub-components (headline, media, actions) in v1; layout utilities cover
-              them.
+              There are no anatomy sub-components (headline, media, actions) yet; layout utilities
+              cover them.
             </li>
           </ul>
         </section>

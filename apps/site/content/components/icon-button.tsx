@@ -153,8 +153,9 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               On hover and keyboard focus the <InlineCode>aria-label</InlineCode> shows as a plain
               tooltip, as M3 asks of icon buttons on the web. It only repeats the name, so it
               isn&apos;t linked as a description and screen readers announce the name once.{' '}
-              <InlineCode>tooltip=&#123;false&#125;</InlineCode> turns it off, and it steps aside
-              inside a <InlineCode>TooltipTrigger</InlineCode> of your own.
+              <InlineCode>tooltip=&#123;false&#125;</InlineCode> turns it off. There is none inside
+              a <InlineCode>TooltipTrigger</InlineCode> of your own, or when{' '}
+              <InlineCode>aria-labelledby</InlineCode> names the button.
             </li>
             <li>
               A toggle icon button exposes <InlineCode>aria-pressed</InlineCode> and may swap to a{' '}

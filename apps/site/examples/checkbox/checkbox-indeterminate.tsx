@@ -5,7 +5,8 @@ import { useState } from 'react';
 
 /**
  * A parent checkbox shows `indeterminate` (a dash) when only some children are checked.
- * `indeterminate` is purely visual — the underlying state is still checked or unchecked.
+ * `indeterminate` changes only what's shown and announced ("mixed"): the underlying state is
+ * still checked or unchecked.
  */
 export function CheckboxIndeterminate() {
   const [items, setItems] = useState([true, false, false]);

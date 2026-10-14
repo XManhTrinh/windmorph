@@ -200,8 +200,9 @@ export default async function MotionPage() {
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>useM3Spring</InlineCode> forces the <InlineCode>standard</InlineCode> scheme
           when <InlineCode>prefers-reduced-motion</InlineCode> is set (via Motion’s{' '}
-          <InlineCode>useReducedMotion</InlineCode>), so it never visibly overshoots. Morphs and
-          overshoot are removed; indeterminate motion that conveys activity stays.
+          <InlineCode>useReducedMotion</InlineCode>), so it never visibly overshoots. The CSS spring
+          variables switch to the standard values in the same case. Morphs and overshoot are
+          removed; indeterminate motion that conveys activity stays.
         </p>
       </section>
 
@@ -211,8 +212,10 @@ export default async function MotionPage() {
         </h2>
         <p className="text-body-large text-on-surface-variant">
           For consumers migrating from baseline M3, legacy durations (
-          <InlineCode>short-1</InlineCode> = 50ms … <InlineCode>extra-long-4</InlineCode> = 1000ms,
-          in 50ms steps) and the legacy easing curves are kept:
+          <InlineCode>short-1</InlineCode> = 50ms to <InlineCode>long-4</InlineCode> = 600ms in 50ms
+          steps, then <InlineCode>extra-long-1</InlineCode> = 700ms to{' '}
+          <InlineCode>extra-long-4</InlineCode> = 1000ms in 100ms steps) and the legacy easing
+          curves are kept:
         </p>
         <table className="w-full border-collapse text-body-medium">
           <thead>

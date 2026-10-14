@@ -6,7 +6,7 @@ import { EditIcon, SearchIcon, SendIcon, StarIcon } from '../../components/icons
  * replaces the bottom app bar). By default its controls sit 32px apart in the centre;
  * `className="gap-2"` gives the spec's centred alternative with 8px between them, and
  * `arrangement="space-between"` spreads them evenly, as M3 recommends in compact windows.
- * It has `role="toolbar"`, so `aria-label` names it and arrow keys move between its
+ * It has `role="toolbar"`, named by `aria-label`; Tab and the arrow keys move between its
  * controls.
  */
 export function ToolbarDocked() {

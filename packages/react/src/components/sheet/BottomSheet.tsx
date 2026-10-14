@@ -107,7 +107,7 @@ interface BottomSheetOwnProps {
   variant?: 'modal' | 'standard';
   /** Whether the sheet is open (controlled). */
   open?: boolean;
-  /** Whether the sheet starts open when uncontrolled. @default false (modal), true (standard) */
+  /** Whether the sheet starts open when uncontrolled. @default false, or true when standard */
   defaultOpen?: boolean;
   /** Called when the sheet opens or closes. */
   onOpenChange?: (open: boolean) => void;

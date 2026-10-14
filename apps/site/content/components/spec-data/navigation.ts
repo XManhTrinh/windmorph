@@ -286,6 +286,16 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['top-app-bar/top-app-bar-scrolling'],
       },
+      {
+        name: 'A row of chips below the title',
+        kind: 'use case',
+        examples: ['top-app-bar/top-app-bar-chips'],
+      },
+      {
+        name: 'Transparent on scroll',
+        kind: 'use case',
+        examples: ['top-app-bar/top-app-bar-transparent'],
+      },
     ],
     differences: [
       {
@@ -380,7 +390,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'ExpandedDockedSearchBar / ExpandedFullScreenSearchBar',
         component: 'SearchBar view="docked" / "full-screen"',
-        note: 'The expanded content is the bar’s `children`.',
+        note: 'The expanded content is the bar’s `children`. The default, `view="auto"`, is full screen below 600px and docked above.',
       },
       {
         composable: 'AppBarWithSearch',
@@ -441,7 +451,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
     extensions: [
       {
         item: '`ToolbarFab` `iconTransition="rotate"`',
-        note: "Not in the M3 spec: with `expandedIcon`, the FAB's icon turns 90° and fades into the other as the toolbar expands or collapses, instead of swapping halfway, as in Google's Expressive showcase. Reduced motion keeps only the crossfade.",
+        note: "Not in the M3 spec: with `expandedIcon`, the FAB's icon turns 90° and fades into the other as the toolbar expands (counter-clockwise, mirrored in RTL) or collapses, instead of swapping halfway, as in Google's Expressive showcase. Reduced motion keeps only the crossfade.",
       },
       {
         item: '`ToolbarFab` `elevation`',
@@ -503,7 +513,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'FloatingToolbarDefaults.exitAlwaysScrollBehavior',
         component: 'useToolbarScrollExit',
-        params: [{ compose: 'exitDirection', windmorph: '`exitEdge`' }],
+        params: [{ compose: 'exitDirection', windmorph: 'the floating toolbar’s `exitEdge`' }],
         note: 'Returns `visible` for either toolbar.',
       },
       {

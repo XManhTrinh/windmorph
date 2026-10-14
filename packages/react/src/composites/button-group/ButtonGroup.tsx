@@ -118,7 +118,7 @@ export interface ButtonGroupProps extends Omit<
    * 0.15. Connected groups default to 0 (the spec: they "don't affect adjacent buttons", as
    * in Compose's connected sample); set a ratio to opt in, as Compose can by combining a
    * button group's `animateWidth` with the connected shapes. Under reduced motion there's
-   * no bump. @default 0.15 standard, 0 connected
+   * no bump. @default 0.15, or 0 when `variant` is "connected"
    */
   expandedRatio?: number;
   /**

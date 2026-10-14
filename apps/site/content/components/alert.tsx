@@ -111,12 +111,13 @@ export async function AlertBody(): Promise<ComponentDoc> {
             Theming &amp; tokens
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            Tonal alerts use the tone&apos;s container and on-container roles; outlined ones the
-            surface, with the border and icon in the tone&apos;s colour. A test keeps the text at
-            4.5:1 in every theme, mode and contrast level. Set{' '}
-            <InlineCode>--wm-alert-container</InlineCode>, <InlineCode>-content</InlineCode>,{' '}
-            <InlineCode>-outline</InlineCode>, <InlineCode>-icon</InlineCode> or{' '}
-            <InlineCode>-corner</InlineCode> on an alert or an ancestor.
+            Tonal alerts use the tone&apos;s container and on-container roles; outlined ones have no
+            fill and <InlineCode>on-surface</InlineCode> text, with the border and icon in the
+            tone&apos;s colour. A test keeps the text at 4.5:1 in every theme, mode and contrast
+            level. Set <InlineCode>--wm-alert-container</InlineCode>,{' '}
+            <InlineCode>-content</InlineCode>, <InlineCode>-outline</InlineCode>,{' '}
+            <InlineCode>-icon</InlineCode> or <InlineCode>-corner</InlineCode> on an alert or an
+            ancestor.
           </p>
         </section>
       </>

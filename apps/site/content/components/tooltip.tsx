@@ -173,7 +173,7 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               Plain tooltips are <InlineCode>inverse-surface</InlineCode> with{' '}
               <InlineCode>body-small</InlineCode> text, up to 200px wide, 4px corners; rich tooltips
               are <InlineCode>surface-container</InlineCode> at level 2, up to 320px, 12px corners,
-              with 12px above and 8px below plain text.
+              with 12px above and 8px below the text when there is no subhead or action.
             </li>
             <li>
               <InlineCode>delay</InlineCode> defaults to 0, because Compose shows at once;{' '}

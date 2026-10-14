@@ -117,7 +117,9 @@ export default async function NextjsPage() {
           <InlineCode>NextRouterProvider</InlineCode> (with{' '}
           <InlineCode>NextRouterProviderProps</InlineCode>),{' '}
           <InlineCode>useNavigationGuard</InlineCode> and{' '}
-          <InlineCode>useGuardedNavigate</InlineCode>, and re-exports{' '}
+          <InlineCode>useGuardedNavigate</InlineCode> (with{' '}
+          <InlineCode>NavigationAttempt</InlineCode> and{' '}
+          <InlineCode>NavigationGuardOptions</InlineCode>), and re-exports{' '}
           <InlineCode>themeAttributes</InlineCode> and the <InlineCode>ThemeState</InlineCode> type.
           Note: <InlineCode>ThemeScript</InlineCode> is not here — it comes from{' '}
           <InlineCode>@windmorph/react</InlineCode>.
@@ -245,10 +247,12 @@ export default async function NextjsPage() {
         </h2>
         <p className="text-body-large text-on-surface-variant">
           This documentation site uses <InlineCode>output: &apos;export&apos;</InlineCode>, so there
-          is no server to read cookies. It therefore uses the <InlineCode>ThemeScript</InlineCode>{' '}
-          path (in the root layout’s <InlineCode>&lt;head&gt;</InlineCode>) rather than the cookie
-          path the playground uses. Pick the cookie path when you have a server, and the script path
-          for static or exported sites.
+          is no server to read cookies. It therefore uses the script path (the{' '}
+          <InlineCode>ThemeScript</InlineCode> source from{' '}
+          <InlineCode>getThemeScriptSource</InlineCode>, in the root layout’s{' '}
+          <InlineCode>&lt;head&gt;</InlineCode>) rather than the cookie path the Next.js playground
+          app uses. Pick the cookie path when you have a server, and the script path for static or
+          exported sites.
         </p>
       </section>
     </article>

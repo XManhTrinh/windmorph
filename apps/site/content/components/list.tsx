@@ -154,7 +154,9 @@ export async function ListBody(): Promise<ComponentDoc> {
             <InlineCode>List</InlineCode> holds <InlineCode>ListItem</InlineCode> children
             identified by a React <InlineCode>key</InlineCode>. The <InlineCode>variant</InlineCode>{' '}
             is <InlineCode>standard</InlineCode> (flush) or <InlineCode>segmented</InlineCode>{' '}
-            (rounded groups 2px apart).
+            (rounded groups 2px apart). <InlineCode>ListSection</InlineCode> groups items, under a
+            subheader when it has a <InlineCode>title</InlineCode>, in static, interactive and
+            selection lists, but not in radio lists or lists with nested items.
           </p>
         </section>
 
@@ -337,8 +339,8 @@ export async function ListBody(): Promise<ComponentDoc> {
             <li>
               Deviation: standard items are transparent rather than Compose&apos;s{' '}
               <InlineCode>surface</InlineCode>, so a list takes the colour of its sheet, card or
-              pane. Not in v1: drag-to-reorder (and its dragged state) and swipe-to-reveal (Android
-              only in M3).
+              pane. Not yet supported: drag-to-reorder (and its dragged state) and swipe-to-reveal
+              (Android only in M3).
             </li>
           </ul>
         </section>

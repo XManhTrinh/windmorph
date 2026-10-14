@@ -50,7 +50,7 @@ interface NavigationBarOwnProps {
   /**
    * Share the width equally, or centre the items. Stacked items centre within side
    * padding; items beside their icons keep their own width, with the extra space at the
-   * ends. @default "equal" for `iconPosition="top"`, "centered" for `"start"`
+   * ends. @default "equal", or "centered" when iconPosition is "start"
    */
   arrangement?: NavigationBarArrangement;
   /**

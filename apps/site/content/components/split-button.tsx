@@ -156,8 +156,8 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
             </li>
             <li>
               While its menu is open the trailing button becomes a circle with a persistent 10%
-              layer of its content colour, drawn as an <InlineCode>inset-shadow</InlineCode> so it
-              composes with elevation.
+              layer of its content colour, drawn by its state layer and added to any hover or focus
+              layer.
             </li>
             <li>
               The chevron turns over inwards (towards the leading button) on the standard

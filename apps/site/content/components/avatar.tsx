@@ -124,7 +124,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             <li>
               Presence and the badge&apos;s <InlineCode>badgeLabel</InlineCode> join the name
               (&quot;Sam, online, verified&quot;); pass <InlineCode>labels</InlineCode> to translate
-              them.
+              the presence words.
             </li>
             <li>
               With <InlineCode>href</InlineCode> or <InlineCode>onPress</InlineCode> it is a link or

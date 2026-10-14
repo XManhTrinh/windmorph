@@ -17,7 +17,7 @@ export function ReactionPickerMessage() {
   return (
     <div className="flex flex-col items-start gap-1 pt-16">
       <p className="rounded-corner-large bg-secondary-container px-4 py-2 text-body-large text-on-secondary-container">
-        Phở tomorrow, anyone in?
+        Pizza tomorrow, anyone in?
       </p>
       <ReactionPicker
         size="sm"

@@ -5,7 +5,8 @@ import { AddIcon, CloseIcon, EditIcon, SendIcon } from '../../components/icons';
 
 /**
  * `iconTransition="rotate"` turns the outgoing icon 90° as it fades and turns the incoming
- * one in, as in Google's Expressive showcase (the spec swaps them halfway through the morph).
+ * one in, counter-clockwise on open, as in Google's Expressive showcase (the spec swaps them
+ * halfway through the morph).
  * `elevation="lowered"` sets the button and its items one level down.
  */
 export function FabMenuRotate() {

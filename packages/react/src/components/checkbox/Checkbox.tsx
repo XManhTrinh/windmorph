@@ -45,13 +45,19 @@ interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
   defaultSelected?: boolean;
   /** Called when the user checks or unchecks the checkbox. */
   onSelectedChange?: (selected: boolean) => void;
-  /** Shows a dash: some, but not all, of a group is checked. Purely visual. @default false */
+  /**
+   * Shows a dash, announced as mixed: some, but not all, of a group is checked. The checked
+   * state underneath doesn't change. @default false
+   */
   indeterminate?: boolean;
   /** Turns the checkbox off: it can't be changed or focused. @default false */
   disabled?: boolean;
   /** The checkbox can be focused but not changed. @default false */
   readOnly?: boolean;
-  /** The checkbox must be checked before its form submits. @default false */
+  /**
+   * The checkbox must be checked (`aria-required`; with `validationBehavior="native"`, the
+   * form can't submit until it is). @default false
+   */
   required?: boolean;
   /** Shows the error state. @default false */
   invalid?: boolean;

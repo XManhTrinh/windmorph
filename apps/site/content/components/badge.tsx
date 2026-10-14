@@ -57,8 +57,8 @@ export async function BadgeBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             A <InlineCode>Badge</InlineCode> with no children is the small dot; with children it is
             the large badge. Keep large badges to four characters, including a &quot;+&quot;:
-            numbers are capped at <InlineCode>max</InlineCode> (999, so &quot;999+&quot;), and
-            longer text is truncated at the badge&apos;s 34px maximum width.
+            numbers are capped at <InlineCode>max</InlineCode> (999 by default, so
+            &quot;999+&quot;), and longer text is truncated at the badge&apos;s 34px maximum width.
           </p>
         </section>
       </>
@@ -104,9 +104,10 @@ export async function BadgeBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              No children is the small 6px dot; children give the large badge (16px tall, 16 to 34px
-              wide, full corners, 4px side padding, <InlineCode>label-small</InlineCode>), both in{' '}
-              <InlineCode>error</InlineCode> / <InlineCode>on-error</InlineCode>.
+              No children is the small 6px dot; children give the large badge (16px tall, at least
+              16px wide, with text over four characters cut at 34px, full corners, 4px side padding,{' '}
+              <InlineCode>label-small</InlineCode>), both in <InlineCode>error</InlineCode> /{' '}
+              <InlineCode>on-error</InlineCode>.
             </li>
             <li>
               <InlineCode>BadgedBox</InlineCode> places the badge like Compose: a small badge 6px

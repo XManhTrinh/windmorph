@@ -189,9 +189,9 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The docked calendar is a <InlineCode>surface-container-high</InlineCode> panel with
-              16px corners at level 3, with month and year menu buttons between previous / next
-              buttons, the days of the months around in <InlineCode>on-surface-variant</InlineCode>,
-              and Cancel / OK.
+              16px corners at level 3, with a month menu and a year menu, each between its own
+              previous / next buttons, the days of the months around in{' '}
+              <InlineCode>on-surface-variant</InlineCode>, and Cancel / OK.
             </li>
           </ul>
         </section>

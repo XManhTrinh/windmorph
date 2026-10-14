@@ -75,7 +75,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         component: 'Snackbar',
         params: [
           { compose: 'action', windmorph: 'actionLabel + onAction' },
-          { compose: 'dismissAction', windmorph: 'onDismiss', note: 'Shows the close button.' },
+          {
+            compose: 'dismissAction',
+            windmorph: 'onDismiss',
+            note: 'Shows the close button, named by `labels.dismiss`.',
+          },
           { compose: 'actionOnNewLine', windmorph: 'actionOnNewLine' },
           { compose: 'content', windmorph: 'children' },
         ],
@@ -508,6 +512,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'TimePickerDialogDefaults.DisplayModeToggle',
         component: 'TimePickerModeToggle',
+        note: 'Its names come from `strings.inputMode` and `strings.dialMode`, the same object as the time picker’s `strings`.',
       },
     ],
   },

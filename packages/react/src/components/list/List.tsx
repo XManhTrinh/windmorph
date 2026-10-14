@@ -108,8 +108,7 @@ export interface ListItemProps {
   /**
    * Makes the whole item a switch or a checkbox (Compose's toggleable `ListItem`): pressing
    * anywhere on it toggles it, and it is one control for assistive tech. Not in lists with
-   * `onAction`, links or `selectionMode`.
-   * @default none
+   * `onAction`, links or `selectionMode`. Left out, the item is a plain row.
    */
   control?: 'switch' | 'checkbox';
   /** Whether a switch or checkbox item is on (controlled). */
@@ -118,7 +117,7 @@ export interface ListItemProps {
   defaultChecked?: boolean;
   /** Called when a switch or checkbox item is toggled. */
   onCheckedChange?: (checked: boolean) => void;
-  /** Where the switch, checkbox or radio button sits. @default checkbox and radio "leading", switch "trailing" */
+  /** Where the switch, checkbox or radio button sits. @default "leading", or "trailing" for a switch */
   controlPlacement?: ControlPlacement;
   /** A radio list item's value, or the value a switch or checkbox item posts with its form. */
   value?: string;
@@ -133,11 +132,11 @@ export interface ListItemProps {
   verticalAlignment?: 'center' | 'top';
   /** Shows ✓ and ✕ in a switch item's thumb. @default false */
   switchIcons?: boolean;
-  /** The most lines the headline shows, then "…" (overrides the list's). @default the list's */
+  /** The most lines the headline shows, then "…". Left out, the list's `headlineLines` applies. */
   headlineLines?: LineLimit;
   /**
-   * The most lines the supporting text shows, then "…" (overrides the list's).
-   * @default the list's
+   * The most lines the supporting text shows, then "…". Left out, the list's
+   * `supportingTextLines` applies.
    */
   supportingTextLines?: LineLimit;
   /**
@@ -407,8 +406,7 @@ interface ListOwnProps {
   controlPlacement?: ControlPlacement;
   /**
    * M3's dividers between items: `full` width, or `inset` 16dp from each side. Standard
-   * lists only (segmented items are already apart).
-   * @default none
+   * lists only (segmented items are already apart). Left out, there are no dividers.
    */
   dividers?: ListDividers;
   /**
@@ -422,12 +420,11 @@ interface ListOwnProps {
   defaultExpandedKeys?: Iterable<Key>;
   /** Called with the expanded keys when an item expands or collapses. */
   onExpandedChange?: (keys: Set<Key>) => void;
-  /** The most lines each item's headline shows, then "…". M3: one or two. @default no limit */
+  /** The most lines each item's headline shows, then "…". M3: one or two. Left out, no limit. */
   headlineLines?: LineLimit;
   /**
    * The most lines each item's supporting text shows, then "…". M3: one in a two-line item,
-   * two in a three-line item.
-   * @default no limit
+   * two in a three-line item. Left out, no limit.
    */
   supportingTextLines?: LineLimit;
   /** Ref to the root element: a `<ul>`, or a `<div>` grid or listbox when interactive. */

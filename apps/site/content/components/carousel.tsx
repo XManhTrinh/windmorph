@@ -120,7 +120,9 @@ export async function CarouselBody(): Promise<ComponentDoc> {
             <li>
               Each item is a <InlineCode>group</InlineCode> described as a &quot;slide&quot; and
               labelled &quot;n of N&quot; with numbers in the locale;{' '}
-              <InlineCode>labels.slide</InlineCode> translates it.
+              <InlineCode>labels.slide</InlineCode> translates the label, and{' '}
+              <InlineCode>labels.item</InlineCode> and <InlineCode>labels.carousel</InlineCode> the
+              &quot;slide&quot; and &quot;carousel&quot; descriptions.
             </li>
             <li>
               The container never takes focus: Tab lands on the first item, and Tab or the arrow

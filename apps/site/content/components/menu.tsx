@@ -144,6 +144,13 @@ export async function MenuBody(): Promise<ComponentDoc> {
             scroll, so a gap menu that has to scroll switches to dividers.{' '}
             <InlineCode>density</InlineCode> (0 to −3) tightens items for dense desktop layouts.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>presentation=&quot;auto&quot;</InlineCode> opens the menu in a bottom sheet
+            on compact windows (below 600px wide) and anchored to its trigger on larger ones;{' '}
+            <InlineCode>&quot;sheet&quot;</InlineCode> always uses the sheet. In a sheet, a submenu
+            replaces the menu&apos;s content, below a back button (
+            <InlineCode>labels.back</InlineCode>).
+          </p>
         </section>
       </>
     ),
@@ -168,7 +175,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
             </li>
             <li>
               → opens a submenu and focuses its first item, ← closes it (mirrored in right-to-left).
-              Shift + F10 or the context-menu key opens a context menu.
+              In a sheet, ←, Escape or the back button return to the menu that opened it. Shift +
+              F10 or the context-menu key opens a context menu.
             </li>
             <li>
               Items in <InlineCode>disabledKeys</InlineCode> can take focus but do nothing, as M3
@@ -211,8 +219,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
               spec describes.
             </li>
             <li>
-              The menu expands along one axis from its anchor instead of Compose&apos;s uniform 80%
-              scale, which the M3 motion spec avoids.
+              The menu is revealed along one axis from its anchored edge as it fades in, instead of
+              Compose&apos;s uniform 80% scale, which the M3 motion spec avoids.
             </li>
             <li>
               <InlineCode>standard</InlineCode> uses <InlineCode>surface-container-low</InlineCode>{' '}

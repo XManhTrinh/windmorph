@@ -41,7 +41,7 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             <TimePickerDial />
           </ExampleViewer>
           <ExampleViewer
-            title="24-hour and input mode"
+            title="24-hour, horizontal and input mode"
             code={modes}
             html={modesHtml}
             fileName="time-picker-modes.tsx"

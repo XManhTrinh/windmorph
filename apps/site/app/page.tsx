@@ -29,9 +29,9 @@ const STATS: Stat[] = [
 ];
 
 /*
- * Quick-start snippets. Pulled verbatim from this repo's own getting-started guide
+ * Quick-start snippets, matching the getting-started guide
  * (apps/site/app/(docs)/getting-started/page.tsx) and the package manifest
- * (packages/react/package.json) — not from the deployed site. Verified in verification.md.
+ * (packages/react/package.json).
  */
 const INSTALL_PACKAGES = '@windmorph/react motion';
 const INSTALL_SNIPPET = `pnpm add ${INSTALL_PACKAGES}`;
@@ -95,7 +95,8 @@ interface Feature {
 const FEATURES: Feature[] = [
   {
     title: 'Full M3 token system',
-    description: 'Every surface draws from semantic colour, shape, type and elevation tokens.',
+    description:
+      'Every surface draws from semantic colour, shape, type and elevation tokens, and component tokens restyle a component from CSS.',
     icon: <PaletteIcon />,
   },
   {

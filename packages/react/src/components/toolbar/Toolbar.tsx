@@ -474,7 +474,7 @@ interface ToolbarFabOwnProps {
   /**
    * The FAB's colour scheme. Defaults to the toolbar's colour: `primary-container`
    * (standard) or `tertiary-container` (vibrant).
-   * @default the toolbar's `color`, else "standard"
+   * @default the toolbar's color, or "standard" outside a toolbar
    */
   color?: FloatingToolbarColor;
   /**
