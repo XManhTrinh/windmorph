@@ -195,6 +195,7 @@ export {
   type TabsProps,
 } from './components/tabs/Tabs';
 export { tabsStyles, type TabsStyleProps, type TabsVariant } from './components/tabs/tabs-styles';
+export { tabsTokenSet } from './components/tabs/tabs-tokens';
 export {
   AssistChip,
   FilterChip,

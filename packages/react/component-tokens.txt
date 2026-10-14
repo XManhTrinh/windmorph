@@ -8,3 +8,17 @@
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
+--md-comp-primary-navigation-tab-active-indicator-color
+--md-comp-primary-navigation-tab-container-color
+--md-comp-primary-navigation-tab-divider-color
+--md-comp-primary-navigation-tab-with-icon-active-icon-color
+--md-comp-primary-navigation-tab-with-icon-inactive-icon-color
+--md-comp-primary-navigation-tab-with-label-text-active-label-text-color
+--md-comp-primary-navigation-tab-with-label-text-inactive-label-text-color
+--md-comp-secondary-navigation-tab-active-indicator-color
+--md-comp-secondary-navigation-tab-active-label-text-color
+--md-comp-secondary-navigation-tab-container-color
+--md-comp-secondary-navigation-tab-divider-color
+--md-comp-secondary-navigation-tab-inactive-label-text-color
+--md-comp-secondary-navigation-tab-with-icon-active-icon-color
+--md-comp-secondary-navigation-tab-with-icon-inactive-icon-color
