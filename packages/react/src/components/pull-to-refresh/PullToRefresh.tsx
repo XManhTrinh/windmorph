@@ -13,7 +13,11 @@ import {
 import { useObjectRef } from 'react-aria';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { cn } from '../../utils/cn';
-import { LoadingIndicator } from '../loading-indicator/LoadingIndicator';
+import { usePreloadWhenIdle } from '../../utils/load-on-demand';
+import {
+  LazyLoadingIndicator,
+  preloadLoadingIndicator,
+} from '../loading-indicator/lazy-loading-indicator';
 import {
   POSITIONAL_THRESHOLD,
   distanceFraction,
@@ -197,6 +201,9 @@ export function PullToRefresh({
   const spring = useM3Spring('spatial', 'fast');
   const [pulling, setPulling] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  // The indicator's code (its shapes and morphing) loads on demand: when the browser is first
+  // idle, or when a pull starts, whichever comes first.
+  usePreloadWhenIdle(preloadLoadingIndicator, !disabled);
 
   const rootRef = useObjectRef(ref);
   const animationRef = useRef<{ stop: () => void } | null>(null);
@@ -264,6 +271,10 @@ export function PullToRefresh({
               atTop: isAtTop(target, root),
               pulled: 0,
             };
+      // A pull may start: the indicator's code loads now (if the idle preload hasn't loaded it
+      // yet), well before the gesture passes the slop and the indicator shows. A failed load is
+      // tried again by the indicator itself.
+      if (gesture?.atTop) void preloadLoadingIndicator().catch(() => undefined);
     };
 
     /** Moves the gesture to `y`; returns whether the area took the movement. */
@@ -486,7 +497,7 @@ function PullIndicator({
         className={faceClassName}
         style={rotation === 0 ? undefined : { transform: `rotate(${rotation}deg)` }}
       >
-        <LoadingIndicator
+        <LazyLoadingIndicator
           variant="contained"
           value={Math.min(Math.max(value, 0), 1)}
           aria-label={labels.pull}
@@ -497,7 +508,7 @@ function PullIndicator({
         aria-hidden={!refreshing || undefined}
         className={faceClassName}
       >
-        <LoadingIndicator variant="contained" aria-label={labels.refreshing} />
+        <LazyLoadingIndicator variant="contained" aria-label={labels.refreshing} />
       </div>
     </div>
   );

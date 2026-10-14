@@ -78,6 +78,7 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
     'components/select/Select.js',
     'components/autocomplete/Autocomplete.js',
     'components/date-picker/DateField.js',
+    'components/pull-to-refresh/PullToRefresh.js',
   ].map((component) => ({
     component,
     lazy: 'components/loading-indicator/LoadingIndicator.js',

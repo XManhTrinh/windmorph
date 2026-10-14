@@ -1,7 +1,8 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { preloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { PullToRefresh, type PullToRefreshProps } from './PullToRefresh';
 
 type TouchType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
@@ -64,6 +65,12 @@ const item = () => screen.getByText('Alex: Lunch at noon?');
 const indicatorBox = () => document.querySelector<HTMLElement>('[data-indicator]');
 
 describe('PullToRefresh', () => {
+  // The indicator loads on demand; on a page it's in by the time a pull shows it (see
+  // pull-to-refresh-on-demand.test.tsx), so these tests start with it loaded.
+  beforeAll(async () => {
+    await preloadLoadingIndicator();
+  });
+
   it('shows only its content at rest, with an empty polite status', async () => {
     const { container } = render(<Feed />);
     expect(screen.getByRole('list', { name: 'Messages' })).toBeInTheDocument();
