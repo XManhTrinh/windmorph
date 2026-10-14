@@ -105,9 +105,11 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
               The time reads left to right in right-to-left layouts too.
             </li>
             <li>
-              <InlineCode>TimePickerModeToggle</InlineCode> is the keyboard / clock button
-              (&quot;Toggle input picker&quot; / &quot;Toggle dial picker&quot;) for the
-              dialog&apos;s <InlineCode>modeToggleButton</InlineCode>.
+              <InlineCode>TimePickerModeToggle</InlineCode> is the keyboard / clock button for the
+              dialog&apos;s <InlineCode>modeToggleButton</InlineCode>, named &quot;Toggle input
+              picker&quot; / &quot;Toggle dial picker&quot; by{' '}
+              <InlineCode>strings.inputMode</InlineCode> / <InlineCode>strings.dialMode</InlineCode>
+              . Give it the same <InlineCode>strings</InlineCode> as the picker.
             </li>
             <li>
               Pressing or dragging the dial picks the nearest hour (the inner ring within 74px of

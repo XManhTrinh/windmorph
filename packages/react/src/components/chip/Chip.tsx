@@ -50,6 +50,13 @@ export interface ChipClassNames {
   trailing?: string;
 }
 
+export interface ChipLabels {
+  /** First word of the remove button's name, which ends with the label. @default "Remove" */
+  remove: string;
+}
+
+const DEFAULT_LABELS: ChipLabels = { remove: 'Remove' };
+
 interface ChipCommonProps {
   /** The label. */
   children: ReactNode;
@@ -134,18 +141,19 @@ function RemoveButton({
   styles,
   className,
   labelId,
-  removeLabel,
+  labels,
   onRemove,
   disabled,
 }: {
   styles: Styles;
   className?: string;
   labelId: string;
-  removeLabel: string;
+  labels?: Partial<ChipLabels>;
   onRemove: () => void;
   disabled?: boolean;
 }) {
   const removeId = useId();
+  const { remove } = { ...DEFAULT_LABELS, ...labels };
   return (
     <ButtonBase
       disabled={disabled}
@@ -157,7 +165,7 @@ function RemoveButton({
     >
       <TouchTarget />
       <span id={removeId} hidden>
-        {removeLabel}
+        {remove}
       </span>
       <CloseIcon />
     </ButtonBase>
@@ -284,8 +292,8 @@ interface FilterChipOwnProps extends Omit<ChipCommonProps, 'classNames'> {
    * (M3: for medium and expanded windows). Backspace or Delete on the chip also calls it.
    */
   onRemove?: () => void;
-  /** First word of the remove button's name, which ends with the label. @default "Remove" */
-  removeLabel?: string;
+  /** Words the chip announces, with English defaults. */
+  labels?: Partial<ChipLabels>;
   /** `surface-container-low` at level 1 instead of an outline. @default false */
   elevated?: boolean;
   /** Classes for each part, by slot. */
@@ -335,7 +343,7 @@ function SimpleFilterChip({
   classNames,
   className,
   onRemove: _onRemove,
-  removeLabel: _removeLabel,
+  labels: _labels,
   ...base
 }: FilterChipProps) {
   const styles = chipStyles({
@@ -375,7 +383,7 @@ function RemovableFilterChip({
   className,
   style,
   onRemove,
-  removeLabel = 'Remove',
+  labels,
   selected,
   defaultSelected,
   onSelectedChange,
@@ -438,7 +446,7 @@ function RemovableFilterChip({
         styles={styles}
         className={classNames?.remove}
         labelId={labelId}
-        removeLabel={removeLabel}
+        labels={labels}
         onRemove={onRemove}
         disabled={isDisabled}
       />
@@ -470,8 +478,8 @@ interface InputChipOwnProps {
   onPress?: ButtonBaseActionProps['onPress'];
   /** Shows a remove button; also called on Backspace or Delete. */
   onRemove?: () => void;
-  /** First word of the remove button's name, which ends with the label. @default "Remove" */
-  removeLabel?: string;
+  /** Words the chip announces, with English defaults. */
+  labels?: Partial<ChipLabels>;
   /** The flat chip's border. @default "standard" */
   outline?: ChipOutline;
   /** Disables the chip's action and its remove button. @default false */
@@ -508,7 +516,7 @@ export function InputChip({
   selected,
   onPress,
   onRemove,
-  removeLabel = 'Remove',
+  labels,
   outline,
   disabled,
   classNames,
@@ -570,7 +578,7 @@ export function InputChip({
           styles={styles}
           className={classNames?.remove}
           labelId={labelId}
-          removeLabel={removeLabel}
+          labels={labels}
           onRemove={onRemove}
           disabled={disabled}
         />

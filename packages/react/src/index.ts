@@ -155,6 +155,7 @@ export {
   useSnackbarHostState,
   type SnackbarClassNames,
   type SnackbarHostProps,
+  type SnackbarLabels,
   type SnackbarProps,
 } from './components/snackbar/Snackbar';
 export {
@@ -210,6 +211,7 @@ export {
   SuggestionChip,
   type AssistChipProps,
   type ChipClassNames,
+  type ChipLabels,
   type FilterChipClassNames,
   type FilterChipProps,
   type InputChipClassNames,
@@ -520,6 +522,7 @@ export { listTokenSet } from './components/list/list-tokens';
 export {
   RangeSlider,
   Slider,
+  type RangeSliderLabels,
   type RangeSliderProps,
   type SliderClassNames,
   type SliderProps,

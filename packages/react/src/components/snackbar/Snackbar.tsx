@@ -46,6 +46,13 @@ export interface SnackbarClassNames {
   dismiss?: string;
 }
 
+export interface SnackbarLabels {
+  /** Name of the dismiss (×) button. @default "Dismiss" */
+  dismiss: string;
+}
+
+const DEFAULT_LABELS: SnackbarLabels = { dismiss: 'Dismiss' };
+
 interface SnackbarOwnProps {
   /** The message. */
   children: React.ReactNode;
@@ -60,8 +67,8 @@ interface SnackbarOwnProps {
    * button. @default onDismiss
    */
   onEscape?: () => void;
-  /** Name of the dismiss button. @default "Dismiss" */
-  dismissLabel?: string;
+  /** Words the snackbar announces, with English defaults. */
+  labels?: Partial<SnackbarLabels>;
   /** Put the actions under the message, for long action labels. @default false */
   actionOnNewLine?: boolean;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -88,7 +95,7 @@ export function Snackbar({
   onAction,
   onDismiss,
   onEscape = onDismiss,
-  dismissLabel = 'Dismiss',
+  labels: labelsProp,
   actionOnNewLine = false,
   classNames,
   className,
@@ -99,6 +106,7 @@ export function Snackbar({
     newLine: actionOnNewLine && actionLabel !== undefined,
     dismissible: onDismiss !== undefined,
   });
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const hasActions = actionLabel !== undefined || onDismiss !== undefined;
   const inHost = useContext(InSnackbarHost);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -144,7 +152,7 @@ export function Snackbar({
             <IconButton
               variant="standard"
               icon={<CloseIcon />}
-              aria-label={dismissLabel}
+              aria-label={labels.dismiss}
               onPress={onDismiss}
               data-slot="dismiss"
               className={styles.dismiss({ class: classNames?.dismiss })}
@@ -167,8 +175,8 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
   state: SnackbarHostState;
   /** Renders each snackbar; defaults to {@link Snackbar}. */
   snackbar?: (data: SnackbarData) => React.ReactNode;
-  /** Name of the dismiss button. @default "Dismiss" */
-  dismissLabel?: string;
+  /** Words each default snackbar announces, with English defaults. */
+  labels?: Partial<SnackbarLabels>;
   /**
    * The key combination that moves focus to a snackbar with actions, as the spec asks for on
    * the web. Document it where your app lists its shortcuts. `false` turns it off.
@@ -199,7 +207,7 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
 export function SnackbarHost({
   state,
   snackbar,
-  dismissLabel,
+  labels,
   focusShortcut = 'Alt+G',
   className,
   ref,
@@ -268,7 +276,7 @@ export function SnackbarHost({
               onAction={data.performAction}
               onDismiss={data.visuals.withDismissAction ? data.dismiss : undefined}
               onEscape={data.dismiss}
-              dismissLabel={dismissLabel}
+              labels={labels}
               actionOnNewLine={data.visuals.actionOnNewLine}
             >
               {data.visuals.message}

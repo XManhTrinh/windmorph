@@ -1,8 +1,8 @@
 import { RangeSlider } from '@windmorph/react';
 
 /**
- * `RangeSlider` selects a range with two thumbs. `thumbLabels` names each thumb for
- * assistive tech (defaulting to "Minimum" / "Maximum").
+ * `RangeSlider` selects a range with two thumbs. `labels` names each thumb for
+ * assistive tech (`start` and `end`, defaulting to "Minimum" / "Maximum").
  */
 export function SliderRange() {
   return (
@@ -11,7 +11,7 @@ export function SliderRange() {
         aria-label="Price range"
         size="md"
         defaultValue={[20, 80]}
-        thumbLabels={['Lowest price', 'Highest price']}
+        labels={{ start: 'Lowest price', end: 'Highest price' }}
       />
     </div>
   );

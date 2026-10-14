@@ -57,6 +57,10 @@ export interface TimePickerStrings {
   period?: string;
   /** Name of the dial. @default "Clock" */
   dial?: string;
+  /** {@link TimePickerModeToggle}'s name in dial mode. @default "Toggle input picker" */
+  inputMode?: string;
+  /** {@link TimePickerModeToggle}'s name in input mode. @default "Toggle dial picker" */
+  dialMode?: string;
   /**
    * Name of a number on the dial (M3: "{Value} Hours or minutes of {Total}"), e.g.
    * "7 hours of 12" or "35 minutes of 60".
@@ -265,10 +269,11 @@ export interface TimePickerModeToggleProps {
   mode: TimePickerMode;
   /** Called with the other mode when the toggle is pressed. */
   onModeChange: (mode: TimePickerMode) => void;
-  /** Accessible name of the toggle in dial mode. @default "Toggle input picker" */
-  toggleInputLabel?: string;
-  /** Accessible name of the toggle in input mode. @default "Toggle dial picker" */
-  toggleDialLabel?: string;
+  /**
+   * Words the toggle announces (`inputMode`, `dialMode`), with English defaults. Takes the
+   * same object as the time picker's `strings`, so one set of words covers both.
+   */
+  strings?: TimePickerStrings;
   /** Shown in dial mode. Defaults to Material Symbols' keyboard. */
   keyboardIcon?: ReactElement;
   /** Shown in input mode. Defaults to Material Symbols' schedule (a clock). */
@@ -291,8 +296,7 @@ export interface TimePickerModeToggleProps {
 export function TimePickerModeToggle({
   mode,
   onModeChange,
-  toggleInputLabel = 'Toggle input picker',
-  toggleDialLabel = 'Toggle dial picker',
+  strings = {},
   keyboardIcon,
   clockIcon,
   className,
@@ -303,7 +307,7 @@ export function TimePickerModeToggle({
     <IconButton
       variant="standard"
       icon={keyboardIcon ?? <KeyboardIcon />}
-      aria-label={toggleInputLabel}
+      aria-label={strings.inputMode ?? 'Toggle input picker'}
       onPress={() => onModeChange('input')}
       className={className}
     />
@@ -311,7 +315,7 @@ export function TimePickerModeToggle({
     <IconButton
       variant="standard"
       icon={clockIcon ?? <ScheduleIcon />}
-      aria-label={toggleDialLabel}
+      aria-label={strings.dialMode ?? 'Toggle dial picker'}
       onPress={() => onModeChange('dial')}
       className={className}
     />

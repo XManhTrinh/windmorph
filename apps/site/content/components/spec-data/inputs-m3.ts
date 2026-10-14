@@ -478,7 +478,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'InputChip',
         params: [
           { compose: 'avatar, leadingIcon', windmorph: '`avatar`, `leadingIcon`' },
-          { compose: 'trailingIcon (a close icon)', windmorph: '`onRemove`, `removeLabel`' },
+          { compose: 'trailingIcon (a close icon)', windmorph: '`onRemove`, `labels.remove`' },
           { compose: 'selected', windmorph: '`selected`' },
         ],
       },

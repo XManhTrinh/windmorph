@@ -245,6 +245,15 @@ describe('FilterChip', () => {
     expect(onRemove).toHaveBeenCalledTimes(2);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('names its remove button from labels', () => {
+    render(
+      <FilterChip onRemove={() => {}} labels={{ remove: 'Clear' }}>
+        Nearby
+      </FilterChip>,
+    );
+    expect(screen.getByRole('button', { name: 'Clear Nearby' })).toBeInTheDocument();
+  });
 });
 
 describe('InputChip', () => {
@@ -320,7 +329,7 @@ describe('InputChip', () => {
         disabled
         onPress={() => {}}
         onRemove={() => {}}
-        removeLabel="Delete"
+        labels={{ remove: 'Delete' }}
         data-testid="chip"
       >
         Priya

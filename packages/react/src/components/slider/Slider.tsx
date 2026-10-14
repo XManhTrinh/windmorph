@@ -115,6 +115,15 @@ export type SliderProps = SliderCommonProps &
     endIcon?: ReactNode;
   };
 
+export interface RangeSliderLabels {
+  /** Name of the start thumb. @default "Minimum" */
+  start: string;
+  /** Name of the end thumb. @default "Maximum" */
+  end: string;
+}
+
+const DEFAULT_LABELS: RangeSliderLabels = { start: 'Minimum', end: 'Maximum' };
+
 export type RangeSliderProps = SliderCommonProps &
   Naming & {
     /** The range, as `[start, end]` (controlled). */
@@ -125,8 +134,8 @@ export type RangeSliderProps = SliderCommonProps &
     onChange?: (value: [number, number]) => void;
     /** Called when the user stops dragging or releases a key. */
     onChangeEnd?: (value: [number, number]) => void;
-    /** Names of the two thumbs. @default ["Minimum", "Maximum"] */
-    thumbLabels?: [string, string];
+    /** Words the range slider announces (its thumbs' names), with English defaults. */
+    labels?: Partial<RangeSliderLabels>;
   };
 
 /**
@@ -195,7 +204,7 @@ function SliderRoot(props: RootProps) {
   const iconSize = size === 'md' || size === 'lg' || size === 'xl';
   const startIcon = iconSize && !centered ? startIconProp : undefined;
   const endIcon = iconSize && !centered ? endIconProp : undefined;
-  const thumbLabels = (props as RangeSliderProps).thumbLabels ?? ['Minimum', 'Maximum'];
+  const labels = { ...DEFAULT_LABELS, ...(props as RangeSliderProps).labels };
   const { data, rest: labelling } = splitDataAttributes(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
     'aria-label'?: string;
@@ -300,7 +309,7 @@ function SliderRoot(props: RootProps) {
             state={state}
             trackRef={trackRef}
             name={name}
-            label={range ? thumbLabels[index] : undefined}
+            label={range ? (index === 0 ? labels.start : labels.end) : undefined}
             showValueLabel={showValueLabel}
             styles={styles}
             classNames={classNames}

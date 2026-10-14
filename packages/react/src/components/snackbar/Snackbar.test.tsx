@@ -107,6 +107,18 @@ describe('Snackbar', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('names the dismiss button from labels', () => {
+    const { rerender } = render(<Snackbar onDismiss={() => {}}>Draft kept</Snackbar>);
+    expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+    rerender(
+      <Snackbar onDismiss={() => {}} labels={{ dismiss: 'Close message' }}>
+        Draft kept
+      </Snackbar>,
+    );
+    expect(screen.getByRole('button', { name: 'Close message' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull();
+  });
+
   it('pads 8px after the action without a dismiss button, and can stack the action', () => {
     const { rerender } = render(
       <Snackbar actionLabel="Retry" data-testid="bar">
@@ -171,6 +183,16 @@ describe('SnackbarHost', () => {
     expect(state.currentSnackbarData).not.toBeNull();
     act(() => vi.advanceTimersByTime(1));
     expect(state.currentSnackbarData).toBeNull();
+  });
+
+  it('passes its labels to each default snackbar', async () => {
+    const state = new SnackbarHostState();
+    render(<SnackbarHost state={state} labels={{ dismiss: 'Close message' }} />);
+    await hostReady();
+    act(() => {
+      void state.showSnackbar({ message: 'Photo uploaded', withDismissAction: true });
+    });
+    expect(screen.getByRole('button', { name: 'Close message' })).toBeInTheDocument();
   });
 
   it('dismisses on Escape even without the × button', async () => {
