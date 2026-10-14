@@ -196,8 +196,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     notRendered: {
       MenuItem:
         "The menu's items, composed in the preview; their icons, description, badge and shortcut are per item, as the examples show.",
-      MenuGroup:
-        'Groups items under an optional title; the Basic and Layouts examples show it.',
+      MenuGroup: 'Groups items under an optional title; the Basic and Layouts examples show it.',
       MenuTrigger: "Opens the menu from the preview's button; its open state is the preview's own.",
       SubmenuTrigger: 'Opens a nested menu from an item; the Submenu example shows it.',
       ContextMenuTrigger:
