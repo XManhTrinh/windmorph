@@ -135,9 +135,16 @@ test.describe('Dialog behaviour', () => {
     const trigger = page.getByRole('button', { name: 'Edit name' });
     await trigger.click();
     const dialog = page.getByRole('dialog', { name: 'Edit name' });
+    // Polled to the nearest pixel: while the enter settles, the panel can sit a fraction of a
+    // pixel off (y = -0.0001 was seen under load). `+ 0` turns a rounded -0 into 0.
+    await expect
+      .poll(async () => {
+        const box = (await dialog.boundingBox())!;
+        const px = (value: number) => Math.round(value) + 0;
+        return { x: px(box.x), y: px(box.y), width: px(box.width), height: px(box.height) };
+      })
+      .toEqual({ x: 0, y: 0, width: 390, height: 760 });
     await settle(page);
-    const box = (await dialog.boundingBox())!;
-    expect(box).toMatchObject({ x: 0, y: 0, width: 390, height: 760 });
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('0px');
     const header = dialog.getByRole('heading', { name: 'Edit name' }).locator('xpath=..');
     expect((await header.boundingBox())!.height).toBe(56);
@@ -379,6 +386,12 @@ const POSITIONER_OVERRIDES = [
   'transform',
 ];
 
+/**
+ * The positioner story's panel width, set by its text: Chromium on Linux lays the same
+ * text out 15px narrower than on macOS.
+ */
+const TEXT_WIDTH = process.platform === 'linux' ? 485 : 500;
+
 test.describe('Dialog classNames.positioner layout safety', () => {
   for (const override of POSITIONER_OVERRIDES) {
     for (const transformedAncestor of [false, true]) {
@@ -423,7 +436,7 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         });
         // The text sets the panel's width (between 280px and 560px) in every case.
         expect(panel).toEqual({
-          width: 500,
+          width: TEXT_WIDTH,
           radius: '28px',
           clip: 'inset(-32px)',
           opacity: '1',

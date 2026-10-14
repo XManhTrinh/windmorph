@@ -59,3 +59,30 @@ if (hasDom && !('getClientRects' in Range.prototype)) {
 if (hasDom && !('scrollIntoView' in Element.prototype)) {
   Object.assign(Element.prototype, { scrollIntoView: () => undefined });
 }
+
+/**
+ * jsdom has no idle periods. `requestIdleCallback` is stubbed so a callback runs only when a
+ * test calls `runIdleCallbacks`: parts that preload when the browser is idle then load at a
+ * moment the test picks, never partway through one that runs slowly.
+ */
+const idleCallbacks = new Map<number, IdleRequestCallback>();
+let nextIdleHandle = 1;
+
+/** Runs every pending `requestIdleCallback` callback, as an idle period would. */
+export function runIdleCallbacks() {
+  const callbacks = [...idleCallbacks.values()];
+  idleCallbacks.clear();
+  const deadline: IdleDeadline = { didTimeout: false, timeRemaining: () => 50 };
+  callbacks.forEach((callback) => callback(deadline));
+}
+
+afterEach(() => idleCallbacks.clear());
+
+if (hasDom) {
+  vi.stubGlobal('requestIdleCallback', (callback: IdleRequestCallback) => {
+    const handle = nextIdleHandle++;
+    idleCallbacks.set(handle, callback);
+    return handle;
+  });
+  vi.stubGlobal('cancelIdleCallback', (handle: number) => idleCallbacks.delete(handle));
+}

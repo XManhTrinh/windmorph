@@ -47,6 +47,13 @@ const INHERITED = ['color', 'fill', 'stroke'];
 /** Recorded instead of a property that paints nothing on a `display: contents` element. */
 const BOXLESS = '(no box)';
 
+/**
+ * The browser's own focus ring colour (`-webkit-focus-ring-color`, on an element the browser
+ * focused) differs by platform, so it's recorded as the macOS value the baselines were taken
+ * on: Chromium on Linux paints rgb(16, 16, 16) and rgb(238, 238, 238) instead.
+ */
+const FOCUS_RING = { light: 'rgb(0, 95, 204)', dark: 'rgb(153, 200, 255)' };
+
 interface Combo {
   name: string;
   theme: string;
@@ -126,7 +133,21 @@ function storyIds(): string[] {
 
 async function readStyles(page: Page, combo: Combo) {
   return page.evaluate(
-    ({ combo, properties, inherited, BOXLESS }) => {
+    ({ combo, properties, inherited, BOXLESS, FOCUS_RING }) => {
+      // This platform's focus ring colours, read before the walk so the probe isn't in it.
+      const probe = document.createElement('div');
+      probe.style.outlineColor = '-webkit-focus-ring-color';
+      document.body.append(probe);
+      const ringColor = (scheme: 'light' | 'dark') => {
+        probe.style.colorScheme = scheme;
+        return getComputedStyle(probe).outlineColor;
+      };
+      const platformRing = new Map([
+        [ringColor('light'), FOCUS_RING.light],
+        [ringColor('dark'), FOCUS_RING.dark],
+      ]);
+      probe.remove();
+
       for (const scope of document.querySelectorAll<HTMLElement>('[data-theme]')) {
         scope.dataset.theme = combo.theme;
         scope.dataset.mode = combo.mode;
@@ -153,9 +174,11 @@ async function readStyles(page: Page, combo: Combo) {
         const boxless = style.display === 'contents';
         rows.push([
           `${path} ${element.tagName.toLowerCase()}`,
-          properties.map((property) =>
-            boxless && !inherited.includes(property) ? BOXLESS : style.getPropertyValue(property),
-          ),
+          properties.map((property) => {
+            if (boxless && !inherited.includes(property)) return BOXLESS;
+            const value = style.getPropertyValue(property);
+            return property === 'outline-color' ? (platformRing.get(value) ?? value) : value;
+          }),
         ]);
         [...element.children].forEach((child, index) => {
           if (!['SCRIPT', 'STYLE', 'LINK', 'META', 'TEMPLATE'].includes(child.tagName)) {
@@ -172,6 +195,7 @@ async function readStyles(page: Page, combo: Combo) {
       properties: PROPERTIES as readonly string[],
       inherited: INHERITED as readonly string[],
       BOXLESS,
+      FOCUS_RING,
     },
   );
 }

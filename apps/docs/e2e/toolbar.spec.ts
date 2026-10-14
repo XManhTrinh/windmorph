@@ -110,10 +110,12 @@ test.describe('Toolbar geometry', () => {
       await openStory(page, 'components-toolbar--collapse', { dir }, { withFab: true });
       const toolbar = page.getByTestId('toolbar');
       const fab = page.getByTestId('fab');
-      const expanded = await box(toolbar);
       // Toolbar 12 + 3×40 + 2×8 + 12 = 160, gap 8, FAB 56; 80px tall for the grown FAB.
-      expect(expanded).toMatchObject({ width: 224, height: 80 });
-      expect(await box(fab)).toMatchObject({ width: 56, height: 56 });
+      // Polled: under load the story can still be laying out (the direction comes from a
+      // toolbar global) when it's first measured.
+      await expect.poll(() => box(toolbar)).toMatchObject({ width: 224, height: 80 });
+      await expect.poll(() => box(fab)).toMatchObject({ width: 56, height: 56 });
+      const expanded = await box(toolbar);
 
       await page.getByRole('button', { name: 'Collapse' }).click();
       // Polled until the springs settle: the FAB grows to 80px, the toolbar keeps its size, and
@@ -196,13 +198,14 @@ test.describe('Toolbar keyboard (M3: Tab or arrows)', () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`arrows still move between controls · ${dir}`, async ({ page }) => {
       await openStory(page, 'components-toolbar--docked', { dir });
+      // Polled: the focus moves in the key's handler, which can land after the press resolves.
       await page.keyboard.press('Tab');
-      expect(await focusedName(page)).toBe('Search');
+      await expect.poll(() => focusedName(page)).toBe('Search');
       // The next control is to the right in LTR and to the left in RTL.
       await page.keyboard.press(dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight');
-      expect(await focusedName(page)).toBe('Starred');
+      await expect.poll(() => focusedName(page)).toBe('Starred');
       await page.keyboard.press(dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
-      expect(await focusedName(page)).toBe('Search');
+      await expect.poll(() => focusedName(page)).toBe('Search');
     });
   }
 
