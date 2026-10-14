@@ -390,3 +390,134 @@ test.describe('ButtonGroup overflow', () => {
     expect(more.x).toBeLessThan(reply.x);
   });
 });
+
+test.describe('ButtonGroup press expansion, frame by frame (2026-10-14)', () => {
+  interface Frame {
+    /** The frame's `performance.now()`. */
+    time: number;
+    /** Each item's layout width (`offsetWidth`, no transforms). */
+    widths: number[];
+    /** Whether the group still sizes any item inline. */
+    pinned: boolean;
+  }
+  interface Recording {
+    frames: Frame[];
+    running: boolean;
+  }
+  /** Samples the group's items on every animation frame until `stop()`. */
+  async function recordFrames(page: Page, group: Locator) {
+    await group.evaluate((el) => {
+      const items = [...el.children] as HTMLElement[];
+      const state: Recording = { frames: [], running: true };
+      const sample = () => {
+        state.frames.push({
+          time: performance.now(),
+          widths: items.map((item) => item.offsetWidth),
+          pinned: items.some((item) => item.style.flex !== ''),
+        });
+        if (state.running) requestAnimationFrame(sample);
+      };
+      sample();
+      (window as unknown as { widthRecording: Recording }).widthRecording = state;
+    });
+    return {
+      stop: () =>
+        page.evaluate(() => {
+          const state = (window as unknown as { widthRecording: Recording }).widthRecording;
+          state.running = false;
+          return state.frames;
+        }),
+    };
+  }
+
+  const connected = { variant: 'connected', expandedRatio: '0.15' };
+  for (const [label, args, press, layout] of [
+    ['standard', {}, 'Share', {}],
+    ['connected, equal widths', connected, 'Share', {}],
+    // The group's width comes from its items', so pinning only the moving ones would change it.
+    ['connected, sized by its content', connected, 'Create', { fit: true }],
+    // Layout widths, not the scaled boxes.
+    ['connected, in a scaled container', connected, 'Share', { fit: true, scale: '0.8' }],
+  ] as const) {
+    test(`${label}: widths only move between rest and the bump`, async ({ page }) => {
+      await openStory(page, 'composites-buttongroup--standard', {}, args);
+      await page.locator('#storybook-root').evaluate((root, { fit, scale }) => {
+        if (scale) root.style.scale = scale;
+        if (fit)
+          (root.querySelector('[role="toolbar"]') as HTMLElement).style.width = 'fit-content';
+      }, layout);
+      const group = page.getByRole('toolbar', { name: 'Actions' });
+      const items = await group.evaluate((el) =>
+        ([...el.children] as HTMLElement[]).map((item) => ({
+          name: item.getAttribute('aria-label') ?? item.textContent,
+          rest: item.offsetWidth,
+          // The hook's compression limit: half the space around the content, unscaled.
+          limit:
+            (item.offsetWidth -
+              (item.firstElementChild!.getBoundingClientRect().width * item.offsetWidth) /
+                item.getBoundingClientRect().width) /
+            2,
+        })),
+      );
+      const rest = items.map((item) => item.rest);
+      if (label === 'connected, equal widths') {
+        // The story's three labelled buttons share the width equally.
+        for (const item of items.slice(0, 3)) {
+          expect(Math.abs(item.rest - rest[0]!)).toBeLessThanOrEqual(1);
+        }
+      }
+      const index = items.findIndex((item) => item.name === press);
+      const bump = 0.15 * rest[index]!;
+      // The fast spatial spring overshoots its target a little in the expressive scheme.
+      const overshoot = bump / 4 + 1;
+
+      // The release's spring, in ms (a minified stylesheet writes it in seconds).
+      const spring = await group.evaluate((el) => {
+        const value = getComputedStyle(el.firstElementChild!)
+          .getPropertyValue('--md-sys-motion-spring-spatial-fast-duration')
+          .trim();
+        return Number.parseFloat(value) * (value.endsWith('ms') ? 1 : 1000);
+      });
+      expect(spring).toBeGreaterThan(100);
+
+      const recorder = await recordFrames(page, group);
+      const box = (await group.getByRole('button', { name: press }).boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.waitForTimeout(600);
+      const releasedAt = await page.evaluate(() => performance.now());
+      await page.mouse.up();
+      await page.waitForTimeout(1200);
+      const frames = await recorder.stop();
+
+      // The press bumped the item.
+      expect(Math.max(...frames.map((frame) => frame.widths[index]!))).toBeGreaterThan(
+        rest[index]! + bump / 2,
+      );
+      for (const [n, { widths }] of frames.entries()) {
+        for (const [i, item] of items.entries()) {
+          const where = `frame ${n}, ${item.name}: ${widths.join(' / ')}`;
+          const floor = Math.abs(i - index) === 1 ? item.rest - item.limit : item.rest;
+          const ceiling = i === index ? item.rest + bump : item.rest;
+          expect(widths[i]!, where).toBeGreaterThanOrEqual(Math.floor(floor - overshoot));
+          expect(widths[i]!, where).toBeLessThanOrEqual(Math.ceil(ceiling + overshoot));
+        }
+      }
+
+      // The group lets go of its inline sizing only once the release has settled at rest, so
+      // nothing jumps then, and the items stay exactly at rest afterwards.
+      const lastPinned = frames.findLastIndex((frame) => frame.pinned);
+      expect(lastPinned).toBeGreaterThan(0);
+      expect(lastPinned).toBeLessThan(frames.length - 5);
+      const [before, after] = [frames[lastPinned]!, frames[lastPinned + 1]!];
+      expect(after.time - releasedAt).toBeGreaterThanOrEqual(spring);
+      // The frame painted just before (a starved runner may paint none for a while).
+      if (after.time - before.time < 50) {
+        for (const [i, width] of before.widths.entries()) {
+          expect(Math.abs(width - rest[i]!), `last pinned frame, item ${i}`).toBeLessThanOrEqual(1);
+        }
+      }
+      for (const { widths } of frames.slice(lastPinned + 1)) expect(widths).toEqual(rest);
+    });
+  }
+});

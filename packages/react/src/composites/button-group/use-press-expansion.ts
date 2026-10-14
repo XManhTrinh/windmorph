@@ -6,23 +6,60 @@ import { OVERFLOW_HIDDEN } from './use-overflow';
 interface Pinned {
   /** Width at rest, before the group changed it. */
   rest: number;
+  /** How much the item may give up to a pressed neighbour. */
+  limit: number;
   /** The consumer's inline `flex` and `min-width`, restored afterwards. */
   flex: string;
   minWidth: string;
-  timer?: ReturnType<typeof setTimeout>;
 }
 
-/** Half the space around an item's content: how much it may give up (Compose's compression limit). */
-function compressionLimit(element: HTMLElement, width: number): number {
-  const content = element.firstElementChild?.getBoundingClientRect().width ?? width;
-  return Math.max(0, (width - content) / 2);
+/**
+ * An item's layout width, and how much of it the item may give up: half the space around its
+ * content (Compose's compression limit). Both ignore transforms, such as a scaled ancestor,
+ * since the group sets layout widths. The used `width` is in the item's own box sizing, as
+ * `flex-basis` is.
+ */
+function measure(element: HTMLElement): { rest: number; limit: number } {
+  const box = element.getBoundingClientRect().width;
+  const layout = Number.parseFloat(getComputedStyle(element).width);
+  const width = Number.isFinite(layout) ? layout : box;
+  const scale = box > 0 ? width / box : 1;
+  const content = element.firstElementChild
+    ? element.firstElementChild.getBoundingClientRect().width * scale
+    : width;
+  return { rest: width, limit: Math.max(0, (width - content) / 2) };
 }
 
+/**
+ * Changes an item's sizing without animating it. Pinning swaps the consumer's sizing (such as
+ * a connected group's `flex: 1 1 0%`) for its measured width in px, and unpinning swaps it
+ * back: the layout is the same either way, but the `container-motion` utility transitions
+ * `flex-basis`, which would run from 0% to the px width (the item collapsing first) or back.
+ * The change is flushed to style and its transition finished, so only the moves between the
+ * rest and bumped widths animate.
+ */
+function resizeInstantly(element: HTMLElement, flex: string, minWidth: string) {
+  element.style.flex = flex;
+  element.style.minWidth = minWidth;
+  void getComputedStyle(element).flexBasis;
+  if (typeof element.getAnimations !== 'function') return;
+  for (const animation of element.getAnimations()) {
+    if (animation instanceof CSSTransition && animation.transitionProperty === 'flex-basis') {
+      animation.finish();
+    }
+  }
+}
+
+/**
+ * How long the release takes to settle, in ms. The token is a CSS time, which a minified
+ * stylesheet may write in seconds (`.36s` for `360ms`).
+ */
 function settleDuration(element: HTMLElement): number {
   const value = getComputedStyle(element)
     .getPropertyValue('--md-sys-motion-spring-spatial-fast-duration')
     .trim();
-  const ms = Number.parseFloat(value);
+  const time = Number.parseFloat(value);
+  const ms = value.endsWith('ms') ? time : time * 1000;
   return (Number.isFinite(ms) ? ms : 400) + 50;
 }
 
@@ -33,7 +70,8 @@ function settleDuration(element: HTMLElement): number {
  *
  * Watches the public `data-pressed` attribute of the group's direct children and animates
  * their `flex-basis` (the `container-motion` utility transitions it on the fast spatial
- * spring). At rest no inline sizing remains, so consumer sizing such as `flex-1` applies.
+ * spring). At rest no inline sizing remains, so consumer sizing such as `flex-1` applies;
+ * the switches between that sizing and the pinned px widths don't animate (2026-10-14).
  * Buttons folded into the overflow menu don't take part. Under reduced motion there's no
  * bump at all: it's movement that only decorates the press (architecture §6).
  */
@@ -44,36 +82,37 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
 
     const pinned = new Map<HTMLElement, Pinned>();
     let pressed: HTMLElement | null = null;
+    let settle: ReturnType<typeof setTimeout> | undefined;
 
-    const pin = (element: HTMLElement): Pinned => {
+    const pin = (element: HTMLElement, size: { rest: number; limit: number }): Pinned => {
       const existing = pinned.get(element);
-      if (existing) {
-        clearTimeout(existing.timer);
-        return existing;
-      }
+      if (existing) return existing;
       const entry = {
-        rest: element.getBoundingClientRect().width,
+        rest: size.rest,
+        limit: size.limit,
         flex: element.style.flex,
         minWidth: element.style.minWidth,
       };
-      element.style.flex = `0 0 ${entry.rest}px`;
       // Like Compose, the group sets exact widths: a shrinking neighbour may go below its
       // minimum width, its label overlapping the padding it gives up.
-      element.style.minWidth = '0px';
+      resizeInstantly(element, `0 0 ${entry.rest}px`, '0px');
       pinned.set(element, entry);
       return entry;
     };
 
-    const release = (element: HTMLElement) => {
-      const entry = pinned.get(element);
-      if (!entry) return;
-      element.style.flexBasis = `${entry.rest}px`;
-      clearTimeout(entry.timer);
-      entry.timer = setTimeout(() => {
-        element.style.flex = entry.flex;
-        element.style.minWidth = entry.minWidth;
-        pinned.delete(element);
-      }, settleDuration(element));
+    // Every item at once, in one task, so no frame shows some of them unpinned.
+    const unpin = () => {
+      for (const [element, entry] of pinned) resizeInstantly(element, entry.flex, entry.minWidth);
+      pinned.clear();
+    };
+
+    // Back to the rest widths, then unpinned once that has settled.
+    const release = () => {
+      const [first] = pinned.keys();
+      if (!first) return;
+      for (const [element, entry] of pinned) element.style.flexBasis = `${entry.rest}px`;
+      clearTimeout(settle);
+      settle = setTimeout(unpin, settleDuration(first));
     };
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -86,28 +125,32 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
         null;
       if (next === pressed) return;
       pressed = next;
-      for (const element of pinned.keys()) release(element);
+      release();
       if (!next || items.length < 2 || reducedMotion.matches) return;
+      clearTimeout(settle);
 
       const index = items.indexOf(next);
       const neighbours = [items[index - 1], items[index + 1]].filter(
         (el): el is HTMLElement => el !== undefined,
       );
-      // Pin at the current width first so the change to the target width animates.
-      const rest = new Map([next, ...neighbours].map((el) => [el, pin(el).rest]));
-      void group.offsetWidth;
+      // Pin every item at its current width first (instantly) so the change to the target
+      // widths animates. Every item is measured before any is pinned, and every item is
+      // pinned, not only the ones that move: in a group sized by its content (`w-fit`) the
+      // group's width, and so the other items', depends on how each item is sized.
+      const sizes = items.map((el) => pinned.get(el) ?? measure(el));
+      const entries = new Map(items.map((el, i) => [el, pin(el, sizes[i]!)]));
 
       // Compose: a middle item grows by min(ratio × width / 2, both neighbours' limits) on
       // each side; an end item by min(ratio × width, its neighbour's limit) on one side.
-      const width = rest.get(next)!;
+      const width = entries.get(next)!.rest;
       const share = neighbours.length === 2 ? (expandedRatio * width) / 2 : expandedRatio * width;
       const growthPerSide = Math.min(
         share,
-        ...neighbours.map((neighbour) => compressionLimit(neighbour, rest.get(neighbour)!)),
+        ...neighbours.map((neighbour) => entries.get(neighbour)!.limit),
       );
       let growth = 0;
       for (const neighbour of neighbours) {
-        const neighbourWidth = rest.get(neighbour)!;
+        const neighbourWidth = entries.get(neighbour)!.rest;
         const give = Math.min(growthPerSide, neighbourWidth);
         neighbour.style.flexBasis = `${neighbourWidth - give}px`;
         growth += give;
@@ -122,11 +165,8 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
 
     return () => {
       observer.disconnect();
-      for (const [element, entry] of pinned) {
-        clearTimeout(entry.timer);
-        element.style.flex = entry.flex;
-        element.style.minWidth = entry.minWidth;
-      }
+      clearTimeout(settle);
+      unpin();
     };
   }, [groupRef, expandedRatio]);
 }

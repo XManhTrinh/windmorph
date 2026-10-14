@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import type { CSSProperties } from 'react';
 import { axeViolations } from '../../../test/axe';
 import { Button } from '../../components/button/Button';
 import { IconButton } from '../../components/icon-button/IconButton';
@@ -466,6 +467,29 @@ describe('ButtonGroup press expansion', () => {
     vi.useRealTimers();
   });
 
+  it('keeps its inline sizing until the release settles, with the spring time in seconds', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    // A minified stylesheet writes the 360ms token as `.36s`.
+    const spring = { '--md-sys-motion-spring-spatial-fast-duration': '.36s' } as CSSProperties;
+    render(
+      <ButtonGroup aria-label="Actions">
+        <Button style={spring}>One</Button>
+        <Button style={spring}>Two</Button>
+      </ButtonGroup>,
+    );
+    const [one] = screen.getAllByRole('button') as [HTMLElement];
+    stubWidths(screen.getAllByRole('button'), 100, 60);
+
+    await user.pointer({ keys: '[MouseLeft>]', target: one });
+    await user.pointer({ keys: '[/MouseLeft]', target: one });
+    await act(() => vi.advanceTimersByTimeAsync(300));
+    expect(one.style.flexBasis).toBe('100px');
+    await act(() => vi.advanceTimersByTimeAsync(200));
+    expect(one.style.flex).toBe('');
+    vi.useRealTimers();
+  });
+
   it('by default never widens a pressed button in a connected group (only its shape changes)', async () => {
     const user = userEvent.setup();
     render(
@@ -496,7 +520,8 @@ describe('ButtonGroup press expansion', () => {
     await user.pointer({ keys: '[MouseLeft>]', target: buttons[0]! });
     expect(buttons[0]!.style.flexBasis).toBe('115px');
     expect(buttons[1]!.style.flexBasis).toBe('85px');
-    expect(buttons[2]!.style.flexBasis).toBe('');
+    // Pinned at rest, so the group's width can't change under it.
+    expect(buttons[2]!.style.flexBasis).toBe('100px');
     await user.pointer({ keys: '[/MouseLeft]', target: buttons[0]! });
   });
 
