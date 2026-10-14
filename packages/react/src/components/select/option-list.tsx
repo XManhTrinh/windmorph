@@ -34,7 +34,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
-import { LoadingIndicator } from '../loading-indicator/LoadingIndicator';
+import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
 
 /**
@@ -173,7 +173,7 @@ export function OptionList<T>({
       </ul>
       {loading && loadingLabel ? (
         <div className="flex min-h-[44px] items-center justify-center">
-          <LoadingIndicator aria-label={loadingLabel} className="size-[36px]" />
+          <LazyLoadingIndicator aria-label={loadingLabel} className="size-[36px]" />
         </div>
       ) : isEmpty ? (
         <p role="status" className="px-[12px] py-[12px] text-label-large text-on-surface-variant">

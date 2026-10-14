@@ -28,6 +28,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { cn } from '../../utils/cn';
 import { matchesSearch } from '../../utils/search';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { InputChip } from '../chip/Chip';
 import {
   DropdownArrow,
@@ -130,7 +131,12 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
      * disabled until one is removed.
      */
     maxSelections?: number;
-    /** Shows a loading indicator in the list, e.g. while options load for what was typed. */
+    /**
+     * Shows a loading indicator in the list, e.g. while options load for what was typed.
+     * The indicator's code loads when it first shows, and ahead of that when the field is
+     * hovered or focused while this prop is set at all, so pass `loading={false}` (rather than
+     * leaving it out) on a field that loads options.
+     */
     loading?: boolean;
     /**
      * Whether an option matches what was typed. Defaults to a match anywhere in its text,
@@ -174,7 +180,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     errorIcon,
     clearable = false,
     maxSelections,
-    loading = false,
+    loading,
     labels: labelsProp,
     className,
     classNames,
@@ -210,6 +216,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
   const listBoxRef = useRef<HTMLUListElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  // A field that takes `loading` (it loads options) preloads the indicator on hover or focus.
+  usePreloadLoadingIndicator(containerRef, loading !== undefined);
 
   const ariaProps = {
     ...stately,

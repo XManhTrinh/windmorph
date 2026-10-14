@@ -7,7 +7,8 @@
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either. Components that show a tooltip of their own
- *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus.
+ *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
+ *   and option lists load their loading indicator only while loading.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -69,6 +70,15 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
     'components/date-picker/DatePicker.js',
     'components/date-picker/DateField.js',
   ].map((component) => ({ component, lazy: 'components/tooltip/Tooltip.js' })),
+  ...[
+    'components/select/option-list.js',
+    'components/select/Select.js',
+    'components/autocomplete/Autocomplete.js',
+    'components/date-picker/DateField.js',
+  ].map((component) => ({
+    component,
+    lazy: 'components/loading-indicator/LoadingIndicator.js',
+  })),
 ];
 for (const { component, lazy } of LAZY_IMPORTS) {
   if (moduleClosure(`${root}dist`, component).includes(lazy))

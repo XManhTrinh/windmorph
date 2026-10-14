@@ -30,6 +30,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
+import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 import { DropdownArrow, FieldShell, fieldState, type FieldShellClassNames } from './field-shell';
@@ -169,7 +170,12 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * their text. Screen readers still hear the options' text.
      */
     renderValue?: (selected: SelectedOption<T>[]) => ReactNode;
-    /** Shows a loading indicator in the list, e.g. while options are fetched. */
+    /**
+     * Shows a loading indicator in the list, e.g. while options are fetched.
+     * The indicator's code loads when it first shows, and ahead of that when the field is
+     * hovered or focused while this prop is set at all, so pass `loading={false}` (rather than
+     * leaving it out) on a field that loads options.
+     */
     loading?: boolean;
     labels?: Partial<SelectLabels>;
     className?: string;
@@ -232,7 +238,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     defaultSearchValue,
     onSearchChange,
     renderValue,
-    loading = false,
+    loading,
     labels: labelsProp,
     className,
     classNames,
@@ -327,6 +333,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && isCompact);
   // The sheet's code loads on first open, or ahead of it when the field is hovered or focused.
   usePreloadBottomSheet(containerRef, asSheet);
+  // A field that takes `loading` (it loads options) preloads the indicator on hover or focus.
+  usePreloadLoadingIndicator(containerRef, loading !== undefined);
   // `useSelect`'s trigger props are React Aria button props; `useButton` makes them DOM props.
   const { buttonProps } = useButton(
     // A searchable field opens a dialog holding the search and the list (as PhoneField's).
@@ -388,7 +396,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       labelling={searchLabelling}
       dialogProps={asSheet ? undefined : { id: dialogId, role: 'dialog', ...searchLabelling }}
       labels={{ search: labels.search, noResults: labels.noResults, loading: labels.loading }}
-      loading={loading}
+      loading={loading ?? false}
       isBlocked={cap.isBlocked}
       embedded={asSheet}
       classNames={classNames}

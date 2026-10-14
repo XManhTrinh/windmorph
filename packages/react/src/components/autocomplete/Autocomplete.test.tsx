@@ -88,7 +88,8 @@ describe('Autocomplete', () => {
     }
     render(<Remote />);
     await userEvent.type(input(), 'lo');
-    expect(screen.getByRole('progressbar', { name: 'Loading options' })).toBeInTheDocument();
+    // Its code loads on demand, so it can arrive a moment later.
+    expect(await screen.findByRole('progressbar', { name: 'Loading options' })).toBeInTheDocument();
   });
 
   it('chooses several options as input chips, removable by button and Backspace', async () => {
