@@ -8,10 +8,13 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   the 56px close button with full corners and a 20px icon, its container going from the
  *   `*-container` role to the vibrant role. Size, corners and icon follow the fast spatial
  *   spring, as Compose's `checkedProgress` does; the colours move on the fast effects spring,
- *   which the motion spec asks for colour (no overshoot). Elevation is level 3.
+ *   which the motion spec asks for colour (no overshoot).
  * - Items are 56px pills (min width 56px, 24px side padding, 8px icon gap, 24px icon,
- *   `title-medium`) at level 3 (the ListItemContainerElevation token), 4px apart, 8px
- *   above the button. Item width springs on fast spatial and opacity on fast effects.
+ *   `title-medium`), 4px apart, 8px above the button. Item width springs on fast spatial
+ *   and opacity on fast effects.
+ * - Elevation, as on `Fab`, is the `elevation` variant, on the button and the items alike:
+ *   `default` is level 3 (the spec's ListItemContainerElevation token, and the FAB's),
+ *   `lowered` level 1 and `flat` level 0.
  * - The menu sits on the window's trailing edge (logical, so it mirrors in RTL).
  * - On short windows the list scrolls behind the close button: it extends under the
  *   button's box (a negative margin cancelled by padding, so nothing moves) and the box
