@@ -27,7 +27,7 @@ import { Button, Dialog, DialogTrigger, ThemeProvider } from '@windmorph/react';
 | 11 | Icons | No bundled icon font. Components accept any icon as a React element; docs recommend Material Symbols SVGs |
 | 12 | Fonts | Roboto Flex **not bundled**. Documented setup for `next/font` / Google Fonts, system-font fallback |
 | 13 | Breakpoints | M3 window size classes added as Tailwind breakpoints alongside Tailwind's defaults (see §7) |
-| 14 | Browser baseline | Safari 17.2+, Chrome 113+, Firefox 128+ (needed for `linear()` springs, `@property`, `color-mix()`) |
+| 14 | Browser baseline | 0.1.0 is tested on Chrome and Edge (113+). Safari 17.5+ and Firefox 129+ are supported targets, with full testing coming next. Needed for `linear()` springs, `@property` and `color-mix()`; older browsers skip some entry animations (`@starting-style`) |
 | 15 | Density | Not in v1 (planned later) |
 | 16 | Stability labels | Expressive-only components marked **Preview** in docs while the upstream spec is still experimental in Compose |
 | 17 | Licence | **MIT** for the core (root `LICENSE`; third-party notices in the package's `NOTICE`, §16) |
