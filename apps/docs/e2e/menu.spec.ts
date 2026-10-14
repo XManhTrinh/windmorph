@@ -1,4 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
+import {
+  expectAnchored,
+  expectKeyboardFocusRing,
+  expectStateLayer,
+  panelLayout,
+  POSITIONING_OVERRIDES,
+} from './overlay-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -337,4 +345,54 @@ test.describe('Menu presentation and instant', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0, { timeout: 100 });
   });
+});
+
+test.describe('Menu layout safety', () => {
+  /**
+   * Opens the story's menu from its trigger, checks it (anchored to the trigger unless the
+   * override positions the menu itself), picks Delete from the keyboard and checks focus
+   * returns to the trigger.
+   */
+  async function openCheckAndPick(page: Page, override: string, anchored: boolean) {
+    const target = page.getByTestId('target');
+    await target.click();
+    const menu = page.getByRole('menu');
+    await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeFocused();
+    await settle(page);
+    const panel = await panelLayout(menu);
+    expect(panel).toMatchObject({ radius: '16px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') {
+      expect(panel.width).toBeGreaterThanOrEqual(112);
+      expect(panel.width).toBeLessThanOrEqual(280);
+    }
+    expect((await box(menu.getByRole('menuitem', { name: 'Delete' }))).height).toBe(44);
+    if (anchored) await expectAnchored(menu, target, 0);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('count')).toHaveText('Last action: delete');
+    await expect(menu).toHaveCount(0);
+    await expect(target).toBeFocused();
+  }
+
+  // The trigger keeps its size, corners, state layer and focus ring, and the menu opens
+  // against it wherever the trigger is placed.
+  layoutSafetySuite('components-menu--layout-override', {
+    height: 40,
+    width: 40,
+    radius: '20px',
+    interactive: false,
+    async check(page, target) {
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      await openCheckAndPick(page, 'none', true);
+    },
+  });
+
+  // A layout class on the menu (`className`) leaves it visible, sized and keyboard-usable.
+  for (const override of OVERRIDES) {
+    test(`panel · ${override}`, async ({ page }) => {
+      await openStory(page, 'components-menu--layout-override', {}, { override, part: 'panel' });
+      await openCheckAndPick(page, override, !POSITIONING_OVERRIDES.includes(override));
+    });
+  }
 });

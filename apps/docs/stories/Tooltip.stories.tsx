@@ -17,7 +17,13 @@ import {
   TopAppBar,
   type TooltipPlacement,
 } from '@windmorph/react';
+import { useState } from 'react';
 import { ArrowBackIcon, DeleteIcon, EditIcon, MoreVertIcon, SearchIcon, StarIcon } from './icons';
+import {
+  LAYOUT_OVERRIDES,
+  LAYOUT_OVERRIDE_NAMES,
+  type LayoutOverrideName,
+} from './layout-overrides';
 
 interface Args {
   placement: TooltipPlacement;
@@ -227,4 +233,64 @@ export const Open: Story = {
       </RichTooltipTrigger>
     </div>
   ),
+};
+
+/**
+ * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
+ * trigger`) or on the tooltip (`className`, `part: panel`), for a plain tooltip on an icon
+ * button or a persistent rich tooltip on a button, inside an optional transformed ancestor.
+ * The trigger keeps its size, corners, state layer, presses and focus ring; the tooltip
+ * still shows 4px from it in the window and keeps its size and corners.
+ */
+export const LayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+  part: 'trigger' | 'panel';
+  variant: 'plain' | 'rich';
+}> = {
+  args: { override: 'none', transformedAncestor: false, part: 'trigger', variant: 'plain' },
+  argTypes: {
+    override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+    part: { control: 'inline-radio', options: ['trigger', 'panel'] },
+    variant: { control: 'inline-radio', options: ['plain', 'rich'] },
+  },
+  render: function LayoutOverrideStory({ override, transformedAncestor, part, variant }) {
+    const [count, setCount] = useState(0);
+    const layout = LAYOUT_OVERRIDES[override];
+    const trigger = part === 'trigger' ? layout : undefined;
+    const panel = part === 'panel' ? layout : undefined;
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+        <p className="mb-4 text-body-medium" data-testid="count">
+          Pressed {count}
+        </p>
+        {variant === 'plain' ? (
+          <TooltipTrigger>
+            <IconButton
+              data-testid="target"
+              variant="filled"
+              icon={<EditIcon />}
+              aria-label="Edit"
+              className={trigger}
+              onPress={() => setCount((c) => c + 1)}
+            />
+            <Tooltip className={panel}>Edit message</Tooltip>
+          </TooltipTrigger>
+        ) : (
+          <RichTooltipTrigger persistent>
+            <Button data-testid="target" variant="tonal" className={trigger}>
+              What are grouped tabs?
+            </Button>
+            <RichTooltip
+              title="Grouped tabs"
+              className={panel}
+              action={<Button variant="text">Learn more</Button>}
+            >
+              Tabs from the same site stay together, so related pages are easy to find.
+            </RichTooltip>
+          </RichTooltipTrigger>
+        )}
+      </div>
+    );
+  },
 };

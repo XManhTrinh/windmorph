@@ -1,4 +1,13 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
+import {
+  expectAnchored,
+  expectKeyboardFocusRing,
+  expectStateLayer,
+  panelLayout,
+  POSITIONING_OVERRIDES,
+  settle,
+} from './overlay-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -392,4 +401,108 @@ test.describe('Tooltip behaviour', () => {
     // Room above (the bar sits 64px down), yet it opens 4px below.
     expect(Math.round(tip.y - (anchor.y + anchor.height))).toBe(4);
   });
+});
+
+test.describe('Tooltip layout safety', () => {
+  /** The shown plain tooltip: 24px tall, 4px corners, in the window and 4px from its anchor. */
+  async function expectPlain(page: Page, override: string, anchored: boolean) {
+    const tooltip = page.getByRole('tooltip');
+    await expect(tooltip).toHaveText('Edit message');
+    await settle(page);
+    const panel = await panelLayout(tooltip);
+    expect(panel).toMatchObject({ height: 24, radius: '4px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') {
+      expect(panel.width).toBeGreaterThanOrEqual(40);
+      expect(panel.width).toBeLessThanOrEqual(200);
+    }
+    if (anchored) await expectAnchored(tooltip, page.getByTestId('target'), 4);
+    await page.keyboard.press('Escape');
+    await expect(tooltip).toHaveCount(0);
+  }
+
+  /**
+   * Opens the persistent rich tooltip with a press: 320px wide (its text is longer), 12px
+   * corners, in the window and 4px from its anchor; focus stays on the trigger, Tab enters
+   * it, and Escape closes it and returns focus to the trigger.
+   */
+  async function expectRich(page: Page, target: Locator, override: string, anchored: boolean) {
+    await target.click();
+    const dialog = page.getByRole('dialog', { name: 'Grouped tabs' });
+    await expect(dialog).toBeVisible();
+    await expect(target).toBeFocused();
+    await settle(page);
+    const panel = await panelLayout(dialog);
+    expect(panel).toMatchObject({ radius: '12px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') expect(panel.width).toBe(320);
+    expect(panel.height).toBeGreaterThanOrEqual(48);
+    expect(panel.height).toBeLessThanOrEqual(200);
+    if (anchored) await expectAnchored(dialog, target, 4);
+    await page.keyboard.press('Tab');
+    await expect(dialog.getByRole('button', { name: 'Learn more' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(target).toBeFocused();
+  }
+
+  // The plain tooltip's trigger keeps its size, corners, state layer, presses and focus
+  // ring, and keyboard focus still shows the tooltip against it.
+  layoutSafetySuite('components-tooltip--layout-override', {
+    height: 40,
+    width: 40,
+    radius: '20px',
+    interactive: false,
+    async check(page, target) {
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      await expectPlain(page, 'none', true);
+      await target.click();
+      await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+    },
+  });
+
+  for (const override of OVERRIDES) {
+    // A layout class on the plain tooltip (`className`).
+    test(`plain panel · ${override}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-tooltip--layout-override',
+        {},
+        { override, part: 'panel', variant: 'plain' },
+      );
+      await page.keyboard.press('Tab');
+      await expect(page.getByTestId('target')).toBeFocused();
+      await expectPlain(page, override, !POSITIONING_OVERRIDES.includes(override));
+    });
+
+    // A layout class on the rich tooltip (`className`).
+    test(`rich panel · ${override}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-tooltip--layout-override',
+        {},
+        { override, part: 'panel', variant: 'rich' },
+      );
+      const target = page.getByTestId('target');
+      await expectRich(page, target, override, !POSITIONING_OVERRIDES.includes(override));
+    });
+
+    // A layout class on the rich tooltip's trigger.
+    test(`rich trigger · ${override}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-tooltip--layout-override',
+        {},
+        { override, part: 'trigger', variant: 'rich' },
+      );
+      const target = page.getByTestId('target');
+      const layout = await target.evaluate((el) => ({
+        height: (el as HTMLElement).offsetHeight,
+        radius: getComputedStyle(el).borderTopLeftRadius,
+      }));
+      expect(layout).toEqual({ height: 40, radius: '20px' });
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      await expectRich(page, target, override, true);
+    });
+  }
 });

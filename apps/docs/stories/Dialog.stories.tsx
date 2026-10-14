@@ -571,3 +571,52 @@ function EventEditor() {
  * Save reports a missing title inline.
  */
 export const DiscardConfirmation: Story = { render: () => <EventEditor /> };
+
+/**
+ * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
+ * trigger`) or on the dialog panel (`className`, `part: panel`), inside an optional
+ * transformed ancestor. The trigger keeps its size, corners, state layer and focus ring;
+ * the dialog still opens in the window, keeps its width and corners, and moves and returns
+ * focus.
+ */
+export const LayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+  part: 'trigger' | 'panel';
+}> = {
+  args: { override: 'none', transformedAncestor: false, part: 'trigger' },
+  argTypes: {
+    override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+    part: { control: 'inline-radio', options: ['trigger', 'panel'] },
+  },
+  render: ({ override, transformedAncestor, part }) => {
+    const layout = LAYOUT_OVERRIDES[override];
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+        <DialogTrigger>
+          <Button data-testid="target" className={part === 'trigger' ? layout : undefined}>
+            Open dialog
+          </Button>
+          <Dialog role="dialog" className={part === 'panel' ? layout : undefined}>
+            {({ close }) => (
+              <>
+                <DialogTitle>Sync across devices?</DialogTitle>
+                <DialogContent>
+                  Your theme and layout will match on every device where you sign in.
+                </DialogContent>
+                <DialogActions>
+                  <Button variant="text" onPress={close}>
+                    Not now
+                  </Button>
+                  <Button variant="text" onPress={close}>
+                    Sync
+                  </Button>
+                </DialogActions>
+              </>
+            )}
+          </Dialog>
+        </DialogTrigger>
+      </div>
+    );
+  },
+};

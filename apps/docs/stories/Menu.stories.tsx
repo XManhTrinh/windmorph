@@ -16,6 +16,11 @@ import {
 } from '@windmorph/react';
 import { useState } from 'react';
 import { AddIcon, DeleteIcon, EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
+import {
+  LAYOUT_OVERRIDES,
+  LAYOUT_OVERRIDE_NAMES,
+  type LayoutOverrideName,
+} from './layout-overrides';
 
 const MoreIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -215,4 +220,54 @@ export const Scrolling: Story = {
       </Menu>
     </MenuTrigger>
   ),
+};
+
+/**
+ * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
+ * trigger`) or on the menu (`className`, `part: panel`), inside an optional transformed
+ * ancestor. The trigger keeps its size, corners, state layer and focus ring; the menu still
+ * opens against it in the window, keeps its corners, and takes and returns focus.
+ */
+export const LayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+  part: 'trigger' | 'panel';
+}> = {
+  args: { override: 'none', transformedAncestor: false, part: 'trigger' },
+  argTypes: {
+    override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+    part: { control: 'inline-radio', options: ['trigger', 'panel'] },
+  },
+  render: function LayoutOverrideStory({ override, transformedAncestor, part }) {
+    const [last, setLast] = useState('none');
+    const layout = LAYOUT_OVERRIDES[override];
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+        <p className="mb-4 text-body-medium" data-testid="count">
+          Last action: {last}
+        </p>
+        <MenuTrigger>
+          <IconButton
+            data-testid="target"
+            variant="standard"
+            icon={<MoreIcon />}
+            aria-label="More"
+            className={part === 'trigger' ? layout : undefined}
+          />
+          <Menu
+            aria-label="More"
+            className={part === 'panel' ? layout : undefined}
+            onAction={(key) => setLast(String(key))}
+          >
+            <MenuItem key="edit" leadingIcon={<EditIcon />}>
+              Edit
+            </MenuItem>
+            <MenuItem key="delete" leadingIcon={<DeleteIcon />}>
+              Delete
+            </MenuItem>
+          </Menu>
+        </MenuTrigger>
+      </div>
+    );
+  },
 };
