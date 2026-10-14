@@ -47,6 +47,13 @@ const NO_ENUM_DEFAULT: Record<string, string> = {
   'ThemeScope.contrast': 'Inherited from the nearest provider or scope when left out.',
   'ThemeScope.motion': 'Inherited from the nearest provider or scope when left out.',
   'TimePicker.mode': 'Controlled; `defaultMode` holds the uncontrolled default.',
+  'TimePicker.hourCycle': "Left out, the locale's hour cycle is used.",
+  'List.dividers': 'Left out, the list has no dividers.',
+  'List.headlineLines': 'Left out, headlines have no line limit.',
+  'List.supportingTextLines': 'Left out, supporting text has no line limit.',
+  'ListItem.control': 'Left out, the item is a plain row.',
+  'ListItem.headlineLines': "Left out, the list's limit applies.",
+  'ListItem.supportingTextLines': "Left out, the list's limit applies.",
   'TopAppBar.scrollBehavior': 'Left out, the bar is static: no scroll behaviour is a value.',
   'SearchAppBar.scrollBehavior': 'Left out, the bar is static: no scroll behaviour is a value.',
 };

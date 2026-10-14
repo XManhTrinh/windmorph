@@ -205,10 +205,10 @@ export interface DialogProps
    * Basic dialogs are alert dialogs on the web (the spec): they need a decision, are
    * described by their `DialogContent`, and aren't dismissed by pressing outside. A dialog
    * that can be full screen is a `dialog`.
-   * @default "alertdialog", or "dialog" when `fullScreen` isn't "never"
+   * @default "alertdialog", or "dialog" when fullScreen isn't "never"
    */
   role?: 'dialog' | 'alertdialog';
-  /** Closes when pressing outside the dialog. @default true (false for `alertdialog`) */
+  /** Closes when pressing outside the dialog. @default true, or false for an alertdialog */
   dismissable?: boolean;
   /** Prevents Escape from closing the dialog. @default false */
   keyboardDismissDisabled?: boolean;

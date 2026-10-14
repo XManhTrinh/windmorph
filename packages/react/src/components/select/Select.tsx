@@ -140,7 +140,6 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     /**
      * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
      * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
-     * @default the Material Symbols `error` icon
      */
     errorIcon?: ReactNode | false;
     /** Whether the menu is open (controlled); with `defaultOpen` and `onOpenChange`. */

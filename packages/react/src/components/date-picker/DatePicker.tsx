@@ -58,11 +58,11 @@ import {
 
 /** The picker's labels, for localisation. */
 export interface DatePickerStrings extends DateInputStrings {
-  /** The header's title in calendar mode. @default "Select date" (or "Select dates" for a range) */
+  /** The header's title in calendar mode. @default "Select date", or "Select dates" for a range */
   title?: string;
   /**
    * The title in text input mode (the M3 modal date input's "Enter date").
-   * @default "Enter date" (or "Enter dates" for a range)
+   * @default "Enter date", or "Enter dates" for a range
    */
   inputTitle?: string;
   /** Headline when nothing is selected. @default "Selected date" / "Start date – End date" */

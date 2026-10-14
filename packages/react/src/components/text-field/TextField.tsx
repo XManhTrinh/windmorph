@@ -135,7 +135,6 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
    * The icon shown at the end while the field is invalid and has no `trailingIcon` (M3
    * strongly recommends one). Defaults to Material Symbols `error`, named by `labels.error`;
    * `false` turns it off.
-   * @default the Material Symbols `error` icon
    */
   errorIcon?: ReactNode | false;
   /** Text before the input, e.g. "$". Shown once the label floats. */
@@ -161,7 +160,7 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
    * @default false
    */
   autoGrow?: boolean;
-  /** Visible lines of a multiline field. @default 4, or 1 with `autoGrow` */
+  /** Visible lines of a multiline field. @default 4, or 1 with autoGrow */
   rows?: number;
   /** With `autoGrow`: lines after which the field scrolls instead of growing. */
   maxRows?: number;

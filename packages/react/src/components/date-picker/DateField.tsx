@@ -122,7 +122,7 @@ export interface DateFieldProps {
   defaultOpen?: boolean;
   /** Called when the dropdown calendar opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /** Helper text below the field. @default the locale's date format, e.g. "MM/DD/YYYY" */
+  /** Helper text below the field. @default the locale's format, such as "MM/DD/YYYY" in en-US */
   supportingText?: ReactNode;
   /** Marks the field invalid, with `errorMessage` below it. */
   invalid?: boolean;

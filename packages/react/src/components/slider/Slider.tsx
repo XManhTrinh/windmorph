@@ -65,7 +65,7 @@ type Naming =
     };
 
 interface SliderCommonProps {
-  /** The track's thickness, from XS to XL. @default "xs" (16px track) */
+  /** The track's thickness, from XS (a 16px track) to XL. @default "xs" */
   size?: SliderSize;
   /**
    * The direction the slider runs. Vertical sliders run bottom to top and default to 240px
