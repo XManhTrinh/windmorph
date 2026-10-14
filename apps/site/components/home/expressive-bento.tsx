@@ -48,6 +48,9 @@ import { useLoopStep, usePressedStep } from './use-loop-step';
 /** Google's bento loop: each state holds for about a second and a half. */
 const STEP_MS = 1500;
 
+/** The six built-in themes, one per active-and-rest round, as the hero cycles them. */
+const THEMES = ['baseline', 'ocean', 'forest', 'sunset', 'rose', 'slate'] as const;
+
 /**
  * What each move presses: the controls marked `on` when turning active, `off` when going back
  * to rest, and the FAB menu's button both ways.
@@ -67,7 +70,7 @@ function Tile({ className, children }: { className?: string; children: ReactNode
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center overflow-hidden rounded-corner-extra-large bg-surface-container-high p-6',
+        'relative flex items-center justify-center overflow-hidden rounded-corner-extra-large bg-surface-container-high p-6 transition-colors duration-500 motion-reduce:transition-none',
         className,
       )}
     >
@@ -80,7 +83,8 @@ function Tile({ className, children }: { className?: string; children: ReactNode
  * A bento grid of live M3 Expressive components that switch between a resting and an active
  * state on a loop: a FAB menu, a toolbar with its FAB, a button group, progress indicators,
  * a toolbar selection, the loading indicator, an icon button's shape morph and an expanded
- * navigation rail, in the baseline theme and flat (no elevation), like M3's own showcase:
+ * navigation rail, flat (no elevation) like M3's own showcase, cycling through the six
+ * built-in themes as the hero does (one theme per round; baseline when holding still):
  * the toolbars and the rail's FAB through their flat options, the FAB menu and the toolbar's
  * FAB through classes. Each change is a real press on the control, so its
  * press animation plays first. It's decorative (`inert`, hidden from assistive
@@ -91,14 +95,16 @@ export function ExpressiveBento() {
   const { ref, step, still } = useLoopStep(STEP_MS);
   const shown = usePressedStep(ref, step, pressTargets);
   const active = still || shown % 2 === 1;
+  // A new theme with each round, as the bento comes back to rest.
+  const theme = THEMES[Math.floor(shown / 2) % THEMES.length] ?? 'baseline';
 
   return (
     <ThemeScope
       ref={ref}
-      theme="baseline"
+      theme={theme}
       inert
       aria-hidden="true"
-      className="grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6"
+      className="grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 transition-colors duration-500 motion-reduce:transition-none large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6"
     >
       {/* FAB menu: the FAB opens into its actions */}
       <Tile className="col-span-2 row-span-2 large:col-span-1 large:col-start-1 large:row-span-6 large:row-start-1">

@@ -13,7 +13,7 @@ import {
 import { AddIcon, StarIcon, StarOutlineIcon } from '../icons';
 import { useLoopStep, usePressedStep } from './use-loop-step';
 
-const THEMES = ['baseline', 'ocean', 'forest', 'sunset', 'rose'] as const;
+const THEMES = ['baseline', 'ocean', 'forest', 'sunset', 'rose', 'slate'] as const;
 const VIEWS = ['day', 'week', 'month'] as const;
 const STEP_MS = 2400;
 
