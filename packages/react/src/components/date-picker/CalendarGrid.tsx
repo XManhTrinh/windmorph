@@ -135,11 +135,12 @@ function CalendarCell({
   }
 
   return (
-    <td {...cellProps} data-range={range} className={styles.cell()}>
+    <td {...cellProps} data-slot="cell" data-range={range} className={styles.cell()}>
       <div
         {...mergeProps(buttonProps, interactionProps)}
         {...dataAttributes}
         ref={ref}
+        data-slot="day"
         data-selected={(filled && !isOutside) || undefined}
         data-in-range={range === 'middle' || undefined}
         data-today={(isToday(date, getLocalTimeZone()) && !isOutside) || undefined}

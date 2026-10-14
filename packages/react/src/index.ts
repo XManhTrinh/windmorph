@@ -557,6 +557,7 @@ export {
   type CarouselProps,
 } from './components/carousel/Carousel';
 export { carouselStyles, type CarouselStyleProps } from './components/carousel/carousel-styles';
+export { carouselTokenSet } from './components/carousel/carousel-tokens';
 export {
   DatePicker,
   DateRangePicker,
@@ -571,6 +572,7 @@ export {
   dockedDatePickerStyles,
   type DatePickerStyleProps,
 } from './components/date-picker/date-picker-styles';
+export { datePickerTokenSet } from './components/date-picker/date-picker-tokens';
 export {
   DateField,
   type DateFieldClassNames,
@@ -599,3 +601,4 @@ export {
   timePickerStyles,
   type TimePickerStyleProps,
 } from './components/time-picker/time-picker-styles';
+export { timePickerTokenSet } from './components/time-picker/time-picker-tokens';

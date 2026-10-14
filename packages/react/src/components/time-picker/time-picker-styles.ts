@@ -22,6 +22,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * in `display-medium` with `body-small` labels 7px below; focused fields are
  * `primary-container` with a 2px `primary` border.
  *
+ * The dial, the selector handle, the time and period selectors' containers and the period
+ * selector's outline come from the time picker's component tokens (`time-picker-tokens.ts`,
+ * `--md-comp-time-picker-*`): the root carries `data-tokens="md-comp-time-picker"`, and the
+ * classes read one private variable per part. A consumer class still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -34,22 +39,27 @@ export const timePickerStyles = tv({
     selector: [
       'h-[80px] rounded-corner-small text-center text-display-large outline-none focus-ring',
       'cursor-pointer caret-transparent tabular-nums',
-      'bg-surface-container-highest text-on-surface',
-      'data-selected:bg-primary-container data-selected:text-on-primary-container',
+      'bg-[var(--_md-comp-time-picker-time-selector-unselected-container-color)] text-on-surface',
+      'data-selected:bg-[var(--_md-comp-time-picker-time-selector-selected-container-color)]',
+      'data-selected:text-on-primary-container',
       // Hover, focus and pressed layers in the text colour (M3 states; Compose's clickable
       // Surface). An input has no ripple, so pressing shows the pressed layer instead.
       'state-layer data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]!',
       'aria-invalid:outline-2 aria-invalid:outline-error',
     ],
     separator: 'flex w-[24px] items-center justify-center text-display-large text-on-surface',
-    period: 'flex overflow-hidden rounded-corner-small border border-outline',
+    period: [
+      'flex overflow-hidden rounded-corner-small border',
+      'border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+    ],
     periodOption: [
       'flex flex-1 cursor-pointer items-center justify-center text-title-medium text-on-surface-variant outline-none',
       'state-layer focus-ring-inset',
-      'data-selected:bg-tertiary-container data-selected:text-on-tertiary-container',
+      'data-selected:bg-[var(--_md-comp-time-picker-period-selector-selected-container-color)]',
+      'data-selected:text-on-tertiary-container',
     ],
     dial: 'size-[256px] shrink-0 touch-none rounded-full outline-none select-none',
-    dialFace: 'fill-surface-container-highest',
+    dialFace: 'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
     dialNumber: 'cursor-pointer outline-none',
     dialNumberHit: 'fill-transparent',
     dialNumberText: 'fill-on-surface text-body-large data-selected:fill-on-primary',
@@ -65,8 +75,9 @@ export const timePickerStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
     dialFocus: 'fill-none stroke-secondary',
-    dialHandle: 'fill-primary',
-    dialTrack: 'stroke-primary',
+    dialHandle: 'fill-[var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+    dialTrack:
+      'stroke-[color:var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
     field: [
       'h-[72px] w-[96px] rounded-corner-small border-2 border-transparent bg-surface-container-highest',
       'text-center text-display-medium text-on-surface caret-primary outline-none tabular-nums',
@@ -90,14 +101,20 @@ export const timePickerStyles = tv({
         root: 'flex-col',
         display: 'flex-row items-start',
         period: 'ms-[12px] w-[52px] flex-col',
-        periodOption: 'not-last:border-b not-last:border-outline',
+        periodOption: [
+          'not-last:border-b',
+          'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+        ],
         dial: 'mt-[36px]',
       },
       horizontal: {
         root: 'flex-row',
         display: 'flex-col items-center',
         period: 'mt-[16px] min-h-[38px] w-[216px] flex-row',
-        periodOption: 'not-last:border-e not-last:border-outline',
+        periodOption: [
+          'not-last:border-e',
+          'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+        ],
         dial: 'ms-[36px]',
       },
     },

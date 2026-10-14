@@ -15,7 +15,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Each item's mask is filled with `surface`, the spec's container colour, so transparent
  *   or still-loading content never shows what's behind the carousel.
  * - Items are masked with 28px (extra-large) corners, as Compose's samples do with
- *   `maskClip(MaterialTheme.shapes.extraLarge)`; `--m3-carousel-corner` overrides it. A
+ *   `maskClip(MaterialTheme.shapes.extraLarge)`; the component token
+ *   `--md-comp-carousel-item-container-shape` (`carousel-tokens.ts`) sets them. A
  *   pressed item's corners tighten to `--m3-carousel-pressed-corner` (20px, large-increased)
  *   on the fast spatial spring, the spec's "changes the shape slightly".
  *
@@ -31,7 +32,7 @@ export const carouselStyles = tv({
   slots: {
     root: [
       'flex min-h-0 min-w-0',
-      '[--m3-carousel-corner:var(--md-sys-shape-corner-extra-large)]',
+      '[--m3-carousel-corner:var(--_md-comp-carousel-item-container-shape)]',
       '[--m3-carousel-pressed-corner:var(--md-sys-shape-corner-large-increased)]',
     ],
     scroller: [

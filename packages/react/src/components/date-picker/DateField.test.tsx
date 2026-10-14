@@ -46,6 +46,12 @@ describe('DateField (docked date picker)', () => {
       .getAllByText('28')
       .find((el) => el.hasAttribute('data-outside'))!;
     expect(outside).toHaveClass('data-outside:visible', 'data-outside:text-on-surface-variant');
+    // M3's docked set isn't exposed: the docked days keep their classes, not the modal tokens.
+    expect(calendar).not.toHaveAttribute('data-tokens');
+    expect(within(calendar).getByRole('button', { name: /March 10, 2030/ })).toHaveClass(
+      'data-selected:bg-primary',
+      'data-today:border-primary',
+    );
     expect(await axeViolations(baseElement)).toEqual([]);
     await userEvent.click(within(calendar).getByRole('button', { name: /March 21, 2030/ }));
     expect(onChange).not.toHaveBeenCalled();

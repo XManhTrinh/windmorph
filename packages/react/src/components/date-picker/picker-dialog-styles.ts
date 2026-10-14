@@ -13,16 +13,18 @@ import { tv } from '../../utils/tv';
  * In a window too short for the whole dialog (a short window, or text at 200%), the panel
  * stops at the window's height and the picker scrolls inside it, above the actions, which
  * stay in view; the picker keeps its own size and never shrinks under them (2026-10-13).
- * Every class is written out in full.
+ *
+ * The panel's colour and corners (and, for dates, its shadow) come from the picker's
+ * component tokens: `--md-comp-date-picker-modal-container-*` (`date-picker-tokens.ts`) or
+ * `--md-comp-time-picker-container-*` (`time-picker-tokens.ts`). The panel carries that set's
+ * `data-tokens` and `data-variant`. Every class is written out in full.
  */
 
 /** Variant definitions for {@link PickerDialog}. */
 export const pickerDialogStyles = tv({
   slots: {
-    panel: [
-      'group/picker-dialog flex max-h-full max-w-full flex-col overflow-hidden rounded-corner-extra-large',
-      'bg-surface-container-high text-on-surface shadow-elevation-3 outline-none',
-    ],
+    panel:
+      'group/picker-dialog flex max-h-full max-w-full flex-col overflow-hidden text-on-surface outline-none',
     header: 'flex h-[56px] shrink-0 items-center justify-between ps-[4px] pe-[12px]',
     close: '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
     title: 'shrink-0 pb-[20px] text-label-medium text-on-surface-variant',
@@ -34,8 +36,21 @@ export const pickerDialogStyles = tv({
   },
   variants: {
     variant: {
-      date: { actions: 'pe-[6px] pb-[8px] ps-[12px]' },
-      time: { panel: 'p-[24px]', actions: 'pt-[24px]' },
+      date: {
+        panel: [
+          'rounded-[var(--_md-comp-date-picker-modal-container-shape)]',
+          'bg-[var(--_md-comp-date-picker-modal-container-color)]',
+          'shadow-[shadow:var(--_md-comp-date-picker-modal-container-elevation)]',
+        ],
+        actions: 'pe-[6px] pb-[8px] ps-[12px]',
+      },
+      time: {
+        panel: [
+          'rounded-[var(--_md-comp-time-picker-container-shape)]',
+          'bg-[var(--_md-comp-time-picker-container-color)] p-[24px] shadow-elevation-3',
+        ],
+        actions: 'pt-[24px]',
+      },
     },
     fullScreen: {
       true: {

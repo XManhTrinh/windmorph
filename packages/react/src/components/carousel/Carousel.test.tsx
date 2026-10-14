@@ -101,6 +101,39 @@ describe('Carousel', () => {
     vi.restoreAllMocks();
   });
 
+  it('masks items with the item shape token, which a consumer class beats', () => {
+    const { rerender } = render(
+      <Carousel aria-label="Photos" data-testid="carousel">
+        {slides(3)}
+      </Carousel>,
+    );
+    const region = screen.getByTestId('carousel');
+    expect(region).toHaveAttribute('data-tokens', 'md-comp-carousel');
+    expect(region).toHaveAttribute('data-variant', 'multi-browse');
+    expect(region).toHaveClass(
+      '[--m3-carousel-corner:var(--_md-comp-carousel-item-container-shape)]',
+    );
+    expect(screen.getAllByRole('group')[0]).toHaveAttribute('data-slot', 'item');
+    rerender(
+      <Carousel
+        aria-label="Photos"
+        variant="hero"
+        data-testid="carousel"
+        className="[--m3-carousel-corner:12px]"
+        classNames={{ item: 'rounded-corner-small' }}
+      >
+        {slides(3)}
+      </Carousel>,
+    );
+    expect(region).toHaveAttribute('data-variant', 'hero');
+    expect(region).toHaveClass('[--m3-carousel-corner:12px]');
+    expect(region).not.toHaveClass(
+      '[--m3-carousel-corner:var(--_md-comp-carousel-item-container-shape)]',
+    );
+    expect(screen.getAllByRole('group')[0]).toHaveClass('rounded-corner-small');
+    expect(screen.getAllByRole('group')[0]).not.toHaveClass('rounded-(--m3-carousel-corner)');
+  });
+
   it('fills every item with the surface colour', () => {
     render(<Carousel aria-label="Photos">{slides(3)}</Carousel>);
     expect(mask(0)).toHaveClass('bg-surface');

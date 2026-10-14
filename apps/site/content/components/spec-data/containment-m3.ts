@@ -467,8 +467,8 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         composable: 'Modifier.maskClip(shape)',
-        component: '--m3-carousel-corner',
-        note: "Items are masked with 28px corners, as Compose's samples use `MaterialTheme.shapes.extraLarge`.",
+        component: '--md-comp-carousel-item-container-shape',
+        note: "Items are masked with 28px corners, as Compose's samples use `MaterialTheme.shapes.extraLarge`; the component token sets them.",
       },
     ],
   },
