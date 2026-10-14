@@ -231,3 +231,33 @@ export const LayoutOverride: StoryObj<{
     );
   },
 };
+
+/**
+ * Layout safety (architecture §10) for the bottom sheet: a consumer layout class on a
+ * standard bottom sheet (`className`, on the panel) placed in a bounded region, inside an
+ * optional transformed ancestor.
+ */
+export const BottomLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: ({ override, transformedAncestor }) => (
+    <div className={transformedAncestor ? 'translate-x-2' : undefined}>
+      <div className="relative h-[480px] w-[412px] overflow-hidden" data-testid="layout">
+        <BottomSheet
+          variant="standard"
+          aria-label="Now playing"
+          data-testid="target"
+          classNames={{ container: 'absolute' }}
+          className={LAYOUT_OVERRIDES[override]}
+        >
+          <div className="px-6 pb-6">
+            <p className="text-title-medium">Now playing</p>
+          </div>
+        </BottomSheet>
+      </div>
+    </div>
+  ),
+};

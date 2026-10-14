@@ -295,3 +295,39 @@ export const LayoutOverride: StoryObj<{
     );
   },
 };
+
+/** Layout safety (architecture §10) for the navigation rail (collapsed, 96px wide). */
+export const RailLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: function RailLayoutOverrideStory({ override, transformedAncestor }) {
+    const [current, setCurrent] = useState('home');
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 440 }}>
+        <p className="mb-4 text-body-medium" data-testid="count">
+          Current {current}
+        </p>
+        <NavigationRail
+          aria-label="Main"
+          data-testid="target"
+          style={{ height: 360 }}
+          className={LAYOUT_OVERRIDES[override]}
+        >
+          {DESTINATIONS.slice(0, 3).map(({ id, label, icon }) => (
+            <NavigationRailItem
+              key={id}
+              icon={icon}
+              selected={current === id}
+              onPress={() => setCurrent(id)}
+            >
+              {label}
+            </NavigationRailItem>
+          ))}
+        </NavigationRail>
+      </div>
+    );
+  },
+};

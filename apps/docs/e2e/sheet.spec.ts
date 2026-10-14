@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { layoutSafetySuite } from './layout-safety';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
 import { MODES } from './shots';
 import { openStory } from './story';
 
@@ -346,4 +346,63 @@ test.describe('Side sheet', () => {
       },
     });
   });
+});
+
+test.describe('BottomSheet layout safety', () => {
+  for (const override of OVERRIDES) {
+    for (const transformedAncestor of [false, true]) {
+      const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''}`;
+      test(name, async ({ page }) => {
+        await openStory(
+          page,
+          'components-sheet--bottom-layout-override',
+          {},
+          { override, transformedAncestor },
+        );
+        const sheet = page.getByTestId('target');
+        await settle(page);
+        // The panel still fills the library's wrapper that places and moves it, keeps its
+        // corners, and has no positioned internals.
+        const layout = await sheet.evaluate((el) => {
+          const panel = el as HTMLElement;
+          const wrapper = panel.parentElement!;
+          return {
+            fillsWrapper:
+              panel.offsetWidth === wrapper.offsetWidth &&
+              panel.offsetHeight === wrapper.offsetHeight,
+            radius: getComputedStyle(panel).borderTopLeftRadius,
+            positionedDescendants: [...panel.querySelectorAll('*')].filter((child) => {
+              const style = getComputedStyle(child);
+              return (
+                child.closest('[data-touch-target]') === null &&
+                style.clipPath !== 'inset(50%)' &&
+                ['absolute', 'fixed'].includes(style.position)
+              );
+            }).length,
+          };
+        });
+        expect(layout).toEqual({ fillsWrapper: true, radius: '28px', positionedDescendants: 0 });
+        // Collapsed to its 56px peek at the bottom of the region, with the handle on top.
+        const frame = await rect(page.getByTestId('layout'));
+        const wrapper = sheet.locator('..');
+        expect((await rect(wrapper)).y).toBe(frame.bottom - 56);
+        const handle = page.getByRole('button', { name: 'Expand sheet' });
+        expect(
+          await handle.evaluate((el) => {
+            const box = el.getBoundingClientRect();
+            const hit = document.elementFromPoint(
+              box.left + box.width / 2,
+              box.top + box.height / 2,
+            );
+            return hit !== null && el.contains(hit);
+          }),
+        ).toBe(true);
+        // The handle still expands it to the bottom of the region.
+        await handle.click();
+        await expect(sheet).toHaveAttribute('data-detent', 'expanded');
+        await settle(page);
+        expect((await rect(wrapper)).bottom).toBe(frame.bottom);
+      });
+    }
+  }
 });

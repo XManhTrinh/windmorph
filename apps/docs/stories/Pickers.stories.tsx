@@ -327,3 +327,81 @@ export const LayoutOverride: StoryObj<{
     </div>
   ),
 };
+
+/** Layout safety (architecture §10) for the time picker (vertical, 12-hour). */
+export const TimeLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: function TimeLayoutOverrideStory({ override, transformedAncestor }) {
+    const [value, setValue] = useState(new Time(14, 35));
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 440 }}>
+        <p className="mb-4 text-body-medium" data-testid="count">
+          Value {value.toString()}
+        </p>
+        <TimePicker
+          data-testid="target"
+          value={value}
+          onChange={setValue}
+          hourCycle={12}
+          layout="vertical"
+          className={LAYOUT_OVERRIDES[override]}
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Layout safety (architecture §10) for `PickerDialog`: a consumer layout class on the
+ * button that opens it (`part: trigger`) or on the dialog panel (`className`, `part:
+ * panel`), inside an optional transformed ancestor. The dialog still opens in the window,
+ * keeps its width and corners, holds focus, and returns it to the button.
+ */
+export const DialogLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+  part: 'trigger' | 'panel';
+}> = {
+  args: { override: 'none', transformedAncestor: false, part: 'trigger' },
+  argTypes: {
+    override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+    part: { control: 'inline-radio', options: ['trigger', 'panel'] },
+  },
+  render: function DialogLayoutOverrideStory({ override, transformedAncestor, part }) {
+    const [open, setOpen] = useState(false);
+    const layout = LAYOUT_OVERRIDES[override];
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+        <Button
+          data-testid="target"
+          className={part === 'trigger' ? layout : undefined}
+          onPress={() => setOpen(true)}
+        >
+          Pick a date
+        </Button>
+        <PickerDialog
+          aria-label="Select date"
+          open={open}
+          onOpenChange={setOpen}
+          className={part === 'panel' ? layout : undefined}
+          dismissButton={
+            <Button variant="text" onPress={() => setOpen(false)}>
+              Cancel
+            </Button>
+          }
+          confirmButton={
+            <Button variant="text" onPress={() => setOpen(false)}>
+              OK
+            </Button>
+          }
+        >
+          <DatePicker defaultValue={DATE} />
+        </PickerDialog>
+      </div>
+    );
+  },
+};
