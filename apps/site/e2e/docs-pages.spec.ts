@@ -50,6 +50,15 @@ test.describe('Component page tabs', () => {
     await expect(page.getByRole('tab', { name: 'Accessibility' })).toBeFocused();
   });
 
+  test('the props table lists each key of an object prop, with its default', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await gotoReady(page, '/components/sheets/api');
+    const table = page.getByRole('region', { name: 'BottomSheet props', exact: true });
+    const close = table.getByRole('row').filter({ hasText: 'labels.close' });
+    await expect(close).toContainText('"Close"');
+    await expect(table.getByRole('row').filter({ hasText: 'classNames.handle' })).toBeVisible();
+  });
+
   test('props are cards on a phone, with no sideways scroll', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await gotoReady(page, '/components/button/api');
@@ -119,5 +128,23 @@ test.describe('Component index', () => {
     await expect(page.getByText('No components match')).toBeVisible();
     await page.getByRole('button', { name: 'Show all' }).click();
     await expect(cards).toHaveCount(all);
+  });
+});
+
+test.describe('From Compose', () => {
+  test('maps Compose tokens to CSS variables, with no sideways scroll on a phone', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoReady(page, '/from-compose');
+    const table = page.getByRole('table', {
+      name: 'Compose tokens and their Windmorph CSS variables',
+    });
+    const row = table.getByRole('row').filter({ hasText: 'FilledButtonTokens.ContainerColor' });
+    await expect(row.first()).toContainText('--md-comp-button-filled-container-color');
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
   });
 });
