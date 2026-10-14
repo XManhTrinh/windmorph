@@ -41,6 +41,12 @@ const PROPERTIES = [
   'stroke',
 ] as const;
 
+/** The properties above that children inherit; the rest paint only on the element's box. */
+const INHERITED = ['color', 'fill', 'stroke'];
+
+/** Recorded instead of a property that paints nothing on a `display: contents` element. */
+const BOXLESS = '(no box)';
+
 interface Combo {
   name: string;
   theme: string;
@@ -120,7 +126,7 @@ function storyIds(): string[] {
 
 async function readStyles(page: Page, combo: Combo) {
   return page.evaluate(
-    ({ combo, properties }) => {
+    ({ combo, properties, inherited, BOXLESS }) => {
       for (const scope of document.querySelectorAll<HTMLElement>('[data-theme]')) {
         scope.dataset.theme = combo.theme;
         scope.dataset.mode = combo.mode;
@@ -143,9 +149,13 @@ async function readStyles(page: Page, combo: Combo) {
       const rows: [string, string[]][] = [];
       const walk = (element: Element, path: string) => {
         const style = getComputedStyle(element);
+        // A `display: contents` element has no box, so only what its children inherit shows.
+        const boxless = style.display === 'contents';
         rows.push([
           `${path} ${element.tagName.toLowerCase()}`,
-          properties.map((property) => style.getPropertyValue(property)),
+          properties.map((property) =>
+            boxless && !inherited.includes(property) ? BOXLESS : style.getPropertyValue(property),
+          ),
         ]);
         [...element.children].forEach((child, index) => {
           if (!['SCRIPT', 'STYLE', 'LINK', 'META', 'TEMPLATE'].includes(child.tagName)) {
@@ -157,7 +167,12 @@ async function readStyles(page: Page, combo: Combo) {
       for (const element of forced) element.removeAttribute(`data-${combo.state}`);
       return rows;
     },
-    { combo, properties: PROPERTIES as readonly string[] },
+    {
+      combo,
+      properties: PROPERTIES as readonly string[],
+      inherited: INHERITED as readonly string[],
+      BOXLESS,
+    },
   );
 }
 
@@ -207,7 +222,7 @@ function differences(expected: Snapshot, actual: Snapshot): string[] {
       const before = styleOf(expected, row);
       const after = styleOf(actual, actualIndexes[element]);
       expected.properties.forEach((property, p) => {
-        if (before[p] !== after[p]) {
+        if (before[p] !== after[p] && before[p] !== BOXLESS && after[p] !== BOXLESS) {
           lines.push(
             `${combo} · ${expected.elements[element]} · ${property}: ${before[p]} → ${after[p]}`,
           );
