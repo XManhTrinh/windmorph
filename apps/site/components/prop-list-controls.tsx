@@ -1,8 +1,17 @@
 'use client';
 
-import { Button, IconButton } from '@windmorph/react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { ExpandMoreIcon, LinkIcon } from './icons';
+import { Button, IconButton, TextField } from '@windmorph/react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { matchesPropFilter, propCount } from '../lib/prop-list-model';
+import { CloseIcon, ExpandMoreIcon, LinkIcon, SearchIcon } from './icons';
 import { useCopy } from './site-snackbar';
 
 /**
@@ -16,6 +25,12 @@ const REVEAL =
 const CHEVRON =
   '[&_svg]:transition-transform [&_svg]:duration-(--md-sys-motion-spring-spatial-fast-duration) [&_svg]:ease-(--md-sys-motion-spring-spatial-fast-easing) aria-expanded:[&_svg]:rotate-180';
 
+/** Marks what the props filter hides; `globals.css` takes it out of the page. */
+const FILTERED_OUT = 'data-filtered-out';
+
+/** The folds (by their `data-fold` id) the props filter opens because they hold a match. */
+const FilterContext = createContext<ReadonlySet<string>>(new Set());
+
 /** The element the URL's fragment names, if any. */
 function hashTarget(): HTMLElement | null {
   const id = decodeURIComponent(window.location.hash.slice(1));
@@ -23,21 +38,27 @@ function hashTarget(): HTMLElement | null {
 }
 
 /**
- * An object prop's keys behind a disclosure: a text button showing how many there are, which
- * expands the nested list below it. The list is in the page from the start (hidden while
- * folded), so its anchors exist; a URL fragment naming a key opens it and scrolls the key
- * into view, on load and on every fragment change.
+ * A disclosure's state: closed until pressed, opened by a URL fragment naming something
+ * inside it (on load and on every fragment change, scrolling it into view once it shows),
+ * and opened by the props filter when it holds a match.
  */
-export function PropKeys({ count, children }: { count: number; children: ReactNode }) {
+function useFold() {
   const [open, setOpen] = useState(false);
-  const listId = useId();
-  const list = useRef<HTMLDivElement>(null);
+  const foldId = useId();
+  const content = useRef<HTMLDivElement>(null);
   const reveal = useRef<HTMLElement | null>(null);
+  const filterOpens = useContext(FilterContext).has(foldId);
+  const [filterOpened, setFilterOpened] = useState(filterOpens);
+  // A match opens the fold; it then stays open, and closes like any other, from its button.
+  if (filterOpens !== filterOpened) {
+    setFilterOpened(filterOpens);
+    if (filterOpens) setOpen(true);
+  }
 
   useEffect(() => {
     const openForHash = () => {
       const target = hashTarget();
-      if (!target || !list.current?.contains(target)) return;
+      if (!target || !content.current?.contains(target)) return;
       reveal.current = target;
       setOpen(true);
     };
@@ -47,12 +68,23 @@ export function PropKeys({ count, children }: { count: number; children: ReactNo
   }, []);
 
   useEffect(() => {
-    // The browser couldn't scroll to a key while it was hidden, so this does once it shows.
+    // The browser couldn't scroll to it while it was hidden, so this does once it shows.
     if (!open || !reveal.current) return;
     reveal.current.scrollIntoView({ block: 'start' });
     reveal.current = null;
   }, [open]);
 
+  return { open, toggle: () => setOpen((value) => !value), foldId, content };
+}
+
+/**
+ * An object prop's keys behind a disclosure: a text button showing how many there are, which
+ * expands the nested list below it. The list is in the page from the start (hidden while
+ * folded), so its anchors exist.
+ */
+export function PropKeys({ count, children }: { count: number; children: ReactNode }) {
+  const { open, toggle, foldId, content } = useFold();
+  const listId = useId();
   return (
     <div className="flex flex-col items-start gap-1">
       <Button
@@ -61,15 +93,58 @@ export function PropKeys({ count, children }: { count: number; children: ReactNo
         leadingIcon={<ExpandMoreIcon />}
         aria-expanded={open}
         aria-controls={listId}
-        onPress={() => setOpen((value) => !value)}
+        onPress={toggle}
         className={`-ms-3 ${CHEVRON}`}
       >
         {`${count} ${count === 1 ? 'key' : 'keys'}`}
       </Button>
-      <div id={listId} ref={list} hidden={!open} className={`self-stretch ${REVEAL}`}>
+      <div
+        id={listId}
+        ref={content}
+        data-fold={foldId}
+        hidden={!open}
+        className={`self-stretch ${REVEAL}`}
+      >
         {children}
       </div>
     </div>
+  );
+}
+
+/**
+ * A group of props that starts folded (Styling): its subhead holds the disclosure button,
+ * with the group's name and how many props it has.
+ */
+export function PropGroupFold({
+  label,
+  count,
+  children,
+}: {
+  label: string;
+  count: number;
+  children: ReactNode;
+}) {
+  const { open, toggle, foldId, content } = useFold();
+  const listId = useId();
+  return (
+    <>
+      <h4>
+        <Button
+          variant="text"
+          size="sm"
+          leadingIcon={<ExpandMoreIcon />}
+          aria-expanded={open}
+          aria-controls={listId}
+          onPress={toggle}
+          className={`-ms-3 ${CHEVRON}`}
+        >
+          {`${label} (${count})`}
+        </Button>
+      </h4>
+      <div id={listId} ref={content} data-fold={foldId} hidden={!open} className={REVEAL}>
+        {children}
+      </div>
+    </>
   );
 }
 
@@ -82,9 +157,9 @@ export function MoreValues({ total, children }: { total: number; children: React
   const restId = useId();
   return (
     <>
-      <span id={restId} hidden={!open} className="contents">
+      <span id={restId} hidden={!open}>
         {children}
-      </span>
+      </span>{' '}
       <Button
         variant="text"
         size="xs"
@@ -100,7 +175,7 @@ export function MoreValues({ total, children }: { total: number; children: React
 
 /**
  * A prop's anchor: a link to it that also copies its address and confirms in the snackbar.
- * It shows while the pointer is over the prop's header or focus is in it, and always on
+ * It shows while the pointer is over the prop's first line or focus is in it, and always on
  * touch screens, which have no hover.
  */
 export function PropLink({ id, name }: { id: string; name: string }) {
@@ -117,5 +192,137 @@ export function PropLink({ id, name }: { id: string; name: string }) {
       }}
       className="opacity-0 group-focus-within/prop:opacity-100 group-hover/prop:opacity-100 pointer-coarse:opacity-100"
     />
+  );
+}
+
+/** A prop's own text for the filter: its name and description, not its keys'. */
+function ownText(item: Element): string {
+  const name = item.querySelector(':scope > [data-prop-header] [data-prop-name]');
+  const description = item.querySelector(':scope > [data-prop-description]');
+  return `${name?.textContent ?? ''} ${description?.textContent ?? ''}`;
+}
+
+interface FilterResult {
+  /** How many props (keys included) match. */
+  count: number;
+  /** The folds that hold a match, to open. */
+  folds: ReadonlySet<string>;
+}
+
+const NO_FILTER: FilterResult = { count: 0, folds: new Set() };
+
+/**
+ * Applies a query to the props lists inside `root`: hides each prop that doesn't match,
+ * keeping a prop that holds a matching key and every key of a matching prop, then the groups
+ * and component sections left empty.
+ */
+function applyFilter(root: HTMLElement, query: string): FilterResult {
+  for (const hidden of root.querySelectorAll(`[${FILTERED_OUT}]`)) {
+    hidden.removeAttribute(FILTERED_OUT);
+  }
+  if (!query.trim()) return NO_FILTER;
+  const items = [...root.querySelectorAll<HTMLElement>('li[data-prop]')];
+  const matched = items.filter((item) => matchesPropFilter(ownText(item), query));
+  const shown = new Set<Element>();
+  const folds = new Set<string>();
+  for (const item of matched) {
+    shown.add(item);
+    for (const key of item.querySelectorAll('li[data-prop]')) shown.add(key);
+    let parent = item.parentElement?.closest('li[data-prop]');
+    while (parent) {
+      shown.add(parent);
+      parent = parent.parentElement?.closest('li[data-prop]');
+    }
+    let fold = item.parentElement?.closest<HTMLElement>('[data-fold]');
+    while (fold) {
+      folds.add(fold.dataset.fold!);
+      fold = fold.parentElement?.closest<HTMLElement>('[data-fold]');
+    }
+  }
+  for (const item of items) if (!shown.has(item)) item.setAttribute(FILTERED_OUT, '');
+  for (const part of root.querySelectorAll('[data-prop-group], [data-props-component]')) {
+    if (!part.querySelector(`li[data-prop]:not([${FILTERED_OUT}])`)) {
+      part.setAttribute(FILTERED_OUT, '');
+    }
+  }
+  return { count: matched.length, folds };
+}
+
+/**
+ * A field that filters every props list below it by name and description, live: it hides
+ * what doesn't match (keeping a matching key's prop, and opening the folds that hold a
+ * match), announces how many props match, and shows an empty state when none do. Escape or
+ * the clear button empties it.
+ */
+export function PropsFilter({ total, children }: { total: number; children: ReactNode }) {
+  const [query, setQuery] = useState('');
+  const [result, setResult] = useState<FilterResult>(NO_FILTER);
+  const root = useRef<HTMLDivElement>(null);
+  const field = useRef<HTMLInputElement>(null);
+
+  const update = (value: string) => {
+    setQuery(value);
+    if (root.current) setResult(applyFilter(root.current, value));
+  };
+  const clear = () => {
+    update('');
+    field.current?.focus();
+  };
+  const active = query.trim() !== '';
+  const status = !active
+    ? ''
+    : result.count === 0
+      ? 'No props match'
+      : `${propCount(result.count)} ${result.count === 1 ? 'matches' : 'match'}`;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <TextField
+          label="Filter props"
+          value={query}
+          onChange={update}
+          inputRef={field}
+          autoComplete="off"
+          leadingIcon={<SearchIcon />}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && active) clear();
+          }}
+          trailingIcon={
+            active ? (
+              <IconButton
+                variant="standard"
+                icon={<CloseIcon />}
+                aria-label="Clear filter"
+                onPress={clear}
+              />
+            ) : undefined
+          }
+          supportingText={`By name or description, across the ${propCount(total)} below`}
+          className="w-full max-w-md"
+        />
+        <p role="status" className="min-h-5 text-body-small text-on-surface-variant">
+          {status}
+        </p>
+      </div>
+      {active && result.count === 0 && (
+        <div className="flex flex-col items-start gap-2 rounded-corner-large bg-surface-container-low p-6">
+          <p className="text-title-medium text-on-surface">
+            No props match &ldquo;{query.trim()}&rdquo;
+          </p>
+          <p className="text-body-medium text-on-surface-variant">
+            Try part of a prop&apos;s name or a word from its description.
+          </p>
+          <Button variant="text" size="sm" onPress={clear} className="-ms-3">
+            Clear filter
+          </Button>
+        </div>
+      )}
+      <FilterContext value={result.folds}>
+        <div ref={root} className="flex flex-col gap-10">
+          {children}
+        </div>
+      </FilterContext>
+    </div>
   );
 }

@@ -58,7 +58,8 @@ test.describe('Component page tabs', () => {
     await labels.getByRole('button', { name: /^\d+ keys$/ }).click();
     const close = list.locator('[id="prop-BottomSheet-labels.close"]');
     await expect(close).toContainText('"Close"');
-    // Exactly `classNames.handle`, not `classNames.handleBar`.
+    // Exactly `classNames.handle`, not `classNames.handleBar`, in the folded Styling group.
+    await list.getByRole('button', { name: /^Styling/ }).click();
     await list
       .locator('#prop-BottomSheet-classNames')
       .getByRole('button', { name: /^\d+ keys$/ })

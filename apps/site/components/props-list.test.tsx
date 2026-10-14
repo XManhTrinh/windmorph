@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { PropsRecord } from '../lib/component-props';
 import { axeViolations } from '../test/axe';
-import { PropsList } from './props-list';
+import { PropsList, PropsReference } from './props-list';
 
 const PROPS: PropsRecord[] = [
   {
@@ -41,14 +41,14 @@ afterEach(() => {
 });
 
 describe('PropsList', () => {
-  it('lists each prop in a named region: name, Required, type values, default, description', () => {
+  it('lists each prop in a named region: name, type, Required, default, then description', () => {
     renderList();
     const region = screen.getByRole('region', { name: 'BottomSheet props' });
     const [variant] = within(region).getAllByRole('listitem');
     expect(variant).toHaveAttribute('id', 'prop-BottomSheet-variant');
-    // Reading order: name, required, then the type, the default and the description.
+    // Reading order: name, type, Required, default, then the description.
     expect(variant!.textContent).toMatch(
-      /^variantRequired.*One of "standard""connected"Default"standard"standard spaces the buttons apart; connected joins them\./,
+      /^varianttype "standard" \| "connected"Required= default "standard"standard spaces the buttons apart; connected joins them\./,
     );
     // Backticks become code, not literal text.
     expect(within(variant!).getByText('connected', { selector: 'p code' })).toBeInTheDocument();
@@ -120,8 +120,100 @@ describe('PropsList', () => {
     );
   });
 
+  it("groups a component's props under subheads and folds Styling", async () => {
+    const user = userEvent.setup();
+    render(
+      <PropsList
+        caption="Dialog props"
+        scope="Dialog"
+        grouped
+        props={[
+          { name: 'className', type: 'string', required: false },
+          { name: 'open', type: 'boolean', required: false },
+          { name: 'children', type: 'ReactNode', required: true },
+          { name: 'onOpenChange', type: '(open: boolean) => void', required: false },
+        ]}
+      />,
+    );
+    expect(
+      screen.getAllByRole('heading', { level: 4 }).map((heading) => heading.textContent),
+    ).toEqual(['Props', 'Events', 'Styling (1)']);
+    // Required props lead their group.
+    const [first] = screen.getAllByRole('listitem');
+    expect(first).toHaveAttribute('data-prop', 'children');
+    const styling = screen.getByRole('button', { name: 'Styling (1)' });
+    expect(styling).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByText('className')).not.toBeVisible();
+    await user.click(styling);
+    expect(screen.getByText('className')).toBeVisible();
+  });
+
   it('has no axe violations', async () => {
     const { container } = renderList();
     expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('PropsReference', () => {
+  const many = (prefix: string, count: number): PropsRecord[] =>
+    Array.from({ length: count }, (_, index) => ({
+      name: `${prefix}${index}`,
+      type: 'string',
+      required: false,
+      description: index === 0 ? 'Names the scrim.' : 'Something else.',
+    }));
+
+  it('heads each component with its name and prop count', () => {
+    render(<PropsReference components={[{ name: 'Divider', props: many('inset', 2) }]} />);
+    expect(screen.getByRole('heading', { level: 3, name: 'Divider 2 props' })).toHaveAttribute(
+      'id',
+      'props-Divider',
+    );
+    // A short page has no filter.
+    expect(screen.queryByRole('textbox', { name: 'Filter props' })).toBeNull();
+  });
+
+  it('filters every list by name and description, announcing the count', async () => {
+    const user = userEvent.setup();
+    render(
+      <PropsReference
+        components={[
+          {
+            name: 'Dialog',
+            props: [
+              ...many('a', 8),
+              {
+                name: 'classNames',
+                type: 'X',
+                required: false,
+                keys: [
+                  {
+                    name: 'classNames.scrim',
+                    type: 'string',
+                    required: false,
+                    description: 'The scrim.',
+                  },
+                ],
+              },
+            ],
+          },
+          { name: 'DialogTitle', props: many('b', 6) },
+        ]}
+      />,
+    );
+    const field = screen.getByRole('textbox', { name: 'Filter props' });
+    await user.type(field, 'scrim');
+    // `a0` and `b0` by description, `classNames.scrim` by name; its fold opens.
+    expect(screen.getByRole('status')).toHaveTextContent('3 props match');
+    expect(screen.getByText('a1').closest('li')).toHaveAttribute('data-filtered-out');
+    expect(screen.getByText('classNames.scrim')).toBeVisible();
+    await user.clear(field);
+    await user.type(field, 'nothing like it');
+    expect(screen.getByRole('status')).toHaveTextContent('No props match');
+    expect(screen.getByText(/No props match “nothing like it”/)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(field).toHaveValue('');
+    expect(field).toHaveFocus();
+    expect(screen.getByText('a1').closest('li')).not.toHaveAttribute('data-filtered-out');
   });
 });

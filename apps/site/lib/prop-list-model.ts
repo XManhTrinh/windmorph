@@ -1,20 +1,7 @@
 import type { PropsRecord } from './component-props';
 
-/**
- * How a prop's type is shown: a union of short members as one chip each, a short type as one
- * chip on the prop's header line, or a long one (a function, an object, a long generic) as a
- * wrapping monospace block under it, so it never squeezes the row.
- */
-export type PropTypeView =
-  | { kind: 'union'; values: string[] }
-  | { kind: 'inline'; text: string }
-  | { kind: 'block'; text: string };
-
-/** How a prop's default is shown: a chip, a wrapping code block, or prose with code in it. */
-export type PropDefaultView =
-  | { kind: 'inline'; text: string }
-  | { kind: 'block'; text: string }
-  | { kind: 'prose'; text: string };
+/** How a prop's default is shown: as code (`"sm"`), or as a sentence with code spans in it. */
+export type PropDefaultView = { kind: 'code'; text: string } | { kind: 'prose'; text: string };
 
 /** One prop of a props list, ready to render. */
 export interface PropItem {
@@ -22,7 +9,11 @@ export interface PropItem {
   id: string;
   name: string;
   required: boolean;
-  type: PropTypeView;
+  /**
+   * The type's top-level union members (`"standard"`, `"connected"`), shown joined by `|`
+   * and wrapping between members; a type that isn't a union is its only member.
+   */
+  typeMembers: string[];
   /** The type as TypeScript writes it, for the Markdown twin. */
   typeText: string;
   defaultValue?: PropDefaultView;
@@ -33,14 +24,33 @@ export interface PropItem {
   keys: PropItem[];
 }
 
-/** Longest type, in characters, that still sits on the header line as one chip. */
-export const INLINE_TYPE_MAX = 40;
+/** The groups a component's props are sorted into, in display order. */
+export type PropGroupId = 'props' | 'events' | 'text' | 'styling';
 
-/** Longest default, in characters, that still sits on the header line as one chip. */
-export const INLINE_DEFAULT_MAX = 32;
+export interface PropGroup {
+  id: PropGroupId;
+  label: string;
+  items: PropItem[];
+}
 
-/** A union member short enough to be its own chip: a literal or a plain type name. */
-const SIMPLE_MEMBER = /^(?:"[^"]*"|'[^']*'|-?\d+(?:\.\d+)?|[A-Za-z_$][\w$.]*(?:\[\])?)$/;
+export const PROP_GROUP_LABELS: Record<PropGroupId, string> = {
+  props: 'Props',
+  events: 'Events',
+  text: 'Text',
+  styling: 'Styling',
+};
+
+/** The groups that start folded: styling hooks are looked up, not read through. */
+export const FOLDED_GROUPS: ReadonlySet<PropGroupId> = new Set(['styling']);
+
+/** The ARIA attributes that name or describe an element: text a reader hears. */
+const ARIA_TEXT = new Set([
+  'aria-label',
+  'aria-labelledby',
+  'aria-describedby',
+  'aria-description',
+  'aria-details',
+]);
 
 /** The opening bracket each closing one pairs with. */
 const PAIRS: Record<string, string> = { ')': '(', ']': '[', '}': '{', '>': '<' };
@@ -75,33 +85,23 @@ export function splitTopLevelUnion(type: string): string[] {
   return members.filter((member) => member !== '');
 }
 
-/** How a prop's type is shown (see {@link PropTypeView}). */
-export function propTypeView(prop: Pick<PropsRecord, 'type' | 'options' | 'values'>): PropTypeView {
+/**
+ * A prop's type as union members: an enum's members as written (`"sm"`, `1`), quoting the
+ * Playground's `options` when the JSON predates `values`; any other type split at its
+ * top-level `|`.
+ */
+export function propTypeMembers(prop: Pick<PropsRecord, 'type' | 'options' | 'values'>): string[] {
   const values = prop.values ?? prop.options?.map((option) => `"${option}"`);
-  if (values && values.length > 0) return { kind: 'union', values };
-  const members = splitTopLevelUnion(prop.type);
-  if (members.length > 1 && members.every((member) => SIMPLE_MEMBER.test(member))) {
-    return { kind: 'union', values: members };
-  }
-  return prop.type.length <= INLINE_TYPE_MAX && !prop.type.includes('\n')
-    ? { kind: 'inline', text: prop.type }
-    : { kind: 'block', text: prop.type };
-}
-
-/** A type view as TypeScript writes it: a union's members joined, any other type as is. */
-export function propTypeText(view: PropTypeView): string {
-  return view.kind === 'union' ? view.values.join(' | ') : view.text;
+  if (values && values.length > 0) return values;
+  return splitTopLevelUnion(prop.type.replace(/\s*\n\s*/g, ' '));
 }
 
 /** How a default is shown (see {@link PropDefaultView}); `undefined` when there is none. */
 export function propDefaultView(value: string | undefined): PropDefaultView | undefined {
-  const text = value?.trim();
+  const text = value?.trim().replace(/\s*\n\s*/g, ' ');
   if (!text) return undefined;
   // A default written as a sentence names its code in backticks.
-  if (text.includes('`')) return { kind: 'prose', text };
-  return text.length <= INLINE_DEFAULT_MAX && !text.includes('\n')
-    ? { kind: 'inline', text }
-    : { kind: 'block', text };
+  return text.includes('`') ? { kind: 'prose', text } : { kind: 'code', text };
 }
 
 /**
@@ -119,17 +119,66 @@ export function propAnchor(scope: string, name: string): string {
  */
 export function propListItems(scope: string, props: readonly PropsRecord[]): PropItem[] {
   return props.map((prop) => {
-    const type = propTypeView(prop);
+    const typeMembers = propTypeMembers(prop);
     const defaultValue = propDefaultView(prop.defaultValue);
     return {
       id: propAnchor(scope, prop.name),
       name: prop.name,
       required: prop.required,
-      type,
-      typeText: propTypeText(type),
-      ...(defaultValue && { defaultValue, defaultText: prop.defaultValue!.trim() }),
+      typeMembers,
+      typeText: typeMembers.join(' | '),
+      ...(defaultValue && { defaultValue, defaultText: defaultValue.text }),
       ...(prop.description && { description: prop.description }),
       keys: propListItems(scope, prop.keys ?? []),
     };
   });
+}
+
+/** The group a prop belongs to, from its name alone. */
+export function propGroupOf(name: string): PropGroupId {
+  if (name === 'className' || name === 'classNames' || name === 'style') return 'styling';
+  if (/^on[A-Z]/.test(name)) return 'events';
+  if (name === 'labels' || name === 'strings' || ARIA_TEXT.has(name)) return 'text';
+  return 'props';
+}
+
+/**
+ * A component's props sorted into groups (Props, Events, Text, Styling), leaving out the
+ * empty ones. Each group keeps the source order, except that required props lead Props.
+ */
+export function groupPropItems(items: readonly PropItem[]): PropGroup[] {
+  const byGroup = new Map<PropGroupId, PropItem[]>();
+  for (const item of items) {
+    const id = propGroupOf(item.name);
+    byGroup.set(id, [...(byGroup.get(id) ?? []), item]);
+  }
+  const core = byGroup.get('props');
+  if (core) {
+    byGroup.set('props', [
+      ...core.filter((item) => item.required),
+      ...core.filter((item) => !item.required),
+    ]);
+  }
+  return (Object.keys(PROP_GROUP_LABELS) as PropGroupId[]).flatMap((id) => {
+    const groupItems = byGroup.get(id);
+    return groupItems ? [{ id, label: PROP_GROUP_LABELS[id], items: groupItems }] : [];
+  });
+}
+
+/**
+ * Whether a prop's text (its name and description) matches a filter query: every word of
+ * the query appears in it, ignoring case. An empty query matches everything.
+ */
+export function matchesPropFilter(text: string, query: string): boolean {
+  const haystack = text.toLowerCase();
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => haystack.includes(word));
+}
+
+/** A count of props in words: `1 prop`, `12 props`. */
+export function propCount(count: number): string {
+  return `${count} ${count === 1 ? 'prop' : 'props'}`;
 }

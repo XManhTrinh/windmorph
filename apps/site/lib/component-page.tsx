@@ -13,7 +13,7 @@ import {
 import { HookTable } from '../components/hook-table';
 import { InlineCode } from '../components/inline-code';
 import { Playground } from '../components/playground/playground';
-import { PropsList } from '../components/props-list';
+import { PropsReference } from '../components/props-list';
 import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
 import { TokenTable } from '../components/token-table';
@@ -142,19 +142,11 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
       {tables.length > 0 && (
         <section className="flex flex-col gap-6">
           <SectionHeading id="props">Props</SectionHeading>
-          {tables.map(({ name, json, slots }) => (
-            <div key={name} className="flex flex-col gap-3">
-              {json && json.props.length > 0 && (
-                <>
-                  {page.propsComponents.length > 1 && (
-                    <h3 className="text-title-medium text-on-surface">
-                      <InlineCode dir="ltr">{name}</InlineCode>
-                    </h3>
-                  )}
-                  <PropsList caption={`${name} props`} scope={name} props={json.props} />
-                </>
-              )}
-              {slots && slots.length > 0 && (
+          <PropsReference
+            components={tables.map(({ name, json, slots }) => ({
+              name,
+              props: json?.props ?? [],
+              after: slots && slots.length > 0 && (
                 <p className="text-body-medium text-on-surface-variant">
                   <span className="text-on-surface">{name} classNames slots:</span>{' '}
                   {slots.map((slot, index) => (
@@ -164,9 +156,9 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
                     </span>
                   ))}
                 </p>
-              )}
-            </div>
-          ))}
+              ),
+            }))}
+          />
         </section>
       )}
       {doc.tokens && doc.tokens.length > 0 && (

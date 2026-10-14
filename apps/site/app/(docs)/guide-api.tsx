@@ -1,6 +1,5 @@
 import { HookTable } from '../../components/hook-table';
-import { InlineCode } from '../../components/inline-code';
-import { PropsList } from '../../components/props-list';
+import { PropsReference } from '../../components/props-list';
 import {
   readComponentPropsSafe,
   readHookDocSafe,
@@ -26,20 +25,11 @@ export async function GuideApiReference({ path }: { path: string }) {
       <h2 id="api-reference" className="text-headline-small text-on-surface">
         API reference
       </h2>
-      {components
-        .filter((json): json is ComponentPropsFile => json !== null && json.props.length > 0)
-        .map((json) => (
-          <div key={json.displayName} className="flex flex-col gap-3">
-            <h3 className="text-title-medium text-on-surface">
-              <InlineCode dir="ltr">{json.displayName}</InlineCode>
-            </h3>
-            <PropsList
-              caption={`${json.displayName} props`}
-              scope={json.displayName}
-              props={json.props}
-            />
-          </div>
-        ))}
+      <PropsReference
+        components={components
+          .filter((json): json is ComponentPropsFile => json !== null && json.props.length > 0)
+          .map((json) => ({ name: json.displayName, props: json.props }))}
+      />
       {hooks
         .filter((doc): doc is HookDocFile => doc !== null)
         .map((doc) => (

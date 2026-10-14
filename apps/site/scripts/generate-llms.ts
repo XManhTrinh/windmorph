@@ -44,7 +44,7 @@ import {
   absoluteUrl,
   markdownPath,
 } from '../lib/site-metadata';
-import { propTypeText, propTypeView } from '../lib/prop-list-model';
+import { propTypeMembers } from '../lib/prop-list-model';
 import type { ComponentPropsFile, PropsRecord } from './generate-props';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -131,7 +131,7 @@ function propDescription(prop: PropsRecord): string {
 }
 
 function propType(prop: PropsRecord): string {
-  return propTypeText(propTypeView(prop));
+  return propTypeMembers(prop).join(' | ');
 }
 
 /** A default as written once (the generated JSON can repeat it on two lines). */

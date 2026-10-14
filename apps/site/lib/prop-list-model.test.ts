@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import type { PropsRecord } from './component-props';
 import {
+  groupPropItems,
+  matchesPropFilter,
   propAnchor,
+  propCount,
   propDefaultView,
+  propGroupOf,
   propListItems,
-  propTypeText,
-  propTypeView,
+  propTypeMembers,
   splitTopLevelUnion,
 } from './prop-list-model';
 
@@ -35,52 +39,32 @@ describe('splitTopLevelUnion', () => {
   });
 });
 
-describe('propTypeView', () => {
-  it("shows an enum's members as written, so strings and numbers differ", () => {
-    expect(propTypeView({ type: 'enum', values: ['"sm"', '"md"'] })).toEqual({
-      kind: 'union',
-      values: ['"sm"', '"md"'],
-    });
-    expect(propTypeView({ type: 'enum', values: ['1', '2'] })).toEqual({
-      kind: 'union',
-      values: ['1', '2'],
-    });
+describe('propTypeMembers', () => {
+  it("lists an enum's members as written, so strings and numbers differ", () => {
+    expect(propTypeMembers({ type: 'enum', values: ['"sm"', '"md"'] })).toEqual(['"sm"', '"md"']);
+    expect(propTypeMembers({ type: 'enum', values: ['1', '2'] })).toEqual(['1', '2']);
   });
 
   it('quotes the options of an enum generated before `values`', () => {
-    expect(propTypeView({ type: 'enum', options: ['sm'] })).toEqual({
-      kind: 'union',
-      values: ['"sm"'],
-    });
+    expect(propTypeMembers({ type: 'enum', options: ['sm'] })).toEqual(['"sm"']);
   });
 
-  it('shows a union of plain members as chips', () => {
-    expect(propTypeView({ type: 'boolean | "dialog" | "menu"' })).toEqual({
-      kind: 'union',
-      values: ['boolean', '"dialog"', '"menu"'],
-    });
-  });
-
-  it('keeps a short type on the header line and blocks a long one', () => {
-    expect(propTypeView({ type: 'ReactNode' })).toEqual({ kind: 'inline', text: 'ReactNode' });
-    const long = 'ReactElement<unknown, string | JSXElementConstructor<any>>';
-    expect(propTypeView({ type: long })).toEqual({ kind: 'block', text: long });
-  });
-
-  it('writes a view back as TypeScript', () => {
-    expect(propTypeText(propTypeView({ type: 'enum', values: ['"a"', '"b"'] }))).toBe('"a" | "b"');
-    expect(propTypeText(propTypeView({ type: 'string' }))).toBe('string');
+  it('splits any other type at its top-level bars', () => {
+    expect(propTypeMembers({ type: 'boolean | "dialog"' })).toEqual(['boolean', '"dialog"']);
+    expect(propTypeMembers({ type: '(value: string | number) => void' })).toEqual([
+      '(value: string | number) => void',
+    ]);
   });
 });
 
 describe('propDefaultView', () => {
-  it('shows a short default as a chip, a long one as a block, and a sentence as prose', () => {
-    expect(propDefaultView('"sm"')).toEqual({ kind: 'inline', text: '"sm"' });
-    expect(propDefaultView('40, or 48 when wavy, plus any extra thickness')).toEqual({
-      kind: 'block',
-      text: '40, or 48 when wavy, plus any extra thickness',
+  it('shows a default as code, and a sentence with code spans as prose', () => {
+    expect(propDefaultView('"sm"')).toEqual({ kind: 'code', text: '"sm"' });
+    expect(propDefaultView('40, or 48 when wavy')).toEqual({
+      kind: 'code',
+      text: '40, or 48 when wavy',
     });
-    expect(propDefaultView('"small" (`full` for circles)')).toEqual({
+    expect(propDefaultView('"small" (`full`\nfor circles)')).toEqual({
       kind: 'prose',
       text: '"small" (`full` for circles)',
     });
@@ -112,7 +96,6 @@ describe('propListItems', () => {
         name: 'labels',
         type: 'Partial<SheetLabels>',
         required: false,
-        description: 'Words the sheet announces.',
         keys: [
           {
             name: 'labels.close',
@@ -130,9 +113,9 @@ describe('propListItems', () => {
         id: 'prop-Sheet-labels.close',
         name: 'labels.close',
         required: false,
-        type: { kind: 'inline', text: 'string' },
+        typeMembers: ['string'],
         typeText: 'string',
-        defaultValue: { kind: 'inline', text: '"Close"' },
+        defaultValue: { kind: 'code', text: '"Close"' },
         defaultText: '"Close"',
         description: 'The close button.',
         keys: [],
@@ -140,7 +123,7 @@ describe('propListItems', () => {
     ]);
   });
 
-  it("leaves the playground's options out and shows the enum's members", () => {
+  it("leaves the playground's options out and writes the enum's members", () => {
     const [size] = propListItems('Button', [
       {
         name: 'size',
@@ -152,5 +135,73 @@ describe('propListItems', () => {
     ]);
     expect(size).not.toHaveProperty('options');
     expect(size!.typeText).toBe('"sm" | "md"');
+  });
+});
+
+describe('propGroupOf', () => {
+  it('sorts props by name into Props, Events, Text and Styling', () => {
+    expect(
+      ['variant', 'onPress', 'onboarding', 'labels', 'strings', 'aria-label', 'aria-expanded'].map(
+        propGroupOf,
+      ),
+    ).toEqual(['props', 'events', 'props', 'text', 'text', 'text', 'props']);
+    expect(['className', 'classNames', 'style'].map(propGroupOf)).toEqual([
+      'styling',
+      'styling',
+      'styling',
+    ]);
+  });
+});
+
+describe('groupPropItems', () => {
+  const record = (name: string, required = false): PropsRecord => ({
+    name,
+    type: 'string',
+    required,
+  });
+
+  it('keeps source order in each group, puts required props first, and drops empty groups', () => {
+    const groups = groupPropItems(
+      propListItems('Dialog', [
+        record('className'),
+        record('open'),
+        record('onOpenChange'),
+        record('children', true),
+        record('labels'),
+        record('size'),
+        record('aria-label', true),
+      ]),
+    );
+    expect(
+      groups.map(({ id, label, items }) => [id, label, items.map((item) => item.name)]),
+    ).toEqual([
+      ['props', 'Props', ['children', 'open', 'size']],
+      ['events', 'Events', ['onOpenChange']],
+      ['text', 'Text', ['labels', 'aria-label']],
+      ['styling', 'Styling', ['className']],
+    ]);
+  });
+
+  it('gives a component with only plain props one group', () => {
+    expect(groupPropItems(propListItems('Divider', [record('inset')])).map(({ id }) => id)).toEqual(
+      ['props'],
+    );
+  });
+});
+
+describe('matchesPropFilter', () => {
+  it('matches every word of the query, in any order, ignoring case', () => {
+    const text = 'onOpenChange Called when the dialog opens or closes.';
+    expect(matchesPropFilter(text, 'OPEN')).toBe(true);
+    expect(matchesPropFilter(text, 'closes dialog')).toBe(true);
+    expect(matchesPropFilter(text, 'dialog scrim')).toBe(false);
+    expect(matchesPropFilter(text, '  ')).toBe(true);
+  });
+});
+
+describe('propCount', () => {
+  it('counts in words', () => {
+    expect(propCount(1)).toBe('1 prop');
+    expect(propCount(12)).toBe('12 props');
   });
 });
