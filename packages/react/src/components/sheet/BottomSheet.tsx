@@ -494,6 +494,9 @@ function BottomSheetPanel({
         }}
         ref={panelRef}
         style={style}
+        // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
+        data-tokens="md-comp-sheet-bottom-docked"
+        data-variant={variant}
         data-detent={detentName}
         data-exiting={exiting}
         data-dragging={dragging}
@@ -520,7 +523,7 @@ function BottomSheetPanel({
               }}
               className={styles.handle({ class: classNames?.handle })}
             >
-              <span className={styles.handleBar()} />
+              <span data-slot="drag-handle" className={styles.handleBar()} />
             </div>
           )}
           {showCloseButton && (

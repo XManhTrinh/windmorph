@@ -524,6 +524,7 @@ export {
   type BottomSheetStyleProps,
   type SideSheetStyleProps,
 } from './components/sheet/sheet-styles';
+export { bottomSheetTokenSet, sideSheetTokenSet } from './components/sheet/sheet-tokens';
 export {
   Carousel,
   type CarouselClassNames,

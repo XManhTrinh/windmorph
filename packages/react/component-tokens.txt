@@ -32,6 +32,16 @@
 --md-comp-rich-tooltip-container-shape
 --md-comp-rich-tooltip-subhead-color
 --md-comp-rich-tooltip-supporting-text-color
+--md-comp-sheet-bottom-docked-container-color
+--md-comp-sheet-bottom-docked-container-shape
+--md-comp-sheet-bottom-docked-drag-handle-color
+--md-comp-sheet-bottom-docked-modal-container-elevation
+--md-comp-sheet-bottom-docked-standard-container-elevation
+--md-comp-sheet-side-detached-container-shape
+--md-comp-sheet-side-docked-modal-container-color
+--md-comp-sheet-side-docked-modal-container-elevation
+--md-comp-sheet-side-docked-modal-container-shape
+--md-comp-sheet-side-docked-standard-container-color
 --md-comp-snackbar-action-label-text-color
 --md-comp-snackbar-container-color
 --md-comp-snackbar-container-elevation

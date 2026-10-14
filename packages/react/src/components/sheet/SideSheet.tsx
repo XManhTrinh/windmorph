@@ -302,6 +302,10 @@ function ModalSideSheet({
             {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
             ref={panelRef}
             style={style}
+            // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
+            data-tokens="md-comp-sheet-side"
+            data-variant="modal"
+            data-detached={detached || undefined}
             data-exiting={exiting}
             className={styles.panel({ class: cn(body.classNames?.panel, className) })}
           >
@@ -343,6 +347,10 @@ function StandardSideSheet({
       ref={ref}
       role="dialog"
       style={style}
+      // The component tokens' hooks (sheet-tokens.ts), read by the panel inside.
+      data-tokens="md-comp-sheet-side"
+      data-variant="standard"
+      data-detached={detached || undefined}
       data-closed={closed}
       inert={!state.isOpen}
       aria-labelledby={labelledBy(rest, body.title != null, titleId)}
@@ -350,7 +358,7 @@ function StandardSideSheet({
     >
       <div className={styles.standardClip()}>
         <div className={styles.standardFrame()}>
-          <div className={styles.panel()}>
+          <div data-slot="panel" className={styles.panel()}>
             <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
           </div>
         </div>
