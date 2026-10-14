@@ -91,6 +91,35 @@ describe('RadioGroup', () => {
     error.mockRestore();
   });
 
+  it('marks the root and the ring for its component tokens, and paints the ring with them', () => {
+    const { container } = render(<Delivery />);
+    const radio = screen.getByRole('radio', { name: 'Standard' });
+    expect(radio.closest('label')).toHaveAttribute('data-tokens', 'md-comp-radio-button');
+    const ring = container.querySelector('[data-slot="ring"]');
+    expect(ring).toHaveAttribute('data-tokens', 'md-comp-radio-button');
+    expect(ring).toHaveClass(
+      'border-[color:var(--_md-comp-radio-button-unselected-icon-color)]',
+      'text-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+      'group-data-selected/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+    );
+  });
+
+  it('lets consumer ring classes replace the token classes', () => {
+    const { container } = render(
+      <RadioGroup aria-label="Size">
+        <Radio value="s" classNames={{ ring: 'border-tertiary text-tertiary' }}>
+          Small
+        </Radio>
+      </RadioGroup>,
+    );
+    const ring = container.querySelector('[data-slot="ring"]');
+    expect(ring).toHaveClass('border-tertiary', 'text-tertiary');
+    expect(ring).not.toHaveClass(
+      'border-[color:var(--_md-comp-radio-button-unselected-icon-color)]',
+      'text-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+    );
+  });
+
   it('has no axe violations', async () => {
     const { container } = render(<Delivery defaultValue="express" supportingText="Choose one" />);
     expect(await axeViolations(container)).toEqual([]);

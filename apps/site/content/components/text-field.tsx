@@ -1,3 +1,4 @@
+import { textFieldTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -29,6 +30,7 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [textFieldTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">
@@ -189,6 +191,13 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
               recommends over growing fields on the web; <InlineCode>autoGrow</InlineCode> gives
               Compose&apos;s growing field. <InlineCode>supportingTextOnFocus</InlineCode> shows the
               supporting text only while the field has focus.
+            </li>
+            <li>
+              Select and Autocomplete draw the same field, so the text field&apos;s component tokens
+              (<InlineCode>--md-comp-filled-text-field-*</InlineCode>,{' '}
+              <InlineCode>--md-comp-outlined-text-field-*</InlineCode>) restyle them too. M3&apos;s
+              separate <InlineCode>filled-select</InlineCode> and{' '}
+              <InlineCode>filled-autocomplete</InlineCode> token sets aren&apos;t exposed.
             </li>
             <li>
               <strong>Not in v1:</strong> the composable TextField parts (the &quot;two API

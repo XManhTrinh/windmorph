@@ -18,10 +18,68 @@ describe('TextField', () => {
     expect(field).toHaveAttribute('data-variant', 'filled');
     expect(field).toHaveAttribute('data-field-state', 'rest');
     expect(field).toHaveClass('w-[280px]');
+    expect(field).toHaveAttribute('data-tokens', 'md-comp-text-field');
     expect(input.parentElement!.parentElement).toHaveClass(
-      'bg-surface-container-highest',
-      'rounded-t-corner-extra-small',
+      'bg-[var(--_md-comp-text-field-container-color)]',
+      'rounded-t-[var(--_md-comp-text-field-container-shape)]',
       'min-h-[56px]',
+    );
+  });
+
+  it('paints its parts with the component tokens', () => {
+    const { container } = render(
+      <TextField label="Email" supportingText="Work email" leadingIcon={<Icon />} />,
+    );
+    const slot = (name: string) => container.querySelector(`[data-slot="${name}"]`);
+    expect(slot('active-indicator')).toHaveClass(
+      'bg-[var(--_md-comp-text-field-active-indicator-color)]',
+      'group-data-[field-state=focus]/field:bg-[var(--_md-comp-text-field-focus-active-indicator-color)]',
+    );
+    expect(slot('label')).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-label-text-color)]',
+      'group-data-[field-state=focus]/field:text-[color:var(--_md-comp-text-field-focus-label-text-color)]',
+    );
+    expect(slot('input')).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-input-text-color)]',
+      'caret-[color:var(--_md-comp-text-field-caret-color)]',
+    );
+    expect(slot('supporting-text')).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-supporting-text-color)]',
+    );
+    expect(slot('supporting-text')).not.toHaveClass('text-on-surface-variant');
+    expect(slot('leading-icon')).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-leading-icon-color)]',
+    );
+  });
+
+  it('lets consumer classes replace the token classes', () => {
+    const { container } = render(
+      <TextField
+        label="Email"
+        supportingText="Work email"
+        classNames={{
+          container: 'bg-tertiary-container rounded-t-corner-large',
+          label: 'text-tertiary',
+          input: 'text-on-tertiary-container',
+          supportingText: 'text-tertiary',
+        }}
+      />,
+    );
+    const slot = (name: string) => container.querySelector(`[data-slot="${name}"]`);
+    expect(slot('container')).toHaveClass('bg-tertiary-container', 'rounded-t-corner-large');
+    expect(slot('container')).not.toHaveClass(
+      'bg-[var(--_md-comp-text-field-container-color)]',
+      'rounded-t-[var(--_md-comp-text-field-container-shape)]',
+    );
+    expect(slot('label')).not.toHaveClass(
+      'text-[color:var(--_md-comp-text-field-label-text-color)]',
+    );
+    expect(slot('input')).not.toHaveClass(
+      'text-[color:var(--_md-comp-text-field-input-text-color)]',
+    );
+    expect(slot('supporting-text')).toHaveClass('text-tertiary');
+    expect(slot('supporting-text')).not.toHaveClass(
+      'text-[color:var(--_md-comp-text-field-supporting-text-color)]',
     );
   });
 
@@ -213,6 +271,12 @@ describe('TextField', () => {
     expect(fieldset).toHaveAttribute('aria-hidden', 'true');
     expect(fieldset.querySelector('legend')).toHaveTextContent('City');
     expect(root(screen.getByLabelText('City'))).toHaveAttribute('data-variant', 'outlined');
+    expect(fieldset).toHaveClass(
+      'rounded-[var(--_md-comp-text-field-container-shape)]',
+      'border-[color:var(--_md-comp-text-field-outline-color)]',
+      'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
+      'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',
+    );
     // OutlinedTextFieldTokens.HoverLabelColor is on-surface.
     expect(screen.getByText('City', { selector: 'label' })).toHaveClass(
       'group-data-[field-state=hover]/field:text-on-surface',

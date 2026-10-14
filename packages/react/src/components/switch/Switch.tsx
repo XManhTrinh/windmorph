@@ -211,6 +211,8 @@ export function Switch({
     'data-has-icon': Boolean(icon) || undefined,
   };
   const styles = switchStyles();
+  // The track is the control; the switch's tokens name it as a part.
+  const trackProps = { ...dragProps, 'data-slot': 'track' };
 
   return (
     <SelectionControl
@@ -218,13 +220,13 @@ export function Switch({
       rootProps={mergeProps(labelProps, hoverProps)}
       inputProps={mergeProps(inputProps, focusProps, enterProps)}
       inputRef={domInputRef}
-      rootData={data}
+      rootData={{ ...data, 'data-tokens': 'md-comp-switch' }}
       state={stateAttributes}
       styles={styles}
       className={className}
       classNames={classNames}
       style={style}
-      controlProps={dragProps}
+      controlProps={trackProps}
       controlStyle={
         {
           '--m3-thumb-size': `${size}px`,

@@ -21,6 +21,19 @@ function Sort(props: Partial<SelectProps<object, 'single' | 'multiple'>>) {
 }
 
 describe('Select', () => {
+  it('reads the text field’s component tokens', () => {
+    const { container } = render(<Sort variant="outlined" defaultValue="low" />);
+    const field = container.querySelector('[data-field-state]');
+    expect(field).toHaveAttribute('data-tokens', 'md-comp-text-field');
+    expect(field).toHaveAttribute('data-variant', 'outlined');
+    expect(container.querySelector('[data-slot="outline"]')).toHaveClass(
+      'border-[color:var(--_md-comp-text-field-outline-color)]',
+    );
+    expect(screen.getAllByText('Price, low to high')[0]).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-input-text-color)]',
+    );
+  });
+
   it('opens a menu of options and shows the chosen one in the field', async () => {
     const onChange = vi.fn();
     render(<Sort onChange={onChange} />);

@@ -345,6 +345,7 @@ export const coreChecks = {
 
   TextField: { kind: 'component', render: () => <Core.TextField label="Name" /> },
   textFieldStyles: { kind: 'value', run: () => Core.textFieldStyles() },
+  textFieldTokenSet: read(Core.textFieldTokenSet),
   Select: { kind: 'client', reason: 'its SelectItem items form a collection' },
   SelectItem: collection('Select'),
   SelectSection: collection('Select'),
@@ -355,6 +356,7 @@ export const coreChecks = {
 
   Checkbox: { kind: 'component', render: () => <Core.Checkbox>Remember me</Core.Checkbox> },
   checkboxStyles: { kind: 'value', run: () => Core.checkboxStyles() },
+  checkboxTokenSet: read(Core.checkboxTokenSet),
   RadioGroup: {
     kind: 'component',
     render: () => (
@@ -374,8 +376,10 @@ export const coreChecks = {
   },
   radioGroupStyles: { kind: 'value', run: () => Core.radioGroupStyles() },
   radioStyles: { kind: 'value', run: () => Core.radioStyles() },
+  radioTokenSet: read(Core.radioTokenSet),
   Switch: { kind: 'component', render: () => <Core.Switch>Wi-Fi</Core.Switch> },
   switchStyles: { kind: 'value', run: () => Core.switchStyles() },
+  switchTokenSet: read(Core.switchTokenSet),
 
   Dialog: {
     kind: 'component',
@@ -565,6 +569,7 @@ export const coreChecks = {
     render: () => <Core.RangeSlider aria-label="Price" defaultValue={[20, 80]} />,
   },
   sliderStyles: { kind: 'value', run: () => Core.sliderStyles() },
+  sliderTokenSet: read(Core.sliderTokenSet),
 
   SheetTrigger: {
     kind: 'component',

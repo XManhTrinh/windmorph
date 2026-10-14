@@ -15,9 +15,18 @@ describe('Slider', () => {
     expect(input).toHaveValue('30');
     const root = screen.getByTestId('slider');
     expect(root).toHaveClass('w-64', '[--m3-slider-track:16px]', '[--m3-slider-handle:44px]');
+    expect(root).toHaveAttribute('data-tokens', 'md-comp-slider');
+    expect(root).toHaveAttribute('data-size', 'xs');
     const segments = root.querySelectorAll('[data-tone]');
     expect([...segments].map((s) => s.getAttribute('data-tone'))).toEqual(['active', 'inactive']);
-    expect(segments[0]).toHaveClass('data-[tone=active]:bg-primary');
+    expect(segments[0]).toHaveClass(
+      'data-[tone=active]:bg-[var(--_md-comp-slider-active-track-color)]',
+    );
+    expect(segments[0]).toHaveAttribute('data-slot', 'active-track');
+    expect(segments[1]).toHaveAttribute('data-slot', 'inactive-track');
+    expect(root.querySelector('[data-slot="handle"]')).toHaveClass(
+      'bg-[var(--_md-comp-slider-handle-color)]',
+    );
     expect((segments[0] as HTMLElement).style.marginInlineStart).toBe('0px');
     // The inactive segment holds the end stop indicator.
     expect(segments[1]!.querySelector('.size-\\[4px\\]')).not.toBe(null);
@@ -67,7 +76,34 @@ describe('Slider', () => {
     render(<Slider aria-label="Brightness" defaultValue={42} showValueLabel />);
     expect(screen.queryByText('42')).toBe(null);
     await userEvent.tab();
-    expect(screen.getByText('42')).toHaveClass('bg-inverse-surface', 'text-label-large');
+    expect(screen.getByText('42')).toHaveClass(
+      'bg-[var(--_md-comp-slider-value-indicator-container-color)]',
+      'text-[color:var(--_md-comp-slider-value-indicator-label-label-text-color)]',
+      'text-label-large',
+    );
+  });
+
+  it('lets consumer value indicator classes replace the token classes', async () => {
+    render(
+      <Slider
+        aria-label="Brightness"
+        defaultValue={42}
+        showValueLabel
+        classNames={{ label: 'bg-tertiary text-on-tertiary' }}
+      />,
+    );
+    await userEvent.tab();
+    const label = screen.getByText('42');
+    expect(label).toHaveClass('bg-tertiary', 'text-on-tertiary', 'text-label-large');
+    expect(label).not.toHaveClass(
+      'bg-[var(--_md-comp-slider-value-indicator-container-color)]',
+      'text-[color:var(--_md-comp-slider-value-indicator-label-label-text-color)]',
+    );
+  });
+
+  it.each(['sm', 'md', 'lg', 'xl'] as const)('marks size %s on the root', (size) => {
+    render(<Slider aria-label="Volume" size={size} data-testid="slider" />);
+    expect(screen.getByTestId('slider')).toHaveAttribute('data-size', size);
   });
 
   it('draws ticks for discrete sliders and centred tracks', () => {

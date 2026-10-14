@@ -493,7 +493,9 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
             {...valueProps}
             className={cn(
               'min-w-0 flex-1 truncate text-body-large',
-              hasValue ? 'text-on-surface' : 'text-on-surface-variant',
+              hasValue
+                ? 'text-[color:var(--_md-comp-text-field-input-text-color)]'
+                : 'text-on-surface-variant',
               // With a label, the placeholder shows once the label floats (as TextField).
               !hasValue && hasLabel && 'opacity-0 group-data-floated/field:opacity-100',
               'group-data-[field-state=disabled]/field:text-on-surface/38',

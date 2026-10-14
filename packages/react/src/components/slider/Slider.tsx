@@ -139,7 +139,7 @@ type RootProps = (SliderProps | RangeSliderProps) & {
 
 function SliderRoot(props: RootProps) {
   const {
-    size,
+    size = 'xs',
     orientation = 'horizontal',
     minValue = 0,
     maxValue = 100,
@@ -227,6 +227,8 @@ function SliderRoot(props: RootProps) {
         directionRef(element);
       }}
       style={style}
+      data-tokens="md-comp-slider"
+      data-size={size}
       data-orientation={orientation}
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -256,6 +258,7 @@ function SliderRoot(props: RootProps) {
           <span
             key={index}
             aria-hidden="true"
+            data-slot="stop-indicator"
             data-active={tick.active || undefined}
             style={{ marginInlineStart: `calc(${tick.at} - 2px)` }}
             className={styles.tick()}
@@ -313,6 +316,7 @@ function Segment({
   const stop = (at: 'start' | 'end') => (
     <span
       aria-hidden="true"
+      data-slot="stop-indicator"
       style={
         at === 'start'
           ? { marginInlineStart: 'calc(var(--m3-slider-corner) - 2px)' }
@@ -324,6 +328,7 @@ function Segment({
   return (
     <span
       data-tone={segment.tone}
+      data-slot={`${segment.tone}-track`}
       style={{ marginInlineStart: segment.start, inlineSize: segmentLength(segment), ...radius }}
       className={styles.segment()}
     >
@@ -405,14 +410,14 @@ function Thumb({
         style={{ marginInlineStart: `calc(${at} - 2px)` }}
         className={styles.thumb({ class: classNames?.thumb })}
       >
-        <span data-active={active || undefined} className={styles.handle()} />
+        <span data-slot="handle" data-active={active || undefined} className={styles.handle()} />
         <VisuallyHidden>
           <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>
       </div>
       {showValueLabel && (isDragging || isFocusVisible) && (
         <span aria-hidden="true" style={{ marginInlineStart: at }} className={styles.labelAnchor()}>
-          <span className={styles.label({ class: classNames?.label })}>
+          <span data-slot="value-indicator" className={styles.label({ class: classNames?.label })}>
             {state.getThumbValueLabel(index)}
           </span>
         </span>

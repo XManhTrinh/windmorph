@@ -317,12 +317,14 @@ export {
   type TextFieldStyleProps,
   type TextFieldVariant,
 } from './components/text-field/text-field-styles';
+export { textFieldTokenSet } from './components/text-field/text-field-tokens';
 export {
   Checkbox,
   type CheckboxClassNames,
   type CheckboxProps,
 } from './components/checkbox/Checkbox';
 export { checkboxStyles, type CheckboxStyleProps } from './components/checkbox/checkbox-styles';
+export { checkboxTokenSet } from './components/checkbox/checkbox-tokens';
 export {
   Radio,
   RadioGroup,
@@ -337,8 +339,10 @@ export {
   type RadioGroupStyleProps,
   type RadioStyleProps,
 } from './components/radio/radio-styles';
+export { radioTokenSet } from './components/radio/radio-tokens';
 export { Switch, type SwitchClassNames, type SwitchProps } from './components/switch/Switch';
 export { switchStyles, type SwitchStyleProps } from './components/switch/switch-styles';
+export { switchTokenSet } from './components/switch/switch-tokens';
 export {
   Dialog,
   DialogActions,
@@ -509,6 +513,7 @@ export {
   type SliderSize,
   type SliderStyleProps,
 } from './components/slider/slider-styles';
+export { sliderTokenSet } from './components/slider/slider-tokens';
 export { SheetTrigger, type SheetTriggerProps } from './components/sheet/SheetTrigger';
 export {
   BottomSheet,

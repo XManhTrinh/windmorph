@@ -142,6 +142,7 @@ export function FieldShell({
       ref={rootRef}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
+      data-tokens="md-comp-text-field"
       data-variant={variant}
       data-field-state={state}
       data-focused={state === 'focus' || state === 'error-focus' || undefined}
@@ -155,10 +156,11 @@ export function FieldShell({
         {...containerProps}
         ref={containerRef}
         onPointerDown={onContainerPointerDown}
+        data-slot="container"
         className={styles.container({ class: cn('cursor-pointer', classNames?.container) })}
       >
         {variant === 'outlined' && (
-          <fieldset aria-hidden="true" className={styles.outline()}>
+          <fieldset aria-hidden="true" data-slot="outline" className={styles.outline()}>
             {hasLabel && (
               <legend className={styles.notch()}>
                 <span className={styles.notchClip()}>
@@ -172,7 +174,11 @@ export function FieldShell({
           </fieldset>
         )}
         {leadingIcon && (
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.leadingIcon })}>
+          <span
+            aria-hidden="true"
+            data-slot="leading-icon"
+            className={styles.icon({ class: cn(styles.leadingIcon(), classNames?.leadingIcon) })}
+          >
             {leadingIcon}
           </span>
         )}
@@ -187,25 +193,33 @@ export function FieldShell({
           </span>
         ) : null}
         <span
+          data-slot="trailing-icon"
           className={styles.icon({ class: cn(styles.trailingIcon(), classNames?.trailingIcon) })}
         >
           {trailing}
         </span>
         {hasLabel && (
-          <FieldLabel {...labelProps} className={styles.label({ class: classNames?.label })}>
+          <FieldLabel
+            {...labelProps}
+            data-slot="label"
+            className={styles.label({ class: classNames?.label })}
+          >
             {label}
             {requiredMark}
           </FieldLabel>
         )}
-        <span aria-hidden="true" className={styles.indicator()} />
+        <span aria-hidden="true" data-slot="active-indicator" className={styles.indicator()} />
       </div>
       {(supportingText || showError) && (
         <div className={styles.supporting()}>
           {supportingText && (
             <SupportingText
               {...descriptionProps}
+              data-slot="supporting-text"
               className={cn(
-                styles.supportingText({ class: classNames?.supportingText }),
+                styles.supportingText({
+                  class: cn(styles.supportingTextColor(), classNames?.supportingText),
+                }),
                 showError && 'sr-only',
               )}
             >

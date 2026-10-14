@@ -122,7 +122,9 @@ export function Checkbox({
       rootProps={mergeProps(labelProps, hoverProps)}
       inputProps={mergeProps(inputProps, focusProps)}
       inputRef={domInputRef}
-      rootData={rootData}
+      // The box resolves the component tokens itself (list items draw it too); the root
+      // is marked as well, so the tokens sit on the element that carries the state.
+      rootData={{ ...rootData, 'data-tokens': 'md-comp-checkbox' }}
       state={{
         'data-selected': filled || undefined,
         'data-checked': (isSelected && !indeterminate) || undefined,

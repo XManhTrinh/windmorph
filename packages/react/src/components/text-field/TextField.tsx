@@ -320,6 +320,7 @@ export function TextField(props: TextFieldProps) {
       ref={ref}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
+      data-tokens="md-comp-text-field"
       data-variant={variant}
       data-field-state={state}
       data-focused={isFocused || undefined}
@@ -332,10 +333,11 @@ export function TextField(props: TextFieldProps) {
       <div
         {...hoverProps}
         onPointerDown={focusInput}
+        data-slot="container"
         className={styles.container({ class: classNames?.container })}
       >
         {variant === 'outlined' && (
-          <fieldset aria-hidden="true" className={styles.outline()}>
+          <fieldset aria-hidden="true" data-slot="outline" className={styles.outline()}>
             {hasLabel && (
               <legend className={styles.notch()}>
                 <span className={styles.notchClip()}>
@@ -349,7 +351,11 @@ export function TextField(props: TextFieldProps) {
           </fieldset>
         )}
         {leadingIcon && (
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.leadingIcon })}>
+          <span
+            aria-hidden="true"
+            data-slot="leading-icon"
+            className={styles.icon({ class: cn(styles.leadingIcon(), classNames?.leadingIcon) })}
+          >
             {leadingIcon}
           </span>
         )}
@@ -366,6 +372,7 @@ export function TextField(props: TextFieldProps) {
             {...(mergeProps(inputProps, focusProps) as object)}
             aria-describedby={describedBy}
             ref={domInputRef as Ref<never>}
+            data-slot="input"
             rows={multiline ? rows : undefined}
             className={styles.input({ class: classNames?.input })}
           />
@@ -380,6 +387,7 @@ export function TextField(props: TextFieldProps) {
         </div>
         {trailingIcon ? (
           <span
+            data-slot="trailing-icon"
             className={styles.icon({
               class: cn(styles.trailingIcon(), classNames?.trailingIcon),
             })}
@@ -396,20 +404,27 @@ export function TextField(props: TextFieldProps) {
           </span>
         ) : null}
         {hasLabel && (
-          <FieldLabel {...labelProps} className={styles.label({ class: classNames?.label })}>
+          <FieldLabel
+            {...labelProps}
+            data-slot="label"
+            className={styles.label({ class: classNames?.label })}
+          >
             {label}
             {requiredMark}
           </FieldLabel>
         )}
-        <span aria-hidden="true" className={styles.indicator()} />
+        <span aria-hidden="true" data-slot="active-indicator" className={styles.indicator()} />
       </div>
       {(supportingText || showError || showCounter) && (
         <div className={styles.supporting()}>
           {supportingText && (
             <SupportingText
               {...descriptionProps}
+              data-slot="supporting-text"
               className={cn(
-                styles.supportingText({ class: classNames?.supportingText }),
+                styles.supportingText({
+                  class: cn(styles.supportingTextColor(), classNames?.supportingText),
+                }),
                 showError && 'sr-only',
               )}
             >

@@ -27,7 +27,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * The track is one grid cell: segments, ticks and thumbs are placed with logical margins,
  * so nothing is positioned. A vertical slider writes its track bottom-to-top
  * (`writing-mode: vertical-lr` + `direction: rtl`), so the same geometry serves both
- * orientations and RTL. Every class is written out in full so Tailwind can find it.
+ * orientations and RTL. The track, handle, inactive stop and value indicator colours come
+ * from the slider's component tokens (`slider-tokens.ts`, `--md-comp-slider-*`); the root
+ * carries `data-tokens` and `data-size`. Every class is written out in full so Tailwind can
+ * find it.
  */
 
 /** Variant definitions for {@link Slider} and {@link RangeSlider}; extend them to add sizes. */
@@ -43,7 +46,8 @@ export const sliderStyles = tv({
       'grid flex-1 cursor-pointer grid-cols-1 grid-rows-1 items-center justify-items-start group-data-disabled/slider:cursor-default',
     segment: [
       'col-start-1 row-start-1 flex [block-size:var(--m3-slider-track)] items-center overflow-hidden',
-      'data-[tone=active]:bg-primary data-[tone=inactive]:bg-secondary-container',
+      'data-[tone=active]:bg-[var(--_md-comp-slider-active-track-color)]',
+      'data-[tone=inactive]:bg-[var(--_md-comp-slider-inactive-track-color)]',
       'group-data-disabled/slider:data-[tone=active]:bg-on-surface/38',
       'group-data-disabled/slider:data-[tone=inactive]:bg-on-surface/12',
     ],
@@ -52,13 +56,14 @@ export const sliderStyles = tv({
     // `inverse-on-surface` and `on-surface` at the table's 0.38 disabled stop opacity.
     stop: [
       'size-[4px] shrink-0 rounded-full',
-      'in-data-[tone=active]:bg-on-primary in-data-[tone=inactive]:bg-on-secondary-container',
+      'in-data-[tone=active]:bg-on-primary',
+      'in-data-[tone=inactive]:bg-[var(--_md-comp-slider-stop-indicator-color)]',
       'group-data-disabled/slider:in-data-[tone=active]:bg-inverse-on-surface',
       'group-data-disabled/slider:in-data-[tone=inactive]:bg-on-surface/38',
     ],
     tick: [
       'col-start-1 row-start-1 size-[4px] rounded-full',
-      'data-active:bg-on-primary not-data-active:bg-on-secondary-container',
+      'data-active:bg-on-primary not-data-active:bg-[var(--_md-comp-slider-stop-indicator-color)]',
       'group-data-disabled/slider:data-active:bg-inverse-on-surface',
       'group-data-disabled/slider:not-data-active:bg-on-surface/38',
     ],
@@ -78,7 +83,7 @@ export const sliderStyles = tv({
       'rounded-full focus-ring group-data-disabled/slider:cursor-default',
     ],
     handle: [
-      '[inline-size:4px] [block-size:100%] rounded-full bg-primary',
+      '[inline-size:4px] [block-size:100%] rounded-full bg-[var(--_md-comp-slider-handle-color)]',
       'data-active:[inline-size:2px]',
       'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_38%,var(--md-sys-color-surface))]',
     ],
@@ -88,7 +93,8 @@ export const sliderStyles = tv({
       'col-start-1 row-start-1 flex [inline-size:0] [block-size:0] items-end justify-center self-start [margin-block-start:-12px]',
     label: [
       'flex h-[44px] min-w-[48px] items-center justify-center rounded-full ps-[16px] pe-[16px]',
-      'bg-inverse-surface text-label-large whitespace-nowrap text-inverse-on-surface',
+      'bg-[var(--_md-comp-slider-value-indicator-container-color)] text-label-large whitespace-nowrap',
+      'text-[color:var(--_md-comp-slider-value-indicator-label-label-text-color)]',
       '[direction:ltr] [writing-mode:horizontal-tb]',
     ],
   },

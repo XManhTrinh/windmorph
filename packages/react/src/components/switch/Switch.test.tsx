@@ -152,6 +152,37 @@ describe('Switch', () => {
     expect(label).toHaveStyle({ marginTop: '2px' });
   });
 
+  it('marks the root and the thumb for its component tokens, and paints the switch with them', () => {
+    render(<Switch>Wi-Fi</Switch>);
+    const input = screen.getByRole('switch');
+    expect(input.closest('label')).toHaveAttribute('data-tokens', 'md-comp-switch');
+    const track = trackOf(input);
+    expect(track).toHaveAttribute('data-slot', 'track');
+    expect(track).toHaveClass(
+      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
+      'border-[color:var(--_md-comp-switch-unselected-track-outline-color,var(--md-sys-color-outline))]',
+    );
+    const thumb = track.querySelector('[data-slot="thumb"]');
+    expect(thumb).toHaveAttribute('data-tokens', 'md-comp-switch');
+    expect(thumb).toHaveClass(
+      'bg-[var(--_md-comp-switch-unselected-handle-color)]',
+      'text-[color:var(--_md-comp-switch-unselected-icon-color)]',
+      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-handle-color)]',
+    );
+  });
+
+  it('lets consumer track and thumb classes replace the token classes', () => {
+    render(<Switch classNames={{ control: 'bg-tertiary', thumb: 'bg-on-tertiary' }}>Wi-Fi</Switch>);
+    const track = trackOf(screen.getByRole('switch'));
+    expect(track).toHaveClass('bg-tertiary');
+    expect(track).not.toHaveClass(
+      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
+    );
+    const thumb = track.querySelector('[data-slot="thumb"]');
+    expect(thumb).toHaveClass('bg-on-tertiary');
+    expect(thumb).not.toHaveClass('bg-[var(--_md-comp-switch-unselected-handle-color)]');
+  });
+
   it('requires a label or an accessible name in its types', () => {
     // @ts-expect-error children, aria-label or aria-labelledby is required
     const unnamed = <Switch />;
