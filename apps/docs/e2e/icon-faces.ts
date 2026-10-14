@@ -109,8 +109,8 @@ export function iconTransitionSuite(storyId: string, getButton: (page: Page) => 
         ['opacity', 'rotate'],
         ['opacity', 'rotate'],
       ]);
-      // Clockwise in LTR, counter-clockwise in RTL.
-      const turn = dir === 'ltr' ? 1 : -1;
+      // Counter-clockwise in LTR (as Google's Expressive showcase), clockwise in RTL.
+      const turn = dir === 'ltr' ? -1 : 1;
       const [outgoing, incoming] = await sampleFaces(button, 0);
       expect(outgoing).toMatchObject({ face: 'primary', opacity: 1, rotate: 0 });
       expect(incoming).toMatchObject({ face: 'alternate', opacity: 0, rotate: -90 * turn });

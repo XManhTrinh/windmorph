@@ -519,13 +519,13 @@ describe('ToolbarFab', () => {
     expect(expandedFace).toHaveAttribute('data-active', 'true');
     expect(collapsedFace).toHaveClass(
       'opacity-0',
-      'motion-safe:not-data-active:ltr:rotate-90',
-      'motion-safe:not-data-active:rtl:-rotate-90',
+      'motion-safe:not-data-active:ltr:-rotate-90',
+      'motion-safe:not-data-active:rtl:rotate-90',
       '[transition-property:rotate,opacity]',
     );
     expect(expandedFace).toHaveClass(
-      'motion-safe:not-data-active:ltr:-rotate-90',
-      'motion-safe:not-data-active:rtl:rotate-90',
+      'motion-safe:not-data-active:ltr:rotate-90',
+      'motion-safe:not-data-active:rtl:-rotate-90',
     );
     expect(expandedFace).not.toHaveClass('invisible');
 

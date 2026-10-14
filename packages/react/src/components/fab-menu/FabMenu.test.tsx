@@ -101,16 +101,16 @@ describe('FabMenu', () => {
     expect(openFace).not.toHaveAttribute('data-active');
     expect(openFace).toHaveClass(
       'opacity-0',
-      'motion-safe:not-data-active:ltr:-rotate-90',
-      'motion-safe:not-data-active:rtl:rotate-90',
+      'motion-safe:not-data-active:ltr:rotate-90',
+      'motion-safe:not-data-active:rtl:-rotate-90',
       'data-active:opacity-100',
       'row-start-1',
     );
     // Opening, the add icon turns onwards and fades out: rotation on the fast spatial
     // spring, opacity on the fast effects spring, and no visibility switch.
     expect(closedFace).toHaveClass(
-      'motion-safe:not-data-active:ltr:rotate-90',
-      'motion-safe:not-data-active:rtl:-rotate-90',
+      'motion-safe:not-data-active:ltr:-rotate-90',
+      'motion-safe:not-data-active:rtl:rotate-90',
     );
     expect(closedFace).toHaveClass(
       '[transition-property:rotate,opacity]',

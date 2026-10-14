@@ -28,10 +28,10 @@ describe('iconFacesStyles', () => {
     const primary = iconFacesStyles({ transition: 'rotate', face: 'primary' }).face();
     const alternate = iconFacesStyles({ transition: 'rotate', face: 'alternate' }).face();
     expect(primary).toContain(
-      'motion-safe:not-data-active:ltr:rotate-90 motion-safe:not-data-active:rtl:-rotate-90',
+      'motion-safe:not-data-active:ltr:-rotate-90 motion-safe:not-data-active:rtl:rotate-90',
     );
     expect(alternate).toContain(
-      'motion-safe:not-data-active:ltr:-rotate-90 motion-safe:not-data-active:rtl:rotate-90',
+      'motion-safe:not-data-active:ltr:rotate-90 motion-safe:not-data-active:rtl:-rotate-90',
     );
     for (const face of [primary, alternate]) {
       // The shown face doesn't turn, so reduced motion has no rotation to run.
