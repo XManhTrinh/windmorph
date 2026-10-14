@@ -150,20 +150,22 @@ export function RailFlyout({
       inert={!open ? true : undefined}
       onPointerEnter={onPointerEnter}
       onPointerLeave={onPointerLeave}
-      className="absolute top-0 start-full z-20 flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-e-corner-large bg-surface-container shadow-[2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] transition-[width,opacity] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] will-change-[width] rtl:shadow-[-2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] motion-reduce:transition-none data-[open=false]:pointer-events-none data-[open=false]:w-0 data-[open=false]:opacity-0 data-[open=false]:duration-[var(--md-sys-motion-spring-spatial-fast-duration)] data-[open=false]:ease-[var(--md-sys-motion-spring-spatial-fast-easing)] data-[open=true]:w-64 data-[open=true]:opacity-100"
+      className="absolute top-0 start-full z-20 flex h-full flex-col overflow-x-hidden overflow-y-auto rounded-e-corner-large bg-surface-container shadow-[2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] transition-[width,opacity] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] will-change-[width] rtl:shadow-[-2px_0_8px_0_color-mix(in_srgb,var(--md-sys-color-shadow)_20%,transparent)] motion-reduce:transition-none data-[open=false]:pointer-events-none data-[open=false]:w-0 data-[open=false]:opacity-0 data-[open=false]:duration-[var(--md-sys-motion-spring-spatial-fast-duration)] data-[open=false]:ease-[var(--md-sys-motion-spring-spatial-fast-easing)] data-[open=true]:w-68 data-[open=true]:opacity-100"
     >
       {/* 1px divider on the inline-START (rail) edge — an element, not a panel border. */}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 start-0 w-px bg-outline-variant"
       />
-      {/* Fixed 256px width (room for every name beside its chip) so the content doesn't reflow
-          while the panel's width animates — it's revealed from the rail edge under
-          overflow-x-hidden (no seam). Keyed by destination so the content re-runs a quick fade
-          on a switch. Snaps under reduced motion. */}
+      {/* Fixed 272px width so the content doesn't reflow while the panel's width animates —
+          it's revealed from the rail edge under overflow-x-hidden (no seam). That is room for
+          every name beside its chip, emphasised, with the whole-pixel glyph advances Linux
+          renders (up to 7% wider than macOS's: "Progress indicators" and its chip need 222px
+          there). Keyed by destination so the content re-runs a quick fade on a switch. Snaps
+          under reduced motion. */}
       <div
         key={destinationKey}
-        className="flex w-64 shrink-0 flex-col will-change-[opacity] motion-safe:animate-[drawer-fade-in_150ms_ease-out]"
+        className="flex w-68 shrink-0 flex-col will-change-[opacity] motion-safe:animate-[drawer-fade-in_150ms_ease-out]"
       >
         <p className="px-4 pt-5 pb-3 text-label-small uppercase text-on-surface-variant">
           {destination.railLabel}

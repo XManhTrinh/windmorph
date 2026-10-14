@@ -52,7 +52,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   // On a guide or component page the panel is pinned in the layout, so the content column
-  // is inset past BOTH the rail (96px) and the panel (256px); elsewhere just past the rail.
+  // is inset past BOTH the rail (96px) and the panel (272px); elsewhere just past the rail.
   const pinnedPanel = currentDestination(pathname) !== null;
   // Guides and component pages list their sections; the home page and the index don't.
   const withOutline = pathname !== '/' && pathname !== '/components';
@@ -81,7 +81,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
           transitioning the inline-start margin as the pinned drawer pushes content. */}
           <div
             className={`flex min-h-dvh min-w-0 flex-col transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none ${
-              pinnedPanel ? 'medium:ms-[352px]' : 'medium:ms-24'
+              pinnedPanel ? 'medium:ms-[368px]' : 'medium:ms-24'
             }`}
           >
             {/* Medium and wider: the search (guides and settings live in the rail). */}

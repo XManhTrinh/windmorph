@@ -144,10 +144,10 @@ test.describe('Pinned second menu on component pages', () => {
       'data-current',
       'true',
     );
-    // Content is pushed right of the rail (96) + panel (256) = 352px.
+    // Content is pushed right of the rail (96) + panel (272) = 368px.
     const main = page.locator('#main-content');
     const mainBox = await main.boundingBox();
-    expect(mainBox!.x).toBeGreaterThanOrEqual(348);
+    expect(mainBox!.x).toBeGreaterThanOrEqual(364);
   });
 
   test('hovering another group previews it, then reverts to the pinned group on leave', async ({
