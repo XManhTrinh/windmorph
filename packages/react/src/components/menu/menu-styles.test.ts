@@ -44,6 +44,17 @@ describe('menuStyles', () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
 
+  it('sizes items from the Menu token files: body-large, 16px sides, a 12px icon gap', () => {
+    const styles = menuStyles();
+    const item = styles.item().split(' ');
+    expect(item).toContain('px-[16px]');
+    expect(item).toContain('text-body-large');
+    expect(item).not.toContain('text-label-large');
+    expect(styles.icon().split(' ')).toContain('me-[12px]');
+    // Trailing text (the shortcut) is label-small.
+    expect(styles.trailing().split(' ')).toContain('text-label-small');
+  });
+
   it('gives a scrolling menu the persistent scrollbar (M3)', () => {
     for (const layout of ['gap', 'divider'] as const) {
       const menu = menuStyles({ layout }).menu();

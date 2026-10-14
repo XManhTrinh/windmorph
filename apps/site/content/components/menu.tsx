@@ -187,6 +187,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
               layout follows the M3 spec for the web.
             </li>
             <li>
+              Items follow the M3 Menu token files rather than Compose&apos;s code: labels are{' '}
+              <InlineCode>body-large</InlineCode>, with 16px of padding at each side, a 12px gap
+              after the leading icon and <InlineCode>label-small</InlineCode> trailing text (the
+              shortcut). Compose draws <InlineCode>label-large</InlineCode> labels with 12px of
+              padding and an 8px gap on touch. Select&apos;s and Autocomplete&apos;s option lists
+              share these items.
+            </li>
+            <li>
               Submenus aren&apos;t in Compose. While one is open, the focused menu takes 24px
               corners and the other 8px (the SegmentedMenu active and inactive shapes), as the M3
               spec describes.
