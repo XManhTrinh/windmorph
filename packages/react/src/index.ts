@@ -155,6 +155,7 @@ export {
   useSnackbarHostState,
   type SnackbarClassNames,
   type SnackbarHostProps,
+  type SnackbarLabels,
   type SnackbarProps,
 } from './components/snackbar/Snackbar';
 export {

@@ -496,7 +496,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Testing note:** React Aria counts a hover only after a pointer move has set its interaction modality. Tests move the pointer before hovering, as any real approach does.
 
 ### Snackbar (built, Tier 2)
-- `Snackbar`: the message as `children`, `actionLabel` + `onAction`, `onDismiss` (shows the × button), `onEscape` (Escape inside it; defaults to `onDismiss`), `dismissLabel`, `actionOnNewLine`.
+- `Snackbar`: the message as `children`, `actionLabel` + `onAction`, `onDismiss` (shows the × button), `onEscape` (Escape inside it; defaults to `onDismiss`), `labels` (`dismiss`; `SnackbarHost` passes its own `labels` to every snackbar it shows), `actionOnNewLine`.
 - `SnackbarHostState` (from `useSnackbarHostState()`) ports Compose's queue. `showSnackbar({ message, actionLabel, withDismissAction, actionOnNewLine, duration }, { replace })` shows one snackbar at a time and resolves `'action-performed'` or `'dismissed'`. `replace` (2026-10-13, the spec: "a snackbar with updated information can immediately replace an outdated snackbar") dismisses the current one and shows the new one at once. `SnackbarHost` renders it; the consumer positions it with `className`.
 - **Values** (Compose `Snackbar.kt` with its `isSnackbarStylingFixEnabled` layout, `SnackbarHost.kt`, `SnackbarTokens`):
   - Container: `inverse-surface`, level 3, 4px corners, 48px minimum height, up to 600px wide.

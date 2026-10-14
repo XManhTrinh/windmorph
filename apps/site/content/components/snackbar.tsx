@@ -109,7 +109,8 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
             <li>
               Escape dismisses a snackbar while focus is inside it, with or without a dismiss (×)
               button. The dismiss button needs a name; it defaults to{' '}
-              <InlineCode>dismissLabel</InlineCode> &quot;Dismiss&quot;.
+              <InlineCode>labels.dismiss</InlineCode> &quot;Dismiss&quot; (on a host, its{' '}
+              <InlineCode>labels</InlineCode> reach every snackbar it shows).
             </li>
             <li>
               When a snackbar leaves with focus inside it, focus returns to where it was before it
