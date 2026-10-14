@@ -211,6 +211,7 @@ export {
   SuggestionChip,
   type AssistChipProps,
   type ChipClassNames,
+  type ChipLabels,
   type FilterChipClassNames,
   type FilterChipProps,
   type InputChipClassNames,

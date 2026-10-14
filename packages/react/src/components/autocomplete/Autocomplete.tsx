@@ -382,7 +382,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             <InputChip
               key={item.key}
               onRemove={() => removeChip(item.key)}
-              removeLabel={labels.remove}
+              labels={{ remove: labels.remove }}
               disabled={disabled || readOnly}
               className={classNames?.chip}
             >

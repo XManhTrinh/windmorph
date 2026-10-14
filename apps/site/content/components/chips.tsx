@@ -110,10 +110,10 @@ export async function ChipsBody(): Promise<ComponentDoc> {
             </li>
             <li>
               An input chip with only <InlineCode>onRemove</InlineCode> is one focus stop, its
-              remove button, named &quot;{'{removeLabel}'} + label&quot; (&quot;Remove Alex&quot;);
-              the focus ring circles the whole chip. With <InlineCode>onPress</InlineCode> too, the
-              chip and its remove button are two focus stops. A filter chip with{' '}
-              <InlineCode>onRemove</InlineCode> works the same way.
+              remove button, named &quot;{'{labels.remove}'} + label&quot; (&quot;Remove
+              Alex&quot;); the focus ring circles the whole chip. With{' '}
+              <InlineCode>onPress</InlineCode> too, the chip and its remove button are two focus
+              stops. A filter chip with <InlineCode>onRemove</InlineCode> works the same way.
             </li>
             <li>
               Backspace or Delete on a removable chip removes it. In a{' '}
