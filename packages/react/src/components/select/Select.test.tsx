@@ -215,7 +215,8 @@ describe('Select', () => {
   it('opens in a bottom sheet with presentation="sheet"', async () => {
     render(<Sort presentation="sheet" />);
     await userEvent.click(sortField());
-    expect(screen.getByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
+    // The sheet's code loads on first open.
+    expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
@@ -375,7 +376,7 @@ describe('Select searchable', () => {
   it('opens a sheet showing the list first, without focusing the search', async () => {
     render(<Countries presentation="sheet" />);
     await userEvent.click(countryField());
-    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(await screen.findByRole('listbox')).toBeInTheDocument();
     expect(searchBox()).not.toHaveFocus();
   });
 });

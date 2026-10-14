@@ -63,7 +63,7 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
-import { BottomSheet } from '../sheet/BottomSheet';
+import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 
 const CheckIcon = () => (
@@ -363,8 +363,9 @@ export function Menu({ presentation = 'popover', instant = false, ...props }: Me
   if (!trigger) throw new Error('[@windmorph/react] <Menu> must be used inside <MenuTrigger>.');
   const compact = useMediaQuery(COMPACT_WINDOW);
   const presence = usePresence(trigger.state.isOpen);
-  if (presentation === 'sheet' || (presentation === 'auto' && compact))
-    return <MenuSheet {...props} trigger={trigger} />;
+  const asSheet = presentation === 'sheet' || (presentation === 'auto' && compact);
+  usePreloadBottomSheet(trigger.triggerRef, asSheet);
+  if (asSheet) return <MenuSheet {...props} trigger={trigger} />;
   // An instant menu leaves at once, without waiting for an exit transition.
   const isPresent = instant ? trigger.state.isOpen : presence.isPresent;
   const isExiting = !instant && presence.isExiting;
@@ -386,6 +387,8 @@ export function Menu({ presentation = 'popover', instant = false, ...props }: Me
  * The menu in a modal bottom sheet (M3: menus can adapt into bottom sheets on small
  * screens). The sheet is a dialog named like the menu; the menu inside keeps its role,
  * keyboard, typeahead and initial focus, and spans the sheet without a surface of its own.
+ * The sheet's code loads on first open (or when the trigger is hovered or focused), so a
+ * menu that only opens as a popover doesn't carry it.
  */
 function MenuSheet({
   trigger,
@@ -404,7 +407,7 @@ function MenuSheet({
       ? { 'aria-label': label }
       : { 'aria-labelledby': menuProps['aria-labelledby'] ?? '' };
   return (
-    <BottomSheet
+    <LazyBottomSheet
       {...naming}
       open={trigger.state.isOpen}
       onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
@@ -435,7 +438,7 @@ function MenuSheet({
           </MenuTreeContext>
         </TriggerContext>
       </div>
-    </BottomSheet>
+    </LazyBottomSheet>
   );
 }
 

@@ -30,7 +30,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
-import { BottomSheet } from '../sheet/BottomSheet';
+import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
 import { DropdownArrow, FieldShell, fieldState, type FieldShellClassNames } from './field-shell';
 import {
@@ -325,6 +325,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     () => false,
   );
   const asSheet = presentation === 'sheet' || (presentation === 'auto' && isCompact);
+  // The sheet's code loads on first open, or ahead of it when the field is hovered or focused.
+  usePreloadBottomSheet(containerRef, asSheet);
   // `useSelect`'s trigger props are React Aria button props; `useButton` makes them DOM props.
   const { buttonProps } = useButton(
     // A searchable field opens a dialog holding the search and the list (as PhoneField's).
@@ -504,7 +506,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
         </button>
       </FieldShell>
       {asSheet ? (
-        <BottomSheet
+        <LazyBottomSheet
           open={state.isOpen}
           onOpenChange={(open) => (open ? state.open() : state.close())}
           {...(typeof label === 'string'
@@ -512,7 +514,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
             : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] ?? '' })}
         >
           <div className="flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]">{list}</div>
-        </BottomSheet>
+        </LazyBottomSheet>
       ) : (
         <OptionPopover
           state={state}

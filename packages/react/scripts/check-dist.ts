@@ -3,10 +3,13 @@
  * - every source module marked "use client" keeps the directive in its output,
  * - no output path contains node_modules (npm would drop it when publishing),
  * - every relative import has a file extension (plain Node ESM can load it),
- * - public type declarations do not reference the vendored colour library.
+ * - public type declarations do not reference the vendored colour library,
+ * - components that open a bottom sheet only in some presentations load it lazily: the sheet
+ *   is not among their static imports.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { moduleClosure } from './lib/bundle-size';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 
@@ -36,7 +39,9 @@ for (const file of distFiles) {
   if (file.includes('node_modules')) errors.push(`${file} is inside node_modules`);
   if (file.endsWith('.js')) {
     const code = await readFile(`${root}${file}`, 'utf8');
-    for (const [, specifier] of code.matchAll(/from\s+["'](\.{1,2}\/[^"']+)["']/g)) {
+    for (const [, specifier] of code.matchAll(
+      /(?:from\s+|import\(\s*)["'](\.{1,2}\/[^"']+)["']/g,
+    )) {
       if (!specifier?.endsWith('.js'))
         errors.push(`${file} imports "${specifier}" without an extension`);
     }
@@ -47,6 +52,12 @@ for (const file of distFiles) {
       errors.push(`${file} references @material/material-color-utilities`);
     }
   }
+}
+
+const LAZY_SHEET = 'components/sheet/BottomSheet.js';
+for (const component of ['components/menu/Menu.js', 'components/select/Select.js']) {
+  if (moduleClosure(`${root}dist`, component).includes(LAZY_SHEET))
+    errors.push(`${component} imports ${LAZY_SHEET} statically; load it with import()`);
 }
 
 if (errors.length > 0) {
