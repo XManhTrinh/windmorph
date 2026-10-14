@@ -13,6 +13,7 @@ const MenuSelection = lazyExample('menu/menu-selection', 'MenuSelection');
 const MenuSheet = lazyExample('menu/menu-sheet', 'MenuSheet');
 const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
 const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
+const MenuContainerPadding = lazyExample('menu/menu-container-padding', 'MenuContainerPadding');
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {
@@ -36,6 +37,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
 
   const layouts = await readExampleSource('menu/menu-layouts.tsx');
   const layoutsHtml = await highlightSource(layouts);
+  const containerPadding = await readExampleSource('menu/menu-container-padding.tsx');
+  const containerPaddingHtml = await highlightSource(containerPadding);
 
   return {
     tokens: [menuTokenSet],
@@ -100,6 +103,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
             fileName="menu-instant.tsx"
           >
             <MenuInstant />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Space from the window's edges"
+            code={containerPadding}
+            html={containerPaddingHtml}
+            fileName="menu-container-padding.tsx"
+          >
+            <MenuContainerPadding />
           </ExampleViewer>
         </section>
       </>
