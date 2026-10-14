@@ -174,6 +174,10 @@ function TooltipPopup({
     offset: offsetFor(context.offset, caret),
     containerPadding: CONTAINER_PADDING,
     isOpen: true,
+    // Without its own `onClose`, React Aria's close on scroll falls back to the close of
+    // whatever overlay trigger last registered the same element, so a scroll while a menu
+    // trigger's tooltip is shown or leaving closed the menu it had just opened.
+    onClose: () => context.state.close(true),
   });
   const side = revealSide(placement, requested);
   const styles = tooltipStyles();
@@ -506,6 +510,8 @@ function TransientRichPopup({
     offset: offsetFor(context.offset, props.caret ?? false),
     containerPadding: CONTAINER_PADDING,
     isOpen: true,
+    // Its own close on scroll, never a menu's sharing the trigger (see `TooltipPopup`).
+    onClose: () => state.close(true),
   });
   // It may hold an action: stay open while focus is inside, and leave after focus does.
   const focusProps = {

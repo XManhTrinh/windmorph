@@ -393,6 +393,31 @@ describe('Menu', () => {
     );
   });
 
+  it("stays open when the page scrolls while its trigger's tooltip leaves", async () => {
+    render(
+      <MenuTrigger>
+        <IconButton icon={<svg />} aria-label="More" />
+        <Menu aria-label="More">
+          <MenuItem key="a">Alpha</MenuItem>
+        </Menu>
+      </MenuTrigger>,
+    );
+    // Keyboard focus shows the icon button's tooltip; opening the menu sends it out.
+    await userEvent.tab();
+    expect(await screen.findByRole('tooltip')).toBeInTheDocument();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('tooltip')).toHaveAttribute('data-exiting', 'true');
+    // A scroll of the trigger's page used to reach the tooltip's close on scroll, which
+    // fell back to the menu's close, as both share the trigger.
+    fireEvent.scroll(document);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.getByRole('menu', { name: 'More' }).closest('[data-exiting]')).toBeNull();
+    expect(screen.getByRole('button', { name: 'More', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
   it("opens a submenu with the arrow keys and morphs the menus' corners", async () => {
     const onShare = vi.fn();
     render(
