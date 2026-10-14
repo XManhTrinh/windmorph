@@ -494,6 +494,7 @@ export {
   type ListStyleProps,
   type ListVariant,
 } from './components/list/list-styles';
+export { listTokenSet } from './components/list/list-tokens';
 export {
   RangeSlider,
   Slider,

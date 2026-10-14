@@ -38,20 +38,27 @@ describe('List (static)', () => {
       'pt-[10px]',
       'pb-[10px]',
       'min-h-[56px]',
-      'bg-transparent',
+      'bg-[var(--_md-comp-list-container-color)]',
     );
+    expect(list).toHaveAttribute('data-tokens', 'md-comp-list');
+    expect(list).toHaveAttribute('data-variant', 'standard');
+    expect(one).toHaveAttribute('data-tokens', 'md-comp-list');
+    expect(one).toHaveAttribute('data-variant', 'standard');
     expect(two).toHaveClass('min-h-[72px]', 'items-center');
     expect(three).toHaveClass('min-h-[88px]', 'items-start');
     expect(one).not.toHaveClass('state-layer');
-    expect(within(one).getByText('Alice')).toHaveClass('text-body-large', 'text-on-surface');
+    expect(within(one).getByText('Alice')).toHaveClass(
+      'text-body-large',
+      'text-[color:var(--_md-comp-list-list-item-label-text-color)]',
+    );
     expect(within(two).getByText('Online')).toHaveClass(
       'text-body-medium',
-      'text-on-surface-variant',
+      'text-[color:var(--_md-comp-list-list-item-supporting-text-color)]',
     );
     expect(within(three).getByText('Work')).toHaveClass('text-label-small');
     expect(within(three).getByText('9:41')).toHaveClass('text-label-small', 'col-start-3');
     expect(screen.getByTestId('icon').parentElement).toHaveClass(
-      'text-on-surface-variant',
+      'text-[color:var(--_md-comp-list-list-item-leading-icon-color)]',
       'col-start-1',
     );
     expect(await axeViolations(container)).toEqual([]);
@@ -162,7 +169,9 @@ describe('List (interactive)', () => {
     expect(work).toHaveAttribute('aria-selected', 'true');
     expect(work).toHaveAttribute('data-selected', 'true');
     expect(work).toHaveAttribute('data-shape', 'active');
-    expect(work).toHaveClass('data-selected:bg-secondary-container');
+    expect(work).toHaveClass(
+      'data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
+    );
     expect(within(work).getByText('Work')).toHaveClass(
       'group-data-selected/list-item:text-on-secondary-container',
     );
@@ -287,7 +296,12 @@ describe('List (switch and checkbox items)', () => {
     expect(item).toHaveAttribute('data-selected', 'true');
     expect(item).toHaveAttribute('data-shape', 'active');
     expect(item).toHaveAttribute('data-position', 'first');
-    expect(item).toHaveClass('data-selected:bg-secondary-container', 'state-layer', 'bg-surface');
+    expect(item).toHaveAttribute('data-variant', 'segmented');
+    expect(item).toHaveClass(
+      'data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
+      'state-layer',
+      'bg-[var(--_md-comp-list-container-color)]',
+    );
 
     // Pressing anywhere on the item toggles it.
     await userEvent.click(within(item).getByText('Search engines can list you'));
@@ -538,7 +552,12 @@ describe('List (link items)', () => {
     expect(item).toHaveAttribute('data-selected', 'true');
     expect(item).toHaveAttribute('data-shape', 'active');
     expect(item).toHaveAttribute('data-position', 'first');
-    expect(item).toHaveClass('state-layer', 'data-selected:bg-secondary-container', 'bg-surface');
+    expect(item).toHaveAttribute('data-variant', 'segmented');
+    expect(item).toHaveClass(
+      'state-layer',
+      'data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
+      'bg-[var(--_md-comp-list-container-color)]',
+    );
 
     const account = screen.getByRole('link', { name: 'Account' });
     expect(account).not.toHaveAttribute('aria-current');
@@ -787,5 +806,35 @@ describe('List (expandable items)', () => {
     expect(screen.getByRole('row', { name: 'Trips' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('row', { name: 'Trips' }));
     expect(onAction).toHaveBeenCalledWith('trips');
+  });
+});
+
+describe('List component tokens', () => {
+  it('lets consumer item classes replace the token classes', () => {
+    render(
+      <List aria-label="People" variant="segmented" classNames={{ item: 'bg-tertiary' }}>
+        <ListItem key="alex">Alex</ListItem>
+      </List>,
+    );
+    expect(screen.getByRole('list')).toHaveAttribute('data-variant', 'segmented');
+    const item = screen.getByRole('listitem');
+    expect(item).toHaveAttribute('data-tokens', 'md-comp-list');
+    expect(item).toHaveClass('bg-tertiary');
+    expect(item).not.toHaveClass('bg-[var(--_md-comp-list-container-color)]');
+  });
+});
+
+describe('List switch items', () => {
+  it("draw their track with the switch's component tokens", () => {
+    render(
+      <List aria-label="Privacy">
+        <ListItem key="search" control="switch">
+          Show my profile
+        </ListItem>
+      </List>,
+    );
+    const item = screen.getByRole('switch').closest('label')!;
+    const track = item.querySelector('[data-slot="track"]');
+    expect(track).toHaveAttribute('data-tokens', 'md-comp-switch');
   });
 });

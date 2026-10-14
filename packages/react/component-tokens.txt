@@ -11,6 +11,14 @@
 --md-comp-elevated-card-container-shape
 --md-comp-filled-card-container-color
 --md-comp-filled-card-container-shape
+--md-comp-list-list-item-container-color
+--md-comp-list-list-item-label-text-color
+--md-comp-list-list-item-leading-icon-color
+--md-comp-list-list-item-overline-color
+--md-comp-list-list-item-segmented-container-color
+--md-comp-list-list-item-selected-container-color
+--md-comp-list-list-item-supporting-text-color
+--md-comp-list-list-item-trailing-icon-color
 --md-comp-menus-container-elevation
 --md-comp-menus-container-shape
 --md-comp-menus-standard-container-color

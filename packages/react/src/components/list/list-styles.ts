@@ -34,6 +34,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * follows the deprecated navigation drawer's section headline. Items take their position
  * (segmented corners, dividers) within their section.
  *
+ * Item colours come from the list's component tokens (`list-tokens.ts`,
+ * `--md-comp-list-list-item-*`): the root and each item carry `data-tokens="md-comp-list"`
+ * and `data-variant`. A consumer class still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -51,7 +55,7 @@ export const listStyles = tv({
     group: 'm-0 flex list-none flex-col p-0',
     item: [
       'group/list-item flex ps-[16px] pe-[16px] pt-[10px] pb-[10px] text-start outline-none',
-      'data-selected:bg-secondary-container',
+      'bg-[var(--_md-comp-list-container-color)] data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
       '[--m3-transition-property:border-radius,background-color,color]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
       '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-default-easing),var(--md-sys-motion-spring-effects-default-easing)]',
@@ -60,28 +64,28 @@ export const listStyles = tv({
     // The item's content grid (the grid cell of an interactive item).
     cell: 'grid w-full grid-cols-[auto_minmax(0,1fr)_auto]',
     leading: [
-      'col-start-1 me-[12px] flex items-center gap-x-[12px] text-title-medium text-on-surface-variant [&>svg]:size-[20px]',
+      'col-start-1 me-[12px] flex items-center gap-x-[12px] text-title-medium text-[color:var(--_md-comp-list-list-item-leading-icon-color)] [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     text: 'col-start-2 flex min-w-0 flex-col',
     overline: [
-      'text-label-small text-on-surface-variant',
+      'text-label-small text-[color:var(--_md-comp-list-list-item-overline-color)]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     headline: [
-      'text-body-large text-on-surface',
+      'text-body-large text-[color:var(--_md-comp-list-list-item-label-text-color)]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     supporting: [
-      'text-body-medium text-on-surface-variant',
+      'text-body-medium text-[color:var(--_md-comp-list-list-item-supporting-text-color)]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     trailing: [
-      'col-start-3 ms-[12px] flex items-center gap-x-[12px] text-label-small text-on-surface-variant [&>svg]:size-[20px]',
+      'col-start-3 ms-[12px] flex items-center gap-x-[12px] text-label-small text-[color:var(--_md-comp-list-list-item-trailing-icon-color)] [&>svg]:size-[20px]',
       'group-data-selected/list-item:text-on-secondary-container',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
@@ -124,9 +128,10 @@ export const listStyles = tv({
   },
   variants: {
     variant: {
-      // Standard items take their container's colour (a sheet, a card); see the doc note.
-      standard: { item: 'bg-transparent' },
-      segmented: { root: 'gap-[2px]', group: 'gap-[2px]', item: 'bg-surface' },
+      // Item colours are tokens: a standard item is see-through, so it takes its
+      // container's colour (a sheet, a card); a segmented item is `surface`.
+      standard: {},
+      segmented: { root: 'gap-[2px]', group: 'gap-[2px]' },
     },
     interactive: {
       true: {
