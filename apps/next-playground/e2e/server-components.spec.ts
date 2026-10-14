@@ -63,4 +63,29 @@ test.describe('Server components', () => {
       .getByRole('list', { name: 'Network' });
     await expect(section.getByRole('listitem')).toHaveText('Wi-Fi');
   });
+
+  test.describe('before hydration', () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("a segmented list's loose items and sections have their groups' corners", async ({
+      page,
+    }) => {
+      await page.goto(PATH);
+      const list = page.locator('[data-export="ListSection"]').getByRole('list', {
+        name: 'Preferences',
+      });
+      const corners = await list.locator('[data-slot="item"]').evaluateAll((items) =>
+        items.map((item) => {
+          const style = getComputedStyle(item);
+          return [item.textContent, style.borderTopLeftRadius, style.borderBottomLeftRadius];
+        }),
+      );
+      expect(corners).toEqual([
+        ['Account', '16px', '4px'],
+        ['Privacy', '4px', '16px'],
+        ['Wi-Fi', '16px', '16px'],
+        ['About', '16px', '16px'],
+      ]);
+    });
+  });
 });

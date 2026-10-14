@@ -754,7 +754,7 @@ function StaticListItem({
   }
   if (item.control != null) {
     return (
-      <li>
+      <li data-list-entry="">
         <ToggleItem
           item={item}
           control={item.control}
@@ -769,6 +769,7 @@ function StaticListItem({
   const styles = itemStyles(item, variant, false, options);
   return (
     <li
+      data-list-entry=""
       data-shape="rest"
       data-position={entry.position}
       {...itemAttributes(variant)}
@@ -850,7 +851,10 @@ function StaticSection({
   const headingId = useId();
   const styles = listStyles({ variant, titled: section.title != null });
   return (
-    <li className={styles.section({ class: cn(classNames?.section, section.className) })}>
+    <li
+      data-slot="section"
+      className={styles.section({ class: cn(classNames?.section, section.className) })}
+    >
       {section.title != null && (
         <div id={headingId} className={styles.subheader({ class: classNames?.subheader })}>
           {section.title}
@@ -2034,6 +2038,7 @@ function LinkItem({
       data-focused={isFocusVisible || undefined}
       data-focus-visible={isFocusVisible || undefined}
       ref={itemRef}
+      data-list-entry=""
       data-shape={shape}
       data-position={itemPosition}
       {...itemAttributes(variant)}

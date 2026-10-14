@@ -157,6 +157,10 @@ export const listStyles = tv({
         item: [
           "relative after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-outline-variant after:content-['']",
           'data-[position=last]:after:hidden data-[position=only]:after:hidden',
+          // A plain list's item is last in its group by structure too, so the server's HTML
+          // is right before the list learns where its sections are (see \`segmented\`).
+          '[&[data-list-entry]:where(:last-child,:has(+[data-slot=section]))]:after:hidden',
+          '[[data-list-entry]:where(:last-child,:has(+[data-slot=section]))>&]:after:hidden',
           'forced-colors:after:bg-[GrayText] forced-colors:after:forced-color-adjust-none',
         ],
       },
@@ -164,6 +168,10 @@ export const listStyles = tv({
         item: [
           "relative after:pointer-events-none after:absolute after:inset-x-[16px] after:bottom-0 after:h-px after:bg-outline-variant after:content-['']",
           'data-[position=last]:after:hidden data-[position=only]:after:hidden',
+          // A plain list's item is last in its group by structure too, so the server's HTML
+          // is right before the list learns where its sections are (see \`segmented\`).
+          '[&[data-list-entry]:where(:last-child,:has(+[data-slot=section]))]:after:hidden',
+          '[[data-list-entry]:where(:last-child,:has(+[data-slot=section]))>&]:after:hidden',
           'forced-colors:after:bg-[GrayText] forced-colors:after:forced-color-adjust-none',
         ],
       },
@@ -196,6 +204,11 @@ export const listStyles = tv({
     // Segmented sections without a subheader stand 16dp apart, so each reads as its own group.
     { variant: 'segmented', titled: false, class: { section: 'not-first:pt-[16px]' } },
     // Segmented lists round the outer corners of the group at rest (static items too).
+    // A plain list's items (\`data-list-entry\`, the item or the \`li\` holding it) also take
+    // them from their place among their siblings: a group starts at the first child or after
+    // a section and ends at the last child or before one. The list learns which entries are
+    // sections only once it renders on the client, so without these the server's HTML would
+    // show loose items next to a section with square corners until hydration.
     {
       variant: 'segmented',
       class: {
@@ -204,6 +217,10 @@ export const listStyles = tv({
           'data-[shape=rest]:data-[position=first]:rounded-t-corner-large',
           'data-[shape=rest]:data-[position=last]:rounded-b-corner-large',
           'data-[shape=rest]:data-[position=only]:rounded-corner-large',
+          'data-[shape=rest]:[&[data-list-entry]:where(:first-child,[data-slot=section]+*)]:rounded-t-corner-large',
+          'data-[shape=rest]:[[data-list-entry]:where(:first-child,[data-slot=section]+*)>&]:rounded-t-corner-large',
+          'data-[shape=rest]:[&[data-list-entry]:where(:last-child,:has(+[data-slot=section]))]:rounded-b-corner-large',
+          'data-[shape=rest]:[[data-list-entry]:where(:last-child,:has(+[data-slot=section]))>&]:rounded-b-corner-large',
         ],
       },
     },

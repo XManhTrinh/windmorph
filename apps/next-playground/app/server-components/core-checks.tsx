@@ -547,10 +547,13 @@ export const coreChecks = {
   ListSection: {
     kind: 'component',
     render: () => (
-      <Core.List aria-label="Preferences">
+      <Core.List aria-label="Preferences" variant="segmented">
+        <Core.ListItem key="account">Account</Core.ListItem>
+        <Core.ListItem key="privacy">Privacy</Core.ListItem>
         <Core.ListSection key="network" title="Network">
           <Core.ListItem key="wifi">Wi-Fi</Core.ListItem>
         </Core.ListSection>
+        <Core.ListItem key="about">About</Core.ListItem>
       </Core.List>
     ),
   },
