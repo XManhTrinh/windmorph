@@ -82,7 +82,7 @@ export function MoreValues({ total, children }: { total: number; children: React
   const restId = useId();
   return (
     <>
-      <span id={restId} hidden={!open} className={`contents ${REVEAL}`}>
+      <span id={restId} hidden={!open} className="contents">
         {children}
       </span>
       <Button
