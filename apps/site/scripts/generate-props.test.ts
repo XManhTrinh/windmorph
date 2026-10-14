@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enumOptionsFromType, normalizeDefaultValue } from './generate-props';
+import { enumOptionsFromType, enumValuesFromType, normalizeDefaultValue } from './generate-props';
 
 describe('enumOptionsFromType', () => {
   it('extracts string-literal union members with quotes stripped', () => {
@@ -26,6 +26,20 @@ describe('enumOptionsFromType', () => {
 
   it('returns undefined for an enum with no usable members', () => {
     expect(enumOptionsFromType({ name: 'enum', value: [{ value: 'undefined' }] })).toBeUndefined();
+  });
+});
+
+describe('enumValuesFromType', () => {
+  it('keeps each member as written, so strings and numbers stay apart', () => {
+    const values = enumValuesFromType({
+      name: 'enum',
+      value: [{ value: '"sm"' }, { value: '1' }, { value: 'undefined' }],
+    });
+    expect(values).toEqual(['"sm"', '1']);
+  });
+
+  it('returns undefined for a non-enum type', () => {
+    expect(enumValuesFromType({ name: 'string' })).toBeUndefined();
   });
 });
 

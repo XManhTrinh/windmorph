@@ -1,12 +1,12 @@
 /**
- * Generates one props JSON per public component for `PropsTable`, from the library's
+ * Generates one props JSON per public component for the site's props lists, from the library's
  * TypeScript public API, using `react-docgen-typescript`, plus the hooks' docs. It is the
  * site's `generate` task, which Turborepo runs once before `build`, `typecheck`, `lint` and
  * `test` (and `dev` runs first), writing to the gitignored `apps/site/.generated/props/`
  * directory, so the tables can never drift from the code.
  *
- * The output shape matches `PropsTableRow` (name/type/required/defaultValue?/description?),
- * so a component page can later do `rows={json.props}` straight into `PropsTable`.
+ * Each prop is a {@link PropsRecord} (name, type, required, default, description, an enum's
+ * members, an object prop's keys), which `components/props-list.tsx` renders as is.
  */
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -73,6 +73,11 @@ export interface PropsRecord {
   description?: string;
   /** For enum (string-literal union) props: the member values, used by the Playground. */
   options?: string[];
+  /**
+   * For enum props: the members as TypeScript literals (`"filled"`, `1`), so the props list
+   * and the Markdown twins can tell a string member from a number one.
+   */
+  values?: string[];
   /**
    * For an object prop listed in {@link OBJECT_KEY_PROPS}: one row per key (`labels.close`),
    * with the key's own description and default, so the table lists what can be overridden.
@@ -155,6 +160,18 @@ export function enumOptionsFromType(type: DocgenPropType | undefined): string[] 
 }
 
 /**
+ * Pure core: the enum members from a docgen prop `type` as written in TypeScript (`"filled"`,
+ * `1`, `false`), `undefined` dropped. `undefined` for a non-enum type or an empty list.
+ */
+export function enumValuesFromType(type: DocgenPropType | undefined): string[] | undefined {
+  if (!type || type.name !== 'enum' || !Array.isArray(type.value)) return undefined;
+  const values = (type.value as { value?: unknown }[])
+    .map((member) => String(member.value))
+    .filter((value) => value !== 'undefined');
+  return values.length > 0 ? values : undefined;
+}
+
+/**
  * Pure core: tidies a docgen default. A prop declared in several members of a union (Button's
  * `variant`, in its action, link and toggle forms) comes back as each member's default joined
  * by newlines, so identical lines collapse to one; a genuinely multi-line default is kept.
@@ -180,6 +197,7 @@ export function extractProps(
           // Enum (string-literal union) props carry their members in `type.value`; emit them
           // as `options` (quotes stripped) so the Playground can build a segmented control.
           const options = enumOptionsFromType(prop.type);
+          const values = enumValuesFromType(prop.type);
           return {
             name: prop.name,
             type: prop.type?.name ?? 'unknown',
@@ -189,6 +207,7 @@ export function extractProps(
               : {}),
             ...(prop.description ? { description: prop.description } : {}),
             ...(options && options.length > 0 ? { options } : {}),
+            ...(values ? { values } : {}),
           };
         });
         records.push({
