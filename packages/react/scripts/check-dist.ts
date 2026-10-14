@@ -3,7 +3,8 @@
  * - every source module marked "use client" keeps the directive in its output,
  * - no output path contains node_modules (npm would drop it when publishing),
  * - every relative import has a file extension (plain Node ESM can load it),
- * - public type declarations do not reference the vendored colour library.
+ * - public type declarations do not reference the vendored colour library,
+ * - both stylesheets carry the component tokens (`generated/components.css`).
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +47,24 @@ for (const file of distFiles) {
     if (/(?:from\s+|import\()['"]@material\/material-color-utilities/.test(types)) {
       errors.push(`${file} references @material/material-color-utilities`);
     }
+  }
+}
+
+const tailwindEntry = await readFile(`${root}dist/styles/styles.css`, 'utf8');
+if (!tailwindEntry.includes("@import './generated/components.css';")) {
+  errors.push('dist/styles/styles.css does not import generated/components.css');
+}
+const componentsCss = await readFile(`${root}dist/styles/generated/components.css`, 'utf8').catch(
+  () => null,
+);
+if (componentsCss === null) {
+  errors.push('dist/styles/generated/components.css is missing');
+} else {
+  const compiled = await readFile(`${root}dist/styles.compiled.css`, 'utf8');
+  const variables = [...componentsCss.matchAll(/(--_md-comp-[\w-]+):/g)].map(([, name]) => name!);
+  const missing = [...new Set(variables)].filter((name) => !compiled.includes(name));
+  if (missing.length > 0) {
+    errors.push(`dist/styles.compiled.css lacks component tokens: ${missing.join(', ')}`);
   }
 }
 
