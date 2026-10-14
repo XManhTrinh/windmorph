@@ -461,6 +461,7 @@ export {
   badgeStyles,
   type BadgeStyleProps,
 } from './components/badge/badge-styles';
+export { badgeTokenSet } from './components/badge/badge-tokens';
 export {
   List,
   ListItem,
