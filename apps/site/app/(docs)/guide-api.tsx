@@ -33,7 +33,11 @@ export async function GuideApiReference({ path }: { path: string }) {
             <h3 className="text-title-medium text-on-surface">
               <InlineCode dir="ltr">{json.displayName}</InlineCode>
             </h3>
-            <PropsList caption={`${json.displayName} props`} props={json.props} />
+            <PropsList
+              caption={`${json.displayName} props`}
+              scope={json.displayName}
+              props={json.props}
+            />
           </div>
         ))}
       {hooks

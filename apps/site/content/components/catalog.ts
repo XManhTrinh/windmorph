@@ -73,7 +73,7 @@ export interface ComponentMeta {
   railGroup: RailGroupId;
   /** One-line summary shown in the gallery and the page header. */
   summary: string;
-  /** Generated-props `displayName`s whose JSON the template renders as a `PropsTable`. */
+  /** Generated-props `displayName`s whose JSON the template renders as a props list. */
   propsComponents: string[];
   /** Whether the page shows an interactive Playground (`full`) or a hand-written showcase. */
   playground?: 'full' | 'showcase';

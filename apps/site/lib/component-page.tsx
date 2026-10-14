@@ -151,7 +151,7 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
                       <InlineCode dir="ltr">{name}</InlineCode>
                     </h3>
                   )}
-                  <PropsList caption={`${name} props`} props={json.props} />
+                  <PropsList caption={`${name} props`} scope={name} props={json.props} />
                 </>
               )}
               {slots && slots.length > 0 && (

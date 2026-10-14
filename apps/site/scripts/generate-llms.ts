@@ -44,6 +44,7 @@ import {
   absoluteUrl,
   markdownPath,
 } from '../lib/site-metadata';
+import { propTypeText, propTypeView } from '../lib/prop-list-model';
 import type { ComponentPropsFile, PropsRecord } from './generate-props';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -122,7 +123,7 @@ function code(text: string): string {
 }
 
 function propType(prop: PropsRecord): string {
-  return prop.options ? prop.options.map((option) => `"${option}"`).join(' | ') : prop.type;
+  return propTypeText(propTypeView(prop));
 }
 
 /** A default as written once (the generated JSON can repeat it on two lines). */
@@ -172,7 +173,7 @@ function propsMarkdown(meta: ComponentMeta, level: number): string {
 
 /**
  * One tab of a component page as Markdown: its panel's content, with the props section
- * rebuilt from the props JSON (the rendered table abbreviates union types).
+ * rebuilt from the props JSON (one table per component, its keys and slots included).
  */
 function tabMarkdown(meta: ComponentMeta, tab: ComponentTab, headingOffset: number): string {
   const path = componentTabHref(meta.slug, tab);

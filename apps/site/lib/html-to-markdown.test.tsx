@@ -1,4 +1,6 @@
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { PropsList } from '../components/props-list';
 import { htmlToMarkdown } from './html-to-markdown';
 
 function markdown(html: string, headingOffset = 0): string {
@@ -66,6 +68,46 @@ describe('htmlToMarkdown', () => {
   it('writes definition lists whose terms sit in their own elements', () => {
     expect(markdown('<dl><div><dt>Sizes</dt><dd><code>xs, sm</code></dd></div></dl>')).toBe(
       '- **Sizes**: `xs, sm`',
+    );
+  });
+
+  it('writes a props list as one table, folded keys included, with full types', () => {
+    const html = renderToStaticMarkup(
+      <PropsList
+        caption="Sheet props"
+        scope="Sheet"
+        props={[
+          {
+            name: 'size',
+            type: 'enum',
+            required: true,
+            defaultValue: '"sm"',
+            description: 'The `sm` size;\nor {@link Badge}.',
+            values: ['"sm"', '"md"'],
+          },
+          {
+            name: 'labels',
+            type: 'Partial<SheetLabels>',
+            required: false,
+            keys: [
+              { name: 'labels.close', type: 'string', required: false, defaultValue: '"Close"' },
+            ],
+          },
+        ]}
+      />,
+    );
+    expect(markdown(`<h3>Sheet</h3>${html}`)).toBe(
+      [
+        '### Sheet',
+        '',
+        'Sheet props:',
+        '',
+        '| Name | Type | Default | Description |',
+        '| --- | --- | --- | --- |',
+        '| `size` (required) | `"sm" \\| "md"` | `"sm"` | The `sm` size; or [`Badge`](https://example.com/components/badge/api). |',
+        '| `labels` | `Partial<SheetLabels>` |  |  |',
+        '| `labels.close` | `string` | `"Close"` |  |',
+      ].join('\n'),
     );
   });
 });

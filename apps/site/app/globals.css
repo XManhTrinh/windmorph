@@ -17,8 +17,8 @@
 
 /* Code inside running text: a quiet chip (monospace, `surface-container-high`, 4px corners).
    `InlineCode` sets the class; plain prose `<code>` outside a code block gets the same look.
-   In the base layer and under `:where()`, so a component's own code styles (CodeBlock,
-   PropsTable) and utility classes always win. Long tokens wrap at their hyphens (a normal
+   In the base layer and under `:where()`, so a component's own code styles (CodeBlock)
+   and utility classes always win. Long tokens wrap at their hyphens (a normal
    break opportunity), and only as a last resort mid-word, so nothing overflows a phone. */
 @layer base {
   :where(.inline-code),
@@ -34,6 +34,17 @@
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
   }
+}
+
+/* The props-list item the URL points at (`#prop-Button-variant`): tinted with the primary
+   colour at the hover state layer's 8%, the tint reaching 8px past each side without moving
+   the text or widening the page. */
+main [data-prop]:target {
+  --prop-target: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+  background-color: var(--prop-target);
+  box-shadow:
+    -8px 0 0 0 var(--prop-target),
+    8px 0 0 0 var(--prop-target);
 }
 
 /* Section headings land below the sticky top bar when the outline (or a #link) jumps to them. */

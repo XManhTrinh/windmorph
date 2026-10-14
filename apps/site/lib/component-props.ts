@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const propsRoot = resolve(here, '../.generated/props');
 
 // Re-export the shape the generator writes, so a component page can feed `json.props`
-// straight into `PropsTable` (its rows are `PropsTableRow`).
+// straight into `PropsList`.
 export type { ComponentPropsFile, PropsRecord } from '../scripts/generate-props';
 export type { HookDocFile } from '../scripts/hook-docs';
 
@@ -24,7 +24,7 @@ export type { HookDocFile } from '../scripts/hook-docs';
  *
  * @example
  * const json = await readComponentProps('Button');
- * <PropsTable caption="Button props" rows={json.props} />
+ * <PropsList caption="Button props" scope="Button" props={json.props} />
  */
 export async function readComponentProps(displayName: string): Promise<ComponentPropsFile> {
   const source = await readFile(join(propsRoot, `${displayName}.json`), 'utf8');

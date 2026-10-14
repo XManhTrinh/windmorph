@@ -50,26 +50,22 @@ test.describe('Component page tabs', () => {
     await expect(page.getByRole('tab', { name: 'Accessibility' })).toBeFocused();
   });
 
-  test('the props table lists each key of an object prop, with its default', async ({ page }) => {
+  test('the props list nests the keys of an object prop, with their defaults', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await gotoReady(page, '/components/sheets/api');
-    const table = page.getByRole('region', { name: 'BottomSheet props', exact: true });
-    const close = table.getByRole('row').filter({ hasText: 'labels.close' });
+    const list = page.getByRole('region', { name: 'BottomSheet props', exact: true });
+    const labels = list.locator('#prop-BottomSheet-labels');
+    await labels.getByRole('button', { name: /^\d+ keys$/ }).click();
+    const close = list.locator('[id="prop-BottomSheet-labels.close"]');
     await expect(close).toContainText('"Close"');
     // Exactly `classNames.handle`, not `classNames.handleBar`.
-    const handle = page.getByText('classNames.handle', { exact: true });
-    await expect(table.getByRole('row').filter({ has: handle })).toBeVisible();
-  });
-
-  test('props are cards on a phone, with no sideways scroll', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await gotoReady(page, '/components/button/api');
-    await expect(page.getByRole('list', { name: 'Button props' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Button props' })).toBeHidden();
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - window.innerWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(0);
+    await list
+      .locator('#prop-BottomSheet-classNames')
+      .getByRole('button', { name: /^\d+ keys$/ })
+      .click();
+    const handle = list.getByText('classNames.handle', { exact: true });
+    await expect(handle).toHaveCount(1);
+    await expect(handle).toBeVisible();
   });
 });
 

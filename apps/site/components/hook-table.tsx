@@ -1,8 +1,10 @@
 import { CodeBlock } from '@windmorph/react-pro';
 import type { HookDocFile } from '../lib/component-props';
 import { highlightSource } from '../lib/highlight';
-import { CodeText } from './code-text';
+import { codeNameHref } from '../lib/code-name-href';
+import { markdownParagraphs } from '../lib/inline-markdown';
 import { InlineCode } from './inline-code';
+import { InlineMarkdown } from './inline-markdown';
 import { PropsList } from './props-list';
 
 /**
@@ -25,19 +27,30 @@ export async function HookTable({ doc }: { doc: HookDocFile }) {
         title={`${name} signature`}
         copyable={false}
       />
-      {doc.description && (
-        <p className="whitespace-pre-line text-body-medium text-on-surface-variant">
-          <CodeText text={doc.description.replace(/\n(?!\n)/g, ' ')} />
-        </p>
+      {doc.description &&
+        markdownParagraphs(doc.description).map((paragraph, index) => (
+          <p key={index} className="text-body-medium text-on-surface-variant">
+            <InlineMarkdown text={paragraph} resolve={codeNameHref} />
+          </p>
+        ))}
+      {doc.params.length > 0 && (
+        <PropsList caption={`${name} parameters`} scope={name} props={doc.params} />
       )}
-      {doc.params.length > 0 && <PropsList caption={`${name} parameters`} props={doc.params} />}
       <p className="text-body-medium text-on-surface-variant">
         <span className="text-on-surface">Returns</span>{' '}
         <InlineCode dir="ltr">{doc.returns.type}</InlineCode>
-        {doc.returns.description && <>: {doc.returns.description}</>}
+        {doc.returns.description && (
+          <>
+            : <InlineMarkdown text={doc.returns.description} resolve={codeNameHref} />
+          </>
+        )}
       </p>
       {doc.returns.fields.length > 0 && (
-        <PropsList caption={`${name} returns`} props={doc.returns.fields} />
+        <PropsList
+          caption={`${name} returns`}
+          scope={`${name}-returns`}
+          props={doc.returns.fields}
+        />
       )}
     </div>
   );

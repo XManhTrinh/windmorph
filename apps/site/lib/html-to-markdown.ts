@@ -94,7 +94,13 @@ function isSkipped(element: Element): boolean {
 /** Whether an element holds block content, so it can't be written inline. */
 function isBlock(element: Element): boolean {
   if (BLOCK_TAGS.has(tagOf(element))) return true;
-  if (element.hasAttribute('data-example-file') || element.hasAttribute('data-lang')) return true;
+  if (
+    element.hasAttribute('data-example-file') ||
+    element.hasAttribute('data-lang') ||
+    element.hasAttribute('data-props-list')
+  ) {
+    return true;
+  }
   return [...element.children].some((child) => !isSkipped(child) && isBlock(child));
 }
 
@@ -227,6 +233,31 @@ class Converter {
     return lines.join('\n');
   }
 
+  /**
+   * A props list (marked `data-props-list`) as a table: name, type, default and description,
+   * with an object prop's keys after it, folded or not. Each item carries its name, type and
+   * default in `data-*` attributes, so the table has the full type, not the chips.
+   */
+  private propsList(element: Element): string {
+    const cell = (text: string) => text.replace(/\|/g, '\\|');
+    const rows = [...element.querySelectorAll('li[data-prop]')].map((item) => {
+      const name = `${inlineCode(item.getAttribute('data-prop') ?? '')}${item.hasAttribute('data-required') ? ' (required)' : ''}`;
+      const type = item.getAttribute('data-type');
+      const fallback = item.getAttribute('data-default');
+      const description = [...item.children].find((child) =>
+        child.hasAttribute('data-prop-description'),
+      );
+      const text = description
+        ? [...description.children].map((paragraph) => this.inline(paragraph).trim()).join(' ')
+        : '';
+      return `| ${cell(name)} | ${type ? cell(inlineCode(type)) : ''} | ${fallback ? cell(inlineCode(collapse(fallback))) : ''} | ${cell(text)} |`;
+    });
+    if (rows.length === 0) return '';
+    const caption = element.getAttribute('aria-label');
+    const table = ['| Name | Type | Default | Description |', '| --- | --- | --- | --- |', ...rows];
+    return [caption ? `${caption}:` : '', table.join('\n')].filter(Boolean).join('\n\n');
+  }
+
   private example(element: Element): string[] {
     const fileName = element.getAttribute('data-example-file') ?? '';
     const lang = element.getAttribute('data-example-lang') ?? 'tsx';
@@ -261,6 +292,10 @@ class Converter {
     if (!isElement(node) || isSkipped(node)) return [];
     if (node.hasAttribute('data-example-file')) return this.example(node);
     if (node.hasAttribute('data-lang')) return this.codeBlockOf(node);
+    if (node.hasAttribute('data-props-list')) {
+      const table = this.propsList(node);
+      return table ? [table] : [];
+    }
     const tag = tagOf(node);
     if (/^h[1-6]$/.test(tag)) return [this.heading(node, Number(tag.slice(1)))];
     switch (tag) {

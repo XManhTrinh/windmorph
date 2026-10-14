@@ -1,76 +1,170 @@
-import { Card } from '@windmorph/react';
-import { PropsTable, type PropsTableRow } from '@windmorph/react-pro';
+import { codeNameHref } from '../lib/code-name-href';
 import type { PropsRecord } from '../lib/component-props';
+import { markdownParagraphs } from '../lib/inline-markdown';
+import {
+  propListItems,
+  type PropDefaultView,
+  type PropItem,
+  type PropTypeView,
+} from '../lib/prop-list-model';
 import { InlineCode } from './inline-code';
+import { InlineMarkdown, type ResolveCodeName } from './inline-markdown';
+import { MoreValues, PropKeys, PropLink } from './prop-list-controls';
 
-/**
- * The table's rows: each prop, followed by the keys of an object prop (`labels.close`,
- * `classNames.root`) so every overridable string and styled part is listed with its own
- * description and default.
- */
-export function propsTableRows(props: PropsRecord[]): PropsTableRow[] {
-  return props.flatMap((prop) => [
-    {
-      name: prop.name,
-      type: prop.type,
-      required: prop.required,
-      defaultValue: prop.defaultValue,
-      description: prop.description,
-    },
-    ...(prop.keys ?? []),
-  ]);
+/** A union with more members than this shows the first {@link UNION_PREVIEW} and folds the rest. */
+const UNION_FOLD_AT = 16;
+const UNION_PREVIEW = 12;
+
+/** A long type or default: monospace on a quiet surface, wrapping anywhere it must. */
+const CODE_BLOCK =
+  'block whitespace-pre-wrap rounded-corner-small bg-surface-container-low px-3 py-2 font-mono text-body-small text-on-surface [overflow-wrap:anywhere]';
+
+const DIVIDED = 'divide-y divide-outline-variant';
+
+function TypeValue({ view }: { view: PropTypeView }) {
+  if (view.kind === 'block') {
+    return (
+      <code dir="ltr" className={CODE_BLOCK}>
+        {view.text}
+      </code>
+    );
+  }
+  if (view.kind === 'inline') return <InlineCode dir="ltr">{view.text}</InlineCode>;
+  const chip = (value: string) => (
+    <InlineCode key={value} dir="ltr">
+      {value}
+    </InlineCode>
+  );
+  const folds = view.values.length > UNION_FOLD_AT;
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      <span className="sr-only">One of </span>
+      {(folds ? view.values.slice(0, UNION_PREVIEW) : view.values).map(chip)}
+      {folds && (
+        <MoreValues total={view.values.length}>
+          {view.values.slice(UNION_PREVIEW).map(chip)}
+        </MoreValues>
+      )}
+    </span>
+  );
+}
+
+function DefaultValue({ view, resolve }: { view: PropDefaultView; resolve?: ResolveCodeName }) {
+  if (view.kind === 'prose') return <InlineMarkdown text={view.text} resolve={resolve} />;
+  if (view.kind === 'block') {
+    return (
+      <code dir="ltr" className={CODE_BLOCK}>
+        {view.text}
+      </code>
+    );
+  }
+  return <InlineCode dir="ltr">{view.text}</InlineCode>;
 }
 
 /**
- * A component's props: a table from medium windows up, and on phones a list of cards (name,
- * type, default and description stacked), so nothing scrolls sideways. Both are rendered and
- * one is hidden with CSS, so the static export needs no window check.
+ * One prop: a header line with its name, a "Required" label, its anchor, its type and its
+ * default; a long type or default wraps in a block under the name instead. The description
+ * runs the list's full width below, and an object prop's keys fold under it. The item's data
+ * attributes give the Markdown twin its table row.
  */
-export function PropsList({ caption, props }: { caption: string; props: PropsRecord[] }) {
-  const rows = propsTableRows(props);
+function PropEntry({ item, resolve }: { item: PropItem; resolve?: ResolveCodeName }) {
+  const wide =
+    item.type.kind === 'block' || (item.defaultValue && item.defaultValue.kind !== 'inline');
   return (
-    <>
-      <PropsTable caption={caption} rows={rows} className="hidden medium:block" />
-      <ul aria-label={caption} className="flex flex-col gap-3 medium:hidden">
-        {rows.map((row) => (
-          <li key={row.name}>
-            <Card variant="outlined" className="gap-2 p-4">
-              <p className="flex flex-wrap items-center gap-1 text-title-small">
-                <InlineCode dir="ltr">{row.name}</InlineCode>
-                {row.required && (
-                  <>
-                    <span aria-hidden="true" className="text-error">
-                      *
-                    </span>
-                    <span className="sr-only"> required</span>
-                  </>
-                )}
-              </p>
-              {row.description && (
-                <p className="text-body-medium text-on-surface-variant">{row.description}</p>
-              )}
-              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-body-small">
-                {row.type && (
-                  <>
-                    <dt className="text-label-medium text-on-surface-variant">Type</dt>
-                    <dd className="min-w-0">
-                      <InlineCode dir="ltr">{row.type}</InlineCode>
-                    </dd>
-                  </>
-                )}
-                {row.defaultValue != null && row.defaultValue !== '' && (
-                  <>
-                    <dt className="text-label-medium text-on-surface-variant">Default</dt>
-                    <dd className="min-w-0">
-                      <InlineCode dir="ltr">{row.defaultValue}</InlineCode>
-                    </dd>
-                  </>
-                )}
-              </dl>
-            </Card>
-          </li>
+    <li
+      id={item.id}
+      data-prop={item.name}
+      data-type={item.typeText}
+      data-default={item.defaultText}
+      data-required={item.required || undefined}
+      className="flex scroll-mt-20 flex-col gap-2 py-4"
+    >
+      <div className="group/prop flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <InlineCode dir="ltr" className="bg-transparent px-0 text-title-small text-on-surface">
+            {item.name}
+          </InlineCode>
+          {item.required && (
+            <span className="rounded-corner-full bg-error-container px-2 py-0.5 text-label-small text-on-error-container">
+              Required
+            </span>
+          )}
+          <PropLink id={item.id} name={item.name} />
+        </div>
+        <dl
+          className={`flex min-w-0 basis-full flex-wrap items-baseline gap-x-4 gap-y-2 text-body-medium ${wide ? '' : '@2xl:flex-1 @2xl:basis-0'}`}
+        >
+          <div className={item.type.kind === 'block' ? 'min-w-0 basis-full' : 'min-w-0'}>
+            <dt className="sr-only">Type</dt>
+            <dd>
+              <TypeValue view={item.type} />
+            </dd>
+          </div>
+          {item.defaultValue && (
+            <div
+              className={`flex min-w-0 items-baseline gap-2 ${item.defaultValue.kind === 'inline' ? '@2xl:ms-auto' : 'basis-full'}`}
+            >
+              <dt className="shrink-0 text-label-medium text-on-surface-variant">Default</dt>
+              <dd className="min-w-0 flex-1 text-on-surface-variant">
+                <DefaultValue view={item.defaultValue} resolve={resolve} />
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
+      {item.description && (
+        <div
+          data-prop-description=""
+          className="flex flex-col gap-2 text-body-medium text-on-surface-variant"
+        >
+          {markdownParagraphs(item.description).map((paragraph, index) => (
+            <p key={index}>
+              <InlineMarkdown text={paragraph} resolve={resolve} />
+            </p>
+          ))}
+        </div>
+      )}
+      {item.keys.length > 0 && (
+        <PropKeys count={item.keys.length}>
+          <ul className={`ms-1 border-s-2 border-outline-variant ps-4 ${DIVIDED}`}>
+            {item.keys.map((key) => (
+              <PropEntry key={key.id} item={key} resolve={resolve} />
+            ))}
+          </ul>
+        </PropKeys>
+      )}
+    </li>
+  );
+}
+
+export interface PropsListProps {
+  /** Names the list for assistive tech: `Button props`, `useTheme parameters`. */
+  caption: string;
+  /**
+   * The component or hook the props belong to, which scopes their anchors
+   * (`prop-<scope>-<name>`) so two lists on one page never share one.
+   */
+  scope: string;
+  props: PropsRecord[];
+}
+
+/**
+ * A component's props, one item per prop at every width: the name, a "Required" label, the
+ * type and default on its header line (an enum's members as chips), and the description at
+ * the list's full width below. An object prop's keys (`labels.close`, `classNames.root`)
+ * nest under it behind a disclosure, and a `{@link Name}` in a description links to `Name`'s
+ * page. A named region holding a list, so a screen reader can
+ * jump to it and hear how many props there are. A Server Component; the disclosures and the
+ * anchors' copy buttons are small client islands.
+ */
+export function PropsList({ caption, scope, props }: PropsListProps) {
+  return (
+    <section aria-label={caption} data-props-list="" className="@container">
+      <ul className={`border-y border-outline-variant ${DIVIDED}`}>
+        {propListItems(scope, props).map((item) => (
+          <PropEntry key={item.id} item={item} resolve={codeNameHref} />
         ))}
       </ul>
-    </>
+    </section>
   );
 }

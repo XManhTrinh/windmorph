@@ -36,15 +36,16 @@ export function useSiteSnackbar(): Notify {
 function noop() {}
 
 /**
- * Copies text to the clipboard and confirms it in the site snackbar. Returns whether it
- * worked; the clipboard can be unavailable (an insecure context), which fails quietly.
+ * Copies text to the clipboard and confirms it in the site snackbar with `message`. Returns
+ * whether it worked; the clipboard can be unavailable (an insecure context), which fails
+ * quietly.
  */
-export function useCopy(): (text: string) => Promise<boolean> {
+export function useCopy(message = 'Copied'): (text: string) => Promise<boolean> {
   const notify = useSiteSnackbar();
   return async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      notify('Copied');
+      notify(message);
       return true;
     } catch {
       return false;
