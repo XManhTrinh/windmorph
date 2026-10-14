@@ -29,7 +29,8 @@ import { iconFacesStyles, type IconTransition } from '../../primitives/icon-face
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
 import type { FabElevation } from '../fab/fab-styles';
-import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import {
   dockedToolbarStyles,
@@ -519,7 +520,7 @@ export function ToolbarFab({
   return (
     <TooltipTrigger>
       {fab}
-      <Tooltip>{label}</Tooltip>
+      <LazyTooltip>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

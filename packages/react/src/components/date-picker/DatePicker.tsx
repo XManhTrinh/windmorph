@@ -41,7 +41,8 @@ import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
-import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
 import { DateInput, type DateInputStrings } from './DateInput';
@@ -504,7 +505,7 @@ function CalendarBody({
               </span>
             </span>
           </Button>
-          <Tooltip>{strings.yearsTooltip ?? 'Choose a year (Shift+Y)'}</Tooltip>
+          <LazyTooltip>{strings.yearsTooltip ?? 'Choose a year (Shift+Y)'}</LazyTooltip>
         </TooltipTrigger>
         {!years && (
           <div className={styles.navButtons()}>

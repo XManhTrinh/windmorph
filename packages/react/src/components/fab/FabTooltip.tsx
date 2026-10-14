@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, type ReactElement, type ReactNode } from 'react';
-import { Tooltip, TooltipTrigger, useInTooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger, useInTooltipTrigger } from '../tooltip/tooltip-trigger';
 
 interface FabTooltipProps {
   /** Whether the tooltip can show: an extended FAB while collapsed, a FAB menu while closed. */
@@ -32,7 +33,7 @@ export function FabTooltip({ available, label, children }: FabTooltipProps) {
   return (
     <TooltipTrigger isDisabled={!available} isOpen={available && isOpen} onOpenChange={setOpen}>
       {children}
-      <Tooltip>{label}</Tooltip>
+      <LazyTooltip>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

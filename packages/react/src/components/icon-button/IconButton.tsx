@@ -16,7 +16,8 @@ import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { TriggerContext, type TriggerContextValue } from '../../primitives/TriggerContext';
-import { Tooltip, TooltipTrigger, useInTooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger, useInTooltipTrigger } from '../tooltip/tooltip-trigger';
 import {
   iconButtonStyles,
   type IconButtonVariant,
@@ -192,7 +193,7 @@ export function IconButton(props: IconButtonProps) {
   return (
     <TooltipTrigger>
       <WithoutDescription>{button}</WithoutDescription>
-      <Tooltip>{label}</Tooltip>
+      <LazyTooltip>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

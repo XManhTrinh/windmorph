@@ -24,7 +24,8 @@ import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { OptionPopover } from '../select/option-list';
-import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
 import { DateInput, type DateInputStrings } from './DateInput';
@@ -486,7 +487,7 @@ function MenuButton({
           </span>
         </span>
       </Button>
-      <Tooltip>{tooltip}</Tooltip>
+      <LazyTooltip>{tooltip}</LazyTooltip>
     </TooltipTrigger>
   );
 }

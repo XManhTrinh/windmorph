@@ -6,7 +6,11 @@
  * - public type declarations do not reference the vendored colour library,
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
- *   Menu is not among its static imports either.
+ *   Menu is not among its static imports either. Components that show a tooltip of their own
+ *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
+ *   and option lists load their loading indicator only while loading,
+ * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
+ *   with those controls, not from the controls' own modules,
  * - both stylesheets carry the component tokens (`generated/components.css`).
  */
 import { readFile, readdir } from 'node:fs/promises';
@@ -61,10 +65,37 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
   { component: 'components/menu/Menu.js', lazy: 'components/sheet/BottomSheet.js' },
   { component: 'components/select/Select.js', lazy: 'components/sheet/BottomSheet.js' },
   { component: 'composites/button-group/ButtonGroup.js', lazy: 'components/menu/Menu.js' },
+  ...[
+    'components/icon-button/IconButton.js',
+    'components/fab/Fab.js',
+    'components/fab-menu/FabMenu.js',
+    'components/toolbar/Toolbar.js',
+    'components/date-picker/DatePicker.js',
+    'components/date-picker/DateField.js',
+  ].map((component) => ({ component, lazy: 'components/tooltip/Tooltip.js' })),
+  ...[
+    'components/select/option-list.js',
+    'components/select/Select.js',
+    'components/autocomplete/Autocomplete.js',
+    'components/date-picker/DateField.js',
+  ].map((component) => ({
+    component,
+    lazy: 'components/loading-indicator/LoadingIndicator.js',
+  })),
 ];
 for (const { component, lazy } of LAZY_IMPORTS) {
   if (moduleClosure(`${root}dist`, component).includes(lazy))
     errors.push(`${component} imports ${lazy} statically; load it with import()`);
+}
+
+/** `List` imports only the drawn parts of the selection controls, not the controls. */
+for (const control of [
+  'components/checkbox/Checkbox.js',
+  'components/radio/RadioGroup.js',
+  'components/switch/Switch.js',
+]) {
+  if (moduleClosure(`${root}dist`, 'components/list/List.js').includes(control))
+    errors.push(`components/list/List.js imports ${control}; import its drawn parts' module`);
 }
 
 const tailwindEntry = await readFile(`${root}dist/styles/styles.css`, 'utf8');

@@ -9,7 +9,8 @@ import {
 } from '../../primitives/ButtonBase';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
-import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { FabTooltip } from './FabTooltip';
 import {
   extendedFabStyles,
@@ -121,7 +122,7 @@ export function Fab({
   return (
     <TooltipTrigger>
       {fab}
-      <Tooltip>{label}</Tooltip>
+      <LazyTooltip>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }
