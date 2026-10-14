@@ -1,1 +1,1 @@
-export { setMediaQueries } from '@windmorph/test-utils/setup';
+export { runIdleCallbacks, setMediaQueries } from '@windmorph/test-utils/setup';
