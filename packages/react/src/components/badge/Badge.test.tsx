@@ -9,7 +9,13 @@ describe('Badge', () => {
   it('renders a 6px error dot that announces a new notification', async () => {
     const { container } = render(<Badge data-testid="badge" />);
     const badge = screen.getByTestId('badge');
-    expect(badge).toHaveClass('size-[6px]', 'rounded-corner-full', 'bg-error');
+    expect(badge).toHaveClass(
+      'size-[6px]',
+      'rounded-corner-full',
+      'bg-[var(--_md-comp-badge-color)]',
+    );
+    expect(badge).toHaveAttribute('data-tokens', 'md-comp-badge');
+    expect(badge).toHaveAttribute('data-size', 'small');
     expect(badge).toHaveTextContent('New notification');
     expect(badge.firstElementChild).toHaveStyle({ position: 'absolute' });
     expect(await axeViolations(container)).toEqual([]);
@@ -24,11 +30,27 @@ describe('Badge', () => {
       'ps-[4px]',
       'pe-[4px]',
       'text-label-small',
-      'text-on-error',
+      'bg-[var(--_md-comp-badge-color)]',
+      'text-[color:var(--_md-comp-badge-label-text-color)]',
     );
+    expect(badge).toHaveAttribute('data-size', 'large');
     expect(badge).toHaveTextContent(/^3$/);
     expect(badge.firstElementChild).toHaveClass('truncate');
     expect(badge.firstElementChild).not.toHaveAttribute('aria-hidden');
+  });
+
+  it('lets consumer colour classes replace the token classes', () => {
+    render(
+      <Badge data-testid="badge" className="bg-primary text-on-primary">
+        {3}
+      </Badge>,
+    );
+    const badge = screen.getByTestId('badge');
+    expect(badge).toHaveClass('bg-primary', 'text-on-primary', 'text-label-small');
+    expect(badge).not.toHaveClass(
+      'bg-[var(--_md-comp-badge-color)]',
+      'text-[color:var(--_md-comp-badge-label-text-color)]',
+    );
   });
 
   it('stops text longer than four characters at 34px, truncating', () => {

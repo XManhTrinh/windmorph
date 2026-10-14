@@ -114,6 +114,8 @@ export function Snackbar({
           onEscape();
         }
       }}
+      // The component tokens' hook (snackbar-tokens.ts).
+      data-tokens="md-comp-snackbar"
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <div ref={messageRef} className={styles.message({ class: classNames?.message })}>
@@ -125,6 +127,7 @@ export function Snackbar({
             <Button
               variant="text"
               onPress={onAction}
+              data-slot="action"
               className={styles.action({ class: classNames?.action })}
             >
               {actionLabel}
@@ -136,6 +139,7 @@ export function Snackbar({
               icon={<CloseIcon />}
               aria-label={dismissLabel}
               onPress={onDismiss}
+              data-slot="dismiss"
               className={styles.dismiss({ class: classNames?.dismiss })}
             />
           )}

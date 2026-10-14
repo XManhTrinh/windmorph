@@ -174,6 +174,8 @@ function TooltipPopup({
     <div
       {...mergeProps(overlayProps, tooltipProps, exitProps)}
       ref={overlayRef}
+      // The component tokens' hook (tooltip-tokens.ts).
+      data-tokens="md-comp-plain-tooltip"
       data-placement={side}
       data-exiting={isExiting || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -521,16 +523,24 @@ function RichBody({
     <div
       {...domProps}
       ref={ref}
+      // The component tokens' hook (tooltip-tokens.ts).
+      data-tokens="md-comp-rich-tooltip"
       data-placement={placement}
       data-exiting={isExiting || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       {title != null && (
-        <div id={titleId} className={styles.title({ class: classNames?.title })}>
+        <div
+          id={titleId}
+          data-slot="subhead"
+          className={styles.title({ class: classNames?.title })}
+        >
           {title}
         </div>
       )}
-      <div className={styles.text({ class: classNames?.text })}>{children}</div>
+      <div data-slot="text" className={styles.text({ class: classNames?.text })}>
+        {children}
+      </div>
       {action != null && (
         <div className={styles.actions({ class: classNames?.actions })}>{action}</div>
       )}

@@ -70,6 +70,8 @@ export function Badge({
   return (
     <span
       {...rest}
+      // The component tokens' hooks (badge-tokens.ts); `data-size` is also a public hook.
+      data-tokens="md-comp-badge"
       data-size={size}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

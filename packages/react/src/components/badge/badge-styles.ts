@@ -15,13 +15,21 @@ import { tv, type VariantProps } from '../../utils/tv';
  * cell (margin-inline-start: 100% − offset, flex-aligned to its bottom), so nothing is
  * positioned and the badge never changes the anchor's size; it mirrors in RTL.
  *
+ * The colours come from the badge's component tokens (`badge-tokens.ts`,
+ * `--md-comp-badge-color` and `--md-comp-badge-large-*`); the root carries
+ * `data-tokens="md-comp-badge"` and `data-size`, and the classes read one private variable per
+ * part. A consumer class (`bg-primary`) still wins.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
 /** Variant definitions for {@link Badge}; extend them to add colour styles. */
 export const badgeStyles = tv({
   slots: {
-    root: 'inline-flex shrink-0 items-center justify-center rounded-corner-full bg-error text-on-error',
+    root: [
+      'inline-flex shrink-0 items-center justify-center rounded-corner-full',
+      'bg-[var(--_md-comp-badge-color)] text-[color:var(--_md-comp-badge-label-text-color)]',
+    ],
     // Only text longer than M3's four characters is cut (see `overflow`).
     label: 'min-w-0 truncate',
   },

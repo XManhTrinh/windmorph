@@ -21,7 +21,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  * sheet's springs.
  *
  * The sheets move by `translate` on a library-owned wrapper, never on the consumer's panel
- * (§10). Every class is written out in full so Tailwind can find it.
+ * (§10).
+ *
+ * The containers' colours, corners and shadows and the drag handle's colour come from the
+ * sheets' component tokens (`sheet-tokens.ts`, `--md-comp-sheet-bottom-docked-*` and
+ * `--md-comp-sheet-side-*`); each sheet's root carries its set's `data-tokens` and
+ * `data-variant` (a detached side sheet also `data-detached`), and the parts read one private
+ * variable each. A consumer class (`bg-surface-container`) still wins. Every class is written
+ * out in full so Tailwind can find it.
  */
 
 const scrim = [
@@ -58,15 +65,21 @@ export const bottomSheetStyles = tv({
       ...sheetMotion,
     ],
     panel: [
-      'flex max-h-[calc(100dvh-72px)] w-full flex-col rounded-t-corner-extra-large',
+      'flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
       'min-[641px]:max-h-[calc(100dvh-56px)]',
-      'bg-surface-container-low text-on-surface shadow-elevation-1 outline-none',
+      'bg-[var(--_md-comp-sheet-bottom-docked-container-color)] text-on-surface outline-none',
+      'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
     ],
     handle: [
       'flex w-full shrink-0 cursor-grab touch-none justify-center pt-[22px] pb-[22px] outline-none',
-      'focus-ring-inset rounded-t-corner-extra-large data-dragging:cursor-grabbing',
+      'focus-ring-inset rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
+      'data-dragging:cursor-grabbing',
     ],
-    handleBar: 'h-[4px] w-[32px] rounded-corner-extra-large bg-on-surface-variant',
+    handleBar: [
+      'h-[4px] w-[32px] rounded-corner-extra-large',
+      'bg-[var(--_md-comp-sheet-bottom-docked-drag-handle-color)]',
+    ],
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
     // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
     content:
@@ -97,7 +110,11 @@ export const sideSheetStyles = tv({
     // 256px by default; a consumer width can't pass the spec's 400px maximum. A fixed
     // maximum (not a percentage) also caps the wrapper's shrink-to-fit width, and `min-w-0`
     // lets the panel shrink with the wrapper in a narrow window.
-    panel: 'flex w-[256px] max-w-[400px] min-w-0 flex-col text-on-surface outline-none',
+    panel: [
+      'flex w-[256px] max-w-[400px] min-w-0 flex-col text-on-surface outline-none',
+      'bg-[var(--_md-comp-sheet-side-container-color)]',
+      'shadow-[shadow:var(--_md-comp-sheet-side-container-elevation)]',
+    ],
     header:
       'flex min-h-[72px] shrink-0 items-center gap-[12px] ps-[24px] pe-[12px] pt-[12px] pb-[12px]',
     title: 'min-w-0 flex-1 text-title-large font-brand text-on-surface-variant',
@@ -121,14 +138,14 @@ export const sideSheetStyles = tv({
   },
   variants: {
     variant: {
-      modal: { panel: 'bg-surface-container-low shadow-elevation-1' },
-      standard: { panel: 'h-full shrink-0 bg-surface' },
+      modal: {},
+      standard: { panel: 'h-full shrink-0' },
     },
     detached: {
       true: {
         motion: 'pt-[16px] pb-[16px] pe-[16px]',
         standardFrame: 'pt-[16px] pb-[16px] ps-[16px] pe-[16px]',
-        panel: 'rounded-corner-large',
+        panel: 'rounded-[var(--_md-comp-sheet-side-container-shape)]',
       },
       false: {},
     },
@@ -140,7 +157,11 @@ export const sideSheetStyles = tv({
     footerDivider: { true: { footer: 'border-t border-outline-variant' }, false: {} },
   },
   compoundVariants: [
-    { variant: 'modal', detached: false, class: { panel: 'rounded-s-corner-large' } },
+    {
+      variant: 'modal',
+      detached: false,
+      class: { panel: 'rounded-s-[var(--_md-comp-sheet-side-container-shape)]' },
+    },
     {
       variant: 'standard',
       detached: false,

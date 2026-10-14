@@ -1,3 +1,4 @@
+import { bottomSheetTokenSet, sideSheetTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -30,6 +31,7 @@ export async function SheetsBody(): Promise<ComponentDoc> {
   const sideLevelsHtml = await highlightSource(sideLevels);
 
   return {
+    tokens: [bottomSheetTokenSet, sideSheetTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

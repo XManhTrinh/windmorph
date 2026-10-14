@@ -4,13 +4,15 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Values follow Compose Material 3 (Divider.kt, DividerTokens): 1px of `outline-variant`.
  * Insets follow m3.material.io (16px at the start, or at both ends for a middle inset);
  * Compose leaves them to padding. The line is the element's background clipped to its
- * content box, so the inset is padding and the root keeps no margins (§10).
+ * content box, so the inset is padding and the root keeps no margins (§10). Its colour comes
+ * from the divider's component token (`divider-tokens.ts`, `--md-comp-divider-color`); the root
+ * carries `data-tokens="md-comp-divider"`, and a consumer class (`bg-primary`) still wins.
  * Every class is written out in full so Tailwind can find it.
  */
 
 /** Variant definitions for {@link Divider}; extend them to add variants. */
 export const dividerStyles = tv({
-  base: 'm-0 shrink-0 border-0 bg-outline-variant bg-clip-content',
+  base: 'm-0 shrink-0 border-0 bg-[var(--_md-comp-divider-color)] bg-clip-content',
   variants: {
     orientation: {
       horizontal: 'h-px w-full',

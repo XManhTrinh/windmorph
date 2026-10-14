@@ -18,7 +18,18 @@ import { openStory } from './story';
  * computed property on the element the token's `paints` names. Per set, it also checks a
  * token set on an ancestor, a role value declared on `[data-theme]` inside a forest, dark
  * ThemeScope (for a set with a colour token), and that a consumer class beats the token.
+ *
+ * Each probe region is a ThemeScope marked with a `token-probe-<region>` class, which an
+ * overlay opened in it carries on its portalled wrapper: a region is found by that class, so
+ * an open dialog, sheet or tooltip counts as inside the region it was rendered in.
  */
+
+/** The probe regions' classes (`stories/tokens/probe.tsx`), on the region and its overlays. */
+const REGION = {
+  instances: '.token-probe-instances',
+  scoped: '.token-probe-scoped',
+  override: '.token-probe-override',
+} as const;
 
 const SETS = Object.values(windmorph)
   .filter(isComponentTokenSet)
@@ -66,7 +77,10 @@ async function target(page: Page, root: string, slot: string | undefined): Promi
   const count = await roots.count();
   for (let index = 0; index < count; index++) {
     const candidate = roots.nth(index);
-    const extra = await candidate.evaluate((el) => el.closest('[data-probe-extra]') !== null);
+    const extra = await candidate.evaluate(
+      (el, extras) => el.closest(extras) !== null,
+      `[data-probe-extra], ${REGION.scoped}, ${REGION.override}`,
+    );
     if (extra) continue;
     return slot ? candidate.locator(`[data-slot="${slot}"]`).first() : candidate;
   }
@@ -124,7 +138,8 @@ test.describe('Component tokens', () => {
         const token = tokens[0]!;
         const element = await target(page, rootSelector(set, token), token.paints?.slot);
         const { value, matches } = sentinel(token.paints!.property);
-        await setVariable(page, '[data-probe="instances"]', token.name, value);
+        // Through the region's class, which also reaches the overlays opened in it.
+        await page.addStyleTag({ content: `${REGION.instances} { ${token.name}: ${value}; }` });
         const after = await computed(element, token.paints!.property);
         expect(matches(after), `read back ${after}`).toBe(true);
       });
@@ -132,7 +147,7 @@ test.describe('Component tokens', () => {
       test('a role value declared on [data-theme] follows a ThemeScope', async ({ page }) => {
         const colours = tokens.filter((token) => /color|fill|stroke/.test(token.paints!.property));
         test.skip(colours.length === 0, 'the set has no colour token');
-        const scoped = page.locator('[data-probe-extra="scoped"]');
+        const scoped = page.locator(REGION.scoped);
         // The first colour token that applies to the scoped instance.
         let match: { token: PublicComponentToken; element: Locator } | undefined;
         for (const token of colours) {
@@ -171,8 +186,10 @@ test.describe('Component tokens', () => {
       });
 
       test('a consumer class beats the token', async ({ page }) => {
-        const override = page.locator('[data-probe-extra="override"]');
-        const name = await override.getAttribute('data-probe-token');
+        const name = await page
+          .locator('[data-probe-extra="override"]')
+          .getAttribute('data-probe-token');
+        const override = page.locator(REGION.override);
         const token = tokens.find((candidate) => candidate.name === name);
         expect(token, `data-probe-token names no token of ${set.name}`).toBeDefined();
         const root = override.locator(rootSelector(set, token!)).first();

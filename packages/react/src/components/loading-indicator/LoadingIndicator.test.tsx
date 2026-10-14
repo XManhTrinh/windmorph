@@ -21,8 +21,10 @@ describe('LoadingIndicator', () => {
     expect(indicator).toHaveClass(
       'size-(--m3-loading-indicator-size,48px)',
       'rounded-corner-full',
-      'text-primary',
+      'text-[color:var(--_md-comp-loading-indicator-active-indicator-color)]',
     );
+    expect(indicator).toHaveAttribute('data-tokens', 'md-comp-loading-indicator');
+    expect(indicator).toHaveAttribute('data-variant', 'default');
     expect(indicator.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(await axeViolations(container)).toEqual([]);
   });
@@ -57,11 +59,29 @@ describe('LoadingIndicator', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
-  it('draws a contained indicator on a primary-container circle', () => {
+  it('draws a contained indicator on its container token', () => {
     render(<LoadingIndicator variant="contained" aria-label="Loading" />);
-    expect(screen.getByRole('progressbar')).toHaveClass(
-      'bg-primary-container',
-      'text-on-primary-container',
+    const indicator = screen.getByRole('progressbar');
+    expect(indicator).toHaveAttribute('data-variant', 'contained');
+    expect(indicator).toHaveClass(
+      'bg-[var(--_md-comp-loading-indicator-container-color)]',
+      'text-[color:var(--_md-comp-loading-indicator-active-indicator-color)]',
+    );
+  });
+
+  it('lets consumer colour classes replace the token classes', () => {
+    render(
+      <LoadingIndicator
+        variant="contained"
+        className="bg-tertiary-container text-on-tertiary-container"
+        aria-label="Loading"
+      />,
+    );
+    const indicator = screen.getByRole('progressbar');
+    expect(indicator).toHaveClass('bg-tertiary-container', 'text-on-tertiary-container');
+    expect(indicator).not.toHaveClass(
+      'bg-[var(--_md-comp-loading-indicator-container-color)]',
+      'text-[color:var(--_md-comp-loading-indicator-active-indicator-color)]',
     );
   });
 

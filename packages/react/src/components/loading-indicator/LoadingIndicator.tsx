@@ -136,6 +136,9 @@ export function LoadingIndicator({
     <div
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
+      // The component tokens' hooks (loading-indicator-tokens.ts); `data-variant` is also public.
+      data-tokens="md-comp-loading-indicator"
+      data-variant={variant ?? 'default'}
       data-indeterminate={indeterminate || undefined}
       style={
         size === undefined
@@ -151,6 +154,7 @@ export function LoadingIndicator({
         viewBox={`0 0 ${CONTAINER_SIZE} ${CONTAINER_SIZE}`}
         aria-hidden="true"
         overflow="visible"
+        data-slot="indicator"
         className={styles.indicator({ class: classNames?.indicator })}
       >
         <g ref={groupRef} transform={frameTransform(initial)}>

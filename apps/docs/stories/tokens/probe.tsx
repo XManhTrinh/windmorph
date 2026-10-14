@@ -18,19 +18,33 @@ export interface TokenProbeProps {
  * The layout every `Tokens/<set name>` probe story renders, read by
  * `e2e/component-tokens.spec.ts`: `data-probe="instances"`, then the scoped and override
  * instances, which the per-token checks skip.
+ *
+ * Each region is a `ThemeScope` with a `token-probe-<region>` class. An overlay opened in it
+ * (a dialog, sheet or tooltip, rendered open) is portalled to `body`, and `Overlay` puts the
+ * scope's class and theme on its wrapper, so the spec finds the overlay's region by that
+ * class, as it would any element inside the region.
  */
 export function TokenProbe({ instances, scoped, override }: TokenProbeProps) {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <div data-probe="instances" className="flex flex-col gap-4">
+      <ThemeScope data-probe="instances" className="token-probe-instances flex flex-col gap-4">
         {instances}
-      </div>
-      <ThemeScope theme="forest" mode="dark" data-probe-extra="scoped" className="bg-surface p-4">
+      </ThemeScope>
+      <ThemeScope
+        theme="forest"
+        mode="dark"
+        data-probe-extra="scoped"
+        className="token-probe-scoped bg-surface p-4"
+      >
         {scoped}
       </ThemeScope>
-      <div data-probe-extra="override" data-probe-token={override.token}>
+      <ThemeScope
+        data-probe-extra="override"
+        data-probe-token={override.token}
+        className="token-probe-override"
+      >
         {override.children}
-      </div>
+      </ThemeScope>
     </div>
   );
 }

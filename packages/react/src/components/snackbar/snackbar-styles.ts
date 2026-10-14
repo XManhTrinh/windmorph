@@ -11,6 +11,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * spatial (a clip-path reveal: the spec avoids scale and z-axis motion, and "a snackbar at
  * the bottom of the screen expands upwards"). The clip rests 32px outside the box so the
  * shadow shows; reduced motion keeps only the fade.
+ *
+ * The colours, corners and shadow come from the snackbar's component tokens
+ * (`snackbar-tokens.ts`, `--md-comp-snackbar-*`); the root carries
+ * `data-tokens="md-comp-snackbar"`, and the parts read one private variable each. A consumer
+ * class (`bg-surface-container`) still wins.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -19,12 +24,14 @@ export const snackbarStyles = tv({
   slots: {
     root: [
       'flex w-full max-w-[600px] min-h-[48px] ps-[16px]',
-      'rounded-corner-extra-small bg-inverse-surface text-body-medium text-inverse-on-surface shadow-elevation-3',
+      'rounded-[var(--_md-comp-snackbar-container-shape)] bg-[var(--_md-comp-snackbar-container-color)]',
+      'text-body-medium text-[color:var(--_md-comp-snackbar-supporting-text-color)]',
+      'shadow-[shadow:var(--_md-comp-snackbar-container-elevation)]',
     ],
     message: 'min-w-0',
     actions: 'flex shrink-0 items-center',
-    action: 'text-inverse-primary',
-    dismiss: 'text-inverse-on-surface',
+    action: 'text-[color:var(--_md-comp-snackbar-action-label-text-color)]',
+    dismiss: 'text-[color:var(--_md-comp-snackbar-icon-color)]',
   },
   variants: {
     newLine: {

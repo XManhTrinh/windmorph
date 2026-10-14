@@ -38,10 +38,15 @@ describe('BottomSheet', () => {
     const dialog = screen.getByRole('dialog', { name: 'Share options' });
     expect(dialog).toHaveClass(
       'custom',
-      'rounded-t-corner-extra-large',
-      'bg-surface-container-low',
+      'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
+      'bg-[var(--_md-comp-sheet-bottom-docked-container-color)]',
     );
-    expect(dialog).toHaveClass('shadow-elevation-1', 'max-h-[calc(100dvh-72px)]');
+    expect(dialog).toHaveClass(
+      'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
+      'max-h-[calc(100dvh-72px)]',
+    );
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-sheet-bottom-docked');
+    expect(dialog).toHaveAttribute('data-variant', 'modal');
     expect(dialog.parentElement).toHaveClass(
       'max-w-[640px]',
       'bottom-0',
@@ -49,7 +54,11 @@ describe('BottomSheet', () => {
       'min-[641px]:max-h-[calc(100dvh-56px)]',
     );
     const handle = screen.getByRole('button', { name: 'Close sheet' });
-    expect(handle.firstElementChild).toHaveClass('h-[4px]', 'w-[32px]', 'bg-on-surface-variant');
+    expect(handle.firstElementChild).toHaveClass(
+      'h-[4px]',
+      'w-[32px]',
+      'bg-[var(--_md-comp-sheet-bottom-docked-drag-handle-color)]',
+    );
     expect(handle).toHaveClass('pt-[22px]', 'pb-[22px]');
     expect(await axeViolations(baseElement)).toEqual([]);
     // Pressing the handle of a fully open sheet closes it.
@@ -209,10 +218,12 @@ describe('SideSheet', () => {
     const dialog = screen.getByRole('dialog', { name: 'Filters' });
     expect(dialog).toHaveClass(
       'w-[256px]',
-      'bg-surface-container-low',
-      'shadow-elevation-1',
-      'rounded-s-corner-large',
+      'bg-[var(--_md-comp-sheet-side-container-color)]',
+      'shadow-[shadow:var(--_md-comp-sheet-side-container-elevation)]',
+      'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
     );
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-sheet-side');
+    expect(dialog).toHaveAttribute('data-variant', 'modal');
     expect(screen.getByRole('heading', { name: 'Filters' })).toHaveClass('text-title-large');
     const footer = screen.getByRole('button', { name: 'Apply' }).parentElement!;
     expect(footer).toHaveClass(
@@ -262,7 +273,8 @@ describe('SideSheet', () => {
       </SideSheet>,
     );
     const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('rounded-corner-large');
+    expect(dialog).toHaveClass('rounded-[var(--_md-comp-sheet-side-container-shape)]');
+    expect(dialog).toHaveAttribute('data-detached', 'true');
     expect(dialog.parentElement).toHaveClass('pt-[16px]', 'pe-[16px]');
   });
 
@@ -293,8 +305,14 @@ describe('SideSheet', () => {
     expect(sheet).toHaveAttribute('role', 'dialog');
     expect(sheet).not.toHaveAttribute('aria-modal');
     expect(sheet).toHaveAccessibleName('Details');
-    const panel = screen.getByText('Body').closest('.bg-surface');
-    expect(panel).toHaveClass('border-s', 'border-outline-variant');
+    expect(sheet).toHaveAttribute('data-tokens', 'md-comp-sheet-side');
+    expect(sheet).toHaveAttribute('data-variant', 'standard');
+    const panel = screen.getByText('Body').closest('[data-slot="panel"]');
+    expect(panel).toHaveClass(
+      'bg-[var(--_md-comp-sheet-side-container-color)]',
+      'border-s',
+      'border-outline-variant',
+    );
     expect(await axeViolations(container)).toEqual([]);
     // Its close button reports onOpenChange(false).
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
@@ -342,8 +360,8 @@ describe('SideSheet', () => {
         Body
       </SideSheet>,
     );
-    const panel = screen.getByText('Body').closest('.bg-surface')!;
-    expect(panel).toHaveClass('rounded-corner-large');
+    const panel = screen.getByText('Body').closest('[data-slot="panel"]')!;
+    expect(panel).toHaveClass('rounded-[var(--_md-comp-sheet-side-container-shape)]');
     expect(panel).not.toHaveClass('border-s');
     expect(panel.parentElement).toHaveClass('pt-[16px]', 'ps-[16px]', 'pe-[16px]', 'pb-[16px]');
     rerender(
@@ -351,6 +369,39 @@ describe('SideSheet', () => {
         Body
       </SideSheet>,
     );
-    expect(screen.getByText('Body').closest('.bg-surface')).not.toHaveClass('border-s');
+    expect(screen.getByText('Body').closest('[data-slot="panel"]')).not.toHaveClass('border-s');
+  });
+  it("lets consumer classes replace both sheets' token classes", () => {
+    render(
+      <>
+        <BottomSheet
+          aria-label="Bottom"
+          defaultOpen
+          className="bg-surface-container rounded-t-corner-large shadow-elevation-3"
+        >
+          Bottom
+        </BottomSheet>
+        <SideSheet title="Side" defaultOpen className="bg-surface-container rounded-s-corner-small">
+          Side
+        </SideSheet>
+      </>,
+    );
+    const bottom = screen.getByText('Bottom').closest('[data-tokens]')!;
+    expect(bottom).toHaveClass(
+      'bg-surface-container',
+      'rounded-t-corner-large',
+      'shadow-elevation-3',
+    );
+    expect(bottom).not.toHaveClass(
+      'bg-[var(--_md-comp-sheet-bottom-docked-container-color)]',
+      'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
+    );
+    const side = screen.getByText('Side', { selector: 'div' }).closest('[data-tokens]')!;
+    expect(side).toHaveClass('bg-surface-container', 'rounded-s-corner-small');
+    expect(side).not.toHaveClass(
+      'bg-[var(--_md-comp-sheet-side-container-color)]',
+      'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
+    );
   });
 });

@@ -71,7 +71,7 @@ describe('Menu', () => {
     // One divider between the two groups; it can't take focus.
     const dividers = within(menu).getAllByRole('separator');
     expect(dividers).toHaveLength(1);
-    expect(dividers[0]).toHaveClass('bg-outline-variant', 'my-[8px]');
+    expect(dividers[0]).toHaveClass('bg-[var(--_md-comp-divider-color)]', 'my-[8px]');
     expect(dividers[0]).not.toHaveAttribute('tabindex');
     // The last item nests in the surface's bottom corners; Cut sits under the heading.
     expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveClass(

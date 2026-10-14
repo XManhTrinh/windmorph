@@ -89,11 +89,12 @@ describe('Tooltip', () => {
     const tooltip = await screen.findByRole('tooltip');
     expect(tooltip).toHaveTextContent('Add to favourites');
     expect(trigger).toHaveAttribute('aria-describedby', tooltip.id);
+    expect(tooltip).toHaveAttribute('data-tokens', 'md-comp-plain-tooltip');
     expect(tooltip).toHaveClass(
-      'bg-inverse-surface',
-      'text-inverse-on-surface',
+      'bg-[var(--_md-comp-plain-tooltip-container-color)]',
+      'text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
       'text-body-small',
-      'rounded-corner-extra-small',
+      'rounded-[var(--_md-comp-plain-tooltip-container-shape)]',
       'px-[8px]',
       'py-[4px]',
       'w-max',
@@ -122,7 +123,25 @@ describe('Tooltip', () => {
     render(<Favourite caret />);
     await hover(screen.getByRole('button'));
     const tooltip = await screen.findByRole('tooltip');
-    expect(tooltip.querySelector('[aria-hidden="true"]')).toHaveClass('border-t-inverse-surface');
+    expect(tooltip.querySelector('[aria-hidden="true"]')).toHaveClass(
+      'border-t-[color:var(--_md-comp-plain-tooltip-container-color)]',
+    );
+  });
+
+  it('lets consumer classes replace the token classes', async () => {
+    render(
+      <TooltipTrigger defaultOpen>
+        <IconButton icon={<svg />} aria-label="Favourite" />
+        <Tooltip className="bg-primary text-on-primary rounded-corner-small">Add</Tooltip>
+      </TooltipTrigger>,
+    );
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveClass('bg-primary', 'text-on-primary', 'rounded-corner-small');
+    expect(tooltip).not.toHaveClass(
+      'bg-[var(--_md-comp-plain-tooltip-container-color)]',
+      'text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
+      'rounded-[var(--_md-comp-plain-tooltip-container-shape)]',
+    );
   });
 
   it('takes its default placement from TooltipPlacementContext; its own placement wins', async () => {
@@ -167,15 +186,22 @@ describe('RichTooltip', () => {
     await userEvent.click(trigger);
     const dialog = await screen.findByRole('dialog', { name: 'Grouped tabs' });
     expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-rich-tooltip');
     expect(dialog).toHaveClass(
-      'bg-surface-container',
-      'shadow-elevation-2',
-      'rounded-corner-medium',
+      'bg-[var(--_md-comp-rich-tooltip-container-color)]',
+      'shadow-[shadow:var(--_md-comp-rich-tooltip-container-elevation)]',
+      'rounded-[var(--_md-comp-rich-tooltip-container-shape)]',
+      'text-[color:var(--_md-comp-rich-tooltip-supporting-text-color)]',
       'w-max',
       'max-w-[min(320px,100vw_-_16px)]',
       'px-[16px]',
     );
-    expect(screen.getByText('Grouped tabs')).toHaveClass('text-title-small', 'pt-[13px]');
+    expect(screen.getByText('Grouped tabs')).toHaveClass(
+      'text-title-small',
+      'pt-[13px]',
+      'text-[color:var(--_md-comp-rich-tooltip-subhead-color)]',
+    );
+    expect(screen.getByText('Grouped tabs')).toHaveAttribute('data-slot', 'subhead');
     expect(screen.getByText('Tabs from the same site stay together.')).toHaveClass(
       'text-body-medium',
       'pt-[9px]',

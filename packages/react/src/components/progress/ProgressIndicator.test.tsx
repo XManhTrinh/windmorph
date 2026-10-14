@@ -12,8 +12,14 @@ describe('LinearProgressIndicator', () => {
     expect(bar).toHaveClass('w-[240px]');
     expect(bar).toHaveStyle({ '--m3-progress-height': '4px' });
     const [track, active] = [...bar.querySelectorAll('path')];
-    expect(track).toHaveClass('stroke-secondary-container');
-    expect(active).toHaveClass('stroke-primary');
+    expect(bar).toHaveAttribute('data-tokens', 'md-comp-progress-indicator');
+    expect(track).toHaveClass('stroke-[var(--_md-comp-progress-indicator-track-color)]');
+    expect(active).toHaveClass(
+      'stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+    );
+    expect(bar.querySelector('circle')).toHaveClass(
+      'fill-[var(--_md-comp-progress-indicator-stop-indicator-color)]',
+    );
     // jsdom has no layout, so the default 240px width is used.
     expect(active).toHaveAttribute('d', 'M2 2L60 2');
     expect(bar.querySelector('circle')).toHaveAttribute('cx', '238');
@@ -85,9 +91,12 @@ describe('LinearProgressIndicator thickness and track', () => {
       />,
     );
     const bar = screen.getByRole('progressbar');
-    expect(bar.querySelector('.stroke-secondary-container')).toBeNull();
+    expect(bar.querySelector('[data-slot="track"]')).toBeNull();
     expect(bar.querySelector('circle')).toBeNull();
     expect(bar.querySelector('path')).toHaveClass('stroke-current');
+    expect(bar.querySelector('path')).not.toHaveClass(
+      'stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+    );
   });
 
   it('eases the moving line into the value when it arrives', async () => {
@@ -106,8 +115,9 @@ describe('CircularProgressIndicator', () => {
     const ring = screen.getByRole('progressbar', { name: 'Loading' });
     expect(ring).not.toHaveAttribute('aria-valuenow');
     expect(ring).toHaveAttribute('data-indeterminate', 'true');
+    expect(ring).toHaveAttribute('data-tokens', 'md-comp-progress-indicator');
     const [track, active] = [...ring.querySelectorAll('path')];
-    expect(track).toHaveClass('stroke-secondary-container');
+    expect(track).toHaveClass('stroke-[var(--_md-comp-progress-indicator-track-color)]');
     // The arc starts at 10% of the ring.
     expect(active).toHaveAttribute('stroke-dasharray', '0.1 1');
     const group = ring.querySelector('g')!;
