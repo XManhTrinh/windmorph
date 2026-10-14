@@ -1,3 +1,4 @@
+import { dividerTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -17,6 +18,7 @@ export async function DividerBody(): Promise<ComponentDoc> {
   const listHtml = await highlightSource(list);
 
   return {
+    tokens: [dividerTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

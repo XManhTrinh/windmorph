@@ -446,6 +446,7 @@ export {
   type DividerOrientation,
   type DividerStyleProps,
 } from './components/divider/divider-styles';
+export { dividerTokenSet } from './components/divider/divider-tokens';
 export {
   Badge,
   BadgedBox,

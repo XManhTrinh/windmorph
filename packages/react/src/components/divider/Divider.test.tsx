@@ -7,9 +7,23 @@ describe('Divider', () => {
   it('renders a 1px outline-variant horizontal separator', async () => {
     const { container } = render(<Divider className="my-4" />);
     const divider = screen.getByRole('separator');
-    expect(divider).toHaveClass('h-px', 'w-full', 'bg-outline-variant', 'bg-clip-content', 'my-4');
+    expect(divider).toHaveClass(
+      'h-px',
+      'w-full',
+      'bg-[var(--_md-comp-divider-color)]',
+      'bg-clip-content',
+      'my-4',
+    );
+    expect(divider).toHaveAttribute('data-tokens', 'md-comp-divider');
     expect(divider).not.toHaveAttribute('aria-orientation');
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('lets a consumer colour class replace the token class', () => {
+    render(<Divider className="bg-primary" />);
+    const divider = screen.getByRole('separator');
+    expect(divider).toHaveClass('bg-primary', 'bg-clip-content');
+    expect(divider).not.toHaveClass('bg-[var(--_md-comp-divider-color)]');
   });
 
   it('renders vertical and inset dividers', () => {

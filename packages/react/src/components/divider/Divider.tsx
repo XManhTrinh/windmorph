@@ -37,6 +37,8 @@ export function Divider({
   return (
     <div
       {...rest}
+      // The component token's hook (divider-tokens.ts).
+      data-tokens="md-comp-divider"
       role={decorative ? 'none' : 'separator'}
       aria-orientation={decorative || orientation === 'horizontal' ? undefined : 'vertical'}
       className={dividerStyles({ orientation, inset, class: className })}
