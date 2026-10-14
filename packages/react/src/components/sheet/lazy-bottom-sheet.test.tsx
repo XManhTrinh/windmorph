@@ -22,11 +22,12 @@ async function load() {
     await sheetModule.ready;
     return importOriginal();
   });
-  const [{ Button }, menu, select, options] = await Promise.all([
+  const [{ Button }, menu, select, options, { preloadBottomSheet }] = await Promise.all([
     import('../button/Button'),
     import('../menu/Menu'),
     import('../select/Select'),
     import('../select/option-list'),
+    import('./lazy-bottom-sheet'),
   ]);
   const { Menu, MenuItem, MenuTrigger } = menu;
   const { Select } = select;
@@ -59,7 +60,7 @@ async function load() {
     );
   }
 
-  return { EditMenu, Sort };
+  return { EditMenu, Sort, preloadBottomSheet };
 }
 
 const finishLoading = () => act(async () => sheetModule.finish());
@@ -129,5 +130,19 @@ describe('lazy bottom sheet', () => {
     await finishLoading();
     expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
     expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('once preloaded, opens in the same pass as the open, with no Suspense delay', async () => {
+    const { EditMenu, preloadBottomSheet } = await load();
+    const { rerender } = render(<EditMenu presentation="sheet" open={false} />);
+    const preloaded = preloadBottomSheet();
+    await finishLoading();
+    await act(() => preloaded);
+    rerender(<EditMenu presentation="sheet" open />);
+    // Nothing awaited: the render that opens it already has the sheet.
+    expect(screen.getByRole('dialog', { name: 'Edit' })).toContainElement(
+      screen.getByRole('menu', { name: 'Edit' }),
+    );
+    expect(sheetModule.loads).toBe(1);
   });
 });

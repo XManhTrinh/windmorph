@@ -20,9 +20,10 @@ async function load() {
     await menuModule.ready;
     return importOriginal();
   });
-  const [{ Button }, { ButtonGroup }] = await Promise.all([
+  const [{ Button }, { ButtonGroup }, { preloadOverflowMenu }] = await Promise.all([
     import('../../components/button/Button'),
     import('./ButtonGroup'),
+    import('./lazy-overflow-menu'),
   ]);
 
   function Actions({ overflow, count }: { overflow: boolean; count: number }) {
@@ -35,7 +36,7 @@ async function load() {
       </ButtonGroup>
     );
   }
-  return { Actions };
+  return { Actions, preloadOverflowMenu };
 }
 
 const finishLoading = () => act(async () => menuModule.finish());
@@ -97,5 +98,19 @@ describe('ButtonGroup lazy overflow menu', () => {
     expect(await screen.findByRole('menu')).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Archive' })).toHaveFocus());
     expect(menuModule.loads).toBe(1);
+  });
+
+  it('once loaded, opens in the same pass as the press, with no Suspense delay', async () => {
+    const { Actions, preloadOverflowMenu } = await load();
+    render(<Actions overflow count={4} />);
+    await waitFor(() => expect(menuModule.loads).toBe(1));
+    await finishLoading();
+    await act(() => preloadOverflowMenu());
+    act(() => more().click());
+    // Nothing awaited: the render that opens it already has the menu.
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Archive',
+      'Delete',
+    ]);
   });
 });
