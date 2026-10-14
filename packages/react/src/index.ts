@@ -312,6 +312,7 @@ export {
   type CheckboxProps,
 } from './components/checkbox/Checkbox';
 export { checkboxStyles, type CheckboxStyleProps } from './components/checkbox/checkbox-styles';
+export { checkboxTokenSet } from './components/checkbox/checkbox-tokens';
 export {
   Radio,
   RadioGroup,

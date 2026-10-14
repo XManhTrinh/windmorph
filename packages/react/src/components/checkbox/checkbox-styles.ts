@@ -12,6 +12,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * follow the M3 spec: on-surface when unselected, primary when selected, inverted while
  * pressed, error when invalid (shared with radio buttons and switches in
  * `selectionControlStyles`).
+ * The selected container and icon colours and the unselected outline colour come from the
+ * checkbox's component tokens (`checkbox-tokens.ts`, `--md-comp-checkbox-*`), resolved on
+ * the box. A consumer class (`classNames.box`) still wins in `cn()`.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -21,7 +24,8 @@ export const checkboxStyles = tv({
   slots: {
     box: [
       'relative inline-flex size-[18px] items-center justify-center rounded-[2px]',
-      'border-2 border-solid border-on-surface-variant bg-transparent text-on-primary',
+      'border-2 border-solid border-[color:var(--_md-comp-checkbox-unselected-outline-color)] bg-transparent',
+      'text-[color:var(--_md-comp-checkbox-selected-icon-color)]',
       '[transition-property:background-color,border-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
@@ -32,7 +36,8 @@ export const checkboxStyles = tv({
       'group-data-pressed/control:border-on-surface',
       // Selected boxes have no outline (Selected*OutlineWidth = 0): the border turns
       // transparent and the fill shows through it, in every state, invalid included.
-      'group-data-selected/control:border-transparent group-data-selected/control:bg-primary',
+      'group-data-selected/control:border-transparent',
+      'group-data-selected/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
       'group-data-selected/control:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       'group-data-selected/control:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'group-data-invalid/control:border-error group-data-invalid/control:text-on-error',

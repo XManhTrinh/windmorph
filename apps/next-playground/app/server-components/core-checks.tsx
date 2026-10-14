@@ -355,6 +355,7 @@ export const coreChecks = {
 
   Checkbox: { kind: 'component', render: () => <Core.Checkbox>Remember me</Core.Checkbox> },
   checkboxStyles: { kind: 'value', run: () => Core.checkboxStyles() },
+  checkboxTokenSet: read(Core.checkboxTokenSet),
   RadioGroup: {
     kind: 'component',
     render: () => (

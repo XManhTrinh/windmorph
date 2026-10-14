@@ -119,6 +119,30 @@ describe('Checkbox', () => {
     expect(screen.getByTestId('consent')).toBe(rootOf(checkbox));
   });
 
+  it('marks the root and the box for its component tokens, and paints the box with them', () => {
+    const { container } = render(<Checkbox>Remember me</Checkbox>);
+    expect(rootOf(screen.getByRole('checkbox'))).toHaveAttribute('data-tokens', 'md-comp-checkbox');
+    const box = container.querySelector('[data-slot="box"]');
+    expect(box).toHaveAttribute('data-tokens', 'md-comp-checkbox');
+    expect(box).toHaveClass(
+      'border-[color:var(--_md-comp-checkbox-unselected-outline-color)]',
+      'text-[color:var(--_md-comp-checkbox-selected-icon-color)]',
+      'group-data-selected/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
+    );
+  });
+
+  it('lets consumer box classes replace the token classes', () => {
+    const { container } = render(
+      <Checkbox classNames={{ box: 'border-tertiary text-on-tertiary' }}>Remember me</Checkbox>,
+    );
+    const box = container.querySelector('[data-slot="box"]');
+    expect(box).toHaveClass('border-tertiary', 'text-on-tertiary');
+    expect(box).not.toHaveClass(
+      'border-[color:var(--_md-comp-checkbox-unselected-outline-color)]',
+      'text-[color:var(--_md-comp-checkbox-selected-icon-color)]',
+    );
+  });
+
   it('requires a label or an accessible name in its types', () => {
     // @ts-expect-error children, aria-label or aria-labelledby is required
     const unnamed = <Checkbox />;
