@@ -1,3 +1,4 @@
+import { cardTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -24,6 +25,7 @@ export async function CardBody(): Promise<ComponentDoc> {
   const contentHtml = await highlightSource(content);
 
   return {
+    tokens: [cardTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

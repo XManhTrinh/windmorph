@@ -6,6 +6,31 @@ import { InlineCode } from '../../../components/inline-code';
 
 export const metadata: Metadata = guideMetadata('/customisation');
 
+const TOKENS_SNIPPET = `/* Every filled card, in every theme. Declared on :root and [data-theme],
+   a role value resolves again in each theme, mode, contrast and ThemeScope. */
+:root,
+[data-theme] {
+  --md-comp-filled-card-container-color: var(--md-sys-color-secondary-container);
+}
+
+/* Squarer elevated cards in one part of the page. */
+.compact {
+  --md-comp-elevated-card-container-shape: 4px;
+}`;
+
+const TOKENS_SCOPE_SNIPPET = `import { Card, ThemeScope } from '@windmorph/react';
+
+// A ThemeScope's class also goes on the overlays opened inside it
+// (menus, dialogs, tooltips), so tokens set through it reach them.
+<ThemeScope className="compact">
+  <Card variant="elevated">…</Card>
+</ThemeScope>;
+
+// One instance: set the variable on the component itself.
+<Card className="[--md-comp-filled-card-container-color:var(--md-sys-color-tertiary-container)]">
+  …
+</Card>;`;
+
 const CLASSNAME_SNIPPET = `import { Button } from '@windmorph/react';
 
 // A consumer className always wins over the library's conflicting class (via cn()).
@@ -46,12 +71,15 @@ const LAYOUT_SNIPPET = `import { Button, DockedToolbar } from '@windmorph/react'
 <DockedToolbar aria-label="Actions" className="fixed inset-x-0 bottom-0 w-full" />;`;
 
 export default async function CustomisationPage() {
-  const [classNameHtml, tvHtml, cnHtml, layoutHtml] = await Promise.all([
-    highlightSource(CLASSNAME_SNIPPET, 'tsx'),
-    highlightSource(TV_SNIPPET, 'tsx'),
-    highlightSource(CN_SNIPPET, 'ts'),
-    highlightSource(LAYOUT_SNIPPET, 'tsx'),
-  ]);
+  const [tokensHtml, tokensScopeHtml, classNameHtml, tvHtml, cnHtml, layoutHtml] =
+    await Promise.all([
+      highlightSource(TOKENS_SNIPPET, 'css'),
+      highlightSource(TOKENS_SCOPE_SNIPPET, 'tsx'),
+      highlightSource(CLASSNAME_SNIPPET, 'tsx'),
+      highlightSource(TV_SNIPPET, 'tsx'),
+      highlightSource(CN_SNIPPET, 'ts'),
+      highlightSource(LAYOUT_SNIPPET, 'tsx'),
+    ]);
 
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-10">
@@ -73,6 +101,11 @@ export default async function CustomisationPage() {
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
             <InlineCode>--md-sys-*</InlineCode> globally on <InlineCode>:root</InlineCode> or per
             theme on <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode>.
+          </li>
+          <li>
+            <span className="text-on-surface">Component tokens</span> — set M3&apos;s{' '}
+            <InlineCode>--md-comp-*</InlineCode> variables to restyle every instance of a component,
+            globally or within a scope.
           </li>
           <li>
             <span className="text-on-surface">Brand theme</span> — generate one with{' '}
@@ -104,12 +137,106 @@ export default async function CustomisationPage() {
           </li>
         </ol>
         <p className="text-body-large text-on-surface-variant">
-          Steps 1–4 are covered in the{' '}
+          Steps 1 and 3–5 are covered in the{' '}
           <a className="text-primary underline" href="/theming">
             Theming guide
           </a>
-          . This page focuses on step 5.
+          . This page covers component tokens (step 2) and the component level (step 6).
         </p>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 id="component-tokens" className="text-headline-small text-on-surface">
+          Component tokens
+        </h2>
+        <p className="text-body-large text-on-surface-variant">
+          Components with tokens read M3&apos;s component tokens as CSS variables, named after
+          M3&apos;s own <InlineCode>md.comp.*</InlineCode> tokens with the dots as dashes:{' '}
+          <InlineCode>md.comp.filled-card.container.color</InlineCode> is{' '}
+          <InlineCode>--md-comp-filled-card-container-color</InlineCode>. Each is unset until you
+          set it, and falls back to the system token the component uses by default. A
+          component&apos;s API tab lists its tokens, their defaults and what they paint (Card&apos;s{' '}
+          <a className="text-primary underline" href="/components/card/api#tokens">
+            Tokens
+          </a>
+          ).
+        </p>
+        <CodeBlock code={TOKENS_SNIPPET} html={tokensHtml} lang="css" title="tokens.css" />
+        <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
+          <li>
+            <span className="text-on-surface">Declare role values on</span>{' '}
+            <InlineCode>:root, [data-theme]</InlineCode>. A value that reads another variable
+            resolves where it&apos;s declared: on <InlineCode>:root</InlineCode> alone,{' '}
+            <InlineCode>var(--md-sys-color-secondary-container)</InlineCode> would keep the root
+            theme&apos;s colour inside a dark or differently themed{' '}
+            <InlineCode>ThemeScope</InlineCode>. ThemeScopes and overlays carry{' '}
+            <InlineCode>data-theme</InlineCode>, so the value resolves again in each.
+          </li>
+          <li>
+            <span className="text-on-surface">A literal value</span> (
+            <InlineCode>#0050c8</InlineCode>, <InlineCode>4px</InlineCode>) is the same in every
+            theme, mode and contrast level. Check a literal colour&apos;s contrast yourself.
+          </li>
+          <li>
+            <span className="text-on-surface">Set them on the component or an ancestor</span>, never
+            on an inner slot: the component resolves its tokens on its root.
+          </li>
+          <li>
+            <span className="text-on-surface">Overlays</span> portal to{' '}
+            <InlineCode>body</InlineCode>, so tokens set on an arbitrary ancestor don&apos;t reach
+            them. Tokens on <InlineCode>:root</InlineCode>, on <InlineCode>[data-theme]</InlineCode>
+            , on the overlay&apos;s own <InlineCode>className</InlineCode>, or through the class of
+            a <InlineCode>ThemeScope</InlineCode> around it do.
+          </li>
+          <li>
+            <span className="text-on-surface">Precedence:</span> system token, then component token,
+            then <InlineCode>className</InlineCode> and <InlineCode>classNames</InlineCode>, which
+            still win.
+          </li>
+          <li>
+            <span className="text-on-surface">Styling hooks:</span> a component with tokens marks
+            its root with <InlineCode>data-variant</InlineCode>, and with{' '}
+            <InlineCode>data-size</InlineCode> where it has sizes. They&apos;re public, so your own
+            selectors can use them (<InlineCode>[data-variant=&quot;outlined&quot;]</InlineCode>
+            ).
+          </li>
+        </ul>
+        <CodeBlock
+          code={TOKENS_SCOPE_SNIPPET}
+          html={tokensScopeHtml}
+          lang="tsx"
+          title="scoped-tokens.tsx"
+        />
+        <h3 id="coming-from-material-web" className="text-title-large text-on-surface">
+          Coming from Material Web
+        </h3>
+        <p className="text-body-large text-on-surface-variant">
+          Material Web names the same tokens without <InlineCode>comp-</InlineCode>: its{' '}
+          <InlineCode>--md-outlined-card-outline-color</InlineCode> is Windmorph&apos;s{' '}
+          <InlineCode>--md-comp-outlined-card-outline-color</InlineCode>, and{' '}
+          <InlineCode>--md-icon-button-icon-color</InlineCode> is{' '}
+          <InlineCode>--md-comp-icon-button-icon-color</InlineCode>. Windmorph follows M3&apos;s
+          current token tables, which are newer than Material Web, so:
+        </p>
+        <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
+          <li>
+            Where M3 Expressive renamed a component&apos;s tokens, Windmorph uses the new name. The
+            component&apos;s Tokens table is the reference.
+          </li>
+          <li>
+            Expressive sizes have their own shapes, so a single{' '}
+            <InlineCode>container-shape</InlineCode> becomes one per size where M3 has sizes.
+          </li>
+          <li>
+            Expressive-only tokens, such as the toggle&apos;s <InlineCode>selected-*</InlineCode>{' '}
+            and <InlineCode>unselected-*</InlineCode> colours, have no Material Web equivalent.
+          </li>
+          <li>
+            Typography, state-layer, disabled and spacing tokens aren&apos;t exposed. Use{' '}
+            <InlineCode>--md-sys-typescale-*</InlineCode>, <InlineCode>className</InlineCode> or{' '}
+            <InlineCode>classNames</InlineCode>, and the <InlineCode>size</InlineCode> prop.
+          </li>
+        </ul>
       </section>
 
       <section className="flex flex-col gap-4">
