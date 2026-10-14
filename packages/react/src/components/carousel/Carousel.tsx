@@ -51,10 +51,16 @@ export interface CarouselLabels {
    * @default (position, count) => `${position} of ${count}`
    */
   slide: (position: string, count: string) => string;
+  /** What the carousel is, read before its name (`aria-roledescription`). @default "carousel" */
+  carousel: string;
+  /** What each item is, read before its name (`aria-roledescription`). @default "slide" */
+  item: string;
 }
 
 const DEFAULT_LABELS: CarouselLabels = {
   slide: (position, count) => `${position} of ${count}`,
+  carousel: 'carousel',
+  item: 'slide',
 };
 
 /** Padding around the items, in px. `start` and `end` run along the carousel. */
@@ -469,7 +475,7 @@ export function Carousel({
       {...data}
       ref={rootRef}
       role="region"
-      aria-roledescription="carousel"
+      aria-roledescription={labels.carousel}
       aria-label={label}
       aria-labelledby={labelledBy}
       // The component token's hooks (carousel-tokens.ts), also public styling hooks for apps.
@@ -504,6 +510,7 @@ export function Carousel({
             key={item.key ?? index}
             index={index}
             label={labels.slide(numbers.format(index + 1), total)}
+            roleDescription={labels.item}
             disabled={disabled.has(index)}
             onAction={
               onAction &&
@@ -537,6 +544,7 @@ export function Carousel({
 function CarouselItem({
   index,
   label,
+  roleDescription,
   disabled,
   onAction,
   onFocus,
@@ -549,6 +557,7 @@ function CarouselItem({
 }: {
   index: number;
   label: string;
+  roleDescription: string;
   disabled: boolean;
   onAction?: () => void;
   onFocus: (event: FocusEvent<HTMLDivElement>) => void;
@@ -574,7 +583,7 @@ function CarouselItem({
         slotRef(element);
       }}
       role="group"
-      aria-roledescription="slide"
+      aria-roledescription={roleDescription}
       aria-label={label}
       aria-disabled={(interactive && disabled) || undefined}
       tabIndex={0}

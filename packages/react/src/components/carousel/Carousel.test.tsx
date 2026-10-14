@@ -49,6 +49,19 @@ describe('Carousel', () => {
     expect(screen.getAllByRole('group')[1]).toHaveAttribute('aria-label', 'Photo 2 / 2');
   });
 
+  it('takes the role descriptions from `labels` too', () => {
+    render(
+      <Carousel aria-label="Photos" labels={{ carousel: 'gallery', item: 'photo' }}>
+        {slides(2)}
+      </Carousel>,
+    );
+    expect(screen.getByRole('region', { name: 'Photos' })).toHaveAttribute(
+      'aria-roledescription',
+      'gallery',
+    );
+    expect(screen.getAllByRole('group')[0]).toHaveAttribute('aria-roledescription', 'photo');
+  });
+
   it('sizes slots and masks items from the keylines, inside the content padding', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
     render(
