@@ -45,6 +45,6 @@
     "components/time-picker/TimePicker": 28600,
     "components/toolbar/Toolbar": 22100,
     "components/tooltip/Tooltip": 13400,
-    "composites/button-group/ButtonGroup": 38750
+    "composites/button-group/ButtonGroup": 29050
   }
 }

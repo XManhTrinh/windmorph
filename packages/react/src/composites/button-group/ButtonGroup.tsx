@@ -28,11 +28,12 @@ import {
 } from '../../components/button/ButtonContext';
 import { IconButton } from '../../components/icon-button/IconButton';
 import type { IconButtonVariant } from '../../components/icon-button/icon-button-styles';
-import { Menu, MenuItem, MenuTrigger } from '../../components/menu/Menu';
+import { MenuTrigger } from '../../components/menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import type { VariantProps } from '../../utils/tv';
 import { buttonGroupStyles } from './button-group-styles';
+import { LazyOverflowMenuList } from './lazy-overflow-menu';
 import { useOverflow } from './use-overflow';
 import { usePressExpansion } from './use-press-expansion';
 
@@ -357,7 +358,9 @@ interface OverflowMenuProps {
  * The overflow indicator (Compose `ButtonGroupDefaults.OverflowIndicator`: a filled icon
  * button with `more_vert` and a "More options" tooltip, here the group's icon button
  * variant) and its menu. Choosing an item clicks the folded button itself, so its own
- * press handler, link, toggle or group selection runs as if it had been pressed.
+ * press handler, link, toggle or group selection runs as if it had been pressed. The menu's
+ * code loads once a button folds (see `LazyOverflowMenuList`); the indicator is always
+ * rendered, so the group can measure it.
  */
 function OverflowMenu({
   groupRef,
@@ -402,30 +405,22 @@ function OverflowMenu({
   return (
     <MenuTrigger onOpenChange={(open) => open && readPressed()}>
       <IconButton icon={<MoreVertIcon />} aria-label={label} />
-      <Menu
-        selectionMode={menuSelectionMode}
-        selectedKeys={selected}
-        disabledKeys={disabledKeys}
-        placement="bottom end"
-        onAction={(key) => {
-          elementAt(String(key))?.click();
-          // The button updates once this event is handled.
-          setTimeout(readPressed);
-        }}
-      >
-        {hidden.map((child, index) => {
-          const { label: itemLabel, icon } = describe(child, selected.includes(keyOf(index)));
-          return (
-            <MenuItem
-              key={keyOf(index)}
-              leadingIcon={icon}
-              textValue={typeof itemLabel === 'string' ? itemLabel : undefined}
-            >
-              {itemLabel}
-            </MenuItem>
-          );
-        })}
-      </Menu>
+      {hidden.length > 0 && (
+        <LazyOverflowMenuList
+          items={hidden.map((child, index) => ({
+            key: keyOf(index),
+            ...describe(child, selected.includes(keyOf(index))),
+          }))}
+          selectionMode={menuSelectionMode}
+          selectedKeys={selected}
+          disabledKeys={disabledKeys}
+          onAction={(key) => {
+            elementAt(String(key))?.click();
+            // The button updates once this event is handled.
+            setTimeout(readPressed);
+          }}
+        />
+      )}
     </MenuTrigger>
   );
 }

@@ -572,7 +572,8 @@ describe('ButtonGroup overflow', () => {
     expect(more).not.toHaveAttribute('data-overflow-hidden');
 
     await user.click(more);
-    const items = screen.getAllByRole('menuitem');
+    // The menu's code loads once a button folds; it may still be on its way.
+    const items = await screen.findAllByRole('menuitem');
     expect(items.map((item) => item.textContent)).toEqual(['Archive', 'Delete']);
     expect(items[1]).toHaveAttribute('aria-disabled', 'true');
     await user.click(items[0]!);
@@ -629,7 +630,7 @@ describe('ButtonGroup overflow', () => {
     expect(screen.getByRole('radio', { name: 'Week' })).toHaveClass('rounded-corner-small');
 
     await user.click(more);
-    const month = screen.getByRole('menuitemradio', { name: 'Month' });
+    const month = await screen.findByRole('menuitemradio', { name: 'Month' });
     expect(month).toHaveAttribute('aria-checked', 'true');
     await user.click(screen.getByRole('menuitemradio', { name: 'Year' }));
     expect(onSelectionChange).toHaveBeenCalledWith(new Set(['year']));

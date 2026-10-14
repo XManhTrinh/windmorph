@@ -5,7 +5,8 @@
  * - every relative import has a file extension (plain Node ESM can load it),
  * - public type declarations do not reference the vendored colour library,
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
- *   is not among their static imports.
+ *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
+ *   Menu is not among its static imports either.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -54,10 +55,15 @@ for (const file of distFiles) {
   }
 }
 
-const LAZY_SHEET = 'components/sheet/BottomSheet.js';
-for (const component of ['components/menu/Menu.js', 'components/select/Select.js']) {
-  if (moduleClosure(`${root}dist`, component).includes(LAZY_SHEET))
-    errors.push(`${component} imports ${LAZY_SHEET} statically; load it with import()`);
+/** Modules a component loads only when needed, with `import()`: never statically. */
+const LAZY_IMPORTS: { component: string; lazy: string }[] = [
+  { component: 'components/menu/Menu.js', lazy: 'components/sheet/BottomSheet.js' },
+  { component: 'components/select/Select.js', lazy: 'components/sheet/BottomSheet.js' },
+  { component: 'composites/button-group/ButtonGroup.js', lazy: 'components/menu/Menu.js' },
+];
+for (const { component, lazy } of LAZY_IMPORTS) {
+  if (moduleClosure(`${root}dist`, component).includes(lazy))
+    errors.push(`${component} imports ${lazy} statically; load it with import()`);
 }
 
 if (errors.length > 0) {
