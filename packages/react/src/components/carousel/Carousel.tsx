@@ -450,6 +450,9 @@ export function Carousel({
       aria-roledescription="carousel"
       aria-label={label}
       aria-labelledby={labelledBy}
+      // The component token's hooks (carousel-tokens.ts), also public styling hooks for apps.
+      data-tokens="md-comp-carousel"
+      data-variant={variant}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -553,6 +556,7 @@ function CarouselItem({
       aria-label={label}
       aria-disabled={(interactive && disabled) || undefined}
       tabIndex={0}
+      data-slot="item"
       data-index={index}
       data-focus-visible={focusVisible}
       data-disabled={(interactive && disabled) || undefined}

@@ -48,7 +48,9 @@
 
 /*
  * A carousel item's mask corner. Registered so a pressed item's corners animate (the mask
- * is clipped with `clip-path`, which reads it).
+ * is clipped with `clip-path`, which reads it). At rest it takes the component token
+ * `--md-comp-carousel-item-container-shape`, so the token must be a length; anything else
+ * falls back to the initial 28px.
  */
 @property --m3-carousel-item-corner {
   syntax: '<length>';

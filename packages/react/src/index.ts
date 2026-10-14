@@ -523,6 +523,7 @@ export {
   type CarouselProps,
 } from './components/carousel/Carousel';
 export { carouselStyles, type CarouselStyleProps } from './components/carousel/carousel-styles';
+export { carouselTokenSet } from './components/carousel/carousel-tokens';
 export {
   DatePicker,
   DateRangePicker,
