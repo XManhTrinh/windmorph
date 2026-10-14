@@ -15,9 +15,17 @@
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
+--md-comp-plain-tooltip-container-color
+--md-comp-plain-tooltip-container-shape
+--md-comp-plain-tooltip-supporting-text-color
 --md-comp-progress-indicator-active-indicator-color
 --md-comp-progress-indicator-stop-indicator-color
 --md-comp-progress-indicator-track-color
+--md-comp-rich-tooltip-container-color
+--md-comp-rich-tooltip-container-elevation
+--md-comp-rich-tooltip-container-shape
+--md-comp-rich-tooltip-subhead-color
+--md-comp-rich-tooltip-supporting-text-color
 --md-comp-snackbar-action-label-text-color
 --md-comp-snackbar-container-color
 --md-comp-snackbar-container-elevation

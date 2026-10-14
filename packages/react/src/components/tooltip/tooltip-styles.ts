@@ -19,6 +19,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   the spec avoids scale motion. The clip rests 16px outside the box, so the shadow and the
  *   optional 16×8px caret show. Reduced motion keeps only the fade.
  *
+ * The colours, corners and the rich tooltip's shadow come from the component tokens
+ * (`tooltip-tokens.ts`, `--md-comp-plain-tooltip-*` and `--md-comp-rich-tooltip-*`); each
+ * surface carries its set's `data-tokens`, and the parts read one private variable each. A
+ * consumer class (`bg-primary`) still wins; a caret keeps the token colour unless
+ * `classNames.caret` sets its own.
+ *
  * Baselines are converted to padding from Roboto Flex metrics (the 20px line puts the
  * baseline ~15px down): subhead 13px, text 9px. Every class is written out in full so
  * Tailwind can find it.
@@ -42,10 +48,14 @@ export const tooltipStyles = tv({
   slots: {
     root: [
       'z-(--md-sys-z-tooltip) min-h-[24px] w-max min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
-      'rounded-corner-extra-small bg-inverse-surface font-plain text-body-small text-inverse-on-surface',
+      'rounded-[var(--_md-comp-plain-tooltip-container-shape)] bg-[var(--_md-comp-plain-tooltip-container-color)]',
+      'font-plain text-body-small text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
       ...motion,
     ],
-    caret: 'size-0 border-x-[8px] border-t-[8px] border-x-transparent border-t-inverse-surface',
+    caret: [
+      'size-0 border-x-[8px] border-t-[8px] border-x-transparent',
+      'border-t-[color:var(--_md-comp-plain-tooltip-container-color)]',
+    ],
   },
 });
 
@@ -54,13 +64,18 @@ export const richTooltipStyles = tv({
   slots: {
     root: [
       'z-(--md-sys-z-tooltip) flex min-h-[24px] w-max min-w-[40px] max-w-[min(320px,100vw_-_16px)] flex-col px-[16px] outline-none',
-      'rounded-corner-medium bg-surface-container font-plain text-on-surface-variant shadow-elevation-2',
+      'rounded-[var(--_md-comp-rich-tooltip-container-shape)] bg-[var(--_md-comp-rich-tooltip-container-color)]',
+      'font-plain text-[color:var(--_md-comp-rich-tooltip-supporting-text-color)]',
+      'shadow-[shadow:var(--_md-comp-rich-tooltip-container-elevation)]',
       ...motion,
     ],
-    title: 'pt-[13px] text-title-small text-on-surface-variant',
+    title: 'pt-[13px] text-title-small text-[color:var(--_md-comp-rich-tooltip-subhead-color)]',
     text: 'text-body-medium',
     actions: 'flex min-h-[36px] items-center pb-[8px]',
-    caret: 'size-0 border-x-[8px] border-t-[8px] border-x-transparent border-t-surface-container',
+    caret: [
+      'size-0 border-x-[8px] border-t-[8px] border-x-transparent',
+      'border-t-[color:var(--_md-comp-rich-tooltip-container-color)]',
+    ],
   },
   variants: {
     subhead: {

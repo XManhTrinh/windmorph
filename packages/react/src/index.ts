@@ -145,6 +145,7 @@ export {
   tooltipStyles,
   type RichTooltipStyleProps,
 } from './components/tooltip/tooltip-styles';
+export { plainTooltipTokenSet, richTooltipTokenSet } from './components/tooltip/tooltip-tokens';
 export {
   Snackbar,
   SnackbarHost,
