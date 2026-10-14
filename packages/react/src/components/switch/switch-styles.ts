@@ -8,7 +8,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * thumb; releasing animates it on the fast spatial spring. The 40px state layer
  * follows the thumb.
  * Disabled colours are Compose's composites over `surface`. `--m3-thumb-size` and
- * `--m3-thumb-center` are set by the component. Every class is written out in full.
+ * `--m3-thumb-center` are set by the component. The resting track, outline, handle and icon
+ * colours come from the switch's component tokens (`switch-tokens.ts`, `--md-comp-switch-*`);
+ * a consumer class (`classNames.control`, `classNames.thumb`) still wins in `cn()`. Every
+ * class is written out in full.
  */
 
 const thumbMotion =
@@ -20,13 +23,18 @@ export const switchStyles = tv({
   slots: {
     // The control is the track.
     control: [
-      'h-[32px] w-[52px] border-2 border-solid border-outline bg-surface-container-highest',
+      // A list item's track is drawn without `data-tokens`, so the track's classes fall back
+      // to the defaults there; the switch's root resolves the tokens for its own track.
+      'h-[32px] w-[52px] border-2 border-solid',
+      'border-[color:var(--_md-comp-switch-unselected-track-outline-color,var(--md-sys-color-outline))]',
+      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
       // The thumb can be dragged sideways; vertical swipes still scroll the page.
       'touch-pan-y',
       '[transition-property:background-color,border-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
-      'group-data-selected/control:border-primary group-data-selected/control:bg-primary',
+      'group-data-selected/control:border-[color:var(--_md-comp-switch-selected-track-color,var(--md-sys-color-primary))]',
+      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-track-color,var(--md-sys-color-primary))]',
       'group-data-disabled/control:border-[color-mix(in_srgb,var(--md-sys-color-on-surface)_12%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-highest)_12%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:group-data-selected/control:border-transparent',
@@ -44,14 +52,16 @@ export const switchStyles = tv({
     ],
     thumb: [
       'absolute top-[calc(14px-var(--m3-thumb-size)/2)] start-[calc(var(--m3-thumb-center)-var(--m3-thumb-size)/2-2px)]',
-      'flex size-[var(--m3-thumb-size)] items-center justify-center rounded-full bg-outline text-surface-container-highest',
+      'flex size-[var(--m3-thumb-size)] items-center justify-center rounded-full',
+      'bg-[var(--_md-comp-switch-unselected-handle-color)] text-[color:var(--_md-comp-switch-unselected-icon-color)]',
       '[transition-property:width,height,top,inset-inline-start,background-color]',
       thumbMotion,
       'group-data-pressed/control:[transition-duration:0s,0s,0s,0s,var(--md-sys-motion-spring-effects-default-duration)]',
       'group-data-hovered/control:bg-on-surface-variant',
       'group-data-focus-visible/control:bg-on-surface-variant',
       'group-data-pressed/control:bg-on-surface-variant',
-      'group-data-selected/control:bg-on-primary group-data-selected/control:text-on-primary-container',
+      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-handle-color)]',
+      'group-data-selected/control:text-[color:var(--_md-comp-switch-selected-icon-color)]',
       'group-data-selected/control:group-data-hovered/control:bg-primary-container',
       'group-data-selected/control:group-data-focus-visible/control:bg-primary-container',
       'group-data-selected/control:group-data-pressed/control:bg-primary-container',

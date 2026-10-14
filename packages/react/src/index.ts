@@ -330,6 +330,7 @@ export {
 export { radioTokenSet } from './components/radio/radio-tokens';
 export { Switch, type SwitchClassNames, type SwitchProps } from './components/switch/Switch';
 export { switchStyles, type SwitchStyleProps } from './components/switch/switch-styles';
+export { switchTokenSet } from './components/switch/switch-tokens';
 export {
   Dialog,
   DialogActions,

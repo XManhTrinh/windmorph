@@ -1,3 +1,4 @@
+import { switchTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -23,6 +24,7 @@ export async function SwitchBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [switchTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

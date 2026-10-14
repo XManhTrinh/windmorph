@@ -26,7 +26,8 @@ export function thumbGeometry(selected: boolean, pressed: boolean, hasIcon: bool
 /**
  * The thumb and its optional icon, placed by `--m3-thumb-size` and `--m3-thumb-center` on
  * the track and styled from a `group/control` ancestor's state attributes. Shared with
- * list items that are switches.
+ * list items that are switches, so it carries the switch's component tokens
+ * (`switch-tokens.ts`) itself.
  */
 export function SwitchThumb({
   styles = switchStyles(),
@@ -40,7 +41,12 @@ export function SwitchThumb({
   iconClassName?: string;
 }) {
   return (
-    <span aria-hidden="true" className={styles.thumb({ class: className })}>
+    <span
+      aria-hidden="true"
+      data-tokens="md-comp-switch"
+      data-slot="thumb"
+      className={styles.thumb({ class: className })}
+    >
       {icon && <span className={styles.icon({ class: iconClassName })}>{icon}</span>}
     </span>
   );

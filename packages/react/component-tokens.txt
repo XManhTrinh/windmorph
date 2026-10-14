@@ -13,3 +13,10 @@
 --md-comp-outlined-card-outline-color
 --md-comp-radio-button-selected-icon-color
 --md-comp-radio-button-unselected-icon-color
+--md-comp-switch-selected-handle-color
+--md-comp-switch-selected-icon-color
+--md-comp-switch-selected-track-color
+--md-comp-switch-unselected-handle-color
+--md-comp-switch-unselected-icon-color
+--md-comp-switch-unselected-track-color
+--md-comp-switch-unselected-track-outline-color
