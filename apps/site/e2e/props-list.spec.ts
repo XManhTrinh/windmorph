@@ -10,32 +10,39 @@ import { gotoReady } from './navigate';
 const list = (page: Page, name: string) => page.getByRole('region', { name, exact: true });
 
 /**
- * Checks a prop's first line reads left to right with nothing pushed away: each part starts
- * right after the one before it on the same line, or at the start of the next line.
+ * Checks a prop's first lines read left to right with nothing pushed away. In a wide list the
+ * name, type, Required and default run as one line of text; in a narrow one the type starts
+ * a line of its own under the name, with the default right after it.
  */
-async function expectFirstLineFlows(header: Locator) {
-  const boxes = await header.evaluate((element) => {
-    const parts = [...element.children].filter(
-      (child) => child.textContent?.trim() && !child.classList.contains('sr-only'),
-    );
+async function expectRowStructure(header: Locator, wide: boolean) {
+  const box = await header.evaluate((element) => {
+    const rect = (part: Element | undefined) => {
+      if (!part) return null;
+      const rects = [...part.getClientRects()];
+      const first = rects[0]!;
+      const last = rects[rects.length - 1]!;
+      return { left: first.left, top: first.top, right: last.right, bottom: last.bottom };
+    };
+    const children = [...element.children];
     return {
       left: element.getBoundingClientRect().left,
-      parts: parts.map((part) => {
-        const rects = [...part.getClientRects()];
-        const first = rects[0]!;
-        const last = rects[rects.length - 1]!;
-        return { left: first.left, top: first.top, right: last.right, bottom: last.bottom };
-      }),
+      name: rect(element.querySelector('[data-prop-name]')!)!,
+      type: rect(children[1])!,
+      fallback: rect(children.find((child) => child.textContent?.trim().startsWith('='))),
     };
   });
-  expect(boxes.parts.length).toBeGreaterThanOrEqual(2);
-  for (let index = 1; index < boxes.parts.length; index++) {
-    const before = boxes.parts[index - 1]!;
-    const part = boxes.parts[index]!;
-    const sameLine = part.top < before.bottom - 4;
-    if (sameLine) expect(part.left - before.right).toBeLessThan(24);
-    else expect(part.left - boxes.left).toBeLessThan(4);
+  const nextTo = (
+    part: { left: number; top: number },
+    before: { right: number; bottom: number },
+  ) => (part.top < before.bottom - 4 ? part.left - before.right < 24 : part.left - box.left < 4);
+  if (wide) {
+    expect(box.type.top).toBeLessThan(box.name.bottom - 4);
+    expect(box.type.left - box.name.right).toBeLessThan(24);
+  } else {
+    expect(box.type.top).toBeGreaterThanOrEqual(box.name.bottom - 4);
+    expect(box.type.left - box.left).toBeLessThan(4);
   }
+  if (box.fallback) expect(nextTo(box.fallback, box.type)).toBe(true);
 }
 
 test.describe('Props list', () => {
@@ -52,9 +59,17 @@ test.describe('Props list', () => {
         .locator('#prop-Dialog-role [data-prop-description]')
         .boundingBox())!;
       expect(description.width / listBox.width).toBeGreaterThanOrEqual(0.95);
-      for (const name of ['open', 'defaultOpen', 'role', 'dismissable', 'fullScreen']) {
-        await expectFirstLineFlows(props.locator(`#prop-Dialog-${name} > [data-prop-header]`));
+      const wide = listBox.width >= 672;
+      if (width === 1440) expect(wide).toBe(true);
+      if (width === 390) expect(wide).toBe(false);
+      // Every row, keys included, has the same structure.
+      for (const header of await props
+        .locator('li[data-prop]:visible > [data-prop-header]')
+        .all()) {
+        await expectRowStructure(header, wide);
       }
+      // The classNames keys document the slots; no separate slots line repeats them.
+      await expect(page.getByText(/classNames slots:/)).toHaveCount(0);
     });
   }
 
@@ -77,8 +92,8 @@ test.describe('Props list', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await gotoReady(page, '/components/dialog/api');
     const props = list(page, 'Dialog props');
+    // The main group sits under the component's heading without a subhead of its own.
     await expect(props.getByRole('heading', { level: 4 })).toHaveText([
-      'Props',
       'Events',
       /^Styling \(\d+\)$/,
     ]);
@@ -128,6 +143,23 @@ test.describe('Props list', () => {
     await field.focus();
     await page.keyboard.type('scrim');
     await expect(status).toHaveText(/^\d+ props? match(es)?$/);
+    // The matches are highlighted, visually only, down into the folded key that matched.
+    const highlighted = () =>
+      page.evaluate(() =>
+        [...(CSS.highlights.get('props-filter') ?? [])].map((range) =>
+          (range as Range).toString().toLowerCase(),
+        ),
+      );
+    expect(await highlighted()).toContain('scrim');
+    expect(
+      await page.evaluate(() =>
+        [...(CSS.highlights.get('props-filter') ?? [])].some((range) =>
+          (range as Range).startContainer.parentElement?.closest(
+            '[id="prop-Dialog-classNames.scrim"]',
+          ),
+        ),
+      ),
+    ).toBe(true);
     // A match in the folded Styling group opens it, down to the matching key.
     await expect(page.locator('[id="prop-Dialog-classNames.scrim"]')).toBeVisible();
     await expect(page.locator('#prop-Dialog-open')).toBeHidden();
@@ -136,6 +168,7 @@ test.describe('Props list', () => {
     await page.keyboard.press('Escape');
     await expect(field).toHaveValue('');
     await expect(field).toBeFocused();
+    expect(await page.evaluate(() => CSS.highlights.has('props-filter'))).toBe(false);
     await expect(page.locator('#prop-Dialog-open')).toBeVisible();
 
     await page.keyboard.type('zzz nothing');
@@ -191,6 +224,7 @@ test.describe('Props list', () => {
       await page.getByRole('button', { name: /^Styling/ }).click();
       const scan = () => new AxeBuilder({ page }).include('section:has(> h2#props)');
       expect((await scan().analyze()).violations.map((violation) => violation.id)).toEqual([]);
+      // Again with the matches highlighted.
       await page.getByRole('textbox', { name: 'Filter props' }).fill('icon');
       await expect(page.getByRole('status').filter({ hasText: /match/ })).toBeVisible();
       expect((await scan().analyze()).violations.map((violation) => violation.id)).toEqual([]);
