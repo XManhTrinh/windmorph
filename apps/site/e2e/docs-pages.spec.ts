@@ -94,6 +94,19 @@ test.describe('Example cards', () => {
   });
 });
 
+test.describe('Slider value label example', () => {
+  test('shows and announces a 0–100 value as a percentage', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await gotoReady(page, '/components/slider');
+    const brightness = page.getByRole('slider', { name: 'Brightness' });
+    await expect(brightness).toHaveAttribute('aria-valuetext', '40%');
+    await brightness.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(brightness).toHaveAttribute('aria-valuetext', '41%');
+    await expect(page.getByText('41%', { exact: true })).toBeVisible();
+  });
+});
+
 test.describe('Install command', () => {
   test('switches package manager and remembers the choice', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });

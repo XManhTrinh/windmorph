@@ -21,7 +21,8 @@ export function SliderValueLabel() {
         size="md"
         defaultValue={40}
         showValueLabel
-        formatOptions={{ style: 'percent' }}
+        // 0–100 with a % sign: `style: 'percent'` would read 40 as 4,000%.
+        formatOptions={{ style: 'unit', unit: 'percent' }}
       />
     </div>
   );
