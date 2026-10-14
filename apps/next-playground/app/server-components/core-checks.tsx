@@ -109,9 +109,12 @@ export const coreChecks = {
   // Component tokens
   color: { kind: 'value', run: () => Core.color('primary') },
   colorAt: { kind: 'value', run: () => Core.colorAt('on-surface', 0.38) },
+  componentTokenList: { kind: 'value', run: () => Core.componentTokenList(Core.cardTokenSet) },
   componentTokensCss: { kind: 'value', run: () => Core.componentTokensCss(tokens) },
   corner: { kind: 'value', run: () => Core.corner('large') },
   defineComponentTokens: { kind: 'value', run: () => tokens },
+  elevation: { kind: 'value', run: () => Core.elevation(1) },
+  isComponentTokenSet: { kind: 'value', run: () => Core.isComponentTokenSet(Core.cardTokenSet) },
   px: { kind: 'value', run: () => Core.px(56) },
   spring: { kind: 'value', run: () => Core.spring('spatial', 'fast', 'easing') },
   typeTokens: { kind: 'value', run: () => Core.typeTokens('body-large') },
@@ -338,6 +341,7 @@ export const coreChecks = {
     ),
   },
   cardStyles: { kind: 'value', run: () => Core.cardStyles() },
+  cardTokenSet: read(Core.cardTokenSet),
 
   TextField: { kind: 'component', render: () => <Core.TextField label="Name" /> },
   textFieldStyles: { kind: 'value', run: () => Core.textFieldStyles() },
