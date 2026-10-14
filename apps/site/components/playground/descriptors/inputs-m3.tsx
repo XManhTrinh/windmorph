@@ -122,6 +122,14 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   select: {
     component: 'Select',
+    notRendered: {
+      SelectItem:
+        "The options, composed in the preview as the select's children; their text value, description and trailing content are per option, as the examples show.",
+      SelectSection:
+        'Groups options under a title inside the list; the preview keeps one flat list.',
+      OptionPopover:
+        'The popover the select and autocomplete open their options in, exported for building a custom field; the preview opens it through the select.',
+    },
     render: (props, update) =>
       createElement(
         SelectAny,
@@ -191,6 +199,11 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   autocomplete: {
     component: 'Autocomplete',
+    notRendered: {
+      AutocompleteItem:
+        "The options, composed in the preview as the autocomplete's children; their text value, description and trailing content are per option, as the examples show.",
+      AutocompleteSection: 'Groups options under a title; the Sections example shows it.',
+    },
     render: (props) =>
       createElement(
         AutocompleteAny,
@@ -269,6 +282,10 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'radio-group': {
     component: 'RadioGroup',
+    notRendered: {
+      Radio:
+        "The options, composed in the preview as the group's children; a radio takes only its value, label and disabled state, which the group's controls already show.",
+    },
     render: (props) =>
       createElement(
         RadioGroupAny,
@@ -329,6 +346,10 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   slider: {
     component: 'Slider',
+    notRendered: {
+      RangeSlider:
+        'A slider with two thumbs and the same look as the slider in the preview; the Range example shows it.',
+    },
     render: (props, update) =>
       createElement(
         'div',
@@ -382,6 +403,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   chips: {
     component: 'AssistChip',
+    notRendered: {
+      SuggestionChip:
+        'A chip type of its own with its own look; the Assist and suggestion example shows it beside the assist chip.',
+      FilterChip:
+        'A selectable chip type with its own look and states; the Filter example shows it.',
+      InputChip: 'A removable chip type, with an avatar or icon; the Input example shows it.',
+      ChipSet:
+        'Lays out and groups several chips (selection, wrapping or scrolling); the examples show it around each chip type.',
+    },
     render: (props) =>
       createElement(
         AssistChipAny,

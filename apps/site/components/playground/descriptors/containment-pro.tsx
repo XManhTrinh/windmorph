@@ -337,6 +337,9 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
   },
   avatar: {
     component: 'Avatar',
+    notRendered: {
+      AvatarGroup: 'Stacks several avatars with an overflow count; the page examples show it.',
+    },
     importFrom: '@windmorph/react-pro',
     render: ({ presence, badge, badgeLabel, src, icon, alt, decorative, href, ...props }) =>
       createElement(AvatarAny, {
@@ -421,6 +424,9 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
   },
   tag: {
     component: 'Tag',
+    notRendered: {
+      TagGroup: 'Lays out and names several tags; the page examples show it.',
+    },
     importFrom: '@windmorph/react-pro',
     render: ({ icon, fullLabel, maxWidth, ...props }) =>
       createElement(

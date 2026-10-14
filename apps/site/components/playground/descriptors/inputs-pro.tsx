@@ -293,6 +293,14 @@ const CROP_PHOTOS: Record<string, string> = {
 export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'message-field': {
     component: 'MessageField',
+    notRendered: {
+      MessageFieldFrame:
+        'The frame the message field is built from, exported for a custom editor; the preview shows the field itself.',
+      MessageFieldTrigger:
+        'A button that looks like the field and opens a full composer; the page examples show it.',
+      MessageFieldSend:
+        "The field's send button, exported for a custom editor; the preview's field includes it.",
+    },
     importFrom: '@windmorph/react-pro',
     render: (props, update) =>
       createElement(
@@ -345,6 +353,11 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'rich-message-field': {
     component: 'RichMessageField',
+    notRendered: {
+      FormattingToolbar:
+        "The rich field's formatting buttons, exported for a custom editor; the preview's field includes it.",
+      FormattedText: "Renders a rich message's saved text; the page examples show it.",
+    },
     importFrom: '@windmorph/react-pro/rich-text',
     render: (props, update) =>
       createElement(
@@ -418,6 +431,10 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'image-crop': {
     component: 'ImageCropDialog',
+    notRendered: {
+      ImageCropper:
+        'The cropping area on its own, for a custom layout; the preview shows it inside the crop dialog.',
+    },
     importFrom: '@windmorph/react-pro',
     render: ({ src, ...props }, update) => (
       <>

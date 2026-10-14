@@ -23,6 +23,7 @@ import {
   readHookDocSafe,
   type ComponentPropsFile,
   type HookDocFile,
+  type PropsRecord,
 } from './component-props';
 import { componentSizes, formatKilobytes } from './bundle-size';
 
@@ -92,16 +93,34 @@ const LINK =
   'rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
 async function OverviewTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDoc }) {
-  // The Playground drives its controls from the first documented component's props JSON.
+  // The Playground drives its controls from the documented components' props JSON: the first
+  // one's, and any sibling's its descriptor switches to. Only what the controls read is sent.
   const playgroundName = page.propsComponents[0];
-  const playgroundJson =
-    page.playground === 'full' && playgroundName
-      ? await readComponentPropsSafe(playgroundName)
-      : null;
+  const playgroundProps: Record<string, PropsRecord[]> = {};
+  if (page.playground === 'full') {
+    for (const name of page.propsComponents) {
+      const json = await readComponentPropsSafe(name);
+      if (json) {
+        playgroundProps[name] = json.props.map(
+          ({ name, type, required, defaultValue, options }) => ({
+            name,
+            type,
+            required,
+            ...(defaultValue !== undefined && { defaultValue }),
+            ...(options && { options }),
+          }),
+        );
+      }
+    }
+  }
   return (
     <>
-      {playgroundJson && playgroundName && (
-        <Playground slug={page.slug} componentName={playgroundName} props={playgroundJson.props} />
+      {playgroundName && playgroundProps[playgroundName] && (
+        <Playground
+          slug={page.slug}
+          componentName={playgroundName}
+          componentProps={playgroundProps}
+        />
       )}
       {doc.overview}
     </>

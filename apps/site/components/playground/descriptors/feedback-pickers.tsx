@@ -3,6 +3,7 @@
 import { CalendarDate, Time } from '@internationalized/date';
 import {
   Button,
+  CircularProgressIndicator,
   DatePicker,
   LinearProgressIndicator,
   List,
@@ -28,6 +29,7 @@ import { loose, noop, STAR, svg, type PlaygroundDescriptor, type PlaygroundUpdat
 
 const ButtonAny = loose(Button);
 const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
+const CircularProgressIndicatorAny = loose(CircularProgressIndicator);
 const LoadingIndicatorAny = loose(LoadingIndicator);
 const PullToRefreshAny = loose(PullToRefresh);
 const SkeletonAny = loose(Skeleton);
@@ -108,16 +110,34 @@ function PickerDialogPreview({
 export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   progress: {
     component: 'LinearProgressIndicator',
-    render: (props) =>
-      createElement(LinearProgressIndicatorAny, {
-        ...props,
-        'aria-label': 'Uploading',
-        className: 'w-[280px]',
-      }),
+    componentSwitch: {
+      control: 'indicator',
+      components: { linear: 'LinearProgressIndicator', circular: 'CircularProgressIndicator' },
+    },
+    render: ({ indicator, ...props }) =>
+      indicator === 'circular'
+        ? createElement(CircularProgressIndicatorAny, { ...props, 'aria-label': 'Uploading' })
+        : createElement(LinearProgressIndicatorAny, {
+            ...props,
+            'aria-label': 'Uploading',
+            className: 'w-[280px]',
+          }),
     defaultProps: { wavy: false, thickness: 4, track: true, stopIndicator: true },
-    surfacedProps: ['value', 'wavy', 'thickness', 'trackThickness', 'track', 'stopIndicator'],
+    surfacedProps: [
+      'indicator',
+      'value',
+      'wavy',
+      'thickness',
+      'trackThickness',
+      'track',
+      'stopIndicator',
+      'size',
+    ],
     initialState: { value: 0.4 },
-    codeSlots: { 'aria-label': '"Uploading"', className: '"w-full"' },
+    codeSlots: {
+      'aria-label': '"Uploading"',
+      className: (values) => (values.indicator === 'circular' ? null : '"w-full"'),
+    },
   },
   'loading-indicator': {
     component: 'LoadingIndicator',
@@ -173,6 +193,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   skeleton: {
     component: 'Skeleton',
+    notRendered: {
+      SkeletonGroup:
+        'Announces several placeholders as one loading region; the page examples show it.',
+    },
     importFrom: '@windmorph/react-pro',
     render: ({ animation, corner, ...props }) =>
       createElement(
@@ -359,6 +383,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   snackbar: {
     component: 'Snackbar',
+    notRendered: {
+      SnackbarHost:
+        'Queues the snackbars `useSnackbarHostState` shows; the preview shows one snackbar directly, and the Host example queues them.',
+    },
     render: ({ onDismiss, ...props }) =>
       createElement(
         'div',
@@ -379,6 +407,12 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   'date-picker': {
     component: 'DatePicker',
+    notRendered: {
+      DateRangePicker:
+        'Picks a start and an end date in the same calendar; the Range examples show it.',
+      DateField:
+        'A text field for typing a date, with a calendar menu; the Date field example shows it.',
+    },
     render: ({ minValue, maxValue, yearRange, defaultMode, ...props }) =>
       createElement(
         'div',
@@ -427,6 +461,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   'time-picker': {
     component: 'TimePicker',
+    notRendered: {
+      TimePickerModeToggle:
+        "Switches a modal time picker between the dial and the keyboard input; the Modal example shows it in the dialog's actions.",
+    },
     render: ({ hourCycle, ...props }, update) =>
       createElement(
         'div',

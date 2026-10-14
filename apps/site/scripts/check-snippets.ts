@@ -9,9 +9,13 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import { emitSnippet, propDefaultsFrom } from '../components/playground/code-emit';
-import { inferControls } from '../components/playground/controls-model';
 import { PLAYGROUND_DESCRIPTORS } from '../components/playground/descriptors';
+import {
+  activeComponent,
+  initialValues,
+  playgroundControls,
+  playgroundSnippet,
+} from '../components/playground/playground-state';
 import type { PlaygroundDescriptor } from '../components/playground/descriptors';
 import type { PropsRecord } from '../lib/component-props';
 
@@ -26,47 +30,49 @@ function valuesOf(kind: string, options: string[] | undefined, numeric: boolean)
   return ['/sample'];
 }
 
-/** Every snippet a playground can produce, one control changed at a time. */
-function snippetsOf(descriptor: PlaygroundDescriptor): string[] {
-  const props = (
-    JSON.parse(
-      readFileSync(join(siteRoot, '.generated/props', `${descriptor.component}.json`), 'utf8'),
-    ) as { props: PropsRecord[] }
-  ).props;
-  const controls = inferControls(
-    props,
-    descriptor.surfacedProps,
-    descriptor.enumOptions,
-    descriptor.defaultProps,
-    descriptor.controlKinds,
-  );
-  const initial = { ...descriptor.defaultProps, ...descriptor.initialState };
-  const states: Record<string, unknown>[] = [initial];
-  for (const control of controls) {
-    for (const value of valuesOf(control.kind, control.options, control.numeric === true)) {
-      const next = { ...initial, [control.name]: value };
-      states.push(descriptor.adjust ? descriptor.adjust(next, control.name) : next);
+/** A component's generated props, or none for one the generator skipped. */
+function readProps(name: string): PropsRecord[] {
+  return (
+    JSON.parse(readFileSync(join(siteRoot, '.generated/props', `${name}.json`), 'utf8')) as {
+      props: PropsRecord[];
     }
-  }
-  return states.map((values) =>
-    emitSnippet({
-      component: descriptor.component,
-      values,
-      surfacedProps: descriptor.surfacedProps,
-      defaultProps: { ...descriptor.defaultProps, ...descriptor.codeDefaults?.(values) },
-      propDefaults: propDefaultsFrom(props),
-      importMembers: descriptor.importMembers,
-      codeImports: descriptor.codeImports,
-      codeSlots: descriptor.codeSlots,
-      toggledSlots: descriptor.toggledSlots,
-      codeChildren:
-        typeof descriptor.codeChildren === 'function'
-          ? descriptor.codeChildren(values)
-          : descriptor.codeChildren,
-      codeWrap: descriptor.codeWrap,
-      importFrom: descriptor.importFrom,
-    }),
-  );
+  ).props;
+}
+
+/**
+ * Every snippet a playground can produce, one control changed at a time, from the starting
+ * state of each component its switch shows.
+ */
+function snippetsOf(descriptor: PlaygroundDescriptor): string[] {
+  const names = [
+    descriptor.component,
+    ...Object.values(descriptor.componentSwitch?.components ?? {}),
+  ];
+  const componentProps = Object.fromEntries(names.map((name) => [name, readProps(name)]));
+  const initial = initialValues(descriptor);
+  const switcher = descriptor.componentSwitch;
+  const starts = switcher
+    ? Object.keys(switcher.components).map((option) => {
+        const next = { ...initial, [switcher.control]: option };
+        return descriptor.adjust ? descriptor.adjust(next, switcher.control) : next;
+      })
+    : [initial];
+  return starts.flatMap((start) => {
+    const controls = playgroundControls(
+      descriptor,
+      componentProps,
+      activeComponent(descriptor, start),
+    );
+    const states: Record<string, unknown>[] = [start];
+    for (const control of controls) {
+      if (control.name === switcher?.control) continue;
+      for (const value of valuesOf(control.kind, control.options, control.numeric === true)) {
+        const next = { ...start, [control.name]: value };
+        states.push(descriptor.adjust ? descriptor.adjust(next, control.name) : next);
+      }
+    }
+    return states.map((values) => playgroundSnippet(descriptor, componentProps, values, controls));
+  });
 }
 
 rmSync(outDir, { recursive: true, force: true });

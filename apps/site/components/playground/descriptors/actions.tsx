@@ -3,6 +3,7 @@
 import {
   Button,
   ButtonGroup,
+  ExtendedFab,
   Fab,
   FabMenu,
   FabMenuItem,
@@ -30,6 +31,7 @@ const IconButtonAny = loose(IconButton);
 const ButtonGroupAny = loose(ButtonGroup);
 const SplitButtonAny = loose(SplitButton);
 const FabAny = loose(Fab);
+const ExtendedFabAny = loose(ExtendedFab);
 const FabMenuAny = loose(FabMenu);
 const FabMenuItemAny = loose(FabMenuItem);
 const ReactionPickerAny = loose(ReactionPicker);
@@ -287,14 +289,27 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   fab: {
     component: 'Fab',
+    componentSwitch: { control: 'fab', components: { icon: 'Fab', extended: 'ExtendedFab' } },
     // A new key replays the entrance when `appear` is switched on.
-    render: (props) =>
-      createElement(FabAny, {
-        ...props,
-        key: String(props.appear),
-        'aria-label': 'Add',
-        icon: <AddIcon />,
-      }),
+    render: ({ fab, ...props }) =>
+      fab === 'extended'
+        ? createElement(
+            ExtendedFabAny,
+            { ...props, key: String(props.appear), icon: <EditIcon /> },
+            'Compose',
+          )
+        : createElement(FabAny, {
+            ...props,
+            key: String(props.appear),
+            'aria-label': 'Add',
+            icon: <AddIcon />,
+          }),
+    // Each form has its own sizes, so switching starts on the new form's default.
+    adjust: (values, changed) =>
+      changed === 'fab'
+        ? { ...values, size: values.fab === 'extended' ? 'sm' : 'default' }
+        : values,
+    codeDefaults: (values) => ({ size: values.fab === 'extended' ? 'sm' : 'default' }),
     defaultProps: {
       size: 'default',
       color: 'primary-container',
@@ -303,9 +318,12 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       visible: true,
       appear: false,
       dragged: false,
+      expanded: true,
     },
     surfacedProps: [
+      'fab',
       'size',
+      'expanded',
       'color',
       'elevation',
       'visible',
@@ -315,11 +333,22 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'href',
     ],
     initialState: { size: 'default', color: 'primary-container' },
-    notControlled: NO_VISIBLE_EFFECT,
-    codeSlots: { icon: ADD, 'aria-label': '"Add"' },
+    notControlled: {
+      ...NO_VISIBLE_EFFECT,
+      icon: 'Optional on the extended FAB only, and M3 pairs its label with an icon, so the preview always shows one; a text-only extended FAB just leaves it out.',
+    },
+    codeSlots: {
+      icon: (values) => (values.fab === 'extended' ? EDIT : ADD),
+      'aria-label': (values) => (values.fab === 'extended' ? null : '"Add"'),
+    },
+    codeChildren: (values) => (values.fab === 'extended' ? 'Compose' : ''),
   },
   'fab-menu': {
     component: 'FabMenu',
+    notRendered: {
+      FabMenuItem:
+        "The menu's actions, composed in the preview as its children; each item's icon and link belong to one action, as the examples show.",
+    },
     // Anchored at the bottom end of a frame, as an app anchors it to the window.
     render: ({ openIcon, open, ...props }, update) =>
       createElement(

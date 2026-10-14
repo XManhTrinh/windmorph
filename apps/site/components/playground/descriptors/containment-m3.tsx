@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTrigger,
   Divider,
+  LabeledDivider,
   IconButton,
   List,
   ListItem,
@@ -38,6 +39,7 @@ import { type PlaygroundDescriptor, loose, svg } from './shared';
 const CardAny = loose(Card);
 const ListAny = loose(List);
 const DividerAny = loose(Divider);
+const LabeledDividerAny = loose(LabeledDivider);
 const ListItemAny = loose(ListItem);
 const DialogAny = loose(Dialog);
 const MenuAny = loose(Menu);
@@ -110,6 +112,17 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   dialog: {
     component: 'Dialog',
+    notRendered: {
+      DialogTrigger:
+        'Opens the dialog from a button; the preview opens it from the `open` control instead.',
+      DialogTitle: "A part the preview composes the dialog from; it takes only the title's text.",
+      DialogHeader:
+        "The full-screen dialog's header, with its close button and action; the Full-screen example shows it.",
+      DialogContent:
+        'A part the preview composes the dialog from; its dividers show in the Dividers example.',
+      DialogActions:
+        "A part the preview composes the dialog from; it takes only the dialog's buttons.",
+    },
     // The trigger's button opens the dialog (and is the container transform's origin);
     // closing it in any way sets `open` back to false.
     render: ({ icon, open, origin, ...props }, update) => (
@@ -180,6 +193,16 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   menu: {
     component: 'Menu',
+    notRendered: {
+      MenuItem:
+        "The menu's items, composed in the preview; their icons, description, badge and shortcut are per item, as the examples show.",
+      MenuGroup:
+        'Groups items under an optional title; the Basic and Layouts examples show it.',
+      MenuTrigger: "Opens the menu from the preview's button; its open state is the preview's own.",
+      SubmenuTrigger: 'Opens a nested menu from an item; the Submenu example shows it.',
+      ContextMenuTrigger:
+        'Opens the menu on right-click or long press of an area; the Context menu example shows it.',
+    },
     render: ({ density, offset, containerPadding, ...props }) =>
       createElement(
         MenuTrigger,
@@ -251,6 +274,14 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   tooltip: {
     component: 'Tooltip',
+    notRendered: {
+      RichTooltip:
+        'A tooltip with a subhead, text and actions; the Rich examples show it, while the playground shows the plain tooltip.',
+      TooltipTrigger:
+        "Shows the tooltip on hover, focus or long press of the preview's button; its timing and placement show only while you use it.",
+      RichTooltipTrigger:
+        'Shows the rich tooltip; the Rich examples show its placement and persistent forms.',
+    },
     // The icon button's own tooltip is off, so this one shows on hover and focus.
     render: (props) =>
       createElement(
@@ -279,6 +310,12 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   sheets: {
     component: 'BottomSheet',
+    notRendered: {
+      SideSheet:
+        'A side panel with its own options (detached, levels and back button); the Side sheet examples show it.',
+      SheetTrigger:
+        'Opens the sheet from a button; the preview opens it from the `open` control instead.',
+    },
     // In a bounded frame: a standard sheet is placed in it (`classNames.container`), and a
     // modal one opens over the window from the button.
     render: ({ open, closeIcon, collapseIcon, peekHeight, ...props }, update) =>
@@ -351,6 +388,14 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   list: {
     component: 'List',
+    notRendered: {
+      ListItem:
+        "The list's rows, composed in the preview; their text, leading and trailing content, links and controls are per row, as the examples show.",
+      ListSection: 'Groups rows under a title; the Sections example shows it.',
+      ListItemImage: "A row's leading image; the Media example shows it.",
+      ListItemVideo: "A row's leading video thumbnail; the Media example shows it.",
+      ListItemAvatar: "A row's leading avatar; the Media example shows it.",
+    },
     // On a rounded surface, as a sheet or card would hold it: the segmented gaps show the
     // surface, and its corners (16px item corners + 12px padding) follow the items'.
     render: ({ value, dividers, disabledKeys, headlineLines, supportingTextLines, ...props }) =>
@@ -511,6 +556,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   badge: {
     component: 'Badge',
+    notRendered: {
+      BadgedBox:
+        "Places the badge on the preview's icon; it takes only the badge, its content and classes.",
+    },
     render: ({ max, label }) => {
       const props = { max: asNumber(max), label: label || undefined };
       return createElement(
@@ -531,22 +580,33 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   divider: {
     component: 'Divider',
-    render: (props) =>
-      props.orientation === 'vertical'
+    componentSwitch: {
+      control: 'divider',
+      components: { plain: 'Divider', labeled: 'LabeledDivider' },
+    },
+    render: ({ divider, ...props }) =>
+      divider === 'labeled'
         ? createElement(
             'div',
-            { className: 'flex h-16 items-center gap-4 text-body-medium text-on-surface' },
-            <span key="a">One</span>,
-            createElement(DividerAny, { key: 'd', ...props }),
-            <span key="b">Two</span>,
-          )
-        : createElement(
-            'div',
             { className: 'w-60 text-body-medium text-on-surface' },
-            createElement(DividerAny, { key: 'd', ...props }),
-          ),
+            createElement(LabeledDividerAny, { key: 'd', ...props }, 'Or'),
+          )
+        : props.orientation === 'vertical'
+          ? createElement(
+              'div',
+              { className: 'flex h-16 items-center gap-4 text-body-medium text-on-surface' },
+              <span key="a">One</span>,
+              createElement(DividerAny, { key: 'd', ...props }),
+              <span key="b">Two</span>,
+            )
+          : createElement(
+              'div',
+              { className: 'w-60 text-body-medium text-on-surface' },
+              createElement(DividerAny, { key: 'd', ...props }),
+            ),
     defaultProps: { orientation: 'horizontal', inset: 'none', decorative: false },
-    surfacedProps: ['orientation', 'inset', 'decorative'],
+    surfacedProps: ['divider', 'orientation', 'inset', 'decorative'],
     initialState: { orientation: 'horizontal', inset: 'none' },
+    codeChildren: (values) => (values.divider === 'labeled' ? 'Or' : ''),
   },
 };

@@ -90,3 +90,22 @@ test.describe('Playground on a phone', () => {
     await expect(page.getByRole('dialog', { name: 'Display' })).toBeVisible();
   });
 });
+
+test.describe('Playground component switch', () => {
+  test('switches progress to circular, with its own controls and snippet', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await gotoReady(page, '/components/progress');
+    const playground = page.getByRole('region', { name: 'LinearProgressIndicator playground' });
+    const code = playground.getByRole('region', { name: 'tsx code' });
+    await expect(code).toContainText('<LinearProgressIndicator');
+    await expect(playground.getByRole('textbox', { name: 'size' })).toHaveCount(0);
+
+    await playground.getByRole('radio', { name: 'circular', exact: true }).click();
+    await expect(code).toContainText('<CircularProgressIndicator');
+    // The circular indicator's size gets a control; the linear-only stop indicator goes.
+    await playground.getByRole('textbox', { name: 'size' }).fill('64');
+    await expect(code).toContainText('size={64}');
+    await expect(playground.getByRole('switch', { name: 'stopIndicator' })).toHaveCount(0);
+    await expect(page).toHaveURL(/[?&]indicator=circular(&|$)/);
+  });
+});

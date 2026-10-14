@@ -61,6 +61,20 @@ export interface PlaygroundDescriptor {
    * way as the component's own, e.g. `{ fab: 'ToolbarFab' }`.
    */
   slotComponents?: Record<string, string>;
+  /**
+   * Sibling components the playground switches between with a segmented control (Progress:
+   * linear or circular). `control` names the switch (listed in `surfacedProps`; not a prop),
+   * and `components` maps each of its options to the component it renders, the first option
+   * being `component`. The snippet writes the chosen component, and controls for props it
+   * doesn't take are hidden. `playground-coverage.test.ts` checks every one's props.
+   */
+  componentSwitch?: { control: string; components: Record<string, string> };
+  /**
+   * The page's other documented components (`propsComponents`) that the playground doesn't
+   * give controls, each with the reason: a part the preview composes for you, say, or one
+   * whose own examples show it. `playground-coverage.test.ts` requires one for each.
+   */
+  notRendered?: Record<string, string>;
   /** Extra `@windmorph/react` member names imported alongside the component in the copied snippet. */
   importMembers?: string[];
   /** Non-`@windmorph/react` import lines for the copied snippet (one per entry). */
