@@ -139,6 +139,16 @@ export async function PullToRefreshBody(): Promise<ComponentDoc> {
               and claims the touch while pulling, so the browser&apos;s own pull to refresh and
               rubber-banding don&apos;t start as well.
             </li>
+            <li>
+              A <InlineCode>gap-*</InlineCode> on a flex area or <InlineCode>space-y-*</InlineCode>{' '}
+              on a block area spaces the content exactly. On a grid area, one row gap appears above
+              the content: every child of a grid is a grid item, including the indicator&apos;s
+              layer. Put the grid on an inner element:{' '}
+              <InlineCode>
+                {'<PullToRefresh><div className="grid gap-4">…</div></PullToRefresh>'}
+              </InlineCode>
+              .
+            </li>
           </ul>
         </section>
       </>

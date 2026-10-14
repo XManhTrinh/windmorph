@@ -174,17 +174,24 @@ test.describe('PullToRefresh layout safety', () => {
 
 test.describe('PullToRefresh content layout', () => {
   // Where each layout puts the first item (relative to the root) and the second one (relative
-  // to the first): 48px items with a 16px gap in a 320 × 240 root.
+  // to the first): 48px items with a 16px gap in a 320 × 240 root. Flex, block and
+  // `space-y-*` roots are exact. On a grid root the indicator's layer is a grid item in a row
+  // of its own, so exactly one row gap (16px) opens above the content and nothing else moves
+  // (documented); the grid on an element inside the root is exact.
   const expected = {
     block: { first: [0, 0], second: [0, 64] },
     flexColumn: { first: [0, 0], second: [0, 64] },
     flexColumnReverse: { first: [0, 192], second: [0, -64] },
     flexRow: { first: [0, 0], second: ['after', 0] },
-    grid: { first: [0, 0], second: [0, 64] },
-    gridColumns: { first: [0, 0], second: [168, 0] },
+    grid: { first: [0, 16], second: [0, 64] },
+    gridColumns: { first: [0, 16], second: [168, 0] },
+    gridInner: { first: [0, 0], second: [0, 64] },
   } as const;
   for (const [layout, { first, second }] of Object.entries(expected)) {
-    test(`a gap on a ${layout} root doesn't move the content`, async ({ page }) => {
+    const grid = layout === 'grid' || layout === 'gridColumns';
+    test(`a gap on a ${layout} ${grid ? 'root opens one row gap above the content' : "layout doesn't move the content"}`, async ({
+      page,
+    }) => {
       await openStory(page, 'components-pulltorefresh--content-layout', {}, { layout });
       const root = await rect(page.getByTestId('target'));
       const items = page.getByTestId('item');
@@ -194,6 +201,13 @@ test.describe('PullToRefresh content layout', () => {
       // In a flex row the second item starts one gap after the first one's width.
       const left = second[0] === 'after' ? Math.round(a.width) + 16 : second[0];
       expect([Math.round(b.x - a.x), Math.round(b.y - a.y)]).toEqual([left, second[1]]);
+      if (layout.startsWith('grid')) {
+        // Every item keeps its cell: the layer spans the columns in a row of its own.
+        const widths = await items.evaluateAll((els) =>
+          els.map((el) => Math.round(el.getBoundingClientRect().width)),
+        );
+        expect(new Set(widths).size).toBe(1);
+      }
     });
   }
 });

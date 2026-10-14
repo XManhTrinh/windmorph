@@ -144,38 +144,46 @@ export const LayoutOverride: StoryObj<{
   },
 };
 
-/** Consumer layouts on the root, each with a gap. */
+/**
+ * Consumer layouts, each with a gap: on the root, or (`gridInner`) on an element inside it,
+ * the pattern the docs recommend for a grid.
+ */
 const CONTENT_LAYOUTS = {
-  block: 'block space-y-4',
-  flexColumn: 'flex flex-col gap-4',
-  flexColumnReverse: 'flex flex-col-reverse gap-4',
-  flexRow: 'flex gap-4',
-  grid: 'grid gap-4',
-  gridColumns: 'grid grid-cols-2 gap-4',
-} as const;
+  block: { root: 'block space-y-4' },
+  flexColumn: { root: 'flex flex-col gap-4' },
+  flexColumnReverse: { root: 'flex flex-col-reverse gap-4' },
+  flexRow: { root: 'flex gap-4' },
+  grid: { root: 'grid gap-4' },
+  // `content-start`: two rows don't fill the 240px area, and stretched rows would share the
+  // free space with the layer's row too.
+  gridColumns: { root: 'grid grid-cols-2 content-start gap-4' },
+  gridInner: { root: '', inner: 'grid gap-4' },
+} as const satisfies Record<string, { root: string; inner?: string }>;
 
 /**
- * A `gap-*` on a flex or grid root spaces the content only: the indicator's layer, the root's
- * first child, never adds a gap above the first item.
+ * A `gap-*` on a flex root, or `space-y-*` on a block root, spaces the content only: the
+ * indicator's layer, the root's first child, adds no gap above the first item. On a grid root
+ * the layer is a grid item, so one row gap opens above the content (documented); with the grid
+ * on an element inside the root (`gridInner`) the content starts at the top.
  */
 export const ContentLayout: StoryObj<{ layout: keyof typeof CONTENT_LAYOUTS }> = {
   args: { layout: 'flexColumn' },
   argTypes: { layout: { control: 'select', options: Object.keys(CONTENT_LAYOUTS) } },
-  render: ({ layout }) => (
-    <PullToRefresh
-      data-testid="target"
-      onRefresh={() => undefined}
-      className={`h-[240px] w-[320px] overflow-y-auto bg-surface-container ${CONTENT_LAYOUTS[layout]}`}
-    >
-      {['Alex', 'Sam', 'Priya', 'Zoë'].map((name) => (
-        <p
-          key={name}
-          data-testid="item"
-          className="h-12 bg-surface text-body-medium text-on-surface"
-        >
-          {name}
-        </p>
-      ))}
-    </PullToRefresh>
-  ),
+  render: function ContentLayoutStory({ layout }) {
+    const config: { root: string; inner?: string } = CONTENT_LAYOUTS[layout];
+    const items = ['Alex', 'Sam', 'Priya', 'Zoë'].map((name) => (
+      <p key={name} data-testid="item" className="h-12 bg-surface text-body-medium text-on-surface">
+        {name}
+      </p>
+    ));
+    return (
+      <PullToRefresh
+        data-testid="target"
+        onRefresh={() => undefined}
+        className={`h-[240px] w-[320px] overflow-y-auto bg-surface-container ${config.root}`}
+      >
+        {config.inner ? <div className={config.inner}>{items}</div> : items}
+      </PullToRefresh>
+    );
+  },
 };

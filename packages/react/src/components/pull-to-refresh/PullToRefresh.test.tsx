@@ -321,7 +321,7 @@ describe('PullToRefresh', () => {
     expect(indicatorBox()).toHaveClass('shadow-elevation-3');
   });
 
-  it("cancels a flex or grid root's gap below its layer, so the content doesn't move", () => {
+  it("cancels a flex root's gap below its layer; in a grid the layer takes a row of its own", () => {
     const { rerender } = render(
       <PullToRefresh onRefresh={() => undefined} data-testid="area" style={{ display: 'block' }}>
         Content
@@ -349,7 +349,9 @@ describe('PullToRefresh', () => {
         Content
       </PullToRefresh>,
     );
-    expect(layer().style.marginBlockEnd).toBe('-8px');
+    // A grid row can't shrink below zero, so no margin is set: one row gap stays above the
+    // content (documented), and the layer spans every column so the content keeps its cells.
+    expect(layer().style.marginBlockEnd).toBe('0px');
     expect(layer().style.gridRow).toBe('span 1 / 1');
     expect(layer().style.gridColumn).toBe('1 / -1');
     rerender(

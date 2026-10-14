@@ -32,7 +32,8 @@ export interface PullToRefreshClassNames {
   /**
    * The zero-height sticky layer the indicator hangs from, at the top of the area. Give it a
    * `top-*` class when a sticky app bar covers the top of a scrolling page. Its margins are
-   * the library's, so the root's `gap-*` or `space-y-*` never moves the content.
+   * the library's, so a flex root's `gap-*` or a block root's `space-y-*` never moves the
+   * content. In a grid root it is a grid item, so one row gap opens above the content.
    */
   layer?: string;
   /** The 48px circle holding the loading indicator. */
@@ -66,7 +67,7 @@ interface PullToRefreshOwnProps {
    * Whether a refresh is running. While it is, the indicator rests at the threshold as an
    * indeterminate loading indicator; when it turns `false` the indicator leaves. Set it `true`
    * from a refresh button too, and the indicator comes in the same way. Leave it out to let a
-   * promise returned by `onRefresh` drive it. @default undefined (driven by `onRefresh`'s promise)
+   * promise returned by `onRefresh` drive it.
    */
   refreshing?: boolean;
   /**
@@ -80,11 +81,16 @@ interface PullToRefreshOwnProps {
   /** Turns the gesture off. A running refresh still shows its indicator. @default false */
   disabled?: boolean;
   /**
-   * Words the pull to refresh announces; name them for what refreshes ("Refreshing
-   * messages"). @default { pull: "Pull to refresh", refreshing: "Refreshing", refreshed: "Refreshed" }
+   * Words the pull to refresh announces, with English defaults; name them for what refreshes
+   * ("Refreshing messages").
    */
   labels?: Partial<PullToRefreshLabels>;
-  /** The content: a scrolling list, grid or card collection, or a whole page. */
+  /**
+   * The content: a scrolling list, grid or card collection, or a whole page. On a grid root
+   * (`grid` on `className`) the indicator's layer is a grid item, so one row gap opens above
+   * the content; put the grid on an element inside instead. Flex, block and `space-y-*` roots
+   * are exact.
+   */
   children?: ReactNode;
   /** Classes for the parts: `root`, `layer` (the sticky layer at the top) and `indicator`. */
   classNames?: PullToRefreshClassNames;
@@ -174,6 +180,12 @@ const isThenable = (value: unknown): value is PromiseLike<unknown> =>
  * element inside it) or a whole page. Scrolling is untouched: the gesture only pulls when the
  * content is at its top and the drag goes down.
  *
+ * A `gap-*` on a flex root or `space-y-*` on a block root spaces the content exactly. On a
+ * grid root, every in-flow child is a grid item, so the indicator's sticky layer takes a
+ * zero-height row of its own and one `row-gap` opens above the content (removing it would
+ * mean positioning the layer, which layout safety rules out). Put the grid on an element
+ * inside: `<PullToRefresh><div className="grid gap-4">…</div></PullToRefresh>`.
+ *
  * Pulling isn't available to everyone, so also offer a refresh button that sets `refreshing`,
  * in an app bar, a menu or next to the content (the spec's accessibility guidance).
  *
@@ -220,9 +232,9 @@ export function PullToRefresh({
     latest.current = { refreshing, disabled, threshold, onRefresh, refreshingProp, spring };
   });
 
-  // The layer is the root's first child, so a consumer `gap-*` on a flex or grid root would
-  // open a gap below it and push the content down. It's cancelled after every render and
-  // whenever the root resizes (a responsive class may change the gap).
+  // The layer is the root's first child, so a consumer `gap-*` on a flex root would open a gap
+  // below it and push the content down. It's cancelled after every render and whenever the
+  // root resizes (a responsive class may change the gap).
   const layerRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     if (rootRef.current && layerRef.current) cancelRootGap(rootRef.current, layerRef.current);
@@ -486,9 +498,10 @@ export function PullToRefresh({
 /**
  * Keeps the root's own spacing from opening below the zero-height layer. Its margins are the
  * library's: zero, so a `space-y-*` root doesn't push the content down, and in a flex root a
- * negative margin as large as the gap along the main axis. In a grid root it also moves to an
+ * negative margin as large as the gap along the main axis. In a grid root it moves to an
  * implicit row of its own before the first one, across every column, so the content keeps its
- * rows and columns.
+ * rows and columns; a grid row's size can't go below zero, so one row gap stays above the
+ * content (documented: put the grid on an element inside the root).
  */
 function cancelRootGap(root: HTMLElement, layer: HTMLElement) {
   const style = getComputedStyle(root);
@@ -500,7 +513,7 @@ function cancelRootGap(root: HTMLElement, layer: HTMLElement) {
   for (const side of ['BlockStart', 'BlockEnd', 'InlineStart', 'InlineEnd'] as const) {
     layer.style[`margin${side}`] = '0px';
   }
-  if ((grid || flex) && gap > 0) {
+  if (flex && gap > 0) {
     layer.style[`margin${row ? 'Inline' : 'Block'}${reverse ? 'Start' : 'End'}`] = `${-gap}px`;
   }
   layer.style.gridRow = grid ? 'span 1 / 1' : '';
