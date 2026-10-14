@@ -121,6 +121,9 @@ export function SearchList<T>({
   return (
     <div
       {...dialogProps}
+      // The menu's component tokens (menu-tokens.ts) for its panel and options.
+      data-tokens="md-comp-menus"
+      data-variant="standard"
       className={cn(
         'flex min-h-0 flex-col',
         embedded ? 'flex-1' : [menu.group(), 'max-h-[inherit] overflow-hidden'],
@@ -130,13 +133,14 @@ export function SearchList<T>({
       <div className="flex h-[52px] shrink-0 pb-[4px]">
         <div
           {...focusProps}
+          data-tokens="md-comp-search-bar"
           data-focus-visible={isFocusVisible || undefined}
           className={field.field({ class: classNames?.search })}
         >
-          <span className={field.leading()}>
+          <span data-slot="leading" className={field.leading()}>
             <SearchIcon />
           </span>
-          <input {...inputProps} ref={inputRef} className={field.input()} />
+          <input {...inputProps} ref={inputRef} data-slot="input" className={field.input()} />
         </div>
       </div>
       <OptionList

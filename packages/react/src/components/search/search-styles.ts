@@ -30,6 +30,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * content scrolls under the bar) and fills the free space up to 312px, then half of it,
  * at most 720px (M3 app bar guidelines).
  *
+ * The field's colours and corners come from the search bar's component tokens and the
+ * views' from the search view's (`search-tokens.ts`, `--md-comp-search-bar-*` and
+ * `--md-comp-search-view-*`); the pill, the dropdown and the full-screen view carry
+ * `data-tokens`. The search app bar reads the app bar's tokens (`app-bar-tokens.ts`). A
+ * consumer class still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -47,16 +53,16 @@ export const searchBarStyles = tv({
     // The pill holding the icons and the input fills the bar.
     // Keyboard focus in the input draws Compose's inset focus ring around the pill.
     field:
-      'focus-ring-inset flex h-full w-full min-w-0 items-center rounded-corner-full text-on-surface',
+      'focus-ring-inset flex h-full w-full min-w-0 items-center rounded-[var(--_md-comp-search-bar-container-shape)] text-on-surface',
     leading:
-      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-on-surface [&>svg]:size-[24px]',
+      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-leading-icon-color)] [&>svg]:size-[24px]',
     // One or two trailing icon buttons, or an avatar (30px) and an icon button (M3).
     trailing: [
-      'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center text-on-surface-variant',
+      'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-trailing-icon-color)]',
       '[&>svg]:size-[24px] [&>img]:size-[30px] [&>img]:rounded-full',
     ],
     input: [
-      'h-full min-w-0 flex-1 bg-transparent text-body-large text-on-surface caret-primary outline-none',
+      'h-full min-w-0 flex-1 bg-transparent text-body-large text-[color:var(--_md-comp-search-bar-input-text-color)] caret-primary outline-none',
       'placeholder:text-on-surface-variant',
       '[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none',
     ],
@@ -87,7 +93,7 @@ export const searchBarStyles = tv({
       'mt-[2px] overflow-y-auto overscroll-contain',
       // 58px is the field and the gap above the dropdown.
       'min-h-[min(182px,calc(66.67dvh-58px))] max-h-[calc(66.67dvh-58px)]',
-      'rounded-[12px] bg-surface-container-high text-on-surface',
+      'rounded-[var(--_md-comp-search-view-docked-container-shape)] bg-[var(--_md-comp-search-view-container-color)] text-on-surface',
       // Reduced motion: it only fades.
       'translate-y-0 motion-safe:starting:-translate-y-1/2 motion-safe:data-exiting:-translate-y-1/2',
       '[transition-property:translate,opacity]',
@@ -99,7 +105,7 @@ export const searchBarStyles = tv({
     ],
     // Full-screen view: the surface grows from the bar's bounds to the window.
     fullScreenPanel: [
-      'fixed inset-0 z-(--md-sys-z-sheet) bg-surface-container-low text-on-surface outline-none',
+      'fixed inset-0 z-(--md-sys-z-sheet) bg-[var(--_md-comp-search-view-container-color)] text-on-surface outline-none',
       '[clip-path:inset(0_round_0)]',
       'motion-safe:starting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
       'motion-safe:data-exiting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
@@ -147,7 +153,7 @@ export const searchBarStyles = tv({
      * step higher than the bar once content scrolls under it.
      */
     tone: {
-      default: { field: 'bg-surface-container-high' },
+      default: { field: 'bg-[var(--_md-comp-search-bar-container-color)]' },
       appBar: { field: 'bg-surface-container' },
       scrolled: { field: 'bg-surface-container-highest' },
     },
@@ -167,19 +173,19 @@ export const searchBarStyles = tv({
 export const searchAppBarStyles = tv({
   slots: {
     root: [
-      'flex min-h-[64px] w-full items-center bg-surface text-on-surface',
-      'data-scrolled:bg-surface-container',
+      'flex min-h-[64px] w-full items-center text-on-surface',
+      'bg-[var(--_md-comp-app-bar-container-color)] data-scrolled:bg-[var(--_md-comp-app-bar-on-scroll-container-color)]',
       '[transition-property:background-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
     // Icon buttons take each slot's content colour.
     navigation:
-      'flex shrink-0 items-center ps-[8px] pe-[4px] text-on-surface [--md-comp-icon-button-icon-color:currentColor]',
+      'flex shrink-0 items-center ps-[8px] pe-[4px] text-[color:var(--_md-comp-app-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
     // Centres the search bar in the free space, 8px from its neighbours and 4px vertically.
     search: 'flex min-w-0 flex-1 justify-center ps-[8px] pe-[8px] pt-[4px] pb-[4px]',
     actions:
-      'flex shrink-0 items-center gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant [--md-comp-icon-button-icon-color:currentColor]',
+      'flex shrink-0 items-center gap-[8px] ps-[4px] pe-[8px] text-[color:var(--_md-comp-app-bar-trailing-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
   },
   variants: {
     scrolling: {

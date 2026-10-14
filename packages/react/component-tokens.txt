@@ -36,6 +36,13 @@
 --md-comp-primary-navigation-tab-with-icon-inactive-icon-color
 --md-comp-primary-navigation-tab-with-label-text-active-label-text-color
 --md-comp-primary-navigation-tab-with-label-text-inactive-label-text-color
+--md-comp-search-bar-container-color
+--md-comp-search-bar-container-shape
+--md-comp-search-bar-input-text-color
+--md-comp-search-bar-leading-icon-color
+--md-comp-search-bar-trailing-icon-color
+--md-comp-search-view-container-color
+--md-comp-search-view-docked-container-shape
 --md-comp-secondary-navigation-tab-active-indicator-color
 --md-comp-secondary-navigation-tab-active-label-text-color
 --md-comp-secondary-navigation-tab-container-color

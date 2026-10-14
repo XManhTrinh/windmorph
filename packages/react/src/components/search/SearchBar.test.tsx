@@ -47,13 +47,23 @@ describe('SearchBar', () => {
     expect(input).toHaveClass('text-body-large', 'placeholder:text-on-surface-variant');
     const field = input.parentElement!;
     // The bar sets the height once; the pill fills it, so a consumer `h-*` resizes both.
-    expect(field).toHaveClass('h-full', 'rounded-corner-full', 'bg-surface-container-high');
+    expect(field).toHaveAttribute('data-tokens', 'md-comp-search-bar');
+    expect(field).toHaveClass(
+      'h-full',
+      'rounded-[var(--_md-comp-search-bar-container-shape)]',
+      'bg-[var(--_md-comp-search-bar-container-color)]',
+    );
+    expect(input).toHaveClass('text-[color:var(--_md-comp-search-bar-input-text-color)]');
     expect(screen.getByTestId('search')).toHaveClass(
       'h-[56px]',
       'w-[360px]',
       'max-w-[min(720px,100%)]',
     );
-    expect(input.previousElementSibling).toHaveClass('ms-[4px]', 'size-[48px]', 'text-on-surface');
+    expect(input.previousElementSibling).toHaveClass(
+      'ms-[4px]',
+      'size-[48px]',
+      'text-[color:var(--_md-comp-search-bar-leading-icon-color)]',
+    );
     expect(await axeViolations(container)).toEqual([]);
   });
 
@@ -81,10 +91,13 @@ describe('SearchBar', () => {
     expect(dialog).toContainElement(expandedInput);
     expect(expandedInput).toHaveFocus();
     expect(screen.getByTestId('search')).toHaveAttribute('data-expanded', 'true');
-    expect(screen.getByText('Suggestion one').parentElement).toHaveClass(
-      'rounded-[12px]',
+    const dropdown = screen.getByText('Suggestion one').parentElement!;
+    expect(dropdown).toHaveAttribute('data-tokens', 'md-comp-search-view');
+    expect(dropdown).toHaveAttribute('data-view', 'docked');
+    expect(dropdown).toHaveClass(
+      'rounded-[var(--_md-comp-search-view-docked-container-shape)]',
       'mt-[2px]',
-      'bg-surface-container-high',
+      'bg-[var(--_md-comp-search-view-container-color)]',
       // M3: with the bar, at least 240px and at most 2/3 of the window tall.
       'min-h-[min(182px,calc(66.67dvh-58px))]',
       'max-h-[calc(66.67dvh-58px)]',
@@ -182,9 +195,19 @@ describe('SearchBar', () => {
     const dialog = screen.getByRole('dialog');
     // M3 Expressive's contained style: a `surface-container-low` view, and the field keeps
     // its filled pill, 16px from each side.
-    expect(dialog).toHaveClass('fixed', 'inset-0', 'bg-surface-container-low');
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-search-view');
+    expect(dialog).toHaveAttribute('data-view', 'full-screen');
+    expect(dialog).toHaveClass(
+      'fixed',
+      'inset-0',
+      'bg-[var(--_md-comp-search-view-container-color)]',
+    );
     const field = screen.getByRole('searchbox').parentElement!;
-    expect(field).toHaveClass('bg-surface-container-high', 'rounded-corner-full');
+    expect(field).toHaveAttribute('data-tokens', 'md-comp-search-bar');
+    expect(field).toHaveClass(
+      'bg-[var(--_md-comp-search-bar-container-color)]',
+      'rounded-[var(--_md-comp-search-bar-container-shape)]',
+    );
     expect(field.parentElement).toHaveClass('start-[16px]', 'w-[calc(100%-32px)]');
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByTestId('search')).not.toHaveAttribute('data-expanded');
@@ -299,7 +322,12 @@ describe('SearchAppBar', () => {
     );
     const bar = screen.getByTestId('bar');
     expect(bar.tagName).toBe('HEADER');
-    expect(bar).toHaveClass('min-h-[64px]', 'bg-surface', 'data-scrolled:bg-surface-container');
+    expect(bar).toHaveAttribute('data-tokens', 'md-comp-app-bar');
+    expect(bar).toHaveClass(
+      'min-h-[64px]',
+      'bg-[var(--_md-comp-app-bar-container-color)]',
+      'data-scrolled:bg-[var(--_md-comp-app-bar-on-scroll-container-color)]',
+    );
     // M3: it fills the free space up to 312px, then half of it.
     expect(screen.getByTestId('search')).toHaveClass('w-[max(min(100%,312px),50%)]');
     // The search container is `surface-container` in an app bar.
@@ -313,7 +341,7 @@ describe('SearchAppBar', () => {
     expect(screen.getByRole('button', { name: 'Menu' }).parentElement).toHaveClass('ps-[8px]');
     expect(screen.getByRole('button', { name: 'Account' }).parentElement).toHaveClass(
       'pe-[8px]',
-      'text-on-surface-variant',
+      'text-[color:var(--_md-comp-app-bar-trailing-icon-color)]',
     );
     expect(await axeViolations(container)).toEqual([]);
   });

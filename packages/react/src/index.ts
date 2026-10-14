@@ -439,6 +439,7 @@ export {
   type SearchAppBarStyleProps,
   type SearchBarStyleProps,
 } from './components/search/search-styles';
+export { searchBarTokenSet, searchViewTokenSet } from './components/search/search-tokens';
 export {
   Divider,
   LabeledDivider,

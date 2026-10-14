@@ -270,12 +270,16 @@ export function SearchBar(props: SearchBarProps) {
       className={searchBarStyles({ tone }).field({ class: classNames?.field })}
       leading={
         leading != null && (
-          <span className={styles.leading({ class: classNames?.leading })}>{leading}</span>
+          <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
+            {leading}
+          </span>
         )
       }
       trailing={
         trailing != null && (
-          <span className={styles.trailing({ class: classNames?.trailing })}>{trailing}</span>
+          <span data-slot="trailing" className={styles.trailing({ class: classNames?.trailing })}>
+            {trailing}
+          </span>
         )
       }
     >
@@ -343,6 +347,7 @@ export function SearchBar(props: SearchBarProps) {
               }
             },
           })}
+          data-slot="input"
           className={inputClass(textAlign)}
           // The consumer's `inputRef` follows whichever input is live.
           ref={isPresent ? undefined : inputRef}
@@ -389,6 +394,7 @@ export function SearchBar(props: SearchBarProps) {
                       }
                     },
                   })}
+                  data-slot="input"
                   className={inputClass('start')}
                   inputRef={inputRef}
                 />,
@@ -418,7 +424,12 @@ function SearchField({
   // The pill shows the inset focus ring while its input has keyboard focus.
   const { isFocusVisible, focusProps } = useFocusRing({ within: true, isTextInput: true });
   return (
-    <div {...focusProps} data-focus-visible={isFocusVisible || undefined} className={className}>
+    <div
+      {...focusProps}
+      data-tokens="md-comp-search-bar"
+      data-focus-visible={isFocusVisible || undefined}
+      className={className}
+    >
       {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
       <ButtonContext value={standardIconButtons}>
         {leading}
@@ -500,6 +511,8 @@ function SearchView({
         {...exitProps}
         ref={panelRef}
         style={vars}
+        data-tokens="md-comp-search-view"
+        data-view="full-screen"
         data-exiting={exiting}
         className={styles.fullScreenPanel({ class: classNames?.view })}
       >
@@ -555,6 +568,8 @@ function SearchView({
             <div
               ref={contentRef}
               tabIndex={-1}
+              data-tokens="md-comp-search-view"
+              data-view="docked"
               data-exiting={exiting}
               className={styles.dropdown({ class: classNames?.content })}
             >
