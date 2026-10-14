@@ -12,11 +12,14 @@ describe('Fab', () => {
   it('renders a 56px primary-container FAB with level 3 elevation', () => {
     render(<Fab icon={<Icon />} aria-label="Compose" />);
     const fab = screen.getByRole('button', { name: 'Compose' });
+    expect(fab).toHaveAttribute('data-tokens', 'md-comp-fab');
+    expect(fab).toHaveAttribute('data-color', 'primary-container');
+    expect(fab).toHaveAttribute('data-size', 'default');
     expect(fab).toHaveClass(
       'size-[56px]',
-      'rounded-corner-large',
-      'bg-primary-container',
-      'text-on-primary-container',
+      'rounded-[var(--_md-comp-fab-container-shape)]',
+      'bg-[var(--_md-comp-fab-container-color)]',
+      'text-[color:var(--_md-comp-fab-icon-color)]',
       'shadow-elevation-3',
       // Pressed is level 3 again: the hover level never applies while pressed.
       'data-hovered:not-data-pressed:shadow-elevation-4',
@@ -28,22 +31,35 @@ describe('Fab', () => {
   });
 
   it.each([
-    ['medium', 'size-[80px]', 'rounded-corner-large-increased', 'size-[28px]'],
-    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[32px]'],
-  ] as const)('sizes the %s FAB to the spec tokens', (size, box, corner, iconSize) => {
+    ['medium', 'size-[80px]', 'size-[28px]'],
+    ['large', 'size-[96px]', 'size-[32px]'],
+  ] as const)('sizes the %s FAB to the spec tokens', (size, box, iconSize) => {
     render(<Fab size={size} icon={<Icon />} aria-label="Add" />);
-    expect(screen.getByRole('button')).toHaveClass(box, corner);
+    expect(screen.getByRole('button')).toHaveClass(box);
+    // The corners come from the size's token (--md-comp-fab-<size>-container-shape).
+    expect(screen.getByRole('button')).toHaveAttribute('data-size', size);
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
   });
 
-  it.each([
-    ['secondary-container', 'bg-secondary-container', 'text-on-secondary-container'],
-    ['tertiary-container', 'bg-tertiary-container', 'text-on-tertiary-container'],
-    ['primary', 'bg-primary', 'text-on-primary'],
-    ['tertiary', 'bg-tertiary', 'text-on-tertiary'],
-  ] as const)('uses the %s colour style', (color, bg, text) => {
-    render(<Fab color={color} icon={<Icon />} aria-label="Add" />);
-    expect(screen.getByRole('button')).toHaveClass(bg, text);
+  it.each(['secondary-container', 'tertiary-container', 'primary', 'tertiary'] as const)(
+    'marks the %s colour style for its component tokens',
+    (color) => {
+      render(<Fab color={color} icon={<Icon />} aria-label="Add" />);
+      expect(screen.getByRole('button')).toHaveAttribute('data-color', color);
+    },
+  );
+
+  it('lets consumer colour and corner classes replace the token classes', () => {
+    render(
+      <Fab
+        icon={<Icon />}
+        aria-label="Add"
+        className="bg-tertiary text-on-tertiary rounded-corner-small"
+      />,
+    );
+    const fab = screen.getByRole('button');
+    expect(fab).toHaveClass('bg-tertiary', 'text-on-tertiary', 'rounded-corner-small');
+    expect(fab.className).not.toMatch(/--_md-comp-fab-/);
   });
 
   it('lowers its elevation, or sits flat (level 0) when nested in another component', () => {
@@ -134,12 +150,18 @@ describe('ExtendedFab', () => {
   it('renders a 56px extended FAB with icon and label', () => {
     render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
     const fab = screen.getByRole('button', { name: 'Compose' });
+    expect(fab).toHaveAttribute('data-tokens', 'md-comp-extended-fab');
+    expect(fab).toHaveAttribute('data-color', 'primary-container');
+    expect(fab).toHaveAttribute('data-size', 'sm');
     expect(fab).toHaveClass(
       'h-[56px]',
       'min-w-[56px]',
       'ps-[16px]',
       'pe-[16px]',
       'text-title-medium',
+      'rounded-[var(--_md-comp-extended-fab-container-shape)]',
+      'bg-[var(--_md-comp-extended-fab-container-color)]',
+      'text-[color:var(--_md-comp-extended-fab-label-text-color)]',
     );
     expect(fab).toHaveAttribute('data-expanded', 'true');
     expect(screen.getByText('Compose')).toHaveClass('ps-[8px]');
@@ -191,18 +213,8 @@ describe('ExtendedFab', () => {
   });
 
   it.each([
-    [
-      'md',
-      ['h-[80px]', 'ps-[26px]', 'rounded-corner-large-increased', 'text-title-large'],
-      'ps-[16px]',
-      'size-[28px]',
-    ],
-    [
-      'lg',
-      ['h-[96px]', 'ps-[28px]', 'rounded-corner-extra-large', 'text-headline-small'],
-      'ps-[20px]',
-      'size-[32px]',
-    ],
+    ['md', ['h-[80px]', 'ps-[26px]', 'text-title-large'], 'ps-[16px]', 'size-[28px]'],
+    ['lg', ['h-[96px]', 'ps-[28px]', 'text-headline-small'], 'ps-[20px]', 'size-[32px]'],
   ] as const)('sizes %s to the spec tokens', (size, rootClasses, gap, iconSize) => {
     render(
       <ExtendedFab size={size} icon={<Icon />}>
@@ -210,6 +222,7 @@ describe('ExtendedFab', () => {
       </ExtendedFab>,
     );
     expect(screen.getByRole('button')).toHaveClass(...rootClasses);
+    expect(screen.getByRole('button')).toHaveAttribute('data-size', size);
     expect(screen.getByText('Compose')).toHaveClass(gap);
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
   });

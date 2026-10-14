@@ -130,6 +130,10 @@ test.describe('Component tokens', () => {
       });
 
       test('a role value declared on [data-theme] follows a ThemeScope', async ({ page }) => {
+        test.skip(
+          !tokens.some((token) => /color|fill|stroke/.test(token.paints!.property)),
+          'a set without colour tokens (only shapes) has no role value to follow',
+        );
         const scoped = page.locator('[data-probe-extra="scoped"]');
         // The first colour token that applies to the scoped instance.
         let match: { token: PublicComponentToken; element: Locator } | undefined;

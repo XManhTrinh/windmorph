@@ -1,3 +1,4 @@
+import { extendedFabTokenSet, fabTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -40,6 +41,7 @@ export async function FabBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [fabTokenSet, extendedFabTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

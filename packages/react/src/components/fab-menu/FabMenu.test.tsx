@@ -254,6 +254,30 @@ describe('FabMenu', () => {
     expect(item('Reply')).toHaveClass(closed);
   });
 
+  it('reads its close button’s and items’ corners from its component tokens', () => {
+    render(<Menu defaultOpen data-testid="menu" />);
+    expect(screen.getByTestId('menu')).toHaveAttribute('data-tokens', 'md-comp-fab-menu');
+    expect(toggle()).toHaveAttribute('data-slot', 'button');
+    expect(toggle()).toHaveClass(
+      'data-open:rounded-[var(--_md-comp-fab-menu-close-button-container-shape)]',
+    );
+    expect(item('Reply')).toHaveAttribute('data-slot', 'item');
+    expect(item('Reply')).toHaveClass(
+      'rounded-[var(--_md-comp-fab-menu-menu-item-container-shape)]',
+    );
+  });
+
+  it('lets a consumer corner class replace an item’s token class', () => {
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" defaultOpen>
+        <FabMenuItem className="rounded-corner-small">Reply</FabMenuItem>
+        <FabMenuItem>Forward</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(item('Reply')).toHaveClass('rounded-corner-small');
+    expect(item('Reply').className).not.toContain('menu-item-container-shape');
+  });
+
   it('lines up on the trailing edge, with level 3 items', () => {
     render(<Menu defaultOpen data-testid="menu" />);
     expect(screen.getByTestId('menu')).toHaveClass('items-end');

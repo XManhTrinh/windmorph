@@ -4,17 +4,27 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Values follow the M3 Expressive spec and its tokens (the Fab* / ExtendedFab* token
  * files): medium FABs use the large-increased corner (20px), the large FAB icon is 32px,
  * and extended FABs put 8 / 16 / 20px between icon and label. FABs have no press morph
- * and no disabled state. Every class is written out in full so Tailwind can find it.
+ * and no disabled state.
+ *
+ * The container colour, content colour and corners come from the component tokens
+ * (`fab-tokens.ts`, `--md-comp-fab-*` and `--md-comp-extended-fab-*`): the root carries
+ * `data-tokens`, `data-color` and `data-size`, and the classes read one private variable per
+ * part. A consumer class (`bg-tertiary`, `rounded-corner-small`) still wins in `cn()`.
+ *
+ * Every class is written out in full so Tailwind can find it.
  */
 
-/** Colour styles: the three tonal containers (Compose tokens) and the three vibrant roles. */
+/**
+ * Colour styles: the three tonal containers (Compose tokens) and the three vibrant roles.
+ * Their colours are the tokens' defaults; extend them with classes to add a style.
+ */
 const colors = {
-  'primary-container': { root: 'bg-primary-container text-on-primary-container' },
-  'secondary-container': { root: 'bg-secondary-container text-on-secondary-container' },
-  'tertiary-container': { root: 'bg-tertiary-container text-on-tertiary-container' },
-  primary: { root: 'bg-primary text-on-primary' },
-  secondary: { root: 'bg-secondary text-on-secondary' },
-  tertiary: { root: 'bg-tertiary text-on-tertiary' },
+  'primary-container': {},
+  'secondary-container': {},
+  'tertiary-container': {},
+  primary: {},
+  secondary: {},
+  tertiary: {},
 } as const;
 
 const elevation = {
@@ -50,16 +60,20 @@ const base = [
 /** Variant definitions for {@link Fab}; extend them to add colour styles. */
 export const fabStyles = tv({
   slots: {
-    root: base,
+    root: [
+      ...base,
+      'bg-[var(--_md-comp-fab-container-color)] text-[color:var(--_md-comp-fab-icon-color)]',
+      'rounded-[var(--_md-comp-fab-container-shape)]',
+    ],
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
   },
   variants: {
     color: colors,
     elevation,
     size: {
-      default: { root: 'size-[56px] rounded-corner-large', icon: 'size-[24px]' },
-      medium: { root: 'size-[80px] rounded-corner-large-increased', icon: 'size-[28px]' },
-      large: { root: 'size-[96px] rounded-corner-extra-large', icon: 'size-[32px]' },
+      default: { root: 'size-[56px]', icon: 'size-[24px]' },
+      medium: { root: 'size-[80px]', icon: 'size-[28px]' },
+      large: { root: 'size-[96px]', icon: 'size-[32px]' },
     },
   },
   defaultVariants: { color: 'primary-container', elevation: 'default', size: 'default' },
@@ -68,7 +82,12 @@ export const fabStyles = tv({
 /** Variant definitions for {@link ExtendedFab}. */
 export const extendedFabStyles = tv({
   slots: {
-    root: base,
+    root: [
+      ...base,
+      'bg-[var(--_md-comp-extended-fab-container-color)]',
+      'text-[color:var(--_md-comp-extended-fab-label-text-color)]',
+      'rounded-[var(--_md-comp-extended-fab-container-shape)]',
+    ],
     // Library-owned inner wrapper for the icon and the collapsing label.
     content: 'inline-flex items-center',
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
@@ -90,17 +109,17 @@ export const extendedFabStyles = tv({
     elevation,
     size: {
       sm: {
-        root: 'h-[56px] min-w-[56px] ps-[16px] pe-[16px] rounded-corner-large text-title-medium',
+        root: 'h-[56px] min-w-[56px] ps-[16px] pe-[16px] text-title-medium',
         icon: 'size-[24px]',
         text: 'ps-[8px]',
       },
       md: {
-        root: 'h-[80px] min-w-[80px] ps-[26px] pe-[26px] rounded-corner-large-increased text-title-large',
+        root: 'h-[80px] min-w-[80px] ps-[26px] pe-[26px] text-title-large',
         icon: 'size-[28px]',
         text: 'ps-[16px]',
       },
       lg: {
-        root: 'h-[96px] min-w-[96px] ps-[28px] pe-[28px] rounded-corner-extra-large font-brand text-headline-small',
+        root: 'h-[96px] min-w-[96px] ps-[28px] pe-[28px] font-brand text-headline-small',
         icon: 'size-[32px]',
         text: 'ps-[20px]',
       },

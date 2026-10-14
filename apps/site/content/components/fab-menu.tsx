@@ -1,3 +1,4 @@
+import { fabMenuTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -29,6 +30,7 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [fabMenuTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

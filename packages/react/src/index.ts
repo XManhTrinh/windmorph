@@ -111,6 +111,7 @@ export {
   type FabSize,
   type FabStyleProps,
 } from './components/fab/fab-styles';
+export { extendedFabTokenSet, fabTokenSet } from './components/fab/fab-tokens';
 export {
   CircularProgressIndicator,
   LinearProgressIndicator,
@@ -243,6 +244,7 @@ export {
   type FabMenuSize,
   type FabMenuStyleProps,
 } from './components/fab-menu/fab-menu-styles';
+export { fabMenuTokenSet } from './components/fab-menu/fab-menu-tokens';
 export {
   LoadingIndicator,
   type LoadingIndicatorClassNames,
