@@ -482,6 +482,77 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
   });
 
+  it('opens a submenu in its sheet in place of the menu, with a way back', async () => {
+    const onAction = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu
+          aria-label="File"
+          presentation="sheet"
+          onAction={onAction}
+          labels={{ back: 'Go back' }}
+        >
+          <MenuItem key="open">Open</MenuItem>
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share" onAction={onAction}>
+              <MenuItem key="email">Email</MenuItem>
+              <MenuItem key="link">Copy link</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    const sheet = await screen.findByRole('dialog', { name: 'File' });
+    const share = within(sheet).getByRole('menuitem', { name: 'Share' });
+    // Hovering doesn't open it: it would replace the menu under the pointer.
+    await userEvent.hover(share);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument();
+
+    share.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const submenu = await within(sheet).findByRole('menu', { name: 'Share' });
+    await waitFor(() =>
+      expect(within(submenu).getByRole('menuitem', { name: 'Email' })).toHaveFocus(),
+    );
+    // After the menu that opened it, which the sheet's styles hide, below a back button and
+    // the item's label; the list spans the sheet like the menu's.
+    const panel = submenu.closest('[data-submenu-panel]')!;
+    const root = within(sheet).getByRole('menu', { name: 'File' });
+    expect(root.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(panel).toHaveTextContent('Share');
+    expect(submenu).toHaveClass('w-full', 'bg-transparent', 'shadow-none');
+
+    // ← goes back, and the item that opened it takes focus again.
+    await userEvent.keyboard('{ArrowLeft}');
+    await waitFor(() =>
+      expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(share).toHaveFocus());
+
+    // So does the back button.
+    await userEvent.keyboard('{Enter}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Go back' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(share).toHaveFocus());
+
+    // An action in the submenu closes the sheet and returns focus to the trigger.
+    await userEvent.keyboard('{Enter}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('link');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
+  });
+
   it('closes its sheet on Escape', async () => {
     render(<EditMenu presentation="sheet" />);
     await openMenu('Edit');

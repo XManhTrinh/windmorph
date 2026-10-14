@@ -110,6 +110,26 @@ export const menuStyles = tv({
     trailing:
       'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-large text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
+    // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
+    // it (portalled in after it) and hides it, and any panel before it, while it's open.
+    sheetContent: [
+      'flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]',
+      '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
+      '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
+    ],
+    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    sheetPanel: [
+      'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
+      '[transition-property:opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+    ],
+    sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
+    sheetBack: [
+      'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
+    ],
+    sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },
   variants: {
     variant: {

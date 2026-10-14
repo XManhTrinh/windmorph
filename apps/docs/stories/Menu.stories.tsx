@@ -126,15 +126,18 @@ export const SingleSelection: Story = {
  * item that opened it keeps a pressed layer and the menu holding focus has rounder corners.
  */
 export const Submenus: Story = {
-  args: { variant: 'standard', layout: 'divider' },
-  render: function SubmenuStory({ variant, layout }) {
+  args: { variant: 'standard', layout: 'divider', presentation: 'popover' },
+  argTypes: {
+    presentation: { control: 'inline-radio', options: ['popover', 'sheet', 'auto'] },
+  },
+  render: function SubmenuStory({ variant, layout, presentation }) {
     const [last, setLast] = useState('none');
     const run = (key: unknown) => setLast(String(key));
     return (
       <div className="flex flex-col items-start gap-4">
         <MenuTrigger>
           <Button variant="tonal">File</Button>
-          <Menu variant={variant} layout={layout} onAction={run}>
+          <Menu variant={variant} layout={layout} presentation={presentation} onAction={run}>
             <MenuItem key="new" leadingIcon={<AddIcon />}>
               New
             </MenuItem>

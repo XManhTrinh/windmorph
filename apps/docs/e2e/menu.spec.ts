@@ -325,6 +325,68 @@ test.describe('Menu presentation and instant', () => {
     await expect(page.getByRole('button', { name: 'More' })).toBeFocused();
   });
 
+  test("a submenu in a sheet takes the menu's place, with a way back", async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--submenus', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'File' }).click();
+    const sheet = page.getByRole('dialog', { name: 'File' });
+    const root = sheet.getByRole('menu', { name: 'File' });
+    await expect(root.getByRole('menuitem').first()).toBeFocused();
+    await settle(page);
+
+    await root.getByRole('menuitem', { name: 'Share' }).click();
+    const share = sheet.getByRole('menu', { name: 'Share' });
+    await expect(share.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    // The menu that opened it is hidden; the submenu spans the sheet below a 48px back
+    // button and its item's label, all inside the window.
+    await expect(root).toBeHidden();
+    const back = sheet.getByRole('button', { name: 'Back' });
+    const s = await box(sheet);
+    const m = await box(share);
+    const b = await box(back);
+    expect([Math.round(b.width), Math.round(b.height)]).toEqual([48, 48]);
+    expect(Math.round(m.width)).toBe(Math.round(s.width) - 16);
+    expect(m.y).toBeGreaterThanOrEqual(b.y + b.height);
+    expect(m.y + m.height).toBeLessThanOrEqual(800);
+    await expect(sheet.getByText('Share', { exact: true })).toBeVisible();
+
+    // A nested submenu replaces it in turn; back goes up one level at a time.
+    await share.getByRole('menuitem', { name: 'Export as' }).click();
+    const exportAs = sheet.getByRole('menu', { name: 'Export as' });
+    await expect(exportAs.getByRole('menuitem', { name: 'PDF' })).toBeFocused();
+    await expect(share).toBeHidden();
+    await expect(root).toBeHidden();
+    await sheet.getByRole('button', { name: 'Back' }).click();
+    await expect(exportAs).toHaveCount(0);
+    await expect(share).toBeVisible();
+    await expect(share.getByRole('menuitem', { name: 'Export as' })).toBeFocused();
+
+    // ← goes back with the keyboard, to the item that opened it.
+    await page.keyboard.press('ArrowLeft');
+    await expect(share).toHaveCount(0);
+    await expect(root).toBeVisible();
+    await expect(root.getByRole('menuitem', { name: 'Share' })).toBeFocused();
+
+    // → opens it again, and an action closes the sheet.
+    await page.keyboard.press('ArrowRight');
+    await expect(share.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last action: email');
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole('button', { name: 'File' })).toBeFocused();
+  });
+
+  test('hovering a submenu item in a sheet does not open it', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--submenus', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'File' }).click();
+    const sheet = page.getByRole('dialog', { name: 'File' });
+    await settle(page);
+    await sheet.getByRole('menuitem', { name: 'Share' }).hover();
+    await page.waitForTimeout(400);
+    await expect(sheet.getByRole('menu', { name: 'Share' })).toHaveCount(0);
+  });
+
   test('presentation="auto" stays a popover on a wide window', async ({ page }) => {
     const menu = await openGrouped(page, {}, { presentation: 'auto' });
     await expect(menu).toBeVisible();

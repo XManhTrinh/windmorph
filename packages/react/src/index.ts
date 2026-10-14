@@ -384,6 +384,7 @@ export {
   type MenuGroupProps,
   type MenuItemProps,
   type MenuKey,
+  type MenuLabels,
   type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,
