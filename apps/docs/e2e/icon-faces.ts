@@ -79,25 +79,31 @@ const between = (value: number, low: number, high: number) => value > low && val
  * Checks a two-icon button's `iconTransition` in a story that takes it as an arg: `swap`
  * hands over at the midpoint of the fast spatial spring; `rotate` turns (mirrored in RTL)
  * and crossfades the faces; reduced motion keeps only the crossfade. `getButton` returns
- * the button, and pressing it moves to the alternate icon.
+ * the button, and pressing it moves to the alternate icon. `swap: false` skips the `swap`
+ * check, for a button whose `swap` changes the icon at once (the icon button).
  */
-export function iconTransitionSuite(storyId: string, getButton: (page: Page) => Locator) {
-  test('swap hands the icon over halfway through the spring', async ({ page }) => {
-    await openStory(page, storyId, {}, { iconTransition: 'swap' });
-    const button = getButton(page);
-    await freezeFaces(button);
-    await button.click();
-    expect(await frozenTransitions(button, 1)).toEqual([['visibility'], ['visibility']]);
-    const half = (await durationMs(button, SPATIAL_FAST)) / 2;
-    const visibility = async (ms: number) =>
-      (await sampleFaces(button, ms)).map(({ visibility: value }) => value);
-    expect(await visibility(half - 10)).toEqual(['visible', 'hidden']);
-    expect(await visibility(half + 10)).toEqual(['hidden', 'visible']);
-    // Nothing turns or fades.
-    for (const face of await sampleFaces(button, half)) {
-      expect(face).toMatchObject({ opacity: 1, rotate: 0 });
-    }
-  });
+export function iconTransitionSuite(
+  storyId: string,
+  getButton: (page: Page) => Locator,
+  { swap = true }: { swap?: boolean } = {},
+) {
+  if (swap)
+    test('swap hands the icon over halfway through the spring', async ({ page }) => {
+      await openStory(page, storyId, {}, { iconTransition: 'swap' });
+      const button = getButton(page);
+      await freezeFaces(button);
+      await button.click();
+      expect(await frozenTransitions(button, 1)).toEqual([['visibility'], ['visibility']]);
+      const half = (await durationMs(button, SPATIAL_FAST)) / 2;
+      const visibility = async (ms: number) =>
+        (await sampleFaces(button, ms)).map(({ visibility: value }) => value);
+      expect(await visibility(half - 10)).toEqual(['visible', 'hidden']);
+      expect(await visibility(half + 10)).toEqual(['hidden', 'visible']);
+      // Nothing turns or fades.
+      for (const face of await sampleFaces(button, half)) {
+        expect(face).toMatchObject({ opacity: 1, rotate: 0 });
+      }
+    });
 
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`rotate turns and crossfades the icons · ${dir}`, async ({ page }) => {

@@ -146,6 +146,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       toggle: false,
       selected: false,
       selectedIcon: false,
+      iconTransition: 'swap',
       disabled: false,
       dragged: false,
     },
@@ -157,14 +158,25 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'toggle',
       'selected',
       'selectedIcon',
+      'iconTransition',
       'tooltip',
       'disabled',
       'dragged',
       'href',
     ],
     initialState: { variant: 'filled', size: 'sm', width: 'default' },
-    // `selected` and `selectedIcon` belong to the toggle form, which is never a link.
-    adjust: adjustToggleForm,
+    // `selected` and `selectedIcon` belong to the toggle form, which is never a link, and
+    // `iconTransition` hands `icon` over to `selectedIcon`, so it needs both.
+    adjust: (values, changed) => {
+      const next = adjustToggleForm(values, changed);
+      if (changed === 'iconTransition' && next.iconTransition === 'rotate') {
+        next.selectedIcon = true;
+        next.toggle = true;
+        next.href = undefined;
+      }
+      if (next.toggle !== true || next.selectedIcon !== true) next.iconTransition = 'swap';
+      return next;
+    },
     controlKinds: { selectedIcon: 'boolean' },
     toggledSlots: { selectedIcon: STAR },
     notControlled: NO_VISIBLE_EFFECT,

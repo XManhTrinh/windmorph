@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
@@ -148,4 +149,14 @@ test.describe('IconButton tooltip announcement (2026-10-13)', () => {
     await expect(page.getByRole('tooltip')).toHaveText('Search');
     await expect(button).not.toHaveAttribute('aria-describedby');
   });
+});
+
+test.describe('IconButton icon transition', () => {
+  iconTransitionSuite(
+    'components-iconbutton--icon-transitions',
+    (page) => page.getByTestId('toggle'),
+    {
+      swap: false,
+    },
+  );
 });

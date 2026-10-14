@@ -9,6 +9,7 @@ const IconButtonSizes = lazyExample('icon-button/icon-button-sizes', 'IconButton
 const IconButtonToggle = lazyExample('icon-button/icon-button-toggle', 'IconButtonToggle');
 const IconButtonVariants = lazyExample('icon-button/icon-button-variants', 'IconButtonVariants');
 const IconButtonShapes = lazyExample('icon-button/icon-button-shapes', 'IconButtonShapes');
+const IconButtonRotate = lazyExample('icon-button/icon-button-rotate', 'IconButtonRotate');
 const IconButtonToggleVariants = lazyExample(
   'icon-button/icon-button-toggle-variants',
   'IconButtonToggleVariants',
@@ -27,13 +28,15 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
     highlightSource(toggle),
   ]);
 
-  const [shapesSrc, toggleVariantsSrc] = await Promise.all([
+  const [shapesSrc, toggleVariantsSrc, rotateSrc] = await Promise.all([
     readExampleSource('icon-button/icon-button-shapes.tsx'),
     readExampleSource('icon-button/icon-button-toggle-variants.tsx'),
+    readExampleSource('icon-button/icon-button-rotate.tsx'),
   ]);
-  const [shapesSrcHtml, toggleVariantsSrcHtml] = await Promise.all([
+  const [shapesSrcHtml, toggleVariantsSrcHtml, rotateSrcHtml] = await Promise.all([
     highlightSource(shapesSrc),
     highlightSource(toggleVariantsSrc),
+    highlightSource(rotateSrc),
   ]);
 
   return {
@@ -74,6 +77,14 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             fileName="icon-button-toggle.tsx"
           >
             <IconButtonToggle />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Rotating icon"
+            code={rotateSrc}
+            html={rotateSrcHtml}
+            fileName="icon-button-rotate.tsx"
+          >
+            <IconButtonRotate />
           </ExampleViewer>
           <ExampleViewer
             title="Toggle colour styles"

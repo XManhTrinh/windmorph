@@ -231,6 +231,7 @@ export function ExpressiveBento() {
             variant="tonal"
             icon={<AddIcon />}
             selectedIcon={<CloseIcon />}
+            iconTransition="rotate"
             aria-label="Add"
           />
         </Tile>

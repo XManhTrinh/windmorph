@@ -8,6 +8,8 @@ import {
   type ButtonBaseProps,
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
+import { IconFaces } from '../../primitives/IconFaces';
+import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { cn } from '../../utils/cn';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
@@ -73,6 +75,14 @@ export type IconButtonToggleProps = IconButtonOwnProps &
   AccessibleName & {
     /** Icon shown while selected, e.g. the filled form of `icon`. */
     selectedIcon?: ReactElement;
+    /**
+     * How `icon` hands over to `selectedIcon`: `swap` changes it at once, `rotate` turns and
+     * crossfades the two (counter-clockwise as it selects, in LTR). `rotate` is an extension
+     * beyond the M3 spec, matching Google's Expressive showcase, like the FAB menu's.
+     * Reduced motion keeps only the crossfade. Needs `selectedIcon`.
+     * @default "swap"
+     */
+    iconTransition?: IconTransition;
   };
 
 export type IconButtonProps = IconButtonActionProps | IconButtonLinkProps | IconButtonToggleProps;
@@ -104,8 +114,10 @@ export function IconButton(props: IconButtonProps) {
     className,
     // Only toggle props carry `selectedIcon`; the others read it as undefined.
     selectedIcon,
+    iconTransition = 'swap',
     ...base
   } = props as IconButtonToggleProps & IconButtonProps;
+  const rotates = iconTransition === 'rotate' && selectedIcon !== undefined;
 
   const context = useContext(ButtonContext);
   const toolbar = useContext(ToolbarContext);
@@ -151,8 +163,24 @@ export function IconButton(props: IconButtonProps) {
       {({ isSelected }) => (
         <span className={styles.content({ class: classNames?.content })}>
           {(size === 'xs' || size === 'sm') && <TouchTarget />}
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
-            {isSelected && selectedIcon ? selectedIcon : icon}
+          <span
+            aria-hidden="true"
+            className={styles.icon({
+              class: cn(rotates && iconFacesStyles().cell(), classNames?.icon),
+            })}
+          >
+            {rotates ? (
+              <IconFaces
+                icon={icon}
+                alternateIcon={selectedIcon}
+                alternate={isSelected}
+                transition="rotate"
+              />
+            ) : isSelected && selectedIcon ? (
+              selectedIcon
+            ) : (
+              icon
+            )}
           </span>
         </span>
       )}

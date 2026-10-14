@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   IconButton,
+  type IconTransition,
   type ButtonShape,
   type ButtonSize,
   type IconButtonVariant,
   type IconButtonWidth,
 } from '@windmorph/react';
 import { useState } from 'react';
-import { SearchIcon, StarIcon, StarOutlineIcon } from './icons';
+import { AddIcon, CloseIcon, SearchIcon, StarIcon, StarOutlineIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -155,6 +156,33 @@ export const Toggle: Story = {
         icon={<StarOutlineIcon />}
         selectedIcon={<StarIcon />}
         aria-label="Favourite"
+      />
+    );
+  },
+};
+
+/**
+ * How `icon` becomes `selectedIcon`: `swap` at once, or `rotate`, a rotating crossfade beyond
+ * the M3 spec, as in Google's Expressive showcase.
+ */
+export const IconTransitions: StoryObj<{ iconTransition: IconTransition }> = {
+  args: { iconTransition: 'rotate' },
+  argTypes: { iconTransition: { control: 'inline-radio', options: ['swap', 'rotate'] } },
+  render: function IconTransitionsStory({ iconTransition }) {
+    const [open, setOpen] = useState(false);
+    return (
+      <IconButton
+        data-testid="toggle"
+        toggle
+        variant="tonal"
+        size="md"
+        shape="square"
+        selected={open}
+        onSelectedChange={setOpen}
+        icon={<AddIcon />}
+        selectedIcon={<CloseIcon />}
+        iconTransition={iconTransition}
+        aria-label="Add"
       />
     );
   },

@@ -214,6 +214,48 @@ describe('IconButton', () => {
   });
 });
 
+describe('IconButton icon transition', () => {
+  it('swaps the icon at once by default, with no faces', async () => {
+    render(
+      <IconButton toggle icon={<Star />} selectedIcon={<StarFilled />} aria-label="Favourite" />,
+    );
+    const button = screen.getByRole('button', { name: 'Favourite' });
+    expect(button.querySelector('[data-icon-face]')).toBeNull();
+    await userEvent.click(button);
+    expect(screen.getByTestId('star-filled')).toBeInTheDocument();
+    expect(screen.queryByTestId('star')).not.toBeInTheDocument();
+  });
+
+  it('rotate keeps both icons as faces and moves data-active to the selected one', async () => {
+    render(
+      <IconButton
+        toggle
+        icon={<Star />}
+        selectedIcon={<StarFilled />}
+        iconTransition="rotate"
+        aria-label="Favourite"
+      />,
+    );
+    const button = screen.getByRole('button', { name: 'Favourite' });
+    const face = (kind: string) => button.querySelector(`[data-icon-face="${kind}"]`)!;
+    expect(face('primary')).toHaveAttribute('data-active');
+    expect(face('alternate')).not.toHaveAttribute('data-active');
+    expect(face('primary').parentElement).toHaveClass('inline-grid');
+    await userEvent.click(button);
+    expect(face('primary')).not.toHaveAttribute('data-active');
+    expect(face('alternate')).toHaveAttribute('data-active');
+    expect(screen.getByTestId('star')).toBeInTheDocument();
+    expect(screen.getByTestId('star-filled')).toBeInTheDocument();
+  });
+
+  it('rotate without selectedIcon shows the icon alone', () => {
+    render(<IconButton toggle icon={<Star />} iconTransition="rotate" aria-label="Favourite" />);
+    expect(
+      screen.getByRole('button', { name: 'Favourite' }).querySelector('[data-icon-face]'),
+    ).toBeNull();
+  });
+});
+
 describe('IconButton toggle', () => {
   it('toggles aria-pressed, the selected colours and the selected icon', async () => {
     const onSelectedChange = vi.fn();
