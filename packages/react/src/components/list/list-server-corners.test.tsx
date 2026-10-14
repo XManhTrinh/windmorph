@@ -1,5 +1,3 @@
-// @vitest-environment node
-import { JSDOM } from 'jsdom';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { compiledCss } from '../../../test/tailwind-classes';
@@ -52,7 +50,7 @@ async function serverItems(props: Omit<ListProps, 'children' | 'aria-label'>) {
       </ListItem>
     </List>,
   );
-  const { document } = new JSDOM(html).window;
+  const document = new DOMParser().parseFromString(html, 'text/html');
   const classes = new Set<string>();
   for (const element of document.querySelectorAll('[class]')) {
     for (const name of element.classList) classes.add(name);
