@@ -1,3 +1,4 @@
+import { snackbarTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -23,6 +24,7 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [snackbarTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

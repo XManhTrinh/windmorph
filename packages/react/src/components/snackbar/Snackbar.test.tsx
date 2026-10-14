@@ -43,6 +43,33 @@ describe('SnackbarHostState', () => {
 });
 
 describe('Snackbar', () => {
+  it('lets consumer classes replace the token classes', () => {
+    render(
+      <Snackbar
+        actionLabel="Undo"
+        data-testid="bar"
+        className="bg-surface-container text-on-surface rounded-corner-small shadow-elevation-1"
+        classNames={{ action: 'text-primary' }}
+      >
+        Message archived
+      </Snackbar>,
+    );
+    const bar = screen.getByTestId('bar');
+    expect(bar).toHaveClass(
+      'bg-surface-container',
+      'text-on-surface',
+      'rounded-corner-small',
+      'shadow-elevation-1',
+    );
+    expect(bar).not.toHaveClass(
+      'bg-[var(--_md-comp-snackbar-container-color)]',
+      'text-[color:var(--_md-comp-snackbar-supporting-text-color)]',
+      'rounded-[var(--_md-comp-snackbar-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-snackbar-container-elevation)]',
+    );
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass('text-primary');
+  });
+
   it('shows a message with an action and a dismiss button', async () => {
     const onAction = vi.fn();
     const onDismiss = vi.fn();
@@ -53,17 +80,23 @@ describe('Snackbar', () => {
     );
     const bar = screen.getByTestId('bar');
     expect(bar).toHaveClass(
-      'bg-inverse-surface',
-      'text-inverse-on-surface',
+      'bg-[var(--_md-comp-snackbar-container-color)]',
+      'text-[color:var(--_md-comp-snackbar-supporting-text-color)]',
       'text-body-medium',
-      'rounded-corner-extra-small',
-      'shadow-elevation-3',
+      'rounded-[var(--_md-comp-snackbar-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-snackbar-container-elevation)]',
       'min-h-[48px]',
       'max-w-[600px]',
       'ps-[16px]',
     );
     expect(bar).not.toHaveClass('pe-[8px]');
-    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass('text-inverse-primary');
+    expect(bar).toHaveAttribute('data-tokens', 'md-comp-snackbar');
+    const action = screen.getByRole('button', { name: 'Undo' });
+    expect(action).toHaveAttribute('data-slot', 'action');
+    expect(action).toHaveClass('text-[color:var(--_md-comp-snackbar-action-label-text-color)]');
+    const dismiss = screen.getByRole('button', { name: 'Dismiss' });
+    expect(dismiss).toHaveAttribute('data-slot', 'dismiss');
+    expect(dismiss).toHaveClass('text-[color:var(--_md-comp-snackbar-icon-color)]');
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(onAction).toHaveBeenCalledOnce();
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));

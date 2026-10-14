@@ -18,3 +18,9 @@
 --md-comp-progress-indicator-active-indicator-color
 --md-comp-progress-indicator-stop-indicator-color
 --md-comp-progress-indicator-track-color
+--md-comp-snackbar-action-label-text-color
+--md-comp-snackbar-container-color
+--md-comp-snackbar-container-elevation
+--md-comp-snackbar-container-shape
+--md-comp-snackbar-icon-color
+--md-comp-snackbar-supporting-text-color

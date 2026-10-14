@@ -166,6 +166,7 @@ export {
   snackbarStyles,
   type SnackbarStyleProps,
 } from './components/snackbar/snackbar-styles';
+export { snackbarTokenSet } from './components/snackbar/snackbar-tokens';
 export {
   NavigationRail,
   NavigationRailItem,

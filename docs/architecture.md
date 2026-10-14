@@ -506,6 +506,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - Escape dismisses the host's snackbars whether or not the × is shown.
   - When a snackbar leaves with focus inside it, focus returns to the element focused before it entered (the focus event's `relatedTarget`), if that's still in the page.
   - `utils/focus.ts` holds `firstTabbable` (React Aria's tree walker isn't public) and `matchesShortcut`.
+- **Component tokens** (2026-10-14, `snackbar-tokens.ts`): `--md-comp-snackbar-container-color`, `-container-shape`, `-container-elevation`, `-supporting-text-color`, `-action-label-text-color` (the action text button, `data-slot="action"`) and `-icon-color` (the dismiss icon button, `data-slot="dismiss"`). The root carries `data-tokens="md-comp-snackbar"`.
 
 ### Navigation rail and flexible navigation bar (built, Tier 2)
 - `NavigationRail` with `NavigationRailItem`, and `NavigationBar` with `NavigationBarItem`. Items are links (`href`) or buttons (`onPress`) with `icon`, optional `selectedIcon` and a label; `selected` marks the current destination with `aria-current="page"` (`data-current`, since `ButtonBase` owns `data-selected`). Each is a `nav` landmark that needs a name.
