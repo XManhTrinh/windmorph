@@ -290,12 +290,13 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   fab: {
     component: 'Fab',
     componentSwitch: { control: 'fab', components: { icon: 'Fab', extended: 'ExtendedFab' } },
-    // A new key replays the entrance when `appear` is switched on.
-    render: ({ fab, ...props }) =>
+    // A new key replays the entrance when `appear` is switched on. `expanded` is the extended
+    // FAB's alone: the icon FAB would pass it on to its element.
+    render: ({ fab, expanded, ...props }) =>
       fab === 'extended'
         ? createElement(
             ExtendedFabAny,
-            { ...props, key: String(props.appear), icon: <EditIcon /> },
+            { ...props, expanded, key: String(props.appear), icon: <EditIcon /> },
             'Compose',
           )
         : createElement(FabAny, {
