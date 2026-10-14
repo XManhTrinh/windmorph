@@ -159,8 +159,8 @@ describe('Switch', () => {
     const track = trackOf(input);
     expect(track).toHaveAttribute('data-slot', 'track');
     expect(track).toHaveClass(
-      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
-      'border-[color:var(--_md-comp-switch-unselected-track-outline-color,var(--md-sys-color-outline))]',
+      'bg-[var(--_md-comp-switch-unselected-track-color)]',
+      'border-[color:var(--_md-comp-switch-unselected-track-outline-color)]',
     );
     const thumb = track.querySelector('[data-slot="thumb"]');
     expect(thumb).toHaveAttribute('data-tokens', 'md-comp-switch');
@@ -175,9 +175,7 @@ describe('Switch', () => {
     render(<Switch classNames={{ control: 'bg-tertiary', thumb: 'bg-on-tertiary' }}>Wi-Fi</Switch>);
     const track = trackOf(screen.getByRole('switch'));
     expect(track).toHaveClass('bg-tertiary');
-    expect(track).not.toHaveClass(
-      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
-    );
+    expect(track).not.toHaveClass('bg-[var(--_md-comp-switch-unselected-track-color)]');
     const thumb = track.querySelector('[data-slot="thumb"]');
     expect(thumb).toHaveClass('bg-on-tertiary');
     expect(thumb).not.toHaveClass('bg-[var(--_md-comp-switch-unselected-handle-color)]');

@@ -23,18 +23,16 @@ export const switchStyles = tv({
   slots: {
     // The control is the track.
     control: [
-      // A list item's track is drawn without `data-tokens`, so the track's classes fall back
-      // to the defaults there; the switch's root resolves the tokens for its own track.
       'h-[32px] w-[52px] border-2 border-solid',
-      'border-[color:var(--_md-comp-switch-unselected-track-outline-color,var(--md-sys-color-outline))]',
-      'bg-[var(--_md-comp-switch-unselected-track-color,var(--md-sys-color-surface-container-highest))]',
+      'border-[color:var(--_md-comp-switch-unselected-track-outline-color)]',
+      'bg-[var(--_md-comp-switch-unselected-track-color)]',
       // The thumb can be dragged sideways; vertical swipes still scroll the page.
       'touch-pan-y',
       '[transition-property:background-color,border-color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
-      'group-data-selected/control:border-[color:var(--_md-comp-switch-selected-track-color,var(--md-sys-color-primary))]',
-      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-track-color,var(--md-sys-color-primary))]',
+      'group-data-selected/control:border-[color:var(--_md-comp-switch-selected-track-color)]',
+      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-track-color)]',
       'group-data-disabled/control:border-[color-mix(in_srgb,var(--md-sys-color-on-surface)_12%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-highest)_12%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:group-data-selected/control:border-transparent',
