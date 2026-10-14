@@ -358,6 +358,8 @@ function PickerFrame({
         else if (ref) ref.current = element;
       }}
       style={style}
+      // The modal date picker's component tokens (date-picker-tokens.ts).
+      data-tokens="md-comp-date-picker-modal"
       data-years={years || undefined}
       data-mode={mode}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -366,7 +368,7 @@ function PickerFrame({
         <div className={styles.header({ class: classNames?.header })}>
           <div className={styles.title()}>{title}</div>
           <div className={styles.headlineRow()}>
-            <div aria-live="polite" className={styles.headline()}>
+            <div aria-live="polite" data-slot="headline" className={styles.headline()}>
               {headline}
             </div>
             {showModeToggle && (

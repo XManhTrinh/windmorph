@@ -27,8 +27,29 @@ describe('DatePicker', () => {
     const selected = within(grid).getByRole('button', { name: /March 10, 2030/ });
     expect(selected).toHaveAttribute('data-selected', 'true');
     // A 40px circle whose ::before makes the 48px target.
-    expect(selected).toHaveClass('size-[40px]', 'before:-inset-[4px]', 'data-selected:bg-primary');
+    expect(selected).toHaveClass(
+      'size-[40px]',
+      'before:-inset-[4px]',
+      'data-selected:bg-[var(--_md-comp-date-picker-modal-date-selected-container-color)]',
+    );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('reads the modal date picker tokens for the headline, picked days and today', () => {
+    render(<DatePicker defaultValue={march} data-testid="picker" />);
+    const picker = screen.getByTestId('picker');
+    expect(picker).toHaveAttribute('data-tokens', 'md-comp-date-picker-modal');
+    expect(screen.getByText('Mar 10, 2030')).toHaveClass(
+      'text-[color:var(--_md-comp-date-picker-modal-header-headline-color)]',
+    );
+    const day = screen.getByRole('button', { name: /March 10, 2030/ });
+    expect(day).toHaveAttribute('data-slot', 'day');
+    expect(day).toHaveClass(
+      'data-selected:text-[color:var(--_md-comp-date-picker-modal-date-selected-label-text-color)]',
+      'data-today:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
+      'data-today:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
+    );
+    expect(day).not.toHaveClass('data-selected:bg-primary', 'data-today:text-primary');
   });
 
   it('selects a day and moves between months, with the shortcut in the tooltip', async () => {
@@ -188,6 +209,11 @@ describe('DateRangePicker', () => {
     const march4 = screen.getByRole('button', { name: /March 4, 2030/ });
     expect(march4.closest('td')).toHaveAttribute('data-range', 'middle');
     expect(march4).toHaveAttribute('data-in-range', 'true');
+    // The band is the range token, drawn as a gradient on each cell.
+    expect(march4.closest('td')).toHaveAttribute('data-slot', 'cell');
+    expect(march4.closest('td')).toHaveClass(
+      'data-[range=middle]:bg-[image:var(--_md-comp-date-picker-modal-range-middle)]',
+    );
     expect(await axeViolations(container)).toEqual([]);
   });
 
@@ -219,10 +245,13 @@ describe('PickerDialog', () => {
       </PickerDialog>,
     );
     const dialog = screen.getByRole('dialog', { name: 'Select date' });
+    // The modal date picker's container tokens paint the panel.
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-date-picker-modal');
+    expect(dialog).toHaveAttribute('data-variant', 'date');
     expect(dialog).toHaveClass(
-      'rounded-corner-extra-large',
-      'bg-surface-container-high',
-      'shadow-elevation-3',
+      'rounded-[var(--_md-comp-date-picker-modal-container-shape)]',
+      'bg-[var(--_md-comp-date-picker-modal-container-color)]',
+      'shadow-[shadow:var(--_md-comp-date-picker-modal-container-elevation)]',
     );
     const ok = within(dialog).getByRole('button', { name: 'OK' });
     expect(ok.parentElement).toHaveClass('gap-[8px]');
@@ -230,6 +259,47 @@ describe('PickerDialog', () => {
     expect(await axeViolations(baseElement)).toEqual([]);
     await userEvent.keyboard('{Escape}');
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('lets a consumer class beat the container tokens', () => {
+    render(
+      <PickerDialog
+        aria-label="Select date"
+        defaultOpen
+        className="bg-tertiary rounded-corner-small shadow-elevation-1"
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <DatePicker defaultValue={march} />
+      </PickerDialog>,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Select date' });
+    expect(dialog).toHaveClass('bg-tertiary', 'rounded-corner-small', 'shadow-elevation-1');
+    expect(dialog).not.toHaveClass(
+      'bg-[var(--_md-comp-date-picker-modal-container-color)]',
+      'rounded-[var(--_md-comp-date-picker-modal-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-date-picker-modal-container-elevation)]',
+    );
+  });
+
+  it('paints a time dialog with the time picker container tokens', () => {
+    render(
+      <PickerDialog
+        aria-label="Select time"
+        variant="time"
+        defaultOpen
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <p>Time</p>
+      </PickerDialog>,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Select time' });
+    expect(dialog).toHaveAttribute('data-tokens', 'md-comp-time-picker');
+    expect(dialog).toHaveAttribute('data-variant', 'time');
+    expect(dialog).toHaveClass(
+      'rounded-[var(--_md-comp-time-picker-container-shape)]',
+      'bg-[var(--_md-comp-time-picker-container-color)]',
+      'shadow-elevation-3',
+    );
   });
 
   it('closes and saves on Enter with onConfirm', async () => {
@@ -276,7 +346,11 @@ describe('PickerDialog', () => {
     expect(dialog).toHaveAttribute('data-full-screen', 'true');
     // M3: the date picker's container is `surface-container-high`, full screen too, under the
     // full-screen dialog's 56px top row with an `on-surface` close icon.
-    expect(dialog).toHaveClass('size-full', 'rounded-none', 'bg-surface-container-high');
+    expect(dialog).toHaveClass(
+      'size-full',
+      'rounded-none',
+      'bg-[var(--_md-comp-date-picker-modal-container-color)]',
+    );
     expect(dialog.querySelector('div')).toHaveClass('h-[56px]');
     expect(within(dialog).getByRole('button', { name: 'Close' })).toHaveClass(
       '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',

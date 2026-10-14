@@ -14,9 +14,10 @@ import { tv } from '../../utils/tv';
  * stops at the window's height and the picker scrolls inside it, above the actions, which
  * stay in view; the picker keeps its own size and never shrinks under them (2026-10-13).
  *
- * The time variant's colour and corners come from the time picker's component tokens,
- * `--md-comp-time-picker-container-*` (`time-picker-tokens.ts`): its panel carries that set's
- * `data-tokens`, and every panel its `data-variant`. Every class is written out in full.
+ * The panel's colour and corners (and, for dates, its shadow) come from the picker's
+ * component tokens: `--md-comp-date-picker-modal-container-*` (`date-picker-tokens.ts`) or
+ * `--md-comp-time-picker-container-*` (`time-picker-tokens.ts`). The panel carries that set's
+ * `data-tokens` and `data-variant`. Every class is written out in full.
  */
 
 /** Variant definitions for {@link PickerDialog}. */
@@ -36,7 +37,11 @@ export const pickerDialogStyles = tv({
   variants: {
     variant: {
       date: {
-        panel: 'rounded-corner-extra-large bg-surface-container-high shadow-elevation-3',
+        panel: [
+          'rounded-[var(--_md-comp-date-picker-modal-container-shape)]',
+          'bg-[var(--_md-comp-date-picker-modal-container-color)]',
+          'shadow-[shadow:var(--_md-comp-date-picker-modal-container-elevation)]',
+        ],
         actions: 'pe-[6px] pb-[8px] ps-[12px]',
       },
       time: {

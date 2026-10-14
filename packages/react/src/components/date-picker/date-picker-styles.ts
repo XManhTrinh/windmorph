@@ -21,6 +21,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * 48px `title-small` `on-surface-variant` subhead (8px below it, 24px in) over its six
  * week rows, under one weekday row.
  *
+ * The headline, the picked days, today and the range band come from the modal date
+ * picker's component tokens (`date-picker-tokens.ts`, `--md-comp-date-picker-modal-*`): the
+ * root carries `data-tokens="md-comp-date-picker-modal"`, and the classes read one private
+ * variable per part. A consumer class still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -35,7 +40,7 @@ export const datePickerStyles = tv({
     header: 'flex shrink-0 flex-col justify-between border-b border-outline-variant',
     title: 'ps-[24px] pe-[12px] pt-[16px] text-label-large text-on-surface-variant',
     headlineRow: 'flex items-end justify-between gap-[8px] ps-[24px] pe-[12px] pb-[12px]',
-    headline: 'min-w-0 flex-1 text-on-surface-variant',
+    headline: 'min-w-0 flex-1 text-[color:var(--_md-comp-date-picker-modal-header-headline-color)]',
     body: 'flex min-h-0 flex-col ps-[12px] pe-[12px]',
     nav: 'flex h-[56px] shrink-0 items-center justify-between',
     navButtons: 'flex items-center text-on-surface-variant',
@@ -81,20 +86,18 @@ export const datePickerStyles = tv({
       // The range band: a 40px stripe behind the days between the ends.
       // 1px wider than the cell, so neighbouring bands never leave a hairline between them.
       'bg-[length:calc(100%+1px)_40px] bg-center bg-no-repeat',
-      'data-[range=middle]:bg-[linear-gradient(var(--md-sys-color-secondary-container),var(--md-sys-color-secondary-container))]',
-      'data-[range=start]:bg-[linear-gradient(to_right,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
-      'data-[range=end]:bg-[linear-gradient(to_left,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
-      'rtl:data-[range=start]:bg-[linear-gradient(to_left,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
-      'rtl:data-[range=end]:bg-[linear-gradient(to_right,transparent_50%,var(--md-sys-color-secondary-container)_50%)]',
+      'data-[range=middle]:bg-[image:var(--_md-comp-date-picker-modal-range-middle)]',
+      'data-[range=start]:bg-[image:var(--_md-comp-date-picker-modal-range-to-right)]',
+      'data-[range=end]:bg-[image:var(--_md-comp-date-picker-modal-range-to-left)]',
+      'rtl:data-[range=start]:bg-[image:var(--_md-comp-date-picker-modal-range-to-left)]',
+      'rtl:data-[range=end]:bg-[image:var(--_md-comp-date-picker-modal-range-to-right)]',
     ],
     day: [
       // The 40px circle; its ::before widens the touch target to the 48px cell.
       'relative mx-auto flex size-[40px] cursor-pointer items-center justify-center rounded-corner-full',
       'before:absolute before:-inset-[4px] before:rounded-corner-full',
       'text-body-large text-on-surface outline-none state-layer focus-ring',
-      'data-today:border data-today:border-primary data-today:text-primary',
-      'data-in-range:text-on-secondary-container',
-      'data-selected:bg-primary data-selected:text-on-primary',
+      'data-today:border data-in-range:text-on-secondary-container',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
       'data-outside:invisible',
     ],
@@ -134,13 +137,27 @@ export const datePickerStyles = tv({
         headline: 'text-title-large',
       },
     },
-    /** The docked picker shows the days of the months around the shown one. */
+    /**
+     * The docked picker shows the days of the months around the shown one. Its days keep
+     * their classes: the modal picker's tokens (`date-picker-tokens.ts`) colour the others.
+     */
     docked: {
       true: {
         body: 'ps-0 pe-0',
-        day: 'data-outside:visible data-outside:text-on-surface-variant',
+        day: [
+          'data-today:border-primary data-today:text-primary',
+          'data-selected:bg-primary data-selected:text-on-primary',
+          'data-outside:visible data-outside:text-on-surface-variant',
+        ],
       },
-      false: {},
+      false: {
+        day: [
+          'data-today:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
+          'data-today:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
+          'data-selected:bg-[var(--_md-comp-date-picker-modal-date-selected-container-color)]',
+          'data-selected:text-[color:var(--_md-comp-date-picker-modal-date-selected-label-text-color)]',
+        ],
+      },
     },
   },
   defaultVariants: { range: false, docked: false },

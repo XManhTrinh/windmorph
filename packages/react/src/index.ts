@@ -538,6 +538,7 @@ export {
   dockedDatePickerStyles,
   type DatePickerStyleProps,
 } from './components/date-picker/date-picker-styles';
+export { datePickerTokenSet } from './components/date-picker/date-picker-tokens';
 export {
   DateField,
   type DateFieldClassNames,
