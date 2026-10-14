@@ -76,6 +76,12 @@ export interface FieldShellProps {
   /** The arrow, or a button holding it. */
   trailing: ReactNode;
   /**
+   * An icon button just before the error icon and `trailing` (the Autocomplete's clear
+   * button), in its own 48px box beside the value row like a text field's trailing icon, so
+   * it never makes the field taller than its 56px container.
+   */
+  trailingAction?: ReactNode;
+  /**
    * The icon shown before `trailing` while the field is invalid (M3 strongly recommends one);
    * `undefined` for the default `error` icon, `false` for none.
    */
@@ -117,6 +123,7 @@ export function FieldShell({
   open,
   leadingIcon,
   trailing,
+  trailingAction,
   errorIcon,
   errorIconLabel,
   readOnly = false,
@@ -199,6 +206,11 @@ export function FieldShell({
           </span>
         )}
         <div className={styles.field({ class: classNames?.field })}>{children}</div>
+        {trailingAction ? (
+          <span data-slot="trailing-action" className={styles.icon()}>
+            {trailingAction}
+          </span>
+        ) : null}
         {showErrorIcon ? (
           <span className={styles.icon({ class: styles.trailingIcon() })}>
             <FieldErrorIcon

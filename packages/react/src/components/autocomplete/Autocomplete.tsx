@@ -24,6 +24,7 @@ import {
   type ComboBoxStateOptions,
   type SelectionMode,
 } from 'react-stately/useComboBoxState';
+import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { matchesSearch } from '../../utils/search';
@@ -350,6 +351,25 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             <DropdownArrow open={state.isOpen} />
           </button>
         }
+        trailingAction={
+          showClear ? (
+            <button
+              type="button"
+              tabIndex={-1}
+              aria-label={labels.clear}
+              // Keeps focus (and the open menu) in the input.
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={clear}
+              className={cn(
+                'relative flex size-[40px] items-center justify-center rounded-corner-full text-on-surface-variant outline-none state-layer [&>svg]:size-[24px]',
+                classNames?.clear,
+              )}
+            >
+              <TouchTarget />
+              <ClearIcon />
+            </button>
+          ) : null
+        }
         supportingText={supportingText}
         descriptionProps={descriptionProps}
         errorText={resolvedError}
@@ -375,7 +395,13 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         <div
           className={cn(
             'flex min-w-0 flex-1 flex-wrap items-center gap-[8px]',
-            multiple && chips.length > 0 && 'py-[4px]',
+            // A row of 32px input chips fits the 56px container (12px above and below), so a
+            // first chip doesn't make the field taller and each further row adds 40px. A filled
+            // field's floated label takes the top 24px, so there the row stays below it.
+            multiple &&
+              chips.length > 0 &&
+              !(variant === 'filled' && label !== undefined && label !== null) &&
+              '-my-[4px]',
           )}
         >
           {chips.map((item) => (
@@ -412,22 +438,6 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
               classNames?.input,
             )}
           />
-          {showClear ? (
-            <button
-              type="button"
-              tabIndex={-1}
-              aria-label={labels.clear}
-              // Keeps focus (and the open menu) in the input.
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={clear}
-              className={cn(
-                '-me-[4px] flex size-[40px] shrink-0 items-center justify-center rounded-corner-full text-on-surface-variant outline-none state-layer [&>svg]:size-[24px]',
-                classNames?.clear,
-              )}
-            >
-              <ClearIcon />
-            </button>
-          ) : null}
         </div>
       </FieldShell>
       <OptionPopover state={state} triggerRef={containerRef} popoverRef={popoverRef} isNonModal>

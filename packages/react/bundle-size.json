@@ -2,7 +2,7 @@
   "tolerance": 0.02,
   "budgets": {
     "components/app-bar/TopAppBar": 12550,
-    "components/autocomplete/Autocomplete": 31050,
+    "components/autocomplete/Autocomplete": 31100,
     "components/badge/Badge": 6350,
     "components/button/Button": 12150,
     "components/card/Card": 10100,

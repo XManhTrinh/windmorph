@@ -5,6 +5,7 @@ import {
   AutocompleteSection,
   matchesSearch,
   type AutocompleteKey,
+  type TextFieldVariant,
 } from '@windmorph/react';
 import { useEffect, useState } from 'react';
 import { SearchIcon } from './icons';
@@ -217,6 +218,34 @@ export const Interactive: Story = {
       </form>
     );
   },
+};
+
+/**
+ * Clearable, single and multiple, with and without a label: the field keeps its 56px
+ * container as text is typed, an option is chosen and the clear button shows.
+ */
+export const Clearable: StoryObj<{ variant: TextFieldVariant }> = {
+  args: { variant: 'filled' },
+  argTypes: { variant: { control: 'inline-radio', options: ['filled', 'outlined'] } },
+  render: ({ variant }) => (
+    <div className="flex flex-col gap-6 bg-surface p-4" style={{ minHeight: 480 }}>
+      <Autocomplete variant={variant} label="City" defaultItems={CITIES} clearable>
+        {renderCity}
+      </Autocomplete>
+      <Autocomplete variant={variant} aria-label="Town" defaultItems={CITIES} clearable>
+        {renderCity}
+      </Autocomplete>
+      <Autocomplete
+        variant={variant}
+        label="Cities"
+        selectionMode="multiple"
+        defaultItems={CITIES}
+        clearable
+      >
+        {renderCity}
+      </Autocomplete>
+    </div>
+  ),
 };
 
 /** Layout safety (architecture §10). */

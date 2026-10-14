@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -176,6 +176,52 @@ test.describe('Autocomplete behaviour', () => {
     await expect(page.getByRole('progressbar', { name: 'Loading options' })).toBeVisible();
     await expect(page.getByRole('option', { name: /Melbourne/ })).toBeVisible();
   });
+});
+
+test.describe('Autocomplete height', () => {
+  const height = (locator: Locator) => locator.evaluate((el) => el.getBoundingClientRect().height);
+  const fieldOf = (page: Page, name: string) =>
+    page.getByRole('combobox', { name }).locator('xpath=ancestor::*[@data-slot="container"][1]');
+
+  for (const variant of ['filled', 'outlined'] as const) {
+    test(`typing, choosing and the clear button keep 56px · ${variant}`, async ({ page }) => {
+      await openStory(page, 'components-autocomplete--clearable', {}, { variant });
+      for (const name of ['City', 'Town']) {
+        const field = fieldOf(page, name);
+        expect(await height(field)).toBe(56);
+        await page.getByRole('combobox', { name }).fill('zur');
+        // The open menu hides the rest of the page from assistive technology, so by label.
+        const clear = field.locator('button[aria-label="Clear"]');
+        await expect(clear).toBeVisible();
+        expect(await height(field)).toBe(56);
+        await page.getByRole('option', { name: /Zürich/ }).click();
+        await expect(page.getByRole('combobox', { name })).toHaveValue('Zürich');
+        expect(await height(field)).toBe(56);
+
+        // A 40px button with a 48px touch target, centred with the menu arrow.
+        const button = (await clear.boundingBox())!;
+        const target = (await clear.locator('[data-touch-target]').boundingBox())!;
+        const arrow = (await field.locator('button[aria-label="Show options"]').boundingBox())!;
+        expect([button.width, button.height]).toEqual([40, 40]);
+        expect([target.width, target.height]).toEqual([48, 48]);
+        expect(button.y + button.height / 2).toBe(arrow.y + arrow.height / 2);
+      }
+    });
+
+    // One row of input chips fits an outlined field's 56px; a filled field's floated label
+    // keeps the top 24px, so its row sits below it (24 + 32 + 8).
+    test(`a first input chip · ${variant}`, async ({ page }) => {
+      await openStory(page, 'components-autocomplete--clearable', {}, { variant });
+      const field = fieldOf(page, 'Cities');
+      expect(await height(field)).toBe(56);
+      await page.getByRole('combobox', { name: 'Cities' }).fill('zur');
+      expect(await height(field)).toBe(56);
+      await page.getByRole('option', { name: /Zürich/ }).click();
+      // The menu stays open (multiple) and hides the rest from assistive technology.
+      await expect(field.getByText('Zürich', { exact: true })).toBeVisible();
+      expect(await height(field)).toBe(variant === 'filled' ? 64 : 56);
+    });
+  }
 });
 
 test.describe('Autocomplete layout safety', () => {
