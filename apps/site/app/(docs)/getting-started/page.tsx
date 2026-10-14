@@ -178,6 +178,13 @@ export default async function GettingStartedPage() {
           body text picks it up too.
         </p>
         <CodeBlock code={FONT_SNIPPET} html={fontHtml} lang="tsx" title="app/layout.tsx" />
+        <p className="text-body-large text-on-surface-variant">
+          The type scale is in rem, defined at the browser&apos;s default 16px root, so text follows
+          each reader&apos;s font-size setting while layout stays in px. Leave the root font size
+          alone: don&apos;t set <InlineCode>font-size</InlineCode> on <InlineCode>html</InlineCode>{' '}
+          (a <InlineCode>62.5%</InlineCode> root shrinks every type role, and a px root ignores the
+          reader&apos;s setting).
+        </p>
       </section>
 
       <section className="flex flex-col gap-4">
