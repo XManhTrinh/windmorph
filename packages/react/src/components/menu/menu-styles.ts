@@ -13,9 +13,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - the outer corners read `--m3-menu-corner`, so they morph while a submenu is open: the
  *   menu holding focus takes 24px (SegmentedMenu `ActiveContainerShape`), the others 8px
  *   (`InactiveContainerShape`), on the fast spatial spring;
- * - items are 44px minimum (4px less per web density step), 112–280px wide, 12px horizontal
- *   padding, label-large, 20px icons with an 8px gap; 12px when selected (morph on the fast
- *   spatial spring);
+ * - items are 44px minimum (4px less per web density step), 112–280px wide, 16px padding at
+ *   the start and end, body-large labels, 20px icons with a 12px gap and label-small trailing
+ *   text (the shortcut); 12px corners when selected (morph on the fast spatial spring). The
+ *   padding, gap and type follow the Menu token files (2026-10-14); Compose's code uses 12px,
+ *   an 8px gap and label-large on touch;
  * - item corners nest inside the container's: an edge item takes the outer corner minus
  *   the 4px padding (16px → 12px, 8px → 4px), other corners are 4px. Compose picks item
  *   shapes per group alone, so a last item could be rounder than its group's 8px corner;
@@ -89,8 +91,8 @@ export const menuStyles = tv({
     divider: 'my-[8px] -mx-[4px] w-auto',
     heading: 'flex min-h-[32px] items-center ps-[8px] text-label-large',
     item: [
-      'group/item flex min-h-[calc(44px+var(--m3-menu-density,0)*4px)] w-full cursor-pointer items-center px-[12px] text-start',
-      'text-label-large text-[color:var(--_md-comp-menus-menu-item-label-text-color)] outline-none select-none',
+      'group/item flex min-h-[calc(44px+var(--m3-menu-density,0)*4px)] w-full cursor-pointer items-center px-[16px] text-start',
+      'text-body-large text-[color:var(--_md-comp-menus-menu-item-label-text-color)] outline-none select-none',
       'data-selected:bg-[var(--_md-comp-menus-menu-item-selected-container-color)] data-selected:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
       'state-layer focus-ring-inset container-motion',
       'data-selected:rounded-corner-medium',
@@ -104,11 +106,11 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[8px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
+    icon: 'me-[12px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
-      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-large text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
+      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
   },
   variants: {
