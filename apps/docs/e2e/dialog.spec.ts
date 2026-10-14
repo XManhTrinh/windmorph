@@ -386,6 +386,12 @@ const POSITIONER_OVERRIDES = [
   'transform',
 ];
 
+/**
+ * The positioner story's panel width, set by its text: Chromium on Linux lays the same
+ * text out 15px narrower than on macOS.
+ */
+const TEXT_WIDTH = process.platform === 'linux' ? 485 : 500;
+
 test.describe('Dialog classNames.positioner layout safety', () => {
   for (const override of POSITIONER_OVERRIDES) {
     for (const transformedAncestor of [false, true]) {
@@ -430,7 +436,7 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         });
         // The text sets the panel's width (between 280px and 560px) in every case.
         expect(panel).toEqual({
-          width: 500,
+          width: TEXT_WIDTH,
           radius: '28px',
           clip: 'inset(-32px)',
           opacity: '1',

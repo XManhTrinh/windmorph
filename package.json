@@ -20,6 +20,7 @@
     "version-packages": "changeset version",
     "release": "turbo run build --filter=@windmorph/react && changeset publish",
     "test:e2e": "turbo run test:e2e",
+    "test:e2e:linux": "node scripts/storybook-e2e-linux.mjs",
     "check:traces": "node scripts/check-traces.mjs"
   },
   "devDependencies": {
