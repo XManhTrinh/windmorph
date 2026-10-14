@@ -397,6 +397,10 @@ export {
   type ToolbarOrientation,
 } from './components/toolbar/toolbar-styles';
 export {
+  dockedToolbarTokenSet,
+  floatingToolbarTokenSet,
+} from './components/toolbar/toolbar-tokens';
+export {
   useToolbarScrollExit,
   useToolbarScrollExpansion,
   type ToolbarScrollExitOptions,

@@ -43,3 +43,7 @@
 --md-comp-secondary-navigation-tab-inactive-label-text-color
 --md-comp-secondary-navigation-tab-with-icon-active-icon-color
 --md-comp-secondary-navigation-tab-with-icon-inactive-icon-color
+--md-comp-toolbar-docked-container-color
+--md-comp-toolbar-floating-container-shape
+--md-comp-toolbar-floating-standard-container-color
+--md-comp-toolbar-floating-vibrant-container-color
