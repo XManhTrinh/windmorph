@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 /** The documentation search: shortcuts, grouped results, keyboard, recents and layouts. */
 
@@ -6,15 +6,23 @@ const LABEL = 'Search documentation';
 
 const view = (page: Page) => page.getByRole('dialog', { name: LABEL });
 
-/**
- * Presses ⌘K / Ctrl+K once the page has hydrated: the bar on screen advertises its shortcuts
- * only then.
- */
+/** A group of the results list: a section named by its subheader. */
+const group = (page: Page, name: string) => view(page).getByRole('rowgroup', { name });
+
+/** The item rows in a list or group, without the sections' subheader rows. */
+const items = (page: Page, container: Locator) =>
+  container.getByRole('row').filter({ hasNot: page.getByRole('rowheader') });
+
+/** Waits until the bar on screen has hydrated, when it answers its shortcuts. */
+async function waitForBar(page: Page) {
+  await expect(
+    page.locator('[data-ready]').filter({ has: page.getByRole('combobox', { name: LABEL }) }),
+  ).toHaveCount(1);
+}
+
+/** Presses ⌘K / Ctrl+K once the bar on screen answers it. */
 async function openWithShortcut(page: Page) {
-  await expect(page.getByRole('combobox', { name: LABEL })).toHaveAttribute(
-    'aria-keyshortcuts',
-    /K/,
-  );
+  await waitForBar(page);
   await page.keyboard.press('ControlOrMeta+K');
   await expect(view(page).getByRole('searchbox')).toBeFocused();
 }
@@ -38,10 +46,7 @@ test.describe('Docs search', () => {
 
   test('/ opens it, except while typing in a field', async ({ page }) => {
     await page.goto('/components');
-    await expect(page.getByRole('combobox', { name: LABEL })).toHaveAttribute(
-      'aria-keyshortcuts',
-      /\//,
-    );
+    await waitForBar(page);
     const filter = page.getByRole('searchbox', { name: 'Filter components' });
     await filter.pressSequentially('a/b');
     await expect(filter).toHaveValue('a/b');
@@ -64,11 +69,12 @@ test.describe('Docs search', () => {
     await page.goto('/getting-started');
     await openWithShortcut(page);
     await view(page).getByRole('searchbox').fill('button');
-    const actions = view(page).getByRole('grid', { name: 'Actions' });
-    const first = actions.getByRole('row').first();
+    const first = items(page, group(page, 'Actions')).first();
     await expect(first).toContainText('Component');
     await expect(first.locator('mark').first()).toHaveText('Button');
-    await expect(view(page).getByRole('heading', { name: 'Inputs & selection' })).toBeVisible();
+    await expect(
+      group(page, 'Inputs & selection').getByRole('rowheader', { name: 'Inputs & selection' }),
+    ).toBeVisible();
     await expect(view(page).getByRole('status')).toHaveText(/^\d+ results$/);
   });
 
@@ -76,7 +82,7 @@ test.describe('Docs search', () => {
     await page.goto('/getting-started');
     await openWithShortcut(page);
     await view(page).getByRole('searchbox').fill('IconButton');
-    const row = view(page).getByRole('row').first();
+    const row = items(page, view(page)).first();
     await expect(row).toContainText('API');
     await row.click();
     await expect(page).toHaveURL(/\/components\/icon-button\/api$/);
@@ -87,15 +93,15 @@ test.describe('Docs search', () => {
     await openWithShortcut(page);
     const input = view(page).getByRole('searchbox');
     await input.fill('button');
-    const grids = view(page).getByRole('grid');
-    const firstGroup = grids.first().getByRole('row');
+    const groups = view(page).getByRole('rowgroup');
+    const firstGroup = items(page, groups.first());
     await expect(firstGroup.first()).toBeVisible();
     const count = await firstGroup.count();
     await page.keyboard.press('ArrowDown');
     await expect(firstGroup.first()).toBeFocused();
     for (let step = 1; step < count; step++) await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
-    await expect(grids.nth(1).getByRole('row').first()).toBeFocused();
+    await expect(items(page, groups.nth(1)).first()).toBeFocused();
     await page.keyboard.press('ArrowUp');
     await expect(firstGroup.last()).toBeFocused();
     await page.keyboard.press('Enter');
@@ -110,9 +116,9 @@ test.describe('Docs search', () => {
     await expect(page).toHaveURL(/\/theming$/);
     await page.reload();
     await openWithShortcut(page);
-    const recent = view(page).getByRole('grid', { name: 'Recent searches' });
-    await expect(recent.getByRole('row')).toHaveText(['theming']);
-    await expect(view(page).getByRole('grid', { name: 'Suggestions' })).toBeVisible();
+    const recent = group(page, 'Recent searches');
+    await expect(items(page, recent)).toHaveText(['theming']);
+    await expect(group(page, 'Suggestions')).toBeVisible();
     await recent.getByRole('button', { name: 'Remove theming from recent searches' }).click();
     await expect(recent).toBeHidden();
   });

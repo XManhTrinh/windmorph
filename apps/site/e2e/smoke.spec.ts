@@ -119,15 +119,16 @@ async function assertPageHealthy(
   }
 
   if (variant.search) {
-    // The bar answers the shortcut once hydrated, when it advertises it.
-    await expect(page.getByRole('combobox', { name: 'Search documentation' })).toHaveAttribute(
-      'aria-keyshortcuts',
-      /K/,
-    );
+    // The bar answers the shortcut once hydrated, when it's marked ready.
+    await expect(
+      page
+        .locator('[data-ready]')
+        .filter({ has: page.getByRole('combobox', { name: 'Search documentation' }) }),
+    ).toHaveCount(1);
     await page.keyboard.press('ControlOrMeta+K');
     const view = page.getByRole('dialog', { name: 'Search documentation' });
     await view.getByRole('searchbox').fill('button');
-    await expect(view.getByRole('grid').first()).toBeVisible();
+    await expect(view.getByRole('row').first()).toBeVisible();
     // No sideways scrolling, even on a 390px phone.
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
       page.viewportSize()!.width,

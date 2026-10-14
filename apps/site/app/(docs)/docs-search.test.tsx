@@ -33,6 +33,13 @@ afterEach(() => {
 
 const dialog = () => screen.getByRole('dialog', { name: LABEL });
 const searchbox = () => within(dialog()).getByRole('searchbox', { name: LABEL });
+/** A group of the results list: a section named by its subheader. */
+const group = (name: string) => within(dialog()).getByRole('rowgroup', { name });
+/** The item rows in `container`, without the sections' subheader rows. */
+const items = (container: HTMLElement) =>
+  within(container)
+    .getAllByRole('row')
+    .filter((row) => within(row).queryByRole('rowheader') === null);
 
 describe('DocsSearch', () => {
   it('opens with Ctrl+K from anywhere, and with / outside a field', async () => {
@@ -73,11 +80,10 @@ describe('DocsSearch', () => {
     await user.click(screen.getByRole('combobox', { name: LABEL }));
     await user.type(searchbox(), 'button');
 
-    const actions = within(dialog()).getByRole('grid', { name: 'Actions' });
-    const first = within(actions).getAllByRole('row')[0]!;
+    const first = items(group('Actions'))[0]!;
     expect(first).toHaveTextContent(/^Button.*Component$/);
     expect(first.querySelector('mark')).toHaveTextContent('Button');
-    expect(within(dialog()).getByRole('heading', { name: 'Actions' })).toBeInTheDocument();
+    expect(within(group('Actions')).getByRole('rowheader')).toHaveTextContent('Actions');
     await waitFor(() =>
       expect(within(dialog()).getByRole('status')).toHaveTextContent(/^\d+ results$/),
     );
@@ -88,7 +94,7 @@ describe('DocsSearch', () => {
     render(<DocsSearch entries={entries} view="docked" />);
     await user.click(screen.getByRole('combobox', { name: LABEL }));
     await user.type(searchbox(), 'slider keyboard');
-    const row = within(dialog()).getAllByRole('row')[0]!;
+    const row = items(dialog())[0]!;
     expect(row).toHaveTextContent(/Accessibility$/);
     await user.click(row);
     expect(push).toHaveBeenCalledWith('/components/slider/accessibility');
@@ -109,13 +115,9 @@ describe('DocsSearch', () => {
     render(<DocsSearch entries={entries} view="docked" />);
     await user.click(screen.getByRole('combobox', { name: LABEL }));
 
-    const recent = within(dialog()).getByRole('grid', { name: 'Recent searches' });
-    expect(
-      within(recent)
-        .getAllByRole('row')
-        .map((row) => row.textContent),
-    ).toEqual(['dialog', 'otp']);
-    expect(within(dialog()).getByRole('grid', { name: 'Suggestions' })).toBeInTheDocument();
+    const recent = () => group('Recent searches');
+    expect(items(recent()).map((row) => row.textContent)).toEqual(['dialog', 'otp']);
+    expect(group('Suggestions')).toBeInTheDocument();
     await waitFor(() =>
       expect(within(dialog()).getByRole('status')).toHaveTextContent(
         '2 recent searches, 5 suggestions',
@@ -123,12 +125,12 @@ describe('DocsSearch', () => {
     );
 
     await user.click(
-      within(recent).getByRole('button', { name: 'Remove dialog from recent searches' }),
+      within(recent()).getByRole('button', { name: 'Remove dialog from recent searches' }),
     );
-    expect(within(recent).getAllByRole('row')).toHaveLength(1);
+    expect(items(recent())).toHaveLength(1);
     expect(searchbox()).toHaveFocus();
 
-    await user.click(within(recent).getByRole('row', { name: /otp/ }));
+    await user.click(within(recent()).getByRole('row', { name: /otp/ }));
     expect(searchbox()).toHaveValue('otp');
     expect(searchbox()).toHaveFocus();
     expect(within(dialog()).getByRole('row', { name: /PIN input/ })).toBeInTheDocument();
@@ -139,16 +141,16 @@ describe('DocsSearch', () => {
     render(<DocsSearch entries={entries} view="docked" />);
     await user.click(screen.getByRole('combobox', { name: LABEL }));
     await user.type(searchbox(), 'button');
-    const grids = within(dialog()).getAllByRole('grid');
-    expect(grids.length).toBeGreaterThan(1);
-    const firstRows = within(grids[0]!).getAllByRole('row');
+    const sections = within(dialog()).getAllByRole('rowgroup');
+    expect(sections.length).toBeGreaterThan(1);
+    const firstRows = items(sections[0]!);
 
     await user.keyboard('{ArrowDown}');
     expect(firstRows[0]).toHaveFocus();
     for (let step = 1; step < firstRows.length; step++) await user.keyboard('{ArrowDown}');
     expect(firstRows.at(-1)).toHaveFocus();
     await user.keyboard('{ArrowDown}');
-    expect(within(grids[1]!).getAllByRole('row')[0]).toHaveFocus();
+    expect(items(sections[1]!)[0]).toHaveFocus();
     await user.keyboard('{ArrowUp}');
     expect(firstRows.at(-1)).toHaveFocus();
     for (let step = 1; step < firstRows.length; step++) await user.keyboard('{ArrowUp}');
@@ -162,7 +164,7 @@ describe('DocsSearch', () => {
     await user.click(screen.getByRole('combobox', { name: LABEL }));
     await user.type(searchbox(), 'zzzz');
     expect(within(dialog()).getByText(/No results for/)).toHaveTextContent('No results for “zzzz”');
-    expect(within(dialog()).getByRole('grid', { name: 'Suggestions' })).toBeInTheDocument();
+    expect(group('Suggestions')).toBeInTheDocument();
     await waitFor(() =>
       expect(within(dialog()).getByRole('status')).toHaveTextContent('No results for zzzz'),
     );
@@ -191,7 +193,7 @@ describe('DocsSearch', () => {
     const user = userEvent.setup();
     render(<DocsSearch entries={entries} view="docked" />);
     await user.click(screen.getByRole('combobox', { name: LABEL }));
-    expect(within(dialog()).queryByRole('grid', { name: 'Recent searches' })).toBeNull();
+    expect(within(dialog()).queryByRole('rowgroup', { name: 'Recent searches' })).toBeNull();
     await user.type(searchbox(), 'theming{Enter}');
     expect(push).toHaveBeenCalledWith('/theming');
   });

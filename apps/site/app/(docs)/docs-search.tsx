@@ -5,15 +5,14 @@ import {
   IconButton,
   List,
   ListItem,
+  ListSection,
   SearchBar,
   type SearchBarClassNames,
   type SearchBarIconState,
 } from '@windmorph/react';
 import { useRouter } from 'next/navigation';
 import {
-  useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -158,6 +157,15 @@ function useAppleKeyboard(): boolean {
   );
 }
 
+/** Whether the page has hydrated: false on the server and in the static HTML. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
+}
+
 /** Text with the parts matching the query emphasised. */
 function Highlight({ text, terms }: { text: string; terms: readonly string[] }) {
   return highlightParts(text, terms).map((part, index) =>
@@ -205,6 +213,7 @@ export function DocsSearch({
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const apple = useAppleKeyboard();
+  const hydrated = useHydrated();
   const recents = useRecentSearches();
   const loaded = useSearchEntries(entries, expanded);
   const ready = loaded.status === 'ready' ? loaded.entries : NO_ENTRIES;
@@ -212,13 +221,6 @@ export function DocsSearch({
   const results = useMemo(() => searchPages(index, query), [index, query]);
   const suggestions = useMemo(() => suggestedResults(index), [index]);
   const searching = query.trim() !== '';
-
-  // The library hands the ref to whichever input is live (collapsed or expanded); both
-  // advertise the shortcuts.
-  const setInput = useCallback((input: HTMLInputElement | null) => {
-    inputRef.current = input;
-    input?.setAttribute('aria-keyshortcuts', KEY_SHORTCUTS);
-  }, []);
 
   const focusInput = () => inputRef.current?.focus();
 
@@ -325,7 +327,12 @@ export function DocsSearch({
   return (
     <SearchBar
       ref={rootRef}
-      inputRef={setInput}
+      // Marks the bar as answering its shortcuts, which it only does once hydrated.
+      data-ready={hydrated || undefined}
+      // The library hands the ref to whichever input is live (collapsed or expanded), and
+      // gives both the input props, so both advertise the shortcuts.
+      inputRef={inputRef}
+      inputProps={{ 'aria-keyshortcuts': KEY_SHORTCUTS }}
       aria-label={LABEL}
       placeholder={LABEL}
       leadingIcon={leadingIcon}
@@ -387,41 +394,27 @@ export function DocsSearch({
   );
 }
 
+/** A recent search's key in the results list, apart from the results' (their paths). */
+const RECENT_KEY = 'recent:';
+
 /**
- * Moves between the result lists with ↑ / ↓: past the last result of a group to the first of
- * the next, before the first to the last of the previous, and from the very first result
- * back to the search field. Within a group the list moves itself.
+ * ↑ on the list's first result moves back to the search field. The list moves between its
+ * sections itself.
  */
-function moveAcrossGroups(event: ReactKeyboardEvent<HTMLDivElement>, onLeaveTop: () => void): void {
-  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+function leaveAtTop(event: ReactKeyboardEvent<HTMLDivElement>, onLeaveTop: () => void): void {
+  if (event.key !== 'ArrowUp') return;
   const row = (event.target as HTMLElement).closest<HTMLElement>('[role="row"]');
-  const grid = row?.closest<HTMLElement>('[role="grid"]');
-  if (!row || !grid) return;
-  const grids = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="grid"]')];
-  const rowsOf = (list: HTMLElement | undefined) =>
-    list ? [...list.querySelectorAll<HTMLElement>('[role="row"]')] : [];
-  const at = grids.indexOf(grid);
-  const rows = rowsOf(grid);
-  const position = rows.indexOf(row);
-  let next: HTMLElement | undefined;
-  if (event.key === 'ArrowDown' && position === rows.length - 1) {
-    next = rowsOf(grids[at + 1])[0] ?? rowsOf(grids[0])[0];
-  } else if (event.key === 'ArrowUp' && position === 0) {
-    if (at === 0) {
-      event.preventDefault();
-      event.stopPropagation();
-      onLeaveTop();
-      return;
-    }
-    next = rowsOf(grids[at - 1]).at(-1);
-  }
-  if (!next) return;
+  const first = event.currentTarget.querySelector<HTMLElement>('[role="row"][data-key]');
+  if (!row || row !== first) return;
   event.preventDefault();
   event.stopPropagation();
-  next.focus();
+  onLeaveTop();
 }
 
-/** The view's content: recent searches and suggestions, the grouped results, or "no results". */
+/**
+ * The view's content: recent searches and suggestions, the grouped results, or "no results".
+ * One list, a section per group under its subheader, so ↑ and ↓ move through every group.
+ */
 function SearchResults({
   groups,
   query,
@@ -443,38 +436,15 @@ function SearchResults({
   onRemoveRecent: (query: string) => void;
   onLeaveTop: () => void;
 }) {
-  const id = useId();
   const noResults = searching && groups.length === 0;
   const shown = noResults ? [{ category: 'Suggestions', results: suggestions }] : groups;
-
-  return (
-    <div
-      className="flex flex-col gap-2 p-2 pb-4"
-      onKeyDownCapture={(event) => moveAcrossGroups(event, onLeaveTop)}
-    >
-      {noResults && (
-        <div className="flex flex-col items-center gap-2 px-4 pt-6 pb-2 text-center">
-          <SearchOffIcon className="size-10 text-on-surface-variant" />
-          <p className="text-title-medium text-on-surface">
-            No results for “<span className="break-all">{query.trim()}</span>”
-          </p>
-          <p className="max-w-[40ch] text-body-medium text-on-surface-variant">
-            Try a component name, a code name such as IconButton, or one of these pages.
-          </p>
-        </div>
-      )}
-      {recents.length > 0 && (
-        <div>
-          <GroupHeading id={`${id}-recent`}>Recent searches</GroupHeading>
-          <List
-            variant="segmented"
-            aria-labelledby={`${id}-recent`}
-            headlineLines={1}
-            onAction={(key) => onRecent(String(key))}
-          >
+  const sections = [
+    ...(recents.length > 0
+      ? [
+          <ListSection key="recent" title="Recent searches">
             {recents.map((recent) => (
               <ListItem
-                key={recent}
+                key={`${RECENT_KEY}${recent}`}
                 textValue={recent}
                 leading={<HistoryIcon />}
                 trailing={
@@ -488,58 +458,72 @@ function SearchResults({
                 {recent}
               </ListItem>
             ))}
-          </List>
+          </ListSection>,
+        ]
+      : []),
+    ...shown.map((group) => (
+      <ListSection key={group.category} title={group.category}>
+        {group.results.map((result) => (
+          <ListItem
+            key={result.href}
+            // The row's name: the title, then what it opens ("Slider, Accessibility").
+            textValue={`${result.entry.title}, ${resultTypeLabel(result)}`}
+            leading={resultIcon(result)}
+            trailing={resultTypeLabel(result)}
+            supportingText={
+              result.matched ? (
+                <>
+                  <Highlight text={result.matched} terms={result.terms} />
+                  {' · '}
+                  {result.entry.summary}
+                </>
+              ) : (
+                <Highlight text={result.entry.summary} terms={result.terms} />
+              )
+            }
+          >
+            <Highlight text={result.entry.title} terms={result.terms} />
+          </ListItem>
+        ))}
+      </ListSection>
+    )),
+  ];
+
+  return (
+    <div
+      className="flex flex-col gap-2 p-2 pb-4"
+      onKeyDownCapture={(event) => leaveAtTop(event, onLeaveTop)}
+    >
+      {noResults && (
+        <div className="flex flex-col items-center gap-2 px-4 pt-6 pb-2 text-center">
+          <SearchOffIcon className="size-10 text-on-surface-variant" />
+          <p className="text-title-medium text-on-surface">
+            No results for “<span className="break-all">{query.trim()}</span>”
+          </p>
+          <p className="max-w-[40ch] text-body-medium text-on-surface-variant">
+            Try a component name, a code name such as IconButton, or one of these pages.
+          </p>
         </div>
       )}
-      {shown.map((group, groupIndex) => {
-        const headingId = `${id}-group-${groupIndex}`;
-        return (
-          <div key={group.category}>
-            <GroupHeading id={headingId}>{group.category}</GroupHeading>
-            <List
-              variant="segmented"
-              aria-labelledby={headingId}
-              headlineLines={1}
-              supportingTextLines={1}
-              onAction={(key) => {
-                const result = group.results.find((candidate) => candidate.href === key);
-                if (result) onOpen(result);
-              }}
-            >
-              {group.results.map((result) => (
-                <ListItem
-                  key={result.href}
-                  // The row's name: the title, then what it opens ("Slider, Accessibility").
-                  textValue={`${result.entry.title}, ${resultTypeLabel(result)}`}
-                  leading={resultIcon(result)}
-                  trailing={resultTypeLabel(result)}
-                  supportingText={
-                    result.matched ? (
-                      <>
-                        <Highlight text={result.matched} terms={result.terms} />
-                        {' · '}
-                        {result.entry.summary}
-                      </>
-                    ) : (
-                      <Highlight text={result.entry.summary} terms={result.terms} />
-                    )
-                  }
-                >
-                  <Highlight text={result.entry.title} terms={result.terms} />
-                </ListItem>
-              ))}
-            </List>
-          </div>
-        );
-      })}
+      <List
+        variant="segmented"
+        aria-label={searching && !noResults ? 'Search results' : 'Search suggestions'}
+        headlineLines={1}
+        supportingTextLines={1}
+        onAction={(key) => {
+          const value = String(key);
+          if (value.startsWith(RECENT_KEY)) {
+            onRecent(value.slice(RECENT_KEY.length));
+            return;
+          }
+          const result = shown
+            .flatMap((group) => group.results)
+            .find((candidate) => candidate.href === value);
+          if (result) onOpen(result);
+        }}
+      >
+        {sections}
+      </List>
     </div>
-  );
-}
-
-function GroupHeading({ id, children }: { id: string; children: ReactNode }) {
-  return (
-    <h2 id={id} className="px-4 pt-3 pb-2 text-title-small text-on-surface-variant">
-      {children}
-    </h2>
   );
 }
