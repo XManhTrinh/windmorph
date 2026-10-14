@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { pauseClock, runFrames } from './clock';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
@@ -23,14 +24,13 @@ test.describe('LoadingIndicator visual regression', () => {
     await expect(page.getByTestId('sizes')).toHaveScreenshot('sizes.png');
   });
 
-  // A paused fake clock makes the animation frames deterministic: only runFor advances
+  // A paused fake clock makes the animation frames deterministic: only runFrames advances
   // time, so page-load time never leaks into the animation.
   for (const ms of [0, 200, 1000]) {
     test(`indeterminate at ${ms}ms`, async ({ page }) => {
-      await page.clock.install({ time: 0 });
-      await page.clock.pauseAt(1000);
+      await pauseClock(page);
       await openStory(page, 'components-loadingindicator--indeterminate');
-      await page.clock.runFor(ms);
+      await runFrames(page, ms);
       await expect(page.getByTestId('indeterminate')).toHaveScreenshot(`indeterminate-${ms}ms.png`);
     });
   }

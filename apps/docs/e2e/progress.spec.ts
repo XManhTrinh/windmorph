@@ -1,15 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
+import { pauseClock, runFrames } from './clock';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
 // A paused fake clock freezes the wave and the indeterminate lines at a known frame.
 async function frozen(page: Page, ms: number) {
-  await page.clock.install({ time: 0 });
-  await page.clock.pauseAt(1000);
+  await pauseClock(page);
   return async (story: string, globals = {}) => {
     await openStory(page, story, globals);
-    await page.clock.runFor(ms);
+    await runFrames(page, ms);
   };
 }
 
