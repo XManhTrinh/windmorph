@@ -74,9 +74,10 @@ export function ComponentTabs({
       {tabs.map((tab) => (
         <Tab key={tab} title={TAB_LABELS[tab]}>
           {tab === selected ? (
-            // Keyed on the tab, so a change exits the old panel and enters the new one. Without
-            // a direction (the browser's back and forward), it moves forward.
-            <ViewTransition key={tab} enter={TAB_AXIS} exit={TAB_AXIS} default="none">
+            // Each tab's panel is a new element, which keeps an enter or exit from animating,
+            // so the old and new content share one name: the change runs as a pair. Without a
+            // direction (the browser's back and forward), it moves forward.
+            <ViewTransition name="component-tab-panel" share={TAB_AXIS} default="none">
               <div>{children}</div>
             </ViewTransition>
           ) : null}
