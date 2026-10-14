@@ -107,6 +107,36 @@ test.describe('Slider value label example', () => {
   });
 });
 
+test.describe('Navigation bar hide-on-scroll example', () => {
+  test('slides the bar off while the region scrolls down and back on a scroll up', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await gotoReady(page, '/components/navigation-bar');
+    const region = page.getByRole('region', { name: 'Inbox' });
+    const bar = page.getByRole('navigation', { name: 'Hide on scroll example' });
+    await region.scrollIntoViewIfNeeded();
+    const regionBottom = async () => {
+      const box = (await region.boundingBox())!;
+      return box.y + box.height;
+    };
+    // At rest the bar sits inside the region's bottom edge.
+    await expect
+      .poll(async () => (await bar.boundingBox())!.y + (await bar.boundingBox())!.height)
+      .toBeLessThanOrEqual((await regionBottom()) + 0.5);
+
+    await region.evaluate((el) => el.scrollBy(0, 400));
+    await expect
+      .poll(async () => (await bar.boundingBox())!.y)
+      .toBeGreaterThanOrEqual((await regionBottom()) - 0.5);
+
+    await region.evaluate((el) => el.scrollBy(0, -200));
+    await expect
+      .poll(async () => (await bar.boundingBox())!.y + (await bar.boundingBox())!.height)
+      .toBeLessThanOrEqual((await regionBottom()) + 0.5);
+  });
+});
+
 test.describe('Install command', () => {
   test('switches package manager and remembers the choice', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });

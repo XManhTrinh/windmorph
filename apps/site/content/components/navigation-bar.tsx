@@ -8,16 +8,19 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const BarInline = lazyExample('navigation-bar/bar-inline', 'BarInline');
 const BarStacked = lazyExample('navigation-bar/bar-stacked', 'BarStacked');
+const BarHideOnScroll = lazyExample('navigation-bar/bar-hide-on-scroll', 'BarHideOnScroll');
 
-/** Navigation bar page body: stacked and inline items. */
+/** Navigation bar page body: stacked and inline items, and hiding on scroll. */
 export async function NavigationBarBody(): Promise<ComponentDoc> {
-  const [stacked, inline] = await Promise.all([
+  const [stacked, inline, hideOnScroll] = await Promise.all([
     readExampleSource('navigation-bar/bar-stacked.tsx'),
     readExampleSource('navigation-bar/bar-inline.tsx'),
+    readExampleSource('navigation-bar/bar-hide-on-scroll.tsx'),
   ]);
-  const [stackedHtml, inlineHtml] = await Promise.all([
+  const [stackedHtml, inlineHtml, hideOnScrollHtml] = await Promise.all([
     highlightSource(stacked),
     highlightSource(inline),
+    highlightSource(hideOnScroll),
   ]);
 
   return {
@@ -43,6 +46,14 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             fileName="bar-inline.tsx"
           >
             <BarInline />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Hide on scroll"
+            code={hideOnScroll}
+            html={hideOnScrollHtml}
+            fileName="bar-hide-on-scroll.tsx"
+          >
+            <BarHideOnScroll />
           </ExampleViewer>
         </section>
       </>

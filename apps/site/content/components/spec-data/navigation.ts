@@ -168,6 +168,11 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['navigation-bar/bar-stacked'],
       },
+      {
+        name: 'Hide on scroll',
+        kind: 'use case',
+        examples: ['navigation-bar/bar-hide-on-scroll'],
+      },
     ],
     extensions: [
       {
