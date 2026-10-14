@@ -37,6 +37,11 @@ beforeAll(() => {
   );
   write('components/button/ButtonContext.js', 'export const ButtonContext = {};');
   write(
+    'components/menu/Menu.js',
+    'import "../../utils/cn.js";\nconst loadSheet = () => import("../sheet/BottomSheet.js");\nexport function Menu() {}',
+  );
+  write('components/sheet/BottomSheet.js', 'export function BottomSheet() {}');
+  write(
     'components/dialog/Dialog.js',
     'import { cn } from "../../utils/cn.js";\nexport function Dialog() {}\nexport function DialogTrigger() {}\nexport const dialogStyles = {};',
   );
@@ -56,6 +61,13 @@ describe('bundle size', () => {
     expect(moduleClosure(dist, 'components/button/Button.js')).toEqual([
       'components/button/Button.js',
       'components/button/ButtonContext.js',
+      'utils/cn.js',
+    ]);
+  });
+
+  it('leaves out modules loaded with a dynamic import()', () => {
+    expect(moduleClosure(dist, 'components/menu/Menu.js')).toEqual([
+      'components/menu/Menu.js',
       'utils/cn.js',
     ]);
   });

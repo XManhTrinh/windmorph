@@ -1,6 +1,7 @@
 /**
  * Measures what each public component costs an app: the gzipped size of its module in the
- * built `dist/` plus every library module it imports, directly or not. Dependencies (React,
+ * built `dist/` plus every library module it imports statically, directly or not (modules it
+ * loads with a dynamic `import()` load only when used, so they're left out). Dependencies (React,
  * React Aria, Motion, …) are left out: an app shares them between components, and they are
  * not this package's to budget.
  */
@@ -26,16 +27,21 @@ export interface SizeBudgets {
   budgets: Record<string, number>;
 }
 
-const IMPORT = /(?:\bfrom\s*|\bimport\s*\(?\s*)["'](\.{1,2}\/[^"']+)["']/g;
+/**
+ * Static imports (`… from "./x.js"`, `import "./x.js"`). A dynamic `import("./x.js")` is
+ * left out: its module loads only when the code that imports it runs (a `Menu`'s sheet on
+ * first open), so the component doesn't cost it up front.
+ */
+const IMPORT = /(?:\bfrom\s*|\bimport\s*)["'](\.{1,2}\/[^"']+)["']/g;
 
-/** A module's relative imports, as paths in `dist`. */
+/** A module's static relative imports, as paths in `dist`. */
 function relativeImports(distDir: string, file: string, code: string): string[] {
   return [...code.matchAll(IMPORT)].map(([, specifier]) =>
     relative(distDir, normalize(join(dirname(join(distDir, file)), specifier!))),
   );
 }
 
-/** `file` and every library module it imports, directly or through others, sorted. */
+/** `file` and every library module it imports statically, directly or through others, sorted. */
 export function moduleClosure(distDir: string, file: string): string[] {
   const seen = new Set<string>();
   const visit = (current: string) => {
