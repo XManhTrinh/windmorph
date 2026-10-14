@@ -9,9 +9,11 @@ import { checkboxStyles } from './checkbox-styles';
 export function CheckboxBox({
   styles = checkboxStyles(),
   className,
+  iconClassName,
 }: {
   styles?: ReturnType<typeof checkboxStyles>;
-  className?: string;
+  className?: string | undefined;
+  iconClassName?: string | undefined;
 }) {
   return (
     <span
@@ -20,7 +22,7 @@ export function CheckboxBox({
       data-slot="box"
       className={styles.box({ class: className })}
     >
-      <svg viewBox="0 0 18 18" className={styles.icon()}>
+      <svg viewBox="0 0 18 18" className={styles.icon({ class: iconClassName })}>
         <path
           d="M4.5 9 7.2 11.7 13.5 5.4"
           pathLength={1}

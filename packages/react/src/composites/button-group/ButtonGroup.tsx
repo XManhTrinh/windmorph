@@ -57,6 +57,14 @@ export interface ButtonGroupLabels {
 
 const DEFAULT_LABELS: ButtonGroupLabels = { more: 'More options' };
 
+export interface ButtonGroupClassNames {
+  root?: string;
+  /** The overflow indicator, the "More options" icon button (`overflow`). */
+  overflowButton?: string;
+  /** The overflow indicator's menu of folded buttons (`overflow`). */
+  overflowMenu?: string;
+}
+
 export interface ButtonGroupProps extends Omit<
   ComponentPropsWithRef<'div'>,
   'onChange' | 'defaultValue'
@@ -119,6 +127,8 @@ export interface ButtonGroupProps extends Omit<
    * @default { more: "More options" }
    */
   labels?: Partial<ButtonGroupLabels>;
+  /** Classes for each part. `classNames.root` is merged with `className`. */
+  classNames?: ButtonGroupClassNames;
   children?: ReactNode;
 }
 
@@ -205,6 +215,7 @@ function ButtonGroupRoot({
   overflow = false,
   labels,
   className,
+  classNames,
   children,
   ref,
   directionRef,
@@ -284,6 +295,7 @@ function ButtonGroupRoot({
           selectionMode={selectionMode}
           selectedKeys={state.selectedKeys}
           disabled={Boolean(disabled ?? parent.disabled)}
+          classNames={classNames}
         />
       </ButtonContext>,
     );
@@ -296,6 +308,7 @@ function ButtonGroupRoot({
       data-variant={variant}
       className={cn(
         buttonGroupStyles({ variant, size: size ?? parent.size ?? 'sm', overflow }),
+        classNames?.root,
         className,
       )}
     >
@@ -348,6 +361,7 @@ interface OverflowMenuProps {
   selectionMode: ButtonGroupSelectionMode;
   selectedKeys: ReadonlySet<Key>;
   disabled: boolean;
+  classNames: ButtonGroupClassNames | undefined;
 }
 
 /**
@@ -366,6 +380,7 @@ function OverflowMenu({
   selectionMode,
   selectedKeys,
   disabled,
+  classNames,
 }: OverflowMenuProps) {
   // Folded standalone toggles keep their state inside them: read it when the menu opens
   // and after each choice.
@@ -400,7 +415,11 @@ function OverflowMenu({
 
   return (
     <MenuTrigger onOpenChange={(open) => open && readPressed()}>
-      <IconButton icon={<MoreVertIcon />} aria-label={label} />
+      <IconButton
+        icon={<MoreVertIcon />}
+        aria-label={label}
+        className={classNames?.overflowButton}
+      />
       {hidden.length > 0 && (
         <LazyOverflowMenuList
           items={hidden.map((child, index) => ({
@@ -410,6 +429,7 @@ function OverflowMenu({
           selectionMode={menuSelectionMode}
           selectedKeys={selected}
           disabledKeys={disabledKeys}
+          className={classNames?.overflowMenu}
           onAction={(key) => {
             elementAt(String(key))?.click();
             // The button updates once this event is handled.

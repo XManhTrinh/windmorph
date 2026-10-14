@@ -398,3 +398,20 @@ describe('Tabs component tokens', () => {
     );
   });
 });
+
+describe('Tabs classNames', () => {
+  it('puts the scroller, icon and label slots on their parts', () => {
+    render(
+      <Tabs
+        aria-label="Trips"
+        classNames={{ scroller: 'scroller-x', icon: 'icon-x', label: 'label-x' }}
+      >
+        <Tab key="flights" title="Flights" icon={<svg data-testid="icon" />} />
+        <Tab key="hotels" title="Hotels" />
+      </Tabs>,
+    );
+    expect(screen.getByRole('tablist').parentElement).toHaveClass('scroller-x');
+    expect(screen.getByTestId('icon').parentElement).toHaveClass('icon-x');
+    expect(screen.getByText('Hotels')).toHaveClass('label-x');
+  });
+});

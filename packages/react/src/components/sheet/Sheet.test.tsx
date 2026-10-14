@@ -335,11 +335,16 @@ describe('SideSheet', () => {
             closeButton: 'close-x',
             headerActions: 'actions-x',
             footer: 'footer-x',
+            panel: 'panel-x',
           }}
         >
           Body
         </SideSheet>
-        <BottomSheet variant="standard" aria-label="Player" classNames={{ container: 'absolute' }}>
+        <BottomSheet
+          variant="standard"
+          aria-label="Player"
+          classNames={{ container: 'absolute', handleBar: 'bar-x' }}
+        >
           Player
         </BottomSheet>
       </>,
@@ -348,6 +353,11 @@ describe('SideSheet', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('close-x');
     expect(screen.getByRole('button', { name: 'Close' }).parentElement).toHaveClass('actions-x');
     expect(screen.getByRole('button', { name: 'Save' }).parentElement).toHaveClass('footer-x');
+    // A standard side sheet's panel slot is on its surface; its layout box keeps `className`.
+    const panel = screen.getByText('Body').closest('[data-slot="panel"]')!;
+    expect(panel).toHaveClass('panel-x');
+    expect(screen.getByRole('dialog', { name: 'Details' })).not.toHaveClass('panel-x');
+    expect(document.querySelector('[data-slot="drag-handle"]')).toHaveClass('bar-x');
     // A consumer position replaces the default `fixed` (e.g. inside a bounded region).
     const container = screen.getByRole('dialog', { name: 'Player' }).parentElement!;
     expect(container).toHaveClass('absolute');

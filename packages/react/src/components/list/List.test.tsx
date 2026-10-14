@@ -838,3 +838,25 @@ describe('List switch items', () => {
     expect(track).toHaveAttribute('data-tokens', 'md-comp-switch');
   });
 });
+
+describe('List classNames', () => {
+  it('puts the selectionIndicator and expandButton slots on their parts', () => {
+    const slots = { selectionIndicator: 'check-x', expandButton: 'expand-x' };
+    const { unmount } = render(
+      <List aria-label="Labels" selectionMode="multiple" classNames={slots}>
+        <ListItem key="work">Work</ListItem>
+      </List>,
+    );
+    const option = screen.getByRole('option', { name: 'Work' });
+    expect(option.querySelector('[data-selection-indicator]')).toHaveClass('check-x');
+    unmount();
+    render(
+      <List aria-label="Folders" classNames={slots}>
+        <ListItem key="photos" childItems={[<ListItem key="trips">Trips</ListItem>]}>
+          Photos
+        </ListItem>
+      </List>,
+    );
+    expect(screen.getByRole('button', { name: /expand/i })).toHaveClass('expand-x');
+  });
+});

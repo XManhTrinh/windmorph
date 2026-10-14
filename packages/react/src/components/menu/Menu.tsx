@@ -170,7 +170,17 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 
 export interface MenuClassNames {
   group?: string;
+  /** Each `MenuGroup`'s heading. */
+  heading?: string;
   item?: string;
+  /** Each item's leading icon, or the icon marking a selected item. */
+  icon?: string;
+  /** Each item's `description` line. */
+  description?: string;
+  /** Each item's keyboard `shortcut`. */
+  shortcut?: string;
+  /** Each item's trailing icon, including a submenu's arrow. */
+  trailingIcon?: string;
   divider?: string;
 }
 
@@ -640,7 +650,7 @@ function MenuList({
                   state={state}
                   variant={variant}
                   className={groupStyles.group({ class: classNames?.group })}
-                  headingClassName={groupStyles.heading()}
+                  headingClassName={groupStyles.heading({ class: classNames?.heading })}
                   edges={edges}
                   classNames={classNames}
                 />
@@ -933,25 +943,36 @@ function MenuItemView({
       className={styles.item({ class: cn(classNames?.item, props.className) })}
     >
       {props.leadingIcon && selectedIcon ? (
-        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
+        <span
+          aria-hidden="true"
+          data-slot="leading-icon"
+          className={styles.icon({ class: classNames?.icon })}
+        >
           {isSelected ? selectedIcon : props.leadingIcon}
         </span>
       ) : props.leadingIcon ? (
-        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
+        <span
+          aria-hidden="true"
+          data-slot="leading-icon"
+          className={styles.icon({ class: classNames?.icon })}
+        >
           {props.leadingIcon}
         </span>
       ) : selectedIcon ? (
         // No leading icon: the selected icon expands in when selected (Compose).
         <span aria-hidden="true" className={styles.selectedIcon()}>
           <span className={styles.selectedIconInner()}>
-            <span className={styles.icon()}>{selectedIcon}</span>
+            <span className={styles.icon({ class: classNames?.icon })}>{selectedIcon}</span>
           </span>
         </span>
       ) : null}
       <span className={styles.text()}>
         <span {...labelProps}>{node.rendered}</span>
         {props.description && (
-          <span {...descriptionProps} className={styles.description()}>
+          <span
+            {...descriptionProps}
+            className={styles.description({ class: classNames?.description })}
+          >
             {props.description}
           </span>
         )}
@@ -962,12 +983,19 @@ function MenuItemView({
         </span>
       )}
       {props.shortcut && (
-        <kbd {...keyboardShortcutProps} className={cn(styles.trailing(), 'font-plain')}>
+        <kbd
+          {...keyboardShortcutProps}
+          className={styles.trailing({ class: cn('font-plain', classNames?.shortcut) })}
+        >
           {props.shortcut}
         </kbd>
       )}
       {trailingIcon && (
-        <span aria-hidden="true" data-slot="trailing-icon" className={styles.trailing()}>
+        <span
+          aria-hidden="true"
+          data-slot="trailing-icon"
+          className={styles.trailing({ class: classNames?.trailingIcon })}
+        >
           {trailingIcon}
         </span>
       )}

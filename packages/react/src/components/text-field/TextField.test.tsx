@@ -355,3 +355,15 @@ describe('TextField', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('TextField classNames', () => {
+  it('puts the outline and activeIndicator slots on their parts', () => {
+    const slots = { outline: 'outline-x', activeIndicator: 'indicator-x' };
+    const { container, rerender } = render(
+      <TextField variant="outlined" label="Name" classNames={slots} />,
+    );
+    expect(container.querySelector('[data-slot="outline"]')).toHaveClass('outline-x');
+    rerender(<TextField variant="filled" label="Name" classNames={slots} />);
+    expect(container.querySelector('[data-slot="active-indicator"]')).toHaveClass('indicator-x');
+  });
+});

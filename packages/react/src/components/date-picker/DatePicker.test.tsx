@@ -362,3 +362,58 @@ describe('PickerDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
+
+describe('date picker classNames', () => {
+  it('puts each DatePicker slot on its part', async () => {
+    render(
+      <DatePicker
+        defaultValue={march}
+        classNames={{
+          title: 'title-x',
+          headline: 'headline-x',
+          weekday: 'weekday-x',
+          day: 'day-x',
+          year: 'year-x',
+        }}
+      />,
+    );
+    expect(screen.getByText('Select date')).toHaveClass('title-x');
+    expect(screen.getByText('Mar 10, 2030')).toHaveClass('headline-x');
+    for (const weekday of screen.getAllByRole('columnheader')) {
+      expect(weekday).toHaveClass('weekday-x');
+    }
+    expect(screen.getByRole('button', { name: /March 10, 2030/ })).toHaveClass('day-x');
+    await userEvent.click(screen.getByRole('button', { name: /Switch to selecting a year/ }));
+    expect(screen.getByRole('radio', { name: '2030' })).toHaveClass('year-x');
+  });
+
+  it("puts the range picker's weekday and month subhead slots on their parts", () => {
+    render(
+      <DateRangePicker
+        minValue={new CalendarDate(2030, 3, 1)}
+        maxValue={new CalendarDate(2030, 5, 31)}
+        classNames={{ weekday: 'weekday-x', monthSubhead: 'subhead-x' }}
+      />,
+    );
+    const subhead = screen.getAllByText('March 2030').find((el) => el.ariaHidden === 'true');
+    expect(subhead).toHaveClass('subhead-x');
+    // The visible weekday row, and each month's weekday headers for assistive tech.
+    for (const weekday of screen.getAllByTitle('Sunday')) expect(weekday).toHaveClass('weekday-x');
+  });
+
+  it("puts PickerDialog's title slot on the time dialog's title", () => {
+    render(
+      <PickerDialog
+        aria-label="Select time"
+        variant="time"
+        title="Select time"
+        defaultOpen
+        classNames={{ title: 'title-x' }}
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <p>Time</p>
+      </PickerDialog>,
+    );
+    expect(screen.getByRole('heading', { name: 'Select time' })).toHaveClass('title-x');
+  });
+});

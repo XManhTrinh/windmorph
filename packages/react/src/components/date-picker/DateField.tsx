@@ -24,6 +24,7 @@ import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { OptionPopover } from '../select/option-list';
+import type { TextFieldClassNames } from '../text-field/TextField';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
@@ -78,12 +79,23 @@ export interface DateFieldStrings extends DateInputStrings {
   ok?: string;
 }
 
-export interface DateFieldClassNames {
+export interface DateFieldClassNames extends Omit<
+  TextFieldClassNames,
+  'leadingIcon' | 'prefix' | 'suffix' | 'counter'
+> {
   /** The text field's root; `className` goes here too. */
   root?: string;
   input?: string;
   /** The dropdown calendar's panel. */
   calendar?: string;
+  /** The calendar's month and year menu buttons. */
+  menuButton?: string;
+  /** The calendar's weekday names. */
+  weekday?: string;
+  /** Each day of the calendar. */
+  day?: string;
+  /** Each month or year in the calendar's month and year lists. */
+  item?: string;
 }
 
 export interface DateFieldProps {
@@ -179,6 +191,7 @@ function DateFieldInner({
   const overlay = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const fieldRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  const { root, calendar, menuButton, weekday, day, item, ...fieldClassNames } = classNames ?? {};
   return (
     <>
       <DateInput
@@ -205,8 +218,8 @@ function DateFieldInner({
         name={name}
         style={style}
         data={data}
-        className={cn(classNames?.root, className)}
-        classNames={{ input: classNames?.input }}
+        className={cn(root, className)}
+        classNames={fieldClassNames}
         trailingIcon={
           <IconButton
             variant="standard"
@@ -232,7 +245,8 @@ function DateFieldInner({
           isDateUnavailable={isDateUnavailable}
           yearRange={yearRange}
           strings={strings}
-          className={classNames?.calendar}
+          className={calendar}
+          classNames={{ menuButton, weekday, day, item }}
         />
       </OptionPopover>
     </>
@@ -252,6 +266,7 @@ function DockedCalendar({
   yearRange,
   strings,
   className,
+  classNames,
 }: {
   value: CalendarDate | null;
   onCommit: (date: CalendarDate | null) => void;
@@ -262,6 +277,7 @@ function DockedCalendar({
   yearRange: [number, number];
   strings: DateFieldStrings;
   className: string | undefined;
+  classNames: Pick<DateFieldClassNames, 'menuButton' | 'weekday' | 'day' | 'item'>;
 }) {
   const { locale } = useLocale();
   const [draft, setDraft] = useState(value);
@@ -345,6 +361,7 @@ function DockedCalendar({
               open={view === 'months'}
               disabled={view === 'years'}
               styles={styles}
+              className={classNames.menuButton}
               onPress={() => openList('months', false)}
             >
               {shortMonth.format(at(shown))}
@@ -372,6 +389,7 @@ function DockedCalendar({
               open={view === 'years'}
               disabled={view === 'months'}
               styles={styles}
+              className={classNames.menuButton}
               onPress={() => openList('years', false)}
             >
               {yearFormat.format(at(shown))}
@@ -388,7 +406,7 @@ function DockedCalendar({
         {view === 'days' && (
           <div {...swipeProps} className={grid.swipe({ class: styles.view() })}>
             <div key={slideKey} data-direction={slideDirection} className={grid.slide()}>
-              <CalendarGrid state={state} styles={grid} />
+              <CalendarGrid state={state} styles={grid} classNames={classNames} />
             </div>
           </div>
         )}
@@ -400,7 +418,7 @@ function DockedCalendar({
                 selected={month === shown.month}
                 disabled={monthOutside(month)}
                 steps={LIST_STEPS}
-                className={styles.item()}
+                className={styles.item({ class: classNames.item })}
                 onPick={() => pick(shown.set({ month }), 'months')}
               >
                 <Check selected={month === shown.month} styles={styles} />
@@ -420,7 +438,7 @@ function DockedCalendar({
                 selected={year === shown.year}
                 disabled={year < firstYear || year > lastYear}
                 steps={LIST_STEPS}
-                className={styles.item()}
+                className={styles.item({ class: classNames.item })}
                 onPick={() => pick(shown.set({ year }), 'years')}
               >
                 <Check selected={year === shown.year} styles={styles} />
@@ -452,6 +470,7 @@ function MenuButton({
   open,
   disabled,
   styles,
+  className,
   onPress,
   children,
 }: {
@@ -461,6 +480,7 @@ function MenuButton({
   open: boolean;
   disabled: boolean;
   styles: ReturnType<typeof dockedDatePickerStyles>;
+  className: string | undefined;
   onPress: () => void;
   children: string;
 }) {
@@ -475,7 +495,7 @@ function MenuButton({
         data-menu-open={open || undefined}
         disabled={disabled}
         onPress={onPress}
-        className={styles.menuButton()}
+        className={styles.menuButton({ class: className })}
       >
         {/* The drop-down arrow trails the label here, which Button's one leading icon can't do. */}
         <span className="inline-flex items-center gap-[8px]">

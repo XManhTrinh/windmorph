@@ -36,10 +36,13 @@ export function CalendarGrid({
   state,
   styles,
   month,
+  classNames,
 }: {
   state: AnyCalendarState;
   styles: ReturnType<typeof datePickerStyles>;
   month?: CalendarDate;
+  /** Consumer classes for the weekday headers and the days. */
+  classNames?: { weekday?: string | undefined; day?: string | undefined } | undefined;
 }) {
   const { locale } = useLocale();
   const start = month ?? state.visibleRange.start;
@@ -61,7 +64,13 @@ export function CalendarGrid({
               firstDay.add({ days: index }).toDate(getLocalTimeZone()),
             );
             return (
-              <th key={index} scope="col" abbr={name} title={name} className={styles.weekday()}>
+              <th
+                key={index}
+                scope="col"
+                abbr={name}
+                title={name}
+                className={styles.weekday({ class: classNames?.weekday })}
+              >
                 {day}
               </th>
             );
@@ -81,6 +90,7 @@ export function CalendarGrid({
                     date={date}
                     styles={styles}
                     shownMonth={start}
+                    className={classNames?.day}
                   />
                 ) : (
                   <td key={index} aria-hidden="true" className={styles.cell()} />
@@ -98,11 +108,13 @@ function CalendarCell({
   date,
   styles,
   shownMonth,
+  className,
 }: {
   state: AnyCalendarState;
   date: CalendarDate;
   styles: ReturnType<typeof datePickerStyles>;
   shownMonth: CalendarDate;
+  className: string | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const {
@@ -146,7 +158,7 @@ function CalendarCell({
         data-today={(isToday(date, getLocalTimeZone()) && !isOutside) || undefined}
         data-disabled={disabled || undefined}
         data-outside={isOutside || undefined}
-        className={styles.day()}
+        className={styles.day({ class: className })}
       >
         {formattedDate}
       </div>

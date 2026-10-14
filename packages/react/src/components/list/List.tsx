@@ -323,6 +323,10 @@ export interface ListClassNames {
   trailing?: string;
   /** The drawn switch, checkbox or radio button of an item that is one. */
   control?: string;
+  /** The check that marks a selected item in a list with `selectionMode`. */
+  selectionIndicator?: string;
+  /** The chevron button that expands an item with nested items. */
+  expandButton?: string;
   /** Every `ListItemImage` and `ListItemVideo` in the list (to round them, say). */
   media?: string;
 }
@@ -1070,11 +1074,19 @@ function shapeOf(state: {
 }
 
 /** The check a selected item shows at its end, when the list selects and shows it. */
-function useSelectionCheck(styles: ReturnType<typeof listStyles>, selectable: boolean): ReactNode {
+function useSelectionCheck(
+  styles: ReturnType<typeof listStyles>,
+  selectable: boolean,
+  className: string | undefined,
+): ReactNode {
   const { selectionIndicator = true } = useContext(ListOptionsContext);
   if (!selectable || !selectionIndicator) return null;
   return (
-    <span aria-hidden="true" data-selection-indicator="" className={styles.selectionIndicator()}>
+    <span
+      aria-hidden="true"
+      data-selection-indicator=""
+      className={styles.selectionIndicator({ class: className })}
+    >
       <CheckIcon20 />
     </span>
   );
@@ -1103,7 +1115,11 @@ function GridListRow({
   const shape = shapeOf({ isPressed, isSelected, isFocusVisible, isHovered, isDisabled });
   const options = useContext(ListOptionsContext);
   const styles = itemStyles(item, variant, true, options);
-  const check = useSelectionCheck(styles, state.selectionManager.selectionMode !== 'none');
+  const check = useSelectionCheck(
+    styles,
+    state.selectionManager.selectionMode !== 'none',
+    classNames?.selectionIndicator,
+  );
   return (
     <div
       {...mergeProps(rowProps, hoverProps, interactionProps)}
@@ -1245,7 +1261,7 @@ function OptionRow({
   const shape = shapeOf({ isPressed, isSelected, isFocusVisible, isHovered, isDisabled });
   const options = useContext(ListOptionsContext);
   const styles = itemStyles(item, variant, true, options);
-  const check = useSelectionCheck(styles, true);
+  const check = useSelectionCheck(styles, true, classNames?.selectionIndicator);
   useEffect(() => {
     if (process.env.NODE_ENV === 'production') return;
     const nested = ref.current?.querySelector(FOCUSABLE);
@@ -1480,9 +1496,9 @@ function TreeRowGhost({
     ...itemStylesOptions(item, variant, true, options),
     nested: node.level > 0,
   });
-  const check = useSelectionCheck(styles, selectable);
+  const check = useSelectionCheck(styles, selectable, classNames?.selectionIndicator);
   const chevron = node.hasChildNodes && (
-    <span className={styles.expand()}>
+    <span className={styles.expand({ class: classNames?.expandButton })}>
       <ExpandMoreIcon />
     </span>
   );
@@ -1607,14 +1623,21 @@ function TreeRow({
     ...itemStylesOptions(item, variant, true, options),
     nested: node.level > 0,
   });
-  const check = useSelectionCheck(styles, state.selectionManager.selectionMode !== 'none');
+  const check = useSelectionCheck(
+    styles,
+    state.selectionManager.selectionMode !== 'none',
+    classNames?.selectionIndicator,
+  );
   // Only a check or a chevron makes a trailing cell (and its 12px gap).
   const end =
     check != null || node.hasChildNodes ? (
       <>
         {check}
         {node.hasChildNodes && (
-          <ExpandButton props={{ ...expandButtonProps, isDisabled }} className={styles.expand()} />
+          <ExpandButton
+            props={{ ...expandButtonProps, isDisabled }}
+            className={styles.expand({ class: classNames?.expandButton })}
+          />
         )}
       </>
     ) : null;

@@ -410,3 +410,42 @@ describe('Select renderValue', () => {
     expect(container.querySelector('select[name="country"]')).toHaveValue('GB');
   });
 });
+
+describe('Select classNames', () => {
+  it('puts the field and option slots on their parts', async () => {
+    const { container } = render(
+      <Select
+        label="Currency"
+        variant="outlined"
+        classNames={{
+          outline: 'outline-x',
+          activeIndicator: 'indicator-x',
+          heading: 'heading-x',
+          divider: 'divider-x',
+          icon: 'icon-x',
+          description: 'description-x',
+          trailing: 'trailing-x',
+        }}
+      >
+        <SelectSection title="Popular">
+          <SelectItem key="gbp" description="Pound" trailing="£">
+            GBP
+          </SelectItem>
+        </SelectSection>
+        <SelectSection title="All">
+          <SelectItem key="eur" leadingIcon={<svg data-testid="eur-icon" />}>
+            EUR
+          </SelectItem>
+        </SelectSection>
+      </Select>,
+    );
+    expect(container.querySelector('[data-slot="outline"]')).toHaveClass('outline-x');
+    expect(container.querySelector('[data-slot="active-indicator"]')).toHaveClass('indicator-x');
+    await userEvent.click(screen.getByRole('button', { name: /Currency/ }));
+    expect(screen.getByText('Popular')).toHaveClass('heading-x');
+    expect(document.querySelector('.divider-x')).toHaveAttribute('role', 'presentation');
+    expect(screen.getByTestId('eur-icon').parentElement).toHaveClass('icon-x');
+    expect(screen.getByText('Pound')).toHaveClass('description-x');
+    expect(screen.getByText('£')).toHaveClass('trailing-x');
+  });
+});

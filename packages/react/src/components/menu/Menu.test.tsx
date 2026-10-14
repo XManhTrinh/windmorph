@@ -541,3 +541,43 @@ describe('Menu', () => {
     expect(await axeViolations(baseElement)).toEqual([]);
   });
 });
+
+describe('Menu classNames', () => {
+  it('puts each item part slot on its part', async () => {
+    render(
+      <MenuTrigger>
+        <Button>Edit</Button>
+        <Menu
+          aria-label="Edit"
+          classNames={{
+            heading: 'heading-x',
+            icon: 'icon-x',
+            description: 'description-x',
+            shortcut: 'shortcut-x',
+            trailingIcon: 'trailing-x',
+          }}
+        >
+          <MenuGroup title="Clipboard">
+            <MenuItem
+              key="cut"
+              shortcut="⌘X"
+              leadingIcon={<svg data-testid="leading" />}
+              trailingIcon={<svg data-testid="trailing" />}
+            >
+              Cut
+            </MenuItem>
+            <MenuItem key="paste" description="From history">
+              Paste
+            </MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Edit');
+    expect(screen.getByText('Clipboard')).toHaveClass('heading-x');
+    expect(screen.getByTestId('leading').parentElement).toHaveClass('icon-x');
+    expect(screen.getByTestId('trailing').parentElement).toHaveClass('trailing-x');
+    expect(screen.getByText('⌘X')).toHaveClass('shortcut-x');
+    expect(screen.getByText('From history')).toHaveClass('description-x');
+  });
+});

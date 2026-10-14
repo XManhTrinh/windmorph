@@ -415,6 +415,8 @@ function useContentSize(enabled: boolean, orientation: ToolbarOrientation) {
 export interface ToolbarFabClassNames {
   root?: string;
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 type AccessibleName =
@@ -513,7 +515,7 @@ export function ToolbarFab({
   return (
     <TooltipTrigger>
       {fab}
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip className={classNames?.tooltip}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

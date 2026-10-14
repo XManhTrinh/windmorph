@@ -66,6 +66,16 @@ export interface TimePickerStrings {
 
 export interface TimePickerClassNames {
   root?: string;
+  /** The hour and minute: selectors in dial mode, text fields in input mode. */
+  field?: string;
+  /** The labels under the input mode's fields ("Hour", "Minute"). */
+  fieldLabel?: string;
+  /** The colon between the hour and the minute. */
+  separator?: string;
+  /** The AM / PM selector. */
+  period?: string;
+  /** Each of the AM / PM selector's options. */
+  periodOption?: string;
   dial?: string;
 }
 
@@ -202,8 +212,9 @@ export function TimePicker({
             selected={selection === 'hour'}
             onFocus={() => setSelection('hour')}
             styles={styles}
+            classNames={classNames}
           />
-          <span aria-hidden="true" className={styles.separator()}>
+          <span aria-hidden="true" className={styles.separator({ class: classNames?.separator })}>
             :
           </span>
           <NumberField
@@ -218,6 +229,7 @@ export function TimePicker({
             selected={selection === 'minute'}
             onFocus={() => setSelection('minute')}
             styles={styles}
+            classNames={classNames}
           />
         </div>
         {hourCycle === 12 && (
@@ -228,6 +240,7 @@ export function TimePicker({
             isPm={isPm}
             onChange={setPeriod}
             styles={styles}
+            classNames={classNames}
           />
         )}
       </div>
@@ -317,6 +330,7 @@ function PeriodGroup({
   isPm,
   onChange,
   styles,
+  classNames,
 }: {
   label: string;
   am: string;
@@ -324,6 +338,7 @@ function PeriodGroup({
   isPm: boolean;
   onChange: (pm: boolean) => void;
   styles: ReturnType<typeof timePickerStyles>;
+  classNames: TimePickerClassNames | undefined;
 }) {
   const { direction } = useLocale();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -351,7 +366,7 @@ function PeriodGroup({
       dir={direction}
       onKeyDown={onKeyDown}
       data-slot="period-selector"
-      className={styles.period()}
+      className={styles.period({ class: classNames?.period })}
     >
       {[false, true].map((option) => (
         <PeriodOption
@@ -362,7 +377,7 @@ function PeriodGroup({
           label={option ? pm : am}
           selected={isPm === option}
           onSelect={() => onChange(option)}
-          className={styles.periodOption()}
+          className={styles.periodOption({ class: classNames?.periodOption })}
         />
       ))}
     </div>
@@ -423,6 +438,7 @@ function NumberField({
   selected,
   onFocus,
   styles,
+  classNames,
 }: {
   label: string;
   value: number;
@@ -437,6 +453,7 @@ function NumberField({
   selected: boolean;
   onFocus: () => void;
   styles: ReturnType<typeof timePickerStyles>;
+  classNames: TimePickerClassNames | undefined;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
   const { focusProps, isFocusVisible } = useFocusRing();
@@ -487,14 +504,18 @@ function NumberField({
         setDraft(null);
         onCommit(next);
       }}
-      className={selector ? styles.selector() : styles.field()}
+      className={
+        selector
+          ? styles.selector({ class: classNames?.field })
+          : styles.field({ class: classNames?.field })
+      }
     />
   );
   if (selector) return input;
   return (
     <label className={styles.fieldColumn()}>
       {input}
-      <span aria-hidden="true" className={styles.fieldLabel()}>
+      <span aria-hidden="true" className={styles.fieldLabel({ class: classNames?.fieldLabel })}>
         {label}
       </span>
     </label>

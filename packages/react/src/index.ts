@@ -90,6 +90,7 @@ export { iconButtonTokenSet } from './components/icon-button/icon-button-tokens'
 export { buttonGroupStyles } from './composites/button-group/button-group-styles';
 export {
   ButtonGroup,
+  type ButtonGroupClassNames,
   type ButtonGroupLabels,
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,

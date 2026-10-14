@@ -8,6 +8,8 @@ interface FabTooltipProps {
   /** Whether the tooltip can show: an extended FAB while collapsed, a FAB menu while closed. */
   available: boolean;
   label: ReactNode;
+  /** Classes for the tooltip. */
+  className?: string | undefined;
   /** The FAB, a library button that reads `TriggerContext`. */
   children: ReactElement;
 }
@@ -19,7 +21,7 @@ interface FabTooltipProps {
  * being available. Inside an app's own `TooltipTrigger` or `RichTooltipTrigger` it steps
  * aside, so there's never a second tooltip.
  */
-export function FabTooltip({ available, label, children }: FabTooltipProps) {
+export function FabTooltip({ available, label, className, children }: FabTooltipProps) {
   const inTooltipTrigger = useInTooltipTrigger();
   const [isOpen, setOpen] = useState(false);
   const [wasAvailable, setWasAvailable] = useState(available);
@@ -33,7 +35,7 @@ export function FabTooltip({ available, label, children }: FabTooltipProps) {
   return (
     <TooltipTrigger isDisabled={!available} isOpen={available && isOpen} onOpenChange={setOpen}>
       {children}
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip className={className}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

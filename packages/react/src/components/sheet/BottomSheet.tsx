@@ -46,7 +46,10 @@ export interface BottomSheetClassNames {
   container?: string;
   scrim?: string;
   panel?: string;
+  /** The drag handle's 48px pressable area. */
   handle?: string;
+  /** The drag handle's visible bar, inside `handle`. */
+  handleBar?: string;
   /** The row holding the close (modal) or collapse (standard) button. */
   closeRow?: string;
   closeButton?: string;
@@ -523,7 +526,10 @@ function BottomSheetPanel({
               }}
               className={styles.handle({ class: classNames?.handle })}
             >
-              <span data-slot="drag-handle" className={styles.handleBar()} />
+              <span
+                data-slot="drag-handle"
+                className={styles.handleBar({ class: classNames?.handleBar })}
+              />
             </div>
           )}
           {showCloseButton && (

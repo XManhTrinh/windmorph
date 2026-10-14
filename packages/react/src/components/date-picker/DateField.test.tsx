@@ -124,3 +124,37 @@ describe('DateField (docked date picker)', () => {
     expect(screen.getByRole('radio', { name: '2030' })).toHaveFocus();
   });
 });
+
+describe('DateField classNames', () => {
+  it("puts the text field's and the calendar's slots on their parts", async () => {
+    render(
+      <DateField
+        label="Date"
+        defaultValue={march}
+        defaultOpen
+        supportingText="Day, month and year"
+        classNames={{
+          label: 'label-x',
+          container: 'container-x',
+          supportingText: 'supporting-x',
+          trailingIcon: 'trailing-x',
+          menuButton: 'menu-x',
+          weekday: 'weekday-x',
+          day: 'day-x',
+          item: 'item-x',
+        }}
+      />,
+    );
+    expect(screen.getByText('Date', { selector: 'label' })).toHaveClass('label-x');
+    expect(screen.getByText('Day, month and year')).toHaveClass('supporting-x');
+    const open = screen.getByRole('button', { name: 'Open calendar', hidden: true });
+    expect(open.parentElement).toHaveClass('trailing-x');
+    expect(document.querySelector('[data-slot="container"]')).toHaveClass('container-x');
+    const calendar = screen.getByRole('dialog');
+    expect(within(calendar).getByRole('button', { name: /Choose a year/ })).toHaveClass('menu-x');
+    expect(within(calendar).getAllByRole('columnheader')[0]).toHaveClass('weekday-x');
+    expect(within(calendar).getByRole('button', { name: /March 10, 2030/ })).toHaveClass('day-x');
+    await userEvent.click(within(calendar).getByRole('button', { name: /Choose a month/ }));
+    expect(within(calendar).getByRole('radio', { name: 'March' })).toHaveClass('item-x');
+  });
+});

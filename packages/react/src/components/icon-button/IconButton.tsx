@@ -30,6 +30,8 @@ export interface IconButtonClassNames {
   /** Inner wrapper around the icon. */
   content?: string;
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 /** Icon buttons have no visible text, so an accessible name is required. */
@@ -195,7 +197,7 @@ export function IconButton(props: IconButtonProps) {
   return (
     <TooltipTrigger>
       <WithoutDescription>{button}</WithoutDescription>
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip className={classNames?.tooltip}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

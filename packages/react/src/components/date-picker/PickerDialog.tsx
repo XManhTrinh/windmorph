@@ -31,6 +31,8 @@ export interface PickerDialogClassNames {
   header?: string;
   /** The full-screen close (x) icon button. */
   close?: string;
+  /** The time picker dialog's `title` ("Select time"). */
+  title?: string;
   actions?: string;
 }
 
@@ -205,7 +207,7 @@ function PickerDialogModal({
                 </div>
               )}
               {variant === 'time' && title != null && (
-                <h2 {...titleProps} className={styles.title()}>
+                <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
                   {title}
                 </h2>
               )}

@@ -49,6 +49,10 @@ export interface FieldShellClassNames {
   errorText?: string;
   /** The built-in error icon. */
   errorIcon?: string;
+  /** The outlined field's border (a `<fieldset>`, notched for the floated label). */
+  outline?: string;
+  /** The filled field's active indicator, the line along the container's bottom. */
+  activeIndicator?: string;
 }
 
 export interface FieldShellProps {
@@ -160,7 +164,11 @@ export function FieldShell({
         className={styles.container({ class: cn('cursor-pointer', classNames?.container) })}
       >
         {variant === 'outlined' && (
-          <fieldset aria-hidden="true" data-slot="outline" className={styles.outline()}>
+          <fieldset
+            aria-hidden="true"
+            data-slot="outline"
+            className={styles.outline({ class: classNames?.outline })}
+          >
             {hasLabel && (
               <legend className={styles.notch()}>
                 <span className={styles.notchClip()}>
@@ -208,7 +216,11 @@ export function FieldShell({
             {requiredMark}
           </FieldLabel>
         )}
-        <span aria-hidden="true" data-slot="active-indicator" className={styles.indicator()} />
+        <span
+          aria-hidden="true"
+          data-slot="active-indicator"
+          className={styles.indicator({ class: classNames?.activeIndicator })}
+        />
       </div>
       {(supportingText || showError) && (
         <div className={styles.supporting()}>

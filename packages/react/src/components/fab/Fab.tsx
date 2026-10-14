@@ -63,6 +63,8 @@ type AccessibleName =
 export interface FabClassNames {
   root?: string;
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 interface FabOwnProps extends FabCommonProps {
@@ -129,7 +131,7 @@ export function Fab({
   return (
     <TooltipTrigger>
       {fab}
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip className={classNames?.tooltip}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }
@@ -140,6 +142,8 @@ export interface ExtendedFabClassNames {
   icon?: string;
   label?: string;
   text?: string;
+  /** The built-in plain tooltip shown while collapsed (`tooltip`). */
+  tooltip?: string;
 }
 
 interface ExtendedFabOwnProps extends FabCommonProps {
@@ -232,7 +236,11 @@ export function ExtendedFab({
   );
   if (!tooltip || !icon) return fab;
   return (
-    <FabTooltip available={collapsed} label={base['aria-label'] ?? children}>
+    <FabTooltip
+      available={collapsed}
+      label={base['aria-label'] ?? children}
+      className={classNames?.tooltip}
+    >
       {fab}
     </FabTooltip>
   );

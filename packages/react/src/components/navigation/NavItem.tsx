@@ -28,6 +28,8 @@ export interface NavItemClassNames {
   root?: string;
   pill?: string;
   indicator?: string;
+  /** The state layer over the pill (hover, focus and press). */
+  stateLayer?: string;
   icon?: string;
   label?: string;
   /** The badge's wrapper: on the icon, or after the label in the expanded rail. */
@@ -236,7 +238,7 @@ export function NavItem({
           aria-hidden="true"
           data-rippling={rippling || undefined}
           data-disabled={action.disabled || undefined}
-          className={styles.stateLayer()}
+          className={styles.stateLayer({ class: classNames?.stateLayer })}
         />
         <span className={styles.content()}>
           <span

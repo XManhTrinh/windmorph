@@ -267,3 +267,27 @@ describe('TopAppBar component tokens', () => {
     );
   });
 });
+
+describe('TopAppBar classNames', () => {
+  it('puts the title and subtitle text slots on both rows', () => {
+    render(
+      <TopAppBar
+        variant="medium"
+        title="Inbox"
+        subtitle="All mail"
+        classNames={{
+          titleText: 'title-x',
+          subtitleText: 'subtitle-x',
+          expandedTitle: 'expanded-title-x',
+          expandedSubtitle: 'expanded-subtitle-x',
+        }}
+      />,
+    );
+    const [topTitle, expandedTitle] = screen.getAllByText('Inbox');
+    const [topSubtitle, expandedSubtitle] = screen.getAllByText('All mail');
+    expect(topTitle).toHaveClass('title-x');
+    expect(topSubtitle).toHaveClass('subtitle-x');
+    expect(expandedTitle).toHaveClass('expanded-title-x');
+    expect(expandedSubtitle).toHaveClass('expanded-subtitle-x');
+  });
+});

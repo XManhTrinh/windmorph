@@ -27,6 +27,7 @@ import { SheetTriggerContext } from './SheetTrigger';
 
 export interface SideSheetClassNames {
   scrim?: string;
+  /** The sheet's surface. A standard sheet's `className` stays on its outer layout box. */
   panel?: string;
   header?: string;
   backButton?: string;
@@ -354,11 +355,11 @@ function StandardSideSheet({
       data-closed={closed}
       inert={!state.isOpen}
       aria-labelledby={labelledBy(rest, body.title != null, titleId)}
-      className={styles.standard({ class: cn(body.classNames?.panel, className) })}
+      className={styles.standard({ class: className })}
     >
       <div className={styles.standardClip()}>
         <div className={styles.standardFrame()}>
-          <div data-slot="panel" className={styles.panel()}>
+          <div data-slot="panel" className={styles.panel({ class: body.classNames?.panel })}>
             <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
           </div>
         </div>

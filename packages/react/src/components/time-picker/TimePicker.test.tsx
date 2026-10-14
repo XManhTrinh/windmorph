@@ -246,3 +246,35 @@ describe('TimePicker', () => {
     expect(screen.getByRole('group', { name: 'Clock' })).toBeInTheDocument();
   });
 });
+
+describe('TimePicker classNames', () => {
+  it('puts each slot on its part, in dial and input modes', () => {
+    const classNames = {
+      field: 'field-x',
+      fieldLabel: 'field-label-x',
+      separator: 'separator-x',
+      period: 'period-x',
+      periodOption: 'option-x',
+    };
+    const { rerender } = render(
+      <TimePicker defaultValue={new Time(9, 30)} hourCycle={12} classNames={classNames} />,
+    );
+    expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass('field-x');
+    expect(screen.getByText(':')).toHaveClass('separator-x');
+    const period = screen.getByRole('radiogroup', { name: 'AM or PM' });
+    expect(period).toHaveClass('period-x');
+    for (const option of within(period).getAllByRole('radio')) {
+      expect(option).toHaveClass('option-x');
+    }
+    rerender(
+      <TimePicker
+        defaultValue={new Time(9, 30)}
+        hourCycle={12}
+        mode="input"
+        classNames={classNames}
+      />,
+    );
+    expect(screen.getByRole('textbox', { name: 'Minute' })).toHaveClass('field-x');
+    expect(screen.getByText('Minute', { selector: 'span' })).toHaveClass('field-label-x');
+  });
+});
