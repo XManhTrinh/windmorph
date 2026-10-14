@@ -393,10 +393,11 @@ describe('FabMenu', () => {
 
   it('shows its label in a tooltip while closed, not while open, unless turned off', async () => {
     vi.useRealTimers();
-    const { rerender } = render(<Menu />);
+    const { rerender } = render(<Menu classNames={{ tooltip: 'tip-x' }} />);
     fireEvent.pointerMove(document.body);
     await userEvent.hover(toggle());
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Create');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
     // Opening turns the FAB into the close button: no tooltip.
     await userEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');

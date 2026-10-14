@@ -64,6 +64,8 @@ export interface FabMenuClassNames {
   list?: string;
   /** The menu (`presentation="menu"`). */
   menu?: string;
+  /** The built-in plain tooltip shown on the closed button (`tooltip`). */
+  tooltip?: string;
 }
 
 /**
@@ -294,7 +296,7 @@ export function FabMenu({
       className={styles.anchor({ class: classNames?.anchor })}
     >
       {tooltip && ariaLabel ? (
-        <FabTooltip available={!isOpen} label={ariaLabel}>
+        <FabTooltip available={!isOpen} label={ariaLabel} className={classNames?.tooltip}>
           {toggle}
         </FabTooltip>
       ) : (
