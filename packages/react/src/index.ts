@@ -521,6 +521,7 @@ export { listTokenSet } from './components/list/list-tokens';
 export {
   RangeSlider,
   Slider,
+  type RangeSliderLabels,
   type RangeSliderProps,
   type SliderClassNames,
   type SliderProps,

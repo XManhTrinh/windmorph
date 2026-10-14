@@ -112,7 +112,8 @@ export async function SliderBody(): Promise<ComponentDoc> {
             <li>
               A name is required (<InlineCode>aria-label</InlineCode> /{' '}
               <InlineCode>aria-labelledby</InlineCode>); a range slider also names each thumb via{' '}
-              <InlineCode>thumbLabels</InlineCode>.
+              <InlineCode>labels</InlineCode> (<InlineCode>start</InlineCode>,{' '}
+              <InlineCode>end</InlineCode>).
             </li>
             <li>
               <InlineCode>formatOptions</InlineCode> formats the announced value;{' '}

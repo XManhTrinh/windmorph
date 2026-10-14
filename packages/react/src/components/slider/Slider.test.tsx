@@ -219,4 +219,11 @@ describe('RangeSlider', () => {
     expect(onChange).toHaveBeenLastCalledWith([80, 80]);
     expect(await axeViolations(container)).toEqual([]);
   });
+
+  it('names its thumbs from labels', () => {
+    render(<RangeSlider aria-label="Price" labels={{ start: 'Lowest', end: 'Highest' }} />);
+    const [start, end] = screen.getAllByRole('slider');
+    expect(start).toHaveAccessibleName('Lowest Price');
+    expect(end).toHaveAccessibleName('Highest Price');
+  });
 });
