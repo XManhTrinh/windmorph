@@ -139,12 +139,14 @@ export const coreChecks = {
     ),
   },
   buttonStyles: { kind: 'value', run: () => Core.buttonStyles() },
+  buttonTokenSet: read(Core.buttonTokenSet),
   buttonVariantClasses: read(Core.buttonVariantClasses),
   IconButton: {
     kind: 'component',
     render: () => <Core.IconButton icon={icon} aria-label="Favourite" />,
   },
   iconButtonStyles: { kind: 'value', run: () => Core.iconButtonStyles() },
+  iconButtonTokenSet: read(Core.iconButtonTokenSet),
 
   // Composites
   ButtonGroup: {
@@ -164,7 +166,9 @@ export const coreChecks = {
   },
   Fab: { kind: 'component', render: () => <Core.Fab icon={icon} aria-label="Compose" /> },
   extendedFabStyles: { kind: 'value', run: () => Core.extendedFabStyles() },
+  extendedFabTokenSet: read(Core.extendedFabTokenSet),
   fabStyles: { kind: 'value', run: () => Core.fabStyles() },
+  fabTokenSet: read(Core.fabTokenSet),
 
   CircularProgressIndicator: {
     kind: 'component',
@@ -176,6 +180,7 @@ export const coreChecks = {
   },
   circularProgressStyles: { kind: 'value', run: () => Core.circularProgressStyles() },
   linearProgressStyles: { kind: 'value', run: () => Core.linearProgressStyles() },
+  progressIndicatorTokenSet: read(Core.progressIndicatorTokenSet),
   PullToRefresh: { kind: 'client', reason: 'its onRefresh prop is a function' },
   pullToRefreshStyles: { kind: 'value', run: () => Core.pullToRefreshStyles() },
 
@@ -224,7 +229,9 @@ export const coreChecks = {
     ),
   },
   richTooltipStyles: { kind: 'value', run: () => Core.richTooltipStyles() },
+  richTooltipTokenSet: read(Core.richTooltipTokenSet),
   tooltipStyles: { kind: 'value', run: () => Core.tooltipStyles() },
+  plainTooltipTokenSet: read(Core.plainTooltipTokenSet),
 
   Snackbar: { kind: 'component', render: () => <Core.Snackbar>Photo saved</Core.Snackbar> },
   SnackbarHost: { kind: 'client', reason: 'its state prop is a SnackbarHostState instance' },
@@ -232,6 +239,7 @@ export const coreChecks = {
   useSnackbarHostState: hook,
   snackbarHostStyles: { kind: 'value', run: () => Core.snackbarHostStyles() },
   snackbarStyles: { kind: 'value', run: () => Core.snackbarStyles() },
+  snackbarTokenSet: read(Core.snackbarTokenSet),
 
   NavigationRail: {
     kind: 'component',
@@ -275,11 +283,14 @@ export const coreChecks = {
   },
   navItemStyles: { kind: 'value', run: () => Core.navItemStyles() },
   navigationBarStyles: { kind: 'value', run: () => Core.navigationBarStyles() },
+  navBarTokenSet: read(Core.navBarTokenSet),
   navigationRailStyles: { kind: 'value', run: () => Core.navigationRailStyles() },
+  navRailTokenSet: read(Core.navRailTokenSet),
 
   Tabs: { kind: 'client', reason: 'its Tab items form a collection' },
   Tab: collection('Tabs'),
   tabsStyles: { kind: 'value', run: () => Core.tabsStyles() },
+  tabsTokenSet: read(Core.tabsTokenSet),
 
   AssistChip: {
     kind: 'component',
@@ -302,9 +313,14 @@ export const coreChecks = {
   },
   chipSetStyles: { kind: 'value', run: () => Core.chipSetStyles() },
   chipStyles: { kind: 'value', run: () => Core.chipStyles() },
+  assistChipTokenSet: read(Core.assistChipTokenSet),
+  filterChipTokenSet: read(Core.filterChipTokenSet),
+  inputChipTokenSet: read(Core.inputChipTokenSet),
+  suggestionChipTokenSet: read(Core.suggestionChipTokenSet),
 
   SplitButton: { kind: 'client', reason: 'its menu prop holds Menu collection items' },
   splitButtonStyles: { kind: 'value', run: () => Core.splitButtonStyles() },
+  splitButtonTokenSet: read(Core.splitButtonTokenSet),
 
   FabMenu: {
     kind: 'component',
@@ -325,12 +341,14 @@ export const coreChecks = {
     ),
   },
   fabMenuStyles: { kind: 'value', run: () => Core.fabMenuStyles() },
+  fabMenuTokenSet: read(Core.fabMenuTokenSet),
 
   LoadingIndicator: {
     kind: 'component',
     render: () => <Core.LoadingIndicator aria-label="Loading" />,
   },
   loadingIndicatorStyles: { kind: 'value', run: () => Core.loadingIndicatorStyles() },
+  loadingIndicatorTokenSet: read(Core.loadingIndicatorTokenSet),
 
   Card: {
     kind: 'component',
@@ -420,6 +438,7 @@ export const coreChecks = {
     ),
   },
   dialogStyles: { kind: 'value', run: () => Core.dialogStyles() },
+  dialogTokenSet: read(Core.dialogTokenSet),
 
   Menu: { kind: 'client', reason: 'its MenuItem items form a collection' },
   MenuItem: collection('Menu'),
@@ -428,6 +447,7 @@ export const coreChecks = {
   SubmenuTrigger: collection('Menu'),
   ContextMenuTrigger: { kind: 'client', reason: 'its Menu items form a collection' },
   menuStyles: { kind: 'value', run: () => Core.menuStyles() },
+  menuTokenSet: read(Core.menuTokenSet),
 
   DockedToolbar: {
     kind: 'component',
@@ -457,13 +477,16 @@ export const coreChecks = {
     ),
   },
   dockedToolbarStyles: { kind: 'value', run: () => Core.dockedToolbarStyles() },
+  dockedToolbarTokenSet: read(Core.dockedToolbarTokenSet),
   floatingToolbarStyles: { kind: 'value', run: () => Core.floatingToolbarStyles() },
+  floatingToolbarTokenSet: read(Core.floatingToolbarTokenSet),
   toolbarFabStyles: { kind: 'value', run: () => Core.toolbarFabStyles() },
   useToolbarScrollExit: hook,
   useToolbarScrollExpansion: hook,
 
   TopAppBar: { kind: 'component', render: () => <Core.TopAppBar title="Inbox" /> },
   topAppBarStyles: { kind: 'value', run: () => Core.topAppBarStyles() },
+  appBarTokenSet: read(Core.appBarTokenSet),
   SearchBar: {
     kind: 'component',
     render: () => <Core.SearchBar aria-label="Search" placeholder="Search" />,
@@ -478,6 +501,8 @@ export const coreChecks = {
   },
   searchAppBarStyles: { kind: 'value', run: () => Core.searchAppBarStyles() },
   searchBarStyles: { kind: 'value', run: () => Core.searchBarStyles() },
+  searchBarTokenSet: read(Core.searchBarTokenSet),
+  searchViewTokenSet: read(Core.searchViewTokenSet),
 
   Divider: { kind: 'component', render: () => <Core.Divider /> },
   LabeledDivider: {
@@ -485,6 +510,7 @@ export const coreChecks = {
     render: () => <Core.LabeledDivider>Earlier this week</Core.LabeledDivider>,
   },
   dividerStyles: { kind: 'value', run: () => Core.dividerStyles() },
+  dividerTokenSet: read(Core.dividerTokenSet),
   labeledDividerStyles: { kind: 'value', run: () => Core.labeledDividerStyles() },
 
   Badge: { kind: 'component', render: () => <Core.Badge>3</Core.Badge> },
@@ -498,6 +524,7 @@ export const coreChecks = {
   },
   badgedBoxStyles: { kind: 'value', run: () => Core.badgedBoxStyles() },
   badgeStyles: { kind: 'value', run: () => Core.badgeStyles() },
+  badgeTokenSet: read(Core.badgeTokenSet),
 
   List: {
     kind: 'component',
@@ -559,6 +586,7 @@ export const coreChecks = {
   },
   listMediaStyles: { kind: 'value', run: () => Core.listMediaStyles() },
   listStyles: { kind: 'value', run: () => Core.listStyles() },
+  listTokenSet: read(Core.listTokenSet),
 
   Slider: {
     kind: 'component',
@@ -601,7 +629,9 @@ export const coreChecks = {
     ),
   },
   bottomSheetStyles: { kind: 'value', run: () => Core.bottomSheetStyles() },
+  bottomSheetTokenSet: read(Core.bottomSheetTokenSet),
   sideSheetStyles: { kind: 'value', run: () => Core.sideSheetStyles() },
+  sideSheetTokenSet: read(Core.sideSheetTokenSet),
 
   Carousel: {
     kind: 'component',
@@ -613,6 +643,7 @@ export const coreChecks = {
     ),
   },
   carouselStyles: { kind: 'value', run: () => Core.carouselStyles() },
+  carouselTokenSet: read(Core.carouselTokenSet),
 
   DatePicker: { kind: 'component', render: () => <Core.DatePicker aria-label="Date" /> },
   DateRangePicker: {
@@ -620,6 +651,7 @@ export const coreChecks = {
     render: () => <Core.DateRangePicker aria-label="Dates" />,
   },
   datePickerStyles: { kind: 'value', run: () => Core.datePickerStyles() },
+  datePickerTokenSet: read(Core.datePickerTokenSet),
   dockedDatePickerStyles: { kind: 'value', run: () => Core.dockedDatePickerStyles() },
   DateField: { kind: 'component', render: () => <Core.DateField label="Date" /> },
   PickerDialog: {
@@ -638,4 +670,5 @@ export const coreChecks = {
   TimePickerModeToggle: { kind: 'client', reason: 'its onModeChange prop is a function' },
   useTimePickerRoom: hook,
   timePickerStyles: { kind: 'value', run: () => Core.timePickerStyles() },
+  timePickerTokenSet: read(Core.timePickerTokenSet),
 } satisfies ExportChecks<typeof Core>;
