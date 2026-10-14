@@ -16,6 +16,7 @@ import { Playground } from '../components/playground/playground';
 import { PropsList } from '../components/props-list';
 import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
+import { TokenTable } from '../components/token-table';
 import { SPEC_DATA } from '../content/components/spec-data';
 import {
   readComponentPropsSafe,
@@ -64,6 +65,7 @@ export async function componentTabs(page: ComponentPageMeta): Promise<ComponentT
     overview: Boolean(doc.overview) || page.playground === 'full',
     api:
       Boolean(doc.api) ||
+      (doc.tokens ?? []).length > 0 ||
       Boolean(page.specs) ||
       page.propsComponents.length > 0 ||
       (page.hooks ?? []).length > 0 ||
@@ -145,6 +147,25 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
                 </p>
               )}
             </div>
+          ))}
+        </section>
+      )}
+      {doc.tokens && doc.tokens.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <SectionHeading id="tokens">Tokens</SectionHeading>
+          <p className="text-body-large text-on-surface-variant">
+            M3&apos;s component tokens as CSS variables. Each is unset until you set it, on{' '}
+            <InlineCode>:root</InlineCode>, a theme or any ancestor, and falls back to the default
+            shown. The root carries <InlineCode>data-variant</InlineCode> (and{' '}
+            <InlineCode>data-size</InlineCode> where it has sizes), which picks the variables that
+            apply. See{' '}
+            <a href="/customisation#component-tokens" className={LINK}>
+              Component tokens
+            </a>{' '}
+            in the Customisation guide.
+          </p>
+          {doc.tokens.map((set) => (
+            <TokenTable key={set.name} set={set} caption={`${page.title} tokens (${set.name})`} />
           ))}
         </section>
       )}

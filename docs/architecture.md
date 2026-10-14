@@ -110,6 +110,17 @@ Tailwind utility names:
 | Springs | `ease-m3-<family>-<speed>` and `duration-m3-<family>-<speed>`; legacy curves are `ease-m3-emphasized`, … |
 | Variants | `medium:` / `expanded:` / `large:` / `xlarge:`; `dark:` follows `data-mode` (including `system`); `motion-standard:` |
 
+### Component tokens (`--md-comp-*`, 2026-10-14)
+
+M3's component tokens as CSS variables an app sets to restyle every instance of a component, globally or within a scope, from CSS only. Plan: `docs/plans/component-tokens.md`; Card is the first component with them.
+
+- **Names** are M3's `md.comp.*` token names with the dots as dashes: `md.comp.filled-card.container.color` is `--md-comp-filled-card-container-color`. Each is checked against m3.material.io's token tables, which `packages/react/scripts/m3-token-names.txt` records (active token sets only, read 2026-10-14). Where M3 Expressive replaced a component's token set (buttons are `md.comp.button.filled.*`, the deprecated set `md.comp.filled-button.*`), the current name is used. Non-M3 components (Windmorph Pro) keep `--wm-*`.
+- **Source:** each component's `<component>-tokens.ts` defines a set with `defineComponentTokens`. A set's `scopes` give each value of a `data-*` attribute its own public prefix (`variant: { filled: { prefix: 'md-comp-filled-card', tokens } }`), and `fixed` adds private-only values. `pnpm generate` discovers every `src/**/*-tokens.ts` file (no hand-kept list), writes `generated/components.css` and the checked-in, sorted name list `component-tokens.txt`.
+- **Two variables per token:** the public `--md-comp-<component>-<part>-<property>` is unset by default. On the root marked `data-tokens="md-comp-<set>"`, a zero-specificity `:where()` rule resolves the private `--_md-comp-<set>-<part>` to the public variable, falling back to the system token the component used before (for the root's `data-variant` / `data-size`). Classes read one private variable per part, written `bg-[var(--_x)]`, `text-[color:var(--_x)]`, `shadow-[shadow:var(--_x)]` (the type hints let `cn()` merge them with a consumer's class).
+- **What's exposed:** resting container and content colours, shapes, elevation, outline colours and selected / unselected colours. State-layer colours per state, size-less shape aliases, sizes, spacing, outline widths, divider thickness, typography and motion aren't.
+- **Defaults are unchanged:** the computed-style snapshot of every story (`apps/docs/e2e/computed-styles.spec.ts`, recorded before any token work) and the screenshot suites must match exactly. `component-tokens.spec.ts` sets every token on each set's `Tokens/<set name>` probe story and checks what it paints. `scripts/component-tokens.test.ts` checks reads, definitions, scope completeness, the name list and the M3 names.
+- **Overlays:** a token on `:root` or `[data-theme]` reaches portalled overlays. `Overlay` also puts its enclosing ThemeScopes' classes on its `display: contents` wrapper, so a token set through a ThemeScope's `className` reaches them too.
+
 ### Shape (corner) scale — spec tokens only
 | Token | Value |
 |---|---|
@@ -219,16 +230,21 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
    :root { --md-sys-shape-corner-full: 12px; --md-ref-typeface-brand: "Inter"; }
    [data-theme="ocean"] { --md-sys-color-primary: #0050C8; }
    ```
-2. **Brand theme** — `createTheme({ seed })` or the CLI.
-3. **Restrict the picker** — `<ThemeProvider themes={['baseline','ocean','acme']}>`.
-4. **Subtree** — `<ThemeScope theme="forest" mode="dark">`.
-5. **Component** — `className`, `classNames={{ root, label, icon }}` (consumer always wins via `cn()`); exported variant definitions (`buttonStyles`, …) can be extended with new variants.
+2. **Component tokens** — `--md-comp-*` (§4), globally, per theme or on any ancestor. Role values go on `:root, [data-theme]`, so they resolve again in each theme and scope:
+   ```css
+   :root, [data-theme] { --md-comp-filled-card-container-color: var(--md-sys-color-secondary-container); }
+   ```
+3. **Brand theme** — `createTheme({ seed })` or the CLI.
+4. **Restrict the picker** — `<ThemeProvider themes={['baseline','ocean','acme']}>`.
+5. **Subtree** — `<ThemeScope theme="forest" mode="dark">`.
+6. **Component** — `className`, `classNames={{ root, label, icon }}` (consumer always wins via `cn()`); exported variant definitions (`buttonStyles`, …) can be extended with new variants.
 
 ## 9. Component API conventions
 
 - `variant`, `size`, `className`, `classNames` (per slot), `ref` as prop.
 - Controlled + uncontrolled (`value`/`defaultValue`, `open`/`defaultOpen`, `selected`/`defaultSelected`, `onChange`/`onOpenChange`/`onSelectedChange`).
 - State exposed as `data-*` attributes for consumer styling.
+- A component with component tokens marks its root with `data-variant` (and `data-size` where it has sizes); both are public styling hooks (2026-10-14). `data-tokens` is internal and not documented.
 - Icons passed as React elements (`icon`, `leadingIcon`, `trailingIcon`).
 - Accessibility target **WCAG 2.2 AA**: keyboard, visible focus, 48px touch targets (even for XS visuals), `prefers-reduced-motion`, RTL, screen-reader labels required by types where needed (e.g. icon-only buttons require `aria-label`).
 - Links (`href`) use client-side routing via React Aria `RouterProvider`.
@@ -289,6 +305,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - **Dragged** ("When moving a card, increase its elevation"): `dragged` sets `data-dragged`, on static and interactive cards alike; interactive cards also show the 16% dragged state layer. The app's drag and drop code sets it. An interactive card passes it to `ButtonBase`'s `dragged` input (2026-10-13; before, the card set the attribute in a layout effect because `ButtonBase` took no dragged state), and a static card renders the attribute itself.
   - Disabled: filled `surface-variant` 38% over its container (`color-mix`), elevated `surface` 38% over `surface-container-low` (`DisabledContainerOpacity`, 2026-10-13; it was solid `surface` before), the outlined border `outline` 12% (`DisabledOutlineOpacity`, over the card's own `surface`). Content is `on-surface` 38%.
 - No anatomy sub-components (headline, media, actions) in v1. Compose doesn't ship them, and layout utilities cover them.
+- **Component tokens** (2026-10-14, `card-tokens.ts`): `--md-comp-{filled,elevated,outlined}-card-container-color` and `-container-shape`, `--md-comp-elevated-card-container-elevation` and `--md-comp-outlined-card-outline-color`. Hover, focus, dragged and disabled values stay classes.
 
 ### TextField (built)
 - `variant` = `filled | outlined`, a floating `label`, `supportingText` (with `supportingTextOnFocus`), `errorMessage` / `invalid` / `validate` (React Aria `useTextField`), `required` (`*` in the accessible name, `aria-required`), `disabled`, `readOnly` (`data-readonly`), `leadingIcon`, `trailingIcon` (may be an `IconButton`), `errorIcon`, `prefix` / `prefixLabel`, `suffix` / `suffixLabel`, `maxLength` with a `count/max` counter, `multiline` (a fixed-height text area of `rows` lines, 4 by default, that scrolls) with `autoGrow` (grows from `rows` up to `maxRows`, then scrolls), and `labels` (`error`, `characterCount`). It's controlled or uncontrolled through `value` / `defaultValue` / `onChange(value)`.

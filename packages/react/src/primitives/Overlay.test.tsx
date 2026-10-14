@@ -24,6 +24,32 @@ describe('Overlay', () => {
     expect(wrapper).toHaveStyle({ display: 'contents' });
   });
 
+  it("puts the enclosing ThemeScopes' classes on its wrapper, so their variables reach it", () => {
+    render(
+      <ThemeScope className="brand-a p-4">
+        <ThemeScope className="brand-b p-2">
+          <Overlay>
+            <div>Menu</div>
+          </Overlay>
+        </ThemeScope>
+      </ThemeScope>,
+    );
+    const wrapper = screen.getByText('Menu').closest('[data-overlay-scope]');
+    expect(wrapper?.parentElement).toBe(document.body);
+    // Merged outermost first with cn(), so the inner scope's conflicting class wins.
+    expect(wrapper).toHaveClass('brand-a', 'brand-b', 'p-2');
+    expect(wrapper).not.toHaveClass('p-4', 'text-on-surface');
+  });
+
+  it('has no class outside a ThemeScope', () => {
+    render(
+      <Overlay>
+        <div>Menu</div>
+      </Overlay>,
+    );
+    expect(screen.getByText('Menu').closest('[data-overlay-scope]')).not.toHaveAttribute('class');
+  });
+
   it('keeps the text direction of where it was rendered', () => {
     render(
       <div dir="rtl">

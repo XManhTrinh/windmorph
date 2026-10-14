@@ -4,8 +4,14 @@
   "agentGuidance": false,
   "tasks": {
     "generate": {
-      "inputs": ["src/tokens/**", "src/theme/css.ts", "src/theme/scheme.ts", "scripts/**"],
-      "outputs": ["src/styles/generated/*.css"]
+      "inputs": [
+        "src/tokens/**",
+        "src/**/*-tokens.ts",
+        "src/theme/css.ts",
+        "src/theme/scheme.ts",
+        "scripts/**"
+      ],
+      "outputs": ["src/styles/generated/*.css", "component-tokens.txt"]
     },
     "build": {
       "dependsOn": ["^build", "generate"],

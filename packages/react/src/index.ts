@@ -29,15 +29,21 @@ export * from './tokens';
 export {
   color,
   colorAt,
+  componentTokenList,
   componentTokensCss,
   corner,
   defineComponentTokens,
+  elevation,
+  isComponentTokenSet,
   px,
   spring,
   typeTokens,
   typescale,
   type ComponentToken,
+  type ComponentTokenScope,
   type ComponentTokenSet,
+  type PublicComponentToken,
+  type TokenPaints,
   type TokenValue,
 } from './tokens/component';
 
@@ -262,6 +268,7 @@ export {
   type CardStaticProps,
 } from './components/card/Card';
 export { cardStyles, type CardStyleProps, type CardVariant } from './components/card/card-styles';
+export { cardTokenSet } from './components/card/card-tokens';
 export {
   TextField,
   type TextFieldClassNames,

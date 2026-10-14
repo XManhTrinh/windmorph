@@ -11,12 +11,16 @@
  *
  * The pages come from `out/sitemap.xml` (the same list as the sitemap and link previews), the
  * text from each page's rendered HTML, the props tables from the generated props JSON and
- * the example code from `examples/`, so the Markdown can't drift from the site.
+ * the example code from `examples/`, so the Markdown can't drift from the site. Every
+ * component token the core exports must appear in `llms-full.txt` (from the API tabs' Tokens
+ * tables), or the script fails.
  */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
+import * as windmorph from '@windmorph/react';
+import { componentTokenList, isComponentTokenSet } from '@windmorph/react';
 import { GUIDE_ENTRIES } from '../app/(docs)/search-index';
 import {
   COMPONENT_META_MAP,
@@ -312,5 +316,14 @@ for (const path of paths) {
 }
 
 write('/llms.txt', llmsTxt());
-write('/llms-full.txt', [`# ${SITE_TITLE}`, `> ${SITE_DESCRIPTION}`, ...full].join('\n\n---\n\n'));
+const llmsFull = [`# ${SITE_TITLE}`, `> ${SITE_DESCRIPTION}`, ...full].join('\n\n---\n\n');
+const missingTokens = Object.values(windmorph)
+  .filter(isComponentTokenSet)
+  .filter((set) => set.name.startsWith('md-comp-'))
+  .flatMap((set) => componentTokenList(set).map(({ name }) => name))
+  .filter((name) => !llmsFull.includes(name));
+if (missingTokens.length > 0) {
+  throw new Error(`llms-full.txt lacks component tokens: ${missingTokens.join(', ')}`);
+}
+write('/llms-full.txt', llmsFull);
 console.log(`Wrote ${paths.length} Markdown pages, llms.txt and llms-full.txt to out/.`);

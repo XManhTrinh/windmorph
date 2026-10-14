@@ -1,3 +1,4 @@
+import type { ComponentTokenSet } from '@windmorph/react';
 import type { ReactNode } from 'react';
 
 /** The tabs of a component page, in display order; `overview` is the page's own URL. */
@@ -37,4 +38,9 @@ export interface ComponentDoc {
   accessibility?: ReactNode;
   /** Theming, tokens, spec values and differences from Compose, below the props tables. */
   api?: ReactNode;
+  /**
+   * The component's M3 token sets (`cardTokenSet`), rendered as the API tab's generated
+   * Tokens section. Each set the core exports is listed on exactly one page.
+   */
+  tokens?: readonly ComponentTokenSet[];
 }

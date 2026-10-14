@@ -7,6 +7,7 @@
  * - components that open a bottom sheet only in some presentations load it lazily: the sheet
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either.
+ * - both stylesheets carry the component tokens (`generated/components.css`).
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -64,6 +65,24 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
 for (const { component, lazy } of LAZY_IMPORTS) {
   if (moduleClosure(`${root}dist`, component).includes(lazy))
     errors.push(`${component} imports ${lazy} statically; load it with import()`);
+}
+
+const tailwindEntry = await readFile(`${root}dist/styles/styles.css`, 'utf8');
+if (!tailwindEntry.includes("@import './generated/components.css';")) {
+  errors.push('dist/styles/styles.css does not import generated/components.css');
+}
+const componentsCss = await readFile(`${root}dist/styles/generated/components.css`, 'utf8').catch(
+  () => null,
+);
+if (componentsCss === null) {
+  errors.push('dist/styles/generated/components.css is missing');
+} else {
+  const compiled = await readFile(`${root}dist/styles.compiled.css`, 'utf8');
+  const variables = [...componentsCss.matchAll(/(--_md-comp-[\w-]+):/g)].map(([, name]) => name!);
+  const missing = [...new Set(variables)].filter((name) => !compiled.includes(name));
+  if (missing.length > 0) {
+    errors.push(`dist/styles.compiled.css lacks component tokens: ${missing.join(', ')}`);
+  }
 }
 
 if (errors.length > 0) {

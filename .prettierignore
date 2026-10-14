@@ -11,3 +11,4 @@ CLAUDE.md
 .agents/
 **/.next-e2e
 apps/site/.generated
+apps/docs/e2e/__computed-styles__

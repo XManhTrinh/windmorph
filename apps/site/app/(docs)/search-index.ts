@@ -95,9 +95,11 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   },
   {
     title: 'Customisation',
-    summary: 'Override tokens, themes and classes; extend variants; layout safety.',
+    summary:
+      'Override tokens, themes and classes; component tokens; extend variants; layout safety.',
     href: '/customisation',
     kind: 'guide',
+    keywords: ['--md-comp', 'component tokens', 'data-variant', 'Material Web'],
   },
   {
     title: 'Accessibility',

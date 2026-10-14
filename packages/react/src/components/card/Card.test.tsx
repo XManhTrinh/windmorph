@@ -12,27 +12,62 @@ describe('Card', () => {
     expect(card.tagName).toBe('DIV');
     expect(card).not.toHaveAttribute('role');
     expect(card).not.toHaveAttribute('tabindex');
+    expect(card).toHaveAttribute('data-tokens', 'md-comp-card');
+    expect(card).toHaveAttribute('data-variant', 'filled');
     expect(card).toHaveClass(
-      'bg-surface-container-highest',
+      'bg-[var(--_md-comp-card-container-color)]',
+      'rounded-[var(--_md-comp-card-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-card-container-elevation)]',
       'text-on-surface',
-      'rounded-corner-medium',
       'overflow-hidden',
       'flex',
       'flex-col',
     );
-    expect(card).not.toHaveClass('state-layer');
+    expect(card).not.toHaveClass('state-layer', 'border');
   });
 
-  it.each([
-    ['elevated', ['bg-surface-container-low', 'shadow-elevation-1']],
-    ['outlined', ['bg-surface', 'border-outline-variant', 'border']],
-  ] as const)('styles the %s variant', (variant, classes) => {
+  it.each(['elevated', 'outlined'] as const)(
+    'marks the %s variant for its component tokens',
+    (variant) => {
+      render(
+        <Card variant={variant} data-testid="card">
+          Content
+        </Card>,
+      );
+      expect(screen.getByTestId('card')).toHaveAttribute('data-variant', variant);
+    },
+  );
+
+  it('draws the outlined border in the outline token', () => {
     render(
-      <Card variant={variant} data-testid="card">
+      <Card variant="outlined" data-testid="card">
         Content
       </Card>,
     );
-    expect(screen.getByTestId('card')).toHaveClass(...classes);
+    expect(screen.getByTestId('card')).toHaveClass(
+      'border',
+      'border-[color:var(--_md-comp-card-outline-color)]',
+    );
+  });
+
+  it('lets consumer colour, corner and shadow classes replace the token classes', () => {
+    render(
+      <Card
+        variant="outlined"
+        className="bg-tertiary rounded-corner-small shadow-elevation-3 border-primary"
+        data-testid="card"
+      >
+        Content
+      </Card>,
+    );
+    const card = screen.getByTestId('card');
+    expect(card).toHaveClass('bg-tertiary', 'rounded-corner-small', 'shadow-elevation-3');
+    expect(card).not.toHaveClass(
+      'bg-[var(--_md-comp-card-container-color)]',
+      'rounded-[var(--_md-comp-card-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-card-container-elevation)]',
+      'border-[color:var(--_md-comp-card-outline-color)]',
+    );
   });
 
   it('puts className and ref on the root and lets consumer classes win', () => {
@@ -65,6 +100,8 @@ describe('Card', () => {
     const card = screen.getByRole('button', { name: 'Kyoto' });
     expect(card.tagName).toBe('DIV');
     expect(card).toHaveAttribute('tabindex', '0');
+    expect(card).toHaveAttribute('data-tokens', 'md-comp-card');
+    expect(card).toHaveAttribute('data-variant', 'elevated');
     expect(card).toHaveClass('state-layer', 'focus-ring', 'w-full', 'text-start');
     expect(card).toHaveClass(
       'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
@@ -167,6 +204,7 @@ describe('Card', () => {
     );
     const link = screen.getByRole('link', { name: 'Kyoto' });
     expect(link).toHaveAttribute('href', '/trips/kyoto');
+    expect(link).toHaveAttribute('data-tokens', 'md-comp-card');
     await userEvent.click(link);
     expect(navigate).toHaveBeenCalledWith('/trips/kyoto', undefined);
   });

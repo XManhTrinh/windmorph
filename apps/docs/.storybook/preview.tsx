@@ -18,7 +18,11 @@ const toolbar = (title: string, icon: ToolbarIcon, items: readonly string[]) => 
   toolbar: { title, icon, items: [...items], dynamicTitle: true },
 });
 
-/** Renders every story inside a ThemeScope driven by the toolbar. */
+/**
+ * Renders every story inside a ThemeScope driven by the toolbar. The page font is set on
+ * `#storybook-root` (preview.css), not here: a ThemeScope's classes also go on the wrappers
+ * of overlays opened inside it, and the stories' overlays render in the document's font.
+ */
 const withTheme: Decorator = (Story, { globals }) => (
   <ThemeScope
     theme={globals.theme as string}
@@ -26,7 +30,7 @@ const withTheme: Decorator = (Story, { globals }) => (
     contrast={globals.contrast as ContrastLevel}
     motion={globals.motion as MotionScheme}
     dir={globals.dir as 'ltr' | 'rtl'}
-    className="min-h-screen bg-surface p-6 font-plain"
+    className="min-h-screen bg-surface p-6"
   >
     <Story />
   </ThemeScope>

@@ -4,7 +4,12 @@ import { useMemo, type ComponentPropsWithRef } from 'react';
 import type { ColorMode, ContrastLevel } from '../tokens/color';
 import type { MotionScheme } from '../tokens/motion';
 import { cn } from '../utils/cn';
-import { ThemeScopeContext, useThemeScope } from './context';
+import {
+  ThemeScopeClassNameContext,
+  ThemeScopeContext,
+  useThemeScope,
+  useThemeScopeClassName,
+} from './context';
 import { themeAttributes, type ThemeState } from './state';
 
 export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
@@ -22,6 +27,10 @@ export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
  * Applies a different theme, mode, contrast level or motion scheme to a subtree.
  * Scopes nest; unset dimensions are inherited from the nearest provider or scope.
  * Renders a `div` with `text-on-surface` so text picks up the scope's colours.
+ *
+ * Overlays opened inside (menus, dialogs, tooltips) are portalled out of the `div`, so they
+ * get its theme attributes and its `className` on their own wrapper: CSS variables set
+ * through the class, such as component tokens, reach them too.
  */
 export function ThemeScope({
   theme,
@@ -33,6 +42,11 @@ export function ThemeScope({
   ...props
 }: ThemeScopeProps) {
   const parent = useThemeScope();
+  const parentClassName = useThemeScopeClassName();
+  const scopeClassName = useMemo(
+    () => cn(parentClassName, className),
+    [parentClassName, className],
+  );
   const state = useMemo<ThemeState>(
     () => ({
       theme: theme ?? parent.theme,
@@ -45,7 +59,9 @@ export function ThemeScope({
 
   return (
     <div {...props} {...themeAttributes(state)} className={cn('text-on-surface', className)}>
-      <ThemeScopeContext value={state}>{children}</ThemeScopeContext>
+      <ThemeScopeContext value={state}>
+        <ThemeScopeClassNameContext value={scopeClassName}>{children}</ThemeScopeClassNameContext>
+      </ThemeScopeContext>
     </div>
   );
 }
