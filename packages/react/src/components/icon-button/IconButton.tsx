@@ -142,8 +142,9 @@ export function IconButton(props: IconButtonProps) {
       );
     }
   }, [wideInVerticalToolbar]);
+  const variant = variantProp ?? context.iconButtonVariant ?? 'filled';
   const styles = iconButtonStyles({
-    variant: variantProp ?? context.iconButtonVariant ?? 'filled',
+    variant,
     size,
     width,
     shape,
@@ -153,8 +154,15 @@ export function IconButton(props: IconButtonProps) {
   });
 
   // Destructuring a union merges its members (see Button); `base` holds one member's props.
+  // The component tokens' hooks (icon-button-tokens.ts), also public styling hooks for apps.
+  const tokenAttributes = {
+    'data-tokens': 'md-comp-icon-button',
+    'data-variant': variant,
+    'data-size': size,
+  };
   const baseProps = {
     ...base,
+    ...tokenAttributes,
     disabled: disabledProp ?? context.disabled ?? false,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;

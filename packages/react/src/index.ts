@@ -84,6 +84,7 @@ export {
   type IconButtonVariant,
   type IconButtonWidth,
 } from './components/icon-button/icon-button-styles';
+export { iconButtonTokenSet } from './components/icon-button/icon-button-tokens';
 
 // Composites
 export { buttonGroupStyles } from './composites/button-group/button-group-styles';

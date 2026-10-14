@@ -32,17 +32,15 @@ describe('ButtonGroup', () => {
     const group = screen.getByRole('toolbar', { name: 'Actions' });
     // Medium standard groups space their buttons 8px apart.
     expect(group).toHaveClass('inline-flex', 'gap-[8px]');
-    expect(screen.getByRole('button', { name: 'Copy' })).toHaveClass(
-      'h-[56px]',
-      'bg-secondary-container',
-    );
+    const copy = screen.getByRole('button', { name: 'Copy' });
+    expect(copy).toHaveClass('h-[56px]');
+    expect(copy).toHaveAttribute('data-variant', 'tonal');
     // A child's own prop wins.
     expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('min-h-[32px]');
     // Icon buttons share the size and the variant, so the group never mixes styles.
-    expect(screen.getByRole('button', { name: 'More' })).toHaveClass(
-      'h-[56px]',
-      'bg-secondary-container',
-    );
+    const more = screen.getByRole('button', { name: 'More' });
+    expect(more).toHaveClass('h-[56px]');
+    expect(more).toHaveAttribute('data-variant', 'tonal');
   });
 
   it('passes buttonVariant to icon buttons only where they have it, and their own variant wins', () => {
@@ -58,10 +56,16 @@ describe('ButtonGroup', () => {
         </ButtonGroup>
       </>,
     );
-    expect(screen.getByRole('button', { name: 'Shared' })).toHaveClass('border-outline-variant');
-    expect(screen.getByRole('button', { name: 'Own' })).toHaveClass('bg-primary');
+    expect(screen.getByRole('button', { name: 'Shared' })).toHaveAttribute(
+      'data-variant',
+      'outlined',
+    );
+    expect(screen.getByRole('button', { name: 'Own' })).toHaveAttribute('data-variant', 'filled');
     // Icon buttons have no elevated style: they keep the filled default.
-    expect(screen.getByRole('button', { name: 'Default' })).toHaveClass('bg-primary');
+    expect(screen.getByRole('button', { name: 'Default' })).toHaveAttribute(
+      'data-variant',
+      'filled',
+    );
   });
 
   it('warns once about standard icon buttons, text buttons and connected groups without toggles', () => {
@@ -274,7 +278,7 @@ describe('ButtonGroup', () => {
       </ButtonGroup>,
     );
     expect(screen.getByRole('button')).toHaveClass(
-      'rounded-[min(var(--md-sys-shape-corner-full),20px)]',
+      'rounded-[var(--_md-comp-button-container-shape-round-capped)]',
     );
   });
 
