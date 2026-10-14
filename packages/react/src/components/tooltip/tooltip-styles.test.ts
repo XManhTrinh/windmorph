@@ -27,3 +27,19 @@ describe('tooltip styles', () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
 });
+
+describe('the deprecated root slot', () => {
+  it('resolves to exactly the panel classes on a plain tooltip', () => {
+    const styles = tooltipStyles();
+    expect(styles.root()).toBe(styles.panel());
+    expect(styles.root({ class: 'extra' })).toBe(styles.panel({ class: 'extra' }));
+  });
+
+  it('resolves to exactly the panel classes on a rich tooltip, in every variant', () => {
+    for (const subhead of [false, true])
+      for (const action of [false, true]) {
+        const styles = richTooltipStyles({ subhead, action });
+        expect(styles.root()).toBe(styles.panel());
+      }
+  });
+});
