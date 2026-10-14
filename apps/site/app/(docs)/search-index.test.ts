@@ -10,6 +10,7 @@ import {
   groupResults,
   highlightParts,
   MAX_PAGES_PER_PROP,
+  propScopes,
   resultTypeLabel,
   searchablePropNames,
   searchPages,
@@ -35,9 +36,15 @@ const propNames = searchablePropNames(
 );
 const entries: SearchEntry[] = [
   ...GUIDE_ENTRIES,
-  ...COMPONENT_META.map((page) =>
-    componentSearchEntry(page, undefined, propNames.get(page.slug) ?? []),
-  ),
+  ...COMPONENT_META.map((page) => {
+    const names = propNames.get(page.slug) ?? [];
+    return componentSearchEntry(
+      page,
+      undefined,
+      names,
+      propScopes(page.propsComponents, propNamesOf, names),
+    );
+  }),
 ];
 const index = createSearchIndex(entries);
 
@@ -118,15 +125,15 @@ describe('searchPages', () => {
     }
   });
 
-  it('finds a component by its prop names, on its API tab', () => {
+  it('finds a component by its prop names, on its API tab at the prop', () => {
     const cases = [
-      ['scrolledColor', '/components/top-app-bar/api'],
-      ['expandedRatio', '/components/button-group/api'],
-      ['iconTransition', '/components/icon-button/api'],
-      ['containerPadding', '/components/menu/api'],
-      ['selectedLeadingIcon', '/components/button/api'],
-      ['stopIndicator', '/components/progress/api'],
-      ['origin', '/components/dialog/api'],
+      ['scrolledColor', '/components/top-app-bar/api#prop-TopAppBar-scrolledColor'],
+      ['expandedRatio', '/components/button-group/api#prop-ButtonGroup-expandedRatio'],
+      ['iconTransition', '/components/icon-button/api#prop-IconButton-iconTransition'],
+      ['containerPadding', '/components/menu/api#prop-Menu-containerPadding'],
+      ['selectedLeadingIcon', '/components/button/api#prop-Button-selectedLeadingIcon'],
+      ['stopIndicator', '/components/progress/api#prop-LinearProgressIndicator-stopIndicator'],
+      ['origin', '/components/dialog/api#prop-Dialog-origin'],
     ] as const;
     for (const [query, href] of cases) {
       const result = searchPages(index, query).find((found) => found.href === href);
@@ -200,6 +207,23 @@ describe('searchPages', () => {
       entries.flatMap((entry) => [...(entry.keywords ?? []), ...(entry.codeNames ?? [])]),
     );
     expect([...exported].filter((hook) => !searchable.has(hook))).toEqual([]);
+  });
+});
+
+describe('propScopes', () => {
+  it("names the component of each prop the page's first component doesn't take", () => {
+    const props: Record<string, string[]> = {
+      Fab: ['size', 'icon'],
+      ExtendedFab: ['size', 'label', 'expanded'],
+      FabMenu: ['expanded'],
+    };
+    expect(
+      propScopes(['Fab', 'ExtendedFab', 'FabMenu'], (name) => props[name] ?? [], [
+        'icon',
+        'label',
+        'expanded',
+      ]),
+    ).toEqual({ label: 'ExtendedFab', expanded: 'ExtendedFab' });
   });
 });
 

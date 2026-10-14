@@ -1,5 +1,6 @@
 import { RAIL_GROUP_MAP, type RailGroupId } from '../../content/components/catalog';
 import { TAB_LABELS, componentTabHref, type ComponentTab } from '../../content/components/doc';
+import { propAnchor } from '../../lib/prop-list-model';
 
 /** A component page's tabs beyond Overview. */
 type SubTab = Exclude<ComponentTab, 'overview'>;
@@ -23,9 +24,14 @@ export interface SearchEntry {
   /**
    * The public prop names a component page documents (`scrolledColor`, `iconTransition`),
    * leaving out the ones most components share (see {@link searchablePropNames}). A match
-   * opens the page's API tab.
+   * opens the page's API tab at the prop.
    */
   propNames?: string[];
+  /**
+   * The component a prop name belongs to, for each one that isn't the page's first
+   * component's (see {@link propScopes}): a match opens the API tab at the prop's anchor.
+   */
+  propScopes?: Record<string, string>;
   /** A component page's tabs beyond Overview, by tab, for queries such as "slider keyboard". */
   tabHrefs?: Partial<Record<SubTab, string>>;
 }
@@ -94,6 +100,27 @@ export function searchablePropNames(
   );
 }
 
+/**
+ * Which component each of a page's searchable prop names belongs to, for the names its first
+ * component doesn't take (the first one that does), so a result can open the prop's anchor.
+ */
+export function propScopes(
+  components: readonly string[],
+  propsOf: (component: string) => readonly string[],
+  names: readonly string[],
+): Record<string, string> {
+  const scopes: Record<string, string> = {};
+  const [first, ...rest] = components;
+  if (!first) return scopes;
+  const firstProps = new Set(propsOf(first));
+  for (const name of names) {
+    if (firstProps.has(name)) continue;
+    const owner = rest.find((component) => propsOf(component).includes(name));
+    if (owner) scopes[name] = owner;
+  }
+  return scopes;
+}
+
 /** The heading guide and gallery results are grouped under. */
 export const GUIDES_CATEGORY = 'Guides';
 
@@ -105,7 +132,8 @@ export const GUIDES_CATEGORY = 'Guides';
 export const GUIDE_ENTRIES: SearchEntry[] = [
   {
     title: 'Components',
-    summary: 'Browse every component by category, each with live examples and a full props table.',
+    summary:
+      'Browse every component by category, each with live examples and every prop documented.',
     href: '/components',
     kind: 'gallery',
   },
@@ -210,6 +238,7 @@ export function componentSearchEntry(
   },
   tabs: readonly ComponentTab[] = ['overview', 'api', 'accessibility', 'guidelines'],
   propNames: readonly string[] = [],
+  scopes: Record<string, string> = {},
 ): SearchEntry {
   const tabHrefs: SearchEntry['tabHrefs'] = {};
   for (const tab of tabs) if (tab !== 'overview') tabHrefs[tab] = componentTabHref(page.slug, tab);
@@ -222,6 +251,7 @@ export function componentSearchEntry(
     keywords: page.keywords,
     codeNames: [...page.propsComponents, ...(page.hooks ?? [])],
     ...(propNames.length > 0 && { propNames: [...propNames] }),
+    ...(Object.keys(scopes).length > 0 && { propScopes: scopes }),
     tabHrefs,
   };
 }
@@ -339,8 +369,12 @@ export function searchPages(index: SearchIndex, query: string, limit = 12): Sear
   for (const item of rest()) {
     const at = item.propNames.findIndex((name) => propMatches(name, q));
     if (at < 0) continue;
-    const matched = item.entry.propNames?.[at];
-    add(tabResult(item.entry, 'api', terms, matched) ?? pageResult(item.entry, terms, matched));
+    const matched = item.entry.propNames![at]!;
+    const result = tabResult(item.entry, 'api', terms, matched);
+    const scope = item.entry.propScopes?.[matched] ?? item.entry.codeNames?.[0];
+    // The API tab, scrolled to the prop.
+    if (result && scope) result.href += `#${propAnchor(scope, matched)}`;
+    add(result ?? pageResult(item.entry, terms, matched));
   }
   const words = q.split(' ');
   if (words.length > 1) {

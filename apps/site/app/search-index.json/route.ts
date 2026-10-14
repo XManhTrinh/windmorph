@@ -4,6 +4,7 @@ import { readComponentPropsSafe } from '../../lib/component-props';
 import {
   componentSearchEntry,
   GUIDE_ENTRIES,
+  propScopes,
   searchablePropNames,
   type SearchEntry,
 } from '../(docs)/search-index';
@@ -17,20 +18,28 @@ export const dynamic = 'force-static';
  * them into every page's bundle and the index into every page's HTML.
  */
 export async function GET() {
+  const propsByComponent = new Map<string, string[]>();
+  for (const name of new Set(COMPONENT_PAGES.flatMap((page) => page.propsComponents))) {
+    const json = await readComponentPropsSafe(name);
+    propsByComponent.set(name, json?.props.map((prop) => prop.name) ?? []);
+  }
+  const propsOf = (name: string) => propsByComponent.get(name) ?? [];
   const propNames = searchablePropNames(
-    await Promise.all(
-      COMPONENT_PAGES.map(async (page) => ({
-        slug: page.slug,
-        props: (
-          await Promise.all(page.propsComponents.map((name) => readComponentPropsSafe(name)))
-        ).flatMap((json) => json?.props.map((prop) => prop.name) ?? []),
-      })),
-    ),
+    COMPONENT_PAGES.map((page) => ({
+      slug: page.slug,
+      props: page.propsComponents.flatMap(propsOf),
+    })),
   );
   const components = await Promise.all(
-    COMPONENT_PAGES.map(async (page) =>
-      componentSearchEntry(page, await componentTabs(page), propNames.get(page.slug)),
-    ),
+    COMPONENT_PAGES.map(async (page) => {
+      const names = propNames.get(page.slug) ?? [];
+      return componentSearchEntry(
+        page,
+        await componentTabs(page),
+        names,
+        propScopes(page.propsComponents, propsOf, names),
+      );
+    }),
   );
   const entries: SearchEntry[] = [...GUIDE_ENTRIES, ...components];
   return Response.json(entries);

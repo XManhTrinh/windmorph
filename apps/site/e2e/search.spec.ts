@@ -88,7 +88,9 @@ test.describe('Docs search', () => {
     await expect(page).toHaveURL(/\/components\/icon-button\/api$/);
   });
 
-  test('a prop name opens the API tab of the component that takes it', async ({ page }) => {
+  test('a prop name opens the API tab of the component that takes it, at the prop', async ({
+    page,
+  }) => {
     await page.goto('/getting-started');
     await openWithShortcut(page);
     await view(page).getByRole('searchbox').fill('scrolledColor');
@@ -97,7 +99,8 @@ test.describe('Docs search', () => {
     await expect(row).toContainText('Top app bar');
     await expect(row).toContainText('API');
     await row.click();
-    await expect(page).toHaveURL(/\/components\/top-app-bar\/api$/);
+    await expect(page).toHaveURL(/\/components\/top-app-bar\/api#prop-TopAppBar-scrolledColor$/);
+    await expect(page.locator('#prop-TopAppBar-scrolledColor')).toBeInViewport();
   });
 
   test('the arrow keys move through every group and back to the field', async ({ page }) => {
