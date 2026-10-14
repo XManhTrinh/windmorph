@@ -91,13 +91,20 @@ function rootSelector(set: ComponentTokenSet, token: PublicComponentToken): stri
   return `[data-tokens~="${set.name}"]${scope}${state}`;
 }
 
-/** The element a token paints inside `root`: the root itself, or its slot in that state. */
-const painted = (root: Locator, token: PublicComponentToken) =>
-  token.paints?.slot
-    ? root.locator(`[data-slot="${token.paints.slot}"]${stateSelector(token)}`).first()
-    : root;
+/**
+ * The element a token paints inside `root`: the root itself, or its slot in that state. The
+ * state is on the slot (a selected day), on the root (a selected checkbox) or on an element
+ * between them (a focused field's container).
+ */
+function painted(root: Locator, token: PublicComponentToken): Locator {
+  if (!token.paints?.slot) return root;
+  const slot = `[data-slot="${token.paints.slot}"]`;
+  const state = stateSelector(token);
+  if (!state) return root.locator(slot).first();
+  return root.locator(`${slot}${state}, :scope${state} ${slot}, :scope ${state} ${slot}`).first();
+}
 
-/** The element a token paints: in the first root outside the extra instances. */
+/** The element a token paints: in the first root outside the extra instances that has it. */
 async function target(
   page: Page,
   set: ComponentTokenSet,
@@ -113,7 +120,8 @@ async function target(
       `[data-probe-extra], ${REGION.scoped}, ${REGION.override}`,
     );
     if (extra) continue;
-    return painted(candidate, token);
+    const element = painted(candidate, token);
+    if ((await element.count()) > 0) return element;
   }
   throw new Error(`No ${root} in the probe story`);
 }
