@@ -18,7 +18,7 @@ Give teams consuming `@windmorph/react` a real documentation site: how to instal
 | 6 | Props tables | **Generated** from the TSDoc already on every public API (`react-docgen-typescript` at build time), never hand-written, so they can't drift from the code |
 | 7 | Examples | Live components rendered on the page, with their source shown next to them (one file per example, imported both as a component and as raw text) |
 | 8 | Migration notes | **None.** This is a new library with nothing to migrate from |
-| 9 | Components beyond M3 | The docs need a `CodeBlock` and a docs-specific **`PropsTable`** (not a general `DataTable`). They're Windmorph Pro components (`@windmorph/react-pro`) |
+| 9 | Components beyond M3 | The docs need a `CodeBlock` and a docs-specific **`PropsTable`** (not a general `DataTable`). They're Windmorph Pro components (`@windmorph/react-pro`). (2026-10-14: the site's props are now its own responsive list built from core components, not `PropsTable`.) |
 
 ## Where it's built
 
