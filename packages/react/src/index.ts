@@ -374,6 +374,7 @@ export {
   type MenuStyleProps,
   type MenuVariant,
 } from './components/menu/menu-styles';
+export { menuTokenSet } from './components/menu/menu-tokens';
 export {
   DockedToolbar,
   FloatingToolbar,

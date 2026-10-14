@@ -64,7 +64,14 @@ describe('Menu', () => {
     await openMenu('Edit');
     const menu = screen.getByRole('menu');
     expect(menu).toHaveAttribute('data-layout', 'divider');
-    expect(menu).toHaveClass('shadow-elevation-2', 'p-[4px]', 'bg-surface-container-low');
+    expect(menu).toHaveAttribute('data-tokens', 'md-comp-menus');
+    expect(menu).toHaveAttribute('data-variant', 'standard');
+    expect(menu).toHaveClass(
+      'shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
+      'p-[4px]',
+      'bg-[var(--_md-comp-menus-container-color)]',
+    );
+    expect(menu).toHaveClass('[--m3-menu-corner:var(--_md-comp-menus-container-shape)]');
     expect(menu).toHaveClass('rounded-[var(--m3-menu-corner,var(--md-sys-shape-corner-large))]');
     const clipboard = screen.getByRole('group', { name: 'Clipboard' }).parentElement!;
     expect(clipboard).toHaveClass('rounded-none', 'shadow-none', 'p-0');
@@ -91,7 +98,7 @@ describe('Menu', () => {
     expect(clipboard).toHaveClass(
       'rounded-t-[var(--m3-menu-corner,var(--md-sys-shape-corner-large))]',
       'rounded-b-corner-small',
-      'shadow-elevation-2',
+      'shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
     );
     expect(screen.getByRole('group', { name: 'Danger' }).parentElement).toHaveClass(
       'rounded-t-corner-small',
@@ -259,9 +266,12 @@ describe('Menu', () => {
     const name = screen.getByRole('menuitemradio', { name: 'Name' });
     expect(name).toHaveAttribute('aria-checked', 'true');
     expect(name).toHaveAttribute('data-selected');
+    expect(name).toHaveAttribute('data-tokens', 'md-comp-menus');
+    expect(name).toHaveAttribute('data-variant', 'standard');
     expect(name).toHaveClass(
       'data-selected:rounded-corner-medium',
-      'data-selected:bg-tertiary-container',
+      'data-selected:bg-[var(--_md-comp-menus-menu-item-selected-container-color)]',
+      'data-selected:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
     );
     expect(name.querySelector('svg')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('menuitemradio', { name: 'Date' }));
@@ -355,12 +365,13 @@ describe('Menu', () => {
   it('uses vibrant colours', async () => {
     render(<EditMenu variant="vibrant" layout="gap" />);
     await openMenu('Edit');
+    expect(screen.getByRole('menu')).toHaveAttribute('data-variant', 'vibrant');
     expect(screen.getByRole('group', { name: 'Clipboard' }).parentElement).toHaveClass(
-      'bg-tertiary-container',
+      'bg-[var(--_md-comp-menus-container-color)]',
     );
-    expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveClass(
-      'text-on-tertiary-container',
-    );
+    const item = screen.getByRole('menuitem', { name: 'Delete' });
+    expect(item).toHaveAttribute('data-variant', 'vibrant');
+    expect(item).toHaveClass('text-[color:var(--_md-comp-menus-menu-item-label-text-color)]');
   });
 
   it('wraps loose items in an implicit group', async () => {
@@ -378,7 +389,7 @@ describe('Menu', () => {
     expect(group).toHaveAttribute('role', 'presentation');
     expect(group).toHaveClass(
       'rounded-[var(--m3-menu-corner,var(--md-sys-shape-corner-large))]',
-      'bg-surface-container-low',
+      'bg-[var(--_md-comp-menus-container-color)]',
     );
   });
 

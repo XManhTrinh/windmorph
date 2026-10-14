@@ -152,6 +152,9 @@ export function OptionList<T>({
 
   return (
     <div
+      // The menu's component tokens (menu-tokens.ts), whose styles the list shares.
+      data-tokens="md-comp-menus"
+      data-variant="standard"
       className={cn(
         !embedded && menu.group(),
         'flex max-h-[inherit] min-h-0 flex-col overflow-hidden',
@@ -285,6 +288,8 @@ function OptionItem<T>({
       ref={ref}
       aria-disabled={isDisabled || undefined}
       data-key={String(item.key)}
+      data-tokens="md-comp-menus"
+      data-variant="standard"
       className={menu.item({ class: classNames?.item })}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}
