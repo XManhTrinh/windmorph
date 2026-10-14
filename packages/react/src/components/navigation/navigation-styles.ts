@@ -35,6 +35,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * The rail's width is the `--m3-rail-width` variable, so a consumer `w-*` class still wins;
  * a narrower or wider collapsed rail sets `--m3-rail-collapsed-width` instead.
+ *
+ * Container colours and the modal rail's corners come from the component tokens
+ * (`navigation-tokens.ts`, `--md-comp-nav-bar-*` and `--md-comp-nav-rail-*`): the bar, the
+ * rail and the modal rail's sheet (`data-modal`) carry `data-tokens`. A consumer class still
+ * wins in `cn()`.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -57,7 +62,8 @@ const widthMotion = [
 export const navigationRailStyles = tv({
   slots: {
     root: [
-      'flex w-(--m3-rail-width) shrink-0 flex-col bg-surface text-on-surface',
+      'flex w-(--m3-rail-width) shrink-0 flex-col text-on-surface',
+      'bg-[var(--_md-comp-nav-rail-collapsed-container-color)] data-expanded:bg-[var(--_md-comp-nav-rail-expanded-container-color)]',
       itemInset,
       oneLineWhileResizing,
       ...widthMotion,
@@ -78,7 +84,8 @@ export const navigationRailStyles = tv({
     ],
     sheet: [
       'fixed inset-y-0 start-0 z-(--md-sys-z-sheet) flex w-(--m3-rail-width) flex-col overflow-x-clip overflow-y-auto pt-[44px]',
-      'rounded-e-corner-large bg-surface-container text-on-surface shadow-elevation-2 outline-none',
+      'rounded-e-[var(--_md-comp-nav-rail-expanded-modal-container-shape)] bg-[var(--_md-comp-nav-rail-expanded-modal-container-color)]',
+      'text-on-surface shadow-elevation-2 outline-none',
       itemInset,
       oneLineWhileResizing,
       '[&[data-exiting]_[data-nav-label]]:text-nowrap',
@@ -133,7 +140,7 @@ export const navigationRailStyles = tv({
 /** Variant definitions for {@link NavigationBar}; extend them to add variants. */
 export const navigationBarStyles = tv({
   slots: {
-    root: 'flex min-h-[64px] w-full bg-surface-container text-on-surface',
+    root: 'flex min-h-[64px] w-full bg-[var(--_md-comp-nav-bar-container-color)] text-on-surface',
     item: 'min-w-0',
   },
   variants: {

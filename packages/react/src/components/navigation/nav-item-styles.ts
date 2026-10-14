@@ -42,6 +42,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * them next to the label, 4px after it.
  *
  * The pill, its state layer and its content share one grid cell, so nothing is positioned.
+ *
+ * The pill, icon and label colours come from the bar's or rail's component tokens
+ * (`navigation-tokens.ts`, `--md-comp-nav-{bar,rail}-item-*`): each item carries
+ * `data-tokens` and `data-layout`, so the bar's layouts read the bar's item parts and the
+ * rail's layouts the rail's. Disabled colours stay classes.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -59,7 +65,7 @@ export const navItemStyles = tv({
       'group-data-focus-visible/nav:outline-(length:--md-sys-focus-indicator-thickness) group-data-focus-visible/nav:outline-solid',
     ],
     indicator: [
-      'col-start-1 row-start-1 rounded-full bg-secondary-container opacity-0',
+      'col-start-1 row-start-1 rounded-full opacity-0',
       'group-data-current/nav:opacity-100 group-data-current/nav:[clip-path:inset(0_0_round_9999px)]',
       '[transition-property:clip-path,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
@@ -78,7 +84,7 @@ export const navItemStyles = tv({
     content: 'relative col-start-1 row-start-1 flex min-w-0 items-center justify-center',
     icon: [
       'inline-grid size-[24px] shrink-0 place-items-center [&>svg]:size-full',
-      'group-data-current/nav:text-on-secondary-container group-data-disabled/nav:text-on-surface-variant/38',
+      'group-data-disabled/nav:text-on-surface-variant/38',
       'transition-colors duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
     // An icon and its selected variant share one cell and cross-fade.
@@ -101,22 +107,28 @@ export const navItemStyles = tv({
         // The 56px pill centres in the collapsed width; labels may use all of it (Compose).
         root: 'min-h-[64px] w-(--m3-rail-collapsed-width) content-start',
         pill: 'h-[32px] w-[56px]',
-        indicator: '[clip-path:inset(0_50%_round_9999px)]',
+        indicator:
+          '[clip-path:inset(0_50%_round_9999px)] bg-[var(--_md-comp-nav-rail-item-active-indicator-color)]',
+        icon: 'text-[color:var(--_md-comp-nav-rail-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-icon-color)]',
         label: [
           'mt-[4px] max-w-full text-center text-label-medium',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-secondary',
+          'text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
       },
       'rail-start': {
         root: 'w-full justify-items-start px-(--m3-rail-item-inset)',
         pill: 'min-h-[56px] max-w-full',
         // The icon's centre: 16px padding + half the 24px icon from the start edge.
-        indicator:
+        indicator: [
           '[clip-path:inset(0_calc(100%_-_28px)_0_28px_round_9999px)] rtl:[clip-path:inset(0_28px_0_calc(100%_-_28px)_round_9999px)]',
+          'bg-[var(--_md-comp-nav-rail-item-active-indicator-color)]',
+        ],
         content: 'justify-start gap-[8px] ps-[16px] pe-[16px] py-[8px]',
+        icon: 'text-[color:var(--_md-comp-nav-rail-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-icon-color)]',
         label: [
-          'text-label-large',
-          'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-on-secondary-container',
+          'text-label-large text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
+          'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
       },
       // Bar items stretch to the bar's height (64px, or taller when a label wraps), so the
@@ -125,22 +137,28 @@ export const navItemStyles = tv({
       'bar-top': {
         root: 'self-stretch content-start py-[6px]',
         pill: 'h-[32px] w-[56px]',
-        indicator: '[clip-path:inset(0_50%_round_9999px)]',
+        indicator:
+          '[clip-path:inset(0_50%_round_9999px)] bg-[var(--_md-comp-nav-bar-item-active-indicator-color)]',
+        icon: 'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
         label: [
           'mt-[4px] max-w-full px-[4px] text-center text-label-medium',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-secondary',
+          'text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],
       },
       'bar-start': {
         // Content-sized; 4px each side keeps neighbouring pills 8px apart.
         root: 'self-stretch content-center px-[4px]',
         pill: 'min-h-[40px] max-w-full',
-        indicator:
+        indicator: [
           '[clip-path:inset(0_calc(100%_-_28px)_0_28px_round_9999px)] rtl:[clip-path:inset(0_28px_0_calc(100%_-_28px)_round_9999px)]',
+          'bg-[var(--_md-comp-nav-bar-item-active-indicator-color)]',
+        ],
         content: 'gap-[4px] ps-[16px] pe-[16px] py-[4px]',
+        icon: 'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
         label: [
-          'text-label-medium',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-on-secondary-container',
+          'text-label-medium text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
+          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],
       },
     },

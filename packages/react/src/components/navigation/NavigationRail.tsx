@@ -249,6 +249,7 @@ export function NavigationRail({
               ...style,
             } as CSSProperties
           }
+          data-tokens="md-comp-nav-rail"
           data-expanded={inlineExpanded || undefined}
           data-widening={widening || undefined}
           className={styles.root({ class: cn(classNames?.root, className) })}
@@ -415,6 +416,8 @@ function ModalSheet({
       <div
         {...mergeProps(modalProps, dialogProps)}
         ref={ref}
+        data-tokens="md-comp-nav-rail"
+        data-modal=""
         data-exiting={exiting}
         data-widening={widening || undefined}
         style={{ '--m3-rail-width': `${width}px` } as CSSProperties}

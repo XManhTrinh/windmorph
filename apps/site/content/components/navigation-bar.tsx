@@ -1,3 +1,4 @@
+import { navBarTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -20,6 +21,7 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [navBarTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

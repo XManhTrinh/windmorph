@@ -187,6 +187,7 @@ export {
   type NavigationBarArrangement,
   type NavigationBarStyleProps,
 } from './components/navigation/navigation-styles';
+export { navBarTokenSet, navRailTokenSet } from './components/navigation/navigation-tokens';
 export {
   Tab,
   Tabs,
