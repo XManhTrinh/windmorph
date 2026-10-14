@@ -14,7 +14,8 @@ import { mergeProps, useLocale } from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { IconButton } from '../icon-button/IconButton';
-import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
+import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 
 /* Behaviour shared by the modal date pickers and the docked one. */
 
@@ -122,7 +123,7 @@ export function ShortcutIconButton({
         onPress={onPress}
         disabled={disabled}
       />
-      <Tooltip>{tooltip}</Tooltip>
+      <LazyTooltip>{tooltip}</LazyTooltip>
     </TooltipTrigger>
   );
 }
