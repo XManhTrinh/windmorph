@@ -21,6 +21,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * puts the title at the top of the row, and the row grows to fit a wrapped title. That is
  * reproduced exactly by top-aligning it in a min-height row.
  *
+ * Colours come from the app bar's component tokens (`app-bar-tokens.ts`,
+ * `--md-comp-app-bar-*`): the root carries `data-tokens="md-comp-app-bar"`, and the
+ * container reads the blend of the resting and on-scroll colours. A consumer class still
+ * wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -29,26 +34,26 @@ export const topAppBarStyles = tv({
   slots: {
     root: [
       'flex w-full flex-col text-on-surface',
-      'bg-[color:color-mix(in_oklab,var(--m3-app-bar-scrolled-color,var(--md-sys-color-surface-container))_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
+      'bg-[var(--_md-comp-app-bar-container-color-blend)]',
     ],
     // The top row: navigation icon, title and actions.
     row: [
       'grid min-h-[64px] shrink-0 items-center',
-      'bg-[color:color-mix(in_oklab,var(--m3-app-bar-scrolled-color,var(--md-sys-color-surface-container))_var(--m3-app-bar-scrolled,0%),var(--md-sys-color-surface))]',
+      'bg-[var(--_md-comp-app-bar-container-color-blend)]',
     ],
     // Icon buttons take each slot's content colour.
     navigation:
-      'col-start-1 flex items-center ps-[8px] pe-[4px] text-on-surface [--md-comp-icon-button-icon-color:currentColor]',
+      'col-start-1 flex items-center ps-[8px] pe-[4px] text-[color:var(--_md-comp-app-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
     title: 'col-start-2 flex min-w-0 flex-col ps-[4px] pe-[4px]',
-    titleText: 'truncate text-on-surface',
-    subtitleText: 'truncate text-on-surface-variant',
+    titleText: 'truncate text-[color:var(--_md-comp-app-bar-title-color)]',
+    subtitleText: 'truncate text-[color:var(--_md-comp-app-bar-subtitle-color)]',
     actions:
-      'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-on-surface-variant [--md-comp-icon-button-icon-color:currentColor]',
+      'col-start-3 flex items-center justify-end gap-[8px] ps-[4px] pe-[8px] text-[color:var(--_md-comp-app-bar-trailing-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
     // Two-row bars: the expanded title row.
     expandedRow: 'flex flex-col ps-[16px] pe-[16px]',
     // M3: a long headline wraps to two lines at most.
-    expandedTitle: 'line-clamp-2 text-on-surface',
-    expandedSubtitle: 'text-on-surface-variant',
+    expandedTitle: 'line-clamp-2 text-[color:var(--_md-comp-app-bar-title-color)]',
+    expandedSubtitle: 'text-[color:var(--_md-comp-app-bar-subtitle-color)]',
     // The accessory row (`bottom`): on the bar's colour, laid out by its content.
     bottom: 'flex min-w-0 shrink-0 flex-col',
   },

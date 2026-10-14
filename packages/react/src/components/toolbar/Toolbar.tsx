@@ -151,6 +151,7 @@ function DockedToolbarRoot({
       {...mergeProps(rest, toolbarProps)}
       {...exitProps(visible)}
       ref={rootRef}
+      data-tokens="md-comp-toolbar-docked"
       className={dockedToolbarStyles({ arrangement }).root({
         class: cn(classNames?.root, className),
       })}
@@ -348,6 +349,8 @@ function FloatingToolbarRoot({
       {...mergeProps(rest, toolbarProps, focusProps, collapsedFocusProps)}
       {...exitProps(visible)}
       ref={rootRef}
+      data-tokens="md-comp-toolbar-floating"
+      data-color={color}
       data-expanded={expanded}
       style={
         toolbarSize === undefined

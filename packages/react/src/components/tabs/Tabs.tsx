@@ -130,6 +130,8 @@ export function Tabs(props: TabsProps) {
       {...data}
       ref={rootRef}
       style={style}
+      data-tokens="md-comp-tabs"
+      data-variant={props.variant ?? 'primary'}
       className={tabsStyles().root({ class: cn(classNames?.root, className) })}
     >
       <I18nProvider locale={effectiveLocale}>
@@ -199,6 +201,7 @@ function TabsInner({
         <div
           {...tabListProps}
           ref={listRef}
+          data-slot="list"
           data-animate={indicator?.animate || undefined}
           className={styles.list({ class: classNames?.list })}
         >
@@ -210,12 +213,14 @@ function TabsInner({
               state={state}
               hasPanels={hasPanels}
               layout={layout}
+              variant={variant ?? 'primary'}
               styles={styles}
               className={classNames?.tab}
             />
           ))}
           <span
             aria-hidden="true"
+            data-slot="indicator"
             data-ready={indicator ? '' : undefined}
             className={styles.indicator({ class: classNames?.indicator })}
             style={{
@@ -365,11 +370,21 @@ interface TabButtonProps {
   state: TabListState<object>;
   hasPanels: boolean;
   layout: 'text' | 'icon-top' | 'icon-start' | 'icon-only';
+  variant: TabsVariant;
   styles: ReturnType<typeof tabsStyles>;
   className?: string;
 }
 
-function TabButton({ item, index, state, hasPanels, layout, styles, className }: TabButtonProps) {
+function TabButton({
+  item,
+  index,
+  state,
+  hasPanels,
+  layout,
+  variant,
+  styles,
+  className,
+}: TabButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
   const { interactionProps, dataAttributes } = useM3Interaction(
@@ -402,12 +417,16 @@ function TabButton({ item, index, state, hasPanels, layout, styles, className }:
       aria-controls={hasPanels ? controls : undefined}
       aria-describedby={badge != null ? badgeId : undefined}
       data-key={String(item.key)}
+      // Each tab resolves its own tokens, so its selection picks its colours.
+      data-tokens="md-comp-tabs"
+      data-variant={variant}
+      data-slot="tab"
       ref={ref}
       style={{ gridColumnStart: index + 1 }}
       className={styles.tab({ class: className })}
     >
       {icon != null && (
-        <span aria-hidden="true" data-tab-part="" className={styles.icon()}>
+        <span aria-hidden="true" data-tab-part="" data-slot="icon" className={styles.icon()}>
           {badgeOnIcon && badgeNode ? <BadgedBox badge={badgeNode}>{icon}</BadgedBox> : icon}
         </span>
       )}

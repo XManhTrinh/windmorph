@@ -28,6 +28,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   exposed dropdown menus (Select, Autocomplete) and the docked date picker;
  * - the scrolling list keeps 8px of room around the groups so their shadows aren't clipped,
  *   and shows a persistent scrollbar (M3).
+ *
+ * The container's colour, shadow and resting corners and the items' resting and selected
+ * colours come from the menu's component tokens (`menu-tokens.ts`, `--md-comp-menus-*`):
+ * the menu, each item and the option lists that share these styles carry
+ * `data-tokens="md-comp-menus"` and `data-variant`. `--m3-menu-corner` takes the shape
+ * token, so the submenu morph still animates from it. A consumer class still wins in `cn()`.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -68,14 +74,14 @@ export const menuStyles = tv({
     // for the groups' elevation-2 shadows; that ring lets clicks through, so a press just
     // outside the menu still dismisses it. Widths include the padding: 112–280px groups.
     menu: [
-      'flex max-h-[inherit] flex-col overflow-y-auto outline-none',
+      'flex max-h-[inherit] flex-col overflow-y-auto bg-[var(--_md-comp-menus-container-color)] outline-none',
       ...persistentScrollbar,
-      '[--m3-menu-corner:var(--md-sys-shape-corner-large)]',
+      '[--m3-menu-corner:var(--_md-comp-menus-container-shape)]',
       'data-[shape=active]:[--m3-menu-corner:24px]',
       'data-[shape=inactive]:[--m3-menu-corner:var(--md-sys-shape-corner-small)]',
     ],
     group: [
-      'pointer-events-auto flex flex-col p-[4px] shadow-elevation-2',
+      'pointer-events-auto flex flex-col bg-[var(--_md-comp-menus-container-color)] p-[4px] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
       '[transition-property:border-radius]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
@@ -84,7 +90,8 @@ export const menuStyles = tv({
     heading: 'flex min-h-[32px] items-center ps-[8px] text-label-large',
     item: [
       'group/item flex min-h-[calc(44px+var(--m3-menu-density,0)*4px)] w-full cursor-pointer items-center px-[12px] text-start',
-      'text-label-large outline-none select-none',
+      'text-label-large text-[color:var(--_md-comp-menus-menu-item-label-text-color)] outline-none select-none',
+      'data-selected:bg-[var(--_md-comp-menus-menu-item-selected-container-color)] data-selected:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
       'state-layer focus-ring-inset container-motion',
       'data-selected:rounded-corner-medium',
       'data-disabled:cursor-default',
@@ -97,43 +104,34 @@ export const menuStyles = tv({
       'group-data-selected/item:grid-cols-[1fr] group-data-selected/item:opacity-100',
     ],
     selectedIconInner: 'overflow-hidden',
-    icon: 'me-[8px] inline-flex size-[20px] shrink-0 items-center justify-center [&>svg]:size-full',
+    icon: 'me-[8px] inline-flex size-[20px] shrink-0 items-center justify-center text-[color:var(--_md-comp-menus-menu-item-leading-icon-color)] [&>svg]:size-full',
     text: 'flex min-w-0 flex-1 flex-col',
     description: 'text-body-medium',
     trailing:
-      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-large [&>svg]:size-[20px]',
+      'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-large text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
   },
   variants: {
     variant: {
       standard: {
-        menu: 'bg-surface-container-low',
-        group: 'bg-surface-container-low',
         heading: 'text-on-surface-variant',
         item: [
-          'text-on-surface',
-          'data-selected:bg-tertiary-container data-selected:text-on-tertiary-container',
           'data-disabled:text-on-surface/38',
           'data-disabled:data-selected:bg-tertiary-container/38 data-disabled:data-selected:text-on-tertiary-container/38',
         ],
-        icon: 'text-on-surface-variant group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
+        icon: 'group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
         description:
           'text-on-surface-variant group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
         trailing:
-          'text-on-surface-variant group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
+          'group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
       },
       vibrant: {
-        menu: 'bg-tertiary-container',
-        group: 'bg-tertiary-container',
         heading: 'text-on-tertiary-container',
         item: [
-          'text-on-tertiary-container',
-          'data-selected:bg-tertiary data-selected:text-on-tertiary',
           'data-disabled:text-on-tertiary-container/38',
           'data-disabled:data-selected:bg-tertiary/38 data-disabled:data-selected:text-on-tertiary/38',
         ],
         icon: [
-          'text-on-tertiary-container',
           'group-data-hovered/item:text-tertiary group-data-focus-visible/item:text-tertiary group-data-pressed/item:text-tertiary',
           'group-data-selected/item:text-on-tertiary',
           'group-data-selected/item:group-data-hovered/item:text-on-tertiary',
@@ -144,7 +142,6 @@ export const menuStyles = tv({
         description:
           'text-on-tertiary-container group-data-selected/item:text-on-tertiary group-data-disabled/item:text-on-tertiary-container/38',
         trailing: [
-          'text-on-tertiary-container',
           'group-data-hovered/item:text-tertiary group-data-focus-visible/item:text-tertiary group-data-pressed/item:text-tertiary',
           'group-data-selected/item:text-on-tertiary',
           'group-data-selected/item:group-data-hovered/item:text-on-tertiary',
@@ -155,10 +152,10 @@ export const menuStyles = tv({
       },
     },
     groupPosition: {
-      only: { group: 'rounded-corner-large' },
-      first: { group: 'rounded-t-corner-large rounded-b-corner-small' },
+      only: { group: 'rounded-[var(--_md-comp-menus-container-shape)]' },
+      first: { group: 'rounded-t-[var(--_md-comp-menus-container-shape)] rounded-b-corner-small' },
       middle: { group: 'rounded-corner-small' },
-      last: { group: 'rounded-t-corner-small rounded-b-corner-large' },
+      last: { group: 'rounded-t-corner-small rounded-b-[var(--_md-comp-menus-container-shape)]' },
     },
     /**
      * The item's top corners: `nested` inside a 16px corner (12px), `outer` inside the
@@ -211,7 +208,7 @@ export const menuStyles = tv({
       },
       divider: {
         menu: [
-          'pointer-events-auto min-w-[112px] max-w-[280px] p-[4px] shadow-elevation-2',
+          'pointer-events-auto min-w-[112px] max-w-[280px] p-[4px] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
           'rounded-[var(--m3-menu-corner,var(--md-sys-shape-corner-large))]',
           '[transition-property:border-radius]',
           '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',

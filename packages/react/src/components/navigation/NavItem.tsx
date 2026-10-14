@@ -158,7 +158,11 @@ export function NavItem({
   const badgeAfterLabel = layout === 'rail-start';
   const description = badgeLabel ?? badgeDescription(badge);
   const label = (
-    <span data-nav-label="" className={styles.label({ class: classNames?.label })}>
+    <span
+      data-nav-label=""
+      data-slot="label"
+      className={styles.label({ class: classNames?.label })}
+    >
       {children}
     </span>
   );
@@ -215,12 +219,16 @@ export function NavItem({
           .join(' ') || undefined
       }
       data-current={selected || undefined}
+      // The bar's or rail's component tokens, resolved on the item for its state and layout.
+      data-tokens={layout.startsWith('rail') ? 'md-comp-nav-rail' : 'md-comp-nav-bar'}
+      data-layout={layout}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <span className={styles.pill({ class: classNames?.pill })}>
         <span
           ref={indicatorRef}
           aria-hidden="true"
+          data-slot="indicator"
           className={styles.indicator({ class: classNames?.indicator })}
         />
         <span
@@ -231,7 +239,11 @@ export function NavItem({
           className={styles.stateLayer()}
         />
         <span className={styles.content()}>
-          <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
+          <span
+            aria-hidden="true"
+            data-slot="icon"
+            className={styles.icon({ class: classNames?.icon })}
+          >
             {badge && !badgeAfterLabel ? (
               <BadgedBox badge={badge} className={classNames?.badge}>
                 <span className={styles.iconStack()}>{iconFaces}</span>

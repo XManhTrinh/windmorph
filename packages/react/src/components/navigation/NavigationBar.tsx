@@ -109,6 +109,7 @@ export function NavigationBar({
         arrowKeys(event);
       }}
       style={{ paddingInline: padding, ...style } as CSSProperties}
+      data-tokens="md-comp-nav-bar"
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <BarContext value={{ iconPosition, itemClassName: styles.item({ class: classNames?.item }) }}>

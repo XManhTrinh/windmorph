@@ -509,6 +509,19 @@ function itemStyles(
   return listStyles(itemStylesOptions(item, variant, interactive, options));
 }
 
+/**
+ * The component tokens' hooks (`list-tokens.ts`), on a list's root and on each item, so an
+ * item's own state (`data-selected`) picks its colours.
+ */
+function tokenAttributes(variant: ListVariant | undefined) {
+  return { 'data-tokens': 'md-comp-list', 'data-variant': variant ?? 'standard' } as const;
+}
+
+/** An item's token hooks and its `data-slot`. */
+function itemAttributes(variant: ListVariant | undefined) {
+  return { ...tokenAttributes(variant), 'data-slot': 'item' } as const;
+}
+
 function position(index: number, count: number) {
   if (count === 1) return 'only';
   if (index === 0) return 'first';
@@ -550,23 +563,35 @@ function ItemContent({
   return (
     <>
       {(item.leading != null || leading != null) && (
-        <span className={styles.leading({ class: cn(sideClassName, classNames?.leading) })}>
+        <span
+          data-slot="leading"
+          className={styles.leading({ class: cn(sideClassName, classNames?.leading) })}
+        >
           {leading}
           {item.leading}
         </span>
       )}
       <span className={styles.text({ class: classNames?.text })}>
         {item.overline != null && (
-          <span id={ids?.overline} className={styles.overline({ class: classNames?.overline })}>
+          <span
+            id={ids?.overline}
+            data-slot="overline"
+            className={styles.overline({ class: classNames?.overline })}
+          >
             {item.overline}
           </span>
         )}
-        <span id={ids?.headline} className={styles.headline({ class: classNames?.headline })}>
+        <span
+          id={ids?.headline}
+          data-slot="headline"
+          className={styles.headline({ class: classNames?.headline })}
+        >
           {headline ? headline(item.children) : item.children}
         </span>
         {item.supportingText != null && (
           <span
             id={ids?.supporting}
+            data-slot="supporting"
             className={styles.supporting({ class: classNames?.supporting })}
           >
             {item.supportingText}
@@ -574,7 +599,10 @@ function ItemContent({
         )}
       </span>
       {(item.trailing != null || trailing != null) && (
-        <span className={styles.trailing({ class: cn(sideClassName, classNames?.trailing) })}>
+        <span
+          data-slot="trailing"
+          className={styles.trailing({ class: cn(sideClassName, classNames?.trailing) })}
+        >
           {item.trailing}
           {trailing}
         </span>
@@ -667,6 +695,7 @@ function StaticList({
   return (
     <ul
       {...data}
+      {...tokenAttributes(variant)}
       ref={ref as Ref<HTMLUListElement>}
       style={style}
       aria-label={label}
@@ -739,6 +768,7 @@ function StaticListItem({
     <li
       data-shape="rest"
       data-position={entry.position}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <span className={styles.cell()}>
@@ -898,7 +928,7 @@ function CollectionList({
     options,
     listRef: ref,
     directionRef,
-    data,
+    data: { ...data, ...tokenAttributes(variant) },
     style,
     className: listStyles({ variant }).root({ class: cn(classNames?.root, className) }),
     variant,
@@ -1075,6 +1105,7 @@ function GridListRow({
       data-selected={isSelected || undefined}
       data-shape={shape}
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <div {...gridCellProps} className={styles.cell()}>
@@ -1227,6 +1258,7 @@ function OptionRow({
       data-selected={isSelected || undefined}
       data-shape={shape}
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <span className={styles.cell()}>
@@ -1453,6 +1485,7 @@ function TreeRowGhost({
       style={{ '--m3-list-level': node.level } as CSSProperties}
       data-shape="rest"
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <div className={styles.cell()}>
@@ -1587,6 +1620,7 @@ function TreeRow({
       data-selected={isSelected || undefined}
       data-shape={shape}
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <div {...gridCellProps} className={styles.cell()}>
@@ -1724,6 +1758,7 @@ function RadioList({
   return (
     <div
       {...mergeProps(data, radioGroupProps)}
+      {...tokenAttributes(variant)}
       ref={ref as Ref<HTMLDivElement>}
       style={style}
       className={listStyles({ variant }).root({ class: cn(classNames?.root, className) })}
@@ -1880,6 +1915,7 @@ function ControlItem({
       ref={ref}
       data-shape={shape}
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <VisuallyHidden elementType="span">
@@ -1916,6 +1952,9 @@ function SwitchTrack({ selected, icons }: { selected: boolean; icons?: boolean }
   const { size, center } = thumbGeometry(selected, false, Boolean(icon));
   return (
     <span
+      // The switch's component tokens, resolved on its track as on a Switch.
+      data-tokens="md-comp-switch"
+      data-slot="track"
       className={styles.control()}
       style={
         { '--m3-thumb-size': `${size}px`, '--m3-thumb-center': `${center}px` } as CSSProperties
@@ -1994,6 +2033,7 @@ function LinkItem({
       ref={itemRef}
       data-shape={shape}
       data-position={itemPosition}
+      {...itemAttributes(variant)}
       className={styles.item({ class: cn('relative', classNames?.item, item.className) })}
     >
       <span className={styles.cell()}>

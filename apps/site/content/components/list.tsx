@@ -1,3 +1,4 @@
+import { listTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -58,6 +59,7 @@ export async function ListBody(): Promise<ComponentDoc> {
   const sectionsHtml = await highlightSource(sections);
 
   return {
+    tokens: [listTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

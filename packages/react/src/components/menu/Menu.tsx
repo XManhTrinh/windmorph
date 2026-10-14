@@ -596,6 +596,7 @@ function MenuList({
       })}
       ref={ref}
       style={{ ...style, ...(density ? { '--m3-menu-density': density } : null) }}
+      data-tokens="md-comp-menus"
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
@@ -924,15 +925,19 @@ function MenuItemView({
       {...dataAttributes}
       aria-describedby={describedBy}
       data-menu-open={submenuOpen || undefined}
+      // Each item resolves the menu's tokens, so its selection picks its colours.
+      data-tokens="md-comp-menus"
+      data-variant={variant}
+      data-slot="item"
       ref={ref}
       className={styles.item({ class: cn(classNames?.item, props.className) })}
     >
       {props.leadingIcon && selectedIcon ? (
-        <span aria-hidden="true" className={styles.icon()}>
+        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
           {isSelected ? selectedIcon : props.leadingIcon}
         </span>
       ) : props.leadingIcon ? (
-        <span aria-hidden="true" className={styles.icon()}>
+        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
           {props.leadingIcon}
         </span>
       ) : selectedIcon ? (
@@ -962,7 +967,7 @@ function MenuItemView({
         </kbd>
       )}
       {trailingIcon && (
-        <span aria-hidden="true" className={styles.trailing()}>
+        <span aria-hidden="true" data-slot="trailing-icon" className={styles.trailing()}>
           {trailingIcon}
         </span>
       )}

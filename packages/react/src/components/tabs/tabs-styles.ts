@@ -29,7 +29,16 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Badges: 4px after an inline label; on a stacked icon through `BadgedBox`.
  *
  * The indicator shares the tab row's first grid cell (no positioning) and is moved with
- * `translate`. Every class is written out in full so Tailwind can find it.
+ * `translate`.
+ *
+ * The row, divider, indicator and resting label and icon colours come from the tabs'
+ * component tokens (`tabs-tokens.ts`, `--md-comp-{primary,secondary}-navigation-tab-*`); the
+ * root and each tab carry `data-tokens="md-comp-tabs"` and `data-variant`. An icon takes its
+ * tab's colour through `--m3-tab-icon-color`: the icon token at rest and when selected, the
+ * label's colour while hovered, focused, pressed or disabled. A consumer class still wins in
+ * `cn()`.
+ *
+ * Every class is written out in full so Tailwind can find it.
  */
 
 /** Variant definitions for {@link Tabs}; extend them to add variants. */
@@ -38,26 +47,34 @@ export const tabsStyles = tv({
     root: 'flex min-w-0 flex-col',
     scroller: '',
     list: [
-      'group/tabs grid grid-rows-[auto] bg-surface',
-      'shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
+      'group/tabs grid grid-rows-[auto] bg-[var(--_md-comp-tabs-container-color)]',
+      'shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
     ],
     tab: [
       'row-start-1 flex min-w-0 cursor-pointer items-center justify-center px-[16px] select-none',
-      'font-plain text-title-small text-on-surface-variant',
+      'font-plain text-title-small',
       'state-layer focus-ring-inset',
       'not-data-selected:data-hovered:text-on-surface not-data-selected:data-focus-visible:text-on-surface not-data-selected:data-pressed:text-on-surface',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
+      // The icon's colour: its token at rest and selected, else the label's.
+      '[--m3-tab-icon-color:var(--_md-comp-tabs-with-icon-inactive-icon-color)] data-selected:[--m3-tab-icon-color:var(--_md-comp-tabs-with-icon-active-icon-color)]',
+      'not-data-selected:data-hovered:[--m3-tab-icon-color:currentColor] not-data-selected:data-focus-visible:[--m3-tab-icon-color:currentColor] not-data-selected:data-pressed:[--m3-tab-icon-color:currentColor]',
+      'data-disabled:[--m3-tab-icon-color:currentColor]',
       // Colour: in on default effects, out on fast effects, when the selection changes.
       'group-data-animate/tabs:[--m3-transition-property:color] [--m3-transition-delay:0s]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] [--m3-transition-easing:var(--md-sys-motion-spring-effects-fast-easing)]',
       'data-selected:[--m3-transition-duration:var(--md-sys-motion-spring-effects-default-duration)] data-selected:[--m3-transition-easing:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
-    icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
+    icon: [
+      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--m3-tab-icon-color)] [&>svg]:size-full',
+      // Recolours with its tab's label.
+      '[transition-property:var(--m3-transition-property,none)] [transition-duration:var(--m3-transition-duration,0s)] [transition-timing-function:var(--m3-transition-easing,linear)]',
+    ],
     label: 'line-clamp-2 text-center',
     // The label and an inline badge, 4px apart.
     text: 'inline-flex min-w-0 items-center gap-[4px]',
     indicator: [
-      'pointer-events-none row-start-1 self-end [justify-self:left] bg-primary opacity-0 data-ready:opacity-100',
+      'pointer-events-none row-start-1 self-end [justify-self:left] bg-[var(--_md-comp-tabs-active-indicator-color)] opacity-0 data-ready:opacity-100',
       '[transition-property:none] group-data-animate/tabs:[transition-property:translate,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
@@ -67,11 +84,19 @@ export const tabsStyles = tv({
   variants: {
     variant: {
       primary: {
-        tab: 'data-selected:text-primary [--m3-state-layer-color:var(--md-sys-color-primary)]',
+        tab: [
+          'text-[color:var(--_md-comp-tabs-with-label-text-inactive-label-text-color)]',
+          'data-selected:text-[color:var(--_md-comp-tabs-with-label-text-active-label-text-color)]',
+          '[--m3-state-layer-color:var(--md-sys-color-primary)]',
+        ],
         indicator: 'h-[3px] rounded-t-[3px]',
       },
       secondary: {
-        tab: 'data-selected:text-on-surface [--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+        tab: [
+          'text-[color:var(--_md-comp-tabs-inactive-label-text-color)]',
+          'data-selected:text-[color:var(--_md-comp-tabs-active-label-text-color)]',
+          '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+        ],
         indicator: 'h-[2px]',
       },
     },
@@ -88,11 +113,13 @@ export const tabsStyles = tv({
     align: {
       stretch: {},
       start: {
-        scroller: 'bg-surface shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
+        scroller:
+          'bg-[var(--_md-comp-tabs-container-color)] shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
         list: 'w-max max-w-full',
       },
       center: {
-        scroller: 'bg-surface shadow-[inset_0_-1px_0_var(--md-sys-color-outline-variant)]',
+        scroller:
+          'bg-[var(--_md-comp-tabs-container-color)] shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
         list: 'mx-auto w-max max-w-full',
       },
     },

@@ -33,12 +33,18 @@ describe('Tabs', () => {
     expect(tabs[0]).toHaveAttribute('data-selected', 'true');
     expect(screen.getByRole('tabpanel')).toHaveTextContent('Flight details');
     expect(tabs[0]).toHaveAttribute('aria-controls', screen.getByRole('tabpanel').id);
-    expect(list).toHaveClass('auto-cols-fr', 'bg-surface');
+    expect(list).toHaveClass(
+      'auto-cols-fr',
+      'bg-[var(--_md-comp-tabs-container-color)]',
+      'shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
+    );
+    expect(tabs[1]).toHaveAttribute('data-tokens', 'md-comp-tabs');
+    expect(tabs[1]).toHaveAttribute('data-variant', 'primary');
     expect(tabs[1]).toHaveClass(
       'min-h-[48px]',
       'text-title-small',
-      'text-on-surface-variant',
-      'data-selected:text-primary',
+      'text-[color:var(--_md-comp-tabs-with-label-text-inactive-label-text-color)]',
+      'data-selected:text-[color:var(--_md-comp-tabs-with-label-text-active-label-text-color)]',
       'px-[16px]',
     );
     expect(tabs[1]).toHaveStyle({ gridColumnStart: '2' });
@@ -82,7 +88,7 @@ describe('Tabs', () => {
     const { rerender } = render(<Trip align="center" />);
     const list = screen.getByRole('tablist');
     expect(list).toHaveClass('auto-cols-fr', 'w-max', 'max-w-full', 'mx-auto');
-    expect(list.parentElement).toHaveClass('bg-surface');
+    expect(list.parentElement).toHaveClass('bg-[var(--_md-comp-tabs-container-color)]');
     rerender(<Trip align="start" />);
     expect(screen.getByRole('tablist')).not.toHaveClass('mx-auto');
     rerender(<Trip align="center" scrollable />);
@@ -188,7 +194,12 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Photos' })).toHaveClass(
       'min-h-[48px]',
       'gap-[8px]',
-      'data-selected:text-on-surface',
+      'text-[color:var(--_md-comp-tabs-inactive-label-text-color)]',
+      'data-selected:text-[color:var(--_md-comp-tabs-active-label-text-color)]',
+    );
+    expect(screen.getByRole('tab', { name: 'Photos' })).toHaveAttribute(
+      'data-variant',
+      'secondary',
     );
   });
 
@@ -356,5 +367,34 @@ describe('Tabs', () => {
     expect(root).toHaveClass('w-80', 'flex-col');
     expect(root).toHaveStyle({ marginTop: '4px' });
     expect(root).toContainElement(screen.getByRole('tablist'));
+  });
+});
+
+describe('Tabs component tokens', () => {
+  it('marks the root and each tab, and lets consumer classes replace the token classes', () => {
+    render(
+      <Tabs
+        aria-label="Trip"
+        data-testid="tabs"
+        classNames={{ list: 'bg-tertiary', tab: 'text-on-tertiary' }}
+      >
+        <Tab key="flights" title="Flights" icon={<svg data-testid="icon" />} />
+        <Tab key="hotels" title="Hotels" />
+      </Tabs>,
+    );
+    const root = screen.getByTestId('tabs');
+    expect(root).toHaveAttribute('data-tokens', 'md-comp-tabs');
+    expect(root).toHaveAttribute('data-variant', 'primary');
+    const list = screen.getByRole('tablist');
+    expect(list).toHaveClass('bg-tertiary');
+    expect(list).not.toHaveClass('bg-[var(--_md-comp-tabs-container-color)]');
+    const tab = screen.getByRole('tab', { name: 'Hotels' });
+    expect(tab).toHaveClass('text-on-tertiary');
+    expect(tab).not.toHaveClass(
+      'text-[color:var(--_md-comp-tabs-with-label-text-inactive-label-text-color)]',
+    );
+    expect(screen.getByTestId('icon').parentElement).toHaveClass(
+      'text-[color:var(--m3-tab-icon-color)]',
+    );
   });
 });

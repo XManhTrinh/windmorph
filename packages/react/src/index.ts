@@ -193,6 +193,7 @@ export {
   type NavigationBarArrangement,
   type NavigationBarStyleProps,
 } from './components/navigation/navigation-styles';
+export { navBarTokenSet, navRailTokenSet } from './components/navigation/navigation-tokens';
 export {
   Tab,
   Tabs,
@@ -201,6 +202,7 @@ export {
   type TabsProps,
 } from './components/tabs/Tabs';
 export { tabsStyles, type TabsStyleProps, type TabsVariant } from './components/tabs/tabs-styles';
+export { tabsTokenSet } from './components/tabs/tabs-tokens';
 export {
   AssistChip,
   FilterChip,
@@ -392,6 +394,7 @@ export {
   type MenuStyleProps,
   type MenuVariant,
 } from './components/menu/menu-styles';
+export { menuTokenSet } from './components/menu/menu-tokens';
 export {
   DockedToolbar,
   FloatingToolbar,
@@ -415,6 +418,10 @@ export {
   type ToolbarOrientation,
 } from './components/toolbar/toolbar-styles';
 export {
+  dockedToolbarTokenSet,
+  floatingToolbarTokenSet,
+} from './components/toolbar/toolbar-tokens';
+export {
   useToolbarScrollExit,
   useToolbarScrollExpansion,
   type ToolbarScrollExitOptions,
@@ -432,6 +439,7 @@ export {
   type TopAppBarTitleAlign,
   type TopAppBarVariant,
 } from './components/app-bar/app-bar-styles';
+export { appBarTokenSet } from './components/app-bar/app-bar-tokens';
 export type { TopAppBarScrollBehavior } from './components/app-bar/use-app-bar-scroll';
 export {
   SearchBar,
@@ -452,6 +460,7 @@ export {
   type SearchAppBarStyleProps,
   type SearchBarStyleProps,
 } from './components/search/search-styles';
+export { searchBarTokenSet, searchViewTokenSet } from './components/search/search-tokens';
 export {
   Divider,
   LabeledDivider,
@@ -507,6 +516,7 @@ export {
   type ListStyleProps,
   type ListVariant,
 } from './components/list/list-styles';
+export { listTokenSet } from './components/list/list-tokens';
 export {
   RangeSlider,
   Slider,

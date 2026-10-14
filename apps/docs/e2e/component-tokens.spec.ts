@@ -51,7 +51,17 @@ const probeStoryId = (set: ComponentTokenSet) => `tokens-${set.name}--probe`;
 const SENTINEL_COLOR = 'rgb(1, 2, 3)';
 
 /** The value a token is set to, and how the computed property must read back. */
-function sentinel(property: string): { value: string; matches: (computed: string) => boolean } {
+function sentinel(
+  property: string,
+  name: string,
+): { value: string; matches: (computed: string) => boolean } {
+  // A colour drawn through a shadow (a divider painted as an inset shadow).
+  if (property === 'box-shadow' && name.endsWith('-color')) {
+    return {
+      value: SENTINEL_COLOR,
+      matches: (computed) => computed.includes(SENTINEL_COLOR),
+    };
+  }
   if (property === 'box-shadow') {
     return {
       value: `0 0 0 7px ${SENTINEL_COLOR}`,
@@ -87,8 +97,23 @@ async function target(page: Page, root: string, slot: string | undefined): Promi
   throw new Error(`No ${root} in the probe story`);
 }
 
+/**
+ * A computed property. A colour mixed in another space (`color-mix(in oklab, …)`) reads back
+ * in that space, so it is drawn and read back as sRGB to compare with the sentinel.
+ */
 const computed = (locator: Locator, property: string) =>
-  locator.evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property);
+  locator.evaluate((el, name) => {
+    const value = getComputedStyle(el).getPropertyValue(name);
+    if (!/^(oklab|oklch|lab|lch|color)\(/.test(value)) return value;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d')!;
+    context.fillStyle = value;
+    context.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+    return a === 255 ? `rgb(${r}, ${g}, ${b})` : value;
+  }, property);
 
 async function setVariable(page: Page, selector: string, name: string, value: string | null) {
   await page
@@ -126,7 +151,7 @@ test.describe('Component tokens', () => {
         test(`${token.name} paints ${token.paints?.property}`, async ({ page }) => {
           const property = token.paints!.property;
           const element = await target(page, rootSelector(set, token), token.paints?.slot);
-          const { value, matches } = sentinel(property);
+          const { value, matches } = sentinel(property, token.name);
           expect(matches(await computed(element, property)), 'already the sentinel').toBe(false);
           await setVariable(page, 'html', token.name, value);
           const after = await computed(element, property);
@@ -137,7 +162,7 @@ test.describe('Component tokens', () => {
       test('a token set on an ancestor applies inside it', async ({ page }) => {
         const token = tokens[0]!;
         const element = await target(page, rootSelector(set, token), token.paints?.slot);
-        const { value, matches } = sentinel(token.paints!.property);
+        const { value, matches } = sentinel(token.paints!.property, token.name);
         // Through the region's class, which also reaches the overlays opened in it.
         await page.addStyleTag({ content: `${REGION.instances} { ${token.name}: ${value}; }` });
         const after = await computed(element, token.paints!.property);
@@ -196,7 +221,7 @@ test.describe('Component tokens', () => {
         const element = token!.paints?.slot
           ? root.locator(`[data-slot="${token!.paints.slot}"]`).first()
           : root;
-        const { value, matches } = sentinel(token!.paints!.property);
+        const { value, matches } = sentinel(token!.paints!.property, token!.name);
         await setVariable(page, 'html', token!.name, value);
         expect(matches(await computed(element, token!.paints!.property))).toBe(false);
       });

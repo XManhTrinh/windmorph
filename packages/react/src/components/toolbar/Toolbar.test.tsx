@@ -19,10 +19,11 @@ describe('DockedToolbar', () => {
     );
     const toolbar = screen.getByRole('toolbar', { name: 'Actions' });
     expect(toolbar).toBe(screen.getByTestId('bar'));
+    expect(toolbar).toHaveAttribute('data-tokens', 'md-comp-toolbar-docked');
     expect(toolbar).toHaveClass(
       'h-[64px]',
       'w-full',
-      'bg-surface-container',
+      'bg-[var(--_md-comp-toolbar-docked-container-color)]',
       'text-on-surface-variant',
       'ps-[16px]',
       'pe-[16px]',
@@ -139,11 +140,13 @@ describe('FloatingToolbar', () => {
       <FloatingToolbar aria-label="Formatting">{button('Bold')}</FloatingToolbar>,
     );
     const toolbar = screen.getByRole('toolbar', { name: 'Formatting' });
+    expect(toolbar).toHaveAttribute('data-tokens', 'md-comp-toolbar-floating');
+    expect(toolbar).toHaveAttribute('data-color', 'standard');
     expect(toolbar).toHaveClass(
-      'rounded-corner-full',
+      'rounded-[var(--_md-comp-toolbar-floating-container-shape)]',
       'p-[8px]',
       'min-h-[64px]',
-      'bg-surface-container',
+      'bg-[var(--_md-comp-toolbar-floating-container-color)]',
       'text-on-surface-variant',
       'shadow-elevation-1',
     );
@@ -281,7 +284,12 @@ describe('FloatingToolbar', () => {
       </FloatingToolbar>,
     );
     const toolbar = screen.getByRole('toolbar');
-    expect(toolbar).toHaveClass('bg-primary-container', 'text-on-primary-container', 'flex-col');
+    expect(toolbar).toHaveAttribute('data-color', 'vibrant');
+    expect(toolbar).toHaveClass(
+      'bg-[var(--_md-comp-toolbar-floating-container-color)]',
+      'text-on-primary-container',
+      'flex-col',
+    );
     expect(toolbar).toHaveAttribute('aria-orientation', 'vertical');
   });
 
@@ -373,9 +381,9 @@ describe('FloatingToolbar', () => {
     expect(fab.parentElement).toHaveClass('size-[56px]', 'data-collapsed:size-[80px]');
     const surface = screen.getByRole('button', { name: 'Search' }).parentElement!.parentElement!;
     expect(surface).toHaveClass(
-      'bg-surface-container',
+      'bg-[var(--_md-comp-toolbar-floating-container-color)]',
       'shadow-elevation-1',
-      'rounded-corner-full',
+      'rounded-[var(--_md-comp-toolbar-floating-container-shape)]',
     );
     expect(screen.getByRole('toolbar')).toHaveClass('min-h-[80px]', 'gap-[8px]');
     fireEvent.click(fab);
@@ -582,5 +590,21 @@ describe('useToolbarScrollExpansion', () => {
     expect(result.current).toBe(false);
     scrollTo(250);
     expect(result.current).toBe(true);
+  });
+});
+
+describe('Toolbar component tokens', () => {
+  it('lets consumer colour and corner classes replace the token classes', () => {
+    render(
+      <FloatingToolbar aria-label="Formatting" className="bg-tertiary rounded-corner-small">
+        <IconButton icon={<svg />} aria-label="Bold" />
+      </FloatingToolbar>,
+    );
+    const toolbar = screen.getByRole('toolbar');
+    expect(toolbar).toHaveClass('bg-tertiary', 'rounded-corner-small');
+    expect(toolbar).not.toHaveClass(
+      'bg-[var(--_md-comp-toolbar-floating-container-color)]',
+      'rounded-[var(--_md-comp-toolbar-floating-container-shape)]',
+    );
   });
 });

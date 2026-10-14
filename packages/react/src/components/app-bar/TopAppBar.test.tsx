@@ -52,14 +52,14 @@ describe('TopAppBar', () => {
     );
     expect(screen.getByText('3 unread')).toHaveClass(
       'text-label-medium',
-      'text-on-surface-variant',
+      'text-[color:var(--_md-comp-app-bar-subtitle-color)]',
     );
     expect(screen.getByRole('button', { name: 'Menu' }).parentElement).toHaveClass(
       'ps-[8px]',
       'pe-[4px]',
     );
     expect(screen.getByRole('button', { name: 'Search' }).parentElement).toHaveClass(
-      'text-on-surface-variant',
+      'text-[color:var(--_md-comp-app-bar-trailing-icon-color)]',
       'gap-[8px]',
       'pe-[8px]',
     );
@@ -240,5 +240,30 @@ describe('TopAppBar', () => {
   it('wraps a long expanded title to two lines at most', () => {
     render(<TopAppBar variant="large" title="A very long title" data-testid="bar" />);
     expect(screen.getByTestId('bar').children[1]!.firstElementChild).toHaveClass('line-clamp-2');
+  });
+});
+
+describe('TopAppBar component tokens', () => {
+  it('marks the root and lets consumer classes replace the token classes', () => {
+    render(
+      <TopAppBar
+        title="Inbox"
+        data-testid="bar"
+        className="bg-tertiary"
+        classNames={{ actions: 'text-primary' }}
+        actions={<IconButton icon={<svg />} aria-label="Search" />}
+      />,
+    );
+    const bar = screen.getByTestId('bar');
+    expect(bar).toHaveAttribute('data-tokens', 'md-comp-app-bar');
+    expect(bar).toHaveAttribute('data-variant', 'small');
+    expect(bar).toHaveClass('bg-tertiary');
+    expect(bar).not.toHaveClass('bg-[var(--_md-comp-app-bar-container-color-blend)]');
+    const actions = screen.getByRole('button', { name: 'Search' }).parentElement!;
+    expect(actions).toHaveClass('text-primary');
+    expect(actions).not.toHaveClass('text-[color:var(--_md-comp-app-bar-trailing-icon-color)]');
+    expect(screen.getByText('Inbox')).toHaveClass(
+      'text-[color:var(--_md-comp-app-bar-title-color)]',
+    );
   });
 });

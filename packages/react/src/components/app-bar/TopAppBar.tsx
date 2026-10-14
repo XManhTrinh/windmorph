@@ -124,6 +124,8 @@ export function TopAppBar({
     <header
       {...rest}
       ref={rootRef}
+      data-tokens="md-comp-app-bar"
+      data-variant={variant}
       data-scrolled={scroll.scrolled || undefined}
       data-collapsed={scroll.collapsed || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -131,7 +133,10 @@ export function TopAppBar({
       <AppBarItems>
         <div className={styles.row({ class: classNames?.row })}>
           {navigationIcon != null && (
-            <div className={styles.navigation({ class: classNames?.navigation })}>
+            <div
+              data-slot="navigation"
+              className={styles.navigation({ class: classNames?.navigation })}
+            >
               {navigationIcon}
             </div>
           )}
@@ -139,11 +144,19 @@ export function TopAppBar({
             aria-hidden={hideTopTitle || undefined}
             className={styles.title({ class: classNames?.title })}
           >
-            <div className={styles.titleText()}>{title}</div>
-            {subtitle != null && <div className={styles.subtitleText()}>{subtitle}</div>}
+            <div data-slot="title" className={styles.titleText()}>
+              {title}
+            </div>
+            {subtitle != null && (
+              <div data-slot="subtitle" className={styles.subtitleText()}>
+                {subtitle}
+              </div>
+            )}
           </div>
           {actions != null && (
-            <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
+            <div data-slot="actions" className={styles.actions({ class: classNames?.actions })}>
+              {actions}
+            </div>
           )}
         </div>
         {twoRows && (

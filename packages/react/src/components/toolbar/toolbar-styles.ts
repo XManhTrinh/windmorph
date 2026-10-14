@@ -27,6 +27,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Collapsing shrinks the toolbar's width to 0 towards the FAB while the FAB grows from 56px
  * to 80px; the component keeps its expanded size, as Compose's layout does.
  *
+ * Container colours and the floating toolbar's corners come from the component tokens
+ * (`toolbar-tokens.ts`, `--md-comp-toolbar-docked-*` and `--md-comp-toolbar-floating-*`):
+ * the roots carry `data-tokens`, the floating one also `data-color`. A consumer class still
+ * wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -59,7 +64,7 @@ const exitEdges = {
 export const dockedToolbarStyles = tv({
   slots: {
     root: [
-      'flex h-[64px] w-full items-center bg-surface-container ps-[16px] pe-[16px] text-on-surface-variant',
+      'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px] text-on-surface-variant',
       ...exitMotion,
       'data-hidden:[transform:translateY(100%)]',
     ],
@@ -102,7 +107,7 @@ export const floatingToolbarStyles = tv({
     // collapsing on the effects spring for the same reason as `collapse`.
     toolbarSlot: 'flex shrink-0',
     surface: [
-      'overflow-hidden rounded-corner-full opacity-100',
+      'overflow-hidden rounded-[var(--_md-comp-toolbar-floating-container-shape)] opacity-100',
       'data-collapsed:opacity-0 data-collapsed:shadow-elevation-0',
       // Width, height and shadow move on the spatial spring; the surface also fades on the
       // fast effects spring, so the last pixels of a collapse never show as a thin line.
@@ -155,8 +160,13 @@ export const floatingToolbarStyles = tv({
     exitEdge: exitEdges,
     /** Paints the container on the root (no FAB) or on the toolbar surface (with a FAB). */
     hasFab: {
-      false: { root: 'rounded-corner-full p-[8px]' },
-      true: { root: 'gap-[8px]' },
+      false: {
+        root: 'rounded-[var(--_md-comp-toolbar-floating-container-shape)] bg-[var(--_md-comp-toolbar-floating-container-color)] p-[8px]',
+      },
+      true: {
+        root: 'gap-[8px]',
+        surface: 'bg-[var(--_md-comp-toolbar-floating-container-color)]',
+      },
     },
     /** The side of the toolbar the FAB sits on (logical: start / top or end / bottom). */
     fabAt: {
@@ -168,10 +178,6 @@ export const floatingToolbarStyles = tv({
     { hasFab: false, elevated: true, class: { root: 'shadow-elevation-1' } },
     // With a FAB, the toolbar's own surface is level 1 expanded and level 0 collapsed.
     { hasFab: true, elevated: true, class: { surface: 'shadow-elevation-1' } },
-    { hasFab: false, color: 'standard', class: { root: 'bg-surface-container' } },
-    { hasFab: false, color: 'vibrant', class: { root: 'bg-primary-container' } },
-    { hasFab: true, color: 'standard', class: { surface: 'bg-surface-container' } },
-    { hasFab: true, color: 'vibrant', class: { surface: 'bg-primary-container' } },
     { hasFab: true, orientation: 'horizontal', class: { root: 'min-h-[80px]' } },
     { hasFab: true, orientation: 'vertical', class: { root: 'min-w-[80px]' } },
     // The FAB comes first visually but after the toolbar in reading order, as in Compose.

@@ -43,7 +43,12 @@ describe('NavigationRail', () => {
     const { container } = render(<Rail />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
     expect(nav).toHaveStyle({ '--m3-rail-width': 'var(--m3-rail-collapsed-width)' });
-    expect(nav).toHaveClass('bg-surface', 'w-(--m3-rail-width)');
+    expect(nav).toHaveAttribute('data-tokens', 'md-comp-nav-rail');
+    expect(nav).toHaveClass(
+      'bg-[var(--_md-comp-nav-rail-collapsed-container-color)]',
+      'data-expanded:bg-[var(--_md-comp-nav-rail-expanded-container-color)]',
+      'w-(--m3-rail-width)',
+    );
     const inbox = screen.getByRole('link', { name: 'Inbox' });
     expect(inbox).toHaveAttribute('aria-current', 'page');
     expect(inbox).toHaveAttribute('data-current', 'true');
@@ -168,7 +173,7 @@ describe('NavigationRail', () => {
     }
     render(<Selectable />);
     const sent = screen.getByRole('button', { name: 'sent' });
-    const pill = sent.querySelector('[class*="bg-secondary-container"]')!;
+    const pill = sent.querySelector('[data-slot="indicator"]')!;
     // Collapsed to the icon's centre (16px padding + 12px) until current, then it opens and
     // fades in on the default spatial spring; nothing slides between items.
     expect(pill).toHaveClass(
@@ -229,7 +234,7 @@ describe('NavigationRail', () => {
     expect(animate).not.toHaveBeenCalled();
     const pill = screen
       .getByRole('button', { name: 'sent' })
-      .querySelector('[class*="bg-secondary-container"]')!;
+      .querySelector('[data-slot="indicator"]')!;
     expect(pill).toHaveClass('[transition-property:clip-path,opacity]');
   });
 
@@ -249,10 +254,12 @@ describe('NavigationRail', () => {
     const { container } = render(<Modal />);
     await userEvent.click(screen.getByRole('button', { name: 'Expand' }));
     const sheet = screen.getByRole('dialog', { name: 'Main' });
+    expect(sheet).toHaveAttribute('data-tokens', 'md-comp-nav-rail');
+    expect(sheet).toHaveAttribute('data-modal');
     expect(sheet).toHaveClass(
-      'bg-surface-container',
+      'bg-[var(--_md-comp-nav-rail-expanded-modal-container-color)]',
       'shadow-elevation-2',
-      'rounded-e-corner-large',
+      'rounded-e-[var(--_md-comp-nav-rail-expanded-modal-container-shape)]',
     );
     expect(within(sheet).getByRole('link', { name: 'Inbox' })).toBeInTheDocument();
     // The in-flow rail stays collapsed.
@@ -470,8 +477,7 @@ describe('NavigationRail indicatorMotion="slide"', () => {
     );
   }
 
-  const pillOf = (item: HTMLElement) =>
-    item.querySelector<HTMLElement>('[class*="bg-secondary-container"]')!;
+  const pillOf = (item: HTMLElement) => item.querySelector<HTMLElement>('[data-slot="indicator"]')!;
 
   afterEach(() => {
     vi.mocked(animate).mockReset();
@@ -591,7 +597,8 @@ describe('NavigationBar', () => {
   it('shares the width equally with stacked items', async () => {
     const { container } = render(<Bar />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
-    expect(nav).toHaveClass('min-h-[64px]', 'bg-surface-container');
+    expect(nav).toHaveAttribute('data-tokens', 'md-comp-nav-bar');
+    expect(nav).toHaveClass('min-h-[64px]', 'bg-[var(--_md-comp-nav-bar-container-color)]');
     const home = screen.getByRole('link', { name: 'Home' });
     expect(home).toHaveClass('flex-1', 'py-[6px]');
     expect(home).toHaveAttribute('aria-current', 'page');
@@ -722,5 +729,34 @@ describe('NavigationBar', () => {
     render(<Bar arrangement="centered" />);
     // 4 items: (100 − 10 × 7) / 2 = 15%.
     expect(screen.getByRole('navigation')).toHaveStyle({ paddingInline: '15%' });
+  });
+});
+
+describe('Navigation component tokens', () => {
+  it("marks each item with its bar's or rail's tokens and its layout", () => {
+    render(
+      <>
+        <NavigationBar aria-label="Bar" iconPosition="start">
+          <NavigationBarItem icon={<svg />} selected>
+            Home
+          </NavigationBarItem>
+        </NavigationBar>
+        <NavigationRail aria-label="Rail">
+          <NavigationRailItem icon={<svg />}>Inbox</NavigationRailItem>
+        </NavigationRail>
+      </>,
+    );
+    const home = screen.getByRole('button', { name: 'Home' });
+    expect(home).toHaveAttribute('data-tokens', 'md-comp-nav-bar');
+    expect(home).toHaveAttribute('data-layout', 'bar-start');
+    expect(home.querySelector('[data-slot="label"]')).toHaveClass(
+      'group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
+    );
+    const inbox = screen.getByRole('button', { name: 'Inbox' });
+    expect(inbox).toHaveAttribute('data-tokens', 'md-comp-nav-rail');
+    expect(inbox).toHaveAttribute('data-layout', 'rail-top');
+    expect(inbox.querySelector('[data-slot="indicator"]')).toHaveClass(
+      'bg-[var(--_md-comp-nav-rail-item-active-indicator-color)]',
+    );
   });
 });
