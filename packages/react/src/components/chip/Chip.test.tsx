@@ -15,17 +15,23 @@ describe('AssistChip', () => {
       </AssistChip>,
     );
     const chip = screen.getByRole('button', { name: 'Add to calendar' });
+    expect(chip).toHaveAttribute('data-tokens', 'md-comp-assist-chip');
+    expect(chip).not.toHaveAttribute('data-elevated');
     expect(chip).toHaveClass(
       'h-fit',
       'min-h-[32px]',
-      'rounded-corner-small',
-      'border-outline-variant',
-      'text-on-surface',
+      'rounded-[var(--_md-comp-assist-chip-container-shape)]',
+      'border-[color:var(--_md-comp-assist-chip-flat-outline-color)]',
+      'text-[color:var(--_md-comp-assist-chip-label-text-color)]',
       'text-label-large',
       'ps-[calc(8px-var(--m3-chip-border))]',
       'pe-[calc(16px-var(--m3-chip-border))]',
     );
-    expect(screen.getByTestId('icon').parentElement).toHaveClass('text-primary', 'me-[8px]');
+    expect(screen.getByTestId('icon').parentElement).toHaveClass(
+      'text-[color:var(--_md-comp-assist-chip-with-icon-icon-color)]',
+      'me-[8px]',
+    );
+    expect(screen.getByTestId('icon').parentElement).toHaveAttribute('data-slot', 'leading');
     expect(screen.getByTestId('icon').parentElement).toHaveAttribute('aria-hidden', 'true');
     expect(chip.querySelector('[data-touch-target]')).not.toBeNull();
     await userEvent.click(chip);
@@ -68,8 +74,12 @@ describe('AssistChip', () => {
         <AssistChip outline="strong">Strong</AssistChip>
       </>,
     );
+    expect(screen.getByRole('button', { name: 'Elevated' })).toHaveAttribute(
+      'data-elevated',
+      'true',
+    );
     expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
-      'bg-surface-container-low',
+      'bg-[var(--_md-comp-assist-chip-elevated-container-color)]',
       'shadow-elevation-1',
       'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
     );
@@ -82,7 +92,21 @@ describe('AssistChip', () => {
     expect(screen.getByRole('button', { name: 'Off' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Strong' })).toHaveClass('border-outline');
     expect(screen.getByRole('button', { name: 'Strong' })).not.toHaveClass(
-      'border-outline-variant',
+      'border-[color:var(--_md-comp-assist-chip-flat-outline-color)]',
+    );
+  });
+
+  it('lets consumer colour, corner and border classes replace the token classes', () => {
+    render(
+      <AssistChip className="bg-tertiary text-on-tertiary rounded-corner-medium border-primary">
+        Mine
+      </AssistChip>,
+    );
+    const chip = screen.getByRole('button', { name: 'Mine' });
+    expect(chip).toHaveClass('bg-tertiary', 'text-on-tertiary', 'rounded-corner-medium');
+    expect(chip).toHaveClass('border-primary');
+    expect(chip.className).not.toMatch(
+      /(^| )(rounded|text|border)-\[[^\]]*--_md-comp-assist-chip-/,
     );
   });
 });
@@ -90,9 +114,12 @@ describe('AssistChip', () => {
 describe('SuggestionChip', () => {
   it('uses on-surface-variant labels and 8px corners', () => {
     render(<SuggestionChip>Sounds good</SuggestionChip>);
-    expect(screen.getByRole('button', { name: 'Sounds good' })).toHaveClass(
-      'text-on-surface-variant',
-      'rounded-corner-small',
+    const chip = screen.getByRole('button', { name: 'Sounds good' });
+    expect(chip).toHaveAttribute('data-tokens', 'md-comp-suggestion-chip');
+    expect(chip).toHaveClass(
+      'text-[color:var(--_md-comp-suggestion-chip-label-text-color)]',
+      'rounded-[var(--_md-comp-suggestion-chip-container-shape)]',
+      'border-[color:var(--_md-comp-suggestion-chip-flat-outline-color)]',
     );
   });
 });
@@ -105,9 +132,13 @@ describe('FilterChip', () => {
     );
     const chip = screen.getByRole('button', { name: 'Vegan' });
     expect(chip).toHaveAttribute('aria-pressed', 'false');
+    expect(chip).toHaveAttribute('data-tokens', 'md-comp-filter-chip');
     expect(chip).toHaveClass(
-      'rounded-corner-small',
-      'data-selected:bg-secondary-container',
+      'rounded-[var(--_md-comp-filter-chip-container-shape)]',
+      'text-[color:var(--_md-comp-filter-chip-unselected-label-text-color)]',
+      'border-[color:var(--_md-comp-filter-chip-flat-unselected-outline-color)]',
+      'data-selected:bg-[var(--_md-comp-filter-chip-flat-selected-container-color)]',
+      'data-selected:text-[color:var(--_md-comp-filter-chip-selected-label-text-color)]',
       'data-selected:border-transparent',
       'data-selected:data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
       'data-focus-visible:not-data-selected:border-on-surface-variant',
@@ -143,7 +174,7 @@ describe('FilterChip', () => {
     );
     expect(screen.getByTestId('l').parentElement).toHaveClass(
       'me-[8px]',
-      'text-primary',
+      'text-[color:var(--_md-comp-filter-chip-with-leading-icon-unselected-leading-icon-color)]',
       'group-data-selected/chip:text-on-secondary-container',
     );
     expect(screen.getByRole('button', { name: 'Trailing' })).toHaveClass(
@@ -161,9 +192,17 @@ describe('FilterChip', () => {
 
   it('can be elevated', () => {
     render(<FilterChip elevated>Elevated</FilterChip>);
+    expect(screen.getByRole('button', { name: 'Elevated' })).toHaveAttribute(
+      'data-elevated',
+      'true',
+    );
     expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
-      'bg-surface-container-low',
+      'bg-[var(--_md-comp-filter-chip-elevated-unselected-container-color)]',
       'data-selected:bg-secondary-container',
+    );
+    // The flat chip's selected container token doesn't apply to an elevated chip.
+    expect(screen.getByRole('button', { name: 'Elevated' }).className).not.toContain(
+      'flat-selected-container-color',
     );
     // Selected or not, an elevated chip's hover is level 2: the flat chip's level 1 isn't here.
     expect(screen.getByRole('button', { name: 'Elevated' }).className).not.toMatch(
@@ -182,9 +221,10 @@ describe('FilterChip', () => {
     const toggle = screen.getByRole('button', { name: 'Nearby' });
     const remove = screen.getByRole('button', { name: 'Remove Nearby' });
     const root = toggle.parentElement!;
+    expect(root).toHaveAttribute('data-tokens', 'md-comp-filter-chip');
     expect(root).toHaveClass(
       'min-w-[88px]',
-      'rounded-corner-small',
+      'rounded-[var(--_md-comp-filter-chip-container-shape)]',
       'pe-[calc(8px-var(--m3-chip-border))]',
       'has-data-focus-visible:not-data-selected:border-on-surface-variant',
     );
@@ -219,9 +259,11 @@ describe('InputChip', () => {
     const chip = screen.getByRole('button', { name: 'Alex' });
     const remove = screen.getByRole('button', { name: 'Remove Alex' });
     const root = chip.parentElement!;
+    expect(root).toHaveAttribute('data-tokens', 'md-comp-input-chip');
     expect(root).toHaveClass(
-      'rounded-corner-small',
-      'border-outline-variant',
+      'rounded-[var(--_md-comp-input-chip-container-shape)]',
+      'border-[color:var(--_md-comp-input-chip-unselected-outline-color)]',
+      'text-[color:var(--_md-comp-input-chip-label-text-color)]',
       'min-w-[88px]',
       'pe-[calc(8px-var(--m3-chip-border))]',
     );
@@ -287,7 +329,10 @@ describe('InputChip', () => {
     const root = screen.getByTestId('chip');
     expect(root).toHaveAttribute('data-selected', 'true');
     expect(root).toHaveAttribute('data-disabled', 'true');
-    expect(root).toHaveClass('data-selected:bg-secondary-container');
+    expect(root).toHaveClass(
+      'data-selected:bg-[var(--_md-comp-input-chip-selected-container-color)]',
+      'data-selected:text-[color:var(--_md-comp-input-chip-selected-label-text-color)]',
+    );
     expect(screen.getByRole('button', { name: 'Priya' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Priya' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Delete Priya' })).toBeDisabled();

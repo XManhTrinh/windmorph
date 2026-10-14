@@ -87,9 +87,21 @@ function ChipContent({
   );
 }
 
+/**
+ * The component tokens' hooks (chip-tokens.ts): each kind's set, and whether the chip is
+ * elevated, which picks its elevated container token.
+ */
+const tokenAttributes = (
+  kind: 'assist' | 'suggestion' | 'filter' | 'input',
+  elevated?: boolean,
+) => ({
+  'data-tokens': `md-comp-${kind}-chip`,
+  'data-elevated': elevated || undefined,
+});
+
 const leadingIconOf = (styles: Styles, icon: ReactElement | undefined, className?: string) =>
   icon && (
-    <span aria-hidden="true" className={styles.leading({ class: className })}>
+    <span aria-hidden="true" data-slot="leading" className={styles.leading({ class: className })}>
       {icon}
     </span>
   );
@@ -183,6 +195,7 @@ export function AssistChip({
   return (
     <ButtonBase
       {...(base as ButtonBaseActionProps)}
+      {...tokenAttributes('assist', elevated)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -228,7 +241,11 @@ export function SuggestionChip({
     leading: leadingIcon ? 'icon' : 'none',
   });
   return (
-    <ButtonBase {...base} className={styles.root({ class: cn(classNames?.root, className) })}>
+    <ButtonBase
+      {...base}
+      {...tokenAttributes('suggestion', elevated)}
+      className={styles.root({ class: cn(classNames?.root, className) })}
+    >
       <ChipContent
         styles={styles}
         classNames={classNames}
@@ -321,6 +338,7 @@ function SimpleFilterChip({
   return (
     <ButtonBase
       {...base}
+      {...tokenAttributes('filter', elevated)}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -379,6 +397,7 @@ function RemovableFilterChip({
     : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
   return (
     <div
+      {...tokenAttributes('filter', elevated)}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}
       style={style}
@@ -490,7 +509,11 @@ export function InputChip({
     trailing: Boolean(onRemove),
   });
   const leading = avatar ? (
-    <span aria-hidden="true" className={styles.leading({ class: classNames?.leading })}>
+    <span
+      aria-hidden="true"
+      data-slot="leading"
+      className={styles.leading({ class: classNames?.leading })}
+    >
       <span className={styles.avatar({ class: classNames?.avatar })}>{avatar}</span>
     </span>
   ) : (
@@ -505,6 +528,7 @@ export function InputChip({
   return (
     <div
       {...rest}
+      {...tokenAttributes('input')}
       data-selected={selected || undefined}
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}

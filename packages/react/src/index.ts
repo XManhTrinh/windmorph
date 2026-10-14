@@ -218,6 +218,12 @@ export {
   type ChipStyleProps,
 } from './components/chip/chip-styles';
 export {
+  assistChipTokenSet,
+  filterChipTokenSet,
+  inputChipTokenSet,
+  suggestionChipTokenSet,
+} from './components/chip/chip-tokens';
+export {
   SplitButton,
   type SplitButtonClassNames,
   type SplitButtonProps,

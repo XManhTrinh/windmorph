@@ -23,6 +23,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Disabled: content `on-surface` 38%, borders `on-surface` 12%, containers `on-surface`
  *   12% at level 0.
  *
+ * The resting corners, label and leading-icon colours, flat borders, elevated containers and
+ * the flat selected containers and labels come from the component tokens (`chip-tokens.ts`,
+ * `--md-comp-<kind>-chip-*`). Each kind is its own M3 token set, so each kind's classes read
+ * its own private variables. A consumer class (`bg-tertiary`, `rounded-corner-medium`)
+ * still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -47,7 +53,7 @@ export const chipStyles = tv({
   slots: {
     root: [
       'group/chip inline-flex h-fit min-h-[32px] max-w-full shrink-0 cursor-pointer items-center align-middle',
-      'rounded-corner-small font-plain text-label-large whitespace-nowrap select-none',
+      'font-plain text-label-large whitespace-nowrap select-none',
       'state-layer focus-ring',
       ...motion,
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
@@ -85,28 +91,39 @@ export const chipStyles = tv({
   variants: {
     kind: {
       assist: {
-        root: 'text-on-surface',
-        leading: 'text-primary',
+        root: [
+          'rounded-[var(--_md-comp-assist-chip-container-shape)]',
+          'text-[color:var(--_md-comp-assist-chip-label-text-color)]',
+        ],
+        leading: 'text-[color:var(--_md-comp-assist-chip-with-icon-icon-color)]',
       },
       suggestion: {
-        root: 'text-on-surface-variant',
-        leading: 'text-primary',
+        root: [
+          'rounded-[var(--_md-comp-suggestion-chip-container-shape)]',
+          'text-[color:var(--_md-comp-suggestion-chip-label-text-color)]',
+        ],
+        leading:
+          'text-[color:var(--_md-comp-suggestion-chip-with-leading-icon-leading-icon-color)]',
       },
       filter: {
         root: [
-          'text-on-surface-variant',
-          'data-selected:bg-secondary-container data-selected:text-on-secondary-container',
+          'rounded-[var(--_md-comp-filter-chip-container-shape)]',
+          'text-[color:var(--_md-comp-filter-chip-unselected-label-text-color)]',
+          'data-selected:text-[color:var(--_md-comp-filter-chip-selected-label-text-color)]',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',
         ],
         leading: [
-          'text-primary group-data-selected/chip:text-on-secondary-container',
+          'text-[color:var(--_md-comp-filter-chip-with-leading-icon-unselected-leading-icon-color)]',
+          'group-data-selected/chip:text-on-secondary-container',
           'group-data-disabled/chip:group-data-selected/chip:text-on-surface/38',
         ],
       },
       input: {
         root: [
-          'cursor-default text-on-surface-variant',
-          'data-selected:bg-secondary-container data-selected:text-on-secondary-container',
+          'cursor-default rounded-[var(--_md-comp-input-chip-container-shape)]',
+          'text-[color:var(--_md-comp-input-chip-label-text-color)]',
+          'data-selected:bg-[var(--_md-comp-input-chip-selected-container-color)]',
+          'data-selected:text-[color:var(--_md-comp-input-chip-selected-label-text-color)]',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',
         ],
         leading:
@@ -134,7 +151,7 @@ export const chipStyles = tv({
     elevated: {
       true: {
         root: [
-          '[--m3-chip-border:0px] bg-surface-container-low shadow-elevation-1',
+          '[--m3-chip-border:0px] shadow-elevation-1',
           'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
           'data-dragged:shadow-elevation-4 data-disabled:bg-on-surface/12 data-disabled:shadow-elevation-0',
         ],
@@ -152,8 +169,42 @@ export const chipStyles = tv({
     trailing: { true: {}, false: {} },
   },
   compoundVariants: [
-    { elevated: false, outline: 'standard', class: { root: 'border-outline-variant' } },
+    // The flat border and the elevated container: each kind's own tokens.
+    {
+      kind: 'assist',
+      elevated: false,
+      outline: 'standard',
+      class: { root: 'border-[color:var(--_md-comp-assist-chip-flat-outline-color)]' },
+    },
+    {
+      kind: 'suggestion',
+      elevated: false,
+      outline: 'standard',
+      class: { root: 'border-[color:var(--_md-comp-suggestion-chip-flat-outline-color)]' },
+    },
+    {
+      kind: 'filter',
+      elevated: false,
+      outline: 'standard',
+      class: { root: 'border-[color:var(--_md-comp-filter-chip-flat-unselected-outline-color)]' },
+    },
+    {
+      kind: 'input',
+      elevated: false,
+      outline: 'standard',
+      class: { root: 'border-[color:var(--_md-comp-input-chip-unselected-outline-color)]' },
+    },
     { elevated: false, outline: 'strong', class: { root: 'border-outline' } },
+    {
+      kind: 'assist',
+      elevated: true,
+      class: { root: 'bg-[var(--_md-comp-assist-chip-elevated-container-color)]' },
+    },
+    {
+      kind: 'suggestion',
+      elevated: true,
+      class: { root: 'bg-[var(--_md-comp-suggestion-chip-elevated-container-color)]' },
+    },
     // Selected filter and input chips drop their border (Compose: 0dp, transparent).
     {
       kind: ['filter', 'input'],
@@ -162,8 +213,20 @@ export const chipStyles = tv({
     },
     {
       kind: 'filter',
+      elevated: false,
+      class: {
+        root: 'data-selected:bg-[var(--_md-comp-filter-chip-flat-selected-container-color)]',
+      },
+    },
+    {
+      kind: 'filter',
       elevated: true,
-      class: { root: 'data-selected:bg-secondary-container' },
+      class: {
+        root: [
+          'bg-[var(--_md-comp-filter-chip-elevated-unselected-container-color)]',
+          'data-selected:bg-secondary-container',
+        ],
+      },
     },
     // A flat selected filter chip rises to level 1 on hover only (focus and press stay at 0).
     {
