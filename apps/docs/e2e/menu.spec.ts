@@ -334,8 +334,19 @@ test.describe('Menu presentation and instant', () => {
     await expect(root.getByRole('menuitem').first()).toBeFocused();
     await settle(page);
 
-    await root.getByRole('menuitem', { name: 'Share' }).click();
+    // A click on an item replaces the menu, so the pointer rests on whatever item of the
+    // submenu lands under it, which may take focus on hover. Each click therefore moves the
+    // pointer off the sheet, checks focus went into the submenu, and takes it to the first
+    // item with the keyboard.
+    async function clickIntoSubmenu(item: Locator, submenu: Locator) {
+      await item.click();
+      await expect(submenu.locator('[role="menuitem"]:focus')).toHaveCount(1);
+      await page.mouse.move(0, 0);
+      await page.keyboard.press('Home');
+    }
+
     const share = sheet.getByRole('menu', { name: 'Share' });
+    await clickIntoSubmenu(root.getByRole('menuitem', { name: 'Share' }), share);
     await expect(share.getByRole('menuitem', { name: 'Email' })).toBeFocused();
     // The menu that opened it is hidden; the submenu spans the sheet below a 48px back
     // button and its item's label, all inside the window.
@@ -348,15 +359,20 @@ test.describe('Menu presentation and instant', () => {
     expect(Math.round(m.width)).toBe(Math.round(s.width) - 16);
     expect(m.y).toBeGreaterThanOrEqual(b.y + b.height);
     expect(m.y + m.height).toBeLessThanOrEqual(800);
-    await expect(sheet.getByText('Share', { exact: true })).toBeVisible();
+    // The label beside the back button (the hidden menu keeps its own "Share" item).
+    await expect(
+      sheet.locator('[data-submenu-panel]').getByText('Share', { exact: true }),
+    ).toBeVisible();
 
-    // A nested submenu replaces it in turn; back goes up one level at a time.
-    await share.getByRole('menuitem', { name: 'Export as' }).click();
+    // A nested submenu replaces it in turn; back goes up one level at a time. Back is
+    // pressed from the keyboard: the sheet's height changes with the level, so a pointer
+    // left on it would rest on an item of the level it returns to.
     const exportAs = sheet.getByRole('menu', { name: 'Export as' });
+    await clickIntoSubmenu(share.getByRole('menuitem', { name: 'Export as' }), exportAs);
     await expect(exportAs.getByRole('menuitem', { name: 'PDF' })).toBeFocused();
     await expect(share).toBeHidden();
     await expect(root).toBeHidden();
-    await sheet.getByRole('button', { name: 'Back' }).click();
+    await sheet.getByRole('button', { name: 'Back' }).press('Enter');
     await expect(exportAs).toHaveCount(0);
     await expect(share).toBeVisible();
     await expect(share.getByRole('menuitem', { name: 'Export as' })).toBeFocused();
