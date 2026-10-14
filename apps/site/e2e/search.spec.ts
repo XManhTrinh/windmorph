@@ -92,7 +92,8 @@ test.describe('Docs search', () => {
     await page.goto('/getting-started');
     await openWithShortcut(page);
     await view(page).getByRole('searchbox').fill('scrolledColor');
-    const row = view(page).getByRole('row').first();
+    // The first item, after the group's subheader row.
+    const row = items(page, view(page)).first();
     await expect(row).toContainText('Top app bar');
     await expect(row).toContainText('API');
     await row.click();
