@@ -69,6 +69,7 @@ export {
   type ButtonStyleProps,
   type ButtonVariant,
 } from './components/button/button-styles';
+export { buttonTokenSet } from './components/button/button-tokens';
 export {
   IconButton,
   type IconButtonActionProps,
@@ -227,6 +228,7 @@ export {
   type SplitButtonStyleProps,
   type SplitButtonVariant,
 } from './components/split-button/split-button-styles';
+export { splitButtonTokenSet } from './components/split-button/split-button-tokens';
 export {
   FabMenu,
   FabMenuItem,

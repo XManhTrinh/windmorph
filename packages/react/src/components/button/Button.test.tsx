@@ -14,14 +14,18 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Save' });
     expect(button.tagName).toBe('BUTTON');
     expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveAttribute('data-tokens', 'md-comp-button');
+    expect(button).toHaveAttribute('data-variant', 'filled');
+    expect(button).toHaveAttribute('data-size', 'sm');
     expect(button).toHaveClass(
-      'bg-primary',
-      'text-on-primary',
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
       'h-fit',
       'min-h-[40px]',
       'text-label-large',
     );
-    expect(button).toHaveClass('rounded-[min(var(--md-sys-shape-corner-full),20px)]');
+    expect(button).toHaveClass('rounded-[var(--_md-comp-button-container-shape-round-capped)]');
     expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
   });
 
@@ -66,14 +70,46 @@ describe('Button', () => {
   });
 
   it.each([
-    ['elevated', ['bg-surface-container-low', 'text-primary', 'shadow-elevation-1']],
-    ['tonal', ['bg-secondary-container', 'text-on-secondary-container']],
-    ['outlined', ['border-outline-variant', 'text-on-surface-variant', 'bg-transparent']],
+    ['elevated', ['data-hovered:not-data-pressed:shadow-elevation-2']],
+    ['tonal', ['data-hovered:not-data-pressed:shadow-elevation-1']],
+    ['outlined', ['border-solid', 'border-[color:var(--_md-comp-button-outline-color)]']],
     // Small text buttons take the 16px padding of the other small buttons (M3 Expressive).
-    ['text', ['bg-transparent', 'text-primary', 'px-[calc(16px-var(--m3-button-border,0px))]']],
-  ] as const)('styles the %s variant', (variant, classes) => {
+    ['text', ['px-[calc(16px-var(--m3-button-border,0px))]']],
+  ] as const)('marks the %s variant for its component tokens', (variant, classes) => {
     render(<Button variant={variant}>Go</Button>);
-    expect(screen.getByRole('button')).toHaveClass(...classes);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-variant', variant);
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      ...classes,
+    );
+  });
+
+  it('lets consumer colour, corner and shadow classes replace the token classes', () => {
+    render(
+      <Button
+        variant="outlined"
+        className="bg-tertiary text-on-tertiary rounded-corner-small shadow-elevation-3 border-primary"
+      >
+        Go
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'bg-tertiary',
+      'text-on-tertiary',
+      'rounded-corner-small',
+      'shadow-elevation-3',
+      'border-primary',
+    );
+    expect(button).not.toHaveClass(
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      'rounded-[var(--_md-comp-button-container-shape-round-capped)]',
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
+      'border-[color:var(--_md-comp-button-outline-color)]',
+    );
   });
 
   it.each([
@@ -140,12 +176,16 @@ describe('Button', () => {
         </Button>
       </>,
     );
-    expect(screen.getByRole('button', { name: 'Medium' })).toHaveClass(
-      'rounded-corner-large',
+    const medium = screen.getByRole('button', { name: 'Medium' });
+    expect(medium).toHaveAttribute('data-size', 'md');
+    expect(medium).toHaveClass(
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
       'data-pressed:rounded-corner-medium',
     );
-    expect(screen.getByRole('button', { name: 'XL' })).toHaveClass(
-      'rounded-corner-extra-large',
+    const xl = screen.getByRole('button', { name: 'XL' });
+    expect(xl).toHaveAttribute('data-size', 'xl');
+    expect(xl).toHaveClass(
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
       'data-pressed:rounded-corner-large',
     );
   });
@@ -185,7 +225,7 @@ describe('Button', () => {
       </>,
     );
     expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
-      'shadow-elevation-1',
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
       'data-hovered:not-data-pressed:shadow-elevation-2',
     );
     for (const name of ['Filled', 'Tonal']) {
@@ -257,7 +297,7 @@ describe('Button', () => {
     const button = screen.getByRole('button');
     expect(element).toBe(button);
     expect(button).toHaveClass('fixed', 'bg-tertiary');
-    expect(button).not.toHaveClass('bg-primary');
+    expect(button).not.toHaveClass('bg-[var(--_md-comp-button-container-color)]');
     expect(button).toHaveStyle({ bottom: '16px' });
     expect(screen.getByText('Fab-like')).toHaveClass('uppercase');
     expect(screen.getByText('Fab-like').parentElement).toHaveClass('gap-[2px]');
@@ -274,10 +314,11 @@ describe('Button', () => {
       </ButtonContext>,
     );
     const inherited = screen.getByRole('button', { name: 'Inherited' });
+    expect(inherited).toHaveAttribute('data-variant', 'tonal');
+    expect(inherited).toHaveAttribute('data-size', 'lg');
     expect(inherited).toHaveClass(
-      'bg-secondary-container',
       'h-[96px]',
-      'rounded-corner-extra-large',
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
     );
     expect(inherited).toBeDisabled();
     const own = screen.getByRole('button', { name: 'Own' });
@@ -333,7 +374,13 @@ describe('Button toggle', () => {
     const button = screen.getByRole('button', { name: 'Bold' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
     expect(button).not.toHaveAttribute('data-selected');
-    expect(button).toHaveClass('bg-surface-container', 'text-on-surface-variant');
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-button-unselected-container-color)]',
+      'text-[color:var(--_md-comp-button-unselected-label-text-color)]',
+      'data-selected:not-data-disabled:bg-[var(--_md-comp-button-selected-container-color)]',
+      'data-selected:not-data-disabled:text-[color:var(--_md-comp-button-selected-label-text-color)]',
+    );
+    expect(button).not.toHaveClass('bg-[var(--_md-comp-button-container-color)]');
 
     await userEvent.click(button);
     expect(button).toHaveAttribute('aria-pressed', 'true');
@@ -366,10 +413,10 @@ describe('Button toggle', () => {
       </>,
     );
     expect(screen.getByRole('button', { name: 'Round' })).toHaveClass(
-      'data-selected:not-data-pressed:not-data-disabled:rounded-corner-large',
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-square)]',
     );
     expect(screen.getByRole('button', { name: 'Square' })).toHaveClass(
-      'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-round-capped)]',
     );
   });
 
@@ -404,7 +451,7 @@ describe('Button toggle', () => {
         <Button toggle>Bold</Button>
       </ButtonContext>,
     );
-    expect(screen.getByRole('button')).toHaveClass('bg-surface-container');
+    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'filled');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('no toggle form'));
     warn.mockRestore();
   });

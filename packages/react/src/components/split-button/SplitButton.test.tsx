@@ -47,19 +47,31 @@ describe('SplitButton', () => {
       'h-[40px]',
       'ps-[calc(16px-var(--m3-button-border,0px))]',
       'pe-[calc(12px-var(--m3-button-border,0px))]',
-      'bg-primary',
-      'rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
+      'bg-[var(--_md-comp-button-container-color)]',
+      'rounded-s-[var(--_md-comp-split-button-container-shape-capped)]',
       'rounded-e-corner-extra-small',
       'data-pressed:rounded-e-corner-medium',
     );
     expect(trailing()).toHaveClass(
       'h-[40px]',
       'ps-[calc(13px-var(--m3-button-border,0px))]',
-      'rounded-e-[min(var(--md-sys-shape-corner-full),20px)]',
+      'rounded-e-[var(--_md-comp-split-button-container-shape-capped)]',
       'rounded-s-corner-extra-small',
       '[--m3-optical:-1px]',
     );
-    expect(trailing().parentElement).toHaveClass('gap-[2px]');
+    const root = trailing().parentElement!;
+    expect(root).toHaveClass('gap-[2px]');
+    expect(root).toHaveAttribute('data-tokens', 'md-comp-split-button');
+    expect(root).toHaveAttribute('data-variant', 'filled');
+    expect(root).toHaveAttribute('data-size', 'sm');
+    for (const [half, slot] of [
+      [leading(), 'leading'],
+      [trailing(), 'trailing'],
+    ] as const) {
+      expect(half).toHaveAttribute('data-tokens', 'md-comp-button');
+      expect(half).toHaveAttribute('data-variant', 'filled');
+      expect(half).toHaveAttribute('data-slot', slot);
+    }
     expect(await axeViolations(container)).toEqual([]);
   });
 
@@ -141,13 +153,29 @@ describe('SplitButton', () => {
   });
 
   it.each([
-    ['tonal', 'bg-secondary-container'],
-    ['outlined', 'border-outline-variant'],
-    ['elevated', 'shadow-elevation-1'],
+    ['tonal', 'bg-[var(--_md-comp-button-container-color)]'],
+    ['outlined', 'border-[color:var(--_md-comp-button-outline-color)]'],
+    ['elevated', 'shadow-[shadow:var(--_md-comp-button-container-elevation)]'],
   ] as const)('shares the %s button colours', (variant, cls) => {
     render(<Send variant={variant} />);
-    expect(leading()).toHaveClass(cls);
-    expect(trailing()).toHaveClass(cls);
+    for (const half of [leading(), trailing()]) {
+      expect(half).toHaveAttribute('data-variant', variant);
+      expect(half).toHaveClass(cls);
+    }
+  });
+
+  it('lets consumer corner and colour classes replace the token classes', () => {
+    render(
+      <Send
+        classNames={{ leading: 'rounded-s-corner-small bg-tertiary', trailing: 'bg-tertiary' }}
+      />,
+    );
+    expect(leading()).toHaveClass('rounded-s-corner-small', 'bg-tertiary');
+    expect(leading()).not.toHaveClass(
+      'rounded-s-[var(--_md-comp-split-button-container-shape-capped)]',
+      'bg-[var(--_md-comp-button-container-color)]',
+    );
+    expect(trailing()).not.toHaveClass('bg-[var(--_md-comp-button-container-color)]');
   });
 
   it('disables both halves', () => {

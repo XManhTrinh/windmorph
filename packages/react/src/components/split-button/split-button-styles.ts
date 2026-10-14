@@ -26,6 +26,10 @@ import { buttonVariantClasses } from '../button/button-styles';
  * The XS halves take a 32px minimum height rather than a fixed one, so they grow around
  * text at a large browser font size, as Compose's `heightIn(min)` does (2026-10-13).
  *
+ * The outer corners come from the component tokens (`split-button-tokens.ts`,
+ * `--md-comp-split-button-<size>-container-shape`), read through the root's resolved
+ * corner; the halves' colours come from Button's (`buttonVariantClasses`).
+ *
  * Label type and icon sizes follow the Button scale per size; Compose's split button
  * provides `label-large` and leaves larger text to the caller. Every class is written out
  * in full so Tailwind can find it.
@@ -78,14 +82,14 @@ export const splitButtonStyles = tv({
         root: 'h-fit items-stretch',
         leading: [
           'min-h-[32px] ps-[calc(12px-var(--m3-button-border,0px))] pe-[calc(10px-var(--m3-button-border,0px))] text-label-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),16px)] rounded-e-corner-extra-small',
+          'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-small data-focus-visible:rounded-e-corner-small data-pressed:rounded-e-corner-small',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
           'min-h-[32px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),16px)] rounded-s-corner-extra-small',
+          'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-small not-data-open:data-focus-visible:rounded-s-corner-small data-pressed:rounded-s-corner-small',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),16px)]',
           '[--m3-optical:-1px] data-pressed:[--m3-optical:-1px] data-open:not-data-pressed:[--m3-optical:0px]',
@@ -95,14 +99,14 @@ export const splitButtonStyles = tv({
       sm: {
         leading: [
           'h-[40px] ps-[calc(16px-var(--m3-button-border,0px))] pe-[calc(12px-var(--m3-button-border,0px))] text-label-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),20px)] rounded-e-corner-extra-small',
+          'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
           'h-[40px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),20px)] rounded-s-corner-extra-small',
+          'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
           '[--m3-optical:-1px] data-pressed:[--m3-optical:-1px] data-open:not-data-pressed:[--m3-optical:0px]',
@@ -112,14 +116,14 @@ export const splitButtonStyles = tv({
       md: {
         leading: [
           'h-[56px] ps-[calc(24px-var(--m3-button-border,0px))] pe-[calc(24px-var(--m3-button-border,0px))] text-title-medium',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),28px)] rounded-e-corner-extra-small',
+          'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[24px]',
         trailing: [
           'h-[56px] ps-[calc(15px-var(--m3-button-border,0px))] pe-[calc(15px-var(--m3-button-border,0px))]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),28px)] rounded-s-corner-extra-small',
+          'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),28px)]',
           '[--m3-optical:-2px] data-pressed:[--m3-optical:-2px] data-open:not-data-pressed:[--m3-optical:0px]',
@@ -129,14 +133,14 @@ export const splitButtonStyles = tv({
       lg: {
         leading: [
           'h-[96px] ps-[calc(48px-var(--m3-button-border,0px))] pe-[calc(48px-var(--m3-button-border,0px))] font-brand text-headline-small',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),48px)] rounded-e-corner-small',
+          'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-small',
           'data-hovered:rounded-e-corner-large-increased data-focus-visible:rounded-e-corner-large-increased data-pressed:rounded-e-corner-large-increased',
         ],
         content: 'gap-[12px]',
         icon: 'size-[32px]',
         trailing: [
           'h-[96px] ps-[calc(29px-var(--m3-button-border,0px))] pe-[calc(29px-var(--m3-button-border,0px))]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),48px)] rounded-s-corner-small',
+          'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-small',
           'not-data-open:data-hovered:rounded-s-corner-large-increased not-data-open:data-focus-visible:rounded-s-corner-large-increased data-pressed:rounded-s-corner-large-increased',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),48px)]',
           '[--m3-optical:-3px] data-pressed:[--m3-optical:-3px] data-open:not-data-pressed:[--m3-optical:0px]',
@@ -146,14 +150,14 @@ export const splitButtonStyles = tv({
       xl: {
         leading: [
           'h-[136px] ps-[calc(64px-var(--m3-button-border,0px))] pe-[calc(64px-var(--m3-button-border,0px))] font-brand text-headline-large',
-          'rounded-s-[min(var(--md-sys-shape-corner-full),68px)] rounded-e-corner-medium',
+          'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-medium',
           'data-hovered:rounded-e-corner-large-increased data-focus-visible:rounded-e-corner-large-increased data-pressed:rounded-e-corner-large-increased',
         ],
         content: 'gap-[16px]',
         icon: 'size-[40px]',
         trailing: [
           'h-[136px] ps-[calc(43px-var(--m3-button-border,0px))] pe-[calc(43px-var(--m3-button-border,0px))]',
-          'rounded-e-[min(var(--md-sys-shape-corner-full),68px)] rounded-s-corner-medium',
+          'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-medium',
           'not-data-open:data-hovered:rounded-s-corner-large-increased not-data-open:data-focus-visible:rounded-s-corner-large-increased data-pressed:rounded-s-corner-large-increased',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),68px)]',
           '[--m3-optical:-6px] data-pressed:[--m3-optical:-5px] data-open:not-data-pressed:[--m3-optical:0px]',
