@@ -137,7 +137,22 @@ export interface SubmenuTriggerProps {
 interface SubmenuItemProps extends MenuItemProps {
   submenu?: ReactElement<MenuProps>;
   submenuDelay?: number;
+  /** See {@link CheckableMenuItemProps}. */
+  checkable?: boolean;
 }
+
+/**
+ * Props of a {@link CheckableMenuItem}, for the library's own menus (not exported from the
+ * package): in a selectable menu, `checkable={false}` makes an item a plain action, with the
+ * `menuitem` role, no checked state and no check, that closes the menu like any action.
+ */
+export interface CheckableMenuItemProps extends MenuItemProps {
+  /** Whether the item can be checked in a selectable menu. @default true */
+  checkable?: boolean;
+}
+
+/** A {@link MenuItem} that can opt out of the menu's selection (library-internal). */
+export const CheckableMenuItem = Item as unknown as (props: CheckableMenuItemProps) => JSX.Element;
 
 /** Only a menu collection reads a `SubmenuTrigger`; rendered on its own it's nothing. */
 function SubmenuTriggerElement(): null {
@@ -1061,9 +1076,12 @@ function MenuItemView({
   const ref = itemRef ?? ownRef;
   const props = node.props as SubmenuItemProps;
   const isDisabled = state.disabledKeys.has(node.key);
-  const multiple = state.selectionManager.selectionMode === 'multiple';
+  // A plain action in a selectable menu (`checkable={false}`) is never checked.
+  const selectable = state.selectionManager.selectionMode !== 'none' && props.checkable !== false;
+  const plainInSelectable = state.selectionManager.selectionMode !== 'none' && !selectable;
+  const multiple = selectable && state.selectionManager.selectionMode === 'multiple';
   const {
-    menuItemProps,
+    menuItemProps: ariaItemProps,
     labelProps,
     descriptionProps,
     keyboardShortcutProps,
@@ -1076,17 +1094,22 @@ function MenuItemView({
       'aria-label': props['aria-label'],
       // Disabled items stay focusable (the menu's `disabledBehavior`) but do nothing.
       isDisabled,
-      // M3: multi-select menus stay open until they're dismissed, Enter included.
-      closeOnSelect: multiple ? false : undefined,
+      isSelected: plainInSelectable ? false : undefined,
+      // M3: multi-select menus stay open until they're dismissed, Enter included; a plain
+      // action closes the menu, as in any menu.
+      closeOnSelect: multiple ? false : plainInSelectable ? true : undefined,
     },
     state,
     ref,
   );
+  const menuItemProps =
+    plainInSelectable && !props.submenu
+      ? { ...ariaItemProps, role: 'menuitem', 'aria-checked': undefined }
+      : ariaItemProps;
   const { interactionProps, dataAttributes } = useM3Interaction(
     { isPressed, isDisabled, isSelected },
     ref,
   );
-  const selectable = state.selectionManager.selectionMode !== 'none';
   const styles = menuStyles({
     variant,
     itemTop: top,

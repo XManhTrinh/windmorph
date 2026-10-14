@@ -434,6 +434,9 @@ function OverflowMenu({
           items={hidden.map((child, index) => ({
             key: keyOf(index),
             ...describe(child, selected.includes(keyOf(index))),
+            // Only a toggle (or a button in the group's selection) is checkable; an action
+            // stays a plain item even when the menu is selectable.
+            checkable: grouped ? child.props.value !== undefined : Boolean(child.props.toggle),
           }))}
           selectionMode={menuSelectionMode}
           selectedKeys={selected}

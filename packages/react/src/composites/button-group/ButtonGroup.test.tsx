@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -605,6 +605,46 @@ describe('ButtonGroup overflow', () => {
     expect(screen.getByRole('button', { name: 'More actions', hidden: true })).toHaveAttribute(
       'data-overflow-hidden',
     );
+    restore();
+  });
+
+  it('makes only folded toggles checkable; actions stay plain menu items', async () => {
+    const restore = stubLayout();
+    const user = userEvent.setup();
+    const onArchive = vi.fn();
+    render(
+      <ButtonGroup aria-label="Actions" overflow>
+        <Button>Reply</Button>
+        <Button>Forward</Button>
+        <Button onPress={onArchive}>Archive</Button>
+        <Button toggle defaultSelected>
+          Pin
+        </Button>
+        <Button>Delete</Button>
+      </ButtonGroup>,
+    );
+    await user.click(screen.getByRole('button', { name: 'More options' }));
+    const pin = await screen.findByRole('menuitemcheckbox', { name: 'Pin' });
+    expect(pin).toHaveAttribute('aria-checked', 'true');
+    const actions = screen.getAllByRole('menuitem');
+    expect(actions.map((item) => item.textContent)).toEqual(['Archive', 'Delete']);
+    for (const action of actions) {
+      expect(action).not.toHaveAttribute('aria-checked');
+      expect(action).not.toHaveAttribute('data-selected');
+    }
+
+    // The toggle stays open and flips its button; an action runs and closes the menu.
+    await user.click(pin);
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('menuitemcheckbox', { name: 'Pin' })).toHaveAttribute(
+        'aria-checked',
+        'false',
+      ),
+    );
+    await user.click(screen.getByRole('menuitem', { name: 'Archive' }));
+    expect(onArchive).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     restore();
   });
 

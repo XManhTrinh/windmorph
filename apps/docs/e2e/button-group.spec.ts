@@ -335,7 +335,7 @@ test.describe('ButtonGroup overflow', () => {
     await expect.poll(() => shown(page.getByTestId('standard'))).toEqual(['Reply', 'More options']);
   });
 
-  test('the menu holds the folded buttons: actions, toggles and disabled ones', async ({
+  test('the menu holds the folded buttons: only toggles are checkable, actions stay plain', async ({
     page,
   }) => {
     await openStory(page, 'composites-buttongroup--overflow', {}, { width: '320' });
@@ -343,18 +343,24 @@ test.describe('ButtonGroup overflow', () => {
     await group.getByRole('button', { name: 'More options' }).click();
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('menuitemcheckbox')).toHaveText(['Star', 'Archive', 'Delete']);
-    await expect(menu.getByRole('menuitemcheckbox', { name: 'Delete' })).toHaveAttribute(
+    await expect(menu.getByRole('menuitemcheckbox')).toHaveText(['Star']);
+    await expect(menu.getByRole('menuitem')).toHaveText(['Archive', 'Delete']);
+    for (const name of ['Archive', 'Delete']) {
+      await expect(menu.getByRole('menuitem', { name })).not.toHaveAttribute('aria-checked');
+    }
+    await expect(menu.getByRole('menuitem', { name: 'Delete' })).toHaveAttribute(
       'aria-disabled',
       'true',
     );
-    await menu.getByRole('menuitemcheckbox', { name: 'Star' }).click();
-    await expect(menu.getByRole('menuitemcheckbox', { name: 'Star' })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    await menu.getByRole('menuitemcheckbox', { name: 'Archive' }).click();
+    const star = menu.getByRole('menuitemcheckbox', { name: 'Star' });
+    await expect(star).toHaveAttribute('aria-checked', 'false');
+    await star.click();
+    // A toggle keeps the menu open and shows its new state.
+    await expect(star).toHaveAttribute('aria-checked', 'true');
+    // An action runs its button and closes the menu, with no checked state.
+    await menu.getByRole('menuitem', { name: 'Archive' }).click();
     await expect(page.getByTestId('last')).toContainText('Last: archive');
+    await expect(menu).toBeHidden();
   });
 
   test('keyboard: arrows reach the indicator, Enter opens the menu, a choice selects', async ({
