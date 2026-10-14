@@ -131,12 +131,16 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 default="none"
               >
                 {withOutline ? (
+                  // The outline column is always reserved on large windows, so the content
+                  // column sits in the same place whether or not the page lists its sections.
                   <div className="flex justify-center gap-8">
-                    <div className="min-w-0 flex-1">{children}</div>
+                    <div data-docs-content className="min-w-0 flex-1">
+                      {children}
+                    </div>
                     <PageOutline />
                   </div>
                 ) : (
-                  <div>{children}</div>
+                  <div data-docs-content>{children}</div>
                 )}
               </ViewTransition>
             </main>

@@ -6,6 +6,8 @@ import { useMemo, useSyncExternalStore } from 'react';
 const HEADINGS = '#main-content h2[id]';
 /** A heading is the current section once its top is this far from the window's top (px). */
 const ACTIVE_OFFSET = 112;
+/** The outline column's width, reserved on large windows whether or not it lists anything. */
+const COLUMN = 'w-52 shrink-0';
 
 interface OutlineEntry {
   id: string;
@@ -57,18 +59,21 @@ function activeSnapshot(): string {
  * windows (hidden on smaller ones), with the one being read marked. It reads the rendered
  * headings through `useSyncExternalStore`, so the static HTML has no outline (the server
  * snapshot is empty) and hydration never mismatches; it follows tab changes as the headings
- * change. Pages with fewer than two sections show none.
+ * change. Pages with fewer than two sections show none, but keep the column empty, so the
+ * content sits in the same place on every page.
  */
 export function PageOutline() {
   const json = useSyncExternalStore(subscribeToHeadings, headingsSnapshot, () => '[]');
   const headings = useMemo(() => JSON.parse(json) as OutlineEntry[], [json]);
   const active = useSyncExternalStore(subscribeToScroll, activeSnapshot, () => '');
-  if (headings.length < 2) return null;
+  if (headings.length < 2) {
+    return <div aria-hidden="true" className={`${COLUMN} hidden large:block`} />;
+  }
 
   return (
     <nav
       aria-labelledby="page-outline-title"
-      className="sticky top-24 hidden max-h-[calc(100dvh-8rem)] w-52 shrink-0 self-start overflow-y-auto large:block"
+      className={`${COLUMN} sticky top-24 hidden max-h-[calc(100dvh-8rem)] self-start overflow-y-auto large:block`}
     >
       <p id="page-outline-title" className="pb-3 ps-4 text-title-small text-on-surface">
         On this page
