@@ -69,6 +69,7 @@ import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
 
@@ -177,8 +178,10 @@ ListItemElement.getCollectionNode = function* getCollectionNode(
   const rendered = props.children;
   const textValue =
     props.textValue || (typeof rendered === 'string' ? rendered : '') || props['aria-label'] || '';
-  if (!textValue && process.env.NODE_ENV !== 'production') {
-    console.warn(
+  // Once per page: the collection is rebuilt on every render of the list.
+  if (!textValue) {
+    warnOnce(
+      'list-item-text-value',
       '[@windmorph/react] A ListItem whose headline is not plain text needs a textValue for type-ahead.',
     );
   }

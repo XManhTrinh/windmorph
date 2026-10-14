@@ -4,7 +4,6 @@ import {
   Children,
   isValidElement,
   useContext,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -32,6 +31,7 @@ import { MenuTrigger } from '../../components/menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import type { VariantProps } from '../../utils/tv';
+import { useWarnOnce } from '../../utils/warn-once';
 import { buttonGroupStyles } from './button-group-styles';
 import { LazyOverflowMenuList } from './lazy-overflow-menu';
 import { useOverflow } from './use-overflow';
@@ -328,18 +328,14 @@ function useGroupWarnings(
   );
   const nothingToSelect =
     variant === 'connected' && items.length > 0 && !items.some((child) => child.props.toggle);
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || !containerless) return;
-    console.warn(
-      '[@windmorph/react] Avoid standard icon buttons and text buttons in a ButtonGroup (M3): they have no container, so the group has nothing to shape.',
-    );
-  }, [containerless]);
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || !nothingToSelect) return;
-    console.warn(
-      '[@windmorph/react] A connected ButtonGroup is for selection (M3): use toggle buttons in it, or a standard group for actions.',
-    );
-  }, [nothingToSelect]);
+  useWarnOnce(
+    containerless,
+    '[@windmorph/react] Avoid standard icon buttons and text buttons in a ButtonGroup (M3): they have no container, so the group has nothing to shape.',
+  );
+  useWarnOnce(
+    nothingToSelect,
+    '[@windmorph/react] A connected ButtonGroup is for selection (M3): use toggle buttons in it, or a standard group for actions.',
+  );
 }
 
 interface OverflowMenuProps {

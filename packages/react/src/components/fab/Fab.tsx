@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
+import { useContext, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -9,6 +9,7 @@ import {
 } from '../../primitives/ButtonBase';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { FabTooltip } from './FabTooltip';
@@ -195,16 +196,10 @@ export function ExtendedFab({
     );
   }
   // Once per FAB, not on every render.
-  const inFloatingToolbar = useContext(ToolbarContext)?.kind === 'floating';
-  const warnedToolbar = useRef(false);
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' && inFloatingToolbar && !warnedToolbar.current) {
-      warnedToolbar.current = true;
-      console.warn(
-        '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
-      );
-    }
-  }, [inFloatingToolbar]);
+  useWarnOnce(
+    useContext(ToolbarContext)?.kind === 'floating',
+    '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
+  );
   const collapsed = !expanded && Boolean(icon);
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });
   const baseProps = {

@@ -36,6 +36,7 @@ import {
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { firstTabbable } from '../../utils/focus';
+import { useWarnOnce } from '../../utils/warn-once';
 import { IconButton } from '../icon-button/IconButton';
 import { dialogStyles } from './dialog-styles';
 
@@ -590,15 +591,11 @@ function countActions(children: ReactNode): number {
 export function DialogActions({ className, children, ...props }: DialogActionsProps) {
   const { fullScreen, bottomBar } = useContext(DialogPartsContext);
   const actionCount = countActions(children);
-  const warned = useRef(false);
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || warned.current || actionCount <= 2) return;
-    warned.current = true;
-    console.warn(
-      `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
-        '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
-    );
-  }, [actionCount]);
+  useWarnOnce(
+    actionCount > 2,
+    `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
+      '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
+  );
   return (
     <div
       {...props}
