@@ -23,7 +23,13 @@ import { tv, type VariantProps } from '../../utils/tv';
  * form a 56px bottom action bar. The panel slides up 48px and fades in on the slow springs
  * (the spec's speed for full-screen animations), or, with an `origin`, grows out of it (a
  * container transform). `fullScreen: 'compact'` applies all of this only below 600px (the M3
- * compact window class) and is a basic dialog otherwise. Every class is written out in full.
+ * compact window class) and is a basic dialog otherwise.
+ *
+ * The basic dialog's container colour, corners and shadow, and the icon, title and supporting
+ * text colours, come from the dialog's component tokens (`dialog-tokens.ts`,
+ * `--md-comp-dialog-*`); the panel carries `data-tokens="md-comp-dialog"`, and the parts read
+ * one private variable each. A full-screen panel keeps its own `surface-container-high`. A
+ * consumer class (`bg-surface-container`) still wins. Every class is written out in full.
  */
 
 /** Variant definitions for {@link Dialog} and its parts. */
@@ -54,16 +60,24 @@ export const dialogStyles = tv({
     ],
     panel: [
       'flex max-h-full min-w-[min(280px,calc(100vw-48px))] max-w-[560px] flex-col p-[24px]',
-      'rounded-corner-extra-large bg-surface-container-high text-on-surface shadow-elevation-3',
+      'rounded-[var(--_md-comp-dialog-container-shape)] bg-[var(--_md-comp-dialog-container-color)]',
+      'text-on-surface shadow-[shadow:var(--_md-comp-dialog-container-elevation)]',
       'outline-none',
     ],
-    icon: 'mx-auto inline-flex pb-[16px] text-secondary [&>svg]:size-[24px]',
-    title: 'pb-[16px] text-headline-small font-brand text-on-surface',
+    icon: [
+      'mx-auto inline-flex pb-[16px] [&>svg]:size-[24px]',
+      'text-[color:var(--_md-comp-dialog-with-icon-icon-color)]',
+    ],
+    title: [
+      'pb-[16px] text-headline-small font-brand',
+      'text-[color:var(--_md-comp-dialog-headline-color)]',
+    ],
     header: '',
     headerButton: '',
     close: '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
     content: [
-      'min-h-0 flex-1 overflow-y-auto pb-[24px] text-body-medium text-on-surface-variant',
+      'min-h-0 flex-1 overflow-y-auto pb-[24px] text-body-medium',
+      'text-[color:var(--_md-comp-dialog-supporting-text-color)]',
       'focus-ring',
     ],
     actions: 'flex flex-wrap-reverse items-center justify-end gap-[8px]',
@@ -112,7 +126,10 @@ export const dialogStyles = tv({
           '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
           '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
         ],
-        panel: 'size-full max-h-none max-w-none rounded-none p-0 shadow-none',
+        panel: [
+          'size-full max-h-none max-w-none rounded-none p-0 shadow-none',
+          'bg-surface-container-high',
+        ],
         header: 'flex h-[56px] shrink-0 items-center gap-[4px] ps-[4px] pe-[12px]',
         title: 'min-w-0 flex-1 truncate ps-[4px] pb-0 text-start text-title-large',
         content: 'px-[24px] pt-[24px]',
@@ -133,6 +150,7 @@ export const dialogStyles = tv({
         panel: [
           'max-medium:size-full max-medium:max-h-none max-medium:max-w-none',
           'max-medium:rounded-none max-medium:p-0 max-medium:shadow-none',
+          'max-medium:bg-surface-container-high',
         ],
         header: [
           'max-medium:flex max-medium:h-[56px] max-medium:shrink-0 max-medium:items-center',

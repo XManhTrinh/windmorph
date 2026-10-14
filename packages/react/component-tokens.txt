@@ -3,6 +3,12 @@
 --md-comp-badge-color
 --md-comp-badge-large-color
 --md-comp-badge-large-label-text-color
+--md-comp-dialog-container-color
+--md-comp-dialog-container-elevation
+--md-comp-dialog-container-shape
+--md-comp-dialog-headline-color
+--md-comp-dialog-supporting-text-color
+--md-comp-dialog-with-icon-icon-color
 --md-comp-divider-color
 --md-comp-elevated-card-container-color
 --md-comp-elevated-card-container-elevation

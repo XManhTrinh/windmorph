@@ -383,6 +383,8 @@ function DialogModal({
             ref={panelRef}
             style={style}
             data-exiting={exiting}
+            // The component tokens' hook (dialog-tokens.ts).
+            data-tokens="md-comp-dialog"
             data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
             data-origin={origin || undefined}
             className={styles.panel({ class: cn(classNames?.panel, className) })}
@@ -403,6 +405,7 @@ function DialogModal({
                 {hasIcon && (
                   <span
                     aria-hidden="true"
+                    data-slot="icon"
                     className={styles.icon({
                       class: cn(fullScreen === 'compact' && 'max-medium:hidden', classNames?.icon),
                     })}
@@ -431,6 +434,7 @@ export function DialogTitle({ className, ...props }: DialogTitleProps) {
   return (
     <h2
       {...mergeProps(titleProps, props)}
+      data-slot="title"
       className={dialogStyles({ hasIcon }).title({ class: className })}
     />
   );
@@ -499,7 +503,7 @@ export function DialogHeader({
           className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}
         />
       )}
-      <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
+      <h2 {...titleProps} data-slot="title" className={styles.title({ class: classNames?.title })}>
         {children}
       </h2>
       {fullScreen !== 'never' && action !== undefined && (
@@ -558,6 +562,7 @@ export function DialogContent({ className, dividers = false, ref, ...props }: Di
       tabIndex={props.tabIndex ?? (overflows ? 0 : undefined)}
       data-scrollable={overflows || undefined}
       data-focus-visible={(overflows && isFocusVisible) || undefined}
+      data-slot="content"
       className={dialogStyles({ fullScreen, dividers }).content({ class: className })}
     />
   );

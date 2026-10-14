@@ -229,6 +229,9 @@ describe('Dialog', () => {
     render(<DeleteDialog icon={<svg data-testid="icon" />} />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByTestId('icon').parentElement).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByTestId('icon').parentElement).toHaveClass(
+      'text-[color:var(--_md-comp-dialog-with-icon-icon-color)]',
+    );
     expect(screen.getByRole('heading', { name: 'Delete file?' })).toHaveClass('text-center');
   });
 
@@ -251,11 +254,39 @@ describe('Dialog', () => {
     expect(panel).toBe(screen.getByRole('alertdialog'));
     expect(panel).toHaveClass(
       'max-w-[400px]',
-      'bg-surface-container-high',
-      'rounded-corner-extra-large',
+      'bg-[var(--_md-comp-dialog-container-color)]',
+      'rounded-[var(--_md-comp-dialog-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-dialog-container-elevation)]',
     );
+    expect(panel).toHaveAttribute('data-tokens', 'md-comp-dialog');
     expect(panel).not.toHaveClass('max-w-[560px]');
     expect(panel).toHaveStyle({ padding: '32px' });
+  });
+
+  it('paints the icon, title and content from the token classes', async () => {
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel.querySelector('[data-slot="title"]')).toHaveClass(
+      'text-[color:var(--_md-comp-dialog-headline-color)]',
+    );
+    expect(panel.querySelector('[data-slot="content"]')).toHaveClass(
+      'text-[color:var(--_md-comp-dialog-supporting-text-color)]',
+    );
+  });
+
+  it('lets consumer classes replace the token classes', async () => {
+    render(
+      <DeleteDialog className="bg-surface-container rounded-corner-large shadow-elevation-1" />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel).toHaveClass('bg-surface-container', 'rounded-corner-large', 'shadow-elevation-1');
+    expect(panel).not.toHaveClass(
+      'bg-[var(--_md-comp-dialog-container-color)]',
+      'rounded-[var(--_md-comp-dialog-container-shape)]',
+      'shadow-[shadow:var(--_md-comp-dialog-container-elevation)]',
+    );
   });
 
   it('merges classNames.positioner into the positioner, so it can sit anywhere', async () => {
@@ -422,7 +453,11 @@ describe('Dialog full screen', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Edit name' }));
     const panel = screen.getByRole('dialog', { name: 'Edit name' });
     expect(panel).toHaveAttribute('data-full-screen', 'compact');
-    expect(panel).toHaveClass('max-medium:size-full', 'rounded-corner-extra-large');
+    expect(panel).toHaveClass(
+      'max-medium:size-full',
+      'max-medium:bg-surface-container-high',
+      'rounded-[var(--_md-comp-dialog-container-shape)]',
+    );
     expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('medium:hidden');
     expect(screen.getByTestId('actions')).toHaveClass('max-medium:hidden');
     expect(screen.getByText('Name field')).toHaveClass('max-medium:pt-[24px]');

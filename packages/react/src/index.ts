@@ -353,6 +353,7 @@ export {
   type DialogTriggerProps,
 } from './components/dialog/Dialog';
 export { dialogStyles, type DialogStyleProps } from './components/dialog/dialog-styles';
+export { dialogTokenSet } from './components/dialog/dialog-tokens';
 export {
   ContextMenuTrigger,
   Menu,
