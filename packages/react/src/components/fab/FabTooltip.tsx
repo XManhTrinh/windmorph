@@ -8,7 +8,7 @@ interface FabTooltipProps {
   /** Whether the tooltip can show: an extended FAB while collapsed, a FAB menu while closed. */
   available: boolean;
   label: ReactNode;
-  /** Classes for the tooltip. */
+  /** Classes for the tooltip's surface (its `classNames.panel`). */
   className?: string | undefined;
   /** The FAB, a library button that reads `TriggerContext`. */
   children: ReactElement;
@@ -35,7 +35,7 @@ export function FabTooltip({ available, label, className, children }: FabTooltip
   return (
     <TooltipTrigger isDisabled={!available} isOpen={available && isOpen} onOpenChange={setOpen}>
       {children}
-      <LazyTooltip className={className}>{label}</LazyTooltip>
+      <LazyTooltip classNames={{ panel: className }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

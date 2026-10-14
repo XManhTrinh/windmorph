@@ -651,4 +651,38 @@ describe('Menu classNames', () => {
     expect(screen.getByText('⌘X')).toHaveClass('shortcut-x');
     expect(screen.getByText('From history')).toHaveClass('description-x');
   });
+
+  it('puts className and style on the placed popover, and the panel slot on the menu', async () => {
+    render(
+      <EditMenu
+        className="fixed right-4 bottom-4"
+        style={{ outline: '1px solid' }}
+        classNames={{ panel: 'bg-surface-container' }}
+      />,
+    );
+    await openMenu('Edit');
+    const menu = screen.getByRole('menu');
+    expect(menu).toHaveClass('bg-surface-container');
+    expect(menu).not.toHaveClass('fixed');
+    // The menu, then the reveal wrapper, then the popover.
+    const popover = menu.parentElement!.parentElement!;
+    expect(popover).toHaveClass('fixed', 'right-4', 'bottom-4');
+    expect(popover).toHaveStyle({ outline: '1px solid' });
+    // React Aria places it (inline position wins over a consumer class); the menu inside
+    // keeps its own width.
+    expect(popover.style.position).not.toBe('');
+    expect(menu.parentElement).toHaveClass('w-max');
+  });
+
+  it('puts className on the sheet in a sheet', async () => {
+    render(
+      <EditMenu presentation="sheet" className="absolute" classNames={{ panel: 'panel-x' }} />,
+    );
+    await openMenu('Edit');
+    const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+    expect(sheet).not.toHaveClass('absolute');
+    // The sheet's outermost element: around the layer that moves the panel.
+    expect(sheet.parentElement!.parentElement).toHaveClass('absolute');
+    expect(within(sheet).getByRole('menu')).toHaveClass('panel-x');
+  });
 });

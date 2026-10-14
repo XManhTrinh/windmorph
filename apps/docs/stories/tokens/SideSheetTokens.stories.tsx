@@ -40,7 +40,7 @@ export const Probe: StoryObj = {
       override={{
         token: '--md-comp-sheet-side-docked-modal-container-color',
         children: (
-          <SideSheet title="Override" defaultOpen className="bg-surface-container">
+          <SideSheet title="Override" defaultOpen classNames={{ panel: 'bg-surface-container' }}>
             Override
           </SideSheet>
         ),

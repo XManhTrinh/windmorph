@@ -574,10 +574,10 @@ export const DiscardConfirmation: Story = { render: () => <EventEditor /> };
 
 /**
  * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
- * trigger`) or on the dialog panel (`className`, `part: panel`), inside an optional
- * transformed ancestor. The trigger keeps its size, corners, state layer and focus ring;
- * the dialog still opens in the window, keeps its width and corners, and moves and returns
- * focus.
+ * trigger`) or on the dialog (`className`, which goes on its outermost element; `part:
+ * panel`), inside an optional transformed ancestor. The trigger keeps
+ * its size, corners, state layer and focus ring; the dialog still opens in the window,
+ * keeps its width and corners, and moves and returns focus.
  */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;

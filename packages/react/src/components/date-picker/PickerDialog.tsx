@@ -13,9 +13,8 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
-import { cn } from '../../utils/cn';
 import { Button } from '../button/Button';
-import { dialogStyles } from '../dialog/dialog-styles';
+import { DIALOG_ROOT_STYLE, dialogStyles } from '../dialog/dialog-styles';
 import { IconButton } from '../icon-button/IconButton';
 import { PickerDialogContext } from './picker-dialog-context';
 import { pickerDialogStyles } from './picker-dialog-styles';
@@ -26,6 +25,7 @@ type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
 export interface PickerDialogClassNames {
   scrim?: string;
+  /** The dialog's surface: its colour, corners, padding and shadow. */
   panel?: string;
   /** The full-screen top row with the close and Save buttons. */
   header?: string;
@@ -81,6 +81,11 @@ interface PickerDialogOwnProps {
   strings?: PickerDialogStrings;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);
+  /**
+   * Goes on the outermost element, a full-window layer whose inline placement it can't
+   * move, so a layout class (`static`, `overflow-hidden`, a transform) never hides or clips
+   * the dialog. Style the surface with `classNames.panel`.
+   */
   className?: string;
   classNames?: PickerDialogClassNames;
 }
@@ -172,60 +177,62 @@ function PickerDialogModal({
         data-exiting={exiting}
         className={shell.scrim({ class: classNames?.scrim })}
       />
-      <div {...underlayProps} className={shell.positioner()}>
-        <div {...exitProps} data-exiting={exiting} className={shell.motion()}>
-          <div
-            {...mergeProps(modalProps, dialogProps)}
-            ref={panelRef}
-            // The picker's component tokens (date-picker-tokens.ts, time-picker-tokens.ts)
-            // paint the panel; `data-variant` is also a public styling hook.
-            data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
-            data-variant={variant}
-            data-full-screen={full || undefined}
-            className={styles.panel({ class: cn(classNames?.panel, className) })}
-          >
-            <TriggerContext value={null}>
-              {full && (
-                <div className={styles.header({ class: classNames?.header })}>
-                  <IconButton
-                    variant="standard"
-                    icon={closeIcon ?? <CloseIcon />}
-                    aria-label={strings.close ?? 'Close'}
-                    onPress={state.close}
-                    className={styles.close({ class: classNames?.close })}
-                  />
-                  <div className={styles.buttons()}>
+      <div style={DIALOG_ROOT_STYLE} className={shell.root({ class: className })}>
+        <div {...underlayProps} className={shell.positioner()}>
+          <div {...exitProps} data-exiting={exiting} className={shell.motion()}>
+            <div
+              {...mergeProps(modalProps, dialogProps)}
+              ref={panelRef}
+              // The picker's component tokens (date-picker-tokens.ts, time-picker-tokens.ts)
+              // paint the panel; `data-variant` is also a public styling hook.
+              data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
+              data-variant={variant}
+              data-full-screen={full || undefined}
+              className={styles.panel({ class: classNames?.panel })}
+            >
+              <TriggerContext value={null}>
+                {full && (
+                  <div className={styles.header({ class: classNames?.header })}>
+                    <IconButton
+                      variant="standard"
+                      icon={closeIcon ?? <CloseIcon />}
+                      aria-label={strings.close ?? 'Close'}
+                      onPress={state.close}
+                      className={styles.close({ class: classNames?.close })}
+                    />
+                    <div className={styles.buttons()}>
+                      {modeToggleButton}
+                      {onConfirm ? (
+                        <Button variant="text" onPress={requestConfirm}>
+                          {strings.save ?? 'Save'}
+                        </Button>
+                      ) : (
+                        confirmButton
+                      )}
+                    </div>
+                  </div>
+                )}
+                {variant === 'time' && title != null && (
+                  <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
+                    {title}
+                  </h2>
+                )}
+                <PickerDialogContext value={context}>
+                  <div className={styles.content()}>
+                    {typeof children === 'function' ? children({ close: state.close }) : children}
+                  </div>
+                </PickerDialogContext>
+                {!full && (
+                  <div className={styles.actions({ class: classNames?.actions })}>
                     {modeToggleButton}
-                    {onConfirm ? (
-                      <Button variant="text" onPress={requestConfirm}>
-                        {strings.save ?? 'Save'}
-                      </Button>
-                    ) : (
-                      confirmButton
-                    )}
+                    <div className={styles.buttons()}>
+                      {dismissButton}
+                      {confirmButton}
+                    </div>
                   </div>
-                </div>
-              )}
-              {variant === 'time' && title != null && (
-                <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
-                  {title}
-                </h2>
-              )}
-              <PickerDialogContext value={context}>
-                <div className={styles.content()}>
-                  {typeof children === 'function' ? children({ close: state.close }) : children}
-                </div>
-              </PickerDialogContext>
-              {!full && (
-                <div className={styles.actions({ class: classNames?.actions })}>
-                  {modeToggleButton}
-                  <div className={styles.buttons()}>
-                    {dismissButton}
-                    {confirmButton}
-                  </div>
-                </div>
-              )}
-            </TriggerContext>
+                )}
+              </TriggerContext>
+            </div>
           </div>
         </div>
       </div>

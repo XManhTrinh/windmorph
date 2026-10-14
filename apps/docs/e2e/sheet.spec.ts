@@ -349,6 +349,13 @@ test.describe('Side sheet', () => {
 });
 
 test.describe('BottomSheet layout safety', () => {
+  /**
+   * Overrides that place the sheet's outermost element themselves (it owns placement): the
+   * sheet then peeks from the bottom of that element, wherever the consumer put it, rather
+   * than from the bottom of the region.
+   */
+  const PLACING = ['fixed', 'sticky', 'static'];
+
   for (const override of OVERRIDES) {
     for (const transformedAncestor of [false, true]) {
       const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''}`;
@@ -361,15 +368,18 @@ test.describe('BottomSheet layout safety', () => {
         );
         const sheet = page.getByTestId('target');
         await settle(page);
-        // The panel still fills the library's wrapper that places and moves it, keeps its
-        // corners, and has no positioned internals.
+        // The panel still fills the library's layer that moves it, isn't stretched past its
+        // content, keeps its corners, and has no positioned internals.
         const layout = await sheet.evaluate((el) => {
           const panel = el as HTMLElement;
           const wrapper = panel.parentElement!;
+          const content = panel.lastElementChild as HTMLElement;
           return {
             fillsWrapper:
               panel.offsetWidth === wrapper.offsetWidth &&
               panel.offsetHeight === wrapper.offsetHeight,
+            notStretched:
+              content.offsetHeight === (content.firstElementChild as HTMLElement).offsetHeight,
             radius: getComputedStyle(panel).borderTopLeftRadius,
             positionedDescendants: [...panel.querySelectorAll('*')].filter((child) => {
               const style = getComputedStyle(child);
@@ -381,11 +391,24 @@ test.describe('BottomSheet layout safety', () => {
             }).length,
           };
         });
-        expect(layout).toEqual({ fillsWrapper: true, radius: '28px', positionedDescendants: 0 });
-        // Collapsed to its 56px peek at the bottom of the region, with the handle on top.
-        const frame = await rect(page.getByTestId('layout'));
+        expect(layout).toEqual({
+          fillsWrapper: true,
+          notStretched: true,
+          radius: '28px',
+          positionedDescendants: 0,
+        });
+        // Collapsed to its 56px peek at the bottom of the region (or of the outermost element
+        // where the override places it), with the handle on top. A transform rotates the
+        // boxes, so the edges are checked without one.
         const wrapper = sheet.locator('..');
-        expect((await rect(wrapper)).y).toBe(frame.bottom - 56);
+        const bottomEdge = async () =>
+          (
+            await rect(
+              PLACING.includes(override) ? wrapper.locator('..') : page.getByTestId('layout'),
+            )
+          ).bottom;
+        const rotated = override === 'transform';
+        if (!rotated) expect((await rect(wrapper)).y).toBe((await bottomEdge()) - 56);
         const handle = page.getByRole('button', { name: 'Expand sheet' });
         expect(
           await handle.evaluate((el) => {
@@ -401,7 +424,7 @@ test.describe('BottomSheet layout safety', () => {
         await handle.click();
         await expect(sheet).toHaveAttribute('data-detent', 'expanded');
         await settle(page);
-        expect((await rect(wrapper)).bottom).toBe(frame.bottom);
+        if (!rotated) expect((await rect(wrapper)).bottom).toBe(await bottomEdge());
       });
     }
   }

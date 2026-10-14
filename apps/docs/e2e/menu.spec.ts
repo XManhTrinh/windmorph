@@ -427,7 +427,12 @@ test.describe('Menu layout safety', () => {
       expect(panel.width).toBeGreaterThanOrEqual(112);
       expect(panel.width).toBeLessThanOrEqual(280);
     }
-    expect((await box(menu.getByRole('menuitem', { name: 'Delete' }))).height).toBe(44);
+    // Layout height: a rotate transform enlarges the on-screen box.
+    expect(
+      await menu
+        .getByRole('menuitem', { name: 'Delete' })
+        .evaluate((el) => (el as HTMLElement).offsetHeight),
+    ).toBe(44);
     if (anchored) await expectAnchored(menu, target, 0);
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
@@ -450,7 +455,8 @@ test.describe('Menu layout safety', () => {
     },
   });
 
-  // A layout class on the menu (`className`) leaves it visible, sized and keyboard-usable.
+  // A layout class on the menu (`className`, on its outermost element, the box React Aria
+  // places) leaves it visible, sized and keyboard-usable.
   for (const override of OVERRIDES) {
     test(`panel · ${override}`, async ({ page }) => {
       await openStory(page, 'components-menu--layout-override', {}, { override, part: 'panel' });

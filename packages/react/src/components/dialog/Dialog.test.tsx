@@ -247,11 +247,26 @@ describe('Dialog', () => {
     expect(scope).toHaveAttribute('data-mode', 'dark');
   });
 
-  it('puts className, style and data-* on the panel', async () => {
-    render(<DeleteDialog className="max-w-[400px]" style={{ padding: 32 }} />);
+  it('puts className and style on the outermost element, and data-* on the panel', async () => {
+    render(
+      <DeleteDialog
+        className="static"
+        style={{ padding: 32 }}
+        classNames={{ panel: 'max-w-[400px]' }}
+      />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const panel = screen.getByTestId('panel');
     expect(panel).toBe(screen.getByRole('alertdialog'));
+    // The outermost element: the scrim's sibling, around the positioner. Its inline
+    // placement keeps it over the window whatever the class.
+    const root = panel.parentElement!.parentElement!.parentElement!;
+    expect(root.previousElementSibling).toHaveAttribute('aria-hidden', 'true');
+    expect(root).toHaveClass('static', 'z-(--md-sys-z-dialog)');
+    expect(root).toHaveStyle({ padding: '32px', position: 'fixed', inset: '0px' });
+    expect(panel.parentElement!.parentElement).toHaveClass('fixed', 'inset-0', 'flex');
+    expect(panel).not.toHaveClass('static');
+    expect(panel).not.toHaveStyle({ padding: '32px' });
     expect(panel).toHaveClass(
       'max-w-[400px]',
       'bg-[var(--_md-comp-dialog-container-color)]',
@@ -260,7 +275,6 @@ describe('Dialog', () => {
     );
     expect(panel).toHaveAttribute('data-tokens', 'md-comp-dialog');
     expect(panel).not.toHaveClass('max-w-[560px]');
-    expect(panel).toHaveStyle({ padding: '32px' });
   });
 
   it('paints the icon, title and content from the token classes', async () => {
@@ -277,7 +291,9 @@ describe('Dialog', () => {
 
   it('lets consumer classes replace the token classes', async () => {
     render(
-      <DeleteDialog className="bg-surface-container rounded-corner-large shadow-elevation-1" />,
+      <DeleteDialog
+        classNames={{ panel: 'bg-surface-container rounded-corner-large shadow-elevation-1' }}
+      />,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const panel = screen.getByTestId('panel');

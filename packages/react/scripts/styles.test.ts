@@ -94,6 +94,18 @@ describe('styles.css', () => {
     expect(rule(css, '.focus-ring')).toContain('outline');
   });
 
+  it("resets an overlay box's insets outside the utilities layer, so a consumer inset loses", () => {
+    expect(rule(css, '[data-overlay-placement]')).toContain('inset: auto');
+    const at = css.indexOf('[data-overlay-placement]');
+    // Not inside any block (a `@layer` above all), so it sits outside the layers.
+    const open: string[] = [];
+    for (const match of css.slice(0, at).matchAll(/@layer[^{;]*\{|\{|\}/g)) {
+      if (match[0] === '}') open.pop();
+      else open.push(match[0]);
+    }
+    expect(open).toEqual([]);
+  });
+
   it('registers the animatable state-layer properties', () => {
     expect(css).toContain('@property --m3-state-opacity');
     expect(css).toContain('@property --m3-ripple-radius');

@@ -51,13 +51,17 @@ export const persistentScrollbar = [
 /** Variant definitions for {@link Menu} and its parts. */
 export const menuStyles = tv({
   slots: {
+    // The outermost element, which React Aria places (inline `position` and insets) and which
+    // takes the consumer's `className` and `style`.
     popover: 'z-(--md-sys-z-menu)',
     // The menu's enter and exit: revealed from its anchored edge with a clip (24px of room
     // for the shadows) as it fades in. M3 motion avoids scale, and a clip leaves the items'
     // layout untouched, so a submenu opened mid-animation is placed against its item's final
     // position. It also passes the popover's maximum height down, so a long list scrolls.
+    // `w-max` keeps the menu's own width whatever width a consumer class gives the popover
+    // (whose insets only React Aria sets: `data-overlay-placement`, styles/utilities.css).
     reveal: [
-      'flex max-h-[inherit] flex-col opacity-100 [clip-path:inset(-24px)]',
+      'flex max-h-[inherit] w-max flex-col opacity-100 [clip-path:inset(-24px)]',
       '[transition-property:opacity,clip-path]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',

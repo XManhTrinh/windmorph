@@ -325,7 +325,7 @@ export function FabMenu({
             offset={4}
             aria-label={ariaLabel}
             aria-labelledby={ariaLabelledBy}
-            className={styles.menu({ class: classNames?.menu })}
+            classNames={{ panel: styles.menu({ class: classNames?.menu }) }}
           >
             {items.map((item) => (
               <MenuItem

@@ -128,11 +128,13 @@ describe('Tooltip', () => {
     );
   });
 
-  it('lets consumer classes replace the token classes', async () => {
+  it('lets consumer panel classes replace the token classes', async () => {
     render(
       <TooltipTrigger defaultOpen>
         <IconButton icon={<svg />} aria-label="Favourite" />
-        <Tooltip className="bg-primary text-on-primary rounded-corner-small">Add</Tooltip>
+        <Tooltip classNames={{ panel: 'bg-primary text-on-primary rounded-corner-small' }}>
+          Add
+        </Tooltip>
       </TooltipTrigger>,
     );
     const tooltip = await screen.findByRole('tooltip');
@@ -142,6 +144,37 @@ describe('Tooltip', () => {
       'text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
       'rounded-[var(--_md-comp-plain-tooltip-container-shape)]',
     );
+  });
+
+  it('puts className on the placed outermost element; the surface keeps its size', async () => {
+    render(
+      <>
+        <TooltipTrigger defaultOpen>
+          <IconButton icon={<svg />} aria-label="Favourite" />
+          <Tooltip className="fixed right-4 bottom-4">Add</Tooltip>
+        </TooltipTrigger>
+        <RichTooltipTrigger defaultOpen persistent>
+          <Button>Info</Button>
+          <RichTooltip title="Grouped tabs" className="static w-full">
+            Tabs stay together.
+          </RichTooltip>
+        </RichTooltipTrigger>
+      </>,
+    );
+    const plain = await screen.findByRole('tooltip');
+    const rich = screen.getByRole('dialog', { name: 'Grouped tabs' });
+    for (const [panel, layout] of [
+      [plain, ['fixed', 'right-4', 'bottom-4']],
+      [rich, ['static', 'w-full']],
+    ] as const) {
+      const positioner = panel.parentElement!;
+      expect(positioner).toHaveClass(...layout);
+      // React Aria places the outermost element; the surface has no inset of its own.
+      expect(positioner.style.position).toBe('absolute');
+      expect(panel).not.toHaveClass(...layout);
+      expect(panel).toHaveClass('relative', 'w-max');
+      expect(panel.style.position).toBe('');
+    }
   });
 
   it('takes its default placement from TooltipPlacementContext; its own placement wins', async () => {

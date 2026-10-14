@@ -429,7 +429,7 @@ function OverflowMenu({
           selectionMode={menuSelectionMode}
           selectedKeys={selected}
           disabledKeys={disabledKeys}
-          className={classNames?.overflowMenu}
+          classNames={{ panel: classNames?.overflowMenu }}
           onAction={(key) => {
             elementAt(String(key))?.click();
             // The button updates once this event is handled.

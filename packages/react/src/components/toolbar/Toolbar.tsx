@@ -515,7 +515,7 @@ export function ToolbarFab({
   return (
     <TooltipTrigger>
       {fab}
-      <LazyTooltip className={classNames?.tooltip}>{label}</LazyTooltip>
+      <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

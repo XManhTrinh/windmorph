@@ -237,10 +237,11 @@ export const Open: Story = {
 
 /**
  * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
- * trigger`) or on the tooltip (`className`, `part: panel`), for a plain tooltip on an icon
- * button or a persistent rich tooltip on a button, inside an optional transformed ancestor.
- * The trigger keeps its size, corners, state layer, presses and focus ring; the tooltip
- * still shows 4px from it in the window and keeps its size and corners.
+ * trigger`) or on the tooltip (`className`, which goes on its outermost element; `part:
+ * panel`), for a plain tooltip on an icon button or a persistent rich tooltip on a button,
+ * inside an optional transformed ancestor. The trigger keeps its size, corners, state
+ * layer, presses and focus ring; the tooltip still shows 4px from it in the window and
+ * keeps its size and corners.
  */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;

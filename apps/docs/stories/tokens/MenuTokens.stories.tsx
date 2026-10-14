@@ -13,7 +13,7 @@ function Sample({ label, className }: { label: string; className?: string }) {
         selectionMode="single"
         defaultSelectedKeys={['send']}
         placement="end top"
-        className={className}
+        classNames={{ panel: className }}
       >
         <MenuGroup aria-label="Actions">
           <MenuItem key="edit" leadingIcon={<EditIcon />} trailingIcon={<ArrowIcon />}>

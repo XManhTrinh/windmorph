@@ -505,7 +505,8 @@ test.describe('Dialog layout safety', () => {
     },
   });
 
-  // A layout class on the panel (`className`) leaves it visible, sized and focusable.
+  // A layout class on the dialog (`className`, on its outermost element) leaves the panel
+  // visible, sized and focusable.
   for (const override of OVERRIDES) {
     test(`panel · ${override}`, async ({ page }) => {
       await page.setViewportSize({ width: 1024, height: 760 });

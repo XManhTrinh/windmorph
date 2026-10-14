@@ -19,7 +19,6 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
-import { cn } from '../../utils/cn';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { sideSheetStyles } from './sheet-styles';
@@ -27,7 +26,7 @@ import { SheetTriggerContext } from './SheetTrigger';
 
 export interface SideSheetClassNames {
   scrim?: string;
-  /** The sheet's surface. A standard sheet's `className` stays on its outer layout box. */
+  /** The sheet's surface: its colour, corners, width and shadow. */
   panel?: string;
   header?: string;
   backButton?: string;
@@ -88,6 +87,13 @@ interface SideSheetOwnProps {
   labels?: Partial<SideSheetLabels>;
   children?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
   classNames?: SideSheetClassNames;
+  /**
+   * Goes with `style` on the outermost element, the box that places the sheet, so a layout class
+   * moves the whole sheet and never clips or stretches its surface. Style the surface with
+   * `classNames.panel`; `ref`, `data-*` and other attributes go on the panel (a standard
+   * sheet's are on its outer box).
+   */
+  className?: string;
 }
 
 type Naming =
@@ -298,21 +304,22 @@ function ModalSideSheet({
         className={styles.scrim({ class: body.classNames?.scrim })}
       />
       <div {...underlayProps} className="fixed inset-0 z-(--md-sys-z-sheet)">
-        <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
-          <div
-            {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
-            ref={panelRef}
-            style={style}
-            // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
-            data-tokens="md-comp-sheet-side"
-            data-variant="modal"
-            data-detached={detached || undefined}
-            data-exiting={exiting}
-            className={styles.panel({ class: cn(body.classNames?.panel, className) })}
-          >
-            <TriggerContext value={null}>
-              <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
-            </TriggerContext>
+        <div style={style} className={styles.container({ class: className })}>
+          <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
+            <div
+              {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
+              ref={panelRef}
+              // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
+              data-tokens="md-comp-sheet-side"
+              data-variant="modal"
+              data-detached={detached || undefined}
+              data-exiting={exiting}
+              className={styles.panel({ class: body.classNames?.panel })}
+            >
+              <TriggerContext value={null}>
+                <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
+              </TriggerContext>
+            </div>
           </div>
         </div>
       </div>

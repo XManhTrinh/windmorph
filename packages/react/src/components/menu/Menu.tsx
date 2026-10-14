@@ -171,6 +171,11 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 ) => JSX.Element;
 
 export interface MenuClassNames {
+  /**
+   * The menu's surface (the `menu` element): its colour, corners, size and the list that
+   * scrolls. In a sheet it spans the sheet, without a surface of its own.
+   */
+  panel?: string;
   group?: string;
   /** Each `MenuGroup`'s heading. */
   heading?: string;
@@ -235,6 +240,11 @@ export interface MenuProps extends Omit<
    * @default false
    */
   instant?: boolean;
+  /**
+   * Goes with `style` on the menu's outermost element: the box React Aria places against the
+   * trigger, or the bottom sheet's outermost element in a sheet. The surface inside keeps
+   * its size whatever layout class lands here; style it with `classNames.panel`.
+   */
   className?: string;
   classNames?: MenuClassNames;
   style?: CSSProperties;
@@ -311,6 +321,8 @@ function MenuSheet({
   offset: _offset,
   variant = 'standard',
   labels,
+  className,
+  style,
   ...props
 }: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -326,6 +338,8 @@ function MenuSheet({
       {...naming}
       open={trigger.state.isOpen}
       onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
+      className={className}
+      style={style}
     >
       <div ref={setContainer} className={menuStyles().sheetContent()}>
         <TriggerContext value={null}>
@@ -413,6 +427,8 @@ function MenuPopover({
   layout = 'divider',
   variant = 'standard',
   labels,
+  className,
+  style,
   ...props
 }: Omit<MenuProps, 'presentation' | 'instant'> & {
   trigger: MenuTriggerContextValue;
@@ -474,7 +490,15 @@ function MenuPopover({
   return (
     <>
       <div {...underlayProps} className="fixed inset-0" />
-      <div {...popoverProps} ref={setPopover} className={styles.popover()}>
+      <div
+        {...popoverProps}
+        ref={setPopover}
+        // React Aria's placement wins over a consumer style's and, through the attribute
+        // (styles/utilities.css), over consumer inset classes.
+        style={{ ...style, ...popoverProps.style }}
+        data-overlay-placement=""
+        className={styles.popover({ class: className })}
+      >
         <DismissButton onDismiss={trigger.state.close} />
         <div
           {...exitProps}
@@ -547,7 +571,7 @@ function toGroups(nodes: Node<object>[]): (Node<object> | Node<object>[])[] {
 
 type MenuListProps = Omit<
   MenuProps,
-  'placement' | 'layout' | 'variant' | 'presentation' | 'instant'
+  'placement' | 'layout' | 'variant' | 'presentation' | 'instant' | 'className' | 'style'
 > &
   Pick<AriaMenuOptions<object>, 'onClose' | 'autoFocus' | 'onKeyDown' | 'onKeyUp'> & {
     layout: MenuLayout;
@@ -583,9 +607,7 @@ function MenuList({
   layout: requestedLayout,
   density = 0,
   level,
-  className,
   classNames,
-  style,
   listRef,
   embedded = false,
   ...props
@@ -629,12 +651,12 @@ function MenuList({
         },
       })}
       ref={ref}
-      style={{ ...style, ...(density ? { '--m3-menu-density': density } : null) }}
+      style={density ? ({ '--m3-menu-density': density } as CSSProperties) : undefined}
       data-tokens="md-comp-menus"
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
-      className={styles.menu({ class: className })}
+      className={styles.menu({ class: classNames?.panel })}
     >
       <MenuListContext value={ref}>
         {groups.map((group, index) => {
@@ -975,12 +997,19 @@ function SubmenuPopoverContent({
     },
     state,
   );
-  const own = submenu.props;
+  const { className, style, ...own } = submenu.props;
   const styles = menuStyles();
   return (
     // `w-max`: positioned inside the narrower root popover, it would otherwise shrink to fit
-    // what's left of that popover's width and wrap every label.
-    <div {...positionProps} ref={popoverRef} className={cn(styles.popover(), 'w-max')}>
+    // what's left of that popover's width and wrap every label. Like the root menu's, the
+    // submenu's `className` and `style` go on this outermost element.
+    <div
+      {...positionProps}
+      ref={popoverRef}
+      style={{ ...style, ...positionProps.style }}
+      data-overlay-placement=""
+      className={styles.popover({ class: cn('w-max', className) })}
+    >
       <div
         {...exitProps}
         data-exiting={isExiting || undefined}

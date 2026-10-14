@@ -461,7 +461,8 @@ test.describe('Tooltip layout safety', () => {
   });
 
   for (const override of OVERRIDES) {
-    // A layout class on the plain tooltip (`className`).
+    // A layout class on the plain tooltip (`className`, on its outermost element): the
+    // surface keeps its size and corners.
     test(`plain panel · ${override}`, async ({ page }) => {
       await openStory(
         page,
@@ -474,7 +475,7 @@ test.describe('Tooltip layout safety', () => {
       await expectPlain(page, override, !POSITIONING_OVERRIDES.includes(override));
     });
 
-    // A layout class on the rich tooltip (`className`).
+    // A layout class on the rich tooltip (`className`, on its outermost element).
     test(`rich panel · ${override}`, async ({ page }) => {
       await openStory(
         page,

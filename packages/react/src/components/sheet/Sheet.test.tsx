@@ -29,15 +29,29 @@ describe('BottomSheet', () => {
     const { baseElement } = render(
       <SheetTrigger>
         <Button>Share</Button>
-        <BottomSheet aria-label="Share options" className="custom">
+        <BottomSheet
+          aria-label="Share options"
+          className="custom"
+          style={{ outline: '1px solid' }}
+          classNames={{ panel: 'panel-x' }}
+        >
           <p>Contents</p>
         </BottomSheet>
       </SheetTrigger>,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Share' }));
     const dialog = screen.getByRole('dialog', { name: 'Share options' });
+    // `className` and `style` go on the outermost container, around the layer that moves.
+    const container = dialog.parentElement!.parentElement!;
+    expect(container).toHaveClass('custom', 'fixed', 'bottom-0', 'items-end');
+    expect(container).toHaveStyle({ outline: '1px solid' });
+    expect(dialog.parentElement).not.toHaveClass('custom');
+    expect(dialog.parentElement!.className).toContain('translate-y-(--m3-sheet-offset)');
+    expect(container.className).not.toContain('translate');
+    expect(dialog).not.toHaveClass('custom');
+    expect(dialog).not.toHaveStyle({ outline: '1px solid' });
     expect(dialog).toHaveClass(
-      'custom',
+      'panel-x',
       'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
       'bg-[var(--_md-comp-sheet-bottom-docked-container-color)]',
     );
@@ -47,7 +61,7 @@ describe('BottomSheet', () => {
     );
     expect(dialog).toHaveAttribute('data-tokens', 'md-comp-sheet-bottom-docked');
     expect(dialog).toHaveAttribute('data-variant', 'modal');
-    expect(dialog.parentElement).toHaveClass(
+    expect(container).toHaveClass(
       'max-w-[640px]',
       'bottom-0',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
@@ -181,7 +195,7 @@ describe('BottomSheet', () => {
     expect(container).toContainElement(sheet);
     expect(sheet).not.toHaveAttribute('aria-modal');
     expect(document.querySelector('.bg-scrim\\/32')).toBe(null);
-    expect(sheet.parentElement).toHaveClass('z-(--md-sys-z-sticky)');
+    expect(sheet.parentElement!.parentElement).toHaveClass('z-(--md-sys-z-sticky)');
     expect(sheet).toHaveAttribute('data-detent', 'collapsed');
     expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('320px');
     // The page stays usable: focus is not moved into the sheet.
@@ -359,7 +373,7 @@ describe('SideSheet', () => {
     expect(screen.getByRole('dialog', { name: 'Details' })).not.toHaveClass('panel-x');
     expect(document.querySelector('[data-slot="drag-handle"]')).toHaveClass('bar-x');
     // A consumer position replaces the default `fixed` (e.g. inside a bounded region).
-    const container = screen.getByRole('dialog', { name: 'Player' }).parentElement!;
+    const container = screen.getByRole('dialog', { name: 'Player' }).parentElement!.parentElement!;
     expect(container).toHaveClass('absolute');
     expect(container).not.toHaveClass('fixed');
   });
@@ -387,11 +401,15 @@ describe('SideSheet', () => {
         <BottomSheet
           aria-label="Bottom"
           defaultOpen
-          className="bg-surface-container rounded-t-corner-large shadow-elevation-3"
+          classNames={{ panel: 'bg-surface-container rounded-t-corner-large shadow-elevation-3' }}
         >
           Bottom
         </BottomSheet>
-        <SideSheet title="Side" defaultOpen className="bg-surface-container rounded-s-corner-small">
+        <SideSheet
+          title="Side"
+          defaultOpen
+          classNames={{ panel: 'bg-surface-container rounded-s-corner-small' }}
+        >
           Side
         </SideSheet>
       </>,
@@ -413,5 +431,23 @@ describe('SideSheet', () => {
       'bg-[var(--_md-comp-sheet-side-container-color)]',
       'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
     );
+  });
+
+  it("puts a modal side sheet's className and style on its outermost element", () => {
+    render(
+      <SideSheet title="Filters" defaultOpen className="absolute" style={{ outline: '1px solid' }}>
+        Filters
+      </SideSheet>,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Filters' });
+    const container = dialog.parentElement!.parentElement!;
+    expect(container).toHaveClass('absolute', 'end-0', 'inset-y-0');
+    expect(container).not.toHaveClass('fixed');
+    expect(container).toHaveStyle({ outline: '1px solid' });
+    expect(container.className).not.toContain('translate');
+    // The layer inside moves the sheet.
+    expect(dialog.parentElement!.className).toContain('starting:translate-x-full');
+    expect(dialog).not.toHaveClass('absolute');
+    expect(dialog).not.toHaveStyle({ outline: '1px solid' });
   });
 });

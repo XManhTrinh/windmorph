@@ -25,7 +25,7 @@ export function DialogDividers() {
   return (
     <DialogTrigger onOpenChange={(open) => open && setChoice('')}>
       <Button variant="tonal">Phone ringtone</Button>
-      <Dialog className="max-h-[70vh]">
+      <Dialog classNames={{ panel: 'max-h-[70vh]' }}>
         {({ close }) => (
           <>
             <DialogTitle>Phone ringtone</DialogTitle>

@@ -179,9 +179,19 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   // Containment & overlays. Card and Divider export no `*ClassNames`, so they are omitted.
   Dialog: ['scrim', 'positioner', 'panel', 'icon'],
   DialogHeader: ['root', 'close', 'title'],
-  Menu: ['group', 'heading', 'item', 'icon', 'description', 'shortcut', 'trailingIcon', 'divider'],
-  Tooltip: ['root', 'caret'],
-  RichTooltip: ['root', 'title', 'text', 'actions', 'caret'],
+  Menu: [
+    'panel',
+    'group',
+    'heading',
+    'item',
+    'icon',
+    'description',
+    'shortcut',
+    'trailingIcon',
+    'divider',
+  ],
+  Tooltip: ['panel', 'caret'],
+  RichTooltip: ['panel', 'title', 'text', 'actions', 'caret'],
   BottomSheet: [
     'container',
     'scrim',

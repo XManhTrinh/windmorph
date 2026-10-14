@@ -357,8 +357,8 @@ export const TimeLayoutOverride: StoryObj<{
 
 /**
  * Layout safety (architecture §10) for `PickerDialog`: a consumer layout class on the
- * button that opens it (`part: trigger`) or on the dialog panel (`className`, `part:
- * panel`), inside an optional transformed ancestor. The dialog still opens in the window,
+ * button that opens it (`part: trigger`) or on the dialog (`className`, which goes on its
+ * outermost element; `part: panel`), inside an optional transformed ancestor. The dialog still opens in the window,
  * keeps its width and corners, holds focus, and returns it to the button.
  */
 export const DialogLayoutOverride: StoryObj<{

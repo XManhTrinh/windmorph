@@ -56,11 +56,18 @@ const sheetMotion = [
 export const bottomSheetStyles = tv({
   slots: {
     scrim,
-    // Library-owned wrapper that positions and moves the sheet.
-    motion: [
-      'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px]',
+    // The outermost element, which places the sheet and takes the consumer's `className` and
+    // `style`. The sheet sits at its bottom (`items-end`), so a consumer inset that stretches
+    // it (`top-24` with the library's `bottom-0`) never stretches the sheet.
+    container: [
+      'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px] items-end',
       'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
+    ],
+    // Library-owned layer that moves the sheet, inside the container, so the motion never
+    // animates the outermost element's `translate` (architecture §10 rule 4).
+    motion: [
+      'flex w-full',
       'translate-y-(--m3-sheet-offset) starting:translate-y-full data-exiting:translate-y-[112%]',
       ...sheetMotion,
     ],
@@ -89,7 +96,7 @@ export const bottomSheetStyles = tv({
     variant: {
       modal: {},
       // Over the page without a scrim, below every overlay; the page stays usable around it.
-      standard: { motion: 'z-(--md-sys-z-sticky)' },
+      standard: { container: 'z-(--md-sys-z-sticky)' },
     },
   },
   defaultVariants: { variant: 'modal' },
@@ -101,8 +108,13 @@ export type BottomSheetStyleProps = VariantProps<typeof bottomSheetStyles>;
 export const sideSheetStyles = tv({
   slots: {
     scrim,
+    // A modal sheet's outermost element, which places it and takes the consumer's
+    // `className` and `style`.
+    container: 'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+    // Library-owned layer that moves a modal sheet, inside the container (architecture §10
+    // rule 4); it holds a detached sheet's 16px margins, so the exit clears them.
     motion: [
-      'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+      'flex min-w-0',
       'translate-x-0 starting:translate-x-full data-exiting:translate-x-[112%]',
       'rtl:starting:-translate-x-full rtl:data-exiting:-translate-x-[112%]',
       ...sheetMotion,

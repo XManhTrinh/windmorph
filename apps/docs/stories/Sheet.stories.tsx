@@ -152,7 +152,7 @@ export const Side: StoryObj<{
         onBack={back ? () => undefined : undefined}
         footer={footer}
         footerDivider
-        className={widePanel ? 'w-[480px]' : undefined}
+        classNames={widePanel ? { panel: 'w-[480px]' } : undefined}
         data-testid="sheet"
       >
         <p className="text-body-medium text-on-surface-variant">
@@ -234,8 +234,9 @@ export const LayoutOverride: StoryObj<{
 
 /**
  * Layout safety (architecture §10) for the bottom sheet: a consumer layout class on a
- * standard bottom sheet (`className`, on the panel) placed in a bounded region, inside an
- * optional transformed ancestor.
+ * standard bottom sheet placed in a bounded region (`className`, which goes on its
+ * outermost element, the container that `classNames.container` places in the region),
+ * inside an optional transformed ancestor.
  */
 export const BottomLayoutOverride: StoryObj<{
   override: LayoutOverrideName;

@@ -34,7 +34,11 @@ export const Probe: StoryObj = {
       override={{
         token: '--md-comp-sheet-bottom-docked-container-color',
         children: (
-          <BottomSheet aria-label="Override" defaultOpen className="bg-surface-container">
+          <BottomSheet
+            aria-label="Override"
+            defaultOpen
+            classNames={{ panel: 'bg-surface-container' }}
+          >
             <Body>Override</Body>
           </BottomSheet>
         ),

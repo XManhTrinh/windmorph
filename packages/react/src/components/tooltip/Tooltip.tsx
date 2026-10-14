@@ -35,7 +35,6 @@ import {
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
-import { cn } from '../../utils/cn';
 import { tabbables } from '../../utils/focus';
 import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
 import { TooltipPlacementContext, type TooltipPlacement } from './tooltip-placement';
@@ -119,7 +118,8 @@ function caretStyle(placement: string, arrow: HTMLAttributes<HTMLElement>) {
 /* ------------------------------------------------------------------ Plain */
 
 export interface TooltipClassNames {
-  root?: string;
+  /** The visible surface: its colour, corners, padding and size. */
+  panel?: string;
   caret?: string;
 }
 
@@ -127,6 +127,11 @@ export interface TooltipProps {
   children: ReactNode;
   /** Draw a 16×8px caret pointing at the anchor. */
   caret?: boolean;
+  /**
+   * Goes on the outermost element, which React Aria places against the anchor; the surface
+   * inside keeps its size whatever layout class lands here. Style the surface with
+   * `classNames.panel`.
+   */
   className?: string;
   classNames?: TooltipClassNames;
 }
@@ -172,22 +177,29 @@ function TooltipPopup({
   const styles = tooltipStyles();
   return (
     <div
-      {...mergeProps(overlayProps, tooltipProps, exitProps)}
+      {...overlayProps}
       ref={overlayRef}
-      // The component tokens' hook (tooltip-tokens.ts).
-      data-tokens="md-comp-plain-tooltip"
-      data-placement={side}
-      data-exiting={isExiting || undefined}
-      className={styles.root({ class: cn(classNames?.root, className) })}
+      // Only React Aria's insets apply (styles/utilities.css).
+      data-overlay-placement=""
+      className={styles.positioner({ class: className })}
     >
-      {children}
-      {caret && (
-        <span
-          aria-hidden="true"
-          style={caretStyle(side, arrowProps)}
-          className={styles.caret({ class: classNames?.caret })}
-        />
-      )}
+      <div
+        {...mergeProps(tooltipProps, exitProps)}
+        // The component tokens' hook (tooltip-tokens.ts).
+        data-tokens="md-comp-plain-tooltip"
+        data-placement={side}
+        data-exiting={isExiting || undefined}
+        className={styles.panel({ class: classNames?.panel })}
+      >
+        {children}
+        {caret && (
+          <span
+            aria-hidden="true"
+            style={caretStyle(side, arrowProps)}
+            className={styles.caret({ class: classNames?.caret })}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -289,7 +301,8 @@ function TransientRichTrigger({
 }
 
 export interface RichTooltipClassNames {
-  root?: string;
+  /** The visible surface: its colour, corners, padding, size and shadow. */
+  panel?: string;
   title?: string;
   text?: string;
   actions?: string;
@@ -306,6 +319,11 @@ export interface RichTooltipProps {
   /** Name of a persistent tooltip when there is no `title`. */
   'aria-label'?: string;
   caret?: boolean;
+  /**
+   * Goes on the outermost element, which React Aria places against the anchor; the surface
+   * inside keeps its size whatever layout class lands here. Style the surface with
+   * `classNames.panel`.
+   */
   className?: string;
   classNames?: RichTooltipClassNames;
 }
@@ -397,7 +415,8 @@ function PersistentRichPopup({
       {...props}
       ref={popoverRef}
       titleId={titleId}
-      domProps={mergeProps(popoverProps, dialogProps, context.overlayProps, exitProps)}
+      positionProps={popoverProps}
+      domProps={mergeProps(dialogProps, context.overlayProps, exitProps)}
       placement={revealSide(placement, requested)}
       arrowProps={arrowProps}
       isExiting={isExiting}
@@ -489,7 +508,8 @@ function TransientRichPopup({
       {...props}
       ref={overlayRef}
       titleId={titleId}
-      domProps={mergeProps(overlayProps, tooltipProps, focusProps, exitProps)}
+      positionProps={overlayProps}
+      domProps={mergeProps(tooltipProps, focusProps, exitProps)}
       placement={revealSide(placement, requested)}
       arrowProps={arrowProps}
       isExiting={isExiting}
@@ -506,6 +526,7 @@ function RichBody({
   classNames,
   ref,
   titleId,
+  positionProps,
   domProps,
   placement,
   arrowProps,
@@ -513,6 +534,9 @@ function RichBody({
 }: RichTooltipProps & {
   ref: RefObject<HTMLDivElement | null>;
   titleId: string;
+  /** React Aria's placement, for the outermost element. */
+  positionProps: HTMLAttributes<HTMLElement>;
+  /** The surface's role, naming, focus and exit props. */
   domProps: HTMLAttributes<HTMLElement>;
   placement: string;
   arrowProps: HTMLAttributes<HTMLElement>;
@@ -521,36 +545,42 @@ function RichBody({
   const styles = richTooltipStyles({ subhead: title != null, action: action != null });
   return (
     <div
-      {...domProps}
+      {...positionProps}
       ref={ref}
-      // The component tokens' hook (tooltip-tokens.ts).
-      data-tokens="md-comp-rich-tooltip"
-      data-placement={placement}
-      data-exiting={isExiting || undefined}
-      className={styles.root({ class: cn(classNames?.root, className) })}
+      data-overlay-placement=""
+      className={styles.positioner({ class: className })}
     >
-      {title != null && (
-        <div
-          id={titleId}
-          data-slot="subhead"
-          className={styles.title({ class: classNames?.title })}
-        >
-          {title}
+      <div
+        {...domProps}
+        // The component tokens' hook (tooltip-tokens.ts).
+        data-tokens="md-comp-rich-tooltip"
+        data-placement={placement}
+        data-exiting={isExiting || undefined}
+        className={styles.panel({ class: classNames?.panel })}
+      >
+        {title != null && (
+          <div
+            id={titleId}
+            data-slot="subhead"
+            className={styles.title({ class: classNames?.title })}
+          >
+            {title}
+          </div>
+        )}
+        <div data-slot="text" className={styles.text({ class: classNames?.text })}>
+          {children}
         </div>
-      )}
-      <div data-slot="text" className={styles.text({ class: classNames?.text })}>
-        {children}
+        {action != null && (
+          <div className={styles.actions({ class: classNames?.actions })}>{action}</div>
+        )}
+        {caret && (
+          <span
+            aria-hidden="true"
+            style={caretStyle(placement, arrowProps)}
+            className={styles.caret({ class: classNames?.caret })}
+          />
+        )}
       </div>
-      {action != null && (
-        <div className={styles.actions({ class: classNames?.actions })}>{action}</div>
-      )}
-      {caret && (
-        <span
-          aria-hidden="true"
-          style={caretStyle(placement, arrowProps)}
-          className={styles.caret({ class: classNames?.caret })}
-        />
-      )}
     </div>
   );
 }

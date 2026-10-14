@@ -632,7 +632,7 @@ test.describe('PickerDialog layout safety', () => {
     },
   });
 
-  // A layout class on the panel (`className`).
+  // A layout class on the dialog (`className`, on its outermost element).
   for (const override of OVERRIDES) {
     test(`panel · ${override}`, async ({ page }) => {
       await openStory(

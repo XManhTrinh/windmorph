@@ -261,18 +261,25 @@ describe('PickerDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('lets a consumer class beat the container tokens', () => {
+  it('lets a consumer panel class beat the container tokens, and puts className outermost', () => {
     render(
       <PickerDialog
         aria-label="Select date"
         defaultOpen
-        className="bg-tertiary rounded-corner-small shadow-elevation-1"
+        className="static"
+        classNames={{ panel: 'bg-tertiary rounded-corner-small shadow-elevation-1' }}
         confirmButton={<Button variant="text">OK</Button>}
       >
         <DatePicker defaultValue={march} />
       </PickerDialog>,
     );
     const dialog = screen.getByRole('dialog', { name: 'Select date' });
+    // The outermost element, around the positioner, takes className; its inline placement
+    // keeps it over the window. The panel keeps its own classes.
+    const root = dialog.parentElement!.parentElement!.parentElement!;
+    expect(root).toHaveClass('static');
+    expect(root).toHaveStyle({ position: 'fixed' });
+    expect(dialog).not.toHaveClass('static');
     expect(dialog).toHaveClass('bg-tertiary', 'rounded-corner-small', 'shadow-elevation-1');
     expect(dialog).not.toHaveClass(
       'bg-[var(--_md-comp-date-picker-modal-container-color)]',

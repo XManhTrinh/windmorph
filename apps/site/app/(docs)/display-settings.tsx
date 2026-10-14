@@ -21,7 +21,7 @@ export function DisplaySettingsProvider({ children }: { children: ReactNode }) {
         title="Display"
         open={open}
         onOpenChange={setOpen}
-        className="w-[320px]"
+        classNames={{ panel: 'w-[320px]' }}
         labels={{ close: 'Close display settings' }}
       >
         <ThemeControls />

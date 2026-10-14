@@ -25,6 +25,13 @@ import { tv, type VariantProps } from '../../utils/tv';
  * consumer class (`bg-primary`) still wins; a caret keeps the token colour unless
  * `classNames.caret` sets its own.
  *
+ * Each tooltip is two boxes: a `positioner`, the outermost element, which React Aria places
+ * (its inline `position`, `top` / `left` or `bottom` / `right`) and which takes the consumer's
+ * `className`; and the `panel` inside it, the visible surface. A consumer inset (`bottom-4`)
+ * would combine with React Aria's and stretch the positioner, so the positioner's
+ * `data-overlay-placement` resets every inset React Aria leaves unset (styles/utilities.css);
+ * the panel keeps its natural size either way. The panel is `relative` so the caret follows it.
+ *
  * Baselines are converted to padding from Roboto Flex metrics (the 20px line puts the
  * baseline ~15px down): subhead 13px, text 9px. Every class is written out in full so
  * Tailwind can find it.
@@ -46,8 +53,9 @@ const motion = [
 /** Variant definitions for {@link Tooltip}; extend them to add variants. */
 export const tooltipStyles = tv({
   slots: {
-    root: [
-      'z-(--md-sys-z-tooltip) min-h-[24px] w-max min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
+    positioner: 'z-(--md-sys-z-tooltip)',
+    panel: [
+      'relative min-h-[24px] w-max min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
       'rounded-[var(--_md-comp-plain-tooltip-container-shape)] bg-[var(--_md-comp-plain-tooltip-container-color)]',
       'font-plain text-body-small text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
       ...motion,
@@ -62,8 +70,9 @@ export const tooltipStyles = tv({
 /** Variant definitions for {@link RichTooltip}; extend them to add variants. */
 export const richTooltipStyles = tv({
   slots: {
-    root: [
-      'z-(--md-sys-z-tooltip) flex min-h-[24px] w-max min-w-[40px] max-w-[min(320px,100vw_-_16px)] flex-col px-[16px] outline-none',
+    positioner: 'z-(--md-sys-z-tooltip)',
+    panel: [
+      'relative flex min-h-[24px] w-max min-w-[40px] max-w-[min(320px,100vw_-_16px)] flex-col px-[16px] outline-none',
       'rounded-[var(--_md-comp-rich-tooltip-container-shape)] bg-[var(--_md-comp-rich-tooltip-container-color)]',
       'font-plain text-[color:var(--_md-comp-rich-tooltip-supporting-text-color)]',
       'shadow-[shadow:var(--_md-comp-rich-tooltip-container-elevation)]',
@@ -81,11 +90,11 @@ export const richTooltipStyles = tv({
     subhead: {
       // The text's first baseline 24px below the subhead's.
       true: { text: 'pt-[9px]' },
-      false: { root: 'pt-[12px]' },
+      false: { panel: 'pt-[12px]' },
     },
     action: {
       true: { text: 'pb-[16px]' },
-      false: { root: 'pb-[8px]' },
+      false: { panel: 'pb-[8px]' },
     },
   },
   defaultVariants: { subhead: false, action: false },
