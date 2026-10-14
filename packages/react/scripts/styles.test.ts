@@ -130,6 +130,21 @@ describe('generated CSS', () => {
     expect(tokens).not.toMatch(/--md-sys-typescale-[\w-]+-(size|line-height|tracking): [-\d.]+px;/);
   });
 
+  it('declares the elevation shadows on every theme scope, so they take its shadow colour', () => {
+    const tokens = generateTokensCss();
+    const scoped = rule(tokens, ':root,\n[data-theme] {');
+    for (const level of [0, 1, 2, 3, 4, 5]) {
+      expect(scoped).toContain(`--md-sys-elevation-level-${level}:`);
+    }
+    // The same values as before, read from the shadow colour wherever they're declared.
+    expect(scoped).toContain(
+      '--md-sys-elevation-level-3: 0 1px 3px 0 color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent), 0 4px 8px 3px color-mix(in srgb, var(--md-sys-color-shadow) 15%, transparent);',
+    );
+    expect(scoped).toContain('--md-sys-elevation-level-0: none;');
+    // Only there: not also in the root-only block.
+    expect(tokens.match(/--md-sys-elevation-level-3:/g)).toHaveLength(1);
+  });
+
   it('is deterministic', () => {
     expect(generateTokensCss()).toBe(generateTokensCss());
     expect(generateTailwindThemeCss()).toBe(generateTailwindThemeCss());

@@ -234,6 +234,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
    ```css
    :root, [data-theme] { --md-comp-filled-card-container-color: var(--md-sys-color-secondary-container); }
    ```
+   **Elevation shadows follow the scope** (2026-10-14): `--md-sys-elevation-level-*` mix in `--md-sys-color-shadow`, and a custom property resolves where it is declared, so on `:root` alone a scope's shadow colour was ignored. They are declared on `:root, [data-theme]` like the role values, with the same defaults, so a `ThemeScope` (and an overlay portalled from it) that sets its own shadow colour gets its shadows. Override a level there too.
 3. **Brand theme** — `createTheme({ seed })` or the CLI.
 4. **Restrict the picker** — `<ThemeProvider themes={['baseline','ocean','acme']}>`.
 5. **Subtree** — `<ThemeScope theme="forest" mode="dark">`.

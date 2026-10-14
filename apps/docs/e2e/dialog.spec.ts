@@ -523,3 +523,30 @@ test.describe('Dialog layout safety', () => {
     });
   }
 });
+
+test.describe('Elevation in a ThemeScope', () => {
+  // A scope's shadow colour reaches the elevation shadows, in place (a card) and in an
+  // overlay portalled from the scope (the dialog); outside it they keep the default colour.
+  test('a custom shadow colour changes the shadows inside the scope', async ({ page }) => {
+    await openStory(page, 'tokens-md-sys-elevation--scoped-shadow');
+    const dialog = page.getByRole('dialog', { name: 'Scoped dialog' });
+    await expect(dialog).toBeVisible();
+    await settle(page);
+    const shadow = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).boxShadow);
+    // How the browser writes the key shadow's colour: red at 30%.
+    const red = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.color = 'color-mix(in srgb, rgb(255, 0, 0) 30%, transparent)';
+      document.body.append(probe);
+      const value = getComputedStyle(probe).color;
+      probe.remove();
+      return value;
+    });
+    const plain = await shadow(page.getByTestId('default-card'));
+    const card = await shadow(page.getByTestId('scoped-card'));
+    expect(plain).not.toContain(red);
+    expect(card).toContain(red);
+    expect(card).not.toBe(plain);
+    expect(await shadow(dialog)).toContain(red);
+  });
+});
