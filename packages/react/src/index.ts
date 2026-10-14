@@ -414,6 +414,7 @@ export {
   type TopAppBarTitleAlign,
   type TopAppBarVariant,
 } from './components/app-bar/app-bar-styles';
+export { appBarTokenSet } from './components/app-bar/app-bar-tokens';
 export type { TopAppBarScrollBehavior } from './components/app-bar/use-app-bar-scroll';
 export {
   SearchBar,

@@ -71,12 +71,17 @@ export function SearchAppBar({
     <header
       {...rest}
       ref={rootRef}
+      // The app bar's component tokens (app-bar-tokens.ts).
+      data-tokens="md-comp-app-bar"
       data-scrolled={scroll.scrolled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <AppBarItems>
         {navigationIcon != null && (
-          <div className={styles.navigation({ class: classNames?.navigation })}>
+          <div
+            data-slot="navigation"
+            className={styles.navigation({ class: classNames?.navigation })}
+          >
             {navigationIcon}
           </div>
         )}
@@ -86,7 +91,9 @@ export function SearchAppBar({
           </SearchAppBarContext>
         </div>
         {actions != null && (
-          <div className={styles.actions({ class: classNames?.actions })}>{actions}</div>
+          <div data-slot="actions" className={styles.actions({ class: classNames?.actions })}>
+            {actions}
+          </div>
         )}
       </AppBarItems>
     </header>
