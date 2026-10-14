@@ -568,6 +568,7 @@ export const coreChecks = {
     render: () => <Core.RangeSlider aria-label="Price" defaultValue={[20, 80]} />,
   },
   sliderStyles: { kind: 'value', run: () => Core.sliderStyles() },
+  sliderTokenSet: read(Core.sliderTokenSet),
 
   SheetTrigger: {
     kind: 'component',
