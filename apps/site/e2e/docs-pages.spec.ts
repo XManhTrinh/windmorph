@@ -56,7 +56,9 @@ test.describe('Component page tabs', () => {
     const table = page.getByRole('region', { name: 'BottomSheet props', exact: true });
     const close = table.getByRole('row').filter({ hasText: 'labels.close' });
     await expect(close).toContainText('"Close"');
-    await expect(table.getByRole('row').filter({ hasText: 'classNames.handle' })).toBeVisible();
+    // Exactly `classNames.handle`, not `classNames.handleBar`.
+    const handle = page.getByText('classNames.handle', { exact: true });
+    await expect(table.getByRole('row').filter({ has: handle })).toBeVisible();
   });
 
   test('props are cards on a phone, with no sideways scroll', async ({ page }) => {
