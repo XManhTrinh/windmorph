@@ -566,3 +566,4 @@ export {
   timePickerStyles,
   type TimePickerStyleProps,
 } from './components/time-picker/time-picker-styles';
+export { timePickerTokenSet } from './components/time-picker/time-picker-tokens';

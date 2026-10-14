@@ -33,6 +33,34 @@ describe('TimePicker', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('reads the time picker tokens for the dial, the handle and the selectors', () => {
+    const { container } = render(
+      <TimePicker defaultValue={new Time(14, 5)} hourCycle={12} data-testid="picker" />,
+    );
+    expect(screen.getByTestId('picker')).toHaveAttribute('data-tokens', 'md-comp-time-picker');
+    const hour = screen.getByRole('textbox', { name: 'Hour' });
+    expect(hour).toHaveAttribute('data-slot', 'time-selector');
+    expect(hour).toHaveClass(
+      'bg-[var(--_md-comp-time-picker-time-selector-unselected-container-color)]',
+      'data-selected:bg-[var(--_md-comp-time-picker-time-selector-selected-container-color)]',
+    );
+    expect(screen.getByRole('radiogroup')).toHaveClass(
+      'border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+    );
+    expect(screen.getByRole('radio', { name: 'PM' })).toHaveClass(
+      'data-selected:bg-[var(--_md-comp-time-picker-period-selector-selected-container-color)]',
+    );
+    expect(container.querySelector('[data-slot="clock-dial"]')).toHaveClass(
+      'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
+    );
+    expect(container.querySelector('[data-slot="clock-dial-selector-handle"]')).toHaveClass(
+      'fill-[var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+    );
+    expect(container.querySelector('line')).toHaveClass(
+      'stroke-[color:var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+    );
+  });
+
   it('moves between numbers with arrows; Enter picks the hour and moves on to minutes', async () => {
     const onChange = vi.fn();
     render(<TimePicker defaultValue={new Time(9, 30)} hourCycle={12} onChange={onChange} />);
@@ -160,7 +188,7 @@ describe('TimePicker', () => {
   it('draws the numbers under the handle in on-primary, clipped to the handle', () => {
     const { container } = render(<TimePicker defaultValue={new Time(14, 7)} hourCycle={12} />);
     const clip = container.querySelector('clipPath circle');
-    const handle = container.querySelector('circle.fill-primary[r="24"]');
+    const handle = container.querySelector('[data-slot="clock-dial-selector-handle"]');
     expect(clip?.getAttribute('cx')).toBe(handle?.getAttribute('cx'));
     expect(clip?.getAttribute('cy')).toBe(handle?.getAttribute('cy'));
     const copy = container.querySelector('g[clip-path]');

@@ -180,6 +180,8 @@ export function TimePicker({
       {...data}
       ref={ref}
       style={style}
+      // The time picker's component tokens (time-picker-tokens.ts).
+      data-tokens="md-comp-time-picker"
       data-mode={mode}
       data-layout={resolvedLayout}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -348,6 +350,7 @@ function PeriodGroup({
       aria-label={label}
       dir={direction}
       onKeyDown={onKeyDown}
+      data-slot="period-selector"
       className={styles.period()}
     >
       {[false, true].map((option) => (
@@ -393,6 +396,7 @@ function PeriodOption({
       role="radio"
       aria-checked={selected}
       tabIndex={selected ? 0 : -1}
+      data-slot="period-selector-option"
       data-selected={selected || undefined}
       className={className}
     >
@@ -461,6 +465,7 @@ function NumberField({
       aria-invalid={invalid || undefined}
       maxLength={2}
       value={draft ?? format(value)}
+      data-slot={selector ? 'time-selector' : undefined}
       data-selected={(selector && selected) || undefined}
       data-focus-visible={(selector && isFocusVisible) || undefined}
       data-hovered={(selector && isHovered) || undefined}
@@ -748,7 +753,13 @@ function Dial({
           />
         </clipPath>
       </defs>
-      <circle cx={CENTER} cy={CENTER} r={CENTER} className={styles.dialFace()} />
+      <circle
+        cx={CENTER}
+        cy={CENTER}
+        r={CENTER}
+        data-slot="clock-dial"
+        className={styles.dialFace()}
+      />
       <line
         ref={(element) => {
           hand.current.track = element;
@@ -768,6 +779,7 @@ function Dial({
         cx={handle.x}
         cy={handle.y}
         r={HANDLE / 2}
+        data-slot="clock-dial-selector-handle"
         className={styles.dialHandle()}
       />
       {leaving !== null && (

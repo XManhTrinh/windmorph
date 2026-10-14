@@ -306,7 +306,9 @@ test.describe('Time picker', () => {
   /** The handle's centre in dial units, every frame for `ms`. */
   const sampleHandle = (page: Page, ms: number) =>
     page.evaluate((duration) => {
-      const handle = document.querySelector('svg[role="group"] circle.fill-primary[r="24"]')!;
+      const handle = document.querySelector(
+        'svg[role="group"] [data-slot="clock-dial-selector-handle"]',
+      )!;
       const frames: { x: number; y: number }[] = [];
       const start = performance.now();
       return new Promise<typeof frames>((resolve) => {
@@ -399,10 +401,10 @@ test.describe('Time picker', () => {
     // The hand has turned to 7 minutes.
     const seven = 128 + 101 * Math.sin(angle);
     await expect
-      .poll(async () => (await centre('circle.fill-primary[r="24"]'))[0])
+      .poll(async () => (await centre('[data-slot="clock-dial-selector-handle"]'))[0])
       .toBeCloseTo(seven, 3);
     const clip = await centre('clipPath circle');
-    const handle = await centre('circle.fill-primary[r="24"]');
+    const handle = await centre('[data-slot="clock-dial-selector-handle"]');
     expect(clip[0]).toBeCloseTo(handle[0]!, 3);
     expect(clip[1]).toBeCloseTo(handle[1]!, 3);
   });

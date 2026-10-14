@@ -9,3 +9,11 @@
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
+--md-comp-time-picker-clock-dial-color
+--md-comp-time-picker-clock-dial-selector-handle-container-color
+--md-comp-time-picker-container-color
+--md-comp-time-picker-container-shape
+--md-comp-time-picker-period-selector-outline-color
+--md-comp-time-picker-period-selector-selected-container-color
+--md-comp-time-picker-time-selector-selected-container-color
+--md-comp-time-picker-time-selector-unselected-container-color

@@ -42,7 +42,7 @@
     "components/switch/Switch": 11200,
     "components/tabs/Tabs": 14950,
     "components/text-field/TextField": 10150,
-    "components/time-picker/TimePicker": 28850,
+    "components/time-picker/TimePicker": 29600,
     "components/toolbar/Toolbar": 22400,
     "components/tooltip/Tooltip": 13650,
     "composites/button-group/ButtonGroup": 44100

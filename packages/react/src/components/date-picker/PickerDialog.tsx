@@ -175,6 +175,10 @@ function PickerDialogModal({
           <div
             {...mergeProps(modalProps, dialogProps)}
             ref={panelRef}
+            // The time picker's component tokens (time-picker-tokens.ts) paint a time panel;
+            // `data-variant` is also a public styling hook.
+            data-tokens={variant === 'time' ? 'md-comp-time-picker' : undefined}
+            data-variant={variant}
             data-full-screen={full || undefined}
             className={styles.panel({ class: cn(classNames?.panel, className) })}
           >
