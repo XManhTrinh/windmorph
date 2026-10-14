@@ -47,9 +47,15 @@ main [data-prop]:target {
     8px 0 0 0 var(--prop-target);
 }
 
-/* What the props filter hides (`components/prop-list-controls.tsx`). */
+/* What the props filter hides, and how it marks its matches (`components/prop-list-controls.tsx`):
+   the tertiary container pair, which keeps text contrast in every theme, mode and contrast. */
 main [data-filtered-out] {
   display: none !important;
+}
+
+::highlight(props-filter) {
+  background-color: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 
 /* Section headings land below the sticky top bar when the outline (or a #link) jumps to them. */

@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { matchesPropFilter, propCount } from '../lib/prop-list-model';
+import { matchesPropFilter, matchOffsets, propCount } from '../lib/prop-list-model';
 import { CloseIcon, ExpandMoreIcon, LinkIcon, SearchIcon } from './icons';
 import { useCopy } from './site-snackbar';
 
@@ -196,10 +196,46 @@ export function PropLink({ id, name }: { id: string; name: string }) {
 }
 
 /** A prop's own text for the filter: its name and description, not its keys'. */
+function ownParts(item: Element): Element[] {
+  return [
+    item.querySelector(':scope > [data-prop-header] [data-prop-name]'),
+    item.querySelector(':scope > [data-prop-description]'),
+  ].filter((part): part is Element => part !== null);
+}
+
 function ownText(item: Element): string {
-  const name = item.querySelector(':scope > [data-prop-header] [data-prop-name]');
-  const description = item.querySelector(':scope > [data-prop-description]');
-  return `${name?.textContent ?? ''} ${description?.textContent ?? ''}`;
+  return ownParts(item)
+    .map((part) => part.textContent ?? '')
+    .join(' ');
+}
+
+/** The name of the CSS highlight that marks the filter's matches (`globals.css`). */
+const HIGHLIGHT = 'props-filter';
+
+/**
+ * Marks where the query's words occur in the matching props' names and descriptions, with
+ * the CSS Custom Highlight API: purely visual (nothing is announced, and the page's text is
+ * left as it is), and painted inside folds as they open. Browsers without it skip it.
+ */
+function highlight(items: readonly Element[], query: string): void {
+  if (typeof CSS === 'undefined' || !('highlights' in CSS)) return;
+  if (!query.trim()) {
+    CSS.highlights.delete(HIGHLIGHT);
+    return;
+  }
+  const ranges: Range[] = [];
+  for (const part of items.flatMap(ownParts)) {
+    const walker = document.createTreeWalker(part, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      for (const [start, end] of matchOffsets(node.textContent ?? '', query)) {
+        const range = document.createRange();
+        range.setStart(node, start);
+        range.setEnd(node, end);
+        ranges.push(range);
+      }
+    }
+  }
+  CSS.highlights.set(HIGHLIGHT, new Highlight(...ranges));
 }
 
 interface FilterResult {
@@ -214,15 +250,19 @@ const NO_FILTER: FilterResult = { count: 0, folds: new Set() };
 /**
  * Applies a query to the props lists inside `root`: hides each prop that doesn't match,
  * keeping a prop that holds a matching key and every key of a matching prop, then the groups
- * and component sections left empty.
+ * and component sections left empty, and highlights the matches.
  */
 function applyFilter(root: HTMLElement, query: string): FilterResult {
   for (const hidden of root.querySelectorAll(`[${FILTERED_OUT}]`)) {
     hidden.removeAttribute(FILTERED_OUT);
   }
-  if (!query.trim()) return NO_FILTER;
+  if (!query.trim()) {
+    highlight([], '');
+    return NO_FILTER;
+  }
   const items = [...root.querySelectorAll<HTMLElement>('li[data-prop]')];
   const matched = items.filter((item) => matchesPropFilter(ownText(item), query));
+  highlight(matched, query);
   const shown = new Set<Element>();
   const folds = new Set<string>();
   for (const item of matched) {
@@ -259,6 +299,9 @@ export function PropsFilter({ total, children }: { total: number; children: Reac
   const [result, setResult] = useState<FilterResult>(NO_FILTER);
   const root = useRef<HTMLDivElement>(null);
   const field = useRef<HTMLInputElement>(null);
+
+  // The highlight belongs to the document: leaving the page takes it away.
+  useEffect(() => () => highlight([], ''), []);
 
   const update = (value: string) => {
     setQuery(value);

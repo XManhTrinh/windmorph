@@ -182,3 +182,25 @@ export function matchesPropFilter(text: string, query: string): boolean {
 export function propCount(count: number): string {
   return `${count} ${count === 1 ? 'prop' : 'props'}`;
 }
+
+/**
+ * Where a filter query's words occur in a piece of text, ignoring case: `[start, end)`
+ * offsets in order, with overlapping occurrences merged, for highlighting them.
+ */
+export function matchOffsets(text: string, query: string): [number, number][] {
+  const haystack = text.toLowerCase();
+  const found: [number, number][] = [];
+  for (const word of query.toLowerCase().split(/\s+/).filter(Boolean)) {
+    for (let at = haystack.indexOf(word); at >= 0; at = haystack.indexOf(word, at + 1)) {
+      found.push([at, at + word.length]);
+    }
+  }
+  found.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const [start, end] of found) {
+    const last = merged[merged.length - 1];
+    if (last && start <= last[1]) last[1] = Math.max(last[1], end);
+    else merged.push([start, end]);
+  }
+  return merged;
+}

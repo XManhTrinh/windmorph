@@ -3,6 +3,7 @@ import type { PropsRecord } from './component-props';
 import {
   groupPropItems,
   matchesPropFilter,
+  matchOffsets,
   propAnchor,
   propCount,
   propDefaultView,
@@ -203,5 +204,16 @@ describe('propCount', () => {
   it('counts in words', () => {
     expect(propCount(1)).toBe('1 prop');
     expect(propCount(12)).toBe('12 props');
+  });
+});
+
+describe('matchOffsets', () => {
+  it("finds each word's occurrences, ignoring case, merging overlaps", () => {
+    expect(matchOffsets('Close the dialog; closes on Escape', 'CLOSE')).toEqual([
+      [0, 5],
+      [18, 23],
+    ]);
+    expect(matchOffsets('scrimscrim', 'scrim crims')).toEqual([[0, 10]]);
+    expect(matchOffsets('anything', ' ')).toEqual([]);
   });
 });
