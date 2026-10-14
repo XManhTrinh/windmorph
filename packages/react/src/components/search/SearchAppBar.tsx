@@ -9,10 +9,13 @@ import { SearchAppBarContext } from './SearchBar';
 import { searchAppBarStyles } from './search-styles';
 
 export interface SearchAppBarClassNames {
+  /** The `<header>` container, merged with `className`. */
   root?: string;
+  /** The leading slot holding `navigationIcon`. */
   navigation?: string;
   /** The area holding the search bar. */
   search?: string;
+  /** The trailing slot holding `actions`. */
   actions?: string;
 }
 
@@ -26,11 +29,13 @@ interface SearchAppBarOwnProps {
   /**
    * Respond to content scrolling under the bar: it sticks to the top and turns
    * `surface-container` (its search bar `surface-container-highest`); `enter-always` also
-   * hides it on scroll down and brings it back on any scroll up.
+   * hides it on scroll down and brings it back on any scroll up. Leave it out for a static
+   * bar positioned by the consumer.
    */
   scrollBehavior?: 'pinned' | 'enter-always';
   /** The scroll container the bar responds to. Defaults to the window. */
   scrollRef?: RefObject<HTMLElement | null>;
+  /** Classes for each part, by slot. */
   classNames?: SearchAppBarClassNames;
 }
 

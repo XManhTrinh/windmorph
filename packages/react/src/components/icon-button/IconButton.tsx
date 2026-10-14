@@ -25,16 +25,28 @@ import {
 } from './icon-button-styles';
 
 export interface IconButtonClassNames {
+  /** The button element itself; merged with `className`. */
   root?: string;
   /** Inner wrapper around the icon. */
   content?: string;
+  /** The icon. */
   icon?: string;
 }
 
 /** Icon buttons have no visible text, so an accessible name is required. */
 type AccessibleName =
-  | { 'aria-label': string; 'aria-labelledby'?: string }
-  | { 'aria-label'?: string; 'aria-labelledby': string };
+  | {
+      /** The button's accessible name, also shown in its tooltip. Required without `aria-labelledby`. */
+      'aria-label': string;
+      /** The id of an element that names the button, instead of `aria-label`. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** The button's accessible name, also shown in its tooltip. Required without `aria-labelledby`. */
+      'aria-label'?: string;
+      /** The id of an element that names the button, instead of `aria-label`. */
+      'aria-labelledby': string;
+    };
 
 interface IconButtonOwnProps {
   /**
@@ -43,11 +55,11 @@ interface IconButtonOwnProps {
    * @default "filled"
    */
   variant?: IconButtonVariant;
-  /** @default "sm" */
+  /** Container and icon size, from extra small to extra large. @default "sm" */
   size?: ButtonSize;
-  /** @default "default" */
+  /** Container width: narrow, default or wide, at the same height. @default "default" */
   width?: IconButtonWidth;
-  /** @default "round" */
+  /** Fully round corners, or square ones (still rounded, but less). @default "round" */
   shape?: ButtonShape;
   /** The icon, e.g. a Material Symbols SVG. Hidden from assistive tech; `aria-label` names the button. */
   icon: ReactElement;

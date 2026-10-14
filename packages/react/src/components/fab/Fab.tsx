@@ -25,7 +25,7 @@ import {
 type FabBaseKeys = 'children' | 'disabled' | 'toggle';
 
 interface FabCommonProps {
-  /** @default "primary-container" */
+  /** The colour style: a container colour or its solid form. @default "primary-container" */
   color?: FabColor;
   /**
    * `default` is level 3 (hover 4); `lowered` is level 1 (hover 2), for FABs on surfaces
@@ -56,16 +56,31 @@ function visibilityProps(visible: boolean, appear: boolean) {
 }
 
 type AccessibleName =
-  | { 'aria-label': string; 'aria-labelledby'?: string }
-  | { 'aria-label'?: string; 'aria-labelledby': string };
+  | {
+      /** The FAB's accessible name, also shown in its tooltip. Required without `aria-labelledby`. */
+      'aria-label': string;
+      /** The id of an element that names the FAB, instead of `aria-label`. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** The FAB's accessible name, also shown in its tooltip. Required without `aria-labelledby`. */
+      'aria-label'?: string;
+      /** The id of an element that names the FAB, instead of `aria-label`. */
+      'aria-labelledby': string;
+    };
 
 export interface FabClassNames {
+  /** The FAB element itself; merged with `className`. */
   root?: string;
+  /** The icon. */
   icon?: string;
 }
 
 interface FabOwnProps extends FabCommonProps {
-  /** @default "default" (56px). The small FAB is deprecated in M3 Expressive. */
+  /**
+   * Container size: default (56px), medium (80px) or large (96px). The small FAB is
+   * deprecated in M3 Expressive. @default "default"
+   */
   size?: FabSize;
   /** The icon. Hidden from assistive tech; `aria-label` names the FAB. */
   icon: ReactElement;
@@ -75,6 +90,7 @@ interface FabOwnProps extends FabCommonProps {
    * @default true
    */
   tooltip?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: FabClassNames;
 }
 
@@ -134,15 +150,20 @@ export function Fab({
 }
 
 export interface ExtendedFabClassNames {
+  /** The FAB element itself; merged with `className`. */
   root?: string;
+  /** Inner wrapper around the icon and label. */
   content?: string;
+  /** The leading icon. */
   icon?: string;
+  /** The label's clipping wrapper, which collapses with the FAB. */
   label?: string;
+  /** The label text. */
   text?: string;
 }
 
 interface ExtendedFabOwnProps extends FabCommonProps {
-  /** @default "sm" (56px) */
+  /** Container height and label size: small (56px), medium (80px) or large (96px). @default "sm" */
   size?: ExtendedFabSize;
   /** Leading icon. Needed for the collapsed state, which shows the icon only. */
   icon?: ReactElement;
@@ -159,6 +180,7 @@ interface ExtendedFabOwnProps extends FabCommonProps {
    * and there is no tooltip. It steps aside inside your own `TooltipTrigger`. @default true
    */
   tooltip?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: ExtendedFabClassNames;
 }
 

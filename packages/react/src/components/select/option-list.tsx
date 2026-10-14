@@ -56,6 +56,7 @@ export interface OptionItemProps {
   description?: ReactNode;
   /** Short text at the end, e.g. a dialling code or a count. */
   trailing?: ReactNode;
+  /** Accessible name when the label isn't plain text. */
   'aria-label'?: string;
 }
 
@@ -63,6 +64,7 @@ export interface OptionItemProps {
 export interface OptionSectionProps {
   /** Heading shown above the options. */
   title?: ReactNode;
+  /** Accessible name for the group when it has no `title`. */
   'aria-label'?: string;
   children: ReactElement<OptionItemProps> | ReactElement<OptionItemProps>[];
 }
@@ -79,6 +81,7 @@ export const AutocompleteSection = Section as unknown as (props: OptionSectionPr
 export interface OptionListClassNames {
   /** The list's surface. */
   list?: string;
+  /** Each option. */
   item?: string;
 }
 
@@ -336,9 +339,16 @@ export function OptionPopover({
   minWidth = 0,
   children,
 }: {
+  /** The open state the popover follows (from React Stately's `useOverlayTriggerState`). */
   state: OverlayTriggerState;
+  /** The field the popover is placed under and matches the width of. */
   triggerRef: RefObject<HTMLElement | null>;
+  /** Ref to the popover's surface. */
   popoverRef: RefObject<HTMLDivElement | null>;
+  /**
+   * Keeps the page interactive while open (no underlay, focus stays in the field), as an
+   * editable field's menu needs. @default false
+   */
   isNonModal?: boolean;
   /** The least width, when the field is narrower (a searchable menu needs room to type). */
   minWidth?: number;

@@ -12,20 +12,24 @@ import { cn } from '../../utils/cn';
 import { cardStyles, type CardVariant } from './card-styles';
 
 interface CardOwnProps {
-  /** @default "filled" */
+  /** The M3 style: filled, elevated or outlined. @default "filled" */
   variant?: CardVariant;
   /**
    * The card is being dragged (picked up to move it): M3 raises it (filled and outlined
    * to level 3, elevated to 4) and, on an interactive card, shows the dragged state layer.
    * Set it from your drag and drop code; it sets `data-dragged`.
+   * @default false
    */
   dragged?: boolean;
 }
 
 /** A container card. */
 export interface CardStaticProps extends CardOwnProps, ComponentPropsWithRef<'div'> {
+  /** Makes the card a link (`<a>`). It must not contain other buttons or links then. */
   href?: undefined;
+  /** Makes the card pressable (`<div role="button">`). It must not contain other buttons or links then. */
   onPress?: undefined;
+  /** Disables a pressable or link card. A container card can't be disabled. @default false */
   disabled?: undefined;
 }
 

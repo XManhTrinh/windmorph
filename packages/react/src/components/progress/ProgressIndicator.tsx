@@ -211,15 +211,20 @@ interface SharedOwnProps {
 /* ------------------------------------------------------------------ Linear */
 
 export interface LinearProgressIndicatorClassNames {
+  /** The outer element, which carries the `progressbar` role. */
   root?: string;
+  /** The track: the line behind the active indicator. */
   track?: string;
+  /** The active indicator, the line that shows progress. */
   indicator?: string;
+  /** The stop dot at the end of a determinate track. */
   stop?: string;
 }
 
 interface LinearOwnProps extends SharedOwnProps {
   /** The dot at the end of a determinate track (Compose draws it). @default true */
   stopIndicator?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: LinearProgressIndicatorClassNames;
 }
 
@@ -364,8 +369,11 @@ export function LinearProgressIndicator({
 /* ---------------------------------------------------------------- Circular */
 
 export interface CircularProgressIndicatorClassNames {
+  /** The outer element, which carries the `progressbar` role. */
   root?: string;
+  /** The track: the ring behind the active indicator. */
   track?: string;
+  /** The active indicator, the arc that shows progress. */
   indicator?: string;
 }
 
@@ -377,6 +385,7 @@ interface CircularOwnProps extends SharedOwnProps {
    * @default 40, or 48 when wavy (plus any extra thickness)
    */
   size?: number;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: CircularProgressIndicatorClassNames;
 }
 

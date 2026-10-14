@@ -100,7 +100,9 @@ export interface MenuItemProps {
   shortcut?: string;
   /** Icon at the end (an item with a submenu shows an arrow by default). */
   trailingIcon?: ReactNode;
+  /** Accessible name when the label isn't plain text. */
   'aria-label'?: string;
+  /** Classes for the item, merged after `classNames.item`; consumer classes win. */
   className?: string;
 }
 
@@ -110,6 +112,7 @@ export const MenuItem = Item as unknown as (props: MenuItemProps) => JSX.Element
 export interface MenuGroupProps {
   /** Group label shown above its items. */
   title?: ReactNode;
+  /** Accessible name for the group when it has no `title`. */
   'aria-label'?: string;
   /** `MenuItem`s and `SubmenuTrigger`s. */
   children: ReactElement | ReactElement[];
@@ -169,8 +172,11 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 ) => JSX.Element;
 
 export interface MenuClassNames {
+  /** Each group of items (its own surface in the `gap` layout). */
   group?: string;
+  /** Each item. */
   item?: string;
+  /** The dividers between groups in the `divider` layout. */
   divider?: string;
 }
 
@@ -221,8 +227,11 @@ export interface MenuProps extends Omit<
    * @default false
    */
   instant?: boolean;
+  /** Classes for the menu's surface; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. */
   classNames?: MenuClassNames;
+  /** Inline styles for the menu's surface. */
   style?: CSSProperties;
 }
 

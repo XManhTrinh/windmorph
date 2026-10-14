@@ -22,15 +22,26 @@ import { pickerDialogStyles } from './picker-dialog-styles';
 import { CloseIcon } from './picker-icons';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name of the dialog when there's no visible title. */
+      'aria-label': string;
+    }
+  | {
+      /** Id of a visible element that names the dialog. */
+      'aria-labelledby': string;
+    };
 
 export interface PickerDialogClassNames {
+  /** The dimmed layer behind the dialog. */
   scrim?: string;
+  /** The dialog's surface; `className` is merged here too. */
   panel?: string;
   /** The full-screen top row with the close and Save buttons. */
   header?: string;
   /** The full-screen close (x) icon button. */
   close?: string;
+  /** The bottom row of actions: mode toggle, dismiss and confirm buttons. */
   actions?: string;
 }
 
@@ -43,8 +54,11 @@ export interface PickerDialogStrings {
 }
 
 interface PickerDialogOwnProps {
+  /** Whether the dialog is open (controlled). */
   open?: boolean;
+  /** Whether the dialog starts open when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the dialog opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /**
    * `date` holds a date picker edge to edge with the actions below (Compose's
@@ -76,10 +90,13 @@ interface PickerDialogOwnProps {
   closeIcon?: ReactElement;
   /** Pressing outside closes the dialog. @default true */
   dismissable?: boolean;
+  /** Words the full-screen form shows and announces, with English defaults. */
   strings?: PickerDialogStrings;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);
+  /** Classes for the dialog panel, merged with `classNames.panel`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. */
   classNames?: PickerDialogClassNames;
 }
 

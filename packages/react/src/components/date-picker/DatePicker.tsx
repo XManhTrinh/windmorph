@@ -58,7 +58,7 @@ import {
 
 /** The picker's labels, for localisation. */
 export interface DatePickerStrings extends DateInputStrings {
-  /** @default "Select date" (or "Select dates" for a range) */
+  /** The header's title in calendar mode. @default "Select date" (or "Select dates" for a range) */
   title?: string;
   /**
    * The title in text input mode (the M3 modal date input's "Enter date").
@@ -67,43 +67,49 @@ export interface DatePickerStrings extends DateInputStrings {
   inputTitle?: string;
   /** Headline when nothing is selected. @default "Selected date" / "Start date – End date" */
   noSelection?: string;
-  /** @default "Previous month" */
+  /** The previous month button. @default "Previous month" */
   previousMonth?: string;
-  /** @default "Next month" */
+  /** The next month button. @default "Next month" */
   nextMonth?: string;
   /** Tooltip of the previous-month button, naming its shortcut. @default "Previous month (Page Up)" */
   previousMonthTooltip?: string;
   /** Tooltip of the next-month button, naming its shortcut. @default "Next month (Page Down)" */
   nextMonthTooltip?: string;
-  /** @default "Switch to selecting a year" */
+  /** The month and year button while the days show. @default "Switch to selecting a year" */
   showYears?: string;
-  /** @default "Switch to selecting a day" */
+  /** The month and year button while the years show. @default "Switch to selecting a day" */
   showDays?: string;
   /** Tooltip of the month and year button, naming its shortcut. @default "Choose a year (Shift+Y)" */
   yearsTooltip?: string;
   /** Name of the year list. @default "Year" */
   yearList?: string;
-  /** @default "Switch to text input mode" */
+  /** The mode toggle in calendar mode. @default "Switch to text input mode" */
   inputMode?: string;
-  /** @default "Switch to calendar input mode" */
+  /** The mode toggle in text input mode. @default "Switch to calendar input mode" */
   calendarMode?: string;
   /** Label of the input mode's field. @default "Date" */
   dateLabel?: string;
-  /** @default "Start date" */
+  /** Label of a range's start field in input mode. @default "Start date" */
   startDateLabel?: string;
-  /** @default "End date" */
+  /** Label of a range's end field in input mode. @default "End date" */
   endDateLabel?: string;
 }
 
 export interface DatePickerClassNames {
+  /** The picker's root; `className` is merged here too. */
   root?: string;
+  /** The header: title, headline and mode toggle. */
   header?: string;
+  /** The calendar or the text input below the header. */
   body?: string;
 }
 
 interface DatePickerCommonProps {
+  /** Earliest date allowed; earlier days are disabled. */
   minValue?: DateValue;
+  /** Latest date allowed; later days are disabled. */
   maxValue?: DateValue;
+  /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** Show the header (title, headline and mode toggle). @default true */
   showHeader?: boolean;
@@ -116,18 +122,26 @@ interface DatePickerCommonProps {
    * `minValue` / `maxValue` are shown disabled. @default [1900, 2100]
    */
   yearRange?: [number, number];
+  /** Words the picker shows and announces, with English defaults. */
   strings?: DatePickerStrings;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: DatePickerClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
 }
 
 export type DatePickerProps = DatePickerCommonProps & {
+  /** The selected date (controlled); `null` for none. */
   value?: CalendarDate | null;
+  /** Initial date when uncontrolled. @default null */
   defaultValue?: CalendarDate | null;
+  /** Called with the date the user picks or types. */
   onChange?: (value: CalendarDate) => void;
 };
 
@@ -137,8 +151,11 @@ export interface DateRange {
 }
 
 export type DateRangePickerProps = DatePickerCommonProps & {
+  /** The selected range (controlled); `null` for none. */
   value?: DateRange | null;
+  /** Initial range when uncontrolled. @default null */
   defaultValue?: DateRange | null;
+  /** Called with the range once both its start and end are picked or typed. */
   onChange?: (value: DateRange) => void;
   /**
    * `scroll` lists the months one under another and scrolls vertically, as the M3 modal

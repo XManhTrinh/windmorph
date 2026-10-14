@@ -33,27 +33,44 @@ import {
 import { sliderStyles, type SliderOrientation, type SliderSize } from './slider-styles';
 
 export interface SliderClassNames {
+  /** The outer element. */
   root?: string;
+  /** The track, holding the active and inactive segments and the stop indicators. */
   track?: string;
+  /** Each thumb (the handle). */
   thumb?: string;
+  /** The value indicator above a thumb (`showValueLabel`). */
   label?: string;
 }
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+/** A slider needs a name: `aria-label`, or `aria-labelledby` pointing at a visible label. */
+type Naming =
+  | {
+      /** Accessible name when there's no visible label. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the visible label that names the slider. */
+      'aria-labelledby': string;
+    };
 
 interface SliderCommonProps {
-  /** @default "xs" (16px track) */
+  /** The track's thickness, from XS to XL. @default "xs" (16px track) */
   size?: SliderSize;
-  /** @default "horizontal". Vertical sliders run bottom to top and default to 240px tall. */
+  /**
+   * The direction the slider runs. Vertical sliders run bottom to top and default to 240px
+   * tall. @default "horizontal"
+   */
   orientation?: SliderOrientation;
-  /** @default 0 */
+  /** The lowest value. @default 0 */
   minValue?: number;
-  /** @default 100 */
+  /** The highest value. @default 100 */
   maxValue?: number;
-  /** @default 1 */
+  /** The amount the value changes by in one step. @default 1 */
   step?: number;
   /** Discrete: show a stop indicator at every step (use a coarse `step`). @default false */
   ticks?: boolean;
+  /** Turns the slider off: it can't be moved or focused. @default false */
   disabled?: boolean;
   /** Show the value above the thumb while it is dragged or keyboard-focused. @default false */
   showValueLabel?: boolean;
@@ -61,9 +78,13 @@ interface SliderCommonProps {
   formatOptions?: Intl.NumberFormatOptions;
   /** Form field name (one hidden input per thumb). */
   name?: string;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SliderClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
@@ -71,8 +92,11 @@ interface SliderCommonProps {
 
 export type SliderProps = SliderCommonProps &
   Naming & {
+    /** The value (controlled). */
     value?: number;
+    /** The initial value when uncontrolled. @default minValue */
     defaultValue?: number;
+    /** Called as the value changes, while dragging too. */
     onChange?: (value: number) => void;
     /** Called when the user stops dragging or releases a key. */
     onChangeEnd?: (value: number) => void;
@@ -93,9 +117,13 @@ export type SliderProps = SliderCommonProps &
 
 export type RangeSliderProps = SliderCommonProps &
   Naming & {
+    /** The range, as `[start, end]` (controlled). */
     value?: [number, number];
+    /** The initial range when uncontrolled. @default [minValue, maxValue] */
     defaultValue?: [number, number];
+    /** Called as the range changes, while dragging too. */
     onChange?: (value: [number, number]) => void;
+    /** Called when the user stops dragging or releases a key. */
     onChangeEnd?: (value: [number, number]) => void;
     /** Names of the two thumbs. @default ["Minimum", "Maximum"] */
     thumbLabels?: [string, string];

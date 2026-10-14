@@ -69,19 +69,26 @@ export interface ButtonGroupProps extends Omit<
    * @default "standard"
    */
   variant?: ButtonGroupVariant;
-  /** Size shared by every button and icon button in the group; it also sets the spacing. */
+  /**
+   * Size shared by every button and icon button in the group; it also sets the spacing.
+   * Unset, the buttons keep their own (or an enclosing toolbar's) size.
+   * @default "sm"
+   */
   size?: ButtonSize;
   /**
    * Shape shared by the buttons. A `square` connected group gives its outer corners the
-   * size of its inner ones (4 / 8 / 8 / 16 / 20px).
+   * size of its inner ones (4 / 8 / 8 / 16 / 20px). Unset, the buttons keep their own.
+   * @default "round"
    */
   shape?: ButtonShape;
   /**
    * Variant shared by every `Button` in the group. `filled`, `tonal` and `outlined` reach
    * the `IconButton`s too, so a group never mixes colour styles; a button's own `variant`
-   * wins.
+   * wins. Unset, the buttons keep their own.
+   * @default "filled"
    */
   buttonVariant?: ButtonVariant;
+  /** Disables every button in the group. @default false */
   disabled?: boolean;
   /**
    * Lets toggle buttons with a `value` act as one selection. `single` behaves like
@@ -92,8 +99,9 @@ export interface ButtonGroupProps extends Omit<
   selectedKeys?: Iterable<string>;
   /** Initial selection when uncontrolled. */
   defaultSelectedKeys?: Iterable<string>;
+  /** Called with the selected toggle buttons' `value`s when the selection changes. */
   onSelectionChange?: (keys: Set<string>) => void;
-  /** Prevents deselecting the last selected button. */
+  /** Prevents deselecting the last selected button. @default false */
   disallowEmptySelection?: boolean;
   /**
    * How much a pressed button grows, as a fraction of its width; its neighbours shrink by the

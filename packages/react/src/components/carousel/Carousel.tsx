@@ -32,8 +32,11 @@ import {
 import { carouselStyles } from './carousel-styles';
 
 export interface CarouselClassNames {
+  /** The outer element, which holds the carousel's name. */
   root?: string;
+  /** The scrolling track that holds the items. */
   scroller?: string;
+  /** Each item's slot, sized and placed on its keyline. */
   item?: string;
   /** The masked layer of each item (corners, clipping). */
   mask?: string;
@@ -43,7 +46,10 @@ export interface CarouselClassNames {
 
 /** Words the carousel announces. */
 export interface CarouselLabels {
-  /** Each item's name: its position (from 1) and the number of items, as formatted text. */
+  /**
+   * Each item's name: its position (from 1) and the number of items, as formatted text.
+   * @default (position, count) => `${position} of ${count}`
+   */
   slide: (position: string, count: string) => string;
 }
 
@@ -64,7 +70,16 @@ export interface CarouselContentPadding {
 export type CarouselVariant =
   'multi-browse' | 'uncontained' | 'multi-aspect' | 'hero' | 'full-screen';
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+/** A carousel needs a name: `aria-label`, or `aria-labelledby` pointing at a visible title. */
+type Naming =
+  | {
+      /** Accessible name when there's no visible title. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the visible title that names the carousel. */
+      'aria-labelledby': string;
+    };
 
 interface CarouselOwnProps {
   /**
@@ -74,7 +89,10 @@ interface CarouselOwnProps {
    * shows one edge-to-edge item at a time. @default "multi-browse"
    */
   variant?: CarouselVariant;
-  /** @default "horizontal" ("vertical" for full-screen) */
+  /**
+   * The direction the items scroll in.
+   * @default "horizontal" ("vertical" for full-screen)
+   */
   orientation?: 'horizontal' | 'vertical';
   /**
    * Preferred size of the large items along the carousel (multi-browse, hero). Hero defaults
@@ -113,9 +131,13 @@ interface CarouselOwnProps {
   labels?: Partial<CarouselLabels>;
   /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
   children: ReactNode;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: CarouselClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;

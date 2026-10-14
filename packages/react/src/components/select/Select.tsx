@@ -48,17 +48,17 @@ export type SelectPresentation = 'menu' | 'sheet' | 'auto';
 
 /** Words the Select shows or announces; override them for other languages. */
 export interface SelectLabels {
-  /** Shown in an empty list. */
+  /** Shown in an empty list. @default "No options" */
   empty: string;
-  /** The loading indicator's name. */
+  /** The loading indicator's name. @default "Loading options" */
   loading: string;
-  /** For more chosen options than fit: `+{count}`. */
+  /** For more chosen options than fit: `+{count}`. @default (count) => `+${count}` */
   more: (count: number) => string;
-  /** With `searchable`: the search field's placeholder and name. */
+  /** With `searchable`: the search field's placeholder and name. @default "Search" */
   search: string;
-  /** With `searchable`: shown when no option matches the search. */
+  /** With `searchable`: shown when no option matches the search. @default "No results" */
   noResults: string;
-  /** The error icon's name (M3: "Error"). */
+  /** The error icon's name (M3: "Error"). @default "Error" */
   error: string;
 }
 
@@ -102,10 +102,11 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
   RenamedProps
 > &
   Pick<AriaSelectOptions<T, M>, 'name' | 'autoComplete' | 'form'> & {
-    /** @default "filled" (as TextField) */
+    /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
+    /** Accessible name when there's no visible label. */
     'aria-label'?: string;
     /**
      * Shown in the field when nothing is chosen. With a `label`, it appears once the label
@@ -117,18 +118,24 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * the error colour while the field is invalid.
      */
     supportingText?: ReactNode;
+    /** Marks the field invalid (in addition to `validate` and `required`). */
     invalid?: boolean;
+    /** A choice is required: adds the `*` to the label and validates on submit. */
     required?: boolean;
+    /** Disables the field: it can't be focused or opened. @default false */
     disabled?: boolean;
     /**
      * The choice can be seen but not changed: the menu doesn't open and the keyboard doesn't
      * change it. The root gets `data-readonly`; say so in the supporting text (M3).
+     * @default false
      */
     readOnly?: boolean;
+    /** Decorative icon at the start, in a 48px box. */
     leadingIcon?: ReactNode;
     /**
      * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
      * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
+     * @default the Material Symbols `error` icon
      */
     errorIcon?: ReactNode | false;
     /** Whether the menu is open (controlled); with `defaultOpen` and `onOpenChange`. */
@@ -149,6 +156,7 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * A search field at the top of the menu or sheet that filters the options as you type,
      * for long lists (pair it with `presentation="auto"`). The search takes focus in the menu;
      * a sheet shows the list first, so the keyboard doesn't cover it.
+     * @default false
      */
     searchable?: boolean;
     /**
@@ -159,6 +167,7 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     filter?: (textValue: string, search: string, key: Key) => boolean;
     /** With `searchable`: the typed text (controlled); cleared when the list closes. */
     searchValue?: string;
+    /** With `searchable`: the initial typed text, when uncontrolled. @default "" */
     defaultSearchValue?: string;
     /**
      * With `searchable`: called as the search changes. Given it, the app filters `items` itself
@@ -177,10 +186,15 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * leaving it out) on a field that loads options.
      */
     loading?: boolean;
+    /** Words the Select shows or announces, for other languages. */
     labels?: Partial<SelectLabels>;
+    /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;
+    /** Classes for each part, by slot. */
     classNames?: SelectClassNames;
+    /** Inline styles for the root element. */
     style?: CSSProperties;
+    /** Ref to the root `<div>` element. Use `triggerRef` for the field's button. */
     ref?: Ref<HTMLDivElement>;
     /** Ref to the field's button. */
     triggerRef?: Ref<HTMLButtonElement>;

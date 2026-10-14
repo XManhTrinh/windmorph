@@ -26,23 +26,31 @@ import { sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface SideSheetClassNames {
+  /** The dimmed layer behind a modal sheet. */
   scrim?: string;
+  /** The sheet's surface. */
   panel?: string;
+  /** The header row: back button, title, actions and close button. */
   header?: string;
+  /** The back button. */
   backButton?: string;
+  /** The headline. */
   title?: string;
   /** The end of the header: `actions` and the close button. */
   headerActions?: string;
+  /** The close button. */
   closeButton?: string;
+  /** The scrollable content area. */
   content?: string;
+  /** The bottom row of action buttons. */
   footer?: string;
 }
 
 /** Words the side sheet announces. */
 export interface SideSheetLabels {
-  /** The close button. */
+  /** The close button. @default "Close" */
   close: string;
-  /** The back button (with `onBack`). */
+  /** The back button (with `onBack`). @default "Back" */
   back: string;
 }
 
@@ -61,9 +69,11 @@ interface SideSheetOwnProps {
   variant?: 'modal' | 'standard';
   /** Float 16px from the edges with corners all round. @default false */
   detached?: boolean;
+  /** Whether the sheet is open (controlled). */
   open?: boolean;
-  /** @default false (modal), true (standard) */
+  /** Whether the sheet starts open when uncontrolled. @default false (modal), true (standard) */
   defaultOpen?: boolean;
+  /** Called when the sheet opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /** The headline. It names the sheet. */
   title?: ReactNode;
@@ -86,13 +96,24 @@ interface SideSheetOwnProps {
   /** Words the sheet announces, with English defaults. */
   labels?: Partial<SideSheetLabels>;
   children?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
+  /** Classes for each part, by slot. */
   classNames?: SideSheetClassNames;
 }
 
 type Naming =
-  | { title: ReactNode; 'aria-label'?: string }
-  | { 'aria-label': string }
-  | { 'aria-labelledby': string };
+  | {
+      title: ReactNode;
+      /** Accessible name when there's no visible title; overrides `title` when both are set. */
+      'aria-label'?: string;
+    }
+  | {
+      /** Accessible name when there's no visible title. */
+      'aria-label': string;
+    }
+  | {
+      /** Id of a visible element that names the sheet, when there's no `title`. */
+      'aria-labelledby': string;
+    };
 
 export type SideSheetProps = SideSheetOwnProps &
   Naming &

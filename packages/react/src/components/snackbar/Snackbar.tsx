@@ -34,10 +34,15 @@ function CloseIcon() {
 }
 
 export interface SnackbarClassNames {
+  /** The snackbar's container. */
   root?: string;
+  /** The message text. */
   message?: string;
+  /** The row holding the action and dismiss buttons. */
   actions?: string;
+  /** The action button. */
   action?: string;
+  /** The dismiss (×) button. */
   dismiss?: string;
 }
 
@@ -46,6 +51,7 @@ interface SnackbarOwnProps {
   children: React.ReactNode;
   /** Label of the action button. */
   actionLabel?: string;
+  /** Called when the action button is pressed. */
   onAction?: () => void;
   /** Shows a dismiss (×) button that calls this. Escape calls it too. */
   onDismiss?: () => void;
@@ -56,8 +62,9 @@ interface SnackbarOwnProps {
   onEscape?: () => void;
   /** Name of the dismiss button. @default "Dismiss" */
   dismissLabel?: string;
-  /** Put the actions under the message, for long action labels. */
+  /** Put the actions under the message, for long action labels. @default false */
   actionOnNewLine?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SnackbarClassNames;
 }
 
@@ -156,6 +163,7 @@ export function useSnackbarHostState(): SnackbarHostState {
 }
 
 export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
+  /** The queue of snackbars to show, from `useSnackbarHostState()`. */
   state: SnackbarHostState;
   /** Renders each snackbar; defaults to {@link Snackbar}. */
   snackbar?: (data: SnackbarData) => React.ReactNode;

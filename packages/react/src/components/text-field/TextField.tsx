@@ -30,16 +30,27 @@ import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {
+  /** The root element, merged with `className`. */
   root?: string;
+  /** The filled or outlined container around the label, input and icons. */
   container?: string;
+  /** The floating label. */
   label?: string;
+  /** The `<input>` or `<textarea>`. */
   input?: string;
+  /** The leading icon's 48px box. */
   leadingIcon?: string;
+  /** The trailing icon's 48px box. */
   trailingIcon?: string;
+  /** The prefix text before the input. */
   prefix?: string;
+  /** The suffix text after the input. */
   suffix?: string;
+  /** The helper text below the field. */
   supportingText?: string;
+  /** The error message below the field. */
   errorText?: string;
+  /** The character counter below the field. */
   counter?: string;
   /** The built-in error icon. */
   errorIcon?: string;
@@ -47,9 +58,12 @@ export interface TextFieldClassNames {
 
 /** Words the text field announces; override them for other languages. */
 export interface TextFieldLabels {
-  /** The error icon's name (M3: "Error"). */
+  /** The error icon's name (M3: "Error"). @default "Error" */
   error: string;
-  /** What screen readers hear for the character counter (M3 calls it the "character count"). */
+  /**
+   * What screen readers hear for the character counter (M3 calls it the "character count").
+   * @default (count, max) => `Character count: ${count} of ${max}`
+   */
   characterCount: (count: number, max: number) => string;
 }
 
@@ -74,10 +88,13 @@ type RenamedAriaProps =
   | 'onChange';
 
 interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps> {
-  /** @default "filled" */
+  /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
+  /** The text, when controlled. */
   value?: string;
+  /** The initial text, when uncontrolled. @default "" */
   defaultValue?: string;
+  /** Called with the new text on every change. */
   onChange?: (value: string) => void;
   /**
    * Helper text below the field. Replaced visually by the error message when invalid, and
@@ -87,16 +104,20 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   /**
    * Shows the supporting text only while the field has focus (M3 allows it "persistently
    * visible or visible only on focus"). Its space is kept, and screen readers always get it.
+   * @default false
    */
   supportingTextOnFocus?: boolean;
   /** Marks the field invalid (in addition to `validate` and native constraints). */
   invalid?: boolean;
+  /** A value is required: adds the `*` to the label and native `required` validation. */
   required?: boolean;
+  /** Disables the field: it can't be focused or edited. @default false */
   disabled?: boolean;
   /**
    * The value can be read and copied but not changed. M3 styles it as a regular field and
    * asks for it to be "clearly labeled as read-only", e.g. in the supporting text. The root
    * gets `data-readonly`.
+   * @default false
    */
   readOnly?: boolean;
   /** Decorative icon at the start, in a 48px box. */
@@ -110,6 +131,7 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
    * The icon shown at the end while the field is invalid and has no `trailingIcon` (M3
    * strongly recommends one). Defaults to Material Symbols `error`, named by `labels.error`;
    * `false` turns it off.
+   * @default the Material Symbols `error` icon
    */
   errorIcon?: ReactNode | false;
   /** Text before the input, e.g. "$". Shown once the label floats. */
@@ -126,11 +148,13 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   /**
    * Renders a `<textarea>`. By default it's an M3 text area: a fixed height of `rows` lines
    * that scrolls vertically, which M3 recommends over growing fields on the web.
+   * @default false
    */
   multiline?: boolean;
   /**
    * With `multiline`: grow with the content from `rows` up to `maxRows` (M3's multi-line
    * field) instead of keeping a fixed height.
+   * @default false
    */
   autoGrow?: boolean;
   /** Visible lines of a multiline field. @default 4, or 1 with `autoGrow` */
@@ -141,9 +165,11 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   showCharacterCount?: boolean;
   /** Words the field announces, for other languages. */
   labels?: Partial<TextFieldLabels>;
-  /** Classes for the root element; consumer classes always win. */
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. */
   classNames?: TextFieldClassNames;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
   /** The root element. Use `inputRef` for the input itself. */
   ref?: Ref<HTMLDivElement>;
@@ -153,9 +179,20 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
 
 /** A visible label, or an accessible name for fields without one. */
 type TextFieldLabel =
-  | { label: ReactNode }
-  | { label?: undefined; 'aria-label': string }
-  | { label?: undefined; 'aria-labelledby': string };
+  | {
+      /** The visible label, which floats above the input once it has focus or a value. */
+      label: ReactNode;
+    }
+  | {
+      label?: undefined;
+      /** Accessible name when there's no visible label. */
+      'aria-label': string;
+    }
+  | {
+      label?: undefined;
+      /** The id of the element that names the field, when there's no visible label. */
+      'aria-labelledby': string;
+    };
 
 export type TextFieldProps = TextFieldOwnProps & TextFieldLabel;
 

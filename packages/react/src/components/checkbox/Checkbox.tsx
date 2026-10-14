@@ -20,6 +20,7 @@ import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';
 
 export interface CheckboxClassNames extends SelectionControlClassNames {
+  /** The 18px box that draws the check mark or dash. */
   box?: string;
 }
 
@@ -40,18 +41,27 @@ interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
   selected?: boolean;
   /** Initial checked state when uncontrolled. */
   defaultSelected?: boolean;
+  /** Called when the user checks or unchecks the checkbox. */
   onSelectedChange?: (selected: boolean) => void;
-  /** Shows a dash: some, but not all, of a group is checked. Purely visual. */
+  /** Shows a dash: some, but not all, of a group is checked. Purely visual. @default false */
   indeterminate?: boolean;
+  /** Turns the checkbox off: it can't be changed or focused. @default false */
   disabled?: boolean;
+  /** The checkbox can be focused but not changed. @default false */
   readOnly?: boolean;
+  /** The checkbox must be checked before its form submits. @default false */
   required?: boolean;
+  /** Shows the error state. @default false */
   invalid?: boolean;
+  /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: CheckboxClassNames;
+  /** Inline styles for the root `<label>`. */
   style?: CSSProperties;
   /** The root `<label>`. Use `inputRef` for the checkbox input. */
   ref?: Ref<HTMLLabelElement>;
+  /** Ref to the visually hidden checkbox `<input>`. */
   inputRef?: Ref<HTMLInputElement>;
 }
 

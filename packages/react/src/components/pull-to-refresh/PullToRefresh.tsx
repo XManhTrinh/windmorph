@@ -27,6 +27,7 @@ import {
 import { pullToRefreshStyles } from './pull-to-refresh-styles';
 
 export interface PullToRefreshClassNames {
+  /** The outer element, around the content. */
   root?: string;
   /**
    * The zero-height sticky layer the indicator hangs from, at the top of the area. Give it a
@@ -39,11 +40,14 @@ export interface PullToRefreshClassNames {
 
 /** Words the pull to refresh announces. */
 export interface PullToRefreshLabels {
-  /** The indicator's name while it follows a pull. */
+  /** The indicator's name while it follows a pull. @default "Pull to refresh" */
   pull: string;
-  /** The indicator's name while refreshing, also announced when a refresh starts. */
+  /**
+   * The indicator's name while refreshing, also announced when a refresh starts.
+   * @default "Refreshing"
+   */
   refreshing: string;
-  /** Announced when a refresh completes. */
+  /** Announced when a refresh completes. @default "Refreshed" */
   refreshed: string;
 }
 

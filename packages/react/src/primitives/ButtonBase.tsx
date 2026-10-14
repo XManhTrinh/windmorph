@@ -32,7 +32,7 @@ type PressHandlers = Pick<
   PressEvents,
   'onPress' | 'onPressStart' | 'onPressEnd' | 'onPressChange' | 'onPressUp'
 > & {
-  /** Don't move focus to the element on press (set by menu triggers). */
+  /** Don't move focus to the element on press (set by menu triggers). @default false */
   preventFocusOnPress?: boolean;
 };
 
@@ -41,12 +41,16 @@ export interface ButtonBaseRenderState {
 }
 
 interface ButtonBaseCommonProps extends PressHandlers {
+  /** Disables the element: it can't be pressed or focused, and shows the disabled style. @default false */
   disabled?: boolean;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
   /**
    * The element is being dragged (e.g. a card picked up to move it): sets `data-dragged`
    * for the dragged state layer. A consumer's own `data-dragged` attribute counts too.
+   * @default false
    */
   dragged?: boolean;
   /** Content, or a function of the selection state (e.g. to swap a toggle's icon). */
@@ -57,9 +61,13 @@ type OwnKeys = keyof ButtonBaseCommonProps | 'color';
 
 export interface ButtonBaseActionProps
   extends ButtonBaseCommonProps, Omit<ComponentPropsWithoutRef<'button'>, OwnKeys> {
+  /** Ref to the root `<button>` element. */
   ref?: Ref<HTMLButtonElement>;
+  /** The element rendered: a native `<button>`. @default "button" */
   elementType?: 'button';
+  /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
+  /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
   toggle?: false;
 }
 
@@ -69,17 +77,23 @@ export interface ButtonBaseActionProps
  */
 export interface ButtonBaseDivActionProps
   extends ButtonBaseCommonProps, Omit<ComponentPropsWithoutRef<'div'>, OwnKeys> {
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Renders a `div` with `role="button"`, for content a `<button>` may not hold. */
   elementType: 'div';
+  /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
+  /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
   toggle?: false;
 }
 
 export interface ButtonBaseLinkProps
   extends ButtonBaseCommonProps, Omit<ComponentPropsWithoutRef<'a'>, OwnKeys | 'href'> {
+  /** Ref to the root `<a>` element. */
   ref?: Ref<HTMLAnchorElement>;
   /** Renders a link. Navigation goes through React Aria's `RouterProvider` when one is set. */
   href: string;
+  /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
   toggle?: false;
 }
 
@@ -87,7 +101,9 @@ export interface ButtonBaseToggleProps
   extends
     ButtonBaseCommonProps,
     Omit<ComponentPropsWithoutRef<'button'>, OwnKeys | 'aria-pressed' | 'onChange'> {
+  /** Ref to the root `<button>` element. */
   ref?: Ref<HTMLButtonElement>;
+  /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
   /** Makes the button a toggle (`aria-pressed`). */
   toggle: true;
@@ -97,6 +113,7 @@ export interface ButtonBaseToggleProps
   selected?: boolean;
   /** Initial selection when uncontrolled. */
   defaultSelected?: boolean;
+  /** Called with the new selection when the user toggles the button. */
   onSelectedChange?: (selected: boolean) => void;
 }
 

@@ -47,17 +47,17 @@ import type { TextFieldVariant } from '../text-field/text-field-styles';
 
 /** Words the Autocomplete shows or announces; override them for other languages. */
 export interface AutocompleteLabels {
-  /** Shown when no option matches what was typed. */
+  /** Shown when no option matches what was typed. @default "No results" */
   noResults: string;
-  /** The loading indicator's name. */
+  /** The loading indicator's name. @default "Loading options" */
   loading: string;
-  /** The arrow button's name. */
+  /** The arrow button's name. @default "Show options" */
   showOptions: string;
-  /** A chip's remove button; the chip's text follows it ("Remove London"). */
+  /** A chip's remove button; the chip's text follows it ("Remove London"). @default "Remove" */
   remove: string;
-  /** With `clearable`: the clear button's name. */
+  /** With `clearable`: the clear button's name. @default "Clear" */
   clear: string;
-  /** The error icon's name (M3: "Error"). */
+  /** The error icon's name (M3: "Error"). @default "Error" */
   error: string;
 }
 
@@ -71,7 +71,9 @@ const DEFAULT_LABELS: AutocompleteLabels = {
 };
 
 export interface AutocompleteClassNames extends FieldShellClassNames, OptionListClassNames {
+  /** The text `<input>`. */
   input?: string;
+  /** With `selectionMode="multiple"`: each chosen option's input chip. */
   chip?: string;
   /** With `clearable`: the clear button. */
   clear?: string;
@@ -99,10 +101,11 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   RenamedProps
 > &
   Pick<AriaComboBoxOptions<T, M>, 'name' | 'form'> & {
-    /** @default "filled" (as TextField) */
+    /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
+    /** Accessible name when there's no visible label. */
     'aria-label'?: string;
     /** Shown in the empty input. With a `label`, it appears once the label floats (on focus). */
     placeholder?: string;
@@ -111,19 +114,26 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
      * the error colour while the field is invalid.
      */
     supportingText?: ReactNode;
+    /** Marks the field invalid (in addition to `validate` and `required`). */
     invalid?: boolean;
+    /** A value is required: adds the `*` to the label and validates on submit. */
     required?: boolean;
+    /** Disables the field: it can't be focused or edited. @default false */
     disabled?: boolean;
+    /** The value can be read and copied but not changed; the menu doesn't open. @default false */
     readOnly?: boolean;
+    /** Decorative icon at the start, in a 48px box. */
     leadingIcon?: ReactNode;
     /**
      * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
      * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
+     * @default the Material Symbols `error` icon
      */
     errorIcon?: ReactNode | false;
     /**
      * A clear button (M3's clear icon) that appears while there's typed text and empties it,
      * and a single choice with it. It's skipped by Tab: Escape clears from the keyboard.
+     * @default false
      */
     clearable?: boolean;
     /**
@@ -143,11 +153,17 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
      * ignoring case and accents ("zurich" finds "Zürich"). Not used with controlled `items`.
      */
     filter?: (textValue: string, inputValue: string) => boolean;
+    /** Words the Autocomplete shows or announces, for other languages. */
     labels?: Partial<AutocompleteLabels>;
+    /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;
+    /** Classes for each part, by slot. */
     classNames?: AutocompleteClassNames;
+    /** Inline styles for the root element. */
     style?: CSSProperties;
+    /** Ref to the root `<div>` element. Use `inputRef` for the input itself. */
     ref?: Ref<HTMLDivElement>;
+    /** Ref to the text `<input>`, e.g. for form libraries. */
     inputRef?: Ref<HTMLInputElement>;
   };
 

@@ -25,10 +25,15 @@ import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { navItemStyles, type NavItemLayout } from './nav-item-styles';
 
 export interface NavItemClassNames {
+  /** The item's button or link, merged with `className`. */
   root?: string;
+  /** The pill around the icon that holds the active indicator and the state layer. */
   pill?: string;
+  /** The active indicator: the filled pill shown on the current destination. */
   indicator?: string;
+  /** The icon. */
   icon?: string;
+  /** The label text. */
   label?: string;
   /** The badge's wrapper: on the icon, or after the label in the expanded rail. */
   badge?: string;
@@ -60,6 +65,7 @@ export interface NavItemOwnProps {
    * destination resets the page's scroll position to the top, so scroll to the top here.
    */
   onReselect?: () => void;
+  /** Classes for each part, by slot. */
   classNames?: NavItemClassNames;
 }
 

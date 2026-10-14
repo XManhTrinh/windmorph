@@ -38,10 +38,15 @@ function CloseIcon() {
 }
 
 export interface ChipClassNames {
+  /** The chip's container, merged with `className`. */
   root?: string;
+  /** The row holding the leading icon, label and trailing icon. */
   content?: string;
+  /** The leading icon or avatar slot. */
   leading?: string;
+  /** The label text. */
   label?: string;
+  /** The trailing icon slot. */
   trailing?: string;
 }
 
@@ -55,6 +60,7 @@ interface ChipCommonProps {
    * where nothing else shows the chip is interactive. @default "standard"
    */
   outline?: ChipOutline;
+  /** Classes for each part, by slot. */
   classNames?: ChipClassNames;
 }
 
@@ -161,7 +167,7 @@ function RemoveButton({
 /* ------------------------------------------------------------------ Assist */
 
 interface AssistChipOwnProps extends ChipCommonProps {
-  /** `surface-container-low` at level 1 instead of an outline. */
+  /** `surface-container-low` at level 1 instead of an outline. @default false */
   elevated?: boolean;
 }
 
@@ -212,6 +218,7 @@ export function AssistChip({
 /* -------------------------------------------------------------- Suggestion */
 
 interface SuggestionChipOwnProps extends ChipCommonProps {
+  /** `surface-container-low` at level 1 instead of an outline. @default false */
   elevated?: boolean;
 }
 
@@ -262,6 +269,7 @@ export function SuggestionChip({
 export interface FilterChipClassNames extends ChipClassNames {
   /** The toggle of a chip with a remove button. */
   primary?: string;
+  /** The remove button after the label. */
   remove?: string;
 }
 
@@ -278,7 +286,9 @@ interface FilterChipOwnProps extends Omit<ChipCommonProps, 'classNames'> {
   onRemove?: () => void;
   /** First word of the remove button's name, which ends with the label. @default "Remove" */
   removeLabel?: string;
+  /** `surface-container-low` at level 1 instead of an outline. @default false */
   elevated?: boolean;
+  /** Classes for each part, by slot. */
   classNames?: FilterChipClassNames;
 }
 
@@ -441,7 +451,9 @@ function RemovableFilterChip({
 export interface InputChipClassNames extends ChipClassNames {
   /** The chip's action (a button with `onPress`), or its label part. */
   primary?: string;
+  /** The avatar image before the label. */
   avatar?: string;
+  /** The remove button after the label. */
   remove?: string;
 }
 
@@ -462,9 +474,13 @@ interface InputChipOwnProps {
   removeLabel?: string;
   /** The flat chip's border. @default "standard" */
   outline?: ChipOutline;
+  /** Disables the chip's action and its remove button. @default false */
   disabled?: boolean;
+  /** Classes for each part, by slot. */
   classNames?: InputChipClassNames;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
 }
 

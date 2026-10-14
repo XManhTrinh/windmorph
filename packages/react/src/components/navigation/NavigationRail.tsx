@@ -53,30 +53,45 @@ interface RailContextValue {
 
 const RailContext = createContext<RailContextValue | null>(null);
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the navigation rail. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the navigation rail. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 export interface NavigationRailClassNames {
+  /** The `<nav>` container, merged with `className`. */
   root?: string;
   /** The in-flow rail's scrolling column, which holds the 44px top inset. */
   body?: string;
+  /** The content above the items (`header`). */
   header?: string;
+  /** The list of items. */
   items?: string;
+  /** The expanded modal rail's sheet. */
   sheet?: string;
+  /** The scrim behind the expanded modal rail. */
   scrim?: string;
 }
 
 interface NavigationRailOwnProps {
   /** Whether the rail is expanded (controlled). */
   expanded?: boolean;
-  /** @default false */
+  /** Whether the rail starts expanded (uncontrolled). @default false */
   defaultExpanded?: boolean;
+  /** Called when the rail expands or collapses. */
   onExpandedChange?: (expanded: boolean) => void;
   /**
    * Expand over the page as a modal sheet with a scrim instead of pushing content.
    * Pressing outside, Escape or choosing an item collapses it.
+   * @default false
    */
   modal?: boolean;
-  /** With `modal`, show nothing while collapsed (the expanded rail slides in). */
+  /** With `modal`, show nothing while collapsed (the expanded rail slides in). @default false */
   hideOnCollapse?: boolean;
   /** Content above the items, e.g. a menu button and a FAB; a function receives the state. */
   header?: ReactNode | ((state: { expanded: boolean; toggle: () => void }) => ReactNode);
@@ -99,6 +114,7 @@ interface NavigationRailOwnProps {
   indicatorMotion?: 'expand' | 'slide';
   /** `NavigationRailItem` elements. */
   children: ReactNode;
+  /** Classes for each part, by slot. */
   classNames?: NavigationRailClassNames;
 }
 

@@ -51,6 +51,7 @@ export interface TabProps {
    * a stacked icon, otherwise 4px after the label, and describes the tab to assistive tech.
    */
   badge?: ReactElement<BadgeProps>;
+  /** Accessible name for the tab. Required for icon-only tabs, which have no `title`. */
   'aria-label'?: string;
 }
 
@@ -58,10 +59,15 @@ export interface TabProps {
 export const Tab = Item as unknown as (props: TabProps) => JSX.Element;
 
 export interface TabsClassNames {
+  /** The outer container, merged with `className`. */
   root?: string;
+  /** The row of tabs (`role="tablist"`). */
   list?: string;
+  /** Every tab. */
   tab?: string;
+  /** The active indicator under the selected tab. */
   indicator?: string;
+  /** The selected tab's panel. */
   panel?: string;
 }
 
@@ -69,8 +75,12 @@ export interface TabsProps extends Omit<
   AriaTabListProps<object>,
   'children' | 'orientation' | 'items'
 > {
+  /** `Tab` elements. */
   children: ReactNode;
-  /** @default "primary" */
+  /**
+   * `primary` tabs sit below the top app bar and switch the page's main content;
+   * `secondary` tabs switch content within one section. @default "primary"
+   */
   variant?: TabsVariant;
   /** Tabs keep their natural width (at least 90px) and the row scrolls. @default false */
   scrollable?: boolean;
@@ -93,9 +103,13 @@ export interface TabsProps extends Omit<
    * keyboard pattern. `automatic` selects on focus. @default "manual"
    */
   keyboardActivation?: 'manual' | 'automatic';
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: TabsClassNames;
+  /** Ref to the root `<div>` element. */
   ref?: React.Ref<HTMLDivElement>;
 }
 
