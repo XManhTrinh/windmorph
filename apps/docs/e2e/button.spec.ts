@@ -85,17 +85,24 @@ test.describe('Button interaction states', () => {
         }
         return { min, max };
       }, ms);
-    const radius = () =>
-      button.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius));
     const box = (await button.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 
     await page.mouse.down();
     // 28px → 12px overshoots below 12px before settling (expressive scheme).
     expect((await radiusRange(450)).min).toBeLessThan(11.5);
+    // The release morph runs over 20s instead of 360ms, so it's still early (and far from its
+    // overshoot) when it's read and when the next press lands, however loaded the machine is.
+    // Changing the duration back doesn't touch the running transition, so the re-press below
+    // gets the real effects spring.
+    await button.evaluate((el) => el.style.setProperty('--m3-shape-duration', '20s'));
     await page.mouse.up();
-    await page.waitForTimeout(60);
-    const midRelease = await radius();
+    const midRelease = await button.evaluate(async (el) => {
+      const radius = () => parseFloat(getComputedStyle(el).borderTopLeftRadius);
+      while (radius() <= 12.5) await new Promise(requestAnimationFrame);
+      el.style.removeProperty('--m3-shape-duration');
+      return radius();
+    });
     expect(midRelease).toBeGreaterThan(12.5);
     expect(midRelease).toBeLessThan(27.5);
     await page.mouse.down();

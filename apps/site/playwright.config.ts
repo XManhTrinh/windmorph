@@ -20,9 +20,17 @@ export default defineConfig({
       // lazily, so collection items built in a server component only fail there.
       name: 'next-dev',
       testMatch: 'menus.spec.ts',
-      // The dev server compiles each page on its first request.
-      timeout: 90_000,
-      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${DEV_PORT}` },
+      // The dev server compiles each page on its first request, and each live example's chunk
+      // when the page asks for it. Under load a first compile (`/components/alert`) used up the
+      // whole 90s test, so a navigation gets up to 2 minutes, the test 3, and the wait for the
+      // examples 30s.
+      timeout: 180_000,
+      expect: { timeout: 30_000 },
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: `http://localhost:${DEV_PORT}`,
+        navigationTimeout: 120_000,
+      },
     },
   ],
   webServer: [

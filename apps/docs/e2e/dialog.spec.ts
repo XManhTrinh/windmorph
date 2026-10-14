@@ -135,9 +135,16 @@ test.describe('Dialog behaviour', () => {
     const trigger = page.getByRole('button', { name: 'Edit name' });
     await trigger.click();
     const dialog = page.getByRole('dialog', { name: 'Edit name' });
+    // Polled to the nearest pixel: while the enter settles, the panel can sit a fraction of a
+    // pixel off (y = -0.0001 was seen under load). `+ 0` turns a rounded -0 into 0.
+    await expect
+      .poll(async () => {
+        const box = (await dialog.boundingBox())!;
+        const px = (value: number) => Math.round(value) + 0;
+        return { x: px(box.x), y: px(box.y), width: px(box.width), height: px(box.height) };
+      })
+      .toEqual({ x: 0, y: 0, width: 390, height: 760 });
     await settle(page);
-    const box = (await dialog.boundingBox())!;
-    expect(box).toMatchObject({ x: 0, y: 0, width: 390, height: 760 });
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('0px');
     const header = dialog.getByRole('heading', { name: 'Edit name' }).locator('xpath=..');
     expect((await header.boundingBox())!.height).toBe(56);
