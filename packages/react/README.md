@@ -2,9 +2,9 @@
 
 React components implementing **Material Design 3 Expressive**, built on
 [React Aria](https://react-spectrum.adobe.com/react-aria/), [Tailwind CSS v4](https://tailwindcss.com)
-and [Motion](https://motion.dev). Semantic design tokens, six built-in themes, light and dark
-modes with three contrast levels, M3 Expressive springs, right-to-left support and accessible
-components by default. Works with Vite and Next.js (App Router and Pages Router).
+and [Motion](https://motion.dev). Semantic design tokens, component tokens, six built-in themes,
+light and dark modes with three contrast levels, M3 Expressive springs, right-to-left support and
+accessible components by default. Works with Vite and Next.js (App Router and Pages Router).
 
 **Docs and live examples: [windmorph.vercel.app](https://windmorph.vercel.app/)**
 
@@ -141,8 +141,8 @@ export default defineConfig({
 ## Documentation
 
 [windmorph.vercel.app](https://windmorph.vercel.app/) has the getting-started, theming, motion,
-customisation, accessibility and Next.js guides, and a page per component with live examples
-and generated props tables.
+customisation, accessibility, Next.js and from-Compose guides, the spec status, the release
+notes, and a page per component with live examples and generated props tables.
 
 ## Licence
 

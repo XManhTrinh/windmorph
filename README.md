@@ -8,9 +8,9 @@ Monorepo for **[@windmorph/react](packages/react)**, a React component library i
 **Material Design 3 Expressive**, with its documentation site and test apps.
 
 Built on [React Aria](https://react-spectrum.adobe.com/react-aria/), [Tailwind CSS v4](https://tailwindcss.com)
-and [Motion](https://motion.dev). Semantic design tokens, light and dark modes with three contrast
-levels, full right-to-left support, and accessible components by default. Works with Vite and
-Next.js (App Router and Pages Router).
+and [Motion](https://motion.dev). Semantic and component design tokens, light and dark modes with
+three contrast levels, full right-to-left support, and accessible components by default. Works
+with Vite and Next.js (App Router and Pages Router).
 
 **Docs and live examples: [windmorph.vercel.app](https://windmorph.vercel.app/)**
 
