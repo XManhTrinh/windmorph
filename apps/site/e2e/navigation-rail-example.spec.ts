@@ -99,7 +99,7 @@ test.describe('Expanded navigation rail', () => {
       const item = (name: string) =>
         [...nav.querySelectorAll('button')].find((button) => button.textContent === name)!;
       const pill = (name: string) =>
-        item(name).querySelector<HTMLElement>('[class*="bg-secondary-container"]')!;
+        item(name).querySelector<HTMLElement>('[data-slot="indicator"]')!;
       item('Sent').click();
       const frames: { top: number; clip: string }[] = [];
       const end = performance.now() + 800;
@@ -124,7 +124,7 @@ test.describe('Expanded navigation rail', () => {
       .poll(() =>
         rail
           .getByRole('button', { name: 'Home' })
-          .locator('[class*="bg-secondary-container"]')
+          .locator('[data-slot="indicator"]')
           .evaluate((el) => getComputedStyle(el).opacity),
       )
       .toBe('0');
@@ -135,7 +135,7 @@ test.describe('Expanded navigation rail', () => {
     await expect.poll(async () => (await rail.boundingBox())?.width).toBeGreaterThanOrEqual(220);
     const home = rail.getByRole('button', { name: 'Home' });
     const sizes = await home.evaluate((row) => {
-      const pill = row.querySelector('[class*="bg-secondary-container"]')!;
+      const pill = row.querySelector('[data-slot="indicator"]')!;
       const content = pill.parentElement!.lastElementChild!;
       return {
         row: row.getBoundingClientRect().width,
