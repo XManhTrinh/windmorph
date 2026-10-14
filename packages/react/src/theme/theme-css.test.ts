@@ -34,13 +34,12 @@ describe('generateThemeCss', () => {
 
   it('emits light, dark and system blocks for each contrast level', () => {
     for (const contrast of ['standard', 'medium', 'high']) {
-      // Light block: the selector ends the rule (or the list, for the standard fallback).
-      expect(css).toMatch(
-        new RegExp(`\\[data-theme="ocean"\\]\\[data-contrast="${contrast}"\\](,| \\{)`),
-      );
-      expect(css).toContain(`[data-theme="ocean"][data-contrast="${contrast}"][data-mode="dark"]`);
+      expect(css).toContain(`:where([data-theme="ocean"][data-contrast="${contrast}"])`);
       expect(css).toContain(
-        `[data-theme="ocean"][data-contrast="${contrast}"][data-mode="system"]`,
+        `:where([data-theme="ocean"][data-contrast="${contrast}"][data-mode="dark"])`,
+      );
+      expect(css).toContain(
+        `:where([data-theme="ocean"][data-contrast="${contrast}"][data-mode="system"])`,
       );
     }
     expect(css.match(/@media \(prefers-color-scheme: dark\)/g)).toHaveLength(3);
@@ -48,13 +47,36 @@ describe('generateThemeCss', () => {
   });
 
   it('treats a missing data-contrast as standard', () => {
-    expect(css).toContain('[data-theme="ocean"]:not([data-contrast]) {');
+    expect(css).toContain(':where([data-theme="ocean"]:not([data-contrast])) {');
   });
 
   it('applies the default theme where no data-theme is set', () => {
     const defaultCss = generateThemeCss('baseline', baseline, { isDefault: true });
-    expect(defaultCss).toContain(':root:not([data-theme]):not([data-contrast]) {');
+    expect(defaultCss).toContain(':where(:root:not([data-theme]):not([data-contrast])) {');
     expect(css).not.toContain(':root:not([data-theme])');
+  });
+
+  it('gives every selector zero specificity, so a plain consumer rule wins', () => {
+    const defaultCss = generateThemeCss('baseline', baseline, { isDefault: true });
+    for (const source of [css, defaultCss]) {
+      const selectors = [...source.matchAll(/^([^\s@}][^{]*)\{/gm)].flatMap(([, list]) =>
+        list!.split(',\n').map((selector) => selector.trim()),
+      );
+      expect(selectors.length).toBeGreaterThan(0);
+      for (const selector of selectors) expect(selector).toMatch(/^:where\(.*\)$/);
+    }
+  });
+
+  it('writes light before dark and system in each contrast level, so the mode rule wins', () => {
+    for (const contrast of ['standard', 'medium', 'high']) {
+      const base = `[data-theme="ocean"][data-contrast="${contrast}"]`;
+      const light = css.indexOf(`:where(${base})`);
+      const dark = css.indexOf(`:where(${base}[data-mode="dark"])`);
+      const system = css.indexOf(`:where(${base}[data-mode="system"])`);
+      expect(light).toBeGreaterThanOrEqual(0);
+      expect(dark).toBeGreaterThan(light);
+      expect(system).toBeGreaterThan(dark);
+    }
   });
 });
 

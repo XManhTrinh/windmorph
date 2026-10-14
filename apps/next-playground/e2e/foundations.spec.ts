@@ -150,6 +150,35 @@ test.describe('App Router', () => {
     expect(scoped.scheme).toBe('dark');
     expect(scoped.primary).not.toBe(await rootVar(page, '--md-sys-color-primary'));
   });
+
+  test('a plain :root or [data-theme] rule overrides a colour role', async ({ page }) => {
+    await page.goto('/');
+    await page.getByLabel('Colour theme').selectOption('ocean');
+    await page.getByLabel('Mode').selectOption('dark');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'ocean');
+    const builtIn = await rootVar(page, '--md-sys-color-primary');
+    const surface = await rootVar(page, '--md-sys-color-surface');
+
+    // The themes' selectors have zero specificity, so a plain rule wins in every mode.
+    const rootRule = await page.addStyleTag({
+      content: ':root { --md-sys-color-primary: #0050c8; }',
+    });
+    expect(await rootVar(page, '--md-sys-color-primary')).toBe('#0050c8');
+    expect(await rootVar(page, '--md-sys-color-surface')).toBe(surface);
+    await rootRule.evaluate((el) => (el as HTMLStyleElement).remove());
+    expect(await rootVar(page, '--md-sys-color-primary')).toBe(builtIn);
+
+    await page.addStyleTag({
+      content: "[data-theme='ocean'] { --md-sys-color-primary: #8a1c4a; }",
+    });
+    expect(await rootVar(page, '--md-sys-color-primary')).toBe('#8a1c4a');
+    expect(await rootVar(page, '--md-sys-color-surface')).toBe(surface);
+    // A scope in another theme keeps its own colours.
+    const forest = await page
+      .getByTestId('scope-forest')
+      .evaluate((el) => getComputedStyle(el).getPropertyValue('--md-sys-color-primary').trim());
+    expect(forest).not.toBe('#8a1c4a');
+  });
 });
 
 test.describe('Pages Router', () => {

@@ -101,10 +101,8 @@ export default async function CustomisationPage() {
         <ol className="list-decimal ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
-            <InlineCode>--md-sys-*</InlineCode> shape and type tokens on{' '}
-            <InlineCode>:root</InlineCode>, and colour roles on a selector that matches the
-            theme&apos;s attributes, such as{' '}
-            <InlineCode>[data-theme=&quot;ocean&quot;][data-mode][data-contrast]</InlineCode>.
+            <InlineCode>--md-sys-*</InlineCode> tokens on <InlineCode>:root</InlineCode> for every
+            theme, or on <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one.
           </li>
           <li>
             <span className="text-on-surface">Component tokens</span> — set M3&apos;s{' '}

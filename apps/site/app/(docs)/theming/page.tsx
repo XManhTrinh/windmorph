@@ -101,13 +101,13 @@ const CUSTOM_SWATCHES = [
   ['warning', 'bg-warning text-on-warning', 'bg-warning-container text-on-warning-container'],
 ] as const;
 
-const TOKENS_SNIPPET = `/* Shape and type tokens: on :root, after the library stylesheet. */
+const TOKENS_SNIPPET = `/* Every theme: on :root, after the library stylesheet. */
 :root {
   --md-sys-shape-corner-full: 12px;
   --md-ref-typeface-brand: 'Inter';
 }
-/* Colour roles: match all three attributes, as the themes do. */
-[data-theme='ocean'][data-mode][data-contrast] {
+/* One theme, in every mode and contrast level. */
+[data-theme='ocean'] {
   --md-sys-color-primary: #0050c8;
 }`;
 
@@ -348,15 +348,13 @@ export default async function ThemingPage() {
         <p className="text-body-large text-on-surface-variant">
           The four attributes are <InlineCode>data-theme</InlineCode>,{' '}
           <InlineCode>data-mode</InlineCode>, <InlineCode>data-contrast</InlineCode> and{' '}
-          <InlineCode>data-motion</InlineCode>. Shape and type tokens are set once on{' '}
-          <InlineCode>:root</InlineCode>, so override them there, after the library stylesheet.
-          Themes set <InlineCode>--md-sys-color-*</InlineCode> on selectors that combine{' '}
-          <InlineCode>data-theme</InlineCode>, <InlineCode>data-mode</InlineCode> and{' '}
-          <InlineCode>data-contrast</InlineCode>, which beat a plain <InlineCode>:root</InlineCode>{' '}
-          or <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> rule. To override a colour
-          role, match all three attributes, as below (<InlineCode>ThemeProvider</InlineCode> and{' '}
-          <InlineCode>ThemeScope</InlineCode> always set them). A literal colour is the same in
-          light and dark mode, so check its contrast in both, or generate a theme instead.
+          <InlineCode>data-motion</InlineCode>. Override any token with a plain rule after the
+          library stylesheet: <InlineCode>:root</InlineCode> for every theme, or{' '}
+          <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one. The themes set{' '}
+          <InlineCode>--md-sys-color-*</InlineCode> on zero-specificity{' '}
+          <InlineCode>:where()</InlineCode> selectors, so your rule always wins, in every mode and
+          contrast level. A literal colour is the same in light and dark mode, so check its contrast
+          in both, or generate a theme instead.
         </p>
         <CodeBlock code={TOKENS_SNIPPET} html={tokensHtml} lang="css" title="globals.css" />
       </section>

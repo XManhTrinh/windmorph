@@ -27,6 +27,12 @@ export interface ThemeCssOptions {
  * Selectors for one theme × contrast × mode block.
  * A missing `data-contrast` behaves like `standard`; a missing `data-mode` like `light`;
  * the default theme also applies to a root without `data-theme`.
+ *
+ * Each selector is wrapped in `:where()`, so it has zero specificity and any plain consumer
+ * rule (`:root { --md-sys-color-primary: … }`, `[data-theme='ocean'] { … }`) wins. Among the
+ * theme's own rules, source order decides: an element matches one theme and one contrast
+ * level, and {@link generateThemeCss} writes light before dark and system, so the mode rule
+ * that also matches comes later and wins.
  */
 function selectors(
   name: string,
@@ -41,7 +47,7 @@ function selectors(
   const modePart = mode === 'light' ? '' : `[data-mode="${mode}"]`;
 
   return themeParts
-    .flatMap((theme) => contrastParts.map((c) => `${theme}${c}${modePart}`))
+    .flatMap((theme) => contrastParts.map((c) => `:where(${theme}${c}${modePart})`))
     .join(',\n');
 }
 
@@ -54,7 +60,9 @@ function declarations(seed: ThemeSeed, mode: ResolvedColorMode, contrast: Contra
 
 /**
  * CSS for one colour theme: light, dark and system mode for each contrast level,
- * keyed on the `data-theme`, `data-mode` and `data-contrast` attributes.
+ * keyed on the `data-theme`, `data-mode` and `data-contrast` attributes. Every selector has
+ * zero specificity (`:where()`), so the order of the blocks matters: for each contrast level
+ * the light block comes first, then dark, then system inside its media query.
  */
 export function generateThemeCss(
   name: string,
