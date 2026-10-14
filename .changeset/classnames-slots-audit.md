@@ -17,5 +17,3 @@ More parts can be restyled through `classNames`:
 - `DatePicker` and `DateRangePicker`: `title`, `headline`, `weekday`, `day`, `year` and `monthSubhead`. `PickerDialog`: `title`.
 - `DateField`: the text field's parts (`label`, `container`, `trailingIcon`, `supportingText`, `errorText`, `errorIcon`, `outline`, `activeIndicator`) and the calendar's `menuButton`, `weekday`, `day` and `item`.
 - `TimePicker`: `field`, `fieldLabel`, `separator`, `period` and `periodOption`.
-
-A standard `SideSheet`'s `classNames.panel` now goes on its painted surface, as on a modal one; its `className` stays on the outer layout box.
