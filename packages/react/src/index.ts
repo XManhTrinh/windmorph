@@ -29,15 +29,21 @@ export * from './tokens';
 export {
   color,
   colorAt,
+  componentTokenList,
   componentTokensCss,
   corner,
   defineComponentTokens,
+  elevation,
+  isComponentTokenSet,
   px,
   spring,
   typeTokens,
   typescale,
   type ComponentToken,
+  type ComponentTokenScope,
   type ComponentTokenSet,
+  type PublicComponentToken,
+  type TokenPaints,
   type TokenValue,
 } from './tokens/component';
 
