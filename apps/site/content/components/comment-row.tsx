@@ -51,7 +51,7 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             One comment or message in a thread: the avatar, the bubble with the name and the words,
-            what goes under it (a photo, a note) and a 48dp row of actions. That row spaces one
+            what goes under it (a photo, a note) and a 48px row of actions. That row spaces one
             comment from the next, so a list of them needs no gaps, and every place that shows
             comments looks the same. It is{' '}
             <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
@@ -79,7 +79,7 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
               it in the actions row too (&quot;Sending…&quot;).
             </li>
             <li>
-              What goes in <InlineCode>below</InlineCode> keeps 4dp off the bubble; the actions row
+              What goes in <InlineCode>below</InlineCode> keeps 4px off the bubble; the actions row
               sits right under it.
             </li>
             <li>

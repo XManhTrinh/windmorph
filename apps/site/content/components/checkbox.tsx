@@ -91,13 +91,15 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
               touch target.
             </li>
             <li>
-              <InlineCode>indeterminate</InlineCode> is purely visual (a dash); the underlying
-              checked state is unchanged until the user acts.
+              <InlineCode>indeterminate</InlineCode> shows a dash and is announced as mixed
+              (&quot;partially checked&quot;); the underlying checked state is unchanged until the
+              user acts.
             </li>
             <li>
               An accessible name is required; <InlineCode>required</InlineCode> maps to{' '}
-              <InlineCode>aria-required</InlineCode> and <InlineCode>invalid</InlineCode> exposes
-              the error state.
+              <InlineCode>aria-required</InlineCode> (the native <InlineCode>required</InlineCode>{' '}
+              attribute with <InlineCode>validationBehavior=&quot;native&quot;</InlineCode>) and{' '}
+              <InlineCode>invalid</InlineCode> exposes the error state.
             </li>
           </ul>
         </section>
@@ -133,7 +135,7 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
               <InlineCode>surface</InlineCode> check.
             </li>
             <li>
-              <strong>No CheckboxGroup</strong> in v1 (Compose has none); a fieldset of checkboxes
+              <strong>No CheckboxGroup</strong> yet (Compose has none); a fieldset of checkboxes
               with a shared <InlineCode>name</InlineCode> covers forms.
             </li>
           </ul>

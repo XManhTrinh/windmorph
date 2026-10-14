@@ -26,7 +26,7 @@ export function TopAppBarTransparent() {
         scrollRef={scrollRef}
       />
       <div className="mx-4 h-[220px] rounded-corner-large bg-tertiary-container" />
-      <h2 className="px-4 pt-4 text-headline-small text-on-surface">Bún chả stall</h2>
+      <h2 className="px-4 pt-4 text-headline-small text-on-surface">Street food stall</h2>
       {Array.from({ length: 12 }, (_, index) => (
         <p key={index} className="px-4 py-3 text-body-large text-on-surface-variant">
           Review {index + 1}: grilled pork, fresh herbs and a bright dipping sauce.

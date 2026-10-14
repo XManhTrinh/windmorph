@@ -201,8 +201,9 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               formatting buttons: above the text, between the text and the tools (in thumb reach on
               phones), or by window size (<InlineCode>toolbarPlacement</InlineCode>).{' '}
               <InlineCode>docked</InlineCode> squares the corners on the field&apos;s spring, for a
-              field that becomes its container&apos;s footer (a card&apos;s comment field); where it
-              sits is the app&apos;s.
+              field that becomes its container&apos;s footer (a card&apos;s comment field);{' '}
+              <InlineCode>{'docked="when-open"'}</InlineCode> docks it once it opens. Where it sits
+              is the app&apos;s.
             </li>
             <li>
               Icon buttons in <InlineCode>leading</InlineCode> and <InlineCode>trailing</InlineCode>{' '}

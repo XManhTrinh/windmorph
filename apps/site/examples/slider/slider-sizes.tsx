@@ -2,7 +2,7 @@ import { Slider } from '@windmorph/react';
 
 /**
  * Five track sizes, from `xs` (16px) to `xl` (96px). A horizontal slider fills the width
- * of its container, so each one is given a fixed-width wrapper here.
+ * of its container, so here they share one width-limited wrapper.
  */
 export function SliderSizes() {
   return (

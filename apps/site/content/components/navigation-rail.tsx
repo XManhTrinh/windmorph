@@ -100,11 +100,14 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             In the expanded rail the pill hugs its icon and label. In both states the new
             destination&apos;s pill expands from the centre of its icon on the default spatial
-            spring, and its label turns bold. The whole row is the target. An item&apos;s{' '}
-            <InlineCode>selectedIcon</InlineCode> cross-fades with its icon. A long label wraps
-            between words and the item grows taller; it never breaks inside a word, and a single
-            word too long for its item ends with an ellipsis. While the rail widens, labels stay on
-            one line, clipped by the rail, so no icon moves. A press ripples through the pill.
+            spring, and its label turns bold. With{' '}
+            <InlineCode>indicatorMotion=&quot;slide&quot;</InlineCode>, an extension beyond the
+            spec, the expanded rail&apos;s pill slides from the previous destination instead. The
+            whole row is the target. An item&apos;s <InlineCode>selectedIcon</InlineCode>{' '}
+            cross-fades with its icon. A long label wraps between words and the item grows taller;
+            it never breaks inside a word, and a single word too long for its item ends with an
+            ellipsis. While the rail widens, labels stay on one line, clipped by the rail, so no
+            icon moves. A press ripples through the pill.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>itemAlignment=&quot;center&quot;</InlineCode> centres the items in the space
@@ -149,7 +152,8 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             <li>
               A badge describes its item: its text, or <InlineCode>badgeLabel</InlineCode> (e.g.
               &quot;3 new messages&quot;), is linked with <InlineCode>aria-describedby</InlineCode>.
-              Give a small (dot) badge a <InlineCode>badgeLabel</InlineCode>.
+              A small (dot) badge reads &quot;New notification&quot; unless it has a{' '}
+              <InlineCode>badgeLabel</InlineCode>.
             </li>
             <li>
               The selected item sets <InlineCode>aria-current=&quot;page&quot;</InlineCode>, so a

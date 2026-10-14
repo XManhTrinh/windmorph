@@ -200,7 +200,7 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
               <InlineCode>filled-autocomplete</InlineCode> token sets aren&apos;t exposed.
             </li>
             <li>
-              <strong>Not in v1:</strong> the composable TextField parts (the &quot;two API
+              <strong>Not yet supported:</strong> the composable TextField parts (the &quot;two API
               levels&quot;); only the batteries-included form is exported, built from the Field
               primitives.
             </li>

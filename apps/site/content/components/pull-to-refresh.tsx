@@ -183,7 +183,8 @@ export async function PullToRefreshBody(): Promise<ComponentDoc> {
             <li>
               It adds nothing to the tab order itself. Under{' '}
               <InlineCode>prefers-reduced-motion</InlineCode> the indicator settles on the standard
-              spring and the refreshing indicator only rotates.
+              motion scheme&apos;s spring, which doesn&apos;t overshoot, and the refreshing
+              indicator only rotates.
             </li>
           </ul>
         </section>

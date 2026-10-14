@@ -14,7 +14,7 @@ import {
  * Vertical floating toolbars, for medium and larger windows, where they sit 24px from the
  * window's start or end edge. One is standard and one vibrant (`primary-container`); the
  * second carries a `ToolbarFab`, which sits below the toolbar (`fabPosition="bottom"`).
- * Arrow keys move up and down between the controls.
+ * Tab, or the up and down arrow keys, move between the controls.
  */
 export function ToolbarVertical() {
   return (

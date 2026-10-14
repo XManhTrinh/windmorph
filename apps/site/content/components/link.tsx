@@ -112,7 +112,8 @@ export async function LinkBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Links in text are underlined (WCAG 1.4.1); standalone links underline on hover, focus
-              and press.
+              and press. <InlineCode>plain</InlineCode> links never underline, so keep them for
+              non-text content such as a logo or a photo tile.
             </li>
             <li>
               <InlineCode>external</InlineCode> (or{' '}

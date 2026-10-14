@@ -168,7 +168,7 @@ export async function FabBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Tab moves focus; Enter or Space activates. With <InlineCode>href</InlineCode> the FAB
-              renders a link.
+              renders a link, which Enter follows.
             </li>
           </ul>
         </section>

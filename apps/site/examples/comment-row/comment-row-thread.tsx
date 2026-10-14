@@ -22,7 +22,7 @@ const COMMENTS = [
 ];
 
 /**
- * A thread: no gaps between comments, as each one's 48dp actions row spaces them. "Like" is a
+ * A thread: no gaps between comments, as each one's 48px actions row spaces them. "Like" is a
  * word until there's a reaction (`showIdleIcon={false}`); the reactions so far sit at the end.
  */
 export function CommentRowThread() {

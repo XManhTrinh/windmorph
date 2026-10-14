@@ -5,10 +5,10 @@ import { useRef, useState } from 'react';
 import { ArrowBackIcon, SearchIcon } from '../../components/icons';
 
 const RECIPES = [
-  { name: 'Phở bò', tag: 'soup' },
-  { name: 'Bún chả', tag: 'noodles' },
-  { name: 'Gỏi cuốn', tag: 'starter' },
-  { name: 'Bánh mì', tag: 'sandwich' },
+  { name: 'Lentil soup', tag: 'soup' },
+  { name: 'Garlic noodles', tag: 'noodles' },
+  { name: 'Garden salad', tag: 'starter' },
+  { name: 'Club sandwich', tag: 'sandwich' },
   { name: 'Crème brûlée', tag: 'dessert' },
   { name: 'Ratatouille', tag: 'stew' },
 ];

@@ -120,9 +120,9 @@ export async function LoadingIndicatorBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              A single 48px box with full corners and no <InlineCode>size</InlineCode> prop — there
-              is one spec size. <InlineCode>className</InlineCode> (e.g.{' '}
-              <InlineCode>size-24</InlineCode>) resizes the box and the shape scales with it, kept
+              A 48px box with full corners by default. <InlineCode>size</InlineCode> sets it in px
+              within the spec&apos;s 24–240px range (values outside it are clamped), or a{' '}
+              <InlineCode>size-*</InlineCode> class resizes it. The shape scales with the box, kept
               square and centred by the viewBox.
             </li>
             <li>
@@ -140,8 +140,9 @@ export async function LoadingIndicatorBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Every frame is a pure function of elapsed time (tested against Compose&apos;s
-              numbers); Motion writes the path and the inner <InlineCode>&lt;g&gt;</InlineCode>{' '}
-              rotation straight to the SVG, so animation causes no React renders.
+              numbers). The indeterminate loop writes the path and the inner{' '}
+              <InlineCode>&lt;g&gt;</InlineCode> rotation straight to the SVG on Motion&apos;s
+              animation frames, so it causes no React renders.
             </li>
           </ul>
         </section>

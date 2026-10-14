@@ -8,7 +8,7 @@ const picture = `data:image/svg+xml,${encodeURIComponent(
 /**
  * Standard lists with M3's dividers, `full` or `inset` (16dp from each side), and line
  * limits: headlines stop at two lines and supporting text at one, then "…". The full text
- * stays in the item's accessible name. `classNames.media` rounds the images.
+ * stays in the item's accessible name. `classNames.media` gives the images larger corners.
  */
 export function ListDividers() {
   return (

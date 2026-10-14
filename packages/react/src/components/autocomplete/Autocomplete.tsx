@@ -127,12 +127,12 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
     /**
      * The icon shown before the arrow while the field is invalid (M3 strongly recommends one).
      * Defaults to Material Symbols `error`, named by `labels.error`; `false` turns it off.
-     * @default the Material Symbols `error` icon
      */
     errorIcon?: ReactNode | false;
     /**
      * A clear button (M3's clear icon) that appears while there's typed text and empties it,
-     * and a single choice with it. It's skipped by Tab: Escape clears from the keyboard.
+     * and a single choice with it. It's skipped by Tab, since the text can be deleted from
+     * the keyboard.
      * @default false
      */
     clearable?: boolean;

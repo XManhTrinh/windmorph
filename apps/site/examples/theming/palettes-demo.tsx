@@ -15,7 +15,7 @@ const COLUMNS = [
 ] as const;
 
 /**
- * Vivid accents on calm surfaces: the right-hand theme keeps the vibrant buttons and
+ * Vivid accents on calm surfaces: the second theme keeps the vibrant buttons and
  * containers, and takes its surfaces from the tonal-spot neutrals. Rendered on the server.
  */
 export function PalettesDemo() {

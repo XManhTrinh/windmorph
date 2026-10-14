@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 /**
  * A live `useM3Spring` demo: the box springs between two positions using the M3 spring for
- * the active motion scheme (expressive overshoots, standard does not). `prefers-reduced-motion`
+ * the active motion scheme (expressive overshoots, standard barely). `prefers-reduced-motion`
  * forces the standard scheme inside the hook. Built from `@windmorph/react` + Motion + React only.
  */
 export function SpringDemo({

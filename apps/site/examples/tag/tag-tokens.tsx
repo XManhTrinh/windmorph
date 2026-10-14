@@ -2,7 +2,7 @@ import { Tag } from '@windmorph/react-pro';
 
 /**
  * The component tokens: set `--wm-tag-*` on a tag or any ancestor. Here a section gives all
- * its tags a taller, square-cornered look without a new variant.
+ * its tags a taller look with small (extra-small) corners, without a new variant.
  */
 export function TagTokens() {
   return (

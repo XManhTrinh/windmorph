@@ -11,13 +11,13 @@ export function SnackbarTwoLines() {
   return (
     <div className="flex w-full max-w-[360px] flex-col gap-4">
       <Snackbar>
-        Your order of bánh mì is on its way and should arrive in about twenty minutes
+        Your grocery order is on its way and should arrive in about twenty minutes
       </Snackbar>
       <Snackbar actionLabel="Retry" onAction={() => {}}>
         Couldn’t upload 3 photos because the connection dropped
       </Snackbar>
       <Snackbar actionLabel="View the order" actionOnNewLine onAction={() => {}}>
-        Your order of phở is on its way and should arrive in about twenty minutes
+        Your food order is on its way and should arrive in about twenty minutes
       </Snackbar>
     </div>
   );

@@ -100,9 +100,10 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Each item is a link or button that Tab reaches and Enter or Space activates; the Left
-              and Right arrows (mirrored right to left) also move focus between items. The icon is
-              hidden from assistive tech and the label names the item; a badge describes it through
-              its text or <InlineCode>badgeLabel</InlineCode>.
+              and Right arrows (mirrored right to left) also move focus between items, and Home and
+              End to the first and last, without choosing one. The icon is hidden from assistive
+              tech and the label names the item; a badge describes it through its text or{' '}
+              <InlineCode>badgeLabel</InlineCode>.
             </li>
             <li>
               The selected item sets <InlineCode>aria-current=&quot;page&quot;</InlineCode> so the

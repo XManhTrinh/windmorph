@@ -134,8 +134,9 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
               page&apos;s name.
             </li>
             <li>
-              The navigation icon and actions are ordinary <InlineCode>IconButton</InlineCode>s, so
-              each needs an <InlineCode>aria-label</InlineCode>; Tab reaches them in order.
+              The navigation icon and actions are your own controls, usually{' '}
+              <InlineCode>IconButton</InlineCode>s, so each icon-only one needs an{' '}
+              <InlineCode>aria-label</InlineCode>; Tab reaches them in order.
             </li>
             <li>
               In a two-row bar only one title is announced at a time — the expanded one until it is
@@ -161,10 +162,10 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
               <InlineCode>sticky</InlineCode> and keeps its layout height, sliding up via a{' '}
               <InlineCode>top</InlineCode> offset so the content moves exactly with the scroll. The
               offset differs per behaviour: <InlineCode>pinned</InlineCode> stays,{' '}
-              <InlineCode>exit-until-collapsed</InlineCode> collapses once, and{' '}
-              <InlineCode>enter-always</InlineCode> comes back on any scroll up. A medium or large{' '}
-              <InlineCode>enter-always</InlineCode> bar comes back small and expands only at the top
-              of the page, as M3 asks.
+              <InlineCode>exit-until-collapsed</InlineCode> collapses and expands again only near
+              the top, and <InlineCode>enter-always</InlineCode> comes back on any scroll up. A
+              medium or large <InlineCode>enter-always</InlineCode> bar comes back small and expands
+              only at the top of the page, as M3 asks.
             </li>
             <li>A long expanded title wraps to two lines at most (M3).</li>
             <li>

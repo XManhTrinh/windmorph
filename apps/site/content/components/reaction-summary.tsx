@@ -102,7 +102,7 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               Pressable, it&apos;s a button named by <InlineCode>labels.count</InlineCode>{' '}
-              (&quot;128 reactions. See who reacted&quot;), with a 48dp touch target.
+              (&quot;128 reactions. See who reacted&quot;), with a 48px touch target.
             </li>
             <li>
               Otherwise the icons and number are hidden from screen readers, which read{' '}

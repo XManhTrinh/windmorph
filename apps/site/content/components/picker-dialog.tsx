@@ -85,7 +85,8 @@ export async function PickerDialogBody(): Promise<ComponentDoc> {
             <InlineCode>fullScreen=&quot;compact&quot;</InlineCode> (below 600px) or{' '}
             <InlineCode>&quot;always&quot;</InlineCode> fills the window and puts a close (x) button
             and a Save button, which calls <InlineCode>onConfirm</InlineCode>, at the top instead of
-            the actions.
+            the actions. Without <InlineCode>onConfirm</InlineCode>, the{' '}
+            <InlineCode>confirmButton</InlineCode> takes Save&apos;s place.
           </p>
         </section>
       </>
@@ -142,9 +143,10 @@ export async function PickerDialogBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Full screen follows the M3 full-screen dialog, as <InlineCode>Dialog</InlineCode>{' '}
-              does: the panel fills the window on <InlineCode>surface</InlineCode> with no corners
-              or elevation, under a 64px row holding the close button and Save; the range
-              picker&apos;s month list fills the height.
+              does: the panel fills the window on <InlineCode>surface-container-high</InlineCode>{' '}
+              (the date picker&apos;s container colour) with no corners or elevation, under a 56px
+              row holding the close button and Save; the range picker&apos;s month list fills the
+              height.
             </li>
             <li>
               In a window too short for the whole dialog, or with large text, the picker scrolls

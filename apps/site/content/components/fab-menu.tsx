@@ -164,11 +164,23 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
               anchor; open, it becomes the 56px close button with 28px corners and a 20px icon.
               Size, corners and icon follow the fast spatial spring; the colours move from the{' '}
               <InlineCode>*-container</InlineCode> role to the vibrant role on the fast effects
-              spring, so they never overshoot. Elevation is level 3.
+              spring, so they never overshoot.
             </li>
             <li>
               Items are 56px pills (min 56px wide, 24px padding, 8px icon gap, 24px icon,{' '}
-              <InlineCode>title-medium</InlineCode>) at level 3, 4px apart and 8px above the button.
+              <InlineCode>title-medium</InlineCode>), 4px apart and 8px above the button.
+            </li>
+            <li>
+              The button and the items sit at level 3, as the spec asks;{' '}
+              <InlineCode>elevation</InlineCode> works as on <InlineCode>Fab</InlineCode>, with{' '}
+              <InlineCode>lowered</InlineCode> (level 1) and <InlineCode>flat</InlineCode> (level
+              0).
+            </li>
+            <li>
+              <InlineCode>iconTransition=&quot;rotate&quot;</InlineCode> goes beyond the spec, which
+              swaps the icons halfway through the morph: the icons turn 90° counter-clockwise as the
+              menu opens (mirrored in RTL) while they crossfade, and turn back as it closes. Reduced
+              motion keeps only the crossfade.
             </li>
             <li>
               Opening staggers the visible item count on the slow effects spring (the item nearest

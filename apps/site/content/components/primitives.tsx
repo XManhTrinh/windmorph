@@ -15,9 +15,12 @@ import { InlineCode } from '../../components/inline-code';
 
 const importSnippet = `import {
   // Interaction & structure
-  useM3Interaction, ButtonBase, Surface, Overlay, TouchTarget,
+  useM3Interaction, ButtonBase, Surface, surfaceStyles, Overlay, TouchTarget,
   // Form field parts
-  FieldLabel, SupportingText, ErrorText, CharacterCounter, FieldErrorIcon, SelectionControl,
+  FieldLabel, SupportingText, ErrorText, CharacterCounter, FieldErrorIcon,
+  SelectionControl, selectionControlStyles,
+  // Motion
+  useM3Spring, getM3Spring,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Building your own component
@@ -118,7 +121,7 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              The library is four layers with dependencies pointing only downward (enforced by{' '}
+              The library is built in layers, with dependencies pointing only downward (enforced by{' '}
               <InlineCode>eslint-plugin-boundaries</InlineCode>): tokens → utils → theme / motion →
               primitives → components → composites. Composites are built only from public
               components, so they may not import primitives directly.
@@ -206,7 +209,8 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               add styling on top.
             </li>
             <li>
-              <InlineCode>Surface</InlineCode> (container role + elevation 0–5 + shape),{' '}
+              <InlineCode>Surface</InlineCode> (container role + elevation 0–5 + shape, with its
+              variants as <InlineCode>surfaceStyles</InlineCode>),{' '}
               <InlineCode>TouchTarget</InlineCode> (48×48px hit area) and{' '}
               <InlineCode>Overlay</InlineCode> (portal to <InlineCode>body</InlineCode> that
               re-applies the theme attributes and <InlineCode>dir</InlineCode> of where it was
@@ -218,7 +222,15 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>alert</InlineCode> role, <InlineCode>CharacterCounter</InlineCode> read as
               its <InlineCode>label</InlineCode>, and the named{' '}
               <InlineCode>FieldErrorIcon</InlineCode>) and <InlineCode>SelectionControl</InlineCode>{' '}
-              (the shared Checkbox / Radio / Switch control).
+              (the shared Checkbox / Radio / Switch control, with its variants as{' '}
+              <InlineCode>selectionControlStyles</InlineCode>).
+            </li>
+            <li>
+              <InlineCode>useM3Spring</InlineCode> and <InlineCode>getM3Spring</InlineCode> (an M3
+              spring, such as spatial fast, as Motion transition options:{' '}
+              <InlineCode>useM3Spring</InlineCode> from the active motion scheme,{' '}
+              <InlineCode>getM3Spring</InlineCode> from a scheme you name; both are also in the main
+              entry).
             </li>
             <li>
               <InlineCode>TriggerContext</InlineCode> (an overlay trigger hands its press handler

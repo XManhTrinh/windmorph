@@ -165,11 +165,13 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
               Space activates one.
             </li>
             <li>
-              Single selection renders as a <InlineCode>radiogroup</InlineCode> of radios: arrow
-              keys move between options and select, and every option stays reachable.
+              Single selection renders as a <InlineCode>radiogroup</InlineCode> of radios: Tab
+              enters and leaves it, the arrow keys move between options, and Enter or Space selects
+              one. Selection doesn&apos;t follow focus, so every option stays reachable.
             </li>
             <li>
-              Multiple selection behaves like a set of checkboxes.{' '}
+              Multiple selection is a toolbar of toggle buttons (
+              <InlineCode>aria-pressed</InlineCode>) that behave like a set of checkboxes.{' '}
               <InlineCode>disallowEmptySelection</InlineCode> keeps at least one option chosen.
             </li>
             <li>
@@ -191,13 +193,13 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              Press expansion (standard groups only): the pressed item grows by{' '}
-              <InlineCode>expandedRatio</InlineCode> (0.15) of its width while its neighbours shrink
-              by the same amount, so the group&apos;s width stays constant. On the web the group
-              watches each child&apos;s <InlineCode>data-pressed</InlineCode> and animates{' '}
+              Press expansion: the pressed item grows by <InlineCode>expandedRatio</InlineCode> of
+              its width (0.15 in a standard group) while its neighbours shrink by the same amount,
+              so the group&apos;s width stays constant. On the web the group watches each
+              child&apos;s <InlineCode>data-pressed</InlineCode> and animates{' '}
               <InlineCode>flex-basis</InlineCode> on the fast spatial spring;{' '}
-              <InlineCode>expandedRatio=0</InlineCode> turns it off. In a connected group only the
-              pressed button&apos;s shape changes.
+              <InlineCode>expandedRatio=0</InlineCode> turns it off. A connected group defaults to
+              0, so only the pressed button&apos;s shape changes, unless you set a ratio.
             </li>
             <li>
               Standard groups space their buttons 18 / 12 / 8 / 8 / 8px apart (XS–XL), so small

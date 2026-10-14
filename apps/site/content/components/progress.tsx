@@ -118,8 +118,9 @@ export async function ProgressBody(): Promise<ComponentDoc> {
               in progress. The animated SVG is <InlineCode>aria-hidden</InlineCode>.
             </li>
             <li>
-              Under <InlineCode>prefers-reduced-motion</InlineCode> the wave stops travelling and
-              amplitude changes snap; indeterminate motion stays, because it conveys activity.
+              Under <InlineCode>prefers-reduced-motion</InlineCode> the wave stops travelling, and
+              amplitude and value changes snap; indeterminate motion stays, because it conveys
+              activity.
             </li>
           </ul>
         </section>

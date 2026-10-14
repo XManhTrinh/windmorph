@@ -113,7 +113,8 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               remove button, named &quot;{'{labels.remove}'} + label&quot; (&quot;Remove
               Alex&quot;); the focus ring circles the whole chip. With{' '}
               <InlineCode>onPress</InlineCode> too, the chip and its remove button are two focus
-              stops. A filter chip with <InlineCode>onRemove</InlineCode> works the same way.
+              stops. A filter chip with <InlineCode>onRemove</InlineCode> is two focus stops too:
+              the chip and its remove button.
             </li>
             <li>
               Backspace or Delete on a removable chip removes it. In a{' '}
@@ -164,7 +165,10 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               Without a leading icon, a selected filter chip grows a check and its start padding
               moves 16 → 8px.
             </li>
-            <li>Assist chips have no trailing icon; filter and input chips may.</li>
+            <li>
+              Only filter chips take a trailing icon (<InlineCode>trailingIcon</InlineCode>); input
+              chips end with their remove button, and assist and suggestion chips have none.
+            </li>
           </ul>
         </section>
       </>
