@@ -121,7 +121,7 @@ export const chipStyles = tv({
       input: {
         root: [
           'cursor-default rounded-[var(--_md-comp-input-chip-container-shape)]',
-          'text-[color:var(--_md-comp-input-chip-label-text-color)]',
+          'text-[color:var(--_md-comp-input-chip-unselected-label-text-color)]',
           'data-selected:bg-[var(--_md-comp-input-chip-selected-container-color)]',
           'data-selected:text-[color:var(--_md-comp-input-chip-selected-label-text-color)]',
           'data-selected:data-disabled:bg-on-surface/12 data-selected:data-disabled:text-on-surface/38',

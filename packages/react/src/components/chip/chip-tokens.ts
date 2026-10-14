@@ -151,7 +151,7 @@ export const inputChipTokenSet = defineComponentTokens({
       compose: 'InputChipTokens.ContainerShape',
       paints: paintsShape,
     },
-    'label-text-color': {
+    'unselected-label-text-color': {
       value: color('on-surface-variant'),
       description: 'The label (and an unselected leading icon), unselected.',
       compose: 'InputChipTokens.UnselectedLabelTextColor',

@@ -263,7 +263,7 @@ describe('InputChip', () => {
     expect(root).toHaveClass(
       'rounded-[var(--_md-comp-input-chip-container-shape)]',
       'border-[color:var(--_md-comp-input-chip-unselected-outline-color)]',
-      'text-[color:var(--_md-comp-input-chip-label-text-color)]',
+      'text-[color:var(--_md-comp-input-chip-unselected-label-text-color)]',
       'min-w-[88px]',
       'pe-[calc(8px-var(--m3-chip-border))]',
     );

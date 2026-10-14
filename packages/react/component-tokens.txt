@@ -151,9 +151,9 @@
 --md-comp-icon-button-xsmall-container-shape-round
 --md-comp-icon-button-xsmall-container-shape-square
 --md-comp-input-chip-container-shape
---md-comp-input-chip-label-text-color
 --md-comp-input-chip-selected-container-color
 --md-comp-input-chip-selected-label-text-color
+--md-comp-input-chip-unselected-label-text-color
 --md-comp-input-chip-unselected-outline-color
 --md-comp-list-list-item-container-color
 --md-comp-list-list-item-label-text-color
