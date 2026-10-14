@@ -31,8 +31,15 @@ export function TokenTable({ set, caption }: { set: ComponentTokenSet; caption: 
     if (last && last.heading === heading) last.rows.push(token);
     else groups.push({ heading, rows: [token] });
   }
+  // The table keeps a 40rem minimum and scrolls sideways in a narrower column; the scroller
+  // is a named, focusable region so a keyboard can scroll it too.
   return (
-    <div className="overflow-x-auto rounded-corner-large border border-outline-variant">
+    <div
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+      className="overflow-x-auto rounded-corner-large border border-outline-variant outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+    >
       <table className="w-full min-w-[40rem] text-start text-body-medium text-on-surface">
         <caption className="sr-only">{caption}</caption>
         <thead className="bg-surface-container text-label-large text-on-surface-variant">
