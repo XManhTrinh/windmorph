@@ -26,6 +26,17 @@ function Cities(props: Partial<AutocompleteProps<City, 'single' | 'multiple'>>) 
 const input = () => screen.getByRole('combobox', { name: /City/ });
 
 describe('Autocomplete', () => {
+  it('reads the text field’s component tokens', () => {
+    const { container } = render(<Cities />);
+    const field = container.querySelector('[data-field-state]');
+    expect(field).toHaveAttribute('data-tokens', 'md-comp-text-field');
+    expect(field).toHaveAttribute('data-variant', 'filled');
+    expect(input()).toHaveClass(
+      'text-[color:var(--_md-comp-text-field-input-text-color)]',
+      'caret-[color:var(--_md-comp-text-field-caret-color)]',
+    );
+  });
+
   it('filters as you type, ignoring accents, and chooses with the keyboard', async () => {
     const onChange = vi.fn();
     render(<Cities onChange={onChange} />);

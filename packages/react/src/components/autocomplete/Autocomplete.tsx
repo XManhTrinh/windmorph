@@ -385,7 +385,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             }}
             ref={inputRef}
             className={cn(
-              'min-w-[48px] flex-1 bg-transparent p-0 text-body-large text-on-surface caret-primary outline-none',
+              'min-w-[48px] flex-1 bg-transparent p-0 text-body-large outline-none',
+              'text-[color:var(--_md-comp-text-field-input-text-color)]',
+              'caret-[color:var(--_md-comp-text-field-caret-color)]',
               'placeholder:text-on-surface-variant placeholder:opacity-100',
               label
                 ? 'placeholder:opacity-0 placeholder:transition-opacity group-data-floated/field:placeholder:opacity-100 placeholder:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] placeholder:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]'

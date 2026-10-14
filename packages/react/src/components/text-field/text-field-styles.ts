@@ -9,7 +9,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Colours depend on one mutually exclusive `data-field-state` on the root
  * (disabled > error-focus > error-hover > error > focus > hover > rest), so part styles
- * never compete. Every class is written out in full so Tailwind can find it.
+ * never compete.
+ *
+ * The resting container colour and shape, outline and indicator colours, the focused and
+ * hovered outline, the focused indicator and label, and the label, input, caret, supporting
+ * text and icon colours come from the text field's component tokens (`text-field-tokens.ts`,
+ * `--md-comp-<variant>-text-field-*`); the root carries `data-tokens="md-comp-text-field"`
+ * and `data-variant`. A consumer class (`classNames.label`, …) still wins in `cn()`. Every
+ * class is written out in full so Tailwind can find it.
  */
 
 const geometryTransition =
@@ -33,14 +40,19 @@ export const textFieldStyles = tv({
   slots: {
     root: 'group/field inline-flex w-[280px] max-w-full flex-col align-top text-start',
     // Library-owned inner wrapper: positions the label, outline and indicator.
-    container: 'relative flex min-h-[56px] cursor-text items-stretch',
+    container: [
+      'relative flex min-h-[56px] cursor-text items-stretch',
+      'bg-[var(--_md-comp-text-field-container-color)]',
+    ],
     outline: [
       'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[12px]',
-      'rounded-corner-extra-small border border-solid border-outline',
+      'rounded-[var(--_md-comp-text-field-container-shape)] border border-solid',
+      'border-[color:var(--_md-comp-text-field-outline-color)]',
       '[transition-property:border-color,border-width]',
       colourAndSizeTransition,
-      'group-data-[field-state=hover]/field:border-on-surface',
-      'group-data-[field-state=focus]/field:border-2 group-data-[field-state=focus]/field:border-primary',
+      'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
+      'group-data-[field-state=focus]/field:border-2',
+      'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',
       'group-data-[field-state=error]/field:border-error',
       'group-data-[field-state=error-hover]/field:border-on-error-container',
       'group-data-[field-state=error-focus]/field:border-2 group-data-[field-state=error-focus]/field:border-error',
@@ -58,11 +70,13 @@ export const textFieldStyles = tv({
     notchClip: 'min-w-0 overflow-hidden',
     notchText: 'inline-block px-[4px]',
     indicator: [
-      'pointer-events-none absolute inset-x-0 bottom-0 h-px bg-on-surface-variant',
+      'pointer-events-none absolute inset-x-0 bottom-0 h-px',
+      'bg-[var(--_md-comp-text-field-active-indicator-color)]',
       '[transition-property:background-color,height]',
       colourAndSizeTransition,
       'group-data-[field-state=hover]/field:bg-on-surface',
-      'group-data-[field-state=focus]/field:h-[2px] group-data-[field-state=focus]/field:bg-primary',
+      'group-data-[field-state=focus]/field:h-[2px]',
+      'group-data-[field-state=focus]/field:bg-[var(--_md-comp-text-field-focus-active-indicator-color)]',
       'group-data-[field-state=error]/field:bg-error',
       'group-data-[field-state=error-hover]/field:bg-on-error-container',
       'group-data-[field-state=error-focus]/field:h-[2px] group-data-[field-state=error-focus]/field:bg-error',
@@ -70,28 +84,31 @@ export const textFieldStyles = tv({
     ],
     label: [
       'pointer-events-none absolute top-[16px] max-w-[calc(100%-32px)] truncate',
-      'text-body-large text-on-surface-variant',
+      'text-body-large text-[color:var(--_md-comp-text-field-label-text-color)]',
       '[transition-property:top,inset-inline-start,font-size,line-height,letter-spacing,color]',
       geometryTransition,
-      'group-data-[field-state=focus]/field:text-primary',
+      'group-data-[field-state=focus]/field:text-[color:var(--_md-comp-text-field-focus-label-text-color)]',
       'group-data-[field-state=error]/field:text-error',
       'group-data-[field-state=error-hover]/field:text-on-error-container',
       'group-data-[field-state=error-focus]/field:text-error',
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],
     icon: [
-      'flex size-[48px] shrink-0 items-center justify-center self-center text-on-surface-variant',
+      'flex size-[48px] shrink-0 items-center justify-center self-center',
       '[&>svg]:size-[24px]',
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],
+    leadingIcon: 'text-[color:var(--_md-comp-text-field-leading-icon-color)]',
     trailingIcon: [
+      'text-[color:var(--_md-comp-text-field-trailing-icon-color)]',
       'group-data-[field-state=error]/field:text-error',
       'group-data-[field-state=error-focus]/field:text-error',
       'group-data-[field-state=error-hover]/field:text-on-error-container',
     ],
     field: 'flex min-w-0 flex-1 items-center',
     input: [
-      'min-w-0 flex-1 bg-transparent p-0 text-body-large text-on-surface caret-primary outline-none',
+      'min-w-0 flex-1 bg-transparent p-0 text-body-large outline-none',
+      'text-[color:var(--_md-comp-text-field-input-text-color)] caret-[color:var(--_md-comp-text-field-caret-color)]',
       'placeholder:text-on-surface-variant placeholder:opacity-100',
       'disabled:cursor-default group-data-[field-state=disabled]/field:text-on-surface/38',
       'group-data-invalid/field:caret-error',
@@ -104,6 +121,8 @@ export const textFieldStyles = tv({
     prefix: 'pe-[2px]',
     suffix: 'ps-[2px]',
     supporting: 'flex gap-[16px] px-[16px] pt-[4px]',
+    // The supporting text's resting colour; the error message keeps its own.
+    supportingTextColor: 'text-[color:var(--_md-comp-text-field-supporting-text-color)]',
     // Error colour whenever the field is invalid, with or without a message (Compose's
     // `ErrorSupportingColor`), so the supporting text reads as the error's explanation.
     supportingText: [
@@ -127,12 +146,14 @@ export const textFieldStyles = tv({
   variants: {
     variant: {
       filled: {
-        container:
-          'rounded-t-corner-extra-small bg-surface-container-highest group-data-[field-state=disabled]/field:bg-on-surface/4',
+        container: [
+          'rounded-t-[var(--_md-comp-text-field-container-shape)]',
+          'group-data-[field-state=disabled]/field:bg-on-surface/4',
+        ],
         outline: 'hidden',
       },
       outlined: {
-        container: 'rounded-corner-extra-small',
+        container: 'rounded-[var(--_md-comp-text-field-container-shape)]',
         indicator: 'hidden',
         // OutlinedTextFieldTokens.HoverLabelColor (filled keeps on-surface-variant).
         label: 'group-data-[field-state=hover]/field:text-on-surface',

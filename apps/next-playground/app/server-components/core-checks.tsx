@@ -345,6 +345,7 @@ export const coreChecks = {
 
   TextField: { kind: 'component', render: () => <Core.TextField label="Name" /> },
   textFieldStyles: { kind: 'value', run: () => Core.textFieldStyles() },
+  textFieldTokenSet: read(Core.textFieldTokenSet),
   Select: { kind: 'client', reason: 'its SelectItem items form a collection' },
   SelectItem: collection('Select'),
   SelectSection: collection('Select'),

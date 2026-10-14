@@ -306,6 +306,7 @@ export {
   type TextFieldStyleProps,
   type TextFieldVariant,
 } from './components/text-field/text-field-styles';
+export { textFieldTokenSet } from './components/text-field/text-field-tokens';
 export {
   Checkbox,
   type CheckboxClassNames,
