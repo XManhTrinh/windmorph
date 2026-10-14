@@ -18,7 +18,18 @@ import { openStory } from './story';
  * computed property on the element the token's `paints` names. Per set, it also checks a
  * token set on an ancestor, a role value declared on `[data-theme]` inside a forest, dark
  * ThemeScope, and that a consumer class beats the token.
+ *
+ * Each probe region is a ThemeScope marked with a `token-probe-<region>` class, which an
+ * overlay opened in it carries on its portalled wrapper: a region is found by that class, so
+ * an open dialog, sheet or tooltip counts as inside the region it was rendered in.
  */
+
+/** The probe regions' classes (`stories/tokens/probe.tsx`), on the region and its overlays. */
+const REGION = {
+  instances: '.token-probe-instances',
+  scoped: '.token-probe-scoped',
+  override: '.token-probe-override',
+} as const;
 
 const SETS = Object.values(windmorph)
   .filter(isComponentTokenSet)
@@ -40,7 +51,17 @@ const probeStoryId = (set: ComponentTokenSet) => `tokens-${set.name}--probe`;
 const SENTINEL_COLOR = 'rgb(1, 2, 3)';
 
 /** The value a token is set to, and how the computed property must read back. */
-function sentinel(property: string): { value: string; matches: (computed: string) => boolean } {
+function sentinel(
+  property: string,
+  name: string,
+): { value: string; matches: (computed: string) => boolean } {
+  // A colour drawn through a shadow (a divider painted as an inset shadow).
+  if (property === 'box-shadow' && name.endsWith('-color')) {
+    return {
+      value: SENTINEL_COLOR,
+      matches: (computed) => computed.includes(SENTINEL_COLOR),
+    };
+  }
   if (property === 'box-shadow') {
     return {
       value: `0 0 0 7px ${SENTINEL_COLOR}`,
@@ -66,15 +87,33 @@ async function target(page: Page, root: string, slot: string | undefined): Promi
   const count = await roots.count();
   for (let index = 0; index < count; index++) {
     const candidate = roots.nth(index);
-    const extra = await candidate.evaluate((el) => el.closest('[data-probe-extra]') !== null);
+    const extra = await candidate.evaluate(
+      (el, extras) => el.closest(extras) !== null,
+      `[data-probe-extra], ${REGION.scoped}, ${REGION.override}`,
+    );
     if (extra) continue;
     return slot ? candidate.locator(`[data-slot="${slot}"]`).first() : candidate;
   }
   throw new Error(`No ${root} in the probe story`);
 }
 
+/**
+ * A computed property. A colour mixed in another space (`color-mix(in oklab, …)`) reads back
+ * in that space, so it is drawn and read back as sRGB to compare with the sentinel.
+ */
 const computed = (locator: Locator, property: string) =>
-  locator.evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property);
+  locator.evaluate((el, name) => {
+    const value = getComputedStyle(el).getPropertyValue(name);
+    if (!/^(oklab|oklch|lab|lch|color)\(/.test(value)) return value;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext('2d')!;
+    context.fillStyle = value;
+    context.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+    return a === 255 ? `rgb(${r}, ${g}, ${b})` : value;
+  }, property);
 
 async function setVariable(page: Page, selector: string, name: string, value: string | null) {
   await page
@@ -112,7 +151,7 @@ test.describe('Component tokens', () => {
         test(`${token.name} paints ${token.paints?.property}`, async ({ page }) => {
           const property = token.paints!.property;
           const element = await target(page, rootSelector(set, token), token.paints?.slot);
-          const { value, matches } = sentinel(property);
+          const { value, matches } = sentinel(property, token.name);
           expect(matches(await computed(element, property)), 'already the sentinel').toBe(false);
           await setVariable(page, 'html', token.name, value);
           const after = await computed(element, property);
@@ -123,14 +162,15 @@ test.describe('Component tokens', () => {
       test('a token set on an ancestor applies inside it', async ({ page }) => {
         const token = tokens[0]!;
         const element = await target(page, rootSelector(set, token), token.paints?.slot);
-        const { value, matches } = sentinel(token.paints!.property);
-        await setVariable(page, '[data-probe="instances"]', token.name, value);
+        const { value, matches } = sentinel(token.paints!.property, token.name);
+        // Through the region's class, which also reaches the overlays opened in it.
+        await page.addStyleTag({ content: `${REGION.instances} { ${token.name}: ${value}; }` });
         const after = await computed(element, token.paints!.property);
         expect(matches(after), `read back ${after}`).toBe(true);
       });
 
       test('a role value declared on [data-theme] follows a ThemeScope', async ({ page }) => {
-        const scoped = page.locator('[data-probe-extra="scoped"]');
+        const scoped = page.locator(REGION.scoped);
         // The first colour token that applies to the scoped instance.
         let match: { token: PublicComponentToken; element: Locator } | undefined;
         for (const token of tokens) {
@@ -170,15 +210,17 @@ test.describe('Component tokens', () => {
       });
 
       test('a consumer class beats the token', async ({ page }) => {
-        const override = page.locator('[data-probe-extra="override"]');
-        const name = await override.getAttribute('data-probe-token');
+        const name = await page
+          .locator('[data-probe-extra="override"]')
+          .getAttribute('data-probe-token');
+        const override = page.locator(REGION.override);
         const token = tokens.find((candidate) => candidate.name === name);
         expect(token, `data-probe-token names no token of ${set.name}`).toBeDefined();
         const root = override.locator(rootSelector(set, token!)).first();
         const element = token!.paints?.slot
           ? root.locator(`[data-slot="${token!.paints.slot}"]`).first()
           : root;
-        const { value, matches } = sentinel(token!.paints!.property);
+        const { value, matches } = sentinel(token!.paints!.property, token!.name);
         await setVariable(page, 'html', token!.name, value);
         expect(matches(await computed(element, token!.paints!.property))).toBe(false);
       });
