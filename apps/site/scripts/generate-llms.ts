@@ -122,6 +122,14 @@ function code(text: string): string {
   return text.includes('`') ? `\`\` ${text} \`\`` : `\`${text}\``;
 }
 
+/** A description as plain Markdown: a TSDoc `{@link Name}` becomes its code name (or label). */
+function propDescription(prop: PropsRecord): string {
+  return (prop.description ?? '').replace(
+    /\{@link\s+([^\s|}]+)\s*(?:\|\s*)?([^}]*)\}/g,
+    (_, name: string, label: string) => label.trim() || `\`${name}\``,
+  );
+}
+
 function propType(prop: PropsRecord): string {
   return propTypeText(propTypeView(prop));
 }
@@ -159,7 +167,7 @@ function propsMarkdown(meta: ComponentMeta, level: number): string {
             .map((prop) => {
               const name = `${code(prop.name)}${prop.required ? ' (required)' : ''}`;
               const fallback = propDefault(prop);
-              return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(prop.description ?? '')} |`;
+              return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(propDescription(prop))} |`;
             }),
         ].join('\n'),
       );
