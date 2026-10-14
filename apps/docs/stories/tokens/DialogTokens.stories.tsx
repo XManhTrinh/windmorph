@@ -42,7 +42,7 @@ export const Probe: StoryObj = {
       scoped={<Open title="Scoped" />}
       override={{
         token: '--md-comp-dialog-container-color',
-        children: <Open title="Override" className="bg-surface-container" />,
+        children: <Open title="Override" classNames={{ panel: 'bg-surface-container' }} />,
       }}
     />
   ),

@@ -26,7 +26,7 @@ export const Probe: StoryObj = {
       override={{
         token: '--md-comp-rich-tooltip-container-color',
         children: (
-          <Open label="Override" className="bg-primary-container">
+          <Open label="Override" classNames={{ panel: 'bg-primary-container' }}>
             Tabs from the same site stay together.
           </Open>
         ),
