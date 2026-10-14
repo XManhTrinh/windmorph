@@ -19,7 +19,8 @@ import {
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { TriggerContext, type TriggerContextValue } from '../../primitives/TriggerContext';
 import { cn } from '../../utils/cn';
-import { MenuTrigger, type MenuProps } from '../menu/Menu';
+import type { MenuProps } from '../menu/Menu';
+import { MenuTrigger } from '../menu/menu-trigger';
 import {
   splitButtonStyles,
   type SplitButtonSize,

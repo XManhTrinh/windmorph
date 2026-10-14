@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Children,
   cloneElement,
   createContext,
   useCallback,
@@ -16,7 +15,6 @@ import {
   type FocusEvent,
   type JSX,
   type Key,
-  type MouseEvent,
   type ReactElement,
   type ReactNode,
   type RefObject,
@@ -29,7 +27,6 @@ import {
   useMenu,
   useMenuItem,
   useMenuSection,
-  useMenuTrigger,
   usePopover,
   useSubmenuTrigger,
   type AriaMenuItemProps,
@@ -41,7 +38,6 @@ import {
 import {
   Item,
   Section,
-  useMenuTriggerState,
   useSubmenuTriggerState,
   useTreeState,
   type Node,
@@ -51,11 +47,7 @@ import {
 } from 'react-stately';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { Overlay } from '../../primitives/Overlay';
-import {
-  TriggerContext,
-  useTriggerProps,
-  type TriggerContextValue,
-} from '../../primitives/TriggerContext';
+import { TriggerContext } from '../../primitives/TriggerContext';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
@@ -65,6 +57,14 @@ import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
+import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
+
+export {
+  ContextMenuTrigger,
+  MenuTrigger,
+  type ContextMenuTriggerProps,
+  type MenuTriggerProps,
+} from './menu-trigger';
 
 const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -78,114 +78,6 @@ const SubmenuIcon = () => (
     <path d="M400-280v-400l200 200-200 200Z" />
   </svg>
 );
-
-interface MenuTriggerContextValue {
-  state: RootMenuTriggerState;
-  triggerRef: RefObject<HTMLElement | null>;
-  menuProps: AriaMenuOptions<unknown>;
-}
-
-const omitLabelledBy = ({ 'aria-labelledby': _, ...props }: AriaMenuOptions<unknown>) => props;
-
-const MenuTriggerContext = createContext<MenuTriggerContextValue | null>(null);
-
-export interface MenuTriggerProps {
-  /** The trigger (a Button, IconButton, …) followed by the `Menu`. */
-  children: ReactNode;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
-
-/**
- * A menu opens on pointer down and takes focus, and React Aria then hides the rest of
- * the page, trigger included, from assistive tech. The browser's follow-up `mousedown` on
- * the trigger would try to focus it there and drop focus on `<body>`, out of the menu.
- * React Aria has already focused the trigger on pointer down, so the default is not needed.
- */
-const keepMenuFocus = (event: MouseEvent) => event.preventDefault();
-
-/**
- * Opens a `Menu` from a button: on press, or with Enter, Space and the arrow keys.
- * The first child is the trigger (any button-like component); the rest is the menu.
- * While the menu is open the trigger keeps a pressed state layer (`data-menu-open`), as
- * M3 asks, however the menu was opened.
- */
-export function MenuTrigger({ children, open, defaultOpen, onOpenChange }: MenuTriggerProps) {
-  const state = useMenuTriggerState({ isOpen: open, defaultOpen, onOpenChange });
-  const triggerRef = useRef<HTMLElement>(null);
-  const { menuTriggerProps, menuProps } = useMenuTrigger({}, state, triggerRef);
-  // Merged into an enclosing trigger's props, so a TooltipTrigger around it still works.
-  const triggerValue = useTriggerProps({
-    ...(menuTriggerProps as TriggerContextValue),
-    'data-menu-open': state.isOpen || undefined,
-    onMouseDown: keepMenuFocus,
-    ref: triggerRef,
-  });
-  const [trigger, ...menu] = Children.toArray(children);
-  return (
-    <MenuTriggerContext value={{ state, triggerRef, menuProps }}>
-      <TriggerContext value={triggerValue}>{trigger}</TriggerContext>
-      {menu}
-    </MenuTriggerContext>
-  );
-}
-
-export interface ContextMenuTriggerProps {
-  /** The content the menu belongs to, followed by the `Menu`. */
-  children: ReactNode;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  /** Ignore secondary clicks and long presses. */
-  disabled?: boolean;
-}
-
-/**
- * Opens a `Menu` as a context menu (M3: "A secondary click, like a right-click on a mouse
- * or a two-finger tap on a trackpad, opens a context menu"): a secondary click, Shift +
- * F10 or a long press on a touch screen opens it at the pointer (React Aria
- * `useMenuTrigger` with `trigger: 'contextMenu'`). The first child is the content the menu
- * belongs to, wrapped in a `display: contents` element so its layout doesn't change; the
- * rest is the menu.
- *
- * @example
- * <ContextMenuTrigger>
- *   <Card>…</Card>
- *   <Menu onAction={(key) => run(key)}>…</Menu>
- * </ContextMenuTrigger>
- */
-export function ContextMenuTrigger({
-  children,
-  open,
-  defaultOpen,
-  onOpenChange,
-  disabled,
-}: ContextMenuTriggerProps) {
-  const state = useMenuTriggerState({ isOpen: open, defaultOpen, onOpenChange });
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const { menuTriggerProps, menuProps } = useMenuTrigger(
-    { trigger: 'contextMenu', isDisabled: disabled },
-    state,
-    triggerRef,
-  );
-  const [target, ...menu] = Children.toArray(children);
-  // React Aria names the menu after its trigger, here the whole content: name it with the
-  // `Menu`'s own `aria-label` instead.
-  return (
-    <MenuTriggerContext value={{ state, triggerRef, menuProps: omitLabelledBy(menuProps) }}>
-      <div
-        {...(menuTriggerProps as TriggerContextValue)}
-        ref={triggerRef}
-        data-context-menu-trigger=""
-        className="contents"
-      >
-        {target}
-      </div>
-      {menu}
-    </MenuTriggerContext>
-  );
-}
 
 /** Props of a {@link MenuItem}; the React `key` identifies it for `onAction` and selection. */
 export interface MenuItemProps {
