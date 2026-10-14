@@ -254,6 +254,7 @@ export {
   type LoadingIndicatorStyleProps,
   type LoadingIndicatorVariant,
 } from './components/loading-indicator/loading-indicator-styles';
+export { loadingIndicatorTokenSet } from './components/loading-indicator/loading-indicator-tokens';
 export {
   PullToRefresh,
   type PullToRefreshClassNames,

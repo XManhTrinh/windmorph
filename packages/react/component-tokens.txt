@@ -9,6 +9,9 @@
 --md-comp-elevated-card-container-shape
 --md-comp-filled-card-container-color
 --md-comp-filled-card-container-shape
+--md-comp-loading-indicator-active-indicator-color
+--md-comp-loading-indicator-contained-active-indicator-color
+--md-comp-loading-indicator-contained-container-color
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
