@@ -1,3 +1,4 @@
+import { splitButtonTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -30,6 +31,7 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
   const [sizesSrcHtml] = await Promise.all([highlightSource(sizesSrc)]);
 
   return {
+    tokens: [splitButtonTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">

@@ -1,3 +1,4 @@
+import { iconButtonTokenSet } from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -40,6 +41,7 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
   ]);
 
   return {
+    tokens: [iconButtonTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">
@@ -185,7 +187,8 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               too, inside an <InlineCode>outline-variant</InlineCode> outline (the spec&apos;s
               colour table). A container that needs its own content colour, like a vibrant toolbar,
               sets <InlineCode>--md-comp-icon-button-icon-color</InlineCode> (to{' '}
-              <InlineCode>currentColor</InlineCode> to inherit it).
+              <InlineCode>currentColor</InlineCode> to inherit it), which the standard and outlined
+              icon colour tokens fall back to.
             </li>
             <li>
               Selected toggles: standard turns <InlineCode>primary</InlineCode>, filled{' '}
