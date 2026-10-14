@@ -28,15 +28,18 @@ const RTL_SNIPPET = `import { DomDirectionLocale, localeWithDirection } from '@w
 // localeWithDirection('en-US', 'rtl') -> 'en-Arab-US'`;
 
 const NAMES = [
-  ['IconButton', 'aria-label or aria-labelledby'],
+  ['IconButton, Fab, FabMenu', 'aria-label or aria-labelledby'],
   ['TextField', 'label, or aria-label / aria-labelledby'],
   ['Checkbox, Radio, Switch', 'a label (children), or aria-label / aria-labelledby'],
+  ['RadioGroup', 'label, or aria-label / aria-labelledby'],
   ['Toolbars (Docked / Floating)', 'aria-label or aria-labelledby'],
-  ['List', 'aria-label or aria-labelledby'],
-  ['Slider, RangeSlider', 'label, or aria-label / aria-labelledby'],
+  ['List, ChipSet, Carousel', 'aria-label or aria-labelledby'],
+  ['Slider, RangeSlider', 'aria-label or aria-labelledby'],
   ['NavigationRail, NavigationBar', 'aria-label or aria-labelledby'],
   ['SearchBar', 'aria-label or aria-labelledby'],
-  ['Linear / Circular progress', 'aria-label or aria-labelledby'],
+  ['BottomSheet', 'aria-label or aria-labelledby'],
+  ['SideSheet', 'title, or aria-label / aria-labelledby'],
+  ['Linear / Circular progress, LoadingIndicator', 'aria-label or aria-labelledby'],
 ] as const;
 
 const KEYBOARD = [
@@ -46,12 +49,15 @@ const KEYBOARD = [
   ],
   [
     'ButtonGroup (single select)',
-    'Renders a radiogroup; arrow keys move between options, each stays tabbable.',
+    'Renders a radiogroup; Tab enters and leaves the group as one stop, and arrow keys move between options.',
   ],
-  ['Tabs', 'Arrow keys plus Home / End move the selection; activation is automatic.'],
+  [
+    'Tabs',
+    'Arrow keys plus Home / End move focus; Space or Enter selects the focused tab (keyboardActivation="automatic" selects on focus).',
+  ],
   [
     'Dialog',
-    'Focus is contained while open and returns to the trigger on close; Esc dismisses (unless alertdialog / disabled).',
+    'Focus is contained while open and returns to the trigger on close; Esc dismisses unless keyboardDismissDisabled is set; an outside press dismisses too, except for an alertdialog (the default role) without dismissable.',
   ],
   ['Tooltip', 'Shows on hover or keyboard focus, stays while focused, and Esc hides it.'],
   ['Slider', 'Arrow keys adjust the value; Home / End jump to the ends.'],
@@ -103,9 +109,10 @@ export default async function AccessibilityPage() {
         <p className="text-body-large text-on-surface-variant">
           Focus rings are a CSS <InlineCode>outline</InlineCode> with{' '}
           <InlineCode>outline-offset</InlineCode> (the <InlineCode>focus-ring</InlineCode> /{' '}
-          <InlineCode>focus-ring-inset</InlineCode> utilities), so clipping,{' '}
-          <InlineCode>overflow-hidden</InlineCode> or <InlineCode>fixed</InlineCode> ancestors can
-          never hide them.
+          <InlineCode>focus-ring-inset</InlineCode> utilities), so an{' '}
+          <InlineCode>overflow-hidden</InlineCode> on the component itself can&apos;t clip them. The
+          inset ring is drawn inside the element, for full-bleed items such as list rows, where an
+          ancestor that clips its overflow would cut off an outer ring.
         </p>
       </section>
 
@@ -187,8 +194,8 @@ export default async function AccessibilityPage() {
           keyboard direction (arrow keys, <InlineCode>start</InlineCode> /{' '}
           <InlineCode>end</InlineCode>) from its locale rather than the DOM{' '}
           <InlineCode>dir</InlineCode>. <InlineCode>DomDirectionLocale</InlineCode> bridges that gap
-          and is used internally by Tabs, Toolbar, Slider, DatePicker and List. It lives in{' '}
-          <InlineCode>@windmorph/react/primitives</InlineCode>, shown here for reference.
+          and is used internally by Toolbar, ButtonGroup, Slider, DatePicker, DateField and List. It
+          lives in <InlineCode>@windmorph/react/primitives</InlineCode>, shown here for reference.
         </p>
         <CodeBlock code={RTL_SNIPPET} html={rtlHtml} lang="tsx" title="rtl.tsx" />
       </section>

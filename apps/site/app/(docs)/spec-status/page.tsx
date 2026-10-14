@@ -212,8 +212,8 @@ export default function SpecStatusPage() {
           Built: spec variants, configurations and main uses with a live example. Differs: a
           deliberate difference from the spec. Extensions: API or behaviour the spec doesn&apos;t
           have. Not built: a spec item left out, with the reason on the component&apos;s API tab
-          (the deprecated navigation drawer, original navigation bar, small FAB, segmented button
-          and bottom app bar are never built).
+          (the deprecated navigation drawer, original navigation rail and bar, small FAB, segmented
+          button and bottom app bar are never built).
         </p>
         <SummaryTable rows={m3} caption="Material 3 components' spec status" />
       </section>

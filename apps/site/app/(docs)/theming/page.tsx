@@ -101,12 +101,13 @@ const CUSTOM_SWATCHES = [
   ['warning', 'bg-warning text-on-warning', 'bg-warning-container text-on-warning-container'],
 ] as const;
 
-const TOKENS_SNIPPET = `/* Override tokens in CSS: globally on :root or per theme on [data-theme="…"]. */
+const TOKENS_SNIPPET = `/* Shape and type tokens: on :root, after the library stylesheet. */
 :root {
   --md-sys-shape-corner-full: 12px;
   --md-ref-typeface-brand: 'Inter';
 }
-[data-theme='ocean'] {
+/* Colour roles: match all three attributes, as the themes do. */
+[data-theme='ocean'][data-mode][data-contrast] {
   --md-sys-color-primary: #0050c8;
 }`;
 
@@ -345,12 +346,17 @@ export default async function ThemingPage() {
           Overriding tokens
         </h2>
         <p className="text-body-large text-on-surface-variant">
-          Themes set <InlineCode>--md-sys-color-*</InlineCode> under{' '}
-          <InlineCode>[data-theme][data-mode]</InlineCode>. Override tokens globally on{' '}
-          <InlineCode>:root</InlineCode> or per theme on{' '}
-          <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode>. The four attributes are{' '}
-          <InlineCode>data-theme</InlineCode>, <InlineCode>data-mode</InlineCode>,{' '}
-          <InlineCode>data-contrast</InlineCode> and <InlineCode>data-motion</InlineCode>.
+          The four attributes are <InlineCode>data-theme</InlineCode>,{' '}
+          <InlineCode>data-mode</InlineCode>, <InlineCode>data-contrast</InlineCode> and{' '}
+          <InlineCode>data-motion</InlineCode>. Shape and type tokens are set once on{' '}
+          <InlineCode>:root</InlineCode>, so override them there, after the library stylesheet.
+          Themes set <InlineCode>--md-sys-color-*</InlineCode> on selectors that combine{' '}
+          <InlineCode>data-theme</InlineCode>, <InlineCode>data-mode</InlineCode> and{' '}
+          <InlineCode>data-contrast</InlineCode>, which beat a plain <InlineCode>:root</InlineCode>{' '}
+          or <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> rule. To override a colour
+          role, match all three attributes, as below (<InlineCode>ThemeProvider</InlineCode> and{' '}
+          <InlineCode>ThemeScope</InlineCode> always set them). A literal colour is the same in
+          light and dark mode, so check its contrast in both, or generate a theme instead.
         </p>
         <CodeBlock code={TOKENS_SNIPPET} html={tokensHtml} lang="css" title="globals.css" />
       </section>

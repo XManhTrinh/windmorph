@@ -59,8 +59,8 @@ type BrandButtonProps = VariantProps<typeof brandButton>;`;
 const CN_SNIPPET = `import { cn } from '@windmorph/react';
 
 // cn is tailwind-merge extended with the M3 theme keys (colour roles, type roles,
-// corner-* radii, elevation-* shadows, m3-* easings). Later classes win, so a
-// consumer class always overrides a conflicting library class.
+// corner-* radii, elevation-* shadows, m3-* easings and durations). Later classes win,
+// so a consumer class always overrides a conflicting library class.
 cn('bg-primary', 'bg-secondary'); // -> 'bg-secondary'
 cn('rounded-corner-small', 'rounded-corner-large'); // -> 'rounded-corner-large'`;
 
@@ -68,7 +68,9 @@ const LAYOUT_SNIPPET = `import { Button, DockedToolbar } from '@windmorph/react'
 
 // className / style land on the outermost element, so any layout class is safe:
 <Button className="fixed bottom-4 right-4">New</Button>;
-<DockedToolbar aria-label="Actions" className="fixed inset-x-0 bottom-0 w-full" />;`;
+<DockedToolbar aria-label="Actions" className="fixed inset-x-0 bottom-0 w-full">
+  …
+</DockedToolbar>;`;
 
 export default async function CustomisationPage() {
   const [tokensHtml, tokensScopeHtml, classNameHtml, tvHtml, cnHtml, layoutHtml] =
@@ -99,8 +101,10 @@ export default async function CustomisationPage() {
         <ol className="list-decimal ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
-            <InlineCode>--md-sys-*</InlineCode> globally on <InlineCode>:root</InlineCode> or per
-            theme on <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode>.
+            <InlineCode>--md-sys-*</InlineCode> shape and type tokens on{' '}
+            <InlineCode>:root</InlineCode>, and colour roles on a selector that matches the
+            theme&apos;s attributes, such as{' '}
+            <InlineCode>[data-theme=&quot;ocean&quot;][data-mode][data-contrast]</InlineCode>.
           </li>
           <li>
             <span className="text-on-surface">Component tokens</span> — set M3&apos;s{' '}
@@ -204,8 +208,9 @@ export default async function CustomisationPage() {
           </li>
           <li>
             <span className="text-on-surface">Styling hooks:</span> a component with tokens marks
-            its root with <InlineCode>data-variant</InlineCode>, and with{' '}
-            <InlineCode>data-size</InlineCode> where it has sizes. They&apos;re public, so your own
+            its root with the props its tokens depend on: <InlineCode>data-variant</InlineCode>,{' '}
+            <InlineCode>data-size</InlineCode> where it has sizes, and a few others such as the
+            FAB&apos;s <InlineCode>data-color</InlineCode>. They&apos;re public, so your own
             selectors can use them (<InlineCode>[data-variant=&quot;outlined&quot;]</InlineCode>
             ).
           </li>
@@ -237,8 +242,9 @@ export default async function CustomisationPage() {
             <InlineCode>container-shape</InlineCode> becomes one per size where M3 has sizes.
           </li>
           <li>
-            Expressive-only tokens, such as the toggle&apos;s <InlineCode>selected-*</InlineCode>{' '}
-            and <InlineCode>unselected-*</InlineCode> colours, have no Material Web equivalent.
+            Expressive-only tokens, such as a toggle button&apos;s{' '}
+            <InlineCode>selected-*</InlineCode> and <InlineCode>unselected-*</InlineCode> colours,
+            have no Material Web equivalent.
           </li>
           <li>
             Typography, state-layer, disabled and spacing tokens aren&apos;t exposed. Use{' '}
@@ -253,7 +259,7 @@ export default async function CustomisationPage() {
           className &amp; classNames
         </h2>
         <p className="text-body-large text-on-surface-variant">
-          Every component takes <InlineCode>className</InlineCode> for the root and{' '}
+          Every component takes <InlineCode>className</InlineCode> for its outermost element and{' '}
           <InlineCode>classNames</InlineCode> for its named slots (for example a button’s{' '}
           <InlineCode>root</InlineCode>, <InlineCode>content</InlineCode>,{' '}
           <InlineCode>label</InlineCode> and <InlineCode>icon</InlineCode>). The consumer’s class
@@ -285,8 +291,8 @@ export default async function CustomisationPage() {
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>cn()</InlineCode> is <InlineCode>tailwind-merge</InlineCode> extended with the
           library’s theme keys — colour roles, type roles, <InlineCode>corner-*</InlineCode> radii,{' '}
-          <InlineCode>elevation-*</InlineCode> shadows and <InlineCode>m3-*</InlineCode> easings.
-          Later classes override earlier conflicting ones, which is why a{' '}
+          <InlineCode>elevation-*</InlineCode> shadows, and <InlineCode>m3-*</InlineCode> easings
+          and durations. Later classes override earlier conflicting ones, which is why a{' '}
           <InlineCode>className</InlineCode> you pass always beats the library’s own class for that
           property.
         </p>
@@ -320,8 +326,9 @@ export default async function CustomisationPage() {
             <InlineCode>fixed</InlineCode> children are never trapped.
           </li>
           <li>
-            The focus ring is a CSS <InlineCode>outline</InlineCode>, so clipping or{' '}
-            <InlineCode>fixed</InlineCode> ancestors can’t hide it.
+            The focus ring is a CSS <InlineCode>outline</InlineCode>, so an{' '}
+            <InlineCode>overflow-hidden</InlineCode> on the component itself can’t clip it. An
+            ancestor that clips its overflow still can, so leave room around focusable items.
           </li>
         </ul>
         <CodeBlock code={LAYOUT_SNIPPET} html={layoutHtml} lang="tsx" title="layout.tsx" />
