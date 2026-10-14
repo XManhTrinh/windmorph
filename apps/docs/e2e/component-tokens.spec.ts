@@ -17,7 +17,7 @@ import { openStory } from './story';
  * Per token, the spec sets the public variable on `:root` to a sentinel and checks the
  * computed property on the element the token's `paints` names. Per set, it also checks a
  * token set on an ancestor, a role value declared on `[data-theme]` inside a forest, dark
- * ThemeScope, and that a consumer class beats the token.
+ * ThemeScope (for a set with a colour token), and that a consumer class beats the token.
  */
 
 const SETS = Object.values(windmorph)
@@ -130,11 +130,12 @@ test.describe('Component tokens', () => {
       });
 
       test('a role value declared on [data-theme] follows a ThemeScope', async ({ page }) => {
+        const colours = tokens.filter((token) => /color|fill|stroke/.test(token.paints!.property));
+        test.skip(colours.length === 0, 'the set has no colour token');
         const scoped = page.locator('[data-probe-extra="scoped"]');
         // The first colour token that applies to the scoped instance.
         let match: { token: PublicComponentToken; element: Locator } | undefined;
-        for (const token of tokens) {
-          if (!/color|fill|stroke/.test(token.paints!.property)) continue;
+        for (const token of colours) {
           const element = scoped.locator(rootSelector(set, token)).first();
           if ((await element.count()) === 0) continue;
           const painted = token.paints?.slot

@@ -128,7 +128,7 @@ export type SplitButtonProps = SplitButtonOwnProps &
  */
 export function SplitButton(props: SplitButtonProps) {
   const {
-    variant,
+    variant = 'filled',
     size = 'sm',
     children,
     leadingIcon,
@@ -158,7 +158,11 @@ export function SplitButton(props: SplitButtonProps) {
   const [isOpen, setOpen] = useControlledState(open, defaultOpen ?? false, onOpenChange);
   const styles = splitButtonStyles({ variant, size });
   const hasTouchTarget = size === 'xs' || size === 'sm';
+  // The halves are buttons: they read Button's colour tokens (button-tokens.ts).
+  const halfTokens = { 'data-tokens': 'md-comp-button', 'data-variant': variant };
+  const leadingAttributes = { ...halfTokens, 'data-slot': 'leading' };
   const leadingProps = {
+    ...leadingAttributes,
     disabled,
     onPress,
     onPressStart,
@@ -169,6 +173,7 @@ export function SplitButton(props: SplitButtonProps) {
   } as ButtonBaseActionProps | ButtonBaseLinkProps;
 
   const trailingProps = {
+    tokenAttributes: halfTokens,
     label: menuLabel,
     disabled,
     hasTouchTarget,
@@ -217,7 +222,15 @@ export function SplitButton(props: SplitButtonProps) {
   }
 
   return (
-    <div {...root} className={styles.root({ class: cn(classNames?.root, className) })}>
+    <div
+      {...root}
+      // The component tokens' hooks (split-button-tokens.ts); `data-variant` and `data-size`
+      // are also public styling hooks for apps.
+      data-tokens="md-comp-split-button"
+      data-variant={variant}
+      data-size={size}
+      className={styles.root({ class: cn(classNames?.root, className) })}
+    >
       {/* The leading button must not pick up the trailing button's trigger props. */}
       <TriggerContext value={null}>
         <ButtonBase {...leadingProps}>
@@ -269,6 +282,8 @@ function OpenOnMouseRelease({ children }: { children: ReactNode }) {
 }
 
 interface TrailingButtonProps {
+  /** Button's token hooks: `data-tokens` and `data-variant`. */
+  tokenAttributes: { 'data-tokens': string; 'data-variant': string };
   label: string;
   open: boolean;
   disabled?: boolean;
@@ -286,6 +301,7 @@ interface TrailingButtonProps {
  * press handler and `aria-expanded` through `TriggerContext`.
  */
 function TrailingButton({
+  tokenAttributes,
   label,
   open,
   disabled,
@@ -299,6 +315,8 @@ function TrailingButton({
 }: TrailingButtonProps) {
   return (
     <ButtonBase
+      {...tokenAttributes}
+      data-slot="trailing"
       ref={buttonRef}
       aria-label={label}
       aria-expanded={ariaExpanded}

@@ -9,24 +9,14 @@ import { connectedShapeVariants } from './connected-shapes';
  * presses to 8 / 8 / 12 / 16 / 16px ("Both round and square buttons should have the same
  * pressed shape").
  *
- * "Full" corners are capped at half the container height instead of 9999px so the
- * corner transition interpolates smoothly; `--md-sys-shape-corner-full` still applies.
+ * The resting round and square corners come from the component tokens (`button-tokens.ts`,
+ * `--md-comp-button-<size>-container-shape-*`). "Full" corners are capped at half the
+ * container height instead of 9999px so the corner transition interpolates smoothly: the
+ * set's derived `container-shape-round-capped`. Every class is written out in full:
+ * Tailwind finds classes by scanning for literal strings.
  */
-const full = {
-  xs: 'rounded-[min(var(--md-sys-shape-corner-full),16px)]',
-  sm: 'rounded-[min(var(--md-sys-shape-corner-full),20px)]',
-  md: 'rounded-[min(var(--md-sys-shape-corner-full),28px)]',
-  lg: 'rounded-[min(var(--md-sys-shape-corner-full),48px)]',
-  xl: 'rounded-[min(var(--md-sys-shape-corner-full),68px)]',
-} as const;
-
-const square = {
-  xs: 'rounded-corner-medium',
-  sm: 'rounded-corner-medium',
-  md: 'rounded-corner-large',
-  lg: 'rounded-corner-extra-large',
-  xl: 'rounded-corner-extra-large',
-} as const;
+const round = 'rounded-[var(--_md-comp-button-container-shape-round-capped)]';
+const square = 'rounded-[var(--_md-comp-button-container-shape-square)]';
 
 const pressed = {
   xs: 'data-pressed:rounded-corner-small',
@@ -36,56 +26,42 @@ const pressed = {
   xl: 'data-pressed:rounded-corner-large',
 } as const;
 
-type Size = keyof typeof full;
-const SIZES = Object.keys(full) as Size[];
-
-/*
- * Every class is written out in full: Tailwind finds classes by scanning for literal
- * strings, so classes assembled at runtime would never be generated.
- */
+type Size = keyof typeof pressed;
+const SIZES = Object.keys(pressed) as Size[];
 
 /** Toggle, selected: round buttons become square… */
-const selectedSquare = {
-  xs: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-medium',
-  sm: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-medium',
-  md: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-large',
-  lg: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-extra-large',
-  xl: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-extra-large',
-} as const;
+const selectedSquare =
+  'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-square)]';
 
 /** …and square buttons become round. */
-const selectedFull = {
-  xs: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
-  sm: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),20px)]',
-  md: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
-  lg: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),48px)]',
-  xl: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),68px)]',
-} as const;
+const selectedRound =
+  'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-round-capped)]';
 
-const shapeVariants = SIZES.flatMap((size) => [
-  { size, connected: 'none' as const, shape: 'round' as const, class: { root: full[size] } },
-  { size, connected: 'none' as const, shape: 'square' as const, class: { root: square[size] } },
-  { size, connected: 'none' as const, class: { root: pressed[size] } },
+const shapeVariants = [
+  { connected: 'none' as const, shape: 'round' as const, class: { root: round } },
+  { connected: 'none' as const, shape: 'square' as const, class: { root: square } },
+  ...SIZES.map((size) => ({ size, connected: 'none' as const, class: { root: pressed[size] } })),
   // Selected toggle buttons swap shape: round becomes square and square becomes round.
   {
-    size,
     connected: 'none' as const,
     toggle: true,
     shape: 'round' as const,
-    class: { root: selectedSquare[size] },
+    class: { root: selectedSquare },
   },
   {
-    size,
     connected: 'none' as const,
     toggle: true,
     shape: 'square' as const,
-    class: { root: selectedFull[size] },
+    class: { root: selectedRound },
   },
-]);
+];
 
 /**
  * Colours and elevation of each button variant, shared with the split button's halves.
- * Disabled is `on-surface` 10% / `on-surface-variant` 38% for every variant.
+ * The resting, selected and unselected colours, the elevated button's resting elevation and
+ * the outline colour come from the component tokens (`button-tokens.ts`), so the element
+ * needs `data-tokens="md-comp-button"` and `data-variant`, as Button and the split button's
+ * halves render them. A consumer class (`bg-tertiary`) still wins in `cn()`. Disabled is `on-surface` 10% / `on-surface-variant` 38% for every variant.
  *
  * Hover raises a button only while it isn't pressed, so a press shows the pressed level
  * (elevated 1, filled and tonal 0) even under the pointer (2026-10-13).
@@ -101,14 +77,14 @@ const shapeVariants = SIZES.flatMap((size) => [
  */
 export const buttonVariantClasses = {
   filled:
-    'bg-primary text-on-primary data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
   elevated:
-    'bg-surface-container-low text-primary shadow-elevation-1 data-hovered:not-data-pressed:shadow-elevation-2 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-2 data-disabled:bg-on-surface/10',
   tonal:
-    'bg-secondary-container text-on-secondary-container data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
   outlined:
-    '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-outline-variant bg-transparent text-on-surface-variant data-disabled:not-data-selected:border-outline-variant/10',
-  text: 'bg-transparent text-primary',
+    '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-[color:var(--_md-comp-button-outline-color)] bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-disabled:not-data-selected:border-outline-variant/10',
+  text: 'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)]',
 } as const;
 
 /** Variant definitions for {@link Button}; extend them to add variants. */
@@ -177,34 +153,17 @@ export const buttonStyles = tv({
     // Outline width grows with size.
     { variant: 'outlined', size: 'lg', class: { root: '[--m3-button-border:2px]' } },
     { variant: 'outlined', size: 'xl', class: { root: '[--m3-button-border:3px]' } },
-    // Toggle colours: unselected → selected.
+    // Toggle colours: unselected → selected, from the component tokens.
     {
-      variant: 'filled',
       toggle: true,
       class: {
-        root: 'bg-surface-container text-on-surface-variant data-selected:not-data-disabled:bg-primary data-selected:not-data-disabled:text-on-primary',
-      },
-    },
-    {
-      variant: 'elevated',
-      toggle: true,
-      class: {
-        root: 'data-selected:not-data-disabled:bg-primary data-selected:not-data-disabled:text-on-primary',
-      },
-    },
-    {
-      variant: 'tonal',
-      toggle: true,
-      class: {
-        root: 'data-selected:not-data-disabled:bg-secondary data-selected:not-data-disabled:text-on-secondary',
+        root: 'bg-[var(--_md-comp-button-unselected-container-color)] text-[color:var(--_md-comp-button-unselected-label-text-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-button-selected-label-text-color)]',
       },
     },
     {
       variant: 'outlined',
       toggle: true,
-      class: {
-        root: 'data-disabled:bg-outline-variant/10 data-selected:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
-      },
+      class: { root: 'data-disabled:bg-outline-variant/10 data-selected:border-transparent' },
     },
   ],
   defaultVariants: {

@@ -182,6 +182,15 @@ export default async function CustomisationPage() {
             on an inner slot: the component resolves its tokens on its root.
           </li>
           <li>
+            <span className="text-on-surface">Icon colour in a container:</span>{' '}
+            <InlineCode>--md-comp-icon-button-icon-color</InlineCode> (M3&apos;s baseline name)
+            colours every standard and outlined icon button inside the element that sets it; the
+            per-variant <InlineCode>--md-comp-icon-button-standard-icon-color</InlineCode> and{' '}
+            <InlineCode>--md-comp-icon-button-outlined-icon-color</InlineCode> come first. App bars,
+            search bars and vibrant toolbars set it to <InlineCode>currentColor</InlineCode>, so
+            their icons follow their own text colour.
+          </li>
+          <li>
             <span className="text-on-surface">Overlays</span> portal to{' '}
             <InlineCode>body</InlineCode>, so tokens set on an arbitrary ancestor don&apos;t reach
             them. Tokens on <InlineCode>:root</InlineCode>, on <InlineCode>[data-theme]</InlineCode>

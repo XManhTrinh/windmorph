@@ -173,15 +173,17 @@ describe('FloatingToolbar', () => {
       'text-on-primary-container',
       '[--md-comp-icon-button-icon-color:currentColor]',
     );
-    expect(screen.getByRole('button', { name: 'Pen' })).toHaveClass(
-      'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
-    );
+    const pen = screen.getByRole('button', { name: 'Pen' });
+    expect(pen).toHaveAttribute('data-variant', 'standard');
+    expect(pen).toHaveClass('text-[color:var(--_md-comp-icon-button-icon-color)]');
     const bold = screen.getByRole('button', { name: 'Bold' });
     expect(bold).toHaveClass(
       'data-selected:not-data-disabled:bg-surface-container',
       'data-selected:not-data-disabled:text-on-surface',
     );
-    expect(bold).not.toHaveClass('data-selected:not-data-disabled:bg-secondary');
+    expect(bold).not.toHaveClass(
+      'data-selected:not-data-disabled:bg-[var(--_md-comp-icon-button-selected-container-color)]',
+    );
   });
 
   it('gives the toolbar FAB an elevation option, as Fab has', () => {

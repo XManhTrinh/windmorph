@@ -13,26 +13,23 @@ import { connectedShapeVariants } from '../button/connected-shapes';
  * snackbar) sets `--md-comp-icon-button-icon-color` on an ancestor, e.g. to `currentColor`
  * to inherit its own text colour.
  *
+ * The resting, selected and unselected colours, the outline colour and the resting corners
+ * come from the component tokens (`icon-button-tokens.ts`): the root carries
+ * `data-tokens="md-comp-icon-button"`, `data-variant` and `data-size`, and the classes read
+ * one private variable per part. A consumer class (`bg-tertiary`) still wins in `cn()`.
+ *
  * A disabled outlined icon button's outline is `outline-variant` at 10%, the same as a
  * disabled outlined Button (the tokens keep `outline-variant` and give no opacity of their
  * own; Button's is the disabled container opacity). A selected outlined toggle has no
  * outline, disabled or not (2026-10-13).
  */
-const full = {
-  xs: 'rounded-[min(var(--md-sys-shape-corner-full),16px)]',
-  sm: 'rounded-[min(var(--md-sys-shape-corner-full),20px)]',
-  md: 'rounded-[min(var(--md-sys-shape-corner-full),28px)]',
-  lg: 'rounded-[min(var(--md-sys-shape-corner-full),48px)]',
-  xl: 'rounded-[min(var(--md-sys-shape-corner-full),68px)]',
-} as const;
-
-const square = {
-  xs: 'rounded-corner-medium',
-  sm: 'rounded-corner-medium',
-  md: 'rounded-corner-large',
-  lg: 'rounded-corner-extra-large',
-  xl: 'rounded-corner-extra-large',
-} as const;
+/*
+ * The resting round and square corners come from the component tokens
+ * (`icon-button-tokens.ts`, `--md-comp-icon-button-<size>-container-shape-*`); full corners
+ * are capped at half the height (the set's derived `container-shape-round-capped`).
+ */
+const round = 'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]';
+const square = 'rounded-[var(--_md-comp-icon-button-container-shape-square)]';
 
 const pressed = {
   xs: 'data-pressed:rounded-corner-small',
@@ -43,22 +40,12 @@ const pressed = {
 } as const;
 
 /** Toggle, selected: round becomes square… */
-const selectedSquare = {
-  xs: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-medium',
-  sm: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-medium',
-  md: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-large',
-  lg: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-extra-large',
-  xl: 'data-selected:not-data-pressed:not-data-disabled:rounded-corner-extra-large',
-} as const;
+const selectedSquare =
+  'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-square)]';
 
 /** …and square becomes round (Compose `SelectedContainerShapeSquare` = full). */
-const selectedFull = {
-  xs: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),16px)]',
-  sm: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),20px)]',
-  md: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
-  lg: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),48px)]',
-  xl: 'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),68px)]',
-} as const;
+const selectedRound =
+  'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]';
 
 /** Container widths in px: narrow / default / wide. */
 const widths = {
@@ -69,28 +56,29 @@ const widths = {
   xl: { narrow: 'w-[104px]', default: 'w-[136px]', wide: 'w-[184px]' },
 } as const;
 
-type Size = keyof typeof full;
-const SIZES = Object.keys(full) as Size[];
+type Size = keyof typeof pressed;
+const SIZES = Object.keys(pressed) as Size[];
 const WIDTHS = ['narrow', 'default', 'wide'] as const;
 
-const sizeVariants = SIZES.flatMap((size) => [
-  { size, connected: 'none' as const, shape: 'round' as const, class: { root: full[size] } },
-  { size, connected: 'none' as const, shape: 'square' as const, class: { root: square[size] } },
-  { size, connected: 'none' as const, class: { root: pressed[size] } },
+const shapeVariants = [
+  { connected: 'none' as const, shape: 'round' as const, class: { root: round } },
+  { connected: 'none' as const, shape: 'square' as const, class: { root: square } },
   {
-    size,
     connected: 'none' as const,
     toggle: true,
     shape: 'round' as const,
-    class: { root: selectedSquare[size] },
+    class: { root: selectedSquare },
   },
   {
-    size,
     connected: 'none' as const,
     toggle: true,
     shape: 'square' as const,
-    class: { root: selectedFull[size] },
+    class: { root: selectedRound },
   },
+];
+
+const sizeVariants = SIZES.flatMap((size) => [
+  { size, connected: 'none' as const, class: { root: pressed[size] } },
   ...WIDTHS.map((width) => ({ size, width, class: { root: widths[size][width] } })),
 ]);
 
@@ -109,16 +97,16 @@ export const iconButtonStyles = tv({
   variants: {
     variant: {
       standard: {
-        root: 'bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:text-on-surface/38',
+        root: 'bg-transparent text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:text-on-surface/38',
       },
       filled: {
-        root: 'bg-primary text-on-primary data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+        root: 'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
       },
       tonal: {
-        root: 'bg-secondary-container text-on-secondary-container data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+        root: 'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
       },
       outlined: {
-        root: 'border border-solid border-outline-variant bg-transparent text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))] data-disabled:not-data-selected:border-outline-variant/10 data-disabled:text-on-surface/38',
+        root: 'border border-solid border-[color:var(--_md-comp-icon-button-outline-color)] bg-transparent text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:not-data-selected:border-outline-variant/10 data-disabled:text-on-surface/38',
       },
     },
     size: {
@@ -137,6 +125,7 @@ export const iconButtonStyles = tv({
     toolbar: { none: {}, standard: {}, vibrant: {} },
   },
   compoundVariants: [
+    ...shapeVariants,
     ...sizeVariants,
     ...connectedShapeVariants,
     // Extra small and small connected groups keep 48px wide buttons (button group specs).
@@ -147,31 +136,18 @@ export const iconButtonStyles = tv({
     },
     { variant: 'outlined', size: 'lg', class: { root: 'border-2' } },
     { variant: 'outlined', size: 'xl', class: { root: 'border-3' } },
-    // Toggle colours: unselected → selected.
+    // Toggle colours: unselected → selected, from the component tokens.
     {
-      variant: 'standard',
-      toggle: true,
-      class: { root: 'data-selected:not-data-disabled:text-primary' },
-    },
-    {
-      variant: 'filled',
       toggle: true,
       class: {
-        root: 'bg-surface-container text-on-surface-variant data-selected:not-data-disabled:bg-primary data-selected:not-data-disabled:text-on-primary',
-      },
-    },
-    {
-      variant: 'tonal',
-      toggle: true,
-      class: {
-        root: 'data-selected:not-data-disabled:bg-secondary data-selected:not-data-disabled:text-on-secondary',
+        root: 'bg-[var(--_md-comp-icon-button-unselected-container-color)] text-[color:var(--_md-comp-icon-button-unselected-icon-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-icon-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-icon-button-selected-icon-color)]',
       },
     },
     {
       variant: 'outlined',
       toggle: true,
       class: {
-        root: 'data-disabled:data-selected:bg-on-surface/10 data-selected:border-transparent data-selected:not-data-disabled:bg-inverse-surface data-selected:not-data-disabled:text-inverse-on-surface',
+        root: 'data-disabled:data-selected:bg-on-surface/10 data-selected:border-transparent',
       },
     },
     // In a vibrant toolbar (M3 toolbar colour spec, FloatingToolbarTokens.VibrantButton*),

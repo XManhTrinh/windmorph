@@ -113,8 +113,15 @@ export function Button({
 
   // Destructuring a union merges its members, so TypeScript loses the pairing of
   // `href`/`toggle` with their `ref` types. `base` still holds exactly one member's props.
+  // The component tokens' hooks (button-tokens.ts), also public styling hooks for apps.
+  const tokenAttributes = {
+    'data-tokens': 'md-comp-button',
+    'data-variant': variant,
+    'data-size': size,
+  };
   const baseProps = {
     ...base,
+    ...tokenAttributes,
     disabled: disabledProp ?? context.disabled ?? false,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;

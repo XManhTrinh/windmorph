@@ -15,8 +15,18 @@ describe('IconButton', () => {
   it('renders a filled, small, round icon button by default (M3 Expressive)', () => {
     render(<IconButton icon={<Star />} aria-label="Favourite" />);
     const button = screen.getByRole('button', { name: 'Favourite' });
-    expect(button).toHaveClass('bg-primary', 'text-on-primary', 'h-[40px]', 'w-[40px]');
-    expect(button).toHaveClass('rounded-[min(var(--md-sys-shape-corner-full),20px)]');
+    expect(button).toHaveAttribute('data-tokens', 'md-comp-icon-button');
+    expect(button).toHaveAttribute('data-variant', 'filled');
+    expect(button).toHaveAttribute('data-size', 'sm');
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-icon-button-container-color)]',
+      'text-[color:var(--_md-comp-icon-button-icon-color)]',
+      'h-[40px]',
+      'w-[40px]',
+    );
+    expect(button).toHaveClass(
+      'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
+    );
     expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
     expect(screen.getByTestId('star').parentElement).toHaveAttribute('aria-hidden', 'true');
   });
@@ -34,27 +44,49 @@ describe('IconButton', () => {
   });
 
   it.each([
-    ['filled', ['bg-primary', 'text-on-primary', 'data-disabled:text-on-surface/38']],
-    ['tonal', ['bg-secondary-container', 'text-on-secondary-container']],
+    ['filled', ['bg-[var(--_md-comp-icon-button-container-color)]']],
+    ['tonal', ['bg-[var(--_md-comp-icon-button-container-color)]']],
     [
       'outlined',
       [
-        'border-outline-variant',
-        'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
-        'data-disabled:text-on-surface/38',
-      ],
-    ],
-    [
-      'standard',
-      [
         'bg-transparent',
-        'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
-        'data-disabled:text-on-surface/38',
+        'border-solid',
+        'border-[color:var(--_md-comp-icon-button-outline-color)]',
       ],
     ],
-  ] as const)('styles the %s variant', (variant, classes) => {
+    ['standard', ['bg-transparent']],
+  ] as const)('marks the %s variant for its component tokens', (variant, classes) => {
     render(<IconButton variant={variant} icon={<Star />} aria-label="Fav" />);
-    expect(screen.getByRole('button')).toHaveClass(...classes);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-variant', variant);
+    expect(button).toHaveClass(
+      'text-[color:var(--_md-comp-icon-button-icon-color)]',
+      'data-disabled:text-on-surface/38',
+      ...classes,
+    );
+  });
+
+  it('lets consumer colour, corner and outline classes replace the token classes', () => {
+    render(
+      <IconButton
+        variant="outlined"
+        className="bg-tertiary text-on-tertiary rounded-corner-small border-primary"
+        icon={<Star />}
+        aria-label="Fav"
+      />,
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'bg-tertiary',
+      'text-on-tertiary',
+      'rounded-corner-small',
+      'border-primary',
+    );
+    expect(button).not.toHaveClass(
+      'text-[color:var(--_md-comp-icon-button-icon-color)]',
+      'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
+      'border-[color:var(--_md-comp-icon-button-outline-color)]',
+    );
   });
 
   it.each([
@@ -98,7 +130,7 @@ describe('IconButton', () => {
     expect(element).toBe(button);
     expect(button).toHaveClass('fixed', 'w-full', 'text-error');
     expect(button).not.toHaveClass('w-[40px]');
-    expect(button).not.toHaveClass('text-on-primary');
+    expect(button).not.toHaveClass('text-[color:var(--_md-comp-icon-button-icon-color)]');
     expect(button).toHaveStyle({ top: '8px' });
   });
 
@@ -108,9 +140,7 @@ describe('IconButton', () => {
     );
     const button = screen.getByRole('button');
     expect(button).toHaveClass('text-error');
-    expect(button).not.toHaveClass(
-      'text-[color:var(--md-comp-icon-button-icon-color,var(--md-sys-color-on-surface-variant))]',
-    );
+    expect(button).not.toHaveClass('text-[color:var(--_md-comp-icon-button-icon-color)]');
   });
 
   it('takes size, shape and disabled from ButtonContext but not the Button variant', () => {
@@ -120,7 +150,12 @@ describe('IconButton', () => {
       </ButtonContext>,
     );
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('h-[96px]', 'rounded-corner-extra-large', 'bg-primary');
+    expect(button).toHaveAttribute('data-variant', 'filled');
+    expect(button).toHaveAttribute('data-size', 'lg');
+    expect(button).toHaveClass(
+      'h-[96px]',
+      'rounded-[var(--_md-comp-icon-button-container-shape-square)]',
+    );
     expect(button).toBeDisabled();
   });
 
@@ -131,8 +166,11 @@ describe('IconButton', () => {
         <IconButton variant="tonal" icon={<Star />} aria-label="Share" />
       </ButtonContext>,
     );
-    expect(screen.getByRole('button', { name: 'Search' })).toHaveClass('bg-transparent');
-    expect(screen.getByRole('button', { name: 'Share' })).toHaveClass('bg-secondary-container');
+    expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute(
+      'data-variant',
+      'standard',
+    );
+    expect(screen.getByRole('button', { name: 'Share' })).toHaveAttribute('data-variant', 'tonal');
   });
 
   it('shows its label as a tooltip on hover', async () => {
@@ -271,7 +309,13 @@ describe('IconButton toggle', () => {
     );
     const button = screen.getByRole('button', { name: 'Favourite' });
     expect(button).toHaveAttribute('aria-pressed', 'false');
-    expect(button).toHaveClass('bg-surface-container', 'text-on-surface-variant');
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-icon-button-unselected-container-color)]',
+      'text-[color:var(--_md-comp-icon-button-unselected-icon-color)]',
+      'data-selected:not-data-disabled:bg-[var(--_md-comp-icon-button-selected-container-color)]',
+      'data-selected:not-data-disabled:text-[color:var(--_md-comp-icon-button-selected-icon-color)]',
+    );
+    expect(button).not.toHaveClass('bg-[var(--_md-comp-icon-button-container-color)]');
     expect(screen.getByTestId('star')).toBeInTheDocument();
 
     await userEvent.click(button);
@@ -298,19 +342,23 @@ describe('IconButton toggle', () => {
     );
     const round = screen.getByRole('button', { name: 'Round' });
     expect(round).toHaveClass(
-      'data-selected:not-data-pressed:not-data-disabled:rounded-corner-large',
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-square)]',
     );
     expect(round).toHaveClass('container-motion');
     expect(screen.getByRole('button', { name: 'Square' })).toHaveClass(
-      'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--md-sys-shape-corner-full),28px)]',
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
     );
   });
 
-  it('uses primary for a selected standard toggle', () => {
+  it('reads the selected icon colour for a selected standard toggle', () => {
     render(
       <IconButton toggle variant="standard" defaultSelected icon={<Star />} aria-label="Fav" />,
     );
-    expect(screen.getByRole('button')).toHaveClass('data-selected:not-data-disabled:text-primary');
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-variant', 'standard');
+    expect(button).toHaveClass(
+      'data-selected:not-data-disabled:text-[color:var(--_md-comp-icon-button-selected-icon-color)]',
+    );
   });
 
   it('dims a disabled outline and drops the outline of a selected outlined toggle', () => {
