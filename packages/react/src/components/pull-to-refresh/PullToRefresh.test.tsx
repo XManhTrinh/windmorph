@@ -320,4 +320,49 @@ describe('PullToRefresh', () => {
     expect(area.firstElementChild).not.toHaveClass('top-0');
     expect(indicatorBox()).toHaveClass('shadow-elevation-3');
   });
+
+  it("cancels a flex or grid root's gap below its layer, so the content doesn't move", () => {
+    const { rerender } = render(
+      <PullToRefresh onRefresh={() => undefined} data-testid="area" style={{ display: 'block' }}>
+        Content
+      </PullToRefresh>,
+    );
+    const layer = () => screen.getByTestId('area').firstElementChild as HTMLElement;
+    expect(layer().style.marginBlockEnd).toBe('0px');
+    rerender(
+      <PullToRefresh
+        onRefresh={() => undefined}
+        data-testid="area"
+        style={{ display: 'flex', flexDirection: 'column', rowGap: '16px' }}
+      >
+        Content
+      </PullToRefresh>,
+    );
+    expect(layer().style.marginBlockEnd).toBe('-16px');
+    expect(layer().style.gridRow).toBe('');
+    rerender(
+      <PullToRefresh
+        onRefresh={() => undefined}
+        data-testid="area"
+        style={{ display: 'grid', rowGap: '8px', columnGap: '24px' }}
+      >
+        Content
+      </PullToRefresh>,
+    );
+    expect(layer().style.marginBlockEnd).toBe('-8px');
+    expect(layer().style.gridRow).toBe('span 1 / 1');
+    expect(layer().style.gridColumn).toBe('1 / -1');
+    rerender(
+      <PullToRefresh
+        onRefresh={() => undefined}
+        data-testid="area"
+        style={{ display: 'flex', columnGap: '12px' }}
+      >
+        Content
+      </PullToRefresh>,
+    );
+    expect(layer().style.marginInlineEnd).toBe('-12px');
+    expect(layer().style.marginBlockEnd).toBe('0px');
+    expect(layer().style.gridRow).toBe('');
+  });
 });

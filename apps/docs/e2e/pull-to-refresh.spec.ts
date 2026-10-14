@@ -171,3 +171,29 @@ test.describe('PullToRefresh layout safety', () => {
     },
   });
 });
+
+test.describe('PullToRefresh content layout', () => {
+  // Where each layout puts the first item (relative to the root) and the second one (relative
+  // to the first): 48px items with a 16px gap in a 320 × 240 root.
+  const expected = {
+    block: { first: [0, 0], second: [0, 64] },
+    flexColumn: { first: [0, 0], second: [0, 64] },
+    flexColumnReverse: { first: [0, 192], second: [0, -64] },
+    flexRow: { first: [0, 0], second: ['after', 0] },
+    grid: { first: [0, 0], second: [0, 64] },
+    gridColumns: { first: [0, 0], second: [168, 0] },
+  } as const;
+  for (const [layout, { first, second }] of Object.entries(expected)) {
+    test(`a gap on a ${layout} root doesn't move the content`, async ({ page }) => {
+      await openStory(page, 'components-pulltorefresh--content-layout', {}, { layout });
+      const root = await rect(page.getByTestId('target'));
+      const items = page.getByTestId('item');
+      const a = await rect(items.nth(0));
+      const b = await rect(items.nth(1));
+      expect([Math.round(a.x - root.x), Math.round(a.y - root.y)]).toEqual(first);
+      // In a flex row the second item starts one gap after the first one's width.
+      const left = second[0] === 'after' ? Math.round(a.width) + 16 : second[0];
+      expect([Math.round(b.x - a.x), Math.round(b.y - a.y)]).toEqual([left, second[1]]);
+    });
+  }
+});
