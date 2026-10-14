@@ -51,7 +51,15 @@ const exitProps = (visible: boolean) => ({
   inert: !visible || undefined,
 });
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the toolbar. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the toolbar. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 type DivProps<Own> = Omit<
   ComponentPropsWithRef<'div'>,
@@ -92,6 +100,7 @@ function useToolbarRoot(
 }
 
 export interface DockedToolbarClassNames {
+  /** The toolbar's container, merged with `className`. */
   root?: string;
 }
 
@@ -108,6 +117,7 @@ interface DockedToolbarOwnProps {
   visible?: boolean;
   /** The toolbar's controls, e.g. icon buttons, buttons or a FAB. */
   children: ReactNode;
+  /** Classes for each part, by slot. */
   classNames?: DockedToolbarClassNames;
 }
 
@@ -164,10 +174,13 @@ function DockedToolbarRoot({
 }
 
 export interface FloatingToolbarClassNames {
+  /** The outer container, merged with `className`. */
   root?: string;
   /** The main content group. */
   items?: string;
+  /** The group of `leading` controls. */
   leading?: string;
+  /** The group of `trailing` controls. */
   trailing?: string;
   /** The toolbar's surface when it has a FAB. */
   surface?: string;
@@ -176,9 +189,12 @@ export interface FloatingToolbarClassNames {
 }
 
 interface FloatingToolbarBaseProps {
-  /** @default "horizontal" */
+  /** Lay the controls out in a row, or in a column at a window edge. @default "horizontal" */
   orientation?: ToolbarOrientation;
-  /** @default "standard" (`surface-container`); "vibrant" is `primary-container`. */
+  /**
+   * The container colour: `standard` (`surface-container`) or `vibrant`
+   * (`primary-container`). @default "standard"
+   */
   color?: FloatingToolbarColor;
   /**
    * Level 1 elevation, which M3 gives floating toolbars by default. Remove it when the
@@ -203,6 +219,7 @@ interface FloatingToolbarBaseProps {
   exitEdge?: ToolbarExitEdge;
   /** The main controls, always shown. */
   children: ReactNode;
+  /** Classes for each part, by slot. */
   classNames?: FloatingToolbarClassNames;
 }
 
@@ -423,13 +440,25 @@ function useContentSize(enabled: boolean, orientation: ToolbarOrientation) {
 }
 
 export interface ToolbarFabClassNames {
+  /** The FAB's button, merged with `className`. */
   root?: string;
+  /** The icon. */
   icon?: string;
 }
 
 type AccessibleName =
-  | { 'aria-label': string; 'aria-labelledby'?: string }
-  | { 'aria-label'?: string; 'aria-labelledby': string };
+  | {
+      /** Accessible name for the FAB, also its tooltip. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+      /** The id of the element that names the FAB. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** Accessible name for the FAB, also its tooltip. */
+      'aria-label'?: string;
+      /** The id of the element that names the FAB. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 interface ToolbarFabOwnProps {
   /**
@@ -450,7 +479,11 @@ interface ToolbarFabOwnProps {
    * motion keeps only the crossfade. Only used with `expandedIcon`. @default "swap"
    */
   iconTransition?: IconTransition;
-  /** Defaults to the toolbar's colour: `primary-container` (standard) or `tertiary-container` (vibrant). */
+  /**
+   * The FAB's colour scheme. Defaults to the toolbar's colour: `primary-container`
+   * (standard) or `tertiary-container` (vibrant).
+   * @default the toolbar's `color`, else "standard"
+   */
   color?: FloatingToolbarColor;
   /**
    * Shows `aria-label` in a plain tooltip on hover and keyboard focus, as M3 asks of FABs
@@ -462,6 +495,7 @@ interface ToolbarFabOwnProps {
    * @default "default"
    */
   elevation?: FabElevation;
+  /** Classes for each part, by slot. */
   classNames?: ToolbarFabClassNames;
 }
 

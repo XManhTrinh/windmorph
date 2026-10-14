@@ -95,13 +95,20 @@ export interface TooltipTriggerProps {
   delay?: number;
   /** Milliseconds before hiding after the pointer leaves or a touch lifts (the spec's 1.5s). @default 1500 */
   closeDelay?: number;
-  /** @default "top", or the enclosing `TooltipPlacementContext` (`bottom` in app bars) */
+  /**
+   * Side of the anchor the tooltip prefers; it flips when there's no room.
+   * @default "top", or the enclosing `TooltipPlacementContext` (`bottom` in app bars)
+   */
   placement?: TooltipPlacement;
   /** Distance from the anchor in px: 4 for an anchor with a visual boundary, 8 for text. @default 4 */
   offset?: number;
+  /** Never show the tooltip. @default false */
   isDisabled?: boolean;
+  /** Whether the tooltip is shown (controlled). */
   isOpen?: boolean;
+  /** Whether the tooltip starts shown when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the tooltip shows or hides. */
   onOpenChange?: (isOpen: boolean) => void;
 }
 

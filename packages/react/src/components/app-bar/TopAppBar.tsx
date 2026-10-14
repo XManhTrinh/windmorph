@@ -8,12 +8,15 @@ import { topAppBarStyles, type TopAppBarTitleAlign, type TopAppBarVariant } from
 import { useAppBarScroll, type TopAppBarScrollBehavior } from './use-app-bar-scroll';
 
 export interface TopAppBarClassNames {
+  /** The `<header>` container, merged with `className`. */
   root?: string;
   /** The 64px top row. */
   row?: string;
+  /** The leading slot holding `navigationIcon`. */
   navigation?: string;
   /** The top row's title block. */
   title?: string;
+  /** The trailing slot holding `actions`. */
   actions?: string;
   /** The expanded title row of medium and large bars. */
   expandedRow?: string;
@@ -29,8 +32,9 @@ interface TopAppBarOwnProps {
   variant?: TopAppBarVariant;
   /** The title, e.g. the screen's name. Wrap it in a heading element if it names the page. */
   title: ReactNode;
+  /** A second line under the title, e.g. the current section. */
   subtitle?: ReactNode;
-  /** @default "start" */
+  /** Align the title (and subtitle) to the start, or centre it. @default "start" */
   titleAlign?: TopAppBarTitleAlign;
   /** A leading control, usually a back or menu `IconButton`. */
   navigationIcon?: ReactNode;
@@ -61,6 +65,7 @@ interface TopAppBarOwnProps {
    * @default "container"
    */
   scrolledColor?: TopAppBarScrolledColor;
+  /** Classes for each part, by slot. */
   classNames?: TopAppBarClassNames;
 }
 

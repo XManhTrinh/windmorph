@@ -40,25 +40,30 @@ export interface ThemeProviderProps {
   theme?: string;
   /** Initial colour theme when uncontrolled. @default "baseline" */
   defaultTheme?: string;
+  /** Called with the new colour theme when it changes. */
   onThemeChange?: (theme: string) => void;
   /** Controlled colour mode. */
   mode?: ColorMode;
   /** Initial colour mode when uncontrolled. @default "system" */
   defaultMode?: ColorMode;
+  /** Called with the new colour mode when it changes. */
   onModeChange?: (mode: ColorMode) => void;
   /** Controlled contrast level. */
   contrast?: ContrastLevel;
   /** Initial contrast level when uncontrolled. @default "standard" */
   defaultContrast?: ContrastLevel;
+  /** Called with the new contrast level when it changes. */
   onContrastChange?: (contrast: ContrastLevel) => void;
   /** Controlled motion scheme. */
   motion?: MotionScheme;
   /** Initial motion scheme when uncontrolled. @default "expressive" */
   defaultMotion?: MotionScheme;
+  /** Called with the new motion scheme when it changes. */
   onMotionChange?: (motion: MotionScheme) => void;
   /**
    * Where the selection is remembered. Use `"cookie"` (default) with
    * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering.
+   * @default "cookie"
    */
   storage?: ThemeStorage;
   /** Cookie or localStorage key. @default "windmorph-theme" */

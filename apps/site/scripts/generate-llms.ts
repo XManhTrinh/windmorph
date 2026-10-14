@@ -152,11 +152,14 @@ function propsMarkdown(meta: ComponentMeta, level: number): string {
         [
           '| Prop | Type | Default | Description |',
           '| --- | --- | --- | --- |',
-          ...props.map((prop) => {
-            const name = `${code(prop.name)}${prop.required ? ' (required)' : ''}`;
-            const fallback = propDefault(prop);
-            return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(prop.description ?? '')} |`;
-          }),
+          // An object prop's keys (`labels.close`) follow it, as in the page's table.
+          ...props
+            .flatMap((prop) => [prop, ...(prop.keys ?? [])])
+            .map((prop) => {
+              const name = `${code(prop.name)}${prop.required ? ' (required)' : ''}`;
+              const fallback = propDefault(prop);
+              return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(prop.description ?? '')} |`;
+            }),
         ].join('\n'),
       );
     }

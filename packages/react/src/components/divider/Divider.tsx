@@ -8,7 +8,10 @@ import {
 } from './divider-styles';
 
 export interface DividerProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
-  /** @default "horizontal" */
+  /**
+   * A full-width horizontal line, or a vertical line the full height of a flex row.
+   * @default "horizontal"
+   */
   orientation?: DividerOrientation;
   /** Leave 16px at the start, or at both ends. @default "none" */
   inset?: DividerInset;
@@ -47,8 +50,11 @@ export function Divider({
 }
 
 export interface LabeledDividerClassNames {
+  /** The wrapper around the line and the text. */
   root?: string;
+  /** The line. */
   divider?: string;
+  /** The supporting text. */
   label?: string;
 }
 
@@ -59,6 +65,7 @@ export interface LabeledDividerProps extends Omit<ComponentPropsWithRef<'div'>, 
   inset?: DividerInset;
   /** Hides the line, not the text, from assistive tech. @default false */
   decorative?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: LabeledDividerClassNames;
 }
 

@@ -94,23 +94,28 @@ export interface ListItemProps {
   current?: boolean;
   /** A link item's target; `_blank` adds `rel="noopener noreferrer"` unless `rel` is given. */
   target?: string;
+  /** A link item's `rel`, e.g. `"nofollow"`. */
   rel?: string;
   /** Downloads the link item's file instead of opening it (optionally with a file name). */
   download?: boolean | string;
   /** Plain-text version of the headline, for type-ahead and announcements. */
   textValue?: string;
+  /** Accessible name when the headline isn't plain text. */
   'aria-label'?: string;
+  /** Classes for the item, merged after `classNames.item`; consumer classes win. */
   className?: string;
   /**
    * Makes the whole item a switch or a checkbox (Compose's toggleable `ListItem`): pressing
    * anywhere on it toggles it, and it is one control for assistive tech. Not in lists with
    * `onAction`, links or `selectionMode`.
+   * @default none
    */
   control?: 'switch' | 'checkbox';
   /** Whether a switch or checkbox item is on (controlled). */
   checked?: boolean;
   /** Whether a switch or checkbox item starts on (uncontrolled). */
   defaultChecked?: boolean;
+  /** Called when a switch or checkbox item is toggled. */
   onCheckedChange?: (checked: boolean) => void;
   /** Where the switch, checkbox or radio button sits. @default checkbox and radio "leading", switch "trailing" */
   controlPlacement?: ControlPlacement;
@@ -118,15 +123,21 @@ export interface ListItemProps {
   value?: string;
   /** The form field name of a switch or checkbox item. */
   name?: string;
-  /** Disables the item. */
+  /** Disables the item. @default false */
   disabled?: boolean;
-  /** Aligns the content; by default it is centred, and top-aligned in three-line items. */
+  /**
+   * Aligns the content; by default it is centred, and top-aligned in three-line items.
+   * @default "center", or "top" in three-line items
+   */
   verticalAlignment?: 'center' | 'top';
-  /** Shows ✓ and ✕ in a switch item's thumb. */
+  /** Shows ✓ and ✕ in a switch item's thumb. @default false */
   switchIcons?: boolean;
-  /** The most lines the headline shows, then "…" (overrides the list's). */
+  /** The most lines the headline shows, then "…" (overrides the list's). @default the list's */
   headlineLines?: LineLimit;
-  /** The most lines the supporting text shows, then "…" (overrides the list's). */
+  /**
+   * The most lines the supporting text shows, then "…" (overrides the list's).
+   * @default the list's
+   */
   supportingTextLines?: LineLimit;
   /**
    * Nested `ListItem`s (each with its own `key`): the item expands and collapses to show
@@ -206,14 +217,20 @@ export const ListItem = ListItemElement as unknown as (props: ListItemProps) => 
 export type ListSectionProps = {
   /** `ListItem` elements, each with its own `key`. */
   children: ReactElement<ListItemProps> | ReactElement<ListItemProps>[];
+  /** Classes for the section, merged after `classNames.section`; consumer classes win. */
   className?: string;
 } & (
   | {
       /** The subheader shown above the section's items, which names the group. */
       title: ReactNode;
+      /** Accessible name for the group, instead of the subheader's text. */
       'aria-label'?: string;
     }
-  | { title?: undefined; 'aria-label': string }
+  | {
+      title?: undefined;
+      /** Accessible name for the group when it shows no subheader. */
+      'aria-label': string;
+    }
 );
 
 /** A collection node for a section, as React Stately's `Section` describes it. */
@@ -306,17 +323,25 @@ export const ListSection = ListSectionElement as unknown as (
 ) => JSX.Element;
 
 export interface ListClassNames {
+  /** The root list element, merged with `className`. */
   root?: string;
   /** Each `ListSection`'s wrapper (its subheader and items). */
   section?: string;
   /** Each `ListSection`'s subheader. */
   subheader?: string;
+  /** Each item. */
   item?: string;
+  /** Each item's leading content (icon, avatar, media or control). */
   leading?: string;
+  /** Each item's text column (overline, headline and supporting text). */
   text?: string;
+  /** Each item's overline. */
   overline?: string;
+  /** Each item's headline. */
   headline?: string;
+  /** Each item's supporting text. */
   supporting?: string;
+  /** Each item's trailing content. */
   trailing?: string;
   /** The drawn switch, checkbox or radio button of an item that is one. */
   control?: string;
@@ -324,7 +349,15 @@ export interface ListClassNames {
   media?: string;
 }
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the list (a list has no visible label of its own). */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the list, such as a heading above it. */
+      'aria-labelledby': string;
+    };
 
 type ListChild = ReactElement<ListItemProps> | ReactElement<ListSectionProps>;
 
@@ -335,12 +368,17 @@ interface ListOwnProps {
   children: ListChild | ListChild[];
   /** Called when an item is pressed or Enter is pressed on it. Makes the list interactive. */
   onAction?: (key: Key) => void;
-  /** @default "none" */
+  /** Whether items can be selected: none, one or several. @default "none" */
   selectionMode?: 'none' | 'single' | 'multiple';
+  /** The keys of the selected items (controlled). */
   selectedKeys?: 'all' | Iterable<Key>;
+  /** The keys of the items selected at first (uncontrolled). */
   defaultSelectedKeys?: 'all' | Iterable<Key>;
+  /** Called with the selected keys when the selection changes. */
   onSelectionChange?: (keys: Set<Key> | 'all') => void;
+  /** Keeps at least one item selected. @default false */
   disallowEmptySelection?: boolean;
+  /** The keys of items that can't be pressed or selected. */
   disabledKeys?: Iterable<Key>;
   /**
    * The selected item of a radio list (Compose's single-selection `ListItem`): with `value`,
@@ -348,19 +386,22 @@ interface ListOwnProps {
    * buttons, each with a `value`.
    */
   value?: string | null;
+  /** The radio list's initially selected item value (uncontrolled). */
   defaultValue?: string;
+  /** Called with the chosen item's value when a radio list's selection changes. */
   onValueChange?: (value: string) => void;
   /** The form field name of a radio list. */
   name?: string;
-  /** A radio list needs a choice before its form submits. */
+  /** A radio list needs a choice before its form submits. @default false */
   required?: boolean;
-  /** Disables every item. */
+  /** Disables every item. @default false */
   disabled?: boolean;
   /** Where a radio list's radio buttons sit. @default "leading" */
   controlPlacement?: ControlPlacement;
   /**
    * M3's dividers between items: `full` width, or `inset` 16dp from each side. Standard
    * lists only (segmented items are already apart).
+   * @default none
    */
   dividers?: ListDividers;
   /**
@@ -372,17 +413,23 @@ interface ListOwnProps {
   expandedKeys?: Iterable<Key>;
   /** The items expanded at first (uncontrolled). */
   defaultExpandedKeys?: Iterable<Key>;
+  /** Called with the expanded keys when an item expands or collapses. */
   onExpandedChange?: (keys: Set<Key>) => void;
-  /** The most lines each item's headline shows, then "…". M3: one or two. */
+  /** The most lines each item's headline shows, then "…". M3: one or two. @default no limit */
   headlineLines?: LineLimit;
   /**
    * The most lines each item's supporting text shows, then "…". M3: one in a two-line item,
    * two in a three-line item.
+   * @default no limit
    */
   supportingTextLines?: LineLimit;
+  /** Ref to the root element: a `<ul>`, or a `<div>` grid or listbox when interactive. */
   ref?: Ref<HTMLElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: ListClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;

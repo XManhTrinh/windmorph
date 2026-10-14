@@ -138,8 +138,9 @@ export interface DialogTriggerProps {
   children: ReactNode;
   /** Controlled open state. */
   open?: boolean;
-  /** Initial open state when uncontrolled. */
+  /** Initial open state when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the dialog opens or closes. */
   onOpenChange?: (open: boolean) => void;
 }
 
@@ -171,6 +172,7 @@ export function DialogTrigger({ children, open, defaultOpen, onOpenChange }: Dia
 }
 
 export interface DialogClassNames {
+  /** The dimmed layer behind the dialog. */
   scrim?: string;
   /**
    * The fixed, full-window flex box that places the dialog. It pads 24px on compact windows
@@ -179,7 +181,9 @@ export interface DialogClassNames {
    * margin, and padding classes change that margin.
    */
   positioner?: string;
+  /** The dialog's surface; `className` is merged here too. */
   panel?: string;
+  /** The icon above the title. */
   icon?: string;
 }
 
@@ -192,7 +196,9 @@ export interface DialogProps
   extends Omit<ComponentPropsWithRef<'div'>, 'children' | 'role'>, Omit<AriaDialogProps, 'role'> {
   /** Controlled open state, when not inside a `DialogTrigger`. */
   open?: boolean;
+  /** Initial open state when uncontrolled, when not inside a `DialogTrigger`. @default false */
   defaultOpen?: boolean;
+  /** Called when the dialog opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /**
    * Basic dialogs are alert dialogs on the web (the spec): they need a decision, are
@@ -203,7 +209,7 @@ export interface DialogProps
   role?: 'dialog' | 'alertdialog';
   /** Closes when pressing outside the dialog. @default true (false for `alertdialog`) */
   dismissable?: boolean;
-  /** Prevents Escape from closing the dialog. */
+  /** Prevents Escape from closing the dialog. @default false */
   keyboardDismissDisabled?: boolean;
   /** Icon above the title (which is then centred). Decorative. Not shown in full screen. */
   icon?: ReactNode;
@@ -237,6 +243,7 @@ export interface DialogProps
    * `justify-*`), `panel` and `icon`.
    */
   classNames?: DialogClassNames;
+  /** Inline styles for the dialog panel. */
   style?: CSSProperties;
 }
 
@@ -441,8 +448,11 @@ export function DialogTitle({ className, ...props }: DialogTitleProps) {
 }
 
 export interface DialogHeaderClassNames {
+  /** The header row; `className` is merged here too. */
   root?: string;
+  /** The close button. */
   close?: string;
+  /** The headline. */
   title?: string;
 }
 
@@ -458,6 +468,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
   action?: ReactNode;
   /** A 1px `outline-variant` divider under the full-screen header. @default false */
   divider?: boolean;
+  /** Classes for each part, by slot. */
   classNames?: DialogHeaderClassNames;
 }
 

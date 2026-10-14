@@ -19,19 +19,22 @@ import {
 import { ButtonContext } from './ButtonContext';
 
 export interface ButtonClassNames {
+  /** The button element itself; merged with `className`. */
   root?: string;
   /** Inner wrapper around the icons and label. */
   content?: string;
+  /** The label text. */
   label?: string;
+  /** The leading icon. */
   icon?: string;
 }
 
 interface ButtonOwnProps {
-  /** @default "filled" */
+  /** The M3 style: filled, tonal, outlined, elevated or text. @default "filled" */
   variant?: ButtonVariant;
-  /** @default "sm" */
+  /** Height, padding and label size, from extra small to extra large. @default "sm" */
   size?: ButtonSize;
-  /** @default "round" */
+  /** Fully round corners, or square ones (still rounded, but less). @default "round" */
   shape?: ButtonShape;
   /**
    * Icon before the label, e.g. a Material Symbols SVG. Decorative; the label names the

@@ -128,6 +128,17 @@ export default async function GettingStartedPage() {
       </section>
 
       <section className="flex flex-col gap-4">
+        <h2 id="browser-support" className="text-headline-small text-on-surface">
+          Browser support
+        </h2>
+        <p className="text-body-large text-on-surface-variant">
+          0.1.0 is tested on Chrome and Edge. Safari 17.5+ and Firefox 129+ are supported targets,
+          with full testing coming next. Older browsers skip some entry animations (
+          <InlineCode>@starting-style</InlineCode>).
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-4">
         <h2 id="add-the-stylesheet" className="text-headline-small text-on-surface">
           Add the stylesheet
         </h2>

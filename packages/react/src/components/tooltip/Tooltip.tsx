@@ -119,15 +119,19 @@ function caretStyle(placement: string, arrow: HTMLAttributes<HTMLElement>) {
 /* ------------------------------------------------------------------ Plain */
 
 export interface TooltipClassNames {
+  /** The tooltip container; `className` is merged here too. */
   root?: string;
+  /** The caret pointing at the anchor. */
   caret?: string;
 }
 
 export interface TooltipProps {
   children: ReactNode;
-  /** Draw a 16×8px caret pointing at the anchor. */
+  /** Draw a 16×8px caret pointing at the anchor. @default false */
   caret?: boolean;
+  /** Classes for the tooltip container, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. */
   classNames?: TooltipClassNames;
 }
 
@@ -216,8 +220,11 @@ export interface RichTooltipTriggerProps {
   delay?: number;
   /** Milliseconds before a transient tooltip hides after the pointer leaves. @default 1500 */
   closeDelay?: number;
+  /** Whether the tooltip is shown (controlled). */
   isOpen?: boolean;
+  /** Whether the tooltip starts shown when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the tooltip shows or hides. */
   onOpenChange?: (isOpen: boolean) => void;
 }
 
@@ -289,10 +296,15 @@ function TransientRichTrigger({
 }
 
 export interface RichTooltipClassNames {
+  /** The tooltip container; `className` is merged here too. */
   root?: string;
+  /** The subhead. */
   title?: string;
+  /** The supporting text. */
   text?: string;
+  /** The row holding the action(s). */
   actions?: string;
+  /** The caret pointing at the anchor. */
   caret?: string;
 }
 
@@ -305,8 +317,11 @@ export interface RichTooltipProps {
   action?: ReactNode;
   /** Name of a persistent tooltip when there is no `title`. */
   'aria-label'?: string;
+  /** Draw a 16×8px caret pointing at the anchor. @default false */
   caret?: boolean;
+  /** Classes for the tooltip container, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. */
   classNames?: RichTooltipClassNames;
 }
 

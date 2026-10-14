@@ -20,8 +20,11 @@ export const SheetTriggerContext = createContext<SheetTriggerContextValue | null
 export interface SheetTriggerProps {
   /** The trigger (a library button) followed by a `BottomSheet` or modal `SideSheet`. */
   children: ReactNode;
+  /** Whether the sheet is open (controlled). */
   open?: boolean;
+  /** Whether the sheet starts open when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the sheet opens or closes. */
   onOpenChange?: (open: boolean) => void;
 }
 

@@ -35,8 +35,11 @@ export const MenuTriggerContext = createContext<MenuTriggerContextValue | null>(
 export interface MenuTriggerProps {
   /** The trigger (a Button, IconButton, …) followed by the `Menu`. */
   children: ReactNode;
+  /** Whether the menu is open (controlled). */
   open?: boolean;
+  /** Whether the menu starts open, when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the menu opens or closes. */
   onOpenChange?: (open: boolean) => void;
 }
 
@@ -77,10 +80,13 @@ export function MenuTrigger({ children, open, defaultOpen, onOpenChange }: MenuT
 export interface ContextMenuTriggerProps {
   /** The content the menu belongs to, followed by the `Menu`. */
   children: ReactNode;
+  /** Whether the menu is open (controlled). */
   open?: boolean;
+  /** Whether the menu starts open, when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the menu opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /** Ignore secondary clicks and long presses. */
+  /** Ignore secondary clicks and long presses. @default false */
   disabled?: boolean;
 }
 

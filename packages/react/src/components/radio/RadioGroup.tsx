@@ -26,10 +26,15 @@ import { RadioRing } from './radio-ring';
 const RadioGroupContext = createContext<RadioGroupState | null>(null);
 
 export interface RadioGroupClassNames {
+  /** The group's outer element. */
   root?: string;
+  /** The visible group label. */
   label?: string;
+  /** The wrapper around the radio buttons. */
   options?: string;
+  /** The helper text below the options. */
   supportingText?: string;
+  /** The error message, shown in place of the helper text while invalid. */
   errorText?: string;
 }
 
@@ -41,15 +46,25 @@ interface RadioGroupOwnProps extends Omit<AriaRadioGroupProps, RenamedGroupProps
   label?: ReactNode;
   /** Helper text below the options. */
   supportingText?: ReactNode;
+  /** Called with the selected option's value when the selection changes. */
   onChange?: (value: string) => void;
+  /** Turns every option off: none can be selected or focused. @default false */
   disabled?: boolean;
+  /** The options can be focused but the selection can't change. @default false */
   readOnly?: boolean;
+  /** An option must be selected before the form submits. @default false */
   required?: boolean;
+  /** Shows the error state. @default false */
   invalid?: boolean;
+  /** The options: `Radio` elements. */
   children?: ReactNode;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: RadioGroupClassNames;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
 }
 
@@ -157,19 +172,26 @@ export function RadioGroup({
 }
 
 export interface RadioClassNames extends SelectionControlClassNames {
+  /** The outer ring. */
   ring?: string;
+  /** The dot inside the ring while selected. */
   dot?: string;
 }
 
 interface RadioOwnProps extends Omit<AriaRadioProps, 'isDisabled' | 'children'> {
   /** The value this option selects. */
   value: string;
+  /** Turns this option off: it can't be selected or focused. @default false */
   disabled?: boolean;
+  /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: RadioClassNames;
+  /** Inline styles for the root `<label>`. */
   style?: CSSProperties;
   /** The root `<label>`. Use `inputRef` for the radio input. */
   ref?: Ref<HTMLLabelElement>;
+  /** Ref to the visually hidden radio `<input>`. */
   inputRef?: Ref<HTMLInputElement>;
 }
 

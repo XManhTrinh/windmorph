@@ -37,21 +37,28 @@ function ArrowDownIcon() {
 }
 
 export interface SplitButtonClassNames {
+  /** The group holding both buttons; merged with `className`. */
   root?: string;
+  /** The leading (main action) button. */
   leading?: string;
+  /** Inner wrapper of the leading button, around its icon and label. */
   content?: string;
+  /** The leading button's label text. */
   label?: string;
+  /** The leading button's icon. */
   icon?: string;
+  /** The trailing (menu) button. */
   trailing?: string;
   /** Inner wrapper of the trailing button, around its icon. */
   trailingContent?: string;
+  /** The trailing button's chevron, which turns while the menu is open. */
   menuIcon?: string;
 }
 
 interface SplitButtonOwnProps {
-  /** @default "filled" */
+  /** The M3 style of both buttons: filled, tonal, outlined or elevated. @default "filled" */
   variant?: SplitButtonVariant;
-  /** @default "sm" */
+  /** Height, padding and label size of both buttons, from extra small to extra large. @default "sm" */
   size?: SplitButtonSize;
   /** Icon before the label, or on its own with `leadingLabel`. Hidden from assistive tech. */
   leadingIcon?: ReactElement;
@@ -70,10 +77,13 @@ interface SplitButtonOwnProps {
   trailingRef?: Ref<HTMLButtonElement>;
   /** Whether the trailing button's menu or overlay is open (controlled). */
   open?: boolean;
+  /** Whether the menu starts open (uncontrolled). @default false */
   defaultOpen?: boolean;
+  /** Called with the new state when the menu or overlay opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /** Disables both buttons. */
+  /** Disables both buttons. @default false */
   disabled?: boolean;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SplitButtonClassNames;
 }
 

@@ -12,6 +12,7 @@ export interface BadgeLabels {
 }
 
 export interface BadgeClassNames {
+  /** The badge itself: the dot, or the large badge's container. */
   root?: string;
   /** The large badge's text, which truncates at the badge's maximum width. */
   label?: string;
@@ -31,7 +32,9 @@ export interface BadgeProps extends Omit<ComponentPropsWithRef<'span'>, 'childre
    * Without it, a large badge reads its content and a small one `labels.newNotification`.
    */
   label?: string;
+  /** Words the badge announces, with English defaults. */
   labels?: BadgeLabels;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: BadgeClassNames;
 }
 
@@ -91,7 +94,9 @@ export function Badge({
 }
 
 export interface BadgedBoxClassNames {
+  /** The wrapper that positions the badge over its anchor. */
   root?: string;
+  /** The wrapper around the anchor (`children`). */
   anchor?: string;
 }
 
@@ -100,6 +105,7 @@ export interface BadgedBoxProps extends Omit<ComponentPropsWithRef<'span'>, 'chi
   badge: ReactElement<BadgeProps>;
   /** The anchor, usually an icon. */
   children: ReactNode;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: BadgedBoxClassNames;
 }
 

@@ -25,6 +25,7 @@ const MIN_SIZE = 24;
 const MAX_SIZE = 240;
 
 export interface LoadingIndicatorClassNames {
+  /** The box the shape is drawn in (`contained`: the circle behind it). */
   root?: string;
   /** The `<svg>` drawing the shape; it fills with `currentColor`. */
   indicator?: string;
@@ -54,6 +55,7 @@ interface LoadingIndicatorOwnProps {
    * Values outside that range are clamped. @default 48
    */
   size?: number;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: LoadingIndicatorClassNames;
 }
 

@@ -32,8 +32,11 @@ import {
 import { carouselStyles } from './carousel-styles';
 
 export interface CarouselClassNames {
+  /** The outer element, which holds the carousel's name. */
   root?: string;
+  /** The scrolling track that holds the items. */
   scroller?: string;
+  /** Each item's slot, sized and placed on its keyline. */
   item?: string;
   /** The masked layer of each item (corners, clipping). */
   mask?: string;
@@ -43,12 +46,21 @@ export interface CarouselClassNames {
 
 /** Words the carousel announces. */
 export interface CarouselLabels {
-  /** Each item's name: its position (from 1) and the number of items, as formatted text. */
+  /**
+   * Each item's name: its position (from 1) and the number of items, as formatted text.
+   * @default (position, count) => `${position} of ${count}`
+   */
   slide: (position: string, count: string) => string;
+  /** What the carousel is, read before its name (`aria-roledescription`). @default "carousel" */
+  carousel: string;
+  /** What each item is, read before its name (`aria-roledescription`). @default "slide" */
+  item: string;
 }
 
 const DEFAULT_LABELS: CarouselLabels = {
   slide: (position, count) => `${position} of ${count}`,
+  carousel: 'carousel',
+  item: 'slide',
 };
 
 /** Padding around the items, in px. `start` and `end` run along the carousel. */
@@ -64,7 +76,16 @@ export interface CarouselContentPadding {
 export type CarouselVariant =
   'multi-browse' | 'uncontained' | 'multi-aspect' | 'hero' | 'full-screen';
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+/** A carousel needs a name: `aria-label`, or `aria-labelledby` pointing at a visible title. */
+type Naming =
+  | {
+      /** Accessible name when there's no visible title. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the visible title that names the carousel. */
+      'aria-labelledby': string;
+    };
 
 interface CarouselOwnProps {
   /**
@@ -74,7 +95,10 @@ interface CarouselOwnProps {
    * shows one edge-to-edge item at a time. @default "multi-browse"
    */
   variant?: CarouselVariant;
-  /** @default "horizontal" ("vertical" for full-screen) */
+  /**
+   * The direction the items scroll in.
+   * @default "horizontal" ("vertical" for full-screen)
+   */
   orientation?: 'horizontal' | 'vertical';
   /**
    * Preferred size of the large items along the carousel (multi-browse, hero). Hero defaults
@@ -113,9 +137,13 @@ interface CarouselOwnProps {
   labels?: Partial<CarouselLabels>;
   /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
   children: ReactNode;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: CarouselClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
@@ -447,7 +475,7 @@ export function Carousel({
       {...data}
       ref={rootRef}
       role="region"
-      aria-roledescription="carousel"
+      aria-roledescription={labels.carousel}
       aria-label={label}
       aria-labelledby={labelledBy}
       // The component token's hooks (carousel-tokens.ts), also public styling hooks for apps.
@@ -482,6 +510,7 @@ export function Carousel({
             key={item.key ?? index}
             index={index}
             label={labels.slide(numbers.format(index + 1), total)}
+            roleDescription={labels.item}
             disabled={disabled.has(index)}
             onAction={
               onAction &&
@@ -515,6 +544,7 @@ export function Carousel({
 function CarouselItem({
   index,
   label,
+  roleDescription,
   disabled,
   onAction,
   onFocus,
@@ -527,6 +557,7 @@ function CarouselItem({
 }: {
   index: number;
   label: string;
+  roleDescription: string;
   disabled: boolean;
   onAction?: () => void;
   onFocus: (event: FocusEvent<HTMLDivElement>) => void;
@@ -552,7 +583,7 @@ function CarouselItem({
         slotRef(element);
       }}
       role="group"
-      aria-roledescription="slide"
+      aria-roledescription={roleDescription}
       aria-label={label}
       aria-disabled={(interactive && disabled) || undefined}
       tabIndex={0}

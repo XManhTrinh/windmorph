@@ -12,7 +12,9 @@ interface MediaImageProps {
   src?: string | undefined;
   /** What the image shows; `""` when the headline already says it. */
   alt: string;
+  /** Image candidates for responsive loading, as `<img srcset>`. */
   srcSet?: string | undefined;
+  /** The image's display sizes for `srcSet`, as `<img sizes>`. */
   sizes?: string | undefined;
   /**
    * Replaces the `<img>`, such as a framework's image component; the frame still sizes it
@@ -21,6 +23,7 @@ interface MediaImageProps {
   children?: ReactNode;
   /** Shown with no `src` or when the image fails: an icon on `secondary-container`. */
   fallback?: ReactNode;
+  /** Classes for the frame, merged after `classNames.media`; consumer classes win. */
   className?: string;
 }
 
@@ -107,10 +110,13 @@ export interface ListItemAvatarProps {
   src?: string | undefined;
   /** What the photo shows; `""` (the default) when the headline names the person. */
   alt?: string;
+  /** Image candidates for responsive loading, as `<img srcset>`. */
   srcSet?: string | undefined;
+  /** The image's display sizes for `srcSet`, as `<img sizes>`. */
   sizes?: string | undefined;
   /** Initials or an icon, shown with no `src` or when the photo fails; hidden from assistive tech. */
   children?: ReactNode;
+  /** Classes for the avatar's circle; consumer classes win. */
   className?: string;
 }
 

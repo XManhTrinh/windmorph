@@ -1,6 +1,12 @@
 import { COMPONENT_PAGES } from '../../content/components/registry';
 import { componentTabs } from '../../lib/component-page';
-import { componentSearchEntry, GUIDE_ENTRIES, type SearchEntry } from '../(docs)/search-index';
+import { readComponentPropsSafe } from '../../lib/component-props';
+import {
+  componentSearchEntry,
+  GUIDE_ENTRIES,
+  searchablePropNames,
+  type SearchEntry,
+} from '../(docs)/search-index';
 
 export const dynamic = 'force-static';
 
@@ -11,8 +17,20 @@ export const dynamic = 'force-static';
  * them into every page's bundle and the index into every page's HTML.
  */
 export async function GET() {
+  const propNames = searchablePropNames(
+    await Promise.all(
+      COMPONENT_PAGES.map(async (page) => ({
+        slug: page.slug,
+        props: (
+          await Promise.all(page.propsComponents.map((name) => readComponentPropsSafe(name)))
+        ).flatMap((json) => json?.props.map((prop) => prop.name) ?? []),
+      })),
+    ),
+  );
   const components = await Promise.all(
-    COMPONENT_PAGES.map(async (page) => componentSearchEntry(page, await componentTabs(page))),
+    COMPONENT_PAGES.map(async (page) =>
+      componentSearchEntry(page, await componentTabs(page), propNames.get(page.slug)),
+    ),
   );
   const entries: SearchEntry[] = [...GUIDE_ENTRIES, ...components];
   return Response.json(entries);

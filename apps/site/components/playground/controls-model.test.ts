@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PropsRecord } from '../../lib/component-props';
-import { inferControls } from './controls-model';
+import { controlApplies, inferControls, switchRecords } from './controls-model';
 
 const props: PropsRecord[] = [
   { name: 'variant', type: 'enum', required: false, options: ['filled', 'outlined', 'text'] },
@@ -74,5 +74,45 @@ describe('inferControls', () => {
       ['title', 'string'],
       ['variant', 'enum'],
     ]);
+  });
+});
+
+describe('component switch', () => {
+  const switcher = {
+    control: 'kind',
+    components: { icon: 'Fab', extended: 'ExtendedFab' },
+  };
+  const componentProps = {
+    Fab: [
+      { name: 'size', type: 'enum', required: false, options: ['default', 'medium', 'large'] },
+      { name: 'tooltip', type: 'boolean', required: false },
+    ],
+    ExtendedFab: [
+      { name: 'size', type: 'enum', required: false, options: ['sm', 'md', 'lg'] },
+      { name: 'expanded', type: 'boolean', required: false },
+    ],
+  };
+
+  it("reads the shown component's records first, then a sibling's own, then the switch", () => {
+    const records = switchRecords(switcher, componentProps, 'ExtendedFab', false);
+    expect(records.map((record) => record.name)).toEqual(['size', 'expanded', 'tooltip', 'kind']);
+    expect(records[0]?.options).toEqual(['sm', 'md', 'lg']);
+    expect(records.at(-1)?.options).toEqual(['icon', 'extended']);
+  });
+
+  it("lists every sibling's options of a shared prop for the URL", () => {
+    const [size] = switchRecords(switcher, componentProps, 'Fab', true);
+    expect(size?.options).toEqual(['default', 'medium', 'large', 'sm', 'md', 'lg']);
+  });
+
+  it("hides a sibling's own props, keeping the switch and controls no sibling takes", () => {
+    const applies = controlApplies(switcher, componentProps, 'Fab');
+    expect(['kind', 'size', 'tooltip', 'expanded', 'icon'].filter(applies)).toEqual([
+      'kind',
+      'size',
+      'tooltip',
+      'icon',
+    ]);
+    expect(controlApplies(undefined, componentProps, 'Fab')('expanded')).toBe(true);
   });
 });

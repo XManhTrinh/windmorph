@@ -44,43 +44,44 @@ export interface DateFieldStrings extends DateInputStrings {
   openCalendar?: string;
   /** Name of the dropdown calendar. @default "Choose a date" */
   calendar?: string;
-  /** @default "Previous month" */
+  /** The previous month button. @default "Previous month" */
   previousMonth?: string;
-  /** @default "Next month" */
+  /** The next month button. @default "Next month" */
   nextMonth?: string;
-  /** @default "Previous month (Page Up)" */
+  /** Tooltip of the previous month button. @default "Previous month (Page Up)" */
   previousMonthTooltip?: string;
-  /** @default "Next month (Page Down)" */
+  /** Tooltip of the next month button. @default "Next month (Page Down)" */
   nextMonthTooltip?: string;
-  /** @default "Previous year" */
+  /** The previous year button. @default "Previous year" */
   previousYear?: string;
-  /** @default "Next year" */
+  /** The next year button. @default "Next year" */
   nextYear?: string;
-  /** @default "Previous year (Shift+Page Up)" */
+  /** Tooltip of the previous year button. @default "Previous year (Shift+Page Up)" */
   previousYearTooltip?: string;
-  /** @default "Next year (Shift+Page Down)" */
+  /** Tooltip of the next year button. @default "Next year (Shift+Page Down)" */
   nextYearTooltip?: string;
   /** Added to the month menu button's name. @default "Choose a month" */
   chooseMonth?: string;
   /** Added to the year menu button's name. @default "Choose a year" */
   chooseYear?: string;
-  /** @default "Choose a month (Shift+M)" */
+  /** Tooltip of the month menu button. @default "Choose a month (Shift+M)" */
   monthMenuTooltip?: string;
-  /** @default "Choose a year (Shift+Y)" */
+  /** Tooltip of the year menu button. @default "Choose a year (Shift+Y)" */
   yearMenuTooltip?: string;
   /** Name of the month list. @default "Month" */
   monthList?: string;
   /** Name of the year list. @default "Year" */
   yearList?: string;
-  /** @default "Cancel" */
+  /** The calendar's dismissing action. @default "Cancel" */
   cancel?: string;
-  /** @default "OK" */
+  /** The calendar's confirming action. @default "OK" */
   ok?: string;
 }
 
 export interface DateFieldClassNames {
   /** The text field's root; `className` goes here too. */
   root?: string;
+  /** The `<input>`. */
   input?: string;
   /** The dropdown calendar's panel. */
   calendar?: string;
@@ -89,38 +90,53 @@ export interface DateFieldClassNames {
 export interface DateFieldProps {
   /** The field's label, e.g. "Date of birth". */
   label: ReactNode;
+  /** The date (controlled); `null` for none. */
   value?: CalendarDate | null;
+  /** Initial date when uncontrolled. @default null */
   defaultValue?: CalendarDate | null;
   /** A date was typed and committed, or picked and confirmed; `null` when cleared. */
   onChange?: (value: CalendarDate | null) => void;
+  /** Earliest date allowed; earlier days are disabled. */
   minValue?: DateValue;
+  /** Latest date allowed; later days are disabled. */
   maxValue?: DateValue;
+  /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** First and last years of the year menu; years outside min / max are disabled. @default [1900, 2100] */
   yearRange?: [number, number];
   /** Whether the dropdown calendar is open (controlled). */
   open?: boolean;
+  /** Whether the dropdown calendar starts open when uncontrolled. @default false */
   defaultOpen?: boolean;
+  /** Called when the dropdown calendar opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /** Helper text below the field. @default the locale's date format, e.g. "MM/DD/YYYY" */
   supportingText?: ReactNode;
   /** Marks the field invalid, with `errorMessage` below it. */
   invalid?: boolean;
+  /** Error text shown below the field while it's invalid, in place of `supportingText`. */
   errorMessage?: ReactNode;
+  /** The field must have a date. @default false */
   required?: boolean;
+  /** The field and its calendar button can't be used. @default false */
   disabled?: boolean;
+  /** The date can be read and focused but not changed. @default false */
   readOnly?: boolean;
   /** Form field name; the input submits the typed text. */
   name?: string;
   /** Icon of the button that opens the calendar. */
   calendarIcon?: ReactElement;
+  /** Words the field and its calendar show and announce, with English defaults. */
   strings?: DateFieldStrings;
   /** The text field's root. */
   ref?: Ref<HTMLDivElement>;
   /** The `<input>`. */
   inputRef?: Ref<HTMLInputElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: DateFieldClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;

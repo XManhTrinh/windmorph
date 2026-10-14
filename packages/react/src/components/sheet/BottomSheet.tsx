@@ -44,24 +44,32 @@ import { SheetTriggerContext } from './SheetTrigger';
 export interface BottomSheetClassNames {
   /** The library-owned wrapper that positions and moves the sheet. */
   container?: string;
+  /** The dimmed layer behind a modal sheet. */
   scrim?: string;
+  /** The sheet's surface. */
   panel?: string;
+  /** The drag handle. */
   handle?: string;
   /** The row holding the close (modal) or collapse (standard) button. */
   closeRow?: string;
+  /** The close or collapse icon button. */
   closeButton?: string;
+  /** The scrollable content area. */
   content?: string;
 }
 
 /** Words the bottom sheet announces. */
 export interface BottomSheetLabels {
-  /** The drag handle while the sheet is half open or collapsed (it expands the sheet). */
+  /**
+   * The drag handle while the sheet is half open or collapsed (it expands the sheet).
+   * @default "Expand sheet"
+   */
   expand: string;
-  /** The drag handle and collapse button of a fully open standard sheet. */
+  /** The drag handle and collapse button of a fully open standard sheet. @default "Collapse sheet" */
   collapse: string;
-  /** The drag handle of a fully open modal sheet (it closes the sheet). */
+  /** The drag handle of a fully open modal sheet (it closes the sheet). @default "Close sheet" */
   dismiss: string;
-  /** The close button of a modal sheet that fills the window height. */
+  /** The close button of a modal sheet that fills the window height. @default "Close" */
   close: string;
 }
 
@@ -75,7 +83,15 @@ const DEFAULT_LABELS: BottomSheetLabels = {
 /** The interactive strip at the top of a sheet without a drag handle (m3.material.io). */
 const DRAG_ZONE = 48;
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name when there's no visible title. Required without `aria-labelledby`. */
+      'aria-label': string;
+    }
+  | {
+      /** Id of the visible title that names the sheet. Required without `aria-label`. */
+      'aria-labelledby': string;
+    };
 
 interface BottomSheetOwnProps {
   /**
@@ -84,9 +100,11 @@ interface BottomSheetOwnProps {
    * `peekHeight`. @default "modal"
    */
   variant?: 'modal' | 'standard';
+  /** Whether the sheet is open (controlled). */
   open?: boolean;
-  /** @default false (modal), true (standard) */
+  /** Whether the sheet starts open when uncontrolled. @default false (modal), true (standard) */
   defaultOpen?: boolean;
+  /** Called when the sheet opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /** Show the drag handle. Without it, the top 48px of the sheet still drags. @default true */
   dragHandle?: boolean;
@@ -111,6 +129,7 @@ interface BottomSheetOwnProps {
   /** Words the sheet announces, with English defaults. */
   labels?: Partial<BottomSheetLabels>;
   children?: ReactNode | ((props: { close: () => void }) => ReactNode);
+  /** Classes for each part, by slot. */
   classNames?: BottomSheetClassNames;
 }
 

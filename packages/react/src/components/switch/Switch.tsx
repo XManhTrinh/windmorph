@@ -36,7 +36,9 @@ import {
 } from './switch-thumb';
 
 export interface SwitchClassNames extends SelectionControlClassNames {
+  /** The thumb, the circle that slides along the track. */
   thumb?: string;
+  /** The icon inside the thumb. */
   icon?: string;
 }
 
@@ -48,20 +50,27 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
   selected?: boolean;
   /** Initial on state when uncontrolled. */
   defaultSelected?: boolean;
+  /** Called when the user switches it on or off. */
   onSelectedChange?: (selected: boolean) => void;
+  /** Turns the switch off: it can't be changed or focused. @default false */
   disabled?: boolean;
+  /** The switch can be focused but not changed. @default false */
   readOnly?: boolean;
-  /** Shows the default check / close icons in the thumb. */
+  /** Shows the default check / close icons in the thumb. @default false */
   icons?: boolean;
   /** Icon in the thumb while on (overrides the default check). */
   selectedIcon?: ReactNode;
   /** Icon in the thumb while off (overrides the default close). */
   unselectedIcon?: ReactNode;
+  /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SwitchClassNames;
+  /** Inline styles for the root `<label>`. */
   style?: CSSProperties;
   /** The root `<label>`. Use `inputRef` for the switch input. */
   ref?: Ref<HTMLLabelElement>;
+  /** Ref to the visually hidden switch `<input>`. */
   inputRef?: Ref<HTMLInputElement>;
 }
 

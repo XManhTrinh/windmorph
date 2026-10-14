@@ -60,3 +60,63 @@ export function inferControls(
     };
   });
 }
+
+/**
+ * Whether a control applies to the component on show, for a playground that switches between
+ * sibling components (`componentSwitch`): the switch itself, the shown component's props and
+ * controls that aren't any sibling's prop apply; a sibling's own prop, and its slot's
+ * `slot.prop` controls, don't.
+ */
+export function controlApplies(
+  switcher: { control: string; components: Record<string, string> } | undefined,
+  componentProps: Record<string, PropsRecord[]>,
+  active: string,
+): (name: string) => boolean {
+  if (!switcher) return () => true;
+  const own = new Set((componentProps[active] ?? []).map((prop) => prop.name));
+  const siblings = new Set(
+    Object.values(switcher.components).flatMap((name) =>
+      (componentProps[name] ?? []).map((prop) => prop.name),
+    ),
+  );
+  // A slot's `slot.prop` control follows its slot (`fab.tooltip` hides with `fab`).
+  return (name) => {
+    const base = name.split('.')[0]!;
+    return base === switcher.control || own.has(base) || !siblings.has(base);
+  };
+}
+
+/**
+ * The props records a switching playground's controls read: `first`'s, then each sibling's
+ * props it lacks, then the switch itself as a segmented control. With `unionOptions`, a prop
+ * the siblings share lists every sibling's options (the URL can hold any of them).
+ */
+export function switchRecords(
+  switcher: { control: string; components: Record<string, string> } | undefined,
+  componentProps: Record<string, PropsRecord[]>,
+  first: string,
+  unionOptions: boolean,
+): PropsRecord[] {
+  const byName = new Map<string, PropsRecord>();
+  for (const name of [first, ...Object.values(switcher?.components ?? {})]) {
+    for (const record of componentProps[name] ?? []) {
+      const seen = byName.get(record.name);
+      if (!seen) byName.set(record.name, record);
+      else if (unionOptions && seen.options && record.options) {
+        byName.set(record.name, {
+          ...seen,
+          options: [...new Set([...seen.options, ...record.options])],
+        });
+      }
+    }
+  }
+  if (switcher) {
+    byName.set(switcher.control, {
+      name: switcher.control,
+      type: 'enum',
+      required: true,
+      options: Object.keys(switcher.components),
+    });
+  }
+  return [...byName.values()];
+}

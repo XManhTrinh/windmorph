@@ -1,13 +1,33 @@
 import { Card } from '@windmorph/react';
 import { PropsTable, type PropsTableRow } from '@windmorph/react-pro';
+import type { PropsRecord } from '../lib/component-props';
 import { InlineCode } from './inline-code';
+
+/**
+ * The table's rows: each prop, followed by the keys of an object prop (`labels.close`,
+ * `classNames.root`) so every overridable string and styled part is listed with its own
+ * description and default.
+ */
+export function propsTableRows(props: PropsRecord[]): PropsTableRow[] {
+  return props.flatMap((prop) => [
+    {
+      name: prop.name,
+      type: prop.type,
+      required: prop.required,
+      defaultValue: prop.defaultValue,
+      description: prop.description,
+    },
+    ...(prop.keys ?? []),
+  ]);
+}
 
 /**
  * A component's props: a table from medium windows up, and on phones a list of cards (name,
  * type, default and description stacked), so nothing scrolls sideways. Both are rendered and
  * one is hidden with CSS, so the static export needs no window check.
  */
-export function PropsList({ caption, rows }: { caption: string; rows: PropsTableRow[] }) {
+export function PropsList({ caption, props }: { caption: string; props: PropsRecord[] }) {
+  const rows = propsTableRows(props);
   return (
     <>
       <PropsTable caption={caption} rows={rows} className="hidden medium:block" />

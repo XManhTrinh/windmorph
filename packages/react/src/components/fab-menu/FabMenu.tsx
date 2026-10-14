@@ -51,14 +51,27 @@ const FabMenuContext = createContext<FabMenuContextValue | null>(null);
 const ItemIndexContext = createContext(0);
 
 type AccessibleName =
-  | { 'aria-label': string; 'aria-labelledby'?: string }
-  | { 'aria-label'?: string; 'aria-labelledby': string };
+  | {
+      /** Accessible name for the button, also its tooltip. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+      /** The id of the element that names the button. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** Accessible name for the button, also its tooltip. */
+      'aria-label'?: string;
+      /** The id of the element that names the button. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 export interface FabMenuClassNames {
+  /** The outer container, merged with `className`. */
   root?: string;
   /** The box that keeps the FAB's size while the button shrinks inside it. */
   anchor?: string;
+  /** The FAB that opens and closes the menu. */
   button?: string;
+  /** The button's icon. */
   icon?: string;
   /** The list of items (`presentation="list"`). */
   list?: string;
@@ -76,8 +89,9 @@ export type FabMenuPresentation = 'list' | 'menu';
 interface FabMenuOwnProps {
   /** Whether the menu is open (controlled). */
   open?: boolean;
-  /** @default false */
+  /** Whether the menu starts open (uncontrolled). @default false */
   defaultOpen?: boolean;
+  /** Called when the menu opens or closes. */
   onOpenChange?: (open: boolean) => void;
   /** The button's icon while closed, usually "add". Hidden from assistive tech. */
   icon: ReactElement;
@@ -93,14 +107,18 @@ interface FabMenuOwnProps {
   iconTransition?: IconTransition;
   /** The FAB size the button starts at; open, it is always the 56px close button. @default "default" */
   size?: FabMenuSize;
-  /** @default "primary" */
+  /** The button's and items' colour scheme, from M3's FAB menu colour sets. @default "primary" */
   color?: FabMenuColor;
   /**
    * The button's and items' elevation, as on `Fab`: level 3 by default (the spec), `lowered`
    * level 1, or `flat` level 0. @default "default"
    */
   elevation?: FabElevation;
-  /** @default "list" */
+  /**
+   * How the items show: `list`, the expressive stack of pills above the button, or `menu`,
+   * a standard menu 4px above it (M3's choice for the web and large windows).
+   * @default "list"
+   */
   presentation?: FabMenuPresentation;
   /**
    * While closed, shows `aria-label` in a plain tooltip on hover and keyboard focus, as M3
@@ -121,6 +139,7 @@ interface FabMenuOwnProps {
   appear?: boolean;
   /** Two to six `FabMenuItem` elements, top to bottom. */
   children: ReactNode;
+  /** Classes for each part, by slot. */
   classNames?: FabMenuClassNames;
 }
 
@@ -373,8 +392,11 @@ function menuItemAction({ onAction, href }: FabMenuItemProps): Partial<MenuItemP
 }
 
 export interface FabMenuItemClassNames {
+  /** The item's button, link or menu item, merged with `className`. */
   root?: string;
+  /** The row holding the icon and the label. */
   content?: string;
+  /** The icon. */
   icon?: string;
 }
 
@@ -391,6 +413,7 @@ interface FabMenuItemOwnProps {
    * list, since a menu item has no press event.)
    */
   onAction?: () => void;
+  /** Classes for each part, by slot. */
   classNames?: FabMenuItemClassNames;
 }
 

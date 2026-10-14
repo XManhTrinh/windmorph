@@ -39,13 +39,21 @@ export function DropdownArrow({ open }: { open: boolean }) {
 }
 
 export interface FieldShellClassNames {
+  /** The root element, merged with `className`. */
   root?: string;
+  /** The filled or outlined container around the label, value and icons. */
   container?: string;
+  /** The floating label. */
   label?: string;
+  /** The row holding the field's value (the button, or the chips and input). */
   field?: string;
+  /** The leading icon's 48px box. */
   leadingIcon?: string;
+  /** The trailing box holding the arrow (and the error icon). */
   trailingIcon?: string;
+  /** The helper text below the field. */
   supportingText?: string;
+  /** The error message below the field. */
   errorText?: string;
   /** The built-in error icon. */
   errorIcon?: string;

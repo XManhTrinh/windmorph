@@ -30,14 +30,14 @@ export async function HookTable({ doc }: { doc: HookDocFile }) {
           <CodeText text={doc.description.replace(/\n(?!\n)/g, ' ')} />
         </p>
       )}
-      {doc.params.length > 0 && <PropsList caption={`${name} parameters`} rows={doc.params} />}
+      {doc.params.length > 0 && <PropsList caption={`${name} parameters`} props={doc.params} />}
       <p className="text-body-medium text-on-surface-variant">
         <span className="text-on-surface">Returns</span>{' '}
         <InlineCode dir="ltr">{doc.returns.type}</InlineCode>
         {doc.returns.description && <>: {doc.returns.description}</>}
       </p>
       {doc.returns.fields.length > 0 && (
-        <PropsList caption={`${name} returns`} rows={doc.returns.fields} />
+        <PropsList caption={`${name} returns`} props={doc.returns.fields} />
       )}
     </div>
   );

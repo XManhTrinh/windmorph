@@ -45,13 +45,13 @@ const INNER_RING_MAX_DISTANCE = 74;
 const TARGET = 48;
 
 export interface TimePickerStrings {
-  /** @default "Hour" */
+  /** Name of the hour selector and field. @default "Hour" */
   hour?: string;
-  /** @default "Minute" */
+  /** Name of the minute selector and field. @default "Minute" */
   minute?: string;
-  /** @default "AM" */
+  /** The AM option. @default "AM" */
   am?: string;
-  /** @default "PM" */
+  /** The PM option. @default "PM" */
   pm?: string;
   /** Name of the AM / PM selector. @default "AM or PM" */
   period?: string;
@@ -60,12 +60,15 @@ export interface TimePickerStrings {
   /**
    * Name of a number on the dial (M3: "{Value} Hours or minutes of {Total}"), e.g.
    * "7 hours of 12" or "35 minutes of 60".
+   * @default `${value} ${unit} of ${total}`
    */
   dialValue?: (value: string, total: number, unit: 'hours' | 'minutes') => string;
 }
 
 export interface TimePickerClassNames {
+  /** The picker's root; `className` is merged here too. */
   root?: string;
+  /** The clock dial. */
   dial?: string;
 }
 
@@ -74,15 +77,17 @@ export type TimePickerMode = 'dial' | 'input';
 export interface TimePickerProps {
   /** Controlled time (`@internationalized/date` `Time`). */
   value?: Time;
-  /** @default 12:00 */
+  /** Initial time when uncontrolled. @default 12:00 */
   defaultValue?: Time;
+  /** Called with the new time when the user changes it. */
   onChange?: (value: Time) => void;
-  /** 12- or 24-hour clock. Defaults to the locale's. */
+  /** 12- or 24-hour clock. @default the locale's */
   hourCycle?: 12 | 24;
   /** The clock dial, or typed hour and minute fields (controlled). */
   mode?: TimePickerMode;
-  /** @default "dial" */
+  /** Initial mode when uncontrolled. @default "dial" */
   defaultMode?: TimePickerMode;
+  /** Called when the user switches between the dial and the typed input. */
   onModeChange?: (mode: TimePickerMode) => void;
   /**
    * `vertical` stacks the time over the dial; `horizontal` (landscape) puts them side by
@@ -91,10 +96,15 @@ export interface TimePickerProps {
    * time picker placement and adaptive design). @default "auto"
    */
   layout?: 'vertical' | 'horizontal' | 'auto';
+  /** Words the picker shows and announces, with English defaults. */
   strings?: TimePickerStrings;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: TimePickerClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
@@ -253,15 +263,17 @@ export function TimePicker({
 export interface TimePickerModeToggleProps {
   /** The time picker's mode; the toggle switches to the other one. */
   mode: TimePickerMode;
+  /** Called with the other mode when the toggle is pressed. */
   onModeChange: (mode: TimePickerMode) => void;
-  /** @default "Toggle input picker" */
+  /** Accessible name of the toggle in dial mode. @default "Toggle input picker" */
   toggleInputLabel?: string;
-  /** @default "Toggle dial picker" */
+  /** Accessible name of the toggle in input mode. @default "Toggle dial picker" */
   toggleDialLabel?: string;
   /** Shown in dial mode. Defaults to Material Symbols' keyboard. */
   keyboardIcon?: ReactElement;
   /** Shown in input mode. Defaults to Material Symbols' schedule (a clock). */
   clockIcon?: ReactElement;
+  /** Classes for the icon button; consumer classes win. */
   className?: string;
 }
 

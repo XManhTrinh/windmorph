@@ -7,10 +7,14 @@ import type { PropsRecord } from '../../lib/component-props';
 import { DisplaySettingsButton } from '../../app/(docs)/display-settings';
 import { ContentCopyIcon } from '../icons';
 import { useCopy } from '../site-snackbar';
-import { emitSnippet, propDefaultsFrom } from './code-emit';
 import { Control } from './controls';
-import { inferControls } from './controls-model';
 import { PLAYGROUND_DESCRIPTORS } from './descriptors';
+import {
+  activeComponent,
+  initialValues,
+  playgroundControls,
+  playgroundSnippet,
+} from './playground-state';
 import { decodeState, encodeState } from './url-state';
 
 export interface PlaygroundProps {
@@ -18,8 +22,11 @@ export interface PlaygroundProps {
   slug: string;
   /** The display name whose generated props JSON drives the controls. */
   componentName: string;
-  /** The generated props JSON records for `componentName`. */
-  props: PropsRecord[];
+  /**
+   * The generated props JSON records of the page's documented components, by name: those of
+   * `componentName`, and of any sibling the descriptor's `componentSwitch` renders.
+   */
+  componentProps: Record<string, PropsRecord[]>;
 }
 
 /**
@@ -30,29 +37,24 @@ export interface PlaygroundProps {
  * the component in another theme, mode, contrast or direction. Copying confirms in the site
  * snackbar. State is encoded in discrete URL query keys so a configuration is shareable.
  */
-export function Playground({ slug, componentName, props }: PlaygroundProps) {
+export function Playground({ slug, componentName, componentProps }: PlaygroundProps) {
   const descriptor = PLAYGROUND_DESCRIPTORS[slug];
   const copy = useCopy();
 
-  const controls = useMemo(
-    () =>
-      descriptor
-        ? inferControls(
-            props,
-            descriptor.surfacedProps,
-            descriptor.enumOptions,
-            descriptor.defaultProps,
-            descriptor.controlKinds,
-          )
-        : [],
-    [descriptor, props],
-  );
-  const propDefaults = useMemo(() => propDefaultsFrom(props), [props]);
-  const initial = useMemo(
-    () => ({ ...(descriptor?.defaultProps ?? {}), ...(descriptor?.initialState ?? {}) }),
-    [descriptor],
-  );
+  const initial = useMemo(() => (descriptor ? initialValues(descriptor) : {}), [descriptor]);
   const [values, setValues] = useState<Record<string, unknown>>(initial);
+
+  const active = descriptor ? activeComponent(descriptor, values) : componentName;
+  // The URL holds any sibling's values; the panel shows the chosen component's controls.
+  const urlControls = useMemo(
+    () =>
+      descriptor ? playgroundControls(descriptor, componentProps, descriptor.component, true) : [],
+    [descriptor, componentProps],
+  );
+  const controls = useMemo(
+    () => (descriptor ? playgroundControls(descriptor, componentProps, active) : []),
+    [descriptor, componentProps, active],
+  );
   // Values the preview set itself (an overlay opening or closing): live state, not a shared
   // configuration, so they stay out of the URL.
   const [fromPreview, setFromPreviewNames] = useState<ReadonlySet<string>>(() => new Set());
@@ -65,7 +67,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
   useEffect(() => {
     if (!descriptor) return;
     const restore = () => {
-      const decoded = decodeState(new URLSearchParams(window.location.search), controls);
+      const decoded = decodeState(new URLSearchParams(window.location.search), urlControls);
       // A shared URL can hold any combination, so each restored value is adjusted in turn.
       setValues(
         Object.keys(decoded).reduce(
@@ -79,7 +81,7 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
     restore();
     window.addEventListener('popstate', restore);
     return () => window.removeEventListener('popstate', restore);
-  }, [descriptor, controls, initial]);
+  }, [descriptor, urlControls, initial]);
 
   // Reflect a change made here in the URL by replacing the history entry: no new entry and
   // no page change, so the page never transitions and the back button still leaves the page.
@@ -92,32 +94,16 @@ export function Playground({ slug, componentName, props }: PlaygroundProps) {
         ([name, value]) => value !== initial[name] && !fromPreview.has(name),
       ),
     );
-    const query = encodeState(changed, controls);
+    const query = encodeState(changed, urlControls);
     const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
     if (url !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', url);
     }
-  }, [syncUrl, values, controls, descriptor, initial, fromPreview]);
+  }, [syncUrl, values, urlControls, descriptor, initial, fromPreview]);
 
   if (!descriptor) return null;
 
-  const snippet = emitSnippet({
-    component: descriptor.component,
-    values,
-    surfacedProps: descriptor.surfacedProps,
-    defaultProps: { ...descriptor.defaultProps, ...descriptor.codeDefaults?.(values) },
-    propDefaults,
-    importMembers: descriptor.importMembers,
-    codeImports: descriptor.codeImports,
-    codeSlots: descriptor.codeSlots,
-    toggledSlots: descriptor.toggledSlots,
-    codeChildren:
-      typeof descriptor.codeChildren === 'function'
-        ? descriptor.codeChildren(values)
-        : descriptor.codeChildren,
-    codeWrap: descriptor.codeWrap,
-    importFrom: descriptor.importFrom,
-  });
+  const snippet = playgroundSnippet(descriptor, componentProps, values, controls);
 
   const set = (name: string, value: unknown) =>
     setValues((prev) => (prev[name] === value ? prev : { ...prev, [name]: value }));

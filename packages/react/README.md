@@ -17,6 +17,11 @@ npm i @windmorph/react motion
 Peer dependencies: `react` and `react-dom` 19, `motion` 14, and optionally `tailwindcss` 4.1 or
 later and `next` 15 or later.
 
+### Browser support
+
+0.1.0 is tested on Chrome and Edge. Safari 17.5+ and Firefox 129+ are supported targets, with
+full testing coming next. Older browsers skip some entry animations (`@starting-style`).
+
 ### With Tailwind CSS v4
 
 ```css

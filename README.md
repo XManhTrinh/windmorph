@@ -50,6 +50,10 @@ export function App() {
 }
 ```
 
+**Browser support:** 0.1.0 is tested on Chrome and Edge. Safari 17.5+ and Firefox 129+ are
+supported targets, with full testing coming next. Older browsers skip some entry animations
+(`@starting-style`).
+
 Not using Tailwind? Import `@windmorph/react/styles.compiled.css` instead. See
 [`packages/react/README.md`](packages/react/README.md) for more, and the
 [docs site](https://windmorph.vercel.app/getting-started) for the full guide.

@@ -24,10 +24,20 @@ interface BarContextValue {
 
 const BarContext = createContext<BarContextValue | null>(null);
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the navigation bar. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the navigation bar. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 export interface NavigationBarClassNames {
+  /** The `<nav>` container, merged with `className`. */
   root?: string;
+  /** Every item in the bar, merged with each item's own classes. */
   item?: string;
 }
 
@@ -55,6 +65,7 @@ interface NavigationBarOwnProps {
   scrollRef?: RefObject<HTMLElement | null>;
   /** `NavigationBarItem` elements (3–5 in M3). */
   children: ReactNode;
+  /** Classes for each part, by slot. */
   classNames?: NavigationBarClassNames;
 }
 

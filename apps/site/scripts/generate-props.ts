@@ -14,7 +14,8 @@ import { argv } from 'node:process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { withCustomConfig } from 'react-docgen-typescript';
-import { documentHooks, type HookDocFile } from './hook-docs';
+import ts from 'typescript';
+import { compilerOptionsOf, documentHooks, objectFields, type HookDocFile } from './hook-docs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = resolve(here, '..');
@@ -42,6 +43,8 @@ const hookEntries = [
 /** Each package's component files: the core's sources, and Pro's declarations. */
 const packages = [
   {
+    source: 'core' as const,
+    entries: [join(uiRoot, 'src/index.ts')],
     tsconfigPath: join(uiRoot, 'tsconfig.json'),
     sourceRoots: [
       join(uiRoot, 'src/components'),
@@ -51,6 +54,8 @@ const packages = [
     extension: '.tsx' as const,
   },
   {
+    source: 'pro' as const,
+    entries: [join(proRoot, 'dist/index.d.ts'), join(proRoot, 'dist/rich-text.d.ts')],
     tsconfigPath: join(siteRoot, 'tsconfig.json'),
     sourceRoots: [join(proRoot, 'dist/components'), join(proRoot, 'dist/rich-text')],
     extension: '.d.ts' as const,
@@ -68,13 +73,23 @@ export interface PropsRecord {
   description?: string;
   /** For enum (string-literal union) props: the member values, used by the Playground. */
   options?: string[];
+  /**
+   * For an object prop listed in {@link OBJECT_KEY_PROPS}: one row per key (`labels.close`),
+   * with the key's own description and default, so the table lists what can be overridden.
+   */
+  keys?: PropsRecord[];
 }
 
 export interface ComponentPropsFile {
   displayName: string;
   description: string;
+  /** The package that exports the component: the core, or the installed Windmorph Pro. */
+  source: 'core' | 'pro';
   props: PropsRecord[];
 }
+
+/** The object props whose keys the tables list one by one. */
+export const OBJECT_KEY_PROPS = ['strings', 'labels', 'classNames'] as const;
 
 /**
  * Reads the core's and Pro's entries and collects their capitalised value exports: the core's
@@ -154,6 +169,7 @@ export function extractProps(
   files: string[],
   parser: Parser,
   allow: Set<string>,
+  source: ComponentPropsFile['source'] = 'core',
 ): ComponentPropsFile[] {
   const records: ComponentPropsFile[] = [];
   for (const file of files) {
@@ -175,13 +191,89 @@ export function extractProps(
             ...(options && options.length > 0 ? { options } : {}),
           };
         });
-        records.push({ displayName: doc.displayName, description: doc.description ?? '', props });
+        records.push({
+          displayName: doc.displayName,
+          description: doc.description ?? '',
+          source,
+          props,
+        });
       }
     } catch (error) {
       console.warn(`[generate-props] skipped ${file}: ${(error as Error).message}`);
     }
   }
   return records;
+}
+
+/** A component's props type: the type of its function's first parameter. */
+function propsTypeOf(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Type | undefined {
+  const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
+  if (!declaration) return undefined;
+  const [signature] = checker.getTypeOfSymbolAtLocation(symbol, declaration).getCallSignatures();
+  const [parameter] = signature?.getParameters() ?? [];
+  return parameter ? checker.getTypeOfSymbol(parameter) : undefined;
+}
+
+/** A prop of a props type that may be a union (Button's action, link and toggle forms). */
+function propertyOf(type: ts.Type, name: string, checker: ts.TypeChecker): ts.Symbol | undefined {
+  const direct = checker.getPropertyOfType(type, name);
+  if (direct) return direct;
+  if (!type.isUnion()) return undefined;
+  for (const member of type.types) {
+    const found = checker.getPropertyOfType(member, name);
+    if (found) return found;
+  }
+  return undefined;
+}
+
+/**
+ * An object prop's fields. `Partial<Labels>` is a library mapped type, so it is read through
+ * to the interface it wraps, with every field optional.
+ */
+function keysOf(type: ts.Type, checker: ts.TypeChecker): PropsRecord[] {
+  const [wrapped] = type.aliasTypeArguments ?? [];
+  if (type.aliasSymbol?.getName() === 'Partial' && wrapped) {
+    return objectFields(wrapped, checker, '').map((key) => ({ ...key, required: false }));
+  }
+  return objectFields(type, checker, '');
+}
+
+/**
+ * Adds `keys` to each record's {@link OBJECT_KEY_PROPS}: the object's fields, with their JSDoc
+ * description and `@default`, read with the TypeScript checker from the package's entries.
+ */
+export function addObjectKeys(
+  records: ComponentPropsFile[],
+  entries: string[],
+  options: ts.CompilerOptions,
+): void {
+  const program = ts.createProgram({ rootNames: entries, options });
+  const checker = program.getTypeChecker();
+  const exported = new Map<string, ts.Symbol>();
+  for (const entry of entries) {
+    const source = program.getSourceFile(entry);
+    const moduleSymbol = source && checker.getSymbolAtLocation(source);
+    if (!moduleSymbol) throw new Error(`cannot read the exports of ${entry}`);
+    for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
+      exported.set(
+        symbol.getName(),
+        symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol,
+      );
+    }
+  }
+  for (const record of records) {
+    const symbol = exported.get(record.displayName);
+    const propsType = symbol && propsTypeOf(symbol, checker);
+    if (!propsType) continue;
+    for (const prop of record.props) {
+      if (!(OBJECT_KEY_PROPS as readonly string[]).includes(prop.name)) continue;
+      const property = propertyOf(propsType, prop.name, checker);
+      if (!property) continue;
+      const keys = keysOf(checker.getNonNullableType(checker.getTypeOfSymbol(property)), checker);
+      if (keys.length > 0)
+        prop.keys = keys.map((key) => ({ ...key, name: `${prop.name}.${key.name}` }));
+    }
+  }
 }
 
 async function main(): Promise<void> {
@@ -197,7 +289,7 @@ async function main(): Promise<void> {
   }
 
   const records: ComponentPropsFile[] = [];
-  for (const { tsconfigPath, sourceRoots, extension } of packages) {
+  for (const { source, entries, tsconfigPath, sourceRoots, extension } of packages) {
     const parser = withCustomConfig(tsconfigPath, {
       savePropValueAsString: true,
       shouldExtractLiteralValuesFromEnum: true,
@@ -208,7 +300,16 @@ async function main(): Promise<void> {
         !/node_modules/.test(prop.parent.fileName) ||
         /@windmorph\/react-pro\//.test(prop.parent.fileName),
     });
-    records.push(...extractProps(await collectSources(sourceRoots, extension), parser, allow));
+    const found = extractProps(await collectSources(sourceRoots, extension), parser, allow, source);
+    try {
+      addObjectKeys(found, entries, compilerOptionsOf(tsconfigPath));
+    } catch (error) {
+      console.error(
+        `[generate-props] cannot list the object props' keys: ${(error as Error).message}`,
+      );
+      process.exit(1);
+    }
+    records.push(...found);
   }
 
   const hooks: HookDocFile[] = [];

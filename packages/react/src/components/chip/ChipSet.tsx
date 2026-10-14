@@ -15,10 +15,19 @@ import { cn } from '../../utils/cn';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {
+  /** The set's container, merged with `className`. */
   root?: string;
 }
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the set of chips. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the set. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 interface ChipSetOwnProps {
   /** The chips. Filter chips take part in the set's selection with a `value`. */
@@ -32,16 +41,18 @@ interface ChipSetOwnProps {
   selectedKeys?: Iterable<Key>;
   /** The chips selected at first (uncontrolled). */
   defaultSelectedKeys?: Iterable<Key>;
+  /** Called with the selected chips' values when the selection changes. */
   onSelectionChange?: (keys: Set<Key>) => void;
-  /** Keeps at least one chip selected. */
+  /** Keeps at least one chip selected. @default false */
   disallowEmptySelection?: boolean;
-  /** Disables every chip that takes part in the selection. */
+  /** Disables every chip that takes part in the selection. @default false */
   disabled?: boolean;
   /**
    * `wrap` onto new rows, or one row that `scroll`s sideways (M3 suggests scrolling past
    * two rows). @default "wrap"
    */
   layout?: ChipSetLayout;
+  /** Classes for each part, by slot. */
   classNames?: ChipSetClassNames;
 }
 

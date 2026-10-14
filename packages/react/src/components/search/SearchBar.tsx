@@ -45,12 +45,17 @@ export interface SearchBarIconState {
 type SearchBarIcon = ReactNode | ((state: SearchBarIconState) => ReactNode);
 
 export interface SearchBarClassNames {
+  /** The outer container, merged with `className`. */
   root?: string;
   /** The pill around the icons and the input (collapsed and expanded). */
   field?: string;
+  /** The text input (collapsed and expanded). */
   input?: string;
+  /** The leading icon slot. */
   leading?: string;
+  /** The trailing icon slot. */
   trailing?: string;
+  /** The scrim behind the docked view. */
   scrim?: string;
   /** The expanded view: the docked panel or the full-screen surface. */
   view?: string;
@@ -58,7 +63,15 @@ export interface SearchBarClassNames {
   content?: string;
 }
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Accessible name for the search bar and its input. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+    }
+  | {
+      /** The id of the element that names the search bar and its input. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 /**
  * Attributes for the search inputs, e.g. `aria-keyshortcuts`, `aria-describedby`,
@@ -96,12 +109,15 @@ interface SearchBarOwnProps {
   value?: string;
   /** Initial query when uncontrolled. @default "" */
   defaultValue?: string;
+  /** Called with the query as it changes. */
   onChange?: (value: string) => void;
   /** Called with the query when the user presses Enter (the keyboard's search action). */
   onSubmit?: (value: string) => void;
   /** Controlled expansion of the search view. */
   expanded?: boolean;
+  /** Whether the search view starts expanded (uncontrolled). @default false */
   defaultExpanded?: boolean;
+  /** Called when the search view expands or collapses. */
   onExpandedChange?: (expanded: boolean) => void;
   /**
    * How the bar expands: `docked`, a dropdown below it over a scrim; `full-screen`, a view
@@ -112,6 +128,7 @@ interface SearchBarOwnProps {
    * @default "auto"
    */
   view?: SearchBarView;
+  /** Hint text shown in the empty input, e.g. "Search mail". */
   placeholder?: string;
   /** Leading icon, e.g. a search icon, or a back button while expanded. */
   leadingIcon?: SearchBarIcon;
@@ -145,9 +162,13 @@ interface SearchBarOwnProps {
    * always win.
    */
   inputProps?: SearchBarInputProps;
+  /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
+  /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
+  /** Inline styles for the root element. */
   style?: CSSProperties;
+  /** Classes for each part, by slot. */
   classNames?: SearchBarClassNames;
   /** `data-*` attributes go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;

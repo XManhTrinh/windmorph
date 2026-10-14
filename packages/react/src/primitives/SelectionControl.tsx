@@ -17,8 +17,11 @@ import { TouchTarget } from './TouchTarget';
 import { restartRipple } from './use-m3-interaction';
 
 export interface SelectionControlClassNames {
+  /** The root `<label>` that holds the control and its label text. */
   root?: string;
+  /** The 40px control that carries the state layer and holds the indicator. */
   control?: string;
+  /** The label text beside the control. */
   label?: string;
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Card } from '@windmorph/react';
+import { Fragment } from 'react';
+import { Card, componentTokenList } from '@windmorph/react';
 import { CodeText } from '../../../components/code-text';
 import {
   COMPONENT_META,
@@ -7,7 +8,9 @@ import {
   pagesInRailGroup,
 } from '../../../content/components/catalog';
 import { componentTabHref } from '../../../content/components/doc';
+import { COMPONENT_PAGES } from '../../../content/components/registry';
 import { SPEC_DATA, type ComposeMapping } from '../../../content/components/spec-data';
+import { loadComponentDoc } from '../../../lib/component-page';
 import { guideMetadata } from '../../../lib/site-metadata';
 
 export const metadata: Metadata = guideMetadata('/from-compose');
@@ -179,7 +182,81 @@ function MappingTable({ rows, caption }: { rows: Row[]; caption: string }) {
   );
 }
 
-export default function FromComposePage() {
+interface TokenGroup {
+  slug: string;
+  title: string;
+  tokens: { compose: string; name: string }[];
+}
+
+/**
+ * Every component token that names its Compose twin, grouped by component page, read from
+ * the same token sets that write the CSS variables and the API tabs' token tables.
+ */
+async function composeTokenGroups(): Promise<TokenGroup[]> {
+  const groups = await Promise.all(
+    COMPONENT_PAGES.filter((page) => !page.pro).map(async (page) => {
+      const doc = await loadComponentDoc(page);
+      const tokens = (doc.tokens ?? []).flatMap((set) =>
+        componentTokenList(set).flatMap(({ compose, name }) =>
+          compose ? [{ compose, name }] : [],
+        ),
+      );
+      return { slug: page.slug, title: page.title, tokens };
+    }),
+  );
+  return groups.filter(({ tokens }) => tokens.length > 0);
+}
+
+/** Compose `*Tokens` names beside the CSS variables that override the same thing. */
+function ComposeTokenTable({ groups }: { groups: TokenGroup[] }) {
+  return (
+    <div className="overflow-hidden rounded-corner-large border border-outline-variant">
+      <table className="w-full table-fixed border-collapse text-body-medium [overflow-wrap:anywhere]">
+        <caption className="sr-only">Compose tokens and their Windmorph CSS variables</caption>
+        <thead className="bg-surface-container text-label-large text-on-surface-variant">
+          <tr>
+            <th scope="col" className="w-1/2 px-4 py-3 text-start text-label-large">
+              Compose
+            </th>
+            <th scope="col" className="px-4 py-3 text-start text-label-large">
+              Windmorph
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map(({ slug, title, tokens }) => (
+            <Fragment key={slug}>
+              <tr className="border-t border-outline-variant bg-surface-container-low">
+                <th
+                  scope="colgroup"
+                  colSpan={2}
+                  className="px-4 py-2 text-start text-title-small text-on-surface"
+                >
+                  <a href={`${componentTabHref(slug, 'api')}#tokens`} className={LINK}>
+                    {title}
+                  </a>
+                </th>
+              </tr>
+              {tokens.map(({ compose, name }) => (
+                <tr key={name} className="border-t border-outline-variant align-top">
+                  <th scope="row" className="px-4 py-3 text-start text-body-medium text-on-surface">
+                    <CodeText text={`\`${compose}\``} />
+                  </th>
+                  <td className="px-4 py-3 text-on-surface-variant">
+                    <CodeText text={`\`${name}\``} />
+                  </td>
+                </tr>
+              ))}
+            </Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default async function FromComposePage() {
+  const tokenGroups = await composeTokenGroups();
   const groups = GALLERY_RAIL_GROUPS.map((group) => ({ group, rows: rowsOf(group.id) })).filter(
     ({ rows }) => rows.length > 0,
   );
@@ -230,6 +307,23 @@ export default function FromComposePage() {
           <MappingTable rows={rows} caption={`${group.fullName}: Compose to Windmorph`} />
         </section>
       ))}
+
+      <section className="flex flex-col gap-4">
+        <h2 id="tokens" className="text-headline-small text-on-surface">
+          Your <CodeText text="`*Tokens`" /> overrides
+        </h2>
+        <p className="text-body-large text-on-surface-variant">
+          Compose&apos;s component tokens are CSS variables here: where you read{' '}
+          <CodeText text="`FilledButtonTokens.ContainerColor`" />, set{' '}
+          <CodeText text="`--md-comp-button-filled-container-color`" />. Each is unset until you set
+          it, globally, per theme or on one part of the page; see{' '}
+          <a href="/customisation#component-tokens" className={LINK}>
+            Component tokens
+          </a>
+          .
+        </p>
+        <ComposeTokenTable groups={tokenGroups} />
+      </section>
     </article>
   );
 }

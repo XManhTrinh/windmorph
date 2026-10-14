@@ -4,6 +4,7 @@ import {
   ChipSet,
   ExtendedFab,
   FilterChip,
+  DockedToolbar,
   FloatingToolbar,
   IconButton,
   NavigationBar,
@@ -44,6 +45,7 @@ const NavigationBarAny = loose(NavigationBar);
 const TopAppBarAny = loose(TopAppBar);
 const SearchBarAny = loose(SearchBar);
 const FloatingToolbarAny = loose(FloatingToolbar);
+const DockedToolbarAny = loose(DockedToolbar);
 const ToolbarFabAny = loose(ToolbarFab);
 
 /** The segmented control's value for "leave the prop unset", so the component decides. */
@@ -285,6 +287,10 @@ function adjustToolbarContent(
 export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'navigation-rail': {
     component: 'NavigationRail',
+    notRendered: {
+      NavigationRailItem:
+        "The destinations, composed in the preview as the rail's children; their icons, badges and links are per destination, as the examples show.",
+    },
     render: (props, update) => <RailPreview {...props} update={update} />,
     defaultProps: {
       expanded: false,
@@ -319,6 +325,10 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'navigation-bar': {
     component: 'NavigationBar',
+    notRendered: {
+      NavigationBarItem:
+        "The destinations, composed in the preview as the bar's children; their icons, badges and links are per destination, as the examples show.",
+    },
     render: (props) => <BarPreview {...props} />,
     defaultProps: { iconPosition: 'top', arrangement: UNSET, scrollBehavior: 'pinned' },
     surfacedProps: ['iconPosition', 'arrangement', 'scrollBehavior'],
@@ -335,6 +345,9 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   tabs: {
     component: 'Tabs',
+    notRendered: {
+      Tab: "The tabs, composed in the preview as the tab row's children; their icons and badges are per tab, as the examples show.",
+    },
     render: (props) =>
       createElement(
         TabsAny,
@@ -442,6 +455,10 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   search: {
     component: 'SearchBar',
+    notRendered: {
+      SearchAppBar:
+        'A top app bar holding the search bar, whose scroll behaviour needs a scrolling page; the App bar example shows it.',
+    },
     render: ({ leadingIcon, trailingIcon, value, ...props }, update) => {
       const query = typeof value === 'string' ? value : '';
       return (
@@ -511,8 +528,28 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   toolbars: {
     component: 'FloatingToolbar',
+    componentSwitch: {
+      control: 'toolbar',
+      components: { floating: 'FloatingToolbar', docked: 'DockedToolbar' },
+    },
     render: (values) => {
-      const { leading, trailing, fab, ...props } = ownProps(values);
+      const { toolbar, arrangement, leading, trailing, fab, ...props } = ownProps(values);
+      if (toolbar === 'docked') {
+        return (
+          <div className="relative h-[280px] w-full overflow-hidden rounded-corner-large border border-outline-variant bg-surface-container-lowest">
+            {createElement(
+              DockedToolbarAny,
+              {
+                arrangement,
+                visible: props.visible,
+                'aria-label': 'Formatting',
+                className: 'absolute inset-x-0 bottom-0',
+              },
+              FORMATTING,
+            )}
+          </div>
+        );
+      }
       return (
         <div className="relative flex h-[280px] w-full items-center justify-center overflow-hidden rounded-corner-large border border-outline-variant bg-surface-container-lowest">
           {createElement(
@@ -550,8 +587,10 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'fab.elevation': 'default',
       'fab.tooltip': true,
       'fab.dragged': false,
+      arrangement: 'centered',
     },
     surfacedProps: [
+      'toolbar',
       'orientation',
       'color',
       'elevated',
@@ -569,6 +608,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'fab.tooltip',
       'fab.dragged',
       'fab.href',
+      'arrangement',
     ],
     initialState: { leading: true, trailing: true },
     slotComponents: { fab: 'ToolbarFab' },
@@ -606,7 +646,11 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     codeImports: [
       "import { CloseIcon, DeleteIcon, EditIcon, FormatBoldIcon, FormatItalicIcon, FormatUnderlinedIcon } from './icons';",
     ],
-    codeSlots: { 'aria-label': '"Formatting"' },
+    codeSlots: {
+      'aria-label': '"Formatting"',
+      // A docked toolbar is placed by the app, usually along the bottom of the window.
+      className: (values) => (values.toolbar === 'docked' ? '"fixed inset-x-0 bottom-0"' : null),
+    },
     codeChildren:
       '<IconButton toggle icon={<FormatBoldIcon />} aria-label="Bold" />\n  <IconButton toggle icon={<FormatItalicIcon />} aria-label="Italic" />\n  <IconButton toggle icon={<FormatUnderlinedIcon />} aria-label="Underline" />',
   },
