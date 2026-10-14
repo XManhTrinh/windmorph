@@ -37,8 +37,18 @@ export interface SliderClassNames {
   root?: string;
   /** The track, holding the active and inactive segments and the stop indicators. */
   track?: string;
-  /** Each thumb (the handle). */
+  /** Each active track segment (the filled part, from the start or the centre). */
+  activeTrack?: string;
+  /** Each inactive track segment. */
+  inactiveTrack?: string;
+  /** The stop indicators: at the track's ends, and at every step with `ticks`. */
+  stop?: string;
+  /** The inset icons (`startIcon`, `endIcon`). */
+  icon?: string;
+  /** Each thumb, the pressable area around its handle. */
   thumb?: string;
+  /** The handle bar drawn inside each thumb. */
+  handle?: string;
   /** The value indicator above a thumb (`showValueLabel`). */
   label?: string;
 }
@@ -276,6 +286,7 @@ function SliderRoot(props: RootProps) {
             key={index}
             segment={segment}
             styles={styles}
+            classNames={classNames}
             icon={
               segment.icon === 'start' ? startIcon : segment.icon === 'end' ? endIcon : undefined
             }
@@ -286,7 +297,7 @@ function SliderRoot(props: RootProps) {
             aria-hidden="true"
             data-moved-icon=""
             style={{ marginInlineStart: moved.start, inlineSize: moved.size }}
-            className={styles.movedIcon()}
+            className={styles.movedIcon({ class: classNames?.icon })}
           >
             {startIcon}
           </span>
@@ -298,7 +309,7 @@ function SliderRoot(props: RootProps) {
             data-slot="stop-indicator"
             data-active={tick.active || undefined}
             style={{ marginInlineStart: `calc(${tick.at} - 2px)` }}
-            className={styles.tick()}
+            className={styles.tick({ class: classNames?.stop })}
           />
         ))}
         {geometry.thumbs.map((at, index) => (
@@ -323,10 +334,12 @@ function SliderRoot(props: RootProps) {
 function Segment({
   segment,
   styles,
+  classNames,
   icon,
 }: {
   segment: TrackSegment;
   styles: ReturnType<typeof sliderStyles>;
+  classNames: SliderClassNames | undefined;
   icon: ReactNode;
 }) {
   const radius = {
@@ -344,7 +357,7 @@ function Segment({
         marginInlineStart: segment.icon === 'start' ? '10px' : 'auto',
         marginInlineEnd: segment.icon === 'end' ? '10px' : undefined,
       }}
-      className={styles.icon()}
+      className={styles.icon({ class: classNames?.icon })}
     >
       {icon}
     </span>
@@ -359,7 +372,7 @@ function Segment({
           ? { marginInlineStart: 'calc(var(--m3-slider-corner) - 2px)' }
           : { marginInlineStart: 'auto', marginInlineEnd: 'calc(var(--m3-slider-corner) - 2px)' }
       }
-      className={styles.stop()}
+      className={styles.stop({ class: classNames?.stop })}
     />
   );
   return (
@@ -367,7 +380,9 @@ function Segment({
       data-tone={segment.tone}
       data-slot={`${segment.tone}-track`}
       style={{ marginInlineStart: segment.start, inlineSize: segmentLength(segment), ...radius }}
-      className={styles.segment()}
+      className={styles.segment({
+        class: segment.tone === 'active' ? classNames?.activeTrack : classNames?.inactiveTrack,
+      })}
     >
       {segment.stopAtStart && stop('start')}
       {icon != null && iconBox}
@@ -447,7 +462,11 @@ function Thumb({
         style={{ marginInlineStart: `calc(${at} - 2px)` }}
         className={styles.thumb({ class: classNames?.thumb })}
       >
-        <span data-slot="handle" data-active={active || undefined} className={styles.handle()} />
+        <span
+          data-slot="handle"
+          data-active={active || undefined}
+          className={styles.handle({ class: classNames?.handle })}
+        />
         <VisuallyHidden>
           <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>

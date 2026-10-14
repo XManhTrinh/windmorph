@@ -1,7 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openStory } from './story';
 
-const OVERRIDES = [
+/** The consumer layout classes of the matrix (`apps/docs/stories/layout-overrides.ts`). */
+export const OVERRIDES = [
   'none',
   'fixed',
   'absolute',
@@ -27,6 +28,11 @@ export interface LayoutSafetyExpectations {
   interactive?: boolean;
   /** Extra component-specific checks, run for every combination. */
   check?: (page: Page, target: Locator) => Promise<void>;
+  /**
+   * The directions to run in. A component whose layout doesn't depend on the direction
+   * (a centred modal's trigger) can run in one. @default ['ltr', 'rtl']
+   */
+  directions?: readonly ('ltr' | 'rtl')[];
 }
 
 /**
@@ -39,7 +45,7 @@ export interface LayoutSafetyExpectations {
 export function layoutSafetySuite(storyId: string, expected: LayoutSafetyExpectations) {
   for (const override of OVERRIDES) {
     for (const transformedAncestor of [false, true]) {
-      for (const dir of ['ltr', 'rtl'] as const) {
+      for (const dir of expected.directions ?? (['ltr', 'rtl'] as const)) {
         const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''} · ${dir}`;
         test(name, async ({ page }) => {
           await openStory(page, storyId, { dir }, { override, transformedAncestor });

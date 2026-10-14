@@ -53,13 +53,17 @@ export const persistentScrollbar = [
 /** Variant definitions for {@link Menu} and its parts. */
 export const menuStyles = tv({
   slots: {
+    // The outermost element, which React Aria places (inline `position` and insets) and which
+    // takes the consumer's `className` and `style`.
     popover: 'z-(--md-sys-z-menu)',
     // The menu's enter and exit: revealed from its anchored edge with a clip (24px of room
     // for the shadows) as it fades in. M3 motion avoids scale, and a clip leaves the items'
     // layout untouched, so a submenu opened mid-animation is placed against its item's final
     // position. It also passes the popover's maximum height down, so a long list scrolls.
+    // `w-max` keeps the menu's own width whatever width a consumer class gives the popover
+    // (whose insets only React Aria sets: `data-overlay-placement`, styles/utilities.css).
     reveal: [
-      'flex max-h-[inherit] flex-col opacity-100 [clip-path:inset(-24px)]',
+      'flex max-h-[inherit] w-max flex-col opacity-100 [clip-path:inset(-24px)]',
       '[transition-property:opacity,clip-path]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
@@ -112,6 +116,26 @@ export const menuStyles = tv({
     trailing:
       'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
+    // A menu's place in a bottom sheet. An open submenu's panel follows the menu that opened
+    // it (portalled in after it) and hides it, and any panel before it, while it's open.
+    sheetContent: [
+      'flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]',
+      '[&>:not([data-overlay-scope]):has(~[data-overlay-scope])]:hidden',
+      '[&>[data-overlay-scope]:has(~[data-overlay-scope])>*]:hidden',
+    ],
+    // A submenu in a sheet: a back button and its item's label above its list, fading in.
+    sheetPanel: [
+      'flex min-h-0 flex-1 flex-col opacity-100 starting:opacity-0',
+      '[transition-property:opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+    ],
+    sheetHeader: 'flex min-h-[48px] shrink-0 items-center gap-[4px] pe-[12px]',
+    sheetBack: [
+      'inline-flex size-[48px] shrink-0 cursor-pointer items-center justify-center rounded-corner-full',
+      'state-layer focus-ring text-on-surface-variant [&>svg]:size-[24px]',
+    ],
+    sheetTitle: 'min-w-0 flex-1 truncate text-title-medium text-on-surface',
   },
   variants: {
     variant: {

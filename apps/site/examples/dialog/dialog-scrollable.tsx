@@ -10,8 +10,8 @@ import {
 /**
  * A dialog with scrollable content: when the content is taller than the panel,
  * `DialogContent` scrolls on its own (`overflow-y-auto`) while the title and actions stay
- * pinned above and below. The demo caps the panel height with `max-h-[70vh]` (the
- * `className` lands on the panel) so the long terms overflow and scroll on any screen,
+ * pinned above and below. The demo caps the panel height with `max-h-[70vh]` (through
+ * `classNames.panel`) so the long terms overflow and scroll on any screen,
  * keeping the title and actions in view instead of pushing them off screen.
  */
 const SECTIONS = [
@@ -76,7 +76,7 @@ export function DialogScrollable() {
   return (
     <DialogTrigger>
       <Button variant="tonal">Review terms</Button>
-      <Dialog aria-label="Terms of service" className="max-h-[70vh]">
+      <Dialog aria-label="Terms of service" classNames={{ panel: 'max-h-[70vh]' }}>
         {({ close }) => (
           <>
             <DialogTitle>Terms of service</DialogTitle>

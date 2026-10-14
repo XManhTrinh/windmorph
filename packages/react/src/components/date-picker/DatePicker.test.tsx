@@ -261,18 +261,25 @@ describe('PickerDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('lets a consumer class beat the container tokens', () => {
+  it('lets a consumer panel class beat the container tokens, and puts className outermost', () => {
     render(
       <PickerDialog
         aria-label="Select date"
         defaultOpen
-        className="bg-tertiary rounded-corner-small shadow-elevation-1"
+        className="static"
+        classNames={{ panel: 'bg-tertiary rounded-corner-small shadow-elevation-1' }}
         confirmButton={<Button variant="text">OK</Button>}
       >
         <DatePicker defaultValue={march} />
       </PickerDialog>,
     );
     const dialog = screen.getByRole('dialog', { name: 'Select date' });
+    // The outermost element, around the positioner, takes className; its inline placement
+    // keeps it over the window. The panel keeps its own classes.
+    const root = dialog.parentElement!.parentElement!.parentElement!;
+    expect(root).toHaveClass('static');
+    expect(root).toHaveStyle({ position: 'fixed' });
+    expect(dialog).not.toHaveClass('static');
     expect(dialog).toHaveClass('bg-tertiary', 'rounded-corner-small', 'shadow-elevation-1');
     expect(dialog).not.toHaveClass(
       'bg-[var(--_md-comp-date-picker-modal-container-color)]',
@@ -360,5 +367,80 @@ describe('PickerDialog', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(onConfirm).toHaveBeenCalled());
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('date picker classNames', () => {
+  it('puts each DatePicker slot on its part', async () => {
+    render(
+      <DatePicker
+        defaultValue={march}
+        classNames={{
+          title: 'title-x',
+          headline: 'headline-x',
+          weekday: 'weekday-x',
+          day: 'day-x',
+          year: 'year-x',
+        }}
+      />,
+    );
+    expect(screen.getByText('Select date')).toHaveClass('title-x');
+    expect(screen.getByText('Mar 10, 2030')).toHaveClass('headline-x');
+    for (const weekday of screen.getAllByRole('columnheader')) {
+      expect(weekday).toHaveClass('weekday-x');
+    }
+    expect(screen.getByRole('button', { name: /March 10, 2030/ })).toHaveClass('day-x');
+    await userEvent.click(screen.getByRole('button', { name: /Switch to selecting a year/ }));
+    expect(screen.getByRole('radio', { name: '2030' })).toHaveClass('year-x');
+  });
+
+  it("puts the range picker's weekday and month subhead slots on their parts", () => {
+    render(
+      <DateRangePicker
+        minValue={new CalendarDate(2030, 3, 1)}
+        maxValue={new CalendarDate(2030, 5, 31)}
+        classNames={{ weekday: 'weekday-x', monthSubhead: 'subhead-x' }}
+      />,
+    );
+    const subhead = screen.getAllByText('March 2030').find((el) => el.ariaHidden === 'true');
+    expect(subhead).toHaveClass('subhead-x');
+    // The visible weekday row, and each month's weekday headers for assistive tech.
+    for (const weekday of screen.getAllByTitle('Sunday')) expect(weekday).toHaveClass('weekday-x');
+  });
+
+  it("puts PickerDialog's title slot on the time dialog's title", () => {
+    render(
+      <PickerDialog
+        aria-label="Select time"
+        variant="time"
+        title="Select time"
+        defaultOpen
+        classNames={{ title: 'title-x' }}
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <p>Time</p>
+      </PickerDialog>,
+    );
+    expect(screen.getByRole('heading', { name: 'Select time' })).toHaveClass('title-x');
+  });
+
+  it("puts the range picker's rangeBand slot on the cells the band spans", () => {
+    const { container } = render(
+      <DateRangePicker
+        minValue={new CalendarDate(2030, 3, 1)}
+        maxValue={new CalendarDate(2030, 5, 31)}
+        defaultValue={{ start: new CalendarDate(2030, 3, 3), end: new CalendarDate(2030, 3, 5) }}
+        classNames={{ rangeBand: 'band-x' }}
+      />,
+    );
+    // The start, the day between and the end; no other cell.
+    const banded = [...container.querySelectorAll('td[data-range]')];
+    expect(banded.map((cell) => cell.getAttribute('data-range'))).toEqual([
+      'start',
+      'middle',
+      'end',
+    ]);
+    for (const cell of banded) expect(cell).toHaveClass('band-x');
+    expect(container.querySelectorAll('td.band-x')).toHaveLength(3);
   });
 });

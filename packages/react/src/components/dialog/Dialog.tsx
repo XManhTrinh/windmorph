@@ -36,8 +36,9 @@ import {
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { firstTabbable } from '../../utils/focus';
+import { useWarnOnce } from '../../utils/warn-once';
 import { IconButton } from '../icon-button/IconButton';
-import { dialogStyles } from './dialog-styles';
+import { DIALOG_ROOT_STYLE, dialogStyles } from './dialog-styles';
 
 /** Material Symbols "close" (Apache-2.0). */
 function CloseIcon() {
@@ -181,7 +182,7 @@ export interface DialogClassNames {
    * margin, and padding classes change that margin.
    */
   positioner?: string;
-  /** The dialog's surface; `className` is merged here too. */
+  /** The dialog's surface: its colour, corners, padding, size and shadow. */
   panel?: string;
   /** The icon above the title. */
   icon?: string;
@@ -240,10 +241,10 @@ export interface DialogProps
   /**
    * Classes for the dialog's parts, merged over the library's: `scrim`, `positioner` (the
    * full-window box that places the dialog; align it anywhere with `items-*` and
-   * `justify-*`), `panel` and `icon`.
+   * `justify-*`), `panel` (the surface) and `icon`.
    */
   classNames?: DialogClassNames;
-  /** Inline styles for the dialog panel. */
+  /** Goes on the outermost element, with `className`. */
   style?: CSSProperties;
 }
 
@@ -255,7 +256,10 @@ export interface DialogProps
  * assistive tech. It expands away from the window edge it sits against as it opens. Name it with a
  * `DialogTitle` (or `aria-label`).
  *
- * `className`, `style`, `ref` and other attributes go on the dialog panel.
+ * `className` and `style` go on the outermost element, a full-window layer around the
+ * positioner whose inline placement they can't move, so a layout class (`static`,
+ * `overflow-hidden`, a transform) never hides, clips or stretches the dialog; style the
+ * surface with `classNames.panel`. `ref` and other attributes go on the dialog panel.
  *
  * @example
  * <Dialog icon={<DeleteIcon />}>
@@ -370,59 +374,63 @@ function DialogModal({
         data-exiting={exiting}
         className={styles.scrim({ class: classNames?.scrim })}
       />
-      <div {...underlayProps} className={styles.positioner({ class: classNames?.positioner })}>
-        <div
-          {...exitProps}
-          data-exiting={exiting}
-          style={
-            originBox
-              ? ({
-                  '--m3-dialog-origin': originBox.clip,
-                  '--m3-dialog-origin-color': originBox.color,
-                } as CSSProperties)
-              : undefined
-          }
-          className={styles.motion()}
-        >
+      <div style={{ ...style, ...DIALOG_ROOT_STYLE }} className={styles.root({ class: className })}>
+        <div {...underlayProps} className={styles.positioner({ class: classNames?.positioner })}>
           <div
-            {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
-            aria-describedby={describedBy}
-            ref={panelRef}
-            style={style}
+            {...exitProps}
             data-exiting={exiting}
-            // The component tokens' hook (dialog-tokens.ts).
-            data-tokens="md-comp-dialog"
-            data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
-            data-origin={origin || undefined}
-            className={styles.panel({ class: cn(classNames?.panel, className) })}
+            style={
+              originBox
+                ? ({
+                    '--m3-dialog-origin': originBox.clip,
+                    '--m3-dialog-origin-color': originBox.color,
+                  } as CSSProperties)
+                : undefined
+            }
+            className={styles.motion()}
           >
-            <TriggerContext value={null}>
-              <DialogPartsContext
-                value={{
-                  titleProps,
-                  contentProps,
-                  hasIcon,
-                  fullScreen,
-                  close: state.close,
-                  setHasContent,
-                  setHeaderAction,
-                  bottomBar,
-                }}
-              >
-                {hasIcon && (
-                  <span
-                    aria-hidden="true"
-                    data-slot="icon"
-                    className={styles.icon({
-                      class: cn(fullScreen === 'compact' && 'max-medium:hidden', classNames?.icon),
-                    })}
-                  >
-                    {icon}
-                  </span>
-                )}
-                {typeof children === 'function' ? children({ close: state.close }) : children}
-              </DialogPartsContext>
-            </TriggerContext>
+            <div
+              {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
+              aria-describedby={describedBy}
+              ref={panelRef}
+              data-exiting={exiting}
+              // The component tokens' hook (dialog-tokens.ts).
+              data-tokens="md-comp-dialog"
+              data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
+              data-origin={origin || undefined}
+              className={styles.panel({ class: classNames?.panel })}
+            >
+              <TriggerContext value={null}>
+                <DialogPartsContext
+                  value={{
+                    titleProps,
+                    contentProps,
+                    hasIcon,
+                    fullScreen,
+                    close: state.close,
+                    setHasContent,
+                    setHeaderAction,
+                    bottomBar,
+                  }}
+                >
+                  {hasIcon && (
+                    <span
+                      aria-hidden="true"
+                      data-slot="icon"
+                      className={styles.icon({
+                        class: cn(
+                          fullScreen === 'compact' && 'max-medium:hidden',
+                          classNames?.icon,
+                        ),
+                      })}
+                    >
+                      {icon}
+                    </span>
+                  )}
+                  {typeof children === 'function' ? children({ close: state.close }) : children}
+                </DialogPartsContext>
+              </TriggerContext>
+            </div>
           </div>
         </div>
       </div>
@@ -601,15 +609,11 @@ function countActions(children: ReactNode): number {
 export function DialogActions({ className, children, ...props }: DialogActionsProps) {
   const { fullScreen, bottomBar } = useContext(DialogPartsContext);
   const actionCount = countActions(children);
-  const warned = useRef(false);
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'production' || warned.current || actionCount <= 2) return;
-    warned.current = true;
-    console.warn(
-      `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
-        '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
-    );
-  }, [actionCount]);
+  useWarnOnce(
+    actionCount > 2,
+    `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
+      '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
+  );
   return (
     <div
       {...props}

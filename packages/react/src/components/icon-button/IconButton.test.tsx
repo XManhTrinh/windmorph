@@ -175,9 +175,10 @@ describe('IconButton', () => {
 
   it('shows its label as a tooltip on hover', async () => {
     const user = userEvent.setup();
-    render(<IconButton icon={<Star />} aria-label="Favourite" />);
+    render(<IconButton icon={<Star />} aria-label="Favourite" classNames={{ tooltip: 'tip-x' }} />);
     await user.hover(screen.getByRole('button'));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Favourite');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
   });
 
   it("doesn't describe itself with a tooltip that repeats its name", async () => {

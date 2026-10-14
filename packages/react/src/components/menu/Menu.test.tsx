@@ -482,6 +482,77 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
   });
 
+  it('opens a submenu in its sheet in place of the menu, with a way back', async () => {
+    const onAction = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>File</Button>
+        <Menu
+          aria-label="File"
+          presentation="sheet"
+          onAction={onAction}
+          labels={{ back: 'Go back' }}
+        >
+          <MenuItem key="open">Open</MenuItem>
+          <SubmenuTrigger>
+            <MenuItem key="share">Share</MenuItem>
+            <Menu aria-label="Share" onAction={onAction}>
+              <MenuItem key="email">Email</MenuItem>
+              <MenuItem key="link">Copy link</MenuItem>
+            </Menu>
+          </SubmenuTrigger>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('File');
+    const sheet = await screen.findByRole('dialog', { name: 'File' });
+    const share = within(sheet).getByRole('menuitem', { name: 'Share' });
+    // Hovering doesn't open it: it would replace the menu under the pointer.
+    await userEvent.hover(share);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument();
+
+    share.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    const submenu = await within(sheet).findByRole('menu', { name: 'Share' });
+    await waitFor(() =>
+      expect(within(submenu).getByRole('menuitem', { name: 'Email' })).toHaveFocus(),
+    );
+    // After the menu that opened it, which the sheet's styles hide, below a back button and
+    // the item's label; the list spans the sheet like the menu's.
+    const panel = submenu.closest('[data-submenu-panel]')!;
+    const root = within(sheet).getByRole('menu', { name: 'File' });
+    expect(root.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(panel).toHaveTextContent('Share');
+    expect(submenu).toHaveClass('w-full', 'bg-transparent', 'shadow-none');
+
+    // ← goes back, and the item that opened it takes focus again.
+    await userEvent.keyboard('{ArrowLeft}');
+    await waitFor(() =>
+      expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(share).toHaveFocus());
+
+    // So does the back button.
+    await userEvent.keyboard('{Enter}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Go back' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('menu', { name: 'Share' })).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(share).toHaveFocus());
+
+    // An action in the submenu closes the sheet and returns focus to the trigger.
+    await userEvent.keyboard('{Enter}');
+    await within(sheet).findByRole('menu', { name: 'Share' });
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('link');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
+  });
+
   it('closes its sheet on Escape', async () => {
     render(<EditMenu presentation="sheet" />);
     await openMenu('Edit');
@@ -539,5 +610,84 @@ describe('Menu', () => {
     const { baseElement } = render(<EditMenu disabledKeys={['copy']} />);
     await openMenu('Edit');
     expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});
+
+describe('Menu classNames', () => {
+  it('puts each item part slot on its part', async () => {
+    render(
+      <MenuTrigger>
+        <Button>Edit</Button>
+        <Menu
+          aria-label="Edit"
+          classNames={{
+            heading: 'heading-x',
+            icon: 'icon-x',
+            description: 'description-x',
+            shortcut: 'shortcut-x',
+            trailingIcon: 'trailing-x',
+          }}
+        >
+          <MenuGroup title="Clipboard">
+            <MenuItem
+              key="cut"
+              shortcut="⌘X"
+              leadingIcon={<svg data-testid="leading" />}
+              trailingIcon={<svg data-testid="trailing" />}
+            >
+              Cut
+            </MenuItem>
+            <MenuItem key="paste" description="From history">
+              Paste
+            </MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Edit');
+    expect(screen.getByText('Clipboard')).toHaveClass('heading-x');
+    expect(screen.getByTestId('leading').parentElement).toHaveClass('icon-x');
+    expect(screen.getByTestId('trailing').parentElement).toHaveClass('trailing-x');
+    expect(screen.getByText('⌘X')).toHaveClass('shortcut-x');
+    expect(screen.getByText('From history')).toHaveClass('description-x');
+  });
+
+  it('puts className and style on the placed popover, and the panel slot on the menu', async () => {
+    render(
+      <EditMenu
+        className="fixed right-4 bottom-4"
+        style={{ outline: '1px solid' }}
+        classNames={{ panel: 'bg-surface-container' }}
+      />,
+    );
+    await openMenu('Edit');
+    const menu = screen.getByRole('menu');
+    expect(menu).toHaveClass('bg-surface-container');
+    expect(menu).not.toHaveClass('fixed');
+    // The menu, then the reveal wrapper, then the popover.
+    const popover = menu.parentElement!.parentElement!;
+    expect(popover).toHaveClass('fixed', 'right-4', 'bottom-4');
+    expect(popover).toHaveStyle({ outline: '1px solid' });
+    // React Aria places it (inline position wins over a consumer class); the menu inside
+    // keeps its own width.
+    expect(popover.style.position).not.toBe('');
+    expect(menu.parentElement).toHaveClass('w-max');
+  });
+
+  it('puts className on the sheet and classNames.sheet on its surface in a sheet', async () => {
+    render(
+      <EditMenu
+        presentation="sheet"
+        className="absolute"
+        classNames={{ sheet: 'bg-surface-container', panel: 'panel-x' }}
+      />,
+    );
+    await openMenu('Edit');
+    const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+    expect(sheet).toHaveClass('bg-surface-container');
+    expect(sheet).not.toHaveClass('absolute');
+    // The sheet's outermost element: around the layer that moves the panel.
+    expect(sheet.parentElement!.parentElement).toHaveClass('absolute');
+    expect(within(sheet).getByRole('menu')).toHaveClass('panel-x');
   });
 });

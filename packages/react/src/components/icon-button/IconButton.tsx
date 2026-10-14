@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useMemo, type ReactElement, type ReactNode } from 'react';
+import { useContext, useMemo, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -12,6 +12,7 @@ import { IconFaces } from '../../primitives/IconFaces';
 import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
@@ -31,6 +32,8 @@ export interface IconButtonClassNames {
   content?: string;
   /** The icon. */
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 /** Icon buttons have no visible text, so an accessible name is required. */
@@ -139,21 +142,14 @@ export function IconButton(props: IconButtonProps) {
   const shape = shapeProp ?? context.shape ?? 'round';
   const squareInFloatingToolbar = toolbar?.kind === 'floating' && shape === 'square';
   // Once per button, not on every render.
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' && squareInFloatingToolbar) {
-      console.warn(
-        '[@windmorph/react] Avoid square icon buttons in a floating toolbar (M3): their shape conflicts with its fully rounded container.',
-      );
-    }
-  }, [squareInFloatingToolbar]);
-  const wideInVerticalToolbar = toolbar?.orientation === 'vertical' && width === 'wide';
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' && wideInVerticalToolbar) {
-      console.warn(
-        '[@windmorph/react] Avoid wide icon buttons in a vertical toolbar (M3): use the default or narrow width.',
-      );
-    }
-  }, [wideInVerticalToolbar]);
+  useWarnOnce(
+    squareInFloatingToolbar,
+    '[@windmorph/react] Avoid square icon buttons in a floating toolbar (M3): their shape conflicts with its fully rounded container.',
+  );
+  useWarnOnce(
+    toolbar?.orientation === 'vertical' && width === 'wide',
+    '[@windmorph/react] Avoid wide icon buttons in a vertical toolbar (M3): use the default or narrow width.',
+  );
   const variant = variantProp ?? context.iconButtonVariant ?? 'filled';
   const styles = iconButtonStyles({
     variant,
@@ -213,7 +209,7 @@ export function IconButton(props: IconButtonProps) {
   return (
     <TooltipTrigger>
       <WithoutDescription>{button}</WithoutDescription>
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

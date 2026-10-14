@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useRef, type ReactElement, type ReactNode } from 'react';
+import { useContext, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -9,6 +9,7 @@ import {
 } from '../../primitives/ButtonBase';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { FabTooltip } from './FabTooltip';
@@ -74,6 +75,8 @@ export interface FabClassNames {
   root?: string;
   /** The icon. */
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 interface FabOwnProps extends FabCommonProps {
@@ -144,7 +147,7 @@ export function Fab({
   return (
     <TooltipTrigger>
       {fab}
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }
@@ -160,6 +163,8 @@ export interface ExtendedFabClassNames {
   label?: string;
   /** The label text. */
   text?: string;
+  /** The built-in plain tooltip shown while collapsed (`tooltip`). */
+  tooltip?: string;
 }
 
 interface ExtendedFabOwnProps extends FabCommonProps {
@@ -217,16 +222,10 @@ export function ExtendedFab({
     );
   }
   // Once per FAB, not on every render.
-  const inFloatingToolbar = useContext(ToolbarContext)?.kind === 'floating';
-  const warnedToolbar = useRef(false);
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' && inFloatingToolbar && !warnedToolbar.current) {
-      warnedToolbar.current = true;
-      console.warn(
-        '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
-      );
-    }
-  }, [inFloatingToolbar]);
+  useWarnOnce(
+    useContext(ToolbarContext)?.kind === 'floating',
+    '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
+  );
   const collapsed = !expanded && Boolean(icon);
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });
   const baseProps = {
@@ -259,7 +258,11 @@ export function ExtendedFab({
   );
   if (!tooltip || !icon) return fab;
   return (
-    <FabTooltip available={collapsed} label={base['aria-label'] ?? children}>
+    <FabTooltip
+      available={collapsed}
+      label={base['aria-label'] ?? children}
+      className={classNames?.tooltip}
+    >
       {fab}
     </FabTooltip>
   );

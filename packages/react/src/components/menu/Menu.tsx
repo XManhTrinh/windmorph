@@ -28,6 +28,7 @@ import {
   useMenuItem,
   useMenuSection,
   usePopover,
+  useButton,
   useSubmenuTrigger,
   type AriaMenuItemProps,
   type AriaMenuOptions,
@@ -56,6 +57,7 @@ import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
+import { BackIcon } from '../sheet/sheet-icons';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
 
@@ -172,10 +174,30 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 ) => JSX.Element;
 
 export interface MenuClassNames {
+  /**
+   * The menu's surface (the `menu` element): its colour, corners, size and the list that
+   * scrolls. In a sheet it spans the sheet, without a surface of its own.
+   */
+  panel?: string;
+  /**
+   * The bottom sheet the menu opens in (`presentation="sheet"`, or `"auto"` on compact
+   * windows): the sheet's surface, as its `classNames.panel`.
+   */
+  sheet?: string;
   /** Each group of items (its own surface in the `gap` layout). */
   group?: string;
+  /** Each `MenuGroup`'s heading. */
+  heading?: string;
   /** Each item. */
   item?: string;
+  /** Each item's leading icon, or the icon marking a selected item. */
+  icon?: string;
+  /** Each item's `description` line. */
+  description?: string;
+  /** Each item's keyboard `shortcut`. */
+  shortcut?: string;
+  /** Each item's trailing icon, including a submenu's arrow. */
+  trailingIcon?: string;
   /** The dividers between groups in the `divider` layout. */
   divider?: string;
 }
@@ -221,22 +243,39 @@ export interface MenuProps extends Omit<
    * @default "popover"
    */
   presentation?: MenuPresentation;
+  /** Words the menu shows in a sheet. Set them on the root menu. */
+  labels?: Partial<MenuLabels>;
   /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
    * open instantly to reduce motion"). Submenus follow their root menu.
    * @default false
    */
   instant?: boolean;
-  /** Classes for the menu's surface; consumer classes win. */
+  /**
+   * Goes with `style` on the menu's outermost element: the box React Aria places against the
+   * trigger, or the bottom sheet's outermost element in a sheet. The surface inside keeps
+   * its size whatever layout class lands here; style it with `classNames.panel`.
+   */
   className?: string;
   /** Classes for each part, by slot. */
   classNames?: MenuClassNames;
-  /** Inline styles for the menu's surface. */
+  /** Goes on the menu's outermost element, with `className`. */
   style?: CSSProperties;
 }
 
 /** Where a {@link Menu} opens. */
 export type MenuPresentation = 'popover' | 'sheet' | 'auto';
+
+/** Words a {@link Menu} shows. */
+export interface MenuLabels {
+  /**
+   * In a sheet, the button above a submenu that goes back to the menu that opened it.
+   * @default "Back"
+   */
+  back: string;
+}
+
+const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
 
 /**
  * M3 Expressive menu: items on one surface with dividers between groups (or on grouped
@@ -297,6 +336,9 @@ function MenuSheet({
   placement: _placement,
   offset: _offset,
   variant = 'standard',
+  labels,
+  className,
+  style,
   ...props
 }: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
@@ -312,8 +354,11 @@ function MenuSheet({
       {...naming}
       open={trigger.state.isOpen}
       onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
+      className={className}
+      style={style}
+      classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
     >
-      <div ref={setContainer} className="flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]">
+      <div ref={setContainer} className={menuStyles().sheetContent()}>
         <TriggerContext value={null}>
           <MenuTreeContext
             value={{
@@ -325,6 +370,8 @@ function MenuSheet({
               variant,
               density: props.density,
               instant: false,
+              sheet: true,
+              labels: { ...DEFAULT_LABELS, ...labels },
             }}
           >
             <MenuList
@@ -357,6 +404,12 @@ interface MenuTreeContextValue {
   density: MenuProps['density'];
   /** Submenus open and close with no motion too. */
   instant: boolean;
+  /**
+   * In a sheet, a submenu takes the sheet's place of the menu that opened it, below a back
+   * button, instead of opening beside its item.
+   */
+  sheet: boolean;
+  labels: MenuLabels;
 }
 
 const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
@@ -390,6 +443,9 @@ function MenuPopover({
   containerPadding = 12,
   layout = 'divider',
   variant = 'standard',
+  labels,
+  className,
+  style,
   ...props
 }: Omit<MenuProps, 'presentation' | 'instant'> & {
   trigger: MenuTriggerContextValue;
@@ -451,7 +507,15 @@ function MenuPopover({
   return (
     <>
       <div {...underlayProps} className="fixed inset-0" />
-      <div {...popoverProps} ref={setPopover} className={styles.popover()}>
+      <div
+        {...popoverProps}
+        ref={setPopover}
+        // React Aria's placement wins over a consumer style's and, through the attribute
+        // (styles/utilities.css), over consumer inset classes.
+        style={{ ...style, ...popoverProps.style }}
+        data-overlay-placement=""
+        className={styles.popover({ class: className })}
+      >
         <DismissButton onDismiss={trigger.state.close} />
         <div
           {...exitProps}
@@ -471,6 +535,8 @@ function MenuPopover({
                   variant,
                   density: props.density,
                   instant,
+                  sheet: false,
+                  labels: { ...DEFAULT_LABELS, ...labels },
                 }}
               >
                 <MenuList
@@ -522,7 +588,7 @@ function toGroups(nodes: Node<object>[]): (Node<object> | Node<object>[])[] {
 
 type MenuListProps = Omit<
   MenuProps,
-  'placement' | 'layout' | 'variant' | 'presentation' | 'instant'
+  'placement' | 'layout' | 'variant' | 'presentation' | 'instant' | 'className' | 'style'
 > &
   Pick<AriaMenuOptions<object>, 'onClose' | 'autoFocus' | 'onKeyDown' | 'onKeyUp'> & {
     layout: MenuLayout;
@@ -558,9 +624,7 @@ function MenuList({
   layout: requestedLayout,
   density = 0,
   level,
-  className,
   classNames,
-  style,
   listRef,
   embedded = false,
   ...props
@@ -604,12 +668,12 @@ function MenuList({
         },
       })}
       ref={ref}
-      style={{ ...style, ...(density ? { '--m3-menu-density': density } : null) }}
+      style={density ? ({ '--m3-menu-density': density } as CSSProperties) : undefined}
       data-tokens="md-comp-menus"
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
-      className={styles.menu({ class: className })}
+      className={styles.menu({ class: classNames?.panel })}
     >
       <MenuListContext value={ref}>
         {groups.map((group, index) => {
@@ -649,7 +713,7 @@ function MenuList({
                   state={state}
                   variant={variant}
                   className={groupStyles.group({ class: classNames?.group })}
-                  headingClassName={groupStyles.heading()}
+                  headingClassName={groupStyles.heading({ class: classNames?.heading })}
                   edges={edges}
                   classNames={classNames}
                 />
@@ -779,19 +843,121 @@ function SubmenuItemView(props: MenuItemViewProps) {
     submenuState,
     itemRef,
   );
-  const { isOpen, ...triggerProps } = submenuTriggerProps;
+  // In a sheet a submenu replaces its menu, so hovering an item doesn't open it.
+  const { isOpen, onHoverChange, ...triggerProps } = submenuTriggerProps;
+  // A sheet's submenu hides the item that opened it, so React Aria's focus on the item when
+  // the submenu closes (← or Escape) finds it hidden. Once the menu shows again, the item
+  // takes focus back from the closed submenu (or the back button), unless every menu closed.
+  const wasOpen = useRef(isOpen);
+  useLayoutEffect(() => {
+    const closed = wasOpen.current && !isOpen;
+    wasOpen.current = isOpen;
+    const item = itemRef.current;
+    if (!closed || !tree.sheet || !tree.rootState.isOpen || !item) return;
+    const active = item.ownerDocument.activeElement;
+    if (active == null || active === item.ownerDocument.body) item.focus();
+  });
   return (
     <>
-      <MenuItemView {...props} triggerProps={triggerProps} itemRef={itemRef} submenuOpen={isOpen} />
-      <SubmenuPopover
-        state={submenuState}
-        triggerRef={itemRef}
-        submenuRef={submenuRef}
-        menuProps={submenuProps}
-        popoverProps={popoverProps}
-        submenu={submenu!}
+      <MenuItemView
+        {...props}
+        triggerProps={tree.sheet ? triggerProps : { ...triggerProps, onHoverChange }}
+        itemRef={itemRef}
+        submenuOpen={isOpen}
       />
+      {tree.sheet ? (
+        <SubmenuSheetPanel
+          state={submenuState}
+          submenuRef={submenuRef}
+          menuProps={submenuProps}
+          submenu={submenu!}
+          title={props.node.rendered}
+        />
+      ) : (
+        <SubmenuPopover
+          state={submenuState}
+          triggerRef={itemRef}
+          submenuRef={submenuRef}
+          menuProps={submenuProps}
+          popoverProps={popoverProps}
+          submenu={submenu!}
+        />
+      )}
     </>
+  );
+}
+
+/**
+ * A submenu in a sheet (M3 adapts menus into bottom sheets on small screens, where there's
+ * no room beside an item): it takes the place of the menu that opened it, which the sheet
+ * hides while it's open, below a back button and its item's label. ← (→ in right-to-left),
+ * Escape and the back button go back. It's portalled into the sheet after its menu, so the
+ * sheet's focus scope covers it.
+ */
+function SubmenuSheetPanel({
+  state,
+  submenuRef,
+  menuProps,
+  submenu,
+  title,
+}: Pick<SubmenuPopoverProps, 'state' | 'submenuRef' | 'menuProps' | 'submenu'> & {
+  title: ReactNode;
+}) {
+  const tree = useContext(MenuTreeContext)!;
+  if (!state.isOpen || !tree.container) return null;
+  const { submenuLevel, ...ariaMenuProps } = menuProps;
+  const own = submenu.props;
+  const variant = own.variant ?? tree.variant;
+  const styles = menuStyles({ variant });
+  return (
+    <Overlay portalContainer={tree.container} disableFocusManagement>
+      <div data-submenu-panel="" className={styles.sheetPanel()}>
+        <div className={styles.sheetHeader()}>
+          <SheetBackButton
+            label={tree.labels.back}
+            onPress={() => state.close()}
+            className={styles.sheetBack()}
+          />
+          <span className={styles.sheetTitle()}>{title}</span>
+        </div>
+        <MenuList
+          {...mergeProps(ariaMenuProps, own)}
+          listRef={submenuRef}
+          layout="divider"
+          variant={variant}
+          density={own.density ?? tree.density}
+          level={submenuLevel + 1}
+          embedded
+          // However it opened (a touch leaves focus on the item, now hidden), focus moves in.
+          autoFocus={state.focusStrategy ?? 'first'}
+        />
+      </div>
+    </Overlay>
+  );
+}
+
+/** The back button above a sheet's submenu: 48px, with an outline focus ring. */
+function SheetBackButton({
+  label,
+  onPress,
+  className,
+}: {
+  label: string;
+  onPress: () => void;
+  className: string;
+}) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const { buttonProps, isPressed } = useButton({ onPress, 'aria-label': label }, ref);
+  const { interactionProps, dataAttributes } = useM3Interaction({ isPressed }, ref);
+  return (
+    <button
+      {...mergeProps(buttonProps, interactionProps)}
+      {...dataAttributes}
+      ref={ref}
+      className={className}
+    >
+      <BackIcon />
+    </button>
   );
 }
 
@@ -848,12 +1014,19 @@ function SubmenuPopoverContent({
     },
     state,
   );
-  const own = submenu.props;
+  const { className, style, ...own } = submenu.props;
   const styles = menuStyles();
   return (
     // `w-max`: positioned inside the narrower root popover, it would otherwise shrink to fit
-    // what's left of that popover's width and wrap every label.
-    <div {...positionProps} ref={popoverRef} className={cn(styles.popover(), 'w-max')}>
+    // what's left of that popover's width and wrap every label. Like the root menu's, the
+    // submenu's `className` and `style` go on this outermost element.
+    <div
+      {...positionProps}
+      ref={popoverRef}
+      style={{ ...style, ...positionProps.style }}
+      data-overlay-placement=""
+      className={styles.popover({ class: cn('w-max', className) })}
+    >
       <div
         {...exitProps}
         data-exiting={isExiting || undefined}
@@ -942,25 +1115,36 @@ function MenuItemView({
       className={styles.item({ class: cn(classNames?.item, props.className) })}
     >
       {props.leadingIcon && selectedIcon ? (
-        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
+        <span
+          aria-hidden="true"
+          data-slot="leading-icon"
+          className={styles.icon({ class: classNames?.icon })}
+        >
           {isSelected ? selectedIcon : props.leadingIcon}
         </span>
       ) : props.leadingIcon ? (
-        <span aria-hidden="true" data-slot="leading-icon" className={styles.icon()}>
+        <span
+          aria-hidden="true"
+          data-slot="leading-icon"
+          className={styles.icon({ class: classNames?.icon })}
+        >
           {props.leadingIcon}
         </span>
       ) : selectedIcon ? (
         // No leading icon: the selected icon expands in when selected (Compose).
         <span aria-hidden="true" className={styles.selectedIcon()}>
           <span className={styles.selectedIconInner()}>
-            <span className={styles.icon()}>{selectedIcon}</span>
+            <span className={styles.icon({ class: classNames?.icon })}>{selectedIcon}</span>
           </span>
         </span>
       ) : null}
       <span className={styles.text()}>
         <span {...labelProps}>{node.rendered}</span>
         {props.description && (
-          <span {...descriptionProps} className={styles.description()}>
+          <span
+            {...descriptionProps}
+            className={styles.description({ class: classNames?.description })}
+          >
             {props.description}
           </span>
         )}
@@ -971,12 +1155,19 @@ function MenuItemView({
         </span>
       )}
       {props.shortcut && (
-        <kbd {...keyboardShortcutProps} className={cn(styles.trailing(), 'font-plain')}>
+        <kbd
+          {...keyboardShortcutProps}
+          className={styles.trailing({ class: cn('font-plain', classNames?.shortcut) })}
+        >
           {props.shortcut}
         </kbd>
       )}
       {trailingIcon && (
-        <span aria-hidden="true" data-slot="trailing-icon" className={styles.trailing()}>
+        <span
+          aria-hidden="true"
+          data-slot="trailing-icon"
+          className={styles.trailing({ class: classNames?.trailingIcon })}
+        >
           {trailingIcon}
         </span>
       )}

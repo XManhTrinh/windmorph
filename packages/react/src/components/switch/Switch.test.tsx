@@ -201,3 +201,15 @@ describe('Switch', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Switch classNames', () => {
+  it('puts the stateLayer slot on the state layer beside the thumb', () => {
+    const { container } = render(
+      <Switch classNames={{ thumb: 'thumb-x', stateLayer: 'layer-x' }}>Wi-Fi</Switch>,
+    );
+    const layer = container.querySelector('.layer-x')!;
+    expect(layer).toHaveAttribute('aria-hidden', 'true');
+    expect(layer.parentElement).toHaveAttribute('data-slot', 'track');
+    expect(layer.nextElementSibling).toHaveClass('thumb-x');
+  });
+});

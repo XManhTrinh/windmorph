@@ -760,3 +760,22 @@ describe('Navigation component tokens', () => {
     );
   });
 });
+
+describe('NavItem classNames', () => {
+  it('puts the stateLayer slot on the state layer inside the pill', () => {
+    render(
+      <NavigationBar aria-label="Main">
+        <NavigationBarItem
+          href="/"
+          icon={<Icon id="home" />}
+          classNames={{ pill: 'pill-x', stateLayer: 'layer-x' }}
+        >
+          Home
+        </NavigationBarItem>
+      </NavigationBar>,
+    );
+    const layer = document.querySelector('.layer-x')!;
+    expect(layer).toHaveAttribute('aria-hidden', 'true');
+    expect(layer.parentElement).toHaveClass('pill-x');
+  });
+});

@@ -13,7 +13,7 @@ export interface OverflowMenuItem {
 
 export interface OverflowMenuListProps extends Pick<
   MenuProps,
-  'selectionMode' | 'selectedKeys' | 'disabledKeys' | 'onAction'
+  'selectionMode' | 'selectedKeys' | 'disabledKeys' | 'onAction' | 'classNames'
 > {
   /** The folded buttons, in order. */
   items: OverflowMenuItem[];

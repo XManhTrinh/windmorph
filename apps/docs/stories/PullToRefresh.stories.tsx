@@ -143,3 +143,39 @@ export const LayoutOverride: StoryObj<{
     );
   },
 };
+
+/** Consumer layouts on the root, each with a gap. */
+const CONTENT_LAYOUTS = {
+  block: 'block space-y-4',
+  flexColumn: 'flex flex-col gap-4',
+  flexColumnReverse: 'flex flex-col-reverse gap-4',
+  flexRow: 'flex gap-4',
+  grid: 'grid gap-4',
+  gridColumns: 'grid grid-cols-2 gap-4',
+} as const;
+
+/**
+ * A `gap-*` on a flex or grid root spaces the content only: the indicator's layer, the root's
+ * first child, never adds a gap above the first item.
+ */
+export const ContentLayout: StoryObj<{ layout: keyof typeof CONTENT_LAYOUTS }> = {
+  args: { layout: 'flexColumn' },
+  argTypes: { layout: { control: 'select', options: Object.keys(CONTENT_LAYOUTS) } },
+  render: ({ layout }) => (
+    <PullToRefresh
+      data-testid="target"
+      onRefresh={() => undefined}
+      className={`h-[240px] w-[320px] overflow-y-auto bg-surface-container ${CONTENT_LAYOUTS[layout]}`}
+    >
+      {['Alex', 'Sam', 'Priya', 'Zoë'].map((name) => (
+        <p
+          key={name}
+          data-testid="item"
+          className="h-12 bg-surface text-body-medium text-on-surface"
+        >
+          {name}
+        </p>
+      ))}
+    </PullToRefresh>
+  ),
+};

@@ -178,3 +178,22 @@ export const LayoutOverride: StoryObj<{
     </div>
   ),
 };
+
+/** Layout safety (architecture §10) for the circular indicator. */
+export const CircularLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: ({ override, transformedAncestor }) => (
+    <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+      <CircularProgressIndicator
+        data-testid="target"
+        value={0.5}
+        aria-label="Progress"
+        className={LAYOUT_OVERRIDES[override]}
+      />
+    </div>
+  ),
+};

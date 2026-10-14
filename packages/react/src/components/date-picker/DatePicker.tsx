@@ -100,8 +100,28 @@ export interface DatePickerClassNames {
   root?: string;
   /** The header: title, headline and mode toggle. */
   header?: string;
+  /** The header's title ("Select date"). */
+  title?: string;
+  /** The header's headline: the chosen date or range. */
+  headline?: string;
   /** The calendar or the text input below the header. */
   body?: string;
+  /** The weekday names above the days. */
+  weekday?: string;
+  /** Each day of the calendar. */
+  day?: string;
+  /** Each year of the year list. */
+  year?: string;
+  /** Each month's subhead in the range picker's scrolling month list. */
+  monthSubhead?: string;
+}
+
+export interface DateRangePickerClassNames extends DatePickerClassNames {
+  /**
+   * The band behind a range's days: each calendar cell it spans (`data-range` is `start`,
+   * `middle` or `end`), whose background paints it.
+   */
+  rangeBand?: string;
 }
 
 interface DatePickerCommonProps {
@@ -150,7 +170,9 @@ export interface DateRange {
   end: CalendarDate;
 }
 
-export type DateRangePickerProps = DatePickerCommonProps & {
+export type DateRangePickerProps = Omit<DatePickerCommonProps, 'classNames'> & {
+  /** Classes for each part, by slot. */
+  classNames?: DateRangePickerClassNames;
   /** The selected range (controlled); `null` for none. */
   value?: DateRange | null;
   /** Initial range when uncontrolled. @default null */
@@ -339,7 +361,8 @@ function PickerFrame({
   classNames,
   directionRef,
   ...rest
-}: Inner<DatePickerCommonProps> & {
+}: Inner<Omit<DatePickerCommonProps, 'classNames'>> & {
+  classNames?: DateRangePickerClassNames | undefined;
   range: boolean;
   scroll?: boolean;
   state: CalendarState | RangeCalendarState;
@@ -366,6 +389,7 @@ function PickerFrame({
     yearRange,
     strings,
     className: classNames?.body,
+    classNames,
   };
   return (
     <div
@@ -384,9 +408,13 @@ function PickerFrame({
     >
       {showHeader && (
         <div className={styles.header({ class: classNames?.header })}>
-          <div className={styles.title()}>{title}</div>
+          <div className={styles.title({ class: classNames?.title })}>{title}</div>
           <div className={styles.headlineRow()}>
-            <div aria-live="polite" data-slot="headline" className={styles.headline()}>
+            <div
+              aria-live="polite"
+              data-slot="headline"
+              className={styles.headline({ class: classNames?.headline })}
+            >
               {headline}
             </div>
             {showModeToggle && (
@@ -429,6 +457,7 @@ interface BodyProps {
   yearRange: [number, number];
   strings: DatePickerStrings;
   className?: string | undefined;
+  classNames?: DateRangePickerClassNames | undefined;
 }
 
 function SingleCalendarBody({ state, ...props }: BodyProps & { state: CalendarState }) {
@@ -470,6 +499,7 @@ function CalendarBody({
   yearRange,
   strings,
   className,
+  classNames,
   bodyRef,
 }: BodyProps & {
   state: CalendarState | RangeCalendarState;
@@ -550,6 +580,7 @@ function CalendarBody({
           state={state}
           styles={styles}
           yearRange={yearRange}
+          className={classNames?.year}
           label={strings.yearList ?? 'Year'}
           autoFocus={focusYears}
           onPick={() => setYears(false)}
@@ -557,7 +588,7 @@ function CalendarBody({
       ) : (
         <div {...swipeProps} className={styles.swipe()}>
           <div key={slideKey} data-direction={slideDirection} className={styles.slide()}>
-            <CalendarGrid state={state} styles={styles} />
+            <CalendarGrid state={state} styles={styles} classNames={classNames} />
           </div>
         </div>
       )}
@@ -570,7 +601,12 @@ function CalendarBody({
  * across months, scroll vertically"), under a single weekday row. Only the months in view
  * (and the focused one) are rendered; the rest are spacers of the same fixed height.
  */
-function RangeMonthList({ state, styles, className }: BodyProps & { state: RangeCalendarState }) {
+function RangeMonthList({
+  state,
+  styles,
+  className,
+  classNames,
+}: BodyProps & { state: RangeCalendarState }) {
   const confirm = useContext(PickerDialogContext);
   const ref = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -625,7 +661,11 @@ function RangeMonthList({ state, styles, className }: BodyProps & { state: Range
         {Array.from({ length: 7 }, (_, index) => {
           const day = weekStart.add({ days: index }).toDate(getLocalTimeZone());
           return (
-            <span key={index} title={longWeekdays.format(day)} className={styles.weekdayCell()}>
+            <span
+              key={index}
+              title={longWeekdays.format(day)}
+              className={styles.weekdayCell({ class: classNames?.weekday })}
+            >
               {weekdays.format(day)}
             </span>
           );
@@ -637,10 +677,13 @@ function RangeMonthList({ state, styles, className }: BodyProps & { state: Range
           const month = first.add({ months: from + i });
           return (
             <div key={month.toString()} className="h-[336px]">
-              <div aria-hidden="true" className={styles.monthSubhead()}>
+              <div
+                aria-hidden="true"
+                className={styles.monthSubhead({ class: classNames?.monthSubhead })}
+              >
                 {subhead.format(month.toDate(getLocalTimeZone()))}
               </div>
-              <CalendarGrid state={state} styles={styles} month={month} />
+              <CalendarGrid state={state} styles={styles} month={month} classNames={classNames} />
             </div>
           );
         })}
@@ -657,6 +700,7 @@ function YearList({
   state,
   styles,
   yearRange,
+  className,
   label,
   autoFocus,
   onPick,
@@ -664,6 +708,7 @@ function YearList({
   state: CalendarState | RangeCalendarState;
   styles: ReturnType<typeof datePickerStyles>;
   yearRange: [number, number];
+  className: string | undefined;
   label: string;
   autoFocus: boolean;
   onPick: () => void;
@@ -692,7 +737,7 @@ function YearList({
             disabled={year < minYear || year > maxYear}
             data-current={year === current || undefined}
             steps={YEAR_STEPS}
-            className={styles.year()}
+            className={styles.year({ class: className })}
             onPick={() => {
               state.setFocusedDate(state.focusedDate.set({ year }));
               onPick();

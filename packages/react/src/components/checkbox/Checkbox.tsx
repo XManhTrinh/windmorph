@@ -22,6 +22,8 @@ import { CheckboxBox } from './checkbox-box';
 export interface CheckboxClassNames extends SelectionControlClassNames {
   /** The 18px box that draws the check mark or dash. */
   box?: string;
+  /** The check or dash drawn in the box (an `<svg>` stroked with `currentColor`). */
+  icon?: string;
 }
 
 /** React Aria names with an `is` prefix; we use the shorter HTML-style names. */
@@ -150,7 +152,9 @@ export function Checkbox({
       className={className}
       classNames={classNames}
       style={style}
-      indicator={<CheckboxBox styles={styles} className={classNames?.box} />}
+      indicator={
+        <CheckboxBox styles={styles} className={classNames?.box} iconClassName={classNames?.icon} />
+      }
     >
       {children}
     </SelectionControl>

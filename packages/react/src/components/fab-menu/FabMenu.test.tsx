@@ -278,6 +278,17 @@ describe('FabMenu', () => {
     expect(item('Reply').className).not.toContain('menu-item-container-shape');
   });
 
+  it('puts the label slot on the item label', () => {
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" defaultOpen>
+        <FabMenuItem classNames={{ label: 'label-x' }}>Reply</FabMenuItem>
+        <FabMenuItem>Forward</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(screen.getByText('Reply')).toHaveClass('label-x');
+    expect(screen.getByText('Reply').tagName).toBe('SPAN');
+  });
+
   it('lines up on the trailing edge, with level 3 items', () => {
     render(<Menu defaultOpen data-testid="menu" />);
     expect(screen.getByTestId('menu')).toHaveClass('items-end');
@@ -393,10 +404,11 @@ describe('FabMenu', () => {
 
   it('shows its label in a tooltip while closed, not while open, unless turned off', async () => {
     vi.useRealTimers();
-    const { rerender } = render(<Menu />);
+    const { rerender } = render(<Menu classNames={{ tooltip: 'tip-x' }} />);
     fireEvent.pointerMove(document.body);
     await userEvent.hover(toggle());
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Create');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
     // Opening turns the FAB into the close button: no tooltip.
     await userEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');

@@ -453,13 +453,17 @@ describe('FloatingToolbar', () => {
 describe('ToolbarFab', () => {
   it('shows its label in a tooltip on hover', async () => {
     render(
-      <FloatingToolbar aria-label="Actions" fab={<ToolbarFab icon={<Icon />} aria-label="New" />}>
+      <FloatingToolbar
+        aria-label="Actions"
+        fab={<ToolbarFab icon={<Icon />} aria-label="New" classNames={{ tooltip: 'tip-x' }} />}
+      >
         {button('Search')}
       </FloatingToolbar>,
     );
     fireEvent.pointerMove(document.body);
     await userEvent.hover(screen.getByRole('button', { name: 'New' }));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('New');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
   });
 
   it('shows one icon, with no faces, without expandedIcon', () => {

@@ -175,3 +175,19 @@ test.describe('Progress layout safety', () => {
     },
   });
 });
+
+test.describe('CircularProgressIndicator layout safety', () => {
+  layoutSafetySuite('components-progress--circular-layout-override', {
+    height: 40,
+    width: 40,
+    radius: '0px',
+    interactive: false,
+    async check(_page, target) {
+      const sizes = await target.evaluate((el) => {
+        const svg = el.querySelector('svg')!;
+        return [el.clientWidth, el.clientHeight, svg.clientWidth, svg.clientHeight];
+      });
+      expect(sizes.slice(2)).toEqual(sizes.slice(0, 2));
+    },
+  });
+});

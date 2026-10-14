@@ -77,6 +77,8 @@ export interface FabMenuClassNames {
   list?: string;
   /** The menu (`presentation="menu"`). */
   menu?: string;
+  /** The built-in plain tooltip shown on the closed button (`tooltip`). */
+  tooltip?: string;
 }
 
 /**
@@ -313,7 +315,7 @@ export function FabMenu({
       className={styles.anchor({ class: classNames?.anchor })}
     >
       {tooltip && ariaLabel ? (
-        <FabTooltip available={!isOpen} label={ariaLabel}>
+        <FabTooltip available={!isOpen} label={ariaLabel} className={classNames?.tooltip}>
           {toggle}
         </FabTooltip>
       ) : (
@@ -342,7 +344,7 @@ export function FabMenu({
             offset={4}
             aria-label={ariaLabel}
             aria-labelledby={ariaLabelledBy}
-            className={styles.menu({ class: classNames?.menu })}
+            classNames={{ panel: styles.menu({ class: classNames?.menu }) }}
           >
             {items.map((item) => (
               <MenuItem
@@ -398,6 +400,8 @@ export interface FabMenuItemClassNames {
   content?: string;
   /** The icon. */
   icon?: string;
+  /** The item's label text. */
+  label?: string;
 }
 
 interface FabMenuItemOwnProps {
@@ -482,7 +486,7 @@ export function FabMenuItem({
             {icon}
           </span>
         )}
-        {children}
+        <span className={classNames?.label}>{children}</span>
       </span>
     </ButtonBase>
   );

@@ -1,4 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
+import { expectKeyboardFocusRing, expectStateLayer, panelLayout } from './overlay-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -470,4 +472,81 @@ test.describe('Dialog classNames.positioner layout safety', () => {
       });
     }
   }
+});
+
+test.describe('Dialog layout safety', () => {
+  /** Opens the story's dialog from its trigger and checks the open panel. */
+  async function openAndCheck(page: Page, override: string) {
+    await page.getByTestId('target').click();
+    const dialog = page.getByRole('dialog', { name: 'Sync across devices?' });
+    // Focus starts on the first action.
+    await expect(dialog.getByRole('button', { name: 'Not now' })).toBeFocused();
+    await settle(page);
+    const panel = await panelLayout(dialog);
+    expect(panel).toMatchObject({ radius: '28px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') expect(panel.width).toBe(TEXT_WIDTH);
+    return dialog;
+  }
+
+  // The trigger keeps its size, corners, state layer and focus ring, and still opens the
+  // dialog, which returns focus to it on Escape.
+  layoutSafetySuite('components-dialog--layout-override', {
+    height: 40,
+    radius: '20px',
+    interactive: false,
+    directions: ['ltr'],
+    async check(page, target) {
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      const dialog = await openAndCheck(page, 'none');
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+      await expect(target).toBeFocused();
+    },
+  });
+
+  // A layout class on the dialog (`className`, on its outermost element) leaves the panel
+  // visible, sized and focusable.
+  for (const override of OVERRIDES) {
+    test(`panel · ${override}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1024, height: 760 });
+      await openStory(page, 'components-dialog--layout-override', {}, { override, part: 'panel' });
+      const dialog = await openAndCheck(page, override);
+      await page.keyboard.press('Tab');
+      const sync = dialog.getByRole('button', { name: 'Sync' });
+      await expect(sync).toBeFocused();
+      await expect(sync).toHaveAttribute('data-focus-visible', 'true');
+      expect(await sync.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+      await expect(page.getByTestId('target')).toBeFocused();
+    });
+  }
+});
+
+test.describe('Elevation in a ThemeScope', () => {
+  // A scope's shadow colour reaches the elevation shadows, in place (a card) and in an
+  // overlay portalled from the scope (the dialog); outside it they keep the default colour.
+  test('a custom shadow colour changes the shadows inside the scope', async ({ page }) => {
+    await openStory(page, 'tokens-md-sys-elevation--scoped-shadow');
+    const dialog = page.getByRole('dialog', { name: 'Scoped dialog' });
+    await expect(dialog).toBeVisible();
+    await settle(page);
+    const shadow = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).boxShadow);
+    // How the browser writes the key shadow's colour: red at 30%.
+    const red = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.color = 'color-mix(in srgb, rgb(255, 0, 0) 30%, transparent)';
+      document.body.append(probe);
+      const value = getComputedStyle(probe).color;
+      probe.remove();
+      return value;
+    });
+    const plain = await shadow(page.getByTestId('default-card'));
+    const card = await shadow(page.getByTestId('scoped-card'));
+    expect(plain).not.toContain(red);
+    expect(card).toContain(red);
+    expect(card).not.toBe(plain);
+    expect(await shadow(dialog)).toContain(red);
+  });
 });

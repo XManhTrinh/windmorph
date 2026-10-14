@@ -282,3 +282,16 @@ test.describe('Toolbar layout safety', () => {
     },
   });
 });
+
+test.describe('DockedToolbar layout safety', () => {
+  layoutSafetySuite('components-toolbar--docked-layout-override', {
+    height: 64,
+    width: 360,
+    radius: '0px',
+    interactive: false,
+    async check(page, target) {
+      await target.getByRole('button', { name: 'Search' }).click();
+      await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+    },
+  });
+});

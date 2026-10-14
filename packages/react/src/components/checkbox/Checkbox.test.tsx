@@ -165,3 +165,14 @@ describe('Checkbox', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Checkbox classNames', () => {
+  it('puts the icon slot on the drawn check', () => {
+    const { container } = render(
+      <Checkbox classNames={{ box: 'box-x', icon: 'icon-x' }}>Accept</Checkbox>,
+    );
+    const box = container.querySelector('[data-slot="box"]')!;
+    expect(box).toHaveClass('box-x');
+    expect(box.querySelector('svg')).toHaveClass('icon-x');
+  });
+});

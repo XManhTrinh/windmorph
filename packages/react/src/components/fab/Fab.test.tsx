@@ -108,13 +108,14 @@ describe('Fab', () => {
   it('shows its label in a tooltip on hover, unless turned off', async () => {
     render(
       <>
-        <Fab icon={<Icon />} aria-label="Compose" />
+        <Fab icon={<Icon />} aria-label="Compose" classNames={{ tooltip: 'tip-x' }} />
         <Fab icon={<Icon />} aria-label="Plain" tooltip={false} />
       </>,
     );
     fireEvent.pointerMove(document.body);
     await userEvent.hover(screen.getByRole('button', { name: 'Compose' }));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
     await userEvent.unhover(screen.getByRole('button', { name: 'Compose' }));
     await userEvent.hover(screen.getByRole('button', { name: 'Plain' }));
     expect(screen.queryAllByRole('tooltip').map((tip) => tip.textContent)).not.toContain('Plain');
@@ -177,7 +178,7 @@ describe('ExtendedFab', () => {
     await userEvent.unhover(fab);
 
     rerender(
-      <ExtendedFab icon={<Icon />} expanded={false}>
+      <ExtendedFab icon={<Icon />} expanded={false} classNames={{ tooltip: 'tip-x' }}>
         Compose
       </ExtendedFab>,
     );
@@ -185,6 +186,7 @@ describe('ExtendedFab', () => {
     expect(screen.getByRole('button', { name: 'Compose' })).toBe(fab);
     await userEvent.hover(fab);
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
+    expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
     expect(fab).toHaveAttribute('aria-describedby');
 
     // Expanding again closes it.

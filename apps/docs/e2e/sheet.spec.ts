@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { layoutSafetySuite } from './layout-safety';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
 import { MODES } from './shots';
 import { openStory } from './story';
 
@@ -346,4 +346,86 @@ test.describe('Side sheet', () => {
       },
     });
   });
+});
+
+test.describe('BottomSheet layout safety', () => {
+  /**
+   * Overrides that place the sheet's outermost element themselves (it owns placement): the
+   * sheet then peeks from the bottom of that element, wherever the consumer put it, rather
+   * than from the bottom of the region.
+   */
+  const PLACING = ['fixed', 'sticky', 'static'];
+
+  for (const override of OVERRIDES) {
+    for (const transformedAncestor of [false, true]) {
+      const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''}`;
+      test(name, async ({ page }) => {
+        await openStory(
+          page,
+          'components-sheet--bottom-layout-override',
+          {},
+          { override, transformedAncestor },
+        );
+        const sheet = page.getByTestId('target');
+        await settle(page);
+        // The panel still fills the library's layer that moves it, isn't stretched past its
+        // content, keeps its corners, and has no positioned internals.
+        const layout = await sheet.evaluate((el) => {
+          const panel = el as HTMLElement;
+          const wrapper = panel.parentElement!;
+          const content = panel.lastElementChild as HTMLElement;
+          return {
+            fillsWrapper:
+              panel.offsetWidth === wrapper.offsetWidth &&
+              panel.offsetHeight === wrapper.offsetHeight,
+            notStretched:
+              content.offsetHeight === (content.firstElementChild as HTMLElement).offsetHeight,
+            radius: getComputedStyle(panel).borderTopLeftRadius,
+            positionedDescendants: [...panel.querySelectorAll('*')].filter((child) => {
+              const style = getComputedStyle(child);
+              return (
+                child.closest('[data-touch-target]') === null &&
+                style.clipPath !== 'inset(50%)' &&
+                ['absolute', 'fixed'].includes(style.position)
+              );
+            }).length,
+          };
+        });
+        expect(layout).toEqual({
+          fillsWrapper: true,
+          notStretched: true,
+          radius: '28px',
+          positionedDescendants: 0,
+        });
+        // Collapsed to its 56px peek at the bottom of the region (or of the outermost element
+        // where the override places it), with the handle on top. A transform rotates the
+        // boxes, so the edges are checked without one.
+        const wrapper = sheet.locator('..');
+        const bottomEdge = async () =>
+          (
+            await rect(
+              PLACING.includes(override) ? wrapper.locator('..') : page.getByTestId('layout'),
+            )
+          ).bottom;
+        const rotated = override === 'transform';
+        if (!rotated) expect((await rect(wrapper)).y).toBe((await bottomEdge()) - 56);
+        const handle = page.getByRole('button', { name: 'Expand sheet' });
+        expect(
+          await handle.evaluate((el) => {
+            const box = el.getBoundingClientRect();
+            const hit = document.elementFromPoint(
+              box.left + box.width / 2,
+              box.top + box.height / 2,
+            );
+            return hit !== null && el.contains(hit);
+          }),
+        ).toBe(true);
+        // The handle still expands it to the bottom of the region.
+        await handle.click();
+        await expect(sheet).toHaveAttribute('data-detent', 'expanded');
+        await settle(page);
+        if (!rotated) expect((await rect(wrapper)).bottom).toBe(await bottomEdge());
+      });
+    }
+  }
 });

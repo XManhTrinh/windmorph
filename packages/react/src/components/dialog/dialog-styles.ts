@@ -32,6 +32,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * consumer class (`bg-surface-container`) still wins. Every class is written out in full.
  */
 
+/** The dialog root's placement, inline so it wins over consumer layout classes. */
+export const DIALOG_ROOT_STYLE = { position: 'fixed', inset: 0 } as const;
+
 /** Variant definitions for {@link Dialog} and its parts. */
 export const dialogStyles = tv({
   slots: {
@@ -45,6 +48,11 @@ export const dialogStyles = tv({
       'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
       'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
+    // The dialog's outermost element, which takes the consumer's `className` and `style`. It
+    // covers the window through an inline `position: fixed; inset: 0` (`DIALOG_ROOT_STYLE`),
+    // which a consumer class can't move: a layout class such as `static` or `absolute top-24`
+    // never puts the dialog in the page's flow or out of the window.
+    root: 'z-(--md-sys-z-dialog)',
     positioner: 'fixed inset-0 z-(--md-sys-z-dialog) flex p-[24px] medium:p-[56px]',
     motion: [
       'flex max-h-full max-w-full opacity-100 [clip-path:inset(-32px)]',

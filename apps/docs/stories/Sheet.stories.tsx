@@ -152,7 +152,7 @@ export const Side: StoryObj<{
         onBack={back ? () => undefined : undefined}
         footer={footer}
         footerDivider
-        className={widePanel ? 'w-[480px]' : undefined}
+        classNames={widePanel ? { panel: 'w-[480px]' } : undefined}
         data-testid="sheet"
       >
         <p className="text-body-medium text-on-surface-variant">
@@ -230,4 +230,35 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+/**
+ * Layout safety (architecture §10) for the bottom sheet: a consumer layout class on a
+ * standard bottom sheet placed in a bounded region (`className`, which goes on its
+ * outermost element, the container that `classNames.container` places in the region),
+ * inside an optional transformed ancestor.
+ */
+export const BottomLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: ({ override, transformedAncestor }) => (
+    <div className={transformedAncestor ? 'translate-x-2' : undefined}>
+      <div className="relative h-[480px] w-[412px] overflow-hidden" data-testid="layout">
+        <BottomSheet
+          variant="standard"
+          aria-label="Now playing"
+          data-testid="target"
+          classNames={{ container: 'absolute' }}
+          className={LAYOUT_OVERRIDES[override]}
+        >
+          <div className="px-6 pb-6">
+            <p className="text-title-medium">Now playing</p>
+          </div>
+        </BottomSheet>
+      </div>
+    </div>
+  ),
 };

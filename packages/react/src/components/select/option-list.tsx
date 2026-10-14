@@ -83,6 +83,18 @@ export interface OptionListClassNames {
   list?: string;
   /** Each option. */
   item?: string;
+  /** Each option's leading icon, or the check shown on a chosen option. */
+  icon?: string;
+  /** Each option's `description` line. */
+  description?: string;
+  /** Each option's `trailing` text. */
+  trailing?: string;
+  /** Each section's heading. */
+  heading?: string;
+  /** The divider between sections. */
+  divider?: string;
+  /** The text shown when no option matches. */
+  empty?: string;
 }
 
 /** Material Symbols `check`, shown on chosen options (as M3 menus show selection). */
@@ -182,7 +194,13 @@ export function OptionList<T>({
           <LazyLoadingIndicator aria-label={loadingLabel} className="size-[36px]" />
         </div>
       ) : isEmpty ? (
-        <p role="status" className="px-[12px] py-[12px] text-label-large text-on-surface-variant">
+        <p
+          role="status"
+          className={cn(
+            'px-[12px] py-[12px] text-label-large text-on-surface-variant',
+            classNames?.empty,
+          )}
+        >
           {emptyLabel}
         </p>
       ) : null}
@@ -236,7 +254,7 @@ function OptionSection<T>({
   divided,
   ...itemOptions
 }: ItemOptions<T> & { section: Node<T>; divided: boolean }) {
-  const { state } = itemOptions;
+  const { state, classNames } = itemOptions;
   const { itemProps, headingProps, groupProps } = useListBoxSection({
     heading: section.rendered,
     'aria-label': section['aria-label'],
@@ -245,10 +263,13 @@ function OptionSection<T>({
   return (
     <li {...itemProps}>
       {divided ? (
-        <div role="presentation" className="mx-[8px] my-[4px] h-px bg-outline-variant" />
+        <div
+          role="presentation"
+          className={cn('mx-[8px] my-[4px] h-px bg-outline-variant', classNames?.divider)}
+        />
       ) : null}
       {section.rendered ? (
-        <span {...headingProps} className={menu.heading()}>
+        <span {...headingProps} className={menu.heading({ class: classNames?.heading })}>
           {section.rendered}
         </span>
       ) : null}
@@ -300,13 +321,13 @@ function OptionItem<T>({
       data-focus-visible={isFocusVisible || undefined}
     >
       {leadingIcon ? (
-        <span aria-hidden="true" className={menu.icon()}>
+        <span aria-hidden="true" className={menu.icon({ class: classNames?.icon })}>
           {isSelected ? <CheckIcon /> : leadingIcon}
         </span>
       ) : (
         <span aria-hidden="true" className={menu.selectedIcon()}>
           <span className={menu.selectedIconInner()}>
-            <span className={menu.icon()}>
+            <span className={menu.icon({ class: classNames?.icon })}>
               <CheckIcon />
             </span>
           </span>
@@ -314,10 +335,17 @@ function OptionItem<T>({
       )}
       <span className={menu.text()}>
         <span className="truncate">{item.rendered}</span>
-        {description ? <span className={menu.description()}>{description}</span> : null}
+        {description ? (
+          <span className={menu.description({ class: classNames?.description })}>
+            {description}
+          </span>
+        ) : null}
       </span>
       {trailing ? (
-        <span aria-hidden="true" className={menu.trailing({ class: 'tabular-nums' })}>
+        <span
+          aria-hidden="true"
+          className={menu.trailing({ class: cn('tabular-nums', classNames?.trailing) })}
+        >
           {trailing}
         </span>
       ) : null}

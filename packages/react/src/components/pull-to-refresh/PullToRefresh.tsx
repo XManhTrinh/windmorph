@@ -31,7 +31,8 @@ export interface PullToRefreshClassNames {
   root?: string;
   /**
    * The zero-height sticky layer the indicator hangs from, at the top of the area. Give it a
-   * `top-*` class when a sticky app bar covers the top of a scrolling page.
+   * `top-*` class when a sticky app bar covers the top of a scrolling page. Its margins are
+   * the library's, so the root's `gap-*` or `space-y-*` never moves the content.
    */
   layer?: string;
   /** The 48px circle holding the loading indicator. */
@@ -218,6 +219,23 @@ export function PullToRefresh({
   useLayoutEffect(() => {
     latest.current = { refreshing, disabled, threshold, onRefresh, refreshingProp, spring };
   });
+
+  // The layer is the root's first child, so a consumer `gap-*` on a flex or grid root would
+  // open a gap below it and push the content down. It's cancelled after every render and
+  // whenever the root resizes (a responsive class may change the gap).
+  const layerRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (rootRef.current && layerRef.current) cancelRootGap(rootRef.current, layerRef.current);
+  });
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (layerRef.current) cancelRootGap(root, layerRef.current);
+    });
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, [rootRef]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -442,6 +460,7 @@ export function PullToRefresh({
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <div
+        ref={layerRef}
         className={styles.layer({ class: classNames?.layer })}
         style={{ '--m3-pull-to-refresh-threshold': `${threshold}px` } as CSSProperties}
       >
@@ -462,6 +481,30 @@ export function PullToRefresh({
       {children}
     </div>
   );
+}
+
+/**
+ * Keeps the root's own spacing from opening below the zero-height layer. Its margins are the
+ * library's: zero, so a `space-y-*` root doesn't push the content down, and in a flex root a
+ * negative margin as large as the gap along the main axis. In a grid root it also moves to an
+ * implicit row of its own before the first one, across every column, so the content keeps its
+ * rows and columns.
+ */
+function cancelRootGap(root: HTMLElement, layer: HTMLElement) {
+  const style = getComputedStyle(root);
+  const grid = style.display.endsWith('grid');
+  const flex = style.display.endsWith('flex');
+  const row = flex && style.flexDirection.startsWith('row');
+  const reverse = flex && style.flexDirection.endsWith('reverse');
+  const gap = Number.parseFloat(row ? style.columnGap : style.rowGap);
+  for (const side of ['BlockStart', 'BlockEnd', 'InlineStart', 'InlineEnd'] as const) {
+    layer.style[`margin${side}`] = '0px';
+  }
+  if ((grid || flex) && gap > 0) {
+    layer.style[`margin${row ? 'Inline' : 'Block'}${reverse ? 'Start' : 'End'}`] = `${-gap}px`;
+  }
+  layer.style.gridRow = grid ? 'span 1 / 1' : '';
+  layer.style.gridColumn = grid ? '1 / -1' : '';
 }
 
 /**

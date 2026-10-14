@@ -40,6 +40,8 @@ export interface SwitchClassNames extends SelectionControlClassNames {
   thumb?: string;
   /** The icon inside the thumb. */
   icon?: string;
+  /** The round state layer around the thumb (hover, focus and press). */
+  stateLayer?: string;
 }
 
 type RenamedAriaProps =
@@ -244,7 +246,11 @@ export function Switch({
       }
       indicator={
         <>
-          <span aria-hidden="true" {...stateAttributes} className={styles.stateLayer()} />
+          <span
+            aria-hidden="true"
+            {...stateAttributes}
+            className={styles.stateLayer({ class: classNames?.stateLayer })}
+          />
           <SwitchThumb
             styles={styles}
             icon={icon}

@@ -371,3 +371,18 @@ test.describe('NavigationBar layout safety', () => {
     },
   });
 });
+
+test.describe('NavigationRail layout safety', () => {
+  layoutSafetySuite('components-navigation--rail-layout-override', {
+    height: 360,
+    width: 96,
+    radius: '0px',
+    interactive: false,
+    async check(page, target) {
+      const search = target.getByRole('button', { name: 'Search' });
+      await search.click();
+      await expect(page.getByTestId('count')).toHaveText('Current search');
+      await expect(search).toHaveAttribute('aria-current', 'page');
+    },
+  });
+});

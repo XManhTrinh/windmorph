@@ -238,3 +238,14 @@
     outline-offset: calc(var(--md-sys-focus-indicator-thickness) * -1);
   }
 }
+
+/*
+ * The outermost box of a menu or tooltip, which React Aria places with inline `position`
+ * and insets, and which takes the consumer's `className`. Unlayered, this rule beats any
+ * consumer inset utility (Tailwind's are layered), while React Aria's inline insets beat
+ * it: a consumer `bottom-4` can't combine with React Aria's `top` to stretch the box, or
+ * move the surface off its anchor (architecture §10).
+ */
+[data-overlay-placement] {
+  inset: auto;
+}

@@ -80,12 +80,17 @@ export function generateTokensCss(): string {
     `--md-sys-focus-indicator-thickness: ${FOCUS_INDICATOR.thickness};`,
     `--md-sys-focus-indicator-offset: ${FOCUS_INDICATOR.offset};`,
   );
+  // The shadows mix in `--md-sys-color-shadow`, which a custom property resolves where it's
+  // declared: declared on `:root` alone, a scope's shadow colour would be ignored. Declared
+  // again on every `[data-theme]` element (each ThemeScope and portalled overlay), they
+  // resolve with the scope's colour, as the theme colours do (2026-10-14).
+  const elevation: string[] = [];
   for (const [level, { key, ambient }] of Object.entries(ELEVATION_LEVELS)) {
     const value =
       key && ambient
         ? `${key} ${shadowColor(SHADOW_KEY_OPACITY)}, ${ambient} ${shadowColor(SHADOW_AMBIENT_OPACITY)}`
         : 'none';
-    root.push(`--md-sys-elevation-level-${level}: ${value};`);
+    elevation.push(`--md-sys-elevation-level-${level}: ${value};`);
   }
   for (const [name, value] of Object.entries(Z_INDEX)) {
     root.push(`--md-sys-z-${name}: ${value};`);
@@ -100,6 +105,7 @@ export function generateTokensCss(): string {
   const [defaultScheme, ...otherSchemes] = MOTION_SCHEMES;
   const sections = [
     block(':root', root),
+    block(':root,\n[data-theme]', elevation),
     block(
       `:root,\n[data-motion="${defaultScheme}"]`,
       springDeclarations(defaultScheme as MotionScheme),

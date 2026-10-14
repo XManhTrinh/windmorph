@@ -42,14 +42,19 @@ import { bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface BottomSheetClassNames {
-  /** The library-owned wrapper that positions and moves the sheet. */
+  /**
+   * The outermost element, which places the sheet (where `className` and `style` go too):
+   * `fixed` to the window's bottom by default, or, for example, `absolute` to a region.
+   */
   container?: string;
   /** The dimmed layer behind a modal sheet. */
   scrim?: string;
-  /** The sheet's surface. */
+  /** The sheet's surface: its colour, corners and shadow. */
   panel?: string;
-  /** The drag handle. */
+  /** The drag handle's 48px pressable area. */
   handle?: string;
+  /** The drag handle's visible bar, inside `handle`. */
+  handleBar?: string;
   /** The row holding the close (modal) or collapse (standard) button. */
   closeRow?: string;
   /** The close or collapse icon button. */
@@ -131,6 +136,13 @@ interface BottomSheetOwnProps {
   children?: ReactNode | ((props: { close: () => void }) => ReactNode);
   /** Classes for each part, by slot. */
   classNames?: BottomSheetClassNames;
+  /**
+   * Goes with `style` on the outermost element, the container that places the sheet, so a
+   * layout class (`absolute`, `fixed`, a transform) moves the whole sheet and never clips or
+   * stretches its surface. Style the surface with `classNames.panel`; `ref`, `data-*` and
+   * other attributes go on the panel.
+   */
+  className?: string;
 }
 
 export type BottomSheetProps = BottomSheetOwnProps &
@@ -468,98 +480,107 @@ function BottomSheetPanel({
 
   return (
     <div
-      {...exitProps}
-      ref={motionRef}
-      data-exiting={exiting}
-      data-dragging={dragging}
-      style={{ '--m3-sheet-offset': `${offset}px` } as CSSProperties}
-      className={styles.motion({ class: classNames?.container })}
+      style={style}
+      className={styles.container({ class: cn(classNames?.container, className) })}
     >
       <div
-        {...panelProps}
-        // Content drags listen in the capture phase: pressable content (list items, buttons)
-        // stops its pointer events from bubbling.
-        onPointerDownCapture={(event) => {
-          panelProps.onPointerDownCapture?.(event);
-          onContentPointerDown(event);
-        }}
-        onPointerMoveCapture={(event) => {
-          panelProps.onPointerMoveCapture?.(event);
-          if (pointer.current.fromContent) movePointer(event);
-        }}
-        onPointerUpCapture={(event) => {
-          panelProps.onPointerUpCapture?.(event);
-          if (pointer.current.fromContent) endPointer(event);
-        }}
-        onPointerCancelCapture={(event) => {
-          panelProps.onPointerCancelCapture?.(event);
-          if (pointer.current.fromContent) cancelPointer();
-        }}
-        onPointerDown={(event) => {
-          panelProps.onPointerDown?.(event);
-          if (zone && !pointer.current.fromContent) onZonePointerDown(event);
-        }}
-        onPointerMove={(event) => {
-          panelProps.onPointerMove?.(event);
-          if (zone && !pointer.current.fromContent) movePointer(event);
-        }}
-        onPointerUp={(event) => {
-          panelProps.onPointerUp?.(event);
-          if (zone && !pointer.current.fromContent) endPointer(event);
-        }}
-        onPointerCancel={(event) => {
-          panelProps.onPointerCancel?.(event);
-          if (zone && !pointer.current.fromContent) cancelPointer();
-        }}
-        ref={panelRef}
-        style={style}
-        // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
-        data-tokens="md-comp-sheet-bottom-docked"
-        data-variant={variant}
-        data-detent={detentName}
+        {...exitProps}
+        ref={motionRef}
         data-exiting={exiting}
         data-dragging={dragging}
-        className={styles.panel({ class: cn(classNames?.panel, className) })}
+        style={{ '--m3-sheet-offset': `${offset}px` } as CSSProperties}
+        className={styles.motion()}
       >
-        <TriggerContext value={null}>
-          {dragHandle && (
-            <div
-              {...handleFocusProps}
-              role="button"
-              tabIndex={0}
-              data-focus-visible={handleFocusVisible || undefined}
-              aria-label={handleLabel}
-              data-dragging={dragging}
-              onPointerDown={(event) => startPointer(event, true)}
-              onPointerMove={movePointer}
-              onPointerUp={endPointer}
-              onPointerCancel={cancelPointer}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  cycle();
-                }
-              }}
-              className={styles.handle({ class: classNames?.handle })}
-            >
-              <span data-slot="drag-handle" className={styles.handleBar()} />
+        <div
+          {...panelProps}
+          // Content drags listen in the capture phase: pressable content (list items, buttons)
+          // stops its pointer events from bubbling.
+          onPointerDownCapture={(event) => {
+            panelProps.onPointerDownCapture?.(event);
+            onContentPointerDown(event);
+          }}
+          onPointerMoveCapture={(event) => {
+            panelProps.onPointerMoveCapture?.(event);
+            if (pointer.current.fromContent) movePointer(event);
+          }}
+          onPointerUpCapture={(event) => {
+            panelProps.onPointerUpCapture?.(event);
+            if (pointer.current.fromContent) endPointer(event);
+          }}
+          onPointerCancelCapture={(event) => {
+            panelProps.onPointerCancelCapture?.(event);
+            if (pointer.current.fromContent) cancelPointer();
+          }}
+          onPointerDown={(event) => {
+            panelProps.onPointerDown?.(event);
+            if (zone && !pointer.current.fromContent) onZonePointerDown(event);
+          }}
+          onPointerMove={(event) => {
+            panelProps.onPointerMove?.(event);
+            if (zone && !pointer.current.fromContent) movePointer(event);
+          }}
+          onPointerUp={(event) => {
+            panelProps.onPointerUp?.(event);
+            if (zone && !pointer.current.fromContent) endPointer(event);
+          }}
+          onPointerCancel={(event) => {
+            panelProps.onPointerCancel?.(event);
+            if (zone && !pointer.current.fromContent) cancelPointer();
+          }}
+          ref={panelRef}
+          // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
+          data-tokens="md-comp-sheet-bottom-docked"
+          data-variant={variant}
+          data-detent={detentName}
+          data-exiting={exiting}
+          data-dragging={dragging}
+          className={styles.panel({ class: classNames?.panel })}
+        >
+          <TriggerContext value={null}>
+            {dragHandle && (
+              <div
+                {...handleFocusProps}
+                role="button"
+                tabIndex={0}
+                data-focus-visible={handleFocusVisible || undefined}
+                aria-label={handleLabel}
+                data-dragging={dragging}
+                onPointerDown={(event) => startPointer(event, true)}
+                onPointerMove={movePointer}
+                onPointerUp={endPointer}
+                onPointerCancel={cancelPointer}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    cycle();
+                  }
+                }}
+                className={styles.handle({ class: classNames?.handle })}
+              >
+                <span
+                  data-slot="drag-handle"
+                  className={styles.handleBar({ class: classNames?.handleBar })}
+                />
+              </div>
+            )}
+            {showCloseButton && (
+              <div className={styles.closeRow({ class: classNames?.closeRow })}>
+                <IconButton
+                  variant="standard"
+                  icon={
+                    standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)
+                  }
+                  aria-label={standard ? labels.collapse : labels.close}
+                  onPress={standard ? () => setDetent('lower') : close}
+                  className={classNames?.closeButton}
+                />
+              </div>
+            )}
+            <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
+              {typeof children === 'function' ? children({ close }) : children}
             </div>
-          )}
-          {showCloseButton && (
-            <div className={styles.closeRow({ class: classNames?.closeRow })}>
-              <IconButton
-                variant="standard"
-                icon={standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)}
-                aria-label={standard ? labels.collapse : labels.close}
-                onPress={standard ? () => setDetent('lower') : close}
-                className={classNames?.closeButton}
-              />
-            </div>
-          )}
-          <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
-            {typeof children === 'function' ? children({ close }) : children}
-          </div>
-        </TriggerContext>
+          </TriggerContext>
+        </div>
       </div>
     </div>
   );

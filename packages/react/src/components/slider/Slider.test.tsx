@@ -227,3 +227,36 @@ describe('RangeSlider', () => {
     expect(end).toHaveAccessibleName('Highest Price');
   });
 });
+
+describe('Slider classNames', () => {
+  it('puts each slot on its part', () => {
+    const { container } = render(
+      <Slider
+        aria-label="Volume"
+        size="md"
+        step={20}
+        ticks
+        defaultValue={60}
+        startIcon={<svg data-testid="start-icon" />}
+        classNames={{
+          activeTrack: 'active-x',
+          inactiveTrack: 'inactive-x',
+          stop: 'stop-x',
+          icon: 'icon-x',
+          handle: 'handle-x',
+        }}
+      />,
+    );
+    const slots = (slot: string) => [...container.querySelectorAll(`[data-slot="${slot}"]`)];
+    expect(slots('active-track').length).toBeGreaterThan(0);
+    for (const track of slots('active-track')) expect(track).toHaveClass('active-x');
+    expect(slots('inactive-track').length).toBeGreaterThan(0);
+    for (const track of slots('inactive-track')) expect(track).toHaveClass('inactive-x');
+    expect(slots('stop-indicator').length).toBeGreaterThan(0);
+    for (const stop of slots('stop-indicator')) expect(stop).toHaveClass('stop-x');
+    for (const icon of screen.getAllByTestId('start-icon')) {
+      expect(icon.parentElement).toHaveClass('icon-x');
+    }
+    expect(slots('handle')[0]).toHaveClass('handle-x');
+  });
+});

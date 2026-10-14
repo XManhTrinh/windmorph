@@ -554,7 +554,11 @@ describe('ButtonGroup overflow', () => {
     const user = userEvent.setup();
     const onArchive = vi.fn();
     render(
-      <ButtonGroup aria-label="Actions" overflow>
+      <ButtonGroup
+        aria-label="Actions"
+        overflow
+        classNames={{ root: 'root-x', overflowButton: 'more-x', overflowMenu: 'menu-x' }}
+      >
         <Button>Reply</Button>
         <Button>Forward</Button>
         <Button leadingIcon={<Icon />} onPress={onArchive}>
@@ -564,7 +568,7 @@ describe('ButtonGroup overflow', () => {
       </ButtonGroup>,
     );
     const group = screen.getByRole('toolbar');
-    expect(group).toHaveClass('w-full', 'min-w-0');
+    expect(group).toHaveClass('w-full', 'min-w-0', 'root-x');
     // 80 + 80 + 40 fits 200px; Archive and Delete are folded.
     expect(screen.getByRole('button', { name: 'Archive', hidden: true })).toHaveAttribute(
       'data-overflow-hidden',
@@ -574,10 +578,12 @@ describe('ButtonGroup overflow', () => {
     );
     const more = screen.getByRole('button', { name: 'More options' });
     expect(more).not.toHaveAttribute('data-overflow-hidden');
+    expect(more).toHaveClass('more-x');
 
     await user.click(more);
     // The menu's code loads once a button folds; it may still be on its way.
     const items = await screen.findAllByRole('menuitem');
+    expect(screen.getByRole('menu')).toHaveClass('menu-x');
     expect(items.map((item) => item.textContent)).toEqual(['Archive', 'Delete']);
     expect(items[1]).toHaveAttribute('aria-disabled', 'true');
     await user.click(items[0]!);

@@ -90,6 +90,7 @@ export { iconButtonTokenSet } from './components/icon-button/icon-button-tokens'
 export { buttonGroupStyles } from './composites/button-group/button-group-styles';
 export {
   ButtonGroup,
+  type ButtonGroupClassNames,
   type ButtonGroupLabels,
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,
@@ -385,6 +386,7 @@ export {
   type MenuGroupProps,
   type MenuItemProps,
   type MenuKey,
+  type MenuLabels,
   type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,
@@ -568,6 +570,7 @@ export {
   type DatePickerProps,
   type DatePickerStrings,
   type DateRange,
+  type DateRangePickerClassNames,
   type DateRangePickerProps,
 } from './components/date-picker/DatePicker';
 export {

@@ -1,4 +1,12 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
+import {
+  expectAnchored,
+  expectKeyboardFocusRing,
+  expectStateLayer,
+  panelLayout,
+  POSITIONING_OVERRIDES,
+} from './overlay-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -317,6 +325,68 @@ test.describe('Menu presentation and instant', () => {
     await expect(page.getByRole('button', { name: 'More' })).toBeFocused();
   });
 
+  test("a submenu in a sheet takes the menu's place, with a way back", async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--submenus', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'File' }).click();
+    const sheet = page.getByRole('dialog', { name: 'File' });
+    const root = sheet.getByRole('menu', { name: 'File' });
+    await expect(root.getByRole('menuitem').first()).toBeFocused();
+    await settle(page);
+
+    await root.getByRole('menuitem', { name: 'Share' }).click();
+    const share = sheet.getByRole('menu', { name: 'Share' });
+    await expect(share.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    // The menu that opened it is hidden; the submenu spans the sheet below a 48px back
+    // button and its item's label, all inside the window.
+    await expect(root).toBeHidden();
+    const back = sheet.getByRole('button', { name: 'Back' });
+    const s = await box(sheet);
+    const m = await box(share);
+    const b = await box(back);
+    expect([Math.round(b.width), Math.round(b.height)]).toEqual([48, 48]);
+    expect(Math.round(m.width)).toBe(Math.round(s.width) - 16);
+    expect(m.y).toBeGreaterThanOrEqual(b.y + b.height);
+    expect(m.y + m.height).toBeLessThanOrEqual(800);
+    await expect(sheet.getByText('Share', { exact: true })).toBeVisible();
+
+    // A nested submenu replaces it in turn; back goes up one level at a time.
+    await share.getByRole('menuitem', { name: 'Export as' }).click();
+    const exportAs = sheet.getByRole('menu', { name: 'Export as' });
+    await expect(exportAs.getByRole('menuitem', { name: 'PDF' })).toBeFocused();
+    await expect(share).toBeHidden();
+    await expect(root).toBeHidden();
+    await sheet.getByRole('button', { name: 'Back' }).click();
+    await expect(exportAs).toHaveCount(0);
+    await expect(share).toBeVisible();
+    await expect(share.getByRole('menuitem', { name: 'Export as' })).toBeFocused();
+
+    // ← goes back with the keyboard, to the item that opened it.
+    await page.keyboard.press('ArrowLeft');
+    await expect(share).toHaveCount(0);
+    await expect(root).toBeVisible();
+    await expect(root.getByRole('menuitem', { name: 'Share' })).toBeFocused();
+
+    // → opens it again, and an action closes the sheet.
+    await page.keyboard.press('ArrowRight');
+    await expect(share.getByRole('menuitem', { name: 'Email' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('last')).toHaveText('Last action: email');
+    await expect(sheet).toBeHidden();
+    await expect(page.getByRole('button', { name: 'File' })).toBeFocused();
+  });
+
+  test('hovering a submenu item in a sheet does not open it', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-menu--submenus', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'File' }).click();
+    const sheet = page.getByRole('dialog', { name: 'File' });
+    await settle(page);
+    await sheet.getByRole('menuitem', { name: 'Share' }).hover();
+    await page.waitForTimeout(400);
+    await expect(sheet.getByRole('menu', { name: 'Share' })).toHaveCount(0);
+  });
+
   test('presentation="auto" stays a popover on a wide window', async ({ page }) => {
     const menu = await openGrouped(page, {}, { presentation: 'auto' });
     await expect(menu).toBeVisible();
@@ -337,4 +407,60 @@ test.describe('Menu presentation and instant', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0, { timeout: 100 });
   });
+});
+
+test.describe('Menu layout safety', () => {
+  /**
+   * Opens the story's menu from its trigger, checks it (anchored to the trigger unless the
+   * override positions the menu itself), picks Delete from the keyboard and checks focus
+   * returns to the trigger.
+   */
+  async function openCheckAndPick(page: Page, override: string, anchored: boolean) {
+    const target = page.getByTestId('target');
+    await target.click();
+    const menu = page.getByRole('menu');
+    await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeFocused();
+    await settle(page);
+    const panel = await panelLayout(menu);
+    expect(panel).toMatchObject({ radius: '16px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') {
+      expect(panel.width).toBeGreaterThanOrEqual(112);
+      expect(panel.width).toBeLessThanOrEqual(280);
+    }
+    // Layout height: a rotate transform enlarges the on-screen box.
+    expect(
+      await menu
+        .getByRole('menuitem', { name: 'Delete' })
+        .evaluate((el) => (el as HTMLElement).offsetHeight),
+    ).toBe(44);
+    if (anchored) await expectAnchored(menu, target, 0);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('count')).toHaveText('Last action: delete');
+    await expect(menu).toHaveCount(0);
+    await expect(target).toBeFocused();
+  }
+
+  // The trigger keeps its size, corners, state layer and focus ring, and the menu opens
+  // against it wherever the trigger is placed.
+  layoutSafetySuite('components-menu--layout-override', {
+    height: 40,
+    width: 40,
+    radius: '20px',
+    interactive: false,
+    async check(page, target) {
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      await openCheckAndPick(page, 'none', true);
+    },
+  });
+
+  // A layout class on the menu (`className`, on its outermost element, the box React Aria
+  // places) leaves it visible, sized and keyboard-usable.
+  for (const override of OVERRIDES) {
+    test(`panel · ${override}`, async ({ page }) => {
+      await openStory(page, 'components-menu--layout-override', {}, { override, part: 'panel' });
+      await openCheckAndPick(page, override, !POSITIONING_OVERRIDES.includes(override));
+    });
+  }
 });

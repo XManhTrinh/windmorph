@@ -85,6 +85,11 @@ export interface SelectClassNames extends FieldShellClassNames, OptionListClassN
   value?: string;
   /** With `searchable`: the search field. */
   search?: string;
+  /**
+   * The bottom sheet the options open in (`presentation="sheet"`, or `"auto"` on compact
+   * windows): the sheet's surface, as its `classNames.panel`.
+   */
+  sheet?: string;
 }
 
 /** React Aria props this API names the library's way (`disabled`, `open`…), or leaves out. */
@@ -533,6 +538,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
         <LazyBottomSheet
           open={state.isOpen}
           onOpenChange={(open) => (open ? state.open() : state.close())}
+          classNames={classNames?.sheet ? { panel: classNames.sheet } : undefined}
           {...(typeof label === 'string'
             ? { 'aria-label': label }
             : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] ?? '' })}

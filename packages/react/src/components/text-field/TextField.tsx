@@ -54,6 +54,10 @@ export interface TextFieldClassNames {
   counter?: string;
   /** The built-in error icon. */
   errorIcon?: string;
+  /** The outlined field's border (a `<fieldset>`, notched for the floated label). */
+  outline?: string;
+  /** The filled field's active indicator, the line along the container's bottom. */
+  activeIndicator?: string;
 }
 
 /** Words the text field announces; override them for other languages. */
@@ -374,7 +378,11 @@ export function TextField(props: TextFieldProps) {
         className={styles.container({ class: classNames?.container })}
       >
         {variant === 'outlined' && (
-          <fieldset aria-hidden="true" data-slot="outline" className={styles.outline()}>
+          <fieldset
+            aria-hidden="true"
+            data-slot="outline"
+            className={styles.outline({ class: classNames?.outline })}
+          >
             {hasLabel && (
               <legend className={styles.notch()}>
                 <span className={styles.notchClip()}>
@@ -450,7 +458,11 @@ export function TextField(props: TextFieldProps) {
             {requiredMark}
           </FieldLabel>
         )}
-        <span aria-hidden="true" data-slot="active-indicator" className={styles.indicator()} />
+        <span
+          aria-hidden="true"
+          data-slot="active-indicator"
+          className={styles.indicator({ class: classNames?.activeIndicator })}
+        />
       </div>
       {(supportingText || showError || showCounter) && (
         <div className={styles.supporting()}>

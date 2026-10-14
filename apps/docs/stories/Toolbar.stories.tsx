@@ -375,3 +375,35 @@ export const LayoutOverride: StoryObj<{
     );
   },
 };
+
+/** Layout safety (architecture §10) for the docked toolbar. */
+export const DockedLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: function DockedLayoutOverrideStory({ override, transformedAncestor }) {
+    const [count, setCount] = useState(0);
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
+        <p className="mb-4 text-body-medium" data-testid="count">
+          Pressed {count}
+        </p>
+        <DockedToolbar
+          aria-label="Message actions"
+          data-testid="target"
+          className={`w-[360px] ${LAYOUT_OVERRIDES[override]}`}
+        >
+          <IconButton
+            icon={<SearchIcon />}
+            aria-label="Search"
+            onPress={() => setCount((c) => c + 1)}
+          />
+          <IconButton icon={<StarIcon />} aria-label="Starred" />
+          <IconButton icon={<SendIcon />} aria-label="Sent" />
+        </DockedToolbar>
+      </div>
+    );
+  },
+};

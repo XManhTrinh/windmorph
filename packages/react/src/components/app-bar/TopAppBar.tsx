@@ -16,10 +16,18 @@ export interface TopAppBarClassNames {
   navigation?: string;
   /** The top row's title block. */
   title?: string;
+  /** The top row's title text. */
+  titleText?: string;
+  /** The top row's subtitle text. */
+  subtitleText?: string;
   /** The trailing slot holding `actions`. */
   actions?: string;
   /** The expanded title row of medium and large bars. */
   expandedRow?: string;
+  /** The expanded row's title text. */
+  expandedTitle?: string;
+  /** The expanded row's subtitle text. */
+  expandedSubtitle?: string;
   /** The accessory row below the title rows (`bottom`). */
   bottom?: string;
 }
@@ -149,11 +157,14 @@ export function TopAppBar({
             aria-hidden={hideTopTitle || undefined}
             className={styles.title({ class: classNames?.title })}
           >
-            <div data-slot="title" className={styles.titleText()}>
+            <div data-slot="title" className={styles.titleText({ class: classNames?.titleText })}>
               {title}
             </div>
             {subtitle != null && (
-              <div data-slot="subtitle" className={styles.subtitleText()}>
+              <div
+                data-slot="subtitle"
+                className={styles.subtitleText({ class: classNames?.subtitleText })}
+              >
                 {subtitle}
               </div>
             )}
@@ -170,8 +181,14 @@ export function TopAppBar({
             aria-hidden={!hideTopTitle || undefined}
             className={styles.expandedRow({ class: classNames?.expandedRow })}
           >
-            <div className={styles.expandedTitle()}>{title}</div>
-            {subtitle != null && <div className={styles.expandedSubtitle()}>{subtitle}</div>}
+            <div className={styles.expandedTitle({ class: classNames?.expandedTitle })}>
+              {title}
+            </div>
+            {subtitle != null && (
+              <div className={styles.expandedSubtitle({ class: classNames?.expandedSubtitle })}>
+                {subtitle}
+              </div>
+            )}
           </div>
         )}
         {bottom != null && (

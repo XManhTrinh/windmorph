@@ -94,6 +94,18 @@ describe('styles.css', () => {
     expect(rule(css, '.focus-ring')).toContain('outline');
   });
 
+  it("resets an overlay box's insets outside the utilities layer, so a consumer inset loses", () => {
+    expect(rule(css, '[data-overlay-placement]')).toContain('inset: auto');
+    const at = css.indexOf('[data-overlay-placement]');
+    // Not inside any block (a `@layer` above all), so it sits outside the layers.
+    const open: string[] = [];
+    for (const match of css.slice(0, at).matchAll(/@layer[^{;]*\{|\{|\}/g)) {
+      if (match[0] === '}') open.pop();
+      else open.push(match[0]);
+    }
+    expect(open).toEqual([]);
+  });
+
   it('registers the animatable state-layer properties', () => {
     expect(css).toContain('@property --m3-state-opacity');
     expect(css).toContain('@property --m3-ripple-radius');
@@ -116,6 +128,21 @@ describe('generated CSS', () => {
     expect(tokens).toContain('--md-sys-typescale-display-large-size: 3.5625rem;');
     expect(tokens).toContain('--md-sys-typescale-display-large-tracking: -0.0125rem;');
     expect(tokens).not.toMatch(/--md-sys-typescale-[\w-]+-(size|line-height|tracking): [-\d.]+px;/);
+  });
+
+  it('declares the elevation shadows on every theme scope, so they take its shadow colour', () => {
+    const tokens = generateTokensCss();
+    const scoped = rule(tokens, ':root,\n[data-theme] {');
+    for (const level of [0, 1, 2, 3, 4, 5]) {
+      expect(scoped).toContain(`--md-sys-elevation-level-${level}:`);
+    }
+    // The same values as before, read from the shadow colour wherever they're declared.
+    expect(scoped).toContain(
+      '--md-sys-elevation-level-3: 0 1px 3px 0 color-mix(in srgb, var(--md-sys-color-shadow) 30%, transparent), 0 4px 8px 3px color-mix(in srgb, var(--md-sys-color-shadow) 15%, transparent);',
+    );
+    expect(scoped).toContain('--md-sys-elevation-level-0: none;');
+    // Only there: not also in the root-only block.
+    expect(tokens.match(/--md-sys-elevation-level-3:/g)).toHaveLength(1);
   });
 
   it('is deterministic', () => {

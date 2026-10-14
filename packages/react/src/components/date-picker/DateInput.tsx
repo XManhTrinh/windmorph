@@ -3,7 +3,7 @@
 import { toCalendarDate, type CalendarDate, type DateValue } from '@internationalized/date';
 import { useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import { useLocale } from 'react-aria';
-import { TextField } from '../text-field/TextField';
+import { TextField, type TextFieldClassNames } from '../text-field/TextField';
 import { dateFormat, parseDate } from './date-format';
 
 /** Words of a typed date field, for localisation. */
@@ -46,7 +46,7 @@ export interface DateInputProps {
   style?: CSSProperties | undefined;
   /** `data-*` attributes for the root. */
   data?: Record<string, unknown> | undefined;
-  classNames?: { root?: string; input?: string } | undefined;
+  classNames?: TextFieldClassNames | undefined;
   ref?: Ref<HTMLDivElement> | undefined;
   inputRef?: Ref<HTMLInputElement> | undefined;
 }

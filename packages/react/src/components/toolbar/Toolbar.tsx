@@ -2,7 +2,6 @@
 
 import {
   useContext,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -28,6 +27,7 @@ import { IconFaces } from '../../primitives/IconFaces';
 import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import type { FabElevation } from '../fab/fab-styles';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
@@ -330,20 +330,10 @@ function FloatingToolbarRoot({
     [color, expanded, orientation],
   );
   // Once per toolbar, however often it collapses and leaves while scrolling.
-  const collapsesAndExits = !visible && !expandedProp;
-  const warnedCollapseAndExit = useRef(false);
-  useEffect(() => {
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      collapsesAndExits &&
-      !warnedCollapseAndExit.current
-    ) {
-      warnedCollapseAndExit.current = true;
-      console.warn(
-        "[@windmorph/react] A FloatingToolbar shouldn't both collapse and leave the screen (M3): use `expanded` or `visible`, not both.",
-      );
-    }
-  }, [collapsesAndExits]);
+  useWarnOnce(
+    !visible && !expandedProp,
+    "[@windmorph/react] A FloatingToolbar shouldn't both collapse and leave the screen (M3): use `expanded` or `visible`, not both.",
+  );
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (
@@ -444,6 +434,8 @@ export interface ToolbarFabClassNames {
   root?: string;
   /** The icon. */
   icon?: string;
+  /** The built-in plain tooltip that shows the label (`tooltip`). */
+  tooltip?: string;
 }
 
 type AccessibleName =
@@ -557,7 +549,7 @@ export function ToolbarFab({
   return (
     <TooltipTrigger>
       {fab}
-      <LazyTooltip>{label}</LazyTooltip>
+      <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
 }

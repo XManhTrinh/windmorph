@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { layoutSafetySuite } from './layout-safety';
+import { layoutSafetySuite, OVERRIDES } from './layout-safety';
+import { expectKeyboardFocusRing, expectStateLayer, panelLayout } from './overlay-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -578,5 +579,69 @@ test.describe('Picker dialogs in short windows (2026-10-13)', () => {
         await expect(dialog).toBeHidden();
       });
     }
+  }
+});
+
+test.describe('TimePicker layout safety', () => {
+  layoutSafetySuite('components-pickers--time-layout-override', {
+    // The 80px selectors, then the 256px dial 36px below; the selectors and the 52px
+    // period selector 12px beside them set the width.
+    height: 372,
+    width: 280,
+    radius: '0px',
+    interactive: false,
+    async check(page, target) {
+      await target.getByRole('radio', { name: 'AM' }).click();
+      await expect(page.getByTestId('count')).toHaveText('Value 02:35:00');
+    },
+  });
+});
+
+test.describe('PickerDialog layout safety', () => {
+  /**
+   * Opens the dialog from its button: it takes focus, sits in the window at 360px with
+   * 28px corners, and Cancel closes it and returns focus to the button.
+   */
+  async function openAndCancel(page: Page, override: string) {
+    const target = page.getByTestId('target');
+    await target.click();
+    const dialog = page.getByRole('dialog', { name: 'Select date' });
+    await expect(dialog).toBeVisible();
+    await expect
+      .poll(() => dialog.evaluate((el) => el.contains(document.activeElement)))
+      .toBe(true);
+    await settle(page);
+    const panel = await panelLayout(dialog);
+    expect(panel).toMatchObject({ radius: '28px', inWindow: true, onTop: true });
+    if (override !== 'fullWidth') expect(panel.width).toBe(360);
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(target).toBeFocused();
+  }
+
+  // The button that opens it keeps its size, corners, state layer and focus ring.
+  layoutSafetySuite('components-pickers--dialog-layout-override', {
+    height: 40,
+    radius: '20px',
+    interactive: false,
+    directions: ['ltr'],
+    async check(page, target) {
+      await expectStateLayer(target);
+      await expectKeyboardFocusRing(page, target);
+      await openAndCancel(page, 'none');
+    },
+  });
+
+  // A layout class on the dialog (`className`, on its outermost element).
+  for (const override of OVERRIDES) {
+    test(`panel · ${override}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-pickers--dialog-layout-override',
+        {},
+        { override, part: 'panel' },
+      );
+      await openAndCancel(page, override);
+    });
   }
 });

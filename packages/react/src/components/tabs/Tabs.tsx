@@ -61,10 +61,16 @@ export const Tab = Item as unknown as (props: TabProps) => JSX.Element;
 export interface TabsClassNames {
   /** The outer container, merged with `className`. */
   root?: string;
+  /** The row's scrolling box around `list` (it carries the row's surface when aligned). */
+  scroller?: string;
   /** The row of tabs (`role="tablist"`). */
   list?: string;
   /** Every tab. */
   tab?: string;
+  /** Each tab's icon. */
+  icon?: string;
+  /** Each tab's label. */
+  label?: string;
   /** The active indicator under the selected tab. */
   indicator?: string;
   /** The selected tab's panel. */
@@ -211,7 +217,7 @@ function TabsInner({
 
   return (
     <>
-      <div ref={scrollerRef} className={styles.scroller()}>
+      <div ref={scrollerRef} className={styles.scroller({ class: classNames?.scroller })}>
         <div
           {...tabListProps}
           ref={listRef}
@@ -230,6 +236,8 @@ function TabsInner({
               variant={variant ?? 'primary'}
               styles={styles}
               className={classNames?.tab}
+              iconClassName={classNames?.icon}
+              labelClassName={classNames?.label}
             />
           ))}
           <span
@@ -386,7 +394,9 @@ interface TabButtonProps {
   layout: 'text' | 'icon-top' | 'icon-start' | 'icon-only';
   variant: TabsVariant;
   styles: ReturnType<typeof tabsStyles>;
-  className?: string;
+  className?: string | undefined;
+  iconClassName?: string | undefined;
+  labelClassName?: string | undefined;
 }
 
 function TabButton({
@@ -398,6 +408,8 @@ function TabButton({
   variant,
   styles,
   className,
+  iconClassName,
+  labelClassName,
 }: TabButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
@@ -440,18 +452,23 @@ function TabButton({
       className={styles.tab({ class: className })}
     >
       {icon != null && (
-        <span aria-hidden="true" data-tab-part="" data-slot="icon" className={styles.icon()}>
+        <span
+          aria-hidden="true"
+          data-tab-part=""
+          data-slot="icon"
+          className={styles.icon({ class: iconClassName })}
+        >
           {badgeOnIcon && badgeNode ? <BadgedBox badge={badgeNode}>{icon}</BadgedBox> : icon}
         </span>
       )}
       {item.rendered != null &&
         (badge != null && !badgeOnIcon ? (
           <span data-tab-part="" className={styles.text()}>
-            <span className={styles.label()}>{item.rendered}</span>
+            <span className={styles.label({ class: labelClassName })}>{item.rendered}</span>
             {badgeNode}
           </span>
         ) : (
-          <span data-tab-part="" className={styles.label()}>
+          <span data-tab-part="" className={styles.label({ class: labelClassName })}>
             {item.rendered}
           </span>
         ))}

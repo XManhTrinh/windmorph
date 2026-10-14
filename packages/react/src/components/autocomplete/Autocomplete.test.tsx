@@ -211,3 +211,14 @@ describe('Autocomplete', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Autocomplete classNames', () => {
+  it('puts the field slots and the empty slot on their parts', async () => {
+    const { container } = render(
+      <Cities variant="outlined" classNames={{ outline: 'outline-x', empty: 'empty-x' }} />,
+    );
+    expect(container.querySelector('[data-slot="outline"]')).toHaveClass('outline-x');
+    await userEvent.type(input(), 'zzz');
+    expect(screen.getByRole('status')).toHaveClass('empty-x');
+  });
+});

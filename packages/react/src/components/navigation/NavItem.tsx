@@ -31,6 +31,8 @@ export interface NavItemClassNames {
   pill?: string;
   /** The active indicator: the filled pill shown on the current destination. */
   indicator?: string;
+  /** The state layer over the pill (hover, focus and press). */
+  stateLayer?: string;
   /** The icon. */
   icon?: string;
   /** The label text. */
@@ -242,7 +244,7 @@ export function NavItem({
           aria-hidden="true"
           data-rippling={rippling || undefined}
           data-disabled={action.disabled || undefined}
-          className={styles.stateLayer()}
+          className={styles.stateLayer({ class: classNames?.stateLayer })}
         />
         <span className={styles.content()}>
           <span
