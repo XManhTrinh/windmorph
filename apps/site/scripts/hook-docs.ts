@@ -35,7 +35,7 @@ export function docText(parts: ts.SymbolDisplayPart[]): string {
 }
 
 /** A symbol's JSDoc text, with `@default` pulled out. */
-function docsOf(
+export function docsOf(
   symbol: ts.Symbol,
   checker: ts.TypeChecker,
 ): { description?: string; defaultValue?: string } {
@@ -59,7 +59,11 @@ function printType(type: ts.Type, checker: ts.TypeChecker, optional: boolean): s
  * functions, primitives and library types (a `RefObject`, a `MotionValue`) are
  * kept whole: their members aren't the hook's API.
  */
-function objectFields(type: ts.Type, checker: ts.TypeChecker, prefix: string): PropsRecord[] {
+export function objectFields(
+  type: ts.Type,
+  checker: ts.TypeChecker,
+  prefix: string,
+): PropsRecord[] {
   const target = checker.getNonNullableType(type);
   if (!(target.flags & ts.TypeFlags.Object)) return [];
   if (checker.isArrayType(target) || checker.isTupleType(target)) return [];
@@ -172,7 +176,7 @@ export function documentHooks(
 }
 
 /** A tsconfig's compiler options. */
-function compilerOptionsOf(tsconfigPath: string): ts.CompilerOptions {
+export function compilerOptionsOf(tsconfigPath: string): ts.CompilerOptions {
   const config = ts.readConfigFile(tsconfigPath, (path) => ts.sys.readFile(path));
   return ts.parseJsonConfigFileContent(config.config, ts.sys, tsconfigPath.replace(/\/[^/]+$/, ''))
     .options;
