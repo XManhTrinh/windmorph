@@ -375,6 +375,7 @@ export const coreChecks = {
   },
   radioGroupStyles: { kind: 'value', run: () => Core.radioGroupStyles() },
   radioStyles: { kind: 'value', run: () => Core.radioStyles() },
+  radioTokenSet: read(Core.radioTokenSet),
   Switch: { kind: 'component', render: () => <Core.Switch>Wi-Fi</Core.Switch> },
   switchStyles: { kind: 'value', run: () => Core.switchStyles() },
 

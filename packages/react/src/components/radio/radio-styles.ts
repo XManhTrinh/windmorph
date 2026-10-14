@@ -7,7 +7,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * on the default effects spring. Unselected rings are on-surface-variant and darken to
  * on-surface on hover, focus and press; selected rings are primary; disabled are
  * on-surface at 38%. M3 radio buttons have no error colour. The control and state layer
- * come from `selectionControlStyles`. Every class is written out in full.
+ * come from `selectionControlStyles`. The selected and unselected colours come from the radio
+ * button's component tokens (`radio-tokens.ts`, `--md-comp-radio-button-*`), resolved on the
+ * ring; a consumer class (`classNames.ring`) still wins in `cn()`. Every class is written
+ * out in full.
  */
 
 /** Variant definitions for {@link Radio}. */
@@ -16,14 +19,16 @@ export const radioStyles = tv({
   slots: {
     ring: [
       'relative inline-flex size-[20px] items-center justify-center rounded-full',
-      'border-2 border-solid border-on-surface-variant text-primary',
+      'border-2 border-solid border-[color:var(--_md-comp-radio-button-unselected-icon-color)]',
+      // The dot is `bg-current`.
+      'text-[color:var(--_md-comp-radio-button-selected-icon-color)]',
       '[transition-property:border-color,color]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'group-data-hovered/control:border-on-surface',
       'group-data-focus-visible/control:border-on-surface',
       'group-data-pressed/control:border-on-surface',
-      'group-data-selected/control:border-primary',
+      'group-data-selected/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
       'group-data-disabled/control:border-on-surface/38 group-data-disabled/control:text-on-surface/38',
       // Stacked so disabled also wins over the selected colour (equal specificity otherwise).
       'group-data-disabled/control:group-data-selected/control:border-on-surface/38',

@@ -11,3 +11,5 @@
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
+--md-comp-radio-button-selected-icon-color
+--md-comp-radio-button-unselected-icon-color

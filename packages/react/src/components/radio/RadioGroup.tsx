@@ -214,7 +214,9 @@ export function Radio({
       rootProps={mergeProps(labelProps, hoverProps)}
       inputProps={mergeProps(inputProps, focusProps)}
       inputRef={domInputRef}
-      rootData={data}
+      // The ring resolves the component tokens itself (list items draw it too); the root
+      // is marked as well, so the tokens sit on the element that carries the state.
+      rootData={{ ...data, 'data-tokens': 'md-comp-radio-button' }}
       state={{
         'data-selected': isSelected || undefined,
         'data-disabled': isDisabled || undefined,
