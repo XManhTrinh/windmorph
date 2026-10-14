@@ -113,6 +113,7 @@ export {
   type FabSize,
   type FabStyleProps,
 } from './components/fab/fab-styles';
+export { extendedFabTokenSet, fabTokenSet } from './components/fab/fab-tokens';
 export {
   CircularProgressIndicator,
   LinearProgressIndicator,
@@ -219,6 +220,12 @@ export {
   type ChipStyleProps,
 } from './components/chip/chip-styles';
 export {
+  assistChipTokenSet,
+  filterChipTokenSet,
+  inputChipTokenSet,
+  suggestionChipTokenSet,
+} from './components/chip/chip-tokens';
+export {
   SplitButton,
   type SplitButtonClassNames,
   type SplitButtonProps,
@@ -246,6 +253,7 @@ export {
   type FabMenuSize,
   type FabMenuStyleProps,
 } from './components/fab-menu/fab-menu-styles';
+export { fabMenuTokenSet } from './components/fab-menu/fab-menu-tokens';
 export {
   LoadingIndicator,
   type LoadingIndicatorClassNames,

@@ -269,6 +269,7 @@ export function FabMenu({
             onPress: () => setOpen(!isOpen),
           })}
       data-open={(isOpen && !isMenu) || undefined}
+      data-slot="button"
       className={styles.button({ class: classNames?.button })}
     >
       <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
@@ -307,6 +308,8 @@ export function FabMenu({
       {...rest}
       ref={rootRef}
       inert={!visible || undefined}
+      // The component tokens' hook (fab-menu-tokens.ts).
+      data-tokens="md-comp-fab-menu"
       data-open={isOpen || undefined}
       data-presentation={presentation}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -437,6 +440,7 @@ export function FabMenuItem({
     inert: !visible,
     'data-visible': visible || undefined,
     'data-fab-menu-item': '',
+    'data-slot': 'item',
     style: { ...style, width: visible ? width : 0 },
     className: styles.item({ class: cn(classNames?.root, className) }),
     onPress: (event: Parameters<NonNullable<ButtonBaseActionProps['onPress']>>[0]) => {

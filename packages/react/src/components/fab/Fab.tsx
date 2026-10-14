@@ -111,7 +111,13 @@ export function Fab({
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
   const fab = (
-    <ButtonBase {...baseProps}>
+    <ButtonBase
+      {...baseProps}
+      // The component tokens' hooks (fab-tokens.ts), also public styling hooks for apps.
+      data-tokens="md-comp-fab"
+      data-color={color ?? 'primary-container'}
+      data-size={size ?? 'default'}
+    >
       <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
         {icon}
       </span>
@@ -207,7 +213,14 @@ export function ExtendedFab({
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
   const fab = (
-    <ButtonBase {...baseProps} data-expanded={!collapsed}>
+    <ButtonBase
+      {...baseProps}
+      // The component tokens' hooks (fab-tokens.ts), also public styling hooks for apps.
+      data-tokens="md-comp-extended-fab"
+      data-color={color ?? 'primary-container'}
+      data-size={size ?? 'sm'}
+      data-expanded={!collapsed}
+    >
       <span className={styles.content({ class: classNames?.content })}>
         {icon && (
           <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>

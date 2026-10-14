@@ -19,7 +19,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   rings inside the scroll container; that ring lets clicks through.
  *
  * Colour styles are m3.material.io's primary / secondary / tertiary sets; Compose's
- * defaults are the primary set. Every class is written out in full so Tailwind can find it.
+ * defaults are the primary set. The close button's and the items' corners come from the
+ * component tokens (`fab-menu-tokens.ts`, `--md-comp-fab-menu-*`), resolved on the root.
+ * Every class is written out in full so Tailwind can find it.
  */
 
 const colors = {
@@ -59,8 +61,8 @@ export const fabMenuStyles = tv({
     button: [
       'group/fab-menu inline-flex shrink-0 cursor-pointer items-center justify-center select-none',
       'state-layer focus-ring',
-      // Open: the 56px close button, its corners half its size (a literal, so they interpolate).
-      'data-open:size-[56px] data-open:rounded-[28px]',
+      // Open: the 56px close button, its corners half its size (a length, so they interpolate).
+      'data-open:size-[56px] data-open:rounded-[var(--_md-comp-fab-menu-close-button-container-shape)]',
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
       // Size and corners on the fast spatial spring; colours on fast effects (no overshoot).
       '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
@@ -83,7 +85,8 @@ export const fabMenuStyles = tv({
       'max-h-[calc(100dvh-16px)]',
     ],
     item: [
-      'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden rounded-corner-full select-none',
+      'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden select-none',
+      'rounded-[var(--_md-comp-fab-menu-menu-item-container-shape)]',
       'opacity-0 data-visible:opacity-100',
       'state-layer focus-ring',
       '[--m3-transition-property:width,opacity]',
