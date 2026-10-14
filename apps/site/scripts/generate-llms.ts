@@ -34,7 +34,6 @@ import {
   componentTabHref,
   type ComponentTab,
 } from '../content/components/doc';
-import { COMPONENT_SLOTS } from '../content/components/slots';
 import { htmlToMarkdown } from '../lib/html-to-markdown';
 import {
   SITE_DESCRIPTION,
@@ -148,40 +147,34 @@ function readProps(name: string): ComponentPropsFile | null {
   }
 }
 
-/** A component page's props tables and `classNames` slots, from the generated props JSON. */
+/** A component page's props tables, from the generated props JSON. */
 function propsMarkdown(meta: ComponentMeta, level: number): string {
   const blocks: string[] = [];
   for (const name of meta.propsComponents) {
     const props = readProps(name)?.props ?? [];
-    const slots = COMPONENT_SLOTS[name] ?? [];
-    if (props.length === 0 && slots.length === 0) continue;
+    if (props.length === 0) continue;
     blocks.push(`${'#'.repeat(level)} ${name} props`);
-    if (props.length > 0) {
-      blocks.push(
-        [
-          '| Prop | Type | Default | Description |',
-          '| --- | --- | --- | --- |',
-          // An object prop's keys (`labels.close`) follow it, as in the page's table.
-          ...props
-            .flatMap((prop) => [prop, ...(prop.keys ?? [])])
-            .map((prop) => {
-              const name = `${code(prop.name)}${prop.required ? ' (required)' : ''}`;
-              const fallback = propDefault(prop);
-              return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(propDescription(prop))} |`;
-            }),
-        ].join('\n'),
-      );
-    }
-    if (slots.length > 0) {
-      blocks.push(`\`classNames\` slots: ${slots.map((slot) => code(slot)).join(', ')}.`);
-    }
+    blocks.push(
+      [
+        '| Prop | Type | Default | Description |',
+        '| --- | --- | --- | --- |',
+        // An object prop's keys (`labels.close`) follow it, as in the page's table.
+        ...props
+          .flatMap((prop) => [prop, ...(prop.keys ?? [])])
+          .map((prop) => {
+            const name = `${code(prop.name)}${prop.required ? ' (required)' : ''}`;
+            const fallback = propDefault(prop);
+            return `| ${name} | ${code(cell(propType(prop)))} | ${fallback ? code(cell(fallback)) : ''} | ${cell(propDescription(prop))} |`;
+          }),
+      ].join('\n'),
+    );
   }
   return blocks.join('\n\n');
 }
 
 /**
  * One tab of a component page as Markdown: its panel's content, with the props section
- * rebuilt from the props JSON (one table per component, its keys and slots included).
+ * rebuilt from the props JSON (one table per component, its object props' keys included).
  */
 function tabMarkdown(meta: ComponentMeta, tab: ComponentTab, headingOffset: number): string {
   const path = componentTabHref(meta.slug, tab);

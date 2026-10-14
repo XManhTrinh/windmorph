@@ -62,8 +62,6 @@ import { TopAppBarBody } from './top-app-bar';
 import { COMPONENT_META, type ComponentMeta } from './catalog';
 import type { ComponentDoc } from './doc';
 
-export { COMPONENT_SLOTS } from './slots';
-
 // Re-export the pure catalog surface so existing server imports keep resolving via registry.
 export type {
   ComponentGroup,

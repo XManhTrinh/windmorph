@@ -1,28 +1,29 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { COMPONENT_SLOTS } from './slots';
+import type { ComponentPropsFile } from '../../lib/component-props';
 
 /**
- * The `classNames` slots listed for each core component match its `classNames` prop's type
- * exactly, read from the library's TypeScript sources, so the props tables never drift.
+ * Every `classNames` slot of every core component is documented: the props list's
+ * `classNames` keys (from the generated props JSON, `pnpm --filter site generate`) match the
+ * prop's type exactly, read here independently from the library's TypeScript sources.
  */
 
 const uiRoot = resolve(process.cwd(), '../../packages/react');
 const entry = resolve(uiRoot, 'src/index.ts');
 
 /**
- * The core's component exports (callable PascalCase values), and for each one with a
- * `classNames` prop, that prop's keys.
+ * For each of the core's component exports (callable PascalCase values) with a `classNames`
+ * prop, that prop's keys.
  */
-function coreSlots(): { components: Set<string>; slots: Map<string, string[]> } {
+function coreSlots(): { slots: Map<string, string[]> } {
   const tsconfigPath = resolve(uiRoot, 'tsconfig.json');
   const config = ts.readConfigFile(tsconfigPath, (path) => ts.sys.readFile(path));
   const { options } = ts.parseJsonConfigFileContent(config.config, ts.sys, uiRoot);
   const program = ts.createProgram({ rootNames: [entry], options });
   const checker = program.getTypeChecker();
   const module = checker.getSymbolAtLocation(program.getSourceFile(entry)!)!;
-  const components = new Set<string>();
   const slots = new Map<string, string[]>();
   for (const symbol of checker.getExportsOfModule(module)) {
     const name = symbol.getName();
@@ -33,7 +34,6 @@ function coreSlots(): { components: Set<string>; slots: Map<string, string[]> } 
     const [signature] = type.getCallSignatures();
     const props = signature?.getParameters()[0];
     if (!props) continue;
-    components.add(name);
     const propsType = checker.getTypeOfSymbol(props);
     const classNames = checker.getPropertyOfType(propsType, 'classNames');
     if (!classNames) continue;
@@ -43,25 +43,30 @@ function coreSlots(): { components: Set<string>; slots: Map<string, string[]> } 
       checker.getPropertiesOfType(slotType).map((slot) => slot.getName()),
     );
   }
-  return { components, slots };
+  return { slots };
+}
+
+/** The `classNames` keys the generated props JSON lists for a component, as slot names. */
+function documentedSlots(name: string): string[] | undefined {
+  const file = resolve(process.cwd(), '.generated/props', `${name}.json`);
+  if (!existsSync(file)) return undefined;
+  const json = JSON.parse(readFileSync(file, 'utf8')) as ComponentPropsFile;
+  return json.props
+    .find((prop) => prop.name === 'classNames')
+    ?.keys?.map((key) => key.name.slice('classNames.'.length));
 }
 
 describe('classNames slots', () => {
-  const { components, slots: core } = coreSlots();
+  const { slots: core } = coreSlots();
 
   it('finds the core components with classNames', () => {
     expect(core.get('Button')).toEqual(['root', 'content', 'label', 'icon']);
   });
 
-  it('lists no slots for a core component without classNames', () => {
-    const listed = Object.keys(COMPONENT_SLOTS).filter((name) => components.has(name));
-    expect(listed.filter((name) => !core.has(name))).toEqual([]);
-  });
-
-  it('lists every core component’s slots exactly', () => {
+  it("lists every core component's slots exactly, as its classNames keys", () => {
     const wrong = [...core].flatMap(([name, slots]) => {
-      const listed = COMPONENT_SLOTS[name];
-      if (!listed) return [`${name}: not listed`];
+      const listed = documentedSlots(name);
+      if (!listed) return [`${name}: no classNames keys`];
       const missing = slots.filter((slot) => !listed.includes(slot));
       const extra = listed.filter((slot) => !slots.includes(slot));
       return missing.length || extra.length || listed.length !== slots.length

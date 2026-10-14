@@ -1,9 +1,5 @@
 import { m3GuidelinesUrl } from '../content/components/catalog';
-import {
-  COMPONENT_PAGE_MAP,
-  COMPONENT_SLOTS,
-  type ComponentPageMeta,
-} from '../content/components/registry';
+import { COMPONENT_PAGE_MAP, type ComponentPageMeta } from '../content/components/registry';
 import {
   COMPONENT_TABS,
   componentTabHref,
@@ -45,7 +41,6 @@ export function loadComponentDoc(page: ComponentPageMeta): Promise<ComponentDoc>
 interface PropsTableData {
   name: string;
   json: ComponentPropsFile | null;
-  slots?: string[];
 }
 
 /** Every documented component's generated props JSON (a missing file is skipped). */
@@ -54,7 +49,6 @@ function readTables(page: ComponentPageMeta): Promise<PropsTableData[]> {
     page.propsComponents.map(async (name) => ({
       name,
       json: await readComponentPropsSafe(name),
-      slots: COMPONENT_SLOTS[name],
     })),
   );
 }
@@ -130,8 +124,8 @@ async function OverviewTab({ page, doc }: { page: ComponentPageMeta; doc: Compon
 async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDoc }) {
   const sizes = page.pro ? [] : await componentSizes(page.propsComponents);
   const tables = (await readTables(page)).filter(
-    // A component with no props and no classNames slots has nothing to list.
-    ({ json, slots }) => json && (json.props.length > 0 || (slots && slots.length > 0)),
+    // A component with no props has nothing to list.
+    ({ json }) => json && json.props.length > 0,
   );
   const hooks = (await Promise.all((page.hooks ?? []).map((name) => readHookDocSafe(name)))).filter(
     (hook): hook is HookDocFile => hook !== null,
@@ -143,21 +137,7 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
         <section className="flex flex-col gap-6">
           <SectionHeading id="props">Props</SectionHeading>
           <PropsReference
-            components={tables.map(({ name, json, slots }) => ({
-              name,
-              props: json?.props ?? [],
-              after: slots && slots.length > 0 && (
-                <p className="text-body-medium text-on-surface-variant">
-                  <span className="text-on-surface">{name} classNames slots:</span>{' '}
-                  {slots.map((slot, index) => (
-                    <span key={slot}>
-                      {index > 0 && ', '}
-                      <InlineCode>{slot}</InlineCode>
-                    </span>
-                  ))}
-                </p>
-              ),
-            }))}
+            components={tables.map(({ name, json }) => ({ name, props: json?.props ?? [] }))}
           />
         </section>
       )}
