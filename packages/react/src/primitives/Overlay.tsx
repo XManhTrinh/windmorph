@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
-import { useThemeScope } from '../theme/context';
+import { useThemeScope, useThemeScopeClassName } from '../theme/context';
 import { themeAttributes } from '../theme/state';
 import { ToolbarContext } from './ToolbarContext';
 
@@ -25,9 +25,11 @@ export interface OverlayProps {
 
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
- * while keeping the theme, mode, contrast, motion scheme **and text direction** of the
- * place it was rendered from, so overlays opened inside a `ThemeScope` or an RTL region
- * still match it. Dismissal, focus containment and scroll locking come from the React
+ * while keeping the theme, mode, contrast, motion scheme, **text direction and the
+ * enclosing `ThemeScope`s' classes** of the place it was rendered from, so overlays opened
+ * inside a `ThemeScope` or an RTL region still match it, and CSS variables set through a
+ * scope's class (component tokens) reach them. The wrapper is `display: contents`, so the
+ * classes affect only what children inherit. Dismissal, focus containment and scroll locking come from the React
  * Aria overlay hooks (`useModalOverlay`, `usePopover`, …) of the component using it.
  *
  * A portalled overlay sits outside any modal it was opened from, so the modal's
@@ -41,6 +43,7 @@ export function Overlay({
   topLayer,
 }: OverlayProps) {
   const scope = useThemeScope();
+  const scopeClassName = useThemeScopeClassName();
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -79,6 +82,7 @@ export function Overlay({
         <div
           ref={scopeRef}
           {...themeAttributes(scope)}
+          className={scopeClassName || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
           style={{ display: 'contents', color: 'var(--md-sys-color-on-surface)' }}
