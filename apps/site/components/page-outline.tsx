@@ -2,8 +2,12 @@
 
 import { useMemo, useSyncExternalStore } from 'react';
 
-/** The content the outline lists: the page's section headings (`h2` with an id). */
-const HEADINGS = '#main-content h2[id]';
+/**
+ * The content the outline lists: the page's section headings (`h2` with an id), and the
+ * subsections that ask to be listed (`h3` with an id and `data-outline-label`, such as each
+ * component's props), indented under them.
+ */
+const HEADINGS = '#main-content h2[id], #main-content h3[id][data-outline-label]';
 /** A heading is the current section once its top is this far from the window's top (px). */
 const ACTIVE_OFFSET = 112;
 /** The outline column's width, reserved on large windows whether or not it lists anything. */
@@ -12,12 +16,15 @@ const COLUMN = 'w-52 shrink-0';
 interface OutlineEntry {
   id: string;
   text: string;
+  /** A subsection, listed under its section. */
+  nested: boolean;
 }
 
 function readHeadings(): OutlineEntry[] {
   return [...document.querySelectorAll<HTMLElement>(HEADINGS)].map((heading) => ({
     id: heading.id,
-    text: heading.textContent?.trim() ?? '',
+    text: heading.dataset.outlineLabel ?? heading.textContent?.trim() ?? '',
+    nested: heading.tagName === 'H3',
   }));
 }
 
@@ -84,7 +91,7 @@ export function PageOutline() {
             <a
               href={`#${heading.id}`}
               aria-current={heading.id === active ? 'location' : undefined}
-              className="-ms-px block border-s-2 border-transparent py-1.5 ps-4 pe-2 text-body-medium text-on-surface-variant outline-none transition-colors hover:text-on-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary aria-[current=location]:border-primary aria-[current=location]:text-body-medium-emphasized aria-[current=location]:text-primary motion-reduce:transition-none"
+              className={`-ms-px block border-s-2 border-transparent py-1.5 pe-2 ${heading.nested ? 'ps-8' : 'ps-4'} text-body-medium text-on-surface-variant outline-none transition-colors hover:text-on-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary aria-[current=location]:border-primary aria-[current=location]:text-body-medium-emphasized aria-[current=location]:text-primary motion-reduce:transition-none`}
             >
               {heading.text}
             </a>
