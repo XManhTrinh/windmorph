@@ -76,6 +76,7 @@ export interface TimePickerClassNames {
   period?: string;
   /** Each of the AM / PM selector's options. */
   periodOption?: string;
+  /** The clock dial (dial mode): its face, numbers and hand are drawn inside it. */
   dial?: string;
 }
 

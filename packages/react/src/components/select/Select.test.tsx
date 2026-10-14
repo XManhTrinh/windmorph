@@ -226,10 +226,12 @@ describe('Select', () => {
   });
 
   it('opens in a bottom sheet with presentation="sheet"', async () => {
-    render(<Sort presentation="sheet" />);
+    render(<Sort presentation="sheet" classNames={{ sheet: 'bg-surface-container' }} />);
     await userEvent.click(sortField());
     // The sheet's code loads on first open.
-    expect(await screen.findByRole('dialog', { name: 'Sort by' })).toBeInTheDocument();
+    const sheet = await screen.findByRole('dialog', { name: 'Sort by' });
+    // classNames.sheet styles the sheet's surface.
+    expect(sheet).toHaveClass('bg-surface-container');
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 

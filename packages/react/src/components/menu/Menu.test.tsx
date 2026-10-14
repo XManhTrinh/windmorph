@@ -674,12 +674,17 @@ describe('Menu classNames', () => {
     expect(menu.parentElement).toHaveClass('w-max');
   });
 
-  it('puts className on the sheet in a sheet', async () => {
+  it('puts className on the sheet and classNames.sheet on its surface in a sheet', async () => {
     render(
-      <EditMenu presentation="sheet" className="absolute" classNames={{ panel: 'panel-x' }} />,
+      <EditMenu
+        presentation="sheet"
+        className="absolute"
+        classNames={{ sheet: 'bg-surface-container', panel: 'panel-x' }}
+      />,
     );
     await openMenu('Edit');
     const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+    expect(sheet).toHaveClass('bg-surface-container');
     expect(sheet).not.toHaveClass('absolute');
     // The sheet's outermost element: around the layer that moves the panel.
     expect(sheet.parentElement!.parentElement).toHaveClass('absolute');

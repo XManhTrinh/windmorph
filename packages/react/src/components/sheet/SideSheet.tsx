@@ -19,12 +19,18 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { cn } from '../../utils/cn';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface SideSheetClassNames {
+  /**
+   * The outermost element, which places the sheet (where `className` and `style` go too):
+   * a modal sheet's box `fixed` to the window's end edge, or a standard sheet's layout box.
+   */
+  container?: string;
   scrim?: string;
   /** The sheet's surface: its colour, corners, width and shadow. */
   panel?: string;
@@ -304,7 +310,10 @@ function ModalSideSheet({
         className={styles.scrim({ class: body.classNames?.scrim })}
       />
       <div {...underlayProps} className="fixed inset-0 z-(--md-sys-z-sheet)">
-        <div style={style} className={styles.container({ class: className })}>
+        <div
+          style={style}
+          className={styles.container({ class: cn(body.classNames?.container, className) })}
+        >
           <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
             <div
               {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
@@ -362,7 +371,7 @@ function StandardSideSheet({
       data-closed={closed}
       inert={!state.isOpen}
       aria-labelledby={labelledBy(rest, body.title != null, titleId)}
-      className={styles.standard({ class: className })}
+      className={styles.standard({ class: cn(body.classNames?.container, className) })}
     >
       <div className={styles.standardClip()}>
         <div className={styles.standardFrame()}>

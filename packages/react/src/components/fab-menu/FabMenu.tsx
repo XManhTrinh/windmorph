@@ -378,6 +378,8 @@ export interface FabMenuItemClassNames {
   root?: string;
   content?: string;
   icon?: string;
+  /** The item's label text. */
+  label?: string;
 }
 
 interface FabMenuItemOwnProps {
@@ -461,7 +463,7 @@ export function FabMenuItem({
             {icon}
           </span>
         )}
-        {children}
+        <span className={classNames?.label}>{children}</span>
       </span>
     </ButtonBase>
   );

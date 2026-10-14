@@ -42,7 +42,9 @@ export function CalendarGrid({
   styles: ReturnType<typeof datePickerStyles>;
   month?: CalendarDate;
   /** Consumer classes for the weekday headers and the days. */
-  classNames?: { weekday?: string | undefined; day?: string | undefined } | undefined;
+  classNames?:
+    | { weekday?: string | undefined; day?: string | undefined; rangeBand?: string | undefined }
+    | undefined;
 }) {
   const { locale } = useLocale();
   const start = month ?? state.visibleRange.start;
@@ -91,6 +93,7 @@ export function CalendarGrid({
                     styles={styles}
                     shownMonth={start}
                     className={classNames?.day}
+                    rangeBandClassName={classNames?.rangeBand}
                   />
                 ) : (
                   <td key={index} aria-hidden="true" className={styles.cell()} />
@@ -109,12 +112,15 @@ function CalendarCell({
   styles,
   shownMonth,
   className,
+  rangeBandClassName,
 }: {
   state: AnyCalendarState;
   date: CalendarDate;
   styles: ReturnType<typeof datePickerStyles>;
   shownMonth: CalendarDate;
   className: string | undefined;
+  /** Classes for a cell the range band spans. */
+  rangeBandClassName: string | undefined;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const {
@@ -147,7 +153,12 @@ function CalendarCell({
   }
 
   return (
-    <td {...cellProps} data-slot="cell" data-range={range} className={styles.cell()}>
+    <td
+      {...cellProps}
+      data-slot="cell"
+      data-range={range}
+      className={styles.cell({ class: range ? rangeBandClassName : undefined })}
+    >
       <div
         {...mergeProps(buttonProps, interactionProps)}
         {...dataAttributes}

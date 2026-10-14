@@ -278,6 +278,17 @@ describe('FabMenu', () => {
     expect(item('Reply').className).not.toContain('menu-item-container-shape');
   });
 
+  it('puts the label slot on the item label', () => {
+    render(
+      <FabMenu icon={<Icon id="add" />} aria-label="Create" defaultOpen>
+        <FabMenuItem classNames={{ label: 'label-x' }}>Reply</FabMenuItem>
+        <FabMenuItem>Forward</FabMenuItem>
+      </FabMenu>,
+    );
+    expect(screen.getByText('Reply')).toHaveClass('label-x');
+    expect(screen.getByText('Reply').tagName).toBe('SPAN');
+  });
+
   it('lines up on the trailing edge, with level 3 items', () => {
     render(<Menu defaultOpen data-testid="menu" />);
     expect(screen.getByTestId('menu')).toHaveClass('items-end');

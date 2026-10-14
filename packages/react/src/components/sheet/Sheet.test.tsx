@@ -450,4 +450,27 @@ describe('SideSheet', () => {
     expect(dialog).not.toHaveClass('absolute');
     expect(dialog).not.toHaveStyle({ outline: '1px solid' });
   });
+
+  it('puts classNames.container on the outermost element of both variants', () => {
+    const { unmount } = render(
+      <SideSheet title="Filters" defaultOpen classNames={{ container: 'container-x' }}>
+        Filters
+      </SideSheet>,
+    );
+    const modal = screen.getByRole('dialog', { name: 'Filters' });
+    expect(modal.parentElement!.parentElement).toHaveClass('container-x', 'fixed');
+    expect(modal).not.toHaveClass('container-x');
+    unmount();
+    render(
+      <SideSheet
+        variant="standard"
+        aria-label="Details"
+        className="h-full"
+        classNames={{ container: 'container-y' }}
+      >
+        Details
+      </SideSheet>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Details' })).toHaveClass('container-y', 'h-full');
+  });
 });

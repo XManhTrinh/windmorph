@@ -26,7 +26,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   Fab: ['root', 'icon', 'tooltip'],
   ExtendedFab: ['root', 'content', 'icon', 'label', 'text', 'tooltip'],
   FabMenu: ['root', 'anchor', 'button', 'icon', 'list', 'menu', 'tooltip'],
-  FabMenuItem: ['root', 'content', 'icon'],
+  FabMenuItem: ['root', 'content', 'icon', 'label'],
   TextField: [
     'root',
     'container',
@@ -120,6 +120,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
     'errorIcon',
     'outline',
     'activeIndicator',
+    'sheet',
   ],
   Autocomplete: [
     'root',
@@ -181,6 +182,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   DialogHeader: ['root', 'close', 'title'],
   Menu: [
     'panel',
+    'sheet',
     'group',
     'heading',
     'item',
@@ -203,6 +205,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
     'content',
   ],
   SideSheet: [
+    'container',
     'scrim',
     'panel',
     'header',
@@ -258,7 +261,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
   FloatingToolbar: ['root', 'items', 'leading', 'trailing', 'surface', 'fab'],
   ToolbarFab: ['root', 'icon', 'tooltip'],
   // Feedback & pickers. `SnackbarHost` exposes no `*ClassNames` (only `className`), so it is
-  // omitted. The pickers share `DatePickerClassNames` across DatePicker/DateRangePicker.
+  // omitted. `DateRangePickerClassNames` extends `DatePickerClassNames` with `rangeBand`.
   Snackbar: ['root', 'message', 'actions', 'action', 'dismiss'],
   LinearProgressIndicator: ['root', 'track', 'indicator', 'stop'],
   CircularProgressIndicator: ['root', 'track', 'indicator'],
@@ -285,6 +288,7 @@ export const COMPONENT_SLOTS: Record<string, string[]> = {
     'day',
     'year',
     'monthSubhead',
+    'rangeBand',
   ],
   DateField: [
     'root',

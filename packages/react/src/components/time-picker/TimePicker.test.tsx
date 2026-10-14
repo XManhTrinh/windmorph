@@ -255,10 +255,12 @@ describe('TimePicker classNames', () => {
       separator: 'separator-x',
       period: 'period-x',
       periodOption: 'option-x',
+      dial: 'dial-x',
     };
     const { rerender } = render(
       <TimePicker defaultValue={new Time(9, 30)} hourCycle={12} classNames={classNames} />,
     );
+    expect(screen.getByRole('group', { name: 'Clock' })).toHaveClass('dial-x', 'size-[256px]');
     expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass('field-x');
     expect(screen.getByText(':')).toHaveClass('separator-x');
     const period = screen.getByRole('radiogroup', { name: 'AM or PM' });

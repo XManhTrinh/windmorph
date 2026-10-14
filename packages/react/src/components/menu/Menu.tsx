@@ -176,6 +176,11 @@ export interface MenuClassNames {
    * scrolls. In a sheet it spans the sheet, without a surface of its own.
    */
   panel?: string;
+  /**
+   * The bottom sheet the menu opens in (`presentation="sheet"`, or `"auto"` on compact
+   * windows): the sheet's surface, as its `classNames.panel`.
+   */
+  sheet?: string;
   group?: string;
   /** Each `MenuGroup`'s heading. */
   heading?: string;
@@ -340,6 +345,7 @@ function MenuSheet({
       onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
       className={className}
       style={style}
+      classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
     >
       <div ref={setContainer} className={menuStyles().sheetContent()}>
         <TriggerContext value={null}>

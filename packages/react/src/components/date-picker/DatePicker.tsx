@@ -113,6 +113,14 @@ export interface DatePickerClassNames {
   monthSubhead?: string;
 }
 
+export interface DateRangePickerClassNames extends DatePickerClassNames {
+  /**
+   * The band behind a range's days: each calendar cell it spans (`data-range` is `start`,
+   * `middle` or `end`), whose background paints it.
+   */
+  rangeBand?: string;
+}
+
 interface DatePickerCommonProps {
   minValue?: DateValue;
   maxValue?: DateValue;
@@ -148,7 +156,8 @@ export interface DateRange {
   end: CalendarDate;
 }
 
-export type DateRangePickerProps = DatePickerCommonProps & {
+export type DateRangePickerProps = Omit<DatePickerCommonProps, 'classNames'> & {
+  classNames?: DateRangePickerClassNames;
   value?: DateRange | null;
   defaultValue?: DateRange | null;
   onChange?: (value: DateRange) => void;
@@ -334,7 +343,8 @@ function PickerFrame({
   classNames,
   directionRef,
   ...rest
-}: Inner<DatePickerCommonProps> & {
+}: Inner<Omit<DatePickerCommonProps, 'classNames'>> & {
+  classNames?: DateRangePickerClassNames | undefined;
   range: boolean;
   scroll?: boolean;
   state: CalendarState | RangeCalendarState;
@@ -429,7 +439,7 @@ interface BodyProps {
   yearRange: [number, number];
   strings: DatePickerStrings;
   className?: string | undefined;
-  classNames?: DatePickerClassNames | undefined;
+  classNames?: DateRangePickerClassNames | undefined;
 }
 
 function SingleCalendarBody({ state, ...props }: BodyProps & { state: CalendarState }) {

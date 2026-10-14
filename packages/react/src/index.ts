@@ -567,6 +567,7 @@ export {
   type DatePickerProps,
   type DatePickerStrings,
   type DateRange,
+  type DateRangePickerClassNames,
   type DateRangePickerProps,
 } from './components/date-picker/DatePicker';
 export {

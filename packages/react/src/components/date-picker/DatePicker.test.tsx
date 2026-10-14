@@ -423,4 +423,24 @@ describe('date picker classNames', () => {
     );
     expect(screen.getByRole('heading', { name: 'Select time' })).toHaveClass('title-x');
   });
+
+  it("puts the range picker's rangeBand slot on the cells the band spans", () => {
+    const { container } = render(
+      <DateRangePicker
+        minValue={new CalendarDate(2030, 3, 1)}
+        maxValue={new CalendarDate(2030, 5, 31)}
+        defaultValue={{ start: new CalendarDate(2030, 3, 3), end: new CalendarDate(2030, 3, 5) }}
+        classNames={{ rangeBand: 'band-x' }}
+      />,
+    );
+    // The start, the day between and the end; no other cell.
+    const banded = [...container.querySelectorAll('td[data-range]')];
+    expect(banded.map((cell) => cell.getAttribute('data-range'))).toEqual([
+      'start',
+      'middle',
+      'end',
+    ]);
+    for (const cell of banded) expect(cell).toHaveClass('band-x');
+    expect(container.querySelectorAll('td.band-x')).toHaveLength(3);
+  });
 });
