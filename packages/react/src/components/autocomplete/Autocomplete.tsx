@@ -346,8 +346,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             {...arrowProps}
             ref={buttonRef}
             aria-label={labels.showOptions}
-            className="flex size-[40px] items-center justify-center rounded-corner-full outline-none state-layer focus-ring [&>svg]:size-[24px]"
+            className="relative flex size-[40px] items-center justify-center rounded-corner-full outline-none state-layer focus-ring [&>svg]:size-[24px]"
           >
+            <TouchTarget />
             <DropdownArrow open={state.isOpen} />
           </button>
         }
@@ -427,6 +428,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             }}
             ref={inputRef}
             className={cn(
+              // A zero flex basis with a 48px minimum: the input shares the chips' last row
+              // while 48px are left there, and wraps to a row of its own only below that.
               'min-w-[48px] flex-1 bg-transparent p-0 text-body-large outline-none',
               'text-[color:var(--_md-comp-text-field-input-text-color)]',
               'caret-[color:var(--_md-comp-text-field-caret-color)]',

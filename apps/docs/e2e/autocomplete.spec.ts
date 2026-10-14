@@ -202,6 +202,9 @@ test.describe('Autocomplete height', () => {
         const button = (await clear.boundingBox())!;
         const target = (await clear.locator('[data-touch-target]').boundingBox())!;
         const arrow = (await field.locator('button[aria-label="Show options"]').boundingBox())!;
+        const arrowButton = field.locator('button[aria-label="Show options"]');
+        const arrowTarget = (await arrowButton.locator('[data-touch-target]').boundingBox())!;
+        expect([arrowTarget.width, arrowTarget.height]).toEqual([48, 48]);
         expect([button.width, button.height]).toEqual([40, 40]);
         expect([target.width, target.height]).toEqual([48, 48]);
         expect(button.y + button.height / 2).toBe(arrow.y + arrow.height / 2);
@@ -220,6 +223,44 @@ test.describe('Autocomplete height', () => {
       // The menu stays open (multiple) and hides the rest from assistive technology.
       await expect(field.getByText('Zürich', { exact: true })).toBeVisible();
       expect(await height(field)).toBe(variant === 'filled' ? 64 : 56);
+    });
+
+    // The input stays on the chips' last row while its 48px minimum fits there, and wraps
+    // to a row of its own only when less is left.
+    test(`the input shares the chips' last row while it fits · ${variant}`, async ({ page }) => {
+      await openStory(page, 'components-autocomplete--clearable', {}, { variant });
+      const input = page.getByRole('combobox', { name: 'Cities' });
+      const field = fieldOf(page, 'Cities');
+      const outcomes = new Set<'same row' | 'wrapped'>();
+      // Chosen from the whole list, so no typed text (or clear button) narrows the row.
+      await field.locator('button[aria-label="Show options"]').click();
+      for (const city of ['Zürich', 'London', 'Sydney']) {
+        await page.getByRole('option', { name: new RegExp(city) }).click();
+        await expect(field.getByText(city, { exact: true })).toBeVisible();
+        const layout = await input.evaluate((el) => {
+          const row = el.parentElement!.getBoundingClientRect();
+          const chips = [...el.parentElement!.children].filter((child) => child !== el);
+          const last = chips.at(-1)!.getBoundingClientRect();
+          const box = el.getBoundingClientRect();
+          const gap = parseFloat(getComputedStyle(el.parentElement!).columnGap);
+          return {
+            room: row.right - last.right - gap,
+            lastBottom: last.bottom,
+            inputTop: box.top,
+            inputMiddle: box.top + box.height / 2,
+            lastMiddle: last.top + last.height / 2,
+          };
+        });
+        if (layout.room >= 48) {
+          outcomes.add('same row');
+          expect(layout.inputMiddle).toBe(layout.lastMiddle);
+        } else {
+          outcomes.add('wrapped');
+          expect(layout.inputTop).toBeGreaterThanOrEqual(layout.lastBottom);
+        }
+      }
+      // In a 280px field the input keeps Zürich's row, then wraps below Zürich and London.
+      expect([...outcomes].sort()).toEqual(['same row', 'wrapped']);
     });
   }
 });
