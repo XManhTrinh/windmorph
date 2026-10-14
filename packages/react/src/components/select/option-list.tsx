@@ -469,7 +469,9 @@ function PopoverBody({
           {...exitProps}
           data-exiting={isExiting || undefined}
           data-placement={placement ?? undefined}
-          className={cn(menu.reveal(), 'min-h-0')}
+          // The menu's reveal keeps its content's width (`w-max`); the option list fills the
+          // popover instead, which is at least as wide as the field.
+          className={cn(menu.reveal(), 'min-h-0 w-auto')}
         >
           {children}
         </div>

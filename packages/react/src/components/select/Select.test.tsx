@@ -134,6 +134,14 @@ describe('Select', () => {
     expect(screen.getByRole('listbox')).toHaveClass('[&::-webkit-scrollbar-thumb]:bg-outline');
   });
 
+  it("fills its popover, which is at least as wide as the field, where Menu keeps its content's width", async () => {
+    render(<Sort />);
+    await userEvent.click(sortField());
+    const reveal = screen.getByRole('listbox').closest('[data-placement]');
+    expect(reveal).toHaveClass('w-auto');
+    expect(reveal).not.toHaveClass('w-max');
+  });
+
   it('chooses several options, lists them in the field and keeps the menu open', async () => {
     function Fruits() {
       const [value, setValue] = useState<readonly (string | number)[]>([]);
