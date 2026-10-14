@@ -2,13 +2,20 @@
 
 import { Tab, Tabs } from '@windmorph/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useRef, type Key, type ReactNode } from 'react';
+import { ViewTransition, useRef, type Key, type ReactNode } from 'react';
 import {
   SUB_TABS,
   TAB_LABELS,
   componentTabHref,
   type ComponentTab,
 } from '../content/components/doc';
+
+/** The panel's transition class for each direction a tab change can take. */
+const TAB_AXIS = {
+  'tab-forward': 'tab-forward',
+  'tab-backward': 'tab-backward',
+  default: 'tab-forward',
+};
 
 /** The tab a component page's path shows: its last segment, or Overview. */
 export function tabFromPathname(pathname: string): ComponentTab {
@@ -22,7 +29,8 @@ export function tabFromPathname(pathname: string): ComponentTab {
  * in the search and read without JavaScript. The selected tab's panel holds the route's
  * content; a horizontal swipe on it (touch or pen) moves to the next or previous tab. The
  * row scrolls on phones, with M3's 52px leading inset, and sits flush with the page from
- * medium windows up.
+ * medium windows up. A tab change runs M3's shared-axis (X) transition on the panel alone,
+ * forward or back by the tabs' order (see globals.css); the header and the tabs stay still.
  */
 export function ComponentTabs({
   slug,
@@ -54,14 +62,24 @@ export function ComponentTabs({
         if (ref.current && ref.current.getBoundingClientRect().top < 0) {
           ref.current.scrollIntoView({ block: 'start' });
         }
-        router.push(componentTabHref(slug, tab), { scroll: false });
+        const forward = tabs.indexOf(tab) > tabs.indexOf(selected);
+        router.push(componentTabHref(slug, tab), {
+          scroll: false,
+          transitionTypes: [forward ? 'tab-forward' : 'tab-backward'],
+        });
       }}
       className="-mx-6 scroll-mt-16 medium:mx-0"
       classNames={{ list: 'medium:ps-0', panel: 'px-6 pt-8 medium:px-0' }}
     >
       {tabs.map((tab) => (
         <Tab key={tab} title={TAB_LABELS[tab]}>
-          {tab === selected ? children : null}
+          {tab === selected ? (
+            // Keyed on the tab, so a change exits the old panel and enters the new one. Without
+            // a direction (the browser's back and forward), it moves forward.
+            <ViewTransition key={tab} enter={TAB_AXIS} exit={TAB_AXIS} default="none">
+              <div>{children}</div>
+            </ViewTransition>
+          ) : null}
         </Tab>
       ))}
     </Tabs>

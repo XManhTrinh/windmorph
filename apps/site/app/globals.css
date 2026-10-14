@@ -88,6 +88,51 @@ main :where(h2[id], h3[id]) {
     translate: 0 30px;
   }
 }
+/* Tab changes: M3's shared axis (X), on the panel alone (the page's header and tabs stay
+   still). Moving forward, the old panel leaves toward the start as it fades out and the new
+   one comes in from the end as it fades in; moving back, the other way. Mirrored in RTL. */
+:root {
+  --site-tab-axis-shift: 30px;
+}
+:root[dir='rtl'] {
+  --site-tab-axis-shift: -30px;
+}
+::view-transition-group(.tab-forward),
+::view-transition-group(.tab-backward) {
+  animation-duration: var(--md-sys-motion-spring-spatial-default-duration);
+  animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
+}
+::view-transition-old(.tab-forward),
+::view-transition-old(.tab-backward) {
+  animation:
+    var(--md-sys-motion-spring-effects-fast-duration)
+      var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both tab-slide-out;
+}
+::view-transition-new(.tab-forward),
+::view-transition-new(.tab-backward) {
+  animation:
+    var(--md-sys-motion-spring-effects-default-duration)
+      var(--md-sys-motion-spring-effects-default-easing)
+      var(--md-sys-motion-spring-effects-fast-duration) both page-fade-in,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both tab-slide-in;
+}
+::view-transition-old(.tab-backward),
+::view-transition-new(.tab-backward) {
+  --site-tab-axis-direction: -1;
+}
+@keyframes tab-slide-out {
+  to {
+    translate: calc(var(--site-tab-axis-shift) * var(--site-tab-axis-direction, 1) * -1) 0;
+  }
+}
+@keyframes tab-slide-in {
+  from {
+    translate: calc(var(--site-tab-axis-shift) * var(--site-tab-axis-direction, 1)) 0;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
