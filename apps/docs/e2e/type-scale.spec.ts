@@ -172,8 +172,9 @@ test.describe('Containers grow around 200% text instead of clipping it', () => {
     await openStory(page, 'components-badge--badges');
     await setRootFontSize(page, 32);
     const badge = page.getByTestId('badges').getByText('999+').first();
+    // The badge's root, which paints the container (its class reads the component token).
     const container = badge.locator(
-      'xpath=ancestor-or-self::span[contains(@class, "bg-error")][1]',
+      'xpath=ancestor-or-self::span[@data-tokens="md-comp-badge"][1]',
     );
     expect(await overflow(badge, container)).toBe(0);
   });
