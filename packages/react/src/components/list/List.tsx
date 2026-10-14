@@ -62,9 +62,9 @@ import {
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
-import { CheckboxBox } from '../checkbox/Checkbox';
-import { RadioRing } from '../radio/RadioGroup';
-import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/Switch';
+import { CheckboxBox } from '../checkbox/checkbox-box';
+import { RadioRing } from '../radio/radio-ring';
+import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';

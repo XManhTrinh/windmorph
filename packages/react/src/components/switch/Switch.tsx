@@ -26,18 +26,14 @@ import {
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
-
-export const CheckIcon = () => (
-  <svg viewBox="0 -960 960 960" fill="currentColor">
-    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-  </svg>
-);
-
-export const CloseIcon = () => (
-  <svg viewBox="0 -960 960 960" fill="currentColor">
-    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-  </svg>
-);
+import {
+  CheckIcon,
+  CloseIcon,
+  SwitchThumb,
+  THUMB_OFF_CENTER,
+  THUMB_ON_CENTER,
+  thumbGeometry,
+} from './switch-thumb';
 
 export interface SwitchClassNames extends SelectionControlClassNames {
   thumb?: string;
@@ -75,21 +71,11 @@ type SwitchLabel =
   | { children?: undefined; 'aria-labelledby': string };
 
 export type SwitchProps = SwitchOwnProps & SwitchLabel;
-
-const THUMB_OFF_CENTER = 16;
-const THUMB_ON_CENTER = 36;
 /** How far (px) a press moves before it becomes a drag. */
 const DRAG_SLOP = 3;
 
 /** Whether a thumb dragged to `center` (px) is in the on half. */
 const isOnAt = (center: number) => center > (THUMB_ON_CENTER + THUMB_OFF_CENTER) / 2;
-
-/** Thumb size and centre in px (Compose `ThumbNode`). */
-export function thumbGeometry(selected: boolean, pressed: boolean, hasIcon: boolean) {
-  const size = pressed ? 28 : selected || hasIcon ? 24 : 16;
-  return { size, center: selected ? THUMB_ON_CENTER : THUMB_OFF_CENTER };
-}
-
 /**
  * M3 switch: a track and a thumb that grows and slides when switched on (by a tap, a
  * drag, Space or Enter), optional icons in the thumb, a state layer that follows the
@@ -259,28 +245,5 @@ export function Switch({
     >
       {children}
     </SelectionControl>
-  );
-}
-
-/**
- * The thumb and its optional icon, placed by `--m3-thumb-size` and `--m3-thumb-center` on
- * the track and styled from a `group/control` ancestor's state attributes. Shared with
- * list items that are switches.
- */
-export function SwitchThumb({
-  styles = switchStyles(),
-  icon,
-  className,
-  iconClassName,
-}: {
-  styles?: ReturnType<typeof switchStyles>;
-  icon?: ReactNode;
-  className?: string;
-  iconClassName?: string;
-}) {
-  return (
-    <span aria-hidden="true" className={styles.thumb({ class: className })}>
-      {icon && <span className={styles.icon({ class: iconClassName })}>{icon}</span>}
-    </span>
   );
 }

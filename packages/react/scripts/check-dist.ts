@@ -8,7 +8,9 @@
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either. Components that show a tooltip of their own
  *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
- *   and option lists load their loading indicator only while loading.
+ *   and option lists load their loading indicator only while loading,
+ * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
+ *   with those controls, not from the controls' own modules.
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +85,16 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
 for (const { component, lazy } of LAZY_IMPORTS) {
   if (moduleClosure(`${root}dist`, component).includes(lazy))
     errors.push(`${component} imports ${lazy} statically; load it with import()`);
+}
+
+/** `List` imports only the drawn parts of the selection controls, not the controls. */
+for (const control of [
+  'components/checkbox/Checkbox.js',
+  'components/radio/RadioGroup.js',
+  'components/switch/Switch.js',
+]) {
+  if (moduleClosure(`${root}dist`, 'components/list/List.js').includes(control))
+    errors.push(`components/list/List.js imports ${control}; import its drawn parts' module`);
 }
 
 if (errors.length > 0) {
