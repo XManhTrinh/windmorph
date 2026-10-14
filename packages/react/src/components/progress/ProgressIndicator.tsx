@@ -311,6 +311,8 @@ export function LinearProgressIndicator({
     <div
       {...mergeProps(rest, progressBarProps)}
       ref={rootRef}
+      // The component tokens' hook (progress-tokens.ts).
+      data-tokens="md-comp-progress-indicator"
       data-indeterminate={indeterminate || undefined}
       style={{ '--m3-progress-height': `${height}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -326,6 +328,7 @@ export function LinearProgressIndicator({
             ref={trackRef}
             d={initial.track}
             strokeWidth={strokes.track}
+            data-slot="track"
             className={styles.track({ class: classNames?.track })}
           />
         )}
@@ -333,6 +336,7 @@ export function LinearProgressIndicator({
           ref={firstRef}
           d={initial.active[0] ?? ''}
           strokeWidth={strokes.active}
+          data-slot="indicator"
           className={styles.indicator({ class: classNames?.indicator })}
         />
         {/* Indeterminate indicators draw a second line. */}
@@ -340,6 +344,7 @@ export function LinearProgressIndicator({
           ref={secondRef}
           d={initial.active[1] ?? ''}
           strokeWidth={strokes.active}
+          data-slot="indicator"
           className={styles.indicator({ class: classNames?.indicator })}
         />
         {stop && (
@@ -347,6 +352,7 @@ export function LinearProgressIndicator({
             cx={stop.cx}
             cy={stop.cy}
             r={stop.r}
+            data-slot="stop"
             className={styles.stop({ class: classNames?.stop })}
           />
         )}
@@ -525,6 +531,8 @@ export function CircularProgressIndicator({
     <div
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
+      // The component tokens' hook (progress-tokens.ts).
+      data-tokens="md-comp-progress-indicator"
       data-indeterminate={indeterminate || undefined}
       style={{ '--m3-progress-size': `${size}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -539,6 +547,7 @@ export function CircularProgressIndicator({
               strokeWidth={strokes.track}
               strokeDasharray={initial.trackDash}
               strokeDashoffset={initial.trackOffset}
+              data-slot="track"
               className={styles.track({ class: classNames?.track })}
             />
           )}
@@ -551,6 +560,7 @@ export function CircularProgressIndicator({
               strokeDasharray={initial.activeDash}
               strokeDashoffset={initial.activeOffset}
               visibility={initial.visible ? 'visible' : 'hidden'}
+              data-slot="indicator"
               className={styles.indicator({ class: classNames?.indicator })}
             />
           </g>

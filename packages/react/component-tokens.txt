@@ -12,3 +12,6 @@
 --md-comp-outlined-card-container-color
 --md-comp-outlined-card-container-shape
 --md-comp-outlined-card-outline-color
+--md-comp-progress-indicator-active-indicator-color
+--md-comp-progress-indicator-stop-indicator-color
+--md-comp-progress-indicator-track-color

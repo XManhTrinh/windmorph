@@ -8,6 +8,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  * height and circular size are the `--m3-progress-height` / `--m3-progress-size` variables
  * the component sets (linear 4px, 10px wavy; circular 40px, 48px wavy, at 4px). Only the
  * linear indicator mirrors in RTL; the spec keeps circular indicators clockwise.
+ *
+ * The colours come from the component tokens (`progress-tokens.ts`,
+ * `--md-comp-progress-indicator-*`); each root carries
+ * `data-tokens="md-comp-progress-indicator"`, and the parts read one private variable each. A
+ * consumer class (`stroke-current`) still wins.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -16,9 +21,13 @@ export const linearProgressStyles = tv({
   slots: {
     root: 'block h-(--m3-progress-height) w-[240px] max-w-full shrink-0',
     svg: 'block size-full overflow-visible rtl:-scale-x-100',
-    track: 'fill-none stroke-secondary-container [stroke-linecap:round]',
-    indicator: 'fill-none stroke-primary [stroke-linecap:round] [stroke-linejoin:round]',
-    stop: 'fill-primary',
+    track:
+      'fill-none stroke-[var(--_md-comp-progress-indicator-track-color)] [stroke-linecap:round]',
+    indicator: [
+      'fill-none stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+      '[stroke-linecap:round] [stroke-linejoin:round]',
+    ],
+    stop: 'fill-[var(--_md-comp-progress-indicator-stop-indicator-color)]',
   },
   variants: {
     wavy: { true: {}, false: {} },
@@ -31,8 +40,12 @@ export const circularProgressStyles = tv({
   slots: {
     root: 'inline-block size-(--m3-progress-size) shrink-0',
     svg: 'block size-full overflow-visible',
-    track: 'fill-none stroke-secondary-container [stroke-linecap:round]',
-    indicator: 'fill-none stroke-primary [stroke-linecap:round] [stroke-linejoin:round]',
+    track:
+      'fill-none stroke-[var(--_md-comp-progress-indicator-track-color)] [stroke-linecap:round]',
+    indicator: [
+      'fill-none stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+      '[stroke-linecap:round] [stroke-linejoin:round]',
+    ],
   },
   variants: {
     wavy: { true: {}, false: {} },

@@ -125,6 +125,7 @@ export {
   type CircularProgressStyleProps,
   type LinearProgressStyleProps,
 } from './components/progress/progress-styles';
+export { progressIndicatorTokenSet } from './components/progress/progress-tokens';
 export {
   RichTooltip,
   RichTooltipTrigger,
