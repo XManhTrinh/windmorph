@@ -127,7 +127,7 @@ test.describe('Card interaction', () => {
 
   test('media is clipped to the rounded corners', async ({ page }) => {
     await openStory(page, 'components-card--playground');
-    const card = page.locator('#storybook-root').locator('div.rounded-corner-medium').first();
+    const card = page.locator('#storybook-root').locator('[data-tokens~="md-comp-card"]').first();
     const style = await card.evaluate((el) => {
       const s = getComputedStyle(el);
       return { overflow: s.overflow, radius: s.borderTopLeftRadius };

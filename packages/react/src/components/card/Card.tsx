@@ -82,12 +82,15 @@ export function Card(props: CardProps) {
   useNoNestedInteractive(domRef, interactive);
 
   const classes = cn(cardStyles({ variant, interactive }), className);
+  // The component tokens' hooks (card-tokens.ts), also public styling hooks for apps.
+  const tokenAttributes = { 'data-tokens': 'md-comp-card', 'data-variant': variant ?? 'filled' };
 
   if (!interactive) {
     const { href, onPress, disabled, ...div } = rest as CardStaticProps;
     return (
       <div
         {...div}
+        {...tokenAttributes}
         ref={domRef as Ref<HTMLDivElement>}
         data-dragged={dragged || undefined}
         className={classes}
@@ -98,6 +101,7 @@ export function Card(props: CardProps) {
   // Destructuring a union merges its members (see Button); `rest` holds one member's props.
   const baseProps = {
     ...rest,
+    ...tokenAttributes,
     ...(isAction ? { elementType: 'div' as const } : {}),
     dragged,
     ref: domRef,

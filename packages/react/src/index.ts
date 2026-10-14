@@ -268,6 +268,7 @@ export {
   type CardStaticProps,
 } from './components/card/Card';
 export { cardStyles, type CardStyleProps, type CardVariant } from './components/card/card-styles';
+export { cardTokenSet } from './components/card/card-tokens';
 export {
   TextField,
   type TextFieldClassNames,

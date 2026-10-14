@@ -12,18 +12,27 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `surface` 38% over its container (`DisabledContainerOpacity`), the outlined border
  * `outline` 12%; content `on-surface` 38%.
  *
+ * The resting container colour, corners, elevation and outline colour come from the card's
+ * component tokens (`card-tokens.ts`, `--md-comp-<variant>-card-*`); the root carries
+ * `data-tokens="md-comp-card"` and `data-variant`, and the classes read one private variable
+ * per part. A consumer class (`bg-tertiary`, `rounded-corner-small`) still wins in `cn()`.
+ *
  * Every class is written out in full so Tailwind can find it.
  */
 
 /** Variant definitions for {@link Card}; extend them to add variants. */
 export const cardStyles = tv({
-  base: 'flex flex-col overflow-hidden rounded-corner-medium text-on-surface',
+  base: [
+    'flex flex-col overflow-hidden text-on-surface',
+    'rounded-[var(--_md-comp-card-container-shape)] bg-[var(--_md-comp-card-container-color)]',
+    'shadow-[shadow:var(--_md-comp-card-container-elevation)]',
+  ],
   variants: {
     variant: {
-      filled: 'bg-surface-container-highest shadow-elevation-0 data-dragged:shadow-elevation-3',
-      elevated: 'bg-surface-container-low shadow-elevation-1 data-dragged:shadow-elevation-4',
+      filled: 'data-dragged:shadow-elevation-3',
+      elevated: 'data-dragged:shadow-elevation-4',
       outlined:
-        'border border-solid border-outline-variant bg-surface shadow-elevation-0 data-dragged:shadow-elevation-3',
+        'border border-solid border-[color:var(--_md-comp-card-outline-color)] data-dragged:shadow-elevation-3',
     },
     interactive: {
       true: [
