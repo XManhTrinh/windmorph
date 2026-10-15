@@ -708,7 +708,11 @@ function MenuList({
               key={Array.isArray(group) ? group[0]!.key : group.key}
               divider={
                 layout === 'divider' && index > 0 ? (
-                  <Divider className={styles.divider({ class: classNames?.divider })} />
+                  // A menu's divider is a `separator` between its groups (WAI-ARIA menu).
+                  <Divider
+                    decorative={false}
+                    className={styles.divider({ class: classNames?.divider })}
+                  />
                 ) : null
               }
             >
