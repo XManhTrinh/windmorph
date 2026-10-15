@@ -656,3 +656,79 @@ test.describe('BottomSheet layout safety', () => {
     }
   }
 });
+
+test.describe('Sheets keep focus on the page after their own buttons', () => {
+  const active = (page: Page) =>
+    page.evaluate(() => {
+      const element = document.activeElement;
+      return element === document.body ? 'body' : (element?.getAttribute('aria-label') ?? '');
+    });
+
+  test('the standard bottom sheet’s collapse button hands focus to the handle', async ({
+    page,
+  }) => {
+    // Short enough that the expanded sheet fills the window and shows its collapse button.
+    await page.setViewportSize({ width: 412, height: 420 });
+    await openStory(page, 'components-sheet--bottom-standard-detents');
+    await page.getByRole('button', { name: 'Show directions' }).click();
+    await settle(page);
+    const collapse = page.locator('button[aria-label="Collapse sheet"]');
+    await collapse.click();
+    await expect(page.getByTestId('sheet').locator('[data-detent]')).toHaveAttribute(
+      'data-detent',
+      'collapsed',
+    );
+    await expect.poll(() => active(page)).toBe('Expand sheet');
+
+    await page.keyboard.press('Enter');
+    await settle(page);
+    await collapse.focus();
+    await page.keyboard.press('Enter');
+    await expect.poll(() => active(page)).toBe('Expand sheet');
+  });
+
+  test('the standard side sheet’s close button returns focus to the page’s control', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-sheet--side-standard');
+    const hide = page.getByRole('button', { name: 'Hide details' });
+    await hide.focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('button', { name: 'Show details' })).toBeFocused();
+
+    await page.getByRole('button', { name: 'Show details' }).click();
+    await page.getByRole('button', { name: 'Close' }).click();
+    await expect.poll(() => active(page)).not.toBe('body');
+  });
+});
+
+test.describe('Standard side sheet width motion', () => {
+  test('the panel stays on the layout’s end edge while it opens and closes', async ({ page }) => {
+    for (const dir of ['ltr', 'rtl'] as const) {
+      await openStory(page, 'components-sheet--side-standard', { dir });
+      await page.evaluate((dir) => {
+        const layout = document.querySelector('[data-testid="layout"]')!;
+        const panel = document.querySelector('[data-testid="sheet"] [data-slot="panel"]')!;
+        const gaps: number[] = [];
+        (window as unknown as { gaps: number[] }).gaps = gaps;
+        const sample = () => {
+          const l = layout.getBoundingClientRect();
+          const p = panel.getBoundingClientRect();
+          // The panel's end edge against the layout's inner end edge (1px border).
+          gaps.push(dir === 'rtl' ? p.left - (l.left + 1) : l.right - 1 - p.right);
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      }, dir);
+      await page.getByRole('button', { name: 'Hide details' }).click();
+      await page.waitForTimeout(700);
+      await page.getByRole('button', { name: 'Show details' }).click();
+      await page.waitForTimeout(700);
+      const gaps = await page.evaluate(() => (window as unknown as { gaps: number[] }).gaps);
+      expect(gaps.length).toBeGreaterThan(20);
+      expect(Math.max(...gaps.map(Math.abs)), dir).toBeLessThanOrEqual(0.5);
+    }
+  });
+});

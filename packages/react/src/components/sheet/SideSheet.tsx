@@ -4,7 +4,12 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
+  useRef,
+  useState,
   type ComponentPropsWithRef,
+  type CSSProperties,
+  type FocusEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -21,7 +26,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { focusFirstInteractive } from '../../utils/focus';
+import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
@@ -384,13 +389,58 @@ function StandardSideSheet({
     footerDivider,
   });
   const closed = !state.isOpen || undefined;
+  const rootRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // The sheet's open width, measured, so the root's width (not a grid fraction, which takes
+  // only part of the shrinking free space and left the panel floating off its edge) moves
+  // between it and 0. Until it's measured (the server's HTML) the open root is `auto` wide.
+  const [width, setWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const measure = () => setWidth(frame.getBoundingClientRect().width);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+  // Focus that came from outside returns there when the sheet closes with focus inside (its
+  // close button, Escape in content, or the app closing it): the closed sheet is `inert`, and
+  // focus would otherwise drop to the page.
+  const returnFocus = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    const active = root?.ownerDocument.activeElement;
+    if (state.isOpen || !root || !(active instanceof HTMLElement) || !root.contains(active)) return;
+    const saved = returnFocus.current;
+    const target =
+      saved?.isConnected && !root.contains(saved) && !saved.closest('[inert]')
+        ? saved
+        : (tabbables(root.ownerDocument.body, (el) => root.contains(el))
+            .filter((el) => el.compareDocumentPosition(root) & Node.DOCUMENT_POSITION_FOLLOWING)
+            .at(-1) ?? null);
+    if (target) target.focus({ preventScroll: true });
+    else active.blur();
+  }, [state.isOpen, rootRef]);
+  const rootStyle = {
+    ...style,
+    ...(width === null ? {} : { '--m3-side-sheet-width': `${width}px` }),
+  } as CSSProperties;
   // A non-modal dialog (m3.material.io: the side sheet's role is dialog); focus isn't moved.
   return (
     <div
-      {...rest}
-      ref={ref}
+      {...mergeProps(rest, {
+        onFocus: (event: FocusEvent<HTMLDivElement>) => {
+          const from = event.relatedTarget;
+          if (from instanceof HTMLElement && !event.currentTarget.contains(from)) {
+            returnFocus.current = from;
+          }
+        },
+      })}
+      ref={rootRef}
       role="dialog"
-      style={style}
+      style={rootStyle}
       // The component tokens' hooks (sheet-tokens.ts), read by the panel inside.
       data-tokens="md-comp-sheet-side"
       data-variant="standard"
@@ -401,7 +451,7 @@ function StandardSideSheet({
       className={styles.standard({ class: cn(body.classNames?.container, className) })}
     >
       <div className={styles.standardClip()}>
-        <div className={styles.standardFrame()}>
+        <div ref={frameRef} className={styles.standardFrame()}>
           <div data-slot="panel" className={styles.panel({ class: body.classNames?.panel })}>
             <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
           </div>

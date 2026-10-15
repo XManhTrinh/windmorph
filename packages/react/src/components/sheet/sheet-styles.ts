@@ -151,14 +151,15 @@ export const sideSheetStyles = tv({
       'flex min-h-[72px] shrink-0 flex-wrap items-center justify-start gap-[8px]',
       'ps-[24px] pe-[24px] pt-[16px] pb-[24px]',
     ],
-    // Standard sheets sit in the layout; their width opens and closes on a grid track.
+    // Standard sheets sit in the layout; their width opens and closes (a measured length, so
+    // the panel stays on its edge), on the default spatial spring.
     standard: [
-      'inline-grid h-full shrink-0 grid-cols-[1fr] visible data-closed:invisible data-closed:grid-cols-[0fr]',
-      '[transition-property:grid-template-columns,visibility]',
+      'flex h-full w-[var(--m3-side-sheet-width,auto)] shrink-0 visible data-closed:invisible data-closed:w-0',
+      '[transition-property:width,visibility]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',
     ],
-    standardClip: 'flex min-w-0 justify-end overflow-hidden',
+    standardClip: 'flex w-full min-w-0 justify-end overflow-hidden',
     standardFrame: 'flex h-full shrink-0',
   },
   variants: {
