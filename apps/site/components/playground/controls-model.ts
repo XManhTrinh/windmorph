@@ -170,7 +170,7 @@ const APPEARANCE_NAME =
 
 /** Choices that change how it works rather than how it looks: Behaviour. */
 const BEHAVIOUR_ENUM =
-  /^(?:selectionMode|value|defaultOption|submitOn|keyboardActivation|scrollBehavior|snap|mode|defaultMode|hourCycle|type|capture|status|active|toolsWhenIdle|role|presentation|exitEdge)$/;
+  /^(?:selectionMode|value|defaultOption|submitOn|keyboardActivation|scrollBehavior|snap|mode|defaultMode|defaultDetent|hourCycle|type|capture|status|active|toolsWhenIdle|role|presentation|exitEdge)$/;
 
 /**
  * The section a control sits in, from its name and kind, unless the descriptor's `groups`

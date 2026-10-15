@@ -147,6 +147,7 @@ describe('groupOf', () => {
     expect(groupOf('open', 'boolean')).toBe('behaviour');
     expect(groupOf('href', 'string')).toBe('behaviour');
     expect(groupOf('value', 'number')).toBe('behaviour');
+    expect(groupOf('defaultDetent', 'enum')).toBe('behaviour');
   });
 
   it('puts forced states, replays and names for assistive tech in Advanced', () => {
