@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite, OVERRIDES } from './layout-safety';
 import { expectKeyboardFocusRing, expectStateLayer, panelLayout } from './overlay-safety';
+import { recordTransitions } from './motion';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -200,40 +201,27 @@ test.describe('Date picker', () => {
 });
 
 test.describe('Date picker motion', () => {
-  /** The CSS transitions running on elements matching `selector`, by property. */
-  const transitions = (page: Page, selector: string) =>
-    page.evaluate(
-      (sel) =>
-        [...document.querySelectorAll(sel)].flatMap((el) =>
-          el.getAnimations().map((a) => (a as CSSTransition).transitionProperty),
-        ),
-      selector,
-    );
-
   // Compose: the input rises from below and the calendar comes back down, fading in.
   test('switching to input and back animates the new view in', async ({ page }) => {
     await openStory(page, 'components-pickers--date');
+    const input = await recordTransitions(page, '[data-enter="input"] > *');
     await page.getByRole('button', { name: 'Switch to text input mode' }).click();
     await expect(page.getByText('Enter date')).toBeVisible();
-    expect(await transitions(page, '[data-enter="input"] > *')).toEqual(
-      expect.arrayContaining(['translate', 'opacity']),
-    );
+    await expect.poll(input).toEqual(expect.arrayContaining(['translate', 'opacity']));
     await settle(page);
+    const calendar = await recordTransitions(page, '[data-enter="calendar"] > *');
     await page.getByRole('button', { name: 'Switch to calendar input mode' }).click();
-    expect(await transitions(page, '[data-enter="calendar"] > *')).toEqual(
-      expect.arrayContaining(['translate', 'opacity']),
-    );
+    await expect.poll(calendar).toEqual(expect.arrayContaining(['translate', 'opacity']));
   });
 
   // Compose: the year list expands down (`expandVertically`) as it fades in from 60%.
   test('the year list expands as it fades in', async ({ page }) => {
     await openStory(page, 'components-pickers--date');
+    const expanding = await recordTransitions(page, '[role="radiogroup"]');
     await page.getByRole('button', { name: /Switch to selecting a year/ }).click();
     const list = page.getByRole('radiogroup', { name: 'Year' });
     await expect(list).toBeVisible();
-    expect(await transitions(page, '[role="radiogroup"]')).toEqual(
-      expect.arrayContaining(['clip-path', 'opacity']),
-    );
+    await expect.poll(expanding).toEqual(expect.arrayContaining(['clip-path', 'opacity']));
     await settle(page);
     expect(await list.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(0px)');
   });
@@ -304,26 +292,71 @@ test.describe('Time picker', () => {
     await expect(page.getByTestId('value')).toHaveText('Value 15:30:00');
   });
 
-  /** The handle's centre in dial units, every frame for `ms`. */
-  const sampleHandle = (page: Page, ms: number) =>
-    page.evaluate((duration) => {
+  interface HandleFrame {
+    /** When it was sampled, against `performance.now()`. */
+    time: number;
+    x: number;
+    y: number;
+  }
+
+  interface HandleSampling {
+    frames: HandleFrame[];
+    pressedAt: number;
+    until: number;
+    done: () => void;
+  }
+
+  /**
+   * Starts sampling the handle's centre (in dial units) on every frame, before the press that
+   * moves it, so a spring can't run unseen however slow the machine is. `stop(ms)` keeps
+   * sampling for `ms` more and until the handle settles, then returns the frames and the time
+   * of the last pointer press.
+   */
+  async function sampleHandle(page: Page) {
+    await page.evaluate(() => {
       const handle = document.querySelector(
         'svg[role="group"] [data-slot="clock-dial-selector-handle"]',
       )!;
-      const frames: { x: number; y: number }[] = [];
-      const start = performance.now();
-      return new Promise<typeof frames>((resolve) => {
-        const tick = () => {
-          frames.push({
-            x: Number(handle.getAttribute('cx')),
-            y: Number(handle.getAttribute('cy')),
-          });
-          if (performance.now() - start < duration) requestAnimationFrame(tick);
-          else resolve(frames);
-        };
-        tick();
-      });
-    }, ms);
+      const state: HandleSampling = { frames: [], pressedAt: -1, until: Infinity, done: () => {} };
+      (window as unknown as { handleSampling: typeof state }).handleSampling = state;
+      document.addEventListener(
+        'pointerdown',
+        () => {
+          state.pressedAt = performance.now();
+        },
+        true,
+      );
+      const tick = () => {
+        state.frames.push({
+          time: performance.now(),
+          x: Number(handle.getAttribute('cx')),
+          y: Number(handle.getAttribute('cy')),
+        });
+        // Past `until`, it stops once the handle has settled: the same place on three frames.
+        const last = state.frames.slice(-3);
+        const settled =
+          last.length === 3 &&
+          last.every((frame) => frame.x === last[0]!.x && frame.y === last[0]!.y);
+        if (performance.now() < state.until || !settled) requestAnimationFrame(tick);
+        else state.done();
+      };
+      tick();
+    });
+    return {
+      stop: (ms: number) =>
+        page.evaluate(
+          (duration) =>
+            new Promise<{ frames: HandleFrame[]; pressedAt: number }>((resolve) => {
+              const state = (window as unknown as { handleSampling: HandleSampling })
+                .handleSampling;
+              // The last frame is sampled at least `ms` after this call, once settled.
+              state.until = performance.now() + duration;
+              state.done = () => resolve({ frames: state.frames, pressedAt: state.pressedAt });
+            }),
+          ms,
+        ),
+    };
+  }
 
   // M3 motion: "Spatial springs apply to … rotation"; Compose turns the selector the short way.
   test('the hand turns on a spring along the shortest arc', async ({ page }) => {
@@ -334,8 +367,10 @@ test.describe('Time picker', () => {
     const cy = box.y + box.height / 2;
     // From 2 to 11 o'clock: the short way passes 12 at the top, never the bottom half.
     await page.mouse.move(cx - 101 * Math.sin(Math.PI / 6), cy - 101 * Math.cos(Math.PI / 6));
+    const sampling = await sampleHandle(page);
     await page.mouse.down();
-    const frames = await sampleHandle(page, 400);
+    const { frames } = await sampling.stop(400);
+    const crossfade = await recordTransitions(page, '*');
     await page.mouse.up();
     const end = frames.at(-1)!;
     expect(end.x).toBeCloseTo(128 - 101 * Math.sin(Math.PI / 6), 0);
@@ -348,13 +383,7 @@ test.describe('Time picker', () => {
       'data-selected',
       'true',
     );
-    expect(
-      await page.evaluate(() =>
-        document
-          .getAnimations()
-          .some((a) => a instanceof CSSTransition && a.transitionProperty === 'opacity'),
-      ),
-    ).toBe(true);
+    await expect.poll(crossfade).toContain('opacity');
   });
 
   test('reduced motion: the hand jumps', async ({ page }) => {
@@ -365,11 +394,17 @@ test.describe('Time picker', () => {
       box.x + 128 - 101 * Math.sin(Math.PI / 6),
       box.y + 128 - 101 * Math.cos(Math.PI / 6),
     );
+    const sampling = await sampleHandle(page);
     await page.mouse.down();
-    const frames = await sampleHandle(page, 100);
+    const { frames, pressedAt } = await sampling.stop(100);
     await page.mouse.up();
-    // Every frame already shows 11 o'clock.
-    for (const frame of frames) expect(frame.x).toBeCloseTo(128 - 101 * Math.sin(Math.PI / 6), 1);
+    // Every frame after the press already shows 11 o'clock.
+    const afterPress = frames.filter((frame) => frame.time > pressedAt);
+    expect(pressedAt).toBeGreaterThan(0);
+    expect(afterPress.length).toBeGreaterThan(0);
+    for (const frame of afterPress) {
+      expect(frame.x).toBeCloseTo(128 - 101 * Math.sin(Math.PI / 6), 1);
+    }
   });
 
   test('minute taps snap to five; the numbers under the handle are on-primary', async ({
