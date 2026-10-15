@@ -13,8 +13,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Labels are `on-surface-variant` (`on-surface` on hover / focus / press) and the
  *   selected label is `primary` (primary tabs) or `on-surface` (secondary). Compose's `Tab`
  *   defaults the unselected colour to the selected one; the token colours are used.
- * - Selection recolours on the default effects spring, deselection on fast effects; the
- *   state layer is the selected colour.
+ * - Selection recolours on the default effects spring, deselection on fast effects. The
+ *   state layer is `on-surface`, and `primary` on a selected primary tab.
  * - Indicator (m3.material.io specs, 2026-10-13): `primary`, 3px high on primary tabs with
  *   only its top corners rounded (3, 3, 0, 0), as wide as the content (min 24px); 2px high
  *   on secondary tabs, the whole tab wide. It slides on the default spatial spring, and
@@ -99,7 +99,9 @@ export const tabsStyles = tv({
         tab: [
           'text-[color:var(--_md-comp-tabs-with-label-text-inactive-label-text-color)]',
           'data-selected:text-[color:var(--_md-comp-tabs-with-label-text-active-label-text-color)]',
-          '[--m3-state-layer-color:var(--md-sys-color-primary)]',
+          // The state layer follows the label: `primary` on the selected tab, `on-surface` on
+          // the others (M3's primary tab tokens; 2026-10-15).
+          '[--m3-state-layer-color:var(--md-sys-color-on-surface)] data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
         ],
         indicator: 'h-[3px] rounded-t-[3px]',
       },

@@ -320,6 +320,16 @@ describe('Tabs', () => {
     vi.restoreAllMocks();
   });
 
+  it('gives unselected primary tabs an on-surface state layer, the selected one primary', () => {
+    render(<Trip />);
+    const selected = screen.getByRole('tab', { selected: true });
+    expect(selected).toHaveClass(
+      '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+      'data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
+    );
+    expect(selected).toHaveAttribute('data-selected');
+  });
+
   it('reveals the row at the nearest position, so arrow keys never centre the page on it', () => {
     const scrollIntoView = vi.fn();
     const original = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');

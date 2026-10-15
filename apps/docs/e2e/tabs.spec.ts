@@ -242,6 +242,32 @@ test.describe('Tabs selection colour, page scroll and forced colours', () => {
     expect(focused.x + focused.width).toBeLessThanOrEqual(frame.x + frame.width + 1);
   });
 
+  test('an unselected primary tab hovers with an on-surface state layer', async ({ page }) => {
+    await openStory(page, 'components-tabs--playground');
+    const layer = (name: string) =>
+      page.getByRole('tab', { name }).evaluate((el) => {
+        const probe = document.createElement('div');
+        probe.style.color = 'var(--m3-state-layer-color)';
+        el.append(probe);
+        const colour = getComputedStyle(probe).color;
+        probe.remove();
+        return colour;
+      });
+    const roles = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      document.body.append(probe);
+      probe.style.color = 'var(--md-sys-color-on-surface)';
+      const onSurface = getComputedStyle(probe).color;
+      probe.style.color = 'var(--md-sys-color-primary)';
+      const primary = getComputedStyle(probe).color;
+      probe.remove();
+      return { onSurface, primary };
+    });
+    const selected = await page.getByRole('tab', { selected: true }).textContent();
+    expect(await layer('Drafts')).toBe(roles.onSurface);
+    expect(await layer(selected!.trim())).toBe(roles.primary);
+  });
+
   test('forced colours keep the indicator, the divider and the selected label', async ({
     page,
   }) => {
