@@ -37,6 +37,7 @@ describe('iconButtonStyles', () => {
         [
           new URL('./icon-button-styles.ts', import.meta.url),
           new URL('../button/connected-shapes.ts', import.meta.url),
+          new URL('../button/button-styles.ts', import.meta.url),
         ],
         classes,
       ),

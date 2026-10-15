@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { systemColor, underForcedColors } from './forced-colors';
 import { openStory } from './story';
 
 test.describe('Button visual regression', () => {
@@ -418,5 +419,32 @@ test.describe('Button disabled outlines (2026-10-13)', () => {
       expect(await border(name)).toMatch(/(, 0\.1\)|\/ 0\.1\))$/);
     }
     expect(await border('Selected')).toBe('rgba(0, 0, 0, 0)');
+  });
+});
+
+// Re-audit 2026-10-15: under forced colours the containers vanished (background forced to
+// Canvas, no border) and a selected toggle looked like an unselected one.
+test.describe('Button forced colours', () => {
+  test('every button keeps a boundary, its size, and a selected toggle stands out', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-button--variants');
+    const buttons = page.getByTestId('variants').getByRole('button');
+    const { before, after } = await underForcedColors(page, buttons);
+    const grayText = await systemColor(page, 'GrayText');
+    const highlight = await systemColor(page, 'Highlight');
+    const names = await buttons.evaluateAll((elements) =>
+      elements.map((element) => element.textContent!.trim()),
+    );
+    after.forEach((look, index) => {
+      const label = `${names[index]} #${index}`;
+      expect(look.borderStyle, label).toBe('solid');
+      expect(look.borderWidth, label).toBeGreaterThanOrEqual(1);
+      expect(look.width, label).toBe(before[index]!.width);
+      expect(look.height, label).toBe(before[index]!.height);
+      if (names[index] === 'Disabled') expect(look.color, label).toBe(grayText);
+      if (names[index] === 'Selected') expect(look.background, label).toBe(highlight);
+      if (names[index] === 'Toggle') expect(look.background, label).not.toBe(highlight);
+    });
   });
 });

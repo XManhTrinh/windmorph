@@ -211,8 +211,13 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'L' })).toHaveClass('[--m3-button-border:2px]');
     expect(screen.getByRole('button', { name: 'L' })).not.toHaveClass('[--m3-button-border:1px]');
     expect(screen.getByRole('button', { name: 'XL' })).toHaveClass('[--m3-button-border:3px]');
+    // Only forced colours give a filled button a border (re-audit 2026-10-15).
     expect(screen.getByRole('button', { name: 'Filled' }).className).not.toMatch(
-      /--m3-button-border:/,
+      /(^| )\[--m3-button-border:/,
+    );
+    expect(screen.getByRole('button', { name: 'Filled' })).toHaveClass(
+      'forced-colors:[--m3-button-border:1px]',
+      'forced-colors:border-[CanvasText]',
     );
   });
 

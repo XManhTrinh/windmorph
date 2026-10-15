@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { underForcedColors } from './forced-colors';
 import { openStory } from './story';
 
 test.describe('SplitButton visual regression', () => {
@@ -242,5 +243,20 @@ test.describe('SplitButton menu behaviour (2026-10-13)', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByRole('menu')).toBeVisible();
     expect(await icon.evaluate((el) => getComputedStyle(el).rotate)).toBe('180deg');
+  });
+});
+
+// Re-audit 2026-10-15: under forced colours neither half had a boundary.
+test.describe('SplitButton forced colours', () => {
+  test('both halves keep a boundary and their size', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--variants-and-sizes');
+    const halves = page.getByTestId('variants').getByRole('button');
+    const { before, after } = await underForcedColors(page, halves);
+    after.forEach((look, index) => {
+      expect(look.borderStyle, `half #${index}`).toBe('solid');
+      expect(look.borderWidth, `half #${index}`).toBeGreaterThanOrEqual(1);
+      expect(look.width, `half #${index}`).toBe(before[index]!.width);
+      expect(look.height, `half #${index}`).toBe(before[index]!.height);
+    });
   });
 });

@@ -3,6 +3,7 @@ import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { overshoots, probeNextMorph } from './morph-probe';
+import { underForcedColors } from './forced-colors';
 import { openStory } from './story';
 
 test.describe('IconButton visual regression', () => {
@@ -75,11 +76,11 @@ test.describe('IconButton interaction states', () => {
     const pressCurve = await press();
     expect(pressCurve.from).toBeGreaterThan(pressCurve.to);
     expect(overshoots(pressCurve), JSON.stringify(pressCurve)).toBe(false);
-    const release = await probeNextMorph(toggle, 'release');
     // Let the press morph settle, so the release starts from the pressed corners.
     await expect
       .poll(() => toggle.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius)))
       .toBe(pressCurve.to);
+    const release = await probeNextMorph(toggle, 'release');
     await page.mouse.up();
     // Released selected: pressed corners → the selected square.
     const releaseCurve = await release();
@@ -184,4 +185,26 @@ test.describe('IconButton icon transition', () => {
       swap: false,
     },
   );
+});
+
+// Re-audit 2026-10-15: under forced colours filled and tonal icon buttons had no boundary
+// and a selected toggle looked like an unselected one.
+test.describe('IconButton forced colours', () => {
+  test('filled and tonal keep a boundary; a selected toggle stands out', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--variants');
+    const rows = page.getByTestId('variants').locator(':scope > div');
+    const { before, after } = await underForcedColors(page, rows.getByRole('button'));
+    const variants = ['filled', 'tonal', 'outlined', 'standard'];
+    // Each row: Search, Star (unselected toggle), Starred (selected toggle), disabled Search.
+    expect(after).toHaveLength(variants.length * 4);
+    variants.forEach((variant, row) => {
+      const [plain, unselected, selected] = after.slice(row * 4, row * 4 + 3);
+      if (variant !== 'standard') {
+        expect(plain!.borderStyle, variant).toBe('solid');
+        expect(plain!.borderWidth, variant).toBeGreaterThanOrEqual(1);
+      }
+      expect(selected!.background, variant).not.toBe(unselected!.background);
+    });
+    after.forEach((look, index) => expect(look.width).toBe(before[index]!.width));
+  });
 });

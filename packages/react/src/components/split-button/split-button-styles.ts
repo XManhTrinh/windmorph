@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from '../../utils/tv';
-import { buttonVariantClasses } from '../button/button-styles';
+import { buttonVariantClasses, forcedColorClasses } from '../button/button-styles';
 
 /*
  * Values follow the M3 Expressive split button specs and Compose's
@@ -41,6 +41,7 @@ const half = [
   'state-layer focus-ring container-motion',
   'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
 ];
+  forcedColorClasses.disabled,
 
 const variant = {
   filled: { leading: buttonVariantClasses.filled, trailing: buttonVariantClasses.filled },

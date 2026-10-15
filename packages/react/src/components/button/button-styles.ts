@@ -75,16 +75,44 @@ const shapeVariants = [
  * text at a large browser font size, as Compose's `defaultMinSize` does; `h-fit` keeps a
  * stretching flex or grid parent from making them taller (2026-10-13).
  */
+/**
+ * Forced colours (Windows high contrast), as Material Web's buttons: the browser paints
+ * every container as `Canvas`, so a filled, elevated, tonal or text button draws a 1px
+ * `CanvasText` boundary. It takes the outlined style's `--m3-button-border`, which the
+ * padding already subtracts, so the button keeps its size (2026-10-15).
+ */
+const forcedBoundary =
+  'forced-colors:[--m3-button-border:1px] forced-colors:border-(length:--m3-button-border) forced-colors:border-solid forced-colors:border-[CanvasText]';
+
+/**
+ * Forced colours for every button, its split button halves and icon buttons: disabled
+ * ones are `GrayText`, and a selected toggle is filled with `Highlight` (and opts out of
+ * the forced palette to keep it), so it can be told from an unselected one (2026-10-15).
+ * They're `!important` to win over the selected and disabled colours, whose selectors are
+ * as specific; they apply only in forced colours.
+ */
+export const forcedColorClasses = {
+  disabled:
+    'forced-colors:data-disabled:border-[GrayText]! forced-colors:data-disabled:text-[GrayText]!',
+  selected:
+    'forced-colors:data-selected:not-data-disabled:border-[Highlight]! forced-colors:data-selected:not-data-disabled:bg-[Highlight]! forced-colors:data-selected:not-data-disabled:text-[HighlightText]! forced-colors:data-selected:not-data-disabled:forced-color-adjust-none',
+} as const;
+
 export const buttonVariantClasses = {
   filled:
-    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10 ' +
+    forcedBoundary,
   elevated:
-    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-2 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-2 data-disabled:bg-on-surface/10 ' +
+    forcedBoundary,
   tonal:
-    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10',
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-hovered:not-data-pressed:shadow-elevation-1 data-disabled:bg-on-surface/10 ' +
+    forcedBoundary,
   outlined:
     '[--m3-button-border:1px] border-(length:--m3-button-border) border-solid border-[color:var(--_md-comp-button-outline-color)] bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] data-disabled:not-data-selected:border-outline-variant/10',
-  text: 'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)]',
+  text:
+    'bg-[var(--_md-comp-button-container-color)] text-[color:var(--_md-comp-button-label-text-color)] shadow-[shadow:var(--_md-comp-button-container-elevation)] ' +
+    forcedBoundary,
 } as const;
 
 /** Variant definitions for {@link Button}; extend them to add variants. */
@@ -95,6 +123,7 @@ export const buttonStyles = tv({
       'font-plain whitespace-nowrap select-none',
       'state-layer focus-ring container-motion',
       'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
+      forcedColorClasses.disabled,
     ],
     // Library-owned inner wrapper: holds the touch target, never receives consumer layout. It
     // never shrinks: in a button narrower than its content (a button group's compressed
@@ -160,7 +189,10 @@ export const buttonStyles = tv({
     {
       toggle: true,
       class: {
-        root: 'bg-[var(--_md-comp-button-unselected-container-color)] text-[color:var(--_md-comp-button-unselected-label-text-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-button-selected-label-text-color)]',
+        root: [
+          'bg-[var(--_md-comp-button-unselected-container-color)] text-[color:var(--_md-comp-button-unselected-label-text-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-button-selected-label-text-color)]',
+          forcedColorClasses.selected,
+        ],
       },
     },
     {
