@@ -59,9 +59,24 @@ async function checkField(
     if (!floated) {
       // At rest the label is centred on the first row (56px less 4px a step, as the container).
       expect(l.y + l.height / 2 - c.y).toBeCloseTo(fieldHeight(level) / 2, 0);
+    } else if (variant === 'filled' && level <= -2) {
+      // Below 52px there's no room for a floated label (MDC hides it): it's hidden and the
+      // value is centred, as in a field without a label (2026-10-15).
+      await expect.poll(() => label.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+      if ((await value.evaluate((el) => el.tagName)) === 'TEXTAREA') {
+        // A text area keeps its rows: the padding above and below is the unlabelled one.
+        const padding = await value.evaluate((el) => {
+          const style = getComputedStyle(el.parentElement!);
+          return [style.paddingTop, style.paddingBottom];
+        });
+        expect(padding).toEqual([`${16 + level * 2}px`, `${16 + level * 2}px`]);
+      } else {
+        expect(v.y + v.height / 2 - c.y).toBeCloseTo(fieldHeight(level) / 2, 0);
+      }
     } else if (variant === 'filled') {
       expect(l.y - c.y).toBeCloseTo(8 + level * 2, 0);
       expect(l.y + l.height).toBeLessThanOrEqual(v.y + 0.5);
+      expect(await label.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
     } else {
       // Outlined: centred on the top border at every level.
       expect(l.y + l.height / 2 - c.y).toBeCloseTo(0, 0);
@@ -232,7 +247,10 @@ test.describe('Density · Autocomplete', () => {
         const label = await box(chips.locator('label[data-slot="label"]'));
         expect(chip.y).toBeGreaterThanOrEqual(chipsContainer.y);
         expect(chip.y + chip.height).toBeLessThanOrEqual(chipsContainer.y + chipsContainer.height);
-        if (variant === 'filled') expect(label.y + label.height).toBeLessThanOrEqual(chip.y + 0.5);
+        // Its floated label sits above them while there's room for it (down to -1).
+        if (variant === 'filled' && level > -2) {
+          expect(label.y + label.height).toBeLessThanOrEqual(chip.y + 0.5);
+        }
         await checkIconButton(
           field('clear'),
           field('clear').getByRole('button', { name: 'Clear' }),

@@ -7,6 +7,7 @@ import {
   panelLayout,
   POSITIONING_OVERRIDES,
 } from './overlay-safety';
+import { insetEdges, sampleMotion } from './motion-frames';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -283,6 +284,94 @@ test.describe('Menu behaviour', () => {
         .evaluate((el) => el.getBoundingClientRect().width),
     ).toBe(0);
   });
+});
+
+test.describe('Menu reveal direction (2026-10-15)', () => {
+  // Compose pivots a menu on its anchored edge. The closed clip used to be a
+  // `@starting-style` resolved before React Aria set `data-placement`, so every menu grew
+  // downwards from its top edge, away from a trigger below it.
+  test('a menu above its trigger grows up from its bottom edge', async ({ page }) => {
+    await openStory(page, 'components-menu--layout-override', {}, { override: 'fixed' });
+    const frames = await sampleMotion(page, {
+      act: { click: '[data-testid="target"]' },
+      started: '[role="menu"]',
+      parts: { reveal: '[data-placement]:has([role="menu"])' },
+      duration: 200,
+    });
+    await expect(page.locator('[data-placement]:has([role="menu"])')).toHaveAttribute(
+      'data-placement',
+      'top',
+    );
+    const shown = frames.flatMap(({ parts }) => (parts.reveal ? [parts.reveal] : []));
+    expect(shown.length).toBeGreaterThan(3);
+    const sides = shown.map((part) => insetEdges(part.clipPath, part.width, part.height));
+    // Closed at the top and open at the bottom (next to the trigger) from the first frame.
+    expect(sides[0]![0]).toBeGreaterThan(shown[0]!.height / 2);
+    for (const [, , bottom] of sides) expect(bottom).toBeLessThanOrEqual(0);
+  });
+
+  test('a submenu grows sideways from the item that opened it', async ({ page }) => {
+    await openStory(page, 'components-menu--submenus');
+    await page.getByRole('button', { name: 'File' }).click();
+    await page.getByRole('menuitem', { name: 'Share' }).focus();
+    const frames = await sampleMotion(page, {
+      act: { key: 'ArrowRight' },
+      started: '[data-placement="right"]',
+      parts: { reveal: '[data-placement="right"]' },
+      duration: 200,
+    });
+    const shown = frames.flatMap(({ parts }) => (parts.reveal ? [parts.reveal] : []));
+    expect(shown.length).toBeGreaterThan(3);
+    const sides = shown.map((part) => insetEdges(part.clipPath, part.width, part.height));
+    // Closed at the far side and open at the item's side from the first frame.
+    expect(sides[0]![1]).toBeGreaterThan(shown[0]!.width / 2);
+    for (const [top, , bottom] of sides) {
+      expect(top).toBeLessThanOrEqual(0);
+      expect(bottom).toBeLessThanOrEqual(0);
+    }
+  });
+});
+
+// A group heading starts where the items' content does, 16px inside the group's padding
+// (Compose's 12px from the edge left it 8px out of line; 2026-10-15).
+test('group headings line up with the items, 16px in', async ({ page }) => {
+  await openGrouped(page, {}, { layout: 'gap' });
+  const group = page.getByRole('group', { name: 'Edit' });
+  const heading = page.locator(`[id="${await group.getAttribute('aria-labelledby')}"]`);
+  const textStart = await heading.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return range.getBoundingClientRect().x;
+  });
+  // Where the first item's content starts: inside its 16px padding.
+  const itemStart = await group
+    .getByRole('menuitem')
+    .first()
+    .evaluate(
+      (el) => el.getBoundingClientRect().x + parseFloat(getComputedStyle(el).paddingInlineStart),
+    );
+  expect(Math.round(textStart)).toBe(Math.round(itemStart));
+});
+
+// A leaving menu fades for ~150ms; an item clicked meanwhile used to run its action.
+test('a closing menu lets a click through instead of running an item', async ({ page }) => {
+  await openGrouped(page);
+  const item = await box(page.getByRole('menuitem').first());
+  await page.keyboard.press('Escape');
+  await page.mouse.click(item.x + item.width / 2, item.y + item.height / 2);
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(page.getByTestId('last')).toHaveText('Last action: none');
+});
+
+// Forced colours drop the fill and the shadow; the surface keeps a system-colour edge.
+test('a menu keeps a visible edge in forced colours', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  const menu = await openGrouped(page);
+  const edge = await menu.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { style: style.outlineStyle, width: style.outlineWidth };
+  });
+  expect(edge).toEqual({ style: 'solid', width: '1px' });
 });
 
 test.describe('Menu under reduced motion', () => {

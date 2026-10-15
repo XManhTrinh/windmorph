@@ -160,9 +160,9 @@ export async function MenuBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>presentation=&quot;auto&quot;</InlineCode> opens the menu in a bottom sheet
             on compact windows (below 600px wide) and anchored to its trigger on larger ones;{' '}
-            <InlineCode>&quot;sheet&quot;</InlineCode> always uses the sheet. In a sheet, a submenu
-            replaces the menu&apos;s content, below a back button (
-            <InlineCode>labels.back</InlineCode>).
+            <InlineCode>&quot;sheet&quot;</InlineCode> always uses the sheet, which opens at the
+            menu&apos;s own height (up to the window). In a sheet, a submenu replaces the
+            menu&apos;s content, below a back button (<InlineCode>labels.back</InlineCode>).
           </p>
         </section>
       </>
@@ -186,7 +186,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
               after the leading icon and <InlineCode>label-small</InlineCode> trailing text (the
               shortcut). Compose draws <InlineCode>label-large</InlineCode> labels with 12px of
               padding and an 8px gap on touch. Select&apos;s and Autocomplete&apos;s option lists
-              share these items.
+              share these items. Group headings start in line with the items&apos; content, where
+              Compose starts them 12px from the group&apos;s edge.
             </li>
             <li>
               Submenus aren&apos;t in Compose. While one is open, the focused menu takes 24px

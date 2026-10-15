@@ -85,6 +85,26 @@ describe('Autocomplete', () => {
     expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(4);
   });
 
+  // M3: the menu opens when a person selects the text field; the field's padding and the
+  // space around chips cover most of it, not just the input's band.
+  it('opens when the field is pressed outside the input, chips included', async () => {
+    render(<Cities selectionMode="multiple" defaultValue={['zrh']} />);
+    // The padded wrapper around the chips and the input.
+    await userEvent.click(input().parentElement!);
+    expect(input()).toHaveFocus();
+    expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(4);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    // A chip's label (not its remove button).
+    await userEvent.click(screen.getByText('Zürich'));
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    // Presses in the menu (portalled, but inside the field in React's tree) still choose.
+    await userEvent.click(screen.getByRole('option', { name: 'London' }));
+    expect(screen.getByRole('option', { name: 'London' })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('leaves opening to the arrow with menuTrigger="manual"', async () => {
     render(<Cities menuTrigger="manual" />);
     await userEvent.click(input());

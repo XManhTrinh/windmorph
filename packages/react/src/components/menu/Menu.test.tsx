@@ -531,6 +531,20 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
   });
 
+  // On a short phone, half the window cut off the last items (WCAG 2.4.11).
+  it('opens its sheet fully, never at half the window', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(349);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(620);
+    try {
+      render(<EditMenu presentation="sheet" />);
+      await openMenu('Edit');
+      const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+      expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
   it('opens a submenu in its sheet in place of the menu, with a way back', async () => {
     const onAction = vi.fn();
     render(
@@ -639,8 +653,17 @@ describe('Menu', () => {
     await openMenu('Edit');
     const motion = screen.getByRole('menu').parentElement!;
     // Under reduced motion only the fade is left: the clip stays open.
-    expect(motion).toHaveClass('motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)]');
+    expect(motion).toHaveClass(
+      'motion-safe:data-entering:[clip-path:inset(-24px_-24px_100%_-24px)]',
+      'motion-safe:data-[placement=top]:data-entering:[clip-path:inset(100%_-24px_-24px_-24px)]',
+    );
     expect(motion).not.toHaveClass('starting:scale-80');
+    // The closed state waits for the placement (a `@starting-style` was resolved before React
+    // Aria set it, so a menu above its anchor opened from its top edge), then opens.
+    expect(motion).toHaveAttribute('data-placement');
+    expect(motion).not.toHaveAttribute('data-entering');
+    // Leaving, it lets presses through: an item clicked as it faded out ran its action.
+    expect(motion).toHaveClass('data-exiting:**:pointer-events-none');
   });
 
   it('keeps the theme and direction of where it was rendered', async () => {

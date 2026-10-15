@@ -598,7 +598,7 @@ function SearchView({
         data-exiting={exiting}
         className={styles.scrim({ class: classNames?.scrim })}
       />
-      <div {...underlayProps} className="fixed inset-0 z-(--md-sys-z-sheet)">
+      <div {...underlayProps} data-exiting={exiting} className={styles.underlay()}>
         <div
           {...panelProps}
           {...exitProps}

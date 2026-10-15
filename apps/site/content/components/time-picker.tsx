@@ -93,7 +93,9 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             ). The hour cycle defaults to the locale&apos;s; set <InlineCode>
               hourCycle
             </InlineCode>{' '}
-            to <InlineCode>12</InlineCode> or <InlineCode>24</InlineCode> to force one.
+            to <InlineCode>12</InlineCode> or <InlineCode>24</InlineCode> to force one. The hour
+            shows two digits on both clocks (&quot;02&quot;), as Compose&apos;s does. Tapping an
+            hour on the dial turns the hand to it and shows it for a moment before the minutes.
           </p>
         </section>
       </>

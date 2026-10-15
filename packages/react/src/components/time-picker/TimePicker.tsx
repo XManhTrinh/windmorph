@@ -199,7 +199,9 @@ export function TimePicker({
   const plain = useNumberFormatter({ useGrouping: false });
   const isPm = time.hour >= 12;
   const displayHour = hourCycle === 24 ? time.hour : time.hour % 12 || 12;
-  const formatHour = (n: number) => (hourCycle === 24 ? pad.format(n) : plain.format(n));
+  // Two digits on both clocks, as Compose's selector and input show a 12-hour "02"
+  // (`hourForDisplay.toLocalString(minDigits = 2)`); the dial's numbers stay unpadded.
+  const formatHour = (n: number) => pad.format(n);
   const setPeriod = (pm: boolean) => {
     if (pm !== isPm) setTime(time.set({ hour: (time.hour + 12) % 24 }));
   };
@@ -579,12 +581,20 @@ function dialNumbers(minutes: boolean, hourCycle: 12 | 24): DialNumber[] {
 /** The shortest signed way round the dial from one turn to another, in turns (−½ to ½). */
 const shortestTurn = (from: number, to: number) => ((((to - from) % 1) + 1.5) % 1) - 0.5;
 
+/** Runs and clears the callbacks waiting in `queue`. */
+const flush = (queue: RefObject<(() => void)[]>) => {
+  const callbacks = queue.current;
+  queue.current = [];
+  for (const callback of callbacks) callback();
+};
+
 /**
  * The hand's track, handle and the clip of the `on-primary` numbers follow the drawn angle,
  * set as attributes from an animation (no React render per frame). It turns to a new value
  * on the default spatial spring along the shortest arc (M3: "Spatial springs apply to …
  * rotation"; Compose animates the selector on hour ↔ minute and taps), follows a drag
- * directly, and jumps under reduced motion.
+ * directly, and jumps under reduced motion. Returns `whenSettled`, which runs a callback
+ * once the hand rests on its value.
  */
 function useDialHand(
   turn: number,
@@ -600,6 +610,8 @@ function useDialHand(
   const reducedMotion = useReducedMotion() ?? false;
   const drawn = useRef({ turn, radius });
   const animation = useRef<AnimationPlaybackControls | null>(null);
+  // Callbacks waiting for the hand to come to rest (`whenSettled`).
+  const settled = useRef<(() => void)[]>([]);
 
   // Before paint, so the hand never flashes at its new value before turning there.
   useLayoutEffect(() => {
@@ -617,8 +629,10 @@ function useDialHand(
     const from = drawn.current;
     const delta = shortestTurn(from.turn, turn);
     animation.current?.stop();
+    animation.current = null;
     if (follow.current || reducedMotion || (delta === 0 && from.radius === radius)) {
       draw(turn, radius);
+      flush(settled);
       return;
     }
     // React has written the new value's attributes; start from where the hand was.
@@ -628,11 +642,27 @@ function useDialHand(
       onUpdate: (progress) =>
         draw(from.turn + delta * progress, from.radius + (radius - from.radius) * progress),
       // A spring rests within a small distance of its target; end exactly on the value.
-      onComplete: () => draw(turn, radius),
+      onComplete: () => {
+        draw(turn, radius);
+        animation.current = null;
+        flush(settled);
+      },
     });
   }, [turn, radius, follow, parts, reducedMotion, spring]);
 
-  useEffect(() => () => animation.current?.stop(), []);
+  useEffect(
+    () => () => {
+      animation.current?.stop();
+      settled.current = [];
+    },
+    [],
+  );
+
+  /** Runs `callback` once the hand rests on its value (at once if it already does). */
+  return (callback: () => void) => {
+    if (animation.current) settled.current.push(callback);
+    else callback();
+  };
 }
 
 /**
@@ -698,7 +728,15 @@ function Dial({
   const selectedRadius =
     !minutes && hourCycle === 24 && time.hour >= 12 ? INNER_RADIUS : OUTER_RADIUS;
   const handle = pointOf(selectedTurn, selectedRadius);
-  useDialHand(selectedTurn, selectedRadius, dragging, hand);
+  const whenSettled = useDialHand(selectedTurn, selectedRadius, dragging, hand);
+  // A tapped hour's switch to the minutes, waiting for the hand (cancelled by a new press,
+  // a face change or unmounting).
+  const switchTimer = useRef<number | undefined>(undefined);
+  const cancelSwitch = () => {
+    window.clearTimeout(switchTimer.current);
+    switchTimer.current = undefined;
+  };
+  useEffect(() => cancelSwitch, [minutes]);
   const selectedValue = minutes ? time.minute : hourCycle === 24 ? time.hour : time.hour % 12 || 12;
   // The number Tab lands on: the chosen one, or the nearest five for other minutes.
   const tabStop = numbers.findIndex(({ value }) =>
@@ -723,6 +761,15 @@ function Dial({
     minutes
       ? time.set({ minute: value })
       : time.set({ hour: hourCycle === 24 ? value : (value % 12) + (isPm ? 12 : 0) });
+
+  // The minute face replaces the hour face's numbers, so focus on one of them would drop to
+  // the page: it moves on to the chosen minute's number, as for the keyboard.
+  const switchToMinutes = () => {
+    if (svgRef.current?.contains(document.activeElement)) {
+      pendingFocus.current = Math.round(time.minute / 5) % 12;
+    }
+    onHourPicked();
+  };
 
   const activate = (value: number) => {
     setTime(toTime(value));
@@ -776,6 +823,7 @@ function Dial({
       role="group"
       aria-label={label}
       onPointerDown={(event) => {
+        cancelSwitch();
         pressing.current = true;
         event.currentTarget.setPointerCapture?.(event.pointerId);
         pick(event);
@@ -786,7 +834,18 @@ function Dial({
         pick(event);
       }}
       onPointerUp={() => {
-        if (pressing.current && !minutes) onHourPicked();
+        if (pressing.current && !minutes) {
+          if (dragging.current) {
+            // A drag already shows the hour under the finger: switch on release.
+            switchToMinutes();
+          } else {
+            // A tap turns the hand to the hour, shows it for 100ms, then switches
+            // (Compose's `onTap`: `rotateTo(animate = true)`, `delay(100)`).
+            whenSettled(() => {
+              switchTimer.current = window.setTimeout(switchToMinutes, 100);
+            });
+          }
+        }
         endPress();
       }}
       onPointerCancel={endPress}

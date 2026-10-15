@@ -37,6 +37,7 @@ import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
+import { useRevealEntering } from '../menu/use-reveal-entering';
 
 /**
  * Disabled options stay focusable but can't be chosen (M3 menus: "Disabled menu items can
@@ -436,6 +437,8 @@ function PopoverBody({
     { triggerRef, popoverRef, placement: 'bottom start', offset: 4, isNonModal },
     state,
   );
+  const revealRef = useRef<HTMLDivElement>(null);
+  const entering = useRevealEntering(placement, revealRef);
   // As wide as the field (Compose's `exposedDropdownSize`), measured when it opens.
   const [width, setWidth] = useState<number>();
   useLayoutEffect(() => {
@@ -474,6 +477,8 @@ function PopoverBody({
         {isNonModal ? null : <DismissButton onDismiss={state.close} />}
         <div
           {...exitProps}
+          ref={revealRef}
+          data-entering={entering || undefined}
           data-exiting={isExiting || undefined}
           data-placement={placement ?? undefined}
           // The menu's reveal keeps its content's width (`w-max`); the option list fills the

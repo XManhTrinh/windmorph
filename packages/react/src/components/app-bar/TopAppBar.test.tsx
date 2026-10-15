@@ -260,6 +260,10 @@ describe('TopAppBar', () => {
     Object.defineProperty(expanded, 'offsetHeight', { configurable: true, value: 56 });
     await scrollWindow(28);
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-28px');
+    // The expanded row is clipped where it has slid under the top row (Compose clips it to
+    // the bar), so it never shows through a see-through one.
+    expect(bar.style.getPropertyValue('--m3-app-bar-collapse')).toBe('28px');
+    expect(expanded).toHaveClass('[clip-path:inset(var(--m3-app-bar-collapse,0px)_0_0_0)]');
     expect(Number(bar.style.getPropertyValue('--m3-app-bar-bottom-alpha'))).toBeCloseTo(0.5);
     expect(bar).toHaveAttribute('data-collapsed', 'true');
     expect(row.querySelector('[aria-hidden]')).toBe(null);

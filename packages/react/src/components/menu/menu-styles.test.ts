@@ -61,4 +61,27 @@ describe('menuStyles', () => {
       for (const part of persistentScrollbar) expect(menu).toContain(part);
     }
   });
+
+  // Forced colours drop backgrounds and shadows, so a menu needs a system-colour edge
+  // (WCAG 1.4.11): on the one surface (divider), on each group (gap), never in a sheet.
+  it('outlines every menu surface in forced colours, but not inside a sheet', () => {
+    const edge = 'forced-colors:outline-solid';
+    expect(menuStyles({ layout: 'divider' }).menu().split(' ')).toContain(edge);
+    expect(menuStyles({ layout: 'divider' }).group().split(' ')).not.toContain(edge);
+    expect(menuStyles({ layout: 'gap' }).group().split(' ')).toContain(edge);
+    expect(menuStyles({ layout: 'gap' }).group().split(' ')).toContain(
+      'forced-colors:outline-[CanvasText]',
+    );
+    expect(menuStyles({ layout: 'divider', embedded: true }).menu().split(' ')).toContain(
+      'forced-colors:outline-none',
+    );
+  });
+
+  // Group headings line up with the item labels: both 16px inside the group's padding.
+  it('starts group headings 16px in, level with the item labels', () => {
+    const styles = menuStyles();
+    expect(styles.group().split(' ')).toContain('p-[4px]');
+    expect(styles.heading().split(' ')).toContain('ps-[16px]');
+    expect(styles.item().split(' ')).toContain('px-[16px]');
+  });
 });

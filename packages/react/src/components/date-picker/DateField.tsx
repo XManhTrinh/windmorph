@@ -31,6 +31,9 @@ import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
 import { DateInput, type DateInputStrings } from './DateInput';
+import { DatePicker } from './DatePicker';
+import { PickerDialog } from './PickerDialog';
+import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
 import { datePickerStyles, dockedDatePickerStyles } from './date-picker-styles';
 import {
   ArrowDropDownIcon,
@@ -167,9 +170,9 @@ export interface DateFieldProps {
  * M3 docked date picker: an outlined date field you can type in (no input mask; the
  * locale's format as helper text), whose calendar button opens a calendar just below it
  * with month and year menus, previous / next month and year buttons, the days of the
- * months around the shown one, and Cancel / OK. Best on medium and larger windows; on
- * compact ones the modal {@link DatePicker} in a full-screen {@link PickerDialog} is
- * recommended.
+ * months around the shown one, and Cancel / OK. On compact windows (below 600px) the
+ * button opens the modal {@link DatePicker} in a full-screen {@link PickerDialog} instead,
+ * as M3 recommends there: the 360px docked calendar doesn't fit a phone.
  *
  * @example
  * <DateField label="Date" value={date} onChange={setDate} />
@@ -217,6 +220,9 @@ function DateFieldInner({
   const overlay = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const fieldRef = useRef<HTMLDivElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
+  // M3: "On compact breakpoints … a full-screen modal date picker is recommended". Below
+  // 600px the docked calendar's header was cut off and its day targets overlapped.
+  const compact = useMediaQuery(COMPACT_WINDOW);
   const { root, calendar, menuButton, weekday, day, item, ...fieldClassNames } = classNames ?? {};
   return (
     <>
@@ -259,24 +265,110 @@ function DateFieldInner({
           />
         }
       />
-      <OptionPopover state={overlay} triggerRef={fieldRef} popoverRef={popoverRef}>
-        <DockedCalendar
+      {compact ? (
+        <CompactDateDialog
+          open={overlay.isOpen}
+          onOpenChange={overlay.setOpen}
           value={value}
-          onCommit={(date) => {
-            setValue(date);
-            overlay.close();
-          }}
-          onCancel={overlay.close}
+          onCommit={setValue}
           minValue={minValue}
           maxValue={maxValue}
           isDateUnavailable={isDateUnavailable}
           yearRange={yearRange}
           strings={strings}
           className={calendar}
-          classNames={{ menuButton, weekday, day, item }}
         />
-      </OptionPopover>
+      ) : (
+        <OptionPopover state={overlay} triggerRef={fieldRef} popoverRef={popoverRef}>
+          <DockedCalendar
+            value={value}
+            onCommit={(date) => {
+              setValue(date);
+              overlay.close();
+            }}
+            onCancel={overlay.close}
+            minValue={minValue}
+            maxValue={maxValue}
+            isDateUnavailable={isDateUnavailable}
+            yearRange={yearRange}
+            strings={strings}
+            className={calendar}
+            classNames={{ menuButton, weekday, day, item }}
+          />
+        </OptionPopover>
+      )}
     </>
+  );
+}
+
+/**
+ * A {@link DateField}'s calendar on a compact window: the modal date picker in a
+ * full-screen dialog, editing a draft that Save (or Enter on a day) keeps and the close
+ * button drops, as the docked calendar's OK and Cancel do.
+ */
+function CompactDateDialog({
+  open,
+  onOpenChange,
+  value,
+  onCommit,
+  minValue,
+  maxValue,
+  isDateUnavailable,
+  yearRange,
+  strings,
+  className,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  value: CalendarDate | null;
+  onCommit: (date: CalendarDate | null) => void;
+  minValue: DateValue | undefined;
+  maxValue: DateValue | undefined;
+  isDateUnavailable: ((date: DateValue) => boolean) | undefined;
+  yearRange: [number, number];
+  strings: DateFieldStrings;
+  className: string | undefined;
+}) {
+  const [draft, setDraft] = useState(value);
+  // Each opening starts from the field's date (state adjusted while rendering, no effect).
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setDraft(value);
+  }
+  const confirm = () => {
+    onCommit(draft);
+    onOpenChange(false);
+  };
+  return (
+    <PickerDialog
+      aria-label={strings.calendar ?? 'Choose a date'}
+      open={open}
+      onOpenChange={onOpenChange}
+      onConfirm={confirm}
+      fullScreen="compact"
+      dismissButton={
+        <Button variant="text" onPress={() => onOpenChange(false)}>
+          {strings.cancel ?? 'Cancel'}
+        </Button>
+      }
+      confirmButton={
+        <Button variant="text" onPress={confirm}>
+          {strings.ok ?? 'OK'}
+        </Button>
+      }
+    >
+      <DatePicker
+        value={draft}
+        onChange={setDraft}
+        minValue={minValue}
+        maxValue={maxValue}
+        isDateUnavailable={isDateUnavailable}
+        yearRange={yearRange}
+        strings={strings}
+        className={className}
+      />
+    </PickerDialog>
   );
 }
 

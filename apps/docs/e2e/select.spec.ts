@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { insetEdges, sampleMotion } from './motion-frames';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
@@ -330,4 +331,22 @@ test.describe('Select layout safety', () => {
       }
     }
   }
+});
+
+// The exposed dropdown menus share the menu's reveal (Select, Autocomplete, the docked date
+// picker): a menu placed above its field grows up from its bottom edge (2026-10-15).
+test('a menu above its field grows up from its bottom edge', async ({ page }) => {
+  await openStory(page, 'components-select--layout-override', {}, { override: 'fixed' });
+  const frames = await sampleMotion(page, {
+    act: { click: '[data-testid="target"] button' },
+    started: '[role="listbox"]',
+    parts: { reveal: '[data-placement]' },
+    duration: 200,
+  });
+  await expect(page.locator('[data-placement]')).toHaveAttribute('data-placement', 'top');
+  const shown = frames.flatMap(({ parts }) => (parts.reveal ? [parts.reveal] : []));
+  expect(shown.length).toBeGreaterThan(3);
+  const sides = shown.map((part) => insetEdges(part.clipPath, part.width, part.height));
+  expect(sides[0]![0]).toBeGreaterThan(shown[0]!.height / 2);
+  for (const [, , bottom] of sides) expect(bottom).toBeLessThanOrEqual(0);
 });

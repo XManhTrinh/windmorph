@@ -24,7 +24,8 @@ describe('TimePicker', () => {
     );
     expect(screen.getByTestId('picker')).toHaveAttribute('data-layout', 'vertical');
     const hour = screen.getByRole('textbox', { name: 'Hour' });
-    expect(hour).toHaveValue('2');
+    // Two digits on a 12-hour clock too (Compose).
+    expect(hour).toHaveValue('02');
     expect(hour).toHaveAttribute('data-selected', 'true');
     expect(hour).toHaveClass('w-[96px]', 'h-[80px]', 'text-display-large');
     expect(screen.getByRole('textbox', { name: 'Minute' })).toHaveValue('05');
@@ -87,6 +88,37 @@ describe('TimePicker', () => {
     expect(onChange).toHaveBeenLastCalledWith(new Time(10, 25));
     await userEvent.click(screen.getByRole('radio', { name: 'PM' }));
     expect(onChange).toHaveBeenLastCalledWith(new Time(22, 25));
+  });
+
+  // Compose `onTap`: the hand turns to the tapped hour, which shows for 100ms before the
+  // minute face; focus on a tapped number moves on to the minutes instead of dropping.
+  it('shows a tapped hour before switching to minutes, keeping focus on the dial', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const onChange = vi.fn();
+      render(<TimePicker defaultValue={new Time(2, 7)} hourCycle={12} onChange={onChange} />);
+      const dial = screen.getByRole('group', { name: 'Clock' });
+      vi.spyOn(dial, 'getBoundingClientRect').mockReturnValue(
+        DOMRect.fromRect({ x: 0, y: 0, width: 256, height: 256 }),
+      );
+      const minute = screen.getByRole('textbox', { name: 'Minute' });
+      const four = within(dial).getByRole('button', { name: '4 hours of 12' });
+      four.focus();
+      // 4 o'clock on the outer ring: 120° clockwise from 12.
+      const point = { clientX: 128 + 101 * Math.sin(Math.PI * (2 / 3)), clientY: 128 + 101 * 0.5 };
+      fireEvent.pointerDown(dial, { ...point, pointerId: 1 });
+      fireEvent.pointerUp(dial, { ...point, pointerId: 1 });
+      expect(onChange).toHaveBeenLastCalledWith(new Time(4, 7));
+      // Still on the hour face while the hand turns and rests.
+      expect(minute).not.toHaveAttribute('data-selected');
+      expect(four).toHaveFocus();
+      await vi.waitFor(() => expect(minute).toHaveAttribute('data-selected', 'true'), {
+        timeout: 3000,
+      });
+      expect(within(dial).getByRole('button', { name: '5 minutes of 60' })).toHaveFocus();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('takes typed digits in the dial selectors', async () => {

@@ -27,12 +27,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  * class is written out in full so Tailwind can find it.
  */
 
+// The label's top, start, font size, line height and letter spacing on the fast spatial
+// spring; its colour and opacity on the fast effects spring.
 const geometryTransition =
-  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]';
+  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]';
 
 /*
  * Colour on the fast effects spring, size on the fast spatial spring (Compose animates the
- * indicator and outline thickness on FastSpatial and their colour on FastEffects).
+ * indicator thickness on FastSpatial and its colour on FastEffects).
  */
 const colourAndSizeTransition =
   '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]';
@@ -59,8 +61,13 @@ export const textFieldStyles = tv({
       'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[12px]',
       'rounded-[var(--_md-comp-text-field-container-shape)] border border-solid',
       'border-[color:var(--_md-comp-text-field-outline-color)]',
+      // Colour and width both on the fast effects spring. Compose animates the width on
+      // FastSpatial, but a browser draws a border in whole device pixels, so a width that
+      // overshoots 2px and settles back draws 2 → 1 → 2px. The effects spring never
+      // overshoots, so the width only grows (and never dips below 1px on the way back).
+      // The filled indicator keeps the spatial spring: its `height` draws fractions.
       '[transition-property:border-color,border-width]',
-      colourAndSizeTransition,
+      effectsTransition,
       'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
       'group-data-[field-state=focus]/field:border-2',
       'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',
@@ -96,7 +103,7 @@ export const textFieldStyles = tv({
     label: [
       'pointer-events-none absolute top-[calc(16px+var(--md-sys-density,0)*2px)] max-w-[calc(100%-32px)] truncate',
       'text-body-large text-[color:var(--_md-comp-text-field-label-text-color)]',
-      '[transition-property:top,inset-inline-start,font-size,line-height,letter-spacing,color]',
+      '[transition-property:top,inset-inline-start,font-size,line-height,letter-spacing,color,opacity]',
       geometryTransition,
       'group-data-[field-state=focus]/field:text-[color:var(--_md-comp-text-field-focus-label-text-color)]',
       'group-data-[field-state=error]/field:text-error',
@@ -206,13 +213,23 @@ export const textFieldStyles = tv({
     },
   },
   compoundVariants: [
-    // Input padding: filled fields with a label leave room above for the floated label.
+    /*
+     * Input padding: filled fields with a label leave room above for the floated label.
+     * Below 52px (density -2 and -3) there is no room for it: as MDC's text field
+     * (`$minimum-height-for-filled-label: 52px`), the floated label is hidden and the value
+     * is centred like a field without a label. The resting label still shows in the empty
+     * field, and still names the input. `--m3-field-label-room` is 1 down to density -1
+     * and 0 from -2 (a clamped step of the density, so CSS alone switches the layout).
+     */
     {
       variant: 'filled',
       hasLabel: true,
       class: {
-        field:
-          'pt-[calc(24px+var(--md-sys-density,0)*2px)] pb-[calc(8px+var(--md-sys-density,0)*2px)]',
+        container: '[--m3-field-label-room:clamp(0,calc((var(--md-sys-density,0)+1.5)*100),1)]',
+        field: [
+          'pt-[calc(16px+var(--md-sys-density,0)*2px+8px*var(--m3-field-label-room))]',
+          'pb-[calc(16px+var(--md-sys-density,0)*2px-8px*var(--m3-field-label-room))]',
+        ],
       },
     },
     {
@@ -229,6 +246,8 @@ export const textFieldStyles = tv({
         label: [
           'group-data-floated/field:top-[calc(8px+var(--md-sys-density,0)*2px)] group-data-floated/field:text-body-small',
           'group-has-[:autofill]/field:top-[calc(8px+var(--md-sys-density,0)*2px)] group-has-[:autofill]/field:text-body-small',
+          // Hidden once floated below 52px (see the padding above).
+          'group-data-floated/field:opacity-[var(--m3-field-label-room)] group-has-[:autofill]/field:opacity-[var(--m3-field-label-room)]',
         ],
       },
     },

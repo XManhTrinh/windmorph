@@ -115,7 +115,10 @@ export const topAppBarStyles = tv({
         row: 'sticky top-0',
         titleText: 'opacity-[var(--m3-app-bar-top-alpha,0)]',
         subtitleText: 'opacity-[var(--m3-app-bar-top-alpha,0)]',
-        expandedRow: 'opacity-[var(--m3-app-bar-bottom-alpha,1)]',
+        // Clipped to the part not yet under the top row (`--m3-app-bar-collapse`, from the
+        // scroll), so it doesn't show through a see-through top row.
+        expandedRow:
+          'opacity-[var(--m3-app-bar-bottom-alpha,1)] [clip-path:inset(var(--m3-app-bar-collapse,0px)_0_0_0)]',
       },
       // A single row changes colour as a whole once content scrolls under it.
       false: {
