@@ -181,6 +181,19 @@ export const DensityOpen: StoryObj<{ density: DensityLevel }> = {
   ),
 };
 
+/** A searchable menu at a density: the search field loses 4px per step too (48 → 36px). */
+export const DensitySearchable: StoryObj<{ density: DensityLevel }> = {
+  args: { density: -2 },
+  argTypes: { density: { control: 'inline-radio', options: [...DENSITIES] } },
+  render: ({ density }) => (
+    <div className="bg-surface p-4" style={{ minHeight: 420 }} data-testid="open">
+      <Select label="Sort by" density={density} defaultValue="low" searchable defaultOpen>
+        {sortOptions}
+      </Select>
+    </div>
+  ),
+};
+
 /** Sections with headings, and options with icons. */
 export const Sections: Story = {
   render: () => (

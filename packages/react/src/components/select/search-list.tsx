@@ -64,6 +64,18 @@ export interface SearchListProps<T> {
   classNames?: (OptionListClassNames & { search?: string }) | undefined;
 }
 
+/*
+ * A dense search field (44, 40 or 36px tall at -1 to -3) extends its hit area by up to 4px
+ * below it (the gap above the list) and up to 4px above it (the panel's padding, which clips
+ * anything further): 48px at -1 and -2, 44px at -3. Like dense menu rows, it can't reach 48px
+ * at -3 without covering the first option; it stays well above WCAG 2.5.8's 24px.
+ */
+const denseSearchTarget = [
+  'relative',
+  "before:absolute before:inset-x-0 before:bottom-full before:h-[clamp(0px,calc(var(--md-sys-density,0)*-4px-clamp(0px,calc(var(--md-sys-density,0)*-2px),4px)),4px)] before:content-['']",
+  "after:absolute after:inset-x-0 after:top-full after:h-[clamp(0px,calc(var(--md-sys-density,0)*-2px),4px)] after:content-['']",
+];
+
 /**
  * A search field over an option list, wired as one editable combobox with list autocomplete
  * (React Aria `useAutocomplete`): typing filters the options, the arrow keys move through
@@ -129,15 +141,22 @@ export function SearchList<T>({
         embedded ? 'flex-1' : [menu.group(), 'max-h-[inherit] overflow-hidden'],
       )}
     >
-      {/* 48px, 4px above the list, like the panel's 4px padding around it. */}
-      <div className="flex h-[52px] shrink-0 pb-[4px]">
+      {/* 48px (4px less per density step), 4px above the list, like the panel's 4px padding
+          around it. */}
+      <div className="flex h-[calc(52px+var(--md-sys-density,0)*4px)] shrink-0 pb-[4px]">
         <div
           {...focusProps}
           data-tokens="md-comp-search-bar"
           data-focus-visible={isFocusVisible || undefined}
-          className={field.field({ class: classNames?.search })}
+          // A press on the hit area around a dense field (below) puts the caret in the input.
+          onPointerDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            event.preventDefault();
+            inputRef.current?.focus();
+          }}
+          className={field.field({ class: cn(denseSearchTarget, classNames?.search) })}
         >
-          <span data-slot="leading" className={field.leading()}>
+          <span data-slot="leading" className={field.leading({ class: 'h-full' })}>
             <SearchIcon />
           </span>
           <input {...inputProps} ref={inputRef} data-slot="input" className={field.input()} />

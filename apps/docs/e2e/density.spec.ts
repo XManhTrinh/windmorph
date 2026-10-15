@@ -166,6 +166,41 @@ test.describe('Density · Select', () => {
     });
   }
 
+  for (const level of LEVELS) {
+    test(`the search field at ${level}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-select--density-searchable',
+        {},
+        {
+          density: String(level),
+        },
+      );
+      await settle(page);
+      const search = page.getByRole('searchbox').locator('xpath=..');
+      const s = await box(search);
+      expect(s.height).toBeCloseTo(48 + level * 4, 0);
+      // The leading icon never makes the field taller.
+      expect((await box(search.locator('[data-slot="leading"]'))).height).toBeCloseTo(s.height, 0);
+      // Up to 4px more below (the gap above the list) and above (the panel's padding): 48px
+      // at -1 and -2, 44px at -3, never reaching the first option.
+      const below = Math.min(4, -2 * level);
+      const above = Math.min(4, -4 * level - below);
+      expect(s.height + above + below).toBeGreaterThanOrEqual(level === -3 ? 44 : 48);
+      const x = s.x + s.width / 2;
+      expect(await hits(page, search, x, s.y - above + 0.5)).toBe(true);
+      expect(await hits(page, search, x, s.y + s.height + below - 0.5)).toBe(true);
+      const first = page.getByRole('option').first();
+      const o = await box(first);
+      expect(o.y).toBeGreaterThanOrEqual(s.y + s.height + below - 0.5);
+      expect(await hits(page, first, x, o.y + 0.5)).toBe(true);
+      expect((await box(first)).height).toBeCloseTo(44 + level * 4, 0);
+      await page.getByRole('searchbox').blur();
+      await page.mouse.click(x, s.y - above + 1);
+      await expect(page.getByRole('searchbox')).toBeFocused();
+    });
+  }
+
   test("an open menu takes its scope's density", async ({ page }) => {
     await openStory(page, 'components-select--open', { density: '-3' });
     await settle(page);
@@ -314,6 +349,23 @@ test.describe('Density · screenshots', () => {
     await openStory(page, 'components-textfield--density', { dir: 'rtl' }, { variant: 'outlined' });
     await expect(page.getByTestId('density')).toHaveScreenshot('density-textfield-rtl.png');
   });
+
+  for (const level of LEVELS) {
+    test(`select search ${level}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-select--density-searchable',
+        {},
+        {
+          density: String(level),
+        },
+      );
+      await settle(page);
+      await expect(page).toHaveScreenshot(`density-select-search-${level}.png`, {
+        clip: { x: 0, y: 0, width: 420, height: 440 },
+      });
+    });
+  }
 
   for (const level of LEVELS) {
     for (const mode of MODES) {
