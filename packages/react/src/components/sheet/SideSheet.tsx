@@ -398,7 +398,8 @@ function StandardSideSheet({
   useLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
-    const measure = () => setWidth(frame.getBoundingClientRect().width);
+    // The layout width, not the box on screen, which a consumer transform scales or turns.
+    const measure = () => setWidth(frame.offsetWidth);
     measure();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(measure);

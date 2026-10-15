@@ -690,7 +690,7 @@ test.describe('Sheets keep focus on the page after their own buttons', () => {
     await settle(page);
     const collapse = page.locator('button[aria-label="Collapse sheet"]');
     await collapse.click();
-    await expect(page.getByTestId('sheet').locator('[data-detent]')).toHaveAttribute(
+    await expect(page.locator('[data-tokens="md-comp-sheet-bottom-docked"]')).toHaveAttribute(
       'data-detent',
       'collapsed',
     );
