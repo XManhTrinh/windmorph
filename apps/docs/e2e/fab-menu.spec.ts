@@ -108,7 +108,8 @@ test.describe('FabMenu tooltip and colour motion', () => {
     await page.mouse.move(5, 5);
     await button.hover();
     await expect(page.getByRole('tooltip')).toHaveText('Create');
-    await expect(button).toHaveAttribute('aria-describedby', /.+/);
+    // It repeats the button's name, so it doesn't describe it too.
+    await expect(button).not.toHaveAttribute('aria-describedby');
 
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'true');

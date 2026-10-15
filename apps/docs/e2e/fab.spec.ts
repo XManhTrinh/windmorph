@@ -35,7 +35,8 @@ test.describe('FAB interaction', () => {
     await page.mouse.move(5, 5);
     await fab.hover();
     await expect(page.getByRole('tooltip')).toHaveText('Compose');
-    await expect(fab).toHaveAttribute('aria-describedby', /.+/);
+    // It repeats the FAB's name, so it doesn't describe it too.
+    await expect(fab).not.toHaveAttribute('aria-describedby');
   });
 
   for (const elevation of ['default', 'lowered'] as const) {
@@ -70,7 +71,8 @@ test.describe('FAB interaction', () => {
     await expect(fab).toHaveAttribute('data-expanded', 'false');
     await fab.hover();
     await expect(page.getByRole('tooltip')).toHaveText('Compose');
-    await expect(fab).toHaveAttribute('aria-describedby', /.+/);
+    // It repeats the FAB's name, so it doesn't describe it too.
+    await expect(fab).not.toHaveAttribute('aria-describedby');
     // Keyboard focus shows it too.
     await page.mouse.move(0, 0);
     await expect(page.getByRole('tooltip')).toHaveCount(0, { timeout: 3000 });

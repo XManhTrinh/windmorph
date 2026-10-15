@@ -181,15 +181,15 @@ test.describe('ButtonGroup connected', () => {
     expect(await radii(day)).toMatchObject({ topRight: '20px', topLeft: '8px' });
   });
 
-  test('arrow keys move between options and the selection is announced', async ({ page }) => {
+  test('arrow keys move between options and select them, and the selection is announced', async ({
+    page,
+  }) => {
     await openStory(page, 'composites-buttongroup--connected-single-selection');
-    // React Aria keeps every option tabbable and adds arrow-key movement.
+    // Tab enters at the selected option; the arrows move and select (APG radio group).
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('radio', { name: 'Day' })).toBeFocused();
-    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('radio', { name: 'Week' })).toBeFocused();
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('radio', { name: 'Month' })).toBeFocused();
-    await page.keyboard.press('Space');
     await expect(page.getByTestId('selection')).toHaveText('month');
     await expect(page.getByRole('radiogroup', { name: 'Calendar view' })).toBeVisible();
   });
