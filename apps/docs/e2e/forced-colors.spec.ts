@@ -51,6 +51,22 @@ test('radio: the selected option shows its dot', async ({ page }) => {
   await expect(page.getByTestId('states')).toHaveScreenshot('radio-states.png');
 });
 
+test('checkbox: disabled boxes are GrayText', async ({ page }) => {
+  await openStory(page, 'components-checkbox--states');
+  // Unchecked boxes: enabled, invalid, disabled.
+  const box = (index: number) =>
+    page
+      .getByRole('checkbox', { name: 'Unchecked' })
+      .nth(index)
+      .locator('xpath=ancestor::label')
+      .locator('[data-tokens="md-comp-checkbox"]')
+      .last();
+  const enabled = await style(box(0), 'border-top-color');
+  const disabled = await style(box(2), 'border-top-color');
+  expect(disabled).not.toBe(enabled);
+  await expect(page.getByTestId('states')).toHaveScreenshot('checkbox-states.png');
+});
+
 test('slider: the tracks and the handle stay visible', async ({ page }) => {
   await openStory(page, 'components-slider--variants');
   const background = await canvas(page);

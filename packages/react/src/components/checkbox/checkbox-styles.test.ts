@@ -36,7 +36,7 @@ describe('checkboxStyles', () => {
     expect(box).toContain('group-data-invalid/control:group-data-pressed/control:border-error');
   });
 
-  it('keeps an invalid box\'s state layer error when it is selected or pressed', () => {
+  it("keeps an invalid box's state layer error when it is selected or pressed", () => {
     const control = slots.control().split(' ');
     const error = '[--m3-state-layer-color:var(--md-sys-color-error)]';
     // Each invalid rule is at least as specific as the selected / pressed rule it must beat.
@@ -48,6 +48,14 @@ describe('checkboxStyles', () => {
     ]) {
       expect(control).toContain(`${variant}${error}`);
     }
+  });
+
+  it('draws disabled boxes in GrayText in forced colours', () => {
+    const box = slots.box().split(' ');
+    expect(box).toContain('forced-colors:group-data-disabled/control:border-[GrayText]!');
+    expect(box).toContain(
+      'forced-colors:group-data-disabled/control:group-data-selected/control:bg-[GrayText]!',
+    );
   });
 
   it('gives selected boxes no outline, invalid included', () => {
