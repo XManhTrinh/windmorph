@@ -242,6 +242,7 @@ test.describe('Guides in the rail', () => {
       'Next.js',
       'From Compose',
       'Spec status',
+      'Windmorph Pro',
       "What's new",
     ]);
     await expect(flyout.getByRole('link', { name: 'Theming' })).toHaveAttribute(
