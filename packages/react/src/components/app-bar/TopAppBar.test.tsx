@@ -1,9 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { IconButton } from '../icon-button/IconButton';
 import { TopAppBar } from './TopAppBar';
+import { setMediaQueries } from '../../../test/setup';
 
 const Icon = () => <svg viewBox="0 0 24 24" />;
 const menu = <IconButton icon={<Icon />} aria-label="Menu" />;
@@ -178,6 +179,23 @@ describe('TopAppBar', () => {
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-64px');
     await scrollWindow(380);
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-44px');
+  });
+
+  it('keeps an enter-always bar on screen under reduced motion', async () => {
+    setMediaQueries({ '(prefers-reduced-motion)': true, '(prefers-reduced-motion: reduce)': true });
+    // Motion keeps the preference it last heard; tell it the default is back afterwards.
+    onTestFinished(() =>
+      setMediaQueries({
+        '(prefers-reduced-motion)': false,
+        '(prefers-reduced-motion: reduce)': false,
+      }),
+    );
+    render(<TopAppBar title="Inbox" scrollBehavior="enter-always" data-testid="bar" />);
+    const bar = screen.getByTestId('bar');
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 64 });
+    await scrollWindow(400);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
+    expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('100%');
   });
 
   it('collapses a two-row bar with the scroll and swaps the announced title', async () => {

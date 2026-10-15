@@ -102,6 +102,8 @@ export const floatingToolbarStyles = tv({
       'flex min-h-0 min-w-0 data-collapsed:[clip-path:inset(50%)]',
       '[transition-property:clip-path] [transition-duration:0s]',
       'data-collapsed:[transition-delay:var(--md-sys-motion-spring-effects-fast-duration)]',
+      // Under reduced motion the track closes at once, and so does the clip.
+      'motion-reduce:data-collapsed:[transition-delay:0s]',
     ],
     // FAB layout: the toolbar's slot keeps the expanded width while the surface shrinks,
     // collapsing on the effects spring for the same reason as `collapse`.

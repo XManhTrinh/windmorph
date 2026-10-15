@@ -1,6 +1,12 @@
 'use client';
 
-import { animate, useMotionValue, useMotionValueEvent, type MotionValue } from 'motion/react';
+import {
+  animate,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+  type MotionValue,
+} from 'motion/react';
 import {
   useEffect,
   useLayoutEffect,
@@ -216,6 +222,8 @@ export function PullToRefresh({
   const refreshing = refreshingProp ?? pendingRefresh;
   const fraction = useMotionValue(refreshing ? 1 : 0);
   const spring = useM3Spring('spatial', 'fast');
+  // Under reduced motion the indicator jumps to the threshold or away; a pull still moves it.
+  const settle = useReducedMotion() ? { duration: 0 } : spring;
   const [pulling, setPulling] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   // The indicator's code (its shapes and morphing) loads on demand: when the browser is first
@@ -227,9 +235,9 @@ export function PullToRefresh({
   const animatingRef = useRef(false);
   const mountedRef = useRef(true);
   // The latest props and helpers, for the native listeners added once.
-  const latest = useRef({ refreshing, disabled, threshold, onRefresh, refreshingProp, spring });
+  const latest = useRef({ refreshing, disabled, threshold, onRefresh, refreshingProp, settle });
   useLayoutEffect(() => {
-    latest.current = { refreshing, disabled, threshold, onRefresh, refreshingProp, spring };
+    latest.current = { refreshing, disabled, threshold, onRefresh, refreshingProp, settle };
   });
 
   // The layer is the root's first child, so a consumer `gap-*` on a flex root would open a gap
@@ -261,7 +269,7 @@ export function PullToRefresh({
   const settleRef = useRef((target: number) => {
     animationRef.current?.stop();
     animatingRef.current = true;
-    const controls = animate(fraction, target, latest.current.spring);
+    const controls = animate(fraction, target, latest.current.settle);
     animationRef.current = controls;
     void controls.then(() => {
       if (animationRef.current === controls) animatingRef.current = false;

@@ -1,6 +1,6 @@
 'use client';
 
-import { animate } from 'motion/react';
+import { animate, useReducedMotion } from 'motion/react';
 import {
   useId,
   useLayoutEffect,
@@ -347,7 +347,10 @@ function useIndicator(
   return indicator;
 }
 
-/** Scrollable rows centre the selected tab on the default spatial spring (Compose). */
+/**
+ * Scrollable rows centre the selected tab on the default spatial spring (Compose); under
+ * reduced motion they scroll there at once.
+ */
 function useScrollToSelection(
   scrollerRef: React.RefObject<HTMLDivElement | null>,
   listRef: React.RefObject<HTMLDivElement | null>,
@@ -355,6 +358,7 @@ function useScrollToSelection(
   scrollable: boolean,
 ) {
   const spring = useM3Spring('spatial', 'default');
+  const reducedMotion = useReducedMotion() ?? false;
   const first = useRef(true);
   useLayoutEffect(() => {
     const scroller = scrollerRef.current;
@@ -369,7 +373,7 @@ function useScrollToSelection(
     const delta = tabRect.left + tabRect.width / 2 - (scrollerRect.left + scrollerRect.width / 2);
     // RTL scroll positions run from 0 down to −max.
     const target = Math.min(Math.max(scroller.scrollLeft + delta, rtl ? -max : 0), rtl ? 0 : max);
-    if (first.current) {
+    if (first.current || reducedMotion) {
       first.current = false;
       scroller.scrollLeft = target;
       return;

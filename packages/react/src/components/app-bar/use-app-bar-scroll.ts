@@ -1,6 +1,6 @@
 'use client';
 
-import { cubicBezier } from 'motion/react';
+import { cubicBezier, useReducedMotion } from 'motion/react';
 import { useEffect, useState, type RefObject } from 'react';
 
 /** How a top app bar responds to the content scrolling under it (Compose's scroll behaviours). */
@@ -40,15 +40,26 @@ export interface AppBarScrollState {
  *   bar first collapses to its top row, which then hides and comes back on scroll up, but
  *   stays small until the page is back at the top (M3).
  * - `exit-until-collapsed`: scrolling down collapses it; it expands only near the top.
+ *
+ * Under reduced motion an `enter-always` bar never leaves the screen, like a navigation bar
+ * that hides on scroll (architecture §6): a single-row bar stays put and a two-row bar only
+ * collapses with the scroll, as `exit-until-collapsed` does.
  */
 export function useAppBarScroll({
-  behavior,
+  behavior: requested,
   rootRef,
   collapsibleRef,
   scrollRef,
   twoRows,
 }: AppBarScrollOptions): AppBarScrollState {
   const [state, setState] = useState<AppBarScrollState>({ scrolled: false, collapsed: false });
+  const reducedMotion = useReducedMotion() ?? false;
+  const behavior: TopAppBarScrollBehavior | undefined =
+    requested === 'enter-always' && reducedMotion
+      ? twoRows
+        ? 'exit-until-collapsed'
+        : 'pinned'
+      : requested;
 
   useEffect(() => {
     const root = rootRef.current;
