@@ -22,7 +22,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - item corners nest inside the container's: an edge item takes the outer corner minus
  *   the 4px padding (16px → 12px, 8px → 4px), other corners are 4px. Compose picks item
  *   shapes per group alone, so a last item could be rounder than its group's 8px corner;
- * - group labels start 12px from the group's edge and end 4px from it (Compose);
+ * - group labels start 16px from the group's edge, lined up with the item labels, and end
+ *   4px from it (Compose starts them at 12px; aligned with the labels, 2026-10-15);
  * - standard: surface-container-low, on-surface text, on-surface-variant icons, selected
  *   tertiary-container; vibrant: tertiary-container, on-tertiary-container content
  *   (icons turn tertiary on hover, focus and press), selected tertiary;
@@ -104,7 +105,8 @@ export const menuStyles = tv({
     ],
     // 8px above and below at density 0, 2px less per step (M3: density takes spacing off).
     divider: 'my-[calc(8px+var(--md-sys-density,0)*2px)] -mx-[4px] w-auto',
-    heading: 'flex min-h-[32px] items-center ps-[8px] text-label-large',
+    // 12px inside the group's 4px padding: 16px from its edge, as the item labels.
+    heading: 'flex min-h-[32px] items-center ps-[12px] text-label-large',
     item: [
       'group/item flex min-h-[calc(44px+var(--md-sys-density,0)*4px)] w-full cursor-pointer items-center px-[16px] text-start',
       'text-body-large text-[color:var(--_md-comp-menus-menu-item-label-text-color)] outline-none select-none',

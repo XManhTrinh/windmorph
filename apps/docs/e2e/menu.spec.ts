@@ -329,6 +329,27 @@ test.describe('Menu reveal direction (2026-10-15)', () => {
   });
 });
 
+// A group heading starts where the items' content does, 16px from the surface's edge
+// (Compose's 12px left it out of line; 2026-10-15).
+test('group headings line up with the items, 16px in', async ({ page }) => {
+  await openGrouped(page, {}, { layout: 'gap' });
+  const group = page.getByRole('group', { name: 'Edit' });
+  const heading = page.locator(`[id="${await group.getAttribute('aria-labelledby')}"]`);
+  const textStart = await heading.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    return range.getBoundingClientRect().x;
+  });
+  // Where the first item's content starts: inside its 16px padding.
+  const itemStart = await group
+    .getByRole('menuitem')
+    .first()
+    .evaluate(
+      (el) => el.getBoundingClientRect().x + parseFloat(getComputedStyle(el).paddingInlineStart),
+    );
+  expect(Math.round(textStart)).toBe(Math.round(itemStart));
+});
+
 // A leaving menu fades for ~150ms; an item clicked meanwhile used to run its action.
 test('a closing menu lets a click through instead of running an item', async ({ page }) => {
   await openGrouped(page);
