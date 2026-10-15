@@ -294,16 +294,23 @@ test.describe('Carousel touch scrolling', () => {
     });
     const box = (await carousel.boundingBox())!;
     const before = await page.evaluate(() => window.scrollY);
+    // A one-finger drag through the browser's own gesture handling: raw touch events, which
+    // scroll the page the same way in Chromium on macOS and Linux (a synthesized scroll
+    // gesture didn't on Linux).
     const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Input.synthesizeScrollGesture', {
-      x: Math.round(box.x + box.width / 2),
-      y: Math.round(box.y + box.height / 2),
-      xDistance: 0,
-      yDistance: -250,
-      gestureSourceType: 'touch',
-      speed: 800,
-      preventFling: true,
-    });
+    const x = Math.round(box.x + box.width / 2);
+    const y = Math.round(box.y + box.height / 2);
+    const point = (t: number) => ({ x, y: y - 250 * t });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
+    for (let step = 1; step <= 12; step++) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [point(step / 12)],
+      });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
     await page.waitForTimeout(300);
     expect((await page.evaluate(() => window.scrollY)) - before).toBeGreaterThan(150);
   });
