@@ -11,7 +11,7 @@ import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
-import { TooltipTrigger } from '../tooltip/tooltip-trigger';
+import { TooltipTrigger, WithoutDescription } from '../tooltip/tooltip-trigger';
 import { FabTooltip } from './FabTooltip';
 import {
   extendedFabStyles,
@@ -146,7 +146,7 @@ export function Fab({
   if (!tooltip || !label) return fab;
   return (
     <TooltipTrigger>
-      {fab}
+      <WithoutDescription>{fab}</WithoutDescription>
       <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );

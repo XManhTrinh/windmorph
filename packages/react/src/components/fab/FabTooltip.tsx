@@ -2,7 +2,11 @@
 
 import { useState, type ReactElement, type ReactNode } from 'react';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
-import { TooltipTrigger, useInTooltipTrigger } from '../tooltip/tooltip-trigger';
+import {
+  TooltipTrigger,
+  useInTooltipTrigger,
+  WithoutDescription,
+} from '../tooltip/tooltip-trigger';
 
 interface FabTooltipProps {
   /** Whether the tooltip can show: an extended FAB while collapsed, a FAB menu while closed. */
@@ -34,7 +38,8 @@ export function FabTooltip({ available, label, className, children }: FabTooltip
   if (inTooltipTrigger) return children;
   return (
     <TooltipTrigger isDisabled={!available} isOpen={available && isOpen} onOpenChange={setOpen}>
-      {children}
+      {/* The label is the FAB's name, so the tooltip doesn't describe it too. */}
+      <WithoutDescription>{children}</WithoutDescription>
       <LazyTooltip classNames={{ panel: className }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useMemo, type ReactElement, type ReactNode } from 'react';
+import { useContext, type ReactElement } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -16,9 +16,12 @@ import { useWarnOnce } from '../../utils/warn-once';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
 import { ButtonContext } from '../button/ButtonContext';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
-import { TriggerContext, type TriggerContextValue } from '../../primitives/TriggerContext';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
-import { TooltipTrigger, useInTooltipTrigger } from '../tooltip/tooltip-trigger';
+import {
+  TooltipTrigger,
+  useInTooltipTrigger,
+  WithoutDescription,
+} from '../tooltip/tooltip-trigger';
 import {
   iconButtonStyles,
   type IconButtonVariant,
@@ -212,20 +215,4 @@ export function IconButton(props: IconButtonProps) {
       <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );
-}
-
-/**
- * The built-in tooltip repeats the button's name, so it isn't linked as a description:
- * screen readers would announce the name twice ("Search, button, Search"). The tooltip
- * still shows; only `aria-describedby` from the enclosing trigger is dropped (2026-10-13).
- */
-function WithoutDescription({ children }: { children: ReactNode }) {
-  const trigger = useContext(TriggerContext);
-  const value = useMemo(() => {
-    if (!trigger) return null;
-    const own: Record<string, unknown> = { ...trigger };
-    delete own['aria-describedby'];
-    return own as TriggerContextValue;
-  }, [trigger]);
-  return <TriggerContext value={value}>{children}</TriggerContext>;
 }

@@ -13,6 +13,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   type DOMAttributes,
   type HTMLAttributes,
@@ -182,4 +183,22 @@ export function useInTooltipTrigger(): boolean {
   const plain = useContext(TooltipContext);
   const rich = useContext(RichContext);
   return plain !== null || rich !== null;
+}
+
+/**
+ * For a built-in tooltip that repeats its trigger's accessible name (an icon button's or a
+ * FAB's label): the tooltip isn't linked as a description, or screen readers would announce
+ * the name twice ("Search, button, Search"). The tooltip still shows; only the enclosing
+ * trigger's `aria-describedby` is dropped (2026-10-13; FABs 2026-10-15). A tooltip that
+ * says something else than the name keeps describing its trigger.
+ */
+export function WithoutDescription({ children }: { children: ReactNode }) {
+  const trigger = useContext(TriggerContext);
+  const value = useMemo(() => {
+    if (!trigger) return null;
+    const own: Record<string, unknown> = { ...trigger };
+    delete own['aria-describedby'];
+    return own as TriggerContextValue;
+  }, [trigger]);
+  return <TriggerContext value={value}>{children}</TriggerContext>;
 }

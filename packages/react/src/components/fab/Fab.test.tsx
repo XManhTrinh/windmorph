@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
@@ -116,6 +116,9 @@ describe('Fab', () => {
     await userEvent.hover(screen.getByRole('button', { name: 'Compose' }));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
     expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
+    // The tooltip repeats the name, so it doesn't describe the FAB too ("Compose, button").
+    expect(screen.getByRole('button', { name: 'Compose' })).not.toHaveAttribute('aria-describedby');
+    expect(screen.getByRole('button', { name: 'Compose' })).toHaveAccessibleDescription('');
     await userEvent.unhover(screen.getByRole('button', { name: 'Compose' }));
     await userEvent.hover(screen.getByRole('button', { name: 'Plain' }));
     expect(screen.queryAllByRole('tooltip').map((tip) => tip.textContent)).not.toContain('Plain');
@@ -187,11 +190,12 @@ describe('ExtendedFab', () => {
     await userEvent.hover(fab);
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Compose');
     expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
-    expect(fab).toHaveAttribute('aria-describedby');
+    // It repeats the name, so it doesn't describe the FAB too.
+    expect(fab).not.toHaveAttribute('aria-describedby');
 
     // Expanding again closes it.
     rerender(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
-    expect(fab).not.toHaveAttribute('aria-describedby');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull());
     await userEvent.unhover(fab);
 
     rerender(

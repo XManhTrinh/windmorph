@@ -427,6 +427,8 @@ describe('FabMenu', () => {
     await userEvent.hover(toggle());
     expect(await screen.findByRole('tooltip')).toHaveTextContent('Create');
     expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
+    // It repeats the toggle's name, so it doesn't describe it too.
+    expect(toggle()).not.toHaveAttribute('aria-describedby');
     // Opening turns the FAB into the close button: no tooltip.
     await userEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
