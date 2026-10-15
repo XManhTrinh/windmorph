@@ -571,3 +571,92 @@ test.describe('ButtonGroup press expansion, frame by frame (2026-10-14)', () => 
     });
   }
 });
+
+test.describe('ButtonGroup connected, sized by its content (2026-10-15)', () => {
+  interface Item {
+    name: string;
+    /** Layout width. */
+    width: number;
+    /** The painted content's space before and after it. */
+    before: number;
+    after: number;
+    /** The item's own space at each side (padding and border). */
+    padding: number;
+    /** Its natural width: the content and its padding, or its minimum width if larger. */
+    natural: number;
+  }
+
+  const measureItems = (group: Locator) =>
+    group.evaluate((el): Item[] =>
+      ([...el.children] as HTMLElement[]).map((item) => {
+        const style = getComputedStyle(item);
+        const box = item.getBoundingClientRect();
+        const rects = [...item.querySelectorAll('svg')].map((icon) => icon.getBoundingClientRect());
+        const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (!node.textContent?.trim()) continue;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          rects.push(range.getBoundingClientRect());
+        }
+        const left = Math.min(...rects.map((rect) => rect.left));
+        const right = Math.max(...rects.map((rect) => rect.right));
+        const padding =
+          Number.parseFloat(style.paddingInlineStart) +
+          Number.parseFloat(style.borderInlineStartWidth);
+        return {
+          name: item.getAttribute('aria-label') ?? item.textContent ?? '',
+          width: box.width,
+          before: left - box.left,
+          after: box.right - right,
+          padding,
+          natural: Math.max(Number.parseFloat(style.minWidth) || 0, right - left + 2 * padding),
+        };
+      }),
+    );
+
+  const groups = [
+    ...['xs', 'sm', 'md', 'lg', 'xl'].map((size) => `Reply ${size}`),
+    'Reply with icons',
+  ];
+  for (const dir of ['ltr', 'rtl'] as const) {
+    for (const name of groups) {
+      test(`${name} · ${dir}: every item takes the widest natural width, with full padding`, async ({
+        page,
+      }) => {
+        await openStory(page, 'composites-buttongroup--content-sized', { dir });
+        const items = await measureItems(page.locator(`[aria-label="${name}"]`));
+        const widest = Math.max(...items.map((item) => item.natural));
+        for (const item of items) {
+          const where = `${item.name}: ${items.map((i) => i.width.toFixed(2)).join(' / ')}, widest natural ${widest.toFixed(2)}`;
+          expect(Math.abs(item.width - widest), where).toBeLessThanOrEqual(1);
+          // Centred, and never inside its padding.
+          expect(Math.abs(item.before - item.after), where).toBeLessThanOrEqual(1);
+          expect(Math.min(item.before, item.after), where).toBeGreaterThanOrEqual(item.padding - 1);
+        }
+        // The widest label rests with exactly its padding around it.
+        const longest = items.reduce((a, b) => (b.natural > a.natural ? b : a));
+        if (longest.padding > 0) {
+          expect(Math.abs(longest.before - longest.padding)).toBeLessThanOrEqual(1);
+          expect(Math.abs(longest.after - longest.padding)).toBeLessThanOrEqual(1);
+        }
+      });
+    }
+  }
+
+  test('with too little room, no button shrinks below its natural width', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--content-sized');
+    const items = await measureItems(page.locator('[aria-label="Reply, too little room"]'));
+    for (const item of items) {
+      expect(item.width, item.name).toBeGreaterThanOrEqual(item.natural - 1);
+      expect(Math.min(item.before, item.after), item.name).toBeGreaterThanOrEqual(item.padding - 1);
+    }
+  });
+
+  test('a group with a definite width still shares it equally', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--content-sized');
+    const items = await measureItems(page.getByRole('radiogroup', { name: 'Reply, fixed width' }));
+    // 480px, 2 × 2px gaps, three buttons.
+    for (const item of items) expect(Math.abs(item.width - (480 - 4) / 3)).toBeLessThan(0.5);
+  });
+});

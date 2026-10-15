@@ -3,6 +3,12 @@
 import { useLayoutEffect, type RefObject } from 'react';
 import { OVERFLOW_HIDDEN } from './use-overflow';
 
+/**
+ * Set on the group while it sizes its items inline. A connected group, a grid at rest, is
+ * then a flex row (`data-pinned:flex`), since the bump animates its items' `flex-basis`.
+ */
+const PINNED = 'data-pinned';
+
 interface Pinned {
   /** Width at rest, before the group changed it. */
   rest: number;
@@ -70,7 +76,7 @@ function settleDuration(element: HTMLElement): number {
  *
  * Watches the public `data-pressed` attribute of the group's direct children and animates
  * their `flex-basis` (the `container-motion` utility transitions it on the fast spatial
- * spring). At rest no inline sizing remains, so consumer sizing such as `flex-1` applies;
+ * spring), with `data-pinned` on the group while any item is pinned. At rest no inline sizing remains, so consumer sizing such as `flex-1` applies;
  * the switches between that sizing and the pinned px widths don't animate (2026-10-14).
  * Buttons folded into the overflow menu don't take part. Under reduced motion there's no
  * bump at all: it's movement that only decorates the press (architecture §6).
@@ -104,6 +110,7 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
     const unpin = () => {
       for (const [element, entry] of pinned) resizeInstantly(element, entry.flex, entry.minWidth);
       pinned.clear();
+      group.removeAttribute(PINNED);
     };
 
     // Back to the rest widths, then unpinned once that has settled.
@@ -138,6 +145,9 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
       // pinned, not only the ones that move: in a group sized by its content (`w-fit`) the
       // group's width, and so the other items', depends on how each item is sized.
       const sizes = items.map((el) => pinned.get(el) ?? measure(el));
+      // A connected group lays its items out as a grid; pinned, it's a flex row of the same
+      // widths, so their `flex-basis` can animate.
+      group.setAttribute(PINNED, '');
       const entries = new Map(items.map((el, i) => [el, pin(el, sizes[i]!)]));
 
       // Compose: a middle item grows by min(ratio × width / 2, both neighbours' limits) on

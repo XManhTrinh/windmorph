@@ -169,12 +169,14 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
               Standard groups space their buttons 18 / 12 / 8 / 8 / 8px apart (XS–XL), so small
               buttons&apos; 48px targets never overlap. Connected groups use a 2px gap and span
               their container, the buttons sharing its width equally, as Compose&apos;s{' '}
-              <InlineCode>weight(1f)</InlineCode> does (add <InlineCode>*:basis-auto</InlineCode> to
-              size them by their labels, or <InlineCode>w-fit</InlineCode> to hug the content).
-              Outer corners are full, or the inner size in a square group; inner corners are 4 / 8 /
-              8 / 16 / 20px, 4px when pressed (2px at XS, whose corners rest at 4px); selected
-              buttons become fully round; and XS and S connected icon buttons are at least 48px
-              wide. These are logical corners, so they mirror in RTL.
+              <InlineCode>weight(1f)</InlineCode> does. The group is a grid of equal columns, so
+              with <InlineCode>w-fit</InlineCode> it hugs its content and every button takes the
+              widest one&apos;s natural width, labels keeping their full padding; add{' '}
+              <InlineCode>auto-cols-auto</InlineCode> to size them by their labels instead. Outer
+              corners are full, or the inner size in a square group; inner corners are 4 / 8 / 8 /
+              16 / 20px, 4px when pressed (2px at XS, whose corners rest at 4px); selected buttons
+              become fully round; and XS and S connected icon buttons are at least 48px wide. These
+              are logical corners, so they mirror in RTL.
             </li>
             <li>
               Toggle buttons with a <InlineCode>value</InlineCode> join the group&apos;s React Aria

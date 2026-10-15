@@ -250,8 +250,16 @@ describe('ButtonGroup', () => {
         <Button>Week</Button>
       </ButtonGroup>,
     );
-    // Equal shares of the width (Compose's weight(1f)); `*:basis-auto` sizes them by content.
-    expect(screen.getByRole('toolbar')).toHaveClass('flex', 'w-full', '*:grow', '*:basis-0');
+    // Equal columns (Compose's weight(1f)): a definite width is shared equally, and a group
+    // sized by its content gives each the widest one's width; `auto-cols-auto` sizes them by
+    // content. While the press bump pins widths, it's a flex row.
+    expect(screen.getByRole('toolbar')).toHaveClass(
+      'grid',
+      'w-full',
+      'grid-flow-col',
+      'auto-cols-[1fr]',
+      'data-pinned:flex',
+    );
     rerender(
       <ButtonGroup variant="connected" aria-label="View" className="w-fit">
         <Button>Day</Button>
@@ -270,6 +278,19 @@ describe('ButtonGroup', () => {
       </ButtonGroup>,
     );
     for (const button of screen.getAllByRole('button')) expect(button).toHaveClass('min-w-[48px]');
+  });
+
+  it('lets connected icon buttons stretch, their width a minimum', () => {
+    render(
+      <ButtonGroup variant="connected" size="md" aria-label="Format">
+        <IconButton icon={<Icon />} aria-label="Bold" />
+        <IconButton width="wide" icon={<Icon />} aria-label="Italic" />
+      </ButtonGroup>,
+    );
+    const [bold, italic] = screen.getAllByRole('button');
+    expect(bold).toHaveClass('w-auto', 'min-w-[56px]');
+    expect(bold).not.toHaveClass('w-[56px]');
+    expect(italic).toHaveClass('w-auto', 'min-w-[72px]');
   });
 
   it('leaves a single connected button with its normal shape', () => {

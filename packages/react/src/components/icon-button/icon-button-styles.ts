@@ -56,6 +56,39 @@ const widths = {
   xl: { narrow: 'w-[104px]', default: 'w-[136px]', wide: 'w-[184px]' },
 } as const;
 
+/**
+ * In a connected button group, the width is a minimum: the group's equal columns stretch the
+ * button (2026-10-15). Extra small and small connected buttons are at least 48px wide (button
+ * group specs).
+ */
+const connectedWidths = {
+  xs: {
+    narrow: 'w-auto min-w-[48px]',
+    default: 'w-auto min-w-[48px]',
+    wide: 'w-auto min-w-[48px]',
+  },
+  sm: {
+    narrow: 'w-auto min-w-[48px]',
+    default: 'w-auto min-w-[48px]',
+    wide: 'w-auto min-w-[52px]',
+  },
+  md: {
+    narrow: 'w-auto min-w-[48px]',
+    default: 'w-auto min-w-[56px]',
+    wide: 'w-auto min-w-[72px]',
+  },
+  lg: {
+    narrow: 'w-auto min-w-[64px]',
+    default: 'w-auto min-w-[96px]',
+    wide: 'w-auto min-w-[128px]',
+  },
+  xl: {
+    narrow: 'w-auto min-w-[104px]',
+    default: 'w-auto min-w-[136px]',
+    wide: 'w-auto min-w-[184px]',
+  },
+} as const;
+
 type Size = keyof typeof pressed;
 const SIZES = Object.keys(pressed) as Size[];
 const WIDTHS = ['narrow', 'default', 'wide'] as const;
@@ -80,6 +113,12 @@ const shapeVariants = [
 const sizeVariants = SIZES.flatMap((size) => [
   { size, connected: 'none' as const, class: { root: pressed[size] } },
   ...WIDTHS.map((width) => ({ size, width, class: { root: widths[size][width] } })),
+  ...WIDTHS.map((width) => ({
+    size,
+    width,
+    connected: ['leading' as const, 'middle' as const, 'trailing' as const],
+    class: { root: connectedWidths[size][width] },
+  })),
 ]);
 
 /** Variant definitions for {@link IconButton}; extend them to add variants. */
@@ -128,12 +167,6 @@ export const iconButtonStyles = tv({
     ...shapeVariants,
     ...sizeVariants,
     ...connectedShapeVariants,
-    // Extra small and small connected groups keep 48px wide buttons (button group specs).
-    {
-      size: ['xs', 'sm'],
-      connected: ['leading', 'middle', 'trailing'],
-      class: { root: 'min-w-[48px]' },
-    },
     { variant: 'outlined', size: 'lg', class: { root: 'border-2' } },
     { variant: 'outlined', size: 'xl', class: { root: 'border-3' } },
     // Toggle colours: unselected → selected, from the component tokens.

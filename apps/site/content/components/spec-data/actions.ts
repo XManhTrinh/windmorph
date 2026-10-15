@@ -261,6 +261,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
             windmorph: '(automatic)',
             note: 'Each child gets its leading, middle or trailing corners from the group.',
           },
+          {
+            compose: 'Modifier.weight(1f)',
+            windmorph: '(automatic)',
+            note: 'The buttons are equal columns: they share a definite width, and a `w-fit` group gives each the widest one’s natural width.',
+          },
         ],
       },
       {

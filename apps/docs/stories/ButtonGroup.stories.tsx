@@ -150,6 +150,94 @@ export const ConnectedMultipleSelection: Story = {
   ),
 };
 
+/**
+ * Connected groups sized by their content (`w-fit`) at every size: every button takes the
+ * widest one's natural width, so the longest label keeps its full padding. With too little
+ * room (240px), a button shrinks no further than its minimum, here its content. Last, a group
+ * with a definite width shares it equally.
+ */
+export const ContentSized: Story = {
+  render: () => (
+    <div className="flex flex-col items-start gap-4" data-testid="content-sized">
+      {SIZES.map((size) => (
+        <ButtonGroup
+          key={size}
+          variant="connected"
+          size={size}
+          className="w-fit"
+          selectionMode="single"
+          defaultSelectedKeys={['going']}
+          aria-label={`Reply ${size}`}
+        >
+          <Button toggle value="going">
+            Going
+          </Button>
+          <Button toggle value="not-going">
+            Not going
+          </Button>
+          <Button toggle value="maybe">
+            Maybe
+          </Button>
+        </ButtonGroup>
+      ))}
+      <ButtonGroup
+        variant="connected"
+        className="w-fit"
+        selectionMode="multiple"
+        aria-label="Reply with icons"
+      >
+        <Button
+          toggle
+          value="star"
+          leadingIcon={<StarOutlineIcon />}
+          selectedLeadingIcon={<StarIcon />}
+        >
+          Star
+        </Button>
+        <IconButton toggle value="edit" icon={<EditIcon />} aria-label="Edit" />
+        <Button toggle value="later">
+          Remind me later
+        </Button>
+      </ButtonGroup>
+      <div className="w-[240px]">
+        <ButtonGroup
+          variant="connected"
+          size="md"
+          className="w-fit"
+          selectionMode="single"
+          aria-label="Reply, too little room"
+        >
+          <Button toggle value="going">
+            Going
+          </Button>
+          <Button toggle value="not-going">
+            Not going
+          </Button>
+          <Button toggle value="maybe">
+            Maybe
+          </Button>
+        </ButtonGroup>
+      </div>
+      <ButtonGroup
+        variant="connected"
+        className="w-[480px]"
+        selectionMode="single"
+        aria-label="Reply, fixed width"
+      >
+        <Button toggle value="going">
+          Going
+        </Button>
+        <Button toggle value="not-going">
+          Not going
+        </Button>
+        <Button toggle value="maybe">
+          Maybe
+        </Button>
+      </ButtonGroup>
+    </div>
+  ),
+};
+
 /** Variants in standard and connected groups, with one selected item each. */
 export const Variants: Story = {
   render: () => (
