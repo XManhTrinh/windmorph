@@ -35,7 +35,7 @@ import {
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { firstTabbable } from '../../utils/focus';
+import { focusFirstInteractive } from '../../utils/focus';
 import { useWarnOnce } from '../../utils/warn-once';
 import { IconButton } from '../icon-button/IconButton';
 import { DIALOG_ROOT_STYLE, dialogStyles } from './dialog-styles';
@@ -459,14 +459,9 @@ function DialogModal({
     rest['aria-describedby'] ?? (hasContent ? dialogProps['aria-describedby'] : undefined);
 
   // The spec: "focus should automatically land on the first interactive element within the
-  // dialog". `useDialog` focuses the panel itself unless something inside took focus
-  // (`autoFocus`); move on from the panel to its first interactive element. A scrolling
-  // `DialogContent` is focusable (so the keyboard can scroll it) but isn't a control.
-  useEffect(() => {
-    const panel = panelRef.current;
-    if (!panel || document.activeElement !== panel) return;
-    firstTabbable(panel, (el) => el.hasAttribute('data-scrollable'))?.focus();
-  }, [panelRef]);
+  // dialog", not on the panel `useDialog` focuses. A scrolling `DialogContent` is focusable
+  // (so the keyboard can scroll it) but isn't a control.
+  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
 
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;

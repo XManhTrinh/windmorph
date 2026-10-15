@@ -2,6 +2,7 @@
 
 import {
   useContext,
+  useEffect,
   useId,
   type ComponentPropsWithRef,
   type ReactElement,
@@ -20,6 +21,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { focusFirstInteractive } from '../../utils/focus';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
@@ -321,6 +323,8 @@ function ModalSideSheet({
     },
     panelRef,
   );
+  // M3: focus lands on the first (non-disabled) icon button, as in a Dialog, not the panel.
+  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
   const exiting = isExiting || undefined;
   return (
     <>

@@ -68,6 +68,8 @@ describe('BottomSheet', () => {
       'min-[641px]:max-h-[calc(100dvh-56px)]',
     );
     const handle = screen.getByRole('button', { name: 'Close sheet' });
+    // Initial focus is the first interactive element (the handle), as in a Dialog.
+    expect(handle).toHaveFocus();
     expect(handle.firstElementChild).toHaveClass(
       'h-[4px]',
       'w-[32px]',
@@ -319,6 +321,40 @@ describe('BottomSheet', () => {
     expect(sheet).toHaveAttribute('data-detent', 'expanded');
     expect(onDetentChange).not.toHaveBeenCalled();
   });
+
+  it('makes what lies below a collapsed standard sheet’s peek inert', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    // Layout: the panel's top at 0, a 72px summary row, then the track list below it.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      const bottom = this.id === 'summary' ? 120 : this.id === 'tracks' ? 400 : 0;
+      return { top: 0, bottom } as DOMRect;
+    });
+    render(
+      <BottomSheet variant="standard" aria-label="Now playing" peekHeight={120}>
+        <div id="summary">
+          <Button>Pause</Button>
+        </div>
+        <div id="tracks">
+          <Button>Next track</Button>
+        </div>
+      </BottomSheet>,
+    );
+    const sheet = screen.getByRole('dialog');
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    // The summary fits in the peek; the track list doesn't.
+    expect(document.getElementById('summary')).not.toHaveAttribute('inert');
+    expect(document.getElementById('tracks')).toHaveAttribute('inert');
+    await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
+    expect(document.getElementById('tracks')).not.toHaveAttribute('inert');
+    // Collapsing with focus in the hidden part hands focus to the handle.
+    act(() => screen.getByRole('button', { name: 'Next track' }).focus());
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(document.getElementById('tracks')).toHaveAttribute('inert');
+    expect(screen.getByRole('button', { name: 'Expand sheet' })).toHaveFocus();
+  });
 });
 
 describe('SideSheet', () => {
@@ -355,6 +391,8 @@ describe('SideSheet', () => {
       'border-t',
       'border-outline-variant',
     );
+    // M3: focus lands on the first (non-disabled) icon button, not the panel.
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
     expect(await axeViolations(baseElement)).toEqual([]);
     // M3 requires a close button in every side sheet; it is built in.
     await userEvent.click(screen.getByRole('button', { name: 'Close' }));

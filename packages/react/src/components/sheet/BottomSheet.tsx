@@ -28,6 +28,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
+import { focusFirstInteractive } from '../../utils/focus';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
 import {
@@ -38,6 +39,7 @@ import {
   scrolledAbove,
 } from './sheet-gesture';
 import { settleTarget } from './sheet-settle';
+import { usePeekInert } from './use-peek-inert';
 import { SHEET_EXIT_PROPERTIES, bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
@@ -248,6 +250,9 @@ function ModalBottomSheet({
     panelRef,
   );
   const { dialogProps } = useDialog(props as AriaDialogProps, panelRef);
+  // Initial focus goes to the first interactive element (the drag handle, when there is one;
+  // M3), as in a Dialog, not to the panel.
+  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
   const styles = bottomSheetStyles();
   return (
     <>
@@ -510,6 +515,15 @@ function BottomSheetPanel({
     else close();
   };
 
+  const handleRef = useRef<HTMLDivElement>(null);
+  usePeekInert(
+    panelRef,
+    contentRef,
+    detentName === 'collapsed',
+    peekHeight,
+    () => handleRef.current ?? panelRef.current,
+  );
+
   const { focusProps: handleFocusProps, isFocusVisible: handleFocusVisible } = useFocusRing();
   const exiting = isExiting || undefined;
   const dragging = drag !== null || undefined;
@@ -590,6 +604,7 @@ function BottomSheetPanel({
             {dragHandle && (
               <div
                 {...handleFocusProps}
+                ref={handleRef}
                 role="button"
                 tabIndex={0}
                 data-focus-visible={handleFocusVisible || undefined}
