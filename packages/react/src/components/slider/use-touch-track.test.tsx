@@ -45,6 +45,16 @@ describe('Slider touch on the track', () => {
     expect(onChangeEnd).not.toHaveBeenCalled();
   });
 
+  it("isn't a tap after a move across the track, even if nothing cancels the pointer", () => {
+    const { track, input } = setup();
+    fireEvent(track, touch('pointerdown', 100, 20));
+    act(() => {
+      window.dispatchEvent(touch('pointermove', 100, 60));
+      window.dispatchEvent(touch('pointerup', 100, 60));
+    });
+    expect(input).toHaveValue('80');
+  });
+
   it('sets the value on release after a tap', () => {
     const { track, input, onChangeEnd } = setup();
     fireEvent(track, touch('pointerdown', 50, 20));

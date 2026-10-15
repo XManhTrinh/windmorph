@@ -82,6 +82,9 @@ export function useTouchTrack(
       if (dragging === null) {
         const along = Math.abs(vertical ? e.clientY - startY : e.clientX - startX);
         const across = Math.abs(vertical ? e.clientX - startX : e.clientY - startY);
+        // A move across the track belongs to the page (or a sheet the slider sits in): it's
+        // no longer a tap either.
+        if (across >= TOUCH_SLOP && across >= along) return end();
         if (along < TOUCH_SLOP || along <= across) return;
         const percent = percentAt(e.clientX, e.clientY);
         const index = closestThumb(state, state.getPercentValue(percent));
