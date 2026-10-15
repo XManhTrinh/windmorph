@@ -613,7 +613,8 @@ test.describe('DateField layout safety', () => {
           expect(panel.y).toBeGreaterThanOrEqual(0);
           expect(panel.x + panel.width).toBeLessThanOrEqual(viewport.width);
           expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
-          await page.keyboard.press('ArrowRight');
+          // The next day: → in left to right, ← in right to left.
+          await page.keyboard.press(dir === 'ltr' ? 'ArrowRight' : 'ArrowLeft');
           await page.keyboard.press('Enter');
           await expect(calendar).toBeHidden();
           await expect(page.getByTestId('value')).toHaveText('Value 2030-03-15');

@@ -247,7 +247,10 @@ test.describe('Density · Autocomplete', () => {
         const label = await box(chips.locator('label[data-slot="label"]'));
         expect(chip.y).toBeGreaterThanOrEqual(chipsContainer.y);
         expect(chip.y + chip.height).toBeLessThanOrEqual(chipsContainer.y + chipsContainer.height);
-        if (variant === 'filled') expect(label.y + label.height).toBeLessThanOrEqual(chip.y + 0.5);
+        // Its floated label sits above them while there's room for it (down to -1).
+        if (variant === 'filled' && level > -2) {
+          expect(label.y + label.height).toBeLessThanOrEqual(chip.y + 0.5);
+        }
         await checkIconButton(
           field('clear'),
           field('clear').getByRole('button', { name: 'Clear' }),
