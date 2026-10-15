@@ -122,8 +122,11 @@ export const listStyles = tv({
       // Reduced motion: the fade alone, still on the default effects spring.
       'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       'motion-reduce:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
-      'data-appear:starting:grid-rows-[0fr] data-appear:starting:opacity-0',
-      'data-exiting:grid-rows-[0fr] data-exiting:opacity-0',
+      // The height opens and closes only with motion: under reduced motion a leaving row
+      // stays open and fades where it is (with no height transition, a closed height would
+      // apply in the first frame and hide the fade).
+      'motion-safe:data-appear:starting:grid-rows-[0fr] data-appear:starting:opacity-0',
+      'motion-safe:data-exiting:grid-rows-[0fr] data-exiting:opacity-0',
     ],
     // Lets the row's height close to nothing inside the reveal.
     revealClip: 'flex min-h-0 flex-col overflow-hidden',

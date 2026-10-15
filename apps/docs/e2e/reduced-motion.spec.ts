@@ -275,6 +275,19 @@ test.describe('lists and toolbars', () => {
     expect(changed(result, 'home', 'borderRadius')).toBe(true);
   });
 
+  test('collapsing nested list rows fades them where they are', async ({ page }) => {
+    await openStory(page, 'components-list--expandable');
+    const photos = page.getByRole('row', { name: /Photos/ });
+    // The nested row's picture while it leaves: it keeps its height and fades out.
+    const result = await expectNoMovement(page, {
+      parts: { leaving: '[data-exiting]' },
+      act: () => photos.click(),
+    });
+    await expect(page.getByRole('row', { name: /Trips/ })).toHaveCount(0);
+    expect(faded(result, 'leaving')).toBe(true);
+    for (const frame of result.frames.leaving!) expect(frame.height).toBeGreaterThan(0);
+  });
+
   test('the floating toolbar collapses at once', async ({ page }) => {
     await openStory(page, 'components-toolbar--collapse');
     const toolbar = page.getByTestId('toolbar');
