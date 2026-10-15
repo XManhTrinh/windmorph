@@ -36,7 +36,7 @@ const matches = (query: string) =>
 function Suggestions({ query, onPick }: { query: string; onPick: (value: string) => void }) {
   const items = matches(query);
   return (
-    <div className="flex flex-col py-2">
+    <div className="flex flex-col py-2" data-count={items.length}>
       {items.map((item) => (
         <button
           key={item}

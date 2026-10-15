@@ -137,6 +137,8 @@ test.describe('Search geometry and behaviour', () => {
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toBeHidden();
+    // Focus returns to the bar once the view has landed on it.
+    await expect(page.getByRole('combobox')).toBeFocused();
     await page.getByRole('combobox').click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.mouse.click(700, 500);

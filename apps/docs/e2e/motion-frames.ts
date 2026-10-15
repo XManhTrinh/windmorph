@@ -25,11 +25,17 @@ export interface Frame {
 export interface SampleMotionOptions {
   /**
    * What starts the motion, run in the page so no frame passes before it is paused: a click on
-   * the first element matching `click`, or `key` pressed on the focused element.
+   * the first element matching `click`, `key` pressed on the focused element, or `value` typed
+   * into the first input matching `input` (set as a user's edit, so React sees it).
    */
-  act: { click: string } | { key: string };
+  act: { click: string } | { key: string } | { input: string; value: string };
   /** A selector that matches once the motion has started (the open dialog, `[data-exiting]`). */
   started: string;
+  /**
+   * A property whose transition starts a frame or more after `started` matches (one that
+   * follows a measurement, e.g. `height`): sampling waits until it is running.
+   */
+  transition?: string;
   /** Part name → selector of the element to read on every frame. */
   parts: Record<string, string>;
   /** How long to sample, in ms. @default 600 */
@@ -47,9 +53,14 @@ export interface SampleMotionOptions {
  */
 export function sampleMotion(page: Page, options: SampleMotionOptions): Promise<Frame[]> {
   return page.evaluate(
-    async ({ act, started, parts, duration, step }) => {
+    async ({ act, started, transition: awaited, parts, duration, step }) => {
       if ('click' in act) document.querySelector<HTMLElement>(act.click)!.click();
-      else {
+      else if ('input' in act) {
+        const input = document.querySelector<HTMLInputElement>(act.input)!;
+        const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+        setValue.call(input, act.value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      } else {
         const target = document.activeElement ?? document.body;
         target.dispatchEvent(
           new KeyboardEvent('keydown', { key: act.key, bubbles: true, cancelable: true }),
@@ -58,6 +69,16 @@ export function sampleMotion(page: Page, options: SampleMotionOptions): Promise<
       // React commits the change in a microtask or a task.
       for (let i = 0; i < 200 && !document.querySelector(started); i++) {
         await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+      const running = () =>
+        document
+          .getAnimations()
+          .some(
+            (animation) =>
+              animation instanceof CSSTransition && animation.transitionProperty === awaited,
+          );
+      for (let i = 0; awaited && i < 30 && !running(); i++) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
       }
       const elements = Object.entries(parts).map(
         ([name, selector]) => [name, document.querySelector<HTMLElement>(selector)] as const,
