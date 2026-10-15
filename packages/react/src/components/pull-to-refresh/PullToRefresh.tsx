@@ -221,7 +221,10 @@ export function PullToRefresh({
   const [pendingRefresh, setPendingRefresh] = useState(false);
   const refreshing = refreshingProp ?? pendingRefresh;
   const fraction = useMotionValue(refreshing ? 1 : 0);
-  const spring = useM3Spring('spatial', 'fast');
+  // Settling to the threshold or away never bounces: Compose animates it with
+  // `Animatable.animateTo`'s default, non-bouncing spring, which the default effects spring
+  // matches (2026-10-15; the fast spatial one dipped 3px under the threshold and back).
+  const spring = useM3Spring('effects', 'default');
   // Under reduced motion the indicator jumps to the threshold or away; a pull still moves it.
   const settle = useReducedMotion() ? { duration: 0 } : spring;
   const [pulling, setPulling] = useState(false);

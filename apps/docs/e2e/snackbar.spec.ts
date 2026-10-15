@@ -53,6 +53,33 @@ test.describe('SnackbarHost behaviour', () => {
     await expect(trigger).toBeFocused();
   });
 
+  test('focus returns to a trigger scrolled out of view without scrolling the page', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await openStory(page, 'components-snackbar--host');
+    const host = page.getByTestId('host');
+    await page.evaluate(() => {
+      document.body.style.paddingBottom = '2400px';
+    });
+    await host.evaluate((el) => {
+      Object.assign(el.style, { position: 'fixed', inset: 'auto 0 0 0' });
+    });
+    const trigger = page.getByRole('button', { name: 'With action' });
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(host.getByText('Message archived')).toBeVisible();
+    await page.keyboard.press('Alt+KeyG');
+    await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    const before = await page.evaluate(() => window.scrollY);
+    expect(before).toBeGreaterThan(1000);
+    await page.keyboard.press('Escape');
+    await expect(trigger).toBeFocused();
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+  });
+
   test('a replacing snackbar takes over at once', async ({ page }) => {
     await openStory(page, 'components-snackbar--host');
     const host = page.getByTestId('host');
@@ -131,5 +158,19 @@ test.describe('Snackbar layout safety', () => {
       await target.getByRole('button', { name: 'Undo' }).click();
       await expect(page.getByTestId('count')).toHaveText('Pressed 1');
     },
+  });
+});
+
+test.describe('Snackbar in forced colours', () => {
+  // Forced colours drop the fill and shadow, so the snackbar draws a 1px outline (2026-10-15).
+  test('the snackbar keeps an edge', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-snackbar--layouts');
+    const snackbar = page.locator('[data-tokens="md-comp-snackbar"]').first();
+    const style = await snackbar.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.outlineStyle} ${s.outlineWidth}`;
+    });
+    expect(style).toBe('solid 1px');
   });
 });

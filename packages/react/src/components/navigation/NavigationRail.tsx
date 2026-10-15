@@ -314,6 +314,9 @@ export function NavigationRail({
   );
 }
 
+/** The sheet's exit transitions; whichever runs marks the end of its exit. */
+const SHEET_EXIT_PROPERTIES = ['width', 'translate', 'opacity'] as const;
+
 function ModalRail({
   open,
   onClose,
@@ -344,7 +347,10 @@ function ModalRail({
       if (!isOpen) onClose();
     },
   });
-  const { isPresent, isExiting, exitProps } = usePresence(open);
+  // Presence ends with the sheet's own motion, not the scrim's shorter fade, which removed
+  // the sheet mid-spring inside the collapsed rail (2026-10-15). Width when it shrinks back,
+  // translate when it slides out, opacity under reduced motion.
+  const { isPresent, isExiting, exitProps } = usePresence(open, SHEET_EXIT_PROPERTIES);
   if (!isPresent) return null;
   return (
     <Overlay isExiting={isExiting}>
@@ -425,13 +431,12 @@ function ModalSheet({
     <>
       <div
         {...underlayProps}
-        {...exitProps}
         aria-hidden="true"
         data-exiting={exiting}
         className={styles.scrim({ class: classNames?.scrim })}
       />
       <div
-        {...mergeProps(modalProps, dialogProps)}
+        {...mergeProps(modalProps, dialogProps, exitProps)}
         ref={ref}
         data-tokens="md-comp-nav-rail"
         data-modal=""

@@ -7,6 +7,7 @@ import { axeViolations } from '../../../test/axe';
 import { Badge } from '../badge/Badge';
 import { NavigationBar, NavigationBarItem } from './NavigationBar';
 import { NavigationRail, NavigationRailItem, type NavigationRailProps } from './NavigationRail';
+import { navigationRailStyles } from './navigation-styles';
 
 vi.mock('motion/react', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -272,6 +273,50 @@ describe('NavigationRail', () => {
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sent' }));
     expect(onNavigate).toHaveBeenCalledOnce();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 1500 });
+  });
+
+  it('keeps the modal sheet until its own exit motion ends, not the scrim’s fade', async () => {
+    const end = (el: Element, propertyName: string) => {
+      const event = new Event('transitionend', { bubbles: true }) as TransitionEvent;
+      Object.defineProperty(event, 'propertyName', { value: propertyName });
+      act(() => {
+        el.dispatchEvent(event);
+      });
+    };
+    function Modal() {
+      const [expanded, setExpanded] = useState(true);
+      return <Rail modal expanded={expanded} onExpandedChange={setExpanded} />;
+    }
+    render(<Modal />);
+    const sheet = screen.getByRole('dialog', { name: 'Main' });
+    await userEvent.keyboard('{Escape}');
+    expect(sheet).toHaveAttribute('data-exiting');
+    const scrim = sheet.previousElementSibling!;
+    expect(scrim).toHaveAttribute('data-exiting');
+    // The scrim's shorter fade ends first: the sheet is still shrinking back.
+    end(scrim, 'opacity');
+    expect(screen.getByRole('dialog', { name: 'Main' })).toBe(sheet);
+    end(sheet, 'width');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('fades the modal scrim in and out on the default effects spring (Compose)', () => {
+    const scrim = navigationRailStyles().scrim();
+    expect(scrim).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+    );
+    expect(scrim).not.toContain('effects-fast');
+  });
+
+  it('slides the hidden rail’s modal sheet in on the default spatial spring (Compose)', () => {
+    const sheet = navigationRailStyles({ sheetEntry: 'slide' }).sheet();
+    expect(sheet).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+    );
+    expect(sheet).not.toContain('spatial-fast');
+    expect(navigationRailStyles({ sheetEntry: 'grow' }).sheet()).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+    );
   });
 
   it('lets classNames.body replace the top inset', () => {
@@ -624,6 +669,34 @@ describe('NavigationBar', () => {
     expect(search).not.toHaveClass('flex-1');
   });
 
+  it('stacks inline items when their labels don’t fit on one line side by side', () => {
+    let barWidth = 300;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.tagName === 'NAV' ? barWidth : 0;
+    });
+    // Each label is 60px on one line: 4 × (60 + 68px of item chrome) = 512px.
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.hasAttribute('data-nav-label') ? 60 : 0;
+    });
+    const { rerender } = render(<Bar iconPosition="start" />);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveAttribute('data-stacked', 'true');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('data-layout', 'bar-top');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveClass('flex-1');
+    barWidth = 600;
+    rerender(<Bar iconPosition="start" key="wide" />);
+    expect(screen.getByRole('navigation')).not.toHaveAttribute('data-stacked');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute(
+      'data-layout',
+      'bar-start',
+    );
+    vi.restoreAllMocks();
+  });
+
   it('stretches items to the bar height, so the whole bar is the touch target', () => {
     const { rerender } = render(<Bar />);
     const home = () => screen.getByRole('link', { name: 'Home' });
@@ -724,6 +797,73 @@ describe('NavigationBar', () => {
     scrollTo(400);
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('0px');
     expect(nav).not.toHaveAttribute('inert');
+    scrollTo(0);
+    vi.restoreAllMocks();
+  });
+
+  it('settles shown or hidden when the scroll ends part-way', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 0;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(64);
+    render(<Bar scrollBehavior="hide-on-scroll" />);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveClass('data-settling:[transition-property:bottom]');
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      fireEvent.scroll(window);
+    };
+    const offset = () => nav.style.getPropertyValue('--m3-nav-bar-offset');
+    scrollTo(20);
+    expect(offset()).toBe('-20px');
+    fireEvent(window, new Event('scrollend'));
+    // Nearer shown: it eases back, and stays reachable.
+    expect(offset()).toBe('0px');
+    expect(nav).toHaveAttribute('data-settling');
+    scrollTo(60);
+    expect(nav).not.toHaveAttribute('data-settling');
+    expect(offset()).toBe('-40px');
+    fireEvent(window, new Event('scrollend'));
+    expect(offset()).toBe('-64px');
+    expect(nav).toHaveAttribute('inert');
+    scrollTo(0);
+    vi.restoreAllMocks();
+  });
+
+  it('isn’t made inert while focus from a press is in it, so focus never drops', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 0;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(64);
+    render(
+      <>
+        <Bar scrollBehavior="hide-on-scroll" />
+        <button type="button">Elsewhere</button>
+      </>,
+    );
+    const nav = screen.getByRole('navigation');
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      fireEvent.scroll(window);
+    };
+    // Pointer focus (not focus-visible): the bar still hides, but keeps the focus.
+    const matches = Element.prototype.matches;
+    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+      this: Element,
+      selector: string,
+    ) {
+      return selector === ':focus-visible' ? false : matches.call(this, selector);
+    });
+    act(() => screen.getByRole('link', { name: 'Search' }).focus());
+    scrollTo(200);
+    expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-64px');
+    expect(nav).not.toHaveAttribute('inert');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveFocus();
+    // Once focus leaves, the hidden bar becomes inert.
+    act(() => screen.getByRole('button', { name: 'Elsewhere' }).focus());
+    expect(nav).toHaveAttribute('inert');
     scrollTo(0);
     vi.restoreAllMocks();
   });

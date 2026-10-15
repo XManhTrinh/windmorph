@@ -127,6 +127,20 @@ test.describe('Dialog behaviour', () => {
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('28px');
   });
 
+  // Forced colours drop the fill and shadow, so the panel draws a 1px outline (2026-10-15).
+  test('keeps an edge in forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-dialog--basic');
+    await page.getByRole('button', { name: 'Open dialog' }).click();
+    const dialog = page.getByRole('alertdialog', { name: 'Discard draft?' });
+    await expect(dialog).toBeVisible();
+    const style = await dialog.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.outlineStyle} ${s.outlineWidth}`;
+    });
+    expect(style).toBe('solid 1px');
+  });
+
   test('traps focus, closes on Escape and returns focus to the trigger', async ({ page }) => {
     await openStory(page, 'components-dialog--basic');
     const trigger = page.getByRole('button', { name: 'Open dialog' });
@@ -406,6 +420,37 @@ test.describe('Dialog spec details', () => {
     await expect.poll(async () => (await exit.clip())[1]).toBe(inset);
     await expect(dialog).toHaveCount(0);
     await expect(fab).toBeFocused();
+  });
+
+  // The exit never collapses past the FAB (2026-10-15): the fast spatial spring overshot it
+  // to zero height and regrew while still visible.
+  test('the container transform shrinks into the FAB without passing it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 760 });
+    await openStory(page, 'components-dialog--container-transform');
+    const fab = page.getByRole('button', { name: 'New event' });
+    const box = (await fab.boundingBox())!;
+    await fab.click();
+    const dialog = page.getByRole('dialog', { name: 'New event' });
+    await expect(dialog).toBeVisible();
+    await settle(page);
+    await page.waitForTimeout(400);
+    await dialog.evaluate((el) => {
+      const motion = el.parentElement!;
+      const tops: number[] = [];
+      (window as unknown as { __tops: number[] }).__tops = tops;
+      const tick = () => {
+        if (!motion.isConnected) return;
+        const match = /^inset\(([\d.]+)px/.exec(getComputedStyle(motion).clipPath);
+        if (match && Number(getComputedStyle(motion).opacity) > 0) tops.push(Number(match[1]));
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    const tops = await page.evaluate(() => (window as unknown as { __tops: number[] }).__tops);
+    expect(tops.length).toBeGreaterThan(3);
+    expect(Math.max(...tops), tops.join(' ')).toBeLessThanOrEqual(box.y + 1);
   });
 
   test('reduced motion: the container transform falls back to the fade', async ({ page }) => {

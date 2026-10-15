@@ -307,14 +307,64 @@ describe('Tabs', () => {
     const indicator = container.querySelector<HTMLElement>('[data-ready]')!;
     // Transitions are gated on the row's data-animate.
     expect(indicator).toHaveClass('group-data-animate/tabs:[transition-property:translate,width]');
+    // Colour fades are gated on data-recolour.
     expect(screen.getByRole('tab', { name: 'Flights' })).toHaveClass(
-      'group-data-animate/tabs:[--m3-transition-property:color]',
+      'group-data-recolour/tabs:[--m3-transition-property:color]',
     );
     expect(indicator.style.translate).toBe('0px 0');
     expect(list).not.toHaveAttribute('data-animate');
+    expect(list).not.toHaveAttribute('data-recolour');
     await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
     expect(indicator.style.translate).toBe('100px 0');
     expect(list).toHaveAttribute('data-animate', 'true');
+    vi.restoreAllMocks();
+  });
+
+  it('gives unselected primary tabs an on-surface state layer, the selected one primary', () => {
+    render(<Trip />);
+    const selected = screen.getByRole('tab', { selected: true });
+    expect(selected).toHaveClass(
+      '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+      'data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
+    );
+    expect(selected).toHaveAttribute('data-selected');
+  });
+
+  it('reveals the row at the nearest position, so arrow keys never centre the page on it', () => {
+    const scrollIntoView = vi.fn();
+    const original = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    render(<Trip scrollable />);
+    const list = screen.getByRole('tablist');
+    // React Aria's call when keyboard focus moves to a tab the row has to scroll to.
+    list.scrollIntoView({ block: 'center', inline: 'center' });
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
+    expect(scrollIntoView.mock.contexts[0]).toBe(list);
+    if (original) Object.defineProperty(Element.prototype, 'scrollIntoView', original);
+    else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
+  it('turns the colour fade on in the render that changes the selection', async () => {
+    // The indicator's measuring reads layout, which commits the tabs' new colours: the fade
+    // must already be on then, or the first selection recolours in one frame.
+    const seen: (string | undefined)[] = [];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.getAttribute('role') === 'tab' && this.hasAttribute('data-selected')) {
+        seen.push(this.closest<HTMLElement>('[role="tablist"]')!.dataset.recolour);
+      }
+      return DOMRect.fromRect({ x: 0, y: 0, width: 100, height: 48 });
+    });
+    render(<Trip variant="secondary" />);
+    expect(seen.every((value) => value === undefined)).toBe(true);
+    seen.length = 0;
+    await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every((value) => value === 'true')).toBe(true);
     vi.restoreAllMocks();
   });
 

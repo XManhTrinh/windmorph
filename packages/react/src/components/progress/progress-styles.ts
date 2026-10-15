@@ -13,6 +13,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `--md-comp-progress-indicator-*`); each root carries
  * `data-tokens="md-comp-progress-indicator"`, and the parts read one private variable each. A
  * consumer class (`stroke-current`) still wins.
+ *
+ * Forced colours (2026-10-15): browsers don't force SVG strokes, so they kept the theme's
+ * colours (a 1.2:1 track on a white high-contrast canvas). There the indicator and stop dot
+ * are `CanvasText` and the track `GrayText`.
  * Every class is written out in full so Tailwind can find it.
  */
 
@@ -21,13 +25,16 @@ export const linearProgressStyles = tv({
   slots: {
     root: 'block h-(--m3-progress-height) w-[240px] max-w-full shrink-0',
     svg: 'block size-full overflow-visible rtl:-scale-x-100',
-    track:
+    track: [
       'fill-none stroke-[var(--_md-comp-progress-indicator-track-color)] [stroke-linecap:round]',
+      'forced-colors:stroke-[GrayText]',
+    ],
     indicator: [
       'fill-none stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+      'forced-colors:stroke-[CanvasText]',
       '[stroke-linecap:round] [stroke-linejoin:round]',
     ],
-    stop: 'fill-[var(--_md-comp-progress-indicator-stop-indicator-color)]',
+    stop: 'fill-[var(--_md-comp-progress-indicator-stop-indicator-color)] forced-colors:fill-[CanvasText]',
   },
   variants: {
     wavy: { true: {}, false: {} },
@@ -40,10 +47,13 @@ export const circularProgressStyles = tv({
   slots: {
     root: 'inline-block size-(--m3-progress-size) shrink-0',
     svg: 'block size-full overflow-visible',
-    track:
+    track: [
       'fill-none stroke-[var(--_md-comp-progress-indicator-track-color)] [stroke-linecap:round]',
+      'forced-colors:stroke-[GrayText]',
+    ],
     indicator: [
       'fill-none stroke-[var(--_md-comp-progress-indicator-active-indicator-color)]',
+      'forced-colors:stroke-[CanvasText]',
       '[stroke-linecap:round] [stroke-linejoin:round]',
     ],
   },

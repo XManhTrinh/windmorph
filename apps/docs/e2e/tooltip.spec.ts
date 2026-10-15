@@ -507,3 +507,36 @@ test.describe('Tooltip layout safety', () => {
     });
   }
 });
+
+test.describe('Tooltip in forced colours', () => {
+  // Forced colours drop the fill and shadow, so each panel draws a 1px system-colour outline,
+  // and the caret (whose transparent borders would be painted as a bar) is hidden (2026-10-15).
+  const edge = (el: Element) => {
+    const style = getComputedStyle(el);
+    return `${style.outlineStyle} ${style.outlineWidth}`;
+  };
+
+  test('plain and rich panels keep an edge, and the caret is hidden', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-tooltip--plain', {}, { caret: true });
+    await page.mouse.move(0, 0);
+    await page.getByRole('button', { name: 'Edit' }).hover();
+    const plain = page.locator('[data-tokens="md-comp-plain-tooltip"]');
+    await expect(plain).toBeVisible();
+    expect(await plain.evaluate(edge)).toBe('solid 1px');
+    expect(
+      await plain.locator('[aria-hidden="true"]').evaluate((el) => getComputedStyle(el).display),
+    ).toBe('none');
+
+    await openStory(page, 'components-tooltip--rich', {}, { caret: true, placement: 'bottom' });
+    await page.getByRole('button', { name: 'What are grouped tabs?' }).click();
+    const rich = page.locator('[data-tokens="md-comp-rich-tooltip"]');
+    await expect(rich).toBeVisible();
+    expect(await rich.evaluate(edge)).toBe('solid 1px');
+    expect(
+      await rich
+        .locator(':scope > [aria-hidden="true"]')
+        .evaluate((el) => getComputedStyle(el).display),
+    ).toBe('none');
+  });
+});

@@ -5,6 +5,8 @@ import {
   createContext,
   isValidElement,
   useContext,
+  useLayoutEffect,
+  useState,
   type ComponentPropsWithRef,
   type CSSProperties,
   type ReactNode,
@@ -44,7 +46,9 @@ export interface NavigationBarClassNames {
 interface NavigationBarOwnProps {
   /**
    * Icons above labels (compact windows) or beside them (the flexible bar in medium
-   * windows). @default "top"
+   * windows). Items beside their icons stack, sharing the width equally, whenever their
+   * labels don't fit on one line side by side (a narrow bar or large text), so no label is
+   * cut off; the bar then carries `data-stacked`. @default "top"
    */
   iconPosition?: 'top' | 'start';
   /**
@@ -103,7 +107,14 @@ export function NavigationBar({
   const navRef = useObjectRef(ref);
   const hideOnScroll = scrollBehavior === 'hide-on-scroll';
   useHideOnScroll(hideOnScroll, navRef, scrollRef);
-  const styles = navigationBarStyles({ arrangement, iconPosition, hideOnScroll });
+  const stacked = useStackWhenCrowded(navRef, iconPosition === 'start');
+  // Inline items that don't fit on one line become stacked items sharing the width equally.
+  const layout = stacked ? 'top' : iconPosition;
+  const styles = navigationBarStyles({
+    arrangement: stacked ? 'equal' : arrangement,
+    iconPosition: layout,
+    hideOnScroll,
+  });
   const count = Children.toArray(children).filter(isValidElement).length;
   // Compose: centred stacked items sit within (100% − 10% × (n + 3)) / 2 each side, up to 6.
   const padding =
@@ -121,13 +132,68 @@ export function NavigationBar({
       }}
       style={{ paddingInline: padding, ...style } as CSSProperties}
       data-tokens="md-comp-nav-bar"
+      data-stacked={stacked || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <BarContext value={{ iconPosition, itemClassName: styles.item({ class: classNames?.item }) }}>
+      <BarContext
+        value={{ iconPosition: layout, itemClassName: styles.item({ class: classNames?.item }) }}
+      >
         {children}
       </BarContext>
     </nav>
   );
+}
+
+/**
+ * An inline item's width besides its label: 4px outside the pill on each side, 16px inside
+ * it, a 24px icon and the 4px gap before the label (`nav-item-styles.ts`, `bar-start`).
+ */
+const INLINE_ITEM_CHROME = 4 + 16 + 24 + 4 + 16 + 4;
+
+/**
+ * Whether inline items must stack because their labels don't fit on one line side by side,
+ * as at large text sizes (M3: "Ensure the full label is always visible on-screen at up to 2x
+ * text sizing"; 2026-10-15). Each label is measured on one line (the same type role in both
+ * layouts, so the answer doesn't change with the layout it picks), again whenever the bar
+ * or a label resizes (a narrower window, a larger root text size, a web font loading).
+ */
+function useStackWhenCrowded(navRef: RefObject<HTMLElement | null>, inline: boolean) {
+  const [stacked, setStacked] = useState(false);
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!inline || !nav) {
+      setStacked(false);
+      return;
+    }
+    const labels = () => [...nav.querySelectorAll<HTMLElement>('[data-nav-label]')];
+    const measure = () => {
+      // Not laid out (hidden, or no layout engine): keep the layout asked for.
+      if (nav.clientWidth === 0) return setStacked(false);
+      let needed = 0;
+      for (const label of labels()) {
+        const wrap = label.style.whiteSpace;
+        label.style.whiteSpace = 'nowrap';
+        // A large badge on the icon takes room past the icon's end edge (12px inside it).
+        const badge = label
+          .closest('[data-nav-item]')
+          ?.querySelector<HTMLElement>('[data-size="large"]');
+        const overhang = badge ? Math.max(0, badge.offsetWidth - 12) : 0;
+        needed += label.scrollWidth + INLINE_ITEM_CHROME + overhang;
+        label.style.whiteSpace = wrap;
+      }
+      const style = getComputedStyle(nav);
+      const available =
+        nav.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      setStacked(needed > available + 0.5);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    labels().forEach((label) => observer.observe(label));
+    return () => observer.disconnect();
+  }, [navRef, inline]);
+  return inline && stacked;
 }
 
 export type NavigationBarItemProps = NavItemProps;

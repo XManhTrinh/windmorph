@@ -224,6 +224,16 @@ function TabsInner({
     state.collection,
   );
   useScrollToSelection(scrollerRef, listRef, state.selectedKey, scrollable);
+  // The tabs' colours fade only once the selection has changed. Set in the render that
+  // changes it, not with the indicator's placement: that comes from a layout effect whose
+  // measuring commits the new colours first, so the first selection recoloured at once.
+  const [shownKey, setShownKey] = useState(state.selectedKey);
+  const [recolour, setRecolour] = useState(false);
+  if (shownKey !== state.selectedKey) {
+    setShownKey(state.selectedKey);
+    if (shownKey != null) setRecolour(true);
+  }
+  useNearestRowReveal(listRef);
 
   return (
     <>
@@ -237,6 +247,7 @@ function TabsInner({
           ref={listRef}
           data-slot="list"
           data-animate={indicator?.animate || undefined}
+          data-recolour={recolour || undefined}
           className={styles.list({ class: classNames?.list })}
         >
           {items.map((item, index) => (
@@ -402,6 +413,30 @@ function useScrollToSelection(
     // The spring only matters for the next selection change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, scrollable]);
+}
+
+/**
+ * Arrow keys must not scroll the page. When keyboard focus moves to a tab that the row has
+ * to scroll to, React Aria calls `scrollIntoView({ block: 'center', inline: 'center' })` on
+ * the tab list, which scrolls every ancestor, the window included, to centre the row even
+ * when it is fully on screen (176px on a desktop page), and then reveals the tab. The list's
+ * own `scrollIntoView` asks for the nearest position instead, so the page moves only when
+ * the row is partly out of view, and only as far as needed; the tab is still revealed in the
+ * row (2026-10-15).
+ */
+function useNearestRowReveal(listRef: React.RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollIntoView = (arg?: boolean | ScrollIntoViewOptions) =>
+      Element.prototype.scrollIntoView?.call(
+        list,
+        typeof arg === 'object' ? { ...arg, block: 'nearest', inline: 'nearest' } : arg,
+      );
+    return () => {
+      Reflect.deleteProperty(list, 'scrollIntoView');
+    };
+  }, [listRef]);
 }
 
 interface TabButtonProps {

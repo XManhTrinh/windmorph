@@ -44,6 +44,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Badges overlap the icon's top end (BadgedBox), except in the expanded rail, where M3 puts
  * them next to the label, 4px after it.
  *
+ * Forced colours (2026-10-15): the current pill keeps a `Highlight` fill
+ * (`forced-color-adjust: none`), with its icon, and a label inside it, in `HighlightText`;
+ * otherwise the pill became Canvas and only the bold label marked the current item.
+ *
  * The pill, its state layer and its content share one grid cell, so nothing is positioned.
  *
  * The pill, icon and label colours come from the bar's or rail's component tokens
@@ -70,6 +74,8 @@ export const navItemStyles = tv({
     indicator: [
       'col-start-1 row-start-1 rounded-full opacity-0',
       'group-data-current/nav:opacity-100 group-data-current/nav:[clip-path:inset(0_0_round_9999px)]',
+      // Forced colours would paint the pill as Canvas: it keeps a Highlight fill instead.
+      'forced-colors:bg-[Highlight] forced-colors:forced-color-adjust-none',
       '[transition-property:clip-path,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
@@ -92,6 +98,7 @@ export const navItemStyles = tv({
     icon: [
       'inline-grid size-[24px] shrink-0 place-items-center [&>svg]:size-full',
       'group-data-disabled/nav:text-on-surface-variant/38',
+      'forced-colors:group-data-current/nav:text-[HighlightText]',
       'transition-colors duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
     // An icon and its selected variant share one cell and cross-fade.
@@ -103,6 +110,8 @@ export const navItemStyles = tv({
     iconStack: 'inline-grid size-[24px] place-items-center [&>svg]:size-full',
     // The expanded rail's badge, 4px after the label (the content gap is 8px).
     badge: 'inline-flex shrink-0 -ms-[4px]',
+    // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in).
+    badgedBox: '',
     label: [
       'min-w-0 overflow-hidden text-ellipsis text-balance group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
@@ -134,6 +143,7 @@ export const navItemStyles = tv({
         content: 'justify-start gap-[8px] ps-[16px] pe-[16px] py-[8px]',
         icon: 'text-[color:var(--_md-comp-nav-rail-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-icon-color)]',
         label: [
+          'forced-colors:group-data-current/nav:text-[HighlightText]',
           'text-label-large text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
           'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
@@ -162,8 +172,21 @@ export const navItemStyles = tv({
           'bg-[var(--_md-comp-nav-bar-item-active-indicator-color)]',
         ],
         content: 'gap-[4px] ps-[16px] pe-[16px] py-[4px]',
-        icon: 'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
+        // A large badge reaches past the icon's end edge into the label's place (M3: badges
+        // overlap the icon). Its overhang takes room in the row so the label starts 4px after
+        // the badge (2026-10-15): the icon box grows to the badge, which hangs from a box as
+        // wide as itself, 12px inside the 24px icon, as `BadgedBox` places it.
+        icon: [
+          'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
+          'has-[[data-size=large]]:w-auto has-[[data-size=large]]:min-w-[24px] has-[[data-size=large]]:justify-items-start',
+        ],
+        badgedBox: [
+          'has-[[data-size=large]]:grid-cols-[auto]',
+          '[&:has([data-size=large])>span:first-child]:w-[24px] [&:has([data-size=large])>span:first-child]:justify-self-start',
+          '[&>span:last-child:has([data-size=large])]:w-max [&>span:last-child:has([data-size=large])]:ms-[12px]',
+        ],
         label: [
+          'forced-colors:group-data-current/nav:text-[HighlightText]',
           'text-label-medium text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
           'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],

@@ -283,12 +283,6 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['pull-to-refresh/pull-to-refresh-button'],
       },
     ],
-    differences: [
-      {
-        item: 'Settle spring',
-        note: 'The indicator settles on the fast spatial spring of the motion scheme, since it moves position; Compose uses a default, non-bouncing spring.',
-      },
-    ],
     extensions: [
       {
         item: 'On the web',

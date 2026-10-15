@@ -3,7 +3,13 @@ import { useState } from 'react';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { preloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
+import { useM3Spring } from '../../motion/use-m3-spring';
 import { PullToRefresh, type PullToRefreshProps } from './PullToRefresh';
+
+vi.mock('../../motion/use-m3-spring', async (importOriginal) => {
+  const actual = await importOriginal<{ useM3Spring: typeof useM3Spring }>();
+  return { useM3Spring: vi.fn(actual.useM3Spring) };
+});
 
 type TouchType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 
@@ -366,5 +372,14 @@ describe('PullToRefresh', () => {
     expect(layer().style.marginInlineEnd).toBe('-12px');
     expect(layer().style.marginBlockEnd).toBe('0px');
     expect(layer().style.gridRow).toBe('');
+  });
+});
+
+describe('PullToRefresh settle', () => {
+  it('settles on the non-bouncing default effects spring, as Compose', () => {
+    vi.mocked(useM3Spring).mockClear();
+    render(<Feed />);
+    expect(useM3Spring).toHaveBeenCalledWith('effects', 'default');
+    expect(vi.mocked(useM3Spring).mock.calls.some(([family]) => family === 'spatial')).toBe(false);
   });
 });
