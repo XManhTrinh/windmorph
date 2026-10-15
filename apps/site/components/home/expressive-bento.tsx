@@ -157,9 +157,11 @@ export function ExpressiveBento() {
       {/* Connected button group: a selection appears */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-3 large:row-span-4 large:row-start-1">
         {/* Square, as in Google's showcase video, and opted into the press bump it shows. On a
-            large window the tile is narrower than the group's natural width (its equal columns
-            take the widest button's), so the group keeps that width and scales to 80% to fit,
-            every button at full padding */}
+            phone or a large window the tile is narrower than the group's natural width (373px:
+            its equal columns take the widest button's), so the group keeps that width and
+            scales to fit, every button at full padding: 50% below 360px, 60% from 360px
+            (224px in a 232px tile), 70% from 410px, and 80% from 440px and on large windows (298px
+            in 304px) */}
         <ButtonGroup
           variant="connected"
           shape="square"
@@ -167,7 +169,7 @@ export function ExpressiveBento() {
           selectionMode="single"
           selectedKeys={active ? ['going'] : []}
           aria-label="Reply"
-          className="w-fit shrink-0 max-medium:scale-80 large:w-max large:scale-80"
+          className="w-fit shrink-0 max-medium:w-max max-medium:scale-50 min-[360px]:max-medium:scale-60 min-[410px]:max-medium:scale-70 min-[440px]:max-medium:scale-80 large:w-max large:scale-80"
         >
           <Button
             data-press="on off"
