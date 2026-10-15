@@ -105,7 +105,7 @@ test.describe('Dialog visual regression', () => {
 });
 
 test.describe('Dialog behaviour', () => {
-  test('opens expanding from its top edge, named by its title, focusing its first action', async ({
+  test('opens to rest unclipped and unmoved, named by its title, focusing its first action', async ({
     page,
   }) => {
     await openStory(page, 'components-dialog--basic');
@@ -116,7 +116,10 @@ test.describe('Dialog behaviour', () => {
     await settle(page);
     const motion = dialog.locator('xpath=..');
     expect(await motion.evaluate((el) => getComputedStyle(el).scale)).toBe('none');
-    expect(await motion.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(-32px)');
+    expect(await motion.evaluate((el) => getComputedStyle(el).clipPath)).toBe(
+      'inset(-32px round 60px)',
+    );
+    expect(await motion.evaluate((el) => getComputedStyle(el).translate)).toBe('none');
     expect(await motion.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
     const box = (await dialog.boundingBox())!;
     expect(box.width).toBeGreaterThanOrEqual(280);
@@ -283,25 +286,6 @@ test.describe('Dialog spec details', () => {
     expect((await page.getByRole('alertdialog').boundingBox())!.width).toBe(320 - 48);
   });
 
-  test('expands away from the edge it sits against', async ({ page }) => {
-    await page.setViewportSize({ width: 1024, height: 760 });
-    const enterClip = async (story: string, globals: { dir?: 'rtl' } = {}) => {
-      await openStory(page, story, globals);
-      const motion = await recordDialogMotion(page);
-      await page.getByRole('button', { name: 'Open dialog' }).click();
-      await expect.poll(async () => (await motion.clip()).length).toBeGreaterThan(0);
-      return (await motion.clip())[0];
-    };
-    expect(await enterClip('components-dialog--placement-bottom')).toMatch(/^inset\(100% /);
-    expect(await enterClip('components-dialog--placement-start')).toBe(
-      'inset(-32px 100% -32px -32px)',
-    );
-    expect(await enterClip('components-dialog--placement-start', { dir: 'rtl' })).toBe(
-      'inset(-32px -32px -32px 100%)',
-    );
-    expect(await enterClip('components-dialog--basic')).toBe('inset(-32px -32px 100%)');
-  });
-
   test('reduced motion: the panel fades out instead of vanishing', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-dialog--basic');
@@ -317,7 +301,7 @@ test.describe('Dialog spec details', () => {
           .filter((record) => record.property === 'opacity')
           .map(({ exiting, clipPath }) => ({ exiting, clip: clipPath })),
       )
-      .toContainEqual({ exiting: true, clip: 'inset(-32px)' });
+      .toContainEqual({ exiting: true, clip: 'inset(-32px round 60px)' });
     await expect(dialog).toHaveCount(0);
   });
 
@@ -391,10 +375,10 @@ test.describe('Dialog spec details', () => {
     expect(await motion.clip()).toEqual([]);
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
-    // Not clipped back into the FAB: it only fades.
+    // Not clipped back into the FAB: the clip keeps the window while it only fades.
     const exit = (await motion.all()).filter((record) => record.exiting);
     expect(exit.map((record) => record.property)).toContain('opacity');
-    for (const record of exit) expect(record.clipPath).toBe('none');
+    for (const record of exit) expect(record.clipPath).toBe('inset(0px)');
     expect(await motion.clip()).toEqual([]);
   });
 
@@ -457,8 +441,8 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         const motion = await recordDialogMotion(page);
         await page.getByRole('button', { name: 'Open dialog' }).click();
         const dialog = page.getByRole('dialog', { name: 'Sync across devices?' });
-        // Enter motion: the panel expands downward on its library-owned wrapper.
-        await expect.poll(async () => (await motion.clip())[0]).toBe('inset(-32px -32px 100%)');
+        // Enter motion: the container grows downward on its library-owned wrapper.
+        await expect.poll(async () => (await motion.clip())[0]).toBe('inset(0px 0px 100% round 28px)');
         await settle(page);
 
         const panel = await dialog.evaluate((el) => {
@@ -489,7 +473,7 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         expect(panel).toEqual({
           width: TEXT_WIDTH,
           radius: '28px',
-          clip: 'inset(-32px)',
+          clip: 'inset(-32px round 60px)',
           opacity: '1',
           inWindow: true,
         });

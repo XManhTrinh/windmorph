@@ -322,7 +322,7 @@ export const PlacementBottom: Story = {
   ),
 };
 
-/** Against the start edge: it expands along the x axis, away from that edge. */
+/** Against the start edge: it slides and grows along the x axis, away from that edge. */
 export const PlacementStart: Story = {
   render: () => (
     <DialogTrigger>
@@ -345,6 +345,125 @@ export const PlacementStart: Story = {
       </Dialog>
     </DialogTrigger>
   ),
+};
+
+/** Against the end edge: it slides and grows along the x axis, away from that edge. */
+export const PlacementEnd: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog placement="end" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Discard draft?</DialogTitle>
+            <DialogContent>Your changes to this message will be lost.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Discard
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/**
+ * Custom children take part in the motion: every child fades in with the content, and a
+ * child marked `data-slot="actions"` fades in last, with the actions.
+ */
+export const CustomChildren: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog aria-labelledby="custom-title" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <h2 id="custom-title" className="pb-4 text-headline-small text-on-surface">
+              Share with Priya?
+            </h2>
+            <p className="pb-6 text-body-medium text-on-surface-variant">
+              She will be able to see and edit this album.
+            </p>
+            <div data-slot="actions" className="flex justify-end gap-2">
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Share
+              </Button>
+            </div>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/** `quick`: no enter or exit motion. */
+export const Quick: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog quick data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Discard draft?</DialogTitle>
+            <DialogContent>Your changes to this message will be lost.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Discard
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
+/** `onOpened` and `onClosed` report when the enter and exit motion have finished. */
+export const MotionCallbacks: Story = {
+  render: function MotionCallbacksStory() {
+    const [status, setStatus] = useState('Closed');
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <DialogTrigger onOpenChange={(open) => setStatus(open ? 'Opening' : 'Closing')}>
+          <Button variant="tonal">Open dialog</Button>
+          <Dialog
+            data-testid="dialog"
+            onOpened={() => setStatus('Opened')}
+            onClosed={() => setStatus('Closed')}
+          >
+            {({ close }) => (
+              <>
+                <DialogTitle>Discard draft?</DialogTitle>
+                <DialogContent>Your changes to this message will be lost.</DialogContent>
+                <DialogActions>
+                  <Button variant="text" onPress={close}>
+                    Cancel
+                  </Button>
+                  <Button variant="text" onPress={close}>
+                    Discard
+                  </Button>
+                </DialogActions>
+              </>
+            )}
+          </Dialog>
+        </DialogTrigger>
+        <p className="text-body-medium text-on-surface" data-testid="status" aria-live="polite">
+          {status}
+        </p>
+      </div>
+    );
+  },
 };
 
 /** Custom-positioned with `classNames.positioner`: the top end corner, within the 56px margin. */
