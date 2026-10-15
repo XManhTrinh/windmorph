@@ -36,8 +36,19 @@ export const buttonGroupStyles = tv({
   },
   compoundVariants: [
     { variant: 'standard', overflow: true, class: 'flex' },
-    { variant: 'standard', size: 'xs', class: 'gap-[18px]' },
-    { variant: 'standard', size: 'sm', class: 'gap-[12px]' },
+    // XS and S: the spec's 18 / 12px, growing as density shrinks the icon buttons (their
+    // default widths: XS max(24px, 32px + 4px a step), S 40px + 4px a step), so neighbouring
+    // centres stay 48px apart and their 48px touch targets never overlap (2026-10-15).
+    {
+      variant: 'standard',
+      size: 'xs',
+      class: 'gap-[max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]',
+    },
+    {
+      variant: 'standard',
+      size: 'sm',
+      class: 'gap-[max(12px,calc(8px-var(--md-sys-density,0)*4px))]',
+    },
     { variant: 'standard', size: ['md', 'lg', 'xl'], class: 'gap-[8px]' },
   ],
   defaultVariants: { variant: 'standard', size: 'sm', overflow: false },

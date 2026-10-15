@@ -44,7 +44,7 @@ const spatialFast = [
 const exitMotion = [
   'data-hidden:invisible motion-reduce:data-hidden:opacity-0 motion-reduce:data-hidden:[transform:none]',
   '[transition-property:transform,opacity,visibility]',
-  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),max(var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration))]',
   '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
 ];
 
@@ -64,7 +64,7 @@ const exitEdges = {
 export const dockedToolbarStyles = tv({
   slots: {
     root: [
-      'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px] text-on-surface-variant',
+      'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px]',
       ...exitMotion,
       'data-hidden:[transform:translateY(100%)]',
     ],
@@ -74,17 +74,27 @@ export const dockedToolbarStyles = tv({
       'space-between': { root: 'justify-between' },
       centered: { root: 'justify-center gap-[32px]' },
     },
+    // As the floating toolbar's (2026-10-15): vibrant is primary-container, and standard icon
+    // buttons take its content colour. M3 has no vibrant docked token, so it's a class.
+    color: {
+      standard: { root: 'text-on-surface-variant' },
+      vibrant: {
+        root: 'bg-primary-container text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]',
+      },
+    },
   },
-  defaultVariants: { arrangement: 'centered' },
+  defaultVariants: { arrangement: 'centered', color: 'standard' },
 });
 
 /** Variant definitions for {@link FloatingToolbar}; extend them to add colour styles. */
 export const floatingToolbarStyles = tv({
   slots: {
-    // Collapsing and expanding resize it in place, so it is never the browser's scroll
-    // anchor (which would scroll the page to follow it).
+    // Collapsing and expanding resize its parts in place, so none of them is ever the
+    // browser's scroll anchor (which would scroll the page to follow it). The root itself
+    // may be: its start edge stays put while it resizes, whereas excluding it hands the
+    // anchor to the content after it, which moves by the whole change (2026-10-15).
     root: [
-      'inline-flex shrink-0 items-center justify-center [overflow-anchor:none]',
+      'inline-flex shrink-0 items-center justify-center [overflow-anchor:auto] **:[overflow-anchor:none]',
       ...exitMotion,
     ],
     // A group of items (main, leading or trailing content).
@@ -185,8 +195,10 @@ export const floatingToolbarStyles = tv({
     { hasFab: false, elevated: true, class: { root: 'shadow-elevation-1' } },
     // With a FAB, the toolbar's own surface is level 1 expanded and level 0 collapsed.
     { hasFab: true, elevated: true, class: { surface: 'shadow-elevation-1' } },
-    { hasFab: true, orientation: 'horizontal', class: { root: 'min-h-[80px]' } },
-    { hasFab: true, orientation: 'vertical', class: { root: 'min-w-[80px]' } },
+    // Fixed at the FAB's largest size, as Compose's layout: the FAB's spring overshoot
+    // (80 → 82px) spills over the edges instead of resizing the root and moving the page.
+    { hasFab: true, orientation: 'horizontal', class: { root: 'h-[80px]' } },
+    { hasFab: true, orientation: 'vertical', class: { root: 'w-[80px]' } },
     // The FAB comes first visually but after the toolbar in reading order, as in Compose.
     {
       hasFab: true,
@@ -263,6 +275,7 @@ export const toolbarFabStyles = tv({
 
 export type DockedToolbarStyleProps = VariantProps<typeof dockedToolbarStyles>;
 export type DockedToolbarArrangement = NonNullable<DockedToolbarStyleProps['arrangement']>;
+export type DockedToolbarColor = NonNullable<DockedToolbarStyleProps['color']>;
 export type FloatingToolbarStyleProps = VariantProps<typeof floatingToolbarStyles>;
 export type FloatingToolbarColor = NonNullable<FloatingToolbarStyleProps['color']>;
 export type ToolbarOrientation = NonNullable<FloatingToolbarStyleProps['orientation']>;

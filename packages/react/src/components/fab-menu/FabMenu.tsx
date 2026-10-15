@@ -17,7 +17,7 @@ import {
   type TransitionEvent,
 } from 'react';
 import { useReducedMotion } from 'motion/react';
-import { useInteractOutside, useObjectRef } from 'react-aria';
+import { mergeProps, useFocusWithin, useInteractOutside, useObjectRef } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
 import {
   ButtonBase,
@@ -250,6 +250,17 @@ export function FabMenu({
 
   useInteractOutside({ ref: rootRef, onInteractOutside: close, isDisabled: !isOpen || isMenu });
 
+  // Tabbing out of the open menu closes it, as an outside press does, so the open list never
+  // covers what takes focus next (M3: don't obscure the focus indicator; 2026-10-15). Focus
+  // leaving the window (no new target) keeps it open.
+  const { focusWithinProps } = useFocusWithin({
+    isDisabled: !isOpen || isMenu,
+    onBlurWithin: (event) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && !rootRef.current?.contains(next)) setOpen(false);
+    },
+  });
+
   // A list taller than the window scrolls; it opens showing the items nearest the button.
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -336,7 +347,7 @@ export function FabMenu({
 
   return (
     <div
-      {...rest}
+      {...mergeProps(rest, focusWithinProps)}
       ref={rootRef}
       inert={!visible || undefined}
       // The component tokens' hook (fab-menu-tokens.ts).

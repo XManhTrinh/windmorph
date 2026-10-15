@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, type ReactElement, type ReactNode } from 'react';
+import { isValidElement, useContext, type ReactElement, type ReactNode } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -45,6 +45,19 @@ interface FabCommonProps {
    * or tab change to replay it. @default false
    */
   appear?: boolean;
+}
+
+/** The text of a label, through elements and arrays (empty for anything else). */
+function textOf(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (isValidElement<{ children?: ReactNode }>(node)) return textOf(node.props.children);
+  return '';
+}
+
+/** A text's first word, lower-cased, or undefined when it has none. */
+function firstWord(text: string | undefined): string | undefined {
+  return text?.match(/[\p{L}\p{N}]+/u)?.[0]?.toLocaleLowerCase();
 }
 
 /** The `data-*` and `inert` attributes that drive the show / hide motion. */
@@ -225,6 +238,14 @@ export function ExtendedFab({
   useWarnOnce(
     useContext(ToolbarContext)?.kind === 'floating',
     '[@windmorph/react] Pair a FloatingToolbar with a FAB (ToolbarFab), not an extended FAB (M3).',
+  );
+  // M3: "The accessibility label must include the same first word as the visible label",
+  // so voice control users can say what they see (2026-10-15).
+  const labelWord = firstWord(base['aria-label']);
+  const visibleWord = firstWord(textOf(children));
+  useWarnOnce(
+    labelWord !== undefined && visibleWord !== undefined && labelWord !== visibleWord,
+    `[@windmorph/react] An ExtendedFab's aria-label should start with its visible label's first word ("${visibleWord}"), as M3 asks, so voice control can name it.`,
   );
   const collapsed = !expanded && Boolean(icon);
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });

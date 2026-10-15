@@ -667,6 +667,19 @@ test.describe('Density · ButtonGroup', () => {
         const g = await box(group);
         expect(g.height).toBeCloseTo(Math.max(spec.min, spec.h + level * 4), 0);
         for (let index = 0; index < 3; index++) await ownsItsBox(page, buttons.nth(index));
+        // Re-audit 2026-10-15: the XS and S gaps grow as the buttons shrink, so neighbouring
+        // centres stay 48px apart and the 48px targets never overlap.
+        const centres = await buttons.evaluateAll((elements) =>
+          elements.map((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left + rect.width / 2;
+          }),
+        );
+        for (let index = 1; index < 3; index++) {
+          expect(centres[index]! - centres[index - 1]!, `${level} ${size}`).toBeGreaterThanOrEqual(
+            47.9,
+          );
+        }
       }
       const connected = page.getByTestId(`${level}-connected-xs`).getByRole('button');
       for (let index = 0; index < 3; index++) {

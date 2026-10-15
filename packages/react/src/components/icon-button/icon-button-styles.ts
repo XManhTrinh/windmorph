@@ -1,4 +1,5 @@
 import { tv, type VariantProps } from '../../utils/tv';
+import { forcedColorClasses, nonBouncingMorph } from '../button/button-styles';
 import { connectedShapeVariants } from '../button/connected-shapes';
 
 /*
@@ -161,7 +162,11 @@ export const iconButtonStyles = tv({
       // The height, per size (`--m3-icon-button-height`).
       'h-[var(--m3-icon-button-height)]',
       'state-layer focus-ring container-motion',
+      // Every morph, toggles included, on the default effects spring, which never bounces:
+      // Compose's IconButton "DefaultEffects is intentional here to prevent any bounce".
+      nonBouncingMorph,
       'data-disabled:cursor-default',
+      forcedColorClasses.disabled,
     ],
     // Library-owned inner wrapper: holds the icon and the touch target.
     content: 'relative inline-flex items-center justify-center',
@@ -173,10 +178,20 @@ export const iconButtonStyles = tv({
         root: 'bg-transparent text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:text-on-surface/38',
       },
       filled: {
-        root: 'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+        root: [
+          'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+          // Forced colours paint the container as Canvas: a 1px CanvasText boundary keeps it
+          // visible, as Material Web's filled and tonal icon buttons (2026-10-15).
+          'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
       },
       tonal: {
-        root: 'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+        root: [
+          'bg-[var(--_md-comp-icon-button-container-color)] text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:bg-on-surface/10 data-disabled:text-on-surface/38',
+          // Forced colours paint the container as Canvas: a 1px CanvasText boundary keeps it
+          // visible, as Material Web's filled and tonal icon buttons (2026-10-15).
+          'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
       },
       outlined: {
         root: 'border border-solid border-[color:var(--_md-comp-icon-button-outline-color)] bg-transparent text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:not-data-selected:border-outline-variant/10 data-disabled:text-on-surface/38',
@@ -227,7 +242,10 @@ export const iconButtonStyles = tv({
     {
       toggle: true,
       class: {
-        root: 'bg-[var(--_md-comp-icon-button-unselected-container-color)] text-[color:var(--_md-comp-icon-button-unselected-icon-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-icon-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-icon-button-selected-icon-color)]',
+        root: [
+          'bg-[var(--_md-comp-icon-button-unselected-container-color)] text-[color:var(--_md-comp-icon-button-unselected-icon-color)] data-selected:not-data-disabled:bg-[var(--_md-comp-icon-button-selected-container-color)] data-selected:not-data-disabled:text-[color:var(--_md-comp-icon-button-selected-icon-color)]',
+          forcedColorClasses.selected,
+        ],
       },
     },
     {

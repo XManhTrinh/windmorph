@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { underForcedColors } from './forced-colors';
+import { overshoots, probeNextMorph } from './morph-probe';
 import { openStory } from './story';
 
 test.describe('SplitButton visual regression', () => {
@@ -243,4 +245,33 @@ test.describe('SplitButton menu behaviour (2026-10-13)', () => {
     await expect(page.getByRole('menu')).toBeVisible();
     expect(await icon.evaluate((el) => getComputedStyle(el).rotate)).toBe('180deg');
   });
+});
+
+// Re-audit 2026-10-15: under forced colours neither half had a boundary.
+test.describe('SplitButton forced colours', () => {
+  test('both halves keep a boundary and their size', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--variants-and-sizes');
+    const halves = page.getByTestId('variants').getByRole('button');
+    const { before, after } = await underForcedColors(page, halves);
+    after.forEach((look, index) => {
+      expect(look.borderStyle, `half #${index}`).toBe('solid');
+      expect(look.borderWidth, `half #${index}`).toBeGreaterThanOrEqual(1);
+      expect(look.width, `half #${index}`).toBe(before[index]!.width);
+      expect(look.height, `half #${index}`).toBe(before[index]!.height);
+    });
+  });
+});
+
+// Re-audit 2026-10-15: the halves' press morph overshot; Compose's split button uses
+// DefaultEffects, which never bounces.
+test('a split button half morphs without bouncing', async ({ page }) => {
+  await openStory(page, 'components-splitbutton--variants-and-sizes');
+  // A medium leading half: its inner (end) corners go 4 → 12px under the pointer.
+  const half = page.getByTestId('variants').getByRole('button', { name: 'Edit' }).nth(2);
+  const box = (await half.boundingBox())!;
+  const morph = await probeNextMorph(half, 'any', 'border-top-right-radius');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const curve = await morph();
+  expect(curve.to).toBeGreaterThan(curve.from);
+  expect(overshoots(curve), JSON.stringify(curve)).toBe(false);
 });

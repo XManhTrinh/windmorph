@@ -37,7 +37,7 @@ export const fab: ComponentAccessibility = {
   ],
   consumer: [
     'Name a `Fab` with an `aria-label` that says the action ("Compose a new message"), not the icon.',
-    'Give an `ExtendedFab` an `aria-label` only to add detail, and start it with the visible label\'s first word ("Create a new invite" for "Create").',
+    'Give an `ExtendedFab` an `aria-label` only to add detail, and start it with the visible label\'s first word ("Create a new invite" for "Create"). It warns once in development when the first words differ.',
     "Pass `tooltip={false}` to a `Fab` you wrap in your own `TooltipTrigger`: unlike `ExtendedFab`, it doesn't step aside on its own.",
     "Hide the FAB (`visible={false}`) when its action isn't available, rather than disabling it.",
     'Place it in the DOM where it should come in the focus order, and keep it from covering another control and its focus ring.',

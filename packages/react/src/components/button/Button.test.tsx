@@ -165,6 +165,32 @@ describe('Button', () => {
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
   });
 
+  it('morphs a plain button on the non-bouncing effects spring, a toggle on fast spatial', () => {
+    // Re-audit 2026-10-15: Compose's Button uses DefaultEffects, its ToggleButton FastSpatial.
+    render(
+      <>
+        <Button>Plain</Button>
+        <Button toggle>Toggle</Button>
+      </>,
+    );
+    const effects =
+      '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]';
+    expect(screen.getByRole('button', { name: 'Plain' })).toHaveClass(effects);
+    expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveClass(effects);
+  });
+
+  it('gives a selected, disabled outlined toggle the on-surface 10% container', () => {
+    // Re-audit 2026-10-15: as the token and the outlined icon button.
+    render(
+      <Button toggle variant="outlined" defaultSelected disabled>
+        Selected
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Selected' });
+    expect(button).toHaveClass('data-disabled:data-selected:bg-on-surface/10');
+    expect(button).not.toHaveClass('data-disabled:bg-outline-variant/10');
+  });
+
   it('uses square corners and size-specific press morphs', () => {
     render(
       <>
@@ -211,8 +237,13 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'L' })).toHaveClass('[--m3-button-border:2px]');
     expect(screen.getByRole('button', { name: 'L' })).not.toHaveClass('[--m3-button-border:1px]');
     expect(screen.getByRole('button', { name: 'XL' })).toHaveClass('[--m3-button-border:3px]');
+    // Only forced colours give a filled button a border (re-audit 2026-10-15).
     expect(screen.getByRole('button', { name: 'Filled' }).className).not.toMatch(
-      /--m3-button-border:/,
+      /(^| )\[--m3-button-border:/,
+    );
+    expect(screen.getByRole('button', { name: 'Filled' })).toHaveClass(
+      'forced-colors:[--m3-button-border:1px]',
+      'forced-colors:border-[CanvasText]',
     );
   });
 

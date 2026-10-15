@@ -121,8 +121,9 @@ describe('ButtonGroup', () => {
   });
 
   it.each([
-    ['xs', 'gap-[18px]'],
-    ['sm', 'gap-[12px]'],
+    // 18 / 12px at density 0, growing with density so 48px targets never overlap.
+    ['xs', 'gap-[max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]'],
+    ['sm', 'gap-[max(12px,calc(8px-var(--md-sys-density,0)*4px))]'],
     ['md', 'gap-[8px]'],
     ['lg', 'gap-[8px]'],
     ['xl', 'gap-[8px]'],

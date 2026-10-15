@@ -439,6 +439,18 @@ function OverflowMenu({
       ),
     );
 
+  // A choice made with the mouse closed the menu with focus still on its item, which then
+  // left with the menu and dropped focus on <body>. Once the menu has closed, focus still in
+  // it (or on the page) goes back to the indicator, as after a keyboard choice (2026-10-15).
+  const indicator = useRef<HTMLElement | null>(null);
+  const keepFocus = () =>
+    requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (!active || active === document.body || active.closest('[role="menu"]')) {
+        indicator.current?.focus({ preventScroll: true });
+      }
+    });
+
   const grouped = selectionMode !== 'none';
   const hasToggles = hidden.some((child) => child.props.toggle);
   const menuSelectionMode = grouped ? selectionMode : hasToggles ? 'multiple' : 'none';
@@ -456,11 +468,14 @@ function OverflowMenu({
     .map(({ key }) => key);
 
   return (
-    <MenuTrigger onOpenChange={(open) => open && readPressed()}>
+    <MenuTrigger onOpenChange={(open) => (open ? readPressed() : keepFocus())}>
       <IconButton
         icon={<MoreVertIcon />}
         aria-label={label}
         className={classNames?.overflowButton}
+        onPressStart={(event) => {
+          indicator.current = event.target as HTMLElement;
+        }}
       />
       {hidden.length > 0 && (
         <LazyOverflowMenuList

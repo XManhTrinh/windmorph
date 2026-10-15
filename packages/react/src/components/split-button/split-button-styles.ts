@@ -1,5 +1,9 @@
 import { tv, type VariantProps } from '../../utils/tv';
-import { buttonVariantClasses } from '../button/button-styles';
+import {
+  buttonVariantClasses,
+  forcedColorClasses,
+  nonBouncingMorph,
+} from '../button/button-styles';
 
 /*
  * Values follow the M3 Expressive split button specs and Compose's
@@ -8,7 +12,8 @@ import { buttonVariantClasses } from '../button/button-styles';
  * - Two buttons 2px apart, each at least 48px wide, with full outer corners. Inner corners
  *   are 4 / 4 / 4 / 8 / 12px (XS–XL) and change to 8 / 12 / 12 / 20 / 20px when hovered,
  *   keyboard-focused or pressed ("The inner corners change shape for hovered, focused, and
- *   pressed states"). Corners move on the fast spatial spring (`container-motion`).
+ *   pressed states"). Corners move on the default effects spring (`container-motion`,
+ *   `nonBouncingMorph`), which never bounces, as Compose's split button (2026-10-15).
  * - XS and S halves are shorter than 48px, so each gets a 48px touch target.
  * - Leading padding 12/10, 16/12, 24, 48, 64px; trailing 13, 13, 15, 29, 43px with a 22 /
  *   22 / 26 / 38 / 50px icon. Padding counts from the container's edge: an outlined half
@@ -23,8 +28,9 @@ import { buttonVariantClasses } from '../button/button-styles';
  *   button uses the standard motion scheme … when rotating the menu button"): the icon
  *   carries `data-motion="standard"`. Under reduced motion it turns without animating.
  *
- * The XS halves take a 32px minimum height rather than a fixed one, so they grow around
- * text at a large browser font size, as Compose's `heightIn(min)` does (2026-10-13).
+ * The XS and S halves take a 32 / 40px minimum height rather than a fixed one, so they grow
+ * around text at a large browser font size, as Compose's `heightIn(min)` does (XS
+ * 2026-10-13, S 2026-10-15).
  *
  * The outer corners come from the component tokens (`split-button-tokens.ts`,
  * `--md-comp-split-button-<size>-container-shape`), read through the root's resolved
@@ -39,7 +45,11 @@ const half = [
   'inline-flex shrink-0 cursor-pointer items-center justify-center align-middle min-w-[48px]',
   'font-plain whitespace-nowrap select-none',
   'state-layer focus-ring container-motion',
+  // Corners on the default effects spring, which never bounces, as Compose's split button
+  // ("DefaultEffects", 2026-10-15).
+  nonBouncingMorph,
   'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
+  forcedColorClasses.disabled,
 ];
 
 const variant = {
@@ -97,15 +107,17 @@ export const splitButtonStyles = tv({
         menuIcon: 'size-[22px]',
       },
       sm: {
+        // As at XS: the halves grow with larger text, never overflowing 40px (2026-10-15).
+        root: 'h-fit items-stretch',
         leading: [
-          'h-[40px] ps-[calc(16px-var(--m3-button-border,0px))] pe-[calc(12px-var(--m3-button-border,0px))] text-label-large',
+          'min-h-[40px] ps-[calc(16px-var(--m3-button-border,0px))] pe-[calc(12px-var(--m3-button-border,0px))] text-label-large',
           'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
-          'h-[40px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
+          'min-h-[40px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
           'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',

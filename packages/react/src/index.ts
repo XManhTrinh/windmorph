@@ -416,6 +416,7 @@ export {
   floatingToolbarStyles,
   toolbarFabStyles,
   type DockedToolbarArrangement,
+  type DockedToolbarColor,
   type DockedToolbarStyleProps,
   type FloatingToolbarColor,
   type FloatingToolbarStyleProps,

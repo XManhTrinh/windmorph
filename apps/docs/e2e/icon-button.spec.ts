@@ -2,6 +2,8 @@ import { expect, test, type Locator } from '@playwright/test';
 import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { overshoots, probeNextMorph } from './morph-probe';
+import { underForcedColors } from './forced-colors';
 import { openStory } from './story';
 
 test.describe('IconButton visual regression', () => {
@@ -60,6 +62,30 @@ test.describe('IconButton interaction states', () => {
     await expect
       .poll(() => button.evaluate((el) => getComputedStyle(el).borderTopLeftRadius))
       .toBe('28px');
+  });
+
+  // Re-audit 2026-10-15: the morph ran on the fast spatial spring and overshot (20 → 6.9 →
+  // 8px); Compose's IconButton uses DefaultEffects "to prevent any bounce", toggles too.
+  test('the press and selection morphs never bounce', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--toggle');
+    const toggle = page.getByRole('button', { name: 'Favourite' });
+    const box = (await toggle.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const press = await probeNextMorph(toggle, 'press');
+    await page.mouse.down();
+    const pressCurve = await press();
+    expect(pressCurve.from).toBeGreaterThan(pressCurve.to);
+    expect(overshoots(pressCurve), JSON.stringify(pressCurve)).toBe(false);
+    // Let the press morph settle, so the release starts from the pressed corners.
+    await expect
+      .poll(() => toggle.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius)))
+      .toBe(pressCurve.to);
+    const release = await probeNextMorph(toggle, 'release');
+    await page.mouse.up();
+    // Released selected: pressed corners → the selected square.
+    const releaseCurve = await release();
+    expect(releaseCurve.to).toBeGreaterThan(releaseCurve.from);
+    expect(overshoots(releaseCurve), JSON.stringify(releaseCurve)).toBe(false);
   });
 
   test('toggle swaps icon and shape', async ({ page }) => {
@@ -138,6 +164,25 @@ test.describe('IconButton disabled outlines (2026-10-13)', () => {
     }
     expect(await border('Starred')).toBe('rgba(0, 0, 0, 0)');
   });
+
+  test('a selected, disabled outlined toggle is on-surface at 10%, as on Button', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-iconbutton--disabled');
+    const row = page.getByTestId('disabled').locator('> div').nth(2);
+    const expected = await row.evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.className = 'bg-on-surface/10';
+      el.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(row.getByRole('button', { name: 'Starred', exact: true })).toHaveCSS(
+      'background-color',
+      expected,
+    );
+  });
 });
 
 test.describe('IconButton tooltip announcement (2026-10-13)', () => {
@@ -159,4 +204,26 @@ test.describe('IconButton icon transition', () => {
       swap: false,
     },
   );
+});
+
+// Re-audit 2026-10-15: under forced colours filled and tonal icon buttons had no boundary
+// and a selected toggle looked like an unselected one.
+test.describe('IconButton forced colours', () => {
+  test('filled and tonal keep a boundary; a selected toggle stands out', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--variants');
+    const rows = page.getByTestId('variants').locator(':scope > div');
+    const { before, after } = await underForcedColors(page, rows.getByRole('button'));
+    const variants = ['filled', 'tonal', 'outlined', 'standard'];
+    // Each row: Search, Star (unselected toggle), Starred (selected toggle), disabled Search.
+    expect(after).toHaveLength(variants.length * 4);
+    variants.forEach((variant, row) => {
+      const [plain, unselected, selected] = after.slice(row * 4, row * 4 + 3);
+      if (variant !== 'standard') {
+        expect(plain!.borderStyle, variant).toBe('solid');
+        expect(plain!.borderWidth, variant).toBeGreaterThanOrEqual(1);
+      }
+      expect(selected!.background, variant).not.toBe(unselected!.background);
+    });
+    after.forEach((look, index) => expect(look.width).toBe(before[index]!.width));
+  });
 });

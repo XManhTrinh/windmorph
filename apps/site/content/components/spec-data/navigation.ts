@@ -430,7 +430,11 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         name: 'Color: vibrant',
         kind: 'configuration',
-        examples: ['toolbars/toolbar-floating', 'toolbars/toolbar-overflow'],
+        examples: [
+          'toolbars/toolbar-floating',
+          'toolbars/toolbar-overflow',
+          'toolbars/toolbar-docked',
+        ],
       },
       {
         name: 'Floating toolbar layout: horizontal',
@@ -529,7 +533,10 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'FlexibleBottomAppBar',
         component: 'DockedToolbar',
-        params: [{ compose: 'horizontalArrangement', windmorph: '`arrangement`' }],
+        params: [
+          { compose: 'horizontalArrangement', windmorph: '`arrangement`' },
+          { compose: 'containerColor (vibrant)', windmorph: '`color="vibrant"`' },
+        ],
       },
     ],
   },

@@ -61,7 +61,7 @@ export const fabMenuStyles = tv({
       'data-appear:starting:[transform:scale(0.2)] data-appear:starting:opacity-0',
       'motion-reduce:data-hidden:[transform:none] motion-reduce:data-appear:starting:[transform:none]',
       '[transition-property:transform,opacity,visibility]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),max(var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration))]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
     ],
     button: [

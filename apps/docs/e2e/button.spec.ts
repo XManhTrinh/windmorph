@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { systemColor, underForcedColors } from './forced-colors';
+import { overshoots, probeNextMorph } from './morph-probe';
 import { openStory } from './story';
 
 test.describe('Button visual regression', () => {
@@ -73,11 +75,27 @@ test.describe('Button interaction states', () => {
     max: number;
   }
 
-  test('the press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
-    page,
-  }) => {
+  // Re-audit 2026-10-15: a plain button's press morph overshot; Compose's Button uses
+  // DefaultEffects, which never bounces. Toggles keep the fast spatial spring.
+  test('a plain button presses without bouncing', async ({ page }) => {
     await openStory(page, 'components-button--playground', {}, { size: 'md' });
     const button = page.getByRole('button', { name: 'Button' });
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const press = await probeNextMorph(button, 'press');
+    await page.mouse.down();
+    const curve = await press();
+    expect(curve.from).toBeGreaterThan(curve.to);
+    expect(overshoots(curve), JSON.stringify(curve)).toBe(false);
+    await page.mouse.up();
+  });
+
+  test('a toggle’s press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
+    page,
+  }) => {
+    // A medium round toggle ("Star", "Starred" once selected).
+    await openStory(page, 'components-button--toggle');
+    const button = page.getByRole('button').first();
     /**
      * Probes the next corner-radius transition as it starts: paused, read at 100 points along
      * its whole timeline and resumed where it was, so the spring's full curve is seen however
@@ -418,5 +436,50 @@ test.describe('Button disabled outlines (2026-10-13)', () => {
       expect(await border(name)).toMatch(/(, 0\.1\)|\/ 0\.1\))$/);
     }
     expect(await border('Selected')).toBe('rgba(0, 0, 0, 0)');
+  });
+
+  // Re-audit 2026-10-15: a selected, disabled outlined toggle was outline-variant at 10%
+  // while the outlined icon button was on-surface at 10% (the token).
+  test('a selected, disabled outlined toggle is on-surface at 10%', async ({ page }) => {
+    await openStory(page, 'components-button--disabled-outlined');
+    const expected = await page.getByTestId('disabled-outlined').evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.className = 'bg-on-surface/10';
+      el.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(page.getByRole('button', { name: 'Selected', exact: true })).toHaveCSS(
+      'background-color',
+      expected,
+    );
+  });
+});
+
+// Re-audit 2026-10-15: under forced colours the containers vanished (background forced to
+// Canvas, no border) and a selected toggle looked like an unselected one.
+test.describe('Button forced colours', () => {
+  test('every button keeps a boundary, its size, and a selected toggle stands out', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-button--variants');
+    const buttons = page.getByTestId('variants').getByRole('button');
+    const { before, after } = await underForcedColors(page, buttons);
+    const grayText = await systemColor(page, 'GrayText');
+    const highlight = await systemColor(page, 'Highlight');
+    const names = await buttons.evaluateAll((elements) =>
+      elements.map((element) => element.textContent!.trim()),
+    );
+    after.forEach((look, index) => {
+      const label = `${names[index]} #${index}`;
+      expect(look.borderStyle, label).toBe('solid');
+      expect(look.borderWidth, label).toBeGreaterThanOrEqual(1);
+      expect(look.width, label).toBe(before[index]!.width);
+      expect(look.height, label).toBe(before[index]!.height);
+      if (names[index] === 'Disabled') expect(look.color, label).toBe(grayText);
+      if (names[index] === 'Selected') expect(look.background, label).toBe(highlight);
+      if (names[index] === 'Toggle') expect(look.background, label).not.toBe(highlight);
+    });
   });
 });

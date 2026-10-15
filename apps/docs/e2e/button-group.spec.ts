@@ -363,6 +363,20 @@ test.describe('ButtonGroup overflow', () => {
     await expect(menu).toBeHidden();
   });
 
+  // Re-audit 2026-10-15: after a mouse choice, focus dropped to <body> in both groups.
+  test('a choice made with the mouse returns focus to the indicator', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '200' });
+    for (const id of ['standard', 'connected']) {
+      const more = page.getByTestId(id).getByRole('button', { name: 'More options' });
+      await more.click();
+      const menu = page.getByRole('menu');
+      await expect(menu).toBeVisible();
+      await menu.getByRole('menuitem').or(menu.getByRole('menuitemradio')).first().click();
+      await expect(menu).toBeHidden();
+      await expect(more, id).toBeFocused();
+    }
+  });
+
   test('keyboard: arrows reach the indicator, Enter opens the menu, a choice selects', async ({
     page,
   }) => {
