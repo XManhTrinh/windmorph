@@ -108,13 +108,13 @@ function SelectChoice({
 function NumberSlider({
   range,
   rest,
-  labelId,
+  label,
   value,
   onChange,
 }: {
   range: NonNullable<ControlDef['range']>;
   rest: number | undefined;
-  labelId: string;
+  label: string;
   value: number | undefined;
   onChange: (value: number) => void;
 }) {
@@ -122,7 +122,8 @@ function NumberSlider({
   return (
     <div className={`flex items-center gap-3 ${FIELD}`}>
       <Slider
-        aria-labelledby={labelId}
+        // The slider names its own input from `aria-label` (it has no visible label of its own).
+        aria-label={label}
         minValue={min}
         maxValue={max}
         step={step}
@@ -222,7 +223,7 @@ function ControlInput({
       <NumberSlider
         range={def.range}
         rest={def.rest}
-        labelId={labelId}
+        label={def.label}
         value={typeof value === 'number' ? value : undefined}
         onChange={onChange}
       />

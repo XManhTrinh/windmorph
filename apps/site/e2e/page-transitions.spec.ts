@@ -67,8 +67,8 @@ test.describe('Page transitions', () => {
     await gotoReady(page, '/components/button');
     const playground = page.getByRole('region', { name: 'Button playground' });
     // Hydrated: the segmented controls are radios then.
-    const outlined = playground.getByRole('radio', { name: 'outlined', exact: true });
-    await expect(outlined).toBeVisible();
+    const square = playground.getByRole('radio', { name: 'square', exact: true });
+    await expect(square).toBeVisible();
     // The page's own article, to tell a re-render from a remount.
     const historyLength = await page.evaluate(() => {
       (window as unknown as { article: Element | null }).article =
@@ -77,10 +77,10 @@ test.describe('Page transitions', () => {
     });
     await clearTransitions(page);
 
-    await outlined.click();
-    await expect(page).toHaveURL(/\/components\/button\?variant=outlined$/);
+    await square.click();
+    await expect(page).toHaveURL(/\/components\/button\?shape=square$/);
     await expect(playground.getByRole('region', { name: 'tsx code' })).toContainText(
-      'variant="outlined"',
+      'shape="square"',
     );
     // Give a transition time to start, were one coming.
     await page.waitForTimeout(500);
@@ -104,22 +104,22 @@ test.describe('Page transitions', () => {
   }) => {
     await gotoReady(page, '/components/button');
     const playground = page.getByRole('region', { name: 'Button playground' });
-    await playground.getByRole('radio', { name: 'outlined', exact: true }).click();
-    await expect(page).toHaveURL(/\?variant=outlined$/);
+    await playground.getByRole('radio', { name: 'square', exact: true }).click();
+    await expect(page).toHaveURL(/\?shape=square$/);
 
     await page.reload();
-    const outlined = () =>
+    const square = () =>
       page
         .getByRole('region', { name: 'Button playground' })
-        .getByRole('radio', { name: 'outlined', exact: true });
-    await expect(outlined()).toBeChecked();
-    await expect(page).toHaveURL(/\?variant=outlined$/);
+        .getByRole('radio', { name: 'square', exact: true });
+    await expect(square()).toBeChecked();
+    await expect(page).toHaveURL(/\?shape=square$/);
 
     // To another page, then back and forward again.
     await page.goto('/theming');
     await page.goBack();
-    await expect(page).toHaveURL(/\/components\/button\?variant=outlined$/);
-    await expect(outlined()).toBeChecked();
+    await expect(page).toHaveURL(/\/components\/button\?shape=square$/);
+    await expect(square()).toBeChecked();
     await page.goForward();
     await expect(page).toHaveURL(/\/theming$/);
   });

@@ -39,7 +39,7 @@ test.describe('Component page tabs', () => {
     await gotoReady(page, '/components/button');
     // Start once the playground has hydrated (its segmented controls are radios then). It
     // leaves the URL alone until a control changes, so nothing re-renders between the presses.
-    await expect(page.getByRole('radio', { name: 'outlined', exact: true })).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'square', exact: true })).toBeVisible();
     await page.getByRole('tab', { name: 'Overview' }).focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.getByRole('tab', { name: 'API' })).toBeFocused();
