@@ -430,19 +430,32 @@ test.describe('Time picker', () => {
     expect(await copy.evaluate((el) => getComputedStyle(el).fill)).toBe(
       await roleColor(dial, 'on-primary'),
     );
-    const centre = (selector: string) =>
-      dial
-        .locator(selector)
-        .evaluate((el) => [Number(el.getAttribute('cx')), Number(el.getAttribute('cy'))]);
+    // The hand turns on a spring that overshoots and comes back, so it passes through 7
+    // minutes before it rests there. Wait until it is still across two frames (it ends exactly
+    // on the value), then read the handle and the numbers' clip together, in one frame.
+    const rest = () =>
+      dial.evaluate(async (svg) => {
+        const read = () => {
+          const at = (selector: string) => {
+            const circle = svg.querySelector(selector)!;
+            return [Number(circle.getAttribute('cx')), Number(circle.getAttribute('cy'))];
+          };
+          return {
+            handle: at('[data-slot="clock-dial-selector-handle"]'),
+            clip: at('clipPath circle'),
+          };
+        };
+        const before = read();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const after = read();
+        return { ...after, still: before.handle.join() === after.handle.join() };
+      });
     // The hand has turned to 7 minutes.
     const seven = 128 + 101 * Math.sin(angle);
-    await expect
-      .poll(async () => (await centre('[data-slot="clock-dial-selector-handle"]'))[0])
-      .toBeCloseTo(seven, 3);
-    const clip = await centre('clipPath circle');
-    const handle = await centre('[data-slot="clock-dial-selector-handle"]');
-    expect(clip[0]).toBeCloseTo(handle[0]!, 3);
-    expect(clip[1]).toBeCloseTo(handle[1]!, 3);
+    await expect.poll(async () => (await rest()).still).toBe(true);
+    const { handle, clip } = await rest();
+    expect(handle[0]).toBeCloseTo(seven, 3);
+    expect(clip).toEqual(handle);
   });
 
   test('a press within 74px of the centre picks the inner 24-hour ring', async ({ page }) => {
