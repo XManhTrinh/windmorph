@@ -57,7 +57,8 @@ export const search: ComponentAccessibility = {
     'The icon buttons inside are `standard` {@link IconButton}s, which keep their own 48 × 48px touch target.',
   ],
   motion: [
-    'Under reduced motion the docked field opens at its focused width at once and the dropdown only fades, without sliding.',
+    'The view grows out of the bar and shrinks back onto it on the M3 spatial springs, without overshooting the bar on the way back, and the docked results area resizes on a spring as the results change.',
+    'Under reduced motion the docked field opens at its focused size at once, the results area resizes at once, and the dropdown only fades, without sliding.',
     'The full-screen view fades in and out over the window instead of growing from the bar.',
   ],
   consumer: [

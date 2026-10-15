@@ -101,6 +101,10 @@ export async function SearchBody(): Promise<ComponentDoc> {
               spatial spring over a 32% scrim; with the field it is 240px to 2/3 of the window tall.
             </li>
             <li>
+              The docked dropdown&apos;s height follows the results on the default spatial spring as
+              they change; Compose lays it out again at once.
+            </li>
+            <li>
               The full-screen view uses M3 Expressive&apos;s contained style: a{' '}
               <InlineCode>surface-container-low</InlineCode> surface that grows from the bar&apos;s
               bounds via a <InlineCode>clip-path</InlineCode> on the slow spatial spring, with the
