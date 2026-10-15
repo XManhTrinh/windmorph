@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -22,11 +22,14 @@ describe('Do and Don’t cards', () => {
 
   it.each(cards.map((entry) => [`${entry.slug} ${entry.card.name}`, entry] as const))(
     '%s points at a real example and has one sentence',
-    async (_, { kind, card }) => {
+    (_, { kind, card }) => {
+      // Read, not imported: loading the library for each example is slow, and the build
+      // renders every example anyway.
       const file = resolve(examplesDir, `${card.file}.tsx`);
       expect(existsSync(file), card.file).toBe(true);
-      const module = (await import(/* @vite-ignore */ file)) as Record<string, unknown>;
-      expect(typeof module[card.name], `${card.file} exports ${card.name}`).toBe('function');
+      expect(readFileSync(file, 'utf8'), `${card.file} exports ${card.name}`).toContain(
+        `export function ${card.name}()`,
+      );
       expect(card.text).toMatch(/^[A-Z].*[.]$/);
       expect(card.text.split(/[.!?]\s/)).toHaveLength(1);
       if (kind === 'dont') expect(card.text).toMatch(/^Don't /);
