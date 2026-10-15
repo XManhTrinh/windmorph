@@ -1,5 +1,0 @@
----
-'@windmorph/react': minor
----
-
-Reduced motion now removes movement instead of only calming the springs. Under `prefers-reduced-motion: reduce` the spatial spring durations (`--md-sys-motion-spring-spatial-*-duration`, and the `duration-m3-spatial-*` utilities) are 0ms, so position, size, shape and rotation change at once while colour and opacity still fade on the effects springs. In the components: the switch thumb, radio dot, check mark, text field label, chip check, `ExtendedFab` label, list item corners, the tabs indicator and the rail's width change at once; the navigation pill fades in whole; modal sheets and the modal navigation rail fade in and out where they rest; the FAB menu's items fade in together without the stagger; a scrollable tab row and pull to refresh jump instead of springing; and a `TopAppBar` with `scrollBehavior="enter-always"` stays on screen (a two-row bar only collapses with the scroll). Indeterminate progress and loading indicators, drags and scroll-linked collapsing keep working. `usePresence` accepts a list of end properties.

@@ -4,9 +4,8 @@
 # - `version`: pending `.changeset/*.md` files exist, so `version` opens or updates the
 #   "Version packages" pull request (bumped version, CHANGELOG, changesets removed).
 # - `publish`: no pending changesets and the package's version isn't on npm yet (the release
-#   pull request was just merged, or 0.1.0 was never published), so `pack` runs the same checks
-#   as CI and packs the tarball, and `publish` publishes it with npm provenance and tags the
-#   release on GitHub.
+#   pull request was just merged), so `pack` runs the same checks as CI and packs the
+#   tarball, and `publish` publishes it with npm provenance and tags the release on GitHub.
 # - `none`: nothing to do.
 #
 # Only `@windmorph/react` publishes: every other workspace package is private, and Windmorph Pro
