@@ -32,6 +32,7 @@ export const sheets: ComponentAccessibility = {
       'While a modal sheet is open the page behind is hidden from assistive tech. A closed standard side sheet is `inert`, so its content is neither focusable nor announced.',
     notes: [
       'The bottom sheet\'s drag handle is a `button` whose name says what pressing it does: `labels.expand` ("Expand sheet"), `labels.collapse` ("Collapse sheet") or `labels.dismiss` ("Close sheet").',
+      'A standard bottom sheet opens collapsed to its peek height, or expanded with `defaultDetent="expanded"` (`detent` and `onDetentChange` control it). The handle, Escape and the collapse button move it between the two, and the handle\'s name always says which way a press goes.',
       'The scrim is decorative and hidden from assistive tech (`aria-hidden`).',
       'Inside a `SheetTrigger`, the trigger announces whether the sheet is open (`aria-expanded`) and points at it (`aria-controls`).',
     ],

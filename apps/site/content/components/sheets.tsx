@@ -8,6 +8,7 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const SheetBottom = lazyExample('sheets/sheet-bottom', 'SheetBottom');
 const SheetBottomStandard = lazyExample('sheets/sheet-bottom-standard', 'SheetBottomStandard');
+const SheetBottomDetents = lazyExample('sheets/sheet-bottom-detents', 'SheetBottomDetents');
 const SheetSide = lazyExample('sheets/sheet-side', 'SheetSide');
 const SheetStandard = lazyExample('sheets/sheet-standard', 'SheetStandard');
 const SheetSideLevels = lazyExample('sheets/sheet-side-levels', 'SheetSideLevels');
@@ -29,6 +30,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
 
   const sideLevels = await readExampleSource('sheets/sheet-side-levels.tsx');
   const sideLevelsHtml = await highlightSource(sideLevels);
+  const bottomDetents = await readExampleSource('sheets/sheet-bottom-detents.tsx');
+  const bottomDetentsHtml = await highlightSource(bottomDetents);
 
   return {
     tokens: [bottomSheetTokenSet, sideSheetTokenSet],
@@ -53,6 +56,14 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             fileName="sheet-bottom-standard.tsx"
           >
             <SheetBottomStandard />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Standard bottom sheet, expanded or collapsed"
+            code={bottomDetents}
+            html={bottomDetentsHtml}
+            fileName="sheet-bottom-detents.tsx"
+          >
+            <SheetBottomDetents />
           </ExampleViewer>
           <ExampleViewer
             title="Modal side sheet"

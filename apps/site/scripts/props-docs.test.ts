@@ -50,6 +50,7 @@ const NO_ENUM_DEFAULT: Record<string, string> = {
   'ThemeScope.density': 'Inherited from the nearest provider or scope when left out.',
   'OptionPopover.density': "Left out, the list takes the provider's or scope's density.",
   'TimePicker.mode': 'Controlled; `defaultMode` holds the uncontrolled default.',
+  'BottomSheet.detent': 'Controlled; `defaultDetent` holds the uncontrolled default.',
   'TimePicker.hourCycle': "Left out, the locale's hour cycle is used.",
   'List.dividers': 'Left out, the list has no dividers.',
   'List.headlineLines': 'Left out, headlines have no line limit.',

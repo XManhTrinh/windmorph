@@ -85,6 +85,13 @@ const DEFAULT_LABELS: BottomSheetLabels = {
   close: 'Close',
 };
 
+/**
+ * Where a standard bottom sheet rests: `collapsed` to its `peekHeight`, or `expanded` to its
+ * full height (Compose `SheetValue.PartiallyExpanded` and `SheetValue.Expanded`). A sheet whose
+ * content is no taller than the peek height is always expanded.
+ */
+export type BottomSheetDetent = 'collapsed' | 'expanded';
+
 /** The interactive strip at the top of a sheet without a drag handle (m3.material.io). */
 const DRAG_ZONE = 48;
 
@@ -101,8 +108,8 @@ type Naming =
 interface BottomSheetOwnProps {
   /**
    * `modal` opens over a scrim as a dialog that blocks the page; `standard` sits over the
-   * page without a scrim, so both can be used at once, and rests collapsed at
-   * `peekHeight`. @default "modal"
+   * page without a scrim, so both can be used at once, and rests collapsed at `peekHeight`
+   * or expanded (`detent`). @default "modal"
    */
   variant?: 'modal' | 'standard';
   /** Whether the sheet is open (controlled). */
@@ -120,6 +127,25 @@ interface BottomSheetOwnProps {
   skipPartiallyExpanded?: boolean;
   /** Height of a collapsed standard sheet, px. @default 56 */
   peekHeight?: number;
+  /**
+   * Where a standard sheet rests (controlled): `collapsed` at `peekHeight` or `expanded` to
+   * its full height, so the app can raise or lower it ("can be set by the system or toggled
+   * by the user", m3.material.io). Its handle, a drag, Escape and its collapse button then
+   * only call `onDetentChange`. A modal sheet ignores it.
+   */
+  detent?: BottomSheetDetent;
+  /**
+   * Where a standard sheet first rests when uncontrolled; `expanded` opens it fully raised
+   * (Compose `rememberStandardBottomSheetState(initialValue = SheetValue.Expanded)`). It
+   * applies each time the sheet opens. A modal sheet ignores it.
+   * @default "collapsed"
+   */
+  defaultDetent?: BottomSheetDetent;
+  /**
+   * Called when a standard sheet moves to another detent: by its handle (a press, Enter or
+   * Space, or a drag), Escape or its collapse button. Not called for a modal sheet.
+   */
+  onDetentChange?: (detent: BottomSheetDetent) => void;
   /** Pressing the scrim closes the sheet (modal). @default true */
   dismissable?: boolean;
   /**
@@ -154,7 +180,8 @@ export type BottomSheetProps = BottomSheetOwnProps &
  * its content is taller (drag the handle up, or press it, to expand), and closes on a drag
  * down, a press on the scrim or Escape (which first returns a fully open sheet to half). A
  * `standard` sheet sits over the page without a scrim, collapsed to `peekHeight` until it
- * is expanded.
+ * is expanded, or opening expanded with `defaultDetent="expanded"`; `detent` and
+ * `onDetentChange` control it.
  *
  * @example
  * <SheetTrigger>
@@ -263,6 +290,9 @@ function BottomSheetPanel({
   dragHandle = true,
   skipPartiallyExpanded = false,
   peekHeight = 56,
+  detent: detentProp,
+  defaultDetent = 'collapsed',
+  onDetentChange,
   dismissable: _dismissable,
   closeButton = true,
   closeIcon,
@@ -282,7 +312,18 @@ function BottomSheetPanel({
   const styles = bottomSheetStyles({ variant });
   const [height, setHeight] = useState(0);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
-  const [detent, setDetent] = useState<'expanded' | 'lower' | null>(null);
+  // The lower detent is half the window (modal) or the peek height (standard); `null` rests
+  // on the lower detent when there is one.
+  const [ownDetent, setOwnDetent] = useState<'expanded' | 'lower' | null>(
+    standard && defaultDetent === 'expanded' ? 'expanded' : null,
+  );
+  const controlledDetent =
+    standard && detentProp !== undefined
+      ? detentProp === 'expanded'
+        ? 'expanded'
+        : 'lower'
+      : undefined;
+  const detent = controlledDetent ?? ownDetent;
   const [drag, setDrag] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pointer = useRef({
@@ -302,11 +343,20 @@ function BottomSheetPanel({
   // PartiallyExpanded); a standard sheet collapses to its peek height (BottomSheetScaffold).
   const lowerOffset = standard ? height - peekHeight : height - viewport.height / 2;
   const hasLower = standard ? height > peekHeight : !skipPartiallyExpanded && lowerOffset > 0;
-  const current = detent ?? (hasLower ? 'lower' : 'expanded');
-  const restingOffset = current === 'lower' && hasLower ? lowerOffset : 0;
+  // Where the sheet rests: the lower detent only when it has one.
+  const current = detent === 'expanded' || !hasLower ? 'expanded' : 'lower';
+  const restingOffset = current === 'lower' ? lowerOffset : 0;
   const offset = drag ?? restingOffset;
   const maxOffset = standard ? Math.max(0, lowerOffset) : height;
   const detentName = current === 'expanded' ? 'expanded' : standard ? 'collapsed' : 'partial';
+
+  /** Moves to `next`, telling `onDetentChange` when a standard sheet's detent changes. */
+  const setDetent = (next: 'expanded' | 'lower') => {
+    if (controlledDetent === undefined) setOwnDetent(next);
+    const resting = next === 'lower' && hasLower ? 'lower' : 'expanded';
+    if (standard && resting !== current)
+      onDetentChange?.(resting === 'expanded' ? 'expanded' : 'collapsed');
+  };
 
   useLayoutEffect(() => {
     const element = motionRef.current;
@@ -343,7 +393,7 @@ function BottomSheetPanel({
 
   /** The handle's action: expand a lower sheet, collapse a standard one, close a modal one. */
   const cycle = () => {
-    if (current === 'lower' && hasLower) setDetent('expanded');
+    if (current === 'lower') setDetent('expanded');
     else if (standard) setDetent('lower');
     else close();
   };
@@ -464,7 +514,7 @@ function BottomSheetPanel({
   const exiting = isExiting || undefined;
   const dragging = drag !== null || undefined;
   const handleLabel =
-    current === 'lower' && hasLower ? labels.expand : standard ? labels.collapse : labels.dismiss;
+    current === 'lower' ? labels.expand : standard ? labels.collapse : labels.dismiss;
   // The sheet fills the window up to its top margin: 72px, or 56px above 640px wide.
   const topMargin = viewport.width > 640 ? 56 : 72;
   const fillsWindow =

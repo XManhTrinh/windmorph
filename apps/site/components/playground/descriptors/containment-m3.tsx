@@ -331,6 +331,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   sheets: {
     component: 'BottomSheet',
+    notControlled: {
+      detent:
+        'Controlled by the app; the `defaultDetent` control picks where the sheet starts, and its handle moves it from there.',
+    },
     notRendered: {
       SideSheet:
         'A side panel with its own options (detached, levels and back button); the Side sheet examples show it.',
@@ -355,8 +359,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         createElement(
           BottomSheetAny,
           {
-            // A new variant starts afresh.
-            key: String(props.variant),
+            // A new variant, or a new starting detent, starts afresh.
+            key: `${String(props.variant)}-${String(props.defaultDetent)}`,
             ...props,
             'aria-label': 'Now playing',
             open: Boolean(open),
@@ -380,6 +384,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       dragHandle: true,
       skipPartiallyExpanded: false,
       peekHeight: 56,
+      defaultDetent: 'collapsed',
       dismissable: true,
       closeButton: true,
       closeIcon: false,
@@ -391,6 +396,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'dragHandle',
       'skipPartiallyExpanded',
       'peekHeight',
+      'defaultDetent',
       'dismissable',
       'closeButton',
       'closeIcon',

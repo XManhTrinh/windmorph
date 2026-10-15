@@ -278,6 +278,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         examples: ['sheets/sheet-bottom', 'sheets/sheet-bottom-standard'],
       },
       {
+        name: 'Expanded and collapsed states',
+        kind: 'configuration',
+        examples: ['sheets/sheet-bottom-detents'],
+      },
+      {
         name: 'Detached side sheet',
         kind: 'configuration',
         examples: ['sheets/sheet-side-levels'],
@@ -329,6 +334,16 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'sheetPeekHeight', windmorph: 'peekHeight' },
           { compose: 'sheetDragHandle', windmorph: 'dragHandle' },
+          {
+            compose: 'rememberStandardBottomSheetState(initialValue)',
+            windmorph: 'defaultDetent',
+            note: '`Expanded` or `PartiallyExpanded` (`"expanded"` or `"collapsed"`); `Hidden` is `defaultOpen={false}`. The sheet never hides itself, as with `skipHiddenState = true`.',
+          },
+          {
+            compose: 'SheetState.expand() / partialExpand()',
+            windmorph: 'detent, onDetentChange',
+            note: 'A controlled detent; `show()` and `hide()` are `open`.',
+          },
         ],
       },
       {

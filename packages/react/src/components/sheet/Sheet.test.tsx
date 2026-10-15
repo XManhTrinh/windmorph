@@ -212,6 +212,113 @@ describe('BottomSheet', () => {
     expect(sheet).toHaveAttribute('data-detent', 'collapsed');
     expect(screen.getByRole('dialog')).toBe(sheet);
   });
+
+  it('a standard sheet can open expanded and collapse to its peek, reporting each change', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onDetentChange = vi.fn();
+    const { container } = render(
+      <BottomSheet
+        variant="standard"
+        aria-label="Directions"
+        defaultDetent="expanded"
+        onDetentChange={onDetentChange}
+      >
+        Route
+      </BottomSheet>,
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Directions' });
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+    expect(await axeViolations(container)).toEqual([]);
+    // The handle collapses it to the 56px peek.
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse sheet' }));
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('344px');
+    expect(onDetentChange).toHaveBeenLastCalledWith('collapsed');
+    // Enter on the handle expands it; Escape collapses it.
+    screen.getByRole('button', { name: 'Expand sheet' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    expect(onDetentChange).toHaveBeenLastCalledWith('expanded');
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    expect(onDetentChange).toHaveBeenCalledTimes(3);
+    // Escape on a collapsed sheet changes nothing, so it reports nothing.
+    fireEvent.keyDown(sheet, { key: 'Escape' });
+    expect(onDetentChange).toHaveBeenCalledTimes(3);
+  });
+
+  it('a controlled standard sheet follows `detent`, its handle only reporting the change', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onDetentChange = vi.fn();
+    const { rerender } = render(
+      <BottomSheet
+        variant="standard"
+        aria-label="Directions"
+        detent="collapsed"
+        onDetentChange={onDetentChange}
+      >
+        Route
+      </BottomSheet>,
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Directions' });
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
+    expect(onDetentChange).toHaveBeenCalledWith('expanded');
+    // Not changed until the app passes the new detent.
+    expect(sheet).toHaveAttribute('data-detent', 'collapsed');
+    rerender(
+      <BottomSheet
+        variant="standard"
+        aria-label="Directions"
+        detent="expanded"
+        onDetentChange={onDetentChange}
+      >
+        Route
+      </BottomSheet>,
+    );
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    expect(sheet.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+    expect(onDetentChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('a standard sheet no taller than its peek is always expanded and reports no change', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(40);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onDetentChange = vi.fn();
+    render(
+      <BottomSheet
+        variant="standard"
+        aria-label="Status"
+        detent="collapsed"
+        onDetentChange={onDetentChange}
+      >
+        Saved
+      </BottomSheet>,
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Status' });
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse sheet' }));
+    expect(onDetentChange).not.toHaveBeenCalled();
+  });
+
+  it('a modal sheet ignores the standard detent props', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(600);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onDetentChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Share" defaultOpen detent="expanded" onDetentChange={onDetentChange}>
+        Options
+      </BottomSheet>,
+    );
+    const sheet = screen.getByRole('dialog', { name: 'Share' });
+    expect(sheet).toHaveAttribute('data-detent', 'partial');
+    await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
+    expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    expect(onDetentChange).not.toHaveBeenCalled();
+  });
 });
 
 describe('SideSheet', () => {

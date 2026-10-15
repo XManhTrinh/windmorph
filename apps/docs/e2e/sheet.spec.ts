@@ -169,6 +169,226 @@ test.describe('Bottom sheet', () => {
   });
 });
 
+test.describe('Standard bottom sheet detents, frame by frame (2026-10-15)', () => {
+  test.use({ viewport: { width: 460, height: 700 } });
+
+  interface Frame {
+    /** The panel's top, px. */
+    top: number;
+    detent: string | null;
+    dragging: boolean;
+  }
+
+  /** Samples the sheet's panel on every animation frame (skipping frames without it). */
+  async function recordFrames(page: Page) {
+    await page.evaluate(() => {
+      const state = { frames: [] as Frame[], running: true };
+      const sample = () => {
+        const panel = document.querySelector('[data-testid="sheet"]');
+        if (panel)
+          state.frames.push({
+            top: panel.getBoundingClientRect().top,
+            detent: panel.getAttribute('data-detent'),
+            dragging: panel.hasAttribute('data-dragging'),
+          });
+        if (state.running) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+      (window as unknown as { detentFrames: typeof state }).detentFrames = state;
+    });
+    return {
+      stop: () =>
+        page.evaluate(() => {
+          const state = (
+            window as unknown as { detentFrames: { frames: Frame[]; running: boolean } }
+          ).detentFrames;
+          state.running = false;
+          return state.frames;
+        }),
+    };
+  }
+
+  /** Where the sheet rests expanded and collapsed, inside the story's 1px bordered region. */
+  async function stops(page: Page) {
+    const bottom =
+      (await page.getByTestId('layout').evaluate((el) => el.getBoundingClientRect().bottom)) - 1;
+    const height = await page
+      .getByTestId('sheet')
+      .evaluate((el) => el.getBoundingClientRect().height);
+    return { expanded: bottom - height, collapsed: bottom - 56, bottom };
+  }
+
+  /**
+   * A move from `from` to `to` on a spring: it starts at `from`, passes through at least three
+   * frames on the way, overshoots by at most `overshoot` of the distance (plus 1px), and
+   * settles at `to`.
+   */
+  function checkMove(frames: Frame[], from: number, to: number, overshoot: number) {
+    const tops = frames.map((frame) => frame.top);
+    const where = tops.map((top) => top.toFixed(1)).join(' ');
+    const distance = Math.abs(to - from);
+    const between = tops.filter(
+      (top) => Math.min(from, to) + 1 < top && top < Math.max(from, to) - 1,
+    );
+    expect(between.length, where).toBeGreaterThanOrEqual(3);
+    const beyond = to > from ? Math.max(...tops) - to : to - Math.min(...tops);
+    expect(beyond, where).toBeLessThanOrEqual(distance * overshoot + 1);
+    expect(Math.abs(tops.at(-1)! - to), where).toBeLessThanOrEqual(1);
+    return beyond;
+  }
+
+  const open = async (page: Page, args: Record<string, string | boolean> = {}) => {
+    await openStory(page, 'components-sheet--bottom-standard-detents', {}, args);
+    await page.getByRole('button', { name: 'Show directions' }).click();
+    await settle(page);
+  };
+
+  test('opens expanded: it slides up to its full height and never rests at the peek', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-sheet--bottom-standard-detents');
+    const recorder = await recordFrames(page);
+    await page.getByRole('button', { name: 'Show directions' }).click();
+    await page.waitForTimeout(900);
+    const frames = await recorder.stop();
+    const { expanded, collapsed, bottom } = await stops(page);
+    expect(frames.every((frame) => frame.detent === 'expanded')).toBe(true);
+    // It enters from below the region, straight past the peek, on the default spatial spring
+    // (its expressive overshoot is about 1.5%).
+    expect(frames[0]!.top).toBeGreaterThan(collapsed);
+    checkMove(frames, bottom, expanded, 0.02);
+    const tops = frames.map((frame) => frame.top);
+    const lowest = tops.indexOf(Math.min(...tops));
+    for (let i = 1; i <= lowest; i++) expect(tops[i]!).toBeLessThanOrEqual(tops[i - 1]! + 0.5);
+  });
+
+  test('its handle collapses it to the peek, and it reopens expanded', async ({ page }) => {
+    await open(page);
+    const { expanded, collapsed } = await stops(page);
+    const recorder = await recordFrames(page);
+    await page.getByRole('button', { name: 'Collapse sheet' }).click();
+    await page.waitForTimeout(900);
+    const frames = await recorder.stop();
+    expect(frames.at(-1)!.detent).toBe('collapsed');
+    // The expressive spring overshoots a little past the peek.
+    expect(checkMove(frames, expanded, collapsed, 0.02)).toBeGreaterThan(1);
+    await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
+    // `defaultDetent` applies each time the sheet opens.
+    await page.getByRole('button', { name: 'Hide directions' }).click();
+    await expect(page.getByTestId('sheet')).toBeHidden();
+    await page.getByRole('button', { name: 'Show directions' }).click();
+    await settle(page);
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'expanded');
+    expect((await stops(page)).expanded).toBeCloseTo(
+      await page.getByTestId('sheet').evaluate((el) => el.getBoundingClientRect().top),
+      0,
+    );
+  });
+
+  test('dragging the handle moves it with the pointer and settles on the next detent', async ({
+    page,
+  }) => {
+    await open(page, { defaultDetent: 'collapsed' });
+    const { expanded, collapsed } = await stops(page);
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'collapsed');
+    const handle = page.getByRole('button', { name: 'Expand sheet' });
+    const box = (await handle.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let step = 1; step <= 10; step++) {
+      await page.mouse.move(x, y - step * 15);
+      await page.waitForTimeout(20);
+    }
+    // While dragging, the sheet follows the pointer with no transition.
+    const dragged = await page.getByTestId('sheet').evaluate((el) => ({
+      top: el.getBoundingClientRect().top,
+      dragging: el.hasAttribute('data-dragging'),
+    }));
+    expect(dragged.dragging).toBe(true);
+    expect(Math.abs(dragged.top - (collapsed - 150))).toBeLessThanOrEqual(2);
+    const recorder = await recordFrames(page);
+    await page.mouse.up();
+    await page.waitForTimeout(900);
+    const frames = await recorder.stop();
+    expect(frames.at(-1)!.detent).toBe('expanded');
+    checkMove(frames, collapsed - 150, expanded, 0.02);
+    await expect(page.getByTestId('detent')).toHaveText('Reported: expanded');
+
+    // A short drag down springs back; a long one collapses it.
+    const handle2 = page.getByRole('button', { name: 'Collapse sheet' });
+    const box2 = (await handle2.boundingBox())!;
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2);
+    await page.mouse.down();
+    for (let step = 1; step <= 4; step++) {
+      await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2 + step * 10);
+      await page.waitForTimeout(60);
+    }
+    await page.waitForTimeout(150);
+    await page.mouse.up();
+    await settle(page);
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'expanded');
+    await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2);
+    await page.mouse.down();
+    for (let step = 1; step <= 10; step++) {
+      await page.mouse.move(box2.x + box2.width / 2, box2.y + box2.height / 2 + step * 20);
+      await page.waitForTimeout(20);
+    }
+    await page.mouse.up();
+    await settle(page);
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'collapsed');
+    await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
+  });
+
+  test('the keyboard moves it between detents: Enter and Space on the handle', async ({ page }) => {
+    await open(page, { defaultDetent: 'collapsed' });
+    const { expanded, collapsed } = await stops(page);
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Expand sheet' })).toBeFocused();
+    let recorder = await recordFrames(page);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(900);
+    checkMove(await recorder.stop(), collapsed, expanded, 0.02);
+    await expect(page.getByRole('button', { name: 'Collapse sheet' })).toBeFocused();
+    recorder = await recordFrames(page);
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(900);
+    checkMove(await recorder.stop(), expanded, collapsed, 0.02);
+    await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
+    // Escape on a collapsed sheet leaves it there.
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'collapsed');
+  });
+
+  test('controlled: the page raises and lowers it, and the handle reports to the page', async ({
+    page,
+  }) => {
+    await open(page, { defaultDetent: 'collapsed', controlled: true });
+    const { expanded, collapsed } = await stops(page);
+    const recorder = await recordFrames(page);
+    await page.getByRole('button', { name: 'Raise' }).click();
+    await page.waitForTimeout(900);
+    checkMove(await recorder.stop(), collapsed, expanded, 0.02);
+    // The page set it, so nothing is reported.
+    await expect(page.getByTestId('detent')).toHaveText('Reported: none');
+    await page.getByRole('button', { name: 'Collapse sheet' }).click();
+    await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'collapsed');
+    await expect(page.getByRole('button', { name: 'Raise' })).toBeVisible();
+  });
+
+  test('under reduced motion it moves between detents without overshooting', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await open(page);
+    const { expanded, collapsed } = await stops(page);
+    const recorder = await recordFrames(page);
+    await page.getByRole('button', { name: 'Collapse sheet' }).click();
+    await page.waitForTimeout(900);
+    checkMove(await recorder.stop(), expanded, collapsed, 0);
+  });
+});
+
 /** A one-finger touch drag through the browser's own gesture handling (scrolling included). */
 async function touchDrag(
   page: Page,

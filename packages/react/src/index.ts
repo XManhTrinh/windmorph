@@ -541,6 +541,7 @@ export { SheetTrigger, type SheetTriggerProps } from './components/sheet/SheetTr
 export {
   BottomSheet,
   type BottomSheetClassNames,
+  type BottomSheetDetent,
   type BottomSheetLabels,
   type BottomSheetProps,
 } from './components/sheet/BottomSheet';

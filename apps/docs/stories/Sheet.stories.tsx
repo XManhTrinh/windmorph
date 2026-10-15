@@ -1,5 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { BottomSheet, Button, List, ListItem, SheetTrigger, SideSheet } from '@windmorph/react';
+import {
+  BottomSheet,
+  Button,
+  List,
+  ListItem,
+  SheetTrigger,
+  SideSheet,
+  type BottomSheetDetent,
+} from '@windmorph/react';
 import { useState } from 'react';
 import { DeleteIcon, EditIcon, SendIcon, StarIcon } from './icons';
 import {
@@ -115,6 +123,70 @@ export const BottomStandard: Story = {
           <div className="px-6 pb-6">
             <p className="pb-4 text-title-medium">Now playing</p>
             <Options count={3} onPick={() => undefined} />
+          </div>
+        </BottomSheet>
+      </div>
+    );
+  },
+};
+
+/**
+ * A standard bottom sheet's detents. `defaultDetent="expanded"` opens it fully raised, and
+ * its handle (a press, Enter or Space, or a drag) or Escape collapses it to its peek.
+ * `controlled` passes `detent` from the page, whose button raises and lowers it too.
+ */
+export const BottomStandardDetents: StoryObj<{
+  defaultDetent: BottomSheetDetent;
+  controlled: boolean;
+}> = {
+  args: { defaultDetent: 'expanded', controlled: false },
+  argTypes: {
+    defaultDetent: { control: 'inline-radio', options: ['collapsed', 'expanded'] },
+  },
+  render: function StandardDetentsStory({ defaultDetent, controlled }) {
+    const [open, setOpen] = useState(false);
+    const [detent, setDetent] = useState<BottomSheetDetent>(defaultDetent);
+    const [reported, setReported] = useState('none');
+    return (
+      <div
+        className="relative h-[600px] w-[412px] overflow-hidden border border-outline-variant"
+        data-testid="layout"
+      >
+        <div className="flex flex-col items-start gap-4 p-6">
+          <Button variant="tonal" onPress={() => setOpen((value) => !value)}>
+            {open ? 'Hide directions' : 'Show directions'}
+          </Button>
+          {controlled && (
+            <Button
+              variant="outlined"
+              onPress={() =>
+                setDetent((value) => (value === 'expanded' ? 'collapsed' : 'expanded'))
+              }
+            >
+              {detent === 'expanded' ? 'Lower' : 'Raise'}
+            </Button>
+          )}
+          <p className="text-body-medium text-on-surface-variant" data-testid="detent">
+            {`Reported: ${reported}`}
+          </p>
+        </div>
+        <BottomSheet
+          variant="standard"
+          aria-label="Directions"
+          open={open}
+          onOpenChange={setOpen}
+          defaultDetent={defaultDetent}
+          {...(controlled ? { detent } : {})}
+          onDetentChange={(next) => {
+            setReported(next);
+            setDetent(next);
+          }}
+          classNames={{ container: 'absolute' }}
+          data-testid="sheet"
+        >
+          <div className="px-6 pb-6">
+            <p className="pb-4 text-title-medium">Directions</p>
+            <Options count={5} onPick={() => undefined} />
           </div>
         </BottomSheet>
       </div>
