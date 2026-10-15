@@ -23,7 +23,6 @@ import {
   type PlaygroundDescriptor,
   SEND,
   STAR,
-  svg,
 } from './shared';
 
 const ButtonAny = loose(Button);
@@ -38,12 +37,11 @@ const ReactionPickerAny = loose(ReactionPicker);
 const ReactionSummaryAny = loose(ReactionSummary);
 
 /** Material Symbols `star` (outlined) and `close`, for the snippets. */
-const STAR_OUTLINE = svg(
-  'm354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z',
-);
-const CLOSE = svg(
-  'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
-);
+const STAR_OUTLINE = '<StarOutlineIcon />';
+const CLOSE = '<CloseIcon />';
+
+/** The button group's buttons: a calendar's views. */
+const VIEWS = ['Day', 'Week', 'Month'];
 
 /** Why `elementType` and `preventFocusOnPress` have no control. */
 const NO_VISIBLE_EFFECT = {
@@ -82,7 +80,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         ButtonAny,
         {
           ...props,
-          ...(leadingIcon === true && { leadingIcon: <EditIcon /> }),
+          ...(leadingIcon === true && { leadingIcon: <StarOutlineIcon /> }),
           ...(selectedLeadingIcon === true && { selectedLeadingIcon: <StarIcon /> }),
           // The selected state belongs to the toggle form only.
           ...(toggle === true && {
@@ -91,7 +89,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
             onSelectedChange: (next: boolean) => update('selected', next),
           }),
         },
-        'Label',
+        'Favourite',
       ),
     defaultProps: {
       variant: 'filled',
@@ -121,9 +119,9 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     adjust: (values, changed) =>
       adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
     controlKinds: { leadingIcon: 'boolean', selectedLeadingIcon: 'boolean' },
-    toggledSlots: { leadingIcon: EDIT, selectedLeadingIcon: STAR },
+    toggledSlots: { leadingIcon: STAR_OUTLINE, selectedLeadingIcon: STAR },
     notControlled: NO_VISIBLE_EFFECT,
-    codeChildren: 'Label',
+    codeChildren: 'Favourite',
   },
   'icon-button': {
     component: 'IconButton',
@@ -191,8 +189,13 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       const selectable = props.selectionMode !== 'none';
       const group = createElement(
         ButtonGroupAny,
-        { ...props, key: String(props.selectionMode), 'aria-label': 'Text style' },
-        ...['One', 'Two', 'Three'].map((label) =>
+        {
+          ...props,
+          key: String(props.selectionMode),
+          'aria-label': 'View',
+          ...(selectable && { defaultSelectedKeys: ['week'] }),
+        },
+        ...VIEWS.map((label) =>
           createElement(
             ButtonAny,
             { key: label, ...(selectable && { toggle: true, value: label.toLowerCase() }) },
@@ -224,7 +227,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'overflow',
       'disabled',
     ],
-    initialState: { variant: 'standard', size: 'sm' },
+    initialState: { variant: 'standard', size: 'sm', selectionMode: 'single' },
+    numberRanges: { expandedRatio: { min: 0, max: 0.5, step: 0.05 } },
     notControlled: {
       selectedKeys:
         "A set of the buttons' values: press the buttons in the preview to select them.",
@@ -232,8 +236,16 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         "The uncontrolled twin of `selectedKeys`, a set of the buttons' values: press the buttons in the preview to select them.",
     },
     importMembers: ['Button'],
-    codeSlots: { 'aria-label': '"Text style"' },
-    codeChildren: '<Button>One</Button>\n  <Button>Two</Button>\n  <Button>Three</Button>',
+    codeSlots: {
+      'aria-label': '"View"',
+      defaultSelectedKeys: (values) => (values.selectionMode === 'none' ? null : "['week']"),
+    },
+    codeChildren: (values) =>
+      VIEWS.map((label) =>
+        values.selectionMode === 'none'
+          ? `<Button>${label}</Button>`
+          : `<Button toggle value="${label.toLowerCase()}">${label}</Button>`,
+      ).join('\n  '),
   },
   'split-button': {
     component: 'SplitButton',
@@ -367,8 +379,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
             onOpenChange: (next: boolean) => update('open', next),
             className: 'absolute end-4 bottom-4',
           },
-          createElement(FabMenuItemAny, { key: 'edit', icon: <EditIcon /> }, 'Edit'),
-          createElement(FabMenuItemAny, { key: 'send', icon: <SendIcon /> }, 'Send'),
+          createElement(FabMenuItemAny, { key: 'note', icon: <EditIcon /> }, 'Note'),
+          createElement(FabMenuItemAny, { key: 'message', icon: <SendIcon /> }, 'Message'),
         ),
       ),
     defaultProps: {
@@ -400,7 +412,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     toggledSlots: { openIcon: CLOSE },
     importMembers: ['FabMenuItem'],
     codeSlots: { icon: ADD, 'aria-label': '"Create"' },
-    codeChildren: `<FabMenuItem icon={${EDIT}}>Edit</FabMenuItem>\n  <FabMenuItem icon={${SEND}}>Send</FabMenuItem>`,
+    codeChildren: `<FabMenuItem icon={${EDIT}}>Note</FabMenuItem>\n  <FabMenuItem icon={${SEND}}>Message</FabMenuItem>`,
   },
   'reaction-picker': {
     component: 'ReactionPicker',
@@ -455,6 +467,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: { variant: 'stacked', size: 'md', maxIcons: 3 },
     surfacedProps: ['variant', 'size', 'total', 'maxIcons'],
     initialState: { total: 128 },
+    numberRanges: { total: { min: 0, max: 2000 }, maxIcons: { min: 1, max: 4 } },
     enumOptions: { variant: ['stacked', 'chip'], size: ['sm', 'md'] },
     codeSlots: { items: SUMMARY_ITEMS_CODE },
   },

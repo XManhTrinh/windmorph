@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { emitSnippet, normalizeDefault, propDefaultsFrom } from './code-emit';
+import {
+  emitSnippet,
+  ICONS_MODULE,
+  iconsUsed,
+  normalizeDefault,
+  propDefaultsFrom,
+} from './code-emit';
 
 describe('normalizeDefault', () => {
   it('strips quotes and dedupes the quirky duplicated default', () => {
@@ -111,17 +117,15 @@ describe('emitSnippet', () => {
     expect(code).toContain("import { Dialog, Button, DialogTrigger } from '@windmorph/react';");
   });
 
-  it('emits an icon slot that is self-contained (inline SVG, no site-local identifier)', () => {
-    const iconSvg = '<svg viewBox="0 -960 960 960"><path d="M0 0h10" /></svg>';
+  it('writes a string-literal slot as an attribute string', () => {
     const code = emitSnippet({
       component: 'IconButton',
       values: {},
       surfacedProps: [],
-      codeSlots: { icon: iconSvg, 'aria-label': '"Favorite"' },
+      codeSlots: { icon: '<StarIcon />', 'aria-label': '"Favourite"' },
     });
-    expect(code).toContain('icon={<svg');
-    expect(code).toContain('aria-label={"Favorite"}');
-    expect(code).not.toMatch(/icon=\{<[A-Z][A-Za-z]*Icon/);
+    expect(code).toContain('aria-label="Favourite"');
+    expect(code).toContain('icon={<StarIcon />}');
   });
 });
 
@@ -174,5 +178,52 @@ describe('emitSnippet slot controls', () => {
     });
     expect(code).toContain('fab={<ToolbarFab iconTransition="rotate" />}');
     expect(code).not.toContain('fab.iconTransition=');
+  });
+});
+
+describe('emitSnippet icons', () => {
+  it('imports each named icon the snippet uses from the icon module, sorted', () => {
+    const code = emitSnippet({
+      component: 'Button',
+      values: { leadingIcon: true },
+      surfacedProps: ['leadingIcon'],
+      toggledSlots: { leadingIcon: '<SendIcon />' },
+      codeWrap: { before: '<Tooltip icon={<AddIcon />}>', after: '</Tooltip>' },
+      codeChildren: 'Send',
+    });
+    expect(code).toContain(`import { AddIcon, SendIcon } from '${ICONS_MODULE}';`);
+    expect(code).toContain('leadingIcon={<SendIcon />}');
+    expect(code).not.toContain('<svg');
+  });
+
+  it('imports no icon once its slot is switched off', () => {
+    const code = emitSnippet({
+      component: 'Button',
+      values: { leadingIcon: false },
+      surfacedProps: ['leadingIcon'],
+      toggledSlots: { leadingIcon: '<SendIcon />' },
+      codeChildren: 'Send',
+    });
+    expect(code).not.toContain(ICONS_MODULE);
+  });
+
+  it('leaves an icon another import names, and an `…Icon` component, to that import', () => {
+    const code = emitSnippet({
+      component: 'ShapedIcon',
+      values: {},
+      surfacedProps: [],
+      codeImports: ["import { StarIcon } from '@acme/icons';"],
+      codeChildren: '<StarIcon />',
+      importFrom: '@windmorph/react-pro',
+    });
+    expect(code).not.toContain(ICONS_MODULE);
+    expect(code).toContain("import { StarIcon } from '@acme/icons';");
+  });
+
+  it('lists the icons a JSX string uses, once each, in order', () => {
+    expect(iconsUsed('<A icon={<EditIcon />}><B icon={<SendIcon />} /><EditIcon /></A>')).toEqual([
+      'EditIcon',
+      'SendIcon',
+    ]);
   });
 });

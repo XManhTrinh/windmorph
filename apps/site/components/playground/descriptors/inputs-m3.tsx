@@ -14,8 +14,19 @@ import {
   TextField,
 } from '@windmorph/react';
 import { createElement, type ReactElement } from 'react';
-import { CloseIcon, EditIcon, HelpIcon, SearchIcon, StarIcon, StarOutlineIcon } from '../../icons';
-import { EDIT, STAR, type PlaygroundDescriptor, loose, svg } from './shared';
+import {
+  CloseIcon,
+  DarkModeIcon,
+  EditIcon,
+  HelpIcon,
+  LightModeIcon,
+  MailIcon,
+  SearchIcon,
+  SortIcon,
+  VolumeDownIcon,
+  VolumeUpIcon,
+} from '../../icons';
+import { EDIT, type PlaygroundDescriptor, loose } from './shared';
 
 const TextFieldAny = loose(TextField);
 const CheckboxAny = loose(Checkbox);
@@ -30,27 +41,20 @@ const AutocompleteAny = loose(Autocomplete);
 const AutocompleteItemAny = loose(AutocompleteItem);
 
 /** The snippet's icons, matching the live ones. */
-const SEARCH = svg(
-  'M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z',
-);
-const CLOSE = svg(
-  'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
-);
-const HELP = svg(
-  'M478-240q21 0 35.5-14.5T528-290q0-21-14.5-35.5T478-340q-21 0-35.5 14.5T428-290q0 21 14.5 35.5T478-240Zm-36-154h74q0-33 7.5-52t42.5-52q26-26 41-49.5t15-56.5q0-56-41-86t-97-30q-57 0-92.5 30T342-618l66 26q5-18 22.5-39t53.5-21q32 0 48 17.5t16 38.5q0 20-12 37.5T506-526q-44 39-54 59t-10 73Zm38 314q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z',
-);
-const STAR_OUTLINE = svg(
-  'm354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z',
-);
+const SEARCH = '<SearchIcon />';
+const CLOSE = '<CloseIcon />';
+const HELP = '<HelpIcon />';
+const MAIL = '<MailIcon />';
+const SORT = '<SortIcon />';
 
 /** A switched-on slot's live icon; nothing while it's switched off. */
 function slot(on: unknown, icon: () => ReactElement): ReactElement | undefined {
   return on === true ? icon() : undefined;
 }
 
-/** The field slots the text field, select and autocomplete share. */
-const fieldSlots = (props: Record<string, unknown>) => ({
-  leadingIcon: slot(props.leadingIcon, () => createElement(SearchIcon)),
+/** The field slots the text field, select and autocomplete share, with the field's own leading icon. */
+const fieldSlots = (props: Record<string, unknown>, leading: () => ReactElement) => ({
+  leadingIcon: slot(props.leadingIcon, leading),
   errorIcon: slot(props.errorIcon, () => createElement(HelpIcon)),
 });
 
@@ -61,7 +65,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     render: (props, update) =>
       createElement(TextFieldAny, {
         ...props,
-        ...fieldSlots(props),
+        ...fieldSlots(props, () => createElement(MailIcon)),
         trailingIcon: slot(props.trailingIcon, () => createElement(CloseIcon)),
         value: props.value ?? '',
         onChange: (value: string) => update('value', value),
@@ -118,7 +122,12 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       errorMessage: 'string',
       maxLength: 'number',
     },
-    toggledSlots: { leadingIcon: SEARCH, trailingIcon: CLOSE, errorIcon: HELP },
+    toggledSlots: { leadingIcon: MAIL, trailingIcon: CLOSE, errorIcon: HELP },
+    numberRanges: {
+      maxLength: { min: 10, max: 200, step: 10 },
+      rows: { min: 1, max: 8 },
+      maxRows: { min: 1, max: 8 },
+    },
   },
   select: {
     component: 'Select',
@@ -135,7 +144,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         SelectAny,
         {
           ...props,
-          ...fieldSlots(props),
+          ...fieldSlots(props, () => createElement(SortIcon)),
           // Single and multiple values differ in shape, and a starting search applies from the
           // next mount, so either change starts afresh.
           key: `${String(props.selectionMode)}-${String(props.defaultSearchValue ?? '')}`,
@@ -188,7 +197,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       maxSelections: 'number',
       defaultSearchValue: 'string',
     },
-    toggledSlots: { leadingIcon: SEARCH, errorIcon: HELP },
+    toggledSlots: { leadingIcon: SORT, errorIcon: HELP },
+    numberRanges: { maxSelections: { min: 1, max: 4 } },
     notControlled: {
       searchValue:
         'Controlling the search hands filtering to the app (with `onSearchChange` the built-in filter is off), so the preview would stop filtering; `defaultSearchValue` has a control instead.',
@@ -209,7 +219,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         AutocompleteAny,
         {
           ...props,
-          ...fieldSlots(props),
+          ...fieldSlots(props, () => createElement(SearchIcon)),
           // Single and multiple values differ in shape, so a mode change starts afresh.
           key: String(props.selectionMode),
           errorMessage: 'Choose a city',
@@ -252,6 +262,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     enumOptions: { selectionMode: ['single', 'multiple'] },
     controlKinds: { leadingIcon: 'boolean', errorIcon: 'boolean', maxSelections: 'number' },
     toggledSlots: { leadingIcon: SEARCH, errorIcon: HELP },
+    numberRanges: { maxSelections: { min: 1, max: 4 } },
     importMembers: ['AutocompleteItem'],
     codeChildren:
       '<AutocompleteItem key="paris">Paris</AutocompleteItem>\n  <AutocompleteItem key="london">London</AutocompleteItem>\n  <AutocompleteItem key="sydney">Sydney</AutocompleteItem>\n  <AutocompleteItem key="zurich">Zürich</AutocompleteItem>',
@@ -324,11 +335,11 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         {
           ...props,
           selected: props.selected === true,
-          selectedIcon: slot(props.selectedIcon, () => createElement(StarIcon)),
-          unselectedIcon: slot(props.unselectedIcon, () => createElement(StarOutlineIcon)),
+          selectedIcon: slot(props.selectedIcon, () => createElement(DarkModeIcon)),
+          unselectedIcon: slot(props.unselectedIcon, () => createElement(LightModeIcon)),
           onSelectedChange: (selected: boolean) => update('selected', selected),
         },
-        'Wi-Fi',
+        'Dark theme',
       ),
     defaultProps: {
       selected: false,
@@ -341,8 +352,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     surfacedProps: ['selected', 'disabled', 'readOnly', 'icons', 'selectedIcon', 'unselectedIcon'],
     initialState: { selected: true },
     controlKinds: { selectedIcon: 'boolean', unselectedIcon: 'boolean' },
-    toggledSlots: { selectedIcon: STAR, unselectedIcon: STAR_OUTLINE },
-    codeChildren: 'Wi-Fi',
+    toggledSlots: { selectedIcon: '<DarkModeIcon />', unselectedIcon: '<LightModeIcon />' },
+    codeChildren: 'Dark theme',
   },
   slider: {
     component: 'Slider',
@@ -359,8 +370,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         createElement(SliderAny, {
           ...props,
           'aria-label': 'Volume',
-          startIcon: slot(props.startIcon, () => createElement(StarIcon)),
-          endIcon: slot(props.endIcon, () => createElement(StarOutlineIcon)),
+          startIcon: slot(props.startIcon, () => createElement(VolumeDownIcon)),
+          endIcon: slot(props.endIcon, () => createElement(VolumeUpIcon)),
           onChange: (value: number) => update('value', value),
         }),
       ),
@@ -391,9 +402,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'endIcon',
       'disabled',
     ],
-    initialState: { size: 'md', value: 40 },
+    initialState: { size: 'md', value: 40, startIcon: true },
     controlKinds: { startIcon: 'boolean', endIcon: 'boolean' },
-    toggledSlots: { startIcon: STAR, endIcon: STAR_OUTLINE },
+    toggledSlots: { startIcon: '<VolumeDownIcon />', endIcon: '<VolumeUpIcon />' },
+    numberRanges: {
+      value: { min: 0, max: 100 },
+      minValue: { min: 0, max: 50, step: 5 },
+      maxValue: { min: 50, max: 200, step: 10 },
+      step: { min: 1, max: 25 },
+    },
     notControlled: {
       formatOptions:
         'An `Intl.NumberFormatOptions` object (`{ style: "percent" }`), which no switch or list of options can stand for; the value label example shows it.',

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { PropsRecord } from '../../lib/component-props';
-import { controlApplies, inferControls, switchRecords } from './controls-model';
+import {
+  clampToRange,
+  controlApplies,
+  groupControls,
+  groupOf,
+  inferControls,
+  isSegmented,
+  switchRecords,
+} from './controls-model';
 
 const props: PropsRecord[] = [
   { name: 'variant', type: 'enum', required: false, options: ['filled', 'outlined', 'text'] },
@@ -114,5 +122,72 @@ describe('component switch', () => {
       'icon',
     ]);
     expect(controlApplies(undefined, componentProps, 'Fab')('expanded')).toBe(true);
+  });
+});
+
+describe('groupOf', () => {
+  it('puts style choices in Appearance', () => {
+    expect(groupOf('variant', 'enum')).toBe('appearance');
+    expect(groupOf('size', 'enum')).toBe('appearance');
+    expect(groupOf('elevated', 'boolean')).toBe('appearance');
+    expect(groupOf('thickness', 'number')).toBe('appearance');
+    expect(groupOf('fab.color', 'enum')).toBe('appearance');
+  });
+
+  it('puts text and slots switched on and off in Content', () => {
+    expect(groupOf('label', 'string')).toBe('content');
+    expect(groupOf('leadingIcon', 'boolean', true)).toBe('content');
+    expect(groupOf('actions', 'boolean', true)).toBe('content');
+    expect(groupOf('icons', 'boolean')).toBe('content');
+  });
+
+  it('puts states, selection and opening in Behaviour', () => {
+    expect(groupOf('disabled', 'boolean')).toBe('behaviour');
+    expect(groupOf('selectionMode', 'enum')).toBe('behaviour');
+    expect(groupOf('open', 'boolean')).toBe('behaviour');
+    expect(groupOf('href', 'string')).toBe('behaviour');
+    expect(groupOf('value', 'number')).toBe('behaviour');
+  });
+
+  it('puts forced states, replays and names for assistive tech in Advanced', () => {
+    expect(groupOf('dragged', 'boolean')).toBe('advanced');
+    expect(groupOf('appear', 'boolean')).toBe('advanced');
+    expect(groupOf('menuLabel', 'string')).toBe('advanced');
+    expect(groupOf('fab.dragged', 'boolean')).toBe('advanced');
+    expect(groupOf('titleAs', 'enum')).toBe('advanced');
+  });
+});
+
+describe('groupControls', () => {
+  it('orders the sections and keeps each control in its order, leaving out empty ones', () => {
+    const groups = groupControls([
+      { name: 'disabled', kind: 'boolean', label: 'disabled', group: 'behaviour' },
+      { name: 'variant', kind: 'enum', label: 'variant', group: 'appearance' },
+      { name: 'dragged', kind: 'boolean', label: 'dragged', group: 'advanced' },
+      { name: 'size', kind: 'enum', label: 'size', group: 'appearance' },
+    ]);
+    expect(groups.map(({ group, controls }) => [group, controls.map((def) => def.name)])).toEqual([
+      ['appearance', ['variant', 'size']],
+      ['behaviour', ['disabled']],
+      ['advanced', ['dragged']],
+    ]);
+  });
+});
+
+describe('clampToRange', () => {
+  it('keeps a number inside the range, on a step', () => {
+    expect(clampToRange(7, { min: 0, max: 5 })).toBe(5);
+    expect(clampToRange(0.33, { min: 0, max: 1, step: 0.05 })).toBe(0.35);
+    expect(clampToRange(0.1 + 0.2, { min: 0, max: 1, step: 0.1 })).toBe(0.3);
+    expect(clampToRange(-3, { min: 1, max: 4 })).toBe(1);
+  });
+});
+
+describe('isSegmented', () => {
+  it('fits a few short options in a button group, and sends the rest to a select', () => {
+    expect(isSegmented(['round', 'square'])).toBe(true);
+    expect(isSegmented(['none', 'single', 'multiple'])).toBe(true);
+    expect(isSegmented(['xs', 'sm', 'md', 'lg'])).toBe(false);
+    expect(isSegmented(['bottom start', 'bottom end', 'top'])).toBe(false);
   });
 });

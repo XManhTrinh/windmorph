@@ -34,7 +34,7 @@ import {
   SendIcon,
   StarIcon,
 } from '../../icons';
-import { type PlaygroundDescriptor, loose, svg } from './shared';
+import { type PlaygroundDescriptor, loose } from './shared';
 
 const CardAny = loose(Card);
 const ListAny = loose(List);
@@ -48,13 +48,9 @@ const BottomSheetAny = loose(BottomSheet);
 const CarouselAny = loose(Carousel);
 const BadgeAny = loose(Badge);
 
-const DELETE = svg(
-  'M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z',
-);
-const CLOSE = svg(
-  'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
-);
-const EXPAND_MORE = svg('M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z');
+const DELETE = '<DeleteIcon />';
+const CLOSE = '<CloseIcon />';
+const EXPAND_MORE = '<ExpandMoreIcon />';
 
 /** Coloured panels standing in for a carousel's images. */
 const SLIDE_TONES = [
@@ -74,6 +70,25 @@ const SLIDE_ASPECTS = [
   'aspect-[3/2]',
 ];
 
+/** The list's rows: people, with their roles as supporting text. */
+const CONTACTS = [
+  { key: 'alex', name: 'Alex Morgan', role: 'Product designer' },
+  { key: 'priya', name: 'Priya Shah', role: 'Engineering lead' },
+  { key: 'sam', name: 'Sam Okafor', role: 'Research' },
+];
+
+/** The carousel's photos, as the snippet names them, standing in as coloured panels. */
+const PHOTOS = [
+  'Harbour at dawn',
+  'Flower market',
+  'Ridge walk',
+  'Lake in winter',
+  'Old town',
+  'Night ferry',
+  'Vineyard',
+  'Coastal path',
+];
+
 /** An enum control's "unset" option, which leaves the prop out. */
 const NONE = 'none';
 const unlessNone = (value: unknown) => (value === NONE ? undefined : value);
@@ -88,9 +103,9 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         CardAny,
         { ...props, ...(href ? { href } : {}), className: 'w-full max-w-xs' },
         <div key="body" className="flex flex-col gap-1 p-4">
-          <h3 className="text-title-medium text-on-surface">Card title</h3>
+          <h3 className="text-title-medium text-on-surface">Alpine hut trail</h3>
           <p className="text-body-medium text-on-surface-variant">
-            Supporting text describing the card.
+            A guided three-day walk with two nights in mountain huts, from €320.
           </p>
         </div>,
       ),
@@ -108,7 +123,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       toggle: 'Typed `false`: it only rules out a toggle form, which cards have no use for.',
     },
     codeChildren:
-      '<div className="flex flex-col gap-1 p-4">\n    <h3 className="text-title-medium text-on-surface">Card title</h3>\n    <p className="text-body-medium text-on-surface-variant">Supporting text describing the card.</p>\n  </div>',
+      '<div className="flex flex-col gap-1 p-4">\n    <h3 className="text-title-medium text-on-surface">Alpine hut trail</h3>\n    <p className="text-body-medium text-on-surface-variant">\n      A guided three-day walk with two nights in mountain huts, from €320.\n    </p>\n  </div>',
   },
   dialog: {
     component: 'Dialog',
@@ -267,6 +282,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     },
     // `density` is a number (0 to -3), so the snippet writes it as one.
     controlKinds: { density: 'number' },
+    numberRanges: {
+      offset: { min: 0, max: 24 },
+      containerPadding: { min: 0, max: 48, step: 4 },
+    },
     importMembers: ['Button', 'MenuGroup', 'MenuItem', 'MenuTrigger'],
     codeWrap: {
       before: '<MenuTrigger>\n  <Button variant="tonal">Open menu</Button>',
@@ -303,7 +322,6 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     surfacedProps: ['caret'],
     initialState: { caret: true },
     importMembers: ['IconButton', 'TooltipTrigger'],
-    codeImports: ["import { NotificationsIcon } from './icons';"],
     codeWrap: {
       before:
         '<TooltipTrigger>\n  <IconButton\n    variant="standard"\n    tooltip={false}\n    icon={<NotificationsIcon />}\n    aria-label="Notifications"\n  />',
@@ -329,9 +347,9 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             'relative h-[320px] w-full max-w-md overflow-hidden rounded-corner-large border border-outline-variant',
         },
         <div key="page" className="flex flex-col items-start gap-3 p-6">
-          <p className="text-body-large text-on-surface">Main content</p>
+          <p className="text-body-large text-on-surface">Midnight Drive · 12 songs</p>
           <Button variant="tonal" onPress={() => update('open', true)}>
-            Open sheet
+            Show player
           </Button>
         </div>,
         createElement(
@@ -380,10 +398,11 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     ],
     controlKinds: { closeIcon: 'boolean', collapseIcon: 'boolean' },
     toggledSlots: { closeIcon: CLOSE, collapseIcon: EXPAND_MORE },
+    numberRanges: { peekHeight: { min: 32, max: 240, step: 8 } },
     codeSlots: { 'aria-label': '"Now playing"' },
     importMembers: ['Button', 'SheetTrigger'],
     codeWrap: {
-      before: '<SheetTrigger>\n  <Button variant="tonal">Open sheet</Button>',
+      before: '<SheetTrigger>\n  <Button variant="tonal">Show player</Button>',
       after: '</SheetTrigger>',
     },
     codeChildren:
@@ -414,21 +433,13 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             'aria-label': 'Contacts',
             value: unlessNone(value),
             dividers: unlessNone(dividers),
-            disabledKeys: disabledKeys === true ? ['two'] : undefined,
+            disabledKeys: disabledKeys === true ? ['priya'] : undefined,
             headlineLines: asNumber(headlineLines),
             supportingTextLines: asNumber(supportingTextLines),
           },
-          createElement(
-            ListItemAny,
-            { key: 'one', value: 'one', supportingText: 'Supporting text' },
-            'One line',
+          ...CONTACTS.map(({ key, name, role }) =>
+            createElement(ListItemAny, { key, value: key, supportingText: role }, name),
           ),
-          createElement(
-            ListItemAny,
-            { key: 'two', value: 'two', supportingText: 'Supporting text' },
-            'Two lines',
-          ),
-          createElement(ListItemAny, { key: 'three', value: 'three' }, 'Three'),
         ),
       ),
     defaultProps: {
@@ -459,7 +470,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     ],
     initialState: { variant: 'segmented' },
     enumOptions: {
-      value: [NONE, 'one', 'two', 'three'],
+      value: [NONE, ...CONTACTS.map(({ key }) => key)],
       dividers: [NONE, 'full', 'inset'],
     },
     // Line limits are numbers (1 to 3), so the snippet writes them as numbers.
@@ -468,7 +479,11 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       headlineLines: 'number',
       supportingTextLines: 'number',
     },
-    toggledSlots: { disabledKeys: "['two']" },
+    toggledSlots: { disabledKeys: "['priya']" },
+    numberRanges: {
+      headlineLines: { min: 1, max: 3 },
+      supportingTextLines: { min: 1, max: 3 },
+    },
     notControlled: {
       selectedKeys:
         'An Iterable of item keys; choose items in the preview with `selectionMode` on instead.',
@@ -482,8 +497,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     },
     importMembers: ['ListItem'],
     codeSlots: { 'aria-label': '"Contacts"' },
-    codeChildren:
-      '<ListItem key="one" value="one" supportingText="Supporting text">One line</ListItem>\n  <ListItem key="two" value="two" supportingText="Supporting text">Two lines</ListItem>\n  <ListItem key="three" value="three">Three</ListItem>',
+    codeChildren: CONTACTS.map(
+      ({ key, name, role }) =>
+        `<ListItem key="${key}" value="${key}" supportingText="${role}">\n    ${name}\n  </ListItem>`,
+    ).join('\n  '),
   },
   carousel: {
     component: 'Carousel',
@@ -514,12 +531,16 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             maxSmallItemSize: asNumber(maxSmallItemSize),
             className: vertical ? 'h-[360px] w-[220px]' : 'h-[200px]',
           },
-          Array.from({ length: 8 }, (_, index) => (
+          PHOTOS.map((photo, index) => (
             <div
-              key={index}
-              className={`flex items-end p-4 text-title-medium ${aspect ? SLIDE_ASPECTS[index % SLIDE_ASPECTS.length] : 'size-full'} ${SLIDE_TONES[index % SLIDE_TONES.length]}`}
+              key={photo}
+              role="img"
+              aria-label={photo}
+              className={`flex items-end p-4 text-title-small ${aspect ? SLIDE_ASPECTS[index % SLIDE_ASPECTS.length] : 'size-full'} ${SLIDE_TONES[index % SLIDE_TONES.length]}`}
             >
-              {index + 1}
+              <span aria-hidden="true" className="line-clamp-2">
+                {photo}
+              </span>
             </div>
           )),
         ),
@@ -547,6 +568,13 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'minSmallItemSize',
       'maxSmallItemSize',
     ],
+    numberRanges: {
+      preferredItemSize: { min: 80, max: 320, step: 2 },
+      itemSize: { min: 120, max: 360, step: 4 },
+      itemSpacing: { min: 0, max: 32 },
+      minSmallItemSize: { min: 24, max: 80 },
+      maxSmallItemSize: { min: 40, max: 120 },
+    },
     notControlled: {
       contentPadding:
         'An object of start, end and cross padding, whose defaults change with the variant.',
@@ -554,8 +582,12 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         'A list of item indexes, which only matters with `onAction`; see Items that open something.',
     },
     codeSlots: { 'aria-label': '"Gallery"', className: '"h-[200px]"' },
-    codeChildren:
-      '<img src="/photos/harbour.jpg" alt="Harbour at dawn" />\n  <img src="/photos/market.jpg" alt="Flower market" />\n  <img src="/photos/ridge.jpg" alt="Ridge walk" />\n  <img src="/photos/lake.jpg" alt="Lake in winter" />',
+    codeChildren: PHOTOS.slice(0, 4)
+      .map(
+        (photo) =>
+          `<img src="/photos/${photo.toLowerCase().replaceAll(' ', '-')}.jpg" alt="${photo}" />`,
+      )
+      .join('\n  '),
   },
   badge: {
     component: 'Badge',
@@ -579,6 +611,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     defaultProps: { max: 999, label: '' },
     surfacedProps: ['max', 'label'],
     initialState: { max: 99, label: '120 new notifications' },
+    numberRanges: { max: { min: 9, max: 999 } },
     codeChildren: '{120}',
   },
   divider: {
@@ -598,14 +631,16 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
           ? createElement(
               'div',
               { className: 'flex h-16 items-center gap-4 text-body-medium text-on-surface' },
-              <span key="a">One</span>,
+              <span key="a">Reply</span>,
               createElement(DividerAny, { key: 'd', ...props }),
-              <span key="b">Two</span>,
+              <span key="b">Forward</span>,
             )
           : createElement(
               'div',
-              { className: 'w-60 text-body-medium text-on-surface' },
+              { className: 'flex w-60 flex-col gap-3 text-body-medium text-on-surface' },
+              <span key="a">Delivery address</span>,
               createElement(DividerAny, { key: 'd', ...props }),
+              <span key="b">Payment method</span>,
             ),
     defaultProps: { orientation: 'horizontal', inset: 'none', decorative: false },
     surfacedProps: ['divider', 'orientation', 'inset', 'decorative'],

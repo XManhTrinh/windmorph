@@ -132,6 +132,14 @@ const MESSAGE_FIELD_DEFAULTS = {
   isReadOnly: false,
 };
 
+/** The message fields' number controls. */
+const MESSAGE_FIELD_RANGES = {
+  maxLength: { min: 20, max: 500, step: 10 },
+  counterThreshold: { min: 0, max: 1, step: 0.05 },
+  minRows: { min: 1, max: 6 },
+  maxRows: { min: 1, max: 12 },
+};
+
 /** Slots switched on and off, and ReactNode props edited as text. */
 const MESSAGE_FIELD_KINDS = {
   docked: 'boolean',
@@ -339,16 +347,14 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       clearOnSubmit: true,
     },
     controlKinds: { ...MESSAGE_FIELD_KINDS, toolbar: 'boolean' },
+    numberRanges: MESSAGE_FIELD_RANGES,
     toggledSlots: {
       ...MESSAGE_FIELD_SLOTS,
       toolbar:
         '(\n    <div className="flex gap-1">\n      <IconButton variant="standard" icon={<FormatBoldIcon />} aria-label="Bold" />\n      <IconButton variant="standard" icon={<FormatItalicIcon />} aria-label="Italic" />\n    </div>\n  )',
     },
     importMembers: ['Avatar', 'MediaUploadGrid'],
-    codeImports: [
-      IMPORT_ICON_BUTTON,
-      "import { AddAPhotoIcon, ArrowForwardIcon, DeleteIcon, FormatBoldIcon, FormatItalicIcon, MicIcon, ScheduleIcon } from './icons';",
-    ],
+    codeImports: [IMPORT_ICON_BUTTON],
     codeSlots: { 'aria-label': '"Write a comment"' },
   },
   'rich-message-field': {
@@ -398,6 +404,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       clearOnSubmit: true,
     },
     controlKinds: { ...MESSAGE_FIELD_KINDS, formattingIcon: 'boolean', mentions: 'boolean' },
+    numberRanges: MESSAGE_FIELD_RANGES,
     toggledSlots: {
       ...MESSAGE_FIELD_SLOTS,
       formattingIcon: '<InkPenIcon />',
@@ -407,7 +414,6 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     codeImports: [
       IMPORT_ICON_BUTTON,
       "import { Avatar, MediaUploadGrid } from '@windmorph/react-pro';",
-      "import { AddAPhotoIcon, ArrowForwardIcon, DeleteIcon, InkPenIcon, MicIcon, ScheduleIcon } from './icons';",
     ],
     codeSlots: { 'aria-label': '"Write a comment"' },
   },
@@ -431,6 +437,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'image-crop': {
     component: 'ImageCropDialog',
+    groups: { src: 'content' },
     notRendered: {
       ImageCropper:
         'The cropping area on its own, for a custom layout; the preview shows it inside the crop dialog.',
@@ -454,6 +461,11 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: { aspect: 1, guide: 'none', maxZoom: 4, busy: false },
     surfacedProps: ['open', 'src', 'aspect', 'guide', 'maxZoom', 'busy', 'progress'],
     initialState: { open: false, src: '/photos/landscape.jpg', guide: 'circle' },
+    numberRanges: {
+      aspect: { min: 0.5, max: 2, step: 0.25 },
+      maxZoom: { min: 1, max: 8, step: 0.5 },
+      progress: { min: 0, max: 1, step: 0.05 },
+    },
     enumOptions: { src: Object.keys(CROP_PHOTOS) },
     codeSlots: {
       onOpenChange: '(open) => console.log(open)',
@@ -470,6 +482,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       accept: 'The file types the add tile and a drop take, a list; the preview takes images.',
     },
     initialState: { maxItems: 6 },
+    numberRanges: { maxItems: { min: 1, max: 12 } },
     codeSlots: {
       'aria-label': '"Photos in your post"',
       items:
@@ -479,6 +492,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'phone-field': {
     component: 'PhoneField',
+    groups: { country: 'content', locale: 'content' },
     importFrom: '@windmorph/react-pro',
     render: ({ priorityCountries, ...props }, update) =>
       createElement(PhoneFieldAny, {
@@ -598,5 +612,6 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       ],
     },
     controlKinds: { label: 'string', supportingText: 'string', errorMessage: 'string' },
+    numberRanges: { length: { min: 4, max: 8 } },
   },
 };

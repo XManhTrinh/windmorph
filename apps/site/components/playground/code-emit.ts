@@ -32,6 +32,17 @@ export interface EmitInput {
 }
 
 /**
+ * Where a snippet's icons come from: the reader's own icon components (Material Symbols SVGs
+ * as React components, as the getting-started guide and the site's examples use them).
+ */
+export const ICONS_MODULE = './icons';
+
+/** The icon components a snippet's JSX uses (`<SendIcon />`), in order of first use. */
+export function iconsUsed(jsx: string): string[] {
+  return [...new Set([...jsx.matchAll(/<([A-Z][A-Za-z0-9]*Icon)\b/g)].map((match) => match[1]!))];
+}
+
+/**
  * Normalises the generated JSON `defaultValue`, which `savePropValueAsString` can emit as a
  * quoted, newline-joined and/or duplicated string (e.g. `"\"filled\"\nfilled"`): strip
  * surrounding quotes from each whitespace-separated token and keep the first.
@@ -72,11 +83,17 @@ function attribute(name: string, value: unknown): string | null {
   return `${name}="${value}"`;
 }
 
+/** A slot's JSX as an attribute; a plain string literal as an attribute string: `origin="trigger"`. */
+function slotAttribute(name: string, jsx: string): string {
+  return /^"[^"\\{}]*"$/.test(jsx) ? `${name}=${jsx}` : `${name}={${jsx}}`;
+}
+
 /**
  * Composes a copy-ready TSX snippet from the current playground state: extra imports, the
  * `@windmorph/react` import, the element with only non-default control-derived props, then the
- * verbatim `codeSlots` and `codeChildren`. The emitted snippet is guaranteed to compile
- * against `@windmorph/react` with the shown imports.
+ * verbatim `codeSlots` and `codeChildren`. Icons are named components (`<SendIcon />`)
+ * imported from {@link ICONS_MODULE}, never inline SVG. The emitted snippet is guaranteed to
+ * compile against `@windmorph/react` with the shown imports (`scripts/check-snippets.ts`).
  */
 export function emitSnippet(input: EmitInput): string {
   const attrs: string[] = [];
@@ -87,9 +104,7 @@ export function emitSnippet(input: EmitInput): string {
     const slot = input.toggledSlots?.[name];
     if (slot !== undefined) {
       if (value === true) {
-        const jsx = typeof slot === 'function' ? slot(input.values) : slot;
-        // A plain string literal is written as an attribute string: `origin="trigger"`.
-        attrs.push(/^"[^"\\{}]*"$/.test(jsx) ? `${name}=${jsx}` : `${name}={${jsx}}`);
+        attrs.push(slotAttribute(name, typeof slot === 'function' ? slot(input.values) : slot));
       }
       continue;
     }
@@ -100,7 +115,7 @@ export function emitSnippet(input: EmitInput): string {
   for (const [name, slot] of Object.entries(input.codeSlots ?? {})) {
     // A function writes the prop only when the values call for it (null leaves it out).
     const jsx = typeof slot === 'function' ? slot(input.values) : slot;
-    if (jsx !== null) attrs.push(`${name}={${jsx}}`);
+    if (jsx !== null) attrs.push(slotAttribute(name, jsx));
   }
 
   const open =
@@ -135,8 +150,17 @@ export function emitSnippet(input: EmitInput): string {
       .filter((name) => name && uses(name));
     return used.length > 0 ? [line.replace(named[0], `{ ${used.join(', ')} }`)] : [];
   });
+  // Icons come from the reader's icon module, unless another import already names them.
+  const imported = new Set([
+    ...members,
+    ...extraImports.flatMap((line) =>
+      (/\{([^}]*)\}/.exec(line)?.[1] ?? '').split(',').map((name) => name.trim()),
+    ),
+  ]);
+  const icons = iconsUsed(element).filter((name) => !imported.has(name));
   const importLines = [
     ...extraImports,
+    ...(icons.length > 0 ? [`import { ${icons.sort().join(', ')} } from '${ICONS_MODULE}';`] : []),
     `import { ${members.join(', ')} } from '${input.importFrom ?? '@windmorph/react'}';`,
   ];
 

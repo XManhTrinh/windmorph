@@ -63,11 +63,28 @@ const DESTINATIONS = [
   { id: 'sent', label: 'Sent', icon: <SendIcon /> },
 ];
 
+/** An inbox to scroll under the bars that respond to scrolling: sender and subject. */
+const INBOX = [
+  ['Alex Morgan', 'Lunch on Friday?'],
+  ['Priya Shah', 'Design review notes'],
+  ['Sam Okafor', 'Flight confirmation'],
+  ['Zoë Laurent', 'Photos from the weekend'],
+  ['Jonas Müller', 'Invoice for March'],
+  ['Mei Tanaka', 'Team offsite agenda'],
+  ['Omar Haddad', 'Re: Quarterly report'],
+  ['Lena Novak', 'Book club this Thursday'],
+  ['Alex Morgan', 'Re: Lunch on Friday?'],
+  ['Priya Shah', 'Launch checklist'],
+  ['Sam Okafor', 'Your receipt'],
+  ['Zoë Laurent', 'Concert tickets'],
+];
+
 /** Scroll content for the previews of bars that respond to scrolling. */
-function Lines({ label }: { label: string }) {
-  return Array.from({ length: 24 }, (_, index) => (
-    <p key={index} className="px-4 py-3 text-body-large text-on-surface-variant">
-      {label} {index + 1}
+function Inbox() {
+  return INBOX.map(([sender, subject], index) => (
+    <p key={index} className="flex flex-col px-4 py-3">
+      <span className="text-body-large text-on-surface">{sender}</span>
+      <span className="text-body-medium text-on-surface-variant">{subject}</span>
     </p>
   ));
 }
@@ -140,7 +157,7 @@ function BarPreview(props: Record<string, unknown>) {
         aria-label="Messages"
         className="h-full overflow-y-auto"
       >
-        <Lines label="Message" />
+        <Inbox />
         {createElement(
           NavigationBarAny,
           { ...unset(props, 'arrangement'), 'aria-label': 'Mail', scrollRef },
@@ -191,7 +208,7 @@ function TopAppBarPreview({ navigationIcon, actions, bottom, ...props }: Record<
         }),
         ...(bottom === true && { bottom: FILTER_CHIPS }),
       })}
-      <Lines label="Message" />
+      <Inbox />
     </div>
   );
 }
@@ -318,7 +335,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         '({ expanded, toggle }) => (\n    <>\n      <IconButton\n        variant="standard"\n        icon={<MenuIcon />}\n        aria-label={expanded ? \'Collapse navigation\' : \'Expand navigation\'}\n        onPress={toggle}\n      />\n      <ExtendedFab icon={<EditIcon />} expanded={expanded} elevation="flat">\n        Compose\n      </ExtendedFab>\n    </>\n  )',
     },
     importMembers: ['NavigationRailItem', 'IconButton', 'ExtendedFab'],
-    codeImports: ["import { EditIcon, HomeIcon, MenuIcon, SearchIcon } from './icons';"],
     codeSlots: { 'aria-label': '"Folders"' },
     codeChildren:
       '<NavigationRailItem icon={<HomeIcon />} selected>Home</NavigationRailItem>\n  <NavigationRailItem icon={<SearchIcon />}>Search</NavigationRailItem>',
@@ -338,7 +354,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       scrollBehavior: ['pinned', 'hide-on-scroll'],
     },
     importMembers: ['NavigationBarItem'],
-    codeImports: ["import { HomeIcon, SearchIcon } from './icons';"],
     codeSlots: { 'aria-label': '"Mail"' },
     codeChildren:
       '<NavigationBarItem icon={<HomeIcon />} selected>Home</NavigationBarItem>\n  <NavigationBarItem icon={<SearchIcon />}>Search</NavigationBarItem>',
@@ -392,7 +407,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     ],
     initialState: { variant: 'primary' },
     importMembers: ['Tab'],
-    codeImports: ["import { EditIcon, SendIcon, StarIcon } from './icons';"],
     codeSlots: { 'aria-label': '"Inbox"' },
     codeChildren:
       '<Tab key="all" title="All" icon={<StarIcon />}>\n    <p>Everything in one place.</p>\n  </Tab>\n  <Tab key="sent" title="Sent" icon={<SendIcon />}>\n    <p>Messages you sent.</p>\n  </Tab>\n  <Tab key="drafts" title="Drafts" icon={<EditIcon />}>\n    <p>Unfinished messages.</p>\n  </Tab>',
@@ -451,7 +465,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         '(\n    <ChipSet aria-label="Filter messages" layout="scroll" className="px-[8px] pb-[8px]">\n      <FilterChip value="unread">Unread</FilterChip>\n      <FilterChip value="starred">Starred</FilterChip>\n      <FilterChip value="attachments">Attachments</FilterChip>\n    </ChipSet>\n  )',
     },
     importMembers: ['ChipSet', 'FilterChip', 'IconButton'],
-    codeImports: ["import { ArrowBackIcon, MoreVertIcon, StarIcon } from './icons';"],
   },
   search: {
     component: 'SearchBar',
@@ -522,7 +535,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         '<IconButton variant="standard" icon={<MicIcon />} aria-label="Voice search" />',
     },
     importMembers: ['IconButton'],
-    codeImports: ["import { MicIcon, SearchIcon } from './icons';"],
     codeSlots: { 'aria-label': '"Search mail"' },
     codeChildren: '{/* Suggestions or results, usually a List */}',
   },
@@ -643,9 +655,6 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       fab: toolbarFabCode,
     },
     importMembers: ['IconButton', 'ToolbarFab'],
-    codeImports: [
-      "import { CloseIcon, DeleteIcon, EditIcon, FormatBoldIcon, FormatItalicIcon, FormatUnderlinedIcon } from './icons';",
-    ],
     codeSlots: {
       'aria-label': '"Formatting"',
       // A docked toolbar is placed by the app, usually along the bottom of the window.

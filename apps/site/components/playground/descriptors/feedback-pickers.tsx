@@ -24,8 +24,8 @@ import {
   SkeletonGroup,
 } from '@windmorph/react-pro';
 import { createElement, useState } from 'react';
-import { CloseIcon, DynamicFeedIcon, StarIcon } from '../../icons';
-import { loose, noop, STAR, svg, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
+import { CloseIcon, DynamicFeedIcon, LockIcon } from '../../icons';
+import { loose, noop, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
 
 const ButtonAny = loose(Button);
 const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
@@ -41,9 +41,7 @@ const DatePickerAny = loose(DatePicker);
 const TimePickerAny = loose(TimePicker);
 const PickerDialogAny = loose(PickerDialog);
 
-const CLOSE = svg(
-  'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
-);
+const CLOSE = '<CloseIcon />';
 
 /** The shapes the loading indicator's `shapes` switch morphs through, live and as code. */
 const LOADING_SHAPES = ['Heart', 'Flower', 'Clover4Leaf', 'Burst'] as const;
@@ -134,6 +132,12 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'size',
     ],
     initialState: { value: 0.4 },
+    numberRanges: {
+      value: { min: 0, max: 1, step: 0.05 },
+      thickness: { min: 2, max: 16 },
+      trackThickness: { min: 2, max: 16 },
+      size: { min: 24, max: 240, step: 4 },
+    },
     codeSlots: {
       'aria-label': '"Uploading"',
       className: (values) => (values.indicator === 'circular' ? null : '"w-full"'),
@@ -151,6 +155,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     surfacedProps: ['variant', 'size', 'value', 'shapes'],
     controlKinds: { shapes: 'boolean' },
     toggledSlots: { shapes: LOADING_SHAPES_CODE },
+    numberRanges: { size: { min: 24, max: 240, step: 4 }, value: { min: 0, max: 1, step: 0.05 } },
     codeSlots: { 'aria-label': '"Loading"' },
   },
   'pull-to-refresh': {
@@ -180,6 +185,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     defaultProps: { refreshing: false, threshold: 80, disabled: false },
     surfacedProps: ['refreshing', 'threshold', 'disabled'],
     controlKinds: { threshold: 'number' },
+    numberRanges: { threshold: { min: 40, max: 200, step: 4 } },
     importMembers: ['List', 'ListItem'],
     codeSlots: {
       onRefresh: '() => {}',
@@ -222,6 +228,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     },
     surfacedProps: ['variant', 'animation', 'corner', 'tone', 'typescale', 'lines'],
     initialState: { variant: 'text', lines: 3, animation: 'pulse' },
+    numberRanges: { lines: { min: 1, max: 6 } },
     // `lines` and `typescale` belong to the text variant (the types say so).
     adjust: (values, changed) => {
       if (changed === 'lines' || changed === 'typescale') return { ...values, variant: 'text' };
@@ -251,7 +258,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
             // `focusOnMount` acts as the alert appears, so switching it shows the alert afresh.
             key: String(focusOnMount),
             focusOnMount,
-            ...(icon === true && { icon: createElement(StarIcon) }),
+            ...(icon === true && { icon: createElement(LockIcon) }),
             ...(actions === true && {
               actions: createElement(ButtonAny, { variant: 'text' }, 'Reset password'),
             }),
@@ -274,7 +281,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     },
     controlKinds: { title: 'string', icon: 'boolean', actions: 'boolean' },
     toggledSlots: {
-      icon: STAR,
+      icon: '<LockIcon />',
       actions: '<Button variant="text">Reset password</Button>',
     },
     codeImports: [BUTTON_IMPORT],
@@ -329,7 +336,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     },
     controlKinds: { title: 'string', description: 'string', actions: 'boolean' },
     toggledSlots: { actions: '<Button variant="tonal">Create a post</Button>' },
-    codeImports: [BUTTON_IMPORT, "import { DynamicFeedIcon } from './icons';"],
+    codeImports: [BUTTON_IMPORT],
     codeSlots: { icon: '<DynamicFeedIcon />' },
   },
   'load-more': {
@@ -407,6 +414,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   'date-picker': {
     component: 'DatePicker',
+    groups: { minValue: 'behaviour', maxValue: 'behaviour', yearRange: 'behaviour' },
     notRendered: {
       DateRangePicker:
         'Picks a start and an end date in the same calendar; the Range examples show it.',

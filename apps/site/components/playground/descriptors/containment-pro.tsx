@@ -16,8 +16,8 @@ import {
 import { createElement } from 'react';
 import { SAMPLE_PHOTO } from '../../../examples/image-crop/sample-photo';
 import { SAMPLE_PHOTOS } from '../../../examples/media-viewer/sample-photos';
-import { ArrowBackIcon, StarIcon } from '../../icons';
-import { type PlaygroundDescriptor, STAR, loose, noop } from './shared';
+import { ArrowBackIcon, PersonIcon, ScheduleIcon, StarIcon } from '../../icons';
+import { type PlaygroundDescriptor, loose, noop } from './shared';
 
 const AvatarAny = loose(Avatar);
 const TagAny = loose(Tag);
@@ -129,10 +129,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     toggledSlots: {
       back: '<IconButton variant="standard" aria-label="Back to settings" icon={<ArrowBackIcon />} href="/settings" />',
     },
-    codeImports: [
-      "import { IconButton, List, ListItem } from '@windmorph/react';",
-      "import { ArrowBackIcon } from './icons';",
-    ],
+    codeImports: ["import { IconButton, List, ListItem } from '@windmorph/react';"],
     codeSlots: {
       list: SECTIONS_CODE,
       detail: '<p className="p-4 text-body-large">Name, photos, bio and languages</p>',
@@ -155,6 +152,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     defaultProps: { columns: 3 },
     surfacedProps: ['max', 'columns'],
     initialState: { max: 6, columns: 3 },
+    numberRanges: { max: { min: 1, max: GRID_PHOTOS.length }, columns: { min: 1, max: 4 } },
     codeImports: ["import { photos } from './photos';"],
     codeSlots: {
       items: 'photos',
@@ -193,6 +191,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     defaultProps: { open: false, index: 0, actions: false },
     surfacedProps: ['open', 'index', 'actions'],
     initialState: { actions: true },
+    numberRanges: { index: { min: 0, max: SAMPLE_PHOTOS.length - 1 } },
     controlKinds: { actions: 'boolean' },
     toggledSlots: { actions: '<Button variant="text" href="/posts/42">View post</Button>' },
     codeImports: [
@@ -216,7 +215,6 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       size: ['sm', 'md', 'lg', 'xl'],
       tone: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
     },
-    codeImports: ["import { StarIcon } from './icons';"],
     codeChildren: '<StarIcon />',
   },
   'comment-row': {
@@ -312,6 +310,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
   },
   'expandable-text': {
     component: 'ExpandableText',
+    groups: { lines: 'appearance' },
     importFrom: '@windmorph/react-pro',
     render: (props, update) =>
       createElement(
@@ -331,6 +330,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     defaultProps: { lines: 5, collapsible: false, expanded: false, as: 'div' },
     surfacedProps: ['lines', 'collapsible', 'expanded', 'as'],
     initialState: { lines: 3, collapsible: true },
+    numberRanges: { lines: { min: 1, max: 6 } },
     enumOptions: { as: ['div', 'p'] },
     codeSlots: { className: '"text-body-large text-on-surface"' },
     codeChildren: EXPANDABLE_TEXT_SAMPLE,
@@ -346,7 +346,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         ...props,
         ...(decorative === true ? { decorative: true } : { alt: String(alt || props.name || '') }),
         ...(src === true && { src: SAMPLE_PHOTO }),
-        ...(icon === true && { icon: <StarIcon /> }),
+        ...(icon === true && { icon: <PersonIcon /> }),
         ...(href !== '' && href != null && { href }),
         ...(presence !== 'none' && { presence }),
         ...(badge !== '' && { badge, badgeLabel: String(badgeLabel || badge) }),
@@ -411,7 +411,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       if (changed === 'alt' && values.alt) return { ...values, decorative: false };
       return values;
     },
-    toggledSlots: { src: '"/avatars/nora.jpg"', icon: STAR },
+    toggledSlots: { src: '"/avatars/nora.jpg"', icon: '<PersonIcon />' },
     notControlled: {
       srcSet:
         'Responsive sources for `src`: the preview has one sample photo, so it would look the same.',
@@ -433,7 +433,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         TagAny,
         {
           ...props,
-          ...(icon === true && { icon: <StarIcon /> }),
+          ...(icon === true && { icon: <ScheduleIcon /> }),
           ...(fullLabel !== '' && fullLabel != null && { fullLabel }),
           ...(typeof maxWidth === 'number' && { maxWidth }),
         },
@@ -463,7 +463,8 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       shape: ['full', 'rounded'],
     },
     controlKinds: { icon: 'boolean', maxWidth: 'number' },
-    toggledSlots: { icon: STAR },
+    toggledSlots: { icon: '<ScheduleIcon />' },
+    numberRanges: { maxWidth: { min: 48, max: 240, step: 4 } },
     codeChildren: 'Open now',
   },
 };

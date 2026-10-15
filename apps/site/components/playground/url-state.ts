@@ -1,4 +1,4 @@
-import type { ControlDef } from './controls-model';
+import { clampToRange, type ControlDef } from './controls-model';
 
 /**
  * Encodes playground state as discrete typed query keys (one per surfaced prop), e.g.
@@ -17,8 +17,10 @@ export function encodeState(values: Record<string, unknown>, controls: ControlDe
 
 /**
  * Decodes playground state from query keys, validating each value against its control type
- * (enum membership, boolean coerce, finite number). Unknown keys and invalid values are
- * ignored, so a bad URL falls back to control defaults rather than throwing.
+ * (enum membership, boolean coerce, finite number, clamped into a slider's range). Unknown
+ * keys and invalid values are ignored, so a bad or older URL falls back to control defaults
+ * rather than throwing. The keys are the props' own names, so grouping the panel never
+ * changes a link.
  */
 export function decodeState(
   params: URLSearchParams,
@@ -37,7 +39,10 @@ export function decodeState(
         break;
       case 'number': {
         const value = Number(raw);
-        if (Number.isFinite(value)) out[control.name] = value;
+        // A link shared before a control had its slider keeps working, inside the range.
+        if (raw.trim() !== '' && Number.isFinite(value)) {
+          out[control.name] = control.range ? clampToRange(value, control.range) : value;
+        }
         break;
       }
       default:

@@ -7,6 +7,7 @@ const controls: ControlDef[] = [
   { name: 'disabled', kind: 'boolean', label: 'disabled' },
   { name: 'count', kind: 'number', label: 'count' },
   { name: 'label', kind: 'string', label: 'label' },
+  { name: 'ratio', kind: 'number', label: 'ratio', range: { min: 0, max: 0.5, step: 0.05 } },
 ];
 
 describe('url-state', () => {
@@ -34,5 +35,23 @@ describe('url-state', () => {
   it('coerces booleans and finite numbers', () => {
     const params = new URLSearchParams('disabled=true&count=42');
     expect(decodeState(params, controls)).toEqual({ disabled: true, count: 42 });
+  });
+
+  it('clamps a number into its slider range, snapped to the step', () => {
+    expect(decodeState(new URLSearchParams('ratio=0.9'), controls)).toEqual({ ratio: 0.5 });
+    expect(decodeState(new URLSearchParams('ratio=-1'), controls)).toEqual({ ratio: 0 });
+    expect(decodeState(new URLSearchParams('ratio=0.12'), controls)).toEqual({ ratio: 0.1 });
+    expect(decodeState(new URLSearchParams('ratio='), controls)).toEqual({});
+  });
+
+  it('loads a link shared before the panel was grouped: the keys are the prop names', () => {
+    // A link from the earlier flat panel, with a value the range now clamps.
+    const params = new URLSearchParams('variant=outlined&disabled=true&count=7&ratio=2');
+    expect(decodeState(params, controls)).toEqual({
+      variant: 'outlined',
+      disabled: true,
+      count: 7,
+      ratio: 0.5,
+    });
   });
 });

@@ -3,6 +3,29 @@ import type { PropsRecord } from '../../lib/component-props';
 /** The kind of control inferred for a surfaced prop. */
 export type ControlKind = 'enum' | 'boolean' | 'string' | 'number';
 
+/**
+ * The panel's sections, in order: how it looks, what it shows, how it behaves, and the rest
+ * (folded), such as forced states, entrance replays and accessibility-only names.
+ */
+export const CONTROL_GROUPS = ['appearance', 'content', 'behaviour', 'advanced'] as const;
+export type ControlGroup = (typeof CONTROL_GROUPS)[number];
+
+/** Each section's heading. */
+export const CONTROL_GROUP_LABELS: Record<ControlGroup, string> = {
+  appearance: 'Appearance',
+  content: 'Content',
+  behaviour: 'Behaviour',
+  advanced: 'Advanced',
+};
+
+/** A number control's slider: its range and step. */
+export interface NumberRange {
+  min: number;
+  max: number;
+  /** @default 1 */
+  step?: number;
+}
+
 export interface ControlDef {
   /** The prop name this control drives. */
   name: string;
@@ -16,6 +39,18 @@ export interface ControlDef {
    * 12 or 24): the segmented control's value is the number, so the snippet writes `{12}`.
    */
   numeric?: boolean;
+  /** The panel section it sits in (see {@link groupOf}). @default 'behaviour' */
+  group?: ControlGroup;
+  /** The prop's JSDoc description, from the generated props, for the control's info. */
+  description?: string;
+  /** The component whose API lists the prop, for its anchor (`prop-<component>-<prop>`). */
+  docsComponent?: string;
+  /** The prop's name in that component's API (`color` for a `fab.color` control). */
+  docsProp?: string;
+  /** For a number: the slider's range. Without one, a number gets a compact field. */
+  range?: NumberRange;
+  /** For a number with a range: where the slider rests while the prop is unset (its default). */
+  rest?: number;
 }
 
 /**
@@ -119,4 +154,64 @@ export function switchRecords(
     });
   }
   return [...byName.values()];
+}
+
+/** Booleans that switch a slot or a decoration on and off, by name: Content. */
+const CONTENT_NAME =
+  /(?:Icon|Icons)$|^(?:icons?|label|title|subtitle|placeholder|description|supportingText|errorMessage|prefix|suffix|badge|bubble|name|initials|actionLabel|menu|leading|trailing|actions|header|bottom|toolbar|tools|attachments|send|fab|src|banner|emptyAction|mentions|below|total|maxIcons|max|length|lines|country|locale|priorityCountries|items|tooltip)$/;
+
+/** Props that only make sense for testing or wiring, or that only name things for assistive tech. */
+const ADVANCED_NAME =
+  /^(?:dragged|appear|autoFocus|focusOnMount|announce|keyboardDismissDisabled|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|elementType|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|menuLabel|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
+
+/** Booleans and numbers that change only how it looks: Appearance. */
+const APPEARANCE_NAME =
+  /^(?:show[A-Z]\w*|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|iconTransition|indicatorMotion)$/;
+
+/** Choices that change how it works rather than how it looks: Behaviour. */
+const BEHAVIOUR_ENUM =
+  /^(?:selectionMode|value|defaultOption|submitOn|keyboardActivation|scrollBehavior|snap|mode|defaultMode|hourCycle|type|capture|status|active|toolsWhenIdle|role|presentation|exitEdge)$/;
+
+/**
+ * The section a control sits in, from its name and kind, unless the descriptor's `groups`
+ * says otherwise. A slot switched on and off and any text are Content; forced states, entrance
+ * replays and accessibility-only names are Advanced; style choices are Appearance; the rest
+ * (states, selection, opening) is Behaviour. `slot.prop` controls follow their prop's name.
+ */
+export function groupOf(name: string, kind: ControlKind, slotToggle = false): ControlGroup {
+  const base = name.includes('.') ? name.slice(name.indexOf('.') + 1) : name;
+  if (ADVANCED_NAME.test(base)) return 'advanced';
+  if (slotToggle) return 'content';
+  if (base === 'href') return 'behaviour';
+  if (kind === 'enum') return BEHAVIOUR_ENUM.test(base) ? 'behaviour' : 'appearance';
+  if (APPEARANCE_NAME.test(base)) return 'appearance';
+  if (kind === 'string' || CONTENT_NAME.test(base)) return 'content';
+  return 'behaviour';
+}
+
+/** The controls in their sections, in section order, each keeping its own order; empty ones left out. */
+export function groupControls(
+  controls: readonly ControlDef[],
+): { group: ControlGroup; controls: ControlDef[] }[] {
+  return CONTROL_GROUPS.flatMap((group) => {
+    const members = controls.filter((def) => (def.group ?? 'behaviour') === group);
+    return members.length > 0 ? [{ group, controls: members }] : [];
+  });
+}
+
+/**
+ * A choice this short fits a connected button group beside its name in the narrowest panel
+ * (a phone's sheet, or the 40% column); a longer one gets a select.
+ */
+export function isSegmented(options: readonly string[]): boolean {
+  return options.length <= 3 && options.join('').length <= 18;
+}
+
+/** Clamps a number into a control's range, snapped to its step. */
+export function clampToRange(value: number, range: NumberRange): number {
+  const step = range.step ?? 1;
+  const snapped = Math.round((value - range.min) / step) * step + range.min;
+  // Rounding a decimal step leaves float noise (0.30000000000000004).
+  const decimals = (String(step).split('.')[1] ?? '').length;
+  return Math.min(range.max, Math.max(range.min, Number(snapped.toFixed(decimals))));
 }

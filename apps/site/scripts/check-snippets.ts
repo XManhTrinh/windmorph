@@ -2,7 +2,8 @@
  * Type-checks every snippet the playgrounds can copy: for each playground, the starting state
  * and every value of every control (after the descriptor's `adjust`), emitted as a module and
  * compiled against the real packages. A combination the types reject (a text button with a
- * toggle, a toolbar with both a FAB and leading content) or an unused import fails here.
+ * toggle, a toolbar with both a FAB and leading content), an unused import, an icon missing
+ * from the site's icon module (`./icons` in a snippet) or an inline SVG fails here.
  * Part of the site's `typecheck`; it reads the generated props, so run `generate` first.
  */
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -94,6 +95,11 @@ let count = 0;
 for (const [slug, descriptor] of Object.entries(PLAYGROUND_DESCRIPTORS)) {
   const unique = [...new Set(snippetsOf(descriptor))];
   unique.forEach((code, index) => {
+    // Icons are named components from the reader's icon module, never pasted-in SVG.
+    if (/<svg\b/.test(code)) {
+      console.error(`[check-snippets] ${slug}: a snippet writes an inline SVG:\n${code}`);
+      process.exit(1);
+    }
     // The element becomes a component's body, so the module compiles as TSX.
     const body = code.replace(/\n\n(<[\s\S]*)$/, '\n\nexport const Snippet = () => (\n$1);\n');
     writeFileSync(join(outDir, `${slug}-${index}.tsx`), `'use client';\n${body}`);
