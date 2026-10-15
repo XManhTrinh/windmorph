@@ -19,8 +19,10 @@ export default defineConfig({
   clean: true,
   // The colour library ships ESM with extensionless imports that plain Node cannot
   // load, so it is bundled into our output instead of being a runtime dependency.
-  noExternal: ['@material/material-color-utilities'],
-  external: [/^node:/],
+  deps: {
+    alwaysBundle: ['@material/material-color-utilities'],
+    neverBundle: [/^node:/],
+  },
   inputOptions: {
     onLog(level, log, handler) {
       // Directives are preserved per module in unbundle mode; scripts/check-dist.ts verifies it.
