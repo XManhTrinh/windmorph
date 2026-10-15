@@ -1,8 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { setMediaQueries } from '../../../test/setup';
 import { FabMenu, FabMenuItem, type FabMenuProps } from './FabMenu';
 
 const Icon = ({ id }: { id: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
@@ -90,6 +91,23 @@ describe('FabMenu', () => {
     expect(screen.getByRole('button', { name: 'Reply' })).not.toHaveAttribute('inert');
     vi.useRealTimers();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('shows and hides every item at once under reduced motion', () => {
+    setMediaQueries({ '(prefers-reduced-motion)': true, '(prefers-reduced-motion: reduce)': true });
+    // Motion keeps the preference it last heard; tell it the default is back afterwards.
+    onTestFinished(() =>
+      setMediaQueries({
+        '(prefers-reduced-motion)': false,
+        '(prefers-reduced-motion: reduce)': false,
+      }),
+    );
+    render(<Menu />);
+    fireEvent.click(toggle());
+    expect(visibleItems()).toEqual(['Reply', 'Forward', 'Archive']);
+    expect(item('Reply')).toHaveClass('motion-reduce:data-visible:starting:opacity-0');
+    fireEvent.click(toggle());
+    expect(visibleItems()).toEqual([]);
   });
 
   it('rotates and crossfades its icons with iconTransition="rotate"', async () => {

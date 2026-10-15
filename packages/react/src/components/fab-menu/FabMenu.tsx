@@ -16,6 +16,7 @@ import {
   type ReactNode,
   type TransitionEvent,
 } from 'react';
+import { useReducedMotion } from 'motion/react';
 import { useInteractOutside, useObjectRef } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
 import {
@@ -158,7 +159,8 @@ const ITEM_SELECTOR = '[data-fab-menu-item]:not([inert])';
  * M3 Expressive FAB menu: a FAB that opens two to six related actions above it. The button
  * shrinks into a 56px close button while the items (`FabMenuItem`) appear one after
  * another from the button upwards, each springing out to its full width; on short windows
- * they scroll behind the close button. Position the menu on the window's trailing edge
+ * they scroll behind the close button. Under reduced motion the button changes at once and
+ * the items fade in and out together. Position the menu on the window's trailing edge
  * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows).
  *
  * The button is named by `aria-label`, which it shows in a tooltip while closed, and reports
@@ -216,19 +218,27 @@ export function FabMenu({
     if (!visible && isOpenState) setOpen(false);
   }, [visible, isOpenState, setOpen]);
 
-  // The visible item count steps through Compose's stagger spring (fab-menu-stagger.ts).
-  const [count, setCount] = useState(isOpen ? total : 0);
+  // The visible item count steps through Compose's stagger spring (fab-menu-stagger.ts);
+  // under reduced motion every item shows and hides with the menu, in the same render.
+  const reducedMotion = useReducedMotion() ?? false;
+  const target = isOpen ? total : 0;
+  const [staggered, setStaggered] = useState(target);
+  const count = reducedMotion ? target : staggered;
   const countRef = useRef(count);
   useEffect(() => {
-    const steps = staggerSteps(countRef.current, isOpen ? total : 0);
+    if (reducedMotion) {
+      countRef.current = target;
+      return;
+    }
+    const steps = staggerSteps(countRef.current, target);
     const timers = steps.map(({ at, count: next }) =>
       setTimeout(() => {
         countRef.current = next;
-        setCount(next);
+        setStaggered(next);
       }, at),
     );
     return () => timers.forEach(clearTimeout);
-  }, [isOpen, total]);
+  }, [target, reducedMotion]);
 
   // The list stays laid out until the last item has faded.
   const { isPresent, exitProps } = usePresence(isOpen || count > 0);
@@ -461,6 +471,12 @@ export function FabMenuItem({
     observer.observe(content);
     return () => observer.disconnect();
   }, []);
+  // The list is hidden while the menu is closed, where the content measures 0; measure it
+  // again as the item shows, before paint, so it never shows a frame at width 0.
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (visible && content) setWidth(content.offsetWidth);
+  }, [visible]);
 
   const props = {
     ...rest,

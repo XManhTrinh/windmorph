@@ -11,7 +11,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   which the motion spec asks for colour (no overshoot).
  * - Items are 56px pills (min width 56px, 24px side padding, 8px icon gap, 24px icon,
  *   `title-medium`), 4px apart, 8px above the button. Item width springs on fast spatial
- *   and opacity on fast effects.
+ *   and opacity on fast effects. Under reduced motion the spatial springs are instant
+ *   (architecture §6): the button changes at once and the items only fade, together.
  * - Elevation, as on `Fab`, is the `elevation` variant, on the button and the items alike:
  *   `default` is level 3 (the spec's ListItemContainerElevation token, and the FAB's),
  *   `lowered` level 1 and `flat` level 0.
@@ -91,6 +92,8 @@ export const fabMenuStyles = tv({
       'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden select-none',
       'rounded-[var(--_md-comp-fab-menu-menu-item-container-shape)]',
       'opacity-0 data-visible:opacity-100',
+      // Under reduced motion the items show with the list, which was hidden: fade them in.
+      'motion-reduce:data-visible:starting:opacity-0',
       'state-layer focus-ring',
       '[--m3-transition-property:width,opacity]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
