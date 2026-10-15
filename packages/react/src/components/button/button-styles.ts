@@ -76,6 +76,13 @@ const shapeVariants = [
  * stretching flex or grid parent from making them taller (2026-10-13).
  */
 /**
+ * The press morph on the default effects spring, which never bounces (`container-motion`
+ * reads these). Shared with the split button's halves (2026-10-15).
+ */
+export const nonBouncingMorph =
+  '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)] [--m3-shape-spring-easing:var(--md-sys-motion-spring-effects-default-easing)]';
+
+/**
  * Forced colours (Windows high contrast), as Material Web's buttons: the browser paints
  * every container as `Canvas`, so a filled, elevated, tonal or text button draws a 1px
  * `CanvasText` boundary. It takes the outlined style's `--m3-button-border`, which the
@@ -181,6 +188,10 @@ export const buttonStyles = tv({
   },
   compoundVariants: [
     ...shapeVariants,
+    // A plain button's press morph runs on the default effects spring, which never bounces
+    // (Compose's Button: "DefaultEffects is intentional here"); a toggle's selection morph
+    // keeps the fast spatial spring, as Compose's ToggleButton (2026-10-15).
+    { toggle: false, class: { root: nonBouncingMorph } },
     ...connectedShapeVariants,
     // Outline width grows with size.
     { variant: 'outlined', size: 'lg', class: { root: '[--m3-button-border:2px]' } },

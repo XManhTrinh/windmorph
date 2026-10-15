@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { systemColor, underForcedColors } from './forced-colors';
+import { overshoots, probeNextMorph } from './morph-probe';
 import { openStory } from './story';
 
 test.describe('Button visual regression', () => {
@@ -74,11 +75,27 @@ test.describe('Button interaction states', () => {
     max: number;
   }
 
-  test('the press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
-    page,
-  }) => {
+  // Re-audit 2026-10-15: a plain button's press morph overshot; Compose's Button uses
+  // DefaultEffects, which never bounces. Toggles keep the fast spatial spring.
+  test('a plain button presses without bouncing', async ({ page }) => {
     await openStory(page, 'components-button--playground', {}, { size: 'md' });
     const button = page.getByRole('button', { name: 'Button' });
+    const box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const press = await probeNextMorph(button, 'press');
+    await page.mouse.down();
+    const curve = await press();
+    expect(curve.from).toBeGreaterThan(curve.to);
+    expect(overshoots(curve), JSON.stringify(curve)).toBe(false);
+    await page.mouse.up();
+  });
+
+  test('a toggle’s press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
+    page,
+  }) => {
+    // A medium round toggle ("Star", "Starred" once selected).
+    await openStory(page, 'components-button--toggle');
+    const button = page.getByRole('button').first();
     /**
      * Probes the next corner-radius transition as it starts: paused, read at 100 points along
      * its whole timeline and resumed where it was, so the spring's full curve is seen however

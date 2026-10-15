@@ -1,5 +1,9 @@
 import { tv, type VariantProps } from '../../utils/tv';
-import { buttonVariantClasses, forcedColorClasses } from '../button/button-styles';
+import {
+  buttonVariantClasses,
+  forcedColorClasses,
+  nonBouncingMorph,
+} from '../button/button-styles';
 
 /*
  * Values follow the M3 Expressive split button specs and Compose's
@@ -8,7 +12,8 @@ import { buttonVariantClasses, forcedColorClasses } from '../button/button-style
  * - Two buttons 2px apart, each at least 48px wide, with full outer corners. Inner corners
  *   are 4 / 4 / 4 / 8 / 12px (XS–XL) and change to 8 / 12 / 12 / 20 / 20px when hovered,
  *   keyboard-focused or pressed ("The inner corners change shape for hovered, focused, and
- *   pressed states"). Corners move on the fast spatial spring (`container-motion`).
+ *   pressed states"). Corners move on the default effects spring (`container-motion`,
+ *   `nonBouncingMorph`), which never bounces, as Compose's split button (2026-10-15).
  * - XS and S halves are shorter than 48px, so each gets a 48px touch target.
  * - Leading padding 12/10, 16/12, 24, 48, 64px; trailing 13, 13, 15, 29, 43px with a 22 /
  *   22 / 26 / 38 / 50px icon. Padding counts from the container's edge: an outlined half
@@ -40,6 +45,9 @@ const half = [
   'inline-flex shrink-0 cursor-pointer items-center justify-center align-middle min-w-[48px]',
   'font-plain whitespace-nowrap select-none',
   'state-layer focus-ring container-motion',
+  // Corners on the default effects spring, which never bounces, as Compose's split button
+  // ("DefaultEffects", 2026-10-15).
+  nonBouncingMorph,
   'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
   forcedColorClasses.disabled,
 ];

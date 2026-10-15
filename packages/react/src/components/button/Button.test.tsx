@@ -165,6 +165,20 @@ describe('Button', () => {
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
   });
 
+  it('morphs a plain button on the non-bouncing effects spring, a toggle on fast spatial', () => {
+    // Re-audit 2026-10-15: Compose's Button uses DefaultEffects, its ToggleButton FastSpatial.
+    render(
+      <>
+        <Button>Plain</Button>
+        <Button toggle>Toggle</Button>
+      </>,
+    );
+    const effects =
+      '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]';
+    expect(screen.getByRole('button', { name: 'Plain' })).toHaveClass(effects);
+    expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveClass(effects);
+  });
+
   it('uses square corners and size-specific press morphs', () => {
     render(
       <>

@@ -75,6 +75,16 @@ describe('SplitButton', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('morphs both halves on the non-bouncing effects spring', () => {
+    // Re-audit 2026-10-15: Compose's split button uses DefaultEffects.
+    render(<Send />);
+    for (const half of [leading(), trailing()]) {
+      expect(half).toHaveClass(
+        '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+      );
+    }
+  });
+
   it('runs the leading action without opening the menu', async () => {
     const onPress = vi.fn();
     render(<Send onPress={onPress} />);
@@ -148,8 +158,8 @@ describe('SplitButton', () => {
     'grows its %s halves with the text, together, without a stretching parent',
     (size) => {
       render(<Send size={size} />);
-    // A minimum height (Compose's heightIn), both halves stretched to the taller one, and a
-    // root that keeps its content height in a flex or grid parent.
+      // A minimum height (Compose's heightIn), both halves stretched to the taller one, and a
+      // root that keeps its content height in a flex or grid parent.
       // (S joined XS on 2026-10-15: a fixed 40px overflowed at 250% text.)
       for (const half of [leading(), trailing()]) {
         expect(half).not.toHaveClass('h-[32px]');

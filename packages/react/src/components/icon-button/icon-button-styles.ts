@@ -1,5 +1,5 @@
 import { tv, type VariantProps } from '../../utils/tv';
-import { forcedColorClasses } from '../button/button-styles';
+import { forcedColorClasses, nonBouncingMorph } from '../button/button-styles';
 import { connectedShapeVariants } from '../button/connected-shapes';
 
 /*
@@ -164,8 +164,7 @@ export const iconButtonStyles = tv({
       'state-layer focus-ring container-motion',
       // Every morph, toggles included, on the default effects spring, which never bounces:
       // Compose's IconButton "DefaultEffects is intentional here to prevent any bounce".
-      '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]',
-      '[--m3-shape-spring-easing:var(--md-sys-motion-spring-effects-default-easing)]',
+      nonBouncingMorph,
       'data-disabled:cursor-default',
       forcedColorClasses.disabled,
     ],
