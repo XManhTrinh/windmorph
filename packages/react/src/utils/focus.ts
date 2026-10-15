@@ -64,22 +64,6 @@ export function matchesShortcut(event: KeyboardEvent, shortcut: string): boolean
 }
 
 /**
- * Whether keyboard focus (`:focus-visible`) is inside `root`. Scroll-hidden bars use it to
- * stay on screen while a keyboard user is on one of their controls, without pinning them
- * after a pointer click (which focuses a button but doesn't show its focus ring).
- */
-export function hasVisibleFocusWithin(root: Element): boolean {
-  const active = root.ownerDocument.activeElement;
-  if (!active || !root.contains(active)) return false;
-  try {
-    return active.matches(':focus-visible');
-  } catch {
-    // An engine without `:focus-visible` counts any focus as visible.
-    return true;
-  }
-}
-
-/**
  * Moves initial focus from a dialog's panel to its first interactive element (M3: "focus
  * should automatically land on the first interactive element"). React Aria's `useDialog`
  * focuses the panel itself unless something inside took focus (`autoFocus`), so this only

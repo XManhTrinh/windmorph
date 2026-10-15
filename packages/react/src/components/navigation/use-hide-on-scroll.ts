@@ -2,7 +2,7 @@
 
 import { useReducedMotion } from 'motion/react';
 import { useEffect, type RefObject } from 'react';
-import { hasVisibleFocusWithin } from '../../utils/focus';
+import { hasVisibleFocusWithin } from '../../utils/focus-visible';
 
 /**
  * Hides a bottom bar while the page scrolls down and brings it back on any scroll up

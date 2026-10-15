@@ -2,7 +2,7 @@
 
 import { cubicBezier, useReducedMotion } from 'motion/react';
 import { useEffect, useState, type RefObject } from 'react';
-import { hasVisibleFocusWithin } from '../../utils/focus';
+import { hasVisibleFocusWithin } from '../../utils/focus-visible';
 
 /** How a top app bar responds to the content scrolling under it (Compose's scroll behaviours). */
 export type TopAppBarScrollBehavior = 'pinned' | 'enter-always' | 'exit-until-collapsed';
