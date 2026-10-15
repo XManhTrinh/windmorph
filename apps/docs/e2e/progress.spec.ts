@@ -191,3 +191,32 @@ test.describe('CircularProgressIndicator layout safety', () => {
     },
   });
 });
+
+test.describe('Progress in forced colours', () => {
+  // Browsers don't force SVG strokes: the indicator takes CanvasText and the track GrayText
+  // (2026-10-15), instead of keeping the theme's colours.
+  test('strokes use system colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-progress--playground', {}, { value: '0.5' });
+    const result = await page.evaluate(() => {
+      const resolve = (value: string) => {
+        const probe = document.createElement('div');
+        probe.style.color = value;
+        document.body.append(probe);
+        const colour = getComputedStyle(probe).color;
+        probe.remove();
+        return colour;
+      };
+      const part = (slot: string) =>
+        getComputedStyle(document.querySelector(`[data-slot="${slot}"]`)!).stroke;
+      return {
+        indicator: part('indicator'),
+        track: part('track'),
+        canvasText: resolve('CanvasText'),
+        grayText: resolve('GrayText'),
+      };
+    });
+    expect(result.indicator).toBe(result.canvasText);
+    expect(result.track).toBe(result.grayText);
+  });
+});
