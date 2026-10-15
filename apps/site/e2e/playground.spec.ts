@@ -204,8 +204,8 @@ test.describe('Playground layout', () => {
     const controls = panel(page, 'MessageField');
     const card = region.locator('[data-playground-stage]').locator('..');
     const share = (await controls.boundingBox())!.width / (await card.boundingBox())!.width;
-    expect(share).toBeGreaterThan(0.33);
-    expect(share).toBeLessThan(0.45);
+    expect(share).toBeGreaterThan(0.4);
+    expect(share).toBeLessThan(0.5);
     // The panel grows with its controls, with no scroll of its own.
     expect(await controls.evaluate((element) => getComputedStyle(element).overflowY)).toBe(
       'visible',
@@ -222,12 +222,65 @@ test.describe('Playground layout', () => {
   });
 });
 
+/** Each section's controls' left edges, rounded to a pixel. */
+async function controlStarts(scope: Locator): Promise<Record<string, number[]>> {
+  return scope.evaluate((root) =>
+    Object.fromEntries(
+      [...root.querySelectorAll<HTMLElement>('[data-control-group]')].map((group) => [
+        group.dataset.controlGroup!,
+        [...group.querySelectorAll('[data-control-input]')]
+          .filter((cell) => cell.getBoundingClientRect().width > 0)
+          .map((cell) => Math.round(cell.firstElementChild!.getBoundingClientRect().left)),
+      ]),
+    ),
+  );
+}
+
+/** Every control in a section starts on the same line (±1px). */
+function expectAligned(starts: Record<string, number[]>) {
+  for (const [group, lefts] of Object.entries(starts)) {
+    if (lefts.length === 0) continue;
+    expect(
+      Math.max(...lefts) - Math.min(...lefts),
+      `${group}: ${lefts.join(', ')}`,
+    ).toBeLessThanOrEqual(1);
+  }
+}
+
+test.describe('Playground control alignment', () => {
+  for (const width of [840, 1440]) {
+    test(`at ${width}px every control in a section starts on one line`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await gotoReady(page, '/components/button-group');
+      const controls = panel(page, 'ButtonGroup');
+      await controls.scrollIntoViewIfNeeded();
+      expectAligned(await controlStarts(controls));
+      await gotoReady(page, '/components/message-field');
+      const fields = panel(page, 'MessageField');
+      await fields.getByRole('button', { name: /^Advanced/ }).click();
+      expectAligned(await controlStarts(fields));
+    });
+  }
+
+  test('in the phone sheet every control in a section starts on one line', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await gotoReady(page, '/components/message-field');
+    await playground(page, 'MessageField').getByRole('button', { name: 'Edit props' }).click();
+    const sheet = page.getByRole('dialog', { name: 'MessageField props' });
+    await expect(sheet).toBeVisible();
+    await settle(page);
+    expectAligned(await controlStarts(sheet));
+  });
+});
+
 test.describe('Playground on a phone', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
   });
 
-  test('"Edit props" opens the controls in a modal sheet below the preview', async ({ page }) => {
+  test('"Edit props" opens a standard sheet: no scrim, the preview live above it', async ({
+    page,
+  }) => {
     await gotoReady(page, '/components/button-group');
     const region = playground(page, 'ButtonGroup');
     // No sheet waits at the bottom of the page.
@@ -236,19 +289,45 @@ test.describe('Playground on a phone', () => {
     await edit.click();
     const sheet = page.getByRole('dialog', { name: 'ButtonGroup props' });
     await expect(sheet).toBeVisible();
+    await expect(edit).toHaveAttribute('aria-expanded', 'true');
+    // Non-modal: no scrim, and focus has moved into the sheet.
+    await expect(sheet).not.toHaveAttribute('aria-modal', 'true');
+    expect(await page.evaluate(() => document.querySelector('[aria-modal="true"]'))).toBeNull();
+    expect(await sheet.evaluate((element) => element.contains(document.activeElement))).toBe(true);
     await settle(page);
-    await sheet.getByRole('radio', { name: 'square', exact: true }).click();
-    await expect(page).toHaveURL(/[?&]shape=square(&|$)/);
-    // The preview stays in view above the sheet.
-    // (The page under the modal sheet is hidden from the accessibility tree.)
-    const preview = (await page
-      .locator('[data-playground-preview] [aria-label="View"]')
-      .boundingBox())!;
-    const sheetBox = (await sheet.boundingBox())!;
-    expect(preview.y).toBeGreaterThanOrEqual(0);
-    expect(preview.y + preview.height).toBeLessThanOrEqual(sheetBox.y);
-    // Escape closes it, and focus goes back to the button.
+
+    // The preview sits above the sheet, uncovered, and changes as the controls do.
+    const preview = region.locator('[data-playground-preview]');
+    const view = region.getByRole('radiogroup', { name: 'View' });
+    const box = (await view.boundingBox())!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual((await sheet.boundingBox())!.y);
+    expect(
+      await preview.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + 8);
+        return element.contains(hit);
+      }),
+    ).toBe(true);
+    // The page behind stays usable while the sheet is open.
+    await view.getByRole('radio', { name: 'Month' }).click();
+    await expect(view.getByRole('radio', { name: 'Month' })).toBeChecked();
+    await expect(sheet).toBeVisible();
+
+    await choose(sheet, 'size', 'md');
+    await expect(view.getByRole('radio', { name: 'Day' })).toHaveAttribute('data-size', 'md');
+    await expect(page).toHaveURL(/[?&]size=md(&|$)/);
+
+    // Escape (from inside the sheet) closes it, and focus goes back to the button.
+    await sheet.getByRole('button', { name: 'Reset' }).focus();
     await page.keyboard.press('Escape');
+    await expect(sheet).toBeHidden();
+    await expect(edit).toBeFocused();
+    await expect(edit).toHaveAttribute('aria-expanded', 'false');
+
+    // The close button does the same.
+    await edit.click();
+    await sheet.getByRole('button', { name: 'Close props' }).click();
     await expect(sheet).toBeHidden();
     await expect(edit).toBeFocused();
   });
@@ -289,7 +368,7 @@ test.describe('Playground component switch', () => {
     await expect(code).toContainText('<LinearProgressIndicator');
     await expect(controls.locator('[data-control="size"]')).toHaveCount(0);
 
-    await controls.getByRole('radio', { name: 'circular', exact: true }).click();
+    await choose(controls, 'indicator', 'circular');
     await expect(code).toContainText('<CircularProgressIndicator');
     // The circular indicator's size gets a slider; the linear-only stop indicator goes.
     await controls.locator('[data-control="size"]').getByRole('slider').focus();

@@ -1,10 +1,10 @@
 'use client';
 
-import { BottomSheet, Button, SheetTrigger } from '@windmorph/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { BottomSheet, Button, IconButton } from '@windmorph/react';
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import type { PropsRecord } from '../../lib/component-props';
 import { DisplaySettingsButton } from '../../app/(docs)/display-settings';
-import { TuneIcon } from '../icons';
+import { CloseIcon, TuneIcon } from '../icons';
 import { CodeView } from './code-view';
 import { ControlGroups } from './controls';
 import { PLAYGROUND_DESCRIPTORS } from './descriptors';
@@ -33,7 +33,7 @@ export interface PlaygroundProps {
  * (plus a per-slug descriptor) in sections (Appearance, Content, Behaviour, Advanced), and a
  * copy-ready code snippet whose changed lines are marked. A wide playground keeps the preview
  * and code in view beside the controls; a narrow one stacks them, and on a phone the controls
- * open in a modal bottom sheet from an "Edit props" button under the preview. The header's
+ * open in a standard bottom sheet (no scrim) from an "Edit props" button under the preview. The header's
  * settings button opens the site's display settings, to try the component in another theme,
  * mode, contrast or direction. Copying confirms in the site snackbar. State is encoded in
  * discrete URL query keys so a configuration is shareable.
@@ -41,15 +41,32 @@ export interface PlaygroundProps {
 export function Playground({ slug, componentName, componentProps }: PlaygroundProps) {
   const descriptor = PLAYGROUND_DESCRIPTORS[slug];
   const previewRef = useRef<HTMLDivElement>(null);
+  const editRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const sheetId = useId();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Changed lines are marked once a control has changed something, not on a restore.
   const [markChanges, setMarkChanges] = useState(false);
-  // The phone's sheet covers the lower half: the preview moves to the top first, so the
-  // change each control makes stays in view above the sheet.
-  const openSheet = (open: boolean) => {
-    if (open) previewRef.current?.scrollIntoView({ block: 'start' });
-    setSheetOpen(open);
+  // The phone's sheet covers the lower half of the window: the preview moves to the top
+  // first, so the change each control makes shows, undimmed, above the sheet.
+  const openSheet = () => {
+    previewRef.current?.scrollIntoView({ block: 'start' });
+    setSheetOpen(true);
   };
+  const closeSheet = () => {
+    setSheetOpen(false);
+    editRef.current?.focus();
+  };
+  const onSheetKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    closeSheet();
+  };
+  // The sheet is a non-modal dialog: focus moves into it as it opens (and back to "Edit
+  // props" as it closes), while the page behind stays usable.
+  useEffect(() => {
+    if (sheetOpen) sheetRef.current?.focus();
+  }, [sheetOpen]);
 
   const initial = useMemo(() => (descriptor ? initialValues(descriptor) : {}), [descriptor]);
   const [values, setValues] = useState<Record<string, unknown>>(initial);
@@ -178,13 +195,13 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
       {/*
        * One tinted surface. Wide (a 640px+ playground): the preview and the code share a
        * column that stays in view (sticky under the top bar) beside the controls, which take
-       * 40% and grow with their content. Narrow: the preview, then the controls (or, on a
-       * phone, an "Edit props" button that opens them in a modal bottom sheet), then the
+       * 45% and grow with their content. Narrow: the preview, then the controls (or, on a
+       * phone, an "Edit props" button that opens them in a standard bottom sheet), then the
        * code. Gestures here never swipe the tabs.
        */}
       <div
         onPointerDown={(event) => event.stopPropagation()}
-        className="flex flex-col gap-4 rounded-corner-large bg-surface-container-low p-4 @min-[640px]/playground:grid @min-[640px]/playground:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[640px]/playground:items-start @min-[640px]/playground:gap-6"
+        className="flex flex-col gap-4 rounded-corner-large bg-surface-container-low p-4 @min-[640px]/playground:grid @min-[640px]/playground:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] @min-[640px]/playground:items-start @min-[640px]/playground:gap-6"
       >
         <div
           data-playground-stage=""
@@ -198,17 +215,54 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
             {descriptor.render(values, setFromPreview)}
           </div>
           <div className="medium:hidden">
-            <SheetTrigger open={sheetOpen} onOpenChange={openSheet}>
-              <Button variant="tonal" leadingIcon={<TuneIcon />} className="w-full">
-                Edit props
-              </Button>
-              <BottomSheet aria-label={`${componentName} props`}>
-                <div className="flex flex-col gap-2 px-4 pb-6">
-                  {panelHeader}
-                  {controlGroups}
+            <Button
+              ref={editRef}
+              variant="tonal"
+              leadingIcon={<TuneIcon />}
+              aria-expanded={sheetOpen}
+              aria-controls={sheetOpen ? sheetId : undefined}
+              onPress={() => (sheetOpen ? closeSheet() : openSheet())}
+              className="w-full"
+            >
+              Edit props
+            </Button>
+            {/*
+             * M3's standard bottom sheet: no scrim, so the preview above stays undimmed and
+             * live, and the page stays usable. It keeps one height (just over half the
+             * window, its controls scrolling inside), so it has no collapsed detent: the
+             * close button, Escape and "Edit props" put it away.
+             */}
+            <BottomSheet
+              variant="standard"
+              id={sheetId}
+              ref={sheetRef}
+              aria-label={`${componentName} props`}
+              open={sheetOpen}
+              onOpenChange={(open) => (open ? openSheet() : closeSheet())}
+              peekHeight={Number.MAX_SAFE_INTEGER}
+              className="medium:hidden"
+              classNames={{ panel: 'h-[55dvh]' }}
+              onKeyDown={onSheetKeyDown}
+            >
+              <div className="flex flex-col gap-2 px-4 pb-6">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-title-small text-on-surface-variant">Props</h3>
+                  <div className="flex items-center gap-1">
+                    <Button variant="text" size="sm" onPress={reset}>
+                      Reset
+                    </Button>
+                    <IconButton
+                      variant="standard"
+                      size="sm"
+                      icon={<CloseIcon />}
+                      aria-label="Close props"
+                      onPress={closeSheet}
+                    />
+                  </div>
                 </div>
-              </BottomSheet>
-            </SheetTrigger>
+                {controlGroups}
+              </div>
+            </BottomSheet>
           </div>
           <div className="order-last flex min-h-0 flex-col @min-[640px]/playground:order-none @min-[640px]/playground:flex-1">
             <CodeView code={snippet} markChanges={markChanges} />
