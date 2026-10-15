@@ -14,17 +14,19 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Docked (with gap): the expanded field, 56px tall whatever the collapsed bar's height
  * (M3's focused search bar container), sits centred over the collapsed one and widens by 12px on
- * each side (M3 Expressive: the margins change from 24dp to 12dp when focused) on the
- * default spatial spring, and a dropdown 2px below it (12px corners,
+ * each side (M3 Expressive: the margins change from 24dp to 12dp when focused). It morphs from
+ * the bar's bounds (position and size) on the default spatial spring and back on the same
+ * spring floored at the bar, so it lands on the bar exactly; a dropdown 2px below it (12px corners,
  * `surface-container-high`; with the bar, at least 240px and at most 2/3 of the window
  * tall, per the M3 spec) slides down from half its height on the default spatial spring
- * (fast spatial back) while its content fades in over 100ms after 50ms; a 32% scrim covers
- * the page.
+ * (fast spatial back) while its content fades in over 100ms after 50ms, and its height follows
+ * the results on the default spatial spring; a 32% scrim covers the page.
  *
  * Full screen, in M3 Expressive's contained style: a `surface-container-low` surface grows
  * from the bar's bounds (28px corners) to the whole window on the slow spatial spring
- * (default spatial back); the field keeps its `surface-container-high` pill and moves to the
- * top, 8px down and 16px from each side, and the content starts 72px down.
+ * (default spatial back), clamped so nothing overshoots; the field keeps its
+ * `surface-container-high` pill and moves and grows from the bar to the top, 8px down and
+ * 16px from each side, and the content starts 72px down.
  *
  * In a search app bar the field is `surface-container` (`surface-container-highest` once
  * content scrolls under the bar) and fills the free space up to 312px, then half of it,
@@ -73,43 +75,62 @@ export const searchBarStyles = tv({
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'starting:opacity-0 data-exiting:opacity-0',
     ],
-    // Docked view: the panel sits over the collapsed bar.
-    // It widens from the bar's bounds (`--m3-search-*`) to the focused ones.
+    /*
+     * Docked view: the panel sits over the collapsed bar and morphs from the bar's bounds
+     * (`--m3-search-left/top/width/height`) to the focused field's (the `-dx/-dy/-dw/-dh`
+     * deltas) as `--m3-search-progress` runs 0 → 1, as Compose lerps the layout with its
+     * search bar state's progress. `--m3-search-p` is that progress floored at 0 (Compose's
+     * `coerceAtLeast(0f)`): the spring may overshoot past the focused bounds on the way in,
+     * but never past the bar's on the way back, so the field lands on the bar exactly.
+     * Reduced motion: the progress stays at 1, so the field is at its focused size at once.
+     */
     dockedPanel: [
-      'fixed top-(--m3-search-top) left-(--m3-search-focused-left) z-(--md-sys-z-sheet)',
-      'flex w-(--m3-search-focused-width) flex-col outline-none',
-      // Reduced motion: the field is at its focused width at once.
-      'motion-safe:starting:left-(--m3-search-left) motion-safe:starting:w-(--m3-search-width)',
-      'motion-safe:data-exiting:left-(--m3-search-left) motion-safe:data-exiting:w-(--m3-search-width)',
-      '[transition-property:left,width]',
+      'fixed z-(--md-sys-z-sheet) flex flex-col outline-none',
+      '[--m3-search-progress:1] [--m3-search-p:max(0,var(--m3-search-progress))]',
+      'motion-safe:starting:[--m3-search-progress:0] motion-safe:data-exiting:[--m3-search-progress:0]',
+      'top-[calc(var(--m3-search-top)_+_var(--m3-search-p)_*_var(--m3-search-dy))]',
+      'left-[calc(var(--m3-search-left)_+_var(--m3-search-p)_*_var(--m3-search-dx))]',
+      'w-[calc(var(--m3-search-width)_+_var(--m3-search-p)_*_var(--m3-search-dw))]',
+      // Both ways on the default spatial spring (Compose's collapse spec).
+      '[transition-property:--m3-search-progress]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
     ],
-    // The focused field is 56px (M3), even when the collapsed bar is resized.
-    dockedHeader: 'flex h-[56px] shrink-0',
+    // The focused field is 56px (M3), even when the collapsed bar is resized; it grows from
+    // the bar's height with the panel.
+    dockedHeader:
+      'flex h-[calc(var(--m3-search-height)_+_var(--m3-search-p)_*_var(--m3-search-dh))] shrink-0',
     dropdown: [
-      'mt-[2px] overflow-y-auto overscroll-contain',
+      'mt-[2px] overflow-y-auto overscroll-contain data-resizing:overflow-y-hidden',
       // 58px is the field and the gap above the dropdown.
       'min-h-[min(182px,calc(66.67dvh-58px))] max-h-[calc(66.67dvh-58px)]',
+      // The height follows the content (`--m3-search-content-height`, measured) within those
+      // bounds, so it animates as the results change. Without the measurement (before
+      // hydration, or under reduced motion) it's `auto`.
+      'h-[clamp(min(182px,calc(66.67dvh_-_58px)),var(--m3-search-content-height),calc(66.67dvh_-_58px))]',
       'rounded-[var(--_md-comp-search-view-docked-container-shape)] bg-[var(--_md-comp-search-view-container-color)] text-on-surface',
       // Reduced motion: it only fades.
       'translate-y-0 motion-safe:starting:-translate-y-1/2 motion-safe:data-exiting:-translate-y-1/2',
-      '[transition-property:translate,opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),100ms]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),cubic-bezier(0.3,0,1,1)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),100ms]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),cubic-bezier(0,0,0,1)]',
+      // The delays below cycle, so the height (third) starts at once like the slide.
+      '[transition-property:translate,opacity,height]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),100ms,var(--md-sys-motion-spring-spatial-default-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),cubic-bezier(0.3,0,1,1),var(--md-sys-motion-spring-spatial-default-easing)]',
+      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),100ms,var(--md-sys-motion-spring-spatial-fast-duration)]',
+      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),cubic-bezier(0,0,0,1),var(--md-sys-motion-spring-spatial-fast-easing)]',
       ...contentFade,
     ],
-    // Full-screen view: the surface grows from the bar's bounds to the window.
+    /*
+     * Full-screen view: the surface grows from the bar's bounds to the window as
+     * `--m3-search-progress` runs 0 → 1, through a clip (nothing is transformed). Compose
+     * clamps the full-screen progress to 0..1 (`coerceIn`), so `--m3-search-p` is clamped too:
+     * the clip and the field never overshoot the window's or the bar's bounds.
+     */
     fullScreenPanel: [
       'fixed inset-0 z-(--md-sys-z-sheet) bg-[var(--_md-comp-search-view-container-color)] text-on-surface outline-none',
-      '[clip-path:inset(0_round_0)]',
-      'motion-safe:starting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
-      'motion-safe:data-exiting:[clip-path:inset(var(--m3-search-top)_var(--m3-search-right)_var(--m3-search-bottom)_var(--m3-search-left)_round_28px)]',
-      'motion-safe:[transition-property:clip-path]',
+      '[--m3-search-progress:1] [--m3-search-p:clamp(0,var(--m3-search-progress),1)]',
+      'motion-safe:starting:[--m3-search-progress:0] motion-safe:data-exiting:[--m3-search-progress:0]',
+      '[clip-path:inset(calc((1_-_var(--m3-search-p))_*_var(--m3-search-top))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-right))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-bottom))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-left))_round_calc((1_-_var(--m3-search-p))_*_28px))]',
+      'motion-safe:[transition-property:--m3-search-progress]',
       'motion-safe:[transition-duration:var(--md-sys-motion-spring-spatial-slow-duration)]',
       'motion-safe:[transition-timing-function:var(--md-sys-motion-spring-spatial-slow-easing)]',
       'motion-safe:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
@@ -120,16 +141,14 @@ export const searchBarStyles = tv({
       'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
       'motion-reduce:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
+    // Compose's full-screen field is 56px whatever the bar's size, 8px down and 16px from each
+    // side; it moves and grows there from the bar's bounds with the surface.
     fullScreenHeader: [
-      // Compose's full-screen field is 56px whatever the bar's size; 16px from each side.
-      'absolute start-[16px] top-[8px] h-[56px] w-[calc(100%-32px)]',
-      'motion-safe:starting:start-(--m3-search-start) motion-safe:starting:top-(--m3-search-top) motion-safe:starting:w-(--m3-search-width)',
-      'motion-safe:data-exiting:start-(--m3-search-start) motion-safe:data-exiting:top-(--m3-search-top) motion-safe:data-exiting:w-(--m3-search-width)',
-      '[transition-property:inset-inline-start,top,width]',
-      '[transition-duration:var(--md-sys-motion-spring-spatial-slow-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-spatial-slow-easing)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      'absolute',
+      'start-[calc(var(--m3-search-start)_+_var(--m3-search-p)_*_(16px_-_var(--m3-search-start)))]',
+      'top-[calc(var(--m3-search-top)_+_var(--m3-search-p)_*_(8px_-_var(--m3-search-top)))]',
+      'w-[calc(var(--m3-search-width)_+_var(--m3-search-p)_*_(100%_-_32px_-_var(--m3-search-width)))]',
+      'h-[calc(var(--m3-search-height)_+_var(--m3-search-p)_*_(56px_-_var(--m3-search-height)))]',
     ],
     fullScreenContent: [
       'absolute inset-x-0 top-[72px] bottom-0 overflow-y-auto overscroll-contain',

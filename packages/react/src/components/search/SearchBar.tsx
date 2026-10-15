@@ -250,11 +250,12 @@ export function SearchBar(props: SearchBarProps) {
   const appBar = useContext(SearchAppBarContext);
   const rootRef = useObjectRef(ref);
   const [rect, setRect] = useState<BarRect | null>(null);
-  // Under reduced motion the full-screen view fades instead of growing.
+  // The views grow from the bar as `--m3-search-progress` runs; under reduced motion they
+  // only fade (the scrim, or the full-screen view).
   const reduceMotion = useReducedMotion();
   const { isPresent, isExiting, exitProps } = usePresence(
     state.isOpen,
-    view === 'full-screen' && !reduceMotion ? 'clip-path' : 'opacity',
+    reduceMotion ? 'opacity' : '--m3-search-progress',
   );
 
   // The expanded view starts from the bar's bounds; measure them when it opens.
@@ -387,6 +388,7 @@ export function SearchBar(props: SearchBarProps) {
             view={view}
             state={state}
             rect={rect}
+            animateHeight={!reduceMotion}
             isExiting={isExiting}
             exitProps={exitProps}
             label={label}
@@ -480,6 +482,7 @@ function SearchView({
   view,
   state,
   rect,
+  animateHeight,
   isExiting,
   exitProps,
   label,
@@ -493,6 +496,8 @@ function SearchView({
   view: 'docked' | 'full-screen';
   state: OverlayTriggerState;
   rect: BarRect;
+  /** Whether the dropdown's height follows its content on a spring (not under reduced motion). */
+  animateHeight: boolean;
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
   label?: string;
@@ -505,6 +510,12 @@ function SearchView({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const contentSizeRef = useRef<HTMLDivElement>(null);
+  useContentHeight(
+    contentRef,
+    contentSizeRef,
+    view === 'docked' && animateHeight && children != null,
+  );
   const { modalProps, underlayProps } = useModalOverlay(
     { isDismissable: !isExiting },
     state,
@@ -525,6 +536,7 @@ function SearchView({
       '--m3-search-bottom': `${window.innerHeight - rect.bottom}px`,
       '--m3-search-start': `${rect.rtl ? window.innerWidth - rect.right : rect.left}px`,
       '--m3-search-width': `${rect.width}px`,
+      '--m3-search-height': `${rect.height}px`,
     } as CSSProperties;
     return (
       <div
@@ -560,16 +572,21 @@ function SearchView({
   // The focused field is 56px whatever the collapsed bar's height (a consumer `h-*`),
   // centred on the bar and kept within the window.
   const top = Math.max(0, rect.top + (rect.height - FIELD_HEIGHT) / 2);
+  // The panel morphs from the bar's bounds by these deltas (`dockedPanel`).
   const dockedVars = {
-    '--m3-search-top': `${top}px`,
+    '--m3-search-top': `${rect.top}px`,
     '--m3-search-left': `${rect.left}px`,
     '--m3-search-width': `${rect.width}px`,
-    '--m3-search-focused-left': `${left}px`,
-    '--m3-search-focused-width': `${Math.min(width, window.innerWidth)}px`,
+    '--m3-search-height': `${rect.height}px`,
+    '--m3-search-dx': `${left - rect.left}px`,
+    '--m3-search-dy': `${top - rect.top}px`,
+    '--m3-search-dw': `${Math.min(width, window.innerWidth) - rect.width}px`,
+    '--m3-search-dh': `${FIELD_HEIGHT - rect.height}px`,
   } as CSSProperties;
 
   return (
     <>
+      {/* Presence ends on the scrim's fade under reduced motion, else on the panel's motion. */}
       <div
         {...exitProps}
         aria-hidden="true"
@@ -579,6 +596,7 @@ function SearchView({
       <div {...underlayProps} className="fixed inset-0 z-(--md-sys-z-sheet)">
         <div
           {...panelProps}
+          {...exitProps}
           ref={panelRef}
           style={dockedVars}
           data-exiting={exiting}
@@ -594,7 +612,10 @@ function SearchView({
               data-exiting={exiting}
               className={styles.dropdown({ class: classNames?.content })}
             >
-              {children}
+              {/* Measured, so the dropdown's height can follow it (`useContentHeight`). */}
+              <div ref={contentSizeRef} className="flow-root">
+                {children}
+              </div>
             </div>
           )}
           <LiveStatus message={resultsAnnouncement} />
@@ -602,6 +623,60 @@ function SearchView({
       </div>
     </>
   );
+}
+
+/**
+ * Keeps `--m3-search-content-height` on the dropdown at its content's height (plus the
+ * dropdown's own padding and borders), so the dropdown's height animates as the results
+ * change instead of jumping. While that height animates the dropdown doesn't scroll
+ * (`data-resizing`), so a scrollbar never flashes in and rewraps the content.
+ */
+function useContentHeight(
+  dropdownRef: RefObject<HTMLDivElement | null>,
+  contentRef: RefObject<HTMLDivElement | null>,
+  enabled: boolean,
+) {
+  useLayoutEffect(() => {
+    const dropdown = dropdownRef.current;
+    const content = contentRef.current;
+    if (!enabled || !dropdown || !content) return;
+    let measured = Number.NaN;
+    const measure = () => {
+      const style = getComputedStyle(dropdown);
+      const frame =
+        parseFloat(style.paddingTop) +
+        parseFloat(style.paddingBottom) +
+        parseFloat(style.borderTopWidth) +
+        parseFloat(style.borderBottomWidth);
+      const height = content.getBoundingClientRect().height + frame;
+      // The content's box shifts by a fraction of a pixel as the panel moves; only a real
+      // change of size restarts the height's spring.
+      if (Math.abs(height - measured) < 0.5) return;
+      measured = height;
+      dropdown.style.setProperty('--m3-search-content-height', `${height}px`);
+    };
+    const resizing = (on: boolean) => (event: TransitionEvent) => {
+      if (event.target !== dropdown || event.propertyName !== 'height') return;
+      if (on) dropdown.dataset.resizing = '';
+      else delete dropdown.dataset.resizing;
+    };
+    const start = resizing(true);
+    const end = resizing(false);
+    measure();
+    dropdown.addEventListener('transitionrun', start);
+    dropdown.addEventListener('transitionend', end);
+    dropdown.addEventListener('transitioncancel', end);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(content);
+    return () => {
+      observer?.disconnect();
+      dropdown.removeEventListener('transitionrun', start);
+      dropdown.removeEventListener('transitionend', end);
+      dropdown.removeEventListener('transitioncancel', end);
+      dropdown.style.removeProperty('--m3-search-content-height');
+      delete dropdown.dataset.resizing;
+    };
+  }, [dropdownRef, contentRef, enabled]);
 }
 
 /**

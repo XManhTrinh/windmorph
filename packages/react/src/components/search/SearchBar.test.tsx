@@ -91,7 +91,7 @@ describe('SearchBar', () => {
     expect(dialog).toContainElement(expandedInput);
     expect(expandedInput).toHaveFocus();
     expect(screen.getByTestId('search')).toHaveAttribute('data-expanded', 'true');
-    const dropdown = screen.getByText('Suggestion one').parentElement!;
+    const dropdown = screen.getByText('Suggestion one').closest<HTMLElement>('[data-view]')!;
     expect(dropdown).toHaveAttribute('data-tokens', 'md-comp-search-view');
     expect(dropdown).toHaveAttribute('data-view', 'docked');
     expect(dropdown).toHaveClass(
@@ -102,15 +102,22 @@ describe('SearchBar', () => {
       'min-h-[min(182px,calc(66.67dvh-58px))]',
       'max-h-[calc(66.67dvh-58px)]',
     );
-    // The focused field widens by 12px on each side, from the bar's own bounds.
+    // Its height follows the measured content, so it animates as the results change.
+    expect(dropdown).toHaveClass(
+      'h-[clamp(min(182px,calc(66.67dvh_-_58px)),var(--m3-search-content-height),calc(66.67dvh_-_58px))]',
+    );
+    expect(dropdown.style.getPropertyValue('--m3-search-content-height')).toBe('0px');
+    // The focused field widens by 12px on each side, morphing from the bar's own bounds as
+    // the progress runs, and never past them on the way back (floored at 0).
     const panel = dialog;
     expect(panel).toHaveClass(
-      'left-(--m3-search-focused-left)',
-      'w-(--m3-search-focused-width)',
-      'motion-safe:starting:w-(--m3-search-width)',
+      '[--m3-search-p:max(0,var(--m3-search-progress))]',
+      'motion-safe:starting:[--m3-search-progress:0]',
+      'motion-safe:data-exiting:[--m3-search-progress:0]',
+      'left-[calc(var(--m3-search-left)_+_var(--m3-search-p)_*_var(--m3-search-dx))]',
+      'w-[calc(var(--m3-search-width)_+_var(--m3-search-p)_*_var(--m3-search-dw))]',
     );
-    const width = Number.parseFloat(panel.style.getPropertyValue('--m3-search-width'));
-    expect(panel.style.getPropertyValue('--m3-search-focused-width')).toBe(`${width + 24}px`);
+    expect(panel.style.getPropertyValue('--m3-search-dw')).toBe('24px');
     // Typing into the expanded input updates the query; ↓ moves focus into the content.
     await userEvent.type(expandedInput, 'ab');
     expect(expandedInput).toHaveValue('ab');
@@ -124,9 +131,15 @@ describe('SearchBar', () => {
     vi.spyOn(bar, 'getBoundingClientRect').mockReturnValue(new DOMRect(100, 200, 360, 48));
     await userEvent.click(screen.getByRole('combobox'));
     const dialog = screen.getByRole('dialog');
-    // M3: the focused search bar container is 56dp tall, whatever the collapsed height.
-    expect(screen.getByRole('searchbox').parentElement!.parentElement).toHaveClass('h-[56px]');
-    expect(dialog.style.getPropertyValue('--m3-search-top')).toBe('196px');
+    // M3: the focused search bar container is 56dp tall, whatever the collapsed height; it
+    // grows there from the bar's 48px, 4px up so it stays centred on the bar.
+    expect(screen.getByRole('searchbox').parentElement!.parentElement).toHaveClass(
+      'h-[calc(var(--m3-search-height)_+_var(--m3-search-p)_*_var(--m3-search-dh))]',
+    );
+    expect(dialog.style.getPropertyValue('--m3-search-top')).toBe('200px');
+    expect(dialog.style.getPropertyValue('--m3-search-height')).toBe('48px');
+    expect(dialog.style.getPropertyValue('--m3-search-dh')).toBe('8px');
+    expect(dialog.style.getPropertyValue('--m3-search-dy')).toBe('-4px');
   });
 
   it('expands as the user types or presses ↓, and submits with Enter', async () => {
@@ -143,7 +156,7 @@ describe('SearchBar', () => {
     // M3: the query stays visible but not focused; focus moves to the results.
     expect(expanded).not.toHaveFocus();
     expect(expanded).toHaveValue('c');
-    expect(screen.getByText('Suggestion one').parentElement).toHaveFocus();
+    expect(screen.getByText('Suggestion one').closest('[data-view]')).toHaveFocus();
   });
 
   it('announces the results politely while the view is open', async () => {
@@ -208,7 +221,14 @@ describe('SearchBar', () => {
       'bg-[var(--_md-comp-search-bar-container-color)]',
       'rounded-[var(--_md-comp-search-bar-container-shape)]',
     );
-    expect(field.parentElement).toHaveClass('start-[16px]', 'w-[calc(100%-32px)]');
+    // It moves and grows from the bar to 16px from each side, 8px down, 56px tall.
+    expect(field.parentElement).toHaveClass(
+      'start-[calc(var(--m3-search-start)_+_var(--m3-search-p)_*_(16px_-_var(--m3-search-start)))]',
+      'w-[calc(var(--m3-search-width)_+_var(--m3-search-p)_*_(100%_-_32px_-_var(--m3-search-width)))]',
+      'h-[calc(var(--m3-search-height)_+_var(--m3-search-p)_*_(56px_-_var(--m3-search-height)))]',
+    );
+    // Compose clamps the full-screen progress to 0..1, so nothing overshoots.
+    expect(dialog).toHaveClass('[--m3-search-p:clamp(0,var(--m3-search-progress),1)]');
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.getByTestId('search')).not.toHaveAttribute('data-expanded');
   });

@@ -58,6 +58,17 @@
   initial-value: 28px;
 }
 
+/*
+ * A search view's expansion, 0 (the collapsed bar's bounds) to 1 (expanded). Registered so
+ * it animates as a number on the M3 springs; the view lerps its geometry from it, as Compose
+ * lerps the search bar's layout from its state's progress.
+ */
+@property --m3-search-progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 /* `dark:` follows `data-mode`, including `system`. */
 @custom-variant dark {
   &:where([data-mode='dark'], [data-mode='dark'] *) {
