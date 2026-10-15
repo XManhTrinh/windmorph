@@ -270,8 +270,9 @@ test.describe('Standard bottom sheet detents, frame by frame (2026-10-15)', () =
     await page.waitForTimeout(900);
     const frames = await recorder.stop();
     expect(frames.at(-1)!.detent).toBe('collapsed');
-    // The expressive spring overshoots a little past the peek.
-    expect(checkMove(frames, expanded, collapsed, 0.02)).toBeGreaterThan(1);
+    // Down to a lower detent on the fast effects spring (2026-10-15, Compose's
+    // `partialExpand()`): it never passes the peek.
+    expect(checkMove(frames, expanded, collapsed, 0)).toBeLessThanOrEqual(0.5);
     await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
     // `defaultDetent` applies each time the sheet opens.
     await page.getByRole('button', { name: 'Hide directions' }).click();

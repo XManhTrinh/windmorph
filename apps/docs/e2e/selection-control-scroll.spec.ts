@@ -39,7 +39,7 @@ const cases: [string, string, string, number][] = [
   [
     'list radio row',
     'components-list--radio-list',
-    '[data-testid=radio-list] li:nth-of-type(3) label',
+    '[data-testid=radio-list] label >> nth=2',
     40,
   ],
 ];
@@ -54,6 +54,7 @@ for (const [name, story, selector, above] of cases) {
     await target.evaluate((el, above) => {
       window.scrollBy(0, el.getBoundingClientRect().top + above);
     }, above);
+    await page.waitForTimeout(250);
     const before = await page.evaluate(() => window.scrollY);
     const box = (await target.boundingBox())!;
     const input = target.locator('xpath=ancestor-or-self::label').locator('input').first();
