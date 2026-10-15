@@ -27,6 +27,8 @@ export const snackbarStyles = tv({
       'rounded-[var(--_md-comp-snackbar-container-shape)] bg-[var(--_md-comp-snackbar-container-color)]',
       'text-body-medium text-[color:var(--_md-comp-snackbar-supporting-text-color)]',
       'shadow-[shadow:var(--_md-comp-snackbar-container-elevation)]',
+      // Forced colours drop the fill and shadow, so the snackbar draws its edge instead.
+      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
     ],
     message: 'min-w-0',
     actions: 'flex shrink-0 items-center',

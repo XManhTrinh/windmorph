@@ -160,3 +160,17 @@ test.describe('Snackbar layout safety', () => {
     },
   });
 });
+
+test.describe('Snackbar in forced colours', () => {
+  // Forced colours drop the fill and shadow, so the snackbar draws a 1px outline (2026-10-15).
+  test('the snackbar keeps an edge', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-snackbar--layouts');
+    const snackbar = page.locator('[data-tokens="md-comp-snackbar"]').first();
+    const style = await snackbar.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.outlineStyle} ${s.outlineWidth}`;
+    });
+    expect(style).toBe('solid 1px');
+  });
+});

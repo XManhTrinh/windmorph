@@ -56,6 +56,7 @@ const plainPanel = [
   'relative min-h-[24px] w-max min-w-[40px] max-w-[200px] px-[8px] py-[4px]',
   'rounded-[var(--_md-comp-plain-tooltip-container-shape)] bg-[var(--_md-comp-plain-tooltip-container-color)]',
   'font-plain text-body-small text-[color:var(--_md-comp-plain-tooltip-supporting-text-color)]',
+  'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
   ...motion,
 ];
 
@@ -64,6 +65,7 @@ const richPanel = [
   'rounded-[var(--_md-comp-rich-tooltip-container-shape)] bg-[var(--_md-comp-rich-tooltip-container-color)]',
   'font-plain text-[color:var(--_md-comp-rich-tooltip-supporting-text-color)]',
   'shadow-[shadow:var(--_md-comp-rich-tooltip-container-elevation)]',
+  'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
   ...motion,
 ];
 
@@ -77,6 +79,8 @@ export const tooltipStyles = tv({
     caret: [
       'size-0 border-x-[8px] border-t-[8px] border-x-transparent',
       'border-t-[color:var(--_md-comp-plain-tooltip-container-color)]',
+      // Forced colours paint the transparent side borders too, turning the caret into a bar.
+      'forced-colors:hidden',
     ],
   },
 });
@@ -94,6 +98,8 @@ export const richTooltipStyles = tv({
     caret: [
       'size-0 border-x-[8px] border-t-[8px] border-x-transparent',
       'border-t-[color:var(--_md-comp-rich-tooltip-container-color)]',
+      // Forced colours paint the transparent side borders too, turning the caret into a bar.
+      'forced-colors:hidden',
     ],
   },
   variants: {

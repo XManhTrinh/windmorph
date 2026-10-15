@@ -114,6 +114,8 @@ export const dialogStyles = tv({
       'rounded-[var(--_md-comp-dialog-container-shape)] bg-[var(--_md-comp-dialog-container-color)]',
       'text-on-surface shadow-[shadow:var(--_md-comp-dialog-container-elevation)]',
       'outline-none',
+      // Forced colours drop the fill and shadow, so the panel draws its edge instead.
+      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
     ],
     icon: [
       'mx-auto inline-flex pb-[16px] [&>svg]:size-[24px]',

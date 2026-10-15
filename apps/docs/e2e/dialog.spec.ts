@@ -127,6 +127,20 @@ test.describe('Dialog behaviour', () => {
     expect(await dialog.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).toBe('28px');
   });
 
+  // Forced colours drop the fill and shadow, so the panel draws a 1px outline (2026-10-15).
+  test('keeps an edge in forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-dialog--basic');
+    await page.getByRole('button', { name: 'Open dialog' }).click();
+    const dialog = page.getByRole('alertdialog', { name: 'Discard draft?' });
+    await expect(dialog).toBeVisible();
+    const style = await dialog.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.outlineStyle} ${s.outlineWidth}`;
+    });
+    expect(style).toBe('solid 1px');
+  });
+
   test('traps focus, closes on Escape and returns focus to the trigger', async ({ page }) => {
     await openStory(page, 'components-dialog--basic');
     const trigger = page.getByRole('button', { name: 'Open dialog' });
