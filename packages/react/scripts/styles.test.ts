@@ -120,6 +120,14 @@ describe('generated CSS', () => {
     expect(tokens).toMatch(/prefers-reduced-motion: reduce\) \{\n:root,\n\[data-motion\]/);
   });
 
+  it('sets --md-sys-density from data-density, 0 at the root', () => {
+    const tokens = generateTokensCss();
+    expect(rule(tokens, ':root,\n[data-density="0"]')).toContain('--md-sys-density: 0;');
+    for (const level of [-1, -2, -3]) {
+      expect(rule(tokens, `[data-density="${level}"]`)).toContain(`--md-sys-density: ${level};`);
+    }
+  });
+
   it('writes the type scale in rem, so text follows the browser font size', () => {
     const tokens = generateTokensCss();
     expect(tokens).toContain('--md-sys-typescale-body-large-size: 1rem;');

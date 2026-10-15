@@ -5,14 +5,17 @@ import {
   type ColorMode,
   type ContrastLevel,
 } from '../tokens/color';
+import { DEFAULT_DENSITY, isDensity, type Density } from '../tokens/density';
 import { DEFAULT_MOTION_SCHEME, MOTION_SCHEMES, type MotionScheme } from '../tokens/motion';
 
-/** The four theme dimensions, mirrored as `data-*` attributes. */
+/** The theme dimensions, mirrored as `data-*` attributes. */
 export interface ThemeState {
   theme: string;
   mode: ColorMode;
   contrast: ContrastLevel;
   motion: MotionScheme;
+  /** Web density, `0` (default) to `-3` (densest); see `Density`. */
+  density: Density;
 }
 
 export const DEFAULT_THEME_STATE: ThemeState = {
@@ -20,6 +23,7 @@ export const DEFAULT_THEME_STATE: ThemeState = {
   mode: 'system',
   contrast: 'standard',
   motion: DEFAULT_MOTION_SCHEME,
+  density: DEFAULT_DENSITY,
 };
 
 /** Where the selected theme is remembered between visits. */
@@ -40,6 +44,7 @@ export function serializeThemeState(state: ThemeState): string {
       mode: state.mode,
       contrast: state.contrast,
       motion: state.motion,
+      density: String(state.density),
     }).toString(),
   );
 }
@@ -68,6 +73,8 @@ export function parseThemeState(
   if (includes(CONTRAST_LEVEL_NAMES, contrast)) result.contrast = contrast;
   const motion = params.get('motion');
   if (includes(MOTION_SCHEMES, motion)) result.motion = motion;
+  const density = params.get('density');
+  if (density !== null && isDensity(density)) result.density = Number(density) as Density;
   return result;
 }
 
@@ -78,6 +85,7 @@ export function themeAttributes(state: ThemeState) {
     'data-mode': state.mode,
     'data-contrast': state.contrast,
     'data-motion': state.motion,
+    'data-density': `${state.density}`,
   } as const;
 }
 

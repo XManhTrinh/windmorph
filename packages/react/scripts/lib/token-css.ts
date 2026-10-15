@@ -6,6 +6,7 @@ import {
   BREAKPOINTS,
   COLOR_ROLES,
   CORNERS,
+  DENSITIES,
   ELEVATION_LEVELS,
   FOCUS_INDICATOR,
   LEGACY_DURATIONS,
@@ -103,6 +104,7 @@ export function generateTokensCss(): string {
   }
 
   const [defaultScheme, ...otherSchemes] = MOTION_SCHEMES;
+  const [defaultDensity, ...otherDensities] = DENSITIES;
   const sections = [
     block(':root', root),
     block(':root,\n[data-theme]', elevation),
@@ -115,6 +117,12 @@ export function generateTokensCss(): string {
       ':root,\n[data-motion]',
       springDeclarations('standard'),
     )}\n}`,
+    // Web density (M3): `data-density` sets the level for its subtree; components scale
+    // their heights by it. Plain attribute selectors, so the nearest attribute wins.
+    block(`:root,\n[data-density="${defaultDensity}"]`, [`--md-sys-density: ${defaultDensity};`]),
+    ...otherDensities.map((level) =>
+      block(`[data-density="${level}"]`, [`--md-sys-density: ${level};`]),
+    ),
   ];
   return sections.join('\n\n');
 }

@@ -16,6 +16,7 @@ import {
   type ContrastLevel,
   type ResolvedColorMode,
 } from '../tokens/color';
+import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
 import { ThemeContext, ThemeScopeContext, type ThemeContextValue } from './context';
 import type { ThemeDefinition } from './create-theme';
@@ -61,6 +62,16 @@ export interface ThemeProviderProps {
   /** Called with the new motion scheme when it changes. */
   onMotionChange?: (motion: MotionScheme) => void;
   /**
+   * Controlled web density, `0` to `-3`: each step takes 4px off the height of fields, menus
+   * and other dense-capable components. M3 asks for density to be the reader's choice, not a
+   * default, so offer it as a setting; keep the control that changes it at 48px or more.
+   */
+  density?: Density;
+  /** Initial web density when uncontrolled. @default 0 */
+  defaultDensity?: Density;
+  /** Called with the new density when it changes. */
+  onDensityChange?: (density: Density) => void;
+  /**
    * Where the selection is remembered. Use `"cookie"` (default) with
    * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering.
    * @default "cookie"
@@ -103,7 +114,7 @@ function subscribeToStorage(storage: ThemeStorage, key: string, onChange: () => 
  * One theme dimension: the controlled prop wins, then the user's choice in this
  * session, then the stored selection, then the default.
  */
-function useThemeValue<T extends string>(
+function useThemeValue<T extends string | number>(
   controlled: T | undefined,
   stored: T | undefined,
   defaultValue: T,
@@ -122,7 +133,7 @@ function useThemeValue<T extends string>(
 }
 
 /**
- * Provides the colour theme, mode, contrast level and motion scheme to the app,
+ * Provides the colour theme, mode, contrast level, motion scheme and density to the app,
  * mirrors them as `data-*` attributes on `<html>` and remembers the selection.
  */
 export function ThemeProvider({
@@ -140,6 +151,9 @@ export function ThemeProvider({
   motion: motionProp,
   defaultMotion = DEFAULT_THEME_STATE.motion,
   onMotionChange,
+  density: densityProp,
+  defaultDensity = DEFAULT_THEME_STATE.density,
+  onDensityChange,
   storage = 'cookie',
   storageKey = DEFAULT_STORAGE_KEY,
   applyToDocument = true,
@@ -194,9 +208,16 @@ export function ThemeProvider({
     onMotionChange,
   );
 
+  const [density, setDensity] = useThemeValue(
+    densityProp,
+    stored.density,
+    defaultDensity,
+    onDensityChange,
+  );
+
   const state = useMemo<ThemeState>(
-    () => ({ theme, mode, contrast, motion }),
-    [theme, mode, contrast, motion],
+    () => ({ theme, mode, contrast, motion, density }),
+    [theme, mode, contrast, motion, density],
   );
 
   useLayoutEffect(() => {
@@ -242,8 +263,9 @@ export function ThemeProvider({
       setMode,
       setContrast,
       setMotion,
+      setDensity,
     }),
-    [state, resolvedMode, themeNames, setTheme, setMode, setContrast, setMotion],
+    [state, resolvedMode, themeNames, setTheme, setMode, setContrast, setMotion, setDensity],
   );
 
   return (

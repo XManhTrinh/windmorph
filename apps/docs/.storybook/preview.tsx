@@ -4,15 +4,17 @@ import {
   BUILT_IN_THEME_NAMES,
   COLOR_MODES,
   CONTRAST_LEVEL_NAMES,
+  DENSITIES,
   MOTION_SCHEMES,
   ThemeScope,
   type ColorMode,
   type ContrastLevel,
+  type Density,
   type MotionScheme,
 } from '@windmorph/react';
 import './preview.css';
 
-type ToolbarIcon = 'paintbrush' | 'contrast' | 'eye' | 'lightning' | 'transfer';
+type ToolbarIcon = 'paintbrush' | 'contrast' | 'eye' | 'lightning' | 'transfer' | 'component';
 
 const toolbar = (title: string, icon: ToolbarIcon, items: readonly string[]) => ({
   toolbar: { title, icon, items: [...items], dynamicTitle: true },
@@ -29,6 +31,7 @@ const withTheme: Decorator = (Story, { globals }) => (
     mode={globals.mode as ColorMode}
     contrast={globals.contrast as ContrastLevel}
     motion={globals.motion as MotionScheme}
+    density={Number(globals.density ?? 0) as Density}
     dir={globals.dir as 'ltr' | 'rtl'}
     className="min-h-screen bg-surface p-6"
   >
@@ -44,6 +47,7 @@ const preview: Preview = {
     contrast: toolbar('Contrast', 'eye', CONTRAST_LEVEL_NAMES),
     motion: toolbar('Motion', 'lightning', MOTION_SCHEMES),
     dir: toolbar('Direction', 'transfer', ['ltr', 'rtl']),
+    density: toolbar('Density', 'component', DENSITIES.map(String)),
   },
   initialGlobals: {
     theme: 'baseline',
@@ -51,6 +55,7 @@ const preview: Preview = {
     contrast: 'standard',
     motion: 'expressive',
     dir: 'ltr',
+    density: '0',
   },
   parameters: {
     layout: 'fullscreen',

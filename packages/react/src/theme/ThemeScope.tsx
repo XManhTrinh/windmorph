@@ -2,6 +2,7 @@
 
 import { useMemo, type ComponentPropsWithRef } from 'react';
 import type { ColorMode, ContrastLevel } from '../tokens/color';
+import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
 import { cn } from '../utils/cn';
 import {
@@ -21,10 +22,15 @@ export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
   contrast?: ContrastLevel;
   /** Motion scheme for this subtree. Inherited when omitted. */
   motion?: MotionScheme;
+  /**
+   * Web density for this subtree, `0` to `-3` (e.g. a dense data table's filters). Inherited
+   * when omitted.
+   */
+  density?: Density;
 }
 
 /**
- * Applies a different theme, mode, contrast level or motion scheme to a subtree.
+ * Applies a different theme, mode, contrast level, motion scheme or density to a subtree.
  * Scopes nest; unset dimensions are inherited from the nearest provider or scope.
  * Renders a `div` with `text-on-surface` so text picks up the scope's colours.
  *
@@ -37,6 +43,7 @@ export function ThemeScope({
   mode,
   contrast,
   motion,
+  density,
   className,
   children,
   ...props
@@ -53,8 +60,9 @@ export function ThemeScope({
       mode: mode ?? parent.mode,
       contrast: contrast ?? parent.contrast,
       motion: motion ?? parent.motion,
+      density: density ?? parent.density,
     }),
-    [theme, mode, contrast, motion, parent],
+    [theme, mode, contrast, motion, density, parent],
   );
 
   return (

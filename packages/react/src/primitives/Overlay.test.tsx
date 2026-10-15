@@ -7,7 +7,14 @@ import { Overlay } from './Overlay';
 describe('Overlay', () => {
   it('portals to body and keeps the theme of where it was rendered', () => {
     render(
-      <ThemeScope theme="forest" mode="dark" contrast="high" motion="standard" data-testid="scope">
+      <ThemeScope
+        theme="forest"
+        mode="dark"
+        contrast="high"
+        motion="standard"
+        density={-2}
+        data-testid="scope"
+      >
         <Overlay>
           <div>Menu</div>
         </Overlay>
@@ -21,7 +28,20 @@ describe('Overlay', () => {
     expect(wrapper).toHaveAttribute('data-mode', 'dark');
     expect(wrapper).toHaveAttribute('data-contrast', 'high');
     expect(wrapper).toHaveAttribute('data-motion', 'standard');
+    expect(wrapper).toHaveAttribute('data-density', '-2');
     expect(wrapper).toHaveStyle({ display: 'contents' });
+  });
+
+  it("takes its component's own density over the scope's", () => {
+    render(
+      <ThemeScope density={-1}>
+        <Overlay density={-3}>
+          <div>Menu</div>
+        </Overlay>
+      </ThemeScope>,
+    );
+    const wrapper = screen.getByText('Menu').closest('[data-overlay-scope]');
+    expect(wrapper).toHaveAttribute('data-density', '-3');
   });
 
   it("puts the enclosing ThemeScopes' classes on its wrapper, so their variables reach it", () => {

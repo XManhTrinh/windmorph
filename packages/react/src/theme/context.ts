@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { ColorMode, ContrastLevel, ResolvedColorMode } from '../tokens/color';
+import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
 import { DEFAULT_THEME_STATE, type ThemeState } from './state';
 
@@ -14,6 +15,7 @@ export interface ThemeContextValue extends ThemeState {
   setMode: (mode: ColorMode) => void;
   setContrast: (contrast: ContrastLevel) => void;
   setMotion: (motion: MotionScheme) => void;
+  setDensity: (density: Density) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);

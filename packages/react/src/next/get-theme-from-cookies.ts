@@ -30,7 +30,8 @@ export interface GetThemeFromCookiesOptions {
  * <html lang="en" {...themeAttributes(theme)}>
  *   <body>
  *     <ThemeProvider defaultTheme={theme.theme} defaultMode={theme.mode}
- *       defaultContrast={theme.contrast} defaultMotion={theme.motion}>…</ThemeProvider>
+ *       defaultContrast={theme.contrast} defaultMotion={theme.motion}
+ *       defaultDensity={theme.density}>…</ThemeProvider>
  */
 export function getThemeFromCookies(
   cookies: CookieReader | string | null | undefined,

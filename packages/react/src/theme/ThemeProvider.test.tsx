@@ -8,14 +8,17 @@ import { serializeThemeState } from './state';
 import { ThemeProvider } from './ThemeProvider';
 
 function ThemeControls() {
-  const { theme, mode, resolvedMode, contrast, motion, themes, setTheme, setMode } = useTheme();
+  const { theme, mode, resolvedMode, contrast, motion, density, themes } = useTheme();
+  const { setTheme, setMode, setDensity } = useTheme();
   return (
     <div>
       <output aria-label="state">{`${theme} ${mode} ${resolvedMode} ${contrast} ${motion}`}</output>
+      <output aria-label="density">{density}</output>
       <output aria-label="themes">{themes.join(',')}</output>
       <button onClick={() => setTheme('ocean')}>ocean</button>
       <button onClick={() => setTheme('unknown')}>unknown</button>
       <button onClick={() => setMode('dark')}>dark</button>
+      <button onClick={() => setDensity(-2)}>dense</button>
     </div>
   );
 }
@@ -35,6 +38,7 @@ describe('ThemeProvider', () => {
     expect(html).toHaveAttribute('data-mode', 'system');
     expect(html).toHaveAttribute('data-contrast', 'standard');
     expect(html).toHaveAttribute('data-motion', 'expressive');
+    expect(html).toHaveAttribute('data-density', '0');
     expect(screen.getByLabelText('themes')).toHaveTextContent(
       'baseline,ocean,forest,sunset,rose,slate',
     );
@@ -52,12 +56,12 @@ describe('ThemeProvider', () => {
     expect(html).toHaveAttribute('data-mode', 'dark');
     expect(state()).toBe('ocean dark dark standard expressive');
     expect(document.cookie).toContain(
-      `windmorph-theme=${serializeThemeState({ theme: 'ocean', mode: 'dark', contrast: 'standard', motion: 'expressive' })}`,
+      `windmorph-theme=${serializeThemeState({ theme: 'ocean', mode: 'dark', contrast: 'standard', motion: 'expressive', density: 0 })}`,
     );
   });
 
   it('restores the stored selection on mount', () => {
-    document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'forest', mode: 'light', contrast: 'high', motion: 'standard' })}`;
+    document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'forest', mode: 'light', contrast: 'high', motion: 'standard', density: -3 })}`;
     render(
       <ThemeProvider>
         <ThemeControls />
@@ -65,6 +69,30 @@ describe('ThemeProvider', () => {
     );
     expect(state()).toBe('forest light light high standard');
     expect(html).toHaveAttribute('data-contrast', 'high');
+    expect(screen.getByLabelText('density')).toHaveTextContent('-3');
+    expect(html).toHaveAttribute('data-density', '-3');
+  });
+
+  it('sets, stores and reports the density', async () => {
+    const onDensityChange = vi.fn();
+    render(
+      <ThemeProvider onDensityChange={onDensityChange}>
+        <ThemeControls />
+      </ThemeProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'dense' }));
+    expect(onDensityChange).toHaveBeenCalledWith(-2);
+    expect(html).toHaveAttribute('data-density', '-2');
+    expect(decodeURIComponent(decodeURIComponent(document.cookie))).toContain('density=-2');
+  });
+
+  it('takes a controlled density', () => {
+    render(
+      <ThemeProvider density={-1}>
+        <ThemeControls />
+      </ThemeProvider>,
+    );
+    expect(html).toHaveAttribute('data-density', '-1');
   });
 
   it('supports localStorage and no persistence', async () => {

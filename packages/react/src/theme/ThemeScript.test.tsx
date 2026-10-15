@@ -8,16 +8,17 @@ const run = (source: string) => new Function(source)();
 
 describe('ThemeScript', () => {
   it('applies the stored cookie selection to <html>', () => {
-    document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'sunset', mode: 'dark', contrast: 'medium', motion: 'standard' })}`;
+    document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'sunset', mode: 'dark', contrast: 'medium', motion: 'standard', density: -1 })}`;
     run(getThemeScriptSource());
     expect(html).toHaveAttribute('data-theme', 'sunset');
     expect(html).toHaveAttribute('data-mode', 'dark');
     expect(html).toHaveAttribute('data-contrast', 'medium');
     expect(html).toHaveAttribute('data-motion', 'standard');
+    expect(html).toHaveAttribute('data-density', '-1');
   });
 
   it('falls back to defaults for missing or invalid values', () => {
-    window.localStorage.setItem('my-key', encodeURIComponent('mode=sepia&theme=forest'));
+    window.localStorage.setItem('my-key', encodeURIComponent('mode=sepia&theme=forest&density=-7'));
     run(
       getThemeScriptSource({
         storage: 'local-storage',
@@ -28,6 +29,7 @@ describe('ThemeScript', () => {
     expect(html).toHaveAttribute('data-theme', 'forest');
     expect(html).toHaveAttribute('data-mode', 'light');
     expect(html).toHaveAttribute('data-contrast', 'standard');
+    expect(html).toHaveAttribute('data-density', '0');
   });
 
   it('cannot be broken out of with a malicious storage key', () => {

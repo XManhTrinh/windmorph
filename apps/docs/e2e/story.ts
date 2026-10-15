@@ -6,6 +6,7 @@ export interface StoryGlobals {
   contrast?: 'standard' | 'medium' | 'high';
   motion?: 'expressive' | 'standard';
   dir?: 'ltr' | 'rtl';
+  density?: '0' | '-1' | '-2' | '-3';
 }
 
 /** Opens a story in isolation with toolbar globals and args, and waits for fonts. */

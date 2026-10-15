@@ -4,6 +4,7 @@ import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'rea
 import { Overlay as AriaOverlay } from 'react-aria';
 import { useThemeScope, useThemeScopeClassName } from '../theme/context';
 import { themeAttributes } from '../theme/state';
+import type { Density } from '../tokens/density';
 import { ToolbarContext } from './ToolbarContext';
 
 export interface OverlayProps {
@@ -21,11 +22,16 @@ export interface OverlayProps {
    * as a press outside. Uses React Aria's top-layer marker, as its toasts do.
    */
   topLayer?: boolean;
+  /**
+   * The density of the component the overlay belongs to, when it sets its own (`density`
+   * prop); by default the overlay takes the enclosing `ThemeProvider` / `ThemeScope`'s.
+   */
+  density?: Density | undefined;
 }
 
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
- * while keeping the theme, mode, contrast, motion scheme, **text direction and the
+ * while keeping the theme, mode, contrast, motion scheme, density, **text direction and the
  * enclosing `ThemeScope`s' classes** of the place it was rendered from, so overlays opened
  * inside a `ThemeScope` or an RTL region still match it, and CSS variables set through a
  * scope's class (component tokens) reach them. The wrapper is `display: contents`, so the
@@ -41,6 +47,7 @@ export function Overlay({
   disableFocusManagement,
   isExiting,
   topLayer,
+  density,
 }: OverlayProps) {
   const scope = useThemeScope();
   const scopeClassName = useThemeScopeClassName();
@@ -81,7 +88,7 @@ export function Overlay({
       >
         <div
           ref={scopeRef}
-          {...themeAttributes(scope)}
+          {...themeAttributes(density === undefined ? scope : { ...scope, density })}
           className={scopeClassName || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
