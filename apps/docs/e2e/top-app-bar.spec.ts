@@ -297,6 +297,33 @@ test.describe('TopAppBar bottom slot and scrolled colour', () => {
   });
 });
 
+test.describe('A see-through two-row bar while collapsing (2026-10-15)', () => {
+  // The expanded title slides up under the top row; with `scrolledColor="transparent"` the
+  // top row doesn't hide it, so it's clipped to the part below the row, as Compose clips it.
+  for (const variant of ['medium', 'large'] as const) {
+    test(`the expanded title never shows under the top row · ${variant}`, async ({ page }) => {
+      await openStory(
+        page,
+        'components-topappbar--scrolling',
+        {},
+        { variant, scrollBehavior: 'exit-until-collapsed', scrolledColor: 'transparent' },
+      );
+      const bar = page.getByTestId('bar');
+      for (const y of [12, 28, 40]) {
+        await scrollTo(page, y);
+        const shown = await bar.evaluate((el) => {
+          const row = el.children[0]!.getBoundingClientRect();
+          const expanded = el.children[1] as HTMLElement;
+          const box = expanded.getBoundingClientRect();
+          const inset = /inset\(([\d.]+)px/.exec(getComputedStyle(expanded).clipPath);
+          return { visibleTop: box.top + Number(inset?.[1] ?? 0), rowBottom: row.bottom };
+        });
+        expect(shown.visibleTop).toBeGreaterThanOrEqual(shown.rowBottom - 0.5);
+      }
+    });
+  }
+});
+
 test.describe('TopAppBar layout safety', () => {
   layoutSafetySuite('components-topappbar--layout-override', {
     height: 64,

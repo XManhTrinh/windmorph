@@ -113,6 +113,10 @@ export function useAppBarScroll({
       const fraction = limit > 0 ? -(twoRows ? collapse : offset) / limit : 0;
 
       root.style.setProperty('--m3-app-bar-offset', `${offset}px`);
+      // How far the expanded row has slid up under the top row: it's clipped there, as
+      // Compose clips the expanded title to the shrinking bar, so it never shows through a
+      // see-through top row (`scrolledColor="transparent"`).
+      if (twoRows) root.style.setProperty('--m3-app-bar-collapse', `${-collapse}px`);
       const height = root.offsetHeight;
       const offScreen = height > 0 && -offset >= height - 0.5;
       if (offScreen !== hidden) {
@@ -153,6 +157,7 @@ export function useAppBarScroll({
       if (hidden) root.removeAttribute('inert');
       for (const name of [
         '--m3-app-bar-offset',
+        '--m3-app-bar-collapse',
         '--m3-app-bar-scrolled',
         '--m3-app-bar-top-alpha',
         '--m3-app-bar-bottom-alpha',
