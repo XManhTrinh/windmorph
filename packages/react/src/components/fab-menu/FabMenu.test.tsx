@@ -214,6 +214,26 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveFocus();
   });
 
+  it('closes when focus moves out of it, not between its parts', () => {
+    // Re-audit 2026-10-15: Tab past the last item left the list open over what got focus.
+    render(
+      <>
+        <Menu defaultOpen />
+        <button type="button">After</button>
+      </>,
+    );
+    settle();
+    act(() => {
+      toggle().focus();
+      item('Reply').focus();
+      item('Archive').focus();
+    });
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    act(() => screen.getByRole('button', { name: 'After' }).focus());
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+  });
+
   it('closes on an outside press', async () => {
     render(
       <>
