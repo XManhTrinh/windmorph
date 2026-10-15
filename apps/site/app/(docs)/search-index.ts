@@ -204,6 +204,26 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     keywords: ['M3 spec', 'coverage', 'differences', 'extensions', 'Material 3 Expressive'],
   },
   {
+    title: 'Windmorph Pro',
+    summary:
+      'The paid components on top of the free core: what Pro includes, its planned licence and installing it with a token.',
+    href: '/pro',
+    kind: 'guide',
+    keywords: [
+      'Pro',
+      '@windmorph/react-pro',
+      'react-pro',
+      'paid',
+      'commercial',
+      'licence',
+      'license',
+      'pricing',
+      'install token',
+      'private registry',
+      '.npmrc',
+    ],
+  },
+  {
     title: "What's new",
     summary: 'Release notes for each version of @windmorph/react, newest first.',
     href: '/whats-new',

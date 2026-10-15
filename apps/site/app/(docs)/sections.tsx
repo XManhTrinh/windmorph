@@ -9,6 +9,7 @@ import {
   PaletteIcon,
   SwapHorizIcon,
   TuneIcon,
+  WorkspacePremiumIcon,
 } from '../../components/icons';
 
 export interface DocsSection {
@@ -31,5 +32,6 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { href: '/nextjs', label: 'Next.js', icon: <CodeIcon /> },
   { href: '/from-compose', label: 'From Compose', icon: <SwapHorizIcon /> },
   { href: '/spec-status', label: 'Spec status', icon: <ChecklistIcon /> },
+  { href: '/pro', label: 'Windmorph Pro', icon: <WorkspacePremiumIcon /> },
   { href: '/whats-new', label: "What's new", icon: <NewReleasesIcon /> },
 ];
