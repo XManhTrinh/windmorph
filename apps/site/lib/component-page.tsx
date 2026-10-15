@@ -101,12 +101,14 @@ async function OverviewTab({ page, doc }: { page: ComponentPageMeta; doc: Compon
       const json = await readComponentPropsSafe(name);
       if (json) {
         playgroundProps[name] = json.props.map(
-          ({ name, type, required, defaultValue, options }) => ({
+          ({ name, type, required, defaultValue, options, description }) => ({
             name,
             type,
             required,
             ...(defaultValue !== undefined && { defaultValue }),
             ...(options && { options }),
+            // Each control's info shows it.
+            ...(description && { description }),
           }),
         );
       }

@@ -18,11 +18,11 @@ import { useCopy } from './site-snackbar';
  * Unfolding content fades and settles in on the default effects spring; under reduced
  * motion it simply appears.
  */
-const REVEAL =
+export const REVEAL =
   'transition-[opacity,translate] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing) motion-safe:starting:-translate-y-1 motion-safe:starting:opacity-0';
 
 /** The chevron turns over while its disclosure is open. */
-const CHEVRON =
+export const CHEVRON =
   '[&_svg]:transition-transform [&_svg]:duration-(--md-sys-motion-spring-spatial-fast-duration) [&_svg]:ease-(--md-sys-motion-spring-spatial-fast-easing) aria-expanded:[&_svg]:rotate-180';
 
 /** Marks what the props filter hides; `globals.css` takes it out of the page. */

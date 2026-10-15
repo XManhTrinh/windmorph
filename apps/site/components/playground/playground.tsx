@@ -1,13 +1,12 @@
 'use client';
 
-import { BottomSheet, Button, IconButton } from '@windmorph/react';
-import { CodeBlock } from '@windmorph/react-pro';
-import { useEffect, useMemo, useState } from 'react';
+import { BottomSheet, Button, SheetTrigger } from '@windmorph/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PropsRecord } from '../../lib/component-props';
 import { DisplaySettingsButton } from '../../app/(docs)/display-settings';
-import { ContentCopyIcon } from '../icons';
-import { useCopy } from '../site-snackbar';
-import { Control } from './controls';
+import { TuneIcon } from '../icons';
+import { CodeView } from './code-view';
+import { ControlGroups } from './controls';
 import { PLAYGROUND_DESCRIPTORS } from './descriptors';
 import {
   activeComponent,
@@ -31,15 +30,26 @@ export interface PlaygroundProps {
 
 /**
  * A live component Playground: a preview, controls inferred from the generated props JSON
- * (plus a per-slug descriptor) and a copy-ready code snippet. The controls sit beside the
- * preview on large windows, under it on medium ones and in a peeking standard bottom sheet
- * on compact ones. The header's settings button opens the site's display settings, to try
- * the component in another theme, mode, contrast or direction. Copying confirms in the site
- * snackbar. State is encoded in discrete URL query keys so a configuration is shareable.
+ * (plus a per-slug descriptor) in sections (Appearance, Content, Behaviour, Advanced), and a
+ * copy-ready code snippet whose changed lines are marked. A wide playground keeps the preview
+ * and code in view beside the controls; a narrow one stacks them, and on a phone the controls
+ * open in a modal bottom sheet from an "Edit props" button under the preview. The header's
+ * settings button opens the site's display settings, to try the component in another theme,
+ * mode, contrast or direction. Copying confirms in the site snackbar. State is encoded in
+ * discrete URL query keys so a configuration is shareable.
  */
 export function Playground({ slug, componentName, componentProps }: PlaygroundProps) {
   const descriptor = PLAYGROUND_DESCRIPTORS[slug];
-  const copy = useCopy();
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  // Changed lines are marked once a control has changed something, not on a restore.
+  const [markChanges, setMarkChanges] = useState(false);
+  // The phone's sheet covers the lower half: the preview moves to the top first, so the
+  // change each control makes stays in view above the sheet.
+  const openSheet = (open: boolean) => {
+    if (open) previewRef.current?.scrollIntoView({ block: 'start' });
+    setSheetOpen(open);
+  };
 
   const initial = useMemo(() => (descriptor ? initialValues(descriptor) : {}), [descriptor]);
   const [values, setValues] = useState<Record<string, unknown>>(initial);
@@ -77,6 +87,7 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
       );
       setFromPreviewNames(new Set());
       setSyncUrl(false);
+      setMarkChanges(false);
     };
     restore();
     window.addEventListener('popstate', restore);
@@ -130,36 +141,31 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
     set(name, value);
   };
 
-  const controlsPanel = (
-    <>
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-surface-container-low">
-        <h3 className="text-title-small text-on-surface-variant">Props</h3>
-        <Button
-          variant="text"
-          size="xs"
-          onPress={() => {
-            setSyncUrl(true);
-            setValues(initial);
-          }}
-        >
-          Reset
-        </Button>
-      </div>
-      {controls.map((def) => (
-        <Control
-          key={def.name}
-          def={def}
-          value={values[def.name]}
-          onChange={(value) => setFromControl(def.name, value)}
-        />
-      ))}
-    </>
+  const reset = () => {
+    setSyncUrl(true);
+    setMarkChanges(true);
+    setValues(initial);
+  };
+  const changeControl = (name: string, value: unknown) => {
+    setMarkChanges(true);
+    setFromControl(name, value);
+  };
+  const panelHeader = (
+    <div className="flex items-center justify-between gap-2">
+      <h3 className="text-title-small text-on-surface-variant">Props</h3>
+      <Button variant="text" size="sm" onPress={reset}>
+        Reset
+      </Button>
+    </div>
+  );
+  const controlGroups = (
+    <ControlGroups controls={controls} slug={slug} values={values} onChange={changeControl} />
   );
 
   return (
     // Interactive only, so the Markdown version of the page leaves it out.
     <section
-      className="flex flex-col gap-4"
+      className="@container/playground flex flex-col gap-4"
       aria-label={`${componentName} playground`}
       data-markdown="skip"
     >
@@ -170,52 +176,53 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
         <DisplaySettingsButton />
       </div>
       {/*
-       * One tinted surface: the preview with the controls beside it (large windows) or under
-       * it (medium), then the code. On compact windows the controls move into a standard
-       * bottom sheet that peeks at the bottom of the card and expands over the code, so the
-       * preview stays in view while the props change. Gestures here never swipe the tabs.
+       * One tinted surface. Wide (a 640px+ playground): the preview and the code share a
+       * column that stays in view (sticky under the top bar) beside the controls, which take
+       * 40% and grow with their content. Narrow: the preview, then the controls (or, on a
+       * phone, an "Edit props" button that opens them in a modal bottom sheet), then the
+       * code. Gestures here never swipe the tabs.
        */}
       <div
         onPointerDown={(event) => event.stopPropagation()}
-        className="relative overflow-hidden rounded-corner-large bg-surface-container-low"
+        className="flex flex-col gap-4 rounded-corner-large bg-surface-container-low p-4 @min-[640px]/playground:grid @min-[640px]/playground:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @min-[640px]/playground:items-start @min-[640px]/playground:gap-6"
       >
-        <div className="grid gap-4 p-4 large:grid-cols-[1fr_280px]">
-          <div className="flex min-h-[240px] flex-wrap items-center justify-center gap-4 rounded-corner-large bg-surface p-6">
+        <div
+          data-playground-stage=""
+          className="contents @min-[640px]/playground:sticky @min-[640px]/playground:top-20 @min-[640px]/playground:flex @min-[640px]/playground:max-h-[calc(100dvh-6rem)] @min-[640px]/playground:flex-col @min-[640px]/playground:gap-4"
+        >
+          <div
+            ref={previewRef}
+            data-playground-preview=""
+            className="flex min-h-60 shrink-0 scroll-mt-20 flex-wrap items-center justify-center gap-4 rounded-corner-large bg-surface p-6 @min-[640px]/playground:min-h-72"
+          >
             {descriptor.render(values, setFromPreview)}
           </div>
-          {/* A long set of props scrolls inside its column, so the preview keeps its height. */}
-          <div className="hidden max-h-[560px] min-w-0 flex-col gap-4 overflow-y-auto pe-2 medium:flex">
-            {controlsPanel}
+          <div className="medium:hidden">
+            <SheetTrigger open={sheetOpen} onOpenChange={openSheet}>
+              <Button variant="tonal" leadingIcon={<TuneIcon />} className="w-full">
+                Edit props
+              </Button>
+              <BottomSheet aria-label={`${componentName} props`}>
+                <div className="flex flex-col gap-2 px-4 pb-6">
+                  {panelHeader}
+                  {controlGroups}
+                </div>
+              </BottomSheet>
+            </SheetTrigger>
+          </div>
+          <div className="order-last flex min-h-0 flex-col @min-[640px]/playground:order-none @min-[640px]/playground:flex-1">
+            <CodeView code={snippet} markChanges={markChanges} />
           </div>
         </div>
-
-        <div className="flex flex-col gap-2 px-4 pb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-title-small text-on-surface-variant">Code</h3>
-            <IconButton
-              size="sm"
-              variant="standard"
-              icon={<ContentCopyIcon />}
-              aria-label="Copy code"
-              onPress={() => void copy(snippet)}
-            />
-          </div>
-          <CodeBlock code={snippet} lang="tsx" copyable={false} />
-        </div>
-
-        {/* Room for the peeking sheet, so it never covers the code at rest. */}
-        <div aria-hidden="true" className="h-24 medium:hidden" />
-        <BottomSheet
-          variant="standard"
-          // The handle and the "Props" row show while it rests.
-          peekHeight={96}
+        <div
+          data-playground-controls=""
+          className="hidden min-w-0 flex-col gap-2 medium:flex"
           aria-label={`${componentName} props`}
-          classNames={{ container: 'absolute medium:hidden' }}
+          role="group"
         >
-          <div className="flex max-h-[240px] flex-col gap-4 overflow-y-auto px-4 pb-4">
-            {controlsPanel}
-          </div>
-        </BottomSheet>
+          {panelHeader}
+          {controlGroups}
+        </div>
       </div>
     </section>
   );

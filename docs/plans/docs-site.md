@@ -120,6 +120,9 @@ Every piece of the layout is a library component (see "Only our components"): na
 10. **Components** (about 60 pages), each with:
    - What it is for, and when to use something else.
    - A playground with a control for every public prop (tested; the few that can't have one are allowlisted with a reason), whose copied snippet compiles for every control value (`scripts/check-snippets.ts`, part of `typecheck`).
+     - Layout (2026-10-15): a wide playground keeps the preview and code in a sticky column beside the controls (about 40%, growing with them); a narrow one stacks them; on a phone an "Edit props" tonal button under the preview opens the controls in a modal bottom sheet.
+     - Controls: sections (Appearance, Content, Behaviour, Advanced folded), derived from each prop's name and kind with per-playground `groups` overrides; M3 list rows (name and info at the start, the control at the end: switch, connected button group for a few short options, select, slider with a readout from `numberRanges`, or field). The info is a toggletip with the prop's JSDoc and a link to `#prop-<Component>-<name>` in the API tab.
+     - Code: icons are named components imported from `./icons` (never inline SVG); the lines a control changed are marked briefly (a still marker under reduced motion); long lines scroll in a focusable region with a fade, and a narrow playground folds snippets over 12 lines behind "Show all". URL keys stay the prop names, numbers clamp into their ranges.
    - Live examples of its variants, sizes and states: one for every variant and configuration in the M3 spec, mapped in its spec data (tested).
    - The generated props table for every exported part (and `classNames` slots), and its hooks as functions (tested against the core's exports).
    - A spec status: what it covers of the M3 Expressive spec, its deliberate differences and its extensions, from its spec data.

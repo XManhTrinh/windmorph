@@ -204,7 +204,7 @@ export function groupControls(
  * (a phone's sheet, or the 40% column); a longer one gets a select.
  */
 export function isSegmented(options: readonly string[]): boolean {
-  return options.length <= 3 && options.join('').length <= 18;
+  return options.length <= 3 && options.join('').length <= 16;
 }
 
 /** Clamps a number into a control's range, snapped to its step. */
