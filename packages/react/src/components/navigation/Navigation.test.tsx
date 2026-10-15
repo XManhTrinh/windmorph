@@ -300,6 +300,14 @@ describe('NavigationRail', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
+  it('fades the modal scrim in and out on the default effects spring (Compose)', () => {
+    const scrim = navigationRailStyles().scrim();
+    expect(scrim).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+    );
+    expect(scrim).not.toContain('effects-fast');
+  });
+
   it('slides the hidden rail’s modal sheet in on the default spatial spring (Compose)', () => {
     const sheet = navigationRailStyles({ sheetEntry: 'slide' }).sheet();
     expect(sheet).toContain(

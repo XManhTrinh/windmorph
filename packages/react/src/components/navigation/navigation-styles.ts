@@ -81,8 +81,8 @@ export const navigationRailStyles = tv({
       '[transition-property:opacity]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+      // In and out on the default effects spring, as Compose's modal rail scrim (2026-10-15).
       'starting:opacity-0 data-exiting:opacity-0',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
     ],
     sheet: [
       'fixed inset-y-0 start-0 z-(--md-sys-z-sheet) flex w-(--m3-rail-width) flex-col overflow-x-clip overflow-y-auto pt-[44px]',
