@@ -527,6 +527,13 @@ function BottomSheetPanel({
     () => handleRef.current ?? panelRef.current,
   );
 
+  // The collapse button leaves once the sheet stops filling the window, so focus moves to the
+  // handle (or the panel) first instead of dropping to the page.
+  const collapseFromButton = () => {
+    (handleRef.current ?? panelRef.current)?.focus({ preventScroll: true });
+    setDetent('lower');
+  };
+
   const { focusProps: handleFocusProps, isFocusVisible: handleFocusVisible } = useFocusRing();
   const exiting = isExiting || undefined;
   const dragging = drag !== null || undefined;
@@ -640,7 +647,7 @@ function BottomSheetPanel({
                     standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)
                   }
                   aria-label={standard ? labels.collapse : labels.close}
-                  onPress={standard ? () => setDetent('lower') : close}
+                  onPress={standard ? collapseFromButton : close}
                   className={classNames?.closeButton}
                 />
               </div>
