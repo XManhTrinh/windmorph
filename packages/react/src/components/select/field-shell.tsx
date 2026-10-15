@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, Ref } from 'react';
 import { ErrorText, FieldErrorIcon, FieldLabel, SupportingText } from '../../primitives/Field';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { textFieldStyles, type TextFieldVariant } from '../text-field/text-field-styles';
 
@@ -65,6 +66,8 @@ export interface FieldShellClassNames {
 
 export interface FieldShellProps {
   variant: TextFieldVariant;
+  /** The field's own density; left out, it inherits the theme's. */
+  density?: Density | undefined;
   label: ReactNode;
   labelProps: HTMLAttributes<HTMLElement>;
   required?: boolean | undefined;
@@ -115,6 +118,7 @@ export interface FieldShellProps {
  */
 export function FieldShell({
   variant,
+  density,
   label,
   labelProps,
   required,
@@ -163,6 +167,7 @@ export function FieldShell({
       className={styles.root({ class: cn(classNames?.root, className) })}
       data-tokens="md-comp-text-field"
       data-variant={variant}
+      {...densityAttribute(density)}
       data-field-state={state}
       data-focused={state === 'focus' || state === 'error-focus' || undefined}
       data-invalid={state.startsWith('error') || undefined}

@@ -25,6 +25,7 @@ import {
   FieldLabel,
   SupportingText,
 } from '../../primitives/Field';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
@@ -94,6 +95,14 @@ type RenamedAriaProps =
 interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps> {
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the container (56px at 0, 44px at -3).
+   * Left out, the field takes the density of the nearest `ThemeProvider` or `ThemeScope`. M3
+   * asks for density to be the reader's choice rather than a default, so prefer setting it
+   * there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** The text, when controlled. */
   value?: string;
   /** The initial text, when uncontrolled. @default "" */
@@ -216,6 +225,7 @@ const INTERACTIVE = 'input, textarea, button, a, [role="button"]';
 export function TextField(props: TextFieldProps) {
   const {
     variant = 'filled',
+    density,
     label,
     value: valueProp,
     defaultValue,
@@ -362,6 +372,7 @@ export function TextField(props: TextFieldProps) {
       className={styles.root({ class: cn(classNames?.root, className) })}
       data-tokens="md-comp-text-field"
       data-variant={variant}
+      {...densityAttribute(density)}
       data-field-state={state}
       data-focused={isFocused || undefined}
       data-hovered={(isHovered && !disabled) || undefined}

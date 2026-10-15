@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { SelectItem, SelectSection } from './option-list';
 import { Select, type SelectProps } from './Select';
 
@@ -21,6 +22,36 @@ function Sort(props: Partial<SelectProps<object, 'single' | 'multiple'>>) {
 }
 
 describe('Select', () => {
+  it('takes its own density into the field and its menu, over its scope', async () => {
+    const { container } = render(
+      <ThemeScope density={-1}>
+        <Sort density={-3} />
+      </ThemeScope>,
+    );
+    expect(container.querySelector('[data-field-state]')).toHaveAttribute('data-density', '-3');
+    await userEvent.click(sortField());
+    const list = screen.getByRole('listbox');
+    expect(list.closest('[data-overlay-scope]')).toHaveAttribute('data-density', '-3');
+    expect(within(list).getAllByRole('option')[0]).toHaveClass(
+      'min-h-[calc(44px+var(--md-sys-density,0)*4px)]',
+    );
+    expect(await axeViolations(document.body)).toEqual([]);
+  });
+
+  it("inherits its scope's density when it sets none", async () => {
+    const { container } = render(
+      <ThemeScope density={-2}>
+        <Sort />
+      </ThemeScope>,
+    );
+    expect(container.querySelector('[data-field-state]')).not.toHaveAttribute('data-density');
+    await userEvent.click(sortField());
+    expect(screen.getByRole('listbox').closest('[data-overlay-scope]')).toHaveAttribute(
+      'data-density',
+      '-2',
+    );
+  });
+
   it('reads the text field’s component tokens', () => {
     const { container } = render(<Sort variant="outlined" defaultValue="low" />);
     const field = container.querySelector('[data-field-state]');

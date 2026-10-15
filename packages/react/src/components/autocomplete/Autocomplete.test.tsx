@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { AutocompleteItem } from '../select/option-list';
 import { Autocomplete, type AutocompleteProps } from './Autocomplete';
 
@@ -26,6 +27,20 @@ function Cities(props: Partial<AutocompleteProps<City, 'single' | 'multiple'>>) 
 const input = () => screen.getByRole('combobox', { name: /City/ });
 
 describe('Autocomplete', () => {
+  it('takes its own density into the field and its menu, over its scope', async () => {
+    const { container } = render(
+      <ThemeScope density={-1}>
+        <Cities density={-2} selectionMode="multiple" defaultValue={['zrh']} />
+      </ThemeScope>,
+    );
+    expect(container.querySelector('[data-field-state]')).toHaveAttribute('data-density', '-2');
+    await userEvent.click(input());
+    expect(screen.getByRole('listbox').closest('[data-overlay-scope]')).toHaveAttribute(
+      'data-density',
+      '-2',
+    );
+  });
+
   it('reads the text field’s component tokens', () => {
     const { container } = render(<Cities />);
     const field = container.querySelector('[data-field-state]');

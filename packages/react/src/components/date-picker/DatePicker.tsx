@@ -45,6 +45,7 @@ import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
+import type { Density } from '../../tokens/density';
 import { DateInput, type DateInputStrings } from './DateInput';
 import { datePickerStyles } from './date-picker-styles';
 import { PickerDialogContext } from './picker-dialog-context';
@@ -144,6 +145,14 @@ interface DatePickerCommonProps {
   yearRange?: [number, number];
   /** Words the picker shows and announces, with English defaults. */
   strings?: DatePickerStrings;
+  /**
+   * Web density of the input mode's text fields, `0` to `-3`: each step takes 4px off them
+   * (56px at 0, 44px at -3). The calendar keeps its size: M3 doesn't make date pickers denser,
+   * since their 48px day targets are part of their accessibility. Left out, the fields take
+   * the density of the nearest `ThemeProvider` or `ThemeScope`.
+   * @default 0
+   */
+  density?: Density;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -259,6 +268,7 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
           maxValue={props.maxValue}
           isDateUnavailable={props.isDateUnavailable}
           strings={strings}
+          density={props.density}
           className="w-full"
         />
       }
@@ -310,6 +320,7 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
     maxValue: props.maxValue,
     isDateUnavailable: props.isDateUnavailable,
     strings,
+    density: props.density,
     className: 'w-full',
   };
   return (

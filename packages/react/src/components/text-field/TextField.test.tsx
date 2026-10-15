@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { IconButton } from '../icon-button/IconButton';
 import { TextField } from './TextField';
 
@@ -22,7 +23,7 @@ describe('TextField', () => {
     expect(input.parentElement!.parentElement).toHaveClass(
       'bg-[var(--_md-comp-text-field-container-color)]',
       'rounded-t-[var(--_md-comp-text-field-container-shape)]',
-      'min-h-[56px]',
+      'min-h-[calc(56px+var(--md-sys-density,0)*4px)]',
     );
   });
 
@@ -351,6 +352,52 @@ describe('TextField', () => {
         <TextField label="Price" prefix="$" prefixLabel="US dollars" suffix="kg" readOnly />
         <TextField aria-label="Search" placeholder="Search" leadingIcon={<Icon />} />
       </div>,
+    );
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('TextField density', () => {
+  it('inherits the density of its scope unless it sets its own', () => {
+    render(
+      <ThemeScope density={-2} data-testid="scope">
+        <TextField label="Inherits" />
+        <TextField label="Own" density={-3} />
+        <TextField label="Default" density={0} />
+      </ThemeScope>,
+    );
+    expect(screen.getByTestId('scope')).toHaveAttribute('data-density', '-2');
+    expect(root(screen.getByLabelText('Inherits'))).not.toHaveAttribute('data-density');
+    expect(root(screen.getByLabelText('Own'))).toHaveAttribute('data-density', '-3');
+    expect(root(screen.getByLabelText('Default'))).toHaveAttribute('data-density', '0');
+  });
+
+  it('sizes the container, padding and label from --md-sys-density', () => {
+    render(<TextField label="Name" leadingIcon={<Icon />} density={-1} />);
+    const input = screen.getByLabelText('Name');
+    const field = input.parentElement!;
+    const container = field.parentElement!;
+    expect(container).toHaveClass('min-h-[calc(56px+var(--md-sys-density,0)*4px)]');
+    expect(field).toHaveClass(
+      'pt-[calc(24px+var(--md-sys-density,0)*2px)]',
+      'pb-[calc(8px+var(--md-sys-density,0)*2px)]',
+    );
+    expect(screen.getByText('Name')).toHaveClass(
+      'top-[calc(16px+var(--md-sys-density,0)*2px)]',
+      'group-data-floated/field:top-[calc(8px+var(--md-sys-density,0)*2px)]',
+    );
+    expect(container.querySelector('[data-slot="leading-icon"]')).toHaveClass(
+      'h-[min(48px,calc(56px+var(--md-sys-density,0)*4px))]',
+    );
+  });
+
+  it('has no axe violations when dense', async () => {
+    const { container } = render(
+      <ThemeScope density={-3}>
+        <TextField label="Filled" supportingText="Help" />
+        <TextField variant="outlined" label="Outlined" invalid errorMessage="Required" />
+        <TextField label="Notes" multiline />
+      </ThemeScope>,
     );
     expect(await axeViolations(container)).toEqual([]);
   });

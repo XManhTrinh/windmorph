@@ -26,6 +26,7 @@ import {
 } from 'react-stately/useComboBoxState';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { matchesSearch } from '../../utils/search';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
@@ -104,6 +105,14 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   Pick<AriaComboBoxOptions<T, M>, 'name' | 'form'> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
+    /**
+     * Web density, `0` to `-3`: each step takes 4px off the field (56px at 0, 44px at -3) and
+     * off its menu's options (44px at 0, 32px at -3). Left out, it takes the density of the
+     * nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the reader's choice
+     * rather than a default, so prefer setting it there, from a setting.
+     * @default 0
+     */
+    density?: Density;
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
     /** Accessible name when there's no visible label. */
@@ -186,6 +195,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
 ) {
   const {
     variant = 'filled',
+    density,
     label,
     placeholder,
     supportingText,
@@ -331,6 +341,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     <>
       <FieldShell
         variant={variant}
+        density={density}
         label={label}
         labelProps={labelProps}
         required={required}
@@ -443,7 +454,13 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
           />
         </div>
       </FieldShell>
-      <OptionPopover state={state} triggerRef={containerRef} popoverRef={popoverRef} isNonModal>
+      <OptionPopover
+        state={state}
+        triggerRef={containerRef}
+        popoverRef={popoverRef}
+        isNonModal
+        density={density}
+      >
         <OptionList
           animateFiltering
           listBoxProps={listBoxProps}

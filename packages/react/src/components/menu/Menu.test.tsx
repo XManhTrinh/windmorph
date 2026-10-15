@@ -78,7 +78,10 @@ describe('Menu', () => {
     // One divider between the two groups; it can't take focus.
     const dividers = within(menu).getAllByRole('separator');
     expect(dividers).toHaveLength(1);
-    expect(dividers[0]).toHaveClass('bg-[var(--_md-comp-divider-color)]', 'my-[8px]');
+    expect(dividers[0]).toHaveClass(
+      'bg-[var(--_md-comp-divider-color)]',
+      'my-[calc(8px+var(--md-sys-density,0)*2px)]',
+    );
     expect(dividers[0]).not.toHaveAttribute('tabindex');
     // The last item nests in the surface's bottom corners; Cut sits under the heading.
     expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveClass(
@@ -356,10 +359,31 @@ describe('Menu', () => {
   it('takes 4px off the item height per density step', async () => {
     render(<EditMenu density={-2} />);
     await openMenu('Edit');
-    expect(screen.getByRole('menu').style.getPropertyValue('--m3-menu-density')).toBe('-2');
+    expect(screen.getByRole('menu')).toHaveAttribute('data-density', '-2');
     expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveClass(
-      'min-h-[calc(44px+var(--m3-menu-density,0)*4px)]',
+      'min-h-[calc(44px+var(--md-sys-density,0)*4px)]',
     );
+  });
+
+  it("takes its scope's density unless it sets its own", async () => {
+    const { unmount } = render(
+      <ThemeScope density={-3}>
+        <EditMenu />
+      </ThemeScope>,
+    );
+    await openMenu('Edit');
+    const menu = screen.getByRole('menu');
+    expect(menu).not.toHaveAttribute('data-density');
+    expect(menu.closest('[data-overlay-scope]')).toHaveAttribute('data-density', '-3');
+    expect(await axeViolations(menu.closest('[data-overlay-scope]')!)).toEqual([]);
+    unmount();
+    render(
+      <ThemeScope density={-3}>
+        <EditMenu density={0} />
+      </ThemeScope>,
+    );
+    await openMenu('Edit');
+    expect(screen.getByRole('menu')).toHaveAttribute('data-density', '0');
   });
 
   it('uses vibrant colours', async () => {

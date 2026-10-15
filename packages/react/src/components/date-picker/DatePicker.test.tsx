@@ -13,6 +13,12 @@ import { COMPACT_WINDOW } from './use-media-query';
 const march = new CalendarDate(2030, 3, 10);
 
 describe('DatePicker', () => {
+  it("passes its density to the input mode's fields", () => {
+    render(<DatePicker defaultMode="input" density={-3} />);
+    const field = screen.getByRole('textbox', { name: 'Date' }).closest('[data-field-state]');
+    expect(field).toHaveAttribute('data-density', '-3');
+  });
+
   it('shows the header, month navigation and a six-week grid with weekday headers', async () => {
     const { container } = render(<DatePicker defaultValue={march} data-testid="picker" />);
     expect(screen.getByTestId('picker')).toHaveClass('w-[360px]');

@@ -7,6 +7,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  * vertical padding with a label, 4px above supporting text, 2px around prefix/suffix,
  * a 4px gap around the outlined label notch, label float on the fast spatial spring.
  *
+ * Web density (`--md-sys-density`, 0 to -3; M3: "decreases the top and bottom padding"): each
+ * step takes 4px off the container (56 → 52 → 48 → 44px), 2px from the padding above and below
+ * the value, and moves the resting and the filled field's floated label up 2px, so they stay
+ * centred and clear of the value. The icon boxes are at most as tall as the container (the
+ * 48px touch targets of icon buttons in them extend past it), and at -3 the container's
+ * `::before` / `::after` add 2px of hit area above and below, so pressing within 48px of its
+ * centre still focuses the field.
+ *
  * Colours depend on one mutually exclusive `data-field-state` on the root
  * (disabled > error-focus > error-hover > error > focus > hover > rest), so part styles
  * never compete.
@@ -41,7 +49,10 @@ export const textFieldStyles = tv({
     root: 'group/field inline-flex w-[280px] max-w-full flex-col align-top text-start',
     // Library-owned inner wrapper: positions the label, outline and indicator.
     container: [
-      'relative flex min-h-[56px] cursor-text items-stretch',
+      'relative flex min-h-[calc(56px+var(--md-sys-density,0)*4px)] cursor-text items-stretch',
+      // Dense fields keep a 48px hit area: at -3 (44px) 2px more above and below.
+      "before:absolute before:inset-x-0 before:bottom-full before:h-[max(0px,calc(-4px-var(--md-sys-density,0)*2px))] before:content-['']",
+      "after:absolute after:inset-x-0 after:top-full after:h-[max(0px,calc(-4px-var(--md-sys-density,0)*2px))] after:content-['']",
       'bg-[var(--_md-comp-text-field-container-color)]',
     ],
     outline: [
@@ -83,7 +94,7 @@ export const textFieldStyles = tv({
       'group-data-[field-state=disabled]/field:bg-on-surface/38',
     ],
     label: [
-      'pointer-events-none absolute top-[16px] max-w-[calc(100%-32px)] truncate',
+      'pointer-events-none absolute top-[calc(16px+var(--md-sys-density,0)*2px)] max-w-[calc(100%-32px)] truncate',
       'text-body-large text-[color:var(--_md-comp-text-field-label-text-color)]',
       '[transition-property:top,inset-inline-start,font-size,line-height,letter-spacing,color]',
       geometryTransition,
@@ -94,7 +105,7 @@ export const textFieldStyles = tv({
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],
     icon: [
-      'flex size-[48px] shrink-0 items-center justify-center self-center',
+      'flex h-[min(48px,calc(56px+var(--md-sys-density,0)*4px))] w-[48px] shrink-0 items-center justify-center self-center',
       '[&>svg]:size-[24px]',
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],
@@ -196,18 +207,25 @@ export const textFieldStyles = tv({
     {
       variant: 'filled',
       hasLabel: true,
-      class: { field: 'pt-[24px] pb-[8px]' },
+      class: {
+        field:
+          'pt-[calc(24px+var(--md-sys-density,0)*2px)] pb-[calc(8px+var(--md-sys-density,0)*2px)]',
+      },
     },
-    { variant: 'filled', hasLabel: false, class: { field: 'py-[16px]' } },
-    { variant: 'outlined', class: { field: 'py-[16px]' } },
-    // Floated label: filled → 8px from the top; outlined → centred on the border, at 16px.
+    {
+      variant: 'filled',
+      hasLabel: false,
+      class: { field: 'py-[calc(16px+var(--md-sys-density,0)*2px)]' },
+    },
+    { variant: 'outlined', class: { field: 'py-[calc(16px+var(--md-sys-density,0)*2px)]' } },
+    // Floated label: filled → 8px from the top (less 2px per density step); outlined → centred on the border, at 16px.
     {
       variant: 'filled',
       hasLabel: true,
       class: {
         label: [
-          'group-data-floated/field:top-[8px] group-data-floated/field:text-body-small',
-          'group-has-[:autofill]/field:top-[8px] group-has-[:autofill]/field:text-body-small',
+          'group-data-floated/field:top-[calc(8px+var(--md-sys-density,0)*2px)] group-data-floated/field:text-body-small',
+          'group-has-[:autofill]/field:top-[calc(8px+var(--md-sys-density,0)*2px)] group-has-[:autofill]/field:text-body-small',
         ],
       },
     },

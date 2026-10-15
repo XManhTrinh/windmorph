@@ -51,6 +51,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
@@ -235,11 +236,13 @@ export interface MenuProps extends Omit<
    */
   layout?: MenuLayout;
   /**
-   * Web density (M3): each step down takes 4px off the items' height (44px at 0). Keep 0
-   * for touch.
+   * Web density (M3: "On web only … Increasing density decreases the top and bottom
+   * padding"): each step down takes 4px off the items' height (44px at 0, 32px at -3) and 2px
+   * off the space around dividers. Left out, the menu takes the density of the nearest
+   * `ThemeProvider` or `ThemeScope`; a submenu takes its parent menu's. Keep 0 for touch.
    * @default 0
    */
-  density?: 0 | -1 | -2 | -3;
+  density?: Density;
   /** Placement relative to the trigger (a submenu always opens beside its item). @default "bottom start" */
   placement?: Placement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
@@ -637,7 +640,7 @@ function useHasScrolled(ref: RefObject<HTMLElement | null>, enabled: boolean) {
 function MenuList({
   variant,
   layout: requestedLayout,
-  density = 0,
+  density,
   level,
   classNames,
   listRef,
@@ -683,7 +686,7 @@ function MenuList({
         },
       })}
       ref={ref}
-      style={density ? ({ '--m3-menu-density': density } as CSSProperties) : undefined}
+      {...densityAttribute(density)}
       data-tokens="md-comp-menus"
       data-variant={variant}
       data-layout={layout}

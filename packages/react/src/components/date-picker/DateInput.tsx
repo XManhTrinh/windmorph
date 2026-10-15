@@ -3,6 +3,7 @@
 import { toCalendarDate, type CalendarDate, type DateValue } from '@internationalized/date';
 import { useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import { useLocale } from 'react-aria';
+import type { Density } from '../../tokens/density';
 import { TextField, type TextFieldClassNames } from '../text-field/TextField';
 import { dateFormat, parseDate } from './date-format';
 
@@ -47,6 +48,8 @@ export interface DateInputProps {
   /** `data-*` attributes for the root. */
   data?: Record<string, unknown> | undefined;
   classNames?: TextFieldClassNames | undefined;
+  /** The field's own density; left out, it inherits the theme's. */
+  density?: Density | undefined;
   ref?: Ref<HTMLDivElement> | undefined;
   inputRef?: Ref<HTMLInputElement> | undefined;
 }
@@ -79,6 +82,7 @@ export function DateInput({
   style,
   data,
   classNames,
+  density,
   ref,
   inputRef,
 }: DateInputProps) {
@@ -136,6 +140,7 @@ export function DateInput({
       style={style}
       inputRef={inputRef as Ref<HTMLInputElement | HTMLTextAreaElement>}
       variant="outlined"
+      {...(density !== undefined && { density })}
       label={label}
       value={text}
       onChange={(next) => {

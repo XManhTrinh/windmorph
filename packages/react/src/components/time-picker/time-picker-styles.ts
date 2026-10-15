@@ -20,7 +20,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Input mode: 96 × 72px fields (24 hours too, `TimeInputTokens.TimeFieldContainerWidth`)
  * in `display-medium` with `body-small` labels 7px below; focused fields are
- * `primary-container` with a 2px `primary` border.
+ * `primary-container` with a 2px `primary` border. Web density (`--md-sys-density`) takes 4px
+ * per step off the input mode's fields, ":" and period selector (72 → 68 → 64 → 60px); the
+ * dial mode keeps its size, since M3 doesn't make time pickers denser.
  *
  * The dial, the selector handle, the time and period selectors' containers and the period
  * selector's outline come from the time picker's component tokens (`time-picker-tokens.ts`,
@@ -79,7 +81,7 @@ export const timePickerStyles = tv({
     dialTrack:
       'stroke-[color:var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
     field: [
-      'h-[72px] w-[96px] rounded-corner-small border-2 border-transparent bg-surface-container-highest',
+      'h-[calc(72px+var(--md-sys-density,0)*4px)] w-[96px] rounded-corner-small border-2 border-transparent bg-surface-container-highest',
       'text-center text-display-medium text-on-surface caret-primary outline-none tabular-nums',
       'focus:border-primary focus:bg-primary-container focus:text-on-primary-container',
       'aria-invalid:border-error',
@@ -94,7 +96,7 @@ export const timePickerStyles = tv({
     },
     mode: {
       dial: { separator: 'h-[80px]' },
-      input: { separator: 'h-[72px]' },
+      input: { separator: 'h-[calc(72px+var(--md-sys-density,0)*4px)]' },
     },
     layout: {
       vertical: {
@@ -121,7 +123,7 @@ export const timePickerStyles = tv({
   },
   compoundVariants: [
     { mode: 'dial', layout: 'vertical', class: { period: 'min-h-[80px]' } },
-    { mode: 'input', class: { period: 'min-h-[72px]' } },
+    { mode: 'input', class: { period: 'min-h-[calc(72px+var(--md-sys-density,0)*4px)]' } },
   ],
   defaultVariants: { hourCycle: 12, mode: 'dial', layout: 'vertical' },
 });

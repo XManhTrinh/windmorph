@@ -23,6 +23,7 @@ import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
+import type { Density } from '../../tokens/density';
 import { OptionPopover } from '../select/option-list';
 import type { TextFieldClassNames } from '../text-field/TextField';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -138,6 +139,14 @@ export interface DateFieldProps {
   name?: string;
   /** Icon of the button that opens the calendar. */
   calendarIcon?: ReactElement;
+  /**
+   * Web density of the typed field, `0` to `-3`: each step takes 4px off it (56px at 0, 44px
+   * at -3). The calendar keeps its size: M3 doesn't make date pickers denser, since their 48px
+   * day targets are part of their accessibility. Left out, the field takes the density of the
+   * nearest `ThemeProvider` or `ThemeScope`.
+   * @default 0
+   */
+  density?: Density;
   /** Words the field and its calendar show and announce, with English defaults. */
   strings?: DateFieldStrings;
   /** The text field's root. */
@@ -193,6 +202,7 @@ function DateFieldInner({
   readOnly,
   name,
   calendarIcon,
+  density,
   strings = {},
   ref,
   inputRef,
@@ -236,6 +246,7 @@ function DateFieldInner({
         data={data}
         className={cn(root, className)}
         classNames={fieldClassNames}
+        density={density}
         trailingIcon={
           <IconButton
             variant="standard"

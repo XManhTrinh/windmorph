@@ -32,6 +32,7 @@ import {
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
+import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
@@ -106,8 +107,8 @@ const CheckIcon = () => (
 
 /**
  * The options of a `Select` or `Autocomplete`, drawn exactly as the library's M3 menu: its
- * surface, 44px items, `tertiary-container` for chosen options with a check, sections with
- * headings and dividers, state layers and the inset focus ring.
+ * surface, 44px items (4px less per density step), `tertiary-container` for chosen options
+ * with a check, sections with headings and dividers, state layers and the inset focus ring.
  */
 export function OptionList<T>({
   listBoxProps,
@@ -190,7 +191,7 @@ export function OptionList<T>({
         )}
       </ul>
       {loading && loadingLabel ? (
-        <div className="flex min-h-[44px] items-center justify-center">
+        <div className="flex min-h-[calc(44px+var(--md-sys-density,0)*4px)] items-center justify-center">
           <LazyLoadingIndicator aria-label={loadingLabel} className="size-[36px]" />
         </div>
       ) : isEmpty ? (
@@ -265,7 +266,10 @@ function OptionSection<T>({
       {divided ? (
         <div
           role="presentation"
-          className={cn('mx-[8px] my-[4px] h-px bg-outline-variant', classNames?.divider)}
+          className={cn(
+            'mx-[8px] my-[calc(4px+var(--md-sys-density,0)*1px)] h-px bg-outline-variant',
+            classNames?.divider,
+          )}
         />
       ) : null}
       {section.rendered ? (
@@ -365,6 +369,7 @@ export function OptionPopover({
   isNonModal = false,
   onPressOutside,
   minWidth = 0,
+  density,
   children,
 }: {
   /** The open state the popover follows (from React Stately's `useOverlayTriggerState`). */
@@ -382,12 +387,14 @@ export function OptionPopover({
   minWidth?: number;
   /** A press outside the menu and the field closes it (modal menus only). */
   onPressOutside?: (() => void) | undefined;
+  /** The field's own density, which its menu takes; left out, the theme's. */
+  density?: Density | undefined;
   children: ReactNode;
 }) {
   const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting} disableFocusManagement={isNonModal}>
+    <Overlay isExiting={isExiting} disableFocusManagement={isNonModal} density={density}>
       <PopoverBody
         state={state}
         triggerRef={triggerRef}

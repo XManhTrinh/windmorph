@@ -8,6 +8,17 @@ import { DateField } from './DateField';
 const march = new CalendarDate(2030, 3, 10);
 
 describe('DateField (docked date picker)', () => {
+  it('takes a density for its field only', async () => {
+    render(<DateField label="Start date" density={-2} data-testid="field" />);
+    expect(screen.getByTestId('field')).toHaveAttribute('data-density', '-2');
+    await userEvent.click(screen.getByRole('button', { name: 'Open calendar' }));
+    // The calendar keeps its size: nothing in it reads the density.
+    expect(screen.getByRole('dialog').closest('[data-overlay-scope]')).not.toHaveAttribute(
+      'data-density',
+      '-2',
+    );
+  });
+
   it('is an outlined field with the format as helper text, taking typed dates', async () => {
     const onChange = vi.fn();
     const { container } = render(

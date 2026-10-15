@@ -13,7 +13,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - the outer corners read `--m3-menu-corner`, so they morph while a submenu is open: the
  *   menu holding focus takes 24px (SegmentedMenu `ActiveContainerShape`), the others 8px
  *   (`InactiveContainerShape`), on the fast spatial spring;
- * - items are 44px minimum (4px less per web density step), 112–280px wide, 16px padding at
+ * - items are 44px minimum (4px less per web density step, `--md-sys-density`: 44 → 40 → 36 →
+ *   32px; dividers' 8px margins lose 2px per step), 112–280px wide, 16px padding at
  *   the start and end, body-large labels, 20px icons with a 12px gap and label-small trailing
  *   text (the shortcut); 12px corners when selected (morph on the fast spatial spring). The
  *   padding, gap and type follow the Menu token files (2026-10-14); Compose's code uses 12px,
@@ -92,10 +93,11 @@ export const menuStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
     ],
-    divider: 'my-[8px] -mx-[4px] w-auto',
+    // 8px above and below at density 0, 2px less per step (M3: density takes spacing off).
+    divider: 'my-[calc(8px+var(--md-sys-density,0)*2px)] -mx-[4px] w-auto',
     heading: 'flex min-h-[32px] items-center ps-[8px] text-label-large',
     item: [
-      'group/item flex min-h-[calc(44px+var(--m3-menu-density,0)*4px)] w-full cursor-pointer items-center px-[16px] text-start',
+      'group/item flex min-h-[calc(44px+var(--md-sys-density,0)*4px)] w-full cursor-pointer items-center px-[16px] text-start',
       'text-body-large text-[color:var(--_md-comp-menus-menu-item-label-text-color)] outline-none select-none',
       'data-selected:bg-[var(--_md-comp-menus-menu-item-selected-container-color)] data-selected:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
       'state-layer focus-ring-inset container-motion',
@@ -208,7 +210,7 @@ export const menuStyles = tv({
       false: {},
     },
     hasDescription: {
-      true: { item: 'py-[calc(8px+var(--m3-menu-density,0)*2px)]' },
+      true: { item: 'py-[calc(8px+var(--md-sys-density,0)*2px)]' },
       false: {},
     },
     /** Open and close with no motion (`instant`). */

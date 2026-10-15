@@ -27,6 +27,7 @@ import { useControlledState } from 'react-stately/useControlledState';
 import type { Key } from 'react-stately';
 import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
@@ -109,6 +110,14 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
   Pick<AriaSelectOptions<T, M>, 'name' | 'autoComplete' | 'form'> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
+    /**
+     * Web density, `0` to `-3`: each step takes 4px off the field (56px at 0, 44px at -3) and
+     * off its menu's options (44px at 0, 32px at -3). Left out, it takes the density of the
+     * nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the reader's choice
+     * rather than a default, so prefer setting it there, from a setting.
+     * @default 0
+     */
+    density?: Density;
     /** The field's label. Give `aria-label` instead when there's no visible label. */
     label?: ReactNode;
     /** Accessible name when there's no visible label. */
@@ -238,6 +247,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
 ) {
   const {
     variant = 'filled',
+    density,
     label,
     placeholder,
     supportingText,
@@ -437,6 +447,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     <>
       <FieldShell
         variant={variant}
+        density={density}
         label={label}
         labelProps={labelProps}
         required={required}
@@ -542,13 +553,19 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
             ? { 'aria-label': label }
             : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] ?? '' })}
         >
-          <div className="flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]">{list}</div>
+          <div
+            {...densityAttribute(density)}
+            className="flex min-h-0 flex-1 flex-col px-[8px] pb-[16px]"
+          >
+            {list}
+          </div>
         </LazyBottomSheet>
       ) : (
         <OptionPopover
           state={state}
           triggerRef={containerRef}
           popoverRef={popoverRef}
+          density={density}
           onPressOutside={() => {
             releaseFocusRef.current = true;
           }}

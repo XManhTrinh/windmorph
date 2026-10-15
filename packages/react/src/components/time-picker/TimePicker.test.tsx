@@ -11,6 +11,13 @@ const SHORT = '(max-height: 567.98px)';
 const NO_ROOM = '(max-height: 451.98px), (max-height: 567.98px) and (max-width: 639.98px)';
 
 describe('TimePicker', () => {
+  it('takes a density, which only its input mode reads', () => {
+    const { rerender } = render(<TimePicker mode="input" density={-2} data-testid="picker" />);
+    expect(screen.getByTestId('picker')).toHaveAttribute('data-density', '-2');
+    rerender(<TimePicker mode="dial" density={-2} data-testid="picker" />);
+    expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass('h-[80px]');
+  });
+
   it('shows typeable selectors, AM / PM and a dial of number buttons', async () => {
     const { container } = render(
       <TimePicker defaultValue={new Time(14, 5)} hourCycle={12} data-testid="picker" />,
@@ -109,7 +116,10 @@ describe('TimePicker', () => {
       'true',
     );
     rerender(<TimePicker defaultValue={new Time(18, 0)} hourCycle={24} mode="input" />);
-    expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass('w-[96px]', 'h-[72px]');
+    expect(screen.getByRole('textbox', { name: 'Hour' })).toHaveClass(
+      'w-[96px]',
+      'h-[calc(72px+var(--md-sys-density,0)*4px)]',
+    );
   });
 
   it('types the time in input mode', async () => {
@@ -118,7 +128,7 @@ describe('TimePicker', () => {
       <TimePicker defaultValue={new Time(9, 30)} hourCycle={12} mode="input" onChange={onChange} />,
     );
     const hour = screen.getByRole('textbox', { name: 'Hour' });
-    expect(hour).toHaveClass('h-[72px]', 'text-display-medium');
+    expect(hour).toHaveClass('h-[calc(72px+var(--md-sys-density,0)*4px)]', 'text-display-medium');
     await userEvent.clear(hour);
     await userEvent.type(hour, '11');
     expect(onChange).toHaveBeenLastCalledWith(new Time(11, 30));

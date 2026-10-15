@@ -26,6 +26,7 @@ import {
 import { useControlledState } from 'react-stately/useControlledState';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { KeyboardIcon, ScheduleIcon } from '../date-picker/picker-icons';
@@ -112,6 +113,14 @@ export interface TimePickerProps {
   layout?: 'vertical' | 'horizontal' | 'auto';
   /** Words the picker shows and announces, with English defaults. */
   strings?: TimePickerStrings;
+  /**
+   * Web density of the input mode, `0` to `-3`: each step takes 4px off the typed hour and
+   * minute fields (72px at 0, 60px at -3). The dial keeps its size: M3 doesn't make time
+   * pickers denser, since its 48px number targets are part of their accessibility. Left out,
+   * the picker takes the density of the nearest `ThemeProvider` or `ThemeScope`.
+   * @default 0
+   */
+  density?: Density;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -168,6 +177,7 @@ export function TimePicker({
   onModeChange,
   layout = 'auto',
   strings = {},
+  density,
   ref,
   className,
   style,
@@ -208,6 +218,7 @@ export function TimePicker({
       data-tokens="md-comp-time-picker"
       data-mode={mode}
       data-layout={resolvedLayout}
+      {...densityAttribute(density)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       {/* Time reads hour : minute, then AM / PM, in every direction (Compose forces LTR). */}
