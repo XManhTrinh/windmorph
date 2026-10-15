@@ -76,6 +76,26 @@ describe('hidden input focus', () => {
     for (const options of calls) expect(options).toMatchObject({ preventScroll: true });
   });
 
+  it("patches only the input, even when the prototype's focus is an accessor", () => {
+    const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'focus')!;
+    let value = original.value as HTMLElement['focus'];
+    Object.defineProperty(HTMLElement.prototype, 'focus', {
+      configurable: true,
+      get: () => value,
+      set: (next: HTMLElement['focus']) => {
+        value = next;
+      },
+    });
+    try {
+      render(<Checkbox>Subscribe</Checkbox>);
+      const input = screen.getByRole('checkbox', { name: 'Subscribe' });
+      expect(Object.prototype.hasOwnProperty.call(input, 'focus')).toBe(true);
+      expect(value).toBe(original.value);
+    } finally {
+      Object.defineProperty(HTMLElement.prototype, 'focus', original);
+    }
+  });
+
   it('still lets a caller ask for scrolling', () => {
     const focus = vi.spyOn(HTMLElement.prototype, 'focus');
     render(<Checkbox>Subscribe</Checkbox>);
