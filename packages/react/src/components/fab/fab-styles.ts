@@ -84,6 +84,9 @@ export const extendedFabStyles = tv({
   slots: {
     root: [
       ...base,
+      // The label collapsing and expanding resizes it in place, so it is never the
+      // browser's scroll anchor (which would scroll the page to follow it).
+      '[overflow-anchor:none]',
       'bg-[var(--_md-comp-extended-fab-container-color)]',
       'text-[color:var(--_md-comp-extended-fab-label-text-color)]',
       'rounded-[var(--_md-comp-extended-fab-container-shape)]',

@@ -9,6 +9,7 @@ import {
 } from '@windmorph/react';
 import { useState } from 'react';
 import { EditIcon } from './icons';
+import { TallPage } from './scroll-anchoring';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -190,6 +191,28 @@ export const LayoutOverride: StoryObj<{
           onPress={() => setCount((c) => c + 1)}
         />
       </div>
+    );
+  },
+};
+
+/**
+ * On a tall page, an extended FAB's label collapses and expands from a fixed button without
+ * scrolling the page (it is never the browser's scroll anchor).
+ */
+export const ScrollAnchoring: Story = {
+  render: function ScrollAnchoringStory() {
+    const [expanded, setExpanded] = useState(true);
+    return (
+      <TallPage onToggle={() => setExpanded((value) => !value)}>
+        <ExtendedFab
+          data-testid="fab"
+          icon={<EditIcon />}
+          expanded={expanded}
+          className="absolute end-4 bottom-4"
+        >
+          Compose
+        </ExtendedFab>
+      </TallPage>
     );
   },
 };

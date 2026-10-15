@@ -81,7 +81,12 @@ export const dockedToolbarStyles = tv({
 /** Variant definitions for {@link FloatingToolbar}; extend them to add colour styles. */
 export const floatingToolbarStyles = tv({
   slots: {
-    root: ['inline-flex shrink-0 items-center justify-center', ...exitMotion],
+    // Collapsing and expanding resize it in place, so it is never the browser's scroll
+    // anchor (which would scroll the page to follow it).
+    root: [
+      'inline-flex shrink-0 items-center justify-center [overflow-anchor:none]',
+      ...exitMotion,
+    ],
     // A group of items (main, leading or trailing content).
     items: 'flex shrink-0 items-center',
     // Collapsible leading / trailing content: a grid track that animates 0fr ↔ 1fr.

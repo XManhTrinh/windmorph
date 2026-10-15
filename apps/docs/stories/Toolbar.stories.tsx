@@ -22,6 +22,7 @@ import {
   SendIcon,
   StarIcon,
 } from './icons';
+import { TallPage } from './scroll-anchoring';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -404,6 +405,30 @@ export const DockedLayoutOverride: StoryObj<{
           <IconButton icon={<SendIcon />} aria-label="Sent" />
         </DockedToolbar>
       </div>
+    );
+  },
+};
+
+/**
+ * On a tall page, a vertical floating toolbar with its FAB collapses and expands from a
+ * fixed button without scrolling the page (it is never the browser's scroll anchor).
+ */
+export const ScrollAnchoring: Story = {
+  render: function ScrollAnchoringStory() {
+    const [expanded, setExpanded] = useState(true);
+    return (
+      <TallPage onToggle={() => setExpanded((value) => !value)}>
+        <FloatingToolbar
+          aria-label="Formatting"
+          data-testid="toolbar"
+          orientation="vertical"
+          expanded={expanded}
+          className="absolute end-4 bottom-4"
+          fab={<ToolbarFab icon={<AddIcon />} aria-label="New" />}
+        >
+          {formatting}
+        </FloatingToolbar>
+      </TallPage>
     );
   },
 };

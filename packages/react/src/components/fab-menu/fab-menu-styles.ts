@@ -49,7 +49,9 @@ const colors = {
 /** Variant definitions for {@link FabMenu}; extend them to add colour styles. */
 export const fabMenuStyles = tv({
   slots: {
-    root: 'inline-flex flex-col-reverse items-end gap-[8px]',
+    // Opening grows the menu toward the start of the page from its FAB, so it is never the
+    // browser's scroll anchor: chosen as one, its move would scroll the page with it.
+    root: 'inline-flex flex-col-reverse items-end gap-[8px] [overflow-anchor:none]',
     // Library-owned box that keeps the FAB's size while the button shrinks inside it. It
     // paints above the list, which scrolls behind it, and carries the show / hide motion
     // (the FAB's: scale from the centre on fast spatial, fade on fast effects).

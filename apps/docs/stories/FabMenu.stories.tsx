@@ -23,6 +23,7 @@ import {
   LAYOUT_OVERRIDE_NAMES,
   type LayoutOverrideName,
 } from './layout-overrides';
+import { TallPage } from './scroll-anchoring';
 
 const COLORS: FabMenuColor[] = ['primary', 'secondary', 'tertiary'];
 const SIZES: FabMenuSize[] = ['default', 'medium', 'large'];
@@ -234,5 +235,25 @@ export const LayoutOverride: StoryObj<{
         {actions(2)}
       </FabMenu>
     </div>
+  ),
+};
+
+/**
+ * On a tall page, scrolled so the open menu reaches above the window: opening and closing it
+ * never scrolls the page (it is never the browser's scroll anchor).
+ */
+export const ScrollAnchoring: Story = {
+  render: () => (
+    <TallPage>
+      <FabMenu
+        data-testid="menu"
+        icon={<AddIcon />}
+        openIcon={<CloseIcon />}
+        aria-label="Create"
+        className="absolute end-4 bottom-4"
+      >
+        {actions(4)}
+      </FabMenu>
+    </TallPage>
   ),
 };
