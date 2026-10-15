@@ -253,6 +253,25 @@ test.describe('Docked date picker', () => {
     await expect.poll(async () => parseFloat(await opacity())).toBe(0.1);
   });
 
+  // M3 recommends the full-screen modal picker on compact windows; at 330px the docked
+  // calendar's header was cut off and its day targets overlapped (2026-10-15).
+  test('opens the full-screen modal picker on a phone, and Save keeps the day', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 330, height: 620 });
+    await openStory(page, 'components-pickers--docked');
+    await page.getByRole('button', { name: 'Open calendar' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Choose a date' });
+    await expect(dialog).toBeVisible();
+    await settle(page);
+    expect(await rect(dialog)).toEqual({ x: 0, y: 0, width: 330, height: 620 });
+    await dialog.getByRole('button', { name: /March 15, 2030/ }).click();
+    await dialog.getByRole('button', { name: 'Save' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page.getByTestId('value')).toHaveText('Value 2030-03-15');
+    await expect(page.getByRole('button', { name: 'Open calendar' })).toBeFocused();
+  });
+
   test('opens below the field, 360px wide, and Enter saves', async ({ page }) => {
     await openStory(page, 'components-pickers--docked');
     const field = page.getByRole('textbox', { name: 'Date' });

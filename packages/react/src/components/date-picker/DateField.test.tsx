@@ -3,6 +3,8 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { setMediaQueries } from '../../../test/setup';
+import { COMPACT_WINDOW } from './use-media-query';
 import { DateField } from './DateField';
 
 const march = new CalendarDate(2030, 3, 10);
@@ -17,6 +19,27 @@ describe('DateField (docked date picker)', () => {
       'data-density',
       '-2',
     );
+  });
+
+  // M3: "On compact breakpoints … a full-screen modal date picker is recommended"; the 360px
+  // docked calendar was cut off on a phone.
+  it('opens the modal picker full screen on a compact window', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    const onChange = vi.fn();
+    render(<DateField label="Start date" defaultValue={march} onChange={onChange} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Open calendar' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Choose a date' });
+    // The modal picker's header and its full-screen Save, not the docked menus.
+    expect(within(dialog).getByText('Select date')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: /Choose a month/ })).toBe(null);
+    await userEvent.click(within(dialog).getByRole('button', { name: /March 12, 2030/ }));
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+    expect(onChange).toHaveBeenLastCalledWith(new CalendarDate(2030, 3, 12));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), {
+      timeout: 1500,
+    });
+    expect(screen.getByRole('textbox', { name: 'Start date' })).toHaveValue('03/12/2030');
   });
 
   it('is an outlined field with the format as helper text, taking typed dates', async () => {
