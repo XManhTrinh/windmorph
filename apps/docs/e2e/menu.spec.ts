@@ -295,10 +295,13 @@ test.describe('Menu reveal direction (2026-10-15)', () => {
     const frames = await sampleMotion(page, {
       act: { click: '[data-testid="target"]' },
       started: '[role="menu"]',
-      parts: { reveal: '[data-overlay-placement] > [data-placement]' },
+      parts: { reveal: '[data-placement]:has([role="menu"])' },
       duration: 200,
     });
-    await expect(page.locator('[data-placement]')).toHaveAttribute('data-placement', 'top');
+    await expect(page.locator('[data-placement]:has([role="menu"])')).toHaveAttribute(
+      'data-placement',
+      'top',
+    );
     const shown = frames.flatMap(({ parts }) => (parts.reveal ? [parts.reveal] : []));
     expect(shown.length).toBeGreaterThan(3);
     const sides = shown.map((part) => insetEdges(part.clipPath, part.width, part.height));
@@ -329,8 +332,8 @@ test.describe('Menu reveal direction (2026-10-15)', () => {
   });
 });
 
-// A group heading starts where the items' content does, 16px from the surface's edge
-// (Compose's 12px left it out of line; 2026-10-15).
+// A group heading starts where the items' content does, 16px inside the group's padding
+// (Compose's 12px from the edge left it 8px out of line; 2026-10-15).
 test('group headings line up with the items, 16px in', async ({ page }) => {
   await openGrouped(page, {}, { layout: 'gap' });
   const group = page.getByRole('group', { name: 'Edit' });

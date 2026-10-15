@@ -77,11 +77,11 @@ describe('menuStyles', () => {
     );
   });
 
-  // Group headings line up with the item labels: 16px from the group's edge (4 + 12).
+  // Group headings line up with the item labels: both 16px inside the group's padding.
   it('starts group headings 16px in, level with the item labels', () => {
     const styles = menuStyles();
     expect(styles.group().split(' ')).toContain('p-[4px]');
-    expect(styles.heading().split(' ')).toContain('ps-[12px]');
+    expect(styles.heading().split(' ')).toContain('ps-[16px]');
     expect(styles.item().split(' ')).toContain('px-[16px]');
   });
 });

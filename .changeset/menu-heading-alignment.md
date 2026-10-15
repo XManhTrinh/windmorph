@@ -2,4 +2,4 @@
 '@windmorph/react': patch
 ---
 
-`Menu` group headings (and `Select` section headings) start 16px from the group's edge, in line with the item labels, instead of 12px.
+`Menu` group headings (and `Select` section headings) start where the items' content does (16px inside the group's padding, as the items' own padding), instead of 12px from the group's edge.
