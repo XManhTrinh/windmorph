@@ -417,8 +417,10 @@ export const dialogStyles = tv({
      * (`--m3-dialog-origin`, measured by the dialog) and opens to the window on the slow
      * spatial spring, while the container colour moves from the origin's
      * (`--m3-dialog-origin-color`) and the content fades in. Leaving collapses back into the
-     * origin on the fast springs. Reduced motion keeps only the fades (the dialog's and its
-     * content's).
+     * origin on emphasized-accelerate over 250ms (2026-10-15), as the basic exit avoids
+     * springs: the fast spatial spring collapsed the clip past the origin to nothing and
+     * regrew it while still visible. The fade waits 100ms and runs 150ms linear, ending with
+     * the collapse. Reduced motion keeps only the fades (the dialog's and its content's).
      */
     {
       fullScreen: 'always',
@@ -429,8 +431,8 @@ export const dialogStyles = tv({
           '[--m3-dialog-enter-clip:var(--m3-dialog-origin)] [--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
           '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
           '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
-          'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-          'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+          'data-exiting:[transition-duration:var(--md-sys-motion-duration-short-3),var(--md-sys-motion-duration-medium-1),var(--md-sys-motion-duration-medium-1)]',
+          'data-exiting:[transition-timing-function:var(--md-sys-motion-easing-linear),var(--md-sys-motion-easing-emphasized-accelerate),var(--md-sys-motion-easing-emphasized-accelerate)]',
         ],
         panel: [
           '[transition-property:background-color] motion-reduce:[transition-property:none]',
@@ -454,8 +456,8 @@ export const dialogStyles = tv({
           'max-medium:[--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
           'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
           'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
-          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-          'max-medium:data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-duration-short-3),var(--md-sys-motion-duration-medium-1),var(--md-sys-motion-duration-medium-1)]',
+          'max-medium:data-exiting:[transition-timing-function:var(--md-sys-motion-easing-linear),var(--md-sys-motion-easing-emphasized-accelerate),var(--md-sys-motion-easing-emphasized-accelerate)]',
           // The breakpoint outranks the base reduced-motion exit: restate it, so the fade
           // keeps its duration while the spatial springs are instant.
           'max-medium:motion-reduce:data-exiting:[transition-duration:var(--md-sys-motion-duration-short-3)]',
