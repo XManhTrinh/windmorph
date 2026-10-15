@@ -162,3 +162,28 @@ main :where(h2[id], h3[id]) {
     animation: none !important;
   }
 }
+
+/*
+ * The playground's code marks the lines a control just changed: a tint and a bar at the
+ * start that fade out on the slow effects spring. Under reduced motion the marker stays,
+ * still, until the next change. Only colours change, so nothing moves.
+ */
+.playground-code .line {
+  display: block;
+}
+.playground-code .line[data-changed] {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+  box-shadow: inset 3px 0 var(--md-sys-color-primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .playground-code .line[data-changed] {
+    animation: playground-line-changed 1.6s var(--md-sys-motion-spring-effects-slow-easing) 0.4s
+      forwards;
+  }
+}
+@keyframes playground-line-changed {
+  to {
+    background-color: transparent;
+    box-shadow: inset 3px 0 transparent;
+  }
+}
