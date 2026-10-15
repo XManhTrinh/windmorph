@@ -25,7 +25,8 @@ import {
   FormatItalicIcon,
   FormatUnderlinedIcon,
 } from '../icons';
-import { ExpressiveBento } from './expressive-bento';
+import type { BentoManifest } from '../../lib/bento-media';
+import { ResponsiveBento } from './bento-video';
 
 interface ExpressiveCardProps {
   preview: ReactNode;
@@ -51,8 +52,11 @@ function ExpressiveCard({ preview, title, description, action }: ExpressiveCardP
   );
 }
 
-/** Expressive-components section: a grid of live M3 Expressive components. */
-export function ExpressiveShowcase() {
+/**
+ * Expressive-components section: a grid of live M3 Expressive components, led by the bento
+ * (its recorded `video` on phones, when the build has one).
+ */
+export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest }) {
   return (
     <section className="flex flex-col gap-6">
       {/* Header */}
@@ -64,7 +68,7 @@ export function ExpressiveShowcase() {
         </p>
       </div>
 
-      <ExpressiveBento />
+      <ResponsiveBento video={bentoVideo} />
 
       {/* Row 1: Toolbars + Split button */}
       <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">

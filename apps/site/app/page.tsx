@@ -14,6 +14,7 @@ import {
   TuneIcon,
 } from '../components/icons';
 import { CATEGORY_COUNT, COMPONENT_PAGE_COUNT } from '../content/components/catalog';
+import { readBentoVideo } from '../lib/bento-video';
 import { highlightSource } from '../lib/highlight';
 
 interface Stat {
@@ -187,7 +188,7 @@ export default async function HomePage() {
         </section>
 
         {/* Expressive components showcase */}
-        <ExpressiveShowcase />
+        <ExpressiveShowcase bentoVideo={readBentoVideo()} />
 
         {/* Built right — feature grid */}
         <section className="flex flex-col gap-6">
