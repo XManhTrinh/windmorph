@@ -110,6 +110,8 @@ export const navItemStyles = tv({
     iconStack: 'inline-grid size-[24px] place-items-center [&>svg]:size-full',
     // The expanded rail's badge, 4px after the label (the content gap is 8px).
     badge: 'inline-flex shrink-0 -ms-[4px]',
+    // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in).
+    badgedBox: '',
     label: [
       'min-w-0 overflow-hidden text-ellipsis text-balance group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
@@ -170,7 +172,19 @@ export const navItemStyles = tv({
           'bg-[var(--_md-comp-nav-bar-item-active-indicator-color)]',
         ],
         content: 'gap-[4px] ps-[16px] pe-[16px] py-[4px]',
-        icon: 'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
+        // A large badge reaches past the icon's end edge into the label's place (M3: badges
+        // overlap the icon). Its overhang takes room in the row so the label starts 4px after
+        // the badge (2026-10-15): the icon box grows to the badge, which hangs from a box as
+        // wide as itself, 12px inside the 24px icon, as `BadgedBox` places it.
+        icon: [
+          'text-[color:var(--_md-comp-nav-bar-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-icon-color)]',
+          'has-[[data-size=large]]:w-auto has-[[data-size=large]]:min-w-[24px] has-[[data-size=large]]:justify-items-start',
+        ],
+        badgedBox: [
+          'has-[[data-size=large]]:grid-cols-[auto]',
+          '[&:has([data-size=large])>span:first-child]:w-[24px] [&:has([data-size=large])>span:first-child]:justify-self-start',
+          '[&>span:last-child:has([data-size=large])]:w-max [&>span:last-child:has([data-size=large])]:ms-[12px]',
+        ],
         label: [
           'forced-colors:group-data-current/nav:text-[HighlightText]',
           'text-label-medium text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',

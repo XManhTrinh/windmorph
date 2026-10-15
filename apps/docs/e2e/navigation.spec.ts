@@ -466,3 +466,19 @@ test.describe('Navigation motion edges and forced colours', () => {
     }
   });
 });
+
+test.describe('NavigationBar badges beside a label', () => {
+  // A large badge overlaps the icon and reaches past it; the label starts after it
+  // (2026-10-15), where it used to run into it ("3Search").
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a large badge clears the label in an inline item · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-navigation--bar', { dir });
+      const inline = page.getByTestId('bars').getByRole('navigation').nth(1);
+      const search = inline.getByRole('button', { name: 'Search' });
+      const badge = (await search.locator('[data-size="large"]').boundingBox())!;
+      const label = (await search.locator('[data-nav-label]').boundingBox())!;
+      if (dir === 'ltr') expect(label.x).toBeGreaterThanOrEqual(badge.x + badge.width + 3.5);
+      else expect(label.x + label.width).toBeLessThanOrEqual(badge.x - 3.5);
+    });
+  }
+});

@@ -253,7 +253,7 @@ export function NavItem({
             className={styles.icon({ class: classNames?.icon })}
           >
             {badge && !badgeAfterLabel ? (
-              <BadgedBox badge={badge} className={classNames?.badge}>
+              <BadgedBox badge={badge} className={styles.badgedBox({ class: classNames?.badge })}>
                 <span className={styles.iconStack()}>{iconFaces}</span>
               </BadgedBox>
             ) : (

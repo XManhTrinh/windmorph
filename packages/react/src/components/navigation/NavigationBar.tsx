@@ -173,7 +173,12 @@ function useStackWhenCrowded(navRef: RefObject<HTMLElement | null>, inline: bool
       for (const label of labels()) {
         const wrap = label.style.whiteSpace;
         label.style.whiteSpace = 'nowrap';
-        needed += label.scrollWidth + INLINE_ITEM_CHROME;
+        // A large badge on the icon takes room past the icon's end edge (12px inside it).
+        const badge = label
+          .closest('[data-nav-item]')
+          ?.querySelector<HTMLElement>('[data-size="large"]');
+        const overhang = badge ? Math.max(0, badge.offsetWidth - 12) : 0;
+        needed += label.scrollWidth + INLINE_ITEM_CHROME + overhang;
         label.style.whiteSpace = wrap;
       }
       const style = getComputedStyle(nav);
