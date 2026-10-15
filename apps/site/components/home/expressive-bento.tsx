@@ -156,7 +156,10 @@ export function ExpressiveBento() {
 
       {/* Connected button group: a selection appears */}
       <Tile className="col-span-2 large:col-span-1 large:col-start-3 large:row-span-4 large:row-start-1">
-        {/* Square, as in Google's showcase video, and opted into the press bump it shows */}
+        {/* Square, as in Google's showcase video, and opted into the press bump it shows. On a
+            large window the tile is narrower than the group's natural width (its equal columns
+            take the widest button's), so the group keeps that width and scales to 80% to fit,
+            every button at full padding */}
         <ButtonGroup
           variant="connected"
           shape="square"
@@ -164,7 +167,7 @@ export function ExpressiveBento() {
           selectionMode="single"
           selectedKeys={active ? ['going'] : []}
           aria-label="Reply"
-          className="w-fit shrink-0 max-medium:scale-80"
+          className="w-fit shrink-0 max-medium:scale-80 large:w-max large:scale-80"
         >
           <Button
             data-press="on off"
