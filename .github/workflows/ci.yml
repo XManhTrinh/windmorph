@@ -1,8 +1,9 @@
 # CI for Windmorph's public repo: builds, typechecks, lints and tests `@windmorph/react`,
-# Storybook, the Next.js playground and the docs site, then runs the site's internal link check
-# and Playwright smoke suite against its static export, Storybook's Playwright suite (with its
-# Linux screenshot baselines, in Docker), and the playground's Playwright suite (every export
-# imported into a Server Component, under `next start` and `next dev`).
+# Storybook, the Next.js playground and the docs site, then records the site's home page bento
+# video and runs the site's internal link check and Playwright smoke suite against its static
+# export, Storybook's Playwright suite (with its Linux screenshot baselines, in Docker), and the
+# playground's Playwright suite (every export imported into a Server Component, under
+# `next start` and `next dev`).
 #
 # The docs site also documents Windmorph Pro, which it installs from the private
 # `windmorph-pro` repo's `dist` branch (an optional dependency). `PRO_READ_TOKEN` is a
@@ -105,8 +106,31 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm --filter site exec playwright install --with-deps chromium
 
-      # `link-check` and `test:e2e` both depend on `site#build`, so turbo builds the static export
-      # first, then the link checker and the full Playwright smoke suite run against `out/`.
+      - name: Build the site
+        run: pnpm turbo run build --filter=site
+
+      # Phones see the home page bento as a video recorded from the built site, so it always
+      # matches the bento. ffmpeg writes the H.264 MP4 (for Safari on iPhone) and the WebM.
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Record the bento video
+        run: pnpm --filter site record:bento
+
+      - name: Upload the bento video
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bento-video
+          path: apps/site/public/media/bento/
+          retention-days: 7
+
+      # The media are an input of `site#build` (apps/site/turbo.json), so this builds again and
+      # the home page picks the video up.
+      - name: Build the site with the bento video
+        run: pnpm turbo run build --filter=site
+
+      # `link-check` and `test:e2e` both depend on `site#build`, which is cached by now, so the
+      # link checker and the full Playwright smoke suite run against that `out/`.
       - name: Link check & Playwright smoke suite
         run: pnpm turbo run link-check test:e2e --filter=site
 
