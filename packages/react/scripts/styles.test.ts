@@ -128,6 +128,16 @@ describe('generated CSS', () => {
     }
   });
 
+  it('makes spatial springs instant under reduced motion, keeping the effects springs', () => {
+    const reduced = generateTokensCss().split('@media (prefers-reduced-motion: reduce)')[1]!;
+    for (const speed of ['fast', 'default', 'slow']) {
+      expect(reduced).toContain(`--md-sys-motion-spring-spatial-${speed}-duration: 0ms;`);
+      expect(reduced).toMatch(
+        new RegExp(`--md-sys-motion-spring-effects-${speed}-duration: [1-9]\\d*ms;`),
+      );
+    }
+  });
+
   it('writes the type scale in rem, so text follows the browser font size', () => {
     const tokens = generateTokensCss();
     expect(tokens).toContain('--md-sys-typescale-body-large-size: 1rem;');

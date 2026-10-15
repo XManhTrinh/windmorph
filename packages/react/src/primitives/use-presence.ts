@@ -13,10 +13,15 @@ export const EXIT_FALLBACK_MS = 800;
  * Keeps an overlay mounted while it animates out. `isPresent` turns true as soon as
  * `isOpen` does and stays true until the exit transition ends (or a fallback timeout).
  * Spread `exitProps` on the element whose transition of `property` (default `opacity`)
- * marks the end. With `animated` false there is no exit motion to wait for, so `isPresent`
- * follows `isOpen` at once.
+ * marks the end; with several properties, the first of them to end does, so an exit that
+ * slides normally and fades under reduced motion passes both. With `animated` false there is
+ * no exit motion to wait for, so `isPresent` follows `isOpen` at once.
  */
-export function usePresence(isOpen: boolean, property = 'opacity', animated = true) {
+export function usePresence(
+  isOpen: boolean,
+  property: string | readonly string[] = 'opacity',
+  animated = true,
+) {
   const [isPresent, setPresent] = useState(isOpen);
   const [wasOpen, setWasOpen] = useState(isOpen);
   // Adjust state while rendering when `isOpen` changes (no effect, no extra paint).
@@ -35,7 +40,8 @@ export function usePresence(isOpen: boolean, property = 'opacity', animated = tr
 
   const exitProps = {
     onTransitionEnd: (event: TransitionEvent<HTMLElement>) => {
-      if (isExiting && event.target === event.currentTarget && event.propertyName === property) {
+      const ends = typeof property === 'string' ? [property] : property;
+      if (isExiting && event.target === event.currentTarget && ends.includes(event.propertyName)) {
         setPresent(false);
       }
     },

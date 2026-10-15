@@ -41,14 +41,20 @@ const rem = (px: number) => `${Number((px / ROOT_FONT_SIZE).toFixed(6))}rem`;
 const shadowColor = (opacity: number) =>
   `color-mix(in srgb, var(--md-sys-color-shadow) ${opacity * 100}%, transparent)`;
 
-function springDeclarations(scheme: MotionScheme): string[] {
+/**
+ * A scheme's spring tokens. `reduced` is the reduced-motion set (architecture §6): the
+ * standard scheme's springs with every spatial duration at 0ms, so position, size, shape and
+ * rotation change at once while colour and opacity still move on the effects springs.
+ */
+function springDeclarations(scheme: MotionScheme, reduced = false): string[] {
   return SPRING_FAMILIES.flatMap((family) =>
     SPRING_SPEEDS.flatMap((speed) => {
       const token = SPRINGS[scheme][family][speed];
       const prefix = `--md-sys-motion-spring-${family}-${speed}`;
+      const duration = reduced && family === 'spatial' ? 0 : springSettleDuration(token);
       return [
         `${prefix}-easing: ${springToLinearEasing(token)};`,
-        `${prefix}-duration: ${springSettleDuration(token)}ms;`,
+        `${prefix}-duration: ${duration}ms;`,
       ];
     }),
   );
@@ -115,7 +121,7 @@ export function generateTokensCss(): string {
     ...otherSchemes.map((scheme) => block(`[data-motion="${scheme}"]`, springDeclarations(scheme))),
     `@media (prefers-reduced-motion: reduce) {\n${block(
       ':root,\n[data-motion]',
-      springDeclarations('standard'),
+      springDeclarations('standard', true),
     )}\n}`,
     // Web density (M3): `data-density` sets the level for its subtree; components scale
     // their heights by it. Plain attribute selectors, so the nearest attribute wins.

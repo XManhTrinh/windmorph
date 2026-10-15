@@ -445,6 +445,9 @@ export const dialogStyles = tv({
           'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
           'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
           'max-medium:data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+          // The breakpoint outranks the base reduced-motion exit: restate it, so the fade
+          // keeps its duration while the spatial springs are instant.
+          'max-medium:motion-reduce:data-exiting:[transition-duration:var(--md-sys-motion-duration-short-3)]',
         ],
         panel: [
           'max-medium:[transition-property:background-color]',

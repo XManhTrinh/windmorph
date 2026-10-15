@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import type { TransitionEvent } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { LEGACY_DURATIONS, SPRINGS, springSettleDuration } from '../tokens/motion';
 import { EXIT_FALLBACK_MS, usePresence } from './use-presence';
@@ -26,6 +27,27 @@ describe('usePresence', () => {
     act(() => vi.advanceTimersByTime(1));
     expect(result.current.isPresent).toBe(false);
     vi.useRealTimers();
+  });
+
+  it('ends on the first of several properties to finish its transition', () => {
+    const { result, rerender } = renderHook(
+      ({ open }) => usePresence(open, ['translate', 'opacity']),
+      { initialProps: { open: true } },
+    );
+    rerender({ open: false });
+    const element = document.createElement('div');
+    const end = (propertyName: string) =>
+      act(() =>
+        result.current.exitProps.onTransitionEnd({
+          target: element,
+          currentTarget: element,
+          propertyName,
+        } as unknown as TransitionEvent<HTMLElement>),
+      );
+    end('color');
+    expect(result.current.isPresent).toBe(true);
+    end('opacity');
+    expect(result.current.isPresent).toBe(false);
   });
 
   it('follows the open state at once when not animated', () => {

@@ -111,6 +111,9 @@ export const listStyles = tv({
       '[transition-property:grid-template-rows,opacity] motion-reduce:[transition-property:opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-effects-default-easing)]',
+      // Reduced motion: the fade alone, still on the default effects spring.
+      'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+      'motion-reduce:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'data-appear:starting:grid-rows-[0fr] data-appear:starting:opacity-0',
       'data-exiting:grid-rows-[0fr] data-exiting:opacity-0',
     ],
