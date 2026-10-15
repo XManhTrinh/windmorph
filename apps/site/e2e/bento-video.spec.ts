@@ -23,6 +23,12 @@ const PHONE_WIDTHS = [320, 390, 430];
 /** The live bento, by its "Reply" button group (the bento is hidden from assistive technology). */
 const liveBento = (page: Page) => page.locator('[aria-label="Reply"]');
 
+/**
+ * How long a video may take to start playing: the first play fetches and decodes it, which
+ * took over 5 seconds on a loaded CI runner.
+ */
+const PLAY_TIMEOUT = 15_000;
+
 /** The bento video's pause / play button. */
 const playButton = (page: Page) => page.locator('[data-bento-video] button');
 
@@ -127,7 +133,7 @@ for (const width of PHONE_WIDTHS) {
       await page.goto('/');
       const video = page.locator('[data-bento-video] video');
       await video.scrollIntoViewIfNeeded();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
       await expect(playButton(page)).toHaveAccessibleName('Pause animation');
       const playing = await buttonColors(page);
       expect(playing.background).toBe(playing.inverseSurface80);
@@ -157,7 +163,7 @@ for (const width of PHONE_WIDTHS) {
       expect(await video.evaluate((element: HTMLVideoElement) => element.currentSrc)).toBe('');
 
       await video.scrollIntoViewIfNeeded();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
       expect(await video.evaluate((element: HTMLVideoElement) => element.currentSrc)).toMatch(
         /\/media\/bento\/bento-light\.(mp4|webm)$/,
       );
@@ -172,27 +178,27 @@ for (const width of PHONE_WIDTHS) {
       await page.goto('/');
       const video = page.locator('[data-bento-video] video');
       await video.scrollIntoViewIfNeeded();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
 
       await page.getByRole('button', { name: 'Pause animation' }).click();
       await expect
         .poll(() => video.evaluate((element: HTMLVideoElement) => element.paused))
         .toBe(true);
       await page.getByRole('button', { name: 'Play animation' }).click();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
     });
 
     test('follows the colour mode', async ({ page }) => {
       await page.goto('/');
       const video = page.locator('[data-bento-video] video');
       await video.scrollIntoViewIfNeeded();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
       await page.emulateMedia({ colorScheme: 'dark' });
       await expect
         .poll(() => video.evaluate((element: HTMLVideoElement) => element.currentSrc))
         .toMatch(/\/media\/bento\/bento-dark\.(mp4|webm)$/);
       await expect(video).toHaveAttribute('poster', '/media/bento/bento-dark.jpg');
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
     });
 
     test('with reduced motion, waits on its poster for play', async ({ page }) => {
@@ -206,7 +212,7 @@ for (const width of PHONE_WIDTHS) {
       expect(await video.evaluate((element: HTMLVideoElement) => element.currentSrc)).toBe('');
 
       await play.click();
-      await expect.poll(() => isPlaying(video)).toBe(true);
+      await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
     });
 
     test('turns into the live bento on a wider window', async ({ page }) => {
@@ -233,7 +239,7 @@ for (const width of PHONE_WIDTHS) {
         await page.goto('/');
         const video = page.locator('[data-bento-video] video');
         await video.scrollIntoViewIfNeeded();
-        await expect.poll(() => isPlaying(video)).toBe(true);
+        await expect.poll(() => isPlaying(video), { timeout: PLAY_TIMEOUT }).toBe(true);
         const results = await new AxeBuilder({ page }).include('[data-bento-video]').analyze();
         expect(results.violations.map((violation) => violation.id)).toEqual([]);
       });
