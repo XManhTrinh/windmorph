@@ -65,6 +65,9 @@ export const dockedToolbarStyles = tv({
   slots: {
     root: [
       'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px]',
+      // Forced colours paint the container as Canvas: a CanvasText line marks its top edge
+      // against the page (2026-10-15).
+      'forced-colors:border-t forced-colors:border-solid forced-colors:border-[CanvasText]',
       ...exitMotion,
       'data-hidden:[transform:translateY(100%)]',
     ],
@@ -125,6 +128,9 @@ export const floatingToolbarStyles = tv({
     toolbarSlot: 'flex shrink-0',
     surface: [
       'overflow-hidden rounded-[var(--_md-comp-toolbar-floating-container-shape)] opacity-100',
+      // Forced colours drop the container and its shadow: a 1px CanvasText boundary instead,
+      // as menus and FABs (2026-10-15).
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       'data-collapsed:opacity-0 data-collapsed:shadow-elevation-0',
       // Width, height and shadow move on the spatial spring; the surface also fades on the
       // fast effects spring, so the last pixels of a collapse never show as a thin line.
@@ -178,7 +184,10 @@ export const floatingToolbarStyles = tv({
     /** Paints the container on the root (no FAB) or on the toolbar surface (with a FAB). */
     hasFab: {
       false: {
-        root: 'rounded-[var(--_md-comp-toolbar-floating-container-shape)] bg-[var(--_md-comp-toolbar-floating-container-color)] p-[8px]',
+        root: [
+          'rounded-[var(--_md-comp-toolbar-floating-container-shape)] bg-[var(--_md-comp-toolbar-floating-container-color)] p-[8px]',
+          'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
       },
       true: {
         root: 'gap-[8px]',
@@ -252,6 +261,7 @@ export const toolbarFabStyles = tv({
       'inline-flex size-full cursor-pointer items-center justify-center select-none',
       'rounded-corner-large',
       'state-layer focus-ring container-motion',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
     icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
   },

@@ -67,6 +67,9 @@ export const fabMenuStyles = tv({
     button: [
       'group/fab-menu inline-flex shrink-0 cursor-pointer items-center justify-center select-none',
       'state-layer focus-ring',
+      // Forced colours paint containers as Canvas: the button and items draw a 1px
+      // CanvasText boundary there, as a FAB does (2026-10-15).
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       // Open: the 56px close button, its corners half its size (a length, so they interpolate).
       'data-open:size-[56px] data-open:rounded-[var(--_md-comp-fab-menu-close-button-container-shape)]',
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
@@ -97,6 +100,7 @@ export const fabMenuStyles = tv({
       // Under reduced motion the items show with the list, which was hidden: fade them in.
       'motion-reduce:data-visible:starting:opacity-0',
       'state-layer focus-ring',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       '[--m3-transition-property:width,opacity]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
       '[--m3-transition-easing:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',

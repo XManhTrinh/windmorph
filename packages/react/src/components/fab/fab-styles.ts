@@ -41,6 +41,9 @@ const base = [
   'inline-flex shrink-0 cursor-pointer items-center justify-center align-middle select-none',
   'font-plain whitespace-nowrap',
   'state-layer focus-ring',
+  // Forced colours paint the container as Canvas and drop its shadow, so a FAB draws a 1px
+  // CanvasText boundary there, as Material Web's (2026-10-15).
+  'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
   /*
    * Appearing and disappearing: the FAB expands from its centre (scale 0.2 → 1, as
    * Compose's animateFloatingActionButton) on the fast spatial spring and fades on the fast
