@@ -430,14 +430,14 @@ function StandardSideSheet({
   // A non-modal dialog (m3.material.io: the side sheet's role is dialog); focus isn't moved.
   return (
     <div
-      {...mergeProps(rest, {
-        onFocus: (event: FocusEvent<HTMLDivElement>) => {
-          const from = event.relatedTarget;
-          if (from instanceof HTMLElement && !event.currentTarget.contains(from)) {
-            returnFocus.current = from;
-          }
-        },
-      })}
+      {...rest}
+      onFocus={(event: FocusEvent<HTMLDivElement>) => {
+        (rest as { onFocus?: (event: FocusEvent<HTMLDivElement>) => void }).onFocus?.(event);
+        const from = event.relatedTarget;
+        if (from instanceof HTMLElement && !event.currentTarget.contains(from)) {
+          returnFocus.current = from;
+        }
+      }}
       ref={rootRef}
       role="dialog"
       style={rootStyle}

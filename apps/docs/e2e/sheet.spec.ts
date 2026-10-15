@@ -451,9 +451,7 @@ test.describe('Bottom sheet drags from its content (touch)', () => {
     await expect(sheet).toBeVisible();
   });
 
-  test('a drag up on a half-open sheet raises it before the content scrolls', async ({
-    page,
-  }) => {
+  test('a drag up on a half-open sheet raises it before the content scrolls', async ({ page }) => {
     const { sheet, content } = await open(page);
     await touchDrag(page, { x: 200, y: 700 }, { x: 200, y: 550 });
     await settle(page);
