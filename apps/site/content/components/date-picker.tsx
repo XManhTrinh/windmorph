@@ -120,7 +120,8 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             Date pickers let someone choose a date, or a range of dates. M3 has three variants: the{' '}
             <strong className={c}>docked date picker</strong> (<InlineCode>DateField</InlineCode>),
-            a date field with a calendar just below it, best on medium and larger windows; the{' '}
+            a date field with a calendar just below it on medium and larger windows (on compact ones
+            it opens the modal picker full screen); the{' '}
             <strong className={c}>modal date picker</strong> (<InlineCode>DatePicker</InlineCode> or{' '}
             <InlineCode>DateRangePicker</InlineCode> in a <InlineCode>PickerDialog</InlineCode>),
             full screen on compact windows; and the <strong className={c}>modal date input</strong>,
@@ -169,7 +170,9 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
               The docked calendar is a <InlineCode>surface-container-high</InlineCode> panel with
               16px corners at level 3, with a month menu and a year menu, each between its own
               previous / next buttons, the days of the months around in{' '}
-              <InlineCode>on-surface-variant</InlineCode>, and Cancel / OK.
+              <InlineCode>on-surface-variant</InlineCode>, and Cancel / OK. On compact windows
+              (below 600px) the calendar button opens the modal picker full screen instead, as M3
+              recommends: the 360px panel doesn&apos;t fit a phone.
             </li>
           </ul>
         </section>

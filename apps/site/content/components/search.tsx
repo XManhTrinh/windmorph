@@ -79,8 +79,10 @@ export async function SearchBody(): Promise<ComponentDoc> {
             functions of <InlineCode>{'{ expanded, collapse, view }'}</InlineCode>, so a back or
             clear button appears while the view is open. The trailing slot holds one or two icon
             buttons, or an avatar (an <InlineCode>img</InlineCode>, drawn at 30px) and one icon
-            button. <InlineCode>textAlign=&quot;center&quot;</InlineCode> centres the collapsed
-            text. <InlineCode>SearchAppBar</InlineCode> (Compose&apos;s{' '}
+            button; two buttons sit 8px apart, so their 48px targets don&apos;t overlap. Icon
+            buttons in either slot take its colour and its icon colour token.{' '}
+            <InlineCode>textAlign=&quot;center&quot;</InlineCode> centres the collapsed text.{' '}
+            <InlineCode>SearchAppBar</InlineCode> (Compose&apos;s{' '}
             <InlineCode>AppBarWithSearch</InlineCode>) wraps a search bar in a top bar with a{' '}
             <InlineCode>navigationIcon</InlineCode>, <InlineCode>actions</InlineCode> and{' '}
             <InlineCode>scrollBehavior</InlineCode>.

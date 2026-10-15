@@ -147,6 +147,12 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
               exactly. With a label the placeholder, prefix and suffix appear only once it floats.
             </li>
             <li>
+              Below 52px (density −2 and −3) a filled field hides its label once it floats and
+              centres the value, as Material&apos;s web text field does; the resting label still
+              shows in an empty field. The outline grows to 2px on a spring that doesn&apos;t
+              overshoot, since a browser draws borders in whole pixels.
+            </li>
+            <li>
               <InlineCode>multiline</InlineCode> is a fixed-height text area by default, which M3
               recommends over growing fields on the web; <InlineCode>autoGrow</InlineCode> gives
               Compose&apos;s growing field. <InlineCode>supportingTextOnFocus</InlineCode> shows the
