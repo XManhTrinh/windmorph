@@ -399,3 +399,35 @@ describe('Chip density', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('InputChip selection without an action', () => {
+  it('describes the remove button of a selected chip with "Selected"', () => {
+    render(
+      <InputChip selected onRemove={() => {}}>
+        Alex
+      </InputChip>,
+    );
+    expect(screen.getByRole('button', { name: 'Remove Alex' })).toHaveAccessibleDescription(
+      'Selected',
+    );
+  });
+
+  it('says a static chip is selected, in its own words', () => {
+    render(
+      <InputChip selected labels={{ selected: 'Chosen' }}>
+        Alex
+      </InputChip>,
+    );
+    expect(screen.getByText(', Chosen')).toBeInTheDocument();
+  });
+
+  it('leaves the state to aria-pressed when the chip has an action', () => {
+    render(
+      <InputChip selected onPress={() => {}} onRemove={() => {}}>
+        Alex
+      </InputChip>,
+    );
+    expect(screen.getByRole('button', { name: 'Alex' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Remove Alex' })).not.toHaveAccessibleDescription();
+  });
+});

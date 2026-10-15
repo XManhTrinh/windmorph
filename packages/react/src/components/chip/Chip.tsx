@@ -8,6 +8,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react';
+import { VisuallyHidden } from 'react-aria';
 import { useToggleState } from 'react-stately';
 import {
   ButtonBase,
@@ -54,9 +55,15 @@ export interface ChipClassNames {
 export interface ChipLabels {
   /** First word of the remove button's name, which ends with the label. @default "Remove" */
   remove: string;
+  /**
+   * Announces a selected `InputChip` that has no `onPress` (with one, its action carries
+   * `aria-pressed`): the remove button's description, or hidden text on a static chip.
+   * @default "Selected"
+   */
+  selected: string;
 }
 
-const DEFAULT_LABELS: ChipLabels = { remove: 'Remove' };
+const DEFAULT_LABELS: ChipLabels = { remove: 'Remove', selected: 'Selected' };
 
 interface ChipCommonProps {
   /** The label. */
@@ -155,6 +162,7 @@ function RemoveButton({
   labels,
   onRemove,
   disabled,
+  describedBy,
 }: {
   styles: Styles;
   className?: string;
@@ -162,6 +170,8 @@ function RemoveButton({
   labels?: Partial<ChipLabels>;
   onRemove: () => void;
   disabled?: boolean;
+  /** An element describing the chip's state (a selected input chip without an action). */
+  describedBy?: string;
 }) {
   const removeId = useId();
   const { remove } = { ...DEFAULT_LABELS, ...labels };
@@ -171,6 +181,7 @@ function RemoveButton({
       onPress={onRemove}
       onKeyDown={removeKeys(onRemove, disabled)}
       aria-labelledby={`${removeId} ${labelId}`}
+      aria-describedby={describedBy}
       data-chip-remove=""
       className={styles.remove({ class: className })}
     >
@@ -548,7 +559,12 @@ export function InputChip({
   ...rest
 }: InputChipProps) {
   const labelId = useId();
+  const selectedId = useId();
   const split = onRemove ? (onPress ? 'two' : 'removeOnly') : 'none';
+  // Without an action there's no `aria-pressed` to carry the selection, so it's said in words
+  // (WCAG 1.3.1): the remove button's description, or hidden text on a static chip.
+  const announceSelected = Boolean(selected) && !onPress;
+  const selectedWord = { ...DEFAULT_LABELS, ...labels }.selected;
   const styles = chipStyles({
     kind: 'input',
     split,
@@ -595,6 +611,14 @@ export function InputChip({
       ) : (
         <span data-chip-primary="" className={styles.primary({ class: classNames?.primary })}>
           {content}
+          {announceSelected &&
+            (onRemove ? (
+              <span id={selectedId} hidden>
+                {selectedWord}
+              </span>
+            ) : (
+              <VisuallyHidden>{`, ${selectedWord}`}</VisuallyHidden>
+            ))}
         </span>
       )}
       {onRemove && (
@@ -605,6 +629,7 @@ export function InputChip({
           labels={labels}
           onRemove={onRemove}
           disabled={disabled}
+          describedBy={announceSelected ? selectedId : undefined}
         />
       )}
     </div>
