@@ -20,6 +20,8 @@ const nextConfig: NextConfig = {
   },
   // No next/image is used in this phase; a later phase that adds one must set
   // images.unoptimized = true, which output: 'export' requires.
+  // `next dev` doesn't write its AGENTS.md notes file into this app.
+  agentRules: false,
 };
 
 const withMDX = createMDX({

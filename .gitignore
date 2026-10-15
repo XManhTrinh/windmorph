@@ -18,10 +18,8 @@ apps/docs/test-results/
 # Local git worktrees
 .worktrees/
 
-# Local agent working notes
+# Local tool files, never committed
 .agents/
-
-# Agent files live in the private Windmorph Pro repo, never here.
 CLAUDE.md
 AGENTS.md
 .claude/
