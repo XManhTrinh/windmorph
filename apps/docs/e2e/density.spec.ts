@@ -787,3 +787,53 @@ test.describe('Density · control screenshots', () => {
     }
   }
 });
+
+test.describe('Density · icon buttons in parts that keep their size', () => {
+  /** The size of every icon button in the story, in document order (portalled ones too). */
+  const iconButtonSizes = (page: Page) =>
+    page.locator('[data-tokens="md-comp-icon-button"]').evaluateAll((buttons) =>
+      buttons.map((button) => {
+        const { width, height } = button.getBoundingClientRect();
+        return `${button.getAttribute('aria-label')}: ${Math.round(width)} × ${Math.round(height)}`;
+      }),
+    );
+
+  for (const id of [
+    'components-topappbar--variants',
+    'components-search--app-bar',
+    'components-toolbar--docked',
+    'components-toolbar--floating',
+    'components-toolbar--with-fab',
+    'components-navigation--rail',
+    'components-dialog--full-screen',
+    'components-sheet--side',
+  ]) {
+    test(`${id}: the same sizes at -3 as at 0`, async ({ page }) => {
+      const open = async (density: '0' | '-3') => {
+        await openStory(page, id, { density });
+        // Dialog and sheet stories open from a trigger.
+        const trigger = page.locator('#storybook-root button').first();
+        if (/dialog|sheet/.test(id)) {
+          await trigger.click();
+          await page.getByRole('dialog').first().waitFor();
+          await page.evaluate(() =>
+            Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))),
+          );
+        }
+        return iconButtonSizes(page);
+      };
+      const atZero = await open('0');
+      expect(atZero.length).toBeGreaterThan(0);
+      expect(await open('-3')).toEqual(atZero);
+    });
+  }
+
+  test('a standalone icon button still shrinks', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--variants', { density: '0' });
+    const atZero = await iconButtonSizes(page);
+    await openStory(page, 'components-iconbutton--variants', { density: '-3' });
+    const dense = await iconButtonSizes(page);
+    expect(dense.length).toBe(atZero.length);
+    expect(dense).not.toEqual(atZero);
+  });
+});

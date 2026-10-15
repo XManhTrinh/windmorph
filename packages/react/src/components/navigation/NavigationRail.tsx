@@ -18,6 +18,7 @@ import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import type { NavItemLayout } from './nav-item-styles';
+import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationRailStyles } from './navigation-styles';
 import { onItemArrowKeys } from './use-item-arrow-keys';
@@ -273,7 +274,7 @@ export function NavigationRail({
           <div className={styles.body({ class: classNames?.body })}>
             {headerContent != null && (
               <div data-rail-header="" className={styles.header({ class: classNames?.header })}>
-                {headerContent}
+                <DensityZeroButtons>{headerContent}</DensityZeroButtons>
               </div>
             )}
             <div
@@ -441,7 +442,7 @@ function ModalSheet({
       >
         {header != null && (
           <div data-rail-header="" className={styles.header({ class: classNames?.header })}>
-            {header}
+            <DensityZeroButtons>{header}</DensityZeroButtons>
           </div>
         )}
         <nav

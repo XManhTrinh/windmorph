@@ -282,6 +282,7 @@ function ButtonGroupRoot({
       shape: shape ?? parent.shape,
       disabled: disabled ?? parent.disabled,
       iconButtonVariant: iconButtonVariant ?? parent.iconButtonVariant,
+      density: parent.density,
     }),
     [buttonVariant, iconButtonVariant, size, shape, disabled, parent],
   );

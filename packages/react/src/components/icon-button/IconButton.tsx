@@ -72,7 +72,8 @@ interface IconButtonOwnProps {
    * Web density, `0` to `-3`: each step takes 4px off the container's height and width (an
    * S button: 40px at 0, 28px at -3), never below the icon plus 4px; the touch target stays
    * 48 × 48px. Left out, the button takes the density of the nearest `ThemeProvider` or
-   * `ThemeScope`; icon buttons in a field's icon slots keep their size. M3 asks for density
+   * `ThemeScope`; icon buttons in a field's icon slots, and in app bars, toolbars, search bars,
+   * a navigation rail's header and dialog and sheet headers, keep their size. M3 asks for density
    * to be the reader's choice rather than a default, so prefer setting it there.
    * @default 0
    */
@@ -136,7 +137,7 @@ export function IconButton(props: IconButtonProps) {
     size: sizeProp,
     width = 'default',
     shape: shapeProp,
-    density,
+    density: densityProp,
     disabled: disabledProp,
     icon,
     tooltip = true,
@@ -165,6 +166,7 @@ export function IconButton(props: IconButtonProps) {
     '[@windmorph/react] Avoid wide icon buttons in a vertical toolbar (M3): use the default or narrow width.',
   );
   const variant = variantProp ?? context.iconButtonVariant ?? 'filled';
+  const density = densityProp ?? context.density;
   const styles = iconButtonStyles({
     variant,
     size,

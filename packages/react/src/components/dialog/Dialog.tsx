@@ -37,6 +37,7 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { useWarnOnce } from '../../utils/warn-once';
+import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { DIALOG_ROOT_STYLE, dialogStyles } from './dialog-styles';
 
@@ -630,6 +631,7 @@ export function DialogHeader({
       {fullScreen !== 'never' && (
         <IconButton
           variant="standard"
+          density={0}
           icon={<CloseIcon />}
           aria-label={closeLabel}
           onPress={close}
@@ -640,7 +642,9 @@ export function DialogHeader({
         {children}
       </h2>
       {fullScreen !== 'never' && action !== undefined && (
-        <div className={styles.headerButton()}>{action}</div>
+        <div className={styles.headerButton()}>
+          <DensityZeroButtons>{action}</DensityZeroButtons>
+        </div>
       )}
     </div>
   );

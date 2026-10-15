@@ -635,6 +635,7 @@ function BottomSheetPanel({
               <div className={styles.closeRow({ class: classNames?.closeRow })}>
                 <IconButton
                   variant="standard"
+                  density={0}
                   icon={
                     standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)
                   }

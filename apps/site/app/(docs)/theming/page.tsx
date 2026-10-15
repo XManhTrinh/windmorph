@@ -295,8 +295,16 @@ export default async function ThemingPage() {
           to 24px (a chip set adds 2px a step between rows), icon buttons lose 4px of height and
           width at every size (a small one 40px to 28px), so button groups of them follow, tabs go
           from 48px to 36px (64px to 52px with icons above), and list items lose 4px a step (one
-          line 56px to 44px), section subheaders too. Icon buttons in a text field&apos;s icon slots
-          and on the pickers keep their size.
+          line 56px to 44px), section subheaders too.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Icon buttons keep their size where the part around them keeps its own: in a text
+          field&apos;s icon slots, on the pickers, in top app bars and search app bars, in docked
+          and floating toolbars (their button groups too), in search bars and their views, in a
+          navigation rail&apos;s header, and in full-screen dialog and side sheet headers, beside a
+          bottom sheet&apos;s drag handle too. An icon button&apos;s own{' '}
+          <InlineCode>density</InlineCode> still wins. Buttons have no density: for a denser layout,
+          use a smaller <InlineCode>size</InlineCode>.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Set it app-wide with <InlineCode>ThemeProvider</InlineCode> (

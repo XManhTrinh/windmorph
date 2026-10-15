@@ -22,6 +22,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
+import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
@@ -222,6 +223,7 @@ function SheetBody({
         {onBack && (
           <IconButton
             variant="standard"
+            density={0}
             icon={backIcon ?? <BackIcon />}
             aria-label={labels.back}
             onPress={onBack}
@@ -234,9 +236,10 @@ function SheetBody({
           </h2>
         )}
         <div className={styles.headerActions({ class: classNames?.headerActions })}>
-          {render(actions)}
+          <DensityZeroButtons>{render(actions)}</DensityZeroButtons>
           <IconButton
             variant="standard"
+            density={0}
             icon={closeIcon ?? <CloseIcon />}
             aria-label={labels.close}
             onPress={close}
