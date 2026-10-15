@@ -35,19 +35,21 @@ export const dividerStyles = tv({
 
 /**
  * Variant definitions for {@link LabeledDivider}: a divider with supporting text 4px below
- * it, 8px clear at the end and below (m3.material.io's divider measurements). The spec
+ * it, the text 8px clear of the end and 8px clear below (m3.material.io's divider
+ * measurements); the line itself runs the full width (2026-10-15: the end padding was on the
+ * root, which shortened the line by 8px). The spec
  * names no type role for the text; it uses `label-small` in `on-surface-variant`.
  */
 export const labeledDividerStyles = tv({
   slots: {
-    root: 'flex min-w-0 flex-col gap-[4px] pe-[8px] pb-[8px]',
-    label: 'text-label-small text-on-surface-variant',
+    root: 'flex min-w-0 flex-col gap-[4px] pb-[8px]',
+    label: 'pe-[8px] text-label-small text-on-surface-variant',
   },
   variants: {
     inset: {
       none: {},
       start: { label: 'ps-[16px]' },
-      middle: { label: 'ps-[16px] pe-[16px]' },
+      middle: { label: 'ps-[16px] pe-[24px]' },
     },
   },
   defaultVariants: { inset: 'none' },

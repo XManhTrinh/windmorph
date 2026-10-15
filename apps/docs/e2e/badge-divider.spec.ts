@@ -113,6 +113,10 @@ test.describe('Divider', () => {
     const text = await rect(root.getByText('Inset supporting text'));
     expect(text.y - line.bottom).toBe(4);
     expect((await rect(root)).bottom - text.bottom).toBe(8);
+    // The line runs to the end; the text keeps 8px clear of it.
+    expect((await rect(root)).right - line.right).toBe(0);
+    const label = root.getByText('Inset supporting text');
+    expect(await label.evaluate((el) => getComputedStyle(el).paddingInlineEnd)).toBe('8px');
   });
 
   test.describe('layout safety', () => {
