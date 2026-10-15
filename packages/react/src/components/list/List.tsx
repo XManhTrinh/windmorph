@@ -608,6 +608,7 @@ function ItemContent({
   headline,
   sideClassName,
   end,
+  textHidden,
 }: {
   item: ListItemProps;
   styles: ReturnType<typeof listStyles>;
@@ -621,6 +622,11 @@ function ItemContent({
   headline?: (children: ReactNode) => ReactNode;
   /** Classes for the leading and trailing content (a link item raises its controls). */
   sideClassName?: string;
+  /**
+   * Hides the text from assistive tech: a control item's input is already named and
+   * described by it, so it would be read twice.
+   */
+  textHidden?: boolean;
 }) {
   const leading = controlPlacement === 'leading' ? control : null;
   const trailing = controlPlacement === 'trailing' ? control : end;
@@ -628,6 +634,7 @@ function ItemContent({
     <>
       {(item.leading != null || leading != null) && (
         <span
+          ref={(cell) => hideDecorativeIcons(cell)}
           data-slot="leading"
           className={styles.leading({ class: cn(sideClassName, classNames?.leading) })}
         >
@@ -635,7 +642,10 @@ function ItemContent({
           {item.leading}
         </span>
       )}
-      <span className={styles.text({ class: classNames?.text })}>
+      <span
+        aria-hidden={textHidden || undefined}
+        className={styles.text({ class: classNames?.text })}
+      >
         {item.overline != null && (
           <span
             id={ids?.overline}
@@ -664,6 +674,7 @@ function ItemContent({
       </span>
       {(item.trailing != null || trailing != null) && (
         <span
+          ref={(cell) => hideDecorativeIcons(cell)}
           data-slot="trailing"
           className={styles.trailing({ class: cn(sideClassName, classNames?.trailing) })}
         >
@@ -673,6 +684,28 @@ function ItemContent({
       )}
     </>
   );
+}
+
+/**
+ * Hides the bare icons of an item's leading or trailing content from assistive tech: an
+ * `<svg>` child with no name of its own (`aria-label`, `aria-labelledby`, `role`, `<title>`)
+ * is decorative, since the item's text names the item, and would otherwise be listed as an
+ * unnamed image. A ref callback, so it also reaches icons that components render; it runs
+ * on every render (no layout reads), so a replaced icon is hidden too.
+ */
+function hideDecorativeIcons(cell: HTMLElement | null) {
+  if (!cell) return;
+  for (const svg of cell.querySelectorAll(':scope > svg')) {
+    if (
+      svg.hasAttribute('aria-label') ||
+      svg.hasAttribute('aria-labelledby') ||
+      svg.hasAttribute('role') ||
+      svg.querySelector(':scope > title')
+    ) {
+      continue;
+    }
+    svg.setAttribute('aria-hidden', 'true');
+  }
 }
 
 /** What a plain list hands its items and sections. */
@@ -941,7 +974,7 @@ function InteractiveList(props: ListProps & { expandable: boolean }) {
 /** Material Symbols "check" and "expand_more" (Apache-2.0). */
 function CheckIcon20() {
   return (
-    <svg viewBox="0 -960 960 960" fill="currentColor">
+    <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" focusable="false">
       <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
     </svg>
   );
@@ -949,7 +982,7 @@ function CheckIcon20() {
 
 function ExpandMoreIcon() {
   return (
-    <svg viewBox="0 -960 960 960">
+    <svg viewBox="0 -960 960 960" aria-hidden="true" focusable="false">
       <path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z" />
     </svg>
   );
@@ -2017,6 +2050,7 @@ function ControlItem({
           classNames={classNames}
           ids={ids}
           controlPlacement={placement}
+          textHidden
           control={
             <span
               {...controlState}

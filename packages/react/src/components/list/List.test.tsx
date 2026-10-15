@@ -812,6 +812,46 @@ describe('List (expandable items)', () => {
   });
 });
 
+describe('List accessibility tree', () => {
+  it("reads a control item's text once: as the input's name and description", () => {
+    render(
+      <List aria-label="Theme" defaultValue="dark">
+        <ListItem key="light" value="light">
+          Light
+        </ListItem>
+        <ListItem key="dark" value="dark" supportingText="Easier at night">
+          Dark
+        </ListItem>
+      </List>,
+    );
+    const dark = screen.getByRole('radio', { name: 'Dark' });
+    expect(dark).toHaveAccessibleDescription('Easier at night');
+    // The visible text is hidden, so it isn't read again after the radio.
+    expect(screen.getByText('Dark').closest('[aria-hidden="true"]')).not.toBe(null);
+    expect(screen.getByText('Easier at night').closest('[aria-hidden="true"]')).not.toBe(null);
+  });
+
+  it('hides decorative icons and the chevron, keeping named ones', async () => {
+    render(
+      <List aria-label="Folders" defaultExpandedKeys={['photos']}>
+        <ListItem
+          key="photos"
+          leading={<Icon />}
+          trailing={<svg aria-label="Shared" viewBox="0 0 24 24" />}
+          childItems={[<ListItem key="trips">Trips</ListItem>]}
+        >
+          Photos
+        </ListItem>
+      </List>,
+    );
+    const row = screen.getByRole('row', { name: /Photos/ });
+    expect(within(row).getByTestId('icon')).toHaveAttribute('aria-hidden', 'true');
+    expect(within(row).getByLabelText('Shared')).not.toHaveAttribute('aria-hidden');
+    const chevron = within(row).getByRole('button', { name: /Collapse/ });
+    expect(chevron.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+  });
+});
+
 describe('List component tokens', () => {
   it('lets consumer item classes replace the token classes', () => {
     render(
