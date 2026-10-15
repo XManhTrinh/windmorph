@@ -51,4 +51,15 @@ describe('textFieldStyles', () => {
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     );
   });
+
+  // A border is drawn in whole device pixels, so a width on an overshooting spring draws
+  // 2 → 1 → 2px as it settles. The outline's width must use a spring that never overshoots.
+  it('grows the outline on the fast effects spring, which never overshoots', () => {
+    const outline = textFieldStyles({ variant: 'outlined', hasLabel: true }).outline();
+    expect(outline).toContain('[transition-property:border-color,border-width]');
+    expect(outline).not.toContain('spatial');
+    expect(outline).toContain(
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+    );
+  });
 });

@@ -32,7 +32,7 @@ const geometryTransition =
 
 /*
  * Colour on the fast effects spring, size on the fast spatial spring (Compose animates the
- * indicator and outline thickness on FastSpatial and their colour on FastEffects).
+ * indicator thickness on FastSpatial and its colour on FastEffects).
  */
 const colourAndSizeTransition =
   '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]';
@@ -59,8 +59,13 @@ export const textFieldStyles = tv({
       'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[12px]',
       'rounded-[var(--_md-comp-text-field-container-shape)] border border-solid',
       'border-[color:var(--_md-comp-text-field-outline-color)]',
+      // Colour and width both on the fast effects spring. Compose animates the width on
+      // FastSpatial, but a browser draws a border in whole device pixels, so a width that
+      // overshoots 2px and settles back draws 2 → 1 → 2px. The effects spring never
+      // overshoots, so the width only grows (and never dips below 1px on the way back).
+      // The filled indicator keeps the spatial spring: its `height` draws fractions.
       '[transition-property:border-color,border-width]',
-      colourAndSizeTransition,
+      effectsTransition,
       'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
       'group-data-[field-state=focus]/field:border-2',
       'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',
