@@ -92,6 +92,9 @@ export const menuStyles = tv({
     ],
     group: [
       'pointer-events-auto flex flex-col bg-[var(--_md-comp-menus-container-color)] p-[4px] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
+      // Forced colours drop the surface colour and the shadow: a system-colour outline keeps
+      // the edge (an outline, so nothing moves).
+      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
       '[transition-property:border-radius]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
@@ -240,12 +243,13 @@ export const menuStyles = tv({
       divider: {
         menu: [
           'pointer-events-auto min-w-[112px] max-w-[280px] p-[4px] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
+          'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
           'rounded-[var(--m3-menu-corner,var(--md-sys-shape-corner-large))]',
           '[transition-property:border-radius]',
           '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
           '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
         ],
-        group: 'bg-transparent p-0 shadow-none',
+        group: 'bg-transparent p-0 shadow-none forced-colors:outline-none',
       },
     },
   },
@@ -277,7 +281,7 @@ export const menuStyles = tv({
     {
       embedded: true,
       class: {
-        menu: 'w-full max-w-none min-w-0 rounded-none bg-transparent p-0 shadow-none',
+        menu: 'w-full max-w-none min-w-0 rounded-none bg-transparent p-0 shadow-none forced-colors:outline-none',
       },
     },
   ],

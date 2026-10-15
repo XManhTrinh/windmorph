@@ -185,6 +185,8 @@ export const dockedDatePickerStyles = tv({
     panel: [
       'flex w-[360px] max-w-full flex-col rounded-corner-large bg-surface-container-high',
       'ps-[12px] pe-[12px] text-on-surface shadow-elevation-3 outline-none',
+      // Forced colours drop the surface and the shadow: a system-colour outline keeps the edge.
+      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
     ],
     calendar: 'flex flex-col',
     header: 'flex h-[56px] shrink-0 items-center justify-between',
