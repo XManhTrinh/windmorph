@@ -361,9 +361,11 @@ export function SearchBar(props: SearchBarProps) {
               setQuery(next);
             },
             onClick: state.open,
+            // Enter and ↓ open the search view, as a click does (Compose expands the bar
+            // as its field takes focus); the query is submitted from the open view.
             onKeyDown: (event) => {
-              submitOnEnter(event);
-              if (event.key === 'ArrowDown') {
+              const enter = event.key === 'Enter' && !event.nativeEvent.isComposing;
+              if (enter || event.key === 'ArrowDown') {
                 event.preventDefault();
                 state.open();
               }

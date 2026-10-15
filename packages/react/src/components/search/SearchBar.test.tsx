@@ -159,6 +159,19 @@ describe('SearchBar', () => {
     expect(screen.getByText('Suggestion one').closest('[data-view]')).toHaveFocus();
   });
 
+  it('opens on Enter in the collapsed bar instead of submitting', async () => {
+    const onSubmit = vi.fn();
+    render(<Controlled onSubmit={onSubmit} />);
+    const input = screen.getByRole('combobox');
+    act(() => input.focus());
+    await userEvent.keyboard('{Enter}');
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(onSubmit).toHaveBeenCalledWith('');
+  });
+
   it('announces the results politely while the view is open', async () => {
     const { rerender } = render(<Controlled resultsAnnouncement="2 suggestions" />);
     await userEvent.click(screen.getByRole('combobox'));
