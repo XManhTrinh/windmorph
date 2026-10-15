@@ -36,12 +36,7 @@ const cases: [string, string, string, number][] = [
     '[data-testid=toggles] [aria-label="Notify me about"] li:nth-of-type(1) label',
     40,
   ],
-  [
-    'list radio row',
-    'components-list--radio-list',
-    '[data-testid=radio-list] label >> nth=2',
-    40,
-  ],
+  ['list radio row', 'components-list--radio-list', '[data-testid=radio-list] label >> nth=2', 40],
 ];
 
 for (const [name, story, selector, above] of cases) {
