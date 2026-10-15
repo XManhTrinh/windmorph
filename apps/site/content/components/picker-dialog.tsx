@@ -91,36 +91,6 @@ export async function PickerDialogBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              It is a React Aria modal dialog: focus is contained while open and restored to the
-              trigger on close, and the types require an <InlineCode>aria-label</InlineCode> or{' '}
-              <InlineCode>aria-labelledby</InlineCode> (the time variant&apos;s{' '}
-              <InlineCode>title</InlineCode> can also name it).
-            </li>
-            <li>
-              Escape closes it, and a press outside closes it when{' '}
-              <InlineCode>dismissable</InlineCode> (the default). The picker inside keeps its own
-              keyboard model (calendar grid or dial). With <InlineCode>onConfirm</InlineCode>, Enter
-              on a day (or in a typed date) closes the dialog and saves, as the M3 date picker
-              keyboard table asks; <InlineCode>onConfirm</InlineCode> runs once the picker&apos;s
-              new value has rendered.
-            </li>
-            <li>
-              Actions read in order: the <InlineCode>modeToggleButton</InlineCode> at the start,
-              then the <InlineCode>dismissButton</InlineCode> and{' '}
-              <InlineCode>confirmButton</InlineCode> at the end.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

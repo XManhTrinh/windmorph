@@ -63,39 +63,6 @@ export async function BadgeBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>A badge adds no interaction of its own; it rides on whatever it is placed on.</li>
-            <li>
-              Badges are announced as part of the text around them, as M3 asks: a count is read, a
-              dot reads &quot;New notification&quot; (change it with <InlineCode>labels</InlineCode>
-              ), and <InlineCode>label</InlineCode> replaces either (&quot;3 unread messages&quot;).
-            </li>
-            <li>
-              On a navigation bar or rail item, pass the badge through the item&apos;s{' '}
-              <InlineCode>badge</InlineCode> prop, not a <InlineCode>BadgedBox</InlineCode> in its
-              icon: the item reads it after its name, as M3 asks. A count reads itself (or{' '}
-              <InlineCode>badgeLabel</InlineCode>, &quot;3 unread messages&quot;), and a dot reads
-              &quot;New notification&quot;.
-            </li>
-            <li>
-              An anchor with its own <InlineCode>aria-label</InlineCode> (an{' '}
-              <InlineCode>IconButton</InlineCode>, say) hides the badge&apos;s text, so put the
-              badge&apos;s meaning in that label: &quot;Messages, 12 unread&quot;.
-            </li>
-            <li>
-              A bare SVG anchor gets Compose&apos;s default 24px icon size; wrap it in a sized
-              element for other sizes.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

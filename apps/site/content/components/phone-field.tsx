@@ -10,7 +10,7 @@ const PhoneFieldSignup = lazyExample('phone-field/phone-field-signup', 'PhoneFie
 const PhoneFieldStates = lazyExample('phone-field/phone-field-states', 'PhoneFieldStates');
 const PhoneFieldVariants = lazyExample('phone-field/phone-field-variants', 'PhoneFieldVariants');
 
-/** Phone field page body: purpose, examples, accessibility and theming. */
+/** Phone field page body: purpose, examples and theming. */
 export async function PhoneFieldBody(): Promise<ComponentDoc> {
   const [signup, variants, flags, states] = await Promise.all([
     readExampleSource('phone-field/phone-field-signup.tsx'),
@@ -88,39 +88,6 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
             browser in the page&apos;s language, so no names ship with the library. Servers can
             check a value the same way with <InlineCode>phoneProblem</InlineCode>.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The country field is a searchable Select, named by the country and its code, then its
-              label (&quot;United Kingdom (+44) Country&quot;); it opens a dialog with the search
-              and the list.
-            </li>
-            <li>
-              The search keeps focus: type a name, ISO code or dialling code (&quot;thai&quot;,
-              &quot;TH&quot;, &quot;66&quot;), move with the arrow keys, press Enter to choose, or
-              Escape to clear the search and then close. Focus then returns to the country field,
-              with the number next; a press outside leaves it.
-            </li>
-            <li>
-              The number uses <InlineCode>type=&quot;tel&quot;</InlineCode>, the phone keypad and{' '}
-              <InlineCode>autocomplete=&quot;tel&quot;</InlineCode>, so browsers can fill the whole
-              number. An invalid number is announced when the field loses focus.
-            </li>
-            <li>
-              On compact windows the list opens in a bottom sheet, showing the list first so the
-              keyboard doesn&apos;t cover it; on larger ones, in a menu under the field with the
-              search focused. The dial code and the number read left to right in right-to-left
-              layouts.
-            </li>
-          </ul>
         </section>
       </>
     ),

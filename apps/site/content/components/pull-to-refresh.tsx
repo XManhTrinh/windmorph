@@ -153,53 +153,6 @@ export async function PullToRefreshBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="a-way-without-the-gesture" className={heading}>
-            A way without the gesture
-          </h2>
-          <p className={body}>
-            Pull to refresh can&apos;t be the only way to refresh: not everyone can drag. Offer a
-            refresh button in the app bar, a menu or next to the content that sets{' '}
-            <InlineCode>refreshing</InlineCode>; the same indicator comes in and the same
-            announcements are made. The component has no built-in button because where it goes
-            belongs to the screen&apos;s layout.
-          </p>
-        </section>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className={heading}>
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className={list}>
-            <li>
-              The indicator is a <InlineCode>role=&quot;progressbar&quot;</InlineCode>: named{' '}
-              <InlineCode>labels.pull</InlineCode> (&ldquo;Pull to refresh&rdquo;, with its value)
-              while it follows a pull, and <InlineCode>labels.refreshing</InlineCode>{' '}
-              (&ldquo;Refreshing&rdquo;) while a refresh runs. Name them for what they refresh, e.g.
-              &ldquo;Refreshing messages&rdquo;.
-            </li>
-            <li>
-              A polite live region announces <InlineCode>labels.refreshing</InlineCode> when a
-              refresh starts and <InlineCode>labels.refreshed</InlineCode> (&ldquo;Refreshed&rdquo;)
-              when it ends.
-            </li>
-            <li>
-              When the area is itself the scroll container, give it keyboard access as any scrolling
-              region needs: <InlineCode>tabIndex={'{0}'}</InlineCode>,{' '}
-              <InlineCode>role=&quot;region&quot;</InlineCode> and an{' '}
-              <InlineCode>aria-label</InlineCode>, as the examples do.
-            </li>
-            <li>
-              It adds nothing to the tab order itself. Under{' '}
-              <InlineCode>prefers-reduced-motion</InlineCode> the indicator settles on the standard
-              motion scheme&apos;s spring, which doesn&apos;t overshoot, and the refreshing
-              indicator only rotates.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

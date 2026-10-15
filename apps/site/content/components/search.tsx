@@ -88,43 +88,6 @@ export async function SearchBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Name the bar with <InlineCode>aria-label</InlineCode> or{' '}
-              <InlineCode>aria-labelledby</InlineCode> (required by the types); the bar inside a{' '}
-              <InlineCode>SearchAppBar</InlineCode> still needs its own name.
-            </li>
-            <li>
-              The collapsed input is a <InlineCode>combobox</InlineCode> with{' '}
-              <InlineCode>aria-haspopup=&quot;dialog&quot;</InlineCode> and{' '}
-              <InlineCode>aria-expanded</InlineCode>. A press, typing, or ↓ expands it; Tab focus
-              alone does not.
-            </li>
-            <li>
-              The expanded view is a modal dialog named like the bar. It has its own input (the
-              collapsed one becomes <InlineCode>inert</InlineCode> and{' '}
-              <InlineCode>aria-hidden</InlineCode>), and focus returns on close.
-            </li>
-            <li>
-              In the view, ↓ from the input moves focus to the first focusable item of the content;
-              Escape or an outside press collapses it. Enter submits and moves focus to the results,
-              leaving the query visible.
-            </li>
-            <li>
-              Pass <InlineCode>resultsAnnouncement</InlineCode> (e.g. &quot;5 results&quot;): a
-              polite live region in the view reads it when the view opens and whenever it changes,
-              as M3 requires.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

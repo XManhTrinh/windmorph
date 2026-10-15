@@ -18,7 +18,7 @@ const MediaUploadGridRow = lazyExample(
   'MediaUploadGridRow',
 );
 
-/** Media upload grid page body: purpose, examples, the app's part, accessibility and theming. */
+/** Media upload grid page body: purpose, examples, the app's part and theming. */
 export async function MediaUploadGridBody(): Promise<ComponentDoc> {
   const [composer, row, disabled] = await Promise.all([
     readExampleSource('media-upload-grid/media-upload-grid-composer.tsx'),
@@ -117,37 +117,6 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
             <li>
               Check every file on the server too: its name and type can lie. Pasting photos is up to
               the app, which owns the focused text field.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The grid is one Tab stop. The arrow keys move between photos (following the reading
-              direction in right-to-left), and Tab reaches the focused photo&apos;s buttons.
-            </li>
-            <li>
-              Each photo is named by its <InlineCode>alt</InlineCode> and its state
-              (&quot;Uploading, 40%&quot;, &quot;Couldn&apos;t upload. Too large&quot;); the buttons
-              are named after it (&quot;Remove Lake at dusk&quot;) and show that name as a tooltip
-              on hover and keyboard focus. Every word comes from <InlineCode>labels</InlineCode>.
-            </li>
-            <li>
-              To move a photo, press Enter on it, then the arrow keys between the places it can go
-              (&quot;Insert between … and …&quot;), then Enter to drop it or Escape to cancel. Each
-              step is announced. A mouse drags it; on touch, a long press picks it up, so the page
-              still scrolls.
-            </li>
-            <li>
-              Removing a photo moves focus to the next one, and Retry keeps focus on the photo.
-              Every button is at least 48px to touch.
             </li>
           </ul>
         </section>

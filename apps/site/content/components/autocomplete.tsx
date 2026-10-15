@@ -144,51 +144,6 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The field is a <InlineCode>combobox</InlineCode> with list autocomplete. Typing opens
-              the menu and filters it; ↑ / ↓ move through the matches while focus stays in the field
-              (<InlineCode>aria-activedescendant</InlineCode>), Enter chooses, and Escape closes the
-              menu and puts back the chosen option&apos;s text (or empties the field when nothing is
-              chosen).
-            </li>
-            <li>
-              The arrow button opens every option and is named &quot;Show options&quot; (set{' '}
-              <InlineCode>labels</InlineCode> for other languages). &quot;No results&quot; and the
-              loading indicator are announced.
-            </li>
-            <li>
-              With <InlineCode>selectionMode=&quot;multiple&quot;</InlineCode>, each chosen option
-              is an input chip whose close button is named &quot;Remove&quot; with the option
-              (&quot;Remove London&quot;); Backspace in the empty field removes the last one. While
-              the menu is open, only the field and the menu are exposed to assistive technology, so
-              close it with Escape to reach the chips.
-            </li>
-            <li>
-              Disabled options can take keyboard focus but can&apos;t be chosen (M3 menus). The
-              error message is announced as an alert, an invalid field shows an error icon named
-              &quot;Error&quot;, and the required <InlineCode>*</InlineCode> is part of the
-              field&apos;s name.
-            </li>
-            <li>
-              <InlineCode>clearable</InlineCode> adds M3&apos;s clear icon while there&apos;s text,
-              named &quot;Clear&quot;. It&apos;s left out of the Tab order, since the text can be
-              deleted from the keyboard.
-            </li>
-            <li>
-              As the list filters, the options that stay ease into their new places on the default
-              spatial spring (M3), with no movement under reduced motion.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

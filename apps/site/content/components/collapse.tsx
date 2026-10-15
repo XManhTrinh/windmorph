@@ -11,7 +11,7 @@ const CollapseDisclosure = lazyExample('collapse/collapse-disclosure', 'Collapse
 const CollapseReplies = lazyExample('collapse/collapse-replies', 'CollapseReplies');
 const CollapseShownFirst = lazyExample('collapse/collapse-shown-first', 'CollapseShownFirst');
 
-/** Collapse page body: purpose, examples, behaviour, accessibility and tokens. */
+/** Collapse page body: purpose, examples, behaviour and tokens. */
 export async function CollapseBody(): Promise<ComponentDoc> {
   const [replies, disclosure] = await Promise.all([
     readExampleSource('collapse/collapse-replies.tsx'),
@@ -106,23 +106,6 @@ export async function CollapseBody(): Promise<ComponentDoc> {
               a gap around it.
             </li>
             <li>Under reduced motion it only fades.</li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              What opens it is the app&apos;s. For a disclosure, give that button{' '}
-              <InlineCode>aria-expanded</InlineCode> and <InlineCode>aria-controls</InlineCode>{' '}
-              pointing at the content.
-            </li>
-            <li>Folded content is gone from the page, so screen readers and Tab skip it.</li>
           </ul>
         </section>
       </>

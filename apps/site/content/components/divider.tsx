@@ -65,28 +65,6 @@ export async function DividerBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A divider is <InlineCode>role=&quot;separator&quot;</InlineCode> by default; a
-              vertical one also reports{' '}
-              <InlineCode>aria-orientation=&quot;vertical&quot;</InlineCode>.
-            </li>
-            <li>
-              Set <InlineCode>decorative</InlineCode> for a purely visual line (e.g. between list
-              items that already read as separate); it then takes{' '}
-              <InlineCode>role=&quot;none&quot;</InlineCode> and is hidden from assistive tech.
-            </li>
-            <li>A divider is not focusable and has no interaction.</li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

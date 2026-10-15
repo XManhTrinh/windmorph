@@ -10,7 +10,7 @@ const EmptyStateRetry = lazyExample('empty-state/empty-state-retry', 'EmptyState
 const EmptyStateSearch = lazyExample('empty-state/empty-state-search', 'EmptyStateSearch');
 const EmptyStateVariants = lazyExample('empty-state/empty-state-variants', 'EmptyStateVariants');
 
-/** Empty state page body: when to use it, examples, accessibility and theming. */
+/** Empty state page body: when to use it, examples and theming. */
 export async function EmptyStateBody(): Promise<ComponentDoc> {
   const [noPosts, retry, search, emptyStateVariants] = await Promise.all([
     readExampleSource('empty-state/empty-state-no-posts.tsx'),
@@ -86,30 +86,6 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
             Use a Skeleton while content loads and its layout is known, a Snackbar for feedback
             about an action, and helper text for a form field&apos;s problem.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>The icon is decorative and hidden; the title and description are read as text.</li>
-            <li>
-              <InlineCode>titleAs=&quot;h2&quot;</InlineCode> (or h3, h4) makes the title a heading
-              when the empty state is a section&apos;s only content.
-            </li>
-            <li>
-              <InlineCode>announce</InlineCode> makes it a status region, for an empty state that
-              replaces results after a search or filter.
-            </li>
-            <li>
-              It fades in on the effects spring, and appears at once under reduced motion. In
-              forced-colours mode the icon keeps the text colour.
-            </li>
-          </ul>
         </section>
       </>
     ),

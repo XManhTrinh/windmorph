@@ -13,7 +13,7 @@ const ButtonVariants = lazyExample('button/button-variants', 'ButtonVariants');
 const ButtonShapes = lazyExample('button/button-shapes', 'ButtonShapes');
 const ButtonToggleVariants = lazyExample('button/button-toggle-variants', 'ButtonToggleVariants');
 
-/** Button page body: purpose, live examples, accessibility and Compose differences. */
+/** Button page body: purpose, live examples and Compose differences. */
 export async function ButtonBody(): Promise<ComponentDoc> {
   const [variants, sizes, toggle, link] = await Promise.all([
     readExampleSource('button/button-variants.tsx'),
@@ -126,35 +126,6 @@ export async function ButtonBody(): Promise<ComponentDoc> {
               Keep a toggle&apos;s label about the same length in both states (Star / Starred), so
               the button doesn&apos;t jump in width when it changes. Pair an outlined icon with its
               filled form through <InlineCode>selectedLeadingIcon</InlineCode>.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The visible label names the button; the leading icon is decorative and hidden from
-              assistive tech. M3 allows one icon, before the label, so there is no trailing icon.
-            </li>
-            <li>
-              Tab moves focus to the button; Enter or Space activates it. A focus ring shows while
-              navigating by keyboard.
-            </li>
-            <li>
-              With <InlineCode>href</InlineCode> the button renders an{' '}
-              <InlineCode>&lt;a&gt;</InlineCode> and behaves as a link: Enter follows it, and Space
-              scrolls the page as it does on any link, rather than activating it. Use a button
-              without <InlineCode>href</InlineCode> for actions.
-            </li>
-            <li>
-              A toggle button exposes <InlineCode>aria-pressed</InlineCode>; its label should still
-              read correctly in both states.
             </li>
           </ul>
         </section>

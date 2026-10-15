@@ -12,7 +12,7 @@ const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
 const AvatarTones = lazyExample('avatar/avatar-tones', 'AvatarTones');
 
-/** Avatar page body: purpose, examples, accessibility and theming. */
+/** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
   const [fallbacks, photos, tones, shapes, badges, group] = await Promise.all([
     readExampleSource('avatar/avatar-fallbacks.tsx'),
@@ -106,35 +106,6 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             M3 Expressive shapes. <InlineCode>icon</InlineCode> sets the fallback when there is no
             name.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A static avatar is an image named by <InlineCode>alt</InlineCode>, or hidden with{' '}
-              <InlineCode>decorative</InlineCode> when the name is written next to it. The types
-              require one of the two.
-            </li>
-            <li>
-              Presence and the badge&apos;s <InlineCode>badgeLabel</InlineCode> join the name
-              (&quot;Sam, online, verified&quot;); pass <InlineCode>labels</InlineCode> to translate
-              the presence words.
-            </li>
-            <li>
-              With <InlineCode>href</InlineCode> or <InlineCode>onPress</InlineCode> it is a link or
-              button with a state layer, a focus ring and a 48px touch target.
-            </li>
-            <li>
-              <InlineCode>AvatarGroup</InlineCode> is read once by its{' '}
-              <InlineCode>label</InlineCode>; its static avatars become decorative.
-            </li>
-          </ul>
         </section>
       </>
     ),

@@ -160,45 +160,6 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Both toolbars are React Aria toolbars:{' '}
-              <InlineCode>role=&quot;toolbar&quot;</InlineCode>, a required name (
-              <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>), and
-              arrow keys between the controls, following the DOM direction.
-            </li>
-            <li>
-              Tab and Shift+Tab move through every control in order, then out of the toolbar; the
-              arrow keys also move between controls (↑ / ↓ in a vertical toolbar, flipped in RTL).
-              This follows the M3 spec (&quot;Tab or Arrows: Navigate between interactive
-              elements&quot;) rather than the WAI-ARIA toolbar pattern, where the whole toolbar is a
-              single tab stop.
-            </li>
-            <li>
-              The controls are ordinary buttons, so each icon button still needs its own{' '}
-              <InlineCode>aria-label</InlineCode>; the <InlineCode>ToolbarFab</InlineCode> is named
-              the same way.
-            </li>
-            <li>
-              Collapsed controls stay in the tab order and the accessibility tree, clipped to
-              nothing, and focus reaching them (from the keyboard or a screen reader) expands the
-              toolbar, so every control stays reachable while collapsed. Keyboard focus anywhere
-              inside keeps it expanded; pointer focus on the always-shown controls doesn&apos;t.
-            </li>
-            <li>
-              A toolbar that has left the screen (<InlineCode>visible={'{false}'}</InlineCode>) is{' '}
-              <InlineCode>inert</InlineCode>.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

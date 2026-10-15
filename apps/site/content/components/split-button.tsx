@@ -102,31 +102,6 @@ export async function SplitButtonBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The leading button is named by its label, or by <InlineCode>leadingLabel</InlineCode>{' '}
-              when it shows only an icon; the trailing button&apos;s name comes from the required{' '}
-              <InlineCode>menuLabel</InlineCode>. At XS and S both halves have 48px touch targets.
-            </li>
-            <li>
-              Both halves are separately focusable. Enter or Space runs the leading action or opens
-              the menu.
-            </li>
-            <li>
-              The trailing button reports <InlineCode>aria-expanded</InlineCode>; the menu follows
-              standard menu keyboard behaviour (arrow keys, Escape to close) and React Aria names it
-              after its trigger.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

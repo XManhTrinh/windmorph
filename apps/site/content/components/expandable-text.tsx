@@ -18,7 +18,7 @@ const ExpandableTextControlled = lazyExample(
   'ExpandableTextControlled',
 );
 
-/** Expandable text page body: purpose, examples, behaviour, accessibility and tokens. */
+/** Expandable text page body: purpose, examples, behaviour and tokens. */
 export async function ExpandableTextBody(): Promise<ComponentDoc> {
   const [post, collapsible] = await Promise.all([
     readExampleSource('expandable-text/expandable-text-post.tsx'),
@@ -113,35 +113,6 @@ export async function ExpandableTextBody(): Promise<ComponentDoc> {
               Server-rendered pages show the text clamped from the first paint, with no layout
               shift. Without JavaScript the full text shows.
             </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              &quot;See more&quot; is a button with <InlineCode>aria-expanded</InlineCode> and{' '}
-              <InlineCode>aria-controls</InlineCode>, a 48px touch target and the M3 focus ring.
-            </li>
-            <li>
-              Pressing it moves focus to the start of the text, so the reader carries on from there;
-              &quot;See less&quot; returns focus to &quot;See more&quot;.
-            </li>
-            <li>
-              Screen readers read the whole text even while it&apos;s cut, so nothing is hidden from
-              them.
-            </li>
-            <li>
-              The words come from <InlineCode>labels</InlineCode> (<InlineCode>more</InlineCode>,{' '}
-              <InlineCode>less</InlineCode>), so they can be translated. Set{' '}
-              <InlineCode>lang</InlineCode> when the text is in another language than the page.
-            </li>
-            <li>In forced-colours mode the buttons use the system button colour, underlined.</li>
           </ul>
         </section>
       </>

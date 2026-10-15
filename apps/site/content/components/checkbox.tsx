@@ -75,36 +75,6 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A visually hidden native checkbox (React Aria <InlineCode>useCheckbox</InlineCode>)
-              carries the state, so forms, labels and assistive tech work natively.
-            </li>
-            <li>
-              Tab moves focus; Space toggles the box. The control has a 40px state layer and a 48px
-              touch target.
-            </li>
-            <li>
-              <InlineCode>indeterminate</InlineCode> shows a dash and is announced as mixed
-              (&quot;partially checked&quot;); the underlying checked state is unchanged until the
-              user acts.
-            </li>
-            <li>
-              An accessible name is required; <InlineCode>required</InlineCode> maps to{' '}
-              <InlineCode>aria-required</InlineCode> (the native <InlineCode>required</InlineCode>{' '}
-              attribute with <InlineCode>validationBehavior=&quot;native&quot;</InlineCode>) and{' '}
-              <InlineCode>invalid</InlineCode> exposes the error state.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

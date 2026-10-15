@@ -104,61 +104,6 @@ export async function SheetsBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Modal sheets are dialogs: opening one moves focus in and contains it, the page behind
-              is inert, and closing returns focus to the trigger.
-            </li>
-            <li>
-              A standard bottom sheet is a non-modal dialog: it doesn&apos;t take focus, trap it or
-              hide the page, which stays usable around it.
-            </li>
-            <li>
-              A modal bottom sheet taller than half the window opens to half, and a standard one
-              opens collapsed to its peek height; the drag handle is a button — press it (or Enter /
-              Space) to expand a half-open sheet, collapse a standard one, or close a fully open
-              modal one, and its label says which (<InlineCode>labels.expand</InlineCode>,{' '}
-              <InlineCode>labels.collapse</InlineCode>, <InlineCode>labels.dismiss</InlineCode>).
-              Without a handle, the top 48px of the sheet still drags it.
-            </li>
-            <li>
-              On a touch screen, a drag down that starts on the content while it is scrolled to its
-              top moves the sheet, with the handle&apos;s settling and dismissal. A drag up, or any
-              drag while the content is scrolled, scrolls it; each gesture keeps its first choice
-              until the finger lifts. Sideways drags, form fields and elements that handle their own
-              drags (such as sliders) are left alone, and a mouse drag on the content selects text
-              as usual.
-            </li>
-            <li>
-              A modal bottom sheet that fills the window shows a close button (
-              <InlineCode>labels.close</InlineCode>); a standard one shows a collapse button.{' '}
-              <InlineCode>closeButton=&#123;false&#125;</InlineCode> hides it.
-            </li>
-            <li>
-              Escape behaves like the back button: a fully open modal bottom sheet with a half
-              detent returns to half, otherwise a modal sheet closes; a fully open standard bottom
-              sheet collapses to its peek height. A press on the scrim closes a dismissable modal
-              sheet.
-            </li>
-            <li>
-              Side sheets, modal and standard, are dialogs named by their{' '}
-              <InlineCode>title</InlineCode> (or <InlineCode>aria-label</InlineCode>). M3 requires a
-              close button in every side sheet, so one is built in (
-              <InlineCode>labels.close</InlineCode>, <InlineCode>closeIcon</InlineCode>);{' '}
-              <InlineCode>onBack</InlineCode> adds a back button (
-              <InlineCode>labels.back</InlineCode>
-              ). A standard side sheet becomes <InlineCode>inert</InlineCode> while closed.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

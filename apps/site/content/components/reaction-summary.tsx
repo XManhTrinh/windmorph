@@ -93,26 +93,6 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Pressable, it&apos;s a button named by <InlineCode>labels.count</InlineCode>{' '}
-              (&quot;128 reactions. See who reacted&quot;), with a 48px touch target.
-            </li>
-            <li>
-              Otherwise the icons and number are hidden from screen readers, which read{' '}
-              <InlineCode>labels.count</InlineCode> instead.
-            </li>
-            <li>In forced-colours mode the chip keeps a border.</li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

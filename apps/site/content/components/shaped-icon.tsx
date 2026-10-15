@@ -9,7 +9,7 @@ const ShapedIconSizes = lazyExample('shaped-icon/shaped-icon-sizes', 'ShapedIcon
 const ShapedIconSteps = lazyExample('shaped-icon/shaped-icon-steps', 'ShapedIconSteps');
 const ShapedIconTones = lazyExample('shaped-icon/shaped-icon-tones', 'ShapedIconTones');
 
-/** Shaped icon page body: purpose, examples, accessibility and theming. */
+/** Shaped icon page body: purpose, examples and theming. */
 export async function ShapedIconBody(): Promise<ComponentDoc> {
   const [steps, sizes] = await Promise.all([
     readExampleSource('shaped-icon/shaped-icon-steps.tsx'),
@@ -74,29 +74,6 @@ export async function ShapedIconBody(): Promise<ComponentDoc> {
             <InlineCode>IconButton</InlineCode>, and for a person or business an{' '}
             <InlineCode>Avatar</InlineCode>.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="accessibility" className="text-headline-small text-on-surface">
-            Accessibility
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Decorative by default (<InlineCode>aria-hidden</InlineCode>): the text beside it says
-              what it means.
-            </li>
-            <li>
-              When the icon means something on its own, give it an{' '}
-              <InlineCode>aria-label</InlineCode>: it becomes an image with that name.
-            </li>
-            <li>
-              The icon and its container meet 3:1 contrast in every theme, mode and contrast level.
-            </li>
-            <li>In forced-colours mode the icon takes the system text colour.</li>
-          </ul>
         </section>
       </>
     ),

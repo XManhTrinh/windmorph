@@ -92,38 +92,6 @@ export async function SliderBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Built on React Aria <InlineCode>useSlider</InlineCode> /{' '}
-              <InlineCode>useSliderThumb</InlineCode> with a hidden range input per thumb, so each
-              thumb is a focusable slider for assistive tech.
-            </li>
-            <li>
-              With a thumb focused: the arrow keys nudge by <InlineCode>step</InlineCode>; Page Up /
-              Page Down, or an arrow with Space or Shift held, jump by a larger interval; Home / End
-              go to the minimum / maximum. The directions mirror in RTL.
-            </li>
-            <li>
-              A name is required (<InlineCode>aria-label</InlineCode> /{' '}
-              <InlineCode>aria-labelledby</InlineCode>); a range slider also names each thumb via{' '}
-              <InlineCode>labels</InlineCode> (<InlineCode>start</InlineCode>,{' '}
-              <InlineCode>end</InlineCode>).
-            </li>
-            <li>
-              <InlineCode>formatOptions</InlineCode> formats the announced value;{' '}
-              <InlineCode>showValueLabel</InlineCode> adds a visible value pill while dragging or
-              keyboard-focused.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

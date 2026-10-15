@@ -80,32 +80,6 @@ export async function CardBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>A static card is not focusable; its own buttons and links handle interaction.</li>
-            <li>
-              A pressable card is a <InlineCode>div role=&quot;button&quot;</InlineCode> (a button
-              can&apos;t hold headings or media). Tab focuses it, Enter or Space activates it, and
-              it shows the M3 state layer and focus ring.
-            </li>
-            <li>
-              Name an interactive card with <InlineCode>aria-labelledby</InlineCode> (its headline)
-              or <InlineCode>aria-label</InlineCode>; a link card takes{' '}
-              <InlineCode>href</InlineCode>.
-            </li>
-            <li>
-              In development a pressable or link card warns if it contains buttons, links or fields,
-              because interactive content can&apos;t nest.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

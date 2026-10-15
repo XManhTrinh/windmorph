@@ -8,7 +8,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const ImageCropAvatar = lazyExample('image-crop/image-crop-avatar', 'ImageCropAvatar');
 const ImageCropInline = lazyExample('image-crop/image-crop-inline', 'ImageCropInline');
 
-/** Image crop page body: purpose, examples, the server's part, accessibility and theming. */
+/** Image crop page body: purpose, examples, the server's part and theming. */
 export async function ImageCropBody(): Promise<ComponentDoc> {
   const [avatar, inline] = await Promise.all([
     readExampleSource('image-crop/image-crop-avatar.tsx'),
@@ -67,37 +67,6 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
             browser. The rectangle is measured after the photo&apos;s EXIF orientation, so rotate
             first: <InlineCode>sharp(file).rotate().extract(crop)</InlineCode>.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The photo area is one focusable group (&quot;Photo position&quot;), described by how
-              to use it. Arrow keys move the photo 10px (50px with Shift), plus and minus zoom, and
-              0 resets.
-            </li>
-            <li>
-              The zoom slider and the zoom out and in buttons sit under the area, so every action
-              has a way that needs no dragging (WCAG 2.2, 2.5.7). The slider reads its value as a
-              percentage.
-            </li>
-            <li>
-              A pointer drags the photo, two fingers pinch to zoom, and the mouse wheel or a
-              trackpad pinch zooms around the pointer without scrolling the page.
-            </li>
-            <li>
-              A photo that can&apos;t be opened (HEIC in some browsers, or a file that isn&apos;t an
-              image) shows a message announced as an alert, and the confirm button stays disabled.
-              While <InlineCode>busy</InlineCode>, a progress bar shows and the dialog can&apos;t be
-              dismissed.
-            </li>
-          </ul>
         </section>
       </>
     ),

@@ -72,31 +72,6 @@ export async function SwitchBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A visually hidden native input with <InlineCode>role=&quot;switch&quot;</InlineCode>{' '}
-              (React Aria <InlineCode>useSwitch</InlineCode>) carries the state, so forms and
-              assistive tech work natively.
-            </li>
-            <li>
-              Tab moves focus; Space or Enter toggles it (M3&apos;s keyboard spec). The focus ring
-              surrounds the track, which has a 48px touch target.
-            </li>
-            <li>
-              An accessible name is required; the thumb icons (<InlineCode>icons</InlineCode>,{' '}
-              <InlineCode>selectedIcon</InlineCode>, <InlineCode>unselectedIcon</InlineCode>) are
-              decorative.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

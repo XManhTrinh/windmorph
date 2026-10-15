@@ -154,44 +154,6 @@ export async function MenuBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Enter, Space or the arrow keys open the menu from its trigger and focus the first (or
-              last) item. ↑ / ↓ move between items, Home / End jump to the ends, and typing a few
-              letters jumps to a matching label (typeahead); a letter, or the same letter again,
-              moves to the next item starting with it.
-            </li>
-            <li>
-              Enter or Space fires <InlineCode>onAction</InlineCode> with the item&apos;s key; in a
-              selectable menu it toggles selection, and a multi-select menu stays open until
-              it&apos;s dismissed. Escape or a press outside closes the menu and returns focus to
-              the trigger, which shows a pressed state while the menu is open.
-            </li>
-            <li>
-              → opens a submenu and focuses its first item, ← closes it (mirrored in right-to-left).
-              In a sheet, ←, Escape or the back button return to the menu that opened it. Shift +
-              F10 or the context-menu key opens a context menu.
-            </li>
-            <li>
-              Items in <InlineCode>disabledKeys</InlineCode> can take focus but do nothing, as M3
-              asks; dividers can&apos;t take focus. A <InlineCode>description</InlineCode> becomes
-              the item&apos;s accessible description and a <InlineCode>shortcut</InlineCode> renders
-              as a <InlineCode>kbd</InlineCode>.
-            </li>
-            <li>
-              Give an icon-only trigger an <InlineCode>aria-label</InlineCode>; a group with no
-              visible title should take an <InlineCode>aria-label</InlineCode>.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

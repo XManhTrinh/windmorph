@@ -9,7 +9,7 @@ const FileTriggerFolder = lazyExample('file-trigger/file-trigger-folder', 'FileT
 const FileTriggerMenu = lazyExample('file-trigger/file-trigger-menu', 'FileTriggerMenu');
 const FileTriggerPhoto = lazyExample('file-trigger/file-trigger-photo', 'FileTriggerPhoto');
 
-/** File trigger page body: purpose, examples, the hook and accessibility. */
+/** File trigger page body: purpose, examples and the hook. */
 export async function FileTriggerBody(): Promise<ComponentDoc> {
   const [photo, menu, folder] = await Promise.all([
     readExampleSource('file-trigger/file-trigger-photo.tsx'),
@@ -75,27 +75,6 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
             To frame a photo before upload, pass the chosen file to{' '}
             <InlineCode>ImageCropDialog</InlineCode>.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>The button is the control: Tab reaches it, and Enter or Space opens the picker.</li>
-            <li>
-              The input is hidden from everyone (<InlineCode>hidden</InlineCode>,{' '}
-              <InlineCode>aria-hidden</InlineCode>, out of the tab order), so nothing is announced
-              twice.
-            </li>
-            <li>
-              Put it inside a <InlineCode>TooltipTrigger</InlineCode>: the tooltip keeps working. To
-              stop it, disable the button.
-            </li>
-          </ul>
         </section>
       </>
     ),

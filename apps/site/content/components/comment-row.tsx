@@ -10,7 +10,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const CommentRowThread = lazyExample('comment-row/comment-row-thread', 'CommentRowThread');
 const CommentRowStates = lazyExample('comment-row/comment-row-states', 'CommentRowStates');
 
-/** CommentRow page body: purpose, example, behaviour, accessibility and tokens. */
+/** CommentRow page body: purpose, example, behaviour and tokens. */
 export async function CommentRowBody(): Promise<ComponentDoc> {
   const source = await readExampleSource('comment-row/comment-row-thread.tsx');
   const html = await highlightSource(source);
@@ -87,28 +87,6 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
               <InlineCode>ReactionPicker</InlineCode>, Reply and a menu in{' '}
               <InlineCode>actions</InlineCode>.
             </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              <InlineCode>as</InlineCode> renders the root as an <InlineCode>article</InlineCode>{' '}
-              (name it with <InlineCode>aria-label</InlineCode>, such as &quot;Comment by
-              Alex&quot;), an <InlineCode>li</InlineCode> in a list, or a{' '}
-              <InlineCode>div</InlineCode>.
-            </li>
-            <li>
-              A pressable bubble is a button or link named by its content; the avatar should be
-              decorative, as the name is in the bubble.
-            </li>
-            <li>In forced-colours mode the bubble keeps a border.</li>
           </ul>
         </section>
       </>

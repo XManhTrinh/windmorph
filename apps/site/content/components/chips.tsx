@@ -87,48 +87,6 @@ export async function ChipsBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A <InlineCode>ChipSet</InlineCode> is a labelled group (a radio group with single
-              selection). Tab moves into and out of the set; the arrow keys move between its chips
-              and Home / End go to the first and last.
-            </li>
-            <li>
-              Assist and suggestion chips are buttons (assist may be a link with{' '}
-              <InlineCode>href</InlineCode>); Enter or Space activates them. Icons are decorative.
-            </li>
-            <li>
-              A filter chip is a toggle: it exposes <InlineCode>aria-pressed</InlineCode> (or{' '}
-              <InlineCode>aria-checked</InlineCode> in a single-select set) and flips with Space /
-              Enter.
-            </li>
-            <li>
-              An input chip with only <InlineCode>onRemove</InlineCode> is one focus stop, its
-              remove button, named &quot;{'{labels.remove}'} + label&quot; (&quot;Remove
-              Alex&quot;); the focus ring circles the whole chip. With{' '}
-              <InlineCode>onPress</InlineCode> too, the chip and its remove button are two focus
-              stops. A filter chip with <InlineCode>onRemove</InlineCode> is two focus stops too:
-              the chip and its remove button.
-            </li>
-            <li>
-              Backspace or Delete on a removable chip removes it. In a{' '}
-              <InlineCode>ChipSet</InlineCode>, focus then moves to the next chip (the previous one
-              at the end, or the set once it&apos;s empty), so keyboard users keep their place.
-            </li>
-            <li>
-              The remove button&apos;s close icon is hidden from assistive tech; its name says what
-              it does.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

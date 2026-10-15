@@ -11,7 +11,7 @@ const TagTokens = lazyExample('tag/tag-tokens', 'TagTokens');
 const TagVariants = lazyExample('tag/tag-variants', 'TagVariants');
 const TagSizes = lazyExample('tag/tag-sizes', 'TagSizes');
 
-/** Tag page body: when to use it (and not a chip or a badge), examples, a11y and tokens. */
+/** Tag page body: when to use it (and not a chip or a badge), examples and tokens. */
 export async function TagBody(): Promise<ComponentDoc> {
   const [statuses, variants, shortForms, tokens] = await Promise.all([
     readExampleSource('tag/tag-statuses.tsx'),
@@ -111,27 +111,6 @@ export async function TagBody(): Promise<ComponentDoc> {
               chips act, filter chips filter, input chips are entered values. A tag styled as a chip
               would be focusable and read as a button.
             </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>A tag is plain text: it has no role and is never focusable.</li>
-            <li>
-              <InlineCode>fullLabel</InlineCode> replaces a short label for screen readers
-              (&quot;M3E&quot; reads &quot;Expressive&quot;), and shows on hover.
-            </li>
-            <li>
-              <InlineCode>TagGroup</InlineCode> is a list, so screen readers say how many tags there
-              are; give it an <InlineCode>aria-label</InlineCode>.
-            </li>
-            <li>Dots and icons are decorative. In forced-colours mode every tag keeps a border.</li>
           </ul>
         </section>
       </>

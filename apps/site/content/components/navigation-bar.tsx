@@ -97,33 +97,6 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The bar is a <InlineCode>nav</InlineCode> landmark and needs a name via{' '}
-              <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>{' '}
-              (required by the types).
-            </li>
-            <li>
-              Each item is a link or button that Tab reaches and Enter or Space activates; the Left
-              and Right arrows (mirrored right to left) also move focus between items, and Home and
-              End to the first and last, without choosing one. The icon is hidden from assistive
-              tech and the label names the item; a badge describes it through its text or{' '}
-              <InlineCode>badgeLabel</InlineCode>.
-            </li>
-            <li>
-              The selected item sets <InlineCode>aria-current=&quot;page&quot;</InlineCode> so the
-              current destination is announced.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

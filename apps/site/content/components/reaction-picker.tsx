@@ -132,37 +132,6 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The button is a toggle (<InlineCode>aria-pressed</InlineCode>) named by the reaction
-              it shows, and describes how to open the row (
-              <InlineCode>labels.openPicker</InlineCode>).
-            </li>
-            <li>
-              Enter or Space toggles the reaction. ArrowUp or Alt+ArrowDown opens the row on the
-              picked reaction, or the first.
-            </li>
-            <li>
-              The row is a <InlineCode>toolbar</InlineCode> (
-              <InlineCode>labels.reactions</InlineCode>) of buttons named by each reaction. Arrow
-              keys move between them (reversed right-to-left), Enter or Space picks, and Escape
-              closes and returns focus to the button. Tab leaves the row as if it sat right after
-              the button.
-            </li>
-            <li>
-              Every target is at least 48px. In forced-colours mode the row keeps a border and a
-              picked reaction uses the system highlight colour.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

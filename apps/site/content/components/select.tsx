@@ -129,60 +129,6 @@ export async function SelectBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The field is a button with <InlineCode>aria-haspopup</InlineCode> and{' '}
-              <InlineCode>aria-expanded</InlineCode>, named by its label and its value. Enter, Space
-              or the arrow keys open the menu; ↑ / ↓ move, typing jumps to a match (a letter, or the
-              same letter again, moves to the next option starting with it, as M3 asks), Enter
-              chooses and Escape closes. Focus returns to the field.
-            </li>
-            <li>
-              Typing on the closed field jumps straight to a matching option, as a native select
-              does.
-            </li>
-            <li>
-              Supporting text is the field&apos;s description; an error replaces it visually and is
-              announced as an alert, while the supporting text stays in the description. An invalid
-              field shows an error icon named &quot;Error&quot; before the arrow. The required{' '}
-              <InlineCode>*</InlineCode> is part of the field&apos;s name.
-            </li>
-            <li>
-              Disabled options can take keyboard focus but can&apos;t be chosen, as M3 menus ask.
-              When the menu opens, focus goes to the chosen option, or the first one: the listbox
-              pattern, kept on purpose over M3&apos;s &quot;first item&quot; rule for action menus.
-            </li>
-            <li>
-              <InlineCode>readOnly</InlineCode> shows the choice without opening the menu or
-              changing it from the keyboard.
-            </li>
-            <li>
-              With <InlineCode>selectionMode=&quot;multiple&quot;</InlineCode> the menu stays open
-              between picks. Options past <InlineCode>maxSelections</InlineCode> are disabled until
-              one is removed.
-            </li>
-            <li>
-              A <InlineCode>searchable</InlineCode> field opens a dialog named by its label. Its
-              search is a combobox: typing filters the options, ↑ / ↓ move through them while focus
-              stays in the search, Enter chooses, and Escape clears the search, then closes. In a
-              menu the search takes focus; a sheet shows the list first, so the keyboard
-              doesn&apos;t cover it, and a tap on the search starts typing. &quot;No results&quot;
-              is announced.
-            </li>
-            <li>
-              With <InlineCode>renderValue</InlineCode> the field shows what you render (a code, a
-              flag), while screen readers still hear the chosen options&apos; text.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

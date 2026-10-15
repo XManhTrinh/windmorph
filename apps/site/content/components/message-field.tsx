@@ -247,45 +247,6 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A visible <InlineCode>label</InlineCode>, <InlineCode>aria-label</InlineCode> or{' '}
-              <InlineCode>aria-labelledby</InlineCode> is required by the types; the placeholder is
-              never the only name.
-            </li>
-            <li>
-              The text is a <InlineCode>textarea</InlineCode> with{' '}
-              <InlineCode>aria-invalid</InlineCode>, <InlineCode>aria-required</InlineCode> and{' '}
-              <InlineCode>aria-describedby</InlineCode> linking <InlineCode>description</InlineCode>{' '}
-              and <InlineCode>errorMessage</InlineCode>; the error is announced when it appears. The
-              limit is announced politely as it nears and when it is reached (
-              <InlineCode>labels.nearLimit</InlineCode>, <InlineCode>labels.atLimit</InlineCode>).
-            </li>
-            <li>
-              The send button has its own name and tooltip (<InlineCode>labels.send</InlineCode>).
-              Pressing it keeps the caret in the text. While sending it stays focusable (
-              <InlineCode>aria-disabled</InlineCode>).
-            </li>
-            <li>
-              <InlineCode>MessageFieldTrigger</InlineCode> is a <InlineCode>button</InlineCode> (or
-              a link with <InlineCode>href</InlineCode>) named by its prompt; its avatar and icon
-              are decorative.
-            </li>
-            <li>
-              Every button keeps a 48px target. Slots and the counter mirror right-to-left; forced
-              colours draw the border in <InlineCode>CanvasText</InlineCode> and focus in{' '}
-              <InlineCode>Highlight</InlineCode>.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

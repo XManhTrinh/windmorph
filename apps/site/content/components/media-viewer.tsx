@@ -8,7 +8,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const MediaViewerActions = lazyExample('media-viewer/media-viewer-actions', 'MediaViewerActions');
 const MediaViewerGallery = lazyExample('media-viewer/media-viewer-gallery', 'MediaViewerGallery');
 
-/** Media viewer page body: purpose, examples, gestures, accessibility and theming. */
+/** Media viewer page body: purpose, examples, gestures and theming. */
 export async function MediaViewerBody(): Promise<ComponentDoc> {
   const [gallery, actions] = await Promise.all([
     readExampleSource('media-viewer/media-viewer-gallery.tsx'),
@@ -89,39 +89,6 @@ export async function MediaViewerBody(): Promise<ComponentDoc> {
               <InlineCode>width</InlineCode> and <InlineCode>height</InlineCode>, so it&apos;s laid
               out before it loads, and a <InlineCode>srcSet</InlineCode> for sharp zooming on large
               screens.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              It&apos;s a modal dialog named by <InlineCode>aria-label</InlineCode>: focus moves
-              into it and stays there, the page behind is hidden from assistive tech, and when it
-              closes focus returns to the thumbnail that opened it.
-            </li>
-            <li>
-              The arrow keys move between photos (reversed in right-to-left), Home and End go to the
-              first and last, plus and minus zoom, and 0 resets. While zoomed, the arrow keys pan
-              the photo instead (four times as far with Shift). Escape closes it.
-            </li>
-            <li>
-              The position is announced politely when it changes. Each photo keeps its alt text, and
-              a photo without a caption shows its alt text instead.
-            </li>
-            <li>
-              Every control is an icon button with a 48px target and a tooltip. Previous and Next
-              sit at the sides on medium windows and up; on phones, people swipe.
-            </li>
-            <li>
-              A caption cut to two lines becomes a button that expands it. A photo that can&apos;t
-              be loaded shows a message in its place.
             </li>
           </ul>
         </section>

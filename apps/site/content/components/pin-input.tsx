@@ -15,7 +15,7 @@ const PinInputVerification = lazyExample(
   'PinInputVerification',
 );
 
-/** PIN input page body: purpose, examples, accessibility and theming. */
+/** PIN input page body: purpose, examples and theming. */
 export async function PinInputBody(): Promise<ComponentDoc> {
   const [verification, variants, groups, pin, corners, states] = await Promise.all([
     readExampleSource('pin-input/pin-input-verification.tsx'),
@@ -112,37 +112,6 @@ export async function PinInputBody(): Promise<ComponentDoc> {
             autofill on phones and password managers all work as in a normal field. Codes of up to
             six characters fit a 320px phone in every size.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Screen readers meet one labelled field, not one per box; the boxes are hidden from
-              assistive technology. The label, supporting text and error are wired to the input, so
-              an error is announced.
-            </li>
-            <li>
-              Each character moves to the next box. Backspace deletes, the arrow keys, Home and End
-              move between boxes, and typing over a filled box replaces its character.
-            </li>
-            <li>
-              <InlineCode>otp</InlineCode> (on by default) sets{' '}
-              <InlineCode>autocomplete=&quot;one-time-code&quot;</InlineCode>, and numeric codes
-              open the number pad. <InlineCode>mask</InlineCode> makes the input a password field,
-              so the code is never read aloud.
-            </li>
-            <li>
-              The boxes keep reading left to right in right-to-left layouts. The caret stops
-              blinking and the error shake is off under reduced motion; in forced-colours mode the
-              boxes keep system-colour borders.
-            </li>
-          </ul>
         </section>
       </>
     ),

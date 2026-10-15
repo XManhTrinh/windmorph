@@ -6,6 +6,7 @@ import {
   type ComponentDoc,
   type ComponentTab,
 } from '../content/components/doc';
+import { AccessibilityTab } from '../components/accessibility-tab';
 import { HookTable } from '../components/hook-table';
 import { InlineCode } from '../components/inline-code';
 import { Playground } from '../components/playground/playground';
@@ -13,6 +14,7 @@ import { PropsReference } from '../components/props-list';
 import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
 import { TokenTable } from '../components/token-table';
+import { ACCESSIBILITY } from '../content/components/accessibility';
 import { SPEC_DATA } from '../content/components/spec-data';
 import {
   readComponentPropsSafe,
@@ -65,7 +67,7 @@ export async function componentTabs(page: ComponentPageMeta): Promise<ComponentT
       page.propsComponents.length > 0 ||
       (page.hooks ?? []).length > 0 ||
       Boolean(SPEC_DATA[page.slug]),
-    accessibility: Boolean(doc.accessibility),
+    accessibility: Boolean(ACCESSIBILITY[page.slug]),
     guidelines:
       Boolean(doc.guidelines) ||
       Boolean(page.whenNotToUse) ||
@@ -244,11 +246,14 @@ export async function ComponentTabContent({ slug, tab }: { slug: string; tab: Co
   const page = COMPONENT_PAGE_MAP[slug];
   if (!page) return null;
   const doc = await loadComponentDoc(page);
+  const accessibility = ACCESSIBILITY[slug];
   return (
     <div className="flex flex-col gap-10">
       {tab === 'overview' && <OverviewTab page={page} doc={doc} />}
       {tab === 'api' && <ApiTab page={page} doc={doc} />}
-      {tab === 'accessibility' && doc.accessibility}
+      {tab === 'accessibility' && accessibility && (
+        <AccessibilityTab title={page.title} data={accessibility} />
+      )}
       {tab === 'guidelines' && <GuidelinesTab page={page} doc={doc} />}
     </div>
   );

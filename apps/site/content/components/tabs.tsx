@@ -96,42 +96,6 @@ export async function TabsBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Built on React Aria&apos;s tab list with M3&apos;s keyboard pattern: arrow keys move
-              focus between tabs (mirrored in RTL), Home and End jump to the ends, and Space or
-              Enter selects the focused tab.{' '}
-              <InlineCode>keyboardActivation=&quot;automatic&quot;</InlineCode> selects on focus
-              instead.
-            </li>
-            <li>
-              Name the row with <InlineCode>aria-label</InlineCode>. An icon-only tab needs its own{' '}
-              <InlineCode>aria-label</InlineCode> (or <InlineCode>textValue</InlineCode> when the
-              title is not plain text).
-            </li>
-            <li>
-              The selected tab&apos;s panel is linked by <InlineCode>aria-controls</InlineCode>; a
-              row with no panels (pure navigation) renders no panel and drops the link.
-            </li>
-            <li>
-              <InlineCode>disabledKeys</InlineCode> removes a tab from the arrow-key order.
-            </li>
-            <li>
-              A badge is left out of the tab&apos;s name and describes it instead through{' '}
-              <InlineCode>aria-describedby</InlineCode>, so &quot;Inbox&quot; is read with
-              &quot;12&quot; as its description. A small dot badge has no text; say what it means in
-              the tab&apos;s label if it matters.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

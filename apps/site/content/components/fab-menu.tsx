@@ -114,43 +114,6 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The button&apos;s name (<InlineCode>aria-label</InlineCode> or{' '}
-              <InlineCode>aria-labelledby</InlineCode>) is required; it reports{' '}
-              <InlineCode>aria-expanded</InlineCode> and <InlineCode>aria-controls</InlineCode>.
-              While closed, its <InlineCode>aria-label</InlineCode> shows in a tooltip on hover and
-              keyboard focus, as M3 asks of FABs on the web; open, it is the close button and has
-              none. It steps aside when you wrap the menu in your own{' '}
-              <InlineCode>TooltipTrigger</InlineCode>; <InlineCode>tooltip={'{false}'}</InlineCode>{' '}
-              turns it off.
-            </li>
-            <li>
-              DOM order is the button then the items (shown above it), so Tab moves from the button
-              to the top item. ↓ from the button and ↑ / ↓ between items move focus; ↑ from the top
-              item and ↓ from the bottom one return to the button.
-            </li>
-            <li>
-              Escape, an outside press, or choosing an item closes the menu. Hidden items are{' '}
-              <InlineCode>inert</InlineCode>, so they are skipped while closed.
-            </li>
-            <li>Each item is named by its label; its icon is hidden from assistive tech.</li>
-            <li>
-              With <InlineCode>presentation=&quot;menu&quot;</InlineCode> it follows the menu
-              pattern: the button has <InlineCode>aria-haspopup</InlineCode>, the items are{' '}
-              <InlineCode>menuitem</InlineCode>s, and arrows, typeahead and Escape work as in any{' '}
-              <InlineCode>Menu</InlineCode>.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

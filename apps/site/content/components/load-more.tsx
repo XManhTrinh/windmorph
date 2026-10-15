@@ -10,7 +10,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const LoadMoreList = lazyExample('load-more/load-more-list', 'LoadMoreList');
 const LoadMoreAuto = lazyExample('load-more/load-more-auto', 'LoadMoreAuto');
 
-/** LoadMore page body: purpose, example, behaviour, accessibility and tokens. */
+/** LoadMore page body: purpose, example, behaviour and tokens. */
 export async function LoadMoreBody(): Promise<ComponentDoc> {
   const [source, auto] = await Promise.all([
     readExampleSource('load-more/load-more-list.tsx'),
@@ -83,24 +83,6 @@ export async function LoadMoreBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>loading</InlineCode> replaces the default loading indicator (e.g. a
               skeleton of one item); <InlineCode>end</InlineCode> shows once everything is loaded.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Load more and Retry are buttons; the failure&apos;s message is announced politely (
-              <InlineCode>{'role="status"'}</InlineCode>).
-            </li>
-            <li>
-              Every word comes from <InlineCode>labels</InlineCode>.
             </li>
           </ul>
         </section>

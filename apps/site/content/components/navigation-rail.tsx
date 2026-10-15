@@ -131,43 +131,6 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The rail is a <InlineCode>nav</InlineCode> landmark; name it with{' '}
-              <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>{' '}
-              (required by the types) so it is distinct from other navigation.
-            </li>
-            <li>
-              Each item is a real link or button, so Tab reaches it and Enter or Space activates it.
-              The Up and Down arrows move focus between items (Home and End to the first and last)
-              without choosing one. The icon is hidden from assistive tech; the label names the
-              item.
-            </li>
-            <li>
-              A badge describes its item: its text, or <InlineCode>badgeLabel</InlineCode> (e.g.
-              &quot;3 new messages&quot;), is linked with <InlineCode>aria-describedby</InlineCode>.
-              A small (dot) badge reads &quot;New notification&quot; unless it has a{' '}
-              <InlineCode>badgeLabel</InlineCode>.
-            </li>
-            <li>
-              The selected item sets <InlineCode>aria-current=&quot;page&quot;</InlineCode>, so a
-              screen reader announces the current destination. A disabled item is skipped.
-            </li>
-            <li>
-              The modal rail is a dialog: focus starts on its first interactive element (the menu
-              button, the FAB or the first destination) and stays inside, and Escape, an outside
-              press or choosing an item collapses it and returns focus.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

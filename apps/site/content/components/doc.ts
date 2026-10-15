@@ -27,15 +27,15 @@ export function componentTabHref(slug: string, tab: ComponentTab = 'overview'): 
 /**
  * A component page's written content, split by tab. Each part is a run of `<section>`s with
  * an `id`'d `h2`, which the "On this page" outline lists. The page template adds the
- * playground (Overview), the props tables (API) and the purpose links (Guidelines).
+ * playground (Overview), the props tables (API), the Accessibility tab (from
+ * `accessibility/`, the same six sections on every page) and the Do and Don't cards and
+ * purpose links (Guidelines).
  */
 export interface ComponentDoc {
   /** Live examples. */
   overview?: ReactNode;
   /** Purpose, when to use it, and how it behaves. */
   guidelines?: ReactNode;
-  /** Keyboard keys, roles and what assistive tech announces. */
-  accessibility?: ReactNode;
   /** Theming, tokens, spec values and differences from Compose, below the props tables. */
   api?: ReactNode;
   /**

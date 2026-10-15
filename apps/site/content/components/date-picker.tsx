@@ -127,42 +127,6 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The grid is a React Aria calendar: arrow keys move by day, Page Up / Down by month,
-              Shift+Page Up / Down by year, Home / End to the ends of the month, honouring{' '}
-              <InlineCode>minValue</InlineCode> / <InlineCode>maxValue</InlineCode> and{' '}
-              <InlineCode>isDateUnavailable</InlineCode>. Each day is named by its full date, and
-              the weekdays are column headers named by their full name (also shown on hover).
-            </li>
-            <li>
-              Enter on a day closes the calendar and saves it: in the docked picker, and in a{' '}
-              <InlineCode>PickerDialog</InlineCode> given <InlineCode>onConfirm</InlineCode> (for a
-              range, once both ends are picked). Shift+M moves to the month menu and Shift+Y to the
-              year menu; the previous / next buttons&apos; tooltips name their shortcuts.
-            </li>
-            <li>
-              The typed date has no input mask: it accepts dashes, spaces, slashes or dots and an
-              optional leading zero, and is reformatted only on Enter or when you leave the field.
-              The locale&apos;s format (&quot;MM/DD/YYYY&quot;) is its helper text and placeholder,
-              and a date that can&apos;t be used is explained in the supporting text.
-            </li>
-            <li>
-              Years and months are radio groups; arrow keys move between them, and those outside{' '}
-              <InlineCode>minValue</InlineCode> / <InlineCode>maxValue</InlineCode> are shown
-              disabled. The headline is an <InlineCode>aria-live=&quot;polite&quot;</InlineCode>{' '}
-              region, so the selection is announced. Every day, year and month is a 48px target.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

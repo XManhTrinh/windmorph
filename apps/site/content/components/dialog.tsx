@@ -274,47 +274,6 @@ export async function DialogBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Opening the dialog moves focus to its first interactive element (or to an element
-              marked <InlineCode>autoFocus</InlineCode>) and contains focus there; closing it
-              returns focus to the trigger. The page behind does not scroll and is hidden from
-              assistive tech.
-            </li>
-            <li>
-              The <InlineCode>DialogTitle</InlineCode> names the dialog (or supply{' '}
-              <InlineCode>aria-label</InlineCode>), and an alert dialog is described by its{' '}
-              <InlineCode>DialogContent</InlineCode>. An <InlineCode>icon</InlineCode> is decorative
-              and centres the title.
-            </li>
-            <li>
-              Escape closes the dialog unless <InlineCode>keyboardDismissDisabled</InlineCode> is
-              set. A press outside closes a <InlineCode>role=&quot;dialog&quot;</InlineCode> (and
-              full-screen dialogs), but not the default alert dialog.
-            </li>
-            <li>
-              Long content scrolls inside the panel, with the title and actions pinned. While it
-              scrolls, <InlineCode>DialogContent</InlineCode> is focusable (Tab and Shift+Tab reach
-              it, with a focus ring) so the keyboard can scroll it; initial focus still goes to the
-              first control. When the actions don&apos;t fit on one line they stack with the
-              confirming action (last) on top.
-            </li>
-            <li>
-              In full screen, the header&apos;s close button (named by{' '}
-              <InlineCode>closeLabel</InlineCode>) closes the dialog and Escape still works. Hidden{' '}
-              <InlineCode>DialogActions</InlineCode> are out of the accessibility tree, so each
-              action is announced once.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

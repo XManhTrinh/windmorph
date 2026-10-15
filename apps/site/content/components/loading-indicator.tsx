@@ -89,29 +89,6 @@ export async function LoadingIndicatorBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              It is a React Aria <InlineCode>useProgressBar</InlineCode> (
-              <InlineCode>role=&quot;progressbar&quot;</InlineCode>), so the types require an{' '}
-              <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>. A
-              determinate indicator exposes <InlineCode>aria-valuenow</InlineCode> /{' '}
-              <InlineCode>aria-valuetext</InlineCode>.
-            </li>
-            <li>It is not focusable and has no keyboard interaction; the drawing is decorative.</li>
-            <li>
-              Under <InlineCode>prefers-reduced-motion</InlineCode> the indeterminate indicator only
-              rotates, with no morphs or springy quarter turns.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

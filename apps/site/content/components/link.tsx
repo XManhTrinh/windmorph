@@ -10,7 +10,7 @@ const LinkInText = lazyExample('link/link-in-text', 'LinkInText');
 const LinkPlain = lazyExample('link/link-plain', 'LinkPlain');
 const LinkStandalone = lazyExample('link/link-standalone', 'LinkStandalone');
 
-/** Link page body: when to use it, examples, accessibility and tokens. */
+/** Link page body: when to use it, examples and tokens. */
 export async function LinkBody(): Promise<ComponentDoc> {
   const [inText, standalone, plain, button] = await Promise.all([
     readExampleSource('link/link-in-text.tsx'),
@@ -93,38 +93,6 @@ export async function LinkBody(): Promise<ComponentDoc> {
             <InlineCode>onPress</InlineCode> instead of <InlineCode>href</InlineCode>: it renders a{' '}
             <InlineCode>&lt;button&gt;</InlineCode> with the same variants, tone and tokens.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Tab reaches every link; Enter follows it. Keyboard focus shows the M3 focus ring.
-            </li>
-            <li>
-              With <InlineCode>onPress</InlineCode>, screen readers hear a button, and Enter or
-              Space presses it.
-            </li>
-            <li>
-              Links in text are underlined (WCAG 1.4.1); standalone links underline on hover, focus
-              and press. <InlineCode>plain</InlineCode> links never underline, so keep them for
-              non-text content such as a logo or a photo tile.
-            </li>
-            <li>
-              <InlineCode>external</InlineCode> (or{' '}
-              <InlineCode>target=&quot;_blank&quot;</InlineCode>) adds &quot;opens in a new
-              tab&quot; for screen readers, translatable through{' '}
-              <InlineCode>labels.newTab</InlineCode>.
-            </li>
-            <li>
-              In forced-colours mode links use the system link colour and are always underlined.
-            </li>
-          </ul>
         </section>
       </>
     ),

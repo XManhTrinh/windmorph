@@ -120,32 +120,6 @@ export async function TopAppBarBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The bar is a <InlineCode>&lt;header&gt;</InlineCode> (a{' '}
-              <InlineCode>banner</InlineCode> landmark at the top level). It does not name the page
-              itself: wrap the <InlineCode>title</InlineCode> in a heading when it is the
-              page&apos;s name.
-            </li>
-            <li>
-              The navigation icon and actions are your own controls, usually{' '}
-              <InlineCode>IconButton</InlineCode>s, so each icon-only one needs an{' '}
-              <InlineCode>aria-label</InlineCode>; Tab reaches them in order.
-            </li>
-            <li>
-              In a two-row bar only one title is announced at a time — the expanded one until it is
-              half collapsed, then the top-row one — so the title is never read twice.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

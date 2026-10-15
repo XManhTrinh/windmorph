@@ -11,7 +11,7 @@ const ListDetailSettings = lazyExample(
   'ListDetailSettings',
 );
 
-/** List-detail layout page body: when to use it, examples, accessibility and theming. */
+/** List-detail layout page body: when to use it, examples and theming. */
 export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
   const [settings, inbox] = await Promise.all([
     readExampleSource('list-detail-layout/list-detail-settings.tsx'),
@@ -97,32 +97,6 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               <InlineCode>variant</InlineCode>: <InlineCode>plain</InlineCode> (the default) puts
               the panes on the page&apos;s surface; <InlineCode>filled</InlineCode> makes each a{' '}
               <InlineCode>surface-container-low</InlineCode> container with large corners.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Each pane is a labelled landmark: the list a navigation region (or a section with{' '}
-              <InlineCode>listAs=&quot;section&quot;</InlineCode>), the open item a section. A
-              hidden pane is out of the accessibility tree.
-            </li>
-            <li>
-              Pass <InlineCode>detailKey</InlineCode> (usually the pathname): when it changes below
-              840px, focus moves to the pane that&apos;s now showing, so people land on the new
-              content. From 840px focus stays on the item they chose.
-            </li>
-            <li>
-              Below 840px the incoming pane slides in along the shared axis; a page load never
-              animates, and with reduced motion it appears at once. In right-to-left the list sits
-              on the right and the motion mirrors.
             </li>
           </ul>
         </section>

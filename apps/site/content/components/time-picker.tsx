@@ -84,43 +84,6 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Each number on the dial is a 48px button named &quot;7 hours of 12&quot; or &quot;35
-              minutes of 60&quot; (<InlineCode>strings.dialValue</InlineCode>). Tab lands on the
-              chosen one, arrow keys move around the dial, and Enter or Space chooses it; choosing
-              an hour moves on to the minutes.
-            </li>
-            <li>
-              The hour and minute selectors are text inputs: type the value, or focus one to pick
-              which the dial edits; ↑ / ↓ step and wrap, and an out-of-range value is marked{' '}
-              <InlineCode>aria-invalid</InlineCode>. In input mode a complete hour moves on to the
-              minute. AM / PM is a radio group: one Tab stop, with the arrow keys moving the choice.
-              The time reads left to right in right-to-left layouts too.
-            </li>
-            <li>
-              <InlineCode>TimePickerModeToggle</InlineCode> is the keyboard / clock button for the
-              dialog&apos;s <InlineCode>modeToggleButton</InlineCode>, named &quot;Toggle input
-              picker&quot; / &quot;Toggle dial picker&quot; by{' '}
-              <InlineCode>strings.inputMode</InlineCode> / <InlineCode>strings.dialMode</InlineCode>
-              . Give it the same <InlineCode>strings</InlineCode> as the picker.
-            </li>
-            <li>
-              Pressing or dragging the dial picks the nearest hour (the inner ring within 74px of
-              the centre, on a 24-hour clock) or five minutes; releasing on the hour face switches
-              to minutes. The hand turns there on a spring, the short way round (it jumps under
-              reduced motion).
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

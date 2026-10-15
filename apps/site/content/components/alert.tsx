@@ -9,7 +9,7 @@ const AlertDismissible = lazyExample('alert/alert-dismissible', 'AlertDismissibl
 const AlertFormError = lazyExample('alert/alert-form-error', 'AlertFormError');
 const AlertTones = lazyExample('alert/alert-tones', 'AlertTones');
 
-/** Alert page body: when to use it, examples, accessibility and tokens. */
+/** Alert page body: when to use it, examples and tokens. */
 export async function AlertBody(): Promise<ComponentDoc> {
   const [formError, tones, dismissible] = await Promise.all([
     readExampleSource('alert/alert-form-error.tsx'),
@@ -77,29 +77,6 @@ export async function AlertBody(): Promise<ComponentDoc> {
               A decision that blocks the page (what Apple and Android call an alert): a Dialog with{' '}
               <InlineCode>role=&quot;alertdialog&quot;</InlineCode>.
             </li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Errors are <InlineCode>role=&quot;alert&quot;</InlineCode>, read at once; other tones
-              are <InlineCode>role=&quot;status&quot;</InlineCode>, read politely.
-            </li>
-            <li>
-              <InlineCode>focusOnMount</InlineCode> moves focus to an alert that blocks a form,
-              after a failed submit.
-            </li>
-            <li>
-              The close button is named by <InlineCode>labels.close</InlineCode>.
-            </li>
-            <li>The icon is decorative. In forced-colours mode every alert keeps a border.</li>
           </ul>
         </section>
       </>

@@ -10,7 +10,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const MediaGridViewer = lazyExample('media-grid/media-grid-viewer', 'MediaGridViewer');
 const MediaGridColumns = lazyExample('media-grid/media-grid-columns', 'MediaGridColumns');
 
-/** MediaGrid page body: purpose, example, behaviour, accessibility and tokens. */
+/** MediaGrid page body: purpose, example, behaviour and tokens. */
 export async function MediaGridBody(): Promise<ComponentDoc> {
   const source = await readExampleSource('media-grid/media-grid-viewer.tsx');
   const html = await highlightSource(source);
@@ -73,25 +73,6 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
               outer corners are rounded and inner corners square.
             </li>
             <li>Images load lazily and fill their square tiles.</li>
-          </ul>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The list is named by <InlineCode>aria-label</InlineCode> and is focusable, so
-              keyboards can scroll the compact row (WCAG 2.1.1).
-            </li>
-            <li>
-              Each tile is a button named by its photo&apos;s <InlineCode>alt</InlineCode>, with the
-              state layer and an inset focus ring.
-            </li>
           </ul>
         </section>
       </>

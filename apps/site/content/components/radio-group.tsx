@@ -81,34 +81,6 @@ export async function RadioGroupBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The group is a <InlineCode>radiogroup</InlineCode> (React Aria{' '}
-              <InlineCode>useRadioGroup</InlineCode>); give it a <InlineCode>label</InlineCode> or
-              an <InlineCode>aria-label</InlineCode> / <InlineCode>aria-labelledby</InlineCode>.
-            </li>
-            <li>
-              Tab moves focus into the group; the arrow keys move the selection between options and
-              wrap around. Each option has a 40px state layer and a 48px touch target.
-            </li>
-            <li>
-              Supporting text is the group&apos;s description; when invalid, the group&apos;s error
-              message is shown below the options.
-            </li>
-            <li>
-              A <InlineCode>Radio</InlineCode> must live inside a{' '}
-              <InlineCode>RadioGroup</InlineCode> — using one on its own throws at render.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

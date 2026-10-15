@@ -103,57 +103,6 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              A <InlineCode>label</InlineCode> or <InlineCode>aria-label</InlineCode> /{' '}
-              <InlineCode>aria-labelledby</InlineCode> is required; leading and trailing icons are
-              decorative and hidden from assistive tech.
-            </li>
-            <li>
-              Tab moves focus to the input; pressing anywhere in the container (except an icon
-              button) focuses it too.
-            </li>
-            <li>
-              Supporting text is exposed as the field&apos;s description. When the field is invalid
-              the error message is shown in its place, but the supporting text stays in the
-              accessible description (<InlineCode>sr-only</InlineCode>).
-            </li>
-            <li>
-              The error message has the <InlineCode>alert</InlineCode> role, so it is announced as
-              it appears. While invalid, the field shows an error icon named &quot;Error&quot; (
-              <InlineCode>labels.error</InlineCode>; <InlineCode>errorIcon</InlineCode> replaces it
-              or <InlineCode>false</InlineCode> turns it off), and the supporting text takes the
-              error colour.
-            </li>
-            <li>
-              The character counter is read as &quot;Character count: 12 of 80&quot; (
-              <InlineCode>labels.characterCount</InlineCode>), and the prefix and suffix join the
-              description, read as <InlineCode>prefixLabel</InlineCode> /{' '}
-              <InlineCode>suffixLabel</InlineCode> when given (&quot;US dollars&quot; for
-              &quot;$&quot;).
-            </li>
-            <li>
-              A read-only field looks like a regular one and gets{' '}
-              <InlineCode>data-readonly</InlineCode>; say &quot;Read-only&quot; in its supporting
-              text, as M3 asks.
-            </li>
-            <li>
-              <InlineCode>required</InlineCode> adds a <InlineCode>*</InlineCode> that is part of
-              the accessible name (M3: &quot;The accessibility label must include the
-              asterisk&quot;) and <InlineCode>aria-required</InlineCode>; validation uses React Aria{' '}
-              <InlineCode>useTextField</InlineCode> (<InlineCode>validate</InlineCode>,{' '}
-              <InlineCode>invalid</InlineCode> and native constraints).
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

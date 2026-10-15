@@ -81,51 +81,6 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The host is a persistent <InlineCode>aria-live=&quot;polite&quot;</InlineCode> region,
-              so each new message is announced without moving focus. The region goes on the page
-              empty and snackbars follow, so one shown at launch is announced too. Snackbars never
-              take focus themselves.
-            </li>
-            <li>
-              A <InlineCode>Snackbar</InlineCode> rendered without a host announces its message
-              politely itself, when it appears and when the message changes. Don&apos;t also put it
-              in a live region of your own.
-            </li>
-            <li>
-              <kbd className="text-on-surface">Alt+G</kbd> moves focus to a snackbar with an action
-              or a dismiss button, as the spec asks for on the web. Change it with{' '}
-              <InlineCode>focusShortcut</InlineCode> (or turn it off with{' '}
-              <InlineCode>false</InlineCode>), and list it with your app&apos;s other shortcuts. The
-              snackbar carries it in <InlineCode>aria-keyshortcuts</InlineCode>.
-            </li>
-            <li>
-              Escape dismisses a snackbar while focus is inside it, with or without a dismiss (×)
-              button. The dismiss button needs a name; it defaults to{' '}
-              <InlineCode>labels.dismiss</InlineCode> &quot;Dismiss&quot; (on a host, its{' '}
-              <InlineCode>labels</InlineCode> reach every snackbar it shows).
-            </li>
-            <li>
-              When a snackbar leaves with focus inside it, focus returns to where it was before it
-              entered the snackbar.
-            </li>
-            <li>
-              The auto-dismiss timer pauses while the pointer or focus is on the snackbar, so a
-              reader or a slow pointer never loses the message (WCAG 2.2.1). Snackbars with an
-              action never time out. On the web, use an auto-dismissing snackbar only alongside
-              inline feedback for the same event.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

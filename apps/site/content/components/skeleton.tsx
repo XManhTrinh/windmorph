@@ -9,7 +9,7 @@ const SkeletonAnimations = lazyExample('skeleton/skeleton-animations', 'Skeleton
 const SkeletonCards = lazyExample('skeleton/skeleton-cards', 'SkeletonCards');
 const SkeletonVariants = lazyExample('skeleton/skeleton-variants', 'SkeletonVariants');
 
-/** Skeleton page body: when to use it, examples, accessibility and theming. */
+/** Skeleton page body: when to use it, examples and theming. */
 export async function SkeletonBody(): Promise<ComponentDoc> {
   const [cards, animations, skeletonVariants] = await Promise.all([
     readExampleSource('skeleton/skeleton-cards.tsx'),
@@ -78,29 +78,6 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             It is pure CSS with no client code, so it animates in server components and in streamed
             Suspense fallbacks before the page hydrates.
           </p>
-        </section>
-      </>
-    ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Placeholders are hidden from assistive technology; nothing in a skeleton is focusable.
-            </li>
-            <li>
-              <InlineCode>SkeletonGroup</InlineCode> requires a <InlineCode>label</InlineCode>, read
-              once as status text, and marks the region <InlineCode>aria-busy</InlineCode> until the
-              content replaces it.
-            </li>
-            <li>
-              Both animations stop under reduced motion. In forced-colours mode each placeholder
-              keeps an outline, since backgrounds are removed.
-            </li>
-          </ul>
         </section>
       </>
     ),

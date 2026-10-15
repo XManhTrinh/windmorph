@@ -141,40 +141,6 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="accessibility-notes" className="text-headline-small text-on-surface">
-            Accessibility notes
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              <InlineCode>useM3Interaction</InlineCode> is presentation only — it adds no roles or
-              names. The control you build is responsible for its own semantics (role, accessible
-              name, state), usually by pairing it with the matching React Aria hook.
-            </li>
-            <li>
-              <InlineCode>focus-ring</InlineCode> / <InlineCode>focus-ring-inset</InlineCode> draw a
-              visible focus indicator from <InlineCode>data-focus-visible</InlineCode>, so keyboard
-              focus is always shown; <InlineCode>TouchTarget</InlineCode> guarantees a 48×48px hit
-              area for small controls.
-            </li>
-            <li>
-              <InlineCode>DomDirectionLocale</InlineCode> fixes a subtle bug: React Aria reads
-              keyboard direction from its locale, not the DOM <InlineCode>dir</InlineCode>. It
-              supplies the same locale with only its script changed, so arrow keys follow the layout
-              while dates and numbers keep the app&apos;s language.
-            </li>
-            <li>
-              <InlineCode>Overlay</InlineCode> re-applies the theme and direction of where it was
-              rendered and releases focus containment while animating out (via{' '}
-              <InlineCode>usePresence</InlineCode>), so overlays opened inside a themed or RTL
-              region stay correct.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-6">

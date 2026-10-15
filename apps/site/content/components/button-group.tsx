@@ -149,42 +149,6 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Give the group an accessible name with <InlineCode>aria-label</InlineCode>.
-            </li>
-            <li>
-              Without selection the group is a <InlineCode>toolbar</InlineCode>: Tab enters and
-              leaves it, the arrow keys move between its buttons (mirrored in RTL), and Enter or
-              Space activates one.
-            </li>
-            <li>
-              Single selection renders as a <InlineCode>radiogroup</InlineCode> of radios: Tab
-              enters and leaves it, the arrow keys move between options, and Enter or Space selects
-              one. Selection doesn&apos;t follow focus, so every option stays reachable.
-            </li>
-            <li>
-              Multiple selection is a toolbar of toggle buttons (
-              <InlineCode>aria-pressed</InlineCode>) that behave like a set of checkboxes.{' '}
-              <InlineCode>disallowEmptySelection</InlineCode> keeps at least one option chosen.
-            </li>
-            <li>
-              With <InlineCode>overflow</InlineCode>, the &quot;More options&quot; button (rename it
-              with <InlineCode>labels</InlineCode>) is the group&apos;s last stop for the arrow
-              keys. Its menu lists the folded buttons by their labels: actions as menu items,
-              toggles as checkable items (radio items in a single-selection group), and disabled
-              buttons disabled.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

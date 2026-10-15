@@ -99,33 +99,6 @@ export async function ProgressBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              Both are React Aria progress bars (
-              <InlineCode>role=&quot;progressbar&quot;</InlineCode>
-              ), so the types require an <InlineCode>aria-label</InlineCode> or{' '}
-              <InlineCode>aria-labelledby</InlineCode>. They are not focusable and have no keyboard
-              interaction — they report, they do not accept input.
-            </li>
-            <li>
-              A determinate indicator exposes its value; an indeterminate one announces that work is
-              in progress. The animated SVG is <InlineCode>aria-hidden</InlineCode>.
-            </li>
-            <li>
-              Under <InlineCode>prefers-reduced-motion</InlineCode> the wave stops travelling, and
-              amplitude and value changes snap; indeterminate motion stays, because it conveys
-              activity.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

@@ -151,39 +151,6 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="accessibility" className="text-headline-small text-on-surface">
-            Accessibility
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The editor is a multiline <InlineCode>textbox</InlineCode>, named by{' '}
-              <InlineCode>label</InlineCode> or <InlineCode>aria-label</InlineCode> and described by
-              the field&apos;s helper text, error and counter.
-            </li>
-            <li>
-              The tools and the formatting buttons are two toolbars: one Tab stop each, arrow keys
-              between their buttons. Each button has a name and a tooltip, and the formatting
-              buttons are toggle buttons (<InlineCode>aria-pressed</InlineCode>).
-            </li>
-            <li>
-              With <InlineCode>mentions</InlineCode>, the text box has{' '}
-              <InlineCode>{'aria-autocomplete="list"'}</InlineCode>; while the list is open it
-              points at it (<InlineCode>aria-controls</InlineCode>) and at the active person (
-              <InlineCode>aria-activedescendant</InlineCode>), and a polite status says how many
-              people it shows. In forced colours the active person is outlined in{' '}
-              <InlineCode>Highlight</InlineCode>.
-            </li>
-            <li>
-              Every word comes from <InlineCode>labels</InlineCode>, with English defaults. Code and
-              quotes keep a visible border in forced colours.
-            </li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">

@@ -105,45 +105,6 @@ export async function CarouselBody(): Promise<ComponentDoc> {
         </section>
       </>
     ),
-    accessibility: (
-      <>
-        <section className="flex flex-col gap-3">
-          <h2 id="keyboard-and-screen-reader" className="text-headline-small text-on-surface">
-            Keyboard &amp; screen reader
-          </h2>
-          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
-            <li>
-              The carousel is a <InlineCode>region</InlineCode> with{' '}
-              <InlineCode>aria-roledescription=&quot;carousel&quot;</InlineCode> and needs a name (
-              <InlineCode>aria-label</InlineCode> or <InlineCode>aria-labelledby</InlineCode>).
-            </li>
-            <li>
-              Each item is a <InlineCode>group</InlineCode> described as a &quot;slide&quot; and
-              labelled &quot;n of N&quot; with numbers in the locale;{' '}
-              <InlineCode>labels.slide</InlineCode> translates the label, and{' '}
-              <InlineCode>labels.item</InlineCode> and <InlineCode>labels.carousel</InlineCode> the
-              &quot;slide&quot; and &quot;carousel&quot; descriptions.
-            </li>
-            <li>
-              The container never takes focus: Tab lands on the first item, and Tab or the arrow
-              keys (mirrored right to left) move between items, scrolling each into place; Home and
-              End go to the first and last. Up and Down (Left and Right in a vertical carousel)
-              leave it for the next or previous control.
-            </li>
-            <li>
-              With <InlineCode>onAction</InlineCode>, Space or Enter activates the focused item, as
-              does a press; <InlineCode>disabledIndexes</InlineCode> turns items off.
-            </li>
-            <li>
-              Under reduced motion items don&apos;t change size as they scroll: every item keeps the
-              large size, unmasked, and a hero carousel shows part of the next item. Let such a
-              carousel reach the window&apos;s edges.
-            </li>
-            <li>Touch, trackpads and mouse drag scroll it; snapping pauses while dragging.</li>
-          </ul>
-        </section>
-      </>
-    ),
     api: (
       <>
         <section className="flex flex-col gap-3">
