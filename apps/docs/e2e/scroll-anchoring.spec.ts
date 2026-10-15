@@ -74,12 +74,39 @@ test('a vertical floating toolbar collapsing and expanding never scrolls the pag
 }) => {
   await openStory(page, 'components-toolbar--scroll-anchoring');
   const toolbar = page.getByTestId('toolbar');
-  expect(await toolbar.evaluate((el) => getComputedStyle(el).overflowAnchor)).toBe('none');
   await scrollTopTo(page, toolbar, -24);
   const toggle = page.getByTestId('toggle');
   await expectStill(page, () => toggle.tap());
   await expectStill(page, () => toggle.tap());
 });
+
+/*
+ * Re-audit 2026-10-15: with the root excluded from anchoring, a vertical toolbar in normal
+ * flow handed the anchor to the content after it, which moves by the toolbar's whole height
+ * change: the page jumped 96px on every collapse and expand, even fully on screen. The root
+ * anchors now and only its moving parts are excluded.
+ */
+for (const offset of [-30, 10, 200]) {
+  test(`a vertical toolbar in normal flow ${offset}px from the top never scrolls the page`, async ({
+    page,
+  }) => {
+    await openStory(page, 'components-toolbar--collapse', {}, { vertical: true });
+    // A tall page around the story, with content after the toolbar (the "After" button).
+    await page.evaluate(() => {
+      const root = document.getElementById('storybook-root')!;
+      const above = Object.assign(document.createElement('div'), { style: 'height:1200px' });
+      const below = Object.assign(document.createElement('div'), { style: 'height:2000px' });
+      root.before(above);
+      root.after(below);
+    });
+    const toolbar = page.getByTestId('toolbar');
+    await scrollTopTo(page, toolbar, offset);
+    const toggle = page.getByRole('button', { name: /^(Collapse|Expand)$/ });
+    // A script click: Playwright's own presses scroll the button into view first.
+    await expectStill(page, () => toggle.evaluate((el: HTMLElement) => el.click()));
+    await expectStill(page, () => toggle.evaluate((el: HTMLElement) => el.click()));
+  });
+}
 
 test("an extended FAB's label collapsing and expanding never scrolls the page", async ({
   page,

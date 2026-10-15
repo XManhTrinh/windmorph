@@ -81,10 +81,12 @@ export const dockedToolbarStyles = tv({
 /** Variant definitions for {@link FloatingToolbar}; extend them to add colour styles. */
 export const floatingToolbarStyles = tv({
   slots: {
-    // Collapsing and expanding resize it in place, so it is never the browser's scroll
-    // anchor (which would scroll the page to follow it).
+    // Collapsing and expanding resize its parts in place, so none of them is ever the
+    // browser's scroll anchor (which would scroll the page to follow it). The root itself
+    // may be: its start edge stays put while it resizes, whereas excluding it hands the
+    // anchor to the content after it, which moves by the whole change (2026-10-15).
     root: [
-      'inline-flex shrink-0 items-center justify-center [overflow-anchor:none]',
+      'inline-flex shrink-0 items-center justify-center [overflow-anchor:auto] **:[overflow-anchor:none]',
       ...exitMotion,
     ],
     // A group of items (main, leading or trailing content).
