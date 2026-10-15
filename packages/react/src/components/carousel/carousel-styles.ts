@@ -38,7 +38,7 @@ export const carouselStyles = tv({
       '[--m3-carousel-pressed-corner:var(--md-sys-shape-corner-large-increased)]',
     ],
     scroller: [
-      'flex min-h-0 min-w-0 flex-1 overscroll-contain outline-none [scrollbar-width:none]',
+      'flex min-h-0 min-w-0 flex-1 outline-none [scrollbar-width:none]',
       'data-dragging:cursor-grabbing data-dragging:[scroll-snap-type:none] data-dragging:select-none',
       '[&::-webkit-scrollbar]:hidden',
     ],
@@ -61,7 +61,12 @@ export const carouselStyles = tv({
   },
   variants: {
     orientation: {
-      horizontal: { scroller: 'flex-row overflow-x-auto overflow-y-hidden', item: 'h-full' },
+      // Overscroll is contained on the carousel's own axis only, so a swipe across it
+      // (a vertical swipe on a horizontal carousel) still scrolls the page (2026-10-15).
+      horizontal: {
+        scroller: 'flex-row overflow-x-auto overflow-y-hidden overscroll-x-contain',
+        item: 'h-full',
+      },
       vertical: { scroller: 'flex-col overflow-x-hidden overflow-y-auto', item: 'w-full' },
     },
     /** `single` stops at every item, `many` lets a fling cross several, `none` doesn't snap. */
@@ -110,6 +115,9 @@ export const carouselStyles = tv({
       class: { scroller: 'snap-y snap-mandatory', item: 'snap-start' },
     },
     { snapping: 'single', class: { item: 'snap-always' } },
+    // A full-screen vertical carousel fills the window, so past its last item a swipe goes
+    // on to the page instead of trapping it.
+    { orientation: 'vertical', fullBleed: false, class: { scroller: 'overscroll-y-contain' } },
   ],
   defaultVariants: {
     orientation: 'horizontal',

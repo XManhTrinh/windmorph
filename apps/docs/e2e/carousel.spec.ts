@@ -278,3 +278,33 @@ test.describe('Carousel layout safety', () => {
     interactive: false,
   });
 });
+
+test.describe('Carousel touch scrolling', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  // Overscroll is contained on the carousel's own axis only (2026-10-15): a vertical swipe
+  // that starts on a horizontal carousel still scrolls the page.
+  test('a vertical swipe on a horizontal carousel scrolls the page', async ({ page }) => {
+    await openStory(page, 'components-carousel--multi-browse');
+    const carousel = page.getByTestId('carousel');
+    await carousel.evaluate((el) => {
+      document.body.style.minHeight = '4000px';
+      window.scrollTo(0, 0);
+      el.scrollIntoView({ block: 'center' });
+    });
+    const box = (await carousel.boundingBox())!;
+    const before = await page.evaluate(() => window.scrollY);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.synthesizeScrollGesture', {
+      x: Math.round(box.x + box.width / 2),
+      y: Math.round(box.y + box.height / 2),
+      xDistance: 0,
+      yDistance: -250,
+      gestureSourceType: 'touch',
+      speed: 800,
+      preventFling: true,
+    });
+    await page.waitForTimeout(300);
+    expect((await page.evaluate(() => window.scrollY)) - before).toBeGreaterThan(150);
+  });
+});
