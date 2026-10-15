@@ -17,7 +17,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * spec's 0 start is kept), and it fades in on the fast effects spring while the scrim fades
  * in on the slow one; the headline, icon and supporting text fade in after 50ms and the
  * actions after 150ms. Leaving, the parts fade out at once, the dialog slides back 50px and
- * its container shrinks to 35% on the fast spatial spring, the container fades out after
+ * its container shrinks to 35% on the fast effects spring (critically damped, so neither
+ * overshoots while the dialog is still visible), the container fades out after
  * 100ms, and the scrim fades out on the fast effects spring. Reduced motion keeps only the
  * fades of the dialog and the scrim; `quick` turns all of it off.
  * The positioner keeps 24px from the window's edges on compact windows and the spec's 56px
@@ -68,6 +69,10 @@ export const dialogStyles = tv({
      * 32px outside the panel so the shadow shows, its corners concentric with the panel's
      * `--m3-dialog-corner`) and it fades. Leaving, the clip shrinks to 35%
      * (`--m3-dialog-exit-clip`) and the fade waits 100ms for the parts to fade first. The
+     * exit's slide and shrink run on the fast effects spring, the only critically damped M3
+     * spring at the reference's 150ms (the spatial springs overshoot: the expressive fast one
+     * by 9.5%, so the dialog went past 50px and below 35% while still visible), so they stop
+     * at their targets as the reference's emphasized-accelerate curve does. The
      * clip's sides open from the panel's edges to the shadow's 32px together with its corner
      * radius, so the growing edge keeps the panel's corners on every frame.
      */
@@ -88,8 +93,8 @@ export const dialogStyles = tv({
       '[transition-property:opacity,translate,clip-path] motion-reduce:[transition-property:opacity]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-spatial-default-easing)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
       'data-exiting:[transition-delay:var(--md-sys-motion-duration-short-2),0s,0s]',
       'motion-reduce:data-exiting:[transition-delay:0s]',
     ],
@@ -336,6 +341,7 @@ export const dialogStyles = tv({
           '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
           '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
           'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+          'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
         ],
         panel: [
           '[transition-property:background-color] motion-reduce:[transition-property:none]',
@@ -360,6 +366,7 @@ export const dialogStyles = tv({
           'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
           'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
           'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+          'max-medium:data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
         ],
         panel: [
           'max-medium:[transition-property:background-color]',

@@ -2,8 +2,12 @@
 
 import { useEffect, useState, type TransitionEvent } from 'react';
 
-/** Upper bound for an exit transition, in case `transitionend` never fires. */
-const EXIT_FALLBACK_MS = 800;
+/**
+ * Upper bound for an exit transition, in case `transitionend` never fires. Presence normally
+ * ends on that event; this only has to outlast the longest exit the motion tokens can build
+ * (checked in `use-presence.test.tsx`), so it never cuts a fade short.
+ */
+export const EXIT_FALLBACK_MS = 800;
 
 /**
  * Keeps an overlay mounted while it animates out. `isPresent` turns true as soon as

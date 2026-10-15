@@ -180,11 +180,12 @@ function expectExit(frames: Frame[], target: Target, slide: [number, number], ax
     // The parts fade out first, all together, while the container waits 100ms.
     if (t <= 96) expect(motion.opacity, `container at ${t}ms`).toBe(1);
     if (t === 96) for (const name of names) expect(part(parts, name).opacity).toBeLessThan(0.05);
-    // It moves back toward its edge (the fast spring overshoots by up to 10%) and shrinks to
-    // 35%, never below a quarter.
-    expect(slideLeft(motion, slide)).toBeLessThanOrEqual(1.12);
+    // It moves back toward its edge and shrinks to 35% on a critically damped spring, as the
+    // reference's emphasized-accelerate curve does: never past 50px (within half a pixel) and
+    // never below 35%.
+    expect(slideLeft(motion, slide) * Math.hypot(...slide)).toBeLessThanOrEqual(50.5);
     expect(slideLeft(motion, slide)).toBeGreaterThanOrEqual(0);
-    expect(shown(motion, axis)).toBeGreaterThan(0.25);
+    expect(shown(motion, axis)).toBeGreaterThanOrEqual(0.35 - 1e-3);
   }
   expect(slideLeft(part(at(frames, 96), 'motion'), slide)).toBeGreaterThan(0.9);
   expect(part(at(frames, 112), 'motion').opacity).toBeLessThan(1);
@@ -400,6 +401,9 @@ test.describe('Dialog motion, frame by frame', () => {
     // Leaving on the fast springs, with no wait: it fades from the first frame.
     expect(part(at(exit, 32), 'motion').opacity).toBeLessThan(0.6);
     expect(translate(part(at(exit, 96), 'motion'))[1]).toBeGreaterThan(40);
+    for (const { parts } of exit) {
+      expect(translate(part(parts, 'motion'))[1]).toBeLessThanOrEqual(48.5);
+    }
     expect(part(at(exit, 128), 'motion').opacity).toBeLessThan(0.02);
     for (const { parts } of exit) expect(part(parts, 'content').opacity).toBe(1);
   });
