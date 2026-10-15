@@ -44,8 +44,9 @@ export const primitives: ComponentAccessibility = {
   ],
   motion: [
     'The `state-layer` ripple appears at full size without growing under reduced motion. `container-motion` snaps corner morphs, while colours and elevation still fade.',
-    '`useM3Spring` forces the `standard` motion scheme, which never visibly overshoots, under reduced motion; the `motion-standard:` variant applies under the standard scheme (`data-motion="standard"`) or reduced motion.',
-    '`useM3Morph` leaves reduced motion to you: snap its `progress` instead of springing it.',
+    'Under reduced motion the spatial spring tokens (`--md-sys-motion-spring-spatial-*-duration`, and so the `duration-m3-spatial-*` utilities) are 0ms, so anything that moves, resizes, reshapes or turns on them changes at once; the effects springs keep their durations, so fades and colour changes still run.',
+    '`useM3Spring` returns the `standard` scheme, which never visibly overshoots, under reduced motion; skip spatial animations yourself, as the components do. The `motion-standard:` variant applies under the standard scheme (`data-motion="standard"`) or reduced motion.',
+    '`usePresence` takes several end properties, so an exit that slides normally and fades under reduced motion can end on either. `useM3Morph` leaves reduced motion to you: snap its `progress` instead of springing it.',
   ],
   consumer: [
     'A control built on `useM3Interaction` owns its semantics: pair it with the matching React Aria hook for its role, accessible name and state.',

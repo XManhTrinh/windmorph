@@ -39,7 +39,7 @@ export const tabs: ComponentAccessibility = {
     "Fixed tabs share the row's width; scrollable tabs are at least 90px wide.",
   ],
   motion: [
-    'Under reduced motion the indicator still slides to the selection, and a scrollable row still scrolls, on the standard springs without bounce. The press ripple appears at full size without growing.',
+    'Under reduced motion the indicator jumps to the selected tab instead of sliding, and a scrollable row scrolls to it at once. Colours still fade, and the press ripple appears at full size without growing.',
   ],
   consumer: [
     'Name the row with `aria-label` or `aria-labelledby`.',

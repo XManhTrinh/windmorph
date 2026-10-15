@@ -46,7 +46,8 @@ export const navigationRail: ComponentAccessibility = {
     'An expanded item is the whole row, at least 56px tall, larger than the pill that shows the state.',
   ],
   motion: [
-    'Under reduced motion the springs use the standard scheme, without bounce: the rail still widens and the pill still expands. The press ripple appears at full size without growing.',
+    "Under reduced motion the rail expands and collapses at once, and the active indicator fades in whole instead of expanding from the icon's centre. The press ripple appears at full size without growing.",
+    'A `modal` rail fades in and out at its full width instead of growing or sliding from the edge.',
     'With `indicatorMotion="slide"`, the pill fades in place under reduced motion instead of sliding.',
   ],
   consumer: [

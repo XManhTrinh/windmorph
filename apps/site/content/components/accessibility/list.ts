@@ -81,7 +81,7 @@ export const list: ComponentAccessibility = {
     'The expand chevron of a tree item gets an invisible 48 × 48px `TouchTarget`.',
   ],
   motion: [
-    'Under reduced motion nested items only fade in and out instead of also opening their height, and the expand chevron flips without rotating. Item corners still morph on the standard spring, which never overshoots, and the press ripple appears at full size without growing.',
+    'Under reduced motion nested items only fade in and out instead of also opening their height, and the expand chevron flips without rotating. Item corners snap to their new shape, and the press ripple appears at full size without growing.',
   ],
   consumer: [
     'Name every list with `aria-label`, or `aria-labelledby` pointing at a visible heading.',

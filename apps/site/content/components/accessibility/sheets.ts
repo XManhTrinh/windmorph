@@ -49,7 +49,7 @@ export const sheets: ComponentAccessibility = {
     'On a touch screen, a drag down that starts on the content while it is scrolled to its top moves the sheet; a drag up, or any drag while the content is scrolled, scrolls it. Sideways drags, form fields and elements that handle their own drags (such as sliders) are left alone, and a mouse drag on the content selects text as usual.',
   ],
   motion: [
-    'Under reduced motion sheets still slide in and out, and a standard side sheet still opens its width, on the standard springs, which never overshoot. The scrim still fades.',
+    'Under reduced motion modal sheets fade in and out where they rest instead of sliding, and a bottom sheet moves to a new detent at once; a drag still follows the finger or pointer. A standard side sheet opens and closes its width at once. The scrim still fades.',
   ],
   consumer: [
     'Name every sheet: `aria-label` or `aria-labelledby` on a `BottomSheet`, a `title` (or `aria-label`) on a `SideSheet`.',

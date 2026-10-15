@@ -29,7 +29,7 @@ export const switchControl: ComponentAccessibility = {
     'The track is 52 × 32px. An invisible `TouchTarget` makes its hit area 52 × 48px without changing the layout, and the whole `<label>`, text included, toggles the switch.',
   ],
   motion: [
-    'Under reduced motion the thumb still slides and grows, on the standard spring, which never overshoots. The press ripple appears at full size without growing. Pressing or dragging snaps the thumb in every mode.',
+    'Under reduced motion the thumb jumps to the other end and changes size at once; its colours still fade. The press ripple appears at full size without growing. Pressing or dragging snaps the thumb in every mode.',
   ],
   consumer: [
     'Give every switch a name: visible `children`, or `aria-label` / `aria-labelledby` when the label is elsewhere.',

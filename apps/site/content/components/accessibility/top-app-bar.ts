@@ -27,7 +27,7 @@ export const topAppBar: ComponentAccessibility = {
     'The bar adds no targets of its own. Its icon buttons are `standard` {@link IconButton}s, which keep their 48 × 48px touch target.',
   ],
   motion: [
-    "The bar moves and collapses with the page's scroll, following the scroll position rather than animating, and reduced motion doesn't change that. The colour change when content scrolls under it fades on the effects spring.",
+    "The bar collapses with the page's scroll, following the scroll position rather than animating. Under reduced motion an `enter-always` bar stays on screen: a small bar stays put and a medium or large one only collapses to its top row, as with `exit-until-collapsed`. The colour change when content scrolls under it fades on the effects spring.",
   ],
   consumer: [
     "Wrap `title` in a heading (`<h1>`) when it names the page, and keep it the same as the page's name.",

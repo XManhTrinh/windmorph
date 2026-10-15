@@ -56,7 +56,7 @@ export const fabMenu: ComponentAccessibility = {
   ],
   motion: [
     'Under reduced motion, hiding and showing the menu (`visible`, `appear`) only fade, without the scale from the centre; the `swap` icon change happens at once, and `rotate` keeps only the crossfade. The press ripple appears at full size without growing.',
-    "The button's shrink into the close button, and the items' staggered width and fade, still run under reduced motion, on the standard springs, which don't overshoot.",
+    "Opening and closing don't move either: the button becomes the close button at once, and the items fade in and out together, at their full width, without the stagger.",
   ],
   consumer: [
     'Name the button with an `aria-label` that says what the menu holds ("Create"), and give every item a visible label.',

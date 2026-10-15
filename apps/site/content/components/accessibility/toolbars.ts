@@ -45,7 +45,7 @@ export const toolbars: ComponentAccessibility = {
   ],
   motion: [
     'Under reduced motion a toolbar leaving the screen fades out instead of sliding off its edge.',
-    "Collapsing and expanding still animate, on the standard springs without bounce. `ToolbarFab`'s `rotate` icon transition keeps only the crossfade.",
+    "Collapsing and expanding happen at once, without the width animating. `ToolbarFab`'s `rotate` icon transition keeps only the crossfade.",
   ],
   consumer: [
     'Name every toolbar with `aria-label` or `aria-labelledby` ("Message actions").',

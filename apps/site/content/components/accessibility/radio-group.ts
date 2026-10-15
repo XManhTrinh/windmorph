@@ -40,7 +40,7 @@ export const radioGroup: ComponentAccessibility = {
     'Each 20px ring sits in a 40px control with an invisible 48 × 48px touch target. The whole label is part of the target too, since each option is a `<label>`.',
   ],
   motion: [
-    "Under reduced motion the springs switch to the standard scheme, which doesn't overshoot: the dot still grows in and the colours still fade. The press ripple appears at full size without growing.",
+    'Under reduced motion the dot appears at full size instead of growing in, and the colours still fade. The press ripple appears at full size without growing.',
   ],
   consumer: [
     'Name the group with a visible `label` that asks the question, and give every option a visible label.',

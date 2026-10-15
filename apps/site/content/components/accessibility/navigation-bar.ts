@@ -37,7 +37,7 @@ export const navigationBar: ComponentAccessibility = {
     "Stacked items share the bar's width (or are at least the 56px pill wide when centred); items with the icon beside the label are at least 56px wide.",
   ],
   motion: [
-    'Under reduced motion the springs use the standard scheme, without bounce, and the press ripple appears at full size without growing.',
+    "Under reduced motion the active indicator fades in whole instead of expanding from the icon's centre, and the press ripple appears at full size without growing. Colours still fade.",
     'With `scrollBehavior="hide-on-scroll"`, the bar stays put under reduced motion.',
   ],
   consumer: [

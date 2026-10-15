@@ -33,7 +33,7 @@ export const fab: ComponentAccessibility = {
   ],
   motion: [
     'Under reduced motion, hiding and showing (`visible`, `appear`) only fade, without the scale from the centre, and the press ripple appears at full size without growing. Colours and elevation still fade.',
-    "Every spring switches to the standard scheme, which doesn't overshoot. An `ExtendedFab`'s label still slides closed and open on it.",
+    'An `ExtendedFab` collapses and expands at once: its width changes without sliding and its label fades.',
   ],
   consumer: [
     'Name a `Fab` with an `aria-label` that says the action ("Compose a new message"), not the icon.',

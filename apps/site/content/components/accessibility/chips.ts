@@ -67,7 +67,7 @@ export const chips: ComponentAccessibility = {
     'A scrolling `ChipSet` (`layout="scroll"`) pads its row so the touch targets and focus rings stay inside the scroll area.',
   ],
   motion: [
-    "Under reduced motion the filter chip's check and its padding change still animate, on the standard spring, which never overshoots, and the press ripple appears at full size without growing. Colours and elevation still fade.",
+    "Under reduced motion a filter chip's check and its padding change appear at once instead of sliding open, and the check fades in. The press ripple appears at full size without growing. Colours and elevation still fade.",
   ],
   consumer: [
     'Give every `ChipSet` a name with `aria-label`, or `aria-labelledby` pointing at a visible heading.',

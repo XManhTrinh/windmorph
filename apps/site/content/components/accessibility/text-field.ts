@@ -38,7 +38,7 @@ export const textField: ComponentAccessibility = {
     'The container is at least 56px tall and spans the field, and leading and trailing icons sit in 48 × 48px boxes, so the field meets the 48px minimum.',
   ],
   motion: [
-    "Under reduced motion every spring switches to the standard scheme, which doesn't overshoot. The label still floats, and the border and indicator still change thickness and colour, on those springs.",
+    'Under reduced motion the label floats and settles at once, and the border and indicator change thickness at once; colours still fade.',
   ],
   consumer: [
     'Give every field a visible `label`. Use `aria-label` only where the purpose is clear without one, such as a search field with a search icon.',

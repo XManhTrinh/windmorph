@@ -22,7 +22,7 @@ export const pullToRefresh: ComponentAccessibility = {
     'The whole area takes the pull, so there is no small target to hit. The indicator is a 48px circle that ignores the pointer (`pointer-events: none`).',
   ],
   motion: [
-    "Under reduced motion the indicator settles to the threshold or away on the standard motion scheme's spring, which doesn't overshoot, and the refreshing indicator only rotates, without morphing.",
+    'Under reduced motion the indicator jumps to the threshold or away when you let go, or when a refresh starts or ends, instead of springing there; the refreshing indicator only rotates, without morphing.',
     'While pulled, the indicator follows the gesture directly. The crossfade between the pull and refreshing indicators still runs.',
   ],
   consumer: [

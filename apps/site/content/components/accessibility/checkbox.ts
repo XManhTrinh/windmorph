@@ -26,7 +26,7 @@ export const checkbox: ComponentAccessibility = {
     'The 18px box sits in a 40px control with an invisible 48 × 48px touch target. The whole label is part of the target too, since the root is a `<label>`.',
   ],
   motion: [
-    "Under reduced motion the springs switch to the standard scheme, which doesn't overshoot: the check mark still draws in and the colours still fade. The press ripple appears at full size without growing.",
+    'Under reduced motion the check mark appears at once instead of drawing in, and the box fills with a fade only. The press ripple appears at full size without growing.',
   ],
   consumer: [
     'Give every checkbox a visible label that says what checking it means.',
