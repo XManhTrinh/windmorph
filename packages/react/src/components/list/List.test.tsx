@@ -772,8 +772,10 @@ describe('List (expandable items)', () => {
     expect(reveal(photos)).not.toHaveAttribute('data-appear');
     expect(reveal(photos)).toHaveClass(
       'grid-rows-[1fr]',
-      'data-appear:starting:grid-rows-[0fr]',
-      'data-exiting:grid-rows-[0fr]',
+      // The height moves only with motion; under reduced motion rows fade where they are.
+      'motion-safe:data-appear:starting:grid-rows-[0fr]',
+      'motion-safe:data-exiting:grid-rows-[0fr]',
+      'data-exiting:opacity-0',
       'motion-reduce:[transition-property:opacity]',
     );
     await userEvent.click(photos);
