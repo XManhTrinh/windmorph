@@ -96,8 +96,11 @@ export const buttonStyles = tv({
       'state-layer focus-ring container-motion',
       'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
     ],
-    // Library-owned inner wrapper: holds the touch target, never receives consumer layout.
-    content: 'relative inline-flex min-w-0 items-center justify-center',
+    // Library-owned inner wrapper: holds the touch target, never receives consumer layout. It
+    // never shrinks: in a button narrower than its content (a button group's compressed
+    // neighbour) the content stays centred, giving up the padding equally on both sides
+    // (2026-10-15).
+    content: 'relative inline-flex shrink-0 items-center justify-center',
     label: 'min-w-0',
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
   },
