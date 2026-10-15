@@ -194,6 +194,84 @@ test.describe('Tabs behaviour', () => {
   });
 });
 
+test.describe('Tabs selection colour, page scroll and forced colours', () => {
+  test('the first selection after mount fades the colours', async ({ page }) => {
+    await openStory(page, 'components-tabs--playground');
+    await page.waitForTimeout(300);
+    const tab = page.getByRole('tab', { name: 'Drafts' });
+    // Sample the newly selected tab's colour on every frame from the press.
+    await tab.evaluate((el) => {
+      const colours: string[] = [];
+      (window as unknown as { __colours: string[] }).__colours = colours;
+      const start = performance.now();
+      const tick = () => {
+        colours.push(getComputedStyle(el).color);
+        if (performance.now() - start < 400) requestAnimationFrame(tick);
+      };
+      el.addEventListener('pointerdown', () => requestAnimationFrame(tick), { once: true });
+    });
+    await tab.click();
+    await page.waitForTimeout(600);
+    const colours = await page.evaluate(
+      () => (window as unknown as { __colours: string[] }).__colours,
+    );
+    // A fade passes through colours between the two ends; a jump shows only the two.
+    expect(new Set(colours).size, colours.join(' ')).toBeGreaterThan(3);
+  });
+
+  test('arrow keys in a scrollable row on screen never scroll the page', async ({ page }) => {
+    await openStory(page, 'components-tabs--scrollable');
+    const list = page.getByRole('tablist');
+    await list.evaluate((el) => {
+      document.body.style.padding = '1500px 0 2500px';
+      window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 200);
+    });
+    const before = await page.evaluate(() => window.scrollY);
+    expect(before).toBeGreaterThan(1000);
+    await page.getByRole('tab').first().focus();
+    const scroller = list.locator('..');
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press('ArrowRight');
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => r(null))));
+      expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    }
+    // The row itself still reveals the focused tab.
+    expect(await scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    const focused = await box(page.locator('[role="tab"]:focus'));
+    const frame = await box(scroller);
+    expect(focused.x + focused.width).toBeLessThanOrEqual(frame.x + frame.width + 1);
+  });
+
+  test('forced colours keep the indicator, the divider and the selected label', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-tabs--playground');
+    const list = page.getByRole('tablist');
+    const styles = await list.evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.style.color = 'Highlight';
+      document.body.append(probe);
+      const highlight = getComputedStyle(probe).color;
+      probe.remove();
+      const indicator = el.querySelector('[data-ready]')!;
+      const selected = el.querySelector('[role="tab"][aria-selected="true"]')!;
+      const other = el.querySelector('[role="tab"][aria-selected="false"]')!;
+      return {
+        highlight,
+        indicator: getComputedStyle(indicator).backgroundColor,
+        divider: getComputedStyle(el).borderBottomWidth,
+        selected: getComputedStyle(selected).color,
+        other: getComputedStyle(other).color,
+      };
+    });
+    expect(styles.indicator).toBe(styles.highlight);
+    expect(styles.divider).toBe('1px');
+    expect(styles.selected).toBe(styles.highlight);
+    expect(styles.other).not.toBe(styles.highlight);
+  });
+});
+
 test.describe('Tabs first paint and resizing', () => {
   test('the indicator and selected colour appear in place, with no slide or fade', async ({
     page,

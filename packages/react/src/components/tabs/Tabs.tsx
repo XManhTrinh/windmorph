@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type HTMLAttributes,
   type JSX,
+  type KeyboardEvent,
   type PointerEvent,
   type ReactElement,
   type ReactNode,
@@ -224,12 +225,23 @@ function TabsInner({
     state.collection,
   );
   useScrollToSelection(scrollerRef, listRef, state.selectedKey, scrollable);
+  // The tabs' colours fade only once the selection has changed. Set in the render that
+  // changes it, not with the indicator's placement: that comes from a layout effect whose
+  // measuring commits the new colours first, so the first selection recoloured at once.
+  const [shownKey, setShownKey] = useState(state.selectedKey);
+  const [recolour, setRecolour] = useState(false);
+  if (shownKey !== state.selectedKey) {
+    setShownKey(state.selectedKey);
+    if (shownKey != null) setRecolour(true);
+  }
+  const keepPageScroll = useKeepPageScroll(scrollerRef);
 
   return (
     <>
       <div
         ref={scrollerRef}
         {...densityAttribute(density)}
+        onKeyDownCapture={keepPageScroll}
         className={styles.scroller({ class: classNames?.scroller })}
       >
         <div
@@ -237,6 +249,7 @@ function TabsInner({
           ref={listRef}
           data-slot="list"
           data-animate={indicator?.animate || undefined}
+          data-recolour={recolour || undefined}
           className={styles.list({ class: classNames?.list })}
         >
           {items.map((item, index) => (
@@ -402,6 +415,38 @@ function useScrollToSelection(
     // The spring only matters for the next selection change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, scrollable]);
+}
+
+/**
+ * Arrow keys must not scroll the page. React Aria reveals a newly focused tab with
+ * `scrollIntoView({ block: 'center' })` on the row's container, which scrolls every
+ * ancestor, the window included, even when the row is already fully on screen. When it is,
+ * this records the ancestors' scroll positions as the key goes down and puts them back
+ * before the next frame, so only the row itself scrolls to the tab (2026-10-15).
+ */
+const REVEAL_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']);
+
+function useKeepPageScroll(scrollerRef: React.RefObject<HTMLDivElement | null>) {
+  return (event: KeyboardEvent<HTMLDivElement>) => {
+    const scroller = scrollerRef.current;
+    if (!scroller || !REVEAL_KEYS.has(event.key)) return;
+    const rect = scroller.getBoundingClientRect();
+    const view = window.visualViewport;
+    const height = view?.height ?? window.innerHeight;
+    const width = view?.width ?? window.innerWidth;
+    if (rect.top < 0 || rect.left < 0 || rect.bottom > height || rect.right > width) return;
+    const saved: [Element, number, number][] = [];
+    for (let el = scroller.parentElement; el; el = el.parentElement)
+      saved.push([el, el.scrollLeft, el.scrollTop]);
+    const page = document.scrollingElement;
+    if (page && !saved.some(([el]) => el === page))
+      saved.push([page, page.scrollLeft, page.scrollTop]);
+    requestAnimationFrame(() => {
+      for (const [el, left, top] of saved)
+        if (el.scrollLeft !== left || el.scrollTop !== top)
+          el.scrollTo({ left, top, behavior: 'instant' });
+    });
+  };
 }
 
 interface TabButtonProps {

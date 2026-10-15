@@ -307,14 +307,37 @@ describe('Tabs', () => {
     const indicator = container.querySelector<HTMLElement>('[data-ready]')!;
     // Transitions are gated on the row's data-animate.
     expect(indicator).toHaveClass('group-data-animate/tabs:[transition-property:translate,width]');
+    // Colour fades are gated on data-recolour.
     expect(screen.getByRole('tab', { name: 'Flights' })).toHaveClass(
-      'group-data-animate/tabs:[--m3-transition-property:color]',
+      'group-data-recolour/tabs:[--m3-transition-property:color]',
     );
     expect(indicator.style.translate).toBe('0px 0');
     expect(list).not.toHaveAttribute('data-animate');
+    expect(list).not.toHaveAttribute('data-recolour');
     await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
     expect(indicator.style.translate).toBe('100px 0');
     expect(list).toHaveAttribute('data-animate', 'true');
+    vi.restoreAllMocks();
+  });
+
+  it('turns the colour fade on in the render that changes the selection', async () => {
+    // The indicator's measuring reads layout, which commits the tabs' new colours: the fade
+    // must already be on then, or the first selection recolours in one frame.
+    const seen: (string | undefined)[] = [];
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.getAttribute('role') === 'tab' && this.hasAttribute('data-selected')) {
+        seen.push(this.closest<HTMLElement>('[role="tablist"]')!.dataset.recolour);
+      }
+      return DOMRect.fromRect({ x: 0, y: 0, width: 100, height: 48 });
+    });
+    render(<Trip variant="secondary" />);
+    expect(seen.every((value) => value === undefined)).toBe(true);
+    seen.length = 0;
+    await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
+    expect(seen.length).toBeGreaterThan(0);
+    expect(seen.every((value) => value === 'true')).toBe(true);
     vi.restoreAllMocks();
   });
 

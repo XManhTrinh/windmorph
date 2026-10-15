@@ -19,9 +19,13 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   only its top corners rounded (3, 3, 0, 0), as wide as the content (min 24px); 2px high
  *   on secondary tabs, the whole tab wide. It slides on the default spatial spring, and
  *   follows the selected tab's content when that resizes on its own (a web font loading).
- * - Only a selection change animates (the row's `data-animate` turns on the indicator and
- *   colour transitions): the first placement, the default selection and resizes appear in
+ * - Only a selection change animates: the row's `data-animate` turns on the indicator's
+ *   slide, and `data-recolour` (set in the render that changes the selection, 2026-10-15)
+ *   the tabs' colour fades. The first placement, the default selection and resizes appear in
  *   place, so nothing slides or fades in on mount.
+ * - Forced colours (2026-10-15): the indicator keeps its fill as `Highlight`
+ *   (`forced-color-adjust: none`), the divider becomes a 1px `CanvasText` border (an inset
+ *   shadow is dropped there), and the selected label is `Highlight`.
  * - Scrollable rows: tabs at least 90px wide, 52px start inset.
  * - Fixed rows aligned `start` or `center` are only as wide as their tabs, each as wide as
  *   the widest (a `max-content` grid of `1fr` columns), with the row's divider kept full
@@ -54,6 +58,7 @@ export const tabsStyles = tv({
     list: [
       'group/tabs grid grid-rows-[auto] bg-[var(--_md-comp-tabs-container-color)]',
       'shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
+      'forced-colors:border-b forced-colors:border-[CanvasText]',
     ],
     tab: [
       'row-start-1 flex min-w-0 cursor-pointer items-center justify-center px-[16px] select-none',
@@ -61,12 +66,13 @@ export const tabsStyles = tv({
       'state-layer focus-ring-inset',
       'not-data-selected:data-hovered:text-on-surface not-data-selected:data-focus-visible:text-on-surface not-data-selected:data-pressed:text-on-surface',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
+      'forced-colors:data-selected:text-[Highlight]',
       // The icon's colour: its token at rest and selected, else the label's.
       '[--m3-tab-icon-color:var(--_md-comp-tabs-with-icon-inactive-icon-color)] data-selected:[--m3-tab-icon-color:var(--_md-comp-tabs-with-icon-active-icon-color)]',
       'not-data-selected:data-hovered:[--m3-tab-icon-color:currentColor] not-data-selected:data-focus-visible:[--m3-tab-icon-color:currentColor] not-data-selected:data-pressed:[--m3-tab-icon-color:currentColor]',
       'data-disabled:[--m3-tab-icon-color:currentColor]',
       // Colour: in on default effects, out on fast effects, when the selection changes.
-      'group-data-animate/tabs:[--m3-transition-property:color] [--m3-transition-delay:0s]',
+      'group-data-recolour/tabs:[--m3-transition-property:color] [--m3-transition-delay:0s]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] [--m3-transition-easing:var(--md-sys-motion-spring-effects-fast-easing)]',
       'data-selected:[--m3-transition-duration:var(--md-sys-motion-spring-effects-default-duration)] data-selected:[--m3-transition-easing:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
@@ -80,6 +86,7 @@ export const tabsStyles = tv({
     text: 'inline-flex min-w-0 items-center gap-[4px]',
     indicator: [
       'pointer-events-none row-start-1 self-end [justify-self:left] bg-[var(--_md-comp-tabs-active-indicator-color)] opacity-0 data-ready:opacity-100',
+      'forced-colors:bg-[Highlight] forced-colors:forced-color-adjust-none',
       '[transition-property:none] group-data-animate/tabs:[transition-property:translate,width]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
@@ -118,14 +125,18 @@ export const tabsStyles = tv({
     align: {
       stretch: {},
       start: {
-        scroller:
+        scroller: [
           'bg-[var(--_md-comp-tabs-container-color)] shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
-        list: 'w-max max-w-full',
+          'forced-colors:border-b forced-colors:border-[CanvasText]',
+        ],
+        list: 'w-max max-w-full forced-colors:border-b-0',
       },
       center: {
-        scroller:
+        scroller: [
           'bg-[var(--_md-comp-tabs-container-color)] shadow-[inset_0_-1px_0_var(--_md-comp-tabs-divider-color)]',
-        list: 'mx-auto w-max max-w-full',
+          'forced-colors:border-b forced-colors:border-[CanvasText]',
+        ],
+        list: 'mx-auto w-max max-w-full forced-colors:border-b-0',
       },
     },
     // 48px tabs (64px with the icon above), 4px less per density step.
