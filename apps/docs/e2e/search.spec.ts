@@ -163,6 +163,18 @@ test.describe('Search geometry and behaviour', () => {
     });
   }
 
+  test('the pill keeps a visible edge in forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-search--collapsed');
+    const pill = page.getByRole('combobox').first().locator('..');
+    expect(
+      await pill.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { style: style.borderTopStyle, width: style.borderTopWidth };
+      }),
+    ).toEqual({ style: 'solid', width: '1px' });
+  });
+
   test('full screen: the surface grows to the window and the field moves to the top', async ({
     page,
   }) => {

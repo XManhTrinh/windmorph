@@ -329,6 +329,17 @@ test.describe('Menu reveal direction (2026-10-15)', () => {
   });
 });
 
+// Forced colours drop the fill and the shadow; the surface keeps a system-colour edge.
+test('a menu keeps a visible edge in forced colours', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  const menu = await openGrouped(page);
+  const edge = await menu.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { style: style.outlineStyle, width: style.outlineWidth };
+  });
+  expect(edge).toEqual({ style: 'solid', width: '1px' });
+});
+
 test.describe('Menu under reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
