@@ -33,6 +33,17 @@ import { tv, type VariantProps } from '../../utils/tv';
  */
 
 /** Variant definitions for {@link TimePicker}. */
+/**
+ * Forced colours paint containers as Canvas, so the time fields lost their boxes and the
+ * picked hour, minute or period looked like the others: the fields draw a CanvasText
+ * boundary, and the picked one keeps a Highlight fill with HighlightText, opting out of the
+ * forced palette (2026-10-15). `!important` beats the token colours, as specific.
+ */
+const forcedSelection = [
+  'forced-colors:data-selected:bg-[Highlight]! forced-colors:data-selected:text-[HighlightText]!',
+  'forced-colors:data-selected:forced-color-adjust-none',
+];
+
 export const timePickerStyles = tv({
   slots: {
     root: 'inline-flex shrink-0 items-center text-on-surface',
@@ -48,6 +59,8 @@ export const timePickerStyles = tv({
       // Surface). An input has no ripple, so pressing shows the pressed layer instead.
       'state-layer data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]!',
       'aria-invalid:outline-2 aria-invalid:outline-error',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+      ...forcedSelection,
     ],
     separator: 'flex w-[24px] items-center justify-center text-display-large text-on-surface',
     // The options round their own outer corners to the outline's inner edge (rather than the
@@ -63,6 +76,7 @@ export const timePickerStyles = tv({
       'state-layer focus-ring-inset',
       'data-selected:bg-[var(--_md-comp-time-picker-period-selector-selected-container-color)]',
       'data-selected:text-on-tertiary-container',
+      ...forcedSelection,
     ],
     dial: 'size-[256px] shrink-0 touch-none rounded-full outline-none select-none',
     dialFace: 'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
@@ -89,6 +103,7 @@ export const timePickerStyles = tv({
       'text-center text-display-medium text-on-surface caret-primary outline-none tabular-nums',
       'focus:border-primary focus:bg-primary-container focus:text-on-primary-container',
       'aria-invalid:border-error',
+      'forced-colors:border-[CanvasText] forced-colors:focus:border-[Highlight]',
     ],
     fieldLabel: 'pt-[7px] text-body-small text-on-surface-variant',
     fieldColumn: 'flex flex-col',

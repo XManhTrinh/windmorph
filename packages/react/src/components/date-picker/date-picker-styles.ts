@@ -29,6 +29,16 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Every class is written out in full so Tailwind can find it.
  */
 
+/**
+ * Forced colours paint backgrounds as Canvas, so a picked day or year looked like any
+ * other: it keeps a Highlight fill with HighlightText, opting out of the forced palette
+ * (2026-10-15). `!important` beats the token colours, whose selectors are as specific.
+ */
+const forcedSelection = [
+  'forced-colors:data-selected:bg-[Highlight]! forced-colors:data-selected:text-[HighlightText]!',
+  'forced-colors:data-selected:forced-color-adjust-none',
+];
+
 /** Variant definitions for {@link DatePicker}, {@link DateRangePicker} and the docked calendar. */
 export const datePickerStyles = tv({
   slots: {
@@ -100,6 +110,10 @@ export const datePickerStyles = tv({
       'data-today:border data-in-range:text-on-secondary-container',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
       'data-outside:invisible',
+      ...forcedSelection,
+      // The range band is a background, which forced colours drop: the days between the
+      // ends take a Highlight ring instead (2026-10-15).
+      'forced-colors:data-in-range:not-data-selected:border forced-colors:data-in-range:not-data-selected:border-[Highlight]',
     ],
     years: [
       'grid h-[335px] grid-cols-3 content-start justify-items-center gap-y-[16px] overflow-y-auto overscroll-contain pt-[8px] pb-[8px]',
@@ -125,6 +139,7 @@ export const datePickerStyles = tv({
       'data-current:border data-current:border-primary data-current:text-primary',
       'data-selected:bg-primary data-selected:text-on-primary',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
+      ...forcedSelection,
     ],
     months: [
       'h-[344px] min-h-0 overflow-y-auto overscroll-contain',
