@@ -35,7 +35,7 @@ import {
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { focusFirstInteractive } from '../../utils/focus';
+import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { useWarnOnce } from '../../utils/warn-once';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
@@ -461,8 +461,9 @@ function DialogModal({
 
   // The spec: "focus should automatically land on the first interactive element within the
   // dialog", not on the panel `useDialog` focuses. A scrolling `DialogContent` is focusable
-  // (so the keyboard can scroll it) but isn't a control.
-  useEffect(() => focusFirstInteractive(panelRef.current), [panelRef]);
+  // (so the keyboard can scroll it) but isn't a control. When that element is one of the
+  // actions, focus goes to the least destructive one (`leastDestructiveAction`).
+  useEffect(() => focusFirstInteractive(panelRef.current, leastDestructiveAction), [panelRef]);
 
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;
@@ -727,6 +728,22 @@ function flatChildren(children: ReactNode): ReactNode[] {
 }
 
 /**
+ * Where a dialog's initial focus goes when its first interactive element is one of its
+ * actions: the dismissive, least destructive action (the WAI-ARIA alert dialog pattern:
+ * "focus the least destructive action"). That's the first action in source order, which is
+ * the row's first button on one line and its last when stacked, since stacked actions are
+ * rendered with the confirming action on top. The row says which (`data-stacked`) in the
+ * same render that reorders it, so the rule holds whenever the dialog takes focus, before
+ * or after the actions stack.
+ */
+export function leastDestructiveAction(first: HTMLElement): HTMLElement {
+  const row = first.closest<HTMLElement>('[data-slot="actions"]');
+  if (!row) return first;
+  const actions = tabbables(row);
+  return (row.hasAttribute('data-stacked') ? actions.at(-1) : actions[0]) ?? first;
+}
+
+/**
  * Whether the actions are stacked: they don't fit on one line, and the layout lets them
  * stack (`--m3-dialog-actions-stack`, off in the full-screen bottom bar). Measured on mount
  * and on every resize of the row or a button. Switching reorders the buttons, and moving
@@ -791,9 +808,10 @@ function useStackedActions(ref: RefObject<HTMLDivElement | null>) {
  * when the actions do not fit on one line they stack with it on top (M3: "Confirming
  * actions appear above dismissive actions"). Stacked, the buttons are rendered in that
  * visual order, so Tab and screen readers reach the confirming action first, top to bottom,
- * as they reach the dismissive one first in a row. The dialog's initial focus still lands
- * on the dismissive action: the order switches after it, keeping focus where it is (the
- * least destructive choice, as the WAI-ARIA alert dialog advises). While the dialog is full screen they're
+ * as they reach the dismissive one first in a row. When the actions are the dialog's first
+ * controls, its initial focus goes to the dismissive action, stacked (the bottom one) or
+ * not: the least destructive choice, as the WAI-ARIA alert dialog pattern asks; a stack
+ * that forms or unforms later keeps focus where it is. While the dialog is full screen they're
  * hidden when `DialogHeader` carries the confirming action, and otherwise form the spec's
  * 56px bottom action bar. Use at most two actions (the spec); in development it warns once
  * when it holds more.

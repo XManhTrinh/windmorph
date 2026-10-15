@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Button } from '../button/Button';
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  leastDestructiveAction,
   type DialogFullScreen,
 } from './Dialog';
 
@@ -371,6 +372,40 @@ describe('Dialog', () => {
     const { baseElement } = render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});
+
+describe('Dialog initial focus on the least destructive action', () => {
+  /** An actions row as `DialogActions` renders it, stacked (confirming action on top) or not. */
+  function actionsRow(stacked: boolean) {
+    const row = document.createElement('div');
+    row.dataset.slot = 'actions';
+    if (stacked) row.dataset.stacked = 'true';
+    const names = stacked ? ['Delete', 'Cancel'] : ['Cancel', 'Delete'];
+    row.innerHTML = names.map((name) => `<button>${name}</button>`).join('');
+    document.body.append(row);
+    onTestFinished(() => row.remove());
+    return row;
+  }
+
+  it('goes to the dismissive action on one line: the first button', () => {
+    const row = actionsRow(false);
+    const first = row.querySelector('button')!;
+    expect(leastDestructiveAction(first).textContent).toBe('Cancel');
+  });
+
+  it('goes to the dismissive action when stacked: the bottom button, though another is first', () => {
+    const row = actionsRow(true);
+    const first = row.querySelector('button')!;
+    expect(first.textContent).toBe('Delete');
+    expect(leastDestructiveAction(first).textContent).toBe('Cancel');
+  });
+
+  it('leaves a first control outside the actions alone', () => {
+    const field = document.createElement('input');
+    document.body.append(field);
+    onTestFinished(() => field.remove());
+    expect(leastDestructiveAction(field)).toBe(field);
   });
 });
 

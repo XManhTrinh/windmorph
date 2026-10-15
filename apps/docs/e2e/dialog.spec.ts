@@ -327,6 +327,29 @@ test.describe('Dialog spec details', () => {
     await expect(dialog).toHaveCount(0);
   });
 
+  test('initial focus goes to the dismissive action, on one line and stacked', async ({ page }) => {
+    // One line: the dismissive action is first.
+    await page.setViewportSize({ width: 900, height: 700 });
+    await openStory(page, 'components-dialog--long-content');
+    await settle(page);
+    const actions = page.getByRole('alertdialog').locator('[data-slot="actions"]');
+    await expect(actions).not.toHaveAttribute('data-stacked');
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    // Stacked from the start: the dismissive action is the bottom one, after Accept.
+    await page.setViewportSize({ width: 420, height: 700 });
+    await openStory(page, 'components-dialog--long-content');
+    await settle(page);
+    await expect(actions).toHaveAttribute('data-stacked', 'true');
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    // Closed and opened again while stacked, it lands there again.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('alertdialog')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Open dialog' }).click();
+    await settle(page);
+    await expect(actions).toHaveAttribute('data-stacked', 'true');
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+  });
+
   test('scrolling content is reachable and scrollable from the keyboard', async ({ page }) => {
     await page.setViewportSize({ width: 420, height: 700 });
     await openStory(page, 'components-dialog--long-content');

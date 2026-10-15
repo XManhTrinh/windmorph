@@ -33,7 +33,7 @@ export const dialog: ComponentAccessibility = {
     "On open, focus moves to the dialog's first interactive element, or to an element marked `autoFocus`. With no controls, the dialog itself takes focus.",
     'While `DialogContent` scrolls it is focusable, with a focus ring, so the keyboard can scroll it; initial focus still skips it and goes to the first control.',
     'On close, focus returns to the element that opened it, such as the `DialogTrigger` button.',
-    'When the actions stack (M3: "Confirming actions appear above dismissive actions"), they are rendered in that order, so Tab and screen readers go top to bottom: the confirming action first. On one line they keep their source order, the dismissive action first. Initial focus still lands on the dismissive action (the bottom one when stacked), the least destructive choice.',
+    'When the actions stack (M3: "Confirming actions appear above dismissive actions"), they are rendered in that order, so Tab and screen readers go top to bottom: the confirming action first. On one line they keep their source order, the dismissive action first. When the actions are the first controls, initial focus goes to the dismissive action, the least destructive choice (the WAI-ARIA alert dialog pattern): the first one on one line, the bottom one when stacked.',
   ],
   touchTarget: {
     none: 'The dialog has no target of its own. Its actions are {@link Button}s and the full-screen close button is a 48 × 48px {@link IconButton}, each with its own touch target.',
