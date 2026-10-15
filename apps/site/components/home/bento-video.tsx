@@ -111,48 +111,57 @@ export function BentoVideo({ video, className }: BentoVideoProps) {
   const base = `${BENTO_MEDIA_URL}/bento-${resolvedMode}`;
 
   return (
-    <div
-      data-bento-video
-      className={cn(
-        // The poster as a background too, in the mode the pre-paint script set, so it shows
-        // before hydration (when the resolved mode isn't known yet).
-        'relative overflow-hidden rounded-corner-extra-large bg-cover',
-        'bg-[url(/media/bento/bento-light.jpg)] dark:bg-[url(/media/bento/bento-dark.jpg)]',
-        className,
-      )}
-      style={{ aspectRatio: `${video.width} / ${video.height}` }}
-    >
-      <p className="sr-only">
-        A looping video of M3 Expressive components switching between a resting and an active state
-        as the theme changes: a FAB menu, toolbars, a button group, progress and loading indicators,
-        an icon button and a navigation rail.
-      </p>
-      <video
-        ref={ref}
-        aria-hidden="true"
-        width={video.width}
-        height={video.height}
-        poster={hydrated ? `${base}.jpg` : undefined}
-        muted
-        loop
-        playsInline
-        preload="none"
-        disablePictureInPicture
-        disableRemotePlayback
-        className="block size-full"
+    <div data-bento-video className={cn('relative', className)}>
+      <div
+        className={cn(
+          // The poster as a background too, in the mode the pre-paint script set, so it shows
+          // before hydration (when the resolved mode isn't known yet).
+          'overflow-hidden rounded-corner-extra-large bg-cover',
+          'bg-[url(/media/bento/bento-light.jpg)] dark:bg-[url(/media/bento/bento-dark.jpg)]',
+        )}
+        style={{ aspectRatio: `${video.width} / ${video.height}` }}
       >
-        {loaded
-          ? video.formats.map((format) => (
-              <source key={format} src={`${base}.${format}`} type={MIME_TYPES[format]} />
-            ))
-          : null}
-      </video>
+        <p className="sr-only">
+          A looping video of M3 Expressive components switching between a resting and an active
+          state as the theme changes: a FAB menu, toolbars, a button group, progress and loading
+          indicators, an icon button and a navigation rail.
+        </p>
+        <video
+          ref={ref}
+          aria-hidden="true"
+          width={video.width}
+          height={video.height}
+          poster={hydrated ? `${base}.jpg` : undefined}
+          muted
+          loop
+          playsInline
+          preload="none"
+          disablePictureInPicture
+          disableRemotePlayback
+          className="block size-full"
+        >
+          {loaded
+            ? video.formats.map((format) => (
+                <source key={format} src={`${base}.${format}`} type={MIME_TYPES[format]} />
+              ))
+            : null}
+        </video>
+      </div>
+      {/* As on M3's own site: a 56px round button over the card's end corner, its centre 12px
+          in from each edge (on the corner's curve), overhanging by 16px, which the page gutter
+          and the gap below hold. Playing, a translucent inverse surface keeps it readable over
+          any frame; paused, it's a filled (primary) play button. */}
       <IconButton
-        variant="tonal"
+        size="md"
         icon={paused ? <PlayArrowIcon /> : <PauseIcon />}
         aria-label={paused ? 'Play animation' : 'Pause animation'}
+        data-state={paused ? 'paused' : 'playing'}
         onPress={() => setChoice(paused ? 'play' : 'pause')}
-        className="absolute end-2 bottom-2"
+        className={cn(
+          'absolute -end-4 -bottom-4',
+          !paused &&
+            '[--md-comp-icon-button-filled-container-color:color-mix(in_srgb,var(--md-sys-color-inverse-surface)_80%,transparent)] [--md-comp-icon-button-filled-icon-color:var(--md-sys-color-inverse-on-surface)]',
+        )}
       />
     </div>
   );
