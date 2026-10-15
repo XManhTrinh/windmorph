@@ -20,6 +20,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  * - Leading icons are `primary`; a selected filter chip's is `on-secondary-container`, a
  *   selected input chip's `primary`, an unselected input chip's `on-surface-variant`.
  * - The remove button has a 48px target, and a chip with one is at least 88px wide.
+ * - Web density (`--md-sys-density`): each step takes 4px off the minimum height, 32 → 28 →
+ *   24px, and -3 stays at 24px (Material Components Web's chip density: 32px, 24px at its
+ *   densest, -2). `--m3-chip-height` holds it; the avatar and the remove button's state layer
+ *   are at most the height inside the border (24px, 22px in a flat 24px chip), so they never
+ *   make a dense chip taller. The 48px touch target stays (M3: "a minimum 48dp target size,
+ *   regardless of placement or density"), extending beyond the chip.
  * - Disabled: content `on-surface` 38%, borders `on-surface` 12%, containers `on-surface`
  *   12% at level 0.
  *
@@ -52,7 +58,10 @@ const containerStates = [
 export const chipStyles = tv({
   slots: {
     root: [
-      'group/chip inline-flex h-fit min-h-[32px] max-w-full shrink-0 cursor-pointer items-center align-middle',
+      'group/chip inline-flex h-fit min-h-[var(--m3-chip-height)] max-w-full shrink-0 cursor-pointer items-center align-middle',
+      '[--m3-chip-height:max(24px,calc(32px+var(--md-sys-density,0)*4px))]',
+      // An avatar's or the remove button's size: 24px, or the height inside a dense chip's border.
+      '[--m3-chip-slot:min(24px,calc(var(--m3-chip-height)-2*var(--m3-chip-border)))]',
       'font-plain text-label-large whitespace-nowrap select-none',
       'state-layer focus-ring',
       ...motion,
@@ -76,11 +85,11 @@ export const chipStyles = tv({
     checkInner: 'flex min-w-0 overflow-hidden',
     checkIcon: 'inline-flex size-[18px] shrink-0 me-[8px] [&>svg]:size-full',
     avatar:
-      'size-[24px] shrink-0 overflow-hidden rounded-corner-medium [&>img]:size-full [&>img]:object-cover group-data-disabled/chip:opacity-38',
-    // The remove button: an 18px icon in a 24px round state layer, with a 48px target. Its
-    // margins put the icon 8px from the label and from the chip's end.
+      'size-[var(--m3-chip-slot)] shrink-0 overflow-hidden rounded-corner-medium [&>img]:size-full [&>img]:object-cover group-data-disabled/chip:opacity-38',
+    // The remove button: an 18px icon in a 24px round state layer (less in a dense flat chip),
+    // with a 48px target. Its margins put the icon 8px from the label and from the chip's end.
     remove: [
-      'relative ms-[5px] -me-[3px] inline-flex size-[24px] shrink-0 cursor-pointer items-center justify-center rounded-full',
+      'relative ms-[calc(8px-(var(--m3-chip-slot)-18px)/2)] -me-[calc((var(--m3-chip-slot)-18px)/2)] inline-flex size-[var(--m3-chip-slot)] shrink-0 cursor-pointer items-center justify-center rounded-full',
       'state-layer [&>svg]:size-[18px]',
       'data-disabled:cursor-default',
     ],
@@ -337,19 +346,24 @@ export const chipStyles = tv({
   },
 });
 
-/** Variant definitions for {@link ChipSet}. */
+/**
+ * Variant definitions for {@link ChipSet}. Chips are 8px apart (M3: "Keep an 8dp minimum
+ * space between chips"). With web density, rows come 2px further apart per step, half of what
+ * each chip loses (8 → 10 → 12px; 12px at -3, where chips stay 24px), so a chip's 48px touch
+ * target never reaches the chips in the rows above and below.
+ */
 export const chipSetStyles = tv({
   slots: {
-    root: 'flex max-w-full gap-[8px]',
+    root: 'flex max-w-full gap-x-[8px] gap-y-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
   },
   variants: {
     layout: {
       // Rows wrap, 8px apart.
       wrap: { root: 'flex-wrap' },
       // One row that scrolls sideways. The padding keeps the chips' 48px targets and focus
-      // rings inside the scroll area.
+      // rings inside the scroll area (more above and below as density makes chips shorter).
       scroll: {
-        root: 'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[8px] pb-[8px] [scrollbar-width:none]',
+        root: 'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] pb-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] [scrollbar-width:none]',
       },
     },
   },

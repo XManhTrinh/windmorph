@@ -419,6 +419,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
           {chips.map((item) => (
             <InputChip
               key={item.key}
+              // The field's own density sets its padding around one 32px row of chips, so the
+              // chips keep their size (the field's height is what density changes here).
+              density={0}
               onRemove={() => removeChip(item.key)}
               labels={{ remove: labels.remove }}
               disabled={disabled || readOnly}

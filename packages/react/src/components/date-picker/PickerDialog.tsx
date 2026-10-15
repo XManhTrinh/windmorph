@@ -227,6 +227,7 @@ function PickerDialogModal({
                   <div className={styles.header({ class: classNames?.header })}>
                     <IconButton
                       variant="standard"
+                      density={0}
                       icon={closeIcon ?? <CloseIcon />}
                       aria-label={strings.close ?? 'Close'}
                       onPress={state.close}

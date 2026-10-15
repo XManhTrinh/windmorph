@@ -6,7 +6,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * 2px outline; the thumb is 16px (off), 24px (on, or with an icon) and 28px (pressed),
  * centred 16px or 36px from the track's start. Pressing (or dragging) snaps the
  * thumb; releasing animates it on the fast spatial spring. The 40px state layer
- * follows the thumb.
+ * follows the thumb. Web density (`--md-sys-density`) takes 4px a step off the state layer,
+ * to 32px at -2 and -3 so it still rings a pressed 28px thumb (Material Components Web's
+ * switch density shrinks only the state layer, 48 → 28px, never the track).
  * Disabled colours are Compose's composites over `surface`. `--m3-thumb-size` and
  * `--m3-thumb-center` are set by the component. The resting track, outline, handle and icon
  * colours come from the switch's component tokens (`switch-tokens.ts`, `--md-comp-switch-*`);
@@ -39,8 +41,11 @@ export const switchStyles = tv({
       'group-data-disabled/control:group-data-selected/control:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_12%,var(--md-sys-color-surface))]',
     ],
     stateLayer: [
-      'pointer-events-none absolute -top-[6px] start-[calc(var(--m3-thumb-center)-22px)] size-[40px] rounded-full',
-      'state-layer [--m3-ripple-size:20px] [--m3-ripple-start:12px]',
+      // 40px, 4px less per density step down to 32px (`--m3-switch-layer`), centred on the
+      // thumb: the track's 2px border is outside the positioning box.
+      '[--m3-switch-layer:max(32px,calc(40px+var(--md-sys-density,0)*4px))]',
+      'pointer-events-none absolute top-[calc(14px-var(--m3-switch-layer)/2)] start-[calc(var(--m3-thumb-center)-2px-var(--m3-switch-layer)/2)] size-[var(--m3-switch-layer)] rounded-full',
+      'state-layer [--m3-ripple-size:calc(var(--m3-switch-layer)/2)] [--m3-ripple-start:calc(var(--m3-switch-layer)*0.3)]',
       '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
       'data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
       '[--m3-transition-property:inset-inline-start]',

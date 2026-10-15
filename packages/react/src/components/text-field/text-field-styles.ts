@@ -106,6 +106,9 @@ export const textFieldStyles = tv({
     ],
     icon: [
       'flex h-[min(48px,calc(56px+var(--md-sys-density,0)*4px))] w-[48px] shrink-0 items-center justify-center self-center',
+      // Icon buttons here keep their size at every density: the box is a fixed 48px column
+      // that density only shortens. One with its own `density` still follows it.
+      '[&_:not([data-density])]:[--md-sys-density:0]',
       '[&>svg]:size-[24px]',
       'group-data-[field-state=disabled]/field:text-on-surface/38',
     ],

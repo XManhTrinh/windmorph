@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Radio, RadioGroup } from './RadioGroup';
 
 const Delivery = (props: Partial<React.ComponentProps<typeof RadioGroup>>) => (
@@ -122,6 +123,31 @@ describe('RadioGroup', () => {
 
   it('has no axe violations', async () => {
     const { container } = render(<Delivery defaultValue="express" supportingText="Choose one" />);
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('RadioGroup density', () => {
+  it('passes its density to its options, which can set their own', async () => {
+    const { container } = render(
+      <ThemeScope density={-2}>
+        <RadioGroup label="Delivery" density={-3} defaultValue="standard">
+          <Radio value="standard">Standard</Radio>
+          <Radio value="express" density={0}>
+            Express
+          </Radio>
+        </RadioGroup>
+      </ThemeScope>,
+    );
+    const group = screen.getByRole('radiogroup');
+    expect(group).toHaveAttribute('data-density', '-3');
+    const option = (name: string) => screen.getByText(name).closest('label')!;
+    expect(option('Standard')).not.toHaveAttribute('data-density');
+    expect(option('Express')).toHaveAttribute('data-density', '0');
+    // Rows 2px further apart per step, so a 48px target never reaches the next ring.
+    expect(option('Standard').parentElement).toHaveClass(
+      'gap-y-[calc(0px-var(--md-sys-density,0)*2px)]',
+    );
     expect(await axeViolations(container)).toEqual([]);
   });
 });

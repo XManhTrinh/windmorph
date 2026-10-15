@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useObjectRef } from 'react-aria';
 import { useToggleGroupState, type Key } from 'react-stately';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
 import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/radio-group-keys';
@@ -53,6 +54,15 @@ interface ChipSetOwnProps {
    * two rows). @default "wrap"
    */
   layout?: ChipSetLayout;
+  /**
+   * Web density, `0` to `-3`, for the set and its chips: each step takes 4px off the chips
+   * (32px at 0, 24px at -2 and -3) and puts 2px more between rows, so each chip's 48px touch
+   * target stays clear of the rows above and below. Left out, the set takes the density of the
+   * nearest `ThemeProvider` or `ThemeScope`; M3 asks for density to be the reader's choice, so
+   * prefer setting it there.
+   * @default 0
+   */
+  density?: Density;
   /** Classes for each part, by slot. */
   classNames?: ChipSetClassNames;
 }
@@ -210,6 +220,7 @@ export function ChipSet({
   disallowEmptySelection,
   disabled,
   layout,
+  density,
   classNames,
   className,
   ref,
@@ -237,6 +248,7 @@ export function ChipSet({
       {...rest}
       ref={rootRef}
       data-layout={layout ?? 'wrap'}
+      {...densityAttribute(density)}
       aria-disabled={disabled || undefined}
       onKeyDown={(event) => {
         keyboard.onKeyDown(event);

@@ -40,7 +40,7 @@ describe('ButtonGroup', () => {
     expect(screen.getByRole('button', { name: 'Paste' })).toHaveClass('min-h-[32px]');
     // Icon buttons share the size and the variant, so the group never mixes styles.
     const more = screen.getByRole('button', { name: 'More' });
-    expect(more).toHaveClass('h-[56px]');
+    expect(more).toHaveClass('[--m3-icon-button-height:calc(56px+var(--md-sys-density,0)*4px)]');
     expect(more).toHaveAttribute('data-variant', 'tonal');
   });
 

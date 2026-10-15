@@ -17,6 +17,7 @@ import {
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
 import { TouchTarget } from '../../primitives/TouchTarget';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
@@ -67,6 +68,14 @@ interface ChipCommonProps {
    * where nothing else shows the chip is interactive. @default "standard"
    */
   outline?: ChipOutline;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the chip's height (32px at 0, 24px at -2
+   * and -3); its touch target stays 48px. Left out, the chip takes the density of the nearest
+   * `ChipSet`, `ThemeProvider` or `ThemeScope`. M3 asks for density to be the reader's choice
+   * rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** Classes for each part, by slot. */
   classNames?: ChipClassNames;
 }
@@ -102,14 +111,16 @@ function ChipContent({
 
 /**
  * The component tokens' hooks (chip-tokens.ts): each kind's set, and whether the chip is
- * elevated, which picks its elevated container token.
+ * elevated, which picks its elevated container token; and the chip's own density, if set.
  */
 const tokenAttributes = (
   kind: 'assist' | 'suggestion' | 'filter' | 'input',
-  elevated?: boolean,
+  elevated: boolean | undefined,
+  density: Density | undefined,
 ) => ({
   'data-tokens': `md-comp-${kind}-chip`,
   'data-elevated': elevated || undefined,
+  ...densityAttribute(density),
 });
 
 const leadingIconOf = (styles: Styles, icon: ReactElement | undefined, className?: string) =>
@@ -196,6 +207,7 @@ export function AssistChip({
   leadingIcon,
   elevated,
   outline,
+  density,
   classNames,
   className,
   ...base
@@ -209,7 +221,7 @@ export function AssistChip({
   return (
     <ButtonBase
       {...(base as ButtonBaseActionProps)}
-      {...tokenAttributes('assist', elevated)}
+      {...tokenAttributes('assist', elevated, density)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -245,6 +257,7 @@ export function SuggestionChip({
   leadingIcon,
   elevated,
   outline,
+  density,
   classNames,
   className,
   ...base
@@ -258,7 +271,7 @@ export function SuggestionChip({
   return (
     <ButtonBase
       {...base}
-      {...tokenAttributes('suggestion', elevated)}
+      {...tokenAttributes('suggestion', elevated, density)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -340,6 +353,7 @@ function SimpleFilterChip({
   trailingIcon,
   elevated,
   outline,
+  density,
   classNames,
   className,
   onRemove: _onRemove,
@@ -356,7 +370,7 @@ function SimpleFilterChip({
   return (
     <ButtonBase
       {...base}
-      {...tokenAttributes('filter', elevated)}
+      {...tokenAttributes('filter', elevated, density)}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -379,6 +393,7 @@ function RemovableFilterChip({
   trailingIcon: _trailingIcon,
   elevated,
   outline,
+  density,
   classNames,
   className,
   style,
@@ -415,7 +430,7 @@ function RemovableFilterChip({
     : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
   return (
     <div
-      {...tokenAttributes('filter', elevated)}
+      {...tokenAttributes('filter', elevated, density)}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}
       style={style}
@@ -482,6 +497,14 @@ interface InputChipOwnProps {
   labels?: Partial<ChipLabels>;
   /** The flat chip's border. @default "standard" */
   outline?: ChipOutline;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the chip's height (32px at 0, 24px at -2
+   * and -3); its touch target stays 48px. Left out, the chip takes the density of the nearest
+   * `ChipSet`, `ThemeProvider` or `ThemeScope`. M3 asks for density to be the reader's choice
+   * rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** Disables the chip's action and its remove button. @default false */
   disabled?: boolean;
   /** Classes for each part, by slot. */
@@ -518,6 +541,7 @@ export function InputChip({
   onRemove,
   labels,
   outline,
+  density,
   disabled,
   classNames,
   className,
@@ -552,7 +576,7 @@ export function InputChip({
   return (
     <div
       {...rest}
-      {...tokenAttributes('input')}
+      {...tokenAttributes('input', undefined, density)}
       data-selected={selected || undefined}
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}

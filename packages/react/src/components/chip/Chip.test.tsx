@@ -2,7 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { AssistChip, FilterChip, InputChip, SuggestionChip } from './Chip';
+import { ChipSet } from './ChipSet';
 
 const Icon = ({ id = 'icon' }: { id?: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
 
@@ -19,7 +21,8 @@ describe('AssistChip', () => {
     expect(chip).not.toHaveAttribute('data-elevated');
     expect(chip).toHaveClass(
       'h-fit',
-      'min-h-[32px]',
+      'min-h-[var(--m3-chip-height)]',
+      '[--m3-chip-height:max(24px,calc(32px+var(--md-sys-density,0)*4px))]',
       'rounded-[var(--_md-comp-assist-chip-container-shape)]',
       'border-[color:var(--_md-comp-assist-chip-flat-outline-color)]',
       'text-[color:var(--_md-comp-assist-chip-label-text-color)]',
@@ -279,7 +282,7 @@ describe('InputChip', () => {
     expect(chip).toHaveClass('ps-[calc(4px-var(--m3-chip-border))]');
     expect(root.querySelector('img')!.parentElement).toHaveClass('rounded-corner-medium');
     expect(root.querySelector('img')!.parentElement!.parentElement).toHaveClass('me-[8px]');
-    expect(remove).toHaveClass('size-[24px]', 'rounded-full', 'focus-ring');
+    expect(remove).toHaveClass('size-[var(--m3-chip-slot)]', 'rounded-full', 'focus-ring');
     // The close icon is decorative: the button's name says what it does.
     expect(remove.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(remove.querySelector('[data-touch-target]')).not.toBeNull();
@@ -354,5 +357,45 @@ describe('InputChip', () => {
       'ps-[calc(12px-var(--m3-chip-border))]',
       'pe-[calc(12px-var(--m3-chip-border))]',
     );
+  });
+});
+
+describe('Chip density', () => {
+  it("takes the set's or the scope's density unless it sets its own", async () => {
+    const { container } = render(
+      <ThemeScope density={-1}>
+        <ChipSet aria-label="Filters" density={-3}>
+          <FilterChip>Inherits</FilterChip>
+          <AssistChip density={0}>Own</AssistChip>
+          <SuggestionChip density={-2}>Suggestion</SuggestionChip>
+          <InputChip density={-2} onRemove={() => {}}>
+            Input
+          </InputChip>
+          <FilterChip density={-2} onRemove={() => {}}>
+            Removable
+          </FilterChip>
+        </ChipSet>
+      </ThemeScope>,
+    );
+    expect(screen.getByRole('group', { name: 'Filters' })).toHaveAttribute('data-density', '-3');
+    expect(screen.getByRole('button', { name: 'Inherits' })).not.toHaveAttribute('data-density');
+    expect(screen.getByRole('button', { name: 'Own' })).toHaveAttribute('data-density', '0');
+    expect(screen.getByRole('button', { name: 'Suggestion' })).toHaveAttribute(
+      'data-density',
+      '-2',
+    );
+    const remove = screen.getByRole('button', { name: 'Remove Input' });
+    expect(remove.closest('[data-tokens~="md-comp-input-chip"]')).toHaveAttribute(
+      'data-density',
+      '-2',
+    );
+    expect(
+      screen
+        .getByRole('button', { name: 'Removable' })
+        .closest('[data-tokens~="md-comp-filter-chip"][data-density]'),
+    ).toHaveAttribute('data-density', '-2');
+    // The remove button keeps a 48px touch target at every level.
+    expect(remove.querySelector('[data-touch-target]')).toHaveClass('h-12');
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

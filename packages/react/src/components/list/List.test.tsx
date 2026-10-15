@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Switch } from '../switch/Switch';
 import type { ReactElement } from 'react';
 import { List, ListItem, type ListItemProps } from './List';
@@ -35,17 +36,17 @@ describe('List (static)', () => {
     expect(one).toHaveClass(
       'ps-[16px]',
       'pe-[16px]',
-      'pt-[10px]',
-      'pb-[10px]',
-      'min-h-[56px]',
+      'pt-[calc(10px+var(--md-sys-density,0)*2px)]',
+      'pb-[calc(10px+var(--md-sys-density,0)*2px)]',
+      'min-h-[calc(56px+var(--md-sys-density,0)*4px)]',
       'bg-[var(--_md-comp-list-container-color)]',
     );
     expect(list).toHaveAttribute('data-tokens', 'md-comp-list');
     expect(list).toHaveAttribute('data-variant', 'standard');
     expect(one).toHaveAttribute('data-tokens', 'md-comp-list');
     expect(one).toHaveAttribute('data-variant', 'standard');
-    expect(two).toHaveClass('min-h-[72px]', 'items-center');
-    expect(three).toHaveClass('min-h-[88px]', 'items-start');
+    expect(two).toHaveClass('min-h-[calc(72px+var(--md-sys-density,0)*4px)]', 'items-center');
+    expect(three).toHaveClass('min-h-[calc(88px+var(--md-sys-density,0)*4px)]', 'items-start');
     expect(one).not.toHaveClass('state-layer');
     expect(within(one).getByText('Alice')).toHaveClass(
       'text-body-large',
@@ -858,5 +859,41 @@ describe('List classNames', () => {
       </List>,
     );
     expect(screen.getByRole('button', { name: /expand/i })).toHaveClass('expand-x');
+  });
+});
+
+describe('List density', () => {
+  it('sets its density on its root, for its items and their controls', async () => {
+    const { container } = render(
+      <ThemeScope density={-1}>
+        <List aria-label="Settings" density={-3} onAction={() => {}}>
+          <ListItem key="wifi" supportingText="Connected">
+            Wi-Fi
+          </ListItem>
+          <ListItem key="bluetooth" trailing={<Switch aria-label="Bluetooth on" />}>
+            Bluetooth
+          </ListItem>
+        </List>
+      </ThemeScope>,
+    );
+    const list = screen.getByRole('grid', { name: 'Settings' });
+    expect(list).toHaveAttribute('data-density', '-3');
+    expect(screen.getByRole('switch').closest('label')).not.toHaveAttribute('data-density');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it("follows its scope's density when it sets none", () => {
+    render(
+      <ThemeScope density={-2}>
+        <List aria-label="Plain">
+          <ListItem key="a">One</ListItem>
+        </List>
+      </ThemeScope>,
+    );
+    expect(screen.getByRole('list', { name: 'Plain' })).not.toHaveAttribute('data-density');
+    expect(screen.getByText('One').closest('li')).toHaveClass(
+      'pt-[calc(10px+var(--md-sys-density,0)*2px)]',
+      'min-h-[calc(56px+var(--md-sys-density,0)*4px)]',
+    );
   });
 });

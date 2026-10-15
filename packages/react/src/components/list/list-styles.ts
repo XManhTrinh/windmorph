@@ -29,6 +29,14 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `outline-variant` on the item's bottom edge, full width or 16dp in from each side, drawn
  * by its `::after` (the state layer uses its background), never under the last item.
  *
+ * Web density (`--md-sys-density`, 0 to -3; M3: a list "can adjust margins, spacing, or
+ * density"): each step takes 2px off the padding above and below an item (10 → 4px) and 4px off
+ * its minimum height (56 → 44px, 72 → 60px, 88 → 76px), so items that media make taller lose
+ * 4px a step too, as in Material Components Web's list density (every item height 4px a step).
+ * Section subheaders lose 4px a step (48 → 36px). Items are stacked rows, so dense ones keep
+ * non-overlapping full-row targets above WCAG 2.5.8's 24px, and the expand chevron's target is
+ * at most a one-line item's height.
+ *
  * Sections (`ListSection`) put a subheader above their items: 48dp tall, `title-small`
  * `on-surface-variant`, 16dp from each side. The M3 spec defines no list subheader, so this
  * follows the deprecated navigation drawer's section headline. Items take their position
@@ -51,10 +59,10 @@ export const listStyles = tv({
     // section headline (`title-small`, `on-surface-variant`), on a 48dp row with the items'
     // 16dp side padding, so its text lines up with the headlines below it.
     subheader:
-      'flex min-h-[48px] items-center ps-[16px] pe-[16px] text-title-small text-on-surface-variant',
+      'flex min-h-[calc(48px+var(--md-sys-density,0)*4px)] items-center ps-[16px] pe-[16px] text-title-small text-on-surface-variant',
     group: 'm-0 flex list-none flex-col p-0',
     item: [
-      'group/list-item flex ps-[16px] pe-[16px] pt-[10px] pb-[10px] text-start outline-none',
+      'group/list-item flex ps-[16px] pe-[16px] pt-[calc(10px+var(--md-sys-density,0)*2px)] pb-[calc(10px+var(--md-sys-density,0)*2px)] text-start outline-none',
       'bg-[var(--_md-comp-list-container-color)] data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
       '[--m3-transition-property:border-radius,background-color,color]',
       '[--m3-transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
@@ -150,9 +158,18 @@ export const listStyles = tv({
       false: {},
     },
     lines: {
-      1: { item: 'min-h-[56px] items-center', cell: 'items-center' },
-      2: { item: 'min-h-[72px] items-center', cell: 'items-center' },
-      3: { item: 'min-h-[88px] items-start', cell: 'items-start' },
+      1: {
+        item: 'min-h-[calc(56px+var(--md-sys-density,0)*4px)] items-center',
+        cell: 'items-center',
+      },
+      2: {
+        item: 'min-h-[calc(72px+var(--md-sys-density,0)*4px)] items-center',
+        cell: 'items-center',
+      },
+      3: {
+        item: 'min-h-[calc(88px+var(--md-sys-density,0)*4px)] items-start',
+        cell: 'items-start',
+      },
     },
     dividers: {
       none: {},

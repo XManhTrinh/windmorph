@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Switch } from './Switch';
 
 const trackOf = (input: HTMLElement) =>
@@ -211,5 +212,27 @@ describe('Switch classNames', () => {
     expect(layer).toHaveAttribute('aria-hidden', 'true');
     expect(layer.parentElement).toHaveAttribute('data-slot', 'track');
     expect(layer.nextElementSibling).toHaveClass('thumb-x');
+  });
+});
+
+describe('Switch density', () => {
+  it('shrinks only its state layer, from its own density or its scope', async () => {
+    const { container } = render(
+      <ThemeScope density={-3}>
+        <Switch>Inherits</Switch>
+        <Switch density={-1}>Own</Switch>
+      </ThemeScope>,
+    );
+    const root = (name: string) => screen.getByText(name).closest('label')!;
+    expect(root('Inherits')).not.toHaveAttribute('data-density');
+    expect(root('Own')).toHaveAttribute('data-density', '-1');
+    const control = root('Own').querySelector('[data-selection-control]')!;
+    // The track keeps its size; the state layer is 40px less 4px a step, at least 32px.
+    expect(control).toHaveClass('h-[32px]', 'w-[52px]');
+    expect(control.querySelector('[data-slot="state-layer"], .state-layer')).toHaveClass(
+      '[--m3-switch-layer:max(32px,calc(40px+var(--md-sys-density,0)*4px))]',
+      'size-[var(--m3-switch-layer)]',
+    );
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

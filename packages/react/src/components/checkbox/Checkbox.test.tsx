@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Checkbox } from './Checkbox';
 
 const rootOf = (input: HTMLElement) => input.closest('label') as HTMLLabelElement;
@@ -13,7 +14,11 @@ describe('Checkbox', () => {
     const input = screen.getByRole('checkbox', { name: 'Remember me' });
     expect(input).not.toBeChecked();
     const control = input.closest('.state-layer') as HTMLElement;
-    expect(control).toHaveClass('size-[40px]', 'rounded-full', 'focus-ring');
+    expect(control).toHaveClass(
+      'size-[calc(40px+var(--md-sys-density,0)*4px)]',
+      'rounded-full',
+      'focus-ring',
+    );
     expect(container.querySelector('[data-touch-target]')).toBeInTheDocument();
     expect(container.querySelector('svg')!.parentElement).toHaveAttribute('aria-hidden', 'true');
   });
@@ -174,5 +179,28 @@ describe('Checkbox classNames', () => {
     const box = container.querySelector('[data-slot="box"]')!;
     expect(box).toHaveClass('box-x');
     expect(box.querySelector('svg')).toHaveClass('icon-x');
+  });
+});
+
+describe('Checkbox density', () => {
+  it("takes its scope's density unless it sets its own, and stays accessible", async () => {
+    const { container } = render(
+      <ThemeScope density={-3}>
+        <Checkbox>Inherits</Checkbox>
+        <Checkbox density={-1}>Own</Checkbox>
+      </ThemeScope>,
+    );
+    const root = (name: string) => screen.getByText(name).closest('label')!;
+    expect(root('Inherits')).not.toHaveAttribute('data-density');
+    expect(root('Own')).toHaveAttribute('data-density', '-1');
+    // The state layer reads the level; the box and the 48px touch target don't.
+    const control = root('Own').querySelector('[data-selection-control]')!;
+    expect(control).toHaveClass(
+      'size-[calc(40px+var(--md-sys-density,0)*4px)]',
+      '[--m3-ripple-size:calc(20px+var(--md-sys-density,0)*2px)]',
+    );
+    expect(control.querySelector('[data-slot="box"]')).toHaveClass('size-[18px]');
+    expect(control.querySelector('[data-touch-target]')).toHaveClass('h-12');
+    expect(await axeViolations(container)).toEqual([]);
   });
 });

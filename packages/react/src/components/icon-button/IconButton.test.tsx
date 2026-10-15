@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { ButtonContext } from '../button/ButtonContext';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Tooltip, TooltipTrigger } from '../tooltip/Tooltip';
 import { Menu, MenuItem, MenuTrigger } from '../menu/Menu';
 import { IconButton } from './IconButton';
@@ -21,11 +22,12 @@ describe('IconButton', () => {
     expect(button).toHaveClass(
       'bg-[var(--_md-comp-icon-button-container-color)]',
       'text-[color:var(--_md-comp-icon-button-icon-color)]',
-      'h-[40px]',
-      'w-[40px]',
+      'h-[var(--m3-icon-button-height)]',
+      '[--m3-icon-button-height:calc(40px+var(--md-sys-density,0)*4px)]',
+      'w-[calc(40px+var(--md-sys-density,0)*4px)]',
     );
     expect(button).toHaveClass(
-      'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
+      'rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]',
     );
     expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
     expect(screen.getByTestId('star').parentElement).toHaveAttribute('aria-hidden', 'true');
@@ -84,17 +86,48 @@ describe('IconButton', () => {
     );
     expect(button).not.toHaveClass(
       'text-[color:var(--_md-comp-icon-button-icon-color)]',
-      'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
+      'rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]',
       'border-[color:var(--_md-comp-icon-button-outline-color)]',
     );
   });
 
   it.each([
-    ['xs', 'narrow', 'h-[32px]', 'w-[28px]', 'size-[20px]'],
-    ['sm', 'wide', 'h-[40px]', 'w-[52px]', 'size-[24px]'],
-    ['md', 'default', 'h-[56px]', 'w-[56px]', 'size-[24px]'],
-    ['lg', 'default', 'h-[96px]', 'w-[96px]', 'size-[32px]'],
-    ['xl', 'wide', 'h-[136px]', 'w-[184px]', 'size-[40px]'],
+    // Each size's height and width less 4px per density step (`--md-sys-density`, 0 by default).
+    [
+      'xs',
+      'narrow',
+      '[--m3-icon-button-height:max(24px,calc(32px+var(--md-sys-density,0)*4px))]',
+      'w-[max(24px,calc(28px+var(--md-sys-density,0)*4px))]',
+      'size-[20px]',
+    ],
+    [
+      'sm',
+      'wide',
+      '[--m3-icon-button-height:calc(40px+var(--md-sys-density,0)*4px)]',
+      'w-[calc(52px+var(--md-sys-density,0)*4px)]',
+      'size-[24px]',
+    ],
+    [
+      'md',
+      'default',
+      '[--m3-icon-button-height:calc(56px+var(--md-sys-density,0)*4px)]',
+      'w-[calc(56px+var(--md-sys-density,0)*4px)]',
+      'size-[24px]',
+    ],
+    [
+      'lg',
+      'default',
+      '[--m3-icon-button-height:calc(96px+var(--md-sys-density,0)*4px)]',
+      'w-[calc(96px+var(--md-sys-density,0)*4px)]',
+      'size-[32px]',
+    ],
+    [
+      'xl',
+      'wide',
+      '[--m3-icon-button-height:calc(136px+var(--md-sys-density,0)*4px)]',
+      'w-[calc(184px+var(--md-sys-density,0)*4px)]',
+      'size-[40px]',
+    ],
   ] as const)('sizes %s / %s to the token measurements', (size, width, h, w, iconSize) => {
     render(<IconButton size={size} width={width} icon={<Star />} aria-label="Fav" />);
     const button = screen.getByRole('button');
@@ -129,7 +162,7 @@ describe('IconButton', () => {
     const button = screen.getByRole('button');
     expect(element).toBe(button);
     expect(button).toHaveClass('fixed', 'w-full', 'text-error');
-    expect(button).not.toHaveClass('w-[40px]');
+    expect(button).not.toHaveClass('w-[calc(40px+var(--md-sys-density,0)*4px)]');
     expect(button).not.toHaveClass('text-[color:var(--_md-comp-icon-button-icon-color)]');
     expect(button).toHaveStyle({ top: '8px' });
   });
@@ -153,7 +186,7 @@ describe('IconButton', () => {
     expect(button).toHaveAttribute('data-variant', 'filled');
     expect(button).toHaveAttribute('data-size', 'lg');
     expect(button).toHaveClass(
-      'h-[96px]',
+      '[--m3-icon-button-height:calc(96px+var(--md-sys-density,0)*4px)]',
       'rounded-[var(--_md-comp-icon-button-container-shape-square)]',
     );
     expect(button).toBeDisabled();
@@ -347,7 +380,7 @@ describe('IconButton toggle', () => {
     );
     expect(round).toHaveClass('container-motion');
     expect(screen.getByRole('button', { name: 'Square' })).toHaveClass(
-      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]',
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]',
     );
   });
 
@@ -383,5 +416,27 @@ describe('IconButton toggle', () => {
     expect(selected).toHaveAttribute('data-selected');
     expect(selected).toHaveClass('data-selected:border-transparent');
     expect(selected.className).not.toMatch(/not-data-disabled:border-transparent/);
+  });
+});
+
+describe('IconButton density', () => {
+  it("takes its scope's density unless it sets its own, and stays accessible", async () => {
+    const { container } = render(
+      <ThemeScope density={-3}>
+        <IconButton icon={<Star />} aria-label="Inherits" />
+        <IconButton icon={<Star />} aria-label="Own" density={-1} />
+      </ThemeScope>,
+    );
+    expect(screen.getByRole('button', { name: 'Inherits' })).not.toHaveAttribute('data-density');
+    expect(screen.getByRole('button', { name: 'Own' })).toHaveAttribute('data-density', '-1');
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('caps the round corners at half the dense height', () => {
+    render(<IconButton size="md" icon={<Star />} aria-label="Search" />);
+    expect(screen.getByRole('button')).toHaveClass(
+      'h-[var(--m3-icon-button-height)]',
+      'rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]',
+    );
   });
 });

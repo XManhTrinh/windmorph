@@ -34,7 +34,7 @@ describe('ListSection (static list)', () => {
     const network = screen.getByRole('list', { name: 'Network' });
     const subheader = screen.getByText('Network');
     expect(subheader).toHaveClass(
-      'min-h-[48px]',
+      'min-h-[calc(48px+var(--md-sys-density,0)*4px)]',
       'ps-[16px]',
       'pe-[16px]',
       'text-title-small',

@@ -49,7 +49,9 @@ export const radioGroupStyles = tv({
   slots: {
     root: 'flex flex-col gap-[4px]',
     label: 'text-title-small text-on-surface',
-    options: 'flex',
+    // Rows are 2px further apart per density step (half of what each option loses), so an
+    // option's 48px touch target never reaches the next one's ring (0px at 0, 6px at -3).
+    options: 'flex gap-y-[calc(0px-var(--md-sys-density,0)*2px)]',
     supporting: 'px-[4px]',
   },
   variants: {

@@ -27,6 +27,11 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   the widest (a `max-content` grid of `1fr` columns), with the row's divider kept full
  *   width on the scroller.
  * - Badges: 4px after an inline label; on a stacked icon through `BadgedBox`.
+ * - Web density (`--md-sys-density`, 0 to -3): each step takes 4px off a tab, 48 → 36px and
+ *   64 → 52px with the icon above, as Material Components Web's tab bar density did (48px,
+ *   4px a step; stacked 72px). The tabs sit side by side in one row, so a 48px target would
+ *   reach outside the row: like dense menu items, they keep full-height, non-overlapping
+ *   targets above WCAG 2.5.8's 24px, and density stays the reader's choice.
  *
  * The indicator shares the tab row's first grid cell (no positioning) and is moved with
  * `translate`.
@@ -123,11 +128,14 @@ export const tabsStyles = tv({
         list: 'mx-auto w-max max-w-full',
       },
     },
+    // 48px tabs (64px with the icon above), 4px less per density step.
     layout: {
-      text: { tab: 'min-h-[48px]' },
-      'icon-top': { tab: 'min-h-[64px] flex-col justify-center gap-[2px]' },
-      'icon-start': { tab: 'min-h-[48px] flex-row gap-[8px]' },
-      'icon-only': { tab: 'min-h-[48px]' },
+      text: { tab: 'min-h-[calc(48px+var(--md-sys-density,0)*4px)]' },
+      'icon-top': {
+        tab: 'min-h-[calc(64px+var(--md-sys-density,0)*4px)] flex-col justify-center gap-[2px]',
+      },
+      'icon-start': { tab: 'min-h-[calc(48px+var(--md-sys-density,0)*4px)] flex-row gap-[8px]' },
+      'icon-only': { tab: 'min-h-[calc(48px+var(--md-sys-density,0)*4px)]' },
     },
   },
   defaultVariants: {

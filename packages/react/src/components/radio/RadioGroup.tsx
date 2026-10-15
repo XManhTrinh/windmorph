@@ -17,6 +17,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { radioGroupStyles, radioStyles } from './radio-styles';
@@ -56,6 +57,15 @@ interface RadioGroupOwnProps extends Omit<AriaRadioGroupProps, RenamedGroupProps
   required?: boolean;
   /** Shows the error state. @default false */
   invalid?: boolean;
+  /**
+   * Web density, `0` to `-3`, for every option: each step takes 4px off their round state
+   * layers (40px at 0, 28px at -3) and puts 2px more between rows, so each option keeps a
+   * 48px touch target that never reaches the next one's ring. Left out, the group takes the
+   * density of the nearest `ThemeProvider` or `ThemeScope`; M3 asks for density to be the
+   * reader's choice, so prefer setting it there.
+   * @default 0
+   */
+  density?: Density;
   /** The options: `Radio` elements. */
   children?: ReactNode;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -94,6 +104,7 @@ export function RadioGroup({
   readOnly,
   required,
   invalid,
+  density,
   orientation = 'vertical',
   children,
   className,
@@ -139,6 +150,7 @@ export function RadioGroup({
       ref={ref}
       style={style}
       data-orientation={orientation}
+      {...densityAttribute(density)}
       data-disabled={disabled || undefined}
       data-invalid={isInvalid || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -183,6 +195,13 @@ interface RadioOwnProps extends Omit<AriaRadioProps, 'isDisabled' | 'children'> 
   value: string;
   /** Turns this option off: it can't be selected or focused. @default false */
   disabled?: boolean;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the round state layer (40px at 0, 28px
+   * at -3); the ring stays 20px and the touch target 48px. Left out, the option takes its
+   * group's density, or the nearest `ThemeProvider`'s or `ThemeScope`'s.
+   * @default 0
+   */
+  density?: Density;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -208,6 +227,7 @@ export type RadioProps = RadioOwnProps & RadioLabel;
  */
 export function Radio({
   disabled = false,
+  density,
   className,
   classNames,
   style,
@@ -238,7 +258,7 @@ export function Radio({
       inputRef={domInputRef}
       // The ring resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
-      rootData={{ ...data, 'data-tokens': 'md-comp-radio-button' }}
+      rootData={{ ...data, ...densityAttribute(density), 'data-tokens': 'md-comp-radio-button' }}
       state={{
         'data-selected': isSelected || undefined,
         'data-disabled': isDisabled || undefined,

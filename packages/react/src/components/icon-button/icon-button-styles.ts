@@ -26,9 +26,11 @@ import { connectedShapeVariants } from '../button/connected-shapes';
 /*
  * The resting round and square corners come from the component tokens
  * (`icon-button-tokens.ts`, `--md-comp-icon-button-<size>-container-shape-*`); full corners
- * are capped at half the height (the set's derived `container-shape-round-capped`).
+ * are capped at half the height (the set's derived `container-shape-round-capped`), and at half
+ * the dense height too.
  */
-const round = 'rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]';
+const round =
+  'rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]';
 const square = 'rounded-[var(--_md-comp-icon-button-container-shape-square)]';
 
 const pressed = {
@@ -45,15 +47,45 @@ const selectedSquare =
 
 /** …and square becomes round (Compose `SelectedContainerShapeSquare` = full). */
 const selectedRound =
-  'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-icon-button-container-shape-round-capped)]';
+  'data-selected:not-data-pressed:not-data-disabled:rounded-[min(var(--_md-comp-icon-button-container-shape-round-capped),calc(var(--m3-icon-button-height)/2))]';
 
-/** Container widths in px: narrow / default / wide. */
+/*
+ * Web density (`--md-sys-density`, 0 to -3; M3: "Avoid applying density by default … give
+ * people a way to choose a higher density"): each step takes 4px off the container's height
+ * and width, as Material Components Web's icon button density did (48px, 4px a step, to 28px:
+ * the 24px icon and 2px on each side). Here every size and width follows, never below its
+ * icon plus 4px (24px at XS, 28px at S). The touch target stays 48 × 48px, extending past
+ * the container (`TouchTarget` at XS and S, the content's `::after` at M). The round corners'
+ * cap follows the height.
+ */
+
+/** Container widths in px: narrow / default / wide, 4px less per density step. */
 const widths = {
-  xs: { narrow: 'w-[28px]', default: 'w-[32px]', wide: 'w-[40px]' },
-  sm: { narrow: 'w-[32px]', default: 'w-[40px]', wide: 'w-[52px]' },
-  md: { narrow: 'w-[48px]', default: 'w-[56px]', wide: 'w-[72px]' },
-  lg: { narrow: 'w-[64px]', default: 'w-[96px]', wide: 'w-[128px]' },
-  xl: { narrow: 'w-[104px]', default: 'w-[136px]', wide: 'w-[184px]' },
+  xs: {
+    narrow: 'w-[max(24px,calc(28px+var(--md-sys-density,0)*4px))]',
+    default: 'w-[max(24px,calc(32px+var(--md-sys-density,0)*4px))]',
+    wide: 'w-[calc(40px+var(--md-sys-density,0)*4px)]',
+  },
+  sm: {
+    narrow: 'w-[max(28px,calc(32px+var(--md-sys-density,0)*4px))]',
+    default: 'w-[calc(40px+var(--md-sys-density,0)*4px)]',
+    wide: 'w-[calc(52px+var(--md-sys-density,0)*4px)]',
+  },
+  md: {
+    narrow: 'w-[calc(48px+var(--md-sys-density,0)*4px)]',
+    default: 'w-[calc(56px+var(--md-sys-density,0)*4px)]',
+    wide: 'w-[calc(72px+var(--md-sys-density,0)*4px)]',
+  },
+  lg: {
+    narrow: 'w-[calc(64px+var(--md-sys-density,0)*4px)]',
+    default: 'w-[calc(96px+var(--md-sys-density,0)*4px)]',
+    wide: 'w-[calc(128px+var(--md-sys-density,0)*4px)]',
+  },
+  xl: {
+    narrow: 'w-[calc(104px+var(--md-sys-density,0)*4px)]',
+    default: 'w-[calc(136px+var(--md-sys-density,0)*4px)]',
+    wide: 'w-[calc(184px+var(--md-sys-density,0)*4px)]',
+  },
 } as const;
 
 /**
@@ -126,6 +158,8 @@ export const iconButtonStyles = tv({
   slots: {
     root: [
       'inline-flex shrink-0 cursor-pointer items-center justify-center p-0 align-middle select-none',
+      // The height, per size (`--m3-icon-button-height`).
+      'h-[var(--m3-icon-button-height)]',
       'state-layer focus-ring container-motion',
       'data-disabled:cursor-default',
     ],
@@ -148,12 +182,32 @@ export const iconButtonStyles = tv({
         root: 'border border-solid border-[color:var(--_md-comp-icon-button-outline-color)] bg-transparent text-[color:var(--_md-comp-icon-button-icon-color)] data-disabled:not-data-selected:border-outline-variant/10 data-disabled:text-on-surface/38',
       },
     },
+    // Heights: 32 / 40 / 56 / 96 / 136px, 4px less per density step.
     size: {
-      xs: { root: 'h-[32px]', icon: 'size-[20px]' },
-      sm: { root: 'h-[40px]', icon: 'size-[24px]' },
-      md: { root: 'h-[56px]', icon: 'size-[24px]' },
-      lg: { root: 'h-[96px]', icon: 'size-[32px]' },
-      xl: { root: 'h-[136px]', icon: 'size-[40px]' },
+      xs: {
+        root: '[--m3-icon-button-height:max(24px,calc(32px+var(--md-sys-density,0)*4px))]',
+        icon: 'size-[20px]',
+      },
+      sm: {
+        root: '[--m3-icon-button-height:calc(40px+var(--md-sys-density,0)*4px)]',
+        icon: 'size-[24px]',
+      },
+      md: {
+        root: '[--m3-icon-button-height:calc(56px+var(--md-sys-density,0)*4px)]',
+        // A dense M (narrow from -1, every width at -3) is under 48px: its content's `::after`
+        // is the touch target (`TouchTarget`'s box, without adding an element at density 0).
+        content:
+          "after:absolute after:top-1/2 after:left-1/2 after:h-12 after:w-[max(100%,3rem)] after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']",
+        icon: 'size-[24px]',
+      },
+      lg: {
+        root: '[--m3-icon-button-height:calc(96px+var(--md-sys-density,0)*4px)]',
+        icon: 'size-[32px]',
+      },
+      xl: {
+        root: '[--m3-icon-button-height:calc(136px+var(--md-sys-density,0)*4px)]',
+        icon: 'size-[40px]',
+      },
     },
     width: { narrow: {}, default: {}, wide: {} },
     shape: { round: {}, square: {} },

@@ -11,6 +11,7 @@ import {
 import { IconFaces } from '../../primitives/IconFaces';
 import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { TouchTarget } from '../../primitives/TouchTarget';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import type { ButtonShape, ButtonSize } from '../button/button-styles';
@@ -67,6 +68,15 @@ interface IconButtonOwnProps {
   width?: IconButtonWidth;
   /** Fully round corners, or square ones (still rounded, but less). @default "round" */
   shape?: ButtonShape;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the container's height and width (an
+   * S button: 40px at 0, 28px at -3), never below the icon plus 4px; the touch target stays
+   * 48 × 48px. Left out, the button takes the density of the nearest `ThemeProvider` or
+   * `ThemeScope`; icon buttons in a field's icon slots keep their size. M3 asks for density
+   * to be the reader's choice rather than a default, so prefer setting it there.
+   * @default 0
+   */
+  density?: Density;
   /** The icon, e.g. a Material Symbols SVG. Hidden from assistive tech; `aria-label` names the button. */
   icon: ReactElement;
   /**
@@ -126,6 +136,7 @@ export function IconButton(props: IconButtonProps) {
     size: sizeProp,
     width = 'default',
     shape: shapeProp,
+    density,
     disabled: disabledProp,
     icon,
     tooltip = true,
@@ -174,6 +185,7 @@ export function IconButton(props: IconButtonProps) {
   const baseProps = {
     ...base,
     ...tokenAttributes,
+    ...densityAttribute(density),
     disabled: disabledProp ?? context.disabled ?? false,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;

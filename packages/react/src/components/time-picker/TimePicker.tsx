@@ -330,6 +330,8 @@ export function TimePickerModeToggle({
   return mode === 'dial' ? (
     <IconButton
       variant="standard"
+      // The dialog isn't dense, only the input mode's fields.
+      density={0}
       icon={keyboardIcon ?? <KeyboardIcon />}
       aria-label={strings.inputMode ?? 'Toggle input picker'}
       onPress={() => onModeChange('input')}
@@ -338,6 +340,7 @@ export function TimePickerModeToggle({
   ) : (
     <IconButton
       variant="standard"
+      density={0}
       icon={clockIcon ?? <ScheduleIcon />}
       aria-label={strings.dialMode ?? 'Toggle dial picker'}
       onPress={() => onModeChange('dial')}

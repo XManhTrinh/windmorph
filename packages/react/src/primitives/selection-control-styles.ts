@@ -3,7 +3,7 @@ import { tv } from '../utils/tv';
 /**
  * Shared anatomy of checkboxes, radio buttons and switches: a root `<label>`, the
  * control (focus ring, touch target; for `kind: 'circle'` also the 40px round state
- * layer) and the label text. State layers
+ * layer, which web density shrinks) and the label text. State layers
  * follow the M3 spec: on-surface when unselected, primary when selected, inverted while
  * pressed, error when invalid. Recipes `extend` this and style their own indicator with
  * `group-data-*\/control:` variants. Every class is written out in full.
@@ -21,10 +21,13 @@ export const selectionControlStyles = tv({
   },
   variants: {
     kind: {
-      // Checkboxes and radio buttons: the control is the 40px state-layer circle.
+      // Checkboxes and radio buttons: the control is the 40px state-layer circle, 4px less per
+      // density step (40 → 36 → 32 → 28px, Material Components Web's checkbox and radio
+      // density); the ripple keeps its proportions (half the size, from 30%).
       circle: {
         control: [
-          'size-[40px] rounded-full state-layer [--m3-ripple-size:20px] [--m3-ripple-start:12px]',
+          'size-[calc(40px+var(--md-sys-density,0)*4px)] rounded-full state-layer',
+          '[--m3-ripple-size:calc(20px+var(--md-sys-density,0)*2px)] [--m3-ripple-start:calc(12px+var(--md-sys-density,0)*1.2px)]',
           '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
           'data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
           'data-pressed:[--m3-state-layer-color:var(--md-sys-color-primary)]',

@@ -14,6 +14,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
@@ -61,6 +62,14 @@ interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
   required?: boolean;
   /** Shows the error state. @default false */
   invalid?: boolean;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the round state layer (40px at 0, 28px
+   * at -3); the box stays 18px and the touch target 48px. Left out, the checkbox takes the
+   * density of the nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the
+   * reader's choice rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -98,6 +107,7 @@ export function Checkbox({
   readOnly,
   required,
   invalid,
+  density,
   className,
   classNames,
   style,
@@ -142,7 +152,7 @@ export function Checkbox({
       inputRef={domInputRef}
       // The box resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
-      rootData={{ ...rootData, 'data-tokens': 'md-comp-checkbox' }}
+      rootData={{ ...rootData, ...densityAttribute(density), 'data-tokens': 'md-comp-checkbox' }}
       state={{
         'data-selected': filled || undefined,
         'data-checked': (isSelected && !indeterminate) || undefined,

@@ -431,6 +431,8 @@ function PickerFrame({
             {showModeToggle && (
               <IconButton
                 variant="standard"
+                // The picker's surface isn't dense, only its input mode's fields.
+                density={0}
                 icon={mode === 'calendar' ? <EditIcon /> : <CalendarIcon />}
                 aria-label={
                   mode === 'calendar'

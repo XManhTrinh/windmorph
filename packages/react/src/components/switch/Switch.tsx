@@ -23,6 +23,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
@@ -60,6 +61,15 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
   readOnly?: boolean;
   /** Shows the default check / close icons in the thumb. @default false */
   icons?: boolean;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the round state layer around the thumb
+   * (40px at 0, 32px at -2 and -3, so it still shows around a pressed 28px thumb); the track
+   * stays 52 × 32px and the touch target 48px. Left out, the switch takes the density of the
+   * nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the reader's choice
+   * rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** Icon in the thumb while on (overrides the default check). */
   selectedIcon?: ReactNode;
   /** Icon in the thumb while off (overrides the default close). */
@@ -106,6 +116,7 @@ export function Switch({
   icons = false,
   selectedIcon,
   unselectedIcon,
+  density,
   className,
   classNames,
   style,
@@ -231,7 +242,7 @@ export function Switch({
       rootProps={mergeProps(labelProps, hoverProps)}
       inputProps={mergeProps(inputProps, focusProps, enterProps)}
       inputRef={domInputRef}
-      rootData={{ ...data, 'data-tokens': 'md-comp-switch' }}
+      rootData={{ ...data, ...densityAttribute(density), 'data-tokens': 'md-comp-switch' }}
       state={stateAttributes}
       styles={styles}
       className={className}

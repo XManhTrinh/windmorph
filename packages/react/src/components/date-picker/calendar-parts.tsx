@@ -118,6 +118,8 @@ export function ShortcutIconButton({
     <TooltipTrigger>
       <IconButton
         variant="standard"
+        // Calendars aren't dense (M3 gives pickers no density), so neither are their buttons.
+        density={0}
         icon={icon}
         aria-label={label}
         onPress={onPress}

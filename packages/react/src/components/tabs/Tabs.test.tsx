@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { ThemeScope } from '../../theme/ThemeScope';
 import { Badge } from '../badge/Badge';
 import { Tab, Tabs, type TabsProps } from './Tabs';
 
@@ -41,7 +42,7 @@ describe('Tabs', () => {
     expect(tabs[1]).toHaveAttribute('data-tokens', 'md-comp-tabs');
     expect(tabs[1]).toHaveAttribute('data-variant', 'primary');
     expect(tabs[1]).toHaveClass(
-      'min-h-[48px]',
+      'min-h-[calc(48px+var(--md-sys-density,0)*4px)]',
       'text-title-small',
       'text-[color:var(--_md-comp-tabs-with-label-text-inactive-label-text-color)]',
       'data-selected:text-[color:var(--_md-comp-tabs-with-label-text-active-label-text-color)]',
@@ -179,7 +180,7 @@ describe('Tabs', () => {
       </Tabs>,
     );
     expect(screen.getByRole('tab', { name: 'Photos' })).toHaveClass(
-      'min-h-[64px]',
+      'min-h-[calc(64px+var(--md-sys-density,0)*4px)]',
       'flex-col',
       'justify-center',
       'gap-[2px]',
@@ -192,7 +193,7 @@ describe('Tabs', () => {
       </Tabs>,
     );
     expect(screen.getByRole('tab', { name: 'Photos' })).toHaveClass(
-      'min-h-[48px]',
+      'min-h-[calc(48px+var(--md-sys-density,0)*4px)]',
       'gap-[8px]',
       'text-[color:var(--_md-comp-tabs-inactive-label-text-color)]',
       'data-selected:text-[color:var(--_md-comp-tabs-active-label-text-color)]',
@@ -413,5 +414,43 @@ describe('Tabs classNames', () => {
     expect(screen.getByRole('tablist').parentElement).toHaveClass('scroller-x');
     expect(screen.getByTestId('icon').parentElement).toHaveClass('icon-x');
     expect(screen.getByText('Hotels')).toHaveClass('label-x');
+  });
+});
+
+describe('Tabs density', () => {
+  it('sets density on the tab row, not on the panels', async () => {
+    const { container } = render(
+      <ThemeScope density={-1}>
+        <Tabs aria-label="Inbox" density={-3}>
+          <Tab key="a" title="All">
+            <p>Everything</p>
+          </Tab>
+          <Tab key="b" title="Sent">
+            <p>Sent mail</p>
+          </Tab>
+        </Tabs>
+      </ThemeScope>,
+    );
+    const list = screen.getByRole('tablist');
+    expect(list.parentElement).toHaveAttribute('data-density', '-3');
+    expect(screen.getByRole('tabpanel').closest('[data-density="-3"]')).toBeNull();
+    expect(screen.getByRole('tab', { name: 'All' })).toHaveClass(
+      'min-h-[calc(48px+var(--md-sys-density,0)*4px)]',
+    );
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it("follows its scope's density when it sets none", () => {
+    render(
+      <ThemeScope density={-2}>
+        <Tabs aria-label="Inbox">
+          <Tab key="a" title="All" />
+        </Tabs>
+      </ThemeScope>,
+    );
+    expect(screen.getByRole('tablist').closest('[data-density]')).toHaveAttribute(
+      'data-density',
+      '-2',
+    );
   });
 });

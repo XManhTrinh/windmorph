@@ -68,6 +68,7 @@ import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/swit
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
@@ -414,6 +415,16 @@ interface ListOwnProps {
    * relies on colour alone (M3 lists accessibility). @default true
    */
   selectionIndicator?: boolean;
+  /**
+   * Web density, `0` to `-3` (M3: a list "can adjust margins, spacing, or density"): each step
+   * takes 4px off every item (one line 56px at 0, 44px at -3; two lines 72 → 60px; three
+   * lines 88 → 76px; items grown by an image or avatar too) and off section subheaders, and
+   * the controls inside items follow. Left out, the list takes the density of the nearest
+   * `ThemeProvider` or `ThemeScope`. Prefer setting it there, from a setting, since M3 makes
+   * density the reader's choice.
+   * @default 0
+   */
+  density?: Density;
   /** The expanded items of a list with `childItems` (controlled). */
   expandedKeys?: Iterable<Key>;
   /** The items expanded at first (uncontrolled). */
@@ -471,7 +482,7 @@ const ListOptionsContext = createContext<ListOptions>({});
  *   <ListItem key="bluetooth" leading={<BluetoothIcon />}>Bluetooth</ListItem>
  * </List>
  */
-export function List(props: ListProps) {
+export function List({ density, ...props }: ListProps) {
   const { headlineLines, supportingTextLines, dividers, selectionIndicator, classNames } = props;
   if (dividers != null && props.variant === 'segmented') {
     throw new Error(
@@ -483,7 +494,7 @@ export function List(props: ListProps) {
       value={{ headlineLines, supportingTextLines, dividers, selectionIndicator }}
     >
       <ListMediaContext value={classNames?.media}>
-        <ListBody {...props} />
+        <ListBody {...props} {...densityAttribute(density)} />
       </ListMediaContext>
     </ListOptionsContext>
   );
@@ -1626,7 +1637,8 @@ function ExpandButton({ props, className }: { props: AriaButtonProps; className:
       ref={ref}
       className={className}
     >
-      <TouchTarget />
+      {/* 48px, but never taller than a one-line item (44px at density -3), so it stays in its row. */}
+      <TouchTarget className="h-[min(48px,calc(56px+var(--md-sys-density,0)*4px))]" />
       <ExpandMoreIcon />
     </button>
   );

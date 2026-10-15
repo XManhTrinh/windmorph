@@ -27,6 +27,7 @@ import { Item, useTabListState, type Key, type Node, type TabListState } from 'r
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
@@ -92,6 +93,14 @@ export interface TabsProps extends Omit<
   scrollable?: boolean;
   /** Icons above the label (64px tabs) or before it (48px). @default "top" */
   iconPlacement?: 'top' | 'start';
+  /**
+   * Web density, `0` to `-3`, for the tab row (not the panels): each step takes 4px off the
+   * tabs (48px at 0, 36px at -3; 64px to 52px with icons above). Left out, the tabs take the
+   * density of the nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the
+   * reader's choice rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /**
    * Fixed tabs: `stretch` fills the row; `start` and `center` make every tab as wide as
    * the widest and place the group at the leading edge or the centre (M3's layout for wide
@@ -175,6 +184,7 @@ function TabsInner({
     iconPlacement = 'top',
     align = 'stretch',
     swipeable = false,
+    density,
     classNames,
   } = props;
   // A Tab's children are its panel content, which can be server-rendered: check only the Tabs.
@@ -217,7 +227,11 @@ function TabsInner({
 
   return (
     <>
-      <div ref={scrollerRef} className={styles.scroller({ class: classNames?.scroller })}>
+      <div
+        ref={scrollerRef}
+        {...densityAttribute(density)}
+        className={styles.scroller({ class: classNames?.scroller })}
+      >
         <div
           {...tabListProps}
           ref={listRef}

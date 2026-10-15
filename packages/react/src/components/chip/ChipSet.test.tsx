@@ -20,7 +20,12 @@ describe('ChipSet', () => {
       </>,
     );
     const set = screen.getByRole('group', { name: 'Actions' });
-    expect(set).toHaveClass('flex', 'flex-wrap', 'gap-[8px]');
+    expect(set).toHaveClass(
+      'flex',
+      'flex-wrap',
+      'gap-x-[8px]',
+      'gap-y-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+    );
     const [call, directions, share] = ['Call', 'Directions', 'Share'].map((name) =>
       screen.getByRole('button', { name }),
     );
