@@ -366,6 +366,35 @@ function BottomSheetPanel({
       onDetentChange?.(resting === 'expanded' ? 'expanded' : 'collapsed');
   };
 
+  // Moving down to a lower detent while staying open (Escape, the handle or the collapse
+  // button on a full sheet, or the app lowering it) runs on the fast effects spring, which
+  // doesn't overshoot, as Compose's `partialExpand()` (`hideMotionSpec`); the sheet dropped
+  // a few pixels below the detent on the spatial spring. A drag's settle keeps the spatial
+  // spring (Compose's `anchoredDraggableMotion`), and so does the entry: the first frames
+  // after mounting only measure.
+  const settling = useRef(false);
+  const armed = useRef(false);
+  const previousResting = useRef(restingOffset);
+  useEffect(() => {
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => {
+        armed.current = true;
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  useLayoutEffect(() => {
+    const previous = previousResting.current;
+    previousResting.current = restingOffset;
+    const lowering = armed.current && !settling.current && restingOffset > previous + 0.5;
+    settling.current = false;
+    motionRef.current?.toggleAttribute('data-lowering', lowering);
+  }, [restingOffset]);
+  // A settle that springs back to the same detent leaves the flag for no move.
+  useLayoutEffect(() => {
+    if (drag === null) settling.current = false;
+  }, [drag]);
+
   useLayoutEffect(() => {
     const element = motionRef.current;
     if (!element) return;
@@ -394,6 +423,7 @@ function BottomSheetPanel({
       : [0, height];
 
   const settle = (target: number) => {
+    settling.current = true;
     setDrag(null);
     if (!standard && target >= height - 0.5) close();
     else setDetent(target === 0 ? 'expanded' : 'lower');

@@ -790,3 +790,46 @@ test.describe('Sheets never show a gap at their edge when the spring overshoots'
     }
   });
 });
+
+test.describe('Moving down to a lower detent never overshoots it', () => {
+  /** Records the panel's top on every frame while `act` runs. */
+  async function tops(page: Page, act: () => Promise<void>) {
+    await page.evaluate(() => {
+      const frames: number[] = [];
+      (window as unknown as { tops: number[] }).tops = frames;
+      const sample = () => {
+        const panel = document.querySelector('[data-tokens="md-comp-sheet-bottom-docked"]');
+        if (panel) frames.push(panel.getBoundingClientRect().top);
+        if (frames.length < 90) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await act();
+    await page.waitForTimeout(900);
+    return page.evaluate(() => (window as unknown as { tops: number[] }).tops);
+  }
+
+  test('Escape from full to half on a modal sheet', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-sheet--bottom-tall');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    await settle(page);
+    await page.getByRole('button', { name: 'Expand sheet' }).click();
+    await settle(page);
+    const frames = await tops(page, () => page.keyboard.press('Escape'));
+    expect(frames.at(-1)).toBe(400);
+    expect(Math.max(...frames)).toBeLessThanOrEqual(400.5);
+  });
+
+  test('the standard sheet’s handle collapsing it to the peek', async ({ page }) => {
+    await openStory(page, 'components-sheet--bottom-standard-detents');
+    await page.getByRole('button', { name: 'Show directions' }).click();
+    await settle(page);
+    const frames = await tops(page, () =>
+      page.getByRole('button', { name: 'Collapse sheet' }).click(),
+    );
+    const rest = frames.at(-1)!;
+    expect(rest).toBeGreaterThan(frames[0]!);
+    expect(Math.max(...frames)).toBeLessThanOrEqual(rest + 0.5);
+  });
+});
