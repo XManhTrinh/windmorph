@@ -6,7 +6,8 @@
       "outputs": [".generated/props/**"]
     },
     "build": {
-      "outputs": ["out/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["out/**", ".next/**", "!.next/cache/**"],
+      "inputs": ["$TURBO_DEFAULT$", "public/media/bento/**"]
     },
     "typecheck": {
       "dependsOn": ["^build", "generate", "build"]

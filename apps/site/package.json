@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "link-check": "tsx scripts/check-links.ts",
     "test": "vitest run",
-    "generate:llms": "tsx scripts/generate-llms.ts"
+    "generate:llms": "tsx scripts/generate-llms.ts",
+    "record:bento": "tsx scripts/record-bento.ts"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",

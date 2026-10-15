@@ -5,3 +5,4 @@ out/
 test-results/
 playwright-report/
 next-env.d.ts
+public/media/bento/

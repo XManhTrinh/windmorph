@@ -43,13 +43,8 @@ import {
   ShareIcon,
   TuneIcon,
 } from '../icons';
+import { BENTO_STEP_MS, BENTO_THEMES } from './bento-loop';
 import { useLoopStep, usePressedStep } from './use-loop-step';
-
-/** Google's bento loop: each state holds for about a second and a half. */
-const STEP_MS = 1500;
-
-/** The six built-in themes, one per active-and-rest round, as the hero cycles them. */
-const THEMES = ['baseline', 'ocean', 'forest', 'sunset', 'rose', 'slate'] as const;
 
 /**
  * What each move presses: the controls marked `on` when turning active, `off` when going back
@@ -89,14 +84,14 @@ function Tile({ className, children }: { className?: string; children: ReactNode
  * FAB through classes. Each change is a real press on the control, so its
  * press animation plays first. It's decorative (`inert`, hidden from assistive
  * technology), pauses off screen and holds the active state when the visitor prefers reduced
- * motion.
+ * motion. Phones show its recording instead (`BentoVideo`, `scripts/record-bento.ts`).
  */
-export function ExpressiveBento() {
-  const { ref, step, still } = useLoopStep(STEP_MS);
+export function ExpressiveBento({ className }: { className?: string }) {
+  const { ref, step, still } = useLoopStep(BENTO_STEP_MS);
   const shown = usePressedStep(ref, step, pressTargets);
   const active = still || shown % 2 === 1;
   // A new theme with each round, as the bento comes back to rest.
-  const theme = THEMES[Math.floor(shown / 2) % THEMES.length] ?? 'baseline';
+  const theme = BENTO_THEMES[Math.floor(shown / 2) % BENTO_THEMES.length] ?? 'baseline';
 
   return (
     <ThemeScope
@@ -104,7 +99,10 @@ export function ExpressiveBento() {
       theme={theme}
       inert
       aria-hidden="true"
-      className="grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 transition-colors duration-500 motion-reduce:transition-none large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6"
+      className={cn(
+        'grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 transition-colors duration-500 motion-reduce:transition-none large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6',
+        className,
+      )}
     >
       {/* FAB menu: the FAB opens into its actions */}
       <Tile className="col-span-2 row-span-2 large:col-span-1 large:col-start-1 large:row-span-6 large:row-start-1">
