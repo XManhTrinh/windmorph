@@ -11,8 +11,9 @@ import { openStory, type StoryGlobals } from './story';
  *   from that edge from 0, the container fades in first, the headline and content fade in
  *   after 50ms (20% of their 250ms) and the actions after 150ms (50% of their 300ms), and the
  *   scrim fades in;
- * - leaving, the parts fade out at once, the dialog slides back 50px while its container
- *   shrinks to 35%, the container fades after 100ms, and the scrim fades out by 150ms.
+ * - leaving, on the reference's own timing: the parts fade out over 100ms, the dialog slides
+ *   back 50px while its container shrinks to 35% over 150ms on emphasized-accelerate, the
+ *   container fades from 100ms to 150ms, and the scrim fades out over 150ms.
  *
  * Reduced motion keeps only the fades of the dialog and the scrim, and the full-screen dialog
  * keeps its own slide up and fade.
@@ -175,26 +176,35 @@ function expectEnter(frames: Frame[], target: Target, slide: [number, number], a
 
 function expectExit(frames: Frame[], target: Target, slide: [number, number], axis: 'x' | 'y') {
   const names = [...Object.keys(target.early), ...Object.keys(target.late)];
+  let previous: { shown: number; slide: number } | null = null;
   for (const { t, parts } of frames) {
     const motion = part(parts, 'motion');
     // The parts fade out first, all together, while the container waits 100ms.
     if (t <= 96) expect(motion.opacity, `container at ${t}ms`).toBe(1);
     if (t === 96) for (const name of names) expect(part(parts, name).opacity).toBeLessThan(0.05);
-    // It moves back toward its edge and shrinks to 35% on a critically damped spring, as the
-    // reference's emphasized-accelerate curve does: never past 50px (within half a pixel) and
-    // never below 35%.
-    expect(slideLeft(motion, slide) * Math.hypot(...slide)).toBeLessThanOrEqual(50.5);
-    expect(slideLeft(motion, slide)).toBeGreaterThanOrEqual(0);
-    expect(shown(motion, axis)).toBeGreaterThanOrEqual(0.35 - 1e-3);
+    if (t >= 112) for (const name of names) expect(part(parts, name).opacity).toBe(0);
+    // It moves back toward its edge and shrinks to 35% on emphasized-accelerate, as the
+    // reference does: never past 50px (within half a pixel) and never below 35%.
+    const left = slideLeft(motion, slide);
+    const extent = shown(motion, axis);
+    expect(left * Math.hypot(...slide)).toBeLessThanOrEqual(50.5);
+    expect(left).toBeGreaterThanOrEqual(0);
+    expect(extent).toBeGreaterThanOrEqual(0.35 - 1e-3);
+    // While the container can still be seen, it is still shrinking and moving on every frame:
+    // never a still box fading out.
+    if (previous && motion.opacity > 0.05) {
+      expect(extent, `shown at ${t}ms`).toBeLessThan(previous.shown - 1e-6);
+      expect(left, `slide at ${t}ms`).toBeGreaterThan(previous.slide + 1e-6);
+    }
+    previous = { shown: extent, slide: left };
   }
-  expect(slideLeft(part(at(frames, 96), 'motion'), slide)).toBeGreaterThan(0.9);
+  // The container fades from 100ms to 150ms, and the scrim is gone in 150ms.
   expect(part(at(frames, 112), 'motion').opacity).toBeLessThan(1);
-  expect(part(at(frames, 240), 'motion').opacity).toBeLessThan(0.02);
-  // The scrim is gone in 150ms.
+  expect(part(at(frames, 160), 'motion').opacity).toBeLessThan(0.02);
   expect(part(at(frames, 160), 'scrim').opacity).toBeLessThan(0.02);
   const end = part(frames.at(-1)!.parts, 'motion');
-  expect(shown(end, axis)).toBeCloseTo(0.35, 1);
-  expect(slideLeft(end, slide)).toBeCloseTo(1, 1);
+  expect(shown(end, axis)).toBeCloseTo(0.35, 2);
+  expect(slideLeft(end, slide)).toBeCloseTo(1, 2);
 }
 
 const PLACEMENTS: {
@@ -433,8 +443,9 @@ test.describe('Dialog motion under reduced motion', () => {
     expect(part(enter[0]!.parts, 'motion').opacity).toBe(0);
     expect(part(at(enter, 64), 'motion').opacity).toBeGreaterThan(0);
     expect(part(enter.at(-1)!.parts, 'motion').opacity).toBe(1);
-    // Leaving, the fade starts at once (no parts to wait for).
-    expect(part(at(exit, 48), 'motion').opacity).toBeLessThan(0.5);
+    // Leaving, the fade starts at once (no parts to wait for) and lasts 150ms.
+    expect(part(at(exit, 48), 'motion').opacity).toBeLessThan(0.75);
+    expect(part(at(exit, 160), 'motion').opacity).toBeLessThan(0.02);
     expect(part(at(exit, 160), 'scrim').opacity).toBeLessThan(0.02);
   });
 });

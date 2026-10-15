@@ -6,6 +6,6 @@ Dialogs enter and leave with the full M3 dialog motion. Entering, the dialog sli
 
 New `Dialog` props: `quick` turns the motion off (the dialog leaves the document as soon as it closes), and `onOpened` and `onClosed` fire once the enter and exit motion have finished. `usePresence` (from `/primitives`) takes an optional third argument, `animated`: when false, `isPresent` follows `isOpen` at once. `dialogStyles` has a new `parts` slot (the staggered fades, for the panel) and a `quick` variant; the motion's `--m3-dialog-collapsed` variable is replaced by `--m3-dialog-enter-clip`, `--m3-dialog-exit-clip`, `--m3-dialog-open-clip`, `--m3-dialog-slide` and `--m3-dialog-corner`.
 
-Leaving, the dialog's slide and shrink run on the critically damped fast effects spring, so they stop at 50px and 35% instead of overshooting while the dialog is still visible.
+Leaving follows the M3 reference timing on the emphasized-accelerate easing: the parts fade out over 100ms, the dialog slides back and its container shrinks to 35% over 150ms without overshooting, the container fades from 100ms to 150ms and the scrim over 150ms, so the dialog is still moving until it has gone.
 
 New `transition` prop on `Dialog` and `PickerDialog`: `reveal` (the default) is the M3 dialog motion above, and `scale` keeps the original pop as an opt-in: a fade with a scale from 90% entering and to 95% leaving, from the centre or the edge the dialog sits against, with no clip, slide or staggered parts. Full-screen dialogs ignore it. `DialogTransition` is exported.
