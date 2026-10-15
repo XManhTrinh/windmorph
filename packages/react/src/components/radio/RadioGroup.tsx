@@ -5,6 +5,7 @@ import {
   useContext,
   useMemo,
   type CSSProperties,
+  type KeyboardEvent,
   type ReactNode,
   type Ref,
   type RefCallback,
@@ -115,6 +116,17 @@ export function RadioGroup(props: RadioGroupProps) {
   );
 }
 
+const ARROW_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+
+/**
+ * Arrow keys on a radio stay in the group (WAI-ARIA APG: they wrap). With one radio React
+ * Aria finds nowhere to move and leaves the key alone, so it scrolled the page (2026-10-15).
+ */
+function keepArrowKeys(event: KeyboardEvent<HTMLDivElement>) {
+  if (event.altKey || event.ctrlKey || event.metaKey || !ARROW_KEYS.has(event.key)) return;
+  if ((event.target as Element).matches('input[type="radio"]')) event.preventDefault();
+}
+
 function RadioGroupRoot({
   label,
   supportingText,
@@ -171,7 +183,7 @@ function RadioGroupRoot({
   return (
     <div
       {...data}
-      {...radioGroupProps}
+      {...mergeProps(radioGroupProps, { onKeyDown: keepArrowKeys })}
       ref={rootRef}
       style={style}
       data-orientation={orientation}

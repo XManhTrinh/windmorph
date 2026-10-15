@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -64,6 +64,19 @@ describe('RadioGroup', () => {
     expect(screen.getByRole('radio', { name: 'Medium' })).toBeChecked();
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked();
+  });
+
+  // 2026-10-15: with nowhere to move, React Aria left the key alone and it scrolled the page.
+  it('keeps arrow keys in a group of one radio', () => {
+    render(
+      <RadioGroup aria-label="Layout">
+        <Radio value="only">Only</Radio>
+      </RadioGroup>,
+    );
+    const radio = screen.getByRole('radio', { name: 'Only' });
+    radio.focus();
+    expect(fireEvent.keyDown(radio, { key: 'ArrowDown' })).toBe(false);
+    expect(fireEvent.keyDown(radio, { key: 'Tab' })).toBe(true);
   });
 
   it('can be controlled', async () => {
