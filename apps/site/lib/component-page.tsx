@@ -7,6 +7,7 @@ import {
   type ComponentTab,
 } from '../content/components/doc';
 import { AccessibilityTab } from '../components/accessibility-tab';
+import { DoDont } from '../components/do-dont';
 import { HookTable } from '../components/hook-table';
 import { InlineCode } from '../components/inline-code';
 import { Playground } from '../components/playground/playground';
@@ -15,6 +16,7 @@ import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
 import { TokenTable } from '../components/token-table';
 import { ACCESSIBILITY } from '../content/components/accessibility';
+import { DO_DONT } from '../content/components/do-dont';
 import { SPEC_DATA } from '../content/components/spec-data';
 import {
   readComponentPropsSafe,
@@ -70,6 +72,7 @@ export async function componentTabs(page: ComponentPageMeta): Promise<ComponentT
     accessibility: Boolean(ACCESSIBILITY[page.slug]),
     guidelines:
       Boolean(doc.guidelines) ||
+      Boolean(DO_DONT[page.slug]) ||
       Boolean(page.whenNotToUse) ||
       (page.related ?? []).length > 0 ||
       m3GuidelinesUrl(page.slug) !== null,
@@ -205,9 +208,11 @@ function GuidelinesTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentD
     .map((slug) => COMPONENT_PAGE_MAP[slug])
     .filter((relatedPage): relatedPage is ComponentPageMeta => Boolean(relatedPage));
   const m3 = m3GuidelinesUrl(page.slug);
+  const doDont = DO_DONT[page.slug];
   return (
     <>
       {doc.guidelines}
+      {doDont && <DoDont pairs={doDont} />}
       {page.whenNotToUse && (
         <section className="flex flex-col gap-3">
           <SectionHeading id="when-not-to-use">When not to use</SectionHeading>
