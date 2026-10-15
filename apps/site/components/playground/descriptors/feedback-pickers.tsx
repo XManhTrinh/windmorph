@@ -25,7 +25,7 @@ import {
 } from '@windmorph/react-pro';
 import { createElement, useState } from 'react';
 import { CloseIcon, DynamicFeedIcon, LockIcon } from '../../icons';
-import { loose, noop, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
+import { asDensity, loose, noop, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
 
 const ButtonAny = loose(Button);
 const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
@@ -421,7 +421,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       DateField:
         'A text field for typing a date, with a calendar menu; the Date field example shows it.',
     },
-    render: ({ minValue, maxValue, yearRange, defaultMode, ...props }) =>
+    render: ({ minValue, maxValue, yearRange, defaultMode, density, ...props }) =>
       createElement(
         'div',
         { className: 'w-fit max-w-full rounded-corner-extra-large bg-surface-container-high' },
@@ -430,6 +430,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           // The mode applies as the picker mounts, so a change starts it afresh.
           key: String(defaultMode),
           defaultMode,
+          density: asDensity(density),
           defaultValue: DATE,
           ...(minValue === true && { minValue: MIN_DATE }),
           ...(maxValue === true && { maxValue: MAX_DATE }),
@@ -440,6 +441,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       showHeader: true,
       showModeToggle: true,
       defaultMode: 'calendar',
+      density: 0,
       minValue: false,
       maxValue: false,
       yearRange: false,
@@ -448,11 +450,18 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'showHeader',
       'showModeToggle',
       'defaultMode',
+      'density',
       'minValue',
       'maxValue',
       'yearRange',
     ],
-    controlKinds: { minValue: 'boolean', maxValue: 'boolean', yearRange: 'boolean' },
+    enumOptions: { density: ['0', '-1', '-2', '-3'] },
+    controlKinds: {
+      density: 'number',
+      minValue: 'boolean',
+      maxValue: 'boolean',
+      yearRange: 'boolean',
+    },
     toggledSlots: {
       minValue: 'new CalendarDate(2030, 3, 5)',
       maxValue: 'new CalendarDate(2030, 3, 25)',
@@ -473,7 +482,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       TimePickerModeToggle:
         "Switches a modal time picker between the dial and the keyboard input; the Modal example shows it in the dialog's actions.",
     },
-    render: ({ hourCycle, ...props }, update) =>
+    render: ({ hourCycle, density, ...props }, update) =>
       createElement(
         'div',
         {
@@ -483,16 +492,17 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         createElement(TimePickerAny, {
           ...props,
           ...((hourCycle === 12 || hourCycle === 24) && { hourCycle }),
+          density: asDensity(density),
           defaultValue: new Time(14, 35),
           onModeChange: (mode: string) => update('mode', mode),
         }),
       ),
-    defaultProps: { layout: 'auto', mode: 'dial' },
-    surfacedProps: ['hourCycle', 'mode', 'layout'],
+    defaultProps: { layout: 'auto', mode: 'dial', density: 0 },
+    surfacedProps: ['hourCycle', 'mode', 'layout', 'density'],
     initialState: { hourCycle: 12, layout: 'vertical' },
     // 12 or 24, a number: a number field writes `hourCycle={12}`, as the type wants.
-    controlKinds: { hourCycle: 'number' },
-    enumOptions: { hourCycle: ['12', '24'] },
+    controlKinds: { hourCycle: 'number', density: 'number' },
+    enumOptions: { hourCycle: ['12', '24'], density: ['0', '-1', '-2', '-3'] },
     notControlled: {
       value:
         'A `Time` that the picker sets as you pick: the preview starts on `defaultValue` and is picked in place.',

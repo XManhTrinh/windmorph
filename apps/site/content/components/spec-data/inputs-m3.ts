@@ -48,6 +48,11 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         examples: ['text-field/text-field-multiline'],
       },
       { name: 'Forms', kind: 'use case', examples: ['text-field/text-field-form'] },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['text-field/text-field-density'],
+      },
     ],
     extensions: [
       {
@@ -124,6 +129,10 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     extensions: [
       {
+        item: 'Density',
+        note: "M3 gives text fields and menus web density; `density` (0 to -3, or the theme's) takes 4px a step off the field and off its options.",
+      },
+      {
         item: '`presentation="sheet"` and `"auto"`',
         note: "Opens the options in a bottom sheet, always or below 600px; the default `menu` is M3's dropdown on every window.",
       },
@@ -196,6 +205,10 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
     extensions: [
+      {
+        item: 'Density',
+        note: "M3 gives text fields and menus web density; `density` (0 to -3, or the theme's) takes 4px a step off the field, its first row of chips and its options.",
+      },
       {
         item: 'Built-in filtering',
         note: 'Matches anywhere, ignoring case and accents ("zurich" finds "Zürich"); `filter` replaces it.',

@@ -9,6 +9,10 @@ import { lazyExample } from '../../lib/lazy-example';
 const TimePickerDial = lazyExample('time-picker/time-picker-dial', 'TimePickerDial');
 const TimePickerModes = lazyExample('time-picker/time-picker-modes', 'TimePickerModes');
 const TimePickerModal = lazyExample('time-picker/time-picker-modal', 'TimePickerModal');
+const TimePickerDensityExample = lazyExample(
+  'time-picker/time-picker-density',
+  'TimePickerDensity',
+);
 
 /** Time picker page body. */
 export async function TimePickerBody(): Promise<ComponentDoc> {
@@ -23,6 +27,8 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
     highlightSource(timePickerModal),
   ]);
 
+  const densitySource = await readExampleSource('time-picker/time-picker-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [timePickerTokenSet],
     overview: (
@@ -56,6 +62,14 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             fileName="time-picker-modal.tsx"
           >
             <TimePickerModal />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density: the input mode"
+            code={densitySource}
+            html={densityHtml}
+            fileName="time-picker-density.tsx"
+          >
+            <TimePickerDensityExample />
           </ExampleViewer>
         </section>
       </>

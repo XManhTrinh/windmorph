@@ -26,7 +26,7 @@ import {
   VolumeDownIcon,
   VolumeUpIcon,
 } from '../../icons';
-import { EDIT, type PlaygroundDescriptor, loose } from './shared';
+import { EDIT, type PlaygroundDescriptor, asDensity, loose } from './shared';
 
 const TextFieldAny = loose(TextField);
 const CheckboxAny = loose(Checkbox);
@@ -47,6 +47,9 @@ const HELP = '<HelpIcon />';
 const MAIL = '<MailIcon />';
 const SORT = '<SortIcon />';
 
+/** The density control the fields share (0 to -3). */
+const DENSITY_OPTIONS = { density: ['0', '-1', '-2', '-3'] };
+
 /** A switched-on slot's live icon; nothing while it's switched off. */
 function slot(on: unknown, icon: () => ReactElement): ReactElement | undefined {
   return on === true ? icon() : undefined;
@@ -66,12 +69,14 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       createElement(TextFieldAny, {
         ...props,
         ...fieldSlots(props, () => createElement(MailIcon)),
+        density: asDensity(props.density),
         trailingIcon: slot(props.trailingIcon, () => createElement(CloseIcon)),
         value: props.value ?? '',
         onChange: (value: string) => update('value', value),
       }),
     defaultProps: {
       variant: 'filled',
+      density: 0,
       supportingTextOnFocus: false,
       invalid: false,
       required: false,
@@ -86,6 +91,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     surfacedProps: [
       'variant',
+      'density',
       'label',
       'value',
       'supportingText',
@@ -115,7 +121,9 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       supportingText: 'We never share it.',
       errorMessage: 'Enter a valid email address.',
     },
+    enumOptions: DENSITY_OPTIONS,
     controlKinds: {
+      density: 'number',
       leadingIcon: 'boolean',
       trailingIcon: 'boolean',
       errorIcon: 'boolean',
@@ -145,6 +153,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         {
           ...props,
           ...fieldSlots(props, () => createElement(SortIcon)),
+          density: asDensity(props.density),
           // Single and multiple values differ in shape, and a starting search applies from the
           // next mount, so either change starts afresh.
           key: `${String(props.selectionMode)}-${String(props.defaultSearchValue ?? '')}`,
@@ -159,6 +168,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       ),
     defaultProps: {
       variant: 'filled',
+      density: 0,
       selectionMode: 'single',
       presentation: 'menu',
       searchable: false,
@@ -173,6 +183,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     surfacedProps: [
       'variant',
+      'density',
       'label',
       'supportingText',
       'selectionMode',
@@ -190,8 +201,13 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'errorIcon',
     ],
     initialState: { variant: 'filled', label: 'Sort by' },
-    enumOptions: { selectionMode: ['single', 'multiple'], presentation: ['menu', 'sheet', 'auto'] },
+    enumOptions: {
+      ...DENSITY_OPTIONS,
+      selectionMode: ['single', 'multiple'],
+      presentation: ['menu', 'sheet', 'auto'],
+    },
     controlKinds: {
+      density: 'number',
       leadingIcon: 'boolean',
       errorIcon: 'boolean',
       maxSelections: 'number',
@@ -220,6 +236,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         {
           ...props,
           ...fieldSlots(props, () => createElement(SearchIcon)),
+          density: asDensity(props.density),
           // Single and multiple values differ in shape, so a mode change starts afresh.
           key: String(props.selectionMode),
           errorMessage: 'Choose a city',
@@ -231,6 +248,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       ),
     defaultProps: {
       variant: 'filled',
+      density: 0,
       selectionMode: 'single',
       allowsCustomValue: false,
       clearable: false,
@@ -244,6 +262,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     surfacedProps: [
       'variant',
+      'density',
       'label',
       'supportingText',
       'selectionMode',
@@ -259,8 +278,13 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'errorIcon',
     ],
     initialState: { variant: 'filled', label: 'City', clearable: true },
-    enumOptions: { selectionMode: ['single', 'multiple'] },
-    controlKinds: { leadingIcon: 'boolean', errorIcon: 'boolean', maxSelections: 'number' },
+    enumOptions: { ...DENSITY_OPTIONS, selectionMode: ['single', 'multiple'] },
+    controlKinds: {
+      density: 'number',
+      leadingIcon: 'boolean',
+      errorIcon: 'boolean',
+      maxSelections: 'number',
+    },
     toggledSlots: { leadingIcon: SEARCH, errorIcon: HELP },
     numberRanges: { maxSelections: { min: 1, max: 4 } },
     importMembers: ['AutocompleteItem'],

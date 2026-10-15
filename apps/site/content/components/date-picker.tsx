@@ -12,6 +12,10 @@ const DateRangeExample = lazyExample('date-picker/date-range', 'DateRangeExample
 const DateInput = lazyExample('date-picker/date-input', 'DateInput');
 const DateRangeModal = lazyExample('date-picker/date-range-modal', 'DateRangeModal');
 const DatePickerModal = lazyExample('date-picker/date-picker-modal', 'DatePickerModal');
+const DatePickerDensityExample = lazyExample(
+  'date-picker/date-picker-density',
+  'DatePickerDensity',
+);
 
 const c = 'text-on-surface';
 
@@ -35,6 +39,8 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
       highlightSource(dateInput),
     ]);
 
+  const densitySource = await readExampleSource('date-picker/date-picker-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [datePickerTokenSet],
     overview: (
@@ -93,6 +99,14 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
             fileName="date-input.tsx"
           >
             <DateInput />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density: the typed field"
+            code={densitySource}
+            html={densityHtml}
+            fileName="date-picker-density.tsx"
+          >
+            <DatePickerDensityExample />
           </ExampleViewer>
         </section>
       </>

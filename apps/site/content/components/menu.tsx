@@ -14,6 +14,7 @@ const MenuSheet = lazyExample('menu/menu-sheet', 'MenuSheet');
 const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
 const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
 const MenuContainerPadding = lazyExample('menu/menu-container-padding', 'MenuContainerPadding');
+const MenuDensityExample = lazyExample('menu/menu-density', 'MenuDensity');
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {
@@ -40,6 +41,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
   const containerPadding = await readExampleSource('menu/menu-container-padding.tsx');
   const containerPaddingHtml = await highlightSource(containerPadding);
 
+  const densitySource = await readExampleSource('menu/menu-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [menuTokenSet],
     overview: (
@@ -112,6 +115,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
           >
             <MenuContainerPadding />
           </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="menu-density.tsx"
+          >
+            <MenuDensityExample />
+          </ExampleViewer>
         </section>
       </>
     ),
@@ -142,7 +153,9 @@ export async function MenuBody(): Promise<ComponentDoc> {
             the web) or by 2px gaps between separate surfaces (
             <InlineCode>layout=&quot;gap&quot;</InlineCode>). M3 doesn&apos;t use gaps in menus that
             scroll, so a gap menu that has to scroll switches to dividers.{' '}
-            <InlineCode>density</InlineCode> (0 to −3) tightens items for dense desktop layouts.
+            <InlineCode>density</InlineCode> (0 to −3) tightens items for dense desktop layouts;
+            left out, a menu takes the density of its <InlineCode>ThemeProvider</InlineCode> or{' '}
+            <InlineCode>ThemeScope</InlineCode> (see Theming).
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>presentation=&quot;auto&quot;</InlineCode> opens the menu in a bottom sheet

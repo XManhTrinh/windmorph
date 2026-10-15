@@ -11,6 +11,7 @@ const TextFieldAdornments = lazyExample('text-field/text-field-adornments', 'Tex
 const TextFieldMultiline = lazyExample('text-field/text-field-multiline', 'TextFieldMultiline');
 const TextFieldStates = lazyExample('text-field/text-field-states', 'TextFieldStates');
 const TextFieldVariants = lazyExample('text-field/text-field-variants', 'TextFieldVariants');
+const TextFieldDensityExample = lazyExample('text-field/text-field-density', 'TextFieldDensity');
 
 /** TextField page body: purpose, live examples, accessibility and Compose differences. */
 export async function TextFieldBody(): Promise<ComponentDoc> {
@@ -29,6 +30,8 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
     highlightSource(form),
   ]);
 
+  const densitySource = await readExampleSource('text-field/text-field-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [textFieldTokenSet],
     overview: (
@@ -76,6 +79,14 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
             fileName="text-field-form.tsx"
           >
             <TextFieldForm />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="text-field-density.tsx"
+          >
+            <TextFieldDensityExample />
           </ExampleViewer>
         </section>
       </>

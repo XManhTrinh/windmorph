@@ -145,10 +145,11 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   },
   {
     title: 'Theming',
-    summary: 'Themes, light and dark mode, contrast levels, custom themes and no theme flash.',
+    summary:
+      'Themes, light and dark mode, contrast levels, density, custom themes and no theme flash.',
     href: '/theming',
     kind: 'guide',
-    keywords: ['ThemeProvider', 'useTheme', 'useThemeScope'],
+    keywords: ['ThemeProvider', 'useTheme', 'useThemeScope', 'density', 'dense'],
   },
   {
     title: 'Motion',

@@ -115,6 +115,10 @@ export function loose<P>(component: ComponentType<P>): ComponentType<Record<stri
 /** A no-op change handler so controlled inputs driven by the panel don't warn in preview. */
 export const noop = () => {};
 
+/** A density control's value (`"-2"`) as the number the prop takes; nothing when unset. */
+export const asDensity = (value: unknown) =>
+  value == null || value === '' ? undefined : (Number(value) as 0 | -1 | -2 | -3);
+
 /**
  * The snippets' icons, as the reader's own named icon components; `emitSnippet` imports each
  * one it finds from `./icons`.

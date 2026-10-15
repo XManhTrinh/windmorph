@@ -38,6 +38,24 @@ const SCOPE_SNIPPET = `import { ThemeScope } from '@windmorph/react';
   <PricingCard />
 </ThemeScope>;`;
 
+const DENSITY_SNIPPET = `import { ThemeProvider, ThemeScope, TextField, useTheme } from '@windmorph/react';
+
+// App-wide: the reader's choice, remembered with the rest of the theme.
+<ThemeProvider defaultDensity={0}>{children}</ThemeProvider>;
+
+function DensitySetting() {
+  const { density, setDensity } = useTheme(); // 0 | -1 | -2 | -3
+  // Offer it as a setting, with controls of 48px or more (see below).
+}
+
+// A section, e.g. a data-heavy admin table's filters:
+<ThemeScope density={-2}>
+  <Filters />
+</ThemeScope>;
+
+// One component, overriding the theme:
+<TextField label="Search" density={0} />;`;
+
 const CREATE_THEME_SNIPPET = `import { createTheme, ThemeProvider } from '@windmorph/react';
 
 const acme = createTheme({ name: 'acme', seed: '#0B57D0' });
@@ -129,6 +147,7 @@ export default async function ThemingPage() {
     useThemeHtml,
     providerHtml,
     scopeHtml,
+    densityHtml,
     createThemeHtml,
     cliHtml,
     palettesHtml,
@@ -141,6 +160,7 @@ export default async function ThemingPage() {
     highlightSource(USE_THEME_SNIPPET, 'tsx'),
     highlightSource(PROVIDER_SNIPPET, 'tsx'),
     highlightSource(SCOPE_SNIPPET, 'tsx'),
+    highlightSource(DENSITY_SNIPPET, 'tsx'),
     highlightSource(CREATE_THEME_SNIPPET, 'tsx'),
     highlightSource(CLI_SNIPPET, 'bash'),
     highlightSource(PALETTES_SNIPPET, 'tsx'),
@@ -155,7 +175,7 @@ export default async function ThemingPage() {
       <header className="flex flex-col gap-3">
         <h1 className="text-headline-large text-on-surface">Theming</h1>
         <p className="text-body-large text-on-surface-variant">
-          Every colour, mode, contrast level and motion scheme is driven by semantic tokens. Pick
+          Every colour, mode, contrast level, motion scheme and density is driven by tokens. Pick
           one of six built-in themes, generate your own from a seed colour, and switch any of the
           four dimensions at runtime or per subtree.
         </p>
@@ -248,10 +268,61 @@ export default async function ThemingPage() {
         </p>
         <CodeBlock code={USE_THEME_SNIPPET} html={useThemeHtml} lang="tsx" title="useTheme" />
         <p className="text-body-large text-on-surface-variant">
-          <InlineCode>ThemeScope</InlineCode> re-themes a subtree. Any of its four props can be set;
-          the rest inherit, and scopes nest.
+          <InlineCode>ThemeScope</InlineCode> re-themes a subtree. Any of its five props (theme,
+          mode, contrast, motion and <InlineCode>density</InlineCode>) can be set; the rest inherit,
+          and scopes nest.
         </p>
         <CodeBlock code={SCOPE_SNIPPET} html={scopeHtml} lang="tsx" title="ThemeScope" />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 id="density" className="text-headline-small text-on-surface">
+          Density
+        </h2>
+        <p className="text-body-large text-on-surface-variant">
+          On the web, M3 lets components be denser: <InlineCode>density</InlineCode> goes from{' '}
+          <InlineCode>0</InlineCode> (the default) to <InlineCode>-3</InlineCode>, and each step
+          takes 4px off a component&apos;s height by trimming the padding above and below its
+          content. Text fields, selects and autocompletes go from 56px to 44px, menus and their
+          options from 44px to 32px items, and the typed fields of the date and time pickers follow.
+          The date picker&apos;s calendar and the time picker&apos;s dial keep their size, since
+          their 48px targets are part of their accessibility.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Set it app-wide with <InlineCode>ThemeProvider</InlineCode> (
+          <InlineCode>density</InlineCode> / <InlineCode>defaultDensity</InlineCode> /{' '}
+          <InlineCode>onDensityChange</InlineCode>, and <InlineCode>setDensity</InlineCode> on{' '}
+          <InlineCode>useTheme()</InlineCode>; it&apos;s stored with the theme), for a section with{' '}
+          <InlineCode>ThemeScope density</InlineCode>, or on one component with its{' '}
+          <InlineCode>density</InlineCode> prop, which wins. Each writes a{' '}
+          <InlineCode>data-density</InlineCode> attribute that sets{' '}
+          <InlineCode>--md-sys-density</InlineCode> for everything inside, so density is plain CSS:
+          it works in server-rendered and static pages, and menus and other overlays take the
+          density of where they open.
+        </p>
+        <CodeBlock code={DENSITY_SNIPPET} html={densityHtml} lang="tsx" title="Density" />
+        <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
+          <li>
+            <span className="text-on-surface">Make it a choice, not a default.</span> M3:
+            &quot;Don&apos;t apply density to text fields by default. This lowers their targets
+            below the recommended 48x48 CSS pixels. Instead, give people a way to choose a higher
+            density, like selecting a denser layout or changing the theme.&quot; This site&apos;s
+            display settings have one.
+          </li>
+          <li>
+            <span className="text-on-surface">Keep the way back easy.</span> The control that
+            changes density keeps 48px targets at every level (M3: &quot;keep all the targets to
+            change it at a minimum of 48x48 CSS pixels&quot;); a button group of small buttons, as
+            in the display settings, does.
+          </li>
+          <li>
+            <span className="text-on-surface">Targets.</span> A dense field still answers a press
+            within 48px of its centre, and its icon buttons keep 48px targets. Dense menu items (40,
+            36 and 32px) are stacked rows, so their targets can&apos;t reach 48px without
+            overlapping the next item; they stay above WCAG 2.5.8&apos;s 24px minimum, and density
+            is the reader&apos;s own choice.
+          </li>
+        </ul>
       </section>
 
       <section className="flex flex-col gap-4">

@@ -15,6 +15,10 @@ const AutocompleteSections = lazyExample(
   'autocomplete/autocomplete-sections',
   'AutocompleteSections',
 );
+const AutocompleteDensityExample = lazyExample(
+  'autocomplete/autocomplete-density',
+  'AutocompleteDensity',
+);
 
 /** Autocomplete page body: purpose, examples, accessibility and differences from Compose. */
 export async function AutocompleteBody(): Promise<ComponentDoc> {
@@ -31,6 +35,8 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
     highlightSource(fromServer),
   ]);
 
+  const densitySource = await readExampleSource('autocomplete/autocomplete-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     overview: (
       <>
@@ -69,6 +75,14 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
             fileName="autocomplete-async.tsx"
           >
             <AutocompleteAsync />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="autocomplete-density.tsx"
+          >
+            <AutocompleteDensityExample />
           </ExampleViewer>
         </section>
       </>

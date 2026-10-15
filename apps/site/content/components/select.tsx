@@ -9,6 +9,7 @@ const SelectBasic = lazyExample('select/select-basic', 'SelectBasic');
 const SelectMultiple = lazyExample('select/select-multiple', 'SelectMultiple');
 const SelectSearchable = lazyExample('select/select-searchable', 'SelectSearchable');
 const SelectVariants = lazyExample('select/select-variants', 'SelectVariants');
+const SelectDensityExample = lazyExample('select/select-density', 'SelectDensity');
 
 /** Select page body: purpose, examples, accessibility and differences from Compose. */
 export async function SelectBody(): Promise<ComponentDoc> {
@@ -25,6 +26,8 @@ export async function SelectBody(): Promise<ComponentDoc> {
     highlightSource(searchable),
   ]);
 
+  const densitySource = await readExampleSource('select/select-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     overview: (
       <>
@@ -63,6 +66,14 @@ export async function SelectBody(): Promise<ComponentDoc> {
             fileName="select-searchable.tsx"
           >
             <SelectSearchable />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="select-density.tsx"
+          >
+            <SelectDensityExample />
           </ExampleViewer>
         </section>
       </>

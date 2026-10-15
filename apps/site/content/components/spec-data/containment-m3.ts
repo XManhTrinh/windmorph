@@ -144,6 +144,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['menu/menu-sheet'],
       },
+      { name: 'Density (web)', kind: 'configuration', examples: ['menu/menu-density'] },
     ],
     extensions: [
       {

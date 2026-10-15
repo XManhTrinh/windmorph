@@ -6,6 +6,7 @@ import {
   Button,
   ButtonGroup,
   CONTRAST_LEVEL_NAMES,
+  DENSITIES,
   Menu,
   MenuItem,
   MenuTrigger,
@@ -13,6 +14,7 @@ import {
   useTheme,
   type ColorMode,
   type ContrastLevel,
+  type Density,
 } from '@windmorph/react';
 
 const MODE_LABELS: Record<ColorMode, string> = {
@@ -51,13 +53,24 @@ function useDocumentDirection() {
 }
 
 /**
- * Theme, mode, contrast, motion and direction controls, built only from library
+ * Theme, mode, contrast, motion, density and direction controls, built only from library
  * components (`Menu` / `ButtonGroup` / `Switch`) and `useTheme` — no `<select>`, no
  * non-library UI.
  */
 export function ThemeControls() {
-  const { theme, themes, setTheme, mode, setMode, contrast, setContrast, motion, setMotion } =
-    useTheme();
+  const {
+    theme,
+    themes,
+    setTheme,
+    mode,
+    setMode,
+    contrast,
+    setContrast,
+    motion,
+    setMotion,
+    density,
+    setDensity,
+  } = useTheme();
   const [rtl, setRtl] = useDocumentDirection();
 
   return (
@@ -109,6 +122,33 @@ export function ThemeControls() {
           ))}
         </Menu>
       </MenuTrigger>
+
+      {/* M3: density is the reader's choice, and the control that changes it keeps 48px
+          targets at every level (small buttons with 48px touch targets). */}
+      <div className="flex flex-col gap-2">
+        <span id="density-label" className="text-label-large text-on-surface-variant">
+          Density
+        </span>
+        <ButtonGroup
+          variant="connected"
+          size="sm"
+          aria-labelledby="density-label"
+          className="w-fit"
+          selectionMode="single"
+          disallowEmptySelection
+          selectedKeys={[String(density)]}
+          onSelectionChange={(keys) => {
+            const [value] = [...keys];
+            if (value !== undefined) setDensity(Number(value) as Density);
+          }}
+        >
+          {DENSITIES.map((value) => (
+            <Button key={value} toggle value={String(value)}>
+              {String(value)}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </div>
 
       <Switch
         selected={motion === 'expressive'}

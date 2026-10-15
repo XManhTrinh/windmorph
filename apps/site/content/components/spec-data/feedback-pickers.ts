@@ -380,6 +380,10 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
     ],
     extensions: [
       {
+        item: 'Density of the typed fields',
+        note: "`density` (0 to -3, or the theme's) takes 4px a step off the docked field and the input mode's fields, as text fields; the calendar keeps its 48px days, since M3 doesn't make date pickers denser.",
+      },
+      {
         item: '`monthLayout="paged"`',
         note: 'The range picker scrolls a vertical list of months as the spec says; `paged` shows one month at a time instead.',
       },
@@ -475,6 +479,10 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
     extensions: [
+      {
+        item: 'Density of the input mode',
+        note: "`density` (0 to -3, or the theme's) takes 4px a step off the typed hour and minute fields; the dial keeps its size, since M3 doesn't make time pickers denser.",
+      },
       {
         item: '`layout="auto"` and `useTimePickerRoom`',
         note: 'Picks the vertical layout, the horizontal one or the input from the window’s room, so the picker never scrolls, as the spec asks.',

@@ -8,7 +8,7 @@ import { ThemeControls } from './theme-controls';
 const OpenDisplaySettings = createContext<(() => void) | null>(null);
 
 /**
- * The site's one display-settings side sheet (theme, mode, contrast, motion, direction). Any
+ * The site's one display-settings side sheet (theme, mode, contrast, motion, density, direction). Any
  * `DisplaySettingsButton` under it opens the same sheet: the rail's, the compact app bar's
  * and the playground's.
  */
