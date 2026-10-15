@@ -7,6 +7,7 @@ import { axeViolations } from '../../../test/axe';
 import { Badge } from '../badge/Badge';
 import { NavigationBar, NavigationBarItem } from './NavigationBar';
 import { NavigationRail, NavigationRailItem, type NavigationRailProps } from './NavigationRail';
+import { navigationRailStyles } from './navigation-styles';
 
 vi.mock('motion/react', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -272,6 +273,42 @@ describe('NavigationRail', () => {
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sent' }));
     expect(onNavigate).toHaveBeenCalledOnce();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 1500 });
+  });
+
+  it('keeps the modal sheet until its own exit motion ends, not the scrim’s fade', async () => {
+    const end = (el: Element, propertyName: string) => {
+      const event = new Event('transitionend', { bubbles: true }) as TransitionEvent;
+      Object.defineProperty(event, 'propertyName', { value: propertyName });
+      act(() => {
+        el.dispatchEvent(event);
+      });
+    };
+    function Modal() {
+      const [expanded, setExpanded] = useState(true);
+      return <Rail modal expanded={expanded} onExpandedChange={setExpanded} />;
+    }
+    render(<Modal />);
+    const sheet = screen.getByRole('dialog', { name: 'Main' });
+    await userEvent.keyboard('{Escape}');
+    expect(sheet).toHaveAttribute('data-exiting');
+    const scrim = sheet.previousElementSibling!;
+    expect(scrim).toHaveAttribute('data-exiting');
+    // The scrim's shorter fade ends first: the sheet is still shrinking back.
+    end(scrim, 'opacity');
+    expect(screen.getByRole('dialog', { name: 'Main' })).toBe(sheet);
+    end(sheet, 'width');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('slides the hidden rail’s modal sheet in on the default spatial spring (Compose)', () => {
+    const sheet = navigationRailStyles({ sheetEntry: 'slide' }).sheet();
+    expect(sheet).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+    );
+    expect(sheet).not.toContain('spatial-fast');
+    expect(navigationRailStyles({ sheetEntry: 'grow' }).sheet()).toContain(
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+    );
   });
 
   it('lets classNames.body replace the top inset', () => {

@@ -9,8 +9,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * insets, 220–360px, and the width springs on the default spatial spring. Content starts
  * 44px down; a header sits 40px above the items, which are 4px apart collapsed and flush
  * expanded. The modal expanded rail is `surface-container` at level 2 with 16px end
- * corners over a 32% scrim; it grows from the collapsed width (or slides in when the
- * collapsed rail is hidden) on the fast spatial spring.
+ * corners over a 32% scrim; it grows from the collapsed width on the fast spatial spring, or
+ * slides in on the default one when the collapsed rail is hidden. It stays mounted until its
+ * own width or slide (or, under reduced motion, its fade) has ended.
  *
  * Icons stay on one line in both states, through the middle of the collapsed rail, as in
  * M3's rail motion: only the labels and the rail's edge move. While the width springs open
@@ -129,9 +130,14 @@ export const navigationRailStyles = tv({
         sheet:
           'motion-safe:starting:w-(--m3-rail-collapsed-width) motion-safe:data-exiting:w-(--m3-rail-collapsed-width)',
       },
+      // Sliding in, the sheet takes the default spatial spring, as Compose's modal rail
+      // (`WideNavigationRail.kt`): the fast one overshot 21px off the window edge (2026-10-15).
       slide: {
-        sheet:
+        sheet: [
           'motion-safe:starting:-translate-x-full motion-safe:data-exiting:-translate-x-full motion-safe:rtl:starting:translate-x-full motion-safe:rtl:data-exiting:translate-x-full',
+          '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+        ],
       },
     },
   },

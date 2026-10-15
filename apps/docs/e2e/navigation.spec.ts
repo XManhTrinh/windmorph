@@ -386,3 +386,83 @@ test.describe('NavigationRail layout safety', () => {
     },
   });
 });
+
+test.describe('Navigation motion edges and forced colours', () => {
+  /** Records the dialog's box on every frame while `act` runs, until it has gone. */
+  async function sampleSheet(page: Page, act: () => Promise<void>) {
+    await page.evaluate(() => {
+      const samples: { x: number; width: number }[] = [];
+      (window as unknown as { __sheet: typeof samples }).__sheet = samples;
+      const start = performance.now();
+      const tick = () => {
+        const sheet = document.querySelector('[role="dialog"]');
+        if (sheet) {
+          const { x, width } = sheet.getBoundingClientRect();
+          samples.push({ x, width });
+        }
+        if (performance.now() - start < 1500) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await act();
+    await page.waitForTimeout(1600);
+    return page.evaluate(
+      () => (window as unknown as { __sheet: { x: number; width: number }[] }).__sheet,
+    );
+  }
+
+  // The hidden rail's sheet slides in on the default spatial spring (Compose): the fast one
+  // overshot 21px off the window edge (2026-10-15).
+  test('the modal sheet of a hidden rail never leaves a gap at the window edge', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-navigation--modal-rail', {}, { hideOnCollapse: true });
+    const samples = await sampleSheet(page, () =>
+      page.getByRole('button', { name: 'Open navigation' }).click(),
+    );
+    expect(samples.length).toBeGreaterThan(5);
+    expect(Math.max(...samples.map((sample) => sample.x))).toBeLessThan(6);
+  });
+
+  // The sheet stays until its own width spring ends, not the scrim's shorter fade.
+  test('the modal sheet shrinks back to the collapsed rail before it goes', async ({ page }) => {
+    await openStory(page, 'components-navigation--modal-rail');
+    await page.getByRole('button', { name: 'Expand navigation' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await page.waitForTimeout(800);
+    const samples = await sampleSheet(page, () => page.keyboard.press('Escape'));
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(
+      Math.abs(samples.at(-1)!.width - 96),
+      samples.map((s) => s.width).join(' '),
+    ).toBeLessThan(2);
+  });
+
+  test('forced colours keep the current pill', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    const system = (colour: string) =>
+      page.evaluate((value) => {
+        const probe = document.createElement('div');
+        probe.style.color = value;
+        document.body.append(probe);
+        const resolved = getComputedStyle(probe).color;
+        probe.remove();
+        return resolved;
+      }, colour);
+    for (const story of ['bar', 'rail']) {
+      await openStory(page, `components-navigation--${story}`);
+      const highlight = await system('Highlight');
+      const highlightText = await system('HighlightText');
+      const current = page.locator('[aria-current="page"]').first();
+      expect(await indicator(current).evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
+        highlight,
+      );
+      expect(
+        await current
+          .locator('svg')
+          .first()
+          .evaluate((el) => getComputedStyle(el).color),
+      ).toBe(highlightText);
+    }
+  });
+});
