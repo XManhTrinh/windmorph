@@ -40,6 +40,8 @@ function Card({ kind, card }: { kind: keyof typeof KIND; card: DoDontCard }) {
           {icon}
           {label}
         </span>
+        {/* Reads "Do: Use one filled button…" to a screen reader and in the Markdown twin. */}
+        <span className="sr-only">: </span>
         <span className="text-body-medium text-on-surface-variant">
           <InlineMarkdown text={card.text} />
         </span>
