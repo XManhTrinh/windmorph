@@ -493,3 +493,67 @@ test.describe('Dialog quick and motion callbacks', () => {
     await expect(dialog).toHaveCount(0);
   });
 });
+
+test.describe('Dialog transition="scale", frame by frame', () => {
+  const target: Target = {
+    story: 'components-dialog--transition-scale',
+    role: 'alertdialog',
+    ...basicParts('alertdialog'),
+  };
+  /** A computed `scale` as a number (`"0.9 0.9"`, `"0.9"` or `"none"`). */
+  const scale = (motion: PartFrame) =>
+    motion.scale === 'none' ? 1 : parseFloat(motion.scale.split(' ')[0]!);
+  const names = ['title', 'content', 'actions'];
+
+  test('fades in while scaling up from 90%, and out while scaling to 95%', async ({ page }) => {
+    await prepare(page, target);
+    const enter = await openFrames(page, target);
+    expect(scale(part(enter[0]!.parts, 'motion'))).toBeCloseTo(0.9, 5);
+    expect(part(enter[0]!.parts, 'motion').opacity).toBe(0);
+    let previous = 0.9;
+    for (const { parts } of enter) {
+      const motion = part(parts, 'motion');
+      // No clip, no slide, no staggered parts.
+      expect(translate(motion)).toEqual([0, 0]);
+      expect(motion.clipPath).toBe('none');
+      for (const name of names) expect(part(parts, name).opacity).toBe(1);
+      // Up toward 100% (the default spatial spring may overshoot it by 1.5%).
+      if (scale(motion) < 1) expect(scale(motion)).toBeGreaterThanOrEqual(previous - 1e-6);
+      expect(scale(motion)).toBeLessThanOrEqual(1.002);
+      previous = scale(motion);
+    }
+    expect(part(at(enter, 48), 'motion').opacity).toBeGreaterThan(0.5);
+    expect(part(enter.at(-1)!.parts, 'motion')).toMatchObject({ scale: 'none', opacity: 1 });
+    expect(part(enter.at(-1)!.parts, 'scrim').opacity).toBe(1);
+
+    await page.waitForTimeout(100);
+    const exit = await closeFrames(page, target);
+    for (const { parts } of exit) {
+      const motion = part(parts, 'motion');
+      expect(translate(motion)).toEqual([0, 0]);
+      expect(motion.clipPath).toBe('none');
+      for (const name of names) expect(part(parts, name).opacity).toBe(1);
+      // Down toward 95% (the fast spatial spring may overshoot it by half a percent).
+      expect(scale(motion)).toBeGreaterThanOrEqual(0.94);
+    }
+    // The fade starts at once and is done in 150ms.
+    expect(part(at(exit, 32), 'motion').opacity).toBeLessThan(0.6);
+    expect(part(at(exit, 160), 'motion').opacity).toBeLessThan(0.02);
+    expect(scale(part(exit.at(-1)!.parts, 'motion'))).toBeCloseTo(0.95, 2);
+    await expect(page.locator('[role=alertdialog]')).toHaveCount(0);
+  });
+
+  test('reduced motion: only the fades', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await prepare(page, target);
+    const enter = await openFrames(page, target);
+    await page.waitForTimeout(100);
+    const exit = await closeFrames(page, target);
+    for (const { parts } of [...enter, ...exit]) {
+      expect(part(parts, 'motion').scale).toBe('none');
+      expect(translate(part(parts, 'motion'))).toEqual([0, 0]);
+    }
+    expect(part(enter[0]!.parts, 'motion').opacity).toBe(0);
+    expect(part(at(exit, 48), 'motion').opacity).toBeLessThan(0.5);
+  });
+});

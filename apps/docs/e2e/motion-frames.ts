@@ -5,6 +5,8 @@ export interface PartFrame {
   opacity: number;
   /** The computed `translate`, e.g. `"0px -50px"` or `"none"`. */
   translate: string;
+  /** The computed `scale`, e.g. `"0.9"` or `"none"`. */
+  scale: string;
   /** The computed `clip-path`, e.g. `"inset(0px 0px 100% round 28px)"`. */
   clipPath: string;
   /** The part's box in the window (after its own and its ancestors' translate). */
@@ -76,6 +78,7 @@ export function sampleMotion(page: Page, options: SampleMotionOptions): Promise<
         return {
           opacity: Number(style.opacity),
           translate: style.translate,
+          scale: style.scale,
           clipPath: style.clipPath,
           top: Math.round(box.top * 10) / 10,
           left: Math.round(box.left * 10) / 10,

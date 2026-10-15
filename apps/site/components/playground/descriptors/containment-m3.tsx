@@ -158,6 +158,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       keyboardDismissDisabled: false,
       origin: false,
       quick: false,
+      transition: 'reveal',
     },
     surfacedProps: [
       'open',
@@ -169,8 +170,9 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'dismissable',
       'keyboardDismissDisabled',
       'quick',
+      'transition',
     ],
-    enumOptions: { role: ['alertdialog', 'dialog'] },
+    enumOptions: { role: ['alertdialog', 'dialog'], transition: ['reveal', 'scale'] },
     // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role
     // change resets it to the new default, and the snippet writes it only when it differs.
     codeDefaults: (values) => ({ dismissable: values.role !== 'alertdialog' }),

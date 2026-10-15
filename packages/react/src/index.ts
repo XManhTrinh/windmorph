@@ -365,6 +365,7 @@ export {
   type DialogFullScreen,
   type DialogOrigin,
   type DialogPlacement,
+  type DialogTransition,
   type DialogHeaderClassNames,
   type DialogHeaderProps,
   type DialogProps,

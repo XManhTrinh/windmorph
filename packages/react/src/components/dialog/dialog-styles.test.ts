@@ -23,6 +23,7 @@ describe('dialogStyles', () => {
               dividers: flag,
               origin: flag,
               quick: flag,
+              transition: flag ? 'scale' : 'reveal',
             }),
           ).map((slot) => slot()),
         ),

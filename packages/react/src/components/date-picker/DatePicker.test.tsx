@@ -309,6 +309,36 @@ describe('PickerDialog', () => {
     );
   });
 
+  it('moves with the M3 dialog motion, or the original scale with transition="scale"', () => {
+    const { unmount } = render(
+      <PickerDialog
+        aria-label="Select date"
+        defaultOpen
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <DatePicker defaultValue={march} />
+      </PickerDialog>,
+    );
+    const reveal = screen.getByRole('dialog', { name: 'Select date' });
+    expect(reveal.parentElement).toHaveClass('starting:[translate:var(--m3-dialog-slide)]');
+    expect(reveal).toHaveClass('motion-safe:*:starting:opacity-0');
+    unmount();
+
+    render(
+      <PickerDialog
+        aria-label="Select date"
+        defaultOpen
+        transition="scale"
+        confirmButton={<Button variant="text">OK</Button>}
+      >
+        <DatePicker defaultValue={march} />
+      </PickerDialog>,
+    );
+    const scale = screen.getByRole('dialog', { name: 'Select date' });
+    expect(scale.parentElement).toHaveClass('starting:scale-90', 'data-exiting:scale-95');
+    expect(scale).not.toHaveClass('motion-safe:*:starting:opacity-0');
+  });
+
   it('closes and saves on Enter with onConfirm', async () => {
     const saved = vi.fn();
     function Demo() {

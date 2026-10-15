@@ -55,6 +55,12 @@ function CloseIcon() {
  */
 export type DialogFullScreen = 'never' | 'always' | 'compact';
 
+/**
+ * How a basic dialog enters and leaves: `reveal`, the M3 dialog motion, or `scale`, the
+ * original pop (a fade with a scale from 90%).
+ */
+export type DialogTransition = 'reveal' | 'scale';
+
 /** Where a basic dialog sits in the window, keeping the spec's 56px margin on wider windows. */
 export type DialogPlacement = 'center' | 'top' | 'bottom' | 'start' | 'end';
 
@@ -292,6 +298,17 @@ export interface DialogProps
   /** Goes on the outermost element, with `className`. */
   style?: CSSProperties;
   /**
+   * How a basic dialog enters and leaves. `reveal` is the M3 dialog motion: it slides 50px
+   * away from the edge it sits against while its container grows from that edge, and its
+   * headline and content, then its actions, fade in. `scale` is the library's original pop,
+   * an extension beyond the M3 motion: the dialog fades in while it scales up from 90%, and
+   * fades out while it scales to 95%, from the centre (`placement="center"`) or from the edge
+   * it sits against. Either way reduced motion keeps only the fades and `quick` turns the
+   * motion off. A full-screen dialog keeps its own motion and ignores it.
+   * @default "reveal"
+   */
+  transition?: DialogTransition;
+  /**
    * Skips the enter and exit motion: the dialog, its parts and the scrim appear and leave at
    * once, and the dialog leaves the document as soon as it closes. Reduced motion already
    * keeps only the fades. @default false
@@ -406,6 +423,7 @@ function DialogModal({
   fullScreen = 'never',
   placement = 'center',
   quick = false,
+  transition = 'reveal',
   onOpened,
   children,
   className,
@@ -453,7 +471,15 @@ function DialogModal({
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;
   const origin = originBox !== null;
-  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar, origin, quick });
+  const styles = dialogStyles({
+    hasIcon,
+    fullScreen,
+    placement,
+    bottomBar,
+    origin,
+    quick,
+    transition,
+  });
   const exiting = isExiting || undefined;
 
   return (
@@ -489,7 +515,9 @@ function DialogModal({
               data-tokens="md-comp-dialog"
               data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
               data-origin={origin || undefined}
-              className={styles.panel({ class: [styles.parts(), classNames?.panel] })}
+              className={styles.panel({
+                class: [transition === 'reveal' && styles.parts(), classNames?.panel],
+              })}
             >
               <TriggerContext value={null}>
                 <DialogPartsContext

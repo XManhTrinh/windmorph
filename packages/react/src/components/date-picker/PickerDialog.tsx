@@ -15,6 +15,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { Button } from '../button/Button';
 import { DIALOG_ROOT_STYLE, dialogStyles } from '../dialog/dialog-styles';
+import type { DialogTransition } from '../dialog/Dialog';
 import { IconButton } from '../icon-button/IconButton';
 import { PickerDialogContext } from './picker-dialog-context';
 import { pickerDialogStyles } from './picker-dialog-styles';
@@ -89,6 +90,14 @@ interface PickerDialogOwnProps {
   fullScreen?: 'never' | 'always' | 'compact';
   /** Icon of the full-screen close button. */
   closeIcon?: ReactElement;
+  /**
+   * How the dialog enters and leaves, as `Dialog`'s `transition`: `reveal`, the M3 dialog
+   * motion (it slides down while its container grows, then the picker and the actions fade
+   * in), or `scale`, the original pop (a fade with a scale from 90%). Reduced motion keeps only
+   * the fades. Ignored while the dialog is full screen.
+   * @default "reveal"
+   */
+  transition?: DialogTransition;
   /** Pressing outside closes the dialog. @default true */
   dismissable?: boolean;
   /** Words the full-screen form shows and announces, with English defaults. */
@@ -144,6 +153,7 @@ function PickerDialogModal({
   fullScreen = 'never',
   closeIcon,
   dismissable = true,
+  transition = 'reveal',
   strings = {},
   children,
   className,
@@ -163,7 +173,7 @@ function PickerDialogModal({
   const { dialogProps, titleProps } = useDialog(labelling, panelRef);
   const compact = useMediaQuery(COMPACT_WINDOW);
   const full = fullScreen === 'always' || (fullScreen === 'compact' && compact);
-  const shell = dialogStyles({ fullScreen: full ? 'always' : 'never' });
+  const shell = dialogStyles({ fullScreen: full ? 'always' : 'never', transition });
   const styles = pickerDialogStyles({ variant, fullScreen: full });
   const exiting = isExiting || undefined;
 
@@ -208,7 +218,9 @@ function PickerDialogModal({
               data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
               data-variant={variant}
               data-full-screen={full || undefined}
-              className={styles.panel({ class: [shell.parts(), classNames?.panel] })}
+              className={styles.panel({
+                class: [transition === 'reveal' && shell.parts(), classNames?.panel],
+              })}
             >
               <TriggerContext value={null}>
                 {full && (

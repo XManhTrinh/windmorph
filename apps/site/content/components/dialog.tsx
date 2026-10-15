@@ -20,6 +20,7 @@ const DialogScrollable = lazyExample('dialog/dialog-scrollable', 'DialogScrollab
 const DialogIcon = lazyExample('dialog/dialog-icon', 'DialogIcon');
 const DialogPlacement = lazyExample('dialog/dialog-placement', 'DialogPlacement');
 const DialogMotion = lazyExample('dialog/dialog-motion', 'DialogMotion');
+const DialogScale = lazyExample('dialog/dialog-scale', 'DialogScale');
 
 /**
  * Dialog page body: the flat parts, basic, alert, scrollable, divided and full-screen
@@ -64,6 +65,9 @@ export async function DialogBody(): Promise<ComponentDoc> {
 
   const motion = await readExampleSource('dialog/dialog-motion.tsx');
   const motionHtml = await highlightSource(motion);
+
+  const scale = await readExampleSource('dialog/dialog-scale.tsx');
+  const scaleHtml = await highlightSource(scale);
 
   return {
     tokens: [dialogTokenSet],
@@ -128,6 +132,14 @@ export async function DialogBody(): Promise<ComponentDoc> {
             fileName="dialog-motion.tsx"
           >
             <DialogMotion />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Scale transition"
+            code={scale}
+            html={scaleHtml}
+            fileName="dialog-scale.tsx"
+          >
+            <DialogScale />
           </ExampleViewer>
           <ExampleViewer
             title="Dividers and a choice"
@@ -333,7 +345,11 @@ export async function DialogBody(): Promise<ComponentDoc> {
               only the fades of the dialog and the scrim, and <InlineCode>quick</InlineCode> turns
               the motion off. <InlineCode>onOpened</InlineCode> and{' '}
               <InlineCode>onClosed</InlineCode> fire when each motion has finished, like Material
-              Web&apos;s <InlineCode>opened</InlineCode> and <InlineCode>closed</InlineCode> events.
+              Web&apos;s <InlineCode>opened</InlineCode> and <InlineCode>closed</InlineCode> events.{' '}
+              <InlineCode>transition=&quot;scale&quot;</InlineCode> brings back the library&apos;s
+              original pop instead, an extension beyond the M3 motion: a fade with a scale from 90%
+              entering and to 95% leaving, from the centre or the edge the dialog sits against.
+              Full-screen dialogs keep their own motion either way.
             </li>
             <li>
               Compose has no full-screen dialog component; the full-screen type follows the M3

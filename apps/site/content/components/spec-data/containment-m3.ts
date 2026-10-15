@@ -80,6 +80,10 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         item: 'Motion callbacks and no motion',
         note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `quick` turns the motion off.",
       },
+      {
+        item: 'Scale transition',
+        note: '`transition="scale"` swaps the M3 dialog motion (the default, `reveal`) for the library\'s original pop: a fade with a scale from 90% entering and to 95% leaving, with no clip, slide or staggered parts. Basic dialogs only; full-screen dialogs keep their own motion.',
+      },
     ],
     compose: [
       {

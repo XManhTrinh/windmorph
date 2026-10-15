@@ -140,7 +140,7 @@ describe('Dialog', () => {
       'starting:[clip-path:var(--m3-dialog-enter-clip)]',
       'data-exiting:[clip-path:var(--m3-dialog-exit-clip)]',
     );
-    expect(motion.className).not.toMatch(/scale/);
+    expect(motion.className).not.toMatch(/(^|\s)[a-z:-]*scale-(90|95|none)/);
     expect(motion.parentElement).toHaveClass('items-start', 'medium:p-[56px]', 'p-[24px]');
   });
 
@@ -433,6 +433,53 @@ describe('Dialog motion callbacks and quick', () => {
     expect(screen.getByRole('alertdialog', { name: 'Settings' })).toBeInTheDocument();
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+});
+
+describe('Dialog transition', () => {
+  it('reveals by default; transition="scale" fades and scales, with no clip, slide or stagger', async () => {
+    const { baseElement } = render(<DeleteDialog transition="scale" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    const motion = panel.parentElement!;
+    expect(motion).toHaveClass(
+      'starting:scale-90',
+      'data-exiting:scale-95',
+      'origin-(--m3-dialog-scale-origin)',
+      '[--m3-dialog-slide:0_0]',
+      '[--m3-dialog-enter-clip:none]',
+      '[transition-property:opacity,scale]',
+      'motion-reduce:[transition-property:opacity]',
+      'motion-reduce:data-exiting:scale-none',
+    );
+    expect(motion).not.toHaveClass('[--m3-dialog-slide:0_-50px]');
+    expect(panel).not.toHaveClass('motion-safe:*:starting:opacity-0');
+    expect(await axeViolations(baseElement)).toEqual([]);
+  });
+
+  it.each([
+    ['center', '[--m3-dialog-scale-origin:center]'],
+    ['top', '[--m3-dialog-scale-origin:top]'],
+    ['bottom', '[--m3-dialog-scale-origin:bottom]'],
+    ['start', 'rtl:[--m3-dialog-scale-origin:right]'],
+    ['end', 'rtl:[--m3-dialog-scale-origin:left]'],
+  ] as const)("scales from the %s placement's edge", async (placement, origin) => {
+    render(<DeleteDialog transition="scale" placement={placement} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByTestId('panel').parentElement).toHaveClass(origin);
+  });
+
+  it('is ignored in full screen, and quick turns it off', async () => {
+    const { unmount } = render(<DeleteDialog transition="scale" fullScreen="always" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByTestId('panel').parentElement).not.toHaveClass('starting:scale-90');
+    unmount();
+
+    render(<DeleteDialog transition="scale" quick />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    expect(screen.getByTestId('panel').parentElement).toHaveClass('[transition-property:none]!');
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByTestId('panel')).not.toBeInTheDocument();
   });
 });
 

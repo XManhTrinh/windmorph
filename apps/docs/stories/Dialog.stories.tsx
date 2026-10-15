@@ -404,6 +404,31 @@ export const CustomChildren: Story = {
   ),
 };
 
+/** `transition="scale"`: the original pop, a fade with a scale from 90% (and to 95%). */
+export const TransitionScale: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button variant="tonal">Open dialog</Button>
+      <Dialog transition="scale" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>Discard draft?</DialogTitle>
+            <DialogContent>Your changes to this message will be lost.</DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Discard
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
 /** `quick`: no enter or exit motion. */
 export const Quick: Story = {
   render: () => (
