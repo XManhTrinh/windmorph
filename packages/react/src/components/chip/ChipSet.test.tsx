@@ -159,6 +159,46 @@ describe('ChipSet', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('selects with the arrow keys in single mode, wrapping, and Tab enters at the selection', async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <>
+        <button type="button">Before</button>
+        <ChipSet
+          aria-label="Size"
+          selectionMode="single"
+          defaultSelectedKeys={['m']}
+          onSelectionChange={onSelectionChange}
+        >
+          <FilterChip value="s">Small</FilterChip>
+          <FilterChip value="m">Medium</FilterChip>
+          <FilterChip value="l">Large</FilterChip>
+        </ChipSet>
+      </>,
+    );
+    const radio = (name: string) => screen.getByRole('radio', { name });
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(radio('Medium')).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(radio('Large')).toHaveFocus();
+    expect(radio('Large')).toHaveAttribute('aria-checked', 'true');
+    expect(onSelectionChange).toHaveBeenLastCalledWith(new Set(['l']));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(radio('Small')).toHaveFocus();
+    expect(radio('Small')).toHaveAttribute('aria-checked', 'true');
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(radio('Large')).toHaveAttribute('aria-checked', 'true');
+    await userEvent.keyboard('{Home}');
+    expect(radio('Small')).toHaveAttribute('aria-checked', 'true');
+    expect(radio('Medium')).toHaveAttribute('aria-checked', 'false');
+    // Tab leaves the set and Shift+Tab comes back to the selected chip.
+    await userEvent.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    await userEvent.tab();
+    expect(radio('Small')).toHaveFocus();
+  });
+
   it('can scroll in one row', () => {
     render(
       <ChipSet aria-label="Filters" layout="scroll" className="custom">

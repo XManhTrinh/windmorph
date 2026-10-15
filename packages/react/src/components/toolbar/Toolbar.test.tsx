@@ -76,6 +76,47 @@ describe('DockedToolbar', () => {
     expect(screen.getByRole('button', { name: 'One' })).toHaveFocus();
   });
 
+  it('wraps the arrow keys at the ends and goes to the ends with Home and End (APG)', async () => {
+    render(
+      <DockedToolbar aria-label="Actions">
+        {button('One')}
+        {button('Two')}
+        {button('Three')}
+      </DockedToolbar>,
+    );
+    const focused = () => document.activeElement?.getAttribute('aria-label');
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(focused()).toBe('Three');
+    await userEvent.keyboard('{ArrowRight}');
+    expect(focused()).toBe('One');
+    await userEvent.keyboard('{End}');
+    expect(focused()).toBe('Three');
+    await userEvent.keyboard('{Home}');
+    expect(focused()).toBe('One');
+    // A horizontal toolbar leaves the up and down keys alone.
+    await userEvent.keyboard('{ArrowDown}');
+    expect(focused()).toBe('One');
+  });
+
+  it('moves along a vertical toolbar with up and down, and leaves a text field its keys', async () => {
+    render(
+      <FloatingToolbar aria-label="Format" orientation="vertical">
+        {button('Bold')}
+        <input aria-label="Size" defaultValue="12" />
+        {button('Italic')}
+      </FloatingToolbar>,
+    );
+    const focused = () => document.activeElement?.getAttribute('aria-label');
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(focused()).toBe('Italic');
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+    expect(focused()).toBe('Size');
+    await userEvent.keyboard('{End}{ArrowDown}');
+    expect(focused()).toBe('Size');
+  });
+
   it('lets Tab and Shift+Tab move through every control, then out (M3)', async () => {
     const { container } = render(
       <>

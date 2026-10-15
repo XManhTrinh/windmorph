@@ -12,6 +12,7 @@ import { useObjectRef } from 'react-aria';
 import { useToggleGroupState, type Key } from 'react-stately';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
+import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/composite-keys';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {
@@ -73,12 +74,15 @@ function focusables(root: HTMLElement): HTMLElement[] {
  * Keyboard use of a chip set (M3 chips, keyboard navigation): the set is one Tab stop,
  * arrow keys move between its chips (and a chip's remove button), Home and End go to the
  * first and last. Left and right follow the set's direction. Leaving with Tab and coming
- * back returns to the chip that had focus.
+ * back returns to the chip that had focus. A single-selection set is a radio group (WAI-ARIA
+ * APG): the arrow keys, Home and End select the chip they move to, wrapping at the ends,
+ * and Tab enters at the selected chip.
  */
-function useChipSetKeyboard() {
+function useChipSetKeyboard(single: boolean) {
   const lastFocused = useRef<HTMLElement | null>(null);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (single && radioGroupKeyDown(event)) return;
     const root = event.currentTarget;
     const items = focusables(root);
     const current = items.indexOf(event.target as HTMLElement);
@@ -121,6 +125,7 @@ function useChipSetKeyboard() {
     if (from && event.currentTarget.contains(from)) return;
     const target = lastFocused.current;
     lastFocused.current = null;
+    if (single && focusCheckedRadio(event)) return;
     if (target && target !== event.target && event.currentTarget.contains(target)) target.focus();
   };
 
@@ -220,7 +225,7 @@ export function ChipSet({
     disallowEmptySelection,
     isDisabled: disabled,
   });
-  const keyboard = useChipSetKeyboard();
+  const keyboard = useChipSetKeyboard(selectionMode === 'single');
   const rootRef = useObjectRef(ref);
   useFocusAfterRemoval(rootRef);
   return (

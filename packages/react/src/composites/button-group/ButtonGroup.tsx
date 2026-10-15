@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type ComponentPropsWithRef,
+  type HTMLAttributes,
   type Key,
   type ReactElement,
   type ReactNode,
@@ -30,6 +31,7 @@ import type { IconButtonVariant } from '../../components/icon-button/icon-button
 import { MenuTrigger } from '../../components/menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
+import { focusCheckedRadio, radioGroupKeyDown, toolbarKeyDown } from '../../utils/composite-keys';
 import type { VariantProps } from '../../utils/tv';
 import { useWarnOnce } from '../../utils/warn-once';
 import { buttonGroupStyles } from './button-group-styles';
@@ -259,6 +261,10 @@ function ButtonGroupRoot({
   // Without a selection the group is a React Aria toolbar: Tab enters and leaves it as one
   // stop, and the arrow keys move between its buttons.
   const { toolbarProps } = useToolbar({ ...props, orientation: 'horizontal' }, domRef);
+  const groupAria = withGroupKeys(
+    hasSelection ? groupProps : toolbarProps,
+    selectionMode === 'single',
+  );
 
   useLayoutEffect(() => {
     currentKeys.current = state.selectedKeys;
@@ -312,7 +318,7 @@ function ButtonGroupRoot({
 
   return (
     <div
-      {...mergeProps(props, hasSelection ? groupProps : toolbarProps)}
+      {...mergeProps(props, groupAria)}
       ref={domRef}
       data-variant={variant}
       className={cn(
@@ -328,6 +334,30 @@ function ButtonGroupRoot({
       )}
     </div>
   );
+}
+
+/**
+ * The group's arrow keys. React Aria's toolbar keys (kept for Tab, which enters and leaves
+ * the group as one stop) are replaced: a toolbar's arrows wrap and Home and End reach its
+ * ends (WAI-ARIA APG toolbar), and a single selection is a radio group whose arrows also
+ * select (APG radio group, as `RadioGroup` does) and which Tab enters at the selected
+ * button. A group nested in a toolbar leaves its keys to the toolbar, as React Aria does.
+ */
+function withGroupKeys(
+  aria: HTMLAttributes<HTMLElement>,
+  single: boolean,
+): HTMLAttributes<HTMLElement> {
+  const ariaKeyDown = aria.onKeyDownCapture;
+  if (!ariaKeyDown) return aria;
+  return {
+    ...aria,
+    onKeyDownCapture: (event) => {
+      if (event.key === 'Tab') ariaKeyDown(event);
+      else if (single) radioGroupKeyDown(event);
+      else toolbarKeyDown(event, 'horizontal');
+    },
+    onFocus: single ? (event) => void focusCheckedRadio(event) : undefined,
+  };
 }
 
 /**

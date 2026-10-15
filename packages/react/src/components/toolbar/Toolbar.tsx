@@ -27,6 +27,7 @@ import { IconFaces } from '../../primitives/IconFaces';
 import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
+import { toolbarKeyDown } from '../../utils/composite-keys';
 import { useWarnOnce } from '../../utils/warn-once';
 import type { FabElevation } from '../fab/fab-styles';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -78,23 +79,22 @@ function useToolbarRoot(
   );
   const rootRef = useObjectRef<HTMLDivElement>(merged);
   const { toolbarProps: aria } = useToolbar(props, rootRef);
-  const { onKeyDownCapture } = aria;
   /*
    * M3, not the WAI-ARIA single-tab-stop pattern (2026-10-13): "Tab or Arrows: Navigate
-   * between interactive elements". React Aria's arrows stay (orientation-aware, flipped in
-   * RTL), but Tab and Shift+Tab are left to the browser, so they move through every control
-   * in order and then out of the toolbar. Its focus restoring is dropped too, so Tab enters
-   * at the first control and Shift+Tab at the last.
+   * between interactive elements". Tab and Shift+Tab are left to the browser, so they move
+   * through every control in order and then out of the toolbar; React Aria's focus restoring
+   * is dropped too, so Tab enters at the first control and Shift+Tab at the last. The arrow
+   * keys follow the APG toolbar (2026-10-15): along the orientation, flipped in RTL, they
+   * wrap at the ends, and Home and End reach the first and last control; a text field keeps
+   * them for its caret. A toolbar nested in another leaves its keys to the outer one.
    */
+  const { orientation } = props;
+  const nested = aria.onKeyDownCapture === undefined;
   const toolbarProps: HTMLAttributes<HTMLElement> = {
     ...aria,
     onFocusCapture: undefined,
     onBlurCapture: undefined,
-    onKeyDownCapture:
-      onKeyDownCapture &&
-      ((event) => {
-        if (event.key !== 'Tab') onKeyDownCapture(event);
-      }),
+    onKeyDownCapture: nested ? undefined : (event) => void toolbarKeyDown(event, orientation),
   };
   return { rootRef, toolbarProps };
 }

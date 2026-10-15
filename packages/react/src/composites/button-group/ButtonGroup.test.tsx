@@ -397,6 +397,61 @@ describe('ButtonGroup selection', () => {
     expect(screen.getByRole('radio', { name: 'Week' })).toHaveFocus();
   });
 
+  it('is an APG radio group in single mode: arrows select and wrap, Tab enters at the selection', async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <>
+        <button type="button">Before</button>
+        <ViewGroup defaultSelectedKeys={['week']} onSelectionChange={onSelectionChange} />
+      </>,
+    );
+    const radio = (name: string) => screen.getByRole('radio', { name });
+    await userEvent.tab();
+    await userEvent.tab();
+    expect(radio('Week')).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(radio('Month')).toHaveFocus();
+    expect(radio('Month')).toHaveAttribute('aria-checked', 'true');
+    expect(onSelectionChange).toHaveBeenLastCalledWith(new Set(['month']));
+    await userEvent.keyboard('{ArrowDown}');
+    expect(radio('Day')).toHaveFocus();
+    expect(radio('Day')).toHaveAttribute('aria-checked', 'true');
+    await userEvent.keyboard('{ArrowUp}');
+    expect(radio('Month')).toHaveAttribute('aria-checked', 'true');
+    await userEvent.keyboard('{Home}');
+    expect(radio('Day')).toHaveAttribute('aria-checked', 'true');
+    await userEvent.keyboard('{End}');
+    expect(radio('Month')).toHaveAttribute('aria-checked', 'true');
+    expect(radio('Week')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('wraps a toolbar group’s arrows and reaches its ends with Home and End, without selecting', async () => {
+    render(
+      <ButtonGroup selectionMode="multiple" aria-label="Format">
+        <Button toggle value="bold">
+          Bold
+        </Button>
+        <Button toggle value="italic">
+          Italic
+        </Button>
+        <Button toggle value="underline">
+          Underline
+        </Button>
+      </ButtonGroup>,
+    );
+    const button = (name: string) => screen.getByRole('button', { name });
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(button('Underline')).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(button('Bold')).toHaveFocus();
+    await userEvent.keyboard('{End}');
+    expect(button('Underline')).toHaveFocus();
+    await userEvent.keyboard('{Home}');
+    expect(button('Bold')).toHaveFocus();
+    expect(button('Bold')).toHaveAttribute('aria-pressed', 'false');
+  });
+
   it('warns when a grouped toggle also sets its own selection', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     render(
