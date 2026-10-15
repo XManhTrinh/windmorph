@@ -358,8 +358,22 @@ function BottomSheetPanel({
   const maxOffset = standard ? Math.max(0, lowerOffset) : height;
   const detentName = current === 'expanded' ? 'expanded' : standard ? 'collapsed' : 'partial';
 
+  // Moving down to a lower detent while staying open (Escape, the handle or the collapse
+  // button on a full sheet, or the app lowering it) runs on the fast effects spring, which
+  // doesn't overshoot, as Compose's `partialExpand()` (`hideMotionSpec`); on the spatial
+  // spring the sheet dropped a few pixels below the detent. A drag's settle keeps the
+  // spatial spring (Compose's `anchoredDraggableMotion`), and so do the entry and every
+  // move up. It's state, rendered with the move, so the transition starts with it.
+  const [lowering, setLowering] = useState(false);
+  const [previousControlled, setPreviousControlled] = useState(controlledDetent);
+  if (controlledDetent !== previousControlled) {
+    setPreviousControlled(controlledDetent);
+    setLowering(controlledDetent === 'lower');
+  }
+
   /** Moves to `next`, telling `onDetentChange` when a standard sheet's detent changes. */
-  const setDetent = (next: 'expanded' | 'lower') => {
+  const setDetent = (next: 'expanded' | 'lower', fromDrag = false) => {
+    setLowering(next === 'lower' && !fromDrag);
     if (controlledDetent === undefined) setOwnDetent(next);
     const resting = next === 'lower' && hasLower ? 'lower' : 'expanded';
     if (standard && resting !== current)
@@ -396,7 +410,7 @@ function BottomSheetPanel({
   const settle = (target: number) => {
     setDrag(null);
     if (!standard && target >= height - 0.5) close();
-    else setDetent(target === 0 ? 'expanded' : 'lower');
+    else setDetent(target === 0 ? 'expanded' : 'lower', true);
   };
 
   /** The handle's action: expand a lower sheet, collapse a standard one, close a modal one. */
@@ -433,6 +447,7 @@ function BottomSheetPanel({
         event.clientX - start.x,
         event.clientY - start.y,
         scrolledAbove(event.target as Element, contentRef.current!),
+        current === 'lower',
       );
       if (start.gesture === 'undecided') return;
       if (start.gesture === 'scroll') {
@@ -445,7 +460,11 @@ function BottomSheetPanel({
     );
     if (drag === null && Math.abs(event.clientY - start.y) <= DRAG_SLOP) return;
     if (drag === null) event.currentTarget.setPointerCapture?.(start.id);
-    setDrag(Math.min(maxOffset, Math.max(0, start.offset + event.clientY - start.y)));
+    const raw = start.offset + event.clientY - start.y;
+    setDrag(Math.min(maxOffset, Math.max(0, raw)));
+    // A drag up from the content that has raised the sheet fully scrolls the content with the
+    // rest of the move, as Compose's nested scroll hands it over.
+    if (start.fromContent && contentRef.current) contentRef.current.scrollTop = Math.max(0, -raw);
   };
   const endPointer = (event: PointerEvent<HTMLElement>) => {
     const start = pointer.current;
@@ -527,6 +546,13 @@ function BottomSheetPanel({
     () => handleRef.current ?? panelRef.current,
   );
 
+  // The collapse button leaves once the sheet stops filling the window, so focus moves to the
+  // handle (or the panel) first instead of dropping to the page.
+  const collapseFromButton = () => {
+    (handleRef.current ?? panelRef.current)?.focus({ preventScroll: true });
+    setDetent('lower');
+  };
+
   const { focusProps: handleFocusProps, isFocusVisible: handleFocusVisible } = useFocusRing();
   const exiting = isExiting || undefined;
   const dragging = drag !== null || undefined;
@@ -555,6 +581,7 @@ function BottomSheetPanel({
         ref={motionRef}
         data-exiting={exiting}
         data-dragging={dragging}
+        data-lowering={lowering || undefined}
         style={{ '--m3-sheet-offset': `${offset}px` } as CSSProperties}
         className={styles.motion()}
       >
@@ -640,12 +667,16 @@ function BottomSheetPanel({
                     standard ? (collapseIcon ?? <CollapseIcon />) : (closeIcon ?? <CloseIcon />)
                   }
                   aria-label={standard ? labels.collapse : labels.close}
-                  onPress={standard ? () => setDetent('lower') : close}
+                  onPress={standard ? collapseFromButton : close}
                   className={classNames?.closeButton}
                 />
               </div>
             )}
-            <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
+            <div
+              ref={contentRef}
+              data-can-rise={current === 'lower' || undefined}
+              className={styles.content({ class: classNames?.content })}
+            >
               {typeof children === 'function' ? children({ close }) : children}
             </div>
           </TriggerContext>

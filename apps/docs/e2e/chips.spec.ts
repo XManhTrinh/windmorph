@@ -122,6 +122,23 @@ test.describe('Chips states', () => {
     await page.mouse.up();
   });
 
+  test('a removable selected filter chip rises to level 1 on hover, not while pressed', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-chips--types');
+    // The container of the two buttons holds the elevation.
+    const action = page.getByRole('button', { name: 'Removable', exact: true }).first();
+    const chip = action.locator('xpath=..');
+    const rest = await shadow(chip);
+    await action.hover();
+    await expect(action).toHaveAttribute('data-hovered', 'true');
+    await expect.poll(() => shadow(chip)).not.toBe(rest);
+    await page.mouse.down();
+    await expect(action).toHaveAttribute('data-pressed', 'true');
+    await expect.poll(() => shadow(chip)).toBe(rest);
+    await page.mouse.up();
+  });
+
   test('an elevated selected filter chip rises to level 2 on hover, like an unselected one', async ({
     page,
   }) => {

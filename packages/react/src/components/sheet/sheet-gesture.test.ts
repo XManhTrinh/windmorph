@@ -15,8 +15,13 @@ describe('contentGesture', () => {
     expect(contentGesture(0, 12, true)).toBe('scroll');
   });
 
-  it('scrolls on an upward move, even at the top', () => {
+  it('scrolls on an upward move once the sheet is fully raised, even at the top', () => {
     expect(contentGesture(0, -12, false)).toBe('scroll');
+    // While the sheet rests below its top detent, an upward move raises it first (Compose's
+    // nested scroll), unless the content is scrolled.
+    expect(contentGesture(0, -12, false, true)).toBe('drag');
+    expect(contentGesture(0, -12, true, true)).toBe('scroll');
+    expect(contentGesture(-12, -4, false, true)).toBe('scroll');
   });
 
   it('leaves mostly horizontal moves to the content', () => {

@@ -23,6 +23,7 @@ import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { useTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
   movedStartIcon,
@@ -243,6 +244,14 @@ function SliderRoot(props: RootProps) {
   const rootRef = useObjectRef(ref);
   const trackRef = useRef<HTMLDivElement>(null);
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
+  const { direction } = useLocale();
+  const touchTrackProps = useTouchTrack(trackProps, {
+    state,
+    trackRef,
+    orientation,
+    direction,
+    disabled,
+  });
 
   const count = Math.round((maxValue - minValue) / step);
   const tickFractions =
@@ -280,7 +289,11 @@ function SliderRoot(props: RootProps) {
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <div {...trackProps} ref={trackRef} className={styles.track({ class: classNames?.track })}>
+      <div
+        {...touchTrackProps}
+        ref={trackRef}
+        className={styles.track({ class: classNames?.track })}
+      >
         {geometry.segments.map((segment, index) => (
           <Segment
             key={index}

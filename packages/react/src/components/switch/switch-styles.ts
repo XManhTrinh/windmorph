@@ -39,6 +39,13 @@ export const switchStyles = tv({
       'group-data-disabled/control:bg-[color-mix(in_srgb,var(--md-sys-color-surface-container-highest)_12%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:group-data-selected/control:border-transparent',
       'group-data-disabled/control:group-data-selected/control:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_12%,var(--md-sys-color-surface))]',
+      // Forced colours: the thumb is a background, which forced colours drop, so the track and
+      // thumb take system colours: an outlined `Canvas` track with a `CanvasText` thumb when
+      // off, a `Highlight` track with a `HighlightText` thumb when on, `GrayText` when disabled.
+      'forced-colors:forced-color-adjust-none forced-colors:border-[CanvasText]! forced-colors:bg-[Canvas]!',
+      'forced-colors:group-data-selected/control:border-[Highlight]! forced-colors:group-data-selected/control:bg-[Highlight]!',
+      'forced-colors:group-data-disabled/control:border-[GrayText]!',
+      'forced-colors:group-data-disabled/control:group-data-selected/control:border-[GrayText]! forced-colors:group-data-disabled/control:group-data-selected/control:bg-[GrayText]!',
     ],
     stateLayer: [
       // 40px, 4px less per density step down to 32px (`--m3-switch-layer`), centred on the
@@ -72,6 +79,10 @@ export const switchStyles = tv({
       'group-data-disabled/control:text-[color-mix(in_srgb,var(--md-sys-color-surface-container-highest)_38%,var(--md-sys-color-surface))]',
       'group-data-disabled/control:group-data-selected/control:bg-surface',
       'group-data-disabled/control:group-data-selected/control:text-[color-mix(in_srgb,var(--md-sys-color-on-surface)_38%,var(--md-sys-color-surface))]',
+      'forced-colors:forced-color-adjust-none forced-colors:bg-[CanvasText]! forced-colors:text-[Canvas]!',
+      'forced-colors:group-data-selected/control:bg-[HighlightText]! forced-colors:group-data-selected/control:text-[Highlight]!',
+      'forced-colors:group-data-disabled/control:bg-[GrayText]! forced-colors:group-data-disabled/control:text-[Canvas]!',
+      'forced-colors:group-data-disabled/control:group-data-selected/control:bg-[Canvas]! forced-colors:group-data-disabled/control:group-data-selected/control:text-[GrayText]!',
     ],
     icon: 'inline-flex size-[16px] items-center justify-center [&>svg]:size-full',
   },

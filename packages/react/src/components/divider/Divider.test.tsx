@@ -61,7 +61,7 @@ describe('Divider', () => {
 });
 
 describe('LabeledDivider', () => {
-  it('puts supporting text 4px below the line, 8px clear at the end and below', async () => {
+  it('puts supporting text 4px below a full-width line, 8px clear at the end and below', async () => {
     const { container } = render(
       <LabeledDivider
         inset="start"
@@ -73,12 +73,15 @@ describe('LabeledDivider', () => {
       </LabeledDivider>,
     );
     const root = screen.getByTestId('root');
-    expect(root).toHaveClass('flex-col', 'gap-[4px]', 'pe-[8px]', 'pb-[8px]');
+    expect(root).toHaveClass('flex-col', 'gap-[4px]', 'pb-[8px]');
+    // The end clearance is the text's, so the line reaches the end.
+    expect(root).not.toHaveClass('pe-[8px]');
     expect(screen.getByRole('separator')).toHaveClass('ps-[16px]');
     expect(screen.getByText('Earlier this week')).toHaveClass(
       'text-label-small',
       'text-on-surface-variant',
       'ps-[16px]',
+      'pe-[8px]',
       'custom',
     );
     expect(await axeViolations(container)).toEqual([]);

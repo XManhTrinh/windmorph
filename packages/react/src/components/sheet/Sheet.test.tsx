@@ -437,6 +437,46 @@ describe('SideSheet', () => {
     expect(dialog.parentElement).toHaveClass('pt-[16px]', 'pe-[16px]');
   });
 
+  it('returns focus to where it came from when its close button closes it', async () => {
+    function Demo() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen(true)}>
+            Show details
+          </button>
+          <SideSheet variant="standard" title="Details" open={open} onOpenChange={setOpen}>
+            Body
+          </SideSheet>
+          <button type="button">After</button>
+        </>
+      );
+    }
+    render(<Demo />);
+    const show = screen.getByRole('button', { name: 'Show details' });
+    show.focus();
+    await userEvent.tab();
+    const close = screen.getByRole('button', { name: 'Close' });
+    expect(close).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(show).toHaveFocus();
+  });
+
+  it('moves focus to the control before it when closed without a focus origin', async () => {
+    render(
+      <>
+        <button type="button">Before</button>
+        <SideSheet variant="standard" title="Details" defaultOpen>
+          Body
+        </SideSheet>
+      </>,
+    );
+    const close = screen.getByRole('button', { name: 'Close' });
+    close.focus();
+    fireEvent.click(close);
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+  });
+
   it('renders a standard sheet in the layout that opens and closes its width', async () => {
     function Demo() {
       const [open, setOpen] = useState(true);
@@ -459,7 +499,9 @@ describe('SideSheet', () => {
     }
     const { container } = render(<Demo />);
     const sheet = screen.getByTestId('sheet');
-    expect(sheet).toHaveClass('grid-cols-[1fr]', 'data-closed:grid-cols-[0fr]');
+    // Its width (a measured length) opens and closes, so the panel stays on its edge.
+    expect(sheet).toHaveClass('w-[var(--m3-side-sheet-width,auto)]', 'data-closed:w-0');
+    expect(sheet.style.getPropertyValue('--m3-side-sheet-width')).toBe('0px');
     // A non-modal dialog: named, not aria-modal, focus left where it was.
     expect(sheet).toHaveAttribute('role', 'dialog');
     expect(sheet).not.toHaveAttribute('aria-modal');

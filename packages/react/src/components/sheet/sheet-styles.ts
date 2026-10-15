@@ -53,6 +53,10 @@ const sheetMotion = [
   'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
   'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
   'data-dragging:[transition-duration:0s]',
+  // A move down to a lower detent that isn't a drag's settle (BottomSheet's state): the fast
+  // effects spring, no overshoot. Under reduced motion detent changes stay instant.
+  'motion-safe:data-lowering:not-data-exiting:not-data-dragging:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+  'motion-safe:data-lowering:not-data-exiting:not-data-dragging:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
   ...reducedMotionFade,
 ];
 
@@ -73,6 +77,8 @@ export const bottomSheetStyles = tv({
       'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px] items-end',
       'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
+      // Clips below its bottom edge only, where the panel's bleed hangs (see `panel`).
+      '[clip-path:inset(-100vh_-100vw_0_-100vw)]',
     ],
     // Library-owned layer that moves the sheet, inside the container, so the motion never
     // animates the outermost element's `translate` (architecture §10 rule 4).
@@ -82,11 +88,17 @@ export const bottomSheetStyles = tv({
       ...sheetMotion,
     ],
     panel: [
-      'flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      'relative flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      // A bleed in the panel's colour below its bottom edge: when the spring overshoots, the
+      // sheet lifts a few pixels off the window's edge and this fills the gap (Compose scales
+      // the sheet up for the same reason). The container clips it at rest.
+      "after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[32px] after:[background-color:inherit] after:content-['']",
       'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
       'min-[641px]:max-h-[calc(100dvh-56px)]',
       'bg-[var(--_md-comp-sheet-bottom-docked-container-color)] text-on-surface outline-none',
       'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
+      // Forced colours drop the container and the shadow: a border on the free edges.
+      'forced-colors:border-x forced-colors:border-t forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
     handle: [
       'flex w-full shrink-0 cursor-grab touch-none justify-center pt-[22px] pb-[22px] outline-none',
@@ -96,11 +108,16 @@ export const bottomSheetStyles = tv({
     handleBar: [
       'h-[4px] w-[32px] rounded-corner-extra-large',
       'bg-[var(--_md-comp-sheet-bottom-docked-drag-handle-color)]',
+      'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
     ],
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
-    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
-    content:
+    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet),
+    // and upward ones too while the sheet rests below its top detent (`data-can-rise`), so an
+    // upward swipe raises the sheet before the content scrolls.
+    content: [
       'min-h-0 flex-1 overflow-y-auto overscroll-contain data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
+      'data-at-top:data-can-rise:[touch-action:pan-x_pinch-zoom]',
+    ],
   },
   variants: {
     variant: {
@@ -120,7 +137,11 @@ export const sideSheetStyles = tv({
     scrim,
     // A modal sheet's outermost element, which places it and takes the consumer's
     // `className` and `style`.
-    container: 'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+    // It clips past its end edge only, where a docked panel's bleed hangs (see `compoundVariants`).
+    container: [
+      'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+      '[clip-path:inset(-100vh_0_-100vh_-100vw)] rtl:[clip-path:inset(-100vh_-100vw_-100vh_0)]',
+    ],
     // Library-owned layer that moves a modal sheet, inside the container (architecture §10
     // rule 4); it holds a detached sheet's 16px margins, so the exit clears them.
     motion: [
@@ -148,14 +169,15 @@ export const sideSheetStyles = tv({
       'flex min-h-[72px] shrink-0 flex-wrap items-center justify-start gap-[8px]',
       'ps-[24px] pe-[24px] pt-[16px] pb-[24px]',
     ],
-    // Standard sheets sit in the layout; their width opens and closes on a grid track.
+    // Standard sheets sit in the layout; their width opens and closes (a measured length, so
+    // the panel stays on its edge), on the default spatial spring.
     standard: [
-      'inline-grid h-full shrink-0 grid-cols-[1fr] visible data-closed:invisible data-closed:grid-cols-[0fr]',
-      '[transition-property:grid-template-columns,visibility]',
+      'flex h-full w-[var(--m3-side-sheet-width,auto)] shrink-0 visible data-closed:invisible data-closed:w-0',
+      '[transition-property:width,visibility]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',
     ],
-    standardClip: 'flex min-w-0 justify-end overflow-hidden',
+    standardClip: 'flex w-full min-w-0 justify-end overflow-hidden',
     standardFrame: 'flex h-full shrink-0',
   },
   variants: {
@@ -182,7 +204,22 @@ export const sideSheetStyles = tv({
     {
       variant: 'modal',
       detached: false,
-      class: { panel: 'rounded-s-[var(--_md-comp-sheet-side-container-shape)]' },
+      class: {
+        panel: [
+          'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
+          // A bleed past the end edge fills the gap when the spring overshoots (see the
+          // bottom sheet's panel).
+          "relative after:pointer-events-none after:absolute after:inset-y-0 after:start-full after:w-[32px] after:[background-color:inherit] after:content-['']",
+          // Forced colours drop the container and the shadow: a border on the free edge.
+          'forced-colors:border-s forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
+      },
+    },
+    {
+      detached: true,
+      class: {
+        panel: 'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+      },
     },
     {
       variant: 'standard',

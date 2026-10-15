@@ -29,6 +29,19 @@ describe('chipStyles', () => {
     );
   });
 
+  it("raises a two-part chip from its buttons' hover, never while one is pressed or focused", () => {
+    const flat = chipStyles({ kind: 'filter', split: 'two', trailing: true }).root().split(' ');
+    expect(flat).toContain(
+      'data-selected:has-data-hovered:not-has-data-pressed:not-has-data-focus-visible:not-data-dragged:shadow-elevation-1',
+    );
+    const elevated = chipStyles({ kind: 'filter', split: 'two', elevated: true, trailing: true })
+      .root()
+      .split(' ');
+    expect(elevated).toContain(
+      'has-data-hovered:not-has-data-pressed:not-has-data-focus-visible:not-data-dragged:shadow-elevation-2',
+    );
+  });
+
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });

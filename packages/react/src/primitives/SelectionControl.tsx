@@ -9,9 +9,11 @@ import {
   type PointerEvent,
   type ReactNode,
   type Ref,
+  useMemo,
 } from 'react';
-import { mergeProps, VisuallyHidden } from 'react-aria';
+import { mergeProps, mergeRefs, VisuallyHidden } from 'react-aria';
 import { cn } from '../utils/cn';
+import { preventHiddenInputScroll } from './hidden-input-focus';
 import { selectionControlStyles } from './selection-control-styles';
 import { TouchTarget } from './TouchTarget';
 import { restartRipple } from './use-m3-interaction';
@@ -75,6 +77,7 @@ export function SelectionControl({
   controlStyle,
   controlProps,
 }: SelectionControlProps) {
+  const hiddenInputRef = useMemo(() => mergeRefs(inputRef, preventHiddenInputScroll), [inputRef]);
   // Every press starts a fresh (centred) ripple on the control, as in Compose.
   const restart = (label: HTMLElement) => {
     const control = label.querySelector<HTMLElement>('[data-selection-control]');
@@ -105,7 +108,7 @@ export function SelectionControl({
         className={styles.control({ class: classNames?.control })}
       >
         <VisuallyHidden>
-          <input {...inputProps} ref={inputRef} />
+          <input {...inputProps} ref={hiddenInputRef} />
         </VisuallyHidden>
         <TouchTarget />
         {indicator}

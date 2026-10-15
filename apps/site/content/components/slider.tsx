@@ -130,6 +130,12 @@ export async function SliderBody(): Promise<ComponentDoc> {
               value indicator pill is not in Compose&apos;s default slider.
             </li>
             <li>
+              On touch screens it behaves like Compose&apos;s draggable slider: a swipe across the
+              slider scrolls the page and leaves the value alone, a tap on the track sets the value
+              when the finger lifts, and a drag along the track moves the nearest thumb once it
+              passes 8px. Mouse presses set the value at once.
+            </li>
+            <li>
               <strong>Deviation:</strong> pressing the track maps linearly to the value while
               discrete thumbs are drawn between the corners, so a press near the ends of a discrete
               track can land one step off Compose; there are no haptics.

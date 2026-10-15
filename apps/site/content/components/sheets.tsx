@@ -136,15 +136,21 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             <li>
               Detents follow Compose&apos;s legacy anchors — half the window when taller, else full;{' '}
               <InlineCode>skipPartiallyExpanded</InlineCode> opens fully. Dragging and settling port
-              Compose&apos;s <InlineCode>AnchoredDraggableState</InlineCode> rules.
+              Compose&apos;s <InlineCode>AnchoredDraggableState</InlineCode> rules. As with
+              Compose&apos;s nested scrolling, an upward swipe on a half-open sheet&apos;s content
+              raises the sheet first and then scrolls the content. Moving down to a lower detent
+              (Escape, the handle, the collapse button) runs on the fast effects spring, so it never
+              drops below the detent; a drag&apos;s settle keeps the spatial spring.
             </li>
             <li>
               Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material
               Components Android (256px wide and at most 400px, 16px corners on the free edge,
-              standard sheets open a grid track behind an <InlineCode>outline-variant</InlineCode>{' '}
-              divider; a 72px bottom action row from <InlineCode>footer</InlineCode>). Their content
-              scrolls vertically only: anything wider than the sheet is clipped (m3.material.io:
-              &ldquo;Side sheets cannot scroll horizontally&rdquo;).
+              standard sheets open and close their measured width, behind an{' '}
+              <InlineCode>outline-variant</InlineCode> divider, and closing one with focus inside
+              returns focus to where it came from; a 72px bottom action row from{' '}
+              <InlineCode>footer</InlineCode>). Their content scrolls vertically only: anything
+              wider than the sheet is clipped (m3.material.io: &ldquo;Side sheets cannot scroll
+              horizontally&rdquo;).
             </li>
             <li>
               Not yet supported: predictive back, and detents beyond half / full (modal) or peek /

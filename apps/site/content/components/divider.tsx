@@ -59,8 +59,9 @@ export async function DividerBody(): Promise<ComponentDoc> {
             <InlineCode>orientation</InlineCode> is <InlineCode>horizontal</InlineCode> (full width)
             or <InlineCode>vertical</InlineCode> (full height of a flex row), and{' '}
             <InlineCode>inset</InlineCode> leaves 16px at the start or at both ends.{' '}
-            <InlineCode>LabeledDivider</InlineCode> adds supporting text 4px below the line, with
-            8px clear at the end and below, such as the name of the section that follows.
+            <InlineCode>LabeledDivider</InlineCode> adds supporting text 4px below a full-width
+            line, the text 8px clear of the end and 8px clear below, such as the name of the section
+            that follows.
           </p>
         </section>
       </>

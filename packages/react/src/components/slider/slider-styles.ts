@@ -37,7 +37,7 @@ import { tv, type VariantProps } from '../../utils/tv';
 export const sliderStyles = tv({
   slots: {
     root: [
-      'group/slider flex shrink-0 touch-none select-none',
+      'group/slider flex shrink-0 select-none',
       '[--m3-slider-gap-0:6px] [--m3-slider-gap-1:6px]',
       'has-[[data-thumb="0"][data-focus-visible]]:[--m3-slider-gap-0:10px]',
       'has-[[data-thumb="1"][data-focus-visible]]:[--m3-slider-gap-1:10px]',
@@ -56,6 +56,14 @@ export const sliderStyles = tv({
       'data-[tone=inactive]:bg-[var(--_md-comp-slider-inactive-track-color)]',
       'group-data-disabled/slider:data-[tone=active]:bg-on-surface/38',
       'group-data-disabled/slider:data-[tone=inactive]:bg-on-surface/12',
+      // Forced colours: tracks, stops and the handle are backgrounds, which forced colours
+      // drop, so they take system colours: the active track `Highlight`, the inactive one an
+      // outlined `Canvas` track, `GrayText` when disabled.
+      'forced-colors:forced-color-adjust-none',
+      'forced-colors:data-[tone=active]:bg-[Highlight]!',
+      'forced-colors:data-[tone=inactive]:bg-[Canvas]! forced-colors:data-[tone=inactive]:border forced-colors:data-[tone=inactive]:border-solid forced-colors:data-[tone=inactive]:border-[CanvasText]',
+      'forced-colors:group-data-disabled/slider:data-[tone=active]:bg-[GrayText]!',
+      'forced-colors:group-data-disabled/slider:data-[tone=inactive]:border-[GrayText]',
     ],
     // Stop indicators follow the live m3.material.io token table (2026-10-13): on the active
     // track `on-primary`, on the inactive track `on-secondary-container`; disabled,
@@ -66,22 +74,28 @@ export const sliderStyles = tv({
       'in-data-[tone=inactive]:bg-[var(--_md-comp-slider-stop-indicator-color)]',
       'group-data-disabled/slider:in-data-[tone=active]:bg-inverse-on-surface',
       'group-data-disabled/slider:in-data-[tone=inactive]:bg-on-surface/38',
+      'forced-colors:in-data-[tone=active]:bg-[HighlightText]! forced-colors:in-data-[tone=inactive]:bg-[CanvasText]!',
+      'forced-colors:group-data-disabled/slider:in-data-[tone=active]:bg-[Canvas]! forced-colors:group-data-disabled/slider:in-data-[tone=inactive]:bg-[GrayText]!',
     ],
     tick: [
       'col-start-1 row-start-1 size-[4px] rounded-full',
       'data-active:bg-on-primary not-data-active:bg-[var(--_md-comp-slider-stop-indicator-color)]',
       'group-data-disabled/slider:data-active:bg-inverse-on-surface',
       'group-data-disabled/slider:not-data-active:bg-on-surface/38',
+      'forced-colors:forced-color-adjust-none',
+      'forced-colors:data-active:bg-[HighlightText]! forced-colors:not-data-active:bg-[CanvasText]!',
+      'forced-colors:group-data-disabled/slider:data-active:bg-[Canvas]! forced-colors:group-data-disabled/slider:not-data-active:bg-[GrayText]!',
     ],
     icon: [
       'flex shrink-0 items-center justify-center overflow-hidden',
       'in-data-[tone=active]:text-on-primary in-data-[tone=inactive]:text-on-secondary-container',
+      'forced-colors:in-data-[tone=active]:text-[HighlightText]! forced-colors:in-data-[tone=inactive]:text-[CanvasText]!',
       '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
     ],
     // The start icon, moved to the inactive track while the active one is too short for it.
     movedIcon: [
       'col-start-1 row-start-1 flex shrink-0 items-center justify-center overflow-hidden',
-      'text-on-secondary-container',
+      'text-on-secondary-container forced-colors:forced-color-adjust-none forced-colors:text-[CanvasText]!',
       '[&>svg]:[block-size:var(--m3-slider-icon)] [&>svg]:[inline-size:var(--m3-slider-icon)] [&>svg]:shrink-0',
     ],
     thumb: [
@@ -92,6 +106,7 @@ export const sliderStyles = tv({
       '[inline-size:4px] [block-size:100%] rounded-full bg-[var(--_md-comp-slider-handle-color)]',
       'data-active:[inline-size:2px]',
       'group-data-disabled/slider:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_38%,var(--md-sys-color-surface))]',
+      'forced-colors:forced-color-adjust-none forced-colors:bg-[CanvasText]! forced-colors:group-data-disabled/slider:bg-[GrayText]!',
     ],
     // A zero-size box at the thumb that the value indicator hangs from.
     // It sits 12px before the row's block start (above, or left of a vertical slider).
@@ -102,16 +117,19 @@ export const sliderStyles = tv({
       'bg-[var(--_md-comp-slider-value-indicator-container-color)] text-label-large whitespace-nowrap',
       'text-[color:var(--_md-comp-slider-value-indicator-label-label-text-color)]',
       '[direction:ltr] [writing-mode:horizontal-tb]',
+      // Forced colours repaint the pill as `Canvas`; an outline gives it its edge.
+      'forced-colors:outline forced-colors:outline-1 forced-colors:outline-solid forced-colors:outline-[CanvasText]',
     ],
   },
   variants: {
     orientation: {
       horizontal: {
-        root: 'h-(--m3-slider-handle) w-full flex-row items-center',
+        // A swipe across the slider scrolls the page (Compose drags only along the track).
+        root: 'h-(--m3-slider-handle) w-full touch-pan-y flex-row items-center',
         track: 'ms-[2px] me-[2px] self-stretch',
       },
       vertical: {
-        root: 'h-[240px] w-(--m3-slider-handle) flex-col items-center',
+        root: 'h-[240px] w-(--m3-slider-handle) touch-pan-x flex-col items-center',
         // Inline axis runs bottom-to-top, so the geometry and logical properties carry over.
         track: 'mt-[2px] mb-[2px] self-stretch [direction:rtl] [writing-mode:vertical-lr]',
       },

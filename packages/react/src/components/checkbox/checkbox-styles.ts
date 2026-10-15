@@ -50,6 +50,12 @@ export const checkboxStyles = tv({
       'group-data-disabled/control:group-data-selected/control:border-transparent',
       'group-data-disabled/control:group-data-selected/control:bg-on-surface/38',
       'group-data-disabled/control:[transition-duration:0s]',
+      // Forced colours: the box in system colours, `GrayText` when disabled, so a disabled
+      // box doesn't look like an enabled one (a selected box is filled, its mark `Canvas`).
+      'forced-colors:forced-color-adjust-none forced-colors:border-[CanvasText]! forced-colors:text-[Canvas]!',
+      'forced-colors:group-data-selected/control:border-transparent! forced-colors:group-data-selected/control:bg-[CanvasText]!',
+      'forced-colors:group-data-disabled/control:border-[GrayText]!',
+      'forced-colors:group-data-disabled/control:group-data-selected/control:border-transparent! forced-colors:group-data-disabled/control:group-data-selected/control:bg-[GrayText]!',
     ],
     // The box sits inside its 2px border, so the 18px drawing area is offset by it.
     icon: 'pointer-events-none absolute -inset-[2px] size-[18px] overflow-visible',
