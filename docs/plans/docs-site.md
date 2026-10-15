@@ -116,13 +116,16 @@ Every piece of the layout is a library component (see "Only our components"): na
    - `@windmorph/react/next` helpers.
 7. **From Compose:** Compose Material 3 composables and their key parameters mapped to components and props, generated from the spec data, plus the conventions that carry over (`Modifier` → `className`, `onClick` → `onPress`, …).
 8. **Spec status:** every component's status from the spec data, linked to its API tab.
-9. **Components** (about 60 pages), each with:
+9. **Windmorph Pro** (`/pro`, 2026-10-15): what Pro is, its components by category (generated from the catalog's `pro` entries, linked to the index filtered to Pro, `/components?filter=pro`), the planned licence (commercial, per developer, a year of updates; pricing to be announced) and installing it with a token (a scoped `.npmrc` with a placeholder registry).
+10. **Components** (about 60 pages), each with:
    - What it is for, and when to use something else.
    - A playground with a control for every public prop (tested; the few that can't have one are allowlisted with a reason), whose copied snippet compiles for every control value (`scripts/check-snippets.ts`, part of `typecheck`).
    - Live examples of its variants, sizes and states: one for every variant and configuration in the M3 spec, mapped in its spec data (tested).
    - The generated props table for every exported part (and `classNames` slots), and its hooks as functions (tested against the core's exports).
    - A spec status: what it covers of the M3 Expressive spec, its deliberate differences and its extensions, from its spec data.
-   - Keyboard and screen-reader behaviour.
+   - An Accessibility tab with the same six sections on every page (2026-10-15): Keyboard (a key → action table), Screen reader (role, accessible name, states announced), Focus, Touch target, Motion and What you need to do, from data in `content/components/accessibility/` checked against the code; a section that doesn't apply says "None" and why (tested).
+   - Do and Don't cards on the Guidelines tab of the ten most-used components (Button, Icon button, FAB, Text field, Select, Dialog, Snackbar, Navigation bar, Tabs, Chips; 2026-10-15): a live example of an M3 rule beside one breaking it, labelled in words and with an icon, and one sentence; the examples are inert and hidden from assistive tech, so the sentence carries the meaning.
+   - A copyable import line under the title (the components and hooks the page documents, from the entry that exports them, tested); Pro pages add a note linking the Pro guide (2026-10-15).
    - Where it differs from Compose, condensed from `docs/architecture.md` §9.
    - Pages: Button, IconButton, ButtonGroup, SplitButton, Fab / ExtendedFab, FabMenu, Card, Chips, TextField, Checkbox, RadioGroup, Switch, Slider / RangeSlider, Dialog, Menu, Tooltip, Snackbar, BottomSheet / SideSheet, NavigationRail, NavigationBar, Tabs, TopAppBar, SearchBar / SearchAppBar, Toolbars, List, Carousel, Badge, Divider, Progress indicators, LoadingIndicator, DatePicker / DateRangePicker, TimePicker, PickerDialog, plus the primitives (`@windmorph/react/primitives`) on one page.
 
