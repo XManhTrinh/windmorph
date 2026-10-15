@@ -53,7 +53,7 @@ const sheetMotion = [
   'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
   'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
   'data-dragging:[transition-duration:0s]',
-  // A move down to a lower detent that isn't a drag's settle (set by BottomSheet): the fast
+  // A move down to a lower detent that isn't a drag's settle (BottomSheet's state): the fast
   // effects spring, no overshoot. Under reduced motion detent changes stay instant.
   'motion-safe:data-lowering:not-data-exiting:not-data-dragging:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
   'motion-safe:data-lowering:not-data-exiting:not-data-dragging:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
