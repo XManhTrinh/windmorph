@@ -24,6 +24,8 @@ import { tv, type VariantProps } from '../../utils/tv';
  * a library-owned mask layer inside each is translated and clipped to its keyline on every
  * scroll frame, so the root is never transformed. The state layer is a library-owned
  * element sharing the mask's grid cell, painted over the item (nothing is positioned).
+ * Under the mask, a press area follows it, widened to 48px for a small item (40–56px):
+ * M3's touch target, taken from the 8px spacing, so neighbours never overlap.
  * Every class is written out in full.
  */
 
@@ -53,6 +55,9 @@ export const carouselStyles = tv({
     ],
     stateLayer:
       'pointer-events-none state-layer [--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+    // The item's press area, laid under the mask in the same place (a negative end margin,
+    // so nothing is positioned).
+    hitArea: 'h-full w-full shrink-0 -me-[100%]',
   },
   variants: {
     orientation: {
@@ -63,7 +68,13 @@ export const carouselStyles = tv({
     snapping: { single: {}, many: {}, none: {} },
     /** The mask is clipped by the keylines on every scroll frame; otherwise by CSS. */
     masked: {
-      true: {},
+      // Only the mask and the press area under it take presses, not the rest of the slot, so
+      // a press between items never lands on an item whose slot reaches there.
+      true: {
+        item: 'pointer-events-none',
+        mask: 'pointer-events-auto',
+        hitArea: 'pointer-events-auto',
+      },
       false: { mask: '[clip-path:inset(0_round_var(--m3-carousel-item-corner))]' },
     },
     /** Multi-aspect items keep their own width, between 9:16 and 16:9 of the height. */

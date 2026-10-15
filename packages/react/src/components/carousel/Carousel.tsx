@@ -29,6 +29,7 @@ import {
   snapPositionOffset,
   type Strategy,
 } from './carousel-keylines';
+import { pressAreaReach } from './carousel-press-area';
 import { carouselStyles } from './carousel-styles';
 
 export interface CarouselClassNames {
@@ -236,6 +237,7 @@ export function Carousel({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const maskRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const hitRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const [space, setSpace] = useState(0);
   const [crossSize, setCrossSize] = useState(0);
 
@@ -284,10 +286,17 @@ export function Carousel({
     const max = maxScrollOffset(strategy, count);
     const keylines = keylinesForScrollOffset(strategy, scroll, max);
     const full = strategy.itemMainAxisSize;
+    const round = (value: number) => Math.round(value * 100) / 100;
+    const places = maskRefs.current.map((_, index) => placeItem(strategy, keylines, index, scroll));
+    // Each item's visible part, from the viewport's start edge (slots are `full` apart plus
+    // the spacing; the mask is centred in its slot and moved by its translation).
+    const spans = places.map(({ size, translation }, index) => ({
+      start: index * (full + itemSpacing) + translation + (full - size) / 2 - scroll,
+      size,
+    }));
     maskRefs.current.forEach((mask, index) => {
       if (!mask) return;
-      const { size, translation } = placeItem(strategy, keylines, index, scroll);
-      const round = (value: number) => Math.round(value * 100) / 100;
+      const { size, translation } = places[index]!;
       const inset = round(Math.max(0, (full - size) / 2));
       const move = round(rtl ? -translation : translation);
       mask.style.translate = vertical ? `0 ${move}px` : `${move}px 0`;
@@ -295,6 +304,18 @@ export function Carousel({
         ? `inset(${inset}px 0 ${inset}px 0 round var(--m3-carousel-item-corner))`
         : `inset(0 ${inset}px 0 ${inset}px round var(--m3-carousel-item-corner))`;
       mask.style.setProperty('--m3-carousel-item-size', `${round(size)}px`);
+      // The press area follows the mask, widened to M3's 48px touch target for a small item.
+      const hit = hitRefs.current[index];
+      if (!hit) return;
+      const reach = pressAreaReach(spans, index, itemSpacing, space);
+      const start = round(Math.max(0, inset - reach.start));
+      const end = round(Math.max(0, inset - reach.end));
+      hit.style.translate = mask.style.translate;
+      hit.style.clipPath = vertical
+        ? `inset(${start}px 0 ${end}px 0)`
+        : rtl
+          ? `inset(0 ${start}px 0 ${end}px)`
+          : `inset(0 ${end}px 0 ${start}px)`;
     });
   };
 
@@ -323,10 +344,10 @@ export function Carousel({
   useLayoutEffect(() => {
     // Leaving the masked layout (reduced motion) clears what `update` wrote.
     if (!masked)
-      maskRefs.current.forEach((mask) => {
-        mask?.style.removeProperty('translate');
-        mask?.style.removeProperty('clip-path');
-        mask?.style.removeProperty('--m3-carousel-item-size');
+      [...maskRefs.current, ...hitRefs.current].forEach((layer) => {
+        layer?.style.removeProperty('translate');
+        layer?.style.removeProperty('clip-path');
+        layer?.style.removeProperty('--m3-carousel-item-size');
       });
     update();
     const scroller = scrollerRef.current;
@@ -525,6 +546,9 @@ export function Carousel({
             maskRef={(element) => {
               maskRefs.current[index] = element;
             }}
+            hitRef={(element) => {
+              hitRefs.current[index] = element;
+            }}
             style={{
               ...(slotSize === undefined ? {} : { [vertical ? 'height' : 'width']: slotSize }),
               [vertical ? 'scrollMarginBlockStart' : 'scrollMarginInlineStart']:
@@ -550,6 +574,7 @@ function CarouselItem({
   onFocus,
   slotRef,
   maskRef,
+  hitRef,
   style,
   styles,
   classNames,
@@ -563,6 +588,7 @@ function CarouselItem({
   onFocus: (event: FocusEvent<HTMLDivElement>) => void;
   slotRef: (element: HTMLDivElement | null) => void;
   maskRef: (element: HTMLDivElement | null) => void;
+  hitRef: (element: HTMLSpanElement | null) => void;
   style: CSSProperties;
   styles: ReturnType<typeof carouselStyles>;
   classNames?: CarouselClassNames;
@@ -598,6 +624,8 @@ function CarouselItem({
       style={style}
       className={styles.item({ class: classNames?.item })}
     >
+      {/* Where the item takes presses: under the mask, clipped to it or a little wider. */}
+      <span aria-hidden="true" ref={hitRef} data-slot="hit-area" className={styles.hitArea()} />
       <div
         ref={maskRef}
         {...(interactive ? states : {})}

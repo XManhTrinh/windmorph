@@ -42,8 +42,14 @@ export const sliderStyles = tv({
       'has-[[data-thumb="0"][data-focus-visible]]:[--m3-slider-gap-0:10px]',
       'has-[[data-thumb="1"][data-focus-visible]]:[--m3-slider-gap-1:10px]',
     ],
-    track:
-      'grid flex-1 cursor-pointer grid-cols-1 grid-rows-1 items-center justify-items-start group-data-disabled/slider:cursor-default',
+    // The track takes the presses. Its hit area is at least 48px across (M3's touch target)
+    // without changing the layout: a transparent layer under its parts reaches 2px past an
+    // xs or sm slider's 44px on each side. The block axis is the cross axis in both
+    // orientations (a vertical track's writing mode is vertical).
+    track: [
+      'relative isolate grid flex-1 cursor-pointer grid-cols-1 grid-rows-1 items-center justify-items-start group-data-disabled/slider:cursor-default',
+      "before:absolute before:-z-10 before:[inset-inline:0] before:[inset-block:min(0px,calc((100%_-_48px)/2))] before:content-['']",
+    ],
     segment: [
       'col-start-1 row-start-1 flex [block-size:var(--m3-slider-track)] items-center overflow-hidden',
       'data-[tone=active]:bg-[var(--_md-comp-slider-active-track-color)]',

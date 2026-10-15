@@ -50,12 +50,16 @@ export const timePickerStyles = tv({
       'aria-invalid:outline-2 aria-invalid:outline-error',
     ],
     separator: 'flex w-[24px] items-center justify-center text-display-large text-on-surface',
+    // The options round their own outer corners to the outline's inner edge (rather than the
+    // container clipping them), so their hit areas can reach past it: each option's is at
+    // least 48px tall (M3's touch target), extended outward, away from the other option.
     period: [
-      'flex overflow-hidden rounded-corner-small border',
+      'flex rounded-corner-small border',
       'border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
     ],
     periodOption: [
-      'flex flex-1 cursor-pointer items-center justify-center text-title-medium text-on-surface-variant outline-none',
+      'relative flex flex-1 cursor-pointer items-center justify-center text-title-medium text-on-surface-variant outline-none',
+      "before:absolute before:inset-x-0 before:content-['']",
       'state-layer focus-ring-inset',
       'data-selected:bg-[var(--_md-comp-time-picker-period-selector-selected-container-color)]',
       'data-selected:text-on-tertiary-container',
@@ -106,6 +110,9 @@ export const timePickerStyles = tv({
         periodOption: [
           'not-last:border-b',
           'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+          'first:rounded-t-[calc(var(--md-sys-shape-corner-small)-1px)] last:rounded-b-[calc(var(--md-sys-shape-corner-small)-1px)]',
+          'first:before:bottom-0 first:before:top-[min(0px,calc(100%_-_48px))]',
+          'last:before:top-0 last:before:bottom-[min(0px,calc(100%_-_48px))]',
         ],
         dial: 'mt-[36px]',
       },
@@ -116,6 +123,8 @@ export const timePickerStyles = tv({
         periodOption: [
           'not-last:border-e',
           'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+          'first:rounded-s-[calc(var(--md-sys-shape-corner-small)-1px)] last:rounded-e-[calc(var(--md-sys-shape-corner-small)-1px)]',
+          'before:inset-y-[min(0px,calc((100%_-_48px)/2))]',
         ],
         dial: 'ms-[36px]',
       },
