@@ -111,9 +111,13 @@ export const bottomSheetStyles = tv({
       'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
     ],
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
-    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
-    content:
+    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet),
+    // and upward ones too while the sheet rests below its top detent (`data-can-rise`), so an
+    // upward swipe raises the sheet before the content scrolls.
+    content: [
       'min-h-0 flex-1 overflow-y-auto overscroll-contain data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
+      'data-at-top:data-can-rise:[touch-action:pan-x_pinch-zoom]',
+    ],
   },
   variants: {
     variant: {

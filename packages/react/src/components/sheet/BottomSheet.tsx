@@ -463,6 +463,7 @@ function BottomSheetPanel({
         event.clientX - start.x,
         event.clientY - start.y,
         scrolledAbove(event.target as Element, contentRef.current!),
+        current === 'lower',
       );
       if (start.gesture === 'undecided') return;
       if (start.gesture === 'scroll') {
@@ -475,7 +476,11 @@ function BottomSheetPanel({
     );
     if (drag === null && Math.abs(event.clientY - start.y) <= DRAG_SLOP) return;
     if (drag === null) event.currentTarget.setPointerCapture?.(start.id);
-    setDrag(Math.min(maxOffset, Math.max(0, start.offset + event.clientY - start.y)));
+    const raw = start.offset + event.clientY - start.y;
+    setDrag(Math.min(maxOffset, Math.max(0, raw)));
+    // A drag up from the content that has raised the sheet fully scrolls the content with the
+    // rest of the move, as Compose's nested scroll hands it over.
+    if (start.fromContent && contentRef.current) contentRef.current.scrollTop = Math.max(0, -raw);
   };
   const endPointer = (event: PointerEvent<HTMLElement>) => {
     const start = pointer.current;
@@ -682,7 +687,11 @@ function BottomSheetPanel({
                 />
               </div>
             )}
-            <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
+            <div
+              ref={contentRef}
+              data-can-rise={current === 'lower' || undefined}
+              className={styles.content({ class: classNames?.content })}
+            >
               {typeof children === 'function' ? children({ close }) : children}
             </div>
           </TriggerContext>

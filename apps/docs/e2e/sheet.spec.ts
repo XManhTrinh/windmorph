@@ -451,12 +451,30 @@ test.describe('Bottom sheet drags from its content (touch)', () => {
     await expect(sheet).toBeVisible();
   });
 
-  test('a drag up scrolls the content, even at its top', async ({ page }) => {
+  test('a drag up on a half-open sheet raises it before the content scrolls', async ({
+    page,
+  }) => {
     const { sheet, content } = await open(page);
     await touchDrag(page, { x: 200, y: 700 }, { x: 200, y: 550 });
     await settle(page);
+    // Compose's nested scroll: the sheet takes the upward move first.
+    expect(await scrollTop(content)).toBe(0);
+    expect((await rect(sheet)).y).toBe(72);
+    // Fully raised, a drag up scrolls the content.
+    await touchDrag(page, { x: 200, y: 700 }, { x: 200, y: 500 });
+    await settle(page);
     expect(await scrollTop(content)).toBeGreaterThan(0);
-    expect((await rect(sheet)).y).toBe(400);
+    expect((await rect(sheet)).y).toBe(72);
+  });
+
+  test('a long drag up raises the sheet, then scrolls the content with the rest', async ({
+    page,
+  }) => {
+    const { sheet, content } = await open(page);
+    await touchDrag(page, { x: 200, y: 780 }, { x: 200, y: 180 });
+    await settle(page);
+    expect((await rect(sheet)).y).toBe(72);
+    expect(await scrollTop(content)).toBeGreaterThan(100);
   });
 
   test('a sideways drag scrolls a horizontal scroller inside', async ({ page }) => {
