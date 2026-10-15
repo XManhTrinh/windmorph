@@ -157,6 +157,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       dismissable: false,
       keyboardDismissDisabled: false,
       origin: false,
+      quick: false,
     },
     surfacedProps: [
       'open',
@@ -167,6 +168,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'placement',
       'dismissable',
       'keyboardDismissDisabled',
+      'quick',
     ],
     enumOptions: { role: ['alertdialog', 'dialog'] },
     // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role

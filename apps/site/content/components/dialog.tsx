@@ -19,6 +19,7 @@ const DialogFullScreen = lazyExample('dialog/dialog-full-screen', 'DialogFullScr
 const DialogScrollable = lazyExample('dialog/dialog-scrollable', 'DialogScrollable');
 const DialogIcon = lazyExample('dialog/dialog-icon', 'DialogIcon');
 const DialogPlacement = lazyExample('dialog/dialog-placement', 'DialogPlacement');
+const DialogMotion = lazyExample('dialog/dialog-motion', 'DialogMotion');
 
 /**
  * Dialog page body: the flat parts, basic, alert, scrollable, divided and full-screen
@@ -60,6 +61,9 @@ export async function DialogBody(): Promise<ComponentDoc> {
 
   const customPosition = await readExampleSource('dialog/dialog-custom-position.tsx');
   const customPositionHtml = await highlightSource(customPosition);
+
+  const motion = await readExampleSource('dialog/dialog-motion.tsx');
+  const motionHtml = await highlightSource(motion);
 
   return {
     tokens: [dialogTokenSet],
@@ -116,6 +120,14 @@ export async function DialogBody(): Promise<ComponentDoc> {
             fileName="dialog-custom-position.tsx"
           >
             <DialogCustomPosition />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Motion, onOpened and onClosed, and quick"
+            code={motion}
+            html={motionHtml}
+            fileName="dialog-motion.tsx"
+          >
+            <DialogMotion />
           </ExampleViewer>
           <ExampleViewer
             title="Dividers and a choice"
@@ -189,14 +201,14 @@ export async function DialogBody(): Promise<ComponentDoc> {
             A basic dialog is centred; <InlineCode>placement</InlineCode> (
             <InlineCode>top</InlineCode>, <InlineCode>bottom</InlineCode>,{' '}
             <InlineCode>start</InlineCode>, <InlineCode>end</InlineCode>) moves it, keeping 56px
-            from the edges of wider windows (24px on compact ones). It expands away from the edge it
-            sits against as it opens. For any other spot, such as a corner near the controls that
-            opened it, align it with <InlineCode>classNames.positioner</InlineCode> (
-            <InlineCode>items-*</InlineCode> and <InlineCode>justify-*</InlineCode> classes): the
-            positioner&apos;s padding keeps the same margin. <InlineCode>className</InlineCode> and{' '}
-            <InlineCode>style</InlineCode> go on the outermost element, a full-window layer around
-            the positioner; style the dialog&apos;s surface with{' '}
-            <InlineCode>classNames.panel</InlineCode>.
+            from the edges of wider windows (24px on compact ones). It enters from the edge it sits
+            against: it slides 50px away from that edge while its container grows from it. For any
+            other spot, such as a corner near the controls that opened it, align it with{' '}
+            <InlineCode>classNames.positioner</InlineCode> (<InlineCode>items-*</InlineCode> and{' '}
+            <InlineCode>justify-*</InlineCode> classes): the positioner&apos;s padding keeps the
+            same margin. <InlineCode>className</InlineCode> and <InlineCode>style</InlineCode> go on
+            the outermost element, a full-window layer around the positioner; style the
+            dialog&apos;s surface with <InlineCode>classNames.panel</InlineCode>.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>dividers</InlineCode> on <InlineCode>DialogContent</InlineCode> draws the
@@ -309,11 +321,19 @@ export async function DialogBody(): Promise<ComponentDoc> {
               <InlineCode>FlowRow</InlineCode>.
             </li>
             <li>
-              Motion is not from Compose (which uses platform window animations). The spec avoids
-              scale motion, so the panel fades while it expands away from the window edge it sits
-              against (downward when centred or at the top, upward at the bottom, along the x axis
-              at the start or end; a clip-path reveal) on a library-owned wrapper with no transform.
-              Reduced motion keeps only the fade, entering and leaving.
+              Motion is not from Compose (which uses platform window animations). It follows the M3
+              dialog motion as Material Web encodes it, on the M3 Expressive springs: entering, the
+              dialog slides 50px away from the window edge it sits against (down when centred or at
+              the top, up at the bottom, along the x axis at the start or end) while its container
+              grows from that edge, the headline and content fade in after 50ms and the actions
+              after 150ms, and the scrim fades in. Leaving, the parts fade out, the dialog slides
+              back while its container shrinks to 35%, then the container fades. The container is a
+              clip on a library-owned wrapper, so it grows from 0 as the spec says (Material Web
+              starts at 35% because its container doesn&apos;t clip the text). Reduced motion keeps
+              only the fades of the dialog and the scrim, and <InlineCode>quick</InlineCode> turns
+              the motion off. <InlineCode>onOpened</InlineCode> and{' '}
+              <InlineCode>onClosed</InlineCode> fire when each motion has finished, like Material
+              Web&apos;s <InlineCode>opened</InlineCode> and <InlineCode>closed</InlineCode> events.
             </li>
             <li>
               Compose has no full-screen dialog component; the full-screen type follows the M3

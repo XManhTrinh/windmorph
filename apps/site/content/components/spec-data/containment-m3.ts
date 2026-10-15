@@ -76,6 +76,10 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         item: 'Dismissal options',
         note: '`dismissable` lets a press outside close an alert dialog, and `keyboardDismissDisabled` keeps Escape from closing one.',
       },
+      {
+        item: 'Motion callbacks and no motion',
+        note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `quick` turns the motion off.",
+      },
     ],
     compose: [
       {
