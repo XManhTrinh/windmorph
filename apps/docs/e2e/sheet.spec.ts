@@ -732,3 +732,61 @@ test.describe('Standard side sheet width motion', () => {
     }
   });
 });
+
+test.describe('Sheets never show a gap at their edge when the spring overshoots', () => {
+  /**
+   * Samples, every frame while `act` runs, how far the panel's anchored edge stands off the
+   * window's edge (positive once it lifts off), and how far its bleed (`::after`, in the panel's colour) reaches past it.
+   */
+  async function gaps(page: Page, edge: 'bottom' | 'right', act: () => Promise<void>) {
+    await page.evaluate((edge) => {
+      const frames: { gap: number; bleed: number; same: boolean }[] = [];
+      (window as unknown as { frames: typeof frames }).frames = frames;
+      const sample = () => {
+        const panel = document.querySelector<HTMLElement>('[role="dialog"]');
+        if (panel) {
+          const r = panel.getBoundingClientRect();
+          const after = getComputedStyle(panel, '::after');
+          frames.push({
+            gap: edge === 'bottom' ? innerHeight - r.bottom : innerWidth - r.right,
+            bleed: Number.parseFloat(edge === 'bottom' ? after.height : after.width) || 0,
+            same: after.backgroundColor === getComputedStyle(panel).backgroundColor,
+          });
+        }
+        if (frames.length < 120) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    }, edge);
+    await act();
+    await page.waitForTimeout(900);
+    return page.evaluate(
+      () =>
+        (window as unknown as { frames: { gap: number; bleed: number; same: boolean }[] }).frames,
+    );
+  }
+
+  test('a bottom sheet opening', async ({ page }) => {
+    await openStory(page, 'components-sheet--bottom');
+    const frames = await gaps(page, 'bottom', () =>
+      page.getByRole('button', { name: 'Open sheet' }).click(),
+    );
+    // The overshoot really lifts the panel off the edge…
+    expect(Math.max(...frames.map((f) => f.gap))).toBeGreaterThan(0.5);
+    // …and the bleed always covers the gap.
+    for (const frame of frames.filter((f) => f.gap > 0)) {
+      expect(frame.bleed).toBeGreaterThanOrEqual(frame.gap);
+      expect(frame.same).toBe(true);
+    }
+  });
+
+  test('a modal side sheet opening', async ({ page }) => {
+    await openStory(page, 'components-sheet--side');
+    const frames = await gaps(page, 'right', () =>
+      page.getByRole('button', { name: 'Open filters' }).click(),
+    );
+    for (const frame of frames.filter((f) => f.gap > 0)) {
+      expect(frame.bleed).toBeGreaterThanOrEqual(frame.gap);
+      expect(frame.same).toBe(true);
+    }
+  });
+});

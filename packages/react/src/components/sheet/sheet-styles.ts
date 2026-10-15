@@ -73,6 +73,8 @@ export const bottomSheetStyles = tv({
       'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px] items-end',
       'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
+      // Clips below its bottom edge only, where the panel's bleed hangs (see `panel`).
+      '[clip-path:inset(-100vh_-100vw_0_-100vw)]',
     ],
     // Library-owned layer that moves the sheet, inside the container, so the motion never
     // animates the outermost element's `translate` (architecture §10 rule 4).
@@ -82,7 +84,11 @@ export const bottomSheetStyles = tv({
       ...sheetMotion,
     ],
     panel: [
-      'flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      'relative flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      // A bleed in the panel's colour below its bottom edge: when the spring overshoots, the
+      // sheet lifts a few pixels off the window's edge and this fills the gap (Compose scales
+      // the sheet up for the same reason). The container clips it at rest.
+      "after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[32px] after:[background-color:inherit] after:content-['']",
       'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
       'min-[641px]:max-h-[calc(100dvh-56px)]',
       'bg-[var(--_md-comp-sheet-bottom-docked-container-color)] text-on-surface outline-none',
@@ -123,7 +129,11 @@ export const sideSheetStyles = tv({
     scrim,
     // A modal sheet's outermost element, which places it and takes the consumer's
     // `className` and `style`.
-    container: 'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+    // It clips past its end edge only, where a docked panel's bleed hangs (see `compoundVariants`).
+    container: [
+      'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
+      '[clip-path:inset(-100vh_0_-100vh_-100vw)] rtl:[clip-path:inset(-100vh_-100vw_-100vh_0)]',
+    ],
     // Library-owned layer that moves a modal sheet, inside the container (architecture §10
     // rule 4); it holds a detached sheet's 16px margins, so the exit clears them.
     motion: [
@@ -189,6 +199,9 @@ export const sideSheetStyles = tv({
       class: {
         panel: [
           'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
+          // A bleed past the end edge fills the gap when the spring overshoots (see the
+          // bottom sheet's panel).
+          "relative after:pointer-events-none after:absolute after:inset-y-0 after:start-full after:w-[32px] after:[background-color:inherit] after:content-['']",
           // Forced colours drop the container and the shadow: a border on the free edge.
           'forced-colors:border-s forced-colors:border-solid forced-colors:border-[CanvasText]',
         ],
