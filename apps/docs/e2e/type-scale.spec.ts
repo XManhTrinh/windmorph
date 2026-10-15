@@ -238,6 +238,23 @@ test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
     expect(long.lines).toBeGreaterThan(1);
   });
 
+  // M3: "Ensure the full label is always visible on-screen at up to 2x text sizing". Inline
+  // items whose labels don't fit side by side stack instead (2026-10-15), so no label is cut.
+  test('at 2x text, the stacked and inline bars show every label whole', async ({ page }) => {
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 32);
+    const bars = page.getByTestId('bars').getByRole('navigation');
+    await expect(bars.nth(1)).toHaveAttribute('data-stacked', 'true');
+    for (const index of [0, 1]) {
+      for (const label of await navLabels(bars.nth(index))) {
+        expect(label.overflows, `${label.text}: cut off`).toBe(false);
+      }
+    }
+    // Back at 1x the inline bar fits again and leaves stacking.
+    await setRootFontSize(page, 16);
+    await expect(bars.nth(1)).not.toHaveAttribute('data-stacked');
+  });
+
   test('a one-word label too wide for its item stays on one line with an ellipsis', async ({
     page,
   }) => {

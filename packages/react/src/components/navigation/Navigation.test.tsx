@@ -661,6 +661,34 @@ describe('NavigationBar', () => {
     expect(search).not.toHaveClass('flex-1');
   });
 
+  it('stacks inline items when their labels don’t fit on one line side by side', () => {
+    let barWidth = 300;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.tagName === 'NAV' ? barWidth : 0;
+    });
+    // Each label is 60px on one line: 4 × (60 + 68px of item chrome) = 512px.
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return this.hasAttribute('data-nav-label') ? 60 : 0;
+    });
+    const { rerender } = render(<Bar iconPosition="start" />);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveAttribute('data-stacked', 'true');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('data-layout', 'bar-top');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveClass('flex-1');
+    barWidth = 600;
+    rerender(<Bar iconPosition="start" key="wide" />);
+    expect(screen.getByRole('navigation')).not.toHaveAttribute('data-stacked');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute(
+      'data-layout',
+      'bar-start',
+    );
+    vi.restoreAllMocks();
+  });
+
   it('stretches items to the bar height, so the whole bar is the touch target', () => {
     const { rerender } = render(<Bar />);
     const home = () => screen.getByRole('link', { name: 'Home' });

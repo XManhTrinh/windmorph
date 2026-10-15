@@ -79,9 +79,11 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             marks the current one, with a bold label. Stacked items share the width equally;{' '}
             <InlineCode>arrangement=&quot;centered&quot;</InlineCode> groups them within side
             padding. Items beside their icons keep their own width and are centred by default, with
-            the extra space at the bar&apos;s ends. A long label wraps between words and the bar
-            grows taller; it never breaks inside a word, and a single word too long for its item
-            ends with an ellipsis.
+            the extra space at the bar&apos;s ends; when their labels don&apos;t fit on one line
+            side by side (a narrow bar, or text at up to 2× its size), they stack and share the
+            width equally instead, so every label stays whole. A long label wraps between words and
+            the bar grows taller; it never breaks inside a word, and a single word too long for its
+            item ends with an ellipsis.
           </p>
           <p className="text-body-large text-on-surface-variant">
             An item&apos;s <InlineCode>badge</InlineCode> (a <InlineCode>Badge</InlineCode>)
