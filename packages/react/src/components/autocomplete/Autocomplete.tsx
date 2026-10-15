@@ -63,6 +63,9 @@ export interface AutocompleteLabels {
   error: string;
 }
 
+/** Elements that keep their own presses; a press anywhere else on the field opens it. */
+const INTERACTIVE = 'input, textarea, button, a, [role="button"]';
+
 const DEFAULT_LABELS: AutocompleteLabels = {
   noResults: 'No results',
   loading: 'Loading options',
@@ -390,8 +393,11 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         containerRef={containerRef}
         containerProps={mergeProps(hoverProps, focusProps)}
         onContainerPointerDown={(event) => {
-          // A press on the field's empty space puts the caret in the input and opens the menu.
-          if (event.target === event.currentTarget && !disabled) {
+          // A press anywhere on the field (its padding, a chip's label, the space between
+          // chips) puts the caret in the input and opens the menu, as TextField and Select
+          // react to the whole field. The input opens on its own click, and the buttons (the
+          // arrow, clear, a chip's remove) keep their own presses.
+          if (!(event.target as Element).closest(INTERACTIVE) && !disabled) {
             event.preventDefault();
             inputRef.current?.focus();
             openOnPress();
