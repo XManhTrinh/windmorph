@@ -356,7 +356,8 @@ export function TextField(props: TextFieldProps) {
   const focusInput = (event: PointerEvent<HTMLDivElement>) => {
     if ((event.target as Element).closest(INTERACTIVE) || disabled) return;
     event.preventDefault();
-    domInputRef.current?.focus();
+    // The field is where the press landed: the page never scrolls to it (2026-10-15).
+    domInputRef.current?.focus({ preventScroll: true });
   };
 
   // Part of the accessible name, as M3 asks ("The accessibility label must include the

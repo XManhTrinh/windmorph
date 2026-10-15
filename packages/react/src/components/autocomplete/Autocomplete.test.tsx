@@ -90,8 +90,12 @@ describe('Autocomplete', () => {
   it('opens when the field is pressed outside the input, chips included', async () => {
     render(<Cities selectionMode="multiple" defaultValue={['zrh']} />);
     // The padded wrapper around the chips and the input.
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
     await userEvent.click(input().parentElement!);
     expect(input()).toHaveFocus();
+    // Without scrolling the page to the field it was pressed on (2026-10-15).
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    focus.mockRestore();
     expect(within(screen.getByRole('listbox')).getAllByRole('option')).toHaveLength(4);
     await userEvent.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument(), {
@@ -103,6 +107,18 @@ describe('Autocomplete', () => {
     // Presses in the menu (portalled, but inside the field in React's tree) still choose.
     await userEvent.click(screen.getByRole('option', { name: 'London' }));
     expect(screen.getByRole('option', { name: 'London' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  // 2026-10-15: a touch on the arrow focused the input with the page scrolling to it.
+  it('focuses the input from a touch on the arrow without scrolling the page', async () => {
+    render(<Cities />);
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+    const arrow = screen.getByRole('button', { name: /Show options/ });
+    await userEvent.pointer({ keys: '[TouchA]', target: arrow });
+    expect(input()).toHaveFocus();
+    const onInput = focus.mock.calls.filter((_, index) => focus.mock.contexts[index] === input());
+    expect(onInput).toEqual([[{ preventScroll: true }]]);
+    focus.mockRestore();
   });
 
   it('leaves opening to the arrow with menuTrigger="manual"', async () => {

@@ -259,8 +259,12 @@ describe('TextField', () => {
     expect(input).toHaveAccessibleDescription('$ USD');
     expect(screen.getAllByTestId('icon')[0]!.parentElement).toHaveAttribute('aria-hidden', 'true');
 
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
     fireEvent.pointerDown(screen.getByText('$'));
     expect(input).toHaveFocus();
+    // The press is on the field: the page doesn't scroll to it (2026-10-15).
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    focus.mockRestore();
 
     await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
     expect(onClear).toHaveBeenCalledTimes(1);

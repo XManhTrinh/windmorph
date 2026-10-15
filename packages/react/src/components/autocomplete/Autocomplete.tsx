@@ -181,6 +181,22 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   };
 
 /**
+ * The arrow's press moves focus to the input (React Aria does it on a touch press) without
+ * scrolling the page: a press on a field partly off-screen scrolled it into view
+ * (2026-10-15). The input's `focus` asks for `preventScroll` only while the press runs.
+ */
+function withFocusInPlace(input: HTMLInputElement | null, run: () => void) {
+  if (!input) return run();
+  input.focus = (options) =>
+    HTMLElement.prototype.focus.call(input, { ...options, preventScroll: true });
+  try {
+    run();
+  } finally {
+    Reflect.deleteProperty(input, 'focus');
+  }
+}
+
+/**
  * M3 exposed dropdown menu, editable (Compose's `ExposedDropdownMenuBox` with a
  * `PrimaryEditable` anchor): type in the field and the menu below shows the matching
  * options. Single or multiple selection (chosen options as M3 input chips in the field),
@@ -302,7 +318,15 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     },
     state,
   );
-  const { buttonProps: arrowProps } = useButton(buttonProps, buttonRef);
+  const arrowPress = buttonProps.onPress;
+  const { buttonProps: arrowProps } = useButton(
+    {
+      ...buttonProps,
+      onPress:
+        arrowPress && ((event) => withFocusInPlace(inputRef.current, () => arrowPress(event))),
+    },
+    buttonRef,
+  );
   const { focusProps, isFocused } = useFocusRing({ within: true, isTextInput: true });
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
@@ -333,7 +357,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
   const clear = () => {
     if (!multiple) state.setValue(null);
     state.setInputValue('');
-    inputRef.current?.focus();
+    // Back to the input in the same field, without scrolling the page (2026-10-15).
+    inputRef.current?.focus({ preventScroll: true });
   };
   const resolvedError =
     typeof errorMessage === 'function'
@@ -401,7 +426,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
           const target = event.target as Element;
           if (event.currentTarget.contains(target) && !target.closest(INTERACTIVE) && !disabled) {
             event.preventDefault();
-            inputRef.current?.focus();
+            // The field is where the press landed: the page never scrolls to it (2026-10-15).
+            inputRef.current?.focus({ preventScroll: true });
             openOnPress();
           }
         }}
