@@ -70,3 +70,56 @@ export async function underForcedColors(page: Page, locator: Locator) {
   const after = await readLooks(locator);
   return { before, after };
 }
+
+/** A component the forced-colours guard lets go without a boundary, and why. */
+export interface ForcedColorsException {
+  /** A story id, or `*` for every story. */
+  story: string;
+  /** The component root's key (`<data-tokens>/<data-variant or data-layout>`), or its start. */
+  component: string;
+  reason: string;
+}
+
+/**
+ * Components drawn without a container in M3, so forced colours leave nothing to outline.
+ * Each is still identified by its content (an icon, a label, an image) and shows its
+ * selection with `Highlight`; the guard checks selected states separately.
+ */
+export const FORCED_COLORS_EXCEPTIONS: ForcedColorsException[] = [
+  {
+    story: '*',
+    component: 'md-comp-icon-button/standard',
+    reason: 'a standard icon button has no container in M3: its icon is the control',
+  },
+  {
+    story: '*',
+    component: 'md-comp-list',
+    reason:
+      'list rows are identified by their text; M3 rows and lists have no outline, and selection shows a check or Highlight',
+  },
+  {
+    story: '*',
+    component: 'md-comp-tabs',
+    reason: 'tabs have no container in M3; the current tab keeps a Highlight indicator',
+  },
+  {
+    story: '*',
+    component: 'md-comp-nav-bar/bar-',
+    reason: 'navigation items have no container in M3; the current one keeps a Highlight pill',
+  },
+  {
+    story: '*',
+    component: 'md-comp-nav-rail/rail-',
+    reason: 'navigation items have no container in M3; the current one keeps a Highlight pill',
+  },
+  {
+    story: '*',
+    component: 'md-comp-carousel',
+    reason: 'a carousel region has no container; its items are their own content (images)',
+  },
+  {
+    story: '*',
+    component: 'md-comp-app-bar',
+    reason: "at rest a top app bar is the page's own surface colour, with no edge in M3",
+  },
+];
