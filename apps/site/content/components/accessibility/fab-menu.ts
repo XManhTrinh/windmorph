@@ -42,7 +42,7 @@ export const fabMenu: ComponentAccessibility = {
       'In the list, the button reports `aria-expanded` and `aria-controls` (the list). With `presentation="menu"` it reports `aria-haspopup` and `aria-expanded`.',
     notes: [
       'The button and item icons are hidden from assistive tech (`aria-hidden`).',
-      'While closed, the button shows its `aria-label` in a plain tooltip on hover, keyboard focus and a touch long press. Open, it is the close button and has none. It steps aside inside your own `TooltipTrigger`, and `tooltip={false}` turns it off.',
+      "While closed, the button shows its `aria-label` in a plain tooltip on hover, keyboard focus and a touch long press; the tooltip repeats the button's name, so it isn't linked as its description. Open, it is the close button and has none. It steps aside inside your own `TooltipTrigger`, and `tooltip={false}` turns it off.",
       'Hidden items are `inert`, so they are out of the Tab order and the accessibility tree while the menu is closed. A hidden menu (`visible={false}`) is `inert` as a whole.',
     ],
   },

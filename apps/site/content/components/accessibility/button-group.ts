@@ -5,11 +5,29 @@ export const buttonGroup: ComponentAccessibility = {
     {
       keys: ['Tab', 'Shift + Tab'],
       action:
-        'Moves focus into the group (back to the button focused last, when there is one), and out of it in one step.',
+        'Moves focus into the group (back to the button focused last, when there is one; to the selected button in a single-selection group), and out of it in one step.',
     },
     {
       keys: ['Arrow Left', 'Arrow Right'],
-      action: 'Moves focus to the previous or next button, stopping at the ends.',
+      action:
+        'Moves focus to the previous or next button, wrapping from one end to the other (the WAI-ARIA toolbar).',
+      where: 'Without selection, or with multiple selection',
+    },
+    {
+      keys: ['Home', 'End'],
+      action: 'Moves focus to the first or the last button.',
+      where: 'Without selection, or with multiple selection',
+    },
+    {
+      keys: ['Arrow Left', 'Arrow Right', 'Arrow Up', 'Arrow Down'],
+      action:
+        'Moves to the previous or next option and selects it, wrapping from one end to the other (the WAI-ARIA radio group its `radiogroup` role announces, as `RadioGroup` does). The overflow button is on the same path, and is focused without being selected.',
+      where: 'Single selection',
+    },
+    {
+      keys: ['Home', 'End'],
+      action: 'Selects the first or the last option.',
+      where: 'Single selection',
     },
     {
       keys: ['Enter', 'Space'],
@@ -19,7 +37,7 @@ export const buttonGroup: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'The arrow keys follow the laid-out direction, so they are mirrored in right-to-left layouts.',
-    "Selection doesn't follow focus: the arrow keys only move focus, so every option can be reached before one is chosen.",
+    'In a multiple-selection group the arrow keys only move focus; Enter or Space toggles. In a single-selection group selection follows focus, as screen reader users expect of radio buttons (2026-10-15; M3 lists the arrows as moving focus for every group).',
     'Disabled buttons, and buttons folded into the overflow menu, are skipped.',
   ],
   screenReader: {
@@ -32,7 +50,7 @@ export const buttonGroup: ComponentAccessibility = {
     ],
   },
   focus: [
-    'The group is one Tab stop; the arrow keys move between its buttons, and focus comes back to the last focused button when Tab re-enters.',
+    'The group is one Tab stop; the arrow keys move between its buttons, and focus comes back to the last focused button when Tab re-enters, or to the selected one in a single-selection group.',
     "Each button shows M3's focus indicator under keyboard focus: a 3px `secondary` outline 2px outside it.",
     'The overflow menu takes focus when it opens and gives it back to the "More options" button when it closes, as any {@link Menu} does.',
   ],

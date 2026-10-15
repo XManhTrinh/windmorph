@@ -16,12 +16,14 @@ export const topAppBar: ComponentAccessibility = {
     states: 'None of its own; its controls announce their own states.',
     notes: [
       'A medium or large bar renders the title twice, but only one is announced at a time: the expanded title until the bar is half collapsed, then the top-row one (the other is `aria-hidden`), so the title is never read twice.',
+      'A bar scrolled fully off screen is `inert`, so it leaves the accessibility tree until it comes back.',
     ],
   },
   focus: [
     'Its controls are in the Tab order where the bar sits in the page, so the navigation icon is the first stop, as M3 asks.',
     'Each control shows its own focus ring on keyboard focus.',
-    "A bar hidden by `enter-always` stays in the Tab order, and focusing one of its controls doesn't bring it back.",
+    "A bar scrolled fully off screen (`enter-always`, or a small bar's `exit-until-collapsed`) is `inert`: Tab skips its controls and screen readers leave them out until it comes back.",
+    'While keyboard focus is on one of its controls the bar stays on screen as the page scrolls, and focusing a partly hidden bar brings it back, so a focused control is never hidden (WCAG 2.4.11).',
   ],
   touchTarget: [
     'The bar adds no targets of its own. Its icon buttons are `standard` {@link IconButton}s, which keep their 48 × 48px touch target.',

@@ -111,7 +111,10 @@ interface SearchBarOwnProps {
   defaultValue?: string;
   /** Called with the query as it changes. */
   onChange?: (value: string) => void;
-  /** Called with the query when the user presses Enter (the keyboard's search action). */
+  /**
+   * Called with the query when the user presses Enter (the keyboard's search action) in the
+   * open search view. Enter in the collapsed bar opens the view.
+   */
   onSubmit?: (value: string) => void;
   /** Controlled expansion of the search view. */
   expanded?: boolean;

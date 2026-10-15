@@ -127,7 +127,10 @@ interface BottomSheetOwnProps {
    * window (modal). @default false
    */
   skipPartiallyExpanded?: boolean;
-  /** Height of a collapsed standard sheet, px. @default 56 */
+  /**
+   * Height of a collapsed standard sheet, px. While collapsed, the content's top-level parts
+   * that don't fit entirely in it are `inert`. @default 56
+   */
   peekHeight?: number;
   /**
    * Where a standard sheet rests (controlled): `collapsed` at `peekHeight` or `expanded` to

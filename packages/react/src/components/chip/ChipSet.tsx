@@ -192,7 +192,8 @@ function useFocusAfterRemoval(rootRef: { current: HTMLDivElement | null }) {
 /**
  * M3 chip set: a labelled group of chips, 8px apart, that wraps or scrolls sideways. It is
  * one Tab stop, and arrow keys move between its chips. With `selectionMode`, its filter
- * chips (each with a `value`) share one selection.
+ * chips (each with a `value`) share one selection; a single selection is a radio group,
+ * whose arrow keys select as they move.
  *
  * @example
  * <ChipSet aria-label="Diet" selectionMode="multiple" defaultSelectedKeys={['vegan']}>

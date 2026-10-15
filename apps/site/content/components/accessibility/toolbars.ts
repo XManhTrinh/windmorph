@@ -9,18 +9,22 @@ export const toolbars: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Left', 'Arrow Right'],
-      action: 'Moves focus to the previous or next control, stopping at the ends.',
+      action:
+        'Moves focus to the previous or next control, wrapping from the last to the first and back.',
       where: 'Horizontal toolbar',
     },
     {
       keys: ['Arrow Up', 'Arrow Down'],
-      action: 'Moves focus to the previous or next control, stopping at the ends.',
+      action:
+        'Moves focus to the previous or next control, wrapping from the last to the first and back.',
       where: 'Vertical floating toolbar',
     },
+    { keys: ['Home', 'End'], action: 'Moves focus to the first or the last control.' },
     { keys: ['Enter', 'Space'], action: 'Activates the focused control.' },
   ],
   keyboardNotes: [
-    'This follows the M3 spec ("Tab or Arrows: Navigate between interactive elements") rather than the WAI-ARIA toolbar pattern, where the whole toolbar is a single Tab stop.',
+    'Tab follows the M3 spec ("Tab or Arrows: Navigate between interactive elements") rather than the WAI-ARIA toolbar pattern, where the whole toolbar is a single Tab stop. The arrow keys, Home and End follow the WAI-ARIA toolbar.',
+    'A text field in a toolbar keeps the arrow keys, Home and End for its caret.',
     'The horizontal arrow keys follow the DOM direction, so they are mirrored right to left.',
   ],
   screenReader: {

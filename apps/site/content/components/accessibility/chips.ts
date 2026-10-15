@@ -27,23 +27,34 @@ export const chips: ComponentAccessibility = {
       keys: ['Arrow Right', 'Arrow Down'],
       action:
         "Moves focus to the next chip, or to a chip's remove button, without selecting it. It stops at the last one.",
-      where: 'In a `ChipSet`',
+      where: 'In a `ChipSet` without single selection',
     },
     {
       keys: ['Arrow Left', 'Arrow Up'],
       action: 'Moves focus to the previous chip or remove button. It stops at the first one.',
-      where: 'In a `ChipSet`',
+      where: 'In a `ChipSet` without single selection',
     },
     {
       keys: ['Home', 'End'],
       action: 'Moves focus to the first or the last chip in the set.',
-      where: 'In a `ChipSet`',
+      where: 'In a `ChipSet` without single selection',
+    },
+    {
+      keys: ['Arrow Right', 'Arrow Down', 'Arrow Left', 'Arrow Up'],
+      action:
+        'Moves to the next or previous chip and selects it, wrapping from one end to the other (the WAI-ARIA radio group its `radiogroup` role announces, as `RadioGroup` does).',
+      where: 'In a single-select `ChipSet`',
+    },
+    {
+      keys: ['Home', 'End'],
+      action: 'Selects the first or the last chip.',
+      where: 'In a single-select `ChipSet`',
     },
   ],
   keyboardNotes: [
     'In a right-to-left layout Arrow Left and Arrow Right swap.',
-    'Leaving a `ChipSet` with Tab and coming back returns focus to the chip that had it. A pointer press focuses the chip it lands on.',
-    'Arrow keys only move focus, in a single-select set too; Enter or Space selects.',
+    'Leaving a `ChipSet` with Tab and coming back returns focus to the chip that had it; a single-select set returns it to the selected chip. A pointer press focuses the chip it lands on.',
+    'In a multiple-select set the arrow keys only move focus; Enter or Space selects. M3 lists the arrows as moving focus for every chip set; a single-select set follows the radio group pattern instead, because its chips are announced as radio buttons and that is what screen reader users expect of them (2026-10-15).',
   ],
   screenReader: {
     role: '`AssistChip` and `SuggestionChip` are a `button` (an assist chip with `href` is a `link`). `FilterChip` is a toggle `button`, or a `radio` in a single-select `ChipSet`. `ChipSet` is a `group`, or a `radiogroup` with `selectionMode="single"`.',

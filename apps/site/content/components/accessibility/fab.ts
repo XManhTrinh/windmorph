@@ -18,8 +18,8 @@ export const fab: ComponentAccessibility = {
       'None of its own: M3 FABs have no disabled or toggle state, so the types leave out `disabled` and `toggle`.',
     notes: [
       'The icon is hidden from assistive tech (`aria-hidden`).',
-      "A `Fab` shows its `aria-label` in a plain tooltip on hover, keyboard focus and a touch long press. While the tooltip shows it is linked as the FAB's description (`aria-describedby`), so a screen reader can hear the name twice. There is none with `tooltip={false}` or with only `aria-labelledby`.",
-      'An `ExtendedFab` shows its label in a tooltip only while collapsed; expanded, the label is visible and there is no tooltip. Inside your own `TooltipTrigger` it steps aside.',
+      "A `Fab` shows its `aria-label` in a plain tooltip on hover, keyboard focus and a touch long press. The tooltip repeats the FAB's name, so it isn't linked as its description (no `aria-describedby`) and screen readers announce the name once. There is none with `tooltip={false}` or with only `aria-labelledby`.",
+      'An `ExtendedFab` shows its label in a tooltip only while collapsed, not linked as a description either; expanded, the label is visible and there is no tooltip. Inside your own `TooltipTrigger` it steps aside.',
       'A hidden FAB (`visible={false}`) is `inert`, so it leaves the Tab order and the accessibility tree.',
     ],
   },

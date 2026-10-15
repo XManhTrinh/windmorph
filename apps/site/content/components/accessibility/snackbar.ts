@@ -30,7 +30,7 @@ export const snackbar: ComponentAccessibility = {
   },
   focus: [
     "A snackbar never takes focus by itself and doesn't trap it: Tab moves in and out freely.",
-    'When a snackbar leaves with focus inside it, focus returns to where it was before it entered the snackbar, if that element is still on the page.',
+    'When a snackbar leaves with focus inside it, focus returns to where it was before it entered the snackbar. If that element has gone (an undone row was removed, say), focus moves to the control that followed it in the Tab order, or else the one before it, rather than falling to the page.',
     'The action and dismiss buttons show their own focus rings on keyboard focus.',
     "The auto-dismiss timer (4s `short`, 10s `long`) pauses while the pointer or focus is on the snackbar, so someone reading it or reaching for it doesn't lose the message (WCAG 2.2.1). Snackbars with an action never time out.",
   ],

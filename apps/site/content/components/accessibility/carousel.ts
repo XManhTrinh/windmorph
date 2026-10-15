@@ -44,7 +44,8 @@ export const carousel: ComponentAccessibility = {
   ],
   touchTarget: [
     'Touch, trackpads and mouse drags scroll the carousel; snapping pauses while dragging, and a drag never activates an item.',
-    'Large and medium items are well over 48px. The small items of a multi-browse or hero carousel are 40 to 56px wide (`minSmallItemSize`, `maxSmallItemSize`), so at the default minimum they are narrower than 48px; there is no `TouchTarget`.',
+    "Large and medium items are well over 48px. The small items of a multi-browse or hero carousel are 40 to 56px wide (`minSmallItemSize`, `maxSmallItemSize`); one narrower than 48px still takes 48px of presses, its press area grown into the spacing beside it (half of it next to another small item, and toward its neighbour where it meets the carousel's edge), so press areas never overlap.",
+    "Only an item's visible part (and that press area) takes presses, so a press in the spacing between two items reaches neither.",
   ],
   motion: [
     "Under reduced motion items don't change size as they scroll: every item keeps the large size, unmasked, and a hero carousel shows part of the next item. Keyboard scrolling jumps instead of scrolling smoothly, and the pressed item's corner morph snaps.",

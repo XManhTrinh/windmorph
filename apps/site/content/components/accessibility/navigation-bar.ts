@@ -30,7 +30,8 @@ export const navigationBar: ComponentAccessibility = {
   focus: [
     "The items are in the Tab order in their visual order. A disabled item can't be focused.",
     "Keyboard focus shows M3's focus indicator, a 3px `secondary` outline 2px outside the pill. Pointer presses show no ring.",
-    "A bar hidden by `hide-on-scroll` stays in the Tab order, and focusing one of its items doesn't bring it back.",
+    'A bar fully hidden by `hide-on-scroll` is `inert`: Tab skips its items and screen readers leave them out until it comes back.',
+    'While keyboard focus is on one of its items the bar stays on screen as the page scrolls, and focusing a partly hidden bar brings it back, so a focused item is never hidden (WCAG 2.4.11).',
   ],
   touchTarget: [
     "Every item stretches to the bar's height, 64px or more when a label wraps, so the whole item is the touch target, not only the pill.",

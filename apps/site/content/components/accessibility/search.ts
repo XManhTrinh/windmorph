@@ -15,7 +15,8 @@ export const search: ComponentAccessibility = {
     },
     {
       keys: ['Enter'],
-      action: 'Submits the query (`onSubmit`) without expanding the bar.',
+      action:
+        'Expands the bar into the search view, as a click does (Compose expands the bar as its field takes focus); the query is submitted from the view.',
       where: 'On the bar',
     },
     {

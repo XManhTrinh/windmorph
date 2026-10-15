@@ -190,8 +190,9 @@ function useGroupRef(ref: Ref<HTMLDivElement> | undefined, directionRef: RefCall
  * and `IconButton` children. A standard group grows a pressed button while its neighbours
  * shrink; a `connected` group joins the buttons with shared inner corners and, by default,
  * only changes the pressed button's shape (`expandedRatio` opts it into the bump). Tab reaches the group and the arrow keys move
- * between its buttons (a `toolbar`). With `selectionMode`, toggle buttons that have a
- * `value` form a single or multiple selection.
+ * between its buttons, wrapping, with Home and End (a `toolbar`). With `selectionMode`, toggle
+ * buttons that have a `value` form a single or multiple selection; a single selection is a
+ * radio group, whose arrow keys select as they move.
  *
  * Children must be direct `Button` / `IconButton` elements so each gets its position.
  *

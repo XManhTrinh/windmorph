@@ -47,7 +47,7 @@ export const slider: ComponentAccessibility = {
   ],
   touchTarget: [
     'Pressing anywhere on the track moves the nearest thumb there, so the hit area is the full length of the track.',
-    'It is as tall as the handle: 44px for XS and S, which is under 48px, and 52, 68 and 108px for M, L and XL. The slider has no `TouchTarget`.',
+    'It is as tall as the handle: 44px for XS and S, and 52, 68 and 108px for M, L and XL. An XS or S slider takes presses 2px past its edges on each side, so its hit area is 48px tall without changing its layout; leave 2px clear above and below it.',
   ],
   motion: {
     none: 'The slider has no animation: the thumb and tracks follow the value directly, so reduced motion changes nothing.',
