@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   emitSnippet,
+  ICONS_COMMENT,
   ICONS_MODULE,
   iconsUsed,
   normalizeDefault,
@@ -191,7 +192,9 @@ describe('emitSnippet icons', () => {
       codeWrap: { before: '<Tooltip icon={<AddIcon />}>', after: '</Tooltip>' },
       codeChildren: 'Send',
     });
-    expect(code).toContain(`import { AddIcon, SendIcon } from '${ICONS_MODULE}';`);
+    expect(code).toContain(
+      `${ICONS_COMMENT}\nimport { AddIcon, SendIcon } from '${ICONS_MODULE}';`,
+    );
     expect(code).toContain('leadingIcon={<SendIcon />}');
     expect(code).not.toContain('<svg');
   });
@@ -205,6 +208,7 @@ describe('emitSnippet icons', () => {
       codeChildren: 'Send',
     });
     expect(code).not.toContain(ICONS_MODULE);
+    expect(code).not.toContain(ICONS_COMMENT);
   });
 
   it('leaves an icon another import names, and an `…Icon` component, to that import', () => {

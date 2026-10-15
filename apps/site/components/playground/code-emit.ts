@@ -37,6 +37,9 @@ export interface EmitInput {
  */
 export const ICONS_MODULE = './icons';
 
+/** The line above the icons' import, since `./icons` is the reader's own module. */
+export const ICONS_COMMENT = '// Use your own icon components.';
+
 /** The icon components a snippet's JSX uses (`<SendIcon />`), in order of first use. */
 export function iconsUsed(jsx: string): string[] {
   return [...new Set([...jsx.matchAll(/<([A-Z][A-Za-z0-9]*Icon)\b/g)].map((match) => match[1]!))];
@@ -160,7 +163,9 @@ export function emitSnippet(input: EmitInput): string {
   const icons = iconsUsed(element).filter((name) => !imported.has(name));
   const importLines = [
     ...extraImports,
-    ...(icons.length > 0 ? [`import { ${icons.sort().join(', ')} } from '${ICONS_MODULE}';`] : []),
+    ...(icons.length > 0
+      ? [ICONS_COMMENT, `import { ${icons.sort().join(', ')} } from '${ICONS_MODULE}';`]
+      : []),
     `import { ${members.join(', ')} } from '${input.importFrom ?? '@windmorph/react'}';`,
   ];
 
