@@ -131,6 +131,12 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               target never covers the label.
             </li>
             <li>
+              A selected <InlineCode>InputChip</InlineCode> without <InlineCode>onPress</InlineCode>{' '}
+              has no <InlineCode>aria-pressed</InlineCode> to carry its state, so it says it in
+              words (<InlineCode>labels.selected</InlineCode>, &ldquo;Selected&rdquo;): the remove
+              button&apos;s description, or hidden text on a static chip.
+            </li>
+            <li>
               Without a leading icon, a selected filter chip grows a check and its start padding
               moves 16 → 8px.
             </li>
