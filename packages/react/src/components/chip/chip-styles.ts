@@ -245,6 +245,23 @@ export const chipStyles = tv({
         root: 'data-selected:data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-1',
       },
     },
+    // A two-part chip's container is a plain element that never gets `data-hovered`; it rises
+    // while either of its buttons is hovered, and not while one is pressed or keyboard-focused.
+    {
+      split: 'two',
+      elevated: true,
+      class: {
+        root: 'has-data-hovered:not-has-data-pressed:not-has-data-focus-visible:not-data-dragged:shadow-elevation-2',
+      },
+    },
+    {
+      kind: 'filter',
+      split: 'two',
+      elevated: false,
+      class: {
+        root: 'data-selected:has-data-hovered:not-has-data-pressed:not-has-data-focus-visible:not-data-dragged:shadow-elevation-1',
+      },
+    },
     // A keyboard-focused flat chip's border darkens (Compose's Flat*FocusOutlineColor).
     {
       kind: ['assist', 'suggestion'],
