@@ -86,6 +86,11 @@ export async function DividerBody(): Promise<ComponentDoc> {
               It is a <InlineCode>div</InlineCode> rather than an <InlineCode>hr</InlineCode>, since
               an <InlineCode>hr</InlineCode> can&apos;t take a vertical orientation.
             </li>
+            <li>
+              It is decorative by default, hidden from assistive tech (M3: &ldquo;Dividers are
+              decorative elements&rdquo;); <InlineCode>decorative={'{false}'}</InlineCode> exposes
+              it as a <InlineCode>separator</InlineCode> where the line marks a real break.
+            </li>
           </ul>
         </section>
       </>

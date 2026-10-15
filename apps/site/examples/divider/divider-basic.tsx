@@ -3,8 +3,9 @@ import { Divider, LabeledDivider } from '@windmorph/react';
 /**
  * A divider is a 1px `outline-variant` line. Horizontal dividers span the full width;
  * `inset` leaves 16px at the start or at both ends (`middle`). A vertical divider fills
- * the height of a flex row. Mark purely visual ones `decorative` to hide them from
- * assistive tech. `LabeledDivider` adds supporting text below the line.
+ * the height of a flex row. Dividers are decorative, hidden from assistive tech; set
+ * `decorative={false}` where a line marks a real break between groups of content.
+ * `LabeledDivider` adds supporting text below the line.
  */
 export function DividerBasic() {
   return (

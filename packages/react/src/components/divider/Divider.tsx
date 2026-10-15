@@ -16,15 +16,17 @@ export interface DividerProps extends Omit<ComponentPropsWithRef<'div'>, 'childr
   /** Leave 16px at the start, or at both ends. @default "none" */
   inset?: DividerInset;
   /**
-   * Purely visual dividers (e.g. between list items that already read as separate) can
-   * be hidden from assistive tech. @default false
+   * M3 dividers are decorative, so by default the line is hidden from assistive tech
+   * (`role="none"`). Set `decorative={false}` where the line marks a real break between
+   * groups of content, to expose it as a `separator`. @default true
    */
   decorative?: boolean;
 }
 
 /**
  * M3 divider: a 1px `outline-variant` line, horizontal (full width) or vertical (full
- * height of a flex row), optionally inset.
+ * height of a flex row), optionally inset. It's decorative (M3: "Dividers are decorative
+ * elements") unless `decorative={false}` makes it a `separator`.
  *
  * @example
  * <Divider />
@@ -33,7 +35,7 @@ export interface DividerProps extends Omit<ComponentPropsWithRef<'div'>, 'childr
 export function Divider({
   orientation = 'horizontal',
   inset,
-  decorative = false,
+  decorative = true,
   className,
   ...rest
 }: DividerProps) {
@@ -63,7 +65,10 @@ export interface LabeledDividerProps extends Omit<ComponentPropsWithRef<'div'>, 
   children: ReactNode;
   /** Leave 16px at the start, or at both ends, of the line and the text. @default "none" */
   inset?: DividerInset;
-  /** Hides the line, not the text, from assistive tech. @default false */
+  /**
+   * The line is hidden from assistive tech, not the text; `decorative={false}` exposes it
+   * as a `separator`. @default true
+   */
   decorative?: boolean;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: LabeledDividerClassNames;
@@ -79,7 +84,7 @@ export interface LabeledDividerProps extends Omit<ComponentPropsWithRef<'div'>, 
 export function LabeledDivider({
   children,
   inset,
-  decorative,
+  decorative = true,
   classNames,
   className,
   ...rest

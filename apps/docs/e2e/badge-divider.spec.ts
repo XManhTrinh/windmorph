@@ -109,7 +109,7 @@ test.describe('Divider', () => {
   test('a labeled divider puts its text 4px below the line', async ({ page }) => {
     await openStory(page, 'components-divider--dividers');
     const root = page.getByTestId('labeled');
-    const line = await rect(root.getByRole('separator'));
+    const line = await rect(root.locator('[data-tokens="md-comp-divider"]'));
     const text = await rect(root.getByText('Inset supporting text'));
     expect(text.y - line.bottom).toBe(4);
     expect((await rect(root)).bottom - text.bottom).toBe(8);

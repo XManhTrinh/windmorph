@@ -5,7 +5,7 @@ import { Divider, LabeledDivider } from './Divider';
 
 describe('Divider', () => {
   it('renders a 1px outline-variant horizontal separator', async () => {
-    const { container } = render(<Divider className="my-4" />);
+    const { container } = render(<Divider decorative={false} className="my-4" />);
     const divider = screen.getByRole('separator');
     expect(divider).toHaveClass(
       'h-px',
@@ -20,8 +20,8 @@ describe('Divider', () => {
   });
 
   it('lets a consumer colour class replace the token class', () => {
-    render(<Divider className="bg-primary" />);
-    const divider = screen.getByRole('separator');
+    render(<Divider className="bg-primary" data-testid="d" />);
+    const divider = screen.getByTestId('d');
     expect(divider).toHaveClass('bg-primary', 'bg-clip-content');
     expect(divider).not.toHaveClass('bg-[var(--_md-comp-divider-color)]');
   });
@@ -29,7 +29,7 @@ describe('Divider', () => {
   it('renders vertical and inset dividers', () => {
     render(
       <>
-        <Divider orientation="vertical" inset="middle" data-testid="vertical" />
+        <Divider orientation="vertical" inset="middle" decorative={false} data-testid="vertical" />
         <Divider inset="start" data-testid="start" />
         <Divider inset="middle" data-testid="middle" />
       </>,
@@ -45,17 +45,30 @@ describe('Divider', () => {
     expect(screen.getByTestId('middle')).toHaveClass('ps-[16px]', 'pe-[16px]');
   });
 
-  it('can be decorative', () => {
-    render(<Divider decorative data-testid="d" />);
+  it('is decorative by default (M3), and a separator on request', () => {
+    render(
+      <>
+        <Divider data-testid="d" />
+        <Divider orientation="vertical" data-testid="v" />
+      </>,
+    );
     expect(screen.queryByRole('separator')).toBe(null);
     expect(screen.getByTestId('d')).toHaveAttribute('role', 'none');
+    expect(screen.getByTestId('v')).not.toHaveAttribute('aria-orientation');
+    render(<Divider decorative={false} />);
+    expect(screen.getByRole('separator')).toBeInTheDocument();
   });
 });
 
 describe('LabeledDivider', () => {
   it('puts supporting text 4px below the line, 8px clear at the end and below', async () => {
     const { container } = render(
-      <LabeledDivider inset="start" data-testid="root" classNames={{ label: 'custom' }}>
+      <LabeledDivider
+        inset="start"
+        decorative={false}
+        data-testid="root"
+        classNames={{ label: 'custom' }}
+      >
         Earlier this week
       </LabeledDivider>,
     );
