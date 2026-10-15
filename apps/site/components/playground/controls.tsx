@@ -315,8 +315,8 @@ function AdvancedFold({ count, children }: { count: number; children: ReactNode 
  * on a second edge from the fields. A panel narrower than 320px has one column: every control
  * under its name.
  *
- * The panel is a dense tool, so its fields and selects (and their option lists) use density -2:
- * 48px fields, which keep 48px targets.
+ * The panel is a dense tool, so it uses density -2: 48px fields and selects (and 36px option
+ * rows), 24px info buttons and switches with a smaller state layer, all with 48px targets.
  */
 export function ControlGroups({
   controls,

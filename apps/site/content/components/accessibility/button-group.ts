@@ -57,6 +57,7 @@ export const buttonGroup: ComponentAccessibility = {
   touchTarget: [
     'Extra-small and small buttons keep their invisible 48 × 48px touch targets. A standard group spaces them 18px (XS) and 12px (S) apart, so the targets of neighbours never overlap.',
     'In a connected group, extra-small and small icon buttons are at least 48px wide; buttons sit 2px apart at every size.',
+    "A group follows the density of the icon buttons inside (the theme's or a `ThemeScope`'s): they get smaller and keep their gaps and 48px targets, which can meet in the gaps but never reach a neighbour.",
   ],
   motion: [
     "Under reduced motion a pressed button doesn't grow into its neighbours' space, and the press and selection morphs snap to their new corners. Colours still fade.",

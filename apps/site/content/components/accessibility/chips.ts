@@ -76,6 +76,7 @@ export const chips: ComponentAccessibility = {
     'Chips are at least 32px tall. An invisible `TouchTarget` gives each chip a 48px-tall touch target without changing its layout.',
     'The remove button is 24px with its own 48 × 48px `TouchTarget`. A chip with a remove button is at least 88px wide, so that target never covers the label.',
     'A scrolling `ChipSet` (`layout="scroll"`) pads its row so the touch targets and focus rings stay inside the scroll area.',
+    "With `density` (or the theme's), chips lose 4px a step, to 24px at -2 and -3, and keep their 48px targets, as M3 asks of chips at every density. A wrapping `ChipSet` puts 2px more between rows a step (12px at -2 and -3), and a scrolling one pads its row by as much, so a chip's target never reaches the chips above or below it.",
   ],
   motion: [
     "Under reduced motion a filter chip's check and its padding change appear at once instead of sliding open, and the check fades in. The press ripple appears at full size without growing. Colours and elevation still fade.",

@@ -289,6 +289,16 @@ export default async function ThemingPage() {
           their 48px targets are part of their accessibility.
         </p>
         <p className="text-body-large text-on-surface-variant">
+          The controls follow too, after Material Components Web&apos;s density: checkboxes and
+          radio buttons shrink their state layer from 40px to 28px (a radio group puts 2px more
+          between its rows a step), a switch its state layer from 40px to 32px, chips go from 32px
+          to 24px (a chip set adds 2px a step between rows), icon buttons lose 4px of height and
+          width at every size (a small one 40px to 28px), so button groups of them follow, tabs go
+          from 48px to 36px (64px to 52px with icons above), and list items lose 4px a step (one
+          line 56px to 44px), section subheaders too. Icon buttons in a text field&apos;s icon slots
+          and on the pickers keep their size.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
           Set it app-wide with <InlineCode>ThemeProvider</InlineCode> (
           <InlineCode>density</InlineCode> / <InlineCode>defaultDensity</InlineCode> /{' '}
           <InlineCode>onDensityChange</InlineCode>, and <InlineCode>setDensity</InlineCode> on{' '}
@@ -317,10 +327,14 @@ export default async function ThemingPage() {
           </li>
           <li>
             <span className="text-on-surface">Targets.</span> A dense field still answers a press
-            within 48px of its centre, and its icon buttons keep 48px targets. Dense menu items (40,
-            36 and 32px) are stacked rows, so their targets can&apos;t reach 48px without
-            overlapping the next item; they stay above WCAG 2.5.8&apos;s 24px minimum, and density
-            is the reader&apos;s own choice.
+            within 48px of its centre, and its icon buttons keep 48px targets. Dense checkboxes,
+            radio buttons, switches, chips and icon buttons keep 48 × 48px targets that reach past
+            their containers (M3: chips &quot;must also have a minimum 48dp target size, regardless
+            of placement or density&quot;), and the chip sets and radio groups that stack them add
+            space so a target never reaches a neighbour. Dense menu items (40, 36 and 32px), tabs
+            and list items are adjacent rows, so their targets can&apos;t reach 48px without
+            overlapping the next one; they stay above WCAG 2.5.8&apos;s 24px minimum, and density is
+            the reader&apos;s own choice.
           </li>
         </ul>
       </section>

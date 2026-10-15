@@ -24,6 +24,7 @@ export const checkbox: ComponentAccessibility = {
   ],
   touchTarget: [
     'The 18px box sits in a 40px control with an invisible 48 × 48px touch target. The whole label is part of the target too, since the root is a `<label>`.',
+    "With `density` (or the theme's), the control loses 4px a step, to 28px at -3, and the 48 × 48px target stays, reaching past the control. M3 asks not to apply density by default: offer it as the reader's choice. Checkboxes you stack yourself overlap their targets when dense, so leave 2px a step between them, or use a `List` of checkbox items.",
   ],
   motion: [
     'Under reduced motion the check mark appears at once instead of drawing in, and the box fills with a fade only. The press ripple appears at full size without growing.',

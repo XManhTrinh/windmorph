@@ -15,6 +15,10 @@ const IconButtonToggleVariants = lazyExample(
   'icon-button/icon-button-toggle-variants',
   'IconButtonToggleVariants',
 );
+const IconButtonDensityExample = lazyExample(
+  'icon-button/icon-button-density',
+  'IconButtonDensity',
+);
 
 /** IconButton page body. */
 export async function IconButtonBody(): Promise<ComponentDoc> {
@@ -40,6 +44,8 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
     highlightSource(rotateSrc),
   ]);
 
+  const densitySource = await readExampleSource('icon-button/icon-button-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [iconButtonTokenSet],
     overview: (
@@ -95,6 +101,14 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             fileName="icon-button-toggle-variants.tsx"
           >
             <IconButtonToggleVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="icon-button-density.tsx"
+          >
+            <IconButtonDensityExample />
           </ExampleViewer>
         </section>
       </>

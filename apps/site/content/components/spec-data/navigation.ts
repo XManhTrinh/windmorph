@@ -224,6 +224,11 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         examples: ['tabs/tabs-badges'],
       },
       { name: 'Swipe between fixed tabs', kind: 'use case', examples: ['tabs/tabs-badges'] },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['tabs/tabs-density'],
+      },
     ],
     extensions: [
       {

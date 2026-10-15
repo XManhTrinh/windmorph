@@ -14,6 +14,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const ChipsAssistSuggestion = lazyExample('chips/chips-assist-suggestion', 'ChipsAssistSuggestion');
 const ChipsFilter = lazyExample('chips/chips-filter', 'ChipsFilter');
 const ChipsInput = lazyExample('chips/chips-input', 'ChipsInput');
+const ChipsDensityExample = lazyExample('chips/chips-density', 'ChipsDensity');
 
 /** Chips page body: assist, suggestion, filter and input chips, and the chip set. */
 export async function ChipsBody(): Promise<ComponentDoc> {
@@ -28,6 +29,8 @@ export async function ChipsBody(): Promise<ComponentDoc> {
     highlightSource(input),
   ]);
 
+  const densitySource = await readExampleSource('chips/chips-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [assistChipTokenSet, suggestionChipTokenSet, filterChipTokenSet, inputChipTokenSet],
     overview: (
@@ -59,6 +62,14 @@ export async function ChipsBody(): Promise<ComponentDoc> {
             fileName="chips-input.tsx"
           >
             <ChipsInput />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="chips-density.tsx"
+          >
+            <ChipsDensityExample />
           </ExampleViewer>
         </section>
       </>

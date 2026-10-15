@@ -264,6 +264,11 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['checkbox/checkbox-indeterminate'],
       },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['checkbox/checkbox-density'],
+      },
     ],
     differences: [
       {
@@ -307,6 +312,11 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         name: 'Choose one option from a set',
         kind: 'use case',
         examples: ['radio-group/radio-group-basic', 'radio-group/radio-group-horizontal'],
+      },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['radio-group/radio-group-density'],
       },
     ],
     extensions: [
@@ -354,6 +364,11 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         name: 'Turn a single setting on or off',
         kind: 'use case',
         examples: ['switch/switch-basic'],
+      },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['switch/switch-density'],
       },
     ],
     compose: [
@@ -455,6 +470,11 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       { name: 'Filter content', kind: 'use case', examples: ['chips/chips-filter'] },
       { name: 'Entries a person added', kind: 'use case', examples: ['chips/chips-input'] },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['chips/chips-density'],
+      },
     ],
     extensions: [
       {

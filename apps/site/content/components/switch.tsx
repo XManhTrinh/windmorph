@@ -9,6 +9,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const SwitchBasic = lazyExample('switch/switch-basic', 'SwitchBasic');
 const SwitchIcons = lazyExample('switch/switch-icons', 'SwitchIcons');
 const SwitchStates = lazyExample('switch/switch-states', 'SwitchStates');
+const SwitchDensityExample = lazyExample('switch/switch-density', 'SwitchDensity');
 
 /** Switch page body. */
 export async function SwitchBody(): Promise<ComponentDoc> {
@@ -23,6 +24,8 @@ export async function SwitchBody(): Promise<ComponentDoc> {
     highlightSource(states),
   ]);
 
+  const densitySource = await readExampleSource('switch/switch-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [switchTokenSet],
     overview: (
@@ -49,6 +52,14 @@ export async function SwitchBody(): Promise<ComponentDoc> {
             fileName="switch-states.tsx"
           >
             <SwitchStates />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="switch-density.tsx"
+          >
+            <SwitchDensityExample />
           </ExampleViewer>
         </section>
       </>

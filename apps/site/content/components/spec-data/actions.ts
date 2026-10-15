@@ -123,6 +123,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         kind: 'configuration',
         examples: ['icon-button/icon-button-sizes'],
       },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['icon-button/icon-button-density'],
+      },
     ],
     extensions: [
       {
@@ -217,6 +222,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         name: 'Overflow menu at smaller widths',
         kind: 'use case',
         examples: ['button-group/button-group-overflow'],
+      },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['button-group/button-group-density'],
       },
     ],
     extensions: [

@@ -115,6 +115,9 @@ export function loose<P>(component: ComponentType<P>): ComponentType<Record<stri
 /** A no-op change handler so controlled inputs driven by the panel don't warn in preview. */
 export const noop = () => {};
 
+/** The density control's choices (0 to -3), as `enumOptions` with `controlKinds: 'number'`. */
+export const DENSITY_OPTIONS = { density: ['0', '-1', '-2', '-3'] };
+
 /** A density control's value (`"-2"`) as the number the prop takes; nothing when unset. */
 export const asDensity = (value: unknown) =>
   value == null || value === '' ? undefined : (Number(value) as 0 | -1 | -2 | -3);

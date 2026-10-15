@@ -1,0 +1,5 @@
+---
+'@windmorph/react': minor
+---
+
+Web density for the controls. `Checkbox`, `RadioGroup` and `Radio`, `Switch`, the chips (`AssistChip`, `SuggestionChip`, `FilterChip`, `InputChip`) and `ChipSet`, `IconButton`, `Tabs` and `List` take a `density` prop (`0` to `-3`) and otherwise follow the theme's (`ThemeProvider` / `ThemeScope`), after Material Components Web's density: checkbox and radio state layers 40px to 28px, the switch's state layer 40px to 32px (the track stays), chips 32px to 24px, icon buttons 4px off height and width at every size (S 40px to 28px; button groups of them follow), tabs 48px to 36px (64px to 52px with icons above), and list items 4px a step (one line 56px to 44px) with their subheaders. Checkboxes, radio buttons, switches, chips and icon buttons keep 48 × 48px touch targets; `RadioGroup` and `ChipSet` add 2px a step between rows so a target never reaches a neighbour, and tabs and list items keep full-row targets. Icon buttons in a text field's icon slots and on the pickers, and `Autocomplete`'s chips, keep their size. Density 0 renders exactly as before.

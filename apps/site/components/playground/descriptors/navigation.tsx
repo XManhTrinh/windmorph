@@ -35,7 +35,13 @@ import {
   SendIcon,
   StarIcon,
 } from '../../icons';
-import { type PlaygroundDescriptor, type PlaygroundUpdate, loose } from './shared';
+import {
+  DENSITY_OPTIONS,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+  asDensity,
+  loose,
+} from './shared';
 
 const TabsAny = loose(Tabs);
 const TabAny = loose(Tab);
@@ -366,7 +372,12 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     render: (props) =>
       createElement(
         TabsAny,
-        { ...props, 'aria-label': 'Inbox', className: 'w-full max-w-[480px]' },
+        {
+          ...props,
+          density: asDensity(props.density),
+          'aria-label': 'Inbox',
+          className: 'w-full max-w-[480px]',
+        },
         createElement(
           TabAny,
           { key: 'all', title: 'All', icon: <StarIcon /> },
@@ -396,16 +407,20 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       align: 'stretch',
       swipeable: false,
       keyboardActivation: 'manual',
+      density: 0,
     },
     surfacedProps: [
       'variant',
       'scrollable',
       'iconPlacement',
       'align',
+      'density',
       'swipeable',
       'keyboardActivation',
     ],
     initialState: { variant: 'primary' },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { density: 'number' },
     importMembers: ['Tab'],
     codeSlots: { 'aria-label': '"Inbox"' },
     codeChildren:

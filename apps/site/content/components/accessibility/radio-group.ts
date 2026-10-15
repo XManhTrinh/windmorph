@@ -38,6 +38,7 @@ export const radioGroup: ComponentAccessibility = {
   ],
   touchTarget: [
     'Each 20px ring sits in a 40px control with an invisible 48 × 48px touch target. The whole label is part of the target too, since each option is a `<label>`.',
+    "With `density` (or the theme's), each control loses 4px a step, to 28px at -3, and the group puts 2px more between rows a step, so an option's 48 × 48px target never reaches the next option's ring. M3 asks not to apply density by default: offer it as the reader's choice.",
   ],
   motion: [
     'Under reduced motion the dot appears at full size instead of growing in, and the colours still fade. The press ripple appears at full size without growing.',

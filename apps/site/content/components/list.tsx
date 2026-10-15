@@ -16,6 +16,7 @@ const ListStatic = lazyExample('list/list-static', 'ListStatic');
 const ListToggles = lazyExample('list/list-toggles', 'ListToggles');
 const ListSections = lazyExample('list/list-sections', 'ListSections');
 const ListSelection = lazyExample('list/list-selection', 'ListSelection');
+const ListDensityExample = lazyExample('list/list-density', 'ListDensity');
 
 /**
  * List page body: static, media, dividers and line limits, link, interactive, switch and
@@ -58,6 +59,8 @@ export async function ListBody(): Promise<ComponentDoc> {
   const sections = await readExampleSource('list/list-sections.tsx');
   const sectionsHtml = await highlightSource(sections);
 
+  const densitySource = await readExampleSource('list/list-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [listTokenSet],
     overview: (
@@ -135,6 +138,14 @@ export async function ListBody(): Promise<ComponentDoc> {
             fileName="list-expandable.tsx"
           >
             <ListExpandable />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="list-density.tsx"
+          >
+            <ListDensityExample />
           </ExampleViewer>
         </section>
       </>

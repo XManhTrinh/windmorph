@@ -12,6 +12,7 @@ const CheckboxIndeterminate = lazyExample(
   'CheckboxIndeterminate',
 );
 const CheckboxStates = lazyExample('checkbox/checkbox-states', 'CheckboxStates');
+const CheckboxDensityExample = lazyExample('checkbox/checkbox-density', 'CheckboxDensity');
 
 /** Checkbox page body. */
 export async function CheckboxBody(): Promise<ComponentDoc> {
@@ -26,6 +27,8 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
     highlightSource(states),
   ]);
 
+  const densitySource = await readExampleSource('checkbox/checkbox-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [checkboxTokenSet],
     overview: (
@@ -52,6 +55,14 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
             fileName="checkbox-states.tsx"
           >
             <CheckboxStates />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="checkbox-density.tsx"
+          >
+            <CheckboxDensityExample />
           </ExampleViewer>
         </section>
       </>

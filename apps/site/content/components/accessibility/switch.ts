@@ -27,6 +27,7 @@ export const switchControl: ComponentAccessibility = {
   ],
   touchTarget: [
     'The track is 52 × 32px. An invisible `TouchTarget` makes its hit area 52 × 48px without changing the layout, and the whole `<label>`, text included, toggles the switch.',
+    "`density` (or the theme's) only shrinks the state layer around the thumb, 40px to 32px; the track and the 52 × 48px target stay.",
   ],
   motion: [
     'Under reduced motion the thumb jumps to the other end and changes size at once; its colours still fade. The press ripple appears at full size without growing. Pressing or dragging snaps the thumb in every mode.',

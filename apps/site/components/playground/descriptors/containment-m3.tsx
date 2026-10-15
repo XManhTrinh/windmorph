@@ -34,7 +34,7 @@ import {
   SendIcon,
   StarIcon,
 } from '../../icons';
-import { type PlaygroundDescriptor, loose } from './shared';
+import { DENSITY_OPTIONS, type PlaygroundDescriptor, asDensity, loose } from './shared';
 
 const CardAny = loose(Card);
 const ListAny = loose(List);
@@ -426,7 +426,15 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     },
     // On a rounded surface, as a sheet or card would hold it: the segmented gaps show the
     // surface, and its corners (16px item corners + 12px padding) follow the items'.
-    render: ({ value, dividers, disabledKeys, headlineLines, supportingTextLines, ...props }) =>
+    render: ({
+      value,
+      dividers,
+      disabledKeys,
+      headlineLines,
+      supportingTextLines,
+      density,
+      ...props
+    }) =>
       createElement(
         'div',
         { className: 'w-full max-w-sm rounded-corner-extra-large bg-surface-container p-3' },
@@ -442,6 +450,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             disabledKeys: disabledKeys === true ? ['priya'] : undefined,
             headlineLines: asNumber(headlineLines),
             supportingTextLines: asNumber(supportingTextLines),
+            density: asDensity(density),
           },
           ...CONTACTS.map(({ key, name, role }) =>
             createElement(ListItemAny, { key, value: key, supportingText: role }, name),
@@ -459,6 +468,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       controlPlacement: 'leading',
       dividers: NONE,
       selectionIndicator: true,
+      density: 0,
     },
     surfacedProps: [
       'variant',
@@ -473,9 +483,11 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'selectionIndicator',
       'headlineLines',
       'supportingTextLines',
+      'density',
     ],
     initialState: { variant: 'segmented' },
     enumOptions: {
+      ...DENSITY_OPTIONS,
       value: [NONE, ...CONTACTS.map(({ key }) => key)],
       dividers: [NONE, 'full', 'inset'],
     },
@@ -484,6 +496,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       disabledKeys: 'boolean',
       headlineLines: 'number',
       supportingTextLines: 'number',
+      density: 'number',
     },
     toggledSlots: { disabledKeys: "['priya']" },
     numberRanges: {

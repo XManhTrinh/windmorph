@@ -390,6 +390,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       { name: 'Expand and collapse', kind: 'configuration', examples: ['list/list-expandable'] },
       { name: 'Images, video and avatars', kind: 'use case', examples: ['list/list-media'] },
       { name: 'Dividers and line limits', kind: 'use case', examples: ['list/list-dividers'] },
+      {
+        name: 'Density (web, chosen by the reader)',
+        kind: 'use case',
+        examples: ['list/list-density'],
+      },
     ],
     extensions: [
       {

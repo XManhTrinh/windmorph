@@ -26,6 +26,10 @@ const ButtonGroupOverflow = lazyExample(
   'button-group/button-group-overflow',
   'ButtonGroupOverflow',
 );
+const ButtonGroupDensityExample = lazyExample(
+  'button-group/button-group-density',
+  'ButtonGroupDensity',
+);
 
 /** ButtonGroup page body. */
 export async function ButtonGroupBody(): Promise<ComponentDoc> {
@@ -51,6 +55,8 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
     highlightSource(overflowSrc),
   ]);
 
+  const densitySource = await readExampleSource('button-group/button-group-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     overview: (
       <>
@@ -105,6 +111,14 @@ export async function ButtonGroupBody(): Promise<ComponentDoc> {
             fileName="button-group-overflow.tsx"
           >
             <ButtonGroupOverflow />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="button-group-density.tsx"
+          >
+            <ButtonGroupDensityExample />
           </ExampleViewer>
         </section>
       </>

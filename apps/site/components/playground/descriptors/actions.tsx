@@ -18,6 +18,8 @@ import { AddIcon, CloseIcon, EditIcon, SendIcon, StarIcon, StarOutlineIcon } fro
 import {
   ADD,
   adjustToggleForm,
+  asDensity,
+  DENSITY_OPTIONS,
   EDIT,
   loose,
   type PlaygroundDescriptor,
@@ -125,9 +127,10 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   'icon-button': {
     component: 'IconButton',
-    render: ({ selectedIcon, toggle, selected, ...props }, update) =>
+    render: ({ selectedIcon, toggle, selected, density, ...props }, update) =>
       createElement(IconButtonAny, {
         ...props,
+        density: asDensity(density),
         'aria-label': 'Favourite',
         icon: <StarOutlineIcon />,
         ...(selectedIcon === true && { selectedIcon: <StarIcon /> }),
@@ -142,6 +145,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       size: 'sm',
       width: 'default',
       shape: 'round',
+      density: 0,
       tooltip: true,
       toggle: false,
       selected: false,
@@ -155,6 +159,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'size',
       'width',
       'shape',
+      'density',
       'toggle',
       'selected',
       'selectedIcon',
@@ -177,7 +182,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       if (next.toggle !== true || next.selectedIcon !== true) next.iconTransition = 'swap';
       return next;
     },
-    controlKinds: { selectedIcon: 'boolean' },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { selectedIcon: 'boolean', density: 'number' },
     toggledSlots: { selectedIcon: STAR },
     notControlled: NO_VISIBLE_EFFECT,
     codeSlots: { icon: STAR_OUTLINE, 'aria-label': '"Favourite"' },

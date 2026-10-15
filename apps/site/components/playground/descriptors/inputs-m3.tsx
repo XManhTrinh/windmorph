@@ -26,7 +26,7 @@ import {
   VolumeDownIcon,
   VolumeUpIcon,
 } from '../../icons';
-import { EDIT, type PlaygroundDescriptor, asDensity, loose } from './shared';
+import { DENSITY_OPTIONS, EDIT, type PlaygroundDescriptor, asDensity, loose } from './shared';
 
 const TextFieldAny = loose(TextField);
 const CheckboxAny = loose(Checkbox);
@@ -46,9 +46,6 @@ const CLOSE = '<CloseIcon />';
 const HELP = '<HelpIcon />';
 const MAIL = '<MailIcon />';
 const SORT = '<SortIcon />';
-
-/** The density control the fields share (0 to -3). */
-const DENSITY_OPTIONS = { density: ['0', '-1', '-2', '-3'] };
 
 /** A switched-on slot's live icon; nothing while it's switched off. */
 function slot(on: unknown, icon: () => ReactElement): ReactElement | undefined {
@@ -298,6 +295,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         CheckboxAny,
         {
           ...props,
+          density: asDensity(props.density),
           selected: props.selected === true,
           onSelectedChange: (selected: boolean) => update('selected', selected),
         },
@@ -306,13 +304,24 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       selected: false,
       indeterminate: false,
+      density: 0,
       disabled: false,
       readOnly: false,
       required: false,
       invalid: false,
     },
-    surfacedProps: ['selected', 'indeterminate', 'disabled', 'readOnly', 'required', 'invalid'],
+    surfacedProps: [
+      'selected',
+      'indeterminate',
+      'density',
+      'disabled',
+      'readOnly',
+      'required',
+      'invalid',
+    ],
     initialState: { selected: true },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { density: 'number' },
     codeChildren: 'I accept the terms',
   },
   'radio-group': {
@@ -324,12 +333,18 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     render: (props) =>
       createElement(
         RadioGroupAny,
-        { ...props, defaultValue: 'standard', errorMessage: 'Choose a delivery option.' },
+        {
+          ...props,
+          density: asDensity(props.density),
+          defaultValue: 'standard',
+          errorMessage: 'Choose a delivery option.',
+        },
         createElement(RadioAny, { key: 'standard', value: 'standard' }, 'Standard'),
         createElement(RadioAny, { key: 'express', value: 'express' }, 'Express'),
       ),
     defaultProps: {
       orientation: 'vertical',
+      density: 0,
       disabled: false,
       readOnly: false,
       required: false,
@@ -339,13 +354,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'label',
       'supportingText',
       'orientation',
+      'density',
       'disabled',
       'readOnly',
       'required',
       'invalid',
     ],
     initialState: { label: 'Delivery', orientation: 'vertical' },
-    enumOptions: { orientation: ['vertical', 'horizontal'] },
+    enumOptions: { ...DENSITY_OPTIONS, orientation: ['vertical', 'horizontal'] },
+    controlKinds: { density: 'number' },
     importMembers: ['Radio'],
     codeSlots: { defaultValue: '"standard"' },
     codeChildren:
@@ -358,6 +375,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         SwitchAny,
         {
           ...props,
+          density: asDensity(props.density),
           selected: props.selected === true,
           selectedIcon: slot(props.selectedIcon, () => createElement(DarkModeIcon)),
           unselectedIcon: slot(props.unselectedIcon, () => createElement(LightModeIcon)),
@@ -372,10 +390,20 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       icons: false,
       selectedIcon: false,
       unselectedIcon: false,
+      density: 0,
     },
-    surfacedProps: ['selected', 'disabled', 'readOnly', 'icons', 'selectedIcon', 'unselectedIcon'],
+    surfacedProps: [
+      'selected',
+      'disabled',
+      'readOnly',
+      'icons',
+      'selectedIcon',
+      'unselectedIcon',
+      'density',
+    ],
     initialState: { selected: true },
-    controlKinds: { selectedIcon: 'boolean', unselectedIcon: 'boolean' },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { selectedIcon: 'boolean', unselectedIcon: 'boolean', density: 'number' },
     toggledSlots: { selectedIcon: '<DarkModeIcon />', unselectedIcon: '<LightModeIcon />' },
     codeChildren: 'Dark theme',
   },
@@ -458,6 +486,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         AssistChipAny,
         {
           ...props,
+          density: asDensity(props.density),
           leadingIcon: slot(props.leadingIcon, () => createElement(EditIcon)),
           href: props.href === '' ? undefined : props.href,
         },
@@ -466,13 +495,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       elevated: false,
       outline: 'standard',
+      density: 0,
       disabled: false,
       dragged: false,
       leadingIcon: false,
     },
-    surfacedProps: ['elevated', 'outline', 'leadingIcon', 'disabled', 'dragged', 'href'],
+    surfacedProps: ['elevated', 'outline', 'density', 'leadingIcon', 'disabled', 'dragged', 'href'],
     initialState: { leadingIcon: true },
-    controlKinds: { leadingIcon: 'boolean' },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { leadingIcon: 'boolean', density: 'number' },
     toggledSlots: { leadingIcon: EDIT },
     notControlled: {
       elementType:

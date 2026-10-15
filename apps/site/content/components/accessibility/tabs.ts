@@ -37,6 +37,7 @@ export const tabs: ComponentAccessibility = {
   touchTarget: [
     'Tabs with text, icons before labels, or icons only are at least 48px tall; tabs with icons above labels are at least 64px tall.',
     "Fixed tabs share the row's width; scrollable tabs are at least 90px wide.",
+    "With `density` (or the theme's), tabs lose 4px a step, to 36px (52px with icons above) at -3. They sit side by side in one row, so like dense menu items they keep full-height targets of their own, above WCAG 2.5.8's 24px minimum, rather than reaching outside the row. M3 asks not to apply density by default: offer it as the reader's choice.",
   ],
   motion: [
     'Under reduced motion the indicator jumps to the selected tab instead of sliding, and a scrollable row scrolls to it at once. Colours still fade, and the press ripple appears at full size without growing.',

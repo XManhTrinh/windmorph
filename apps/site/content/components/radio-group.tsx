@@ -12,6 +12,10 @@ const RadioGroupHorizontal = lazyExample(
   'RadioGroupHorizontal',
 );
 const RadioGroupStates = lazyExample('radio-group/radio-group-states', 'RadioGroupStates');
+const RadioGroupDensityExample = lazyExample(
+  'radio-group/radio-group-density',
+  'RadioGroupDensity',
+);
 
 /** RadioGroup + Radio page body. */
 export async function RadioGroupBody(): Promise<ComponentDoc> {
@@ -26,6 +30,8 @@ export async function RadioGroupBody(): Promise<ComponentDoc> {
     highlightSource(states),
   ]);
 
+  const densitySource = await readExampleSource('radio-group/radio-group-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [radioTokenSet],
     overview: (
@@ -57,6 +63,14 @@ export async function RadioGroupBody(): Promise<ComponentDoc> {
             fileName="radio-group-states.tsx"
           >
             <RadioGroupStates />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="radio-group-density.tsx"
+          >
+            <RadioGroupDensityExample />
           </ExampleViewer>
         </section>
       </>

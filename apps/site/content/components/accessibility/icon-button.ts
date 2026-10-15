@@ -29,6 +29,7 @@ export const iconButton: ComponentAccessibility = {
   touchTarget: [
     'Medium, large and extra-large icon buttons (56, 96 and 136px tall, 48px wide or more) meet the 48px minimum.',
     'Extra-small and small icon buttons (32 and 40px tall, 28 to 52px wide) get an invisible 48 × 48px touch target inside the button; their layout size stays the same.',
+    "With `density` (or the theme's), every size loses 4px of height and width a step (never below the icon plus 4px), and the 48 × 48px target stays: a medium icon button gets one too once it's under 48px. M3 asks not to apply density to icon buttons by default, and keeps the controls that change density at 48px: offer it as the reader's choice. Icon buttons in a text field's icon slots keep their size.",
   ],
   motion: [
     'Under reduced motion the press and selection morphs snap to their new corners, and the press ripple appears at full size without growing. Colours still fade.',

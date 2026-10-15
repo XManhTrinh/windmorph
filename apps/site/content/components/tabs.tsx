@@ -10,6 +10,7 @@ const TabsBadges = lazyExample('tabs/tabs-badges', 'TabsBadges');
 const TabsPrimary = lazyExample('tabs/tabs-primary', 'TabsPrimary');
 const TabsScrollable = lazyExample('tabs/tabs-scrollable', 'TabsScrollable');
 const TabsSecondary = lazyExample('tabs/tabs-secondary', 'TabsSecondary');
+const TabsDensityExample = lazyExample('tabs/tabs-density', 'TabsDensity');
 
 /** Tabs page body: primary, secondary and scrollable rows, badges and alignment. */
 export async function TabsBody(): Promise<ComponentDoc> {
@@ -26,6 +27,8 @@ export async function TabsBody(): Promise<ComponentDoc> {
     highlightSource(badges),
   ]);
 
+  const densitySource = await readExampleSource('tabs/tabs-density.tsx');
+  const densityHtml = await highlightSource(densitySource);
   return {
     tokens: [tabsTokenSet],
     overview: (
@@ -65,6 +68,14 @@ export async function TabsBody(): Promise<ComponentDoc> {
             fileName="tabs-badges.tsx"
           >
             <TabsBadges />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Density"
+            code={densitySource}
+            html={densityHtml}
+            fileName="tabs-density.tsx"
+          >
+            <TabsDensityExample />
           </ExampleViewer>
         </section>
       </>
