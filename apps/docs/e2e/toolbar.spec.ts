@@ -188,6 +188,27 @@ test.describe('Toolbar keyboard (M3: Tab or arrows)', () => {
     });
   }
 
+  // Re-audit 2026-10-15 (the spec: docked toolbar "Color: Standard or vibrant").
+  test('a vibrant docked toolbar is primary-container, its icons on-primary-container', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-toolbar--docked');
+    const vibrant = page.getByRole('toolbar', { name: 'vibrant' });
+    const roles = await vibrant.evaluate((el) => {
+      const role = (name: string) => {
+        const probe = document.createElement('div');
+        probe.style.color = `var(--md-sys-color-${name})`;
+        el.append(probe);
+        const value = getComputedStyle(probe).color;
+        probe.remove();
+        return value;
+      };
+      return { container: role('primary-container'), content: role('on-primary-container') };
+    });
+    await expect(vibrant).toHaveCSS('background-color', roles.container);
+    await expect(vibrant.getByRole('button', { name: 'Search' })).toHaveCSS('color', roles.content);
+  });
+
   test('Tab goes through a docked toolbar and on to the next one', async ({ page }) => {
     await openStory(page, 'components-toolbar--docked');
     const first = ['Search', 'Starred', 'Sent', 'Compose'];

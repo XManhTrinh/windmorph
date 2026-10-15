@@ -126,7 +126,9 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
             bar). Its items sit centred 32px apart by default; for the spec&apos;s alternative,
             centred 8px apart, add <InlineCode>className=&quot;gap-2&quot;</InlineCode>. In compact
             windows, spread them evenly with{' '}
-            <InlineCode>arrangement=&quot;space-between&quot;</InlineCode>. A{' '}
+            <InlineCode>arrangement=&quot;space-between&quot;</InlineCode>. Like the floating
+            toolbar, it comes in <InlineCode>standard</InlineCode> or{' '}
+            <InlineCode>vibrant</InlineCode> colours (<InlineCode>color</InlineCode>). A{' '}
             <InlineCode>FloatingToolbar</InlineCode> is a pill that floats above the content,
             horizontal (16px from the window&apos;s edge) or vertical (24px), in{' '}
             <InlineCode>standard</InlineCode> or <InlineCode>vibrant</InlineCode> colours. It is

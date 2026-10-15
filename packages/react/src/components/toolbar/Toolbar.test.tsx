@@ -36,6 +36,30 @@ describe('DockedToolbar', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  it('takes the vibrant colour, recolouring its icon buttons as a floating toolbar does', async () => {
+    // Re-audit 2026-10-15 (the spec: docked toolbar "Color: Standard or vibrant").
+    const { container } = render(
+      <DockedToolbar aria-label="Tools" color="vibrant">
+        <IconButton icon={<Icon />} aria-label="Pen" />
+        <IconButton toggle variant="tonal" defaultSelected icon={<Icon />} aria-label="Bold" />
+      </DockedToolbar>,
+    );
+    const toolbar = screen.getByRole('toolbar');
+    expect(toolbar).toHaveAttribute('data-color', 'vibrant');
+    expect(toolbar).toHaveClass(
+      'bg-primary-container',
+      'text-on-primary-container',
+      '[--md-comp-icon-button-icon-color:currentColor]',
+    );
+    expect(toolbar).not.toHaveClass('bg-[var(--_md-comp-toolbar-docked-container-color)]');
+    expect(toolbar).not.toHaveClass('text-on-surface-variant');
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(
+      'data-selected:not-data-disabled:bg-surface-container',
+      'data-selected:not-data-disabled:text-on-surface',
+    );
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('spreads its items out for compact windows', () => {
     render(
       <DockedToolbar aria-label="Actions" arrangement="space-between">

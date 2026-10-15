@@ -329,12 +329,26 @@ export const ScrollExit: Story = {
   },
 };
 
-/** The docked toolbar, centred (the default) and spread out (for compact windows). */
+/**
+ * The docked toolbar, centred (the default) and spread out (for compact windows), and in the
+ * vibrant colour.
+ */
 export const Docked: Story = {
   render: () => (
     <div className="flex w-[412px] flex-col gap-6" data-testid="docked">
-      {(['centered', 'space-between'] as const).map((arrangement) => (
-        <DockedToolbar key={arrangement} aria-label={arrangement} arrangement={arrangement}>
+      {(
+        [
+          ['centered', 'standard'],
+          ['space-between', 'standard'],
+          ['centered', 'vibrant'],
+        ] as const
+      ).map(([arrangement, color]) => (
+        <DockedToolbar
+          key={`${arrangement}-${color}`}
+          aria-label={color === 'vibrant' ? 'vibrant' : arrangement}
+          arrangement={arrangement}
+          color={color}
+        >
           <IconButton icon={<SearchIcon />} aria-label="Search" />
           <IconButton icon={<StarIcon />} aria-label="Starred" />
           <IconButton icon={<SendIcon />} aria-label="Sent" />

@@ -8,7 +8,10 @@ import { color, corner, defineComponentTokens } from '../../tokens/component';
  * colours stay classes.
  */
 
-/** The tokens of {@link DockedToolbar}: `--md-comp-toolbar-docked-<part>`. */
+/**
+ * The tokens of {@link DockedToolbar}: `--md-comp-toolbar-docked-<part>`. M3's tables have no
+ * vibrant docked token, so `color="vibrant"` is a class (`toolbar-styles.ts`, 2026-10-15).
+ */
 export const dockedToolbarTokenSet = defineComponentTokens({
   name: 'md-comp-toolbar-docked',
   tokens: {

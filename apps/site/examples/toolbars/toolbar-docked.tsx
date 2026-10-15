@@ -6,6 +6,7 @@ import { EditIcon, SearchIcon, SendIcon, StarIcon } from '../../components/icons
  * replaces the bottom app bar). By default its controls sit 32px apart in the centre;
  * `className="gap-2"` gives the spec's centred alternative with 8px between them, and
  * `arrangement="space-between"` spreads them evenly, as M3 recommends in compact windows.
+ * `color="vibrant"` gives it the vibrant `primary-container` colour, as a floating toolbar.
  * It has `role="toolbar"`, named by `aria-label`; Tab and the arrow keys move between its
  * controls.
  */
@@ -14,15 +15,17 @@ export function ToolbarDocked() {
     <div className="flex w-[412px] max-w-full flex-col gap-6">
       {(
         [
-          ['centered', ''],
-          ['centered', 'gap-2'],
-          ['space-between', ''],
+          ['centered', '', 'standard'],
+          ['centered', 'gap-2', 'standard'],
+          ['space-between', '', 'standard'],
+          ['centered', '', 'vibrant'],
         ] as const
-      ).map(([arrangement, gap]) => (
+      ).map(([arrangement, gap, color]) => (
         <DockedToolbar
-          key={`${arrangement} ${gap}`}
-          aria-label={`Message actions (${arrangement}${gap ? ', 8px apart' : ''})`}
+          key={`${arrangement} ${gap} ${color}`}
+          aria-label={`Message actions (${color === 'vibrant' ? 'vibrant' : arrangement}${gap ? ', 8px apart' : ''})`}
           arrangement={arrangement}
+          color={color}
           className={gap}
         >
           <IconButton icon={<SearchIcon />} aria-label="Search" />

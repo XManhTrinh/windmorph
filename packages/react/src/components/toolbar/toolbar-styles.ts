@@ -64,7 +64,7 @@ const exitEdges = {
 export const dockedToolbarStyles = tv({
   slots: {
     root: [
-      'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px] text-on-surface-variant',
+      'flex h-[64px] w-full items-center bg-[var(--_md-comp-toolbar-docked-container-color)] ps-[16px] pe-[16px]',
       ...exitMotion,
       'data-hidden:[transform:translateY(100%)]',
     ],
@@ -74,8 +74,16 @@ export const dockedToolbarStyles = tv({
       'space-between': { root: 'justify-between' },
       centered: { root: 'justify-center gap-[32px]' },
     },
+    // As the floating toolbar's (2026-10-15): vibrant is primary-container, and standard icon
+    // buttons take its content colour. M3 has no vibrant docked token, so it's a class.
+    color: {
+      standard: { root: 'text-on-surface-variant' },
+      vibrant: {
+        root: 'bg-primary-container text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]',
+      },
+    },
   },
-  defaultVariants: { arrangement: 'centered' },
+  defaultVariants: { arrangement: 'centered', color: 'standard' },
 });
 
 /** Variant definitions for {@link FloatingToolbar}; extend them to add colour styles. */
@@ -267,6 +275,7 @@ export const toolbarFabStyles = tv({
 
 export type DockedToolbarStyleProps = VariantProps<typeof dockedToolbarStyles>;
 export type DockedToolbarArrangement = NonNullable<DockedToolbarStyleProps['arrangement']>;
+export type DockedToolbarColor = NonNullable<DockedToolbarStyleProps['color']>;
 export type FloatingToolbarStyleProps = VariantProps<typeof floatingToolbarStyles>;
 export type FloatingToolbarColor = NonNullable<FloatingToolbarStyleProps['color']>;
 export type ToolbarOrientation = NonNullable<FloatingToolbarStyleProps['orientation']>;

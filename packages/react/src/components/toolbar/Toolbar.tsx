@@ -39,12 +39,16 @@ import {
   toolbarCollapseAnchor,
   toolbarFabStyles,
   type DockedToolbarArrangement,
+  type DockedToolbarColor,
   type FloatingToolbarColor,
   type ToolbarExitEdge,
   type ToolbarOrientation,
 } from './toolbar-styles';
 
-const DOCKED = { kind: 'docked', color: 'standard' } as const;
+const DOCKED = {
+  standard: { kind: 'docked', color: 'standard' },
+  vibrant: { kind: 'docked', color: 'vibrant' },
+} as const;
 
 /** The `data-*` and `inert` attributes of a toolbar that has exited the screen. */
 const exitProps = (visible: boolean) => ({
@@ -111,6 +115,11 @@ interface DockedToolbarOwnProps {
    */
   arrangement?: DockedToolbarArrangement;
   /**
+   * The container colour: `standard` (`surface-container`) or `vibrant`
+   * (`primary-container`), as the floating toolbar's. @default "standard"
+   */
+  color?: DockedToolbarColor;
+  /**
    * Shows the toolbar. Hiding it slides it off the bottom of the window, e.g. while the
    * page scrolls (`useToolbarScrollExit`). A hidden toolbar is `inert`. @default true
    */
@@ -144,6 +153,7 @@ export function DockedToolbar(props: DockedToolbarProps) {
 
 function DockedToolbarRoot({
   arrangement,
+  color = 'standard',
   visible = true,
   children,
   classNames,
@@ -162,11 +172,12 @@ function DockedToolbarRoot({
       {...exitProps(visible)}
       ref={rootRef}
       data-tokens="md-comp-toolbar-docked"
-      className={dockedToolbarStyles({ arrangement }).root({
+      data-color={color}
+      className={dockedToolbarStyles({ arrangement, color }).root({
         class: cn(classNames?.root, className),
       })}
     >
-      <ToolbarContext value={DOCKED}>
+      <ToolbarContext value={DOCKED[color]}>
         <ButtonContext value={standardIconButtons}>{children}</ButtonContext>
       </ToolbarContext>
     </div>

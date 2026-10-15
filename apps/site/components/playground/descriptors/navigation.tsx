@@ -568,6 +568,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
               DockedToolbarAny,
               {
                 arrangement,
+                color: props.color,
                 visible: props.visible,
                 'aria-label': 'Formatting',
                 className: 'absolute inset-x-0 bottom-0',
