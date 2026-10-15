@@ -378,9 +378,10 @@ describe('TextField density', () => {
     const field = input.parentElement!;
     const container = field.parentElement!;
     expect(container).toHaveClass('min-h-[calc(56px+var(--md-sys-density,0)*4px)]');
+    // 24 / 8px less 2px a step while the floated label has room (down to -1), then centred.
     expect(field).toHaveClass(
-      'pt-[calc(24px+var(--md-sys-density,0)*2px)]',
-      'pb-[calc(8px+var(--md-sys-density,0)*2px)]',
+      'pt-[calc(16px+var(--md-sys-density,0)*2px+8px*var(--m3-field-label-room))]',
+      'pb-[calc(16px+var(--md-sys-density,0)*2px-8px*var(--m3-field-label-room))]',
     );
     expect(screen.getByText('Name')).toHaveClass(
       'top-[calc(16px+var(--md-sys-density,0)*2px)]',
