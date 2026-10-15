@@ -1,3 +1,4 @@
+import { reducedMotionFade } from '../../motion/reduced-motion';
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
@@ -92,6 +93,8 @@ export const navigationRailStyles = tv({
       '[transition-property:width,translate]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
+      // Under reduced motion it fades in and out at its full width.
+      ...reducedMotionFade,
     ],
   },
   variants: {
@@ -117,14 +120,18 @@ export const navigationRailStyles = tv({
       true: { items: 'isolate' },
       false: {},
     },
-    /** Modal sheet entry: from the collapsed width, or sliding in from the start edge. */
+    /**
+     * Modal sheet entry: from the collapsed width, or sliding in from the start edge. Under
+     * reduced motion it fades instead.
+     */
     sheetEntry: {
       grow: {
-        sheet: 'starting:w-(--m3-rail-collapsed-width) data-exiting:w-(--m3-rail-collapsed-width)',
+        sheet:
+          'motion-safe:starting:w-(--m3-rail-collapsed-width) motion-safe:data-exiting:w-(--m3-rail-collapsed-width)',
       },
       slide: {
         sheet:
-          'starting:-translate-x-full data-exiting:-translate-x-full rtl:starting:translate-x-full rtl:data-exiting:translate-x-full',
+          'motion-safe:starting:-translate-x-full motion-safe:data-exiting:-translate-x-full motion-safe:rtl:starting:translate-x-full motion-safe:rtl:data-exiting:translate-x-full',
       },
     },
   },

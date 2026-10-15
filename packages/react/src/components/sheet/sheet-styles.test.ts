@@ -21,9 +21,15 @@ describe('sheet styles', () => {
   const classes = collectClasses(outputs());
 
   it('writes every class literally so Tailwind can find it', async () => {
-    expect(await nonLiteralClasses(new URL('./sheet-styles.ts', import.meta.url), classes)).toEqual(
-      [],
-    );
+    expect(
+      await nonLiteralClasses(
+        [
+          new URL('./sheet-styles.ts', import.meta.url),
+          new URL('../../motion/reduced-motion.ts', import.meta.url),
+        ],
+        classes,
+      ),
+    ).toEqual([]);
   });
 
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {

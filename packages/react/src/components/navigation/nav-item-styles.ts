@@ -33,6 +33,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * the content sits above every pill so a moving one never covers another item's label.
  * Under reduced motion it fades in place instead.
  *
+ * Under reduced motion every pill fades in whole on the default effects spring, without
+ * expanding (architecture §6).
+ *
  * Labels don't truncate (M3: "Don't truncate or display an ellipsis in place of label
  * text"): they wrap between words, and the item grows taller, so the full label stays
  * visible under large text sizes. They never break inside a word ("Searc/h"); a single word
@@ -70,6 +73,10 @@ export const navItemStyles = tv({
       '[transition-property:clip-path,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      // Reduced motion: the pill fades in whole on the default effects spring.
+      'motion-reduce:[transition-property:opacity]',
+      'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+      'motion-reduce:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
     // The shared state layer and ripple, on the pill: the item's hover and focus show
     // through it, and a press ripples from the press point (NavItem sets the origin).

@@ -38,7 +38,7 @@ import {
   scrolledAbove,
 } from './sheet-gesture';
 import { settleTarget } from './sheet-settle';
-import { bottomSheetStyles } from './sheet-styles';
+import { SHEET_EXIT_PROPERTIES, bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface BottomSheetClassNames {
@@ -203,7 +203,7 @@ export function BottomSheet({
     onOpenChange,
   });
   const state = (variant === 'modal' ? trigger?.state : undefined) ?? ownState;
-  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'translate');
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, SHEET_EXIT_PROPERTIES);
   if (!isPresent) return null;
   if (variant === 'standard')
     return (

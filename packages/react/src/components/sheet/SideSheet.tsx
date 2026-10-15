@@ -22,7 +22,7 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
-import { sideSheetStyles } from './sheet-styles';
+import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface SideSheetClassNames {
@@ -159,7 +159,7 @@ export function SideSheet({
     onOpenChange,
   });
   const state = (variant === 'modal' ? trigger?.state : undefined) ?? ownState;
-  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'translate');
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, SHEET_EXIT_PROPERTIES);
   if (variant === 'standard') return <StandardSideSheet {...props} state={state} />;
   if (!isPresent) return null;
   return (

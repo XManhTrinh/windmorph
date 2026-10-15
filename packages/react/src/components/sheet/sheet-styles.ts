@@ -1,3 +1,4 @@
+import { reducedMotionFade } from '../../motion/reduced-motion';
 import { tv, type VariantProps } from '../../utils/tv';
 
 /*
@@ -41,7 +42,9 @@ const scrim = [
 
 /**
  * Shows on the default spatial spring, hides on the fast spatial spring. Exits translate
- * 112% of the sheet's size, so the spring's overshoot stays off-screen.
+ * 112% of the sheet's size, so the spring's overshoot stays off-screen. Under reduced motion
+ * the sheet fades in and out where it rests, and settling on a detent is instant; a drag
+ * still follows the pointer.
  */
 const sheetMotion = [
   '[transition-property:translate]',
@@ -50,7 +53,14 @@ const sheetMotion = [
   'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
   'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
   'data-dragging:[transition-duration:0s]',
+  ...reducedMotionFade,
 ];
+
+/**
+ * The transitions that end a sheet's exit (`usePresence`): the slide, or the fade under
+ * reduced motion.
+ */
+export const SHEET_EXIT_PROPERTIES = ['translate', 'opacity'] as const;
 
 /** Variant definitions for {@link BottomSheet}. */
 export const bottomSheetStyles = tv({
@@ -68,7 +78,7 @@ export const bottomSheetStyles = tv({
     // animates the outermost element's `translate` (architecture §10 rule 4).
     motion: [
       'flex w-full',
-      'translate-y-(--m3-sheet-offset) starting:translate-y-full data-exiting:translate-y-[112%]',
+      'translate-y-(--m3-sheet-offset) motion-safe:starting:translate-y-full motion-safe:data-exiting:translate-y-[112%]',
       ...sheetMotion,
     ],
     panel: [
@@ -115,8 +125,8 @@ export const sideSheetStyles = tv({
     // rule 4); it holds a detached sheet's 16px margins, so the exit clears them.
     motion: [
       'flex min-w-0',
-      'translate-x-0 starting:translate-x-full data-exiting:translate-x-[112%]',
-      'rtl:starting:-translate-x-full rtl:data-exiting:-translate-x-[112%]',
+      'translate-x-0 motion-safe:starting:translate-x-full motion-safe:data-exiting:translate-x-[112%]',
+      'motion-safe:rtl:starting:-translate-x-full motion-safe:rtl:data-exiting:-translate-x-[112%]',
       ...sheetMotion,
     ],
     // 256px by default; a consumer width can't pass the spec's 400px maximum. A fixed

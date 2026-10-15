@@ -150,7 +150,7 @@ describe('NavigationRail', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Expand' }));
     const sheet = screen.getByRole('dialog', { name: 'Main' });
     expect(sheet.style.getPropertyValue('--m3-rail-collapsed-width')).toBe('80px');
-    expect(sheet).toHaveClass('starting:w-(--m3-rail-collapsed-width)');
+    expect(sheet).toHaveClass('motion-safe:starting:w-(--m3-rail-collapsed-width)');
   });
 
   it('expands the expanded rail’s pill from the centre of the icon', async () => {

@@ -38,6 +38,7 @@ describe('navigation styles', () => {
         [
           new URL('./nav-item-styles.ts', import.meta.url),
           new URL('./navigation-styles.ts', import.meta.url),
+          new URL('../../motion/reduced-motion.ts', import.meta.url),
         ],
         classes,
       ),
