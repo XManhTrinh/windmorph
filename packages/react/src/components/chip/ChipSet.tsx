@@ -13,7 +13,11 @@ import { useToggleGroupState, type Key } from 'react-stately';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
-import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/radio-group-keys';
+import {
+  focusCheckedRadio,
+  notePointerDown,
+  radioGroupKeyDown,
+} from '../../utils/radio-group-keys';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {
@@ -183,7 +187,9 @@ function useFocusAfterRemoval(rootRef: { current: HTMLDivElement | null }) {
           .slice(0, index)
           .reverse()
           .find((stop) => stop.isConnected);
-      (next ?? root).focus();
+      // The neighbour sits beside the removed chip: focus it without scrolling the page
+      // (a press on a partly hidden chip's remove button scrolled it, 2026-10-15).
+      (next ?? root).focus({ preventScroll: true });
     };
     const observer = new MutationObserver(restore);
     observer.observe(root, { childList: true, subtree: true });
@@ -262,6 +268,8 @@ export function ChipSet({
         keyboard.onPointerDown();
         onPointerDown?.(event);
       }}
+      // A press's focus stays on the chip it lands on, never the checked one (2026-10-15).
+      onPointerDownCapture={selectionMode === 'single' ? notePointerDown : undefined}
       className={chipSetStyles({ layout }).root({ class: cn(classNames?.root, className) })}
     >
       <ToggleGroupStateContext value={selectionMode === 'none' ? null : state}>

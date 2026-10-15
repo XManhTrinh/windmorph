@@ -426,6 +426,25 @@ describe('ButtonGroup selection', () => {
     expect(radio('Week')).toHaveAttribute('aria-checked', 'false');
   });
 
+  // 2026-10-15: focus arriving from a press went to the checked radio, scrolling the page
+  // to it while the pressed one was selected.
+  it('keeps focus on the radio a press lands on, not the checked one', async () => {
+    render(
+      <>
+        <button type="button">Before</button>
+        <ViewGroup defaultSelectedKeys={['week']} />
+      </>,
+    );
+    const day = screen.getByRole('radio', { name: 'Day' });
+    await userEvent.click(day);
+    expect(day).toHaveFocus();
+    expect(day).toHaveAttribute('aria-checked', 'true');
+    // Tab still enters at the selection.
+    await userEvent.click(screen.getByRole('button', { name: 'Before' }));
+    await userEvent.tab();
+    expect(day).toHaveFocus();
+  });
+
   it('wraps a toolbar group’s arrows and reaches its ends with Home and End, without selecting', async () => {
     render(
       <ButtonGroup selectionMode="multiple" aria-label="Format">

@@ -101,8 +101,12 @@ describe('ChipSet', () => {
     const { container } = render(<Recipients />);
     // The next stop takes focus: past both of a two-part chip's stops.
     screen.getByRole('button', { name: 'Alex' }).focus();
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
     await userEvent.keyboard('{Delete}');
     await waitFor(() => expect(screen.getByRole('button', { name: 'Remove Sam' })).toHaveFocus());
+    // The neighbour takes focus without scrolling the page (2026-10-15).
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    focus.mockRestore();
     // The last chip hands focus back to the one before it.
     screen.getByRole('button', { name: 'Remove Priya' }).focus();
     await userEvent.keyboard('{Backspace}');

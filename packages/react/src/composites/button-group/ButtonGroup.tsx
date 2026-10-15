@@ -31,7 +31,11 @@ import type { IconButtonVariant } from '../../components/icon-button/icon-button
 import { MenuTrigger } from '../../components/menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/radio-group-keys';
+import {
+  focusCheckedRadio,
+  notePointerDown,
+  radioGroupKeyDown,
+} from '../../utils/radio-group-keys';
 import { toolbarKeyDown } from '../../utils/toolbar-keys';
 import type { VariantProps } from '../../utils/tv';
 import { useWarnOnce } from '../../utils/warn-once';
@@ -360,6 +364,7 @@ function withGroupKeys(
       else toolbarKeyDown(event, 'horizontal');
     },
     onFocus: single ? (event) => void focusCheckedRadio(event) : undefined,
+    onPointerDownCapture: single ? notePointerDown : undefined,
   };
 }
 

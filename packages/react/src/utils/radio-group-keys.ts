@@ -1,4 +1,4 @@
-import type { FocusEvent, KeyboardEvent } from 'react';
+import type { FocusEvent, KeyboardEvent, PointerEvent } from 'react';
 import { hasModifier, isRtl, moveFor, target, TEXT_ENTRY } from './composite-keys';
 import { tabbables } from './focus';
 
@@ -42,9 +42,31 @@ export function radioGroupKeyDown(event: KeyboardEvent<HTMLElement>) {
   return true;
 }
 
+/** Groups a pointer is pressing in: focus there comes from the press, not from Tab. */
+const pressed = new WeakSet<HTMLElement>();
+
+/**
+ * For a radio group's `onPointerDownCapture`: marks the group as pressed until the pointer
+ * lifts, so `focusCheckedRadio` leaves the focus the press gives where it lands.
+ */
+export function notePointerDown(event: PointerEvent<HTMLElement>) {
+  const root = event.currentTarget;
+  pressed.add(root);
+  const release = () => {
+    // After the press's own focus and click handlers.
+    setTimeout(() => pressed.delete(root));
+  };
+  for (const type of ['pointerup', 'pointercancel'] as const) {
+    root.ownerDocument.addEventListener(type, release, { once: true, capture: true });
+  }
+}
+
 /**
  * Tab into a radio group lands on its checked radio (WAI-ARIA APG), for the group's
- * `onFocus`: when focus arrives from outside on another radio, it moves to the checked one.
+ * `onFocus`: when keyboard focus arrives from outside on another radio, it moves to the
+ * checked one. A pointer press keeps focus on the radio it lands on (the group's
+ * `onPointerDownCapture` calls `notePointerDown`): moving it would select one radio while
+ * focusing another, and scroll the page to the checked one (2026-10-15).
  * Returns whether the group has a checked radio (so the caller's own focus restoring
  * applies only when it hasn't).
  */
@@ -54,6 +76,7 @@ export function focusCheckedRadio(event: FocusEvent<HTMLElement>): boolean {
   if (from && root.contains(from)) return false;
   const checked = radios(root).find((radio) => radio.getAttribute('aria-checked') === 'true');
   if (!checked) return false;
+  if (pressed.has(root)) return true;
   if (checked !== event.target && (event.target as Element).matches('[role="radio"]'))
     checked.focus();
   return true;
