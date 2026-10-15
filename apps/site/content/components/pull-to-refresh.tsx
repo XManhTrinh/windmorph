@@ -170,8 +170,8 @@ export async function PullToRefreshBody(): Promise<ComponentDoc> {
               effects spring.
             </li>
             <li>
-              It settles to the threshold or away on the fast spatial spring of the active motion
-              scheme (Compose uses a default, non-bouncing spring), since it moves position.
+              It settles to the threshold or away on the default effects spring of the active motion
+              scheme, which never bounces, as Compose&apos;s default spring.
             </li>
             <li>
               The web has no nested scrolling, so a gesture is decided as it starts: a downward drag
