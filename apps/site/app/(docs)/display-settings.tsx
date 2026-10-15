@@ -1,8 +1,8 @@
 'use client';
 
-import { IconButton, SideSheet } from '@windmorph/react';
+import { IconButton, SideSheet, useTheme } from '@windmorph/react';
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import { SettingsIcon } from '../../components/icons';
+import { DarkModeIcon, LightModeIcon, SettingsIcon } from '../../components/icons';
 import { ThemeControls } from './theme-controls';
 
 const OpenDisplaySettings = createContext<(() => void) | null>(null);
@@ -42,6 +42,25 @@ export function DisplaySettingsButton({ size }: { size?: 'xs' | 'sm' }) {
       aria-label="Display settings"
       aria-haspopup="dialog"
       onPress={open}
+    />
+  );
+}
+
+/**
+ * One press between light and dark: it shows the mode it switches to (a moon in light, a sun
+ * in dark) and sets that mode explicitly, the same setting the display settings' Mode row
+ * shows (where "Auto" follows the system).
+ */
+export function ColorModeButton() {
+  const { resolvedMode, setMode } = useTheme();
+  const next = resolvedMode === 'dark' ? 'light' : 'dark';
+  return (
+    <IconButton
+      variant="standard"
+      icon={next === 'dark' ? <DarkModeIcon /> : <LightModeIcon />}
+      aria-label={next === 'dark' ? 'Switch to dark mode' : 'Switch to light mode'}
+      data-color-mode-toggle=""
+      onPress={() => setMode(next)}
     />
   );
 }

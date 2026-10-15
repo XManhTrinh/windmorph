@@ -17,7 +17,11 @@ import { DrawerNav } from '../../components/nav/drawer-nav';
 import { Footer } from '../../components/footer';
 import { PageOutline } from '../../components/page-outline';
 import { DocsSearch } from './docs-search';
-import { DisplaySettingsButton, DisplaySettingsProvider } from './display-settings';
+import {
+  ColorModeButton,
+  DisplaySettingsButton,
+  DisplaySettingsProvider,
+} from './display-settings';
 import { SiteSnackbarProvider } from '../../components/site-snackbar';
 
 function isActive(pathname: string, href: string): boolean {
@@ -43,7 +47,8 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 /**
  * The documentation shell: a skip link, a left navigation rail with Guides and component-group
  * flyouts and a top app bar with the search (medium+); a compact `SearchAppBar` with a modal
- * drawer and a three-destination bottom `NavigationBar`. It holds the one display-settings
+ * drawer and a three-destination bottom `NavigationBar`. Both bars have a light / dark
+ * button beside the search. It holds the one display-settings
  * sheet and the site snackbar, and puts the "On this page" outline beside guides and
  * component pages. Every element is a Windmorph component or site-owned nav markup;
  * active-route state comes from `usePathname()`.
@@ -95,12 +100,15 @@ export function DocsShell({ children }: { children: ReactNode }) {
               // The page names itself in its h1; the bar only anchors the search at the end.
               title={null}
               actions={
-                <DocsSearch
-                  view="docked"
-                  // 48px (M3's minimum touch target) in the 64px bar; M3's 360px minimum
-                  // width, narrowing only when the window leaves less room.
-                  className="h-12 w-[360px] min-w-0 max-w-full shrink large:w-[480px]"
-                />
+                <>
+                  <DocsSearch
+                    view="docked"
+                    // 48px (M3's minimum touch target) in the 64px bar; M3's 360px minimum
+                    // width, narrowing only when the window leaves less room.
+                    className="h-12 w-[360px] min-w-0 max-w-full shrink large:w-[480px]"
+                  />
+                  <ColorModeButton />
+                </>
               }
             />
             {/* Compact: the search fills the bar between the drawer button and the settings. */}
@@ -114,7 +122,12 @@ export function DocsShell({ children }: { children: ReactNode }) {
                   onPress={() => setNavOpen(true)}
                 />
               }
-              actions={<DisplaySettingsButton />}
+              actions={
+                <>
+                  <ColorModeButton />
+                  <DisplaySettingsButton />
+                </>
+              }
             >
               <DocsSearch view="full-screen" />
             </SearchAppBar>
