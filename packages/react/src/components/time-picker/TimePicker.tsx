@@ -199,7 +199,9 @@ export function TimePicker({
   const plain = useNumberFormatter({ useGrouping: false });
   const isPm = time.hour >= 12;
   const displayHour = hourCycle === 24 ? time.hour : time.hour % 12 || 12;
-  const formatHour = (n: number) => (hourCycle === 24 ? pad.format(n) : plain.format(n));
+  // Two digits on both clocks, as Compose's selector and input show a 12-hour "02"
+  // (`hourForDisplay.toLocalString(minDigits = 2)`); the dial's numbers stay unpadded.
+  const formatHour = (n: number) => pad.format(n);
   const setPeriod = (pm: boolean) => {
     if (pm !== isPm) setTime(time.set({ hour: (time.hour + 12) % 24 }));
   };

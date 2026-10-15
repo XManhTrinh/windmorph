@@ -24,7 +24,8 @@ describe('TimePicker', () => {
     );
     expect(screen.getByTestId('picker')).toHaveAttribute('data-layout', 'vertical');
     const hour = screen.getByRole('textbox', { name: 'Hour' });
-    expect(hour).toHaveValue('2');
+    // Two digits on a 12-hour clock too (Compose).
+    expect(hour).toHaveValue('02');
     expect(hour).toHaveAttribute('data-selected', 'true');
     expect(hour).toHaveClass('w-[96px]', 'h-[80px]', 'text-display-large');
     expect(screen.getByRole('textbox', { name: 'Minute' })).toHaveValue('05');
