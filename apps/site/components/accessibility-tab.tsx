@@ -73,7 +73,7 @@ function KeyboardTable({ title, rows }: { title: string; rows: readonly KeyBindi
   // Narrow columns whose cells wrap, so the table fits a phone without scrolling; there the
   // "Where" column folds into the action cell (and stays in the Markdown twin's table).
   return (
-    <table className="w-full border-separate border-spacing-0 overflow-hidden rounded-corner-large border border-outline-variant text-start text-body-medium text-on-surface">
+    <table className="w-full table-fixed border-separate border-spacing-0 overflow-hidden rounded-corner-large border border-outline-variant text-start text-body-medium text-on-surface">
       <caption className="sr-only">{title} keyboard</caption>
       <thead className="bg-surface-container text-label-large text-on-surface-variant">
         <tr>
@@ -99,7 +99,7 @@ function KeyboardTable({ title, rows }: { title: string; rows: readonly KeyBindi
             >
               <Keys keys={row.keys} />
             </th>
-            <td className="border-t border-outline-variant px-4 py-3 align-top text-on-surface-variant">
+            <td className="border-t border-outline-variant px-4 py-3 align-top text-on-surface-variant [overflow-wrap:anywhere]">
               <Text text={row.action} />
               {/* Compact windows have no room for a third column: the place goes under. */}
               {row.where && (
@@ -112,7 +112,7 @@ function KeyboardTable({ title, rows }: { title: string; rows: readonly KeyBindi
               )}
             </td>
             {scoped && (
-              <td className="hidden border-t border-outline-variant px-4 py-3 align-top text-on-surface-variant medium:table-cell">
+              <td className="hidden border-t border-outline-variant px-4 py-3 align-top text-on-surface-variant [overflow-wrap:anywhere] medium:table-cell">
                 {row.where ? <Text text={row.where} /> : null}
               </td>
             )}
@@ -131,7 +131,7 @@ function ScreenReader({ info }: { info: ScreenReaderInfo }) {
   ];
   return (
     <>
-      <dl className="grid grid-cols-1 gap-x-6 gap-y-1 medium:grid-cols-[12rem_1fr] medium:gap-y-3">
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-1 medium:grid-cols-[12rem_minmax(0,1fr)] medium:gap-y-3">
         {rows.map(([term, text]) => (
           <Fragment key={term}>
             <dt className="pt-2 text-title-small text-on-surface first:pt-0 medium:pt-0">{term}</dt>
