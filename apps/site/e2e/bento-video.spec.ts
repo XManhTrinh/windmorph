@@ -2,10 +2,12 @@ import AxeBuilder from '@axe-core/playwright';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { BENTO_STEP_MS } from '../components/home/bento-loop';
 import type { BentoManifest } from '../lib/bento-media';
 
 /**
- * The home page bento: live from the medium window class up, its recorded video on phones
+ * The home page bento: live from the large window class up, its recorded video on phones and
+ * tablets
  * (`components/home/bento-video.tsx`). The video tests need the recording in the build
  * (`record:bento`, then build again), which CI always makes; a local build without it is
  * checked for the fallback, the live bento on phones.
@@ -17,8 +19,11 @@ const manifest = recorded ? (JSON.parse(readFileSync(MANIFEST, 'utf8')) as Bento
 
 const PHONE = { width: 390, height: 844 };
 
-/** Phone widths the video is checked at: the smallest common one, a typical one, a large one. */
-const PHONE_WIDTHS = [320, 390, 430];
+/**
+ * Widths the video is checked at: the smallest common phone, a typical one, a large one, a
+ * portrait tablet and a landscape one.
+ */
+const VIDEO_WIDTHS = [320, 390, 430, 768, 1180];
 
 /** The live bento, by its "Reply" button group (the bento is hidden from assistive technology). */
 const liveBento = (page: Page) => page.locator('[aria-label="Reply"]');
@@ -85,8 +90,8 @@ test.describe('without a recording', () => {
   });
 });
 
-for (const width of PHONE_WIDTHS) {
-  test.describe(`phone (${width}px)`, () => {
+for (const width of VIDEO_WIDTHS) {
+  test.describe(`video (${width}px)`, () => {
     test.skip(!recorded, 'Needs record:bento before the build.');
     test.use({ viewport: { width, height: 844 } });
 
@@ -218,7 +223,7 @@ for (const width of PHONE_WIDTHS) {
     test('turns into the live bento on a wider window', async ({ page }) => {
       await page.goto('/');
       await expect(liveBento(page)).toHaveCount(0);
-      await page.setViewportSize({ width: 840, height: 900 });
+      await page.setViewportSize({ width: 1200, height: 900 });
       await expect(liveBento(page)).toHaveCount(1);
       await expect(page.locator('video')).toHaveCount(0);
     });
@@ -247,7 +252,7 @@ for (const width of PHONE_WIDTHS) {
   });
 }
 
-for (const width of [840, 1440]) {
+for (const width of [1200, 1440]) {
   test(`${width}px shows the live bento and no video`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
@@ -255,6 +260,36 @@ for (const width of [840, 1440]) {
     await expect(page.locator('video')).toHaveCount(0);
   });
 }
+
+test('the live bento never scrolls the page as its FAB menu opens and closes', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 860 });
+  await page.goto('/');
+  // The FAB menu's top edge just above the window, where the page used to anchor to it.
+  const top = await liveBento(page).evaluate((group) => {
+    const bento = group.parentElement?.closest('.grid');
+    return bento ? bento.getBoundingClientRect().top + window.scrollY : 0;
+  });
+  await page.evaluate((y) => window.scrollTo(0, y), top + 300);
+  const start = await page.evaluate(() => window.scrollY);
+  // Two loop steps: the menu opens or closes at least once.
+  const moved = await page.evaluate(
+    (ms) =>
+      new Promise<number>((resolve) => {
+        const from = window.scrollY;
+        const until = performance.now() + ms;
+        let most = 0;
+        const tick = () => {
+          most = Math.max(most, Math.abs(window.scrollY - from));
+          if (performance.now() < until) requestAnimationFrame(tick);
+          else resolve(most);
+        };
+        tick();
+      }),
+    2 * BENTO_STEP_MS + 500,
+  );
+  expect(start).toBeGreaterThan(0);
+  expect(moved).toBe(0);
+});
 
 test('the recording is the bento card at a 1440px window', async ({ page }) => {
   test.skip(!manifest, 'Needs record:bento.');

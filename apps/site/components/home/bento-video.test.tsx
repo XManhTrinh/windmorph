@@ -166,14 +166,14 @@ describe('ResponsiveBento', () => {
       </ThemeProvider>,
     );
 
-  it('shows the video, and not the live bento, on a phone', () => {
+  it('shows the video, and not the live bento, on a phone or tablet', () => {
     const { container } = renderBento(VIDEO);
     expect(container.querySelector('video')).toBeInTheDocument();
     expect(container.querySelector('[aria-label="Reply"]')).toBeNull();
   });
 
-  it('shows the live bento, and no video, from the medium window class', () => {
-    matching.add('(min-width: 600px)');
+  it('shows the live bento, and no video, from the large window class', () => {
+    matching.add('(min-width: 1200px)');
     const { container } = renderBento(VIDEO);
     expect(container.querySelector('video')).toBeNull();
     expect(container.querySelector('[aria-label="Reply"]')).toBeInTheDocument();

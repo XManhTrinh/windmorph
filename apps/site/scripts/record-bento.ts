@@ -1,6 +1,6 @@
 /**
- * Records the home page bento as the video phones show in its place (`pnpm --filter site
- * record:bento`), so the video always matches the bento as built.
+ * Records the home page bento as the video phones and tablets show in its place
+ * (`pnpm --filter site record:bento`), so the video always matches the bento as built.
  *
  * It serves the static export (`out/`, so build first), opens the home page in Chromium at a
  * 1440 × 860 window and 1× in light and in dark mode, and captures the page through the
@@ -287,7 +287,7 @@ async function main() {
   }
   if (!probe.some((job) => job.format === 'mp4')) {
     console.warn(
-      'No ffmpeg with libx264 on the PATH, so only WebM is written; Safari on iPhone needs the MP4. ' +
+      'No ffmpeg with libx264 on the PATH, so only WebM is written; Safari on iPhone and iPad needs the MP4. ' +
         'Install ffmpeg (macOS: brew install ffmpeg; Ubuntu: sudo apt-get install ffmpeg).',
     );
   }

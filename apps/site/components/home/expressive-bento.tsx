@@ -84,7 +84,9 @@ function Tile({ className, children }: { className?: string; children: ReactNode
  * FAB through classes. Each change is a real press on the control, so its
  * press animation plays first. It's decorative (`inert`, hidden from assistive
  * technology), pauses off screen and holds the active state when the visitor prefers reduced
- * motion. Phones show its recording instead (`BentoVideo`, `scripts/record-bento.ts`).
+ * motion. Phones and tablets show its recording instead (`BentoVideo`,
+ * `scripts/record-bento.ts`). It's never the page's scroll anchor: the FAB menu's wrapper
+ * grows upward as it opens, and anchoring to it would scroll the page with every open and close.
  */
 export function ExpressiveBento({ className }: { className?: string }) {
   const { ref, step, still } = useLoopStep(BENTO_STEP_MS);
@@ -100,7 +102,7 @@ export function ExpressiveBento({ className }: { className?: string }) {
       inert
       aria-hidden="true"
       className={cn(
-        'grid auto-rows-[220px] grid-cols-2 gap-4 rounded-corner-extra-large bg-surface p-4 transition-colors duration-500 motion-reduce:transition-none large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6',
+        'grid auto-rows-[220px] grid-cols-2 gap-4 [overflow-anchor:none] rounded-corner-extra-large bg-surface p-4 transition-colors duration-500 motion-reduce:transition-none large:h-[720px] large:auto-rows-auto large:grid-cols-3 large:grid-rows-[repeat(10,minmax(0,1fr))] large:p-6',
         className,
       )}
     >

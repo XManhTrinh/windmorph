@@ -7,8 +7,8 @@ import { BENTO_MEDIA_URL, type BentoManifest } from '../../lib/bento-media';
 import { PauseIcon, PlayArrowIcon } from '../icons';
 import { ExpressiveBento } from './expressive-bento';
 
-/** The site's medium window class and up (600px), where the live bento shows. */
-const MEDIUM_UP = '(min-width: 600px)';
+/** The site's large window class and up (1200px), where the live bento shows. */
+const LARGE_UP = '(min-width: 1200px)';
 
 const MIME_TYPES = { mp4: 'video/mp4', webm: 'video/webm' } as const;
 
@@ -24,19 +24,19 @@ function useHydrated(): boolean {
 }
 
 /**
- * Whether the window is medium or wider, kept in step with it. `undefined` on the server and
+ * Whether the window is large or wider, kept in step with it. `undefined` on the server and
  * during hydration, when the window isn't known, so the server's HTML and the first client
  * render match.
  */
-function useMediumUp(): boolean | undefined {
+function useLargeUp(): boolean | undefined {
   const subscribe = useCallback((onChange: () => void) => {
-    const list = window.matchMedia(MEDIUM_UP);
+    const list = window.matchMedia(LARGE_UP);
     list.addEventListener('change', onChange);
     return () => list.removeEventListener('change', onChange);
   }, []);
   return useSyncExternalStore<boolean | undefined>(
     subscribe,
-    () => window.matchMedia(MEDIUM_UP).matches,
+    () => window.matchMedia(LARGE_UP).matches,
     () => undefined,
   );
 }
@@ -48,12 +48,12 @@ export interface BentoVideoProps {
 }
 
 /**
- * The bento as a video, for phones: a recording of the desktop bento (`record:bento`), in the
- * site's resolved colour mode. Nothing loads until it scrolls into view, where it plays muted
- * on a loop; it pauses out of view. A pause / play button stops it (WCAG 2.2.2), and with
- * reduced motion it waits on its poster for a press of play. Switching the colour mode swaps
- * the video at the same moment of the loop. The video is decorative; a visually hidden
- * sentence says what it shows.
+ * The bento as a video, for phones and tablets: a recording of the desktop bento
+ * (`record:bento`), in the site's resolved colour mode. Nothing loads until it scrolls into view,
+ * where it plays muted on a loop; it pauses out of view. A pause / play button stops it (WCAG
+ * 2.2.2), and with reduced motion it waits on its poster for a press of play. Switching the
+ * colour mode swaps the video at the same moment of the loop. The video is decorative; a visually
+ * hidden sentence says what it shows.
  */
 export function BentoVideo({ video, className }: BentoVideoProps) {
   const { resolvedMode } = useTheme();
@@ -168,26 +168,26 @@ export function BentoVideo({ video, className }: BentoVideoProps) {
 }
 
 export interface ResponsiveBentoProps {
-  /** The recorded video, or `undefined` when the build has none (phones get the live bento). */
+  /** The recorded video, or `undefined` when the build has none (then the bento is live). */
   video?: BentoManifest;
 }
 
 /**
- * The home page bento: live from the medium window class up, the recorded video below it.
+ * The home page bento: live from the large window class up, the recorded video below it.
  * Both are in the server's HTML (CSS shows the one for the window), and once hydrated only
- * the one for the window stays, so a phone never runs the live bento's loop and a wider
+ * the one for the window stays, so a phone or tablet never runs the live bento's loop and a wider
  * window loads no video. Without a recording, every window gets the live bento.
  */
 export function ResponsiveBento({ video }: ResponsiveBentoProps) {
-  const mediumUp = useMediumUp();
+  const largeUp = useLargeUp();
   if (!video) return <ExpressiveBento />;
   return (
     <>
-      {mediumUp !== false ? (
-        <ExpressiveBento className={mediumUp ? undefined : 'max-medium:hidden'} />
+      {largeUp !== false ? (
+        <ExpressiveBento className={largeUp ? undefined : 'max-large:hidden'} />
       ) : null}
-      {mediumUp !== true ? (
-        <BentoVideo video={video} className={mediumUp === false ? undefined : 'medium:hidden'} />
+      {largeUp !== true ? (
+        <BentoVideo video={video} className={largeUp === false ? undefined : 'large:hidden'} />
       ) : null}
     </>
   );
