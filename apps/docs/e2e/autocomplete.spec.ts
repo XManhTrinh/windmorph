@@ -194,7 +194,10 @@ test.describe('Autocomplete height', () => {
         const clear = field.locator('button[aria-label="Clear"]');
         await expect(clear).toBeVisible();
         expect(await height(field)).toBe(56);
-        await page.getByRole('option', { name: /Zürich/ }).click();
+        // Chosen from the keyboard: a click would first scroll the menu above the lower field
+        // into view, and a scroll closes a combobox's menu (which, leaving, takes no clicks).
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
         await expect(page.getByRole('combobox', { name })).toHaveValue('Zürich');
         expect(await height(field)).toBe(56);
 
