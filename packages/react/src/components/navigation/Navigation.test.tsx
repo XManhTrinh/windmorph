@@ -793,6 +793,73 @@ describe('NavigationBar', () => {
     vi.restoreAllMocks();
   });
 
+  it('settles shown or hidden when the scroll ends part-way', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 0;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(64);
+    render(<Bar scrollBehavior="hide-on-scroll" />);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveClass('data-settling:[transition-property:bottom]');
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      fireEvent.scroll(window);
+    };
+    const offset = () => nav.style.getPropertyValue('--m3-nav-bar-offset');
+    scrollTo(20);
+    expect(offset()).toBe('-20px');
+    fireEvent(window, new Event('scrollend'));
+    // Nearer shown: it eases back, and stays reachable.
+    expect(offset()).toBe('0px');
+    expect(nav).toHaveAttribute('data-settling');
+    scrollTo(60);
+    expect(nav).not.toHaveAttribute('data-settling');
+    expect(offset()).toBe('-40px');
+    fireEvent(window, new Event('scrollend'));
+    expect(offset()).toBe('-64px');
+    expect(nav).toHaveAttribute('inert');
+    scrollTo(0);
+    vi.restoreAllMocks();
+  });
+
+  it('isn’t made inert while focus from a press is in it, so focus never drops', () => {
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      callback(0);
+      return 0;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(64);
+    render(
+      <>
+        <Bar scrollBehavior="hide-on-scroll" />
+        <button type="button">Elsewhere</button>
+      </>,
+    );
+    const nav = screen.getByRole('navigation');
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, 'scrollY', { value: y, configurable: true });
+      fireEvent.scroll(window);
+    };
+    // Pointer focus (not focus-visible): the bar still hides, but keeps the focus.
+    const matches = Element.prototype.matches;
+    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+      this: Element,
+      selector: string,
+    ) {
+      return selector === ':focus-visible' ? false : matches.call(this, selector);
+    });
+    act(() => screen.getByRole('link', { name: 'Search' }).focus());
+    scrollTo(200);
+    expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-64px');
+    expect(nav).not.toHaveAttribute('inert');
+    expect(screen.getByRole('link', { name: 'Search' })).toHaveFocus();
+    // Once focus leaves, the hidden bar becomes inert.
+    act(() => screen.getByRole('button', { name: 'Elsewhere' }).focus());
+    expect(nav).toHaveAttribute('inert');
+    scrollTo(0);
+    vi.restoreAllMocks();
+  });
+
   it('stays pinned by default', () => {
     render(<Bar />);
     const nav = screen.getByRole('navigation');

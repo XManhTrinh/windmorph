@@ -163,7 +163,16 @@ export const navigationBarStyles = tv({
     },
     iconPosition: { top: {}, start: {} },
     hideOnScroll: {
-      true: { root: 'sticky bottom-(--m3-nav-bar-offset) z-(--md-sys-z-sticky)' },
+      // Settling after a scroll ends (`data-settling`), the offset eases to shown or hidden on
+      // the default effects spring; while scrolling it follows the scroll directly.
+      true: {
+        root: [
+          'sticky bottom-(--m3-nav-bar-offset) z-(--md-sys-z-sticky)',
+          'data-settling:[transition-property:bottom]',
+          'data-settling:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+          'data-settling:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+        ],
+      },
       false: {},
     },
   },

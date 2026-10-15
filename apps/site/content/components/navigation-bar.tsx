@@ -90,11 +90,11 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             overlaps its icon. <InlineCode>onReselect</InlineCode> runs when the current destination
             is pressed again; M3 resets the page&apos;s scroll position to the top then.{' '}
             <InlineCode>scrollBehavior=&quot;hide-on-scroll&quot;</InlineCode> slides the bar off
-            the bottom while the page scrolls down and back on any scroll up; the bar becomes{' '}
-            <InlineCode>sticky</InlineCode>, so put it last in the scrolling layout, and pass{' '}
-            <InlineCode>scrollRef</InlineCode> when an element scrolls rather than the page. It
-            stays put under reduced motion. Don&apos;t hide the bar on scroll when a screen reader
-            is active.
+            the bottom while the page scrolls down and back on any scroll up, settling shown or
+            hidden when the scroll stops; the bar becomes <InlineCode>sticky</InlineCode>, so put it
+            last in the scrolling layout, and pass <InlineCode>scrollRef</InlineCode> when an
+            element scrolls rather than the page. It stays put under reduced motion. Don&apos;t hide
+            the bar on scroll when a screen reader is active.
           </p>
         </section>
       </>
