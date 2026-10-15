@@ -104,10 +104,11 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             <InlineCode>indicatorMotion=&quot;slide&quot;</InlineCode>, an extension beyond the
             spec, the expanded rail&apos;s pill slides from the previous destination instead. The
             whole row is the target. An item&apos;s <InlineCode>selectedIcon</InlineCode>{' '}
-            cross-fades with its icon. A long label wraps between words and the item grows taller;
-            it never breaks inside a word, and a single word too long for its item ends with an
-            ellipsis. While the rail widens, labels stay on one line, clipped by the rail, so no
-            icon moves. A press ripples through the pill.
+            cross-fades with its icon. A long label wraps between words and the item grows taller; a
+            single word too long for its item breaks as a last resort, hyphenated where the browser
+            can for the page&apos;s <InlineCode>lang</InlineCode>, so no label is ever cut short.
+            While the rail widens, labels stay on one line, clipped by the rail, so no icon moves. A
+            press ripples through the pill.
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>itemAlignment=&quot;center&quot;</InlineCode> centres the items in the space

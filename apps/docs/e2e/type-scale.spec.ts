@@ -215,28 +215,76 @@ const navLabels = (scope: Locator) =>
 test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
   test.beforeEach(({ page }) => page.setViewportSize({ width: 1280, height: 1400 }));
 
-  /** No label breaks inside a word; one too wide for its item ends with an ellipsis. */
-  const expectWordBreaks = (labels: Awaited<ReturnType<typeof navLabels>>) => {
+  /** No label is cut short; with room for every word, none breaks inside a word. */
+  const expectWhole = (
+    labels: Awaited<ReturnType<typeof navLabels>>,
+    { wordsFit }: { wordsFit: boolean },
+  ) => {
     expect(labels.length).toBeGreaterThan(0);
     for (const label of labels) {
-      expect(label.split, `${label.text}: split inside a word`).toEqual([]);
-      expect(label.ellipsis, `${label.text}: ellipsis`).toBe(true);
+      expect(label.overflows, `${label.text}: cut off`).toBe(false);
+      expect(label.ellipsis, `${label.text}: ellipsis`).toBe(false);
+      if (wordsFit) expect(label.split, `${label.text}: split inside a word`).toEqual([]);
     }
   };
 
-  test('bar labels, stacked and inline, wrap only between words', async ({ page }) => {
+  test('bar labels, stacked and inline, wrap between words and are never cut', async ({ page }) => {
     await openStory(page, 'components-navigation--bar');
     await setRootFontSize(page, 32);
     const bars = page.getByTestId('bars').getByRole('navigation');
     await expect(bars).toHaveCount(3);
-    for (const bar of await bars.all()) expectWordBreaks(await navLabels(bar));
-    // The narrow bar's "Recently shared files": "Recently" alone is wider than its item, so
-    // it ends with an ellipsis on its own line, and the other words wrap below it.
+    expectWhole(await navLabels(bars.nth(0)), { wordsFit: true });
+    expectWhole(await navLabels(bars.nth(1)), { wordsFit: true });
+    // The narrow bar's "Recently shared files" wraps onto several lines.
     const narrow = await navLabels(bars.nth(2));
-    const long = narrow.find((label) => label.text === 'Recently shared files')!;
-    expect(long.overflows).toBe(true);
-    expect(long.lines).toBeGreaterThan(1);
+    expectWhole(narrow, { wordsFit: false });
+    expect(narrow.find((label) => label.text === 'Recently shared files')!.lines).toBeGreaterThan(
+      1,
+    );
   });
+
+  /*
+   * 2026-10-15: four stacked items in a 320px window at 2x text ended "Starred" and
+   * "Recently" with an ellipsis. A word wider than its item now breaks as a last resort
+   * (hyphenated where the browser has a dictionary for the page's language), so the whole
+   * label stays on screen.
+   */
+  test('four stacked items at 320px and 2x text show every label whole', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 32);
+    const bars = page.getByTestId('bars').getByRole('navigation');
+    await bars.first().evaluate((bar) => {
+      // The phone-width case: the stacked bar spans the 320px window.
+      (bar.parentElement as HTMLElement).style.width = '320px';
+    });
+    for (const index of [0, 2]) {
+      const labels = await navLabels(bars.nth(index));
+      expect(labels.length).toBe(4);
+      expectWhole(labels, { wordsFit: false });
+    }
+  });
+
+  test('a one-word label too wide for its item breaks rather than being cut', async ({ page }) => {
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 48);
+    const stacked = await navLabels(page.getByTestId('bars').getByRole('navigation').first());
+    expectWhole(stacked, { wordsFit: false });
+    const word = stacked.find((label) => !/\s/.test(label.text) && label.lines > 1);
+    expect(word, 'a one-word label broken over lines').toBeDefined();
+  });
+
+  for (const expanded of [false, true]) {
+    test(`${expanded ? 'expanded' : 'collapsed'} rail labels wrap and are never cut`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: expanded });
+      await setRootFontSize(page, 32);
+      const rail = page.getByTestId('rail');
+      await page.waitForTimeout(600);
+      expectWhole(await navLabels(rail), { wordsFit: false });
+    });
+  }
 
   // M3: "Ensure the full label is always visible on-screen at up to 2x text sizing". Inline
   // items whose labels don't fit side by side stack instead (2026-10-15), so no label is cut.
@@ -254,28 +302,4 @@ test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
     await setRootFontSize(page, 16);
     await expect(bars.nth(1)).not.toHaveAttribute('data-stacked');
   });
-
-  test('a one-word label too wide for its item stays on one line with an ellipsis', async ({
-    page,
-  }) => {
-    await openStory(page, 'components-navigation--bar');
-    await setRootFontSize(page, 48);
-    const stacked = await navLabels(page.getByTestId('bars').getByRole('navigation').first());
-    expectWordBreaks(stacked);
-    const word = stacked.find((label) => !/\s/.test(label.text) && label.overflows);
-    expect(word, 'a one-word label wider than its item').toBeDefined();
-    expect(word!.lines).toBe(1);
-  });
-
-  for (const expanded of [false, true]) {
-    test(`${expanded ? 'expanded' : 'collapsed'} rail labels wrap only between words`, async ({
-      page,
-    }) => {
-      await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: expanded });
-      await setRootFontSize(page, 32);
-      const rail = page.getByTestId('rail');
-      await page.waitForTimeout(600);
-      expectWordBreaks(await navLabels(rail));
-    });
-  }
 });

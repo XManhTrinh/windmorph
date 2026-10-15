@@ -82,8 +82,9 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             the extra space at the bar&apos;s ends; when their labels don&apos;t fit on one line
             side by side (a narrow bar, or text at up to 2× its size), they stack and share the
             width equally instead, so every label stays whole. A long label wraps between words and
-            the bar grows taller; it never breaks inside a word, and a single word too long for its
-            item ends with an ellipsis.
+            the bar grows taller. A single word too long for its item breaks as a last resort,
+            hyphenated where the browser can for the page&apos;s <InlineCode>lang</InlineCode>, so
+            no label is ever cut short.
           </p>
           <p className="text-body-large text-on-surface-variant">
             An item&apos;s <InlineCode>badge</InlineCode> (a <InlineCode>Badge</InlineCode>)

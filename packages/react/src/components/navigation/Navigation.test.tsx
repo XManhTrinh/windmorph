@@ -331,13 +331,12 @@ describe('NavigationRail', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
-  it('wraps long labels between words, never inside one, and bolds the current one', () => {
+  it('wraps long labels, never cuts them short, and bolds the current one', () => {
     const { rerender } = render(<Rail />);
     const label = screen.getByText('Inbox');
-    expect(label).not.toHaveClass('truncate');
-    expect(label).toHaveClass('text-balance', 'overflow-hidden', 'text-ellipsis');
-    // Lines break between words only: never inside one.
-    expect(label.className).not.toMatch(/overflow-wrap:anywhere|break-all|hyphens-auto/);
+    // Lines break between words; a word wider than the item hyphenates as a last resort.
+    expect(label).toHaveClass('text-balance', 'hyphens-auto', 'wrap-break-word');
+    expect(label.className).not.toMatch(/truncate|text-ellipsis|overflow-hidden|break-all/);
     expect(label).toHaveClass('group-data-current/nav:text-label-medium-emphasized');
     rerender(<Rail expanded />);
     expect(screen.getByText('Inbox')).toHaveClass(
@@ -735,14 +734,13 @@ describe('NavigationBar', () => {
   it('wraps labels and bolds the current one', () => {
     render(<Bar />);
     const label = screen.getByText('Home');
-    expect(label).not.toHaveClass('truncate');
     expect(label).toHaveClass(
       'text-balance',
-      'overflow-hidden',
-      'text-ellipsis',
+      'hyphens-auto',
+      'wrap-break-word',
       'group-data-current/nav:text-label-medium-emphasized',
     );
-    expect(label.className).not.toMatch(/overflow-wrap:anywhere|break-all|hyphens-auto/);
+    expect(label.className).not.toMatch(/truncate|text-ellipsis|overflow-hidden|break-all/);
     expect(screen.getByRole('navigation')).toHaveClass('min-h-[64px]');
   });
 
