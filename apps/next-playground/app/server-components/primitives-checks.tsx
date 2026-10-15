@@ -66,7 +66,13 @@ export const primitivesChecks = {
     kind: 'context',
     render: () => (
       <Primitives.ThemeScopeContext
-        value={{ theme: 'ocean', mode: 'dark', contrast: 'standard', motion: 'standard' }}
+        value={{
+          theme: 'ocean',
+          mode: 'dark',
+          contrast: 'standard',
+          motion: 'standard',
+          density: 0,
+        }}
       >
         <span>Ocean scope</span>
       </Primitives.ThemeScopeContext>
