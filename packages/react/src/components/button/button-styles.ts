@@ -209,7 +209,12 @@ export const buttonStyles = tv({
     {
       variant: 'outlined',
       toggle: true,
-      class: { root: 'data-disabled:bg-outline-variant/10 data-selected:border-transparent' },
+      // Disabled: unselected outline-variant at 10%; selected on-surface at 10%, as
+      // `OutlinedButtonTokens.SelectedDisabledContainerColor` and the outlined icon button
+      // (2026-10-15).
+      class: {
+        root: 'data-disabled:not-data-selected:bg-outline-variant/10 data-disabled:data-selected:bg-on-surface/10 data-selected:border-transparent',
+      },
     },
   ],
   defaultVariants: {

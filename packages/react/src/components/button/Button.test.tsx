@@ -179,6 +179,18 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveClass(effects);
   });
 
+  it('gives a selected, disabled outlined toggle the on-surface 10% container', () => {
+    // Re-audit 2026-10-15: as the token and the outlined icon button.
+    render(
+      <Button toggle variant="outlined" defaultSelected disabled>
+        Selected
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Selected' });
+    expect(button).toHaveClass('data-disabled:data-selected:bg-on-surface/10');
+    expect(button).not.toHaveClass('data-disabled:bg-outline-variant/10');
+  });
+
   it('uses square corners and size-specific press morphs', () => {
     render(
       <>

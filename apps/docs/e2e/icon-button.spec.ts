@@ -164,6 +164,25 @@ test.describe('IconButton disabled outlines (2026-10-13)', () => {
     }
     expect(await border('Starred')).toBe('rgba(0, 0, 0, 0)');
   });
+
+  test('a selected, disabled outlined toggle is on-surface at 10%, as on Button', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-iconbutton--disabled');
+    const row = page.getByTestId('disabled').locator('> div').nth(2);
+    const expected = await row.evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.className = 'bg-on-surface/10';
+      el.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(row.getByRole('button', { name: 'Starred', exact: true })).toHaveCSS(
+      'background-color',
+      expected,
+    );
+  });
 });
 
 test.describe('IconButton tooltip announcement (2026-10-13)', () => {

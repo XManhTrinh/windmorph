@@ -437,6 +437,24 @@ test.describe('Button disabled outlines (2026-10-13)', () => {
     }
     expect(await border('Selected')).toBe('rgba(0, 0, 0, 0)');
   });
+
+  // Re-audit 2026-10-15: a selected, disabled outlined toggle was outline-variant at 10%
+  // while the outlined icon button was on-surface at 10% (the token).
+  test('a selected, disabled outlined toggle is on-surface at 10%', async ({ page }) => {
+    await openStory(page, 'components-button--disabled-outlined');
+    const expected = await page.getByTestId('disabled-outlined').evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.className = 'bg-on-surface/10';
+      el.append(probe);
+      const color = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return color;
+    });
+    await expect(page.getByRole('button', { name: 'Selected', exact: true })).toHaveCSS(
+      'background-color',
+      expected,
+    );
+  });
 });
 
 // Re-audit 2026-10-15: under forced colours the containers vanished (background forced to
