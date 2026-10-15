@@ -30,16 +30,30 @@ export function readLooks(locator: Locator): Promise<ForcedLook[]> {
   );
 }
 
-/** The computed value of a system colour (`GrayText`, `Highlight` …) in the page. */
+/**
+ * The computed value of a system colour (`GrayText`, `Highlight` …) in the page. The probe
+ * opts out of forced colours, so it reads the same with them on or off.
+ */
 export function systemColor(page: Page, name: string): Promise<string> {
   return page.evaluate((value) => {
     const probe = document.createElement('span');
     probe.style.color = value;
+    probe.style.forcedColorAdjust = 'none';
     document.body.append(probe);
     const color = getComputedStyle(probe).color;
     probe.remove();
     return color;
   }, name);
+}
+
+/** The `Canvas` system colour, the page background forced colours paint. */
+export function canvas(page: Page): Promise<string> {
+  return systemColor(page, 'Canvas');
+}
+
+/** One computed style property of `locator`'s element. */
+export function computedStyle(locator: Locator, property: string): Promise<string> {
+  return locator.evaluate((el, name) => getComputedStyle(el).getPropertyValue(name), property);
 }
 
 /**
