@@ -163,6 +163,9 @@ export const chipStyles = tv({
           '[--m3-chip-border:0px] shadow-elevation-1',
           'data-hovered:not-data-pressed:not-data-focus-visible:not-data-dragged:shadow-elevation-2',
           'data-dragged:shadow-elevation-4 data-disabled:bg-on-surface/12 data-disabled:shadow-elevation-0',
+          // Forced colours drop the shadow and the container, so the chip takes a 1px border
+          // (counted out of its padding, as a flat chip's).
+          'forced-colors:[--m3-chip-border:1px] forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
         ],
       },
       false: {
@@ -219,6 +222,14 @@ export const chipStyles = tv({
       kind: ['filter', 'input'],
       elevated: false,
       class: { root: 'data-selected:border-transparent' },
+    },
+    // Forced colours drop the selected container, so a selected chip shows a 2px `Highlight`
+    // border instead (counted out of its padding).
+    {
+      kind: ['filter', 'input'],
+      class: {
+        root: 'forced-colors:data-selected:[--m3-chip-border:2px] forced-colors:data-selected:border-2 forced-colors:data-selected:border-solid forced-colors:data-selected:border-[Highlight]!',
+      },
     },
     {
       kind: 'filter',

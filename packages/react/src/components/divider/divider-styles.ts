@@ -12,7 +12,11 @@ import { tv, type VariantProps } from '../../utils/tv';
 
 /** Variant definitions for {@link Divider}; extend them to add variants. */
 export const dividerStyles = tv({
-  base: 'm-0 shrink-0 border-0 bg-[var(--_md-comp-divider-color)] bg-clip-content',
+  base: [
+    'm-0 shrink-0 border-0 bg-[var(--_md-comp-divider-color)] bg-clip-content',
+    // The line is a background, which forced colours drop.
+    'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
+  ],
   variants: {
     orientation: {
       horizontal: 'h-px w-full',

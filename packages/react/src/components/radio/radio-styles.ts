@@ -33,6 +33,10 @@ export const radioStyles = tv({
       // Stacked so disabled also wins over the selected colour (equal specificity otherwise).
       'group-data-disabled/control:group-data-selected/control:border-on-surface/38',
       'group-data-disabled/control:[transition-duration:0s]',
+      // Forced colours: the ring and its dot (`bg-current`, a background forced colours would
+      // drop) in system colours, `GrayText` when disabled.
+      'forced-colors:forced-color-adjust-none forced-colors:border-[CanvasText]! forced-colors:text-[CanvasText]!',
+      'forced-colors:group-data-disabled/control:border-[GrayText]! forced-colors:group-data-disabled/control:text-[GrayText]!',
     ],
     dot: [
       'size-[10px] scale-0 rounded-full bg-current',

@@ -26,6 +26,9 @@ export const cardStyles = tv({
     'flex flex-col overflow-hidden text-on-surface',
     'rounded-[var(--_md-comp-card-container-shape)] bg-[var(--_md-comp-card-container-color)]',
     'shadow-[shadow:var(--_md-comp-card-container-elevation)]',
+    // Forced colours drop the container colour and the shadow, so every card takes a border.
+    'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+    'forced-colors:data-disabled:border-[GrayText]',
   ],
   variants: {
     variant: {

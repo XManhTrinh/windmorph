@@ -87,6 +87,8 @@ export const bottomSheetStyles = tv({
       'min-[641px]:max-h-[calc(100dvh-56px)]',
       'bg-[var(--_md-comp-sheet-bottom-docked-container-color)] text-on-surface outline-none',
       'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
+      // Forced colours drop the container and the shadow: a border on the free edges.
+      'forced-colors:border-x forced-colors:border-t forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
     handle: [
       'flex w-full shrink-0 cursor-grab touch-none justify-center pt-[22px] pb-[22px] outline-none',
@@ -96,6 +98,7 @@ export const bottomSheetStyles = tv({
     handleBar: [
       'h-[4px] w-[32px] rounded-corner-extra-large',
       'bg-[var(--_md-comp-sheet-bottom-docked-drag-handle-color)]',
+      'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
     ],
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
     // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet).
@@ -182,7 +185,19 @@ export const sideSheetStyles = tv({
     {
       variant: 'modal',
       detached: false,
-      class: { panel: 'rounded-s-[var(--_md-comp-sheet-side-container-shape)]' },
+      class: {
+        panel: [
+          'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
+          // Forced colours drop the container and the shadow: a border on the free edge.
+          'forced-colors:border-s forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
+      },
+    },
+    {
+      detached: true,
+      class: {
+        panel: 'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+      },
     },
     {
       variant: 'standard',

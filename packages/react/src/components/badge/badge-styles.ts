@@ -35,9 +35,16 @@ export const badgeStyles = tv({
   },
   variants: {
     size: {
-      small: { root: 'size-[6px]' },
+      // Forced colours drop backgrounds: the dot is drawn in `CanvasText`, and the large badge
+      // takes an outline round its digits.
+      small: {
+        root: 'size-[6px] forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
+      },
       large: {
-        root: 'min-h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+        root: [
+          'min-h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+          'forced-colors:outline forced-colors:outline-1 forced-colors:outline-solid forced-colors:outline-[CanvasText]',
+        ],
       },
     },
     /** Text longer than four characters stops at 34px and truncates. */
