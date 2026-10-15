@@ -7,7 +7,7 @@ import { useM3Spring } from '../../motion/use-m3-spring';
 import { PullToRefresh, type PullToRefreshProps } from './PullToRefresh';
 
 vi.mock('../../motion/use-m3-spring', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../motion/use-m3-spring')>();
+  const actual = await importOriginal<{ useM3Spring: typeof useM3Spring }>();
   return { useM3Spring: vi.fn(actual.useM3Spring) };
 });
 
