@@ -639,8 +639,15 @@ describe('Menu', () => {
     await openMenu('Edit');
     const motion = screen.getByRole('menu').parentElement!;
     // Under reduced motion only the fade is left: the clip stays open.
-    expect(motion).toHaveClass('motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)]');
+    expect(motion).toHaveClass(
+      'motion-safe:data-entering:[clip-path:inset(-24px_-24px_100%_-24px)]',
+      'motion-safe:data-[placement=top]:data-entering:[clip-path:inset(100%_-24px_-24px_-24px)]',
+    );
     expect(motion).not.toHaveClass('starting:scale-80');
+    // The closed state waits for the placement (a `@starting-style` was resolved before React
+    // Aria set it, so a menu above its anchor opened from its top edge), then opens.
+    expect(motion).toHaveAttribute('data-placement');
+    expect(motion).not.toHaveAttribute('data-entering');
   });
 
   it('keeps the theme and direction of where it was rendered', async () => {

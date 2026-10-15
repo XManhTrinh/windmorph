@@ -68,13 +68,16 @@ export const menuStyles = tv({
       '[transition-property:opacity,clip-path]',
       '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
-      'starting:opacity-0 data-exiting:opacity-0',
+      // Closed until React Aria has placed it (`data-entering`, `useRevealEntering`), with no
+      // transition, then it opens from there: a `@starting-style` was resolved before the
+      // placement was known, so every menu opened from its top edge.
+      'data-entering:opacity-0 data-entering:[transition-property:none] data-exiting:opacity-0',
       // Below the anchor it opens downwards, above it upwards, beside it sideways. Under
       // reduced motion it only fades: the clip stays open.
-      'motion-safe:starting:[clip-path:inset(-24px_-24px_100%_-24px)] motion-safe:data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
-      'motion-safe:data-[placement=top]:starting:[clip-path:inset(100%_-24px_-24px_-24px)] motion-safe:data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
-      'motion-safe:data-[placement=right]:starting:[clip-path:inset(-24px_100%_-24px_-24px)] motion-safe:data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
-      'motion-safe:data-[placement=left]:starting:[clip-path:inset(-24px_-24px_-24px_100%)] motion-safe:data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
+      'motion-safe:data-entering:[clip-path:inset(-24px_-24px_100%_-24px)] motion-safe:data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',
+      'motion-safe:data-[placement=top]:data-entering:[clip-path:inset(100%_-24px_-24px_-24px)] motion-safe:data-[placement=top]:data-exiting:[clip-path:inset(100%_-24px_-24px_-24px)]',
+      'motion-safe:data-[placement=right]:data-entering:[clip-path:inset(-24px_100%_-24px_-24px)] motion-safe:data-[placement=right]:data-exiting:[clip-path:inset(-24px_100%_-24px_-24px)]',
+      'motion-safe:data-[placement=left]:data-entering:[clip-path:inset(-24px_-24px_-24px_100%)] motion-safe:data-[placement=left]:data-exiting:[clip-path:inset(-24px_-24px_-24px_100%)]',
     ],
     // The list scrolls when tall, and a scroll container clips its children's shadows to
     // its box. 8px of padding (cancelled by a negative margin, so nothing moves) leaves room

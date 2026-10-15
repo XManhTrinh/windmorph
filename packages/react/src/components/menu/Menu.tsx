@@ -59,6 +59,7 @@ import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { BackIcon } from '../sheet/sheet-icons';
+import { useRevealEntering } from './use-reveal-entering';
 import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
 
@@ -505,6 +506,8 @@ function MenuPopover({
     },
     trigger.state,
   );
+  const revealRef = useRef<HTMLDivElement>(null);
+  const entering = useRevealEntering(actualPlacement, revealRef);
   const close = trigger.state.close;
   // Tab moves on from an open menu and closes it and its submenus (the APG menu button
   // pattern). React Aria's focus scope moves focus past the trigger, or back to it when
@@ -537,6 +540,8 @@ function MenuPopover({
         <DismissButton onDismiss={trigger.state.close} />
         <div
           {...exitProps}
+          ref={revealRef}
+          data-entering={entering || undefined}
           data-exiting={isExiting || undefined}
           data-placement={actualPlacement ?? undefined}
           className={menuStyles({ instant }).reveal()}
@@ -1036,6 +1041,8 @@ function SubmenuPopoverContent({
     },
     state,
   );
+  const revealRef = useRef<HTMLDivElement>(null);
+  const entering = useRevealEntering(placement, revealRef);
   const { className, style, ...own } = submenu.props;
   const styles = menuStyles();
   return (
@@ -1051,6 +1058,8 @@ function SubmenuPopoverContent({
     >
       <div
         {...exitProps}
+        ref={revealRef}
+        data-entering={entering || undefined}
         data-exiting={isExiting || undefined}
         data-placement={placement ?? undefined}
         className={menuStyles({ instant: tree.instant }).reveal()}
