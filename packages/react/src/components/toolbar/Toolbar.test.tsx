@@ -426,7 +426,10 @@ describe('FloatingToolbar', () => {
       'shadow-elevation-1',
       'rounded-[var(--_md-comp-toolbar-floating-container-shape)]',
     );
-    expect(screen.getByRole('toolbar')).toHaveClass('min-h-[80px]', 'gap-[8px]');
+    // A fixed 80px, as Compose: the FAB's overshoot to 82px never resizes the root
+    // (re-audit 2026-10-15, TB-14).
+    expect(screen.getByRole('toolbar')).toHaveClass('h-[80px]', 'gap-[8px]');
+    expect(screen.getByRole('toolbar')).not.toHaveClass('min-h-[80px]');
     fireEvent.click(fab);
 
     rerender(

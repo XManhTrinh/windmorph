@@ -187,8 +187,10 @@ export const floatingToolbarStyles = tv({
     { hasFab: false, elevated: true, class: { root: 'shadow-elevation-1' } },
     // With a FAB, the toolbar's own surface is level 1 expanded and level 0 collapsed.
     { hasFab: true, elevated: true, class: { surface: 'shadow-elevation-1' } },
-    { hasFab: true, orientation: 'horizontal', class: { root: 'min-h-[80px]' } },
-    { hasFab: true, orientation: 'vertical', class: { root: 'min-w-[80px]' } },
+    // Fixed at the FAB's largest size, as Compose's layout: the FAB's spring overshoot
+    // (80 → 82px) spills over the edges instead of resizing the root and moving the page.
+    { hasFab: true, orientation: 'horizontal', class: { root: 'h-[80px]' } },
+    { hasFab: true, orientation: 'vertical', class: { root: 'w-[80px]' } },
     // The FAB comes first visually but after the toolbar in reading order, as in Compose.
     {
       hasFab: true,
