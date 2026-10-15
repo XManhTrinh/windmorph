@@ -26,4 +26,20 @@ describe('documentHooksWith', () => {
     ]);
     expect(hook?.params[1]).toMatchObject({ type: 'number', required: false, defaultValue: '40' });
   });
+
+  it("leaves out the members a type inherits from React's DOM attributes", () => {
+    const [hook] = documentHooksWith(
+      [resolve(process.cwd(), 'scripts/fixtures/inherited-hook.ts')],
+      {
+        strict: true,
+        skipLibCheck: true,
+        jsx: 4,
+      },
+    );
+    expect(hook?.params.map((param) => param.name)).toEqual([
+      'own',
+      'own.aria-expanded',
+      'own.openOnPressStart',
+    ]);
+  });
 });

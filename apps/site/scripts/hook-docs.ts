@@ -70,11 +70,13 @@ export function objectFields(
   if (target.getCallSignatures().length > 0 || target.getConstructSignatures().length > 0) {
     return [];
   }
+  const fromLibrary = (node: ts.Node) => {
+    const fileName = node.getSourceFile().fileName;
+    return fileName.includes('/node_modules/') && !fileName.includes('@windmorph/react-pro');
+  };
+  // Library types stay whole, except the installed Windmorph Pro's own declarations.
   const declaration = target.getSymbol()?.declarations?.[0];
-  if (declaration?.getSourceFile().fileName.includes('/node_modules/')) {
-    // Library types stay whole, except the installed Windmorph Pro's own declarations.
-    if (!declaration.getSourceFile().fileName.includes('@windmorph/react-pro')) return [];
-  }
+  if (declaration && fromLibrary(declaration)) return [];
   // A class (the snackbar host's state) lists its public members, not its private ones.
   const isPublic = (member: ts.Symbol) =>
     !member.getName().startsWith('#') &&
@@ -82,9 +84,16 @@ export function objectFields(
       (node) =>
         ts.getCombinedModifierFlags(node) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected),
     );
+  // Members a type inherits from React or another library (`DOMAttributes`' 170 handlers)
+  // are left out, as the props tables leave out inherited props.
+  const ownMember = (member: ts.Symbol) => {
+    const declarations = member.declarations ?? [];
+    return declarations.length === 0 || !declarations.every(fromLibrary);
+  };
   return checker
     .getPropertiesOfType(target)
     .filter(isPublic)
+    .filter(ownMember)
     .map((member) => {
       const optional = (member.flags & ts.SymbolFlags.Optional) !== 0;
       const memberType = checker.getTypeOfSymbol(member);
