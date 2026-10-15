@@ -100,6 +100,9 @@ describe('Autocomplete', () => {
     // A chip's label (not its remove button).
     await userEvent.click(screen.getByText('Zürich'));
     expect(screen.getByRole('listbox')).toBeInTheDocument();
+    // Presses in the menu (portalled, but inside the field in React's tree) still choose.
+    await userEvent.click(screen.getByRole('option', { name: 'London' }));
+    expect(screen.getByRole('option', { name: 'London' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('leaves opening to the arrow with menuTrigger="manual"', async () => {

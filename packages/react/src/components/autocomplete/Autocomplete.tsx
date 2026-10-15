@@ -396,8 +396,10 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
           // A press anywhere on the field (its padding, a chip's label, the space between
           // chips) puts the caret in the input and opens the menu, as TextField and Select
           // react to the whole field. The input opens on its own click, and the buttons (the
-          // arrow, clear, a chip's remove) keep their own presses.
-          if (!(event.target as Element).closest(INTERACTIVE) && !disabled) {
+          // arrow, clear, a chip's remove) keep their own presses. Presses in the menu reach
+          // here through React's tree from its portal, and are left alone.
+          const target = event.target as Element;
+          if (event.currentTarget.contains(target) && !target.closest(INTERACTIVE) && !disabled) {
             event.preventDefault();
             inputRef.current?.focus();
             openOnPress();
