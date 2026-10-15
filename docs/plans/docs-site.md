@@ -154,5 +154,5 @@ Every piece of the layout is a library component (see "Only our components"): na
 
 ## Open
 
-- Hosting target (static export works anywhere; pick before the first deploy). Its deploy workflow runs: build → `record:bento` (with ffmpeg installed, for the MP4) → build again (the home page picks the video up) → deploy `out/`, as CI's site job does.
+- Hosting target (static export works anywhere; pick before the first deploy). Its deploy workflow runs: build → `record:bento` (with ffmpeg installed, for the MP4) → build again (the home page picks the video up) → deploy `out/`, as CI's `site-build` job does.
 - Whether the site gets its own domain and versioned docs once `@windmorph/react` is published.
