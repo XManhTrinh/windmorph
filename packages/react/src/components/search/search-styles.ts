@@ -54,13 +54,21 @@ export const searchBarStyles = tv({
     root: 'flex h-[56px] w-[360px] max-w-[min(720px,100%)] shrink-0',
     // The pill holding the icons and the input fills the bar.
     // Keyboard focus in the input draws Compose's inset focus ring around the pill.
-    field:
+    // Forced colours drop the pill's colour: a system-colour border keeps its edge.
+    field: [
       'focus-ring-inset flex h-full w-full min-w-0 items-center rounded-[var(--_md-comp-search-bar-container-shape)] text-on-surface',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+    ],
+    // Icon buttons in the slots take the slot's colour (and so its icon colour token), as
+    // in the app bar's slots: Compose colours the search bar's and view's leading icon
+    // `on-surface` and trailing icons `on-surface-variant`, buttons included.
     leading:
-      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-leading-icon-color)] [&>svg]:size-[24px]',
-    // One or two trailing icon buttons, or an avatar (30px) and an icon button (M3).
+      'ms-[4px] flex size-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-leading-icon-color)] [--md-comp-icon-button-icon-color:currentColor] [&>svg]:size-[24px]',
+    // One or two trailing icon buttons, or an avatar (30px) and an icon button (M3). Two
+    // 40px buttons sit 8px apart inside 4px of padding, so their 48px targets meet edge to
+    // edge within the slot (a single one is centred in 48px, as before).
     trailing: [
-      'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center text-[color:var(--_md-comp-search-bar-trailing-icon-color)]',
+      'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center gap-[8px] px-[4px] text-[color:var(--_md-comp-search-bar-trailing-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
       '[&>svg]:size-[24px] [&>img]:size-[30px] [&>img]:rounded-full',
     ],
     input: [
@@ -69,7 +77,7 @@ export const searchBarStyles = tv({
       '[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none',
     ],
     scrim: [
-      'fixed inset-0 z-(--md-sys-z-scrim) bg-scrim/32 opacity-100',
+      'fixed inset-0 z-(--md-sys-z-scrim) bg-scrim/32 opacity-100 data-exiting:pointer-events-none',
       '[transition-property:opacity]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
@@ -85,7 +93,9 @@ export const searchBarStyles = tv({
      * Reduced motion: the progress stays at 1, so the field is at its focused size at once.
      */
     dockedPanel: [
-      'fixed z-(--md-sys-z-sheet) flex flex-col outline-none',
+      // Leaving, the view takes no presses: the spring's tail runs on after the field has
+      // landed on the bar, and a press there ran a suggestion of the invisible dropdown.
+      'fixed z-(--md-sys-z-sheet) flex flex-col outline-none data-exiting:pointer-events-none',
       '[--m3-search-progress:1] [--m3-search-p:max(0,var(--m3-search-progress))]',
       'motion-safe:starting:[--m3-search-progress:0] motion-safe:data-exiting:[--m3-search-progress:0]',
       'top-[calc(var(--m3-search-top)_+_var(--m3-search-p)_*_var(--m3-search-dy))]',
@@ -98,10 +108,12 @@ export const searchBarStyles = tv({
     ],
     // The focused field is 56px (M3), even when the collapsed bar is resized; it grows from
     // the bar's height with the panel.
+    // The full-window layer the docked view sits in (React Aria's underlay).
+    underlay: 'fixed inset-0 z-(--md-sys-z-sheet) data-exiting:pointer-events-none',
     dockedHeader:
       'flex h-[calc(var(--m3-search-height)_+_var(--m3-search-p)_*_var(--m3-search-dh))] shrink-0',
     dropdown: [
-      'mt-[2px] overflow-y-auto overscroll-contain data-resizing:overflow-y-hidden',
+      'mt-[2px] overflow-y-auto overscroll-contain data-resizing:overflow-y-hidden data-exiting:pointer-events-none',
       // 58px is the field and the gap above the dropdown.
       'min-h-[min(182px,calc(66.67dvh-58px))] max-h-[calc(66.67dvh-58px)]',
       // The height follows the content (`--m3-search-content-height`, measured) within those
@@ -109,6 +121,7 @@ export const searchBarStyles = tv({
       // hydration, or under reduced motion) it's `auto`.
       'h-[clamp(min(182px,calc(66.67dvh_-_58px)),var(--m3-search-content-height),calc(66.67dvh_-_58px))]',
       'rounded-[var(--_md-comp-search-view-docked-container-shape)] bg-[var(--_md-comp-search-view-container-color)] text-on-surface',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       // Reduced motion: it only fades.
       'translate-y-0 motion-safe:starting:-translate-y-1/2 motion-safe:data-exiting:-translate-y-1/2',
       // The delays below cycle, so the height (third) starts at once like the slide.
@@ -126,7 +139,7 @@ export const searchBarStyles = tv({
      * the clip and the field never overshoot the window's or the bar's bounds.
      */
     fullScreenPanel: [
-      'fixed inset-0 z-(--md-sys-z-sheet) bg-[var(--_md-comp-search-view-container-color)] text-on-surface outline-none',
+      'fixed inset-0 z-(--md-sys-z-sheet) bg-[var(--_md-comp-search-view-container-color)] text-on-surface outline-none data-exiting:pointer-events-none',
       '[--m3-search-progress:1] [--m3-search-p:clamp(0,var(--m3-search-progress),1)]',
       'motion-safe:starting:[--m3-search-progress:0] motion-safe:data-exiting:[--m3-search-progress:0]',
       '[clip-path:inset(calc((1_-_var(--m3-search-p))_*_var(--m3-search-top))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-right))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-bottom))_calc((1_-_var(--m3-search-p))_*_var(--m3-search-left))_round_calc((1_-_var(--m3-search-p))_*_28px))]',

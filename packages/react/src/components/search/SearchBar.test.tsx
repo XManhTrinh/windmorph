@@ -125,6 +125,19 @@ describe('SearchBar', () => {
     expect(screen.getByRole('button', { name: 'Suggestion one' })).toHaveFocus();
   });
 
+  // While it leaves, the invisible view must not take presses meant for the bar.
+  it('lets presses through the leaving docked view', async () => {
+    render(<Controlled view="docked" />);
+    await userEvent.click(screen.getByRole('combobox'));
+    const dialog = screen.getByRole('dialog', { name: 'Search mail' });
+    const dropdown = screen.getByText('Suggestion one').closest<HTMLElement>('[data-view]')!;
+    await userEvent.keyboard('{Escape}');
+    for (const part of [dialog, dropdown, dialog.parentElement!]) {
+      expect(part).toHaveAttribute('data-exiting', 'true');
+      expect(part).toHaveClass('data-exiting:pointer-events-none');
+    }
+  });
+
   it('opens a 56px docked field centred on a shorter bar', async () => {
     render(<SearchBar aria-label="Search" className="h-[48px]" data-testid="search" />);
     const bar = screen.getByTestId('search');

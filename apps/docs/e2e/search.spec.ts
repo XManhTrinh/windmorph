@@ -145,6 +145,24 @@ test.describe('Search geometry and behaviour', () => {
     await expect(page.getByRole('dialog')).toBeHidden();
   });
 
+  // A leaving docked view is invisible over the bar for a while (the spring's tail); a
+  // press there used to run one of its suggestions (2026-10-15).
+  for (const wait of [100, 250]) {
+    test(`docked: a press on the bar ${wait}ms after Escape reaches the bar`, async ({ page }) => {
+      await openStory(page, 'components-search--playground', {}, { view: 'docked' });
+      const bar = await rect(page.getByTestId('search'));
+      const before = await page.getByTestId('submitted').textContent();
+      await page.getByRole('combobox').click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await settle(page);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(wait);
+      await page.mouse.click(bar.x + 100, bar.y + 40);
+      await page.waitForTimeout(300);
+      await expect(page.getByTestId('submitted')).toHaveText(before!);
+    });
+  }
+
   test('full screen: the surface grows to the window and the field moves to the top', async ({
     page,
   }) => {
@@ -215,6 +233,38 @@ test.describe('Search geometry and behaviour', () => {
         .getByRole('combobox')
         .evaluate((el) => getComputedStyle(el).textAlign),
     ).toBe('center');
+  });
+
+  // Compose lays two 48dp buttons side by side; 40px buttons with no gap overlapped their
+  // targets by 8px, and the first target reached the text (2026-10-15).
+  test("two trailing buttons' 48px targets meet edge to edge, 4px from the text", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-search--collapsed');
+    const two = page.getByTestId('two-trailing');
+    const voice = await rect(two.getByRole('button', { name: 'Voice search' }));
+    const clear = await rect(two.getByRole('button', { name: 'Clear' }));
+    // Each 40px button's target reaches 4px past it.
+    expect(clear.x - 4 - (voice.x + voice.width + 4)).toBe(0);
+    const input = two.getByRole('combobox');
+    const textEnd = await input.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      return Math.round(box.right - parseFloat(getComputedStyle(el).paddingInlineEnd));
+    });
+    expect(voice.x - 4 - textEnd).toBe(4);
+  });
+
+  // The slots pass their colour (and their icon colour tokens) to icon buttons.
+  test('icon buttons in the slots take the icon colour tokens', async ({ page }) => {
+    await openStory(page, 'components-search--collapsed');
+    const two = page.getByTestId('two-trailing');
+    await two.evaluate((el) =>
+      el.style.setProperty('--md-comp-search-bar-trailing-icon-color', 'rgb(0, 0, 250)'),
+    );
+    const voice = two.getByRole('button', { name: 'Voice search' });
+    await expect
+      .poll(() => voice.locator('svg').evaluate((el) => getComputedStyle(el).color))
+      .toBe('rgb(0, 0, 250)');
   });
 
   test('in an app bar the field fills the free space up to 312px, then half of it', async ({

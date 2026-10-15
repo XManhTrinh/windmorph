@@ -34,4 +34,31 @@ describe('search styles', () => {
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
+
+  // Forced colours drop backgrounds, so the pill and the docked dropdown need a
+  // system-colour edge (WCAG 1.4.11).
+  it('draws the pill and the docked dropdown with a system-colour edge in forced colours', () => {
+    const styles = searchBarStyles();
+    for (const slot of [styles.field(), styles.dropdown()]) {
+      expect(slot.split(' ')).toEqual(
+        expect.arrayContaining(['forced-colors:border', 'forced-colors:border-[CanvasText]']),
+      );
+    }
+  });
+
+  // The app bar's slots pass their colour to icon buttons; the search slots didn't, so the
+  // full-screen Back button was `on-surface-variant` and ignored the icon colour tokens.
+  it('passes the slot colour to icon buttons in the leading and trailing slots', () => {
+    const styles = searchBarStyles({ hasLeading: true, hasTrailing: true });
+    for (const slot of [styles.leading(), styles.trailing()]) {
+      expect(slot.split(' ')).toContain('[--md-comp-icon-button-icon-color:currentColor]');
+    }
+  });
+
+  // Two 40px trailing buttons: their 48px targets meet edge to edge inside the slot.
+  it('spaces two trailing buttons so their targets never overlap', () => {
+    expect(searchBarStyles().trailing().split(' ')).toEqual(
+      expect.arrayContaining(['gap-[8px]', 'px-[4px]']),
+    );
+  });
 });
