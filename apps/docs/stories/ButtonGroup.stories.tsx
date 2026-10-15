@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Button, ButtonGroup, IconButton, type ButtonSize } from '@windmorph/react';
+import { Button, ButtonGroup, IconButton, ThemeScope, type ButtonSize } from '@windmorph/react';
 import { useState } from 'react';
 import {
   AddIcon,
@@ -12,6 +12,7 @@ import {
   StarIcon,
   StarOutlineIcon,
 } from './icons';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -363,4 +364,47 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+/**
+ * Groups of icon buttons under a dense `ThemeScope` (M3: "Button groups adapt to density of the
+ * buttons inside"): standard groups at XS, S and M keep their gaps while their buttons lose
+ * 4px a step, and a connected XS group keeps its 48px-wide buttons.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <ThemeScope density={density}>
+          <div className="flex flex-col items-start gap-4">
+            {(['xs', 'sm', 'md'] as const).map((size) => (
+              <ButtonGroup
+                key={size}
+                size={size}
+                buttonVariant="tonal"
+                aria-label={`Formatting ${size}`}
+                data-testid={`${density}-standard-${size}`}
+              >
+                <IconButton icon={<FormatBoldIcon />} aria-label="Bold" />
+                <IconButton icon={<FormatItalicIcon />} aria-label="Italic" />
+                <IconButton icon={<FormatUnderlinedIcon />} aria-label="Underline" />
+              </ButtonGroup>
+            ))}
+            <ButtonGroup
+              variant="connected"
+              size="xs"
+              buttonVariant="tonal"
+              className="w-fit"
+              aria-label="Connected formatting"
+              data-testid={`${density}-connected-xs`}
+            >
+              <IconButton icon={<FormatBoldIcon />} aria-label="Bold" />
+              <IconButton icon={<FormatItalicIcon />} aria-label="Italic" />
+              <IconButton icon={<FormatUnderlinedIcon />} aria-label="Underline" />
+            </ButtonGroup>
+          </div>
+        </ThemeScope>
+      )}
+    </DensityColumns>
+  ),
 };

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge, Tab, Tabs, type TabsVariant } from '@windmorph/react';
 import { EditIcon, SearchIcon, SendIcon, StarIcon } from './icons';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -151,5 +152,53 @@ export const LayoutOverride: StoryObj<{
         <Tab key="b" title="Two" />
       </Tabs>
     </div>
+  ),
+};
+
+/**
+ * Web density, 0 to -3: each step takes 4px off the tabs (48 → 36px, 64 → 52px with icons
+ * above), as Material Components Web's tab bar density did. The row's tabs are side by side, so
+ * each keeps a full-height target of its own.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <div className="flex w-full flex-col gap-4">
+          <Tabs aria-label="Text" density={density} data-testid={`${density}-text`}>
+            <Tab key="a" title="Video" />
+            <Tab key="b" title="Photos" />
+            <Tab key="c" title="Audio" />
+          </Tabs>
+          <Tabs aria-label="Icons above" density={density} data-testid={`${density}-icon-top`}>
+            <Tab key="a" title="Starred" icon={<StarIcon />} />
+            <Tab key="b" title="Search" icon={<SearchIcon />} />
+            <Tab key="c" title="Edit" icon={<EditIcon />} />
+          </Tabs>
+          <Tabs
+            aria-label="Icons before"
+            variant="secondary"
+            iconPlacement="start"
+            density={density}
+            data-testid={`${density}-icon-start`}
+          >
+            <Tab key="a" title="Sent" icon={<SendIcon />} />
+            <Tab key="b" title="Edit" icon={<EditIcon />} />
+          </Tabs>
+          <Tabs aria-label="Icons only" density={density} data-testid={`${density}-icon-only`}>
+            <Tab key="a" icon={<StarIcon />} textValue="Starred" aria-label="Starred" />
+            <Tab key="b" icon={<SearchIcon />} textValue="Search" aria-label="Search" />
+          </Tabs>
+          <Tabs aria-label="With a panel" density={density} data-testid={`${density}-panel`}>
+            <Tab key="a" title="Inbox">
+              <p className="p-4 text-body-medium">Panels keep their own density.</p>
+            </Tab>
+            <Tab key="b" title="Archive">
+              <p className="p-4 text-body-medium">Archived messages.</p>
+            </Tab>
+          </Tabs>
+        </div>
+      )}
+    </DensityColumns>
   ),
 };

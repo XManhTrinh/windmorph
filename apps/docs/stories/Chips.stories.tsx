@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { AssistChip, ChipSet, FilterChip, InputChip, SuggestionChip } from '@windmorph/react';
 import { useState } from 'react';
 import { ArrowIcon, EditIcon, SearchIcon, StarIcon } from './icons';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -194,4 +195,54 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+/**
+ * Web density, 0 to -3: each step takes 4px off a chip (32 → 28 → 24px; -3 stays at 24px, as
+ * Material Components Web's chips did) while the touch targets stay 48px. A wrapping set puts
+ * 2px more between rows per step (8 → 12px), so a target never reaches the next row's chips;
+ * a scrolling set adds the same above and below.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <>
+          <ChipSet
+            aria-label="Chips"
+            density={density}
+            className="w-[260px]"
+            data-testid={`${density}-wrap`}
+          >
+            <AssistChip leadingIcon={<EditIcon />}>Edit</AssistChip>
+            <SuggestionChip>Sounds good</SuggestionChip>
+            <FilterChip defaultSelected>Vegan</FilterChip>
+            <FilterChip onRemove={() => {}}>Nearby</FilterChip>
+            <InputChip avatar={<Avatar />} onRemove={() => {}}>
+              Zoë
+            </InputChip>
+            <InputChip leadingIcon={<StarIcon />} onRemove={() => {}}>
+              Saved
+            </InputChip>
+            <AssistChip elevated leadingIcon={<SearchIcon />}>
+              Search
+            </AssistChip>
+          </ChipSet>
+          <ChipSet
+            aria-label="Filters"
+            layout="scroll"
+            density={density}
+            className="w-[260px]"
+            data-testid={`${density}-scroll`}
+          >
+            <FilterChip>Open now</FilterChip>
+            <FilterChip defaultSelected trailingIcon={<ArrowIcon />}>
+              Price
+            </FilterChip>
+            <FilterChip>Rating</FilterChip>
+          </ChipSet>
+        </>
+      )}
+    </DensityColumns>
+  ),
 };

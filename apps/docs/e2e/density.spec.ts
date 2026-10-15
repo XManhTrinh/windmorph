@@ -379,3 +379,411 @@ test.describe('Density · screenshots', () => {
     }
   }
 });
+
+/*
+ * Controls (2026-10-15). Checkboxes, radio buttons, switches, chips, icon buttons, tabs and list
+ * items take 4px a step off their containers or state layers, after Material Components Web's
+ * density (checkbox and radio 40 → 28px, switch state layer 48 → 28px, chips 32 → 24px, icon
+ * button 48 → 28px, tabs 48 → 32px, list items 4px a step). Targets stay 48px where nothing
+ * stacked sits next to them; tabs and list items are adjacent rows.
+ */
+
+const center = (b: Box) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
+
+/** A press anywhere on `target`'s own box, 1px inside each edge, lands on it. */
+async function ownsItsBox(page: Page, target: Locator) {
+  const b = await box(target);
+  const { x, y } = center(b);
+  for (const [px, py] of [
+    [x, b.y + 1],
+    [x, b.y + b.height - 1],
+    [b.x + 1, y],
+    [b.x + b.width - 1, y],
+  ] as const) {
+    expect(await hits(page, target, px, py), `${px},${py}`).toBe(true);
+  }
+}
+
+/** A 48 × 48px touch target centred on `on`, from the `[data-touch-target]` inside `scope`. */
+async function checkTouchTarget(scope: Locator, on: Locator) {
+  const t = await box(scope.locator('[data-touch-target]').first());
+  expect(t.width).toBeGreaterThanOrEqual(48);
+  expect(t.height).toBeCloseTo(48, 0);
+  const c = center(await box(on));
+  expect(center(t).x).toBeCloseTo(c.x, 0);
+  expect(center(t).y).toBeCloseTo(c.y, 0);
+}
+
+test.describe('Density · Checkbox', () => {
+  test('the state layer loses 4px a step; the box and target stay', async ({ page }) => {
+    await openStory(page, 'components-checkbox--density');
+    for (const level of LEVELS) {
+      for (const name of ['unchecked', 'checked', 'indeterminate', 'invalid', 'disabled']) {
+        const root = page.getByTestId(`${level}-${name}`);
+        const control = root.locator('[data-selection-control]');
+        const c = await box(control);
+        expect(c.width).toBeCloseTo(40 + level * 4, 0);
+        expect(c.height).toBeCloseTo(40 + level * 4, 0);
+        expect((await box(control.locator('[data-slot="box"]'))).width).toBeCloseTo(18, 0);
+        await checkTouchTarget(root, control);
+        await ownsItsBox(page, root);
+      }
+      const bare = page.getByTestId(`${level}-unlabelled`);
+      const { x, y } = center(await box(bare));
+      expect(await hits(page, bare, x, y - 23.5)).toBe(true);
+      expect(await hits(page, bare, x + 23.5, y)).toBe(true);
+    }
+  });
+
+  test("inherits its scope's density; its own wins; right to left", async ({ page }) => {
+    await openStory(page, 'components-checkbox--states', { density: '-2' });
+    const first = page.locator('[data-selection-control]').first();
+    expect((await box(first)).width).toBeCloseTo(32, 0);
+    await openStory(page, 'components-checkbox--density', { density: '-3', dir: 'rtl' });
+    const own = page.getByTestId('0-checked');
+    const control = await box(own.locator('[data-selection-control]'));
+    expect(control.width).toBeCloseTo(40, 0);
+    // The control sits at the start, which is the right in RTL.
+    const dense = page.getByTestId('-3-checked');
+    const r = await box(dense);
+    const d = await box(dense.locator('[data-selection-control]'));
+    expect(d.width).toBeCloseTo(28, 0);
+    expect(d.x + d.width).toBeCloseTo(r.x + r.width, 0);
+  });
+});
+
+test.describe('Density · Radio', () => {
+  test('rows come 2px closer a step; no target reaches the next ring', async ({ page }) => {
+    await openStory(page, 'components-radio--density');
+    for (const level of LEVELS) {
+      const group = page.getByTestId(`${level}-vertical`);
+      const options = group.locator('label');
+      await expect(options).toHaveCount(4);
+      let previous: Box | null = null;
+      for (let index = 0; index < 4; index++) {
+        const option = options.nth(index);
+        const control = option.locator('[data-selection-control]');
+        const c = await box(control);
+        expect(c.height).toBeCloseTo(40 + level * 4, 0);
+        await checkTouchTarget(option, control);
+        await ownsItsBox(page, option);
+        const ring = await box(control.locator('[aria-hidden="true"]').last());
+        expect(ring.width).toBeCloseTo(20, 0);
+        if (previous) {
+          // 2px more between rows per step (0 at density 0)…
+          expect(c.y - (previous.y + previous.height)).toBeCloseTo(-2 * level, 0);
+          // …so the row above's 48px target ends at or above this ring.
+          const target = await box(options.nth(index - 1).locator('[data-touch-target]'));
+          expect(target.y + target.height).toBeLessThanOrEqual(ring.y + 0.5);
+        }
+        previous = c;
+      }
+      const row = page.getByTestId(`${level}-horizontal`).locator('label');
+      for (let index = 0; index < 3; index++) {
+        await checkTouchTarget(row.nth(index), row.nth(index).locator('[data-selection-control]'));
+        await ownsItsBox(page, row.nth(index));
+      }
+    }
+  });
+
+  test("a group's density reaches its options", async ({ page }) => {
+    await openStory(page, 'components-radio--states', { density: '-3' });
+    const control = page.locator('[data-selection-control]').first();
+    expect((await box(control)).height).toBeCloseTo(28, 0);
+  });
+});
+
+test.describe('Density · Switch', () => {
+  test('only the state layer shrinks, to 32px', async ({ page }) => {
+    await openStory(page, 'components-switch--density');
+    for (const level of LEVELS) {
+      for (const name of ['off', 'on', 'icons', 'disabled']) {
+        const root = page.getByTestId(`${level}-${name}`);
+        const track = root.locator('[data-selection-control]');
+        const t = await box(track);
+        expect(t.width).toBeCloseTo(52, 0);
+        expect(t.height).toBeCloseTo(32, 0);
+        const layer = await box(track.locator('.state-layer'));
+        const size = Math.max(32, 40 + level * 4);
+        expect(layer.width).toBeCloseTo(size, 0);
+        // Centred on the thumb.
+        const thumb = await box(track.locator('[data-slot="thumb"]'));
+        expect(center(layer).x).toBeCloseTo(center(thumb).x, 0);
+        expect(center(layer).y).toBeCloseTo(center(thumb).y, 0);
+        await checkTouchTarget(root, track);
+      }
+    }
+  });
+
+  test('right to left, from its scope', async ({ page }) => {
+    await openStory(page, 'components-switch--states', { density: '-3', dir: 'rtl' });
+    const track = page.locator('[data-selection-control]').first();
+    const layer = await box(track.locator('.state-layer'));
+    const thumb = await box(track.locator('[data-slot="thumb"]'));
+    expect(layer.width).toBeCloseTo(32, 0);
+    expect(center(layer).x).toBeCloseTo(center(thumb).x, 0);
+  });
+});
+
+/** The chips of a set (each kind's container) and their boxes. */
+const chipsOf = (set: Locator) => set.locator(':scope > [data-tokens*="-chip"]');
+
+test.describe('Density · Chips', () => {
+  test('chips lose 4px a step to 24px; targets stay 48px and clear of other rows', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-chips--density');
+    for (const level of LEVELS) {
+      const height = Math.max(24, 32 + level * 4);
+      const set = page.getByTestId(`${level}-wrap`);
+      const chips = chipsOf(set);
+      const count = await chips.count();
+      expect(count).toBe(7);
+      const boxes: Box[] = [];
+      for (let index = 0; index < count; index++) boxes.push(await box(chips.nth(index)));
+      expect(new Set(boxes.map((b) => Math.round(b.y))).size).toBeGreaterThan(1);
+      for (let index = 0; index < count; index++) {
+        const chip = chips.nth(index);
+        expect(boxes[index]!.height).toBeCloseTo(height, 0);
+        const targets = chip.locator('[data-touch-target]');
+        for (let t = 0; t < (await targets.count()); t++) {
+          const target = await box(targets.nth(t));
+          expect(target.height).toBeCloseTo(48, 0);
+          expect(target.width).toBeGreaterThanOrEqual(48);
+          // A target never reaches into another chip's container.
+          for (const [other, b] of boxes.entries()) {
+            if (other === index) continue;
+            const overlapX =
+              Math.min(target.x + target.width, b.x + b.width) - Math.max(target.x, b.x);
+            const overlapY =
+              Math.min(target.y + target.height, b.y + b.height) - Math.max(target.y, b.y);
+            expect(Math.min(overlapX, overlapY), `chip ${index} → ${other}`).toBeLessThanOrEqual(
+              0.5,
+            );
+          }
+        }
+        await ownsItsBox(page, chip);
+      }
+      // Rows 8px apart, 2px more a step (12px at -2 and -3).
+      const rows = [...new Set(boxes.map((b) => Math.round(b.y)))].sort((a, b) => a - b);
+      expect(rows[1]! - rows[0]! - height).toBeCloseTo(8 + Math.min(4, -2 * level), 0);
+      // The avatar and the remove button fit inside a flat chip's border.
+      const input = chips.nth(4);
+      const avatar = await box(input.locator('[data-slot="leading"] > span'));
+      expect(avatar.height).toBeLessThanOrEqual(height - 2 + 0.5);
+      const remove = await box(input.getByRole('button'));
+      expect(remove.height).toBeLessThanOrEqual(height - 2 + 0.5);
+      // A scrolling set keeps its targets inside the scroll area.
+      const scroll = page.getByTestId(`${level}-scroll`);
+      const area = await box(scroll);
+      const first = await box(chipsOf(scroll).first().locator('[data-touch-target]').first());
+      expect(first.y).toBeGreaterThanOrEqual(area.y - 0.5);
+      expect(first.y + first.height).toBeLessThanOrEqual(area.y + area.height + 0.5);
+    }
+  });
+
+  test("chips take their scope's density; right to left", async ({ page }) => {
+    await openStory(page, 'components-chips--types', { density: '-2', dir: 'rtl' });
+    const chip = page.locator('[data-tokens*="-chip"]').first();
+    expect((await box(chip)).height).toBeCloseTo(24, 0);
+  });
+});
+
+/** Icon button heights and widths at density 0, per size and width. */
+const ICON_BUTTON = {
+  xs: { h: 32, narrow: 28, default: 32, wide: 40, min: 24 },
+  sm: { h: 40, narrow: 32, default: 40, wide: 52, min: 28 },
+  md: { h: 56, narrow: 48, default: 56, wide: 72, min: 0 },
+  lg: { h: 96, narrow: 64, default: 96, wide: 128, min: 0 },
+  xl: { h: 136, narrow: 104, default: 136, wide: 184, min: 0 },
+} as const;
+
+test.describe('Density · IconButton', () => {
+  test('every size and width loses 4px a step; targets stay 48px', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--density');
+    for (const level of LEVELS) {
+      for (const [size, spec] of Object.entries(ICON_BUTTON)) {
+        for (const width of ['narrow', 'default', 'wide'] as const) {
+          const button = page.getByTestId(`${level}-${size}-${width}`);
+          await button.scrollIntoViewIfNeeded();
+          const b = await box(button);
+          expect(b.height, `${size} ${width}`).toBeCloseTo(
+            Math.max(spec.min, spec.h + level * 4),
+            0,
+          );
+          expect(b.width, `${size} ${width}`).toBeCloseTo(
+            Math.max(spec.min, spec[width] + level * 4),
+            0,
+          );
+          // A 48px band through the centre lands on the button (the rows are far apart)…
+          const { x, y } = center(b);
+          expect(await hits(page, button, x, y - 23.5)).toBe(true);
+          expect(await hits(page, button, x, y + 23.5)).toBe(true);
+          // …and the target is at least 48 × 48px: `TouchTarget` at XS and S, the content's
+          // `::after` at M, the container itself at L and XL.
+          const target = await button.evaluate((el) => {
+            const own = el.querySelector('[data-touch-target]');
+            if (own) return own.getBoundingClientRect();
+            const after = getComputedStyle(el.firstElementChild!, '::after');
+            return after.content === 'none'
+              ? el.getBoundingClientRect()
+              : { width: parseFloat(after.width), height: parseFloat(after.height) };
+          });
+          expect(target.width).toBeGreaterThanOrEqual(48);
+          expect(target.height).toBeGreaterThanOrEqual(48);
+        }
+      }
+      // Round corners stay full at the dense height.
+      const xs = page.getByTestId(`${level}-xs-default`);
+      const radius = await xs.evaluate((el) =>
+        parseFloat(getComputedStyle(el).borderTopLeftRadius),
+      );
+      expect(radius).toBeCloseTo((await box(xs)).height / 2, 0);
+      expect((await box(page.getByTestId(`${level}-toggle`))).height).toBeCloseTo(
+        40 + level * 4,
+        0,
+      );
+    }
+  });
+
+  test("inherits its scope's density; icon buttons in a field keep theirs", async ({ page }) => {
+    await openStory(page, 'components-iconbutton--variants', { density: '-3' });
+    expect((await box(page.getByRole('button').first())).height).toBeCloseTo(28, 0);
+    await openStory(page, 'components-textfield--density', { density: '-3' });
+    const clear = page.getByTestId('-3-icons').getByRole('button', { name: 'Clear' });
+    expect((await box(clear)).height).toBeCloseTo(40, 0);
+  });
+});
+
+test.describe('Density · ButtonGroup', () => {
+  test('groups of icon buttons follow; no target reaches a neighbour', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--density');
+    for (const level of LEVELS) {
+      for (const size of ['xs', 'sm', 'md'] as const) {
+        const group = page.getByTestId(`${level}-standard-${size}`);
+        const buttons = group.getByRole('button');
+        await expect(buttons).toHaveCount(3);
+        const spec = ICON_BUTTON[size];
+        const g = await box(group);
+        expect(g.height).toBeCloseTo(Math.max(spec.min, spec.h + level * 4), 0);
+        for (let index = 0; index < 3; index++) await ownsItsBox(page, buttons.nth(index));
+      }
+      const connected = page.getByTestId(`${level}-connected-xs`).getByRole('button');
+      for (let index = 0; index < 3; index++) {
+        const b = await box(connected.nth(index));
+        expect(b.width).toBeGreaterThanOrEqual(48);
+        expect(b.height).toBeCloseTo(Math.max(24, 32 + level * 4), 0);
+        await ownsItsBox(page, connected.nth(index));
+      }
+    }
+  });
+});
+
+test.describe('Density · Tabs', () => {
+  test('tabs lose 4px a step; adjacent tabs keep their own full-height targets', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-tabs--density');
+    for (const level of LEVELS) {
+      for (const [name, base] of [
+        ['text', 48],
+        ['icon-top', 64],
+        ['icon-start', 48],
+        ['icon-only', 48],
+        ['panel', 48],
+      ] as const) {
+        const tabs = page.getByTestId(`${level}-${name}`).getByRole('tab');
+        const count = await tabs.count();
+        let previous: Box | null = null;
+        for (let index = 0; index < count; index++) {
+          const b = await box(tabs.nth(index));
+          expect(b.height, name).toBeCloseTo(base + level * 4, 0);
+          expect(b.height).toBeGreaterThanOrEqual(24);
+          if (previous) expect(b.x).toBeGreaterThanOrEqual(previous.x + previous.width - 0.5);
+          await ownsItsBox(page, tabs.nth(index));
+          previous = b;
+        }
+      }
+      // The panel keeps density 0: its paragraph's 16px padding.
+      const panel = page.getByTestId(`${level}-panel`).getByRole('tabpanel');
+      expect(
+        await panel.evaluate((el) =>
+          getComputedStyle(el).getPropertyValue('--md-sys-density').trim(),
+        ),
+      ).toBe('0');
+    }
+  });
+
+  test("tabs take their scope's density; right to left", async ({ page }) => {
+    await openStory(page, 'components-tabs--variants', { density: '-3', dir: 'rtl' });
+    const tab = page.getByRole('tab').first();
+    expect((await box(tab)).height).toBeCloseTo(36, 0);
+    await ownsItsBox(page, tab);
+  });
+});
+
+test.describe('Density · List', () => {
+  test('items and subheaders lose 4px a step; rows never overlap', async ({ page }) => {
+    // Tall enough that every row can be pressed without scrolling.
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await openStory(page, 'components-list--density');
+    for (const level of LEVELS) {
+      const lines = page.getByTestId(`${level}-lines`).getByRole('row');
+      await expect(lines).toHaveCount(4);
+      // One line (56px), an avatar with two lines (72px), three lines (88px), and a 56px
+      // image with 10px above and below (76px): 4px less a step.
+      for (const [index, base] of [56, 72, 88, 76].entries()) {
+        expect((await box(lines.nth(index))).height, `item ${index}`).toBeCloseTo(
+          base + level * 4,
+          0,
+        );
+      }
+      await checkRows(page, lines);
+      const nested = page.getByTestId(`${level}-nested`).getByRole('row');
+      await expect(nested).toHaveCount(4);
+      for (let index = 0; index < 4; index++) {
+        expect((await box(nested.nth(index))).height).toBeCloseTo(56 + level * 4, 0);
+      }
+      await checkRows(page, nested);
+      // The chevron's target stays inside its row (48px, 44px at -3).
+      const row = await box(nested.first());
+      const chevron = await box(nested.first().locator('[data-touch-target]'));
+      expect(chevron.height).toBeCloseTo(Math.min(48, 56 + level * 4), 0);
+      expect(chevron.y).toBeGreaterThanOrEqual(row.y - 0.5);
+      expect(chevron.y + chevron.height).toBeLessThanOrEqual(row.y + row.height + 0.5);
+      const sections = page.getByTestId(`${level}-sections`);
+      const header = sections.getByText('Privacy', { exact: true });
+      expect((await box(header)).height).toBeCloseTo(48 + level * 4, 0);
+      await checkRows(page, sections.locator('li:not(:has(li))'));
+    }
+  });
+
+  test("a list takes its scope's density", async ({ page }) => {
+    await openStory(page, 'components-list--static', { density: '-3' });
+    const items = page.getByRole('listitem');
+    expect((await box(items.first())).height).toBeGreaterThanOrEqual(44 - 0.5);
+    await checkRows(page, items);
+  });
+});
+
+test.describe('Density · control screenshots', () => {
+  for (const name of [
+    'checkbox',
+    'radio',
+    'switch',
+    'chips',
+    'iconbutton',
+    'buttongroup',
+    'tabs',
+    'list',
+  ]) {
+    for (const mode of MODES) {
+      test(`${name} · ${mode}`, async ({ page }) => {
+        const title = name === 'buttongroup' ? 'composites' : 'components';
+        await openStory(page, `${title}-${name}--density`, { mode });
+        await settle(page);
+        await expect(page.getByTestId('density')).toHaveScreenshot(`density-${name}-${mode}.png`);
+      });
+    }
+  }
+});

@@ -9,6 +9,7 @@ import {
 } from '@windmorph/react';
 import { useState } from 'react';
 import { AddIcon, CloseIcon, SearchIcon, StarIcon, StarOutlineIcon } from './icons';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -213,4 +214,64 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+/**
+ * Web density, 0 to -3: each step takes 4px off every size's height and width (S: 40 → 28px,
+ * as Material Components Web's icon button density did), never below the icon plus 4px; the
+ * touch targets stay 48 × 48px. Each level is a row: XS to M in every width and variant, then
+ * L and XL.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns className="grid-cols-1">
+      {(density) => (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            {(['xs', 'sm', 'md'] as const).flatMap((size, s) =>
+              WIDTHS.map((width, w) => (
+                <IconButton
+                  key={`${size}-${width}`}
+                  density={density}
+                  size={size}
+                  width={width}
+                  variant={VARIANTS[(s + w) % VARIANTS.length]}
+                  icon={<SearchIcon />}
+                  aria-label={`Search ${size} ${width}`}
+                  data-testid={`${density}-${size}-${width}`}
+                />
+              )),
+            )}
+            <IconButton
+              density={density}
+              toggle
+              defaultSelected
+              shape="square"
+              variant="tonal"
+              icon={<StarOutlineIcon />}
+              selectedIcon={<StarIcon />}
+              aria-label="Favourite"
+              data-testid={`${density}-toggle`}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {(['lg', 'xl'] as const).flatMap((size) =>
+              WIDTHS.map((width) => (
+                <IconButton
+                  key={`${size}-${width}`}
+                  density={density}
+                  size={size}
+                  width={width}
+                  variant="tonal"
+                  icon={<AddIcon />}
+                  aria-label={`Add ${size} ${width}`}
+                  data-testid={`${density}-${size}-${width}`}
+                />
+              )),
+            )}
+          </div>
+        </>
+      )}
+    </DensityColumns>
+  ),
 };

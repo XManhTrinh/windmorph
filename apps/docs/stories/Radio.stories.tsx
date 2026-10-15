@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Radio, RadioGroup } from '@windmorph/react';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -60,5 +61,44 @@ export const LayoutOverride: StoryObj<{ override: LayoutOverrideName }> = {
         </Radio>
       </RadioGroup>
     </div>
+  ),
+};
+
+/**
+ * Web density, 0 to -3: each step takes 4px off the round state layer (40 → 28px) and puts 2px
+ * more between rows, so each option's 48px touch target never reaches the next one's ring.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <>
+          <RadioGroup
+            label="Delivery"
+            density={density}
+            defaultValue="standard"
+            data-testid={`${density}-vertical`}
+          >
+            <Radio value="standard">Standard</Radio>
+            <Radio value="express">Express</Radio>
+            <Radio value="pickup">Pick up</Radio>
+            <Radio value="locker" disabled>
+              Locker
+            </Radio>
+          </RadioGroup>
+          <RadioGroup
+            label="Size"
+            orientation="horizontal"
+            density={density}
+            defaultValue="m"
+            data-testid={`${density}-horizontal`}
+          >
+            <Radio value="s">S</Radio>
+            <Radio value="m">M</Radio>
+            <Radio value="l">L</Radio>
+          </RadioGroup>
+        </>
+      )}
+    </DensityColumns>
   ),
 };

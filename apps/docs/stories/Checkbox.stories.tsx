@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Checkbox } from '@windmorph/react';
 import { useState } from 'react';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -82,5 +83,40 @@ export const LayoutOverride: StoryObj<{ override: LayoutOverrideName }> = {
         Layout
       </Checkbox>
     </div>
+  ),
+};
+
+/**
+ * Web density, 0 to -3: each step takes 4px off the round state layer (40 → 28px, Material
+ * Components Web's checkbox density); the box stays 18px and the touch target 48px.
+ */
+export const Density: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <>
+          <Checkbox density={density} data-testid={`${density}-unchecked`}>
+            Email updates
+          </Checkbox>
+          <Checkbox density={density} defaultSelected data-testid={`${density}-checked`}>
+            Text messages
+          </Checkbox>
+          <Checkbox density={density} indeterminate data-testid={`${density}-indeterminate`}>
+            Some channels
+          </Checkbox>
+          <Checkbox density={density} invalid data-testid={`${density}-invalid`}>
+            I accept the terms
+          </Checkbox>
+          <Checkbox density={density} disabled defaultSelected data-testid={`${density}-disabled`}>
+            Push notifications
+          </Checkbox>
+          <Checkbox
+            density={density}
+            aria-label="Select row"
+            data-testid={`${density}-unlabelled`}
+          />
+        </>
+      )}
+    </DensityColumns>
   ),
 };

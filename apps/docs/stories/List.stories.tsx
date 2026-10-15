@@ -11,6 +11,7 @@ import {
 } from '@windmorph/react';
 import { useState } from 'react';
 import { DeleteIcon, FeedIcon, HomeIcon, SearchIcon, SendIcon, StarIcon } from './icons';
+import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
   LAYOUT_OVERRIDE_NAMES,
@@ -457,6 +458,85 @@ export const LayoutOverride: StoryObj<{
           </ListItem>
         </List>
       </div>
+    );
+  },
+};
+
+/**
+ * Web density, 0 to -3 (M3: a list "can adjust margins, spacing, or density"): each step takes
+ * 2px off the padding above and below an item and 4px off its height (one line 56 → 44px, two
+ * 72 → 60px, three 88 → 76px; items with media too) and off section subheaders. Items are
+ * stacked rows, so dense ones keep full-row targets that never overlap.
+ */
+export const Density: Story = {
+  render: function DensityStory({ variant }) {
+    return (
+      <DensityColumns>
+        {(density) => (
+          <div className="flex w-full flex-col gap-3 rounded-corner-extra-large bg-surface-container p-2">
+            <List
+              aria-label="Contacts"
+              variant={variant}
+              density={density}
+              onAction={() => {}}
+              data-testid={`${density}-lines`}
+            >
+              <ListItem key="one" leading={<StarIcon />} trailing={<SendIcon />}>
+                Alex Moreau
+              </ListItem>
+              <ListItem key="two" leading={<ListItemAvatar>S</ListItemAvatar>} supportingText="Sam">
+                Design review
+              </ListItem>
+              <ListItem
+                key="three"
+                overline="Today"
+                supportingText="Notes and next steps"
+                trailing="9:30"
+              >
+                Planning
+              </ListItem>
+              <ListItem
+                key="image"
+                leading={<ListItemImage src={picture('#d9a066')} alt="" />}
+                supportingText="Saved yesterday"
+              >
+                Phở
+              </ListItem>
+            </List>
+            <List
+              aria-label="Folders"
+              variant={variant}
+              density={density}
+              defaultExpandedKeys={['photos']}
+              data-testid={`${density}-nested`}
+            >
+              <ListItem
+                key="photos"
+                leading={<FeedIcon />}
+                childItems={[
+                  <ListItem key="trips">Trips</ListItem>,
+                  <ListItem key="family">Family</ListItem>,
+                ]}
+              >
+                Photos
+              </ListItem>
+              <ListItem key="music" leading={<HomeIcon />}>
+                Music
+              </ListItem>
+            </List>
+            <List aria-label="Settings" density={density} data-testid={`${density}-sections`}>
+              <ListSection key="privacy" title="Privacy">
+                <ListItem key="search" control="switch" defaultChecked>
+                  Profile in search
+                </ListItem>
+                <ListItem key="receipts" control="checkbox">
+                  Read receipts
+                </ListItem>
+              </ListSection>
+            </List>
+          </div>
+        )}
+      </DensityColumns>
     );
   },
 };
