@@ -1,13 +1,15 @@
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { ComponentTabs } from '../../../../components/component-tabs';
+import { ImportLine } from '../../../../components/import-line';
 import { PageChips } from '../../../../components/page-chips';
 import { COMPONENT_PAGE_MAP } from '../../../../content/components/registry';
 import { componentTabs } from '../../../../lib/component-page';
+import { importEntry, importNames } from '../../../../lib/import-line';
 
 /**
- * A component page's frame, shared by its tabs: the title, chips and summary, then the
- * tabs, whose selected panel holds the tab route. Being a layout, it stays mounted as the
+ * A component page's frame, shared by its tabs: the title, chips and summary, the import
+ * line (with a note on Pro pages), then the tabs, whose selected panel holds the tab route. Being a layout, it stays mounted as the
  * tabs change, so the indicator slides from one tab to the next.
  */
 export default async function ComponentLayout({
@@ -35,6 +37,19 @@ export default async function ComponentLayout({
           )}
         </div>
         <p className="text-body-large text-on-surface-variant">{page.summary}</p>
+        <ImportLine names={importNames(page)} entry={importEntry(page)} />
+        {page.pro && (
+          <p className="text-body-medium text-on-surface-variant">
+            Part of Windmorph Pro, the paid components built on the free core. See{' '}
+            <a
+              href="/pro"
+              className="rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            >
+              the Pro guide
+            </a>{' '}
+            for what it includes and how to install it.
+          </p>
+        )}
       </header>
       <ComponentTabs slug={slug} title={page.title} tabs={tabs}>
         {children}

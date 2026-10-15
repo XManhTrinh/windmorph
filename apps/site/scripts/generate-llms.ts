@@ -35,6 +35,7 @@ import {
   type ComponentTab,
 } from '../content/components/doc';
 import { htmlToMarkdown } from '../lib/html-to-markdown';
+import { importLine } from '../lib/import-line';
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -199,6 +200,14 @@ function labels(meta: ComponentMeta): string {
   return list.length > 0 ? `Labels: ${list.join(', ')}.` : '';
 }
 
+/** How to import what a component page documents, and where Pro comes from. */
+function importMarkdown(meta: ComponentMeta): string {
+  const line = `Import: \`${importLine(meta)}\``;
+  return meta.pro
+    ? `${line}\n\nPart of Windmorph Pro, the paid components built on the free core: see the [Pro guide](${absoluteUrl(markdownPath('/pro'))}).`
+    : line;
+}
+
 /** The tabs a component page has, from the export (a tab without content has no page). */
 function tabsOf(meta: ComponentMeta, paths: Set<string>): ComponentTab[] {
   return SUB_TABS.filter((tab) => paths.has(componentTabHref(meta.slug, tab)));
@@ -215,6 +224,7 @@ function componentMarkdown(meta: ComponentMeta, paths: Set<string>): string {
   return [
     header(meta.title, meta.summary, path),
     labels(meta),
+    importMarkdown(meta),
     ...tabs.map((tab) => `## ${TAB_LABELS[tab]}\n\n${tabMarkdown(meta, tab, 1)}`),
   ]
     .filter(Boolean)
@@ -227,6 +237,7 @@ function componentTabPageMarkdown(meta: ComponentMeta, tab: ComponentTab): strin
   return [
     header(`${meta.title}: ${TAB_LABELS[tab]}`, meta.summary, path),
     labels(meta),
+    importMarkdown(meta),
     tabMarkdown(meta, tab, 0),
   ]
     .filter(Boolean)
