@@ -31,7 +31,7 @@ import { toolbarKeyDown } from '../../utils/toolbar-keys';
 import { useWarnOnce } from '../../utils/warn-once';
 import type { FabElevation } from '../fab/fab-styles';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
-import { TooltipTrigger } from '../tooltip/tooltip-trigger';
+import { TooltipTrigger, WithoutDescription } from '../tooltip/tooltip-trigger';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import {
   dockedToolbarStyles,
@@ -548,7 +548,8 @@ export function ToolbarFab({
   if (!tooltip || !label) return fab;
   return (
     <TooltipTrigger>
-      {fab}
+      {/* The tooltip repeats the name, so it isn't also the FAB's description. */}
+      <WithoutDescription>{fab}</WithoutDescription>
       <LazyTooltip classNames={{ panel: classNames?.tooltip }}>{label}</LazyTooltip>
     </TooltipTrigger>
   );

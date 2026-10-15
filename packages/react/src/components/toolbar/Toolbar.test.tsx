@@ -508,6 +508,9 @@ describe('ToolbarFab', () => {
     await userEvent.hover(screen.getByRole('button', { name: 'New' }));
     expect(await screen.findByRole('tooltip')).toHaveTextContent('New');
     expect(screen.getByRole('tooltip')).toHaveClass('tip-x');
+    // The tooltip repeats the name, so it doesn't describe the FAB too ("New, button, New").
+    expect(screen.getByRole('button', { name: 'New' })).not.toHaveAttribute('aria-describedby');
+    expect(screen.getByRole('button', { name: 'New' })).toHaveAccessibleDescription('');
   });
 
   it('shows one icon, with no faces, without expandedIcon', () => {
