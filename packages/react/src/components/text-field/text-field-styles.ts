@@ -99,6 +99,11 @@ export const textFieldStyles = tv({
       'group-data-[field-state=error-hover]/field:bg-on-error-container',
       'group-data-[field-state=error-focus]/field:h-[2px] group-data-[field-state=error-focus]/field:bg-error',
       'group-data-[field-state=disabled]/field:bg-on-surface/38',
+      // Forced colours paint backgrounds as Canvas, which hid the filled field's only edge:
+      // the line takes system colours instead (2026-10-15).
+      'forced-colors:bg-[CanvasText]! forced-colors:forced-color-adjust-none',
+      'forced-colors:group-data-[field-state=focus]/field:bg-[Highlight]! forced-colors:group-data-[field-state=error-focus]/field:bg-[Highlight]!',
+      'forced-colors:group-data-[field-state=disabled]/field:bg-[GrayText]!',
     ],
     label: [
       'pointer-events-none absolute top-[calc(16px+var(--md-sys-density,0)*2px)] max-w-[calc(100%-32px)] truncate',
