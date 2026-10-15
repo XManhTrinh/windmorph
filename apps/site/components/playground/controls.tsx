@@ -11,6 +11,7 @@ import {
   Slider,
   Switch,
   TextField,
+  ThemeScope,
 } from '@windmorph/react';
 import { Fragment, useId, useState, type Key, type ReactNode } from 'react';
 import { componentTabHref } from '../../content/components/doc';
@@ -313,6 +314,9 @@ function AdvancedFold({ count, children }: { count: number; children: ReactNode 
  * as in a property sheet, where controls at the far end of the row would leave the switches
  * on a second edge from the fields. A panel narrower than 320px has one column: every control
  * under its name.
+ *
+ * The panel is a dense tool, so its fields and selects (and their option lists) use density -2:
+ * 48px fields, which keep 48px targets.
  */
 export function ControlGroups({
   controls,
@@ -337,36 +341,38 @@ export function ControlGroups({
     ));
   const idPrefix = useId();
   return (
-    <div className="@container/controls">
-      <div className="grid grid-cols-1 gap-x-4 @min-[320px]/controls:grid-cols-[fit-content(45%)_minmax(0,1fr)]">
-        {groupControls(controls).map(({ group, controls: members }) => {
-          const headingId = `${idPrefix}-${group}`;
-          return (
-            <div
-              key={group}
-              role="group"
-              aria-labelledby={group === 'advanced' ? undefined : headingId}
-              aria-label={group === 'advanced' ? CONTROL_GROUP_LABELS.advanced : undefined}
-              data-control-group={group}
-              className="col-span-full grid grid-cols-subgrid"
-            >
-              {group === 'advanced' ? (
-                <AdvancedFold count={members.length}>{rows(members)}</AdvancedFold>
-              ) : (
-                <>
-                  <h4
-                    id={headingId}
-                    className="col-span-full pb-1 pt-4 text-title-small text-on-surface-variant"
-                  >
-                    {CONTROL_GROUP_LABELS[group]}
-                  </h4>
-                  {rows(members)}
-                </>
-              )}
-            </div>
-          );
-        })}
+    <ThemeScope density={-2}>
+      <div className="@container/controls">
+        <div className="grid grid-cols-1 gap-x-4 @min-[320px]/controls:grid-cols-[fit-content(45%)_minmax(0,1fr)]">
+          {groupControls(controls).map(({ group, controls: members }) => {
+            const headingId = `${idPrefix}-${group}`;
+            return (
+              <div
+                key={group}
+                role="group"
+                aria-labelledby={group === 'advanced' ? undefined : headingId}
+                aria-label={group === 'advanced' ? CONTROL_GROUP_LABELS.advanced : undefined}
+                data-control-group={group}
+                className="col-span-full grid grid-cols-subgrid"
+              >
+                {group === 'advanced' ? (
+                  <AdvancedFold count={members.length}>{rows(members)}</AdvancedFold>
+                ) : (
+                  <>
+                    <h4
+                      id={headingId}
+                      className="col-span-full pb-1 pt-4 text-title-small text-on-surface-variant"
+                    >
+                      {CONTROL_GROUP_LABELS[group]}
+                    </h4>
+                    {rows(members)}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </ThemeScope>
   );
 }

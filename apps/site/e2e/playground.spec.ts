@@ -113,6 +113,29 @@ test.describe('Component Playground', () => {
     await expect(dragged).toBeVisible();
   });
 
+  test('the panel is dense: 48px fields with 48px targets, and 36px option rows', async ({
+    page,
+  }) => {
+    const control = panel(page).locator('[data-control="variant"]');
+    const trigger = control.getByRole('button').last();
+    const box = (await control.locator('[data-slot="container"]').boundingBox())!;
+    expect(box.height).toBe(48);
+    // The whole 48px row answers a press: its top and bottom edges hit the field.
+    const x = box.x + box.width / 2;
+    for (const y of [box.y + 1, box.y + box.height - 1]) {
+      expect(
+        await control.evaluate(
+          (element, point) => element.contains(document.elementFromPoint(point.x, point.y)),
+          { x, y },
+        ),
+      ).toBe(true);
+    }
+    await trigger.click();
+    const option = page.getByRole('option', { name: 'outlined', exact: true });
+    expect((await option.boundingBox())!.height).toBe(36);
+    await page.keyboard.press('Escape');
+  });
+
   test("a control's info shows its description and links to its API entry", async ({ page }) => {
     const about = panel(page).getByRole('button', { name: 'About variant' });
     await about.click();
