@@ -712,8 +712,18 @@ describe('NavigationBar', () => {
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-40px');
     scrollTo(200);
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-64px');
+    // Fully hidden, it leaves the Tab order and the accessibility tree.
+    expect(nav).toHaveAttribute('inert');
     scrollTo(180);
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-44px');
+    expect(nav).not.toHaveAttribute('inert');
+    // Keyboard focus on an item brings the bar back and keeps it there while scrolling.
+    fireEvent.keyDown(document.body, { key: 'Tab' });
+    act(() => screen.getByRole('link', { name: 'Home' }).focus());
+    expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('0px');
+    scrollTo(400);
+    expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('0px');
+    expect(nav).not.toHaveAttribute('inert');
     scrollTo(0);
     vi.restoreAllMocks();
   });

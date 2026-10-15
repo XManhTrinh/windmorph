@@ -198,6 +198,54 @@ describe('TopAppBar', () => {
     expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('100%');
   });
 
+  it('takes a fully hidden bar out of the Tab order and brings it back when shown', async () => {
+    render(
+      <>
+        <TopAppBar title="Inbox" actions={search} scrollBehavior="enter-always" data-testid="bar" />
+        <button type="button">Content</button>
+      </>,
+    );
+    const bar = screen.getByTestId('bar');
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 64 });
+    await scrollWindow(40);
+    expect(bar).not.toHaveAttribute('inert');
+    await scrollWindow(400);
+    expect(bar).toHaveAttribute('inert');
+    // jsdom doesn't apply `inert`; the browser suite checks that Tab skips the bar.
+    expect(screen.getByRole('button', { name: 'Search', hidden: true }).closest('[inert]')).toBe(
+      bar,
+    );
+    await scrollWindow(390);
+    expect(bar).not.toHaveAttribute('inert');
+  });
+
+  it('stays on screen while keyboard focus is in it, and comes back when focused', async () => {
+    render(
+      <TopAppBar title="Inbox" actions={search} scrollBehavior="enter-always" data-testid="bar" />,
+    );
+    const bar = screen.getByTestId('bar');
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 64 });
+    await scrollWindow(40);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-40px');
+    // Focusing the partly hidden bar shows it.
+    await userEvent.tab();
+    await nextFrame();
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
+    await scrollWindow(400);
+    expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('0px');
+    expect(bar).not.toHaveAttribute('inert');
+  });
+
+  it('makes a small exit-until-collapsed bar inert once it has scrolled away', async () => {
+    render(<TopAppBar title="Inbox" scrollBehavior="exit-until-collapsed" data-testid="bar" />);
+    const bar = screen.getByTestId('bar');
+    Object.defineProperty(bar, 'offsetHeight', { configurable: true, value: 64 });
+    await scrollWindow(400);
+    expect(bar).toHaveAttribute('inert');
+    await scrollWindow(10);
+    expect(bar).not.toHaveAttribute('inert');
+  });
+
   it('collapses a two-row bar with the scroll and swaps the announced title', async () => {
     render(
       <TopAppBar
@@ -218,6 +266,8 @@ describe('TopAppBar', () => {
     expect(expanded).toHaveAttribute('aria-hidden', 'true');
     await scrollWindow(500);
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-56px');
+    // The collapsed top row is still on screen.
+    expect(bar).not.toHaveAttribute('inert');
     expect(bar.style.getPropertyValue('--m3-app-bar-scrolled')).toBe('100%');
     expect(Number(bar.style.getPropertyValue('--m3-app-bar-top-alpha'))).toBeCloseTo(1);
     // Exit-until-collapsed stays collapsed until the content is back near the top.
@@ -243,9 +293,11 @@ describe('TopAppBar', () => {
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-80px');
     await scrollWindow(400);
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-112px');
+    expect(bar).toHaveAttribute('inert');
     // Up: the top row comes back, but the large title stays collapsed (M3).
     await scrollWindow(300);
     expect(bar.style.getPropertyValue('--m3-app-bar-offset')).toBe('-48px');
+    expect(bar).not.toHaveAttribute('inert');
     expect(Number(bar.style.getPropertyValue('--m3-app-bar-top-alpha'))).toBeCloseTo(1);
     expect(bar).toHaveAttribute('data-collapsed', 'true');
     // Back near the top it expands with the scroll.

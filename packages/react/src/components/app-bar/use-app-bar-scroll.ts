@@ -2,6 +2,7 @@
 
 import { cubicBezier, useReducedMotion } from 'motion/react';
 import { useEffect, useState, type RefObject } from 'react';
+import { hasVisibleFocusWithin } from '../../utils/focus';
 
 /** How a top app bar responds to the content scrolling under it (Compose's scroll behaviours). */
 export type TopAppBarScrollBehavior = 'pinned' | 'enter-always' | 'exit-until-collapsed';
@@ -44,6 +45,12 @@ export interface AppBarScrollState {
  * Under reduced motion an `enter-always` bar never leaves the screen, like a navigation bar
  * that hides on scroll (architecture §6): a single-row bar stays put and a two-row bar only
  * collapses with the scroll, as `exit-until-collapsed` does.
+ *
+ * A bar scrolled fully off screen is `inert`, so Tab skips its hidden controls and screen
+ * readers leave them out; it's restored as the bar comes back. While keyboard focus is in
+ * the bar it stays on screen (M3: people should "maintain access to app bar actions when
+ * the content is scrolled"; WCAG 2.4.11 Focus Not Obscured), and focusing a partly hidden
+ * bar brings it back.
  */
 export function useAppBarScroll({
   behavior: requested,
@@ -74,6 +81,7 @@ export function useAppBarScroll({
     let hide = 0;
     let frame = 0;
     let current: AppBarScrollState = { scrolled: false, collapsed: false };
+    let hidden = false;
 
     const update = () => {
       frame = 0;
@@ -82,6 +90,7 @@ export function useAppBarScroll({
       last = scroll;
       // The collapsible height, measured each time so wrapped titles and resizes count.
       const limit = collapsibleRef.current?.offsetHeight ?? 0;
+      const focused = hasVisibleFocusWithin(root);
       let collapse = 0;
       if (behavior === 'pinned') {
         offset = 0;
@@ -92,17 +101,24 @@ export function useAppBarScroll({
           // Past that, the top row follows each scroll delta: hidden going down, back going up.
           const rowHeight = root.offsetHeight - limit;
           const beyond = Math.max(scroll, limit) - Math.max(previous, limit);
-          hide = Math.min(0, Math.max(-rowHeight, hide - beyond));
+          hide = focused ? 0 : Math.min(0, Math.max(-rowHeight, hide - beyond));
         }
         offset = collapse + hide;
       } else if (behavior === 'enter-always') {
-        offset = Math.min(0, Math.max(-limit, offset - (scroll - previous)));
+        offset = focused ? 0 : Math.min(0, Math.max(-limit, offset - (scroll - previous)));
       } else {
-        offset = -Math.min(scroll, limit);
+        // A single-row bar collapses away entirely; a two-row bar keeps its top row.
+        offset = focused && !twoRows ? 0 : -Math.min(scroll, limit);
       }
       const fraction = limit > 0 ? -(twoRows ? collapse : offset) / limit : 0;
 
       root.style.setProperty('--m3-app-bar-offset', `${offset}px`);
+      const height = root.offsetHeight;
+      const offScreen = height > 0 && -offset >= height - 0.5;
+      if (offScreen !== hidden) {
+        hidden = offScreen;
+        root.toggleAttribute('inert', offScreen);
+      }
       // A pinned bar never collapses, so a two-row one fills like a single row (M3: app bars
       // "fill with a contrasting color on scroll").
       if (twoRows && behavior !== 'pinned') {
@@ -128,9 +144,13 @@ export function useAppBarScroll({
 
     update();
     target.addEventListener('scroll', onScroll, { passive: true });
+    // Keyboard focus landing in a partly hidden bar brings it back.
+    root.addEventListener('focusin', onScroll);
     return () => {
       target.removeEventListener('scroll', onScroll);
+      root.removeEventListener('focusin', onScroll);
       cancelAnimationFrame(frame);
+      if (hidden) root.removeAttribute('inert');
       for (const name of [
         '--m3-app-bar-offset',
         '--m3-app-bar-scrolled',
