@@ -51,7 +51,7 @@ export interface ReducedMotionOptions {
    */
   parts: Record<string, string | Locator>;
   /** What starts the change: clicks, keys, scrolling. Runs while the frames are recorded. */
-  act: () => Promise<void>;
+  act: () => Promise<unknown>;
   /** How long to record after `act` resolves, in ms. @default 700 */
   duration?: number;
   /** Extra transition properties to allow (each with the reason in the test). */

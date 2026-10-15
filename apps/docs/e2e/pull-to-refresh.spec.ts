@@ -1,6 +1,7 @@
 import { expect, test, type CDPSession, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES } from './shots';
+import { expectNoMovement } from './reduced-motion';
 import { openStory, type StoryGlobals } from './story';
 
 const rect = (locator: Locator) =>
@@ -150,6 +151,27 @@ test.describe('PullToRefresh', () => {
       });
     });
   }
+});
+
+test.describe('PullToRefresh under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('the indicator jumps to the threshold on release and away when done', async ({ page }) => {
+    const { box, cdp, x, y } = await openFeed(page);
+    await swipe(cdp, x, y, steps(200), { release: false });
+    const parts = { indicator: '[data-indicator]' };
+    await expectNoMovement(page, {
+      parts,
+      act: () => cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }),
+    });
+    await expect(page.getByTestId('count')).toHaveText('1');
+    expect(Math.round((await rect(page.locator('[data-indicator]'))).bottom - box.y)).toBe(80);
+    await expectNoMovement(page, {
+      parts,
+      act: () => page.getByRole('button', { name: 'Finish refresh' }).click(),
+    });
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+  });
 });
 
 test.describe('PullToRefresh layout safety', () => {
