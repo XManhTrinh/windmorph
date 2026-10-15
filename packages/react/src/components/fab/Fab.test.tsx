@@ -290,6 +290,43 @@ describe('ExtendedFab', () => {
     warn.mockRestore();
   });
 
+  it("warns once when aria-label doesn't start with the visible label's first word", () => {
+    // Re-audit 2026-10-15 (M3: "The accessibility label must include the same first word as
+    // the visible label").
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { rerender, unmount } = render(
+      <ExtendedFab icon={<Icon />} aria-label="New message">
+        Compose
+      </ExtendedFab>,
+    );
+    rerender(
+      <ExtendedFab icon={<Icon />} aria-label="Write a message">
+        Compose
+      </ExtendedFab>,
+    );
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('first word ("compose")'));
+    unmount();
+
+    // The same first word (any case, through elements), no aria-label, or production: silent.
+    warn.mockClear();
+    render(
+      <ExtendedFab icon={<Icon />} aria-label="compose a message">
+        <strong>Compose</strong> now
+      </ExtendedFab>,
+    );
+    render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
+    vi.stubEnv('NODE_ENV', 'production');
+    render(
+      <ExtendedFab icon={<Icon />} aria-label="New message">
+        Compose
+      </ExtendedFab>,
+    );
+    vi.unstubAllEnvs();
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('has no axe violations', async () => {
     const { container } = render(
       <div>
