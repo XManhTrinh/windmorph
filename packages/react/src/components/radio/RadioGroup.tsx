@@ -1,8 +1,17 @@
 'use client';
 
-import { createContext, useContext, type CSSProperties, type ReactNode, type Ref } from 'react';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+  type RefCallback,
+} from 'react';
 import {
   mergeProps,
+  mergeRefs,
   useFocusRing,
   useHover,
   useObjectRef,
@@ -12,6 +21,7 @@ import {
   type AriaRadioProps,
 } from 'react-aria';
 import { useRadioGroupState, type RadioGroupState } from 'react-stately';
+import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { ErrorText, SupportingText } from '../../primitives/Field';
 import {
   SelectionControl,
@@ -95,7 +105,17 @@ export type RadioGroupProps = RadioGroupOwnProps & GroupLabel;
  *   <Radio value="express">Express</Radio>
  * </RadioGroup>
  */
-export function RadioGroup({
+export function RadioGroup(props: RadioGroupProps) {
+  // React Aria swaps ← / → by the locale's direction, so a horizontal group in an RTL region
+  // under an LTR locale would move the wrong way; the laid-out direction drives it instead.
+  return (
+    <DomDirectionLocale>
+      {(directionRef) => <RadioGroupRoot {...props} directionRef={directionRef} />}
+    </DomDirectionLocale>
+  );
+}
+
+function RadioGroupRoot({
   label,
   supportingText,
   errorMessage,
@@ -111,9 +131,11 @@ export function RadioGroup({
   classNames,
   style,
   ref,
+  directionRef,
   ...otherProps
-}: RadioGroupProps) {
+}: RadioGroupProps & { directionRef: RefCallback<HTMLElement> }) {
   const { data, rest } = splitDataAttributes(otherProps);
+  const rootRef = useMemo(() => mergeRefs(ref, directionRef), [ref, directionRef]);
   const options: AriaRadioGroupProps = {
     ...rest,
     label,
@@ -147,7 +169,7 @@ export function RadioGroup({
     <div
       {...data}
       {...radioGroupProps}
-      ref={ref}
+      ref={rootRef}
       style={style}
       data-orientation={orientation}
       {...densityAttribute(density)}

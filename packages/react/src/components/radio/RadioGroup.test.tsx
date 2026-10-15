@@ -47,6 +47,25 @@ describe('RadioGroup', () => {
     expect(screen.getByRole('radio', { name: 'Standard' })).toBeChecked();
   });
 
+  it('follows the laid-out direction for ← / → in an RTL region with an LTR locale', async () => {
+    render(
+      <div dir="rtl">
+        <RadioGroup label="Size" orientation="horizontal" defaultValue="small">
+          <Radio value="small">Small</Radio>
+          <Radio value="medium">Medium</Radio>
+          <Radio value="large">Large</Radio>
+        </RadioGroup>
+      </div>,
+    );
+    await userEvent.tab();
+    expect(screen.getByRole('radio', { name: 'Small' })).toHaveFocus();
+    // "Small" is laid out rightmost, so ← goes to "Medium", its neighbour on the left.
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(screen.getByRole('radio', { name: 'Medium' })).toBeChecked();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(screen.getByRole('radio', { name: 'Small' })).toBeChecked();
+  });
+
   it('can be controlled', async () => {
     const onChange = vi.fn();
     render(<Delivery value="standard" onChange={onChange} />);
