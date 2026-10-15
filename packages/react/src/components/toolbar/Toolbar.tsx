@@ -27,7 +27,7 @@ import { IconFaces } from '../../primitives/IconFaces';
 import { iconFacesStyles, type IconTransition } from '../../primitives/icon-faces-styles';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { cn } from '../../utils/cn';
-import { toolbarKeyDown } from '../../utils/composite-keys';
+import { toolbarKeyDown } from '../../utils/toolbar-keys';
 import { useWarnOnce } from '../../utils/warn-once';
 import type { FabElevation } from '../fab/fab-styles';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';

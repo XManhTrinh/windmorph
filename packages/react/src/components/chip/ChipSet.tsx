@@ -12,7 +12,7 @@ import { useObjectRef } from 'react-aria';
 import { useToggleGroupState, type Key } from 'react-stately';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
-import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/composite-keys';
+import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/radio-group-keys';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {

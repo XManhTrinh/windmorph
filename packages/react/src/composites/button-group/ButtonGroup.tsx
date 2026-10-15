@@ -31,7 +31,8 @@ import type { IconButtonVariant } from '../../components/icon-button/icon-button
 import { MenuTrigger } from '../../components/menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { focusCheckedRadio, radioGroupKeyDown, toolbarKeyDown } from '../../utils/composite-keys';
+import { focusCheckedRadio, radioGroupKeyDown } from '../../utils/radio-group-keys';
+import { toolbarKeyDown } from '../../utils/toolbar-keys';
 import type { VariantProps } from '../../utils/tv';
 import { useWarnOnce } from '../../utils/warn-once';
 import { buttonGroupStyles } from './button-group-styles';
