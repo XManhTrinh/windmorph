@@ -724,17 +724,18 @@ function flatChildren(children: ReactNode): ReactNode[] {
 
 /**
  * Whether the actions are stacked: they don't fit on one line, and the layout lets them
- * stack (`--m3-dialog-actions-stack`, off in the full-screen bottom bar). Measured on every
- * resize of the row or a button. Reordering the buttons would drop focus from the one that
- * moves, so the focused button is focused again after the switch.
+ * stack (`--m3-dialog-actions-stack`, off in the full-screen bottom bar). Measured on mount
+ * and on every resize of the row or a button. Switching reorders the buttons, and moving
+ * the focused one drops focus to the page, so it's focused again.
  */
 function useStackedActions(ref: RefObject<HTMLDivElement | null>) {
   const [stacked, setStacked] = useState(false);
   const current = useRef(false);
-  const refocus = useRef<HTMLElement | null>(null);
+  // The button with focus, kept until focus moves somewhere else.
+  const focused = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
     const row = ref.current;
-    if (!row || typeof ResizeObserver === 'undefined') return;
+    if (!row) return;
     const measure = () => {
       // A hidden row (the header carries the confirming action) keeps its order.
       if (row.clientWidth === 0) return;
@@ -753,20 +754,30 @@ function useStackedActions(ref: RefObject<HTMLDivElement | null>) {
         needed > room + 0.5;
       if (next === current.current) return;
       current.current = next;
-      const active = row.ownerDocument.activeElement;
-      refocus.current = active instanceof HTMLElement && row.contains(active) ? active : null;
       setStacked(next);
     };
-    const observer = new ResizeObserver(measure);
-    observer.observe(row);
-    for (const item of row.children) observer.observe(item);
+    const onFocusIn = (event: FocusEvent) => {
+      if (event.target instanceof HTMLElement) focused.current = event.target;
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      if (event.relatedTarget !== null) focused.current = null;
+    };
+    row.addEventListener('focusin', onFocusIn);
+    row.addEventListener('focusout', onFocusOut);
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(row);
+    for (const item of row.children) observer?.observe(item);
     measure();
-    return () => observer.disconnect();
+    return () => {
+      row.removeEventListener('focusin', onFocusIn);
+      row.removeEventListener('focusout', onFocusOut);
+      observer?.disconnect();
+    };
   }, [ref]);
   useLayoutEffect(() => {
-    const element = refocus.current;
-    refocus.current = null;
-    if (element?.isConnected && element.ownerDocument.activeElement !== element) element.focus();
+    const element = focused.current;
+    const active = element?.ownerDocument.activeElement;
+    if (element?.isConnected && (!active || active === element.ownerDocument.body)) element.focus();
   }, [stacked]);
   return stacked;
 }
@@ -776,7 +787,9 @@ function useStackedActions(ref: RefObject<HTMLDivElement | null>) {
  * when the actions do not fit on one line they stack with it on top (M3: "Confirming
  * actions appear above dismissive actions"). Stacked, the buttons are rendered in that
  * visual order, so Tab and screen readers reach the confirming action first, top to bottom,
- * as they reach the dismissive one first in a row. While the dialog is full screen they're
+ * as they reach the dismissive one first in a row. The dialog's initial focus still lands
+ * on the dismissive action: the order switches after it, keeping focus where it is (the
+ * least destructive choice, as the WAI-ARIA alert dialog advises). While the dialog is full screen they're
  * hidden when `DialogHeader` carries the confirming action, and otherwise form the spec's
  * 56px bottom action bar. Use at most two actions (the spec); in development it warns once
  * when it holds more.
@@ -799,7 +812,8 @@ export function DialogActions({ className, children, ref, ...props }: DialogActi
       data-stacked={stacked || undefined}
       className={dialogStyles({ fullScreen, bottomBar }).actions({ class: className })}
     >
-      {stacked ? flatChildren(children).reverse() : children}
+      {/* The same keys either way, so switching moves the buttons rather than remounting them. */}
+      {stacked ? flatChildren(children).reverse() : flatChildren(children)}
     </div>
   );
 }

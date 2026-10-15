@@ -185,6 +185,9 @@ test.describe('Dialog behaviour', () => {
     expect(
       await actions.evaluate((el) => [...el.children].map((child) => child.textContent)),
     ).toEqual(['Accept all the terms above', 'Decline and close this window']);
+    // Initial focus stays on the dismissive action, now the bottom one; Accept is before it.
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
     await expect(page.getByRole('button', { name: /Accept/ })).toBeFocused();
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
@@ -329,8 +332,10 @@ test.describe('Dialog spec details', () => {
     await openStory(page, 'components-dialog--long-content');
     await settle(page);
     const content = page.getByTestId('content');
-    // Initial focus is on the first action; the scrolling content comes before it.
+    // Initial focus is on the dismissive action; the scrolling content comes before the
+    // stacked actions.
     await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
     await page.keyboard.press('Shift+Tab');
     await expect(content).toBeFocused();
     expect(await content.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
