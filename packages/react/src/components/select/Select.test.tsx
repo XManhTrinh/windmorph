@@ -274,6 +274,19 @@ describe('Select', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
+  it('opens its sheet fully, never at half the window', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(349);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(620);
+    try {
+      render(<Sort presentation="sheet" />);
+      await userEvent.click(sortField());
+      const sheet = await screen.findByRole('dialog', { name: 'Sort by' });
+      expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
   it('opens and closes under control with open and onOpenChange', async () => {
     function Controlled() {
       const [open, setOpen] = useState(true);

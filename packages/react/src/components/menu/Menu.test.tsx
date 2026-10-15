@@ -531,6 +531,20 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus());
   });
 
+  // On a short phone, half the window cut off the last items (WCAG 2.4.11).
+  it('opens its sheet fully, never at half the window', async () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(349);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(620);
+    try {
+      render(<EditMenu presentation="sheet" />);
+      await openMenu('Edit');
+      const sheet = await screen.findByRole('dialog', { name: 'Edit' });
+      expect(sheet).toHaveAttribute('data-detent', 'expanded');
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
   it('opens a submenu in its sheet in place of the menu, with a way back', async () => {
     const onAction = vi.fn();
     render(

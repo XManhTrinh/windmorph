@@ -546,6 +546,9 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
       </FieldShell>
       {asSheet ? (
         <LazyBottomSheet
+          // Opens at its own height (up to the window, the list scrolling inside), never half
+          // the window, which left the last options off-screen on a short phone.
+          skipPartiallyExpanded
           open={state.isOpen}
           onOpenChange={(open) => (open ? state.open() : state.close())}
           classNames={classNames?.sheet ? { panel: classNames.sheet } : undefined}

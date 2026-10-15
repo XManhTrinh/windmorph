@@ -371,6 +371,10 @@ function MenuSheet({
   return (
     <LazyBottomSheet
       {...naming}
+      // A menu sheet opens at its own height (up to the window, the list scrolling inside):
+      // at half the window, a short phone left its last items off-screen, where the arrow
+      // keys could still move focus.
+      skipPartiallyExpanded
       open={trigger.state.isOpen}
       onOpenChange={(open) => (open ? trigger.state.open() : trigger.state.close())}
       className={className}
