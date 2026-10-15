@@ -329,6 +329,16 @@ test.describe('Menu reveal direction (2026-10-15)', () => {
   });
 });
 
+// A leaving menu fades for ~150ms; an item clicked meanwhile used to run its action.
+test('a closing menu lets a click through instead of running an item', async ({ page }) => {
+  await openGrouped(page);
+  const item = await box(page.getByRole('menuitem').first());
+  await page.keyboard.press('Escape');
+  await page.mouse.click(item.x + item.width / 2, item.y + item.height / 2);
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(page.getByTestId('last')).toHaveText('Last action: none');
+});
+
 // Forced colours drop the fill and the shadow; the surface keeps a system-colour edge.
 test('a menu keeps a visible edge in forced colours', async ({ page }) => {
   await page.emulateMedia({ forcedColors: 'active' });

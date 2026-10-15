@@ -72,6 +72,9 @@ export const menuStyles = tv({
       // transition, then it opens from there: a `@starting-style` was resolved before the
       // placement was known, so every menu opened from its top edge.
       'data-entering:opacity-0 data-entering:[transition-property:none] data-exiting:opacity-0',
+      // Leaving, it takes no presses (nor do its groups and items, which set their own):
+      // an item clicked as it faded ran its action.
+      'data-exiting:pointer-events-none data-exiting:**:pointer-events-none',
       // Below the anchor it opens downwards, above it upwards, beside it sideways. Under
       // reduced motion it only fades: the clip stays open.
       'motion-safe:data-entering:[clip-path:inset(-24px_-24px_100%_-24px)] motion-safe:data-exiting:[clip-path:inset(-24px_-24px_100%_-24px)]',

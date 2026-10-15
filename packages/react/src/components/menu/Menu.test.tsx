@@ -662,6 +662,8 @@ describe('Menu', () => {
     // Aria set it, so a menu above its anchor opened from its top edge), then opens.
     expect(motion).toHaveAttribute('data-placement');
     expect(motion).not.toHaveAttribute('data-entering');
+    // Leaving, it lets presses through: an item clicked as it faded out ran its action.
+    expect(motion).toHaveClass('data-exiting:**:pointer-events-none');
   });
 
   it('keeps the theme and direction of where it was rendered', async () => {
