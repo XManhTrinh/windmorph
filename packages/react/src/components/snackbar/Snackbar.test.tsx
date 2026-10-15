@@ -233,6 +233,42 @@ describe('SnackbarHost', () => {
     expect(archive).toHaveFocus();
   });
 
+  it('falls back to the next control in Tab order when the one focus came from is gone', async () => {
+    const state = new SnackbarHostState();
+    const List = ({ rows }: { rows: string[] }) => (
+      <>
+        <button type="button">Compose</button>
+        {rows.map((row) => (
+          <button key={row} type="button">
+            {row}
+          </button>
+        ))}
+        <SnackbarHost state={state} />
+      </>
+    );
+    const { rerender } = render(<List rows={['Alex', 'Sam']} />);
+    await hostReady();
+    act(() => screen.getByRole('button', { name: 'Alex' }).focus());
+    act(() => {
+      void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+    rerender(<List rows={['Sam']} />);
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Sam' })).toHaveFocus();
+
+    // With nothing after it, the control before it.
+    act(() => screen.getByRole('button', { name: 'Sam' }).focus());
+    act(() => {
+      void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    rerender(<List rows={[]} />);
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('button', { name: 'Compose' })).toHaveFocus();
+  });
+
   it('can change or turn off the shortcut, and leaves snackbars without actions alone', async () => {
     const state = new SnackbarHostState();
     const { rerender } = render(<SnackbarHost state={state} focusShortcut={false} />);

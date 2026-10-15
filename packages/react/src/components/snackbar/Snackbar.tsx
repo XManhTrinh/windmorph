@@ -15,7 +15,7 @@ import { useObjectRef } from 'react-aria';
 import { usePresence } from '../../primitives/use-presence';
 import { announcePolite, LIVE_REGION_DELAY } from '../../utils/announce';
 import { cn } from '../../utils/cn';
-import { firstTabbable, matchesShortcut } from '../../utils/focus';
+import { firstTabbable, matchesShortcut, tabbables } from '../../utils/focus';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { durationMillis, SnackbarHostState, type SnackbarData } from './snackbar-state';
@@ -197,7 +197,9 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
  * - The live region is rendered empty first: a snackbar shown before the host mounts (one
  *   at launch) appears once the region has been registered, so it's announced.
  * - `focusShortcut` (Alt+G) moves focus to a snackbar with actions; Escape dismisses it.
- *   When it leaves, focus returns to where it was before it entered the snackbar.
+ *   When it leaves, focus returns to where it was before it entered the snackbar; if that
+ *   element is gone (an undone row was removed, say), to the control that followed it in
+ *   the Tab order, or else the one before it.
  *
  * @example
  * const snackbar = useSnackbarHostState();
@@ -308,15 +310,15 @@ function HostItem({
   const ref = useRef<HTMLDivElement>(null);
   // Where focus was before it entered, and whether it's still inside: when the snackbar
   // leaves with focus in it, focus goes back there rather than falling to the page.
-  const returnTo = useRef<HTMLElement | null>(null);
+  const returnTo = useRef<FocusReturn | null>(null);
   const focusInside = useRef(false);
 
   useLayoutEffect(() => {
     if (visible || !focusInside.current) return;
     focusInside.current = false;
-    const target = returnTo.current;
+    const record = returnTo.current;
     returnTo.current = null;
-    if (target?.isConnected) target.focus();
+    if (record) focusFirstAvailable(record);
   }, [visible]);
 
   useEffect(() => {
@@ -344,7 +346,8 @@ function HostItem({
       onFocus={(event) => {
         const from = event.relatedTarget;
         if (!focusInside.current && !event.currentTarget.contains(from as Node | null)) {
-          returnTo.current = from instanceof HTMLElement ? from : null;
+          returnTo.current =
+            from instanceof HTMLElement ? focusReturn(from, event.currentTarget) : null;
         }
         focusInside.current = true;
         setPaused(true);
@@ -360,4 +363,40 @@ function HostItem({
       <InSnackbarHost value>{children}</InSnackbarHost>
     </div>
   );
+}
+
+/** Where focus goes back to when a snackbar leaves, with fallbacks in Tab order. */
+interface FocusReturn {
+  target: HTMLElement;
+  next: HTMLElement | null;
+  previous: HTMLElement | null;
+}
+
+/**
+ * Records `target` with its neighbours in the page's Tab order (leaving out the snackbar),
+ * taken as focus enters the snackbar, so focus has somewhere sensible to go if `target` is
+ * removed while the snackbar is open (APG: when the element that had focus is gone, move
+ * focus to a logical place rather than letting it fall to the page).
+ */
+function focusReturn(target: HTMLElement, snackbar: Element): FocusReturn {
+  const order = tabbables(target.ownerDocument.body, (el) => snackbar.contains(el));
+  const isOutside = (el: HTMLElement) => !el.contains(target) && !target.contains(el);
+  const next =
+    order.find(
+      (el) =>
+        isOutside(el) && target.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ) ?? null;
+  const previous =
+    order.findLast(
+      (el) =>
+        isOutside(el) && target.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING,
+    ) ?? null;
+  return { target, next, previous };
+}
+
+function focusFirstAvailable({ target, next, previous }: FocusReturn) {
+  const available = [target, next, previous].find(
+    (el) => el?.isConnected && !el.closest('[inert]') && !el.matches(':disabled'),
+  );
+  available?.focus();
 }
