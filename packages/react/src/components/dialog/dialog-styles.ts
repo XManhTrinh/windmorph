@@ -6,12 +6,20 @@ import { tv, type VariantProps } from '../../utils/tv';
  * surface-container-high at elevation 3, a 24px secondary icon and the title 16px apart, the
  * title centred when there is an icon, 24px below the supporting text, 8px between actions,
  * and stacked actions with the confirming action on top. Optional dividers above and below
- * the content are 1px `outline-variant`. The scrim is `scrim` at 32% (M3). Compose has no
- * dialog motion of its own (the platform animates windows); the spec avoids scale and z-axis
- * motion, so here the scrim fades and the panel fades while it expands away from the window
- * edge it sits against (a clip-path reveal resting 32px outside the panel, so the shadow
- * shows; `--m3-dialog-collapsed` is the collapsed clip) on the default springs entering and
- * the fast springs leaving, on a library-owned wrapper. Reduced motion keeps only the fades.
+ * the content are 1px `outline-variant`. The scrim is `scrim` at 32% (M3).
+ *
+ * Motion (2026-10-14): Compose has no dialog motion of its own (the platform animates
+ * windows), so the basic dialog follows the M3 dialog enter and exit as Material Web encodes
+ * it, mapped onto the M3 Expressive springs (spatial for movement and size, effects for
+ * opacity). Entering, the dialog slides 50px away from the window edge it sits against
+ * (downward when centred), its container grows from that edge from 0 to its full size (a
+ * clip on a library-owned wrapper, so text is never shown outside the container and the
+ * spec's 0 start is kept), and it fades in on the fast effects spring while the scrim fades
+ * in on the slow one; the headline, icon and supporting text fade in after 50ms and the
+ * actions after 150ms. Leaving, the parts fade out at once, the dialog slides back 50px and
+ * its container shrinks to 35% on the fast spatial spring, the container fades out after
+ * 100ms, and the scrim fades out on the fast effects spring. Reduced motion keeps only the
+ * fades of the dialog and the scrim; `quick` turns all of it off.
  * The positioner keeps 24px from the window's edges on compact windows and the spec's 56px
  * on wider ones, and `placement` aligns the dialog in it.
  *
@@ -41,8 +49,8 @@ export const dialogStyles = tv({
     scrim: [
       'fixed inset-0 z-(--md-sys-z-scrim) bg-scrim/32 opacity-100',
       '[transition-property:opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing)]',
       'starting:opacity-0',
       'data-exiting:opacity-0',
       'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
@@ -54,18 +62,45 @@ export const dialogStyles = tv({
     // never puts the dialog in the page's flow or out of the window.
     root: 'z-(--md-sys-z-dialog)',
     positioner: 'fixed inset-0 z-(--md-sys-z-dialog) flex p-[24px] medium:p-[56px]',
+    /*
+     * The library-owned wrapper that moves: it slides 50px (`--m3-dialog-slide`), its clip
+     * grows the container (`--m3-dialog-enter-clip` → `--m3-dialog-open-clip`, which rests
+     * 32px outside the panel so the shadow shows, its corners concentric with the panel's
+     * `--m3-dialog-corner`) and it fades. Leaving, the clip shrinks to 35%
+     * (`--m3-dialog-exit-clip`) and the fade waits 100ms for the parts to fade first. The
+     * clip's sides open from the panel's edges to the shadow's 32px together with its corner
+     * radius, so the growing edge keeps the panel's corners on every frame.
+     */
     motion: [
-      'flex max-h-full max-w-full opacity-100 [clip-path:inset(-32px)]',
-      '[--m3-dialog-collapsed:inset(-32px_-32px_100%_-32px)]',
-      '[transition-property:opacity,clip-path] motion-reduce:[transition-property:opacity]',
-      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
-      '[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing),var(--md-sys-motion-spring-spatial-default-easing)]',
-      'starting:opacity-0 starting:[clip-path:var(--m3-dialog-collapsed)]',
-      'data-exiting:opacity-0 data-exiting:[clip-path:var(--m3-dialog-collapsed)]',
-      'motion-reduce:starting:[clip-path:inset(-32px)] motion-reduce:data-exiting:[clip-path:inset(-32px)]',
-      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
-      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+      'flex max-h-full max-w-full',
+      '[--m3-dialog-corner:var(--md-comp-dialog-container-shape,var(--md-sys-shape-corner-extra-large))]',
+      '[--m3-dialog-open-clip:inset(-32px_round_calc(var(--m3-dialog-corner)_+_32px))]',
+      '[--m3-dialog-enter-clip:inset(0_0_100%_round_var(--m3-dialog-corner))]',
+      '[--m3-dialog-exit-clip:inset(0_0_65%_round_var(--m3-dialog-corner))]',
+      '[--m3-dialog-slide:0_-50px]',
+      'translate-none opacity-100 [clip-path:var(--m3-dialog-open-clip)]',
+      'starting:[translate:var(--m3-dialog-slide)] starting:opacity-0',
+      'starting:[clip-path:var(--m3-dialog-enter-clip)]',
+      'data-exiting:[translate:var(--m3-dialog-slide)] data-exiting:opacity-0',
+      'data-exiting:[clip-path:var(--m3-dialog-exit-clip)]',
+      'motion-reduce:data-exiting:translate-none',
+      'motion-reduce:data-exiting:[clip-path:var(--m3-dialog-open-clip)]',
+      '[transition-property:opacity,translate,clip-path] motion-reduce:[transition-property:opacity]',
+      '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-spatial-default-easing)]',
+      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+      'data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
+      'data-exiting:[transition-delay:var(--md-sys-motion-duration-short-2),0s,0s]',
+      'motion-reduce:data-exiting:[transition-delay:0s]',
     ],
+    /*
+     * Classes for the panel that stagger its parts (its children): every part fades in after
+     * 50ms on the default effects spring (the headline, icon and supporting text, and any
+     * custom child), and the actions (`data-slot="actions"`) after 150ms on the fast one.
+     * Leaving, they all fade out at once on the fast spring. Basic dialogs only (see the
+     * `fullScreen` variants); reduced motion leaves the parts to the wrapper's fade.
+     */
+    parts: '',
     panel: [
       'flex max-h-full min-w-[min(280px,calc(100vw-48px))] max-w-[560px] flex-col p-[24px]',
       'rounded-[var(--_md-comp-dialog-container-shape)] bg-[var(--_md-comp-dialog-container-color)]',
@@ -96,43 +131,76 @@ export const dialogStyles = tv({
       false: { title: 'text-start' },
     },
     /*
-     * The panel expands away from the window edge it sits against (the spec's enter and
-     * exit pattern): downward when centred or at the top, upward at the bottom, and along
-     * the x axis from the start or end edge. Reduced motion keeps the clip open.
+     * The dialog enters from the window edge it sits against (the spec's enter and exit
+     * pattern): it slides 50px away from that edge while its container grows away from it,
+     * and leaves the same way back. Centred or at the top it slides down and grows downward
+     * (the reference motion), at the bottom it slides up and grows upward, and at the start
+     * or end it moves and grows along the x axis, mirrored in right-to-left layouts.
      */
     placement: {
       center: { positioner: 'items-center justify-center' },
       top: { positioner: 'items-start justify-center' },
       bottom: {
         positioner: 'items-end justify-center',
-        motion: '[--m3-dialog-collapsed:inset(100%_-32px_-32px_-32px)]',
+        motion: [
+          '[--m3-dialog-enter-clip:inset(100%_0_0_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-exit-clip:inset(65%_0_0_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-slide:0_50px]',
+        ],
       },
       start: {
         positioner: 'items-center justify-start',
         motion: [
-          '[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
-          'rtl:[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
+          '[--m3-dialog-enter-clip:inset(0_100%_0_0_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-exit-clip:inset(0_65%_0_0_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-slide:-50px_0]',
+          'rtl:[--m3-dialog-enter-clip:inset(0_0_0_100%_round_var(--m3-dialog-corner))]',
+          'rtl:[--m3-dialog-exit-clip:inset(0_0_0_65%_round_var(--m3-dialog-corner))]',
+          'rtl:[--m3-dialog-slide:50px_0]',
         ],
       },
       end: {
         positioner: 'items-center justify-end',
         motion: [
-          '[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
-          'rtl:[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
+          '[--m3-dialog-enter-clip:inset(0_0_0_100%_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-exit-clip:inset(0_0_0_65%_round_var(--m3-dialog-corner))]',
+          '[--m3-dialog-slide:50px_0]',
+          'rtl:[--m3-dialog-enter-clip:inset(0_100%_0_0_round_var(--m3-dialog-corner))]',
+          'rtl:[--m3-dialog-exit-clip:inset(0_65%_0_0_round_var(--m3-dialog-corner))]',
+          'rtl:[--m3-dialog-slide:-50px_0]',
         ],
       },
     },
     fullScreen: {
-      never: { headerButton: 'hidden' },
+      never: {
+        headerButton: 'hidden',
+        parts: [
+          'motion-safe:*:starting:opacity-0 motion-safe:data-exiting:*:opacity-0',
+          '*:[transition-property:opacity]',
+          '*:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+          '*:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+          '*:[transition-delay:var(--md-sys-motion-duration-short-1)]',
+          '*:data-[slot=actions]:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          '*:data-[slot=actions]:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+          '*:data-[slot=actions]:[transition-delay:var(--md-sys-motion-duration-short-3)]',
+          'data-exiting:*:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          'data-exiting:*:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+          'data-exiting:*:[transition-delay:0s] data-exiting:*:data-[slot=actions]:[transition-delay:0s]',
+        ],
+      },
+      /*
+       * Full screen keeps its own motion: the dialog slides up 48px as it fades in on the slow
+       * springs (the spec's speed for full-screen motion) with no clip, and slides back down
+       * as it fades out on the fast ones, its parts fading with it.
+       */
       always: {
         positioner: 'p-0 medium:p-0',
         motion: [
-          'size-full translate-none [clip-path:none] [transition-property:opacity,translate]',
-          'starting:translate-y-[48px] starting:[clip-path:none]',
-          'data-exiting:translate-y-[48px] data-exiting:[clip-path:none]',
-          'motion-reduce:data-exiting:translate-none',
-          '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
-          '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'size-full [--m3-dialog-slide:0_48px]',
+          '[--m3-dialog-open-clip:none] [--m3-dialog-enter-clip:none] [--m3-dialog-exit-clip:none]',
+          '[transition-duration:var(--md-sys-motion-spring-effects-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'data-exiting:[transition-delay:0s]',
         ],
         panel: [
           'size-full max-h-none max-w-none rounded-none p-0 shadow-none',
@@ -146,14 +214,26 @@ export const dialogStyles = tv({
       compact: {
         positioner: 'max-medium:p-0',
         motion: [
-          'max-medium:size-full max-medium:translate-none max-medium:[clip-path:none]',
-          'max-medium:[transition-property:opacity,translate]',
-          'max-medium:motion-reduce:[transition-property:opacity]',
-          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
-          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
-          'max-medium:starting:translate-y-[48px] max-medium:starting:[clip-path:none]',
-          'max-medium:data-exiting:translate-y-[48px] max-medium:data-exiting:[clip-path:none]',
-          'max-medium:motion-reduce:data-exiting:translate-none',
+          'max-medium:size-full max-medium:[--m3-dialog-slide:0_48px]',
+          'max-medium:[--m3-dialog-open-clip:none] max-medium:[--m3-dialog-enter-clip:none]',
+          'max-medium:[--m3-dialog-exit-clip:none]',
+          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'max-medium:data-exiting:[transition-delay:0s]',
+        ],
+        parts: [
+          'medium:motion-safe:*:starting:opacity-0 medium:motion-safe:data-exiting:*:opacity-0',
+          'medium:*:[transition-property:opacity]',
+          'medium:*:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+          'medium:*:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+          'medium:*:[transition-delay:var(--md-sys-motion-duration-short-1)]',
+          'medium:*:data-[slot=actions]:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          'medium:*:data-[slot=actions]:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+          'medium:*:data-[slot=actions]:[transition-delay:var(--md-sys-motion-duration-short-3)]',
+          'medium:data-exiting:*:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)]',
+          'medium:data-exiting:*:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
+          'medium:data-exiting:*:[transition-delay:0s]',
+          'medium:data-exiting:*:data-[slot=actions]:[transition-delay:0s]',
         ],
         panel: [
           'max-medium:size-full max-medium:max-h-none max-medium:max-w-none',
@@ -181,6 +261,16 @@ export const dialogStyles = tv({
     dividers: { true: {}, false: {} },
     /** A container transform from a trigger (`origin`) into the full-screen dialog. */
     origin: { true: {}, false: {} },
+    /** No enter or exit motion: the dialog, its parts and the scrim appear and go at once. */
+    quick: {
+      true: {
+        scrim: '[transition-property:none]!',
+        motion: '[transition-property:none]!',
+        panel: '[transition-property:none]!',
+        parts: '*:[transition-property:none]!',
+      },
+      false: {},
+    },
   },
   compoundVariants: [
     {
@@ -241,12 +331,11 @@ export const dialogStyles = tv({
       origin: true,
       class: {
         motion: [
-          '[clip-path:inset(0_round_0)] [transition-property:opacity,clip-path]',
-          'starting:translate-none starting:[clip-path:var(--m3-dialog-origin)]',
-          'data-exiting:translate-none motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
-          '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
-          '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
-          'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+          '[--m3-dialog-slide:0_0] [--m3-dialog-open-clip:inset(0_round_0)]',
+          '[--m3-dialog-enter-clip:var(--m3-dialog-origin)] [--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
+          '[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
         ],
         panel: [
           '[transition-property:background-color] motion-reduce:[transition-property:none]',
@@ -265,13 +354,12 @@ export const dialogStyles = tv({
       origin: true,
       class: {
         motion: [
-          'max-medium:[clip-path:inset(0_round_0)] max-medium:[transition-property:opacity,clip-path]',
-          'max-medium:starting:translate-none max-medium:starting:[clip-path:var(--m3-dialog-origin)]',
-          'max-medium:data-exiting:translate-none',
-          'max-medium:motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
-          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
-          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
-          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+          'max-medium:[--m3-dialog-slide:0_0] max-medium:[--m3-dialog-open-clip:inset(0_round_0)]',
+          'max-medium:[--m3-dialog-enter-clip:var(--m3-dialog-origin)]',
+          'max-medium:[--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
+          'max-medium:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-slow-duration),var(--md-sys-motion-spring-spatial-slow-duration)]',
+          'max-medium:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-slow-easing),var(--md-sys-motion-spring-spatial-slow-easing)]',
+          'max-medium:data-exiting:[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
         ],
         panel: [
           'max-medium:[transition-property:background-color]',
@@ -292,6 +380,7 @@ export const dialogStyles = tv({
   defaultVariants: {
     dividers: false,
     origin: false,
+    quick: false,
     hasIcon: false,
     fullScreen: 'never',
     placement: 'center',

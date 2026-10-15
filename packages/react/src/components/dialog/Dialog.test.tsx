@@ -128,41 +128,71 @@ describe('Dialog', () => {
     await gone('Delete file?');
   });
 
-  it('expands from its top edge instead of scaling, keeping 56px from wide windows', async () => {
+  it('slides 50px down while it grows from its top edge, instead of scaling', async () => {
     render(<DeleteDialog placement="top" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const motion = screen.getByTestId('panel').parentElement!;
     expect(motion).toHaveClass(
-      '[--m3-dialog-collapsed:inset(-32px_-32px_100%_-32px)]',
-      'starting:[clip-path:var(--m3-dialog-collapsed)]',
-      'data-exiting:[clip-path:var(--m3-dialog-collapsed)]',
+      '[--m3-dialog-slide:0_-50px]',
+      '[--m3-dialog-enter-clip:inset(0_0_100%_round_var(--m3-dialog-corner))]',
+      '[--m3-dialog-exit-clip:inset(0_0_65%_round_var(--m3-dialog-corner))]',
+      'starting:[translate:var(--m3-dialog-slide)]',
+      'starting:[clip-path:var(--m3-dialog-enter-clip)]',
+      'data-exiting:[clip-path:var(--m3-dialog-exit-clip)]',
     );
     expect(motion.className).not.toMatch(/scale/);
     expect(motion.parentElement).toHaveClass('items-start', 'medium:p-[56px]', 'p-[24px]');
   });
 
   it.each([
-    ['bottom', ['[--m3-dialog-collapsed:inset(100%_-32px_-32px_-32px)]']],
+    [
+      'bottom',
+      [
+        '[--m3-dialog-enter-clip:inset(100%_0_0_round_var(--m3-dialog-corner))]',
+        '[--m3-dialog-exit-clip:inset(65%_0_0_round_var(--m3-dialog-corner))]',
+        '[--m3-dialog-slide:0_50px]',
+      ],
+    ],
     [
       'start',
       [
-        '[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
-        'rtl:[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
+        '[--m3-dialog-enter-clip:inset(0_100%_0_0_round_var(--m3-dialog-corner))]',
+        '[--m3-dialog-slide:-50px_0]',
+        'rtl:[--m3-dialog-enter-clip:inset(0_0_0_100%_round_var(--m3-dialog-corner))]',
+        'rtl:[--m3-dialog-slide:50px_0]',
       ],
     ],
     [
       'end',
       [
-        '[--m3-dialog-collapsed:inset(-32px_-32px_-32px_100%)]',
-        'rtl:[--m3-dialog-collapsed:inset(-32px_100%_-32px_-32px)]',
+        '[--m3-dialog-enter-clip:inset(0_0_0_100%_round_var(--m3-dialog-corner))]',
+        '[--m3-dialog-slide:50px_0]',
+        'rtl:[--m3-dialog-enter-clip:inset(0_100%_0_0_round_var(--m3-dialog-corner))]',
+        'rtl:[--m3-dialog-slide:-50px_0]',
       ],
     ],
-  ] as const)('expands away from the %s edge', async (placement, classes) => {
+  ] as const)('enters and leaves from the %s edge', async (placement, classes) => {
     render(<DeleteDialog placement={placement} />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const motion = screen.getByTestId('panel').parentElement!;
     expect(motion).toHaveClass(...classes);
-    expect(motion).not.toHaveClass('[--m3-dialog-collapsed:inset(-32px_-32px_100%_-32px)]');
+    expect(motion).not.toHaveClass('[--m3-dialog-slide:0_-50px]');
+  });
+
+  it('staggers its parts: the actions fade in after the headline and content', async () => {
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel).toHaveClass(
+      'motion-safe:*:starting:opacity-0',
+      'motion-safe:data-exiting:*:opacity-0',
+      '*:[transition-delay:var(--md-sys-motion-duration-short-1)]',
+      '*:data-[slot=actions]:[transition-delay:var(--md-sys-motion-duration-short-3)]',
+    );
+    expect(screen.getByRole('button', { name: 'Delete forever' }).parentElement).toHaveAttribute(
+      'data-slot',
+      'actions',
+    );
   });
 
   it('keeps only the fades under reduced motion, and is at least 280px wide', async () => {
@@ -171,8 +201,8 @@ describe('Dialog', () => {
     const panel = screen.getByTestId('panel');
     expect(panel.parentElement).toHaveClass(
       'motion-reduce:[transition-property:opacity]',
-      'motion-reduce:starting:[clip-path:inset(-32px)]',
-      'motion-reduce:data-exiting:[clip-path:inset(-32px)]',
+      'motion-reduce:data-exiting:translate-none',
+      'motion-reduce:data-exiting:[clip-path:var(--m3-dialog-open-clip)]',
     );
     // The minimum is capped by the window's margins, not by the content-sized wrapper.
     expect(panel).toHaveClass('min-w-[min(280px,calc(100vw-48px))]');
@@ -341,6 +371,68 @@ describe('Dialog', () => {
     const { baseElement } = render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(await axeViolations(baseElement)).toEqual([]);
+  });
+});
+
+describe('Dialog motion callbacks and quick', () => {
+  it('reports when it has finished opening and closing', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const onOpened = vi.fn();
+    const onClosed = vi.fn();
+    render(<DeleteDialog onOpened={onOpened} onClosed={onClosed} />);
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(onOpened).toHaveBeenCalledTimes(1));
+    expect(onClosed).not.toHaveBeenCalled();
+    await user.keyboard('{Escape}');
+    // Still leaving: the exit motion runs before the dialog reports closing.
+    expect(screen.getByTestId('panel')).toHaveAttribute('data-exiting');
+    expect(onClosed).not.toHaveBeenCalled();
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(screen.queryByTestId('panel')).not.toBeInTheDocument();
+    expect(onClosed).toHaveBeenCalledTimes(1);
+    expect(onOpened).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('quick: no motion, and it leaves the document as soon as it closes', async () => {
+    const onOpened = vi.fn();
+    const onClosed = vi.fn();
+    const { baseElement } = render(<DeleteDialog quick onOpened={onOpened} onClosed={onClosed} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    const panel = screen.getByTestId('panel');
+    expect(panel.parentElement).toHaveClass('[transition-property:none]!');
+    expect(panel).toHaveClass('*:[transition-property:none]!');
+    expect(baseElement.querySelector('[aria-hidden="true"].bg-scrim\\/32')).toHaveClass(
+      '[transition-property:none]!',
+    );
+    await waitFor(() => expect(onOpened).toHaveBeenCalledTimes(1));
+    expect(await axeViolations(baseElement)).toEqual([]);
+    await userEvent.keyboard('{Escape}');
+    // Gone at once: never marked as leaving.
+    expect(screen.queryByTestId('panel')).not.toBeInTheDocument();
+    expect(onClosed).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus());
+  });
+
+  it('quick closes a controlled dialog at once', async () => {
+    function Controlled() {
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <button type="button" onClick={() => setOpen((value) => !value)}>
+            Toggle
+          </button>
+          <Dialog quick open={open} onOpenChange={setOpen} aria-label="Settings">
+            <DialogContent>Body</DialogContent>
+          </Dialog>
+        </>
+      );
+    }
+    render(<Controlled />);
+    expect(screen.getByRole('alertdialog', { name: 'Settings' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });
 
@@ -583,9 +675,9 @@ describe('Dialog container transform', () => {
     expect(motion.style.getPropertyValue('--m3-dialog-origin-color')).toBe('rgb(1, 2, 3)');
     expect(panel).toHaveAttribute('data-origin');
     expect(motion).toHaveClass(
-      'starting:[clip-path:var(--m3-dialog-origin)]',
-      'motion-safe:data-exiting:[clip-path:var(--m3-dialog-origin)]',
-      'starting:translate-none',
+      '[--m3-dialog-enter-clip:var(--m3-dialog-origin)]',
+      '[--m3-dialog-exit-clip:var(--m3-dialog-origin)]',
+      '[--m3-dialog-slide:0_0]',
     );
     expect(panel).toHaveClass('starting:bg-(--m3-dialog-origin-color)', '*:starting:opacity-0');
     fab.remove();
@@ -617,7 +709,7 @@ describe('Dialog container transform', () => {
     const { unmount } = render(<NewEvent origin={rect(0, 0, 56)} fullScreen="compact" />);
     await userEvent.click(screen.getByRole('button', { name: 'New event' }));
     expect(screen.getByTestId('panel').parentElement).toHaveClass(
-      'max-medium:starting:[clip-path:var(--m3-dialog-origin)]',
+      'max-medium:[--m3-dialog-enter-clip:var(--m3-dialog-origin)]',
     );
     unmount();
 

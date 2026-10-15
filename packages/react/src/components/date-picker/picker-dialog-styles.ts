@@ -18,11 +18,15 @@ import { tv } from '../../utils/tv';
  * component tokens: `--md-comp-date-picker-modal-container-*` (`date-picker-tokens.ts`) or
  * `--md-comp-time-picker-container-*` (`time-picker-tokens.ts`). The panel carries that set's
  * `data-tokens` and `data-variant`. Every class is written out in full.
+ *
+ * The dialog moves as `Dialog` does (`dialogStyles`' motion and staggered parts): `motion`
+ * gives the growing container the picker's corners, and the actions row fades in last.
  */
 
 /** Variant definitions for {@link PickerDialog}. */
 export const pickerDialogStyles = tv({
   slots: {
+    motion: '',
     panel:
       'group/picker-dialog flex max-h-full max-w-full flex-col overflow-hidden text-on-surface outline-none',
     header: 'flex h-[56px] shrink-0 items-center justify-between ps-[4px] pe-[12px]',
@@ -37,6 +41,8 @@ export const pickerDialogStyles = tv({
   variants: {
     variant: {
       date: {
+        motion:
+          '[--m3-dialog-corner:var(--md-comp-date-picker-modal-container-shape,var(--md-sys-shape-corner-extra-large))]',
         panel: [
           'rounded-[var(--_md-comp-date-picker-modal-container-shape)]',
           'bg-[var(--_md-comp-date-picker-modal-container-color)]',
@@ -45,6 +51,8 @@ export const pickerDialogStyles = tv({
         actions: 'pe-[6px] pb-[8px] ps-[12px]',
       },
       time: {
+        motion:
+          '[--m3-dialog-corner:var(--md-comp-time-picker-container-shape,var(--md-sys-shape-corner-extra-large))]',
         panel: [
           'rounded-[var(--_md-comp-time-picker-container-shape)]',
           'bg-[var(--_md-comp-time-picker-container-color)] p-[24px] shadow-elevation-3',

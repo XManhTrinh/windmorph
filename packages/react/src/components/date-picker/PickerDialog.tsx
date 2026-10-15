@@ -194,16 +194,21 @@ function PickerDialogModal({
       />
       <div style={DIALOG_ROOT_STYLE} className={shell.root({ class: className })}>
         <div {...underlayProps} className={shell.positioner()}>
-          <div {...exitProps} data-exiting={exiting} className={shell.motion()}>
+          <div
+            {...exitProps}
+            data-exiting={exiting}
+            className={shell.motion({ class: styles.motion() })}
+          >
             <div
               {...mergeProps(modalProps, dialogProps)}
               ref={panelRef}
+              data-exiting={exiting}
               // The picker's component tokens (date-picker-tokens.ts, time-picker-tokens.ts)
               // paint the panel; `data-variant` is also a public styling hook.
               data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
               data-variant={variant}
               data-full-screen={full || undefined}
-              className={styles.panel({ class: classNames?.panel })}
+              className={styles.panel({ class: [shell.parts(), classNames?.panel] })}
             >
               <TriggerContext value={null}>
                 {full && (
@@ -238,7 +243,10 @@ function PickerDialogModal({
                   </div>
                 </PickerDialogContext>
                 {!full && (
-                  <div className={styles.actions({ class: classNames?.actions })}>
+                  <div
+                    data-slot="actions"
+                    className={styles.actions({ class: classNames?.actions })}
+                  >
                     {modeToggleButton}
                     <div className={styles.buttons()}>
                       {dismissButton}

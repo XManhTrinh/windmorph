@@ -108,6 +108,48 @@ function measureOrigin(origin: Element | DOMRectReadOnly): OriginBox {
 
 const DialogTriggerContext = createContext<DialogTriggerContextValue | null>(null);
 
+/**
+ * Calls `onOpened` once the enter motion has finished: every CSS transition running on the
+ * scrim, the motion wrapper, the panel and the panel's parts when they first render. Styles
+ * are read on the first frame, so the `@starting-style` transitions have begun. A transition
+ * cut short (the dialog closes while entering) never finishes, so a dialog that closes early
+ * doesn't report opening.
+ */
+function useOpened(
+  scrimRef: RefObject<HTMLElement | null>,
+  motionRef: RefObject<HTMLElement | null>,
+  panelRef: RefObject<HTMLElement | null>,
+  onOpened: (() => void) | undefined,
+) {
+  const latest = useRef(onOpened);
+  useLayoutEffect(() => {
+    latest.current = onOpened;
+  });
+  useEffect(() => {
+    let active = true;
+    const frame = requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      const elements = [scrimRef.current, motionRef.current, panel, ...(panel?.children ?? [])];
+      const transitions = elements.flatMap((element) => {
+        if (!element || typeof element.getAnimations !== 'function') return [];
+        // Reading a style starts the transitions that haven't started yet.
+        void getComputedStyle(element).opacity;
+        return element.getAnimations().filter((animation) => 'transitionProperty' in animation);
+      });
+      Promise.all(transitions.map((transition) => transition.finished)).then(
+        () => {
+          if (active) latest.current?.();
+        },
+        () => undefined,
+      );
+    });
+    return () => {
+      active = false;
+      cancelAnimationFrame(frame);
+    };
+  }, [scrimRef, motionRef, panelRef]);
+}
+
 interface DialogPartsContextValue {
   titleProps: DOMAttributes<HTMLElement>;
   /** The id an alert dialog's description (`DialogContent`) takes. */
@@ -233,7 +275,10 @@ export interface DialogProps
    * Where a basic dialog sits: centred (the spec's default) or against one side of the
    * window, keeping 24px from its edges on compact windows and 56px on wider ones. For any
    * other position, align it with `classNames.positioner` (for example
-   * `"items-start justify-end"` for the top end corner).
+   * `"items-start justify-end"` for the top end corner). It also sets the motion's
+   * direction: centred or at the top the dialog slides down and grows downward as it
+   * enters, at the bottom up, and at the start or end along the x axis (mirrored in
+   * right-to-left layouts).
    * @default "center"
    */
   placement?: DialogPlacement;
@@ -246,6 +291,23 @@ export interface DialogProps
   classNames?: DialogClassNames;
   /** Goes on the outermost element, with `className`. */
   style?: CSSProperties;
+  /**
+   * Skips the enter and exit motion: the dialog, its parts and the scrim appear and leave at
+   * once, and the dialog leaves the document as soon as it closes. Reduced motion already
+   * keeps only the fades. @default false
+   */
+  quick?: boolean;
+  /**
+   * Called when the dialog has finished opening: once its enter motion (the slide, the
+   * container's growth and every part's fade) has ended, or right after it opens with
+   * `quick`. Not called when it closes before then.
+   */
+  onOpened?: () => void;
+  /**
+   * Called when the dialog has finished closing: once its exit motion has ended and it has
+   * left the document, or right after it closes with `quick`.
+   */
+  onClosed?: () => void;
 }
 
 /**
@@ -253,8 +315,14 @@ export interface DialogProps
  * surrounding theme. It's an alert dialog (described by its `DialogContent`). Focus moves
  * to its first interactive element (or one marked `autoFocus`), is contained, and is
  * restored on close; Escape closes it; the page behind does not scroll and is hidden from
- * assistive tech. It expands away from the window edge it sits against as it opens. Name it with a
- * `DialogTitle` (or `aria-label`).
+ * assistive tech. Name it with a `DialogTitle` (or `aria-label`).
+ *
+ * It enters with the M3 dialog motion: it slides 50px away from the window edge it sits
+ * against while its container grows from that edge, then its headline and content fade in,
+ * then its actions; it leaves by fading its parts, sliding back and shrinking, then fading.
+ * Any children take part: the actions phase is for `DialogActions` (or any child with
+ * `data-slot="actions"`), and every other child fades in with the content. `onOpened` and
+ * `onClosed` report the end of each motion; `quick` turns it off.
  *
  * `className` and `style` go on the outermost element, a full-window layer around the
  * positioner whose inline placement they can't move, so a layout class (`static`,
@@ -275,11 +343,27 @@ export interface DialogProps
  *   )}
  * </Dialog>
  */
-export function Dialog({ open, defaultOpen, onOpenChange, origin, ...props }: DialogProps) {
+export function Dialog({
+  open,
+  defaultOpen,
+  onOpenChange,
+  origin,
+  onClosed,
+  ...props
+}: DialogProps) {
   const trigger = useContext(DialogTriggerContext);
   const ownState = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const state = trigger?.state ?? ownState;
-  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'opacity', !props.quick);
+  const onClosedRef = useRef(onClosed);
+  useLayoutEffect(() => {
+    onClosedRef.current = onClosed;
+  });
+  const wasPresent = useRef(isPresent);
+  useEffect(() => {
+    if (wasPresent.current && !isPresent) onClosedRef.current?.();
+    wasPresent.current = isPresent;
+  }, [isPresent]);
   const usesOrigin = origin !== undefined && (props.fullScreen ?? 'never') !== 'never';
   // The origin is measured before the dialog is in the document (a layout effect, then a
   // synchronous re-render before paint), so the dialog's first style already starts on the
@@ -321,13 +405,15 @@ function DialogModal({
   icon,
   fullScreen = 'never',
   placement = 'center',
+  quick = false,
+  onOpened,
   children,
   className,
   classNames,
   style,
   ref,
   ...rest
-}: Omit<DialogProps, 'open' | 'defaultOpen' | 'onOpenChange'> & {
+}: Omit<DialogProps, 'open' | 'defaultOpen' | 'onOpenChange' | 'onClosed'> & {
   state: OverlayTriggerState;
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
@@ -336,6 +422,9 @@ function DialogModal({
 }) {
   const role = roleProp ?? (fullScreen === 'never' ? 'alertdialog' : 'dialog');
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  const motionRef = useRef<HTMLDivElement>(null);
+  const scrimRef = useRef<HTMLDivElement>(null);
+  useOpened(scrimRef, motionRef, panelRef, onOpened);
   const [hasContent, setHasContent] = useState(false);
   const [headerAction, setHeaderAction] = useState(false);
   const { modalProps, underlayProps } = useModalOverlay(
@@ -364,12 +453,13 @@ function DialogModal({
   const hasIcon = fullScreen !== 'always' && icon !== undefined && icon !== null;
   const bottomBar = fullScreen !== 'never' && !headerAction;
   const origin = originBox !== null;
-  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar, origin });
+  const styles = dialogStyles({ hasIcon, fullScreen, placement, bottomBar, origin, quick });
   const exiting = isExiting || undefined;
 
   return (
     <>
       <div
+        ref={scrimRef}
         aria-hidden="true"
         data-exiting={exiting}
         className={styles.scrim({ class: classNames?.scrim })}
@@ -378,6 +468,7 @@ function DialogModal({
         <div {...underlayProps} className={styles.positioner({ class: classNames?.positioner })}>
           <div
             {...exitProps}
+            ref={motionRef}
             data-exiting={exiting}
             style={
               originBox
@@ -398,7 +489,7 @@ function DialogModal({
               data-tokens="md-comp-dialog"
               data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
               data-origin={origin || undefined}
-              className={styles.panel({ class: classNames?.panel })}
+              className={styles.panel({ class: [styles.parts(), classNames?.panel] })}
             >
               <TriggerContext value={null}>
                 <DialogPartsContext
@@ -617,6 +708,7 @@ export function DialogActions({ className, children, ...props }: DialogActionsPr
   return (
     <div
       {...props}
+      data-slot="actions"
       className={dialogStyles({ fullScreen, bottomBar }).actions({ class: className })}
     >
       {children}
