@@ -320,6 +320,23 @@ describe('Tabs', () => {
     vi.restoreAllMocks();
   });
 
+  it('reveals the row at the nearest position, so arrow keys never centre the page on it', () => {
+    const scrollIntoView = vi.fn();
+    const original = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    render(<Trip scrollable />);
+    const list = screen.getByRole('tablist');
+    // React Aria's call when keyboard focus moves to a tab the row has to scroll to.
+    list.scrollIntoView({ block: 'center', inline: 'center' });
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', inline: 'nearest' });
+    expect(scrollIntoView.mock.contexts[0]).toBe(list);
+    if (original) Object.defineProperty(Element.prototype, 'scrollIntoView', original);
+    else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
   it('turns the colour fade on in the render that changes the selection', async () => {
     // The indicator's measuring reads layout, which commits the tabs' new colours: the fade
     // must already be on then, or the first selection recolours in one frame.

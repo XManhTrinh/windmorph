@@ -9,7 +9,6 @@ import {
   type CSSProperties,
   type HTMLAttributes,
   type JSX,
-  type KeyboardEvent,
   type PointerEvent,
   type ReactElement,
   type ReactNode,
@@ -234,14 +233,13 @@ function TabsInner({
     setShownKey(state.selectedKey);
     if (shownKey != null) setRecolour(true);
   }
-  const keepPageScroll = useKeepPageScroll(scrollerRef);
+  useNearestRowReveal(listRef);
 
   return (
     <>
       <div
         ref={scrollerRef}
         {...densityAttribute(density)}
-        onKeyDownCapture={keepPageScroll}
         className={styles.scroller({ class: classNames?.scroller })}
       >
         <div
@@ -418,35 +416,27 @@ function useScrollToSelection(
 }
 
 /**
- * Arrow keys must not scroll the page. React Aria reveals a newly focused tab with
- * `scrollIntoView({ block: 'center' })` on the row's container, which scrolls every
- * ancestor, the window included, even when the row is already fully on screen. When it is,
- * this records the ancestors' scroll positions as the key goes down and puts them back
- * before the next frame, so only the row itself scrolls to the tab (2026-10-15).
+ * Arrow keys must not scroll the page. When keyboard focus moves to a tab that the row has
+ * to scroll to, React Aria calls `scrollIntoView({ block: 'center', inline: 'center' })` on
+ * the tab list, which scrolls every ancestor, the window included, to centre the row even
+ * when it is fully on screen (176px on a desktop page), and then reveals the tab. The list's
+ * own `scrollIntoView` asks for the nearest position instead, so the page moves only when
+ * the row is partly out of view, and only as far as needed; the tab is still revealed in the
+ * row (2026-10-15).
  */
-const REVEAL_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']);
-
-function useKeepPageScroll(scrollerRef: React.RefObject<HTMLDivElement | null>) {
-  return (event: KeyboardEvent<HTMLDivElement>) => {
-    const scroller = scrollerRef.current;
-    if (!scroller || !REVEAL_KEYS.has(event.key)) return;
-    const rect = scroller.getBoundingClientRect();
-    const view = window.visualViewport;
-    const height = view?.height ?? window.innerHeight;
-    const width = view?.width ?? window.innerWidth;
-    if (rect.top < 0 || rect.left < 0 || rect.bottom > height || rect.right > width) return;
-    const saved: [Element, number, number][] = [];
-    for (let el = scroller.parentElement; el; el = el.parentElement)
-      saved.push([el, el.scrollLeft, el.scrollTop]);
-    const page = document.scrollingElement;
-    if (page && !saved.some(([el]) => el === page))
-      saved.push([page, page.scrollLeft, page.scrollTop]);
-    requestAnimationFrame(() => {
-      for (const [el, left, top] of saved)
-        if (el.scrollLeft !== left || el.scrollTop !== top)
-          el.scrollTo({ left, top, behavior: 'instant' });
-    });
-  };
+function useNearestRowReveal(listRef: React.RefObject<HTMLDivElement | null>) {
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    list.scrollIntoView = (arg?: boolean | ScrollIntoViewOptions) =>
+      Element.prototype.scrollIntoView?.call(
+        list,
+        typeof arg === 'object' ? { ...arg, block: 'nearest', inline: 'nearest' } : arg,
+      );
+    return () => {
+      Reflect.deleteProperty(list, 'scrollIntoView');
+    };
+  }, [listRef]);
 }
 
 interface TabButtonProps {
