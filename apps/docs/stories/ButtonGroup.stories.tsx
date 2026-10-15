@@ -368,8 +368,9 @@ export const LayoutOverride: StoryObj<{
 
 /**
  * Groups of icon buttons under a dense `ThemeScope` (M3: "Button groups adapt to density of the
- * buttons inside"): standard groups at XS, S and M keep their gaps while their buttons lose
- * 4px a step, and a connected XS group keeps its 48px-wide buttons.
+ * buttons inside"): their buttons lose 4px a step, standard XS and S groups widen their gaps
+ * so neighbouring 48px targets never overlap, and a connected XS group keeps its 48px-wide
+ * buttons.
  */
 export const Density: Story = {
   render: () => (
