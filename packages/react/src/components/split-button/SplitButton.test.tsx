@@ -44,7 +44,7 @@ describe('SplitButton', () => {
     expect(trailing()).toHaveAttribute('aria-haspopup', 'true');
     expect(trailing()).toHaveAttribute('aria-expanded', 'false');
     expect(leading()).toHaveClass(
-      'h-[40px]',
+      'min-h-[40px]',
       'ps-[calc(16px-var(--m3-button-border,0px))]',
       'pe-[calc(12px-var(--m3-button-border,0px))]',
       'bg-[var(--_md-comp-button-container-color)]',
@@ -53,7 +53,7 @@ describe('SplitButton', () => {
       'data-pressed:rounded-e-corner-medium',
     );
     expect(trailing()).toHaveClass(
-      'h-[40px]',
+      'min-h-[40px]',
       'ps-[calc(13px-var(--m3-button-border,0px))]',
       'rounded-e-[var(--_md-comp-split-button-container-shape-capped)]',
       'rounded-s-corner-extra-small',
@@ -144,13 +144,20 @@ describe('SplitButton', () => {
     expect(trailing().querySelector('[data-motion]')).toHaveClass(iconSize);
   });
 
-  it('grows its XS halves with the text, together, without a stretching parent', () => {
-    render(<Send size="xs" />);
+  it.each(['xs', 'sm'] as const)(
+    'grows its %s halves with the text, together, without a stretching parent',
+    (size) => {
+      render(<Send size={size} />);
     // A minimum height (Compose's heightIn), both halves stretched to the taller one, and a
     // root that keeps its content height in a flex or grid parent.
-    expect(leading()).not.toHaveClass('h-[32px]');
-    expect(leading().parentElement).toHaveClass('h-fit', 'items-stretch');
-  });
+      // (S joined XS on 2026-10-15: a fixed 40px overflowed at 250% text.)
+      for (const half of [leading(), trailing()]) {
+        expect(half).not.toHaveClass('h-[32px]');
+        expect(half).not.toHaveClass('h-[40px]');
+      }
+      expect(leading().parentElement).toHaveClass('h-fit', 'items-stretch');
+    },
+  );
 
   it.each([
     ['tonal', 'bg-[var(--_md-comp-button-container-color)]'],

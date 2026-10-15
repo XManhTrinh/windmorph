@@ -23,8 +23,9 @@ import { buttonVariantClasses, forcedColorClasses } from '../button/button-style
  *   button uses the standard motion scheme … when rotating the menu button"): the icon
  *   carries `data-motion="standard"`. Under reduced motion it turns without animating.
  *
- * The XS halves take a 32px minimum height rather than a fixed one, so they grow around
- * text at a large browser font size, as Compose's `heightIn(min)` does (2026-10-13).
+ * The XS and S halves take a 32 / 40px minimum height rather than a fixed one, so they grow
+ * around text at a large browser font size, as Compose's `heightIn(min)` does (XS
+ * 2026-10-13, S 2026-10-15).
  *
  * The outer corners come from the component tokens (`split-button-tokens.ts`,
  * `--md-comp-split-button-<size>-container-shape`), read through the root's resolved
@@ -40,8 +41,8 @@ const half = [
   'font-plain whitespace-nowrap select-none',
   'state-layer focus-ring container-motion',
   'data-disabled:cursor-default data-disabled:text-on-surface-variant/38 data-disabled:shadow-elevation-0',
-];
   forcedColorClasses.disabled,
+];
 
 const variant = {
   filled: { leading: buttonVariantClasses.filled, trailing: buttonVariantClasses.filled },
@@ -98,15 +99,17 @@ export const splitButtonStyles = tv({
         menuIcon: 'size-[22px]',
       },
       sm: {
+        // As at XS: the halves grow with larger text, never overflowing 40px (2026-10-15).
+        root: 'h-fit items-stretch',
         leading: [
-          'h-[40px] ps-[calc(16px-var(--m3-button-border,0px))] pe-[calc(12px-var(--m3-button-border,0px))] text-label-large',
+          'min-h-[40px] ps-[calc(16px-var(--m3-button-border,0px))] pe-[calc(12px-var(--m3-button-border,0px))] text-label-large',
           'rounded-s-[var(--_md-comp-split-button-container-shape-capped)] rounded-e-corner-extra-small',
           'data-hovered:rounded-e-corner-medium data-focus-visible:rounded-e-corner-medium data-pressed:rounded-e-corner-medium',
         ],
         content: 'gap-[8px]',
         icon: 'size-[20px]',
         trailing: [
-          'h-[40px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
+          'min-h-[40px] ps-[calc(13px-var(--m3-button-border,0px))] pe-[calc(13px-var(--m3-button-border,0px))]',
           'rounded-e-[var(--_md-comp-split-button-container-shape-capped)] rounded-s-corner-extra-small',
           'not-data-open:data-hovered:rounded-s-corner-medium not-data-open:data-focus-visible:rounded-s-corner-medium data-pressed:rounded-s-corner-medium',
           'data-open:not-data-pressed:rounded-s-[min(var(--md-sys-shape-corner-full),20px)]',
