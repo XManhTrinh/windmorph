@@ -13,13 +13,16 @@ export default defineConfig({
     {
       // Every suite against the static export (`turbo run test:e2e` builds first, producing out/).
       name: 'chromium',
+      // Production builds log no library warnings, so that check runs under `next dev` only.
+      testIgnore: 'library-warnings.spec.ts',
       use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${PORT}` },
     },
     {
       // The menu suite again under `next dev`: development resolves client references
-      // lazily, so collection items built in a server component only fail there.
+      // lazily, so collection items built in a server component only fail there. And the
+      // library's development warnings, which only `next dev` logs.
       name: 'next-dev',
-      testMatch: 'menus.spec.ts',
+      testMatch: ['menus.spec.ts', 'library-warnings.spec.ts'],
       // The dev server compiles each page on its first request, and each live example's chunk
       // when the page asks for it. Under load a first compile (`/components/alert`) used up the
       // whole 90s test, so a navigation gets up to 2 minutes, the test 3, and the wait for the
