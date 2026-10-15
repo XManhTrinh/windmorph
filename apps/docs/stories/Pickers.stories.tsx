@@ -2,6 +2,7 @@ import { CalendarDate, Time } from '@internationalized/date';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   Button,
+  DENSITIES,
   DateField,
   DatePicker,
   DateRangePicker,
@@ -9,6 +10,7 @@ import {
   TimePicker,
   TimePickerModeToggle,
   type DateRange as DateRangeValue,
+  type Density as DensityLevel,
   type TimePickerMode,
 } from '@windmorph/react';
 import { useState } from 'react';
@@ -272,6 +274,49 @@ export const TimeInput: Story = {
       >
         <TimePicker defaultValue={new Time(21, 5)} hourCycle={24} mode="input" />
       </div>
+    </div>
+  ),
+};
+
+/**
+ * Web density 0 to -3, one column per level: the docked date field and the date picker's input
+ * mode lose 4px per step (56 → 44px), the time input's fields too (72 → 60px). The calendars
+ * and the dial keep their size. Each part is `data-testid="<level>-<part>"`.
+ */
+export const Density: Story = {
+  render: () => (
+    <div className="grid grid-cols-4 items-start gap-4" data-testid="density">
+      {DENSITIES.map((density: DensityLevel) => (
+        <div key={density} className="flex min-w-0 flex-col gap-4">
+          <p className="text-title-small">{`Density ${density}`}</p>
+          <DateField
+            label="Date"
+            density={density}
+            defaultValue={DATE}
+            className="w-full"
+            data-testid={`${density}-date-field`}
+          />
+          <div className="rounded-corner-extra-large bg-surface-container-high">
+            <DatePicker
+              density={density}
+              defaultMode="input"
+              defaultValue={DATE}
+              showHeader={false}
+              className="w-full"
+              data-testid={`${density}-date-input`}
+            />
+          </div>
+          <div className="w-fit rounded-corner-extra-large bg-surface-container-high p-4">
+            <TimePicker
+              density={density}
+              defaultValue={new Time(9, 5)}
+              hourCycle={12}
+              mode="input"
+              data-testid={`${density}-time-input`}
+            />
+          </div>
+        </div>
+      ))}
     </div>
   ),
 };

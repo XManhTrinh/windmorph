@@ -10,6 +10,8 @@ import {
   MenuItem,
   MenuTrigger,
   SubmenuTrigger,
+  DENSITIES,
+  type Density as DensityLevel,
   type MenuLayout,
   type MenuPresentation,
   type MenuVariant,
@@ -95,6 +97,46 @@ export const Grouped: Story = {
       </div>
     );
   },
+};
+
+/**
+ * Web density (M3: "On web only … decreases the top and bottom padding"): open at a level,
+ * items lose 4px per step (44 → 32px) and the space around dividers 2px.
+ */
+export const Density: StoryObj<{ density: DensityLevel; variant: MenuVariant }> = {
+  args: { density: -2, variant: 'standard' },
+  argTypes: {
+    density: { control: 'inline-radio', options: [...DENSITIES] },
+    variant: { control: 'inline-radio', options: ['standard', 'vibrant'] },
+  },
+  render: ({ density, variant }) => (
+    <div style={{ minHeight: 420 }} data-testid="density">
+      <MenuTrigger defaultOpen>
+        <Button variant="outlined">Actions</Button>
+        <Menu aria-label="Actions" density={density} variant={variant} selectionMode="single">
+          <MenuGroup title="Edit">
+            <MenuItem key="add" leadingIcon={<AddIcon />} shortcut="⌘N">
+              New
+            </MenuItem>
+            <MenuItem key="edit" leadingIcon={<EditIcon />} description="Rename or move">
+              Edit
+            </MenuItem>
+            <MenuItem key="search" leadingIcon={<SearchIcon />} shortcut="⌘F">
+              Find
+            </MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="More actions">
+            <MenuItem key="star" leadingIcon={<StarIcon />}>
+              Favourite
+            </MenuItem>
+            <MenuItem key="delete" leadingIcon={<DeleteIcon />}>
+              Delete
+            </MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>
+    </div>
+  ),
 };
 
 /** Single selection: the selected item takes the selected shape and a check expands in. */

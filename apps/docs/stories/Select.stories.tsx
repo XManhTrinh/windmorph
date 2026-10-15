@@ -1,5 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Select, SelectItem, SelectSection, type SelectKey } from '@windmorph/react';
+import {
+  DENSITIES,
+  Select,
+  SelectItem,
+  SelectSection,
+  type Density as DensityLevel,
+  type SelectKey,
+  type TextFieldVariant,
+} from '@windmorph/react';
 import { useState } from 'react';
 import { SearchIcon, StarIcon } from './icons';
 import {
@@ -76,6 +84,98 @@ export const Open: Story = {
     <div className="bg-surface p-4" style={{ minHeight: 360 }} data-testid="open">
       <Select label="Sort by" defaultValue="low" defaultOpen disabledKeys={['near']}>
         {sortOptions}
+      </Select>
+    </div>
+  ),
+};
+
+/**
+ * Web density 0 to -3, one column per level: the field loses 4px per step (56 → 44px). Each
+ * field is `data-testid="<level>-<case>"`.
+ */
+export const Density: StoryObj<{ variant: TextFieldVariant }> = {
+  args: { variant: 'filled' },
+  argTypes: { variant: { control: 'inline-radio', options: ['filled', 'outlined'] } },
+  render: ({ variant }) => (
+    <div className="grid grid-cols-4 items-start gap-4 bg-surface p-4" data-testid="density">
+      {DENSITIES.map((density: DensityLevel) => (
+        <div key={density} className="flex min-w-0 flex-col gap-4">
+          <p className="text-title-small">{`Density ${density}`}</p>
+          <Select
+            variant={variant}
+            density={density}
+            label="Sort by"
+            className="w-full"
+            data-testid={`${density}-empty`}
+          >
+            {sortOptions}
+          </Select>
+          <Select
+            variant={variant}
+            density={density}
+            label="Sort by"
+            defaultValue="low"
+            leadingIcon={<SearchIcon />}
+            className="w-full"
+            data-testid={`${density}-value`}
+          >
+            {sortOptions}
+          </Select>
+          <Select
+            variant={variant}
+            density={density}
+            aria-label="Sort order"
+            defaultValue="newest"
+            className="w-full"
+            data-testid={`${density}-no-label`}
+          >
+            {sortOptions}
+          </Select>
+          <Select
+            variant={variant}
+            density={density}
+            label="Sort by"
+            invalid
+            errorMessage="Choose how to sort"
+            className="w-full"
+            data-testid={`${density}-error`}
+          >
+            {sortOptions}
+          </Select>
+          <Select
+            variant={variant}
+            density={density}
+            label="Sort by"
+            defaultValue="near"
+            disabled
+            className="w-full"
+            data-testid={`${density}-disabled`}
+          >
+            {sortOptions}
+          </Select>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+/** An open menu at a density: options lose 4px per step (44 → 32px). */
+export const DensityOpen: StoryObj<{ density: DensityLevel }> = {
+  args: { density: -2 },
+  argTypes: { density: { control: 'inline-radio', options: [...DENSITIES] } },
+  render: ({ density }) => (
+    <div className="bg-surface p-4" style={{ minHeight: 420 }} data-testid="open">
+      <Select label="Sort by" density={density} defaultValue="low" defaultOpen>
+        <SelectSection title="Order">
+          <SelectItem key="newest">Newest first</SelectItem>
+          <SelectItem key="low" description="Cheapest at the top">
+            Price, low to high
+          </SelectItem>
+        </SelectSection>
+        <SelectSection title="Place">
+          <SelectItem key="near">Nearest to you</SelectItem>
+          <SelectItem key="far">Furthest away</SelectItem>
+        </SelectSection>
       </Select>
     </div>
   ),

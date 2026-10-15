@@ -3,7 +3,9 @@ import {
   Autocomplete,
   AutocompleteItem,
   AutocompleteSection,
+  DENSITIES,
   matchesSearch,
+  type Density as DensityLevel,
   type AutocompleteKey,
   type TextFieldVariant,
 } from '@windmorph/react';
@@ -244,6 +246,105 @@ export const Clearable: StoryObj<{ variant: TextFieldVariant }> = {
       >
         {renderCity}
       </Autocomplete>
+    </div>
+  ),
+};
+
+/**
+ * Web density 0 to -3, one column per level: the field loses 4px per step (56 → 44px), and
+ * with chips its first row too. Each field is `data-testid="<level>-<case>"`.
+ */
+export const Density: StoryObj<{ variant: TextFieldVariant }> = {
+  args: { variant: 'filled' },
+  argTypes: { variant: { control: 'inline-radio', options: ['filled', 'outlined'] } },
+  render: ({ variant }) => (
+    <div className="grid grid-cols-4 items-start gap-4 bg-surface p-4" data-testid="density">
+      {DENSITIES.map((density: DensityLevel) => (
+        <div key={density} className="flex min-w-0 flex-col gap-4">
+          <p className="text-title-small">{`Density ${density}`}</p>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            label="City"
+            defaultItems={CITIES}
+            className="w-full"
+            data-testid={`${density}-empty`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            label="City"
+            defaultItems={CITIES}
+            defaultInputValue="Lon"
+            clearable
+            className="w-full"
+            data-testid={`${density}-clear`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            aria-label="Town"
+            defaultItems={CITIES}
+            defaultValue="zrh"
+            className="w-full"
+            data-testid={`${density}-no-label`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            label="City"
+            defaultItems={CITIES}
+            invalid
+            errorMessage="Choose a city"
+            className="w-full"
+            data-testid={`${density}-error`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            label="City"
+            defaultItems={CITIES}
+            defaultValue="ldn"
+            disabled
+            className="w-full"
+            data-testid={`${density}-disabled`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            label="Cities"
+            selectionMode="multiple"
+            defaultItems={CITIES}
+            defaultValue={['zrh']}
+            className="w-full"
+            data-testid={`${density}-chips`}
+          >
+            {renderCity}
+          </Autocomplete>
+          <Autocomplete
+            variant={variant}
+            density={density}
+            aria-label="Towns"
+            selectionMode="multiple"
+            defaultItems={CITIES}
+            defaultValue={['sp']}
+            className="w-full"
+            data-testid={`${density}-chips-no-label`}
+          >
+            {renderCity}
+          </Autocomplete>
+        </div>
+      ))}
     </div>
   ),
 };
