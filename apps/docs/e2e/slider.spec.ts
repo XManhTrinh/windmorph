@@ -274,3 +274,67 @@ test.describe('Slider layout safety', () => {
     },
   });
 });
+
+test.describe('Slider on a phone (touch)', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+  /** A one-finger touch drag through the browser's own gesture handling (scrolling included). */
+  async function touchDrag(
+    page: Page,
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+  ) {
+    const cdp = await page.context().newCDPSession(page);
+    const point = (t: number) => ({
+      x: from.x + (to.x - from.x) * t,
+      y: from.y + (to.y - from.y) * t,
+    });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
+    for (let step = 1; step <= 12; step++) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [point(step / 12)],
+      });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.detach();
+  }
+
+  const open = async (page: Page) => {
+    await openStory(page, 'components-slider--playground');
+    await page.evaluate(() => {
+      const root = document.querySelector('#storybook-root')!;
+      const spacer = document.createElement('div');
+      spacer.style.height = '1500px';
+      root.after(spacer);
+    });
+    const input = page.getByRole('slider').first();
+    const track = page.getByTestId('slider').locator('> div').first();
+    return { input, box: (await track.boundingBox())! };
+  };
+
+  test('a vertical swipe that starts on the track scrolls the page and keeps the value', async ({
+    page,
+  }) => {
+    const { input, box } = await open(page);
+    const value = await input.inputValue();
+    const x = box.x + box.width * 0.25;
+    const y = box.y + box.height / 2;
+    await touchDrag(page, { x, y }, { x, y: y - 200 });
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+    expect(await input.inputValue()).toBe(value);
+  });
+
+  test('a tap on the track sets the value on release, and a sideways drag moves it', async ({
+    page,
+  }) => {
+    const { input, box } = await open(page);
+    const y = box.y + box.height / 2;
+    await page.touchscreen.tap(box.x + box.width * 0.1, y);
+    await expect.poll(async () => Number(await input.inputValue())).toBeLessThan(20);
+    await touchDrag(page, { x: box.x + box.width * 0.2, y }, { x: box.x + box.width * 0.7, y });
+    await expect.poll(async () => Number(await input.inputValue())).toBeGreaterThan(60);
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  });
+});

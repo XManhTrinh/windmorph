@@ -37,7 +37,7 @@ import { tv, type VariantProps } from '../../utils/tv';
 export const sliderStyles = tv({
   slots: {
     root: [
-      'group/slider flex shrink-0 touch-none select-none',
+      'group/slider flex shrink-0 select-none',
       '[--m3-slider-gap-0:6px] [--m3-slider-gap-1:6px]',
       'has-[[data-thumb="0"][data-focus-visible]]:[--m3-slider-gap-0:10px]',
       'has-[[data-thumb="1"][data-focus-visible]]:[--m3-slider-gap-1:10px]',
@@ -124,11 +124,12 @@ export const sliderStyles = tv({
   variants: {
     orientation: {
       horizontal: {
-        root: 'h-(--m3-slider-handle) w-full flex-row items-center',
+        // A swipe across the slider scrolls the page (Compose drags only along the track).
+        root: 'h-(--m3-slider-handle) w-full touch-pan-y flex-row items-center',
         track: 'ms-[2px] me-[2px] self-stretch',
       },
       vertical: {
-        root: 'h-[240px] w-(--m3-slider-handle) flex-col items-center',
+        root: 'h-[240px] w-(--m3-slider-handle) touch-pan-x flex-col items-center',
         // Inline axis runs bottom-to-top, so the geometry and logical properties carry over.
         track: 'mt-[2px] mb-[2px] self-stretch [direction:rtl] [writing-mode:vertical-lr]',
       },
