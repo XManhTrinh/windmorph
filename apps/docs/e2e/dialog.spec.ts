@@ -442,7 +442,9 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         await page.getByRole('button', { name: 'Open dialog' }).click();
         const dialog = page.getByRole('dialog', { name: 'Sync across devices?' });
         // Enter motion: the container grows downward on its library-owned wrapper.
-        await expect.poll(async () => (await motion.clip())[0]).toBe('inset(0px 0px 100% round 28px)');
+        await expect
+          .poll(async () => (await motion.clip())[0])
+          .toBe('inset(0px 0px 100% round 28px)');
         await settle(page);
 
         const panel = await dialog.evaluate((el) => {
