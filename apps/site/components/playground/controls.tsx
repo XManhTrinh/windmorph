@@ -12,7 +12,7 @@ import {
   Switch,
   TextField,
 } from '@windmorph/react';
-import { useId, useState, type Key, type ReactNode } from 'react';
+import { Fragment, useId, useState, type Key, type ReactNode } from 'react';
 import { componentTabHref } from '../../content/components/doc';
 import { propAnchor } from '../../lib/prop-list-model';
 import { ExpandMoreIcon, InfoIcon } from '../icons';
@@ -26,17 +26,8 @@ import {
   type ControlDef,
 } from './controls-model';
 
-/**
- * A field-like control (a select, a slider, a text field) fills the row beside the prop's
- * name, and the whole row under it when the name leaves it less than 144px.
- */
+/** A field-like control (a select, a slider, a text field) fills the control column. */
 const FIELD = 'w-full';
-
-/** Whether a control is field-like (see {@link FIELD}); a switch or a button group keeps its size. */
-function isField(def: ControlDef): boolean {
-  if (def.kind === 'boolean') return false;
-  return !(def.kind === 'enum' && def.options && isSegmented(def.options));
-}
 
 /** A choice among a few short options: M3's connected button group, as a single selection. */
 function SegmentedChoice({
@@ -243,9 +234,20 @@ function ControlInput({
   );
 }
 
+/** A prop's name that may break before each capital or dot (`disallowEmpty·Selection`). */
+function BreakableName({ name }: { name: string }) {
+  return name.split(/(?=[A-Z.])/).map((part, index) => (
+    <Fragment key={index}>
+      {index > 0 && <wbr />}
+      {part}
+    </Fragment>
+  ));
+}
+
 /**
- * One control as an M3 list row: the prop's name and its info at the start, the control at
- * the end. A control too wide to sit beside the name wraps under it, still at the end.
+ * One control as a row of the panel's two-column grid (a subgrid of it): the prop's name and
+ * its info in the name column, the control from the start of the control column, fields
+ * filling it. On a narrow panel the grid has one column and every control sits under its name.
  */
 export function ControlRow({
   def,
@@ -262,21 +264,15 @@ export function ControlRow({
   return (
     <div
       data-control={def.name}
-      className="flex min-h-14 flex-wrap items-center gap-x-4 gap-y-1 py-1"
+      className="col-span-full grid min-h-14 grid-cols-subgrid items-center gap-y-1 py-1"
     >
-      <div className="me-auto flex min-w-0 items-center gap-1">
-        <span id={labelId} dir="ltr" className="min-w-0 break-all text-body-large text-on-surface">
-          {def.label}
+      <div className="flex min-w-0 items-center gap-1">
+        <span id={labelId} dir="ltr" className="min-w-0 text-body-medium text-on-surface">
+          <BreakableName name={def.label} />
         </span>
         <ControlInfo def={def} slug={slug} />
       </div>
-      <div
-        className={
-          isField(def)
-            ? 'flex min-w-0 grow basis-36'
-            : 'ms-auto flex min-w-0 max-w-full justify-end'
-        }
-      >
+      <div data-control-input="" className="flex min-w-0">
         <ControlInput def={def} labelId={labelId} value={value} onChange={onChange} />
       </div>
     </div>
@@ -289,7 +285,7 @@ function AdvancedFold({ count, children }: { count: number; children: ReactNode 
   const listId = useId();
   return (
     <>
-      <h4>
+      <h4 className="col-span-full">
         <Button
           variant="text"
           size="sm"
@@ -302,7 +298,7 @@ function AdvancedFold({ count, children }: { count: number; children: ReactNode 
           {`${CONTROL_GROUP_LABELS.advanced} (${count})`}
         </Button>
       </h4>
-      <div id={listId} hidden={!open} className={REVEAL}>
+      <div id={listId} hidden={!open} className={`col-span-full grid grid-cols-subgrid ${REVEAL}`}>
         {children}
       </div>
     </>
@@ -311,7 +307,12 @@ function AdvancedFold({ count, children }: { count: number; children: ReactNode 
 
 /**
  * The controls in their sections (Appearance, Content, Behaviour, and Advanced folded), each
- * a run of list rows under its subhead.
+ * a run of rows under its subhead, all on one grid: a name column as wide as the longest name
+ * (at most 45% of the panel) and a control column, so every control starts on the same line.
+ * Every control starts at that line, switches and button groups too: one edge to scan down,
+ * as in a property sheet, where controls at the far end of the row would leave the switches
+ * on a second edge from the fields. A panel narrower than 320px has one column: every control
+ * under its name.
  */
 export function ControlGroups({
   controls,
@@ -336,31 +337,36 @@ export function ControlGroups({
     ));
   const idPrefix = useId();
   return (
-    <div className="flex flex-col gap-3">
-      {groupControls(controls).map(({ group, controls: members }) => {
-        const headingId = `${idPrefix}-${group}`;
-        return (
-          <div
-            key={group}
-            role="group"
-            aria-labelledby={group === 'advanced' ? undefined : headingId}
-            aria-label={group === 'advanced' ? CONTROL_GROUP_LABELS.advanced : undefined}
-            data-control-group={group}
-            className="flex flex-col"
-          >
-            {group === 'advanced' ? (
-              <AdvancedFold count={members.length}>{rows(members)}</AdvancedFold>
-            ) : (
-              <>
-                <h4 id={headingId} className="pb-1 pt-2 text-title-small text-on-surface-variant">
-                  {CONTROL_GROUP_LABELS[group]}
-                </h4>
-                {rows(members)}
-              </>
-            )}
-          </div>
-        );
-      })}
+    <div className="@container/controls">
+      <div className="grid grid-cols-1 gap-x-4 @min-[320px]/controls:grid-cols-[fit-content(45%)_minmax(0,1fr)]">
+        {groupControls(controls).map(({ group, controls: members }) => {
+          const headingId = `${idPrefix}-${group}`;
+          return (
+            <div
+              key={group}
+              role="group"
+              aria-labelledby={group === 'advanced' ? undefined : headingId}
+              aria-label={group === 'advanced' ? CONTROL_GROUP_LABELS.advanced : undefined}
+              data-control-group={group}
+              className="col-span-full grid grid-cols-subgrid"
+            >
+              {group === 'advanced' ? (
+                <AdvancedFold count={members.length}>{rows(members)}</AdvancedFold>
+              ) : (
+                <>
+                  <h4
+                    id={headingId}
+                    className="col-span-full pb-1 pt-4 text-title-small text-on-surface-variant"
+                  >
+                    {CONTROL_GROUP_LABELS[group]}
+                  </h4>
+                  {rows(members)}
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

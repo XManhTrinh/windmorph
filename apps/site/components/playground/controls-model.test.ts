@@ -184,9 +184,11 @@ describe('clampToRange', () => {
 });
 
 describe('isSegmented', () => {
-  it('fits a few short options in a button group, and sends the rest to a select', () => {
+  it('fits two short options in a button group, and sends the rest to a select', () => {
     expect(isSegmented(['round', 'square'])).toBe(true);
-    expect(isSegmented(['auto', 'top', 'bottom'])).toBe(true);
+    expect(isSegmented(['inline', 'hidden'])).toBe(true);
+    expect(isSegmented(['sm', 'md', 'lg'])).toBe(false);
+    expect(isSegmented(['auto', 'top', 'bottom'])).toBe(false);
     expect(isSegmented(['none', 'single', 'multiple'])).toBe(false);
     expect(isSegmented(['xs', 'sm', 'md', 'lg'])).toBe(false);
     expect(isSegmented(['bottom start', 'bottom end', 'top'])).toBe(false);

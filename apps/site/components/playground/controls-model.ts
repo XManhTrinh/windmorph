@@ -166,7 +166,7 @@ const ADVANCED_NAME =
 
 /** Booleans and numbers that change only how it looks: Appearance. */
 const APPEARANCE_NAME =
-  /^(?:show[A-Z]\w*|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|iconTransition|indicatorMotion)$/;
+  /^(?:show[A-Z]\w*|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|quick|iconTransition|indicatorMotion)$/;
 
 /** Choices that change how it works rather than how it looks: Behaviour. */
 const BEHAVIOUR_ENUM =
@@ -200,11 +200,11 @@ export function groupControls(
 }
 
 /**
- * A choice this short fits a connected button group beside its name in the narrowest panel
- * (a phone's sheet, or the 40% column); a longer one gets a select.
+ * Two short options fit a connected button group beside its name in the narrowest panel
+ * (the control column of the panel's grid); a longer one gets a select.
  */
 export function isSegmented(options: readonly string[]): boolean {
-  return options.length <= 3 && options.join('').length <= 16;
+  return options.length <= 2 && options.join('').length <= 12;
 }
 
 /** Clamps a number into a control's range, snapped to its step. */
