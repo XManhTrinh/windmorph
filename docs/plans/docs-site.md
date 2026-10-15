@@ -82,6 +82,8 @@ apps/site
 
 Every piece of the layout is a library component (see "Only our components"): navigation rail / flexible navigation bar, top app bar, search bar for the page index, lists, cards, tabs for example source, and a theme / mode / contrast / motion / direction switcher.
 
+**Home page bento video** (2026-10-15): below the medium window class (600px) the home page shows a video of the desktop bento instead of the live components, which are too small to read there; tablets and desktops keep the live bento. The video is generated, never hand-recorded: `pnpm --filter site record:bento` (`scripts/record-bento.ts`) records the built site and writes `public/media/bento/` (gitignored), and the next build picks it up. See `docs/architecture.md`, "Home page bento video".
+
 ## Content
 
 1. **Getting started**
@@ -152,5 +154,5 @@ Every piece of the layout is a library component (see "Only our components"): na
 
 ## Open
 
-- Hosting target (static export works anywhere; pick before the first deploy).
+- Hosting target (static export works anywhere; pick before the first deploy). Its deploy workflow runs: build → `record:bento` (with ffmpeg installed, for the MP4) → build again (the home page picks the video up) → deploy `out/`, as CI's site job does.
 - Whether the site gets its own domain and versioned docs once `@windmorph/react` is published.
