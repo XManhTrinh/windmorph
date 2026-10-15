@@ -378,14 +378,21 @@ test.describe('Standard bottom sheet detents, frame by frame (2026-10-15)', () =
     await expect(page.getByRole('button', { name: 'Raise' })).toBeVisible();
   });
 
-  test('under reduced motion it moves between detents without overshooting', async ({ page }) => {
+  test('under reduced motion it jumps between detents', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await open(page);
     const { expanded, collapsed } = await stops(page);
     const recorder = await recordFrames(page);
     await page.getByRole('button', { name: 'Collapse sheet' }).click();
     await page.waitForTimeout(900);
-    checkMove(await recorder.stop(), expanded, collapsed, 0);
+    // Settling on a detent is spatial motion, so it's instant: no frame between the two.
+    const tops = (await recorder.stop()).map((frame) => frame.top);
+    const where = tops.map((top) => top.toFixed(1)).join(' ');
+    expect(
+      tops.filter((top) => expanded + 1 < top && top < collapsed - 1),
+      where,
+    ).toEqual([]);
+    expect(Math.abs(tops.at(-1)! - collapsed), where).toBeLessThanOrEqual(1);
   });
 });
 
