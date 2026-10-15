@@ -24,6 +24,7 @@ import {
 } from 'react';
 import {
   mergeProps,
+  mergeRefs,
   useButton,
   useCheckbox,
   useFocusRing,
@@ -60,6 +61,7 @@ import {
   type TreeState,
 } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { preventHiddenInputScroll } from '../../primitives/hidden-input-focus';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from '../checkbox/checkbox-box';
@@ -1976,6 +1978,7 @@ function ControlItem({
   position: string;
 }) {
   const ref = useRef<HTMLLabelElement>(null);
+  const hiddenInputRef = useMemo(() => mergeRefs(inputRef, preventHiddenInputScroll), [inputRef]);
   const { interactionProps, dataAttributes, state } = useM3Interaction(
     { isDisabled, isPressed, isSelected, within: true },
     ref,
@@ -2005,7 +2008,7 @@ function ControlItem({
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <VisuallyHidden elementType="span">
-        <input {...inputProps} ref={inputRef} />
+        <input {...inputProps} ref={hiddenInputRef} />
       </VisuallyHidden>
       <span className={styles.cell()}>
         <ItemContent
