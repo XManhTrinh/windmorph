@@ -119,6 +119,37 @@ describe('List (server-sent items)', () => {
 });
 
 describe('List (interactive)', () => {
+  // 2026-10-15: React Aria centred a list taller than the window on every arrow key, a
+  // 200px jump; the root asks for the nearest position instead.
+  it('reveals rows at the nearest position, so arrow keys never centre the page on the list', () => {
+    const scrollIntoView = vi.fn();
+    const original = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView');
+    Object.defineProperty(Element.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    for (const selectionMode of [undefined, 'single'] as const) {
+      const { unmount } = render(
+        <List
+          aria-label="Mail"
+          onAction={selectionMode ? undefined : () => {}}
+          selectionMode={selectionMode}
+        >
+          <ListItem key="inbox">Inbox</ListItem>
+          <ListItem key="sent">Sent</ListItem>
+        </List>,
+      );
+      const root = screen.getByRole(selectionMode ? 'listbox' : 'grid', { name: 'Mail' });
+      // React Aria's call when keyboard focus moves within a root that isn't wholly on screen.
+      root.scrollIntoView({ block: 'center', inline: 'center' });
+      expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' });
+      expect(scrollIntoView.mock.contexts.at(-1)).toBe(root);
+      unmount();
+    }
+    if (original) Object.defineProperty(Element.prototype, 'scrollIntoView', original);
+    else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
   it('is a grid list whose items act, with state layers and shape states', async () => {
     const onAction = vi.fn();
     const { container } = render(

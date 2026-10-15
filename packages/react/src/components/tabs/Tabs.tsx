@@ -29,6 +29,7 @@ import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
@@ -233,7 +234,8 @@ function TabsInner({
     setShownKey(state.selectedKey);
     if (shownKey != null) setRecolour(true);
   }
-  useNearestRowReveal(listRef);
+  // The row reveals a tab at the nearest position, never centring the page on it.
+  useNearestReveal(listRef);
 
   return (
     <>
@@ -413,30 +415,6 @@ function useScrollToSelection(
     // The spring only matters for the next selection change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, scrollable]);
-}
-
-/**
- * Arrow keys must not scroll the page. When keyboard focus moves to a tab that the row has
- * to scroll to, React Aria calls `scrollIntoView({ block: 'center', inline: 'center' })` on
- * the tab list, which scrolls every ancestor, the window included, to centre the row even
- * when it is fully on screen (176px on a desktop page), and then reveals the tab. The list's
- * own `scrollIntoView` asks for the nearest position instead, so the page moves only when
- * the row is partly out of view, and only as far as needed; the tab is still revealed in the
- * row (2026-10-15).
- */
-function useNearestRowReveal(listRef: React.RefObject<HTMLDivElement | null>) {
-  useLayoutEffect(() => {
-    const list = listRef.current;
-    if (!list) return;
-    list.scrollIntoView = (arg?: boolean | ScrollIntoViewOptions) =>
-      Element.prototype.scrollIntoView?.call(
-        list,
-        typeof arg === 'object' ? { ...arg, block: 'nearest', inline: 'nearest' } : arg,
-      );
-    return () => {
-      Reflect.deleteProperty(list, 'scrollIntoView');
-    };
-  }, [listRef]);
 }
 
 interface TabButtonProps {

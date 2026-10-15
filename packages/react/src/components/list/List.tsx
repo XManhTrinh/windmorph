@@ -69,6 +69,7 @@ import { RadioRing } from '../radio/radio-ring';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
@@ -1064,6 +1065,8 @@ function GridList({
   const rootRef = useObjectRef(listRef as Ref<HTMLDivElement>);
   const state = useListState(options);
   const { gridProps } = useGridList(options, state, rootRef);
+  // Arrow keys reveal a row at the nearest position, never centring the page on the list.
+  useNearestReveal(rootRef);
   return (
     <div
       {...mergeProps(data, gridProps)}
@@ -1251,6 +1254,7 @@ function ListBoxList({
   const listBoxOptions = options as unknown as AriaListBoxOptions<object>;
   const state = useListState(listBoxOptions);
   const { listBoxProps } = useListBox(listBoxOptions, state, rootRef);
+  useNearestReveal(rootRef);
   return (
     <div
       {...mergeProps(data, listBoxProps)}
