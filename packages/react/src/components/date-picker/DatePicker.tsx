@@ -20,6 +20,7 @@ import {
   type HTMLAttributes,
   type ReactNode,
   type Ref,
+  type TransitionEvent,
 } from 'react';
 import {
   mergeProps,
@@ -37,6 +38,7 @@ import {
 } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
@@ -92,7 +94,10 @@ export interface DatePickerStrings extends DateInputStrings {
   dateLabel?: string;
   /** Label of a range's start field in input mode. @default "Start date" */
   startDateLabel?: string;
-  /** Label of a range's end field in input mode. @default "End date" */
+  /**
+   * Label of a range's end field in input mode, and the headline's end while a range is
+   * being picked ("Mar 20 – End date"). @default "End date"
+   */
   endDateLabel?: string;
 }
 
@@ -312,9 +317,14 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
   const formatter = useDateFormatter({ month: 'short', day: 'numeric' });
   const strings = props.strings ?? {};
   const format = (date: CalendarDate) => formatter.format(date.toDate(getLocalTimeZone()));
-  const headline = value
-    ? `${format(value.start)} – ${format(value.end)}`
-    : (strings.noSelection ?? 'Start date – End date');
+  // While a new range is being picked, its first day is the start and the end is still open
+  // (Compose's headline: "Mar 20 – End date"), not the range it replaces.
+  const anchor = state.anchorDate;
+  const headline = anchor
+    ? `${format(anchor)} – ${strings.endDateLabel ?? 'End date'}`
+    : value
+      ? `${format(value.start)} – ${format(value.end)}`
+      : (strings.noSelection ?? 'Start date – End date');
   const common = {
     minValue: props.minValue,
     maxValue: props.maxValue,
@@ -526,6 +536,9 @@ function CalendarBody({
   const monthLabel = monthFormatter.format(state.visibleRange.start.toDate(getLocalTimeZone()));
   const menuRef = useRef<HTMLButtonElement>(null);
   const [focusYears, setFocusYears] = useState(false);
+  // Compose shrinks the year list and fades it out (`shrinkVertically` + `fadeOut`); the
+  // first of the two transitions to end removes it.
+  const yearsPresence = usePresence(years, ['clip-path', 'opacity']);
   const { swipeProps, slideKey, slideDirection } = useMonthSwipe(state);
   const onKeyDownCapture = usePickerKeys(state, {
     onConfirm: confirm?.requestConfirm,
@@ -588,7 +601,15 @@ function CalendarBody({
           </div>
         )}
       </div>
-      {years ? (
+      {!years && (
+        <div {...swipeProps} className={styles.swipe()}>
+          <div key={slideKey} data-direction={slideDirection} className={styles.slide()}>
+            <CalendarGrid state={state} styles={styles} classNames={classNames} />
+          </div>
+        </div>
+      )}
+      {/* Closing, the list stays over the grid until it has shrunk and faded away. */}
+      {yearsPresence.isPresent && (
         <YearList
           state={state}
           styles={styles}
@@ -596,14 +617,10 @@ function CalendarBody({
           className={classNames?.year}
           label={strings.yearList ?? 'Year'}
           autoFocus={focusYears}
+          exiting={yearsPresence.isExiting}
+          exitProps={yearsPresence.exitProps}
           onPick={() => setYears(false)}
         />
-      ) : (
-        <div {...swipeProps} className={styles.swipe()}>
-          <div key={slideKey} data-direction={slideDirection} className={styles.slide()}>
-            <CalendarGrid state={state} styles={styles} classNames={classNames} />
-          </div>
-        </div>
       )}
     </div>
   );
@@ -716,6 +733,8 @@ function YearList({
   className,
   label,
   autoFocus,
+  exiting,
+  exitProps,
   onPick,
 }: {
   state: CalendarState | RangeCalendarState;
@@ -724,6 +743,9 @@ function YearList({
   className: string | undefined;
   label: string;
   autoFocus: boolean;
+  /** Closing: drawn over the grid, out of the accessibility tree and taking no presses. */
+  exiting: boolean;
+  exitProps: { onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void };
   onPick: () => void;
 }) {
   const current = today(getLocalTimeZone()).year;
@@ -732,10 +754,15 @@ function YearList({
   const maxYear = state.maxValue?.year ?? Infinity;
   return (
     <div
+      {...exitProps}
       role="radiogroup"
       aria-label={label}
+      aria-hidden={exiting || undefined}
+      inert={exiting || undefined}
+      data-exiting={exiting || undefined}
       className={styles.years()}
       ref={(element) => {
+        if (exiting) return;
         // Open on the focused year, as Compose scrolls the year list to it.
         const selected = element?.querySelector<HTMLElement>('[aria-checked="true"]');
         selected?.scrollIntoView?.({ block: 'center' });

@@ -123,6 +123,22 @@ describe('DatePicker', () => {
     expect(screen.getByRole('grid')).toBeInTheDocument();
   });
 
+  // Compose shrinks the year list and fades it out over the grid rather than removing it at once.
+  it('keeps the closing year list over the grid until its exit ends', async () => {
+    render(<DatePicker defaultValue={march} yearRange={[2020, 2040]} />);
+    await userEvent.click(screen.getByRole('button', { name: /Switch to selecting a year/ }));
+    const years = screen.getByRole('radiogroup', { name: 'Year' });
+    await userEvent.click(within(years).getByRole('radio', { name: '2032' }));
+    // The grid is back at once, under the leaving list, which takes no focus or presses.
+    expect(screen.getByRole('grid')).toBeInTheDocument();
+    expect(years).toBeInTheDocument();
+    expect(years).toHaveAttribute('data-exiting', 'true');
+    expect(years).toHaveAttribute('inert');
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+    fireEvent.transitionEnd(years, { propertyName: 'opacity' });
+    expect(years).not.toBeInTheDocument();
+  });
+
   it('opens the year list with Shift+Y and moves to the month menu with Shift+M', async () => {
     render(<DatePicker defaultValue={march} yearRange={[2020, 2040]} />);
     screen.getByRole('button', { name: /March 10, 2030/ }).focus();
@@ -221,6 +237,21 @@ describe('DateRangePicker', () => {
       'data-[range=middle]:bg-[image:var(--_md-comp-date-picker-modal-range-middle)]',
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // Compose: while a new range is picked, the headline shows its start and an open end.
+  it('heads a range in progress with its start and an open end', async () => {
+    render(
+      <DateRangePicker
+        monthLayout="paged"
+        defaultValue={{ start: new CalendarDate(2030, 3, 10), end: new CalendarDate(2030, 3, 13) }}
+      />,
+    );
+    expect(screen.getByText('Mar 10 – Mar 13')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /March 20, 2030/ }));
+    expect(screen.getByText('Mar 20 – End date')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /March 24, 2030/ }));
+    expect(screen.getByText('Mar 20 – Mar 24')).toBeInTheDocument();
   });
 
   it('pages month by month with monthLayout="paged"', async () => {

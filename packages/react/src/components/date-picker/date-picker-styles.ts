@@ -41,7 +41,7 @@ export const datePickerStyles = tv({
     title: 'ps-[24px] pe-[12px] pt-[16px] text-label-large text-on-surface-variant',
     headlineRow: 'flex items-end justify-between gap-[8px] ps-[24px] pe-[12px] pb-[12px]',
     headline: 'min-w-0 flex-1 text-[color:var(--_md-comp-date-picker-modal-header-headline-color)]',
-    body: 'flex min-h-0 flex-col ps-[12px] pe-[12px]',
+    body: 'relative flex min-h-0 flex-col ps-[12px] pe-[12px]',
     nav: 'flex h-[56px] shrink-0 items-center justify-between',
     navButtons: 'flex items-center text-on-surface-variant',
     yearButtonIcon: [
@@ -109,6 +109,13 @@ export const datePickerStyles = tv({
       '[clip-path:inset(0)] [transition-property:clip-path,opacity]',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'starting:[clip-path:inset(0_0_100%_0)] starting:opacity-60 motion-reduce:starting:[clip-path:inset(0)]',
+      // Closing, it lies over the grid below the month row, on the picker's container colour,
+      // and shrinks back up to the month row as it fades out (Compose's `shrinkVertically` +
+      // `fadeOut`, fast effects). Reduced motion keeps the fade.
+      'data-exiting:absolute data-exiting:inset-x-[12px] data-exiting:top-[56px] data-exiting:z-10',
+      'data-exiting:bg-[var(--_md-comp-date-picker-modal-container-color)] data-exiting:pointer-events-none',
+      'data-exiting:[clip-path:inset(0_0_100%_0)] data-exiting:opacity-0 motion-reduce:data-exiting:[clip-path:inset(0)]',
+      'data-exiting:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration)] data-exiting:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     ],
     year: [
       // The 36px pill; its ::before makes the touch target 48px tall.
