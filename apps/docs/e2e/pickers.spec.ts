@@ -563,6 +563,47 @@ test.describe('Pickers layout safety', () => {
   });
 });
 
+test.describe('DateField layout safety', () => {
+  for (const override of OVERRIDES) {
+    for (const transformedAncestor of [false, true]) {
+      for (const dir of ['ltr', 'rtl'] as const) {
+        test(`${override}${transformedAncestor ? ' · transformed ancestor' : ''} · ${dir}`, async ({
+          page,
+        }) => {
+          await openStory(
+            page,
+            'components-pickers--date-field-layout-override',
+            { dir },
+            { override, transformedAncestor },
+          );
+          const field = page.getByTestId('target');
+          const container = field.locator('div').first();
+          expect(await container.evaluate((el) => (el as HTMLElement).offsetHeight)).toBe(56);
+          if (override !== 'fullWidth') {
+            expect(await field.evaluate((el) => (el as HTMLElement).offsetWidth)).toBe(280);
+          }
+          // The calendar opens in the window, 360px wide, and a day saves.
+          await page.getByRole('button', { name: 'Open calendar' }).click();
+          const calendar = page.getByRole('dialog', { name: 'Choose a date' });
+          await expect(page.getByRole('button', { name: /March 14, 2030/ })).toBeFocused();
+          await settle(page);
+          const panel = await rect(calendar);
+          const viewport = page.viewportSize()!;
+          expect(panel.width).toBe(360);
+          expect(panel.x).toBeGreaterThanOrEqual(0);
+          expect(panel.y).toBeGreaterThanOrEqual(0);
+          expect(panel.x + panel.width).toBeLessThanOrEqual(viewport.width);
+          expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
+          await page.keyboard.press('ArrowRight');
+          await page.keyboard.press('Enter');
+          await expect(calendar).toBeHidden();
+          await expect(page.getByTestId('value')).toHaveText('Value 2030-03-15');
+        });
+      }
+    }
+  }
+});
+
 test.describe('Picker dialogs in short windows (2026-10-13)', () => {
   /**
    * The dialog's content (the picker's scroll area) and actions row, measured after the

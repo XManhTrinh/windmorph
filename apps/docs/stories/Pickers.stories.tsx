@@ -373,6 +373,36 @@ export const LayoutOverride: StoryObj<{
   ),
 };
 
+/**
+ * Layout safety (architecture §10) for the docked date picker: a consumer layout class on
+ * `DateField` (its outermost element), inside an optional transformed ancestor. The field
+ * keeps its size and its calendar still opens in the window.
+ */
+export const DateFieldLayoutOverride: StoryObj<{
+  override: LayoutOverrideName;
+  transformedAncestor: boolean;
+}> = {
+  args: { override: 'none', transformedAncestor: false },
+  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
+  render: function DateFieldLayoutOverrideStory({ override, transformedAncestor }) {
+    const [value, setValue] = useState<CalendarDate | null>(DATE);
+    return (
+      <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 560 }}>
+        <p className="mb-4 text-body-medium" data-testid="value">
+          Value {value?.toString() ?? 'none'}
+        </p>
+        <DateField
+          data-testid="target"
+          label="Date"
+          value={value}
+          onChange={setValue}
+          className={LAYOUT_OVERRIDES[override]}
+        />
+      </div>
+    );
+  },
+};
+
 /** Layout safety (architecture §10) for the time picker (vertical, 12-hour). */
 export const TimeLayoutOverride: StoryObj<{
   override: LayoutOverrideName;
