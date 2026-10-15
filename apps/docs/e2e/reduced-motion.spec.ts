@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { changed, expectNoMovement, faded } from './reduced-motion';
+import { changed, expectNoMovement, faded, fadedVisibly } from './reduced-motion';
 import { openStory } from './story';
 
 /*
@@ -121,6 +121,32 @@ test.describe('FABs', () => {
       result.frames.last!.findIndex((frame) => frame.width > 0),
     );
     expect(faded(result, 'first')).toBe(true);
+  });
+
+  // Re-audit 2026-10-15: `visibility` ran on the spatial duration, 0ms under reduced motion,
+  // so a hidden FAB vanished on the first frame and its fade never showed.
+  test('a FAB and an extended FAB fade out when hidden', async ({ page }) => {
+    await openStory(page, 'components-fab--visibility');
+    const result = await expectNoMovement(page, {
+      parts: { fab: page.getByTestId('fab'), extended: page.getByTestId('extended-fab') },
+      act: press(page.getByRole('button', { name: 'Hide' })),
+    });
+    expect(fadedVisibly(result, 'fab')).toBe(true);
+    expect(fadedVisibly(result, 'extended')).toBe(true);
+    await expect(page.getByTestId('fab')).toHaveCSS('visibility', 'hidden');
+  });
+
+  test('a hidden FAB menu fades out', async ({ page }) => {
+    await openStory(page, 'components-fabmenu--playground');
+    // The library-owned box around the button, which carries the show / hide motion.
+    const anchor = page.getByTestId('menu').locator(':scope > span.z-\\[1\\]');
+    const result = await expectNoMovement(page, {
+      parts: { anchor },
+      // The attribute `visible={false}` renders on the anchor box.
+      act: () => anchor.evaluate((element) => element.setAttribute('data-hidden', 'true')),
+    });
+    expect(fadedVisibly(result, 'anchor')).toBe(true);
+    await expect(anchor).toHaveCSS('visibility', 'hidden');
   });
 });
 
@@ -289,12 +315,16 @@ test.describe('lists and toolbars', () => {
     await openStory(page, 'components-toolbar--scroll-exit');
     const docked = page.getByTestId('docked');
     const floating = page.getByTestId('floating');
-    await expectNoMovement(page, {
+    const result = await expectNoMovement(page, {
       parts: { docked, floating },
       act: () => scrollTo(page, page.getByTestId('scroller'), 200),
     });
     await expect(docked).toHaveAttribute('data-hidden', 'true');
     expect(await opacity(docked)).toBe(0);
+    // Re-audit 2026-10-15: `visibility` turned hidden on the first frame, so the fade
+    // never showed.
+    expect(fadedVisibly(result, 'docked')).toBe(true);
+    expect(fadedVisibly(result, 'floating')).toBe(true);
   });
 });
 

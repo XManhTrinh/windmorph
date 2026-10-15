@@ -229,7 +229,7 @@ Springs replace duration + easing pairs.
   | Checkbox, radio, switch | The check mark appears without drawing, the dot at full size, the thumb jumps (and resizes) to its end; colours fade | Instant |
   | Text field | The label floats and settles at once; the border, indicator and notch change at once; colours fade | Instant |
   | Chips | A filter chip's check and padding appear at once; the check fades | Instant + fade |
-  | FAB | Show / hide (`visible`, `appear`) only fade, without the scale; an `ExtendedFab` collapses and expands at once, its label fading | Fade |
+  | FAB | Show / hide (`visible`, `appear`) only fade, without the scale; an `ExtendedFab` collapses and expands at once, its label fading. A hidden FAB (and a FAB menu's anchor, and a toolbar leaving on scroll) turns `visibility: hidden` after the longer of the spatial and effects springs (`max()`), so the fade still shows when the spatial springs are instant (2026-10-15) | Fade |
   | FAB menu | The button becomes the close button at once; the items fade in and out together at full width, without the stagger; `rotate` icons keep only the crossfade | Fade |
   | Icon faces (`iconTransition="rotate"`) | Only the crossfade, without the turn | Fade |
   | Navigation bar and rail | The active pill fades in whole instead of expanding (`slide` fades in place); the rail widens and narrows at once; the modal rail fades in and out at full width; `hide-on-scroll` stays put | Fade / instant |

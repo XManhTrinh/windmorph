@@ -58,8 +58,11 @@ export interface ReducedMotionOptions {
   allow?: readonly string[];
 }
 
-/** A recorded frame: the geometry, plus the opacity, which may change gradually. */
-type Frame = Geometry & { opacity: number };
+/**
+ * A recorded frame: the geometry, plus the opacity, which may change gradually, and the
+ * visibility, which decides whether that opacity can be seen at all.
+ */
+type Frame = Geometry & { opacity: number; visibility: string };
 
 export interface ReducedMotionResult {
   /** Each part's geometry and opacity on every frame it was in the page. */
@@ -141,6 +144,7 @@ export async function expectNoMovement(
           clipPath: style.clipPath,
           borderRadius: style.borderRadius,
           opacity: Number(style.opacity),
+          visibility: style.visibility,
         });
       }
       requestAnimationFrame(sample);
@@ -169,7 +173,9 @@ export async function expectNoMovement(
     expect(frames.length, `${name} was never in the page`).toBeGreaterThan(0);
     const first = frames[0]!;
     const last = frames.at(-1)!;
-    for (const key of (Object.keys(first) as (keyof Frame)[]).filter((k) => k !== 'opacity')) {
+    for (const key of (Object.keys(first) as (keyof Frame)[]).filter(
+      (k) => k !== 'opacity' && k !== 'visibility',
+    )) {
       const between = frames
         .map((frame) => frame[key])
         .filter((value) => value !== first[key] && value !== last[key]);
@@ -191,4 +197,14 @@ export function changed(result: ReducedMotionResult, part: string, key: keyof Ge
 /** Whether a part faded: some frame showed it partly transparent. */
 export function faded(result: ReducedMotionResult, part: string): boolean {
   return result.frames[part]!.some((frame) => frame.opacity > 0.02 && frame.opacity < 0.98);
+}
+
+/**
+ * Whether a part faded where it can be seen: some frame showed it partly transparent while
+ * it was still `visibility: visible`. A fade under `visibility: hidden` never shows.
+ */
+export function fadedVisibly(result: ReducedMotionResult, part: string): boolean {
+  return result.frames[part]!.some(
+    (frame) => frame.visibility === 'visible' && frame.opacity > 0.02 && frame.opacity < 0.98,
+  );
 }

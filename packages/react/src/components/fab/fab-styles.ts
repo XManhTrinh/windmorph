@@ -52,7 +52,7 @@ const base = [
   'data-appear:starting:[transform:scale(0.2)] data-appear:starting:opacity-0',
   'motion-reduce:data-hidden:[transform:none] motion-reduce:data-appear:starting:[transform:none]',
   '[--m3-transition-property:background-color,color,box-shadow,transform,opacity,visibility]',
-  '[--m3-transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+  '[--m3-transition-duration:var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),max(var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration))]',
   '[--m3-transition-easing:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
   '[--m3-transition-delay:0s,0s,0s,0s,0s,0s]',
 ];

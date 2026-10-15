@@ -44,7 +44,7 @@ const spatialFast = [
 const exitMotion = [
   'data-hidden:invisible motion-reduce:data-hidden:opacity-0 motion-reduce:data-hidden:[transform:none]',
   '[transition-property:transform,opacity,visibility]',
-  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
+  '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration),max(var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration))]',
   '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing),linear]',
 ];
 
