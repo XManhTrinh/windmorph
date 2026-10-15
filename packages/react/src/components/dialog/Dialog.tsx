@@ -713,14 +713,75 @@ function countActions(children: ReactNode): number {
   return count;
 }
 
+/** `children` as a flat list, with fragments' children in place of the fragments. */
+function flatChildren(children: ReactNode): ReactNode[] {
+  return Children.toArray(children).flatMap((child) =>
+    isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment
+      ? flatChildren(child.props.children)
+      : [child],
+  );
+}
+
+/**
+ * Whether the actions are stacked: they don't fit on one line, and the layout lets them
+ * stack (`--m3-dialog-actions-stack`, off in the full-screen bottom bar). Measured on every
+ * resize of the row or a button. Reordering the buttons would drop focus from the one that
+ * moves, so the focused button is focused again after the switch.
+ */
+function useStackedActions(ref: RefObject<HTMLDivElement | null>) {
+  const [stacked, setStacked] = useState(false);
+  const current = useRef(false);
+  const refocus = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const row = ref.current;
+    if (!row || typeof ResizeObserver === 'undefined') return;
+    const measure = () => {
+      // A hidden row (the header carries the confirming action) keeps its order.
+      if (row.clientWidth === 0) return;
+      const style = getComputedStyle(row);
+      const items = [...row.children] as HTMLElement[];
+      const gap = parseFloat(style.columnGap) || 0;
+      const room =
+        row.clientWidth -
+        (parseFloat(style.paddingLeft) || 0) -
+        (parseFloat(style.paddingRight) || 0);
+      const needed =
+        items.reduce((sum, item) => sum + item.offsetWidth, 0) + gap * (items.length - 1);
+      const next =
+        style.getPropertyValue('--m3-dialog-actions-stack').trim() === '1' &&
+        items.length > 1 &&
+        needed > room + 0.5;
+      if (next === current.current) return;
+      current.current = next;
+      const active = row.ownerDocument.activeElement;
+      refocus.current = active instanceof HTMLElement && row.contains(active) ? active : null;
+      setStacked(next);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    for (const item of row.children) observer.observe(item);
+    measure();
+    return () => observer.disconnect();
+  }, [ref]);
+  useLayoutEffect(() => {
+    const element = refocus.current;
+    refocus.current = null;
+    if (element?.isConnected && element.ownerDocument.activeElement !== element) element.focus();
+  }, [stacked]);
+  return stacked;
+}
+
 /**
  * Row of actions at the end of the dialog, 8px apart. Put the confirming action last:
- * when the actions do not fit on one line they stack with it on top. While the dialog is
- * full screen they're hidden when `DialogHeader` carries the confirming action, and
- * otherwise form the spec's 56px bottom action bar. Use at most two actions (the spec); in
- * development it warns once when it holds more.
+ * when the actions do not fit on one line they stack with it on top (M3: "Confirming
+ * actions appear above dismissive actions"). Stacked, the buttons are rendered in that
+ * visual order, so Tab and screen readers reach the confirming action first, top to bottom,
+ * as they reach the dismissive one first in a row. While the dialog is full screen they're
+ * hidden when `DialogHeader` carries the confirming action, and otherwise form the spec's
+ * 56px bottom action bar. Use at most two actions (the spec); in development it warns once
+ * when it holds more.
  */
-export function DialogActions({ className, children, ...props }: DialogActionsProps) {
+export function DialogActions({ className, children, ref, ...props }: DialogActionsProps) {
   const { fullScreen, bottomBar } = useContext(DialogPartsContext);
   const actionCount = countActions(children);
   useWarnOnce(
@@ -728,13 +789,17 @@ export function DialogActions({ className, children, ...props }: DialogActionsPr
     `[@windmorph/react] DialogActions holds ${actionCount} actions; M3 dialogs have at most two ` +
       '(no third such as "Learn more"). Show more inline, or before the dialog opens.',
   );
+  const rowRef = useObjectRef(ref);
+  const stacked = useStackedActions(rowRef);
   return (
     <div
       {...props}
+      ref={rowRef}
       data-slot="actions"
+      data-stacked={stacked || undefined}
       className={dialogStyles({ fullScreen, bottomBar }).actions({ class: className })}
     >
-      {children}
+      {stacked ? flatChildren(children).reverse() : children}
     </div>
   );
 }

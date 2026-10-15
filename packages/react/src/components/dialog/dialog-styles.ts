@@ -131,7 +131,14 @@ export const dialogStyles = tv({
       'text-[color:var(--_md-comp-dialog-supporting-text-color)]',
       'focus-ring',
     ],
-    actions: 'flex flex-wrap-reverse items-center justify-end gap-[8px]',
+    // Stacked (`data-stacked`, set by `DialogActions` when they don't fit on one line), the
+    // buttons are rendered confirming action first and wrap forwards instead of in reverse:
+    // the same picture, sizes included, in focus order. The custom property tells it
+    // whether the layout lets them stack.
+    actions: [
+      'flex flex-wrap-reverse items-center justify-end gap-[8px] [--m3-dialog-actions-stack:1]',
+      'data-stacked:flex-wrap',
+    ],
   },
   variants: {
     hasIcon: {
@@ -300,14 +307,16 @@ export const dialogStyles = tv({
     {
       fullScreen: 'always',
       bottomBar: true,
-      class: { actions: 'flex h-[56px] shrink-0 flex-nowrap px-[24px]' },
+      class: {
+        actions: 'flex h-[56px] shrink-0 flex-nowrap px-[24px] [--m3-dialog-actions-stack:0]',
+      },
     },
     {
       fullScreen: 'compact',
       bottomBar: true,
       class: {
         actions:
-          'max-medium:flex max-medium:h-[56px] max-medium:shrink-0 max-medium:flex-nowrap max-medium:px-[24px]',
+          'max-medium:flex max-medium:h-[56px] max-medium:shrink-0 max-medium:flex-nowrap max-medium:px-[24px] max-medium:[--m3-dialog-actions-stack:0]',
       },
     },
     {

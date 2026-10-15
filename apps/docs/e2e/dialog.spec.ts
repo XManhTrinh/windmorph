@@ -179,6 +179,25 @@ test.describe('Dialog behaviour', () => {
     const accept = (await page.getByRole('button', { name: /Accept/ }).boundingBox())!;
     const decline = (await page.getByRole('button', { name: /Decline/ }).boundingBox())!;
     expect(accept.y).toBeLessThan(decline.y);
+    // Focus and reading order follow the stack, top to bottom: Accept, then Decline.
+    const actions = dialog.locator('[data-slot="actions"]');
+    await expect(actions).toHaveAttribute('data-stacked', 'true');
+    expect(
+      await actions.evaluate((el) => [...el.children].map((child) => child.textContent)),
+    ).toEqual(['Accept all the terms above', 'Decline and close this window']);
+    await expect(page.getByRole('button', { name: /Accept/ })).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    // Wide enough for one row, they're back in authoring order, Decline first, and focus stays.
+    await page.setViewportSize({ width: 900, height: 700 });
+    await expect(actions).not.toHaveAttribute('data-stacked');
+    await expect(page.getByRole('button', { name: /Decline/ })).toBeFocused();
+    const row = {
+      accept: (await page.getByRole('button', { name: /Accept/ }).boundingBox())!,
+      decline: (await page.getByRole('button', { name: /Decline/ }).boundingBox())!,
+    };
+    expect(row.decline.x).toBeLessThan(row.accept.x);
+    expect(row.decline.y).toBe(row.accept.y);
   });
 
   test('full screen on a phone: fills the window, header carries close and the action', async ({
