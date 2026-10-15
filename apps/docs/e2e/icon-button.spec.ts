@@ -2,6 +2,7 @@ import { expect, test, type Locator } from '@playwright/test';
 import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { overshoots, probeNextMorph } from './morph-probe';
 import { openStory } from './story';
 
 test.describe('IconButton visual regression', () => {
@@ -60,6 +61,30 @@ test.describe('IconButton interaction states', () => {
     await expect
       .poll(() => button.evaluate((el) => getComputedStyle(el).borderTopLeftRadius))
       .toBe('28px');
+  });
+
+  // Re-audit 2026-10-15: the morph ran on the fast spatial spring and overshot (20 → 6.9 →
+  // 8px); Compose's IconButton uses DefaultEffects "to prevent any bounce", toggles too.
+  test('the press and selection morphs never bounce', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--toggle');
+    const toggle = page.getByRole('button', { name: 'Favourite' });
+    const box = (await toggle.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const press = await probeNextMorph(toggle, 'press');
+    await page.mouse.down();
+    const pressCurve = await press();
+    expect(pressCurve.from).toBeGreaterThan(pressCurve.to);
+    expect(overshoots(pressCurve), JSON.stringify(pressCurve)).toBe(false);
+    const release = await probeNextMorph(toggle, 'release');
+    // Let the press morph settle, so the release starts from the pressed corners.
+    await expect
+      .poll(() => toggle.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius)))
+      .toBe(pressCurve.to);
+    await page.mouse.up();
+    // Released selected: pressed corners → the selected square.
+    const releaseCurve = await release();
+    expect(releaseCurve.to).toBeGreaterThan(releaseCurve.from);
+    expect(overshoots(releaseCurve), JSON.stringify(releaseCurve)).toBe(false);
   });
 
   test('toggle swaps icon and shape', async ({ page }) => {

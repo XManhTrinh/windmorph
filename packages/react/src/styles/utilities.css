@@ -200,10 +200,18 @@
  * (`data-rapid-press`, set by `useM3Interaction`) uses the fast effects spring instead,
  * the web's modified curve that keeps rapid clicks from resonating. Under reduced motion the
  * corners snap to their new shape.
+ *
+ * A component whose morph must not bounce (Compose's `DefaultEffects` "to prevent any
+ * bounce": icon buttons, non-toggle buttons, split buttons) sets `--m3-shape-spring-duration`
+ * and `--m3-shape-spring-easing` to another spring (2026-10-15); rapid presses and reduced
+ * motion still override it.
  */
 @utility container-motion {
-  --m3-shape-duration: var(--md-sys-motion-spring-spatial-fast-duration);
-  --m3-shape-easing: var(--md-sys-motion-spring-spatial-fast-easing);
+  --m3-shape-duration: var(
+    --m3-shape-spring-duration,
+    var(--md-sys-motion-spring-spatial-fast-duration)
+  );
+  --m3-shape-easing: var(--m3-shape-spring-easing, var(--md-sys-motion-spring-spatial-fast-easing));
   /* flex-basis animates a button group's press-to-expand on the fast spatial spring. */
   --m3-transition-property:
     border-radius, background-color, color, box-shadow, border-color, flex-basis;

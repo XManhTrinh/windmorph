@@ -161,6 +161,10 @@ export const iconButtonStyles = tv({
       // The height, per size (`--m3-icon-button-height`).
       'h-[var(--m3-icon-button-height)]',
       'state-layer focus-ring container-motion',
+      // Every morph, toggles included, on the default effects spring, which never bounces:
+      // Compose's IconButton "DefaultEffects is intentional here to prevent any bounce".
+      '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+      '[--m3-shape-spring-easing:var(--md-sys-motion-spring-effects-default-easing)]',
       'data-disabled:cursor-default',
     ],
     // Library-owned inner wrapper: holds the icon and the touch target.
