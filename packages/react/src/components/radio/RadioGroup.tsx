@@ -135,7 +135,10 @@ function RadioGroupRoot({
   ...otherProps
 }: RadioGroupProps & { directionRef: RefCallback<HTMLElement> }) {
   const { data, rest } = splitDataAttributes(otherProps);
-  const rootRef = useMemo(() => mergeRefs(ref, directionRef), [ref, directionRef]);
+  const rootRef = useMemo(
+    () => mergeRefs<HTMLDivElement>(ref, directionRef as RefCallback<HTMLDivElement>),
+    [ref, directionRef],
+  );
   const options: AriaRadioGroupProps = {
     ...rest,
     label,

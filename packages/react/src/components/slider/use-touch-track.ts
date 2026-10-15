@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type DOMAttributes, type PointerEvent, type RefObject } from 'react';
+import { useEffect, useRef, type HTMLAttributes, type PointerEvent, type RefObject } from 'react';
 import type { SliderState } from 'react-stately';
 
 /** How far a touch moves along the track before it drags the slider (Android's touch slop). */
@@ -37,9 +37,9 @@ function closestThumb(state: SliderState, value: number): number {
  * Returns handlers that wrap React Aria's `trackProps`.
  */
 export function useTouchTrack(
-  trackProps: DOMAttributes<HTMLElement>,
+  trackProps: HTMLAttributes<HTMLElement>,
   { state, trackRef, orientation, direction, disabled }: TouchTrackOptions,
-): DOMAttributes<HTMLElement> {
+): HTMLAttributes<HTMLElement> {
   const vertical = orientation === 'vertical';
   const cleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => cleanup.current?.(), []);
