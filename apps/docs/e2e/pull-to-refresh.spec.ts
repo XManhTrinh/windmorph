@@ -95,6 +95,34 @@ test.describe('PullToRefresh', () => {
     await expect(page.getByRole('progressbar')).toHaveCount(0);
   });
 
+  // Compose settles on a non-bouncing spring (2026-10-15): released past the threshold, the
+  // indicator comes back to it without dipping below it.
+  test('released past the threshold, it settles without passing the threshold', async ({
+    page,
+  }) => {
+    const { box, cdp, x, y } = await openFeed(page);
+    await swipe(cdp, x, y, steps(240), { release: false });
+    await page.evaluate(() => {
+      const bottoms: number[] = [];
+      (window as unknown as { __bottoms: number[] }).__bottoms = bottoms;
+      const start = performance.now();
+      const tick = () => {
+        const circle = document.querySelector('[data-indicator]');
+        if (circle) bottoms.push(circle.getBoundingClientRect().bottom);
+        if (performance.now() - start < 900) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForTimeout(1000);
+    const bottoms = await page.evaluate(
+      () => (window as unknown as { __bottoms: number[] }).__bottoms,
+    );
+    const offsets = bottoms.map((bottom) => bottom - box.y);
+    expect(Math.round(offsets.at(-1)!)).toBe(80);
+    expect(Math.min(...offsets), offsets.map(Math.round).join(' ')).toBeGreaterThan(79.5);
+  });
+
   test('pulling back below the threshold cancels', async ({ page }) => {
     const { cdp, x, y } = await openFeed(page);
     await swipe(cdp, x, y, [...steps(220), 180, 140, 100]);
