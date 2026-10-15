@@ -399,5 +399,7 @@ function focusFirstAvailable({ target, next, previous }: FocusReturn) {
   const available = [target, next, previous].find(
     (el) => el?.isConnected && !el.closest('[inert]') && !el.matches(':disabled'),
   );
-  available?.focus();
+  // The element may have scrolled out of view while the snackbar had focus; returning
+  // focus never scrolls the page back to it (2026-10-15).
+  available?.focus({ preventScroll: true });
 }

@@ -579,6 +579,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - `focusShortcut` (default `Alt+G`, `false` to turn off) moves focus to the shown snackbar's first control when it has one; letters also match the physical key, since Alt changes the character on some layouts. An actionable snackbar's wrapper carries it in `aria-keyshortcuts`.
   - Escape dismisses the host's snackbars whether or not the × is shown.
   - When a snackbar leaves with focus inside it, focus returns to the element focused before it entered (the focus event's `relatedTarget`), if that's still in the page.
+  - **Returning focus never scrolls the page** (2026-10-15): it focuses with `preventScroll`, so a trigger scrolled out of view while the snackbar had focus takes focus where it is; a plain `focus()` jumped the page back to it (1140px in a test).
   - `utils/focus.ts` holds `firstTabbable` (React Aria's tree walker isn't public) and `matchesShortcut`.
 - **Component tokens** (2026-10-14, `snackbar-tokens.ts`): `--md-comp-snackbar-container-color`, `-container-shape`, `-container-elevation`, `-supporting-text-color`, `-action-label-text-color` (the action text button, `data-slot="action"`) and `-icon-color` (the dismiss icon button, `data-slot="dismiss"`). The root carries `data-tokens="md-comp-snackbar"`.
 

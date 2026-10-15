@@ -233,6 +233,27 @@ describe('SnackbarHost', () => {
     expect(archive).toHaveFocus();
   });
 
+  it('returns focus without scrolling the page to the element', async () => {
+    const state = new SnackbarHostState();
+    render(
+      <>
+        <button type="button">Archive</button>
+        <SnackbarHost state={state} />
+      </>,
+    );
+    await hostReady();
+    const archive = screen.getByRole('button', { name: 'Archive' });
+    archive.focus();
+    act(() => {
+      void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
+    });
+    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    const focus = vi.spyOn(archive, 'focus');
+    await userEvent.keyboard('{Escape}');
+    expect(archive).toHaveFocus();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  });
+
   it('falls back to the next control in Tab order when the one focus came from is gone', async () => {
     const state = new SnackbarHostState();
     const List = ({ rows }: { rows: string[] }) => (

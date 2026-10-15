@@ -53,6 +53,33 @@ test.describe('SnackbarHost behaviour', () => {
     await expect(trigger).toBeFocused();
   });
 
+  test('focus returns to a trigger scrolled out of view without scrolling the page', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 700 });
+    await openStory(page, 'components-snackbar--host');
+    const host = page.getByTestId('host');
+    await page.evaluate(() => {
+      document.body.style.paddingBottom = '2400px';
+    });
+    await host.evaluate((el) => {
+      Object.assign(el.style, { position: 'fixed', inset: 'auto 0 0 0' });
+    });
+    const trigger = page.getByRole('button', { name: 'With action' });
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(host.getByText('Message archived')).toBeVisible();
+    await page.keyboard.press('Alt+KeyG');
+    await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    const before = await page.evaluate(() => window.scrollY);
+    expect(before).toBeGreaterThan(1000);
+    await page.keyboard.press('Escape');
+    await expect(trigger).toBeFocused();
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+  });
+
   test('a replacing snackbar takes over at once', async ({ page }) => {
     await openStory(page, 'components-snackbar--host');
     const host = page.getByTestId('host');
