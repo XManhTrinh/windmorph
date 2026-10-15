@@ -36,6 +36,20 @@ describe('checkboxStyles', () => {
     expect(box).toContain('group-data-invalid/control:group-data-pressed/control:border-error');
   });
 
+  it('keeps an invalid box\'s state layer error when it is selected or pressed', () => {
+    const control = slots.control().split(' ');
+    const error = '[--m3-state-layer-color:var(--md-sys-color-error)]';
+    // Each invalid rule is at least as specific as the selected / pressed rule it must beat.
+    for (const variant of [
+      'data-invalid:',
+      'data-invalid:data-selected:',
+      'data-invalid:data-pressed:',
+      'data-invalid:data-selected:data-pressed:',
+    ]) {
+      expect(control).toContain(`${variant}${error}`);
+    }
+  });
+
   it('gives selected boxes no outline, invalid included', () => {
     const box = slots.box().split(' ');
     expect(box).toContain('group-data-selected/control:border-transparent');
