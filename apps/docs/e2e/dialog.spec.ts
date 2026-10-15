@@ -6,15 +6,64 @@ import { openStory } from './story';
 
 const settle = (page: Page) => page.waitForTimeout(600);
 
-/** The running `clip-path` transition's start and end on the dialog's motion wrapper. */
-const clipTransition = (dialog: Locator) =>
-  dialog.evaluate((panel) => {
-    const transition = panel
-      .parentElement!.getAnimations()
-      .find((animation) => (animation as CSSTransition).transitionProperty === 'clip-path');
-    const frames = (transition?.effect as KeyframeEffect | null)?.getKeyframes() ?? [];
-    return frames.map((frame) => frame.clipPath as string);
+interface DialogTransition {
+  /** The transitioned property. */
+  property: string;
+  /** Its start and end, for a `clip-path` transition. */
+  clip: string[];
+  /** Whether the dialog was leaving when it started. */
+  exiting: boolean;
+  /** The wrapper's computed `clip-path` when it started. */
+  clipPath: string;
+}
+
+/**
+ * Starts recording the transitions that start on a dialog's motion wrapper (the panel's
+ * parent). Call it before the action that opens or closes the dialog: each transition is
+ * recorded as it starts, so it can't finish unseen on a slow machine before the test looks.
+ */
+async function recordDialogMotion(page: Page) {
+  await page.evaluate(() => {
+    const records: DialogTransition[] = [];
+    (window as unknown as { dialogMotion: DialogTransition[] }).dialogMotion = records;
+    document.addEventListener(
+      'transitionrun',
+      (event) => {
+        const wrapper = event.target;
+        if (
+          !(wrapper instanceof HTMLElement) ||
+          !wrapper.querySelector(':scope > [role="dialog"], :scope > [role="alertdialog"]')
+        ) {
+          return;
+        }
+        const transition = wrapper
+          .getAnimations()
+          .find(
+            (animation) => (animation as CSSTransition).transitionProperty === event.propertyName,
+          );
+        const frames = (transition?.effect as KeyframeEffect | null)?.getKeyframes() ?? [];
+        records.push({
+          property: event.propertyName,
+          clip:
+            event.propertyName === 'clip-path'
+              ? frames.map((frame) => frame.clipPath as string)
+              : [],
+          exiting: wrapper.hasAttribute('data-exiting'),
+          clipPath: getComputedStyle(wrapper).clipPath,
+        });
+      },
+      true,
+    );
   });
+  const all = () =>
+    page.evaluate(() => (window as unknown as { dialogMotion: DialogTransition[] }).dialogMotion);
+  return {
+    all,
+    /** The last `clip-path` transition's start and end (empty before one starts). */
+    clip: async () =>
+      (await all()).filter((record) => record.property === 'clip-path').at(-1)?.clip ?? [],
+  };
+}
 
 test.describe('Dialog visual regression', () => {
   for (const theme of THEMES) {
@@ -236,28 +285,21 @@ test.describe('Dialog spec details', () => {
 
   test('expands away from the edge it sits against', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 760 });
-    await openStory(page, 'components-dialog--placement-bottom');
-    await page.getByRole('button', { name: 'Open dialog' }).click();
-    const bottom = page.getByRole('alertdialog');
-    expect((await clipTransition(bottom))[0]).toMatch(/^inset\(100% /);
-
-    await openStory(page, 'components-dialog--placement-start');
-    await page.getByRole('button', { name: 'Open dialog' }).click();
-    expect((await clipTransition(page.getByRole('alertdialog')))[0]).toBe(
+    const enterClip = async (story: string, globals: { dir?: 'rtl' } = {}) => {
+      await openStory(page, story, globals);
+      const motion = await recordDialogMotion(page);
+      await page.getByRole('button', { name: 'Open dialog' }).click();
+      await expect.poll(async () => (await motion.clip()).length).toBeGreaterThan(0);
+      return (await motion.clip())[0];
+    };
+    expect(await enterClip('components-dialog--placement-bottom')).toMatch(/^inset\(100% /);
+    expect(await enterClip('components-dialog--placement-start')).toBe(
       'inset(-32px 100% -32px -32px)',
     );
-
-    await openStory(page, 'components-dialog--placement-start', { dir: 'rtl' });
-    await page.getByRole('button', { name: 'Open dialog' }).click();
-    expect((await clipTransition(page.getByRole('alertdialog')))[0]).toBe(
+    expect(await enterClip('components-dialog--placement-start', { dir: 'rtl' })).toBe(
       'inset(-32px -32px -32px 100%)',
     );
-
-    await openStory(page, 'components-dialog--basic');
-    await page.getByRole('button', { name: 'Open dialog' }).click();
-    expect((await clipTransition(page.getByRole('alertdialog')))[0]).toBe(
-      'inset(-32px -32px 100%)',
-    );
+    expect(await enterClip('components-dialog--basic')).toBe('inset(-32px -32px 100%)');
   });
 
   test('reduced motion: the panel fades out instead of vanishing', async ({ page }) => {
@@ -266,18 +308,16 @@ test.describe('Dialog spec details', () => {
     await page.getByRole('button', { name: 'Open dialog' }).click();
     const dialog = page.getByRole('alertdialog');
     await settle(page);
+    const motion = await recordDialogMotion(page);
     await page.keyboard.press('Escape');
-    const exiting = await dialog.evaluate((panel) => {
-      const motion = panel.parentElement!;
-      return {
-        exiting: motion.hasAttribute('data-exiting'),
-        clip: getComputedStyle(motion).clipPath,
-        fading: motion
-          .getAnimations()
-          .some((animation) => (animation as CSSTransition).transitionProperty === 'opacity'),
-      };
-    });
-    expect(exiting).toEqual({ exiting: true, clip: 'inset(-32px)', fading: true });
+    // The exit's fade, recorded as it starts: leaving, unclipped.
+    await expect
+      .poll(async () =>
+        (await motion.all())
+          .filter((record) => record.property === 'opacity')
+          .map(({ exiting, clipPath }) => ({ exiting, clip: clipPath })),
+      )
+      .toContainEqual({ exiting: true, clip: 'inset(-32px)' });
     await expect(dialog).toHaveCount(0);
   });
 
@@ -318,9 +358,11 @@ test.describe('Dialog spec details', () => {
     await openStory(page, 'components-dialog--container-transform');
     const fab = page.getByRole('button', { name: 'New event' });
     const box = (await fab.boundingBox())!;
+    const enter = await recordDialogMotion(page);
     await fab.click();
     const dialog = page.getByRole('dialog', { name: 'New event' });
-    const [from, to] = await clipTransition(dialog);
+    await expect.poll(async () => (await enter.clip()).length).toBeGreaterThan(0);
+    const [from, to] = await enter.clip();
     const inset = `inset(${box.y}px ${390 - box.x - box.width}px ${760 - box.y - box.height}px ${box.x}px round 16px)`;
     expect(from).toBe(inset);
     expect(to).toMatch(/^inset\(0px/);
@@ -328,8 +370,9 @@ test.describe('Dialog spec details', () => {
     await page.waitForTimeout(400);
     expect((await dialog.boundingBox())!).toMatchObject({ x: 0, y: 0, width: 390, height: 760 });
 
+    const exit = await recordDialogMotion(page);
     await page.keyboard.press('Escape');
-    expect((await clipTransition(dialog))[1]).toBe(inset);
+    await expect.poll(async () => (await exit.clip())[1]).toBe(inset);
     await expect(dialog).toHaveCount(0);
     await expect(fab).toBeFocused();
   });
@@ -338,16 +381,21 @@ test.describe('Dialog spec details', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 390, height: 760 });
     await openStory(page, 'components-dialog--container-transform');
+    const motion = await recordDialogMotion(page);
     await page.getByRole('button', { name: 'New event' }).click();
     const dialog = page.getByRole('dialog', { name: 'New event' });
-    expect(await clipTransition(dialog)).toEqual([]);
+    await expect(dialog).toBeVisible();
     await settle(page);
+    // It fades in, with no clip from the FAB.
+    expect((await motion.all()).map((record) => record.property)).toContain('opacity');
+    expect(await motion.clip()).toEqual([]);
     await page.keyboard.press('Escape');
-    // Not clipped back into the FAB: it only fades.
-    expect(await dialog.evaluate((el) => getComputedStyle(el.parentElement!).clipPath)).toBe(
-      'none',
-    );
     await expect(dialog).toHaveCount(0);
+    // Not clipped back into the FAB: it only fades.
+    const exit = (await motion.all()).filter((record) => record.exiting);
+    expect(exit.map((record) => record.property)).toContain('opacity');
+    for (const record of exit) expect(record.clipPath).toBe('none');
+    expect(await motion.clip()).toEqual([]);
   });
 
   test('closing a full-screen dialog with changes asks to discard them; errors show inline', async ({
@@ -406,10 +454,11 @@ test.describe('Dialog classNames.positioner layout safety', () => {
           {},
           { override, transformedAncestor },
         );
+        const motion = await recordDialogMotion(page);
         await page.getByRole('button', { name: 'Open dialog' }).click();
         const dialog = page.getByRole('dialog', { name: 'Sync across devices?' });
         // Enter motion: the panel expands downward on its library-owned wrapper.
-        expect((await clipTransition(dialog))[0]).toBe('inset(-32px -32px 100%)');
+        await expect.poll(async () => (await motion.clip())[0]).toBe('inset(-32px -32px 100%)');
         await settle(page);
 
         const panel = await dialog.evaluate((el) => {
@@ -464,10 +513,11 @@ test.describe('Dialog classNames.positioner layout safety', () => {
         // Pressing inside keeps it open; pressing outside dismisses it with the exit motion.
         await dialog.getByText('Your theme and layout').click();
         await expect(dialog).toBeVisible();
+        const exit = await recordDialogMotion(page);
         await page.mouse.click(8, 8);
-        expect(await dialog.evaluate((el) => el.parentElement!.hasAttribute('data-exiting'))).toBe(
-          true,
-        );
+        await expect
+          .poll(async () => (await exit.all()).some((record) => record.exiting))
+          .toBe(true);
         await expect(dialog).toHaveCount(0);
       });
     }

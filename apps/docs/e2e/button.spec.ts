@@ -66,31 +66,71 @@ test.describe('Button interaction states', () => {
       .toBe('28px');
   });
 
+  /** A corner-radius transition's curve: where it starts, and its extremes. */
+  interface MorphCurve {
+    from: number;
+    min: number;
+    max: number;
+  }
+
   test('the press morph bounces on the fast spatial spring, but not on a rapid re-press', async ({
     page,
   }) => {
     await openStory(page, 'components-button--playground', {}, { size: 'md' });
     const button = page.getByRole('button', { name: 'Button' });
-    /** The smallest and largest corner radius over the next `ms`, sampled every frame. */
-    const radiusRange = (ms: number) =>
-      button.evaluate(async (el, duration) => {
-        let min = Infinity;
-        let max = -Infinity;
-        const start = performance.now();
-        while (performance.now() - start < duration) {
-          await new Promise(requestAnimationFrame);
-          const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius);
-          min = Math.min(min, radius);
-          max = Math.max(max, radius);
-        }
-        return { min, max };
-      }, ms);
+    /**
+     * Probes the next corner-radius transition as it starts: paused, read at 100 points along
+     * its whole timeline and resumed where it was, so the spring's full curve is seen however
+     * few frames a loaded machine renders. Call it before the press that starts the morph;
+     * the returned function gives the radius it starts from and the smallest and largest.
+     */
+    const probeNextMorph = async () => {
+      await button.evaluate((el: HTMLElement) => {
+        const store = window as unknown as { morph?: MorphCurve };
+        delete store.morph;
+        const onRun = (event: TransitionEvent) => {
+          // The press's own morph: a transition can also restart before it (the release's,
+          // when its duration changes back), and that one isn't probed.
+          if (
+            event.target !== el ||
+            event.propertyName !== 'border-top-left-radius' ||
+            !el.hasAttribute('data-pressed')
+          ) {
+            return;
+          }
+          el.removeEventListener('transitionrun', onRun);
+          const transition = el
+            .getAnimations()
+            .find(
+              (animation) =>
+                (animation as CSSTransition).transitionProperty === 'border-top-left-radius',
+            )!;
+          const resumeAt = transition.currentTime ?? 0;
+          transition.pause();
+          const end = Number(transition.effect!.getComputedTiming().endTime);
+          const radii = Array.from({ length: 101 }, (_, step) => {
+            transition.currentTime = (end * step) / 100;
+            return parseFloat(getComputedStyle(el).borderTopLeftRadius);
+          });
+          transition.currentTime = resumeAt;
+          transition.play();
+          store.morph = { from: radii[0]!, min: Math.min(...radii), max: Math.max(...radii) };
+        };
+        el.addEventListener('transitionrun', onRun);
+      });
+      return async () => {
+        const read = () => page.evaluate(() => (window as unknown as { morph?: MorphCurve }).morph);
+        await expect.poll(read).not.toBeUndefined();
+        return (await read())!;
+      };
+    };
     const box = (await button.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
 
+    const pressMorph = await probeNextMorph();
     await page.mouse.down();
     // 28px → 12px overshoots below 12px before settling (expressive scheme).
-    expect((await radiusRange(450)).min).toBeLessThan(11.5);
+    expect((await pressMorph()).min).toBeLessThan(11.5);
     // The release morph runs over 20s instead of 360ms, so it's still early (and far from its
     // overshoot) when it's read and when the next press lands, however loaded the machine is.
     // Changing the duration back doesn't touch the running transition, so the re-press below
@@ -105,13 +145,18 @@ test.describe('Button interaction states', () => {
     });
     expect(midRelease).toBeGreaterThan(12.5);
     expect(midRelease).toBeLessThan(27.5);
+    const rapidPressMorph = await probeNextMorph();
     await page.mouse.down();
     await expect(button).toHaveAttribute('data-rapid-press', '');
     // A press that overlaps the release morph picks up where it is, on the non-bouncing
     // effects spring.
-    const range = await radiusRange(450);
+    const range = await rapidPressMorph();
+    // It starts from the release's current radius (which kept growing since it was read),
+    // not from the rest or pressed corners, and never rises above it or dips below 12px.
+    expect(range.from).toBeGreaterThanOrEqual(midRelease - 0.5);
+    expect(range.from).toBeLessThan(27.5);
+    expect(range.max).toBeLessThanOrEqual(range.from + 0.5);
     expect(range.min).toBeGreaterThanOrEqual(11.9);
-    expect(range.max).toBeLessThanOrEqual(midRelease + 2);
     await page.mouse.up();
   });
 
@@ -218,38 +263,81 @@ test.describe('Button reduced motion (2026-10-13)', () => {
     const button = page.getByRole('button', { name: 'Button' });
     const box = (await button.boundingBox())!;
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // Read on the first frame after the press itself, however late the test gets there.
+    await button.evaluate((el) => {
+      el.addEventListener(
+        'pointerdown',
+        () =>
+          requestAnimationFrame(() => {
+            (window as unknown as { firstRadius: string }).firstRadius =
+              getComputedStyle(el).borderTopLeftRadius;
+          }),
+        { once: true },
+      );
+    });
     await page.mouse.down();
     await expect(button).toHaveAttribute('data-pressed', 'true');
     // The very next frame already has the pressed 12px corners.
-    const radius = await button.evaluate(async (el) => {
-      await new Promise(requestAnimationFrame);
-      return getComputedStyle(el).borderTopLeftRadius;
-    });
-    expect(radius).toBe('12px');
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { firstRadius?: string }).firstRadius))
+      .toBe('12px');
     await page.mouse.up();
   });
 });
 
 test.describe('Button ripple', () => {
-  /** Samples the ripple's radius and opacity every frame for `ms`. */
-  const sample = (page: Page, ms: number) =>
-    page
+  interface RippleFrame {
+    radius: number;
+    opacity: number;
+  }
+  interface RippleSampling {
+    frames: RippleFrame[];
+    until: number;
+    done: () => void;
+  }
+
+  /**
+   * Starts sampling the ripple's radius and opacity every frame, before the press, so the
+   * ripple can't run unseen however slow the machine is. The returned function keeps
+   * sampling for `ms` more and until the ripple settles, then gives the frames.
+   */
+  const sample = async (page: Page) => {
+    await page
       .getByRole('button')
       .first()
-      .evaluate(async (el, duration) => {
-        const out: { t: number; radius: number; opacity: number }[] = [];
-        const start = performance.now();
-        while (performance.now() - start < duration) {
-          await new Promise(requestAnimationFrame);
+      .evaluate((el) => {
+        const state: RippleSampling = { frames: [], until: Infinity, done: () => {} };
+        (window as unknown as { rippleFrames: typeof state }).rippleFrames = state;
+        const tick = () => {
           const s = getComputedStyle(el);
-          out.push({
-            t: performance.now() - start,
+          state.frames.push({
             radius: parseFloat(s.getPropertyValue('--m3-ripple-radius')),
             opacity: parseFloat(s.getPropertyValue('--m3-ripple-opacity')),
           });
-        }
-        return out;
-      }, ms);
+          // Past `until`, it stops once the ripple has settled: the same on three frames.
+          const last = state.frames.slice(-3);
+          const settled =
+            last.length === 3 &&
+            last.every(
+              (frame) => frame.radius === last[0]!.radius && frame.opacity === last[0]!.opacity,
+            );
+          if (performance.now() < state.until || !settled) requestAnimationFrame(tick);
+          else state.done();
+        };
+        tick();
+      });
+    return (ms: number) =>
+      page.evaluate(
+        (duration) =>
+          new Promise<RippleFrame[]>((resolve) => {
+            const state = (window as unknown as { rippleFrames: RippleSampling }).rippleFrames;
+            // The last frame is sampled at least `ms` after this call, once settled.
+            state.until = performance.now() + duration;
+            state.done = () => resolve(state.frames);
+          }),
+        ms,
+      );
+  };
 
   test('a quick click still grows the ripple to the edges, then fades it', async ({ page }) => {
     await openStory(page, 'components-button--playground', {}, { size: 'md' });
@@ -257,10 +345,10 @@ test.describe('Button ripple', () => {
     const box = (await button.boundingBox())!;
     const end = Math.ceil(Math.hypot(box.width, box.height) / 2 + 10);
     await page.mouse.move(box.x + 10, box.y + box.height / 2);
+    const frames = await sample(page);
     await page.mouse.down();
-    const frames = sample(page, 450);
     await page.mouse.up();
-    const result = await frames;
+    const result = await frames(450);
     // Released at once, yet the radius reaches its end (half the diagonal + 10px)…
     expect(Math.max(...result.map((f) => f.radius))).toBeGreaterThanOrEqual(end - 1);
     // …while still visible, and only afterwards fades out.
@@ -276,13 +364,25 @@ test.describe('Button ripple origin', () => {
     const button = page.getByRole('button').first();
     const box = (await button.boundingBox())!;
     await page.mouse.move(box.x + x, box.y + box.height / 2);
-    await page.mouse.down();
-    const centre = button.evaluate(async (el) => {
-      await new Promise(requestAnimationFrame);
-      return parseFloat(getComputedStyle(el).getPropertyValue('--m3-ripple-x'));
+    // Read on the first frame after the press itself, however late the test gets there.
+    await button.evaluate((el) => {
+      const store = window as unknown as { firstCentre?: number };
+      delete store.firstCentre;
+      el.addEventListener(
+        'pointerdown',
+        () =>
+          requestAnimationFrame(() => {
+            store.firstCentre = parseFloat(getComputedStyle(el).getPropertyValue('--m3-ripple-x'));
+          }),
+        { once: true },
+      );
     });
+    await page.mouse.down();
     await page.mouse.up();
-    return { centre: await centre, width: box.width };
+    const read = () =>
+      page.evaluate(() => (window as unknown as { firstCentre?: number }).firstCentre);
+    await expect.poll(read).not.toBeUndefined();
+    return { centre: (await read())!, width: box.width };
   }
 
   test('each press starts at its own point, not the previous one', async ({ page }) => {

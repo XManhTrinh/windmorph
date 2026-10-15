@@ -86,23 +86,28 @@ test.describe('TextField label', () => {
   test('outlined: the notch opens in step with the label', async ({ page }) => {
     await openStory(page, 'components-textfield--playground', {}, { variant: 'outlined' });
     const field = fieldOf(page, 'Label');
-    await page.getByLabel('Label', { exact: true }).focus();
+    // Focused from inside the sampler, after its first frame, so the whole float is sampled
+    // however slow the machine is.
     const frames = await field.evaluate(
       (root) =>
         new Promise<{ notch: number; top: number }[]>((resolve) => {
           const legend = root.querySelector('legend')!;
           const label = root.querySelector('label')!;
           const out: { notch: number; top: number }[] = [];
-          const start = performance.now();
-          const tick = () => {
+          const sample = () =>
             out.push({
               notch: legend.getBoundingClientRect().width,
               top: parseFloat(getComputedStyle(label).top),
             });
+          sample();
+          root.querySelector('input')!.focus();
+          const start = performance.now();
+          const tick = () => {
+            sample();
             if (performance.now() - start < 400) requestAnimationFrame(tick);
             else resolve(out);
           };
-          tick();
+          requestAnimationFrame(tick);
         }),
     );
     const end = frames.at(-1)!;
