@@ -1,3 +1,4 @@
+import { AccordionBody } from './accordion';
 import { AutocompleteBody } from './autocomplete';
 import { AvatarBody } from './avatar';
 import { BadgeBody } from './badge';
@@ -141,6 +142,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'skip-link': SkipLinkBody,
   'shaped-icon': ShapedIconBody,
   collapse: CollapseBody,
+  accordion: AccordionBody,
   'comment-row': CommentRowBody,
   'load-more': LoadMoreBody,
   'media-grid': MediaGridBody,

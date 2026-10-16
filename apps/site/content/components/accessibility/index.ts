@@ -34,6 +34,7 @@ import { mediaViewer } from './media-viewer';
 import { shapedIcon } from './shaped-icon';
 import { commentRow } from './comment-row';
 import { collapse } from './collapse';
+import { accordion } from './accordion';
 import { expandableText } from './expandable-text';
 import { avatar } from './avatar';
 import { badge } from './badge';
@@ -102,6 +103,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'shaped-icon': shapedIcon,
   'comment-row': commentRow,
   collapse: collapse,
+  accordion: accordion,
   'expandable-text': expandableText,
   avatar: avatar,
   badge: badge,

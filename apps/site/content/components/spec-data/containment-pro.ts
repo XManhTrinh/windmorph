@@ -156,6 +156,65 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  accordion: {
+    covers: [
+      {
+        name: 'Standard rows with dividers (`variant="standard"`)',
+        kind: 'variant',
+        examples: ['accordion/accordion-faq'],
+      },
+      {
+        name: 'Segmented containers (`variant="segmented"`)',
+        kind: 'variant',
+        examples: ['accordion/accordion-segmented', 'accordion/accordion-parts'],
+      },
+      {
+        name: 'One item open at a time, which can fold fully',
+        kind: 'configuration',
+        examples: ['accordion/accordion-faq'],
+      },
+      {
+        name: 'Several open at once, controlled (`allowsMultipleExpanded`, `expandedKeys`)',
+        kind: 'configuration',
+        examples: ['accordion/accordion-multiple'],
+      },
+      {
+        name: 'Leading icons and supporting text',
+        kind: 'configuration',
+        examples: ['accordion/accordion-multiple', 'accordion/accordion-dense'],
+      },
+      {
+        name: 'A header from parts (`AccordionHeader`, `AccordionPanel`), and a disabled item',
+        kind: 'configuration',
+        examples: ['accordion/accordion-parts'],
+      },
+      {
+        name: 'Density, as a core list (`density`)',
+        kind: 'configuration',
+        examples: ['accordion/accordion-dense'],
+      },
+      {
+        name: 'Closed panels found by find-in-page and `#fragment` links',
+        kind: 'use case',
+        examples: ['accordion/accordion-find-in-page'],
+      },
+      {
+        name: 'A FAQ, or a long answer with links',
+        kind: 'use case',
+        examples: ['accordion/accordion-faq', 'accordion/accordion-long-panel'],
+      },
+    ],
+    compose: [
+      {
+        composable: 'ListItem + AnimatedVisibility',
+        component: 'Accordion',
+        params: [
+          { compose: 'expanded (your own state)', windmorph: 'expandedKeys, onExpandedChange' },
+        ],
+        note: "Compose Material 3 has no accordion: apps build one from list items and `AnimatedVisibility`. `Accordion` draws its headers as core list items and keeps the open items' state, the keys and the ARIA itself.",
+      },
+    ],
+  },
   collapse: {
     covers: [
       {

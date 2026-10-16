@@ -2,6 +2,8 @@
 
 import { Button, IconButton, List, ListItem } from '@windmorph/react';
 import {
+  Accordion,
+  AccordionItem,
   Avatar,
   avatarShapes,
   Collapse,
@@ -25,8 +27,17 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
 } from '../../icons';
-import { type PlaygroundDescriptor, type PlaygroundUpdate, loose, noop } from './shared';
+import {
+  DENSITY_OPTIONS,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+  asDensity,
+  loose,
+  noop,
+} from './shared';
 
+const AccordionAny = loose(Accordion);
+const AccordionItemAny = loose(AccordionItem);
 const AvatarAny = loose(Avatar);
 const TagAny = loose(Tag);
 const ShapedIconAny = loose(ShapedIcon);
@@ -36,6 +47,21 @@ const CommentRowAny = loose(CommentRow);
 const MediaGridAny = loose(MediaGrid);
 const MediaViewerAny = loose(MediaViewer);
 const ListDetailLayoutAny = loose(ListDetailLayout);
+
+/** The accordion playground's questions. */
+const ACCORDION_FAQ = [
+  {
+    id: 'shipping',
+    title: 'How long does shipping take?',
+    answer: 'Orders arrive in two to four working days.',
+  },
+  {
+    id: 'returns',
+    title: 'Can I return an order?',
+    answer: 'Yes, within 30 days, for a full refund.',
+  },
+  { id: 'care', title: 'How do I wash it?', answer: 'Machine wash cold, and dry flat.' },
+];
 
 const EXPANDABLE_TEXT_SAMPLE =
   'Phở night at the community hall this Saturday from 6pm. Bring a bowl and a friend: every table is shared, and the broth has been simmering since Friday morning. There is a vegetarian pot too, and the kids’ corner has crafts and lanterns. Parking is behind the church, and the 42 bus stops outside.';
@@ -351,6 +377,66 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       actions:
         '(\n    <>\n      <time dateTime="2026-10-12T09:00:00Z" className="px-3">2 min</time>\n      <Button variant="text" size="xs">Reply</Button>\n    </>\n  )',
     },
+  },
+  accordion: {
+    component: 'Accordion',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      AccordionItem:
+        "The accordion's items, composed in the preview; each one's title, supporting text, leading icon and `disabled` are its own, as the examples show.",
+      AccordionHeader:
+        'A header built from parts, for a header of your own; the "A header from parts" example shows it.',
+      AccordionPanel:
+        'The panel beside an `AccordionHeader`; the "A header from parts" example shows it.',
+    },
+    // A segmented accordion sits on a container colour, as its own example does.
+    render: ({ density, headingLevel, ...props }) =>
+      createElement(
+        'div',
+        {
+          className:
+            props.variant === 'segmented'
+              ? 'w-full max-w-md rounded-corner-large bg-surface-container p-4'
+              : 'w-full max-w-md',
+        },
+        createElement(
+          AccordionAny,
+          {
+            ...props,
+            // Switching to several open at once keeps what is open; back to one starts afresh.
+            key: String(props.allowsMultipleExpanded),
+            defaultExpandedKeys: ['shipping'],
+            density: asDensity(density),
+            headingLevel: headingLevel == null ? undefined : Number(headingLevel),
+          },
+          ...ACCORDION_FAQ.map(({ id, title, answer }) =>
+            createElement(AccordionItemAny, { key: id, id, title }, answer),
+          ),
+        ),
+      ),
+    defaultProps: {
+      variant: 'standard',
+      allowsMultipleExpanded: false,
+      disabled: false,
+      headingLevel: 3,
+      density: 0,
+    },
+    surfacedProps: ['variant', 'allowsMultipleExpanded', 'disabled', 'headingLevel', 'density'],
+    enumOptions: { ...DENSITY_OPTIONS, headingLevel: ['2', '3', '4', '5', '6'] },
+    // The heading level and density are numbers, so the snippet writes them as numbers.
+    controlKinds: { headingLevel: 'number', density: 'number' },
+    notControlled: {
+      defaultExpandedKeys:
+        'The uncontrolled `expandedKeys`; the preview opens the first question, and the snippet writes it.',
+      expandedKeys:
+        "An Iterable of the open items' `id`s; open and fold items in the preview instead, or see the controlled example.",
+    },
+    importMembers: ['AccordionItem'],
+    codeSlots: { defaultExpandedKeys: "['shipping']" },
+    codeChildren: ACCORDION_FAQ.map(
+      ({ id, title, answer }) =>
+        `<AccordionItem id="${id}" title="${title}">\n    ${answer}\n  </AccordionItem>`,
+    ).join('\n  '),
   },
   collapse: {
     component: 'Collapse',

@@ -153,6 +153,8 @@ describe('searchPages', () => {
       ['overflow menu', '/components/button-group'],
       ['component tokens', '/customisation'],
       ['token mapping', '/from-compose'],
+      ['faq', '/components/accordion'],
+      ['expansion panel', '/components/accordion'],
     ] as const;
     for (const [query, href] of cases) {
       expect(

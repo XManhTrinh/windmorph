@@ -640,6 +640,31 @@ export const COMPONENT_META: ComponentMeta[] = [
     keywords: ['chip set', 'chip group', 'filter', 'suggestion', 'recipients', 'remove'],
   },
   {
+    slug: 'accordion',
+    title: 'Accordion',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'A stack of headers that open and fold panels of content: FAQs, settings groups, product details and filters. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['Accordion', 'AccordionItem', 'AccordionHeader', 'AccordionPanel'],
+    playground: 'full',
+    pro: true,
+    related: ['collapse', 'list', 'tabs'],
+    whenNotToUse:
+      'For one region your own control opens use Collapse; for nested rows, a List with child items; for peer views, Tabs.',
+    keywords: [
+      'accordion',
+      'disclosure',
+      'expansion panel',
+      'faq',
+      'expand',
+      'collapse',
+      'fold',
+      'details',
+      'summary',
+    ],
+  },
+  {
     slug: 'card',
     title: 'Card',
     group: 'Containment & overlays',
@@ -887,6 +912,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'pinch',
       'swipe',
       'photos',
+      'container transform',
     ],
   },
   {
@@ -938,8 +964,20 @@ export const COMPONENT_META: ComponentMeta[] = [
     pro: true,
     related: ['expandable-text', 'message-field', 'list'],
     whenNotToUse:
-      'For text cut to a few lines use Expandable text; for content over the page, a dialog or a sheet.',
-    keywords: ['accordion', 'disclosure', 'expand', 'fold', 'reveal', 'show', 'hide', 'height'],
+      'For a stack of headers that open panels use Accordion; for text cut to a few lines, Expandable text; for content over the page, a dialog or a sheet.',
+    keywords: [
+      'accordion',
+      'disclosure',
+      'expand',
+      'fold',
+      'reveal',
+      'show',
+      'hide',
+      'height',
+      'keepMounted',
+      'until-found',
+      'find in page',
+    ],
   },
   {
     slug: 'expandable-text',

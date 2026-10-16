@@ -218,6 +218,17 @@ test.describe('Windmorph Pro guide', () => {
     await expect(page.getByRole('radio', { name: 'Pro' })).toBeChecked();
   });
 
+  test('answers questions in an accordion', async ({ page }) => {
+    await page.goto('/pro');
+    const question = page.getByRole('button', { name: 'Do I need Tailwind CSS?' });
+    await expect(question).toHaveAttribute('aria-expanded', 'false');
+    await question.click();
+    await expect(question).toHaveAttribute('aria-expanded', 'true');
+    await expect(
+      page.getByText(/link @windmorph\/react-pro\/styles.compiled.css alone/),
+    ).toBeVisible();
+  });
+
   test('passes axe in light and dark mode', async ({ page }) => {
     await page.goto('/pro');
     await expectNoAxeViolations(page, '/pro (light)');

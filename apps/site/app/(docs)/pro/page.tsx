@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { CodeBlock } from '@windmorph/react-pro';
+import { Accordion, AccordionItem, CodeBlock, PropsTable } from '@windmorph/react-pro';
 import { InlineCode } from '../../../components/inline-code';
 import { InstallCommand } from '../../../components/install-command';
 import { PageChips } from '../../../components/page-chips';
@@ -36,6 +36,71 @@ export function App() {
   );
 }`;
 
+const DOCS_SNIPPET = `import { CodeBlock, PropsTable } from '@windmorph/react-pro';
+
+<CodeBlock code={source} html={highlighted} lang="tsx" title="App.tsx" />
+<PropsTable caption="Tag props" rows={tagProps} />`;
+
+/** A few of Tag's props, as the live PropsTable sample shows them. */
+const SAMPLE_ROWS = [
+  {
+    name: 'children',
+    type: 'ReactNode',
+    required: true,
+    description: 'The label: one or a few words.',
+  },
+  {
+    name: 'variant',
+    type: '"tonal" | "filled" | "outlined"',
+    defaultValue: '"tonal"',
+    description: 'A container colour, the strong colour or an outline.',
+  },
+  {
+    name: 'size',
+    type: '"sm" | "md" | "lg"',
+    defaultValue: '"md"',
+    description: '20, 24 or 32px tall.',
+  },
+  {
+    name: 'maxWidth',
+    type: "CSSProperties['maxWidth']",
+    description: 'Cuts a long label short, with its full text in a tooltip.',
+  },
+];
+
+const FAQ = [
+  {
+    id: 'on-sale',
+    question: 'Can I buy Pro today?',
+    answer:
+      "Not yet. Its components are documented here in full so you can see what's coming; pricing will be announced with the licence.",
+  },
+  {
+    id: 'tailwind',
+    question: 'Do I need Tailwind CSS?',
+    answer:
+      'No. Without Tailwind, link @windmorph/react-pro/styles.compiled.css alone: it includes the core’s styles.',
+  },
+  {
+    id: 'versions',
+    question: 'Which version of the core does Pro need?',
+    answer:
+      'The same minor version. Pro lists the core as a peer dependency, so core fixes reach Pro through a normal update, and both are released together until 1.0.',
+  },
+  {
+    id: 'tiptap',
+    question: 'Does every app need Tiptap?',
+    answer:
+      'Only an app that uses the rich text entry, @windmorph/react-pro/rich-text. The Tiptap packages are optional peer dependencies, so other apps never install them.',
+  },
+  {
+    id: 'theming',
+    question: 'Do Pro components follow my theme?',
+    answer:
+      'Yes. They read the core’s ThemeProvider and M3 colour roles, so every theme, mode, contrast level and density reaches them, and each has --wm-* tokens of its own to override.',
+  },
+];
+
 function SectionHeading({ id, children }: { id: string; children: string }) {
   return (
     <h2 id={id} className="text-headline-small text-on-surface">
@@ -51,10 +116,11 @@ function SectionHeading({ id, children }: { id: string; children: string }) {
 export default async function ProPage() {
   const groups = proPagesByGroup();
   const count = groups.reduce((total, { pages }) => total + pages.length, 0);
-  const [npmrcHtml, cssHtml, useHtml] = await Promise.all([
+  const [npmrcHtml, cssHtml, useHtml, docsHtml] = await Promise.all([
     highlightSource(NPMRC_SNIPPET, 'ini'),
     highlightSource(CSS_SNIPPET, 'css'),
     highlightSource(USE_SNIPPET, 'tsx'),
+    highlightSource(DOCS_SNIPPET, 'tsx'),
   ]);
 
   return (
@@ -156,6 +222,38 @@ export default async function ProPage() {
           component page shows its import line.
         </p>
         <CodeBlock code={USE_SNIPPET} html={useHtml} lang="tsx" title="App.tsx" />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading id="docs-components">Components for your docs</SectionHeading>
+        <p className={TEXT}>
+          Pro also has the two components this site&apos;s pages are built with, for documenting
+          your own components. <InlineCode>CodeBlock</InlineCode> shows highlighted source with a
+          title and a copy button; its words come from <InlineCode>labels</InlineCode> (
+          <InlineCode>copy</InlineCode>, <InlineCode>copied</InlineCode>, and{' '}
+          <InlineCode>region</InlineCode>, which names the code when it has no title), and a copy is
+          announced to screen readers. <InlineCode>PropsTable</InlineCode> is a props table: name,
+          type, default and description, one row per prop, in a focusable region that scrolls
+          sideways on small screens. Its caption and column headings come from{' '}
+          <InlineCode>labels</InlineCode> (<InlineCode>caption</InlineCode>,{' '}
+          <InlineCode>name</InlineCode>, <InlineCode>type</InlineCode>,{' '}
+          <InlineCode>default</InlineCode>, <InlineCode>description</InlineCode>,{' '}
+          <InlineCode>required</InlineCode>), and <InlineCode>classNames</InlineCode> styles each
+          part. Neither is a general data table: no sorting, selection or pagination.
+        </p>
+        <CodeBlock code={DOCS_SNIPPET} html={docsHtml} lang="tsx" title="Docs.tsx" />
+        <PropsTable caption="Tag props (sample)" rows={SAMPLE_ROWS} />
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading id="faq">Questions</SectionHeading>
+        <Accordion headingLevel={3} defaultExpandedKeys={['on-sale']}>
+          {FAQ.map(({ id, question, answer }) => (
+            <AccordionItem key={id} id={id} title={question}>
+              {answer}
+            </AccordionItem>
+          ))}
+        </Accordion>
       </section>
     </article>
   );
