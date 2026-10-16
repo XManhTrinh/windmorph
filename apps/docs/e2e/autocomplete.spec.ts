@@ -2,6 +2,30 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
 
+/**
+ * Waits for the open menu's reveal to finish. Until then its clip keeps the options from
+ * taking a click, and Playwright retries a blocked click with the option scrolled to another
+ * edge, which scrolls the page and so closes the combobox's menu. On a busy machine the first
+ * click lands mid-reveal, so every option click after the menu opens waits for this first.
+ */
+async function waitForMenuReveal(page: Page) {
+  const listbox = page.getByRole('listbox');
+  await expect(listbox).toBeVisible();
+  await expect
+    .poll(() =>
+      listbox.evaluate((el) => {
+        const reveal = el.closest('[data-placement]');
+        return (
+          reveal !== null &&
+          !reveal.hasAttribute('data-entering') &&
+          !reveal.hasAttribute('data-exiting') &&
+          reveal.getAnimations().every((animation) => animation.playState === 'finished')
+        );
+      }),
+    )
+    .toBe(true);
+}
+
 test.describe('Autocomplete visual regression', () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
@@ -159,6 +183,7 @@ test.describe('Autocomplete behaviour', () => {
     await openStory(page, 'components-autocomplete--multiple');
     const input = page.getByRole('combobox', { name: /Cities/ });
     await input.fill('syd');
+    await waitForMenuReveal(page);
     await page.getByRole('option', { name: /Sydney/ }).click();
     await expect(page.getByTestId('value')).toHaveText('zrh, ldn, syd');
     await expect(page.getByRole('listbox')).toBeVisible();
@@ -222,6 +247,7 @@ test.describe('Autocomplete height', () => {
       expect(await height(field)).toBe(56);
       await page.getByRole('combobox', { name: 'Cities' }).fill('zur');
       expect(await height(field)).toBe(56);
+      await waitForMenuReveal(page);
       await page.getByRole('option', { name: /Zürich/ }).click();
       // The menu stays open (multiple) and hides the rest from assistive technology.
       await expect(field.getByText('Zürich', { exact: true })).toBeVisible();
@@ -237,6 +263,7 @@ test.describe('Autocomplete height', () => {
       const outcomes = new Set<'same row' | 'wrapped'>();
       // Chosen from the whole list, so no typed text (or clear button) narrows the row.
       await field.locator('button[aria-label="Show options"]').click();
+      await waitForMenuReveal(page);
       for (const city of ['Zürich', 'London', 'Sydney']) {
         await page.getByRole('option', { name: new RegExp(city) }).click();
         await expect(field.getByText(city, { exact: true })).toBeVisible();
@@ -296,12 +323,9 @@ test.describe('Autocomplete layout safety', () => {
           expect(await container.evaluate((el) => (el as HTMLElement).offsetHeight)).toBe(56);
           const input = page.getByRole('combobox', { name: 'City' });
           await input.fill('lon');
-          // Let the menu's reveal finish: above a field at the bottom it opens upwards, so
-          // the first option is clipped until the end (a click retried meanwhile scrolls,
-          // which closes the combobox's menu).
-          await page.evaluate(() =>
-            Promise.allSettled(document.getAnimations().map((a) => a.finished)),
-          );
+          // Above a field at the bottom the menu opens upwards, so the first option is
+          // clipped until its reveal ends.
+          await waitForMenuReveal(page);
           await page.getByRole('option', { name: /London/ }).click();
           await expect(input).toHaveValue('London');
         });
