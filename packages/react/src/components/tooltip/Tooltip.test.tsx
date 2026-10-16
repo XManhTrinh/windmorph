@@ -163,7 +163,7 @@ describe('Tooltip', () => {
     render(
       <RichTooltipTrigger persistent open>
         <Button>Details</Button>
-        <RichTooltip subhead="Shared">Visible to your team</RichTooltip>
+        <RichTooltip title="Shared">Visible to your team</RichTooltip>
       </RichTooltipTrigger>,
     );
     expect(await screen.findByRole('dialog')).toHaveTextContent('Visible to your team');
