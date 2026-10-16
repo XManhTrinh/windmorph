@@ -51,16 +51,20 @@ const ListDetailLayoutAny = loose(ListDetailLayout);
 /** The accordion playground's questions. */
 const ACCORDION_FAQ = [
   {
-    id: 'shipping',
-    title: 'How long does shipping take?',
-    answer: 'Orders arrive in two to four working days.',
+    id: 'arrival',
+    title: 'When will my order arrive?',
+    answer: 'In two to four working days, with tracking by email.',
   },
   {
-    id: 'returns',
-    title: 'Can I return an order?',
-    answer: 'Yes, within 30 days, for a full refund.',
+    id: 'exchange',
+    title: 'Can I exchange an item?',
+    answer: 'Yes, within 30 days, for another size or colour.',
   },
-  { id: 'care', title: 'How do I wash it?', answer: 'Machine wash cold, and dry flat.' },
+  {
+    id: 'packaging',
+    title: 'Is the packaging recyclable?',
+    answer: 'Yes: the box and the paper tape are both recyclable.',
+  },
 ];
 
 const EXPANDABLE_TEXT_SAMPLE =
@@ -405,7 +409,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
             ...props,
             // Switching to several open at once keeps what is open; back to one starts afresh.
             key: String(props.allowsMultipleExpanded),
-            defaultExpandedKeys: ['shipping'],
+            defaultExpandedKeys: ['arrival'],
             density: asDensity(density),
             headingLevel: headingLevel == null ? undefined : Number(headingLevel),
           },
@@ -432,7 +436,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         "An Iterable of the open items' `id`s; open and fold items in the preview instead, or see the controlled example.",
     },
     importMembers: ['AccordionItem'],
-    codeSlots: { defaultExpandedKeys: "['shipping']" },
+    codeSlots: { defaultExpandedKeys: "['arrival']" },
     codeChildren: ACCORDION_FAQ.map(
       ({ id, title, answer }) =>
         `<AccordionItem id="${id}" title="${title}">\n    ${answer}\n  </AccordionItem>`,

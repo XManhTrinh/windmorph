@@ -13,7 +13,7 @@ export function AccordionFindInPage() {
         How long do refunds take?
       </Link>
       <Accordion>
-        <AccordionItem id="shipping" title="Shipping">
+        <AccordionItem id="delivery" title="Delivery">
           Orders leave the warehouse within a day.
         </AccordionItem>
         <AccordionItem id="refunds" title="Refunds">

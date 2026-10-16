@@ -224,9 +224,7 @@ test.describe('Windmorph Pro guide', () => {
     await expect(question).toHaveAttribute('aria-expanded', 'false');
     await question.click();
     await expect(question).toHaveAttribute('aria-expanded', 'true');
-    await expect(
-      page.getByText(/link @windmorph\/react-pro\/styles.compiled.css alone/),
-    ).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Do I need Tailwind CSS?' })).toBeVisible();
   });
 
   test('passes axe in light and dark mode', async ({ page }) => {

@@ -42,15 +42,21 @@ interface Variant {
 /** Waits until nothing is mid-animation, then expects an axe scan to find no violations. */
 async function expectNoAxeViolations(page: Page, label: string): Promise<void> {
   // Anything that still animates under reduced motion finishes before the scan. Looping
-  // animations, such as a loading indicator, never finish, so they're left out.
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  );
+  // animations, such as a loading indicator, never finish, so they're left out. A live region
+  // (Pro's Alert, an announced EmptyState) mounts first and shows its content 100ms later,
+  // fading in even under reduced motion, so the wait runs again after that.
+  await page.evaluate(async () => {
+    const settle = () =>
+      Promise.all(
+        document
+          .getAnimations()
+          .filter((animation) => animation.effect?.getComputedTiming().endTime !== Infinity)
+          .map((animation) => animation.finished.catch(() => undefined)),
+      );
+    await settle();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await settle();
+  });
   const results = await new AxeBuilder({ page }).analyze();
   expect(
     results.violations,
@@ -79,8 +85,8 @@ async function assertPageHealthy(
   // `@starting-style`) blends an element with the page while it runs, so a pair that is
   // 4.58:1 at rest reads 4.4–4.49:1 mid-fade. Waiting for running animations alone is racy:
   // one that starts after the wait (a late hydration, a client-only subtree) is still
-  // mid-fade when axe runs. Under reduced motion every component skips its entrance motion,
-  // so nothing is blended, whatever the timing.
+  // mid-fade when axe runs. Under reduced motion most components skip their entrance motion;
+  // the fades that remain (a live region's content) are waited for in `expectNoAxeViolations`.
   await page.emulateMedia({ reducedMotion: 'reduce' });
 
   if (variant.dir === 'rtl') {
