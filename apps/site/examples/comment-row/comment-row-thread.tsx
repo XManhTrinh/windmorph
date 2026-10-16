@@ -70,7 +70,7 @@ export function CommentRowThread() {
       })}
       <CommentRow
         as="li"
-        isPending
+        pending
         avatar={<Avatar name="Omar Haddad" size="sm" decorative />}
         bubble={
           <>

@@ -141,7 +141,7 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>value</InlineCode> / <InlineCode>onChange</InlineCode> (or{' '}
               <InlineCode>defaultValue</InlineCode>) hold the reaction id or{' '}
-              <InlineCode>null</InlineCode>; <InlineCode>isOpen</InlineCode> /{' '}
+              <InlineCode>null</InlineCode>; <InlineCode>open</InlineCode> /{' '}
               <InlineCode>onOpenChange</InlineCode> control the row.
             </li>
           </ul>

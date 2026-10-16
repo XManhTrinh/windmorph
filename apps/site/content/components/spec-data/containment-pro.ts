@@ -135,7 +135,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['comment-row/comment-row-states'],
       },
       {
-        name: 'Being sent (`isPending`)',
+        name: 'Being sent (`pending`)',
         kind: 'configuration',
         examples: ['comment-row/comment-row-thread'],
       },

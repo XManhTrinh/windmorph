@@ -149,7 +149,7 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             <li>
               The field doesn&apos;t clear itself: clear <InlineCode>value</InlineCode> once the
               send succeeds, or set <InlineCode>clearOnSubmit</InlineCode>. While{' '}
-              <InlineCode>isSubmitting</InlineCode>, the send button shows the loading indicator and
+              <InlineCode>submitting</InlineCode>, the send button shows the loading indicator and
               ignores presses; a send that ends while <InlineCode>invalid</InlineCode> shakes the
               field once beside <InlineCode>errorMessage</InlineCode>.
             </li>

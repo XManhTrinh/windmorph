@@ -24,7 +24,7 @@ export const commentRow: ComponentAccessibility = {
   screenReader: {
     role: 'The root is a `div`, an `article` or an `li` (`as`). A pressable bubble is a `button` with `onPress`, or a `link` with `href`; otherwise it is plain content.',
     name: 'An `article` takes its name from `aria-label` ("Comment by Ada"). A pressable bubble is named by its content: the name line and the words.',
-    states: 'Busy (`aria-busy`) while `isPending`.',
+    states: 'Busy (`aria-busy`) while `pending`.',
     notes: [
       'The avatar is read as whatever you pass. Pass it decorative, since the name is in the bubble.',
     ],

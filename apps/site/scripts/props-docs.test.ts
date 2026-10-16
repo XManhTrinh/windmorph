@@ -61,19 +61,6 @@ const NO_ENUM_DEFAULT: Record<string, string> = {
   'SearchAppBar.scrollBehavior': 'Left out, the bar is static: no scroll behaviour is a value.',
 };
 
-/** RichMessageField's formatting labels, which share one gap in the pinned Pro build. */
-const RICH_FORMAT_LABELS = [
-  'code',
-  'link',
-  'bold',
-  'italic',
-  'strike',
-  'bullets',
-  'numbers',
-  'quote',
-  'codeBlock',
-] as const;
-
 /**
  * Pro's props with no `@default` on purpose, as {@link NO_ENUM_DEFAULT} for the core's.
  */
@@ -88,84 +75,14 @@ const PRO_NO_ENUM_DEFAULT: Record<string, string> = {
 };
 
 /**
- * Pro's props, and keys of its object props, that the pinned Pro build declares without JSDoc:
- * mostly members of a union (Avatar's link and button forms, the fields' label or
- * `aria-label` naming), where only some members carry a comment. They are fixed in Pro's TSDoc,
- * and the stale-allowlist check fails once a newer pin describes one, so each leaves this list.
+ * Pro's props, and keys of its object props, that the pinned Pro build declares without JSDoc.
+ * Empty: every Pro prop is described. A gap is fixed in Pro's TSDoc and re-pinned rather than
+ * listed here, and the stale-allowlist check fails on any entry a newer pin describes.
  */
-const PRO_GAP = "Pro's declaration has no JSDoc yet (fixed in Pro, then re-pinned).";
-const PRO_UNDESCRIBED: Record<string, string> = Object.fromEntries(
-  [
-    'Avatar.badge',
-    'Avatar.badgeLabel',
-    'Avatar.href',
-    'Avatar.onPress',
-    'Avatar.alt',
-    'Avatar.decorative',
-    'AvatarGroup.overflowHref',
-    'AvatarGroup.onOverflowPress',
-    'EmptyState.classNames',
-    'EmptyState.ref',
-    'MediaUploadGrid.aria-label',
-    'MediaUploadGrid.aria-labelledby',
-    'MediaViewer.aria-label',
-    'MediaViewer.aria-labelledby',
-    'MessageField.submitOn',
-    'MessageField.minRows',
-    'MessageField.variant',
-    'MessageField.toolbarPlacement',
-    'MessageField.label',
-    'MessageField.aria-label',
-    'MessageField.aria-labelledby',
-    'MessageFieldFrame.variant',
-    'MessageFieldFrame.toolbarPlacement',
-    'MessageFieldFrame.label',
-    'MessageFieldFrame.aria-label',
-    'MessageFieldFrame.aria-labelledby',
-    'MessageFieldSend.variant',
-    'MessageFieldTrigger.variant',
-    'PhoneField.label',
-    'PhoneField.aria-label',
-    'PinInput.label',
-    'RichMessageField.submitOn',
-    'RichMessageField.formatting',
-    'RichMessageField.variant',
-    'RichMessageField.toolbarPlacement',
-    'RichMessageField.label',
-    'RichMessageField.aria-label',
-    'RichMessageField.aria-labelledby',
-    'TagGroup.ref',
-    'EmptyState.classNames.root',
-    'EmptyState.classNames.media',
-    'EmptyState.classNames.icon',
-    'EmptyState.classNames.title',
-    'EmptyState.classNames.description',
-    'EmptyState.classNames.actions',
-    'PropsTable.labels.name',
-    'PropsTable.labels.type',
-    'PropsTable.labels.default',
-    'PropsTable.labels.description',
-    ...RICH_FORMAT_LABELS.map((key) => `RichMessageField.labels.${key}`),
-  ].map((name) => [name, PRO_GAP]),
-);
+const PRO_UNDESCRIBED: Record<string, string> = {};
 
-/** Pro's built-in strings without an English `@default` in the pinned build. */
-const PRO_NO_STRING_DEFAULT: Record<string, string> = Object.fromEntries(
-  [
-    ...['title', 'confirm', 'close', 'busy', 'area', 'instructions', 'error'].map(
-      (key) => `ImageCropDialog.labels.${key}`,
-    ),
-    ...['area', 'instructions', 'error'].map((key) => `ImageCropper.labels.${key}`),
-    ...['position', 'description', 'error'].map((key) => `MediaViewer.labels.${key}`),
-    ...['MessageField', 'MessageFieldFrame', 'RichMessageField'].flatMap((name) =>
-      ['nearLimit', 'atLimit', 'overLimit'].map((key) => `${name}.labels.${key}`),
-    ),
-    ...['country', 'search', 'noResults', 'suggested', 'allCountries', 'invalid'].map(
-      (key) => `PhoneField.labels.${key}`,
-    ),
-    ...RICH_FORMAT_LABELS.map((key) => `RichMessageField.labels.${key}`),
-  ].map((name) => [name, PRO_GAP]),
-);
+/** Pro's built-in strings without an English `@default` in the pinned build. Empty, as above. */
+const PRO_NO_STRING_DEFAULT: Record<string, string> = {};
 
 interface Allowlists {
   undescribed: Record<string, string>;

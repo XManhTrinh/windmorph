@@ -424,7 +424,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     component: 'ReactionPicker',
     importFrom: '@windmorph/react-pro',
     // Room above the button for the row, which opens on long press, hover or ArrowUp.
-    render: ({ value, isOpen, ...props }, update) =>
+    render: ({ value, open, ...props }, update) =>
       createElement(
         'div',
         { className: 'pt-16' },
@@ -433,16 +433,16 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
           options: REACTIONS,
           value: value ?? null,
           onChange: (next: string | null) => update('value', next ?? undefined),
-          isOpen: Boolean(isOpen),
-          onOpenChange: (next: boolean) => update('isOpen', next),
+          open: Boolean(open),
+          onOpenChange: (next: boolean) => update('open', next),
         }),
       ),
     defaultProps: {
       size: 'md',
       variant: 'text',
       showIdleIcon: true,
-      isOpen: false,
-      isDisabled: false,
+      open: false,
+      disabled: false,
     },
     surfacedProps: [
       'variant',
@@ -450,8 +450,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'value',
       'defaultOption',
       'showIdleIcon',
-      'isOpen',
-      'isDisabled',
+      'open',
+      'disabled',
     ],
     enumOptions: {
       size: ['sm', 'md'],

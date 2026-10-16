@@ -127,7 +127,7 @@ const MESSAGE_FIELD_DEFAULTS = {
   sendVariant: 'filled',
   sendIcon: false,
   emptyAction: false,
-  isSubmitting: false,
+  submitting: false,
   showCounter: false,
   counterThreshold: 0.9,
   invalid: false,
@@ -137,9 +137,9 @@ const MESSAGE_FIELD_DEFAULTS = {
   expandOnFocus: false,
   defaultOpen: false,
   autoFocus: false,
-  isRequired: false,
-  isDisabled: false,
-  isReadOnly: false,
+  required: false,
+  disabled: false,
+  readOnly: false,
 };
 
 /** The message fields' number controls. */
@@ -189,7 +189,7 @@ const messageFieldControls = (own: string[]) => [
   'sendIcon',
   'emptyAction',
   'canSend',
-  'isSubmitting',
+  'submitting',
   'maxLength',
   'showCounter',
   'counterThreshold',
@@ -202,9 +202,9 @@ const messageFieldControls = (own: string[]) => [
   'expandOnFocus',
   'defaultOpen',
   'autoFocus',
-  'isRequired',
-  'isDisabled',
-  'isReadOnly',
+  'required',
+  'disabled',
+  'readOnly',
 ];
 
 const MESSAGE_FIELD_NOT_CONTROLLED = {

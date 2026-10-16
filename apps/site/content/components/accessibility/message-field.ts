@@ -76,7 +76,7 @@ export const messageField: ComponentAccessibility = {
   consumer: [
     'Name the field (`label`, `aria-label` or `aria-labelledby`) for what is being written ("Write a comment"), not only with a placeholder.',
     'Give every tool an `aria-label`, and translate every built-in word through `labels`, including the limit announcements.',
-    'Explain a failed send in `errorMessage` with `invalid`, and keep `isSubmitting` on while a send is in flight.',
+    'Explain a failed send in `errorMessage` with `invalid`, and keep `submitting` on while a send is in flight.',
     "In forced-colours mode the field's border is `CanvasText`, `Highlight` while focused and `GrayText` while disabled; keep `classNames` overrides from removing it.",
   ],
 };
