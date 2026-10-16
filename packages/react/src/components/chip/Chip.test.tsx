@@ -398,7 +398,7 @@ describe('Chip density', () => {
         .closest('[data-tokens~="md-comp-filter-chip"][data-density]'),
     ).toHaveAttribute('data-density', '-2');
     // The remove button keeps a 48px touch target at every level.
-    expect(remove.querySelector('[data-touch-target]')).toHaveClass('h-12');
+    expect(remove.querySelector('[data-touch-target]')).toHaveClass('h-[48px]');
     expect(await axeViolations(container)).toEqual([]);
   });
 });

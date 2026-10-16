@@ -212,7 +212,7 @@ export const iconButtonStyles = tv({
         // A dense M (narrow from -1, every width at -3) is under 48px: its content's `::after`
         // is the touch target (`TouchTarget`'s box, without adding an element at density 0).
         content:
-          "after:absolute after:top-1/2 after:left-1/2 after:h-12 after:w-[max(100%,3rem)] after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']",
+          "after:absolute after:top-1/2 after:left-1/2 after:h-[48px] after:w-[max(100%,48px)] after:-translate-x-1/2 after:-translate-y-1/2 after:content-['']",
         icon: 'size-[24px]',
       },
       lg: {

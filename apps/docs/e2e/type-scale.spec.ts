@@ -97,6 +97,54 @@ test.describe('Type scale follows the root font size', () => {
   });
 });
 
+/** The size of every `[data-touch-target]` in the page, deduplicated. */
+const touchTargetSizes = (page: Page) =>
+  page.locator('[data-touch-target]').evaluateAll((targets) => [
+    ...new Set(
+      targets.map((target) => {
+        const { width, height } = target.getBoundingClientRect();
+        return `${Math.round(height)}:${width >= 47.5 ? 'wide' : Math.round(width)}`;
+      }),
+    ),
+  ]);
+
+/*
+ * Touch targets are layout, so they're in px (2026-10-16): in rem (`h-12`), a 32px root made
+ * them 96px tall, so neighbours spaced 48px apart in px overlapped.
+ */
+test.describe('Touch targets keep 48px at a 32px root', () => {
+  for (const story of [
+    'components-button--sizes-and-shapes',
+    'components-checkbox--states',
+    'components-chips--types',
+    'components-iconbutton--sizes-and-widths',
+  ]) {
+    test(story, async ({ page }) => {
+      await openStory(page, story);
+      await setRootFontSize(page, 32);
+      // Every target is 48px tall and at least 48px wide.
+      expect(await touchTargetSizes(page)).toEqual(['48:wide']);
+    });
+  }
+
+  test("a dense M icon button's ::after target stays 48 × 48px", async ({ page }) => {
+    await openStory(page, 'components-iconbutton--density');
+    await setRootFontSize(page, 32);
+    const sizes = await page
+      .locator('[data-tokens~="md-comp-icon-button"] *')
+      .evaluateAll((elements) => [
+        ...new Set(
+          elements
+            .map((element) => getComputedStyle(element, '::after'))
+            .filter((after) => after.content !== 'none' && after.position === 'absolute')
+            .map((after) => `${after.height} ${after.minWidth === 'auto' ? '' : after.minWidth}`),
+        ),
+      ]);
+    expect(sizes.length).toBeGreaterThan(0);
+    for (const size of sizes) expect(size).toMatch(/^48px/);
+  });
+});
+
 test.describe('Containers grow around 200% text instead of clipping it', () => {
   test.beforeEach(({ page }) => page.setViewportSize({ width: 1280, height: 1400 }));
 

@@ -15,7 +15,7 @@ export function TouchTarget({ className }: TouchTargetProps) {
       aria-hidden="true"
       data-touch-target=""
       className={cn(
-        'absolute top-1/2 left-1/2 h-12 w-[max(100%,3rem)] -translate-x-1/2 -translate-y-1/2',
+        'absolute top-1/2 left-1/2 h-[48px] w-[max(100%,48px)] -translate-x-1/2 -translate-y-1/2',
         className,
       )}
     />

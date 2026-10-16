@@ -200,7 +200,7 @@ describe('Checkbox density', () => {
       '[--m3-ripple-size:calc(20px+var(--md-sys-density,0)*2px)]',
     );
     expect(control.querySelector('[data-slot="box"]')).toHaveClass('size-[18px]');
-    expect(control.querySelector('[data-touch-target]')).toHaveClass('h-12');
+    expect(control.querySelector('[data-touch-target]')).toHaveClass('h-[48px]');
     expect(await axeViolations(container)).toEqual([]);
   });
 });
