@@ -10,7 +10,7 @@ const MEMBERS = [
 
 /** An app's own component around an Avatar: the group still finds it, through context. */
 function MemberAvatar({ id, name }: { id: string; name: string }) {
-  return <Avatar name={name} alt={name} href={`#member-${id}`} />;
+  return <Avatar name={name} alt={name} href={`#demo-member-${id}`} />;
 }
 
 /**

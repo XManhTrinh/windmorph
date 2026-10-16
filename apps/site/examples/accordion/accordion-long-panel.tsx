@@ -2,7 +2,10 @@
 
 import { Accordion, AccordionItem, Link } from '@windmorph/react-pro';
 
-/** A long panel with a link, a list and a second paragraph: Tab moves into an open panel. */
+/**
+ * A long panel with a link, a list and a second paragraph: Tab moves into an open panel. The
+ * link points at text in the closed Privacy policy panel, which opens as the link is followed.
+ */
 export function AccordionLongPanel() {
   return (
     <Accordion defaultExpandedKeys={['data']} className="w-full max-w-md">
@@ -20,6 +23,11 @@ export function AccordionLongPanel() {
       </AccordionItem>
       <AccordionItem id="account" title="Do I need an account?">
         No. Check out as a guest and create an account later.
+      </AccordionItem>
+      <AccordionItem id="privacy" title="Privacy policy">
+        <span id="privacy-policy">
+          We only share your details with the partners who deliver and pay for your order.
+        </span>
       </AccordionItem>
     </Accordion>
   );
