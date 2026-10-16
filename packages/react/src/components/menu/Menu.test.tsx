@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { labelInNameViolations } from '../../../test/label-in-name';
 import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 import { ThemeScope } from '../../theme/ThemeScope';
@@ -243,9 +244,7 @@ describe('Menu', () => {
   it('describes items and shows shortcuts', async () => {
     render(<EditMenu />);
     await openMenu('Edit');
-    expect(screen.getByRole('menuitem', { name: /Paste/ })).toHaveAccessibleDescription(
-      'From history',
-    );
+    expect(screen.getByRole('menuitem', { name: /^Paste\s*From history$/ })).toBeInTheDocument();
     expect(screen.getByText('⌘C').tagName).toBe('KBD');
   });
 
@@ -339,6 +338,38 @@ describe('Menu', () => {
     await userEvent.keyboard('{Escape}');
     await closed();
     expect(trigger).not.toHaveAttribute('data-menu-open');
+  });
+
+  // 2026-10-16: an item with a description was named by its label and described by its
+  // supporting text, so its name left out visible text (axe's label-content-name-mismatch,
+  // WCAG 2.5.3), as List options were.
+  it('names an item by its label and supporting text, each read once', async () => {
+    render(
+      <MenuTrigger>
+        <Button>Edit</Button>
+        <Menu aria-label="Edit">
+          <MenuItem key="paste" description="From history" shortcut="⌘V">
+            Paste
+          </MenuItem>
+          <MenuItem key="inbox" description="All mail" badge={<span>12</span>}>
+            Inbox
+          </MenuItem>
+          <MenuItem key="delete">Delete</MenuItem>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Edit');
+    const menu = screen.getByRole('menu');
+    expect(await labelInNameViolations(menu)).toEqual([]);
+    const paste = screen.getByRole('menuitem', { name: /^Paste\s*From history$/ });
+    expect(paste).not.toHaveAttribute('aria-labelledby');
+    // The shortcut and the badge stay descriptions, read once after the name.
+    expect(paste).toHaveAccessibleDescription('⌘V');
+    expect(
+      screen.getByRole('menuitem', { name: /^Inbox\s*All mail$/ }),
+    ).toHaveAccessibleDescription('12');
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).not.toHaveAccessibleDescription();
+    expect(await axeViolations(menu)).toEqual([]);
   });
 
   it('shows a badge, read as part of the item description', async () => {

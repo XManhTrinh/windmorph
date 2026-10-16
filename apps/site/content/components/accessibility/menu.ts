@@ -69,11 +69,11 @@ export const menu: ComponentAccessibility = {
   ],
   screenReader: {
     role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
-    name: "From a `MenuTrigger`, the menu is named by its trigger's label, and a submenu by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label.",
+    name: "From a `MenuTrigger`, the menu is named by its trigger's label, and a submenu by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
     states:
       'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
     notes: [
-      "An item's `description`, `badge` and `shortcut` (shown as a `<kbd>`) are read as its accessible description.",
+      "An item's `badge` and `shortcut` (shown as a `<kbd>`) are read once, as its accessible description, after its name.",
       'Leading, trailing and selected icons, and the submenu arrow, are decorative and hidden from assistive tech (`aria-hidden`).',
       'While the menu is open the rest of the page is hidden from assistive tech.',
     ],

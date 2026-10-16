@@ -94,14 +94,14 @@ export interface MenuItemProps {
   leadingIcon?: ReactNode;
   /** Icon shown while selected (defaults to a check in selectable menus). */
   selectedIcon?: ReactNode;
-  /** Second line of text. */
+  /** Second line of text (supporting text), read as part of the item's name after the label. */
   description?: ReactNode;
   /**
    * A badge before the trailing text or icon (M3 anatomy), such as a `Badge` with a count.
-   * It's read after the label, as part of the item's description.
+   * It's read after the name, as the item's description.
    */
   badge?: ReactNode;
-  /** Keyboard shortcut shown at the end, e.g. "⌘C". */
+  /** Keyboard shortcut shown at the end, e.g. "⌘C", read as the item's description. */
   shortcut?: string;
   /** Icon at the end (an item with a submenu shows an arrow by default). */
   trailingIcon?: ReactNode;
@@ -1103,8 +1103,6 @@ function MenuItemView({
   const multiple = selectable && state.selectionManager.selectionMode === 'multiple';
   const {
     menuItemProps: ariaItemProps,
-    labelProps,
-    descriptionProps,
     keyboardShortcutProps,
     isSelected,
     isPressed,
@@ -1140,8 +1138,13 @@ function MenuItemView({
   const selectedIcon = props.selectedIcon ?? (selectable ? <CheckIcon /> : null);
   const trailingIcon = props.trailingIcon ?? (props.submenu ? <SubmenuIcon /> : null);
   const badgeId = useId();
+  // Named by its content: the label and supporting text in the order they show, each read
+  // once. React Aria names it by the label alone and describes it by the supporting text,
+  // which leaves visible text out of its name (WCAG 2.5.3), as List options did. The shortcut
+  // and the badge are extra information, not the item's label: they stay its description,
+  // hidden from the content so they're read once.
   const describedBy =
-    [menuItemProps['aria-describedby'], props.badge ? badgeId : undefined]
+    [props.shortcut ? keyboardShortcutProps.id : undefined, props.badge ? badgeId : undefined]
       .filter(Boolean)
       .join(' ') || undefined;
 
@@ -1149,6 +1152,7 @@ function MenuItemView({
     <div
       {...mergeProps(menuItemProps, interactionProps)}
       {...dataAttributes}
+      aria-labelledby={undefined}
       aria-describedby={describedBy}
       data-menu-open={submenuOpen || undefined}
       // Each item resolves the menu's tokens, so its selection picks its colours.
@@ -1183,24 +1187,22 @@ function MenuItemView({
         </span>
       ) : null}
       <span className={styles.text()}>
-        <span {...labelProps}>{node.rendered}</span>
+        <span>{node.rendered}</span>
         {props.description && (
-          <span
-            {...descriptionProps}
-            className={styles.description({ class: classNames?.description })}
-          >
+          <span className={styles.description({ class: classNames?.description })}>
             {props.description}
           </span>
         )}
       </span>
       {props.badge && (
-        <span id={badgeId} className={styles.badge()}>
+        <span id={badgeId} aria-hidden="true" className={styles.badge()}>
           {props.badge}
         </span>
       )}
       {props.shortcut && (
         <kbd
           {...keyboardShortcutProps}
+          aria-hidden="true"
           className={styles.trailing({ class: cn('font-plain', classNames?.shortcut) })}
         >
           {props.shortcut}

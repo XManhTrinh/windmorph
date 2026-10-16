@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { labelInNameViolations } from '../../../test/label-in-name';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { SelectItem, SelectSection } from './option-list';
 import { Select, type SelectProps } from './Select';
@@ -126,6 +127,18 @@ describe('Select', () => {
     );
     await userEvent.tab();
     expect(field).toHaveAttribute('data-floated', 'true');
+  });
+
+  // Options are named by their content (label and supporting text), so the name holds the
+  // visible label (WCAG 2.5.3); Menu items and List options follow the same rule.
+  it('names an option by its label and supporting text', async () => {
+    render(<Sort />);
+    await userEvent.click(sortField());
+    const listbox = screen.getByRole('listbox');
+    expect(await labelInNameViolations(listbox)).toEqual([]);
+    expect(
+      screen.getByRole('option', { name: /^Price, low to high\s*Cheapest at the top$/ }),
+    ).not.toHaveAccessibleDescription();
   });
 
   it('includes the required asterisk in the name', () => {
