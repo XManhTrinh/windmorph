@@ -141,8 +141,8 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               Shift+Enter is a new line; on touch screens Enter is a new line and Send sends, as
               most chat apps do on phones), <InlineCode>{"'mod-enter'"}</InlineCode> (Ctrl or
               ⌘+Enter sends) or <InlineCode>{"'none'"}</InlineCode> (only the button). Nothing is
-              sent while an input method is composing (Vietnamese Telex, pinyin, kana), and a blank
-              value is never sent. <InlineCode>onSubmit</InlineCode> gets the trimmed text.{' '}
+              sent while an input method is composing (pinyin, kana or a dead-key accent), and a
+              blank value is never sent. <InlineCode>onSubmit</InlineCode> gets the trimmed text.{' '}
               <InlineCode>canSend</InlineCode> overrides &quot;any text&quot;: a photo alone can be
               sent, or Send can wait for an upload.
             </li>

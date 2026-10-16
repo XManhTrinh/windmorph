@@ -1,6 +1,6 @@
 /**
  * Lower case without accents, so a search for "zurich" finds "Zürich" and "cote" finds
- * "Côte d'Ivoire". `đ` (a letter of its own in Croatian and Vietnamese, not a d with an
+ * "Côte d'Ivoire". `đ` (a letter of its own in Croatian, not a d with an
  * accent) is folded to `d` too, so "dakovo" finds "Đakovo".
  */
 export function normalizeSearch(text: string): string {
