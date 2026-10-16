@@ -181,31 +181,50 @@ test.describe('Containers grow around 200% text instead of clipping it', () => {
 });
 
 /**
- * Each navigation label in `scope`: the words split across two lines (none may be), whether
- * its text is wider than the label, its `text-overflow`, and how many lines it takes.
+ * Each navigation label in `scope`: the words split across two lines, those still split with
+ * hyphenation turned off (a bare break, which none may have), whether its text is wider than
+ * the label (a line then ends with an ellipsis), whether the label pokes out of its item, its
+ * `text-overflow`, and how many lines it takes.
  */
 const navLabels = (scope: Locator) =>
   scope.locator('[data-nav-label]').evaluateAll((labels) =>
     labels.map((label) => {
       const tops = (rects: DOMRectList) =>
         new Set([...rects].filter((rect) => rect.width > 0).map((rect) => Math.round(rect.top)));
-      const split: string[] = [];
-      const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
-      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        for (const match of (node.textContent ?? '').matchAll(/\S+/g)) {
-          const range = document.createRange();
-          range.setStart(node, match.index);
-          range.setEnd(node, match.index + match[0].length);
-          if (tops(range.getClientRects()).size > 1) split.push(match[0]);
+      const splitWords = () => {
+        const split: string[] = [];
+        const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          for (const match of (node.textContent ?? '').matchAll(/\S+/g)) {
+            const range = document.createRange();
+            range.setStart(node, match.index);
+            range.setEnd(node, match.index + match[0].length);
+            if (tops(range.getClientRects()).size > 1) split.push(match[0]);
+          }
         }
-      }
+        return split;
+      };
+      const split = splitWords();
+      // Only hyphenation may split a word, and it draws a hyphen: without it, none splits.
+      const el = label as HTMLElement;
+      el.style.hyphens = 'none';
+      const bare = splitWords();
+      el.style.hyphens = '';
       const whole = document.createRange();
       whole.selectNodeContents(label);
       const style = getComputedStyle(label);
+      const box = label.getBoundingClientRect();
+      const item = label.closest('a, button')!.getBoundingClientRect();
       return {
         text: label.textContent ?? '',
         split,
+        bare,
         overflows: label.scrollWidth > label.clientWidth + 0.5,
+        outside:
+          box.left < item.left - 0.5 ||
+          box.right > item.right + 0.5 ||
+          box.top < item.top - 0.5 ||
+          box.bottom > item.bottom + 0.5,
         ellipsis: style.textOverflow === 'ellipsis' && style.overflowX === 'hidden',
         lines: tops(whole.getClientRects()).size,
       };
@@ -215,41 +234,52 @@ const navLabels = (scope: Locator) =>
 test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
   test.beforeEach(({ page }) => page.setViewportSize({ width: 1280, height: 1400 }));
 
-  /** No label is cut short; with room for every word, none breaks inside a word. */
-  const expectWhole = (
+  /**
+   * No label pokes out of its item or breaks a word bare (2026-10-16): a word wider than its
+   * item may hyphenate, and a line it still overflows ends with an ellipsis. With room for
+   * every word, nothing is split or cut.
+   */
+  const expectSafe = (
     labels: Awaited<ReturnType<typeof navLabels>>,
     { wordsFit }: { wordsFit: boolean },
   ) => {
     expect(labels.length).toBeGreaterThan(0);
     for (const label of labels) {
-      expect(label.overflows, `${label.text}: cut off`).toBe(false);
-      expect(label.ellipsis, `${label.text}: ellipsis`).toBe(false);
-      if (wordsFit) expect(label.split, `${label.text}: split inside a word`).toEqual([]);
+      expect(label.outside, `${label.text}: outside its item`).toBe(false);
+      expect(label.bare, `${label.text}: split inside a word without a hyphen`).toEqual([]);
+      expect(label.ellipsis, `${label.text}: an overflowing line ends with an ellipsis`).toBe(true);
+      if (wordsFit) {
+        expect(label.split, `${label.text}: split inside a word`).toEqual([]);
+        expect(label.overflows, `${label.text}: cut off`).toBe(false);
+      }
     }
   };
 
-  test('bar labels, stacked and inline, wrap between words and are never cut', async ({ page }) => {
+  test('bar labels, stacked and inline, wrap between words and never break one bare', async ({
+    page,
+  }) => {
     await openStory(page, 'components-navigation--bar');
     await setRootFontSize(page, 32);
     const bars = page.getByTestId('bars').getByRole('navigation');
     await expect(bars).toHaveCount(3);
-    expectWhole(await navLabels(bars.nth(0)), { wordsFit: true });
-    expectWhole(await navLabels(bars.nth(1)), { wordsFit: true });
+    expectSafe(await navLabels(bars.nth(0)), { wordsFit: true });
+    expectSafe(await navLabels(bars.nth(1)), { wordsFit: true });
     // The narrow bar's "Recently shared files" wraps onto several lines.
     const narrow = await navLabels(bars.nth(2));
-    expectWhole(narrow, { wordsFit: false });
+    expectSafe(narrow, { wordsFit: false });
     expect(narrow.find((label) => label.text === 'Recently shared files')!.lines).toBeGreaterThan(
       1,
     );
   });
 
   /*
-   * 2026-10-15: four stacked items in a 320px window at 2x text ended "Starred" and
-   * "Recently" with an ellipsis. A word wider than its item now breaks as a last resort
-   * (hyphenated where the browser has a dictionary for the page's language), so the whole
-   * label stays on screen.
+   * 2026-10-15: four stacked items in a 320px window at 2x text. Breaking a word wherever it
+   * met the item's edge gave "Searc/h" and "Starre/d"; since 2026-10-16 a word wider than its
+   * item keeps its line and ends with an ellipsis, and the other words still wrap.
    */
-  test('four stacked items at 320px and 2x text show every label whole', async ({ page }) => {
+  test('four stacked items at 320px and 2x text end a word too wide with an ellipsis', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await openStory(page, 'components-navigation--bar');
     await setRootFontSize(page, 32);
@@ -261,28 +291,36 @@ test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
     for (const index of [0, 2]) {
       const labels = await navLabels(bars.nth(index));
       expect(labels.length).toBe(4);
-      expectWhole(labels, { wordsFit: false });
+      expectSafe(labels, { wordsFit: false });
+      expect(
+        labels.some((label) => label.overflows),
+        'a word wider than its item, ending with an ellipsis',
+      ).toBe(true);
     }
   });
 
-  test('a one-word label too wide for its item breaks rather than being cut', async ({ page }) => {
+  test('a one-word label too wide for its item stays on one line with an ellipsis', async ({
+    page,
+  }) => {
     await openStory(page, 'components-navigation--bar');
     await setRootFontSize(page, 48);
     const stacked = await navLabels(page.getByTestId('bars').getByRole('navigation').first());
-    expectWhole(stacked, { wordsFit: false });
-    const word = stacked.find((label) => !/\s/.test(label.text) && label.lines > 1);
-    expect(word, 'a one-word label broken over lines').toBeDefined();
+    expectSafe(stacked, { wordsFit: false });
+    const word = stacked.find((label) => !/\s/.test(label.text) && label.overflows);
+    expect(word, 'a one-word label wider than its item').toBeDefined();
+    expect(word!.split).toEqual([]);
+    expect(word!.lines).toBe(1);
   });
 
   for (const expanded of [false, true]) {
-    test(`${expanded ? 'expanded' : 'collapsed'} rail labels wrap and are never cut`, async ({
+    test(`${expanded ? 'expanded' : 'collapsed'} rail labels wrap and never break a word bare`, async ({
       page,
     }) => {
       await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: expanded });
       await setRootFontSize(page, 32);
       const rail = page.getByTestId('rail');
       await page.waitForTimeout(600);
-      expectWhole(await navLabels(rail), { wordsFit: false });
+      expectSafe(await navLabels(rail), { wordsFit: false });
     });
   }
 

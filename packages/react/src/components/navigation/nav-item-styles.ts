@@ -38,10 +38,12 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Labels don't truncate (M3: "Don't truncate or display an ellipsis in place of label
  * text"): they wrap between words, and the item grows taller, so the full label stays
- * visible under large text sizes. A word breaks only when it alone is wider than the item,
- * as a last resort: hyphenated by the browser where the document's `lang` has a dictionary
- * (`hyphens: auto`), otherwise at the item's edge (`overflow-wrap: break-word`), so no label
- * is ever cut short or ends with an ellipsis (2026-10-15, refining 2026-10-13).
+ * visible under large text sizes. A word wider than the item may break where the browser
+ * hyphenates it for the document's `lang` (`hyphens: auto`), but never bare ("Searc/h"):
+ * `overflow-wrap: normal` keeps it whole, and a line it still overflows ends with an
+ * ellipsis (`overflow: hidden` with `text-overflow: ellipsis`, applied per line), while the
+ * other words keep wrapping. The text stays whole in the DOM, so the accessible name is the
+ * full label (2026-10-16, refining 2026-10-13 and 2026-10-15).
  *
  * Badges overlap the icon's top end (BadgedBox), except in the expanded rail, where M3 puts
  * them next to the label, 4px after it.
@@ -115,7 +117,7 @@ export const navItemStyles = tv({
     // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in).
     badgedBox: '',
     label: [
-      'min-w-0 text-balance hyphens-auto wrap-break-word group-data-disabled/nav:text-on-surface-variant/38',
+      'min-w-0 overflow-hidden text-ellipsis text-balance hyphens-auto wrap-normal group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
   },

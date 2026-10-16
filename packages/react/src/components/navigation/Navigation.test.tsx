@@ -331,12 +331,19 @@ describe('NavigationRail', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
-  it('wraps long labels, never cuts them short, and bolds the current one', () => {
+  it('wraps long labels between words, never breaks a word bare, and bolds the current one', () => {
     const { rerender } = render(<Rail />);
     const label = screen.getByText('Inbox');
-    // Lines break between words; a word wider than the item hyphenates as a last resort.
-    expect(label).toHaveClass('text-balance', 'hyphens-auto', 'wrap-break-word');
-    expect(label.className).not.toMatch(/truncate|text-ellipsis|overflow-hidden|break-all/);
+    // Lines break between words or at a hyphenation point; a word still wider than the item
+    // ends its line with an ellipsis instead of breaking bare.
+    expect(label).toHaveClass(
+      'text-balance',
+      'hyphens-auto',
+      'wrap-normal',
+      'overflow-hidden',
+      'text-ellipsis',
+    );
+    expect(label.className).not.toMatch(/truncate|wrap-break-word|wrap-anywhere|break-all/);
     expect(label).toHaveClass('group-data-current/nav:text-label-medium-emphasized');
     rerender(<Rail expanded />);
     expect(screen.getByText('Inbox')).toHaveClass(
@@ -737,10 +744,14 @@ describe('NavigationBar', () => {
     expect(label).toHaveClass(
       'text-balance',
       'hyphens-auto',
-      'wrap-break-word',
+      'wrap-normal',
+      'overflow-hidden',
+      'text-ellipsis',
       'group-data-current/nav:text-label-medium-emphasized',
     );
-    expect(label.className).not.toMatch(/truncate|text-ellipsis|overflow-hidden|break-all/);
+    expect(label.className).not.toMatch(/truncate|wrap-break-word|wrap-anywhere|break-all/);
+    // An ellipsis is only painted: the text stays whole, so the name is the full label.
+    expect(screen.getByRole('link', { name: 'Home' })).toContainElement(label);
     expect(screen.getByRole('navigation')).toHaveClass('min-h-[64px]');
   });
 
