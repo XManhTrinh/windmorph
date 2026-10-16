@@ -13,9 +13,23 @@ import { createRequire } from 'node:module';
 import { argv } from 'node:process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { withCustomConfig } from 'react-docgen-typescript';
+import { Parser as DocgenParser, withCustomConfig } from 'react-docgen-typescript';
 import ts from 'typescript';
 import { compilerOptionsOf, documentHooks, objectFields, type HookDocFile } from './hook-docs';
+
+/**
+ * react-docgen-typescript caches a prop by its declaring file and name when that file is in
+ * `node_modules`, meant for React's own types. Pro's declarations are installed there too, so
+ * two components declared in one file (`AccordionHeader` and `AccordionPanel` beside
+ * `AccordionItem`) would share each other's `className`, `classNames` and `ref` rows. Each
+ * component starts with an empty cache instead.
+ */
+type CachedParser = { propertiesOfPropsCache: Map<string, unknown> };
+const readPropsInfo = DocgenParser.prototype.getPropsInfo;
+DocgenParser.prototype.getPropsInfo = function (this: CachedParser, ...args) {
+  this.propertiesOfPropsCache.clear();
+  return readPropsInfo.apply(this, args);
+} as typeof readPropsInfo;
 
 const here = dirname(fileURLToPath(import.meta.url));
 const siteRoot = resolve(here, '..');

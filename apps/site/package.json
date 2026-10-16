@@ -58,6 +58,6 @@
     "vitest": "^5.0.3"
   },
   "optionalDependencies": {
-    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#5a196c1fdf8aecd15d219de7448fdc153e1f581d"
+    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#51bcce76a9138a16849130730618e293c9cd5a01"
   }
 }

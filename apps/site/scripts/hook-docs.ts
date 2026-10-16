@@ -74,8 +74,10 @@ export function objectFields(
     const fileName = node.getSourceFile().fileName;
     return fileName.includes('/node_modules/') && !fileName.includes('@windmorph/react-pro');
   };
-  // Library types stay whole, except the installed Windmorph Pro's own declarations.
-  const declaration = target.getSymbol()?.declarations?.[0];
+  // Library types stay whole, except the installed Windmorph Pro's own declarations. An alias
+  // is judged by where it is declared, so a package's `Pick<…>` or `Omit<…>` of its own
+  // interface is listed even though the mapped type itself comes from TypeScript's library.
+  const declaration = (target.aliasSymbol ?? target.getSymbol())?.declarations?.[0];
   if (declaration && fromLibrary(declaration)) return [];
   // A class (the snackbar host's state) lists its public members, not its private ones.
   const isPublic = (member: ts.Symbol) =>
