@@ -388,7 +388,7 @@ export function SearchBar(props: SearchBarProps) {
         collapsedTone,
       )}
       {isPresent && rect && (
-        <Overlay isExiting={isExiting}>
+        <Overlay exiting={isExiting}>
           <SearchView
             view={view}
             state={state}

@@ -4,7 +4,7 @@ import { TokenProbe } from './probe';
 
 /** An open rich tooltip on a button; it is portalled, and the spec finds it by its region. */
 const Open = ({ label, ...props }: RichTooltipProps & { label: string }) => (
-  <RichTooltipTrigger persistent isOpen placement="end">
+  <RichTooltipTrigger persistent open placement="end">
     <Button variant="text">{label}</Button>
     <RichTooltip title="Grouped tabs" {...props} />
   </RichTooltipTrigger>

@@ -14,7 +14,7 @@ export interface OverlayProps {
   /** Leave focus handling to the caller instead of restoring it on unmount. */
   disableFocusManagement?: boolean;
   /** Whether the overlay is animating out; focus containment is released meanwhile. */
-  isExiting?: boolean;
+  exiting?: boolean;
   /**
    * Float above every other layer, for overlays that must stay reachable whatever is open
    * (tooltips). A modal open underneath (a dialog, sheet or viewer) does not hide it from
@@ -45,7 +45,7 @@ export function Overlay({
   children,
   portalContainer,
   disableFocusManagement,
-  isExiting,
+  exiting,
   topLayer,
   density,
 }: OverlayProps) {
@@ -84,7 +84,7 @@ export function Overlay({
       <AriaOverlay
         portalContainer={portalContainer}
         disableFocusManagement={disableFocusManagement}
-        isExiting={isExiting}
+        isExiting={exiting}
       >
         <div
           ref={scopeRef}

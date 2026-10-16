@@ -242,7 +242,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'TooltipTrigger + Tooltip',
         params: [
           { compose: 'positionProvider', windmorph: 'TooltipTrigger placement, offset' },
-          { compose: 'state', windmorph: 'TooltipTrigger isOpen, onOpenChange' },
+          { compose: 'state', windmorph: 'TooltipTrigger open, onOpenChange' },
           { compose: 'caretShape', windmorph: 'Tooltip caret' },
         ],
       },

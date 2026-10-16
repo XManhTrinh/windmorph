@@ -105,13 +105,13 @@ export interface TooltipTriggerProps {
   /** Distance from the anchor in px: 4 for an anchor with a visual boundary, 8 for text. @default 4 */
   offset?: number;
   /** Never show the tooltip. @default false */
-  isDisabled?: boolean;
+  disabled?: boolean;
   /** Whether the tooltip is shown (controlled). */
-  isOpen?: boolean;
+  open?: boolean;
   /** Whether the tooltip starts shown when uncontrolled. @default false */
   defaultOpen?: boolean;
   /** Called when the tooltip shows or hides. */
-  onOpenChange?: (isOpen: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -131,21 +131,28 @@ export function TooltipTrigger({
   closeDelay = CLOSE_DELAY,
   placement: placementProp,
   offset = DEFAULT_OFFSET,
-  isDisabled,
-  isOpen,
+  disabled,
+  open,
   defaultOpen,
   onOpenChange,
 }: TooltipTriggerProps) {
   const contextPlacement = useContext(TooltipPlacementContext);
   const placement = placementProp ?? contextPlacement ?? 'top';
-  const options = { delay, closeDelay, isDisabled, isOpen, defaultOpen, onOpenChange };
+  const options = {
+    delay,
+    closeDelay,
+    isDisabled: disabled,
+    isOpen: open,
+    defaultOpen,
+    onOpenChange,
+  };
   const state = useTooltipTriggerState(options);
   const triggerRef = useRef<HTMLElement>(null);
   const { triggerProps, tooltipProps } = useTooltipTrigger(options, state, triggerRef);
   const longPressProps = useTouchLongPress(
     () => state.open(true),
     () => state.close(),
-    isDisabled,
+    disabled,
   );
   const triggerValue = useTriggerProps({
     ...(mergeProps(triggerProps, longPressProps) as TriggerContextValue),

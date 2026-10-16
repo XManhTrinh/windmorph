@@ -331,7 +331,7 @@ export function Menu({ presentation = 'popover', instant = false, ...props }: Me
   const isExiting = !instant && presence.isExiting;
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <MenuPopover
         {...props}
         trigger={trigger}
@@ -1012,7 +1012,7 @@ function SubmenuPopover(props: SubmenuPopoverProps) {
   // Inside the root popover: its focus scope and outside-press handling cover the submenu,
   // and the modal root menu doesn't make it inert.
   return (
-    <Overlay portalContainer={tree.container} disableFocusManagement isExiting={isExiting}>
+    <Overlay portalContainer={tree.container} disableFocusManagement exiting={isExiting}>
       <SubmenuPopoverContent {...props} isExiting={isExiting} exitProps={exitProps} />
     </Overlay>
   );

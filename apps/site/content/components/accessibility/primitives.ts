@@ -37,7 +37,7 @@ export const primitives: ComponentAccessibility = {
   focus: [
     '`useM3Interaction` sets `data-focus-visible` on keyboard focus, not pointer focus. The `focus-ring` utility draws a 3px `secondary` outline 2px outside the element from it, and `focus-ring-inset` the same ring inside, for full-bleed rows.',
     'A disabled `ButtonBase` cannot be focused. `preventFocusOnPress` keeps focus where it is on press, as menu triggers do.',
-    '`Overlay` restores focus to where it was when its content unmounts, unless `disableFocusManagement`. Containment comes from the React Aria hook of the component using it, and is released while it animates out (`isExiting`, from `usePresence`).',
+    '`Overlay` restores focus to where it was when its content unmounts, unless `disableFocusManagement`. Containment comes from the React Aria hook of the component using it, and is released while it animates out (`exiting`, from the `isExiting` that `usePresence` returns).',
   ],
   touchTarget: [
     "`TouchTarget` adds an invisible hit area 48px tall and at least 48px wide (the element's width if wider), centred on the control, without changing its layout. Render it inside the control's `relative` content wrapper, never on the root.",

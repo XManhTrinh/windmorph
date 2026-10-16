@@ -222,7 +222,7 @@ export function BottomSheet({
       />
     );
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <ModalBottomSheet
         {...props}
         state={state}

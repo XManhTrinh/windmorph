@@ -495,7 +495,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         state={state}
         triggerRef={containerRef}
         popoverRef={popoverRef}
-        isNonModal
+        nonModal
         density={density}
       >
         <OptionList

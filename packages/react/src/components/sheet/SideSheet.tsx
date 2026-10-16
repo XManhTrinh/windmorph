@@ -172,7 +172,7 @@ export function SideSheet({
   if (variant === 'standard') return <StandardSideSheet {...props} state={state} />;
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <ModalSideSheet
         {...props}
         state={state}

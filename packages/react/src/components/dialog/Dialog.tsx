@@ -399,7 +399,7 @@ export function Dialog({
   }, [usesOrigin, origin, triggerRef, isOpen, isPresent]);
   if (!isPresent || (usesOrigin && measured === null)) return null;
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <DialogModal
         {...props}
         state={state}

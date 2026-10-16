@@ -146,7 +146,7 @@ export function Tooltip(props: TooltipProps) {
   const { isPresent, isExiting, exitProps } = usePresence(context.state.isOpen);
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting} topLayer>
+    <Overlay exiting={isExiting} topLayer>
       <TooltipPopup {...props} context={context} isExiting={isExiting} exitProps={exitProps} />
     </Overlay>
   );
@@ -236,11 +236,11 @@ export interface RichTooltipTriggerProps {
   /** Milliseconds before a transient tooltip hides after the pointer leaves. @default 1500 */
   closeDelay?: number;
   /** Whether the tooltip is shown (controlled). */
-  isOpen?: boolean;
+  open?: boolean;
   /** Whether the tooltip starts shown when uncontrolled. @default false */
   defaultOpen?: boolean;
   /** Called when the tooltip shows or hides. */
-  onOpenChange?: (isOpen: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -258,11 +258,11 @@ function PersistentRichTrigger({
   children,
   placement = 'bottom start',
   offset = DEFAULT_OFFSET,
-  isOpen,
+  open,
   defaultOpen,
   onOpenChange,
 }: Omit<RichTooltipTriggerProps, 'persistent'>) {
-  const state = useOverlayTriggerState({ isOpen, defaultOpen, onOpenChange });
+  const state = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const triggerRef = useRef<HTMLElement>(null);
   const { triggerProps, overlayProps } = useOverlayTrigger({ type: 'dialog' }, state, triggerRef);
   const triggerValue = useTriggerProps({
@@ -284,11 +284,11 @@ function TransientRichTrigger({
   offset = DEFAULT_OFFSET,
   delay = 0,
   closeDelay = CLOSE_DELAY,
-  isOpen,
+  open,
   defaultOpen,
   onOpenChange,
 }: Omit<RichTooltipTriggerProps, 'persistent'>) {
-  const options = { delay, closeDelay, isOpen, defaultOpen, onOpenChange };
+  const options = { delay, closeDelay, isOpen: open, defaultOpen, onOpenChange };
   const state = useTooltipTriggerState(options);
   const triggerRef = useRef<HTMLElement>(null);
   const { triggerProps, tooltipProps } = useTooltipTrigger(options, state, triggerRef);
@@ -365,7 +365,7 @@ export function RichTooltip(props: RichTooltipProps) {
     // A persistent one handles its own Tab order and focus return (`useTabOrderAfterTrigger`):
     // the overlay's restoring focus scope would send Shift+Tab from its first control to
     // whatever precedes the trigger.
-    <Overlay isExiting={isExiting} topLayer disableFocusManagement={context.persistent}>
+    <Overlay exiting={isExiting} topLayer disableFocusManagement={context.persistent}>
       {context.persistent ? (
         <PersistentRichPopup {...props} {...shared} context={context} />
       ) : (

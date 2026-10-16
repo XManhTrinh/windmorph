@@ -37,7 +37,7 @@ export function FabTooltip({ available, label, className, children }: FabTooltip
   }
   if (inTooltipTrigger) return children;
   return (
-    <TooltipTrigger isDisabled={!available} isOpen={available && isOpen} onOpenChange={setOpen}>
+    <TooltipTrigger disabled={!available} open={available && isOpen} onOpenChange={setOpen}>
       {/* The label is the FAB's name, so the tooltip doesn't describe it too. */}
       <WithoutDescription>{children}</WithoutDescription>
       <LazyTooltip classNames={{ panel: className }}>{label}</LazyTooltip>

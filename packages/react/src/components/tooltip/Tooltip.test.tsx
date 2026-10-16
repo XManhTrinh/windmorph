@@ -128,6 +128,47 @@ describe('Tooltip', () => {
     );
   });
 
+  // The core's names (2026-10-16), not React Aria's `isOpen` and `isDisabled`.
+  it('is controlled by open and onOpenChange, and disabled never shows it', async () => {
+    const onOpenChange = vi.fn();
+    const { rerender } = render(
+      <TooltipTrigger open={false} onOpenChange={onOpenChange}>
+        <IconButton icon={<Icon />} aria-label="Favourite" />
+        <Tooltip>Add to favourites</Tooltip>
+      </TooltipTrigger>,
+    );
+    await hover(screen.getByRole('button', { name: 'Favourite' }));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    rerender(
+      <TooltipTrigger open onOpenChange={onOpenChange}>
+        <IconButton icon={<Icon />} aria-label="Favourite" />
+        <Tooltip>Add to favourites</Tooltip>
+      </TooltipTrigger>,
+    );
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Add to favourites');
+    rerender(
+      <TooltipTrigger disabled closeDelay={0}>
+        <IconButton icon={<Icon />} aria-label="Favourite" />
+        <Tooltip>Add to favourites</Tooltip>
+      </TooltipTrigger>,
+    );
+    await gone('tooltip');
+    await hover(screen.getByRole('button', { name: 'Favourite' }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
+  it('shows a rich tooltip while open is true', async () => {
+    render(
+      <RichTooltipTrigger persistent open>
+        <Button>Details</Button>
+        <RichTooltip subhead="Shared">Visible to your team</RichTooltip>
+      </RichTooltipTrigger>,
+    );
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Visible to your team');
+  });
+
   it('lets consumer panel classes replace the token classes', async () => {
     render(
       <TooltipTrigger defaultOpen>

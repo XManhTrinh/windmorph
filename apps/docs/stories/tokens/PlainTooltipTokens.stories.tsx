@@ -4,7 +4,7 @@ import { TokenProbe } from './probe';
 
 /** An open plain tooltip on a button; it is portalled, and the spec finds it by its region. */
 const Open = ({ label, ...props }: TooltipProps & { label: string }) => (
-  <TooltipTrigger isOpen placement="end">
+  <TooltipTrigger open placement="end">
     <Button variant="text">{label}</Button>
     <Tooltip {...props} />
   </TooltipTrigger>

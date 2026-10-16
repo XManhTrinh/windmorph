@@ -151,7 +151,7 @@ export async function SelectBody(): Promise<ComponentDoc> {
             building a field of your own on top: it anchors to a trigger, is at least as wide as it,
             flips above it when there&apos;s no room, and opens and closes with the menu&apos;s
             motion. Pass it React Stately&apos;s overlay state and the trigger&apos;s ref;{' '}
-            <InlineCode>isNonModal</InlineCode> keeps an input beside it usable, as{' '}
+            <InlineCode>nonModal</InlineCode> keeps an input beside it usable, as{' '}
             <InlineCode>Autocomplete</InlineCode> does.
           </p>
         </section>

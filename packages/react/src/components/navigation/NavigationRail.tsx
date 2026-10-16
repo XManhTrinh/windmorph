@@ -354,7 +354,7 @@ function ModalRail({
   const { isPresent, isExiting, exitProps } = usePresence(open, SHEET_EXIT_PROPERTIES);
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <ModalSheet
         state={state}
         isExiting={isExiting}

@@ -134,7 +134,7 @@ export function PickerDialog({ open, defaultOpen, onOpenChange, ...props }: Pick
   const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting}>
+    <Overlay exiting={isExiting}>
       <PickerDialogModal {...props} state={state} isExiting={isExiting} exitProps={exitProps} />
     </Overlay>
   );

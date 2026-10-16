@@ -361,13 +361,13 @@ function OptionItem<T>({
 /**
  * The list's popover: anchored to the field, at least as wide as it (Compose's
  * `exposedDropdownSize`), above it when there's no room below, with the menu's open and
- * close motion: revealed from the field's edge as it fades in (M3 motion avoids scale). `isNonModal` keeps an `Autocomplete`'s input usable while it's open.
+ * close motion: revealed from the field's edge as it fades in (M3 motion avoids scale). `nonModal` keeps an `Autocomplete`'s input usable while it's open.
  */
 export function OptionPopover({
   state,
   triggerRef,
   popoverRef,
-  isNonModal = false,
+  nonModal = false,
   onPressOutside,
   minWidth = 0,
   density,
@@ -383,7 +383,7 @@ export function OptionPopover({
    * Keeps the page interactive while open (no underlay, focus stays in the field), as an
    * editable field's menu needs. @default false
    */
-  isNonModal?: boolean;
+  nonModal?: boolean;
   /** The least width, when the field is narrower (a searchable menu needs room to type). */
   minWidth?: number;
   /** A press outside the menu and the field closes it (modal menus only). */
@@ -395,12 +395,12 @@ export function OptionPopover({
   const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
   if (!isPresent) return null;
   return (
-    <Overlay isExiting={isExiting} disableFocusManagement={isNonModal} density={density}>
+    <Overlay exiting={isExiting} disableFocusManagement={nonModal} density={density}>
       <PopoverBody
         state={state}
         triggerRef={triggerRef}
         popoverRef={popoverRef}
-        isNonModal={isNonModal}
+        isNonModal={nonModal}
         isExiting={isExiting}
         exitProps={exitProps}
         onPressOutside={onPressOutside}
