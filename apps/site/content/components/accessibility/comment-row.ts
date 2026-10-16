@@ -37,7 +37,7 @@ export const commentRow: ComponentAccessibility = {
     'The actions row is at least 48px tall (`actions-height`), room for actions with 48px targets.',
   ],
   motion: [
-    "The filled bubble fades to its lighter pending colour and back; under reduced motion it changes at once. A pressable bubble's press ripple appears at full size without growing.",
+    "The filled bubble fades between its pending colour (`surface-container`) and its sent colour on the effects spring; a colour fade isn't movement, so it still fades under reduced motion. A pressable bubble's hover and focus state layers fade too, and under reduced motion its press ripple appears at full size without growing.",
   ],
   consumer: [
     'With `as="article"`, give each row an `aria-label` such as "Comment by Alex". Use `as="li"` inside a list.',

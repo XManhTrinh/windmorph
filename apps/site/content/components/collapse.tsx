@@ -10,6 +10,7 @@ import { lazyExample } from '../../lib/lazy-example';
 const CollapseDisclosure = lazyExample('collapse/collapse-disclosure', 'CollapseDisclosure');
 const CollapseReplies = lazyExample('collapse/collapse-replies', 'CollapseReplies');
 const CollapseShownFirst = lazyExample('collapse/collapse-shown-first', 'CollapseShownFirst');
+const CollapseKeptMounted = lazyExample('collapse/collapse-kept-mounted', 'CollapseKeptMounted');
 
 /** Collapse page body: purpose, examples, behaviour and tokens. */
 export async function CollapseBody(): Promise<ComponentDoc> {
@@ -22,8 +23,14 @@ export async function CollapseBody(): Promise<ComponentDoc> {
     highlightSource(disclosure),
   ]);
 
-  const shownFirst = await readExampleSource('collapse/collapse-shown-first.tsx');
-  const shownFirstHtml = await highlightSource(shownFirst);
+  const [shownFirst, keptMounted] = await Promise.all([
+    readExampleSource('collapse/collapse-shown-first.tsx'),
+    readExampleSource('collapse/collapse-kept-mounted.tsx'),
+  ]);
+  const [shownFirstHtml, keptMountedHtml] = await Promise.all([
+    highlightSource(shownFirst),
+    highlightSource(keptMounted),
+  ]);
   return {
     overview: (
       <>
@@ -55,6 +62,14 @@ export async function CollapseBody(): Promise<ComponentDoc> {
           >
             <CollapseShownFirst />
           </ExampleViewer>
+          <ExampleViewer
+            title="Found by find-in-page"
+            code={keptMounted}
+            html={keptMountedHtml}
+            fileName="collapse-kept-mounted.tsx"
+          >
+            <CollapseKeptMounted />
+          </ExampleViewer>
         </section>
       </>
     ),
@@ -72,8 +87,9 @@ export async function CollapseBody(): Promise<ComponentDoc> {
             <InlineCode>@windmorph/react-pro</InlineCode>.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            For text cut to a few lines use Expandable text; for content over the page, a dialog or
-            a sheet.
+            For a stack of headers that each open a panel (an FAQ, settings groups) use Accordion,
+            which is built on it; for text cut to a few lines, Expandable text; for content over the
+            page, a dialog or a sheet.
           </p>
         </section>
 
@@ -83,29 +99,44 @@ export async function CollapseBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>isOpen</InlineCode> opens and folds it on its grid track, so no height is
-              measured, on the default spatial spring, with the content fading on the effects
-              spring.
+              <InlineCode>open</InlineCode> (or <InlineCode>defaultOpen</InlineCode>, uncontrolled)
+              opens and folds it on its grid track, so no height is measured. It opens on the
+              default spatial spring and folds on the default effects spring, which never
+              overshoots, with the content fading on the effects spring.
             </li>
             <li>
               Folding keeps it in the page, showing what it last showed even if the app has moved
               on, and <InlineCode>inert</InlineCode> so focus can&apos;t land in it;{' '}
-              <InlineCode>onExited</InlineCode> runs when it has gone.
+              <InlineCode>onExited</InlineCode> runs when it has folded.
+            </li>
+            <li>
+              Folded, its content goes, unless <InlineCode>keepMounted</InlineCode>: then it stays
+              in the page as <InlineCode>hidden=&quot;until-found&quot;</InlineCode>, out of the
+              accessibility tree and the Tab order, but in the server&apos;s HTML. Find-in-page and
+              a <InlineCode>#fragment</InlineCode> link find text inside it, and it opens at once
+              through <InlineCode>onOpenChange</InlineCode>, so the browser can scroll to the match.
+              Otherwise its control is the app&apos;s, and <InlineCode>onOpenChange</InlineCode>{' '}
+              doesn&apos;t run.
             </li>
             <li>
               It opens as it mounts open; <InlineCode>{'appear={false}'}</InlineCode> makes it
               simply there, for content shown from the start.
             </li>
             <li>
-              Two switching on the same render (one folding as the other opens) move together, as an
-              accordion. A list of them should set <InlineCode>overflow-anchor: none</InlineCode>,
-              or the browser keeps the focused one still and scrolls the page around it.
+              Two switching on the same render (one folding as the other opens) move together on the
+              folding curve, as an accordion, so what&apos;s around them stays put. A list of them
+              should set <InlineCode>overflow-anchor: none</InlineCode>, or the browser keeps the
+              focused one still and scrolls the page around it. For a ready-made one, use Accordion.
             </li>
             <li>
               Spacing that should fold with the content goes inside it (a margin or padding), not in
               a gap around it.
             </li>
-            <li>Under reduced motion it only fades.</li>
+            <li>
+              Under reduced motion the height no longer moves: it only fades, over{' '}
+              <InlineCode>--wm-collapse-fade-duration</InlineCode>, and{' '}
+              <InlineCode>onExited</InlineCode> runs when the fade ends.
+            </li>
           </ul>
         </section>
       </>

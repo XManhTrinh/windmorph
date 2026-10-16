@@ -90,7 +90,11 @@ export async function ShapedIconBody(): Promise<ComponentDoc> {
             <InlineCode>error</InlineCode>); <InlineCode>size</InlineCode> sets the container and
             icon (40/24, 56/28, 64/32 and 96/48px); <InlineCode>shape</InlineCode> is{' '}
             <InlineCode>circle</InlineCode> or any M3 Expressive shape, drawn as a CSS mask, so the
-            colours follow the theme.
+            colours follow the theme. Sizes are in px, so the shape keeps its size at larger text
+            sizes. It has no tokens of its own: the root carries{' '}
+            <InlineCode>data-tokens=&quot;wm-shaped-icon&quot;</InlineCode> and the parts take{' '}
+            <InlineCode>classNames</InlineCode>. In forced colours only the icon stays, in the
+            system text colour, since the shape is decoration.
           </p>
         </section>
       </>

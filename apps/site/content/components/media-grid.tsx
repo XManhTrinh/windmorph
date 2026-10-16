@@ -52,8 +52,9 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             Square photo tiles: a row that scrolls sideways on compact windows and a grid from
             medium windows up, such as a profile&apos;s photos or a listing&apos;s gallery. Pressing
-            a tile tells the app which, so it can open <InlineCode>MediaViewer</InlineCode> there
-            with what it wants around it. It is{' '}
+            a tile tells the app which, and passes the tile, so it can open{' '}
+            <InlineCode>MediaViewer</InlineCode> there, growing out of the tile (its{' '}
+            <InlineCode>origin</InlineCode>), with what it wants around it. It is{' '}
             <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
             <InlineCode>@windmorph/react-pro</InlineCode>.
           </p>
@@ -73,6 +74,15 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
               outer corners are rounded and inner corners square.
             </li>
             <li>Images load lazily and fill their square tiles.</li>
+            <li>
+              <InlineCode>onItemPress</InlineCode> gets the pressed tile&apos;s index and the tile
+              itself: pass the tile to <InlineCode>MediaViewer</InlineCode>&apos;s{' '}
+              <InlineCode>origin</InlineCode> for the M3 container transform.
+            </li>
+            <li>
+              Each tile shows the core&apos;s state layer over its photo (hover, focus) and the
+              press ripple. The list is a Tab stop only while the compact row scrolls.
+            </li>
           </ul>
         </section>
       </>

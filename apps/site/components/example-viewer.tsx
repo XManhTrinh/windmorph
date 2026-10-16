@@ -131,7 +131,7 @@ export function ExampleViewer({
           onPress={() => void onCopy()}
         />
       </div>
-      <Collapse isOpen={showSource} appear={!defaultOpen}>
+      <Collapse open={showSource} appear={!defaultOpen}>
         <div id={sourceId} onPointerDown={stopSwipe}>
           <CodeBlock code={code} html={html} lang={lang} title={fileName} copyable={false} />
         </div>

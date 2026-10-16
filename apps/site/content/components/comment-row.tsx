@@ -74,9 +74,11 @@ export async function CommentRowBody(): Promise<ComponentDoc> {
               comment only its writer sees.
             </li>
             <li>
-              <InlineCode>isPending</InlineCode> lightens the bubble while it&apos;s being sent,
-              keeping the words at full contrast, and sets <InlineCode>aria-busy</InlineCode>; say
-              it in the actions row too (&quot;Sending…&quot;).
+              <InlineCode>isPending</InlineCode> paints the bubble in the opaque{' '}
+              <InlineCode>surface-container</InlineCode> role while it&apos;s being sent, keeping
+              the words at full contrast, and sets <InlineCode>aria-busy</InlineCode>; say it in the
+              actions row too (&quot;Sending…&quot;). The bubble fades to its sent colour on the
+              effects spring, under reduced motion too.
             </li>
             <li>
               What goes in <InlineCode>below</InlineCode> keeps 4px off the bubble; the actions row

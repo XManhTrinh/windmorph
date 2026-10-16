@@ -32,7 +32,7 @@ export function CollapseReplies() {
               </Button>
             </div>
           </div>
-          <Collapse isOpen={replying === comment.id} classNames={{ content: 'ps-10' }}>
+          <Collapse open={replying === comment.id} classNames={{ content: 'ps-10' }}>
             {/* Spacing inside the collapse folds with it. */}
             <div className="mb-3.5">
               <MessageField

@@ -64,7 +64,10 @@ export async function MediaViewerBody(): Promise<ComponentDoc> {
             <InlineCode>defaultIndex</InlineCode>), name it with <InlineCode>aria-label</InlineCode>
             , and pass every word through <InlineCode>labels</InlineCode> from your translations.{' '}
             <InlineCode>actions</InlineCode> adds controls to the top bar, such as a menu with
-            &quot;Open post&quot;.
+            &quot;Open post&quot;. Pass the thumbnail that was tapped as{' '}
+            <InlineCode>origin</InlineCode>, and the viewer grows out of it and shrinks back into
+            it, the M3 container transform; keep it on the open photo&apos;s thumbnail as the viewer
+            moves, so it closes into the right one.
           </p>
         </section>
 
@@ -102,24 +105,39 @@ export async function MediaViewerBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              Photos read best on black, so the viewer fills the window with{' '}
-              <InlineCode>scrim</InlineCode> at full strength and shows its controls in the
-              theme&apos;s dark colour scheme, in light and dark mode alike. The controls take{' '}
-              <InlineCode>on-surface</InlineCode>, and Previous and Next are tonal so they stay
-              visible over a bright photo. A menu passed in <InlineCode>actions</InlineCode>{' '}
-              matches.
+              It is the core&apos;s full-screen <InlineCode>Dialog</InlineCode> (role{' '}
+              <InlineCode>dialog</InlineCode>), so it takes the dialog&apos;s focus handling, Escape
+              and motion: without an <InlineCode>origin</InlineCode> it slides up and fades in as a
+              full-screen dialog does; with one it grows out of it. Its panel joins the core
+              dialog&apos;s tokens (<InlineCode>md-comp-dialog wm-media-viewer</InlineCode>).
             </li>
             <li>
-              It fades in on the default effects spring while the photos scale up from 92% on the
-              default spatial spring, as a dialog does. With reduced motion it only fades, and
-              photos change and zoom without moving.
+              Photos read best on black, so the viewer fills the window with a black backdrop and
+              shows its controls in the theme&apos;s dark colour scheme, in light and dark mode
+              alike. The top bar is the full-screen header&apos;s 56px, with the position in{' '}
+              <InlineCode>title-large</InlineCode>; its icon buttons are{' '}
+              <InlineCode>standard</InlineCode> and keep density 0, and Previous and Next are tonal
+              so they stay visible over a bright photo. A menu passed in{' '}
+              <InlineCode>actions</InlineCode> matches.
+            </li>
+            <li>With reduced motion it only fades, and photos change and zoom without moving.</li>
+            <li>
+              As on the core <InlineCode>Dialog</InlineCode>, <InlineCode>className</InlineCode> and{' '}
+              <InlineCode>style</InlineCode> go on the outermost, full-window layer, so a layout
+              class never hides or clips the viewer; <InlineCode>ref</InlineCode> and other
+              attributes go on the panel. <InlineCode>classNames</InlineCode> reaches the{' '}
+              <InlineCode>panel</InlineCode>, the <InlineCode>backdrop</InlineCode>, the{' '}
+              <InlineCode>toolbar</InlineCode>, its <InlineCode>position</InlineCode> and{' '}
+              <InlineCode>actions</InlineCode>, the <InlineCode>media</InlineCode> area,{' '}
+              <InlineCode>previous</InlineCode>, <InlineCode>next</InlineCode> and the{' '}
+              <InlineCode>caption</InlineCode>.
             </li>
             <li>
-              <InlineCode>className</InlineCode> and <InlineCode>classNames.root</InlineCode> style
-              the dialog, and <InlineCode>classNames</InlineCode> reaches the{' '}
-              <InlineCode>toolbar</InlineCode>, the <InlineCode>media</InlineCode> area and the{' '}
-              <InlineCode>caption</InlineCode>. Forced colours keep every control and the focus ring
-              visible.
+              <InlineCode>closeIcon</InlineCode>, <InlineCode>previousIcon</InlineCode>,{' '}
+              <InlineCode>nextIcon</InlineCode>, <InlineCode>zoomInIcon</InlineCode> and{' '}
+              <InlineCode>zoomOutIcon</InlineCode> replace the built-in icons (Previous and Next are
+              mirrored in right-to-left layouts). Forced colours keep every control and the focus
+              ring visible.
             </li>
           </ul>
         </section>

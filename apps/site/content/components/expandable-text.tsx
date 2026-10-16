@@ -1,5 +1,7 @@
 import type { ComponentDoc } from './doc';
+import { expandableTextTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -105,6 +107,11 @@ export async function ExpandableTextBody(): Promise<ComponentDoc> {
               <InlineCode>collapsible</InlineCode> adds one.
             </li>
             <li>
+              &quot;See less&quot; never jumps the page: focus returns to &quot;See more&quot;
+              without scrolling, and the text&apos;s start is brought back into view only when it is
+              above the window (smoothly, at once under reduced motion).
+            </li>
+            <li>
               <InlineCode>expanded</InlineCode> and <InlineCode>onExpandedChange</InlineCode>{' '}
               control it, for example to keep a post open when a virtualised feed mounts it again;{' '}
               <InlineCode>defaultExpanded</InlineCode> starts it open.
@@ -126,11 +133,14 @@ export async function ExpandableTextBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             The text and the buttons take the surrounding type and colour: set them with{' '}
             <InlineCode>className</InlineCode> (a type role and a colour role, such as{' '}
-            <InlineCode>text-body-large text-on-surface</InlineCode>). The buttons use the label
-            roles&apos; weight and underline on hover, focus and press. Style the parts with{' '}
-            <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+            <InlineCode>text-body-large text-on-surface</InlineCode>). The buttons use the body
+            roles&apos; emphasized weight and underline on hover, focus and press. Set the tokens
+            below on the text or any ancestor (its root carries{' '}
+            <InlineCode>data-tokens=&quot;wm-expandable-text&quot;</InlineCode>), and style the
+            parts with <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
             <InlineCode>content</InlineCode>, <InlineCode>button</InlineCode>).
           </p>
+          <TokenTable set={expandableTextTokenSet} caption="Expandable text tokens" />
         </section>
       </>
     ),

@@ -30,31 +30,32 @@ export const mediaViewer: ComponentAccessibility = {
     "The viewer's keys are ignored when Alt, Ctrl or ⌘ is held, and inside text fields or content portalled from `actions`, such as an open menu.",
   ],
   screenReader: {
-    role: 'A modal `dialog`.',
+    role: "A modal `dialog`: the core's full-screen `Dialog`.",
     name: 'Its required `aria-label` or `aria-labelledby` ("Photos from Alex\'s post").',
     states:
       'A cut caption is a `button` with `aria-expanded`. Zoom buttons are disabled when they can go no further.',
     notes: [
       'The position ("Photo 2 of 7", `labels.position`) is a polite live region, read when the photo changes. A single photo has no position.',
       'The current photo is read by its `alt`. The preloaded photos on each side are hidden from assistive tech (`aria-hidden`, `inert`).',
-      'With no caption, the alt text is also shown as the caption.',
+      "With no caption, the alt text is also shown as the caption, hidden from screen readers (`aria-hidden`) since the photo is already named by it; if it's cut, its expand button is named by `labels.description`.",
+      "Every control's name is also its tooltip, the core icon button's own, so it isn't read twice.",
       "A photo that can't be loaded shows `labels.error` in its place.",
       'The page behind is hidden from assistive tech while the viewer is open.',
     ],
   },
   focus: [
-    'When it opens, focus moves to the viewer itself, and Tab and Shift + Tab stay inside it until it closes. When it closes, focus returns to the element that had it, usually the thumbnail that opened it.',
+    'When it opens, focus moves to its first control (Close), as in any core dialog, and Tab and Shift + Tab stay inside it until it closes. When it closes, focus returns to the element that had it, usually the thumbnail that opened it.',
     'Previous and Next disappear at the first and last photo. Pressing one to get there moves focus to the other; otherwise focus falls back to the viewer, so the keys keep working.',
     'When the focused zoom button becomes disabled, focus moves to the other zoom button after a press, or to the viewer after a key.',
     "Every control shows M3's focus indicator on keyboard focus.",
   ],
   touchTarget: [
-    'Close and the zoom buttons are small icon buttons (40px) with an invisible 48 × 48px touch target. Previous and Next are 56px tonal icon buttons.',
-    'Previous and Next show only on medium windows and up. On compact windows moving between photos takes a sideways swipe or the arrow keys.',
+    'Close, the zoom buttons and icon buttons in `actions` are small icon buttons (40px) with an invisible 48 × 48px touch target, kept at density 0 whatever the theme density. Previous and Next are 56px tonal icon buttons.',
+    'Previous and Next show on every window size, so moving between photos never needs a swipe (WCAG 2.5.7).',
     'On touch a swipe down closes the viewer, which the Close button also does. A double-tap or double-click, a pinch, or Ctrl or ⌘ with the wheel zooms, as the zoom buttons and keys do.',
   ],
   motion: [
-    'The viewer fades in while the photo grows from 92%, and fades out while it shrinks to 95%. Under reduced motion it only fades.',
+    "It opens and closes with the core full-screen dialog's motion: it slides up and fades in, or, given an `origin`, grows out of that thumbnail and shrinks back into it (the M3 container transform). Under reduced motion it only fades.",
     'Photos slide to the next one and zoom eases into place; under reduced motion both snap. While a finger or pointer is down they follow it without easing.',
   ],
   consumer: [
@@ -62,5 +63,6 @@ export const mediaViewer: ComponentAccessibility = {
     'Pass `labels` from your translations: every word it shows or announces comes from there, including the position.',
     'Give every control in `actions` a name; an icon button needs an `aria-label`.',
     'Open it from a real control, such as a {@link MediaGrid} tile, so focus has somewhere to return to.',
+    'Name the expand button of an alt-text caption with `labels.description` in your language.',
   ],
 };

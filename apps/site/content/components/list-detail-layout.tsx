@@ -1,5 +1,7 @@
 import type { ComponentDoc } from './doc';
+import { listDetailLayoutTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -94,6 +96,11 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               stays mounted between items.
             </li>
             <li>
+              Below 840px the panes switch with M3&apos;s shared axis transition both ways: the
+              outgoing pane fades and slides out before it hides, and the incoming one fades and
+              slides in. Focus moves to the new pane without scrolling the page.
+            </li>
+            <li>
               <InlineCode>variant</InlineCode>: <InlineCode>plain</InlineCode> (the default) puts
               the panes on the page&apos;s surface; <InlineCode>filled</InlineCode> makes each a{' '}
               <InlineCode>surface-container-low</InlineCode> container with large corners.
@@ -105,20 +112,31 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
     api: (
       <>
         <section className="flex flex-col gap-3">
-          <h2 id="theming" className="text-headline-small text-on-surface">
-            Theming
+          <h2 id="theming-and-tokens" className="text-headline-small text-on-surface">
+            Theming &amp; tokens
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              Only colour roles: filled panes use <InlineCode>surface-container-low</InlineCode>,
-              and keep a border in forced-colours mode, so it follows every theme, mode and contrast
-              level.
+              Only colour roles: filled panes use <InlineCode>surface-container-low</InlineCode>{' '}
+              with large corners, and keep a border in forced-colours mode, so it follows every
+              theme, mode and contrast level.
+            </li>
+            <li>
+              Set the tokens below on the layout or any ancestor (its root carries{' '}
+              <InlineCode>data-tokens=&quot;wm-list-detail-layout&quot;</InlineCode>);{' '}
+              <InlineCode>listWidth</InlineCode> and <InlineCode>stickyTop</InlineCode> set{' '}
+              <InlineCode>list-width</InlineCode> and <InlineCode>sticky-top</InlineCode> for one
+              layout. The old <InlineCode>--wm-list-detail-list-width</InlineCode> and{' '}
+              <InlineCode>--wm-list-detail-sticky-top</InlineCode> are now{' '}
+              <InlineCode>--wm-list-detail-layout-list-width</InlineCode> and{' '}
+              <InlineCode>--wm-list-detail-layout-sticky-top</InlineCode>.
             </li>
             <li>
               Override any part with <InlineCode>className</InlineCode> and{' '}
               <InlineCode>classNames</InlineCode> (root, list, detail, back).
             </li>
           </ul>
+          <TokenTable set={listDetailLayoutTokenSet} caption="List-detail layout tokens" />
         </section>
       </>
     ),

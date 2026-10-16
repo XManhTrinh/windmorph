@@ -21,7 +21,7 @@ export function CollapseShownFirst() {
       >
         {open ? 'Hide delivery details' : 'Show delivery details'}
       </Button>
-      <Collapse isOpen={open} appear={false}>
+      <Collapse open={open} appear={false}>
         <p id={details} className="px-3 pb-3 text-body-medium text-on-surface-variant">
           Orders placed before noon arrive the next working day. Bánh mì and other fresh food is
           delivered chilled, in a recyclable box.

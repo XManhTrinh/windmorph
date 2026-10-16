@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Button,
-  IconButton,
-  Menu,
-  MenuItem,
-  MenuTrigger,
-  Tooltip,
-  TooltipTrigger,
-} from '@windmorph/react';
+import { Button, IconButton, Menu, MenuItem, MenuTrigger } from '@windmorph/react';
 import { MediaViewer, type MediaViewerLabels } from '@windmorph/react-pro';
 import { useState } from 'react';
 import { MoreVertIcon } from '../../components/icons';
@@ -22,12 +14,14 @@ const LABELS_FR: MediaViewerLabels = {
   zoomIn: 'Agrandir',
   zoomOut: 'Réduire',
   position: (current, total) => `Photo ${current} sur ${total}`,
+  description: 'Afficher toute la description',
   error: 'Impossible d’afficher cette photo.',
 };
 
 /**
- * Translated labels, and an action menu in the top bar through `actions`. The viewer is
- * shown in the dark colour scheme, so the menu matches it.
+ * Translated labels, and an action menu in the top bar through `actions`. Icon buttons there
+ * are `standard` unless they set a `variant`, and show their name as a tooltip. The viewer
+ * is shown in the dark colour scheme, so the menu matches it.
  */
 export function MediaViewerActions() {
   const [open, setOpen] = useState(false);
@@ -48,10 +42,7 @@ export function MediaViewerActions() {
         labels={LABELS_FR}
         actions={
           <MenuTrigger>
-            <TooltipTrigger placement="bottom">
-              <IconButton variant="standard" icon={<MoreVertIcon />} aria-label="Plus d’options" />
-              <Tooltip>Plus d’options</Tooltip>
-            </TooltipTrigger>
+            <IconButton icon={<MoreVertIcon />} aria-label="Plus d’options" />
             <Menu aria-label="Plus d’options" onAction={(key) => setChosen(String(key))}>
               <MenuItem key="open-post">Ouvrir la publication</MenuItem>
               <MenuItem key="download">Télécharger</MenuItem>

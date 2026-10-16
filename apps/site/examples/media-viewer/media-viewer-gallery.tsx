@@ -1,26 +1,33 @@
 'use client';
 
 import { MediaViewer } from '@windmorph/react-pro';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { SAMPLE_PHOTOS } from './sample-photos';
 
 /**
- * Thumbnails open the viewer on the photo tapped. Swipe, use the arrow keys or the side
- * buttons to move, double-tap or pinch to zoom, and close with Escape: focus goes back to
- * the thumbnail that opened it.
+ * Thumbnails open the viewer on the photo tapped, growing out of that thumbnail (`origin`,
+ * the M3 container transform). Swipe, use the arrow keys or the side buttons to move,
+ * double-tap or pinch to zoom, and close with Escape: the viewer shrinks back into the open
+ * photo's thumbnail, and focus goes back to the thumbnail that opened it.
  */
 export function MediaViewerGallery() {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+  const [origin, setOrigin] = useState<HTMLElement | undefined>();
+  const thumbnails = useRef<(HTMLButtonElement | null)[]>([]);
   return (
     <div className="grid w-full max-w-[360px] grid-cols-2 gap-1">
       {SAMPLE_PHOTOS.map((photo, position) => (
         <button
           key={photo.key}
+          ref={(node) => {
+            thumbnails.current[position] = node;
+          }}
           type="button"
           aria-label={photo.alt}
-          onClick={() => {
+          onClick={(event) => {
             setIndex(position);
+            setOrigin(event.currentTarget);
             setOpen(true);
           }}
           className="aspect-square cursor-pointer overflow-hidden rounded-corner-small focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
@@ -34,7 +41,12 @@ export function MediaViewerGallery() {
         open={open}
         onOpenChange={setOpen}
         index={index}
-        onIndexChange={setIndex}
+        onIndexChange={(next) => {
+          setIndex(next);
+          // Keep the origin on the open photo's thumbnail, so it closes into the right one.
+          setOrigin(thumbnails.current[next] ?? undefined);
+        }}
+        origin={origin}
       />
     </div>
   );

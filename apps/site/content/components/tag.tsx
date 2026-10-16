@@ -1,5 +1,7 @@
 import type { ComponentDoc } from './doc';
+import { tagTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -91,6 +93,12 @@ export async function TagBody(): Promise<ComponentDoc> {
             <InlineCode>@windmorph/react-pro</InlineCode> and is built from M3&apos;s colour roles,
             type scale and shape scale, with its own component tokens.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            A short form (<InlineCode>fullLabel</InlineCode>) or a label cut at{' '}
+            <InlineCode>maxWidth</InlineCode> shows its full text in the core&apos;s plain tooltip,
+            on hover, keyboard focus or a long press; only such a tag takes focus, and a small one
+            gets a 24px touch target for it.
+          </p>
         </section>
 
         <section className="flex flex-col gap-3">
@@ -127,17 +135,21 @@ export async function TagBody(): Promise<ComponentDoc> {
               every label at 4.5:1 in every theme, mode and contrast level.
             </li>
             <li>
-              Set <InlineCode>--wm-tag-container</InlineCode>, <InlineCode>-content</InlineCode>,{' '}
-              <InlineCode>-outline</InlineCode>, <InlineCode>-dot</InlineCode>,{' '}
-              <InlineCode>-height</InlineCode>, <InlineCode>-padding-inline</InlineCode>,{' '}
-              <InlineCode>-gap</InlineCode>, <InlineCode>-icon-size</InlineCode> or{' '}
-              <InlineCode>-corner</InlineCode> on a tag or an ancestor.
+              The tokens below are set on a tag or an ancestor; each tag carries{' '}
+              <InlineCode>data-tokens=&quot;wm-tag&quot;</InlineCode> and{' '}
+              <InlineCode>data-color=&quot;&lt;variant&gt;-&lt;tone&gt;&quot;</InlineCode>, so a
+              value set on an outer tag never leaks into a nested one. Their defaults follow the
+              tag&apos;s size, shape, variant and tone.
+            </li>
+            <li>
+              Its height is a minimum, so larger text makes it taller instead of spilling out.
             </li>
             <li>
               <InlineCode>tagTokens</InlineCode> exports every size and colour role, for building on
               the tag in code.
             </li>
           </ul>
+          <TokenTable set={tagTokenSet} caption="Tag tokens" />
         </section>
       </>
     ),

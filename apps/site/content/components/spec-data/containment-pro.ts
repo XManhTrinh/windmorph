@@ -58,7 +58,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['media-grid/media-grid-viewer', 'media-grid/media-grid-columns'],
       },
       {
-        name: 'Some of the photos (`max`), opening the viewer',
+        name: 'Some of the photos (`max`), opening the viewer out of the pressed tile',
         kind: 'use case',
         examples: ['media-grid/media-grid-viewer'],
       },
@@ -74,6 +74,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
       {
         name: 'Opened from thumbnails, at the pressed photo',
         kind: 'use case',
+        examples: ['media-viewer/media-viewer-gallery'],
+      },
+      {
+        name: 'Growing out of the thumbnail tapped (`origin`, the M3 container transform)',
+        kind: 'configuration',
         examples: ['media-viewer/media-viewer-gallery'],
       },
       {
@@ -168,13 +173,18 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         kind: 'configuration',
         examples: ['collapse/collapse-shown-first'],
       },
+      {
+        name: 'Kept in the page while closed, found by find-in-page (`keepMounted`)',
+        kind: 'configuration',
+        examples: ['collapse/collapse-kept-mounted'],
+      },
     ],
     compose: [
       {
         composable: 'AnimatedVisibility(enter = expandVertically(), exit = shrinkVertically())',
         component: 'Collapse',
-        params: [{ compose: 'visible', windmorph: 'isOpen' }],
-        note: "Compose's animation API, not a Material 3 component. `Collapse` folds its height (a CSS grid row, so nothing is measured) on the default spatial spring, with the content fading on the effects spring.",
+        params: [{ compose: 'visible', windmorph: 'open' }],
+        note: "Compose's animation API, not a Material 3 component. `Collapse` opens its height (a CSS grid row, so nothing is measured) on the default spatial spring and folds it on the default effects spring, with the content fading on the effects spring.",
       },
     ],
   },
@@ -244,6 +254,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         kind: 'configuration',
         examples: ['avatar/avatar-group'],
       },
+      {
+        name: "Linked avatars in a group, in an app's own component, spaced for their touch targets",
+        kind: 'use case',
+        examples: ['avatar/avatar-group-links'],
+      },
     ],
   },
   tag: {
@@ -269,7 +284,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['tag/tag-statuses'],
       },
       {
-        name: 'Short forms (`fullLabel`) and truncation (`maxWidth`)',
+        name: 'Short forms (`fullLabel`) and truncation (`maxWidth`), the full text in a tooltip',
         kind: 'configuration',
         examples: ['tag/tag-short-forms'],
       },

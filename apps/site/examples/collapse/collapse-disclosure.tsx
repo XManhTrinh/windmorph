@@ -18,7 +18,7 @@ export function CollapseDisclosure() {
       >
         Can I bring a guest?
       </Button>
-      <Collapse isOpen={open}>
+      <Collapse open={open}>
         <p id={answer} className="px-3 pb-3 text-body-medium text-on-surface-variant">
           Yes, one guest per member. Add their name when you book, so there&apos;s a seat for them.
         </p>

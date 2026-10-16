@@ -22,18 +22,19 @@ export const avatar: ComponentAccessibility = {
   },
   focus: [
     'Only an avatar with `href` or `onPress` can take focus, in the Tab order where it sits in the page.',
-    "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the avatar, round for M3 Expressive shapes, plus a focus state layer. Pointer presses show no ring.",
+    "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the avatar, round for M3 Expressive shapes, plus a focus state layer, painted over the photo too. Pointer presses show no ring.",
   ],
   touchTarget: [
-    'Linked or pressable `xs`, `sm` and `md` avatars (24, 32 and 40px) get an invisible 48 × 48px touch target; their layout size stays the same. `lg`, `xl` and `2xl` (56, 72 and 96px) are already larger than 48px.',
-    'In an overlapping `AvatarGroup`, avatars overlap by a quarter of their size, so the touch targets of neighbouring linked avatars overlap too.',
+    'Linked or pressable `xs`, `sm` and `md` avatars (24, 32 and 40px) get an invisible 48 × 48px touch target; their layout size stays the same. `lg`, `xl` and `2xl` (56, 72 and 96px) are already larger than 48px. Sizes and targets are in px, so they hold at larger text sizes.',
+    'When two or more avatars in an `AvatarGroup` are links or buttons (the "+N" one included), the group stops overlapping and spaces them 48px minus the avatar size apart (at least 4px), so their touch targets never overlap. Decorative avatars in a group let presses through to a link they overlap.',
   ],
-  motion: {
-    none: 'It has no animation: the hover, focus and press state layers change colour without a transition.',
-  },
+  motion: [
+    "A link or button avatar has the core's state layer: hover and focus fade it in, and a press spreads a ripple. Under reduced motion the ripple appears at full size without growing; the static avatar has no animation.",
+  ],
   consumer: [
     'Give every avatar `alt` (usually the person or business name), or mark it `decorative` when the name is written next to it. The types require one of the two, and `alt` for a link or button.',
     'Pass `labels` to translate the presence words, and `badgeLabel` to say what the badge means.',
     'Give `AvatarGroup` a `label` that names everyone it stands for ("Alex, Sam and 3 others"), and an `overflowLabel` in your language when "+N" is a link or button.',
+    'Your own component around an Avatar in a group is fine: the group reaches it through context. Pass `alt` and `href` or `onPress` to the Avatar inside, as you would directly.',
   ],
 };

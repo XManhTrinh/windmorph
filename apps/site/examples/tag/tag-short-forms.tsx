@@ -2,7 +2,8 @@ import { Tag } from '@windmorph/react-pro';
 
 /**
  * Short forms in a tight space, like this site's navigation: screen readers hear the full
- * name, and a pointer shows it. A long label truncates at `maxWidth`.
+ * name, and a tooltip shows it on hover, keyboard focus or a long press. A long label
+ * truncates at `maxWidth` and shows its full text the same way.
  */
 export function TagShortForms() {
   return (

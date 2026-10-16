@@ -24,15 +24,15 @@ export const expandableText: ComponentAccessibility = {
   },
   focus: [
     '"See more" shows only when the text is actually cut, and is in the Tab order after the text\'s own links. "See less" (with `collapsible`) follows the text.',
-    'Pressing "See more" removes it and moves focus to the start of the text (focusable by script only, `tabIndex={-1}`) without scrolling, so the reader carries on from there. Pressing "See less" returns focus to "See more", or to the text if "See more" is not back.',
+    'Pressing "See more" removes it and moves focus to the start of the text (focusable by script only, `tabIndex={-1}`) without scrolling, so the reader carries on from there. Pressing "See less" returns focus to "See more", or to the text if "See more" is not back, also without scrolling; only if the text\'s start is then above the window is it brought back into view.',
     "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the button or the text. Pointer presses show no ring.",
   ],
   touchTarget: [
     'The buttons are one line of text tall, and each gets an invisible touch target 48px tall and at least 48px wide.',
   ],
-  motion: {
-    none: 'Expanding and collapsing are instant, with no height animation, so there is nothing to reduce.',
-  },
+  motion: [
+    'Expanding and collapsing are instant, with no height animation. When "See less" brings the text\'s start back into view, the page scrolls smoothly, and at once under reduced motion.',
+  ],
   consumer: [
     'Pass the button words through `labels` (`more`, `less`) so they come from your translations.',
     'Set `lang` when the text is in a different language from the page.',

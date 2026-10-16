@@ -10,12 +10,24 @@ const PHOTOS = [...SAMPLE_PHOTOS, ...SAMPLE_PHOTOS].map((photo, index) => ({
   key: `${photo.key}-${index}`,
 }));
 
-/** A profile's photos: pressing one opens the viewer there, with an action in its top bar. */
+/**
+ * A profile's photos: pressing one opens the viewer there, growing out of the pressed tile
+ * (`onItemPress` passes it, for the viewer's `origin`), with an action in its top bar.
+ */
 export function MediaGridViewer() {
   const [open, setOpen] = useState<number | null>(null);
+  const [origin, setOrigin] = useState<Element | undefined>();
   return (
     <div className="w-full max-w-sm">
-      <MediaGrid items={PHOTOS} max={6} onItemPress={setOpen} aria-label="Photos" />
+      <MediaGrid
+        items={PHOTOS}
+        max={6}
+        onItemPress={(index, tile) => {
+          setOrigin(tile);
+          setOpen(index);
+        }}
+        aria-label="Photos"
+      />
       <MediaViewer
         aria-label="Photos"
         items={PHOTOS}
@@ -23,6 +35,7 @@ export function MediaGridViewer() {
         onOpenChange={(isOpen) => !isOpen && setOpen(null)}
         index={open ?? 0}
         onIndexChange={setOpen}
+        origin={origin}
         actions={
           <Button variant="text" href="#demo-post">
             View post

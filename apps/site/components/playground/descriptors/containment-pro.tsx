@@ -13,11 +13,19 @@ import {
   ShapedIcon,
   Tag,
 } from '@windmorph/react-pro';
-import { createElement } from 'react';
+import { createElement, useState, type ReactElement } from 'react';
 import { SAMPLE_PHOTO } from '../../../examples/image-crop/sample-photo';
 import { SAMPLE_PHOTOS } from '../../../examples/media-viewer/sample-photos';
-import { ArrowBackIcon, PersonIcon, ScheduleIcon, StarIcon } from '../../icons';
-import { type PlaygroundDescriptor, loose, noop } from './shared';
+import {
+  ArrowBackIcon,
+  ArrowForwardIcon,
+  PersonIcon,
+  ScheduleIcon,
+  StarIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from '../../icons';
+import { type PlaygroundDescriptor, type PlaygroundUpdate, loose, noop } from './shared';
 
 const AvatarAny = loose(Avatar);
 const TagAny = loose(Tag);
@@ -49,6 +57,56 @@ const SECTIONS_CODE = `(\n    <List aria-label="Settings sections">\n      <List
 /** Clamps a numeric control to a valid photo index. */
 const photoIndex = (value: unknown, count: number) =>
   Math.min(Math.max(0, Math.trunc(Number(value) || 0)), count - 1);
+
+/**
+ * The media viewer's preview: the Open photos button opens it and, with `origin` on, is
+ * what it grows out of, read from the press, since an element can't be a control value.
+ */
+function MediaViewerPreview({
+  props: { open, index, actions, origin, ...icons },
+  update,
+}: {
+  props: Record<string, unknown>;
+  update: PlaygroundUpdate;
+}) {
+  const [opener, setOpener] = useState<Element | undefined>();
+  const icon = (name: string, element: ReactElement) =>
+    icons[name] === true ? { [name]: element } : {};
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <Button
+        variant="tonal"
+        onPress={(event) => {
+          setOpener(event.target);
+          update('open', true);
+        }}
+      >
+        Open photos
+      </Button>
+      <MediaViewerAny
+        aria-label="Photos"
+        items={SAMPLE_PHOTOS}
+        open={open === true}
+        onOpenChange={(next: boolean) => update('open', next)}
+        index={photoIndex(index, SAMPLE_PHOTOS.length)}
+        onIndexChange={(next: number) => update('index', next)}
+        origin={origin === true ? opener : undefined}
+        {...(actions === true && {
+          actions: (
+            <Button variant="text" href="#demo-post">
+              View post
+            </Button>
+          ),
+        })}
+        {...icon('closeIcon', <ArrowBackIcon />)}
+        {...icon('previousIcon', <ArrowBackIcon />)}
+        {...icon('nextIcon', <ArrowForwardIcon />)}
+        {...icon('zoomInIcon', <ZoomInIcon />)}
+        {...icon('zoomOutIcon', <ZoomOutIcon />)}
+      />
+    </div>
+  );
+}
 
 /** Playgrounds for the Windmorph Pro containment components, by page slug. */
 export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
@@ -164,36 +222,54 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     component: 'MediaViewer',
     importFrom: '@windmorph/react-pro',
     // The viewer covers the window: the button opens it, and closing it turns `open` off.
-    render: ({ open, index, actions }, update) =>
-      createElement(
-        'div',
-        { className: 'flex flex-col items-center gap-2' },
-        <Button key="open" variant="tonal" onPress={() => update('open', true)}>
-          Open photos
-        </Button>,
-        createElement(MediaViewerAny, {
-          key: 'viewer',
-          'aria-label': 'Photos',
-          items: SAMPLE_PHOTOS,
-          open: open === true,
-          onOpenChange: (next: boolean) => update('open', next),
-          index: photoIndex(index, SAMPLE_PHOTOS.length),
-          onIndexChange: (next: number) => update('index', next),
-          ...(actions === true && {
-            actions: (
-              <Button variant="text" href="#demo-post">
-                View post
-              </Button>
-            ),
-          }),
-        }),
-      ),
-    defaultProps: { open: false, index: 0, actions: false },
-    surfacedProps: ['open', 'index', 'actions'],
-    initialState: { actions: true },
+    render: (props, update) => createElement(MediaViewerPreview, { key: 'viewer', props, update }),
+    defaultProps: {
+      open: false,
+      index: 0,
+      actions: false,
+      origin: false,
+      closeIcon: false,
+      previousIcon: false,
+      nextIcon: false,
+      zoomInIcon: false,
+      zoomOutIcon: false,
+    },
+    surfacedProps: [
+      'open',
+      'index',
+      'origin',
+      'actions',
+      'closeIcon',
+      'previousIcon',
+      'nextIcon',
+      'zoomInIcon',
+      'zoomOutIcon',
+    ],
+    initialState: { actions: true, origin: true },
     numberRanges: { index: { min: 0, max: SAMPLE_PHOTOS.length - 1 } },
-    controlKinds: { actions: 'boolean' },
-    toggledSlots: { actions: '<Button variant="text" href="/posts/42">View post</Button>' },
+    controlKinds: {
+      actions: 'boolean',
+      origin: 'boolean',
+      closeIcon: 'boolean',
+      previousIcon: 'boolean',
+      nextIcon: 'boolean',
+      zoomInIcon: 'boolean',
+      zoomOutIcon: 'boolean',
+    },
+    controlDescriptions: {
+      origin:
+        'Grows the viewer out of the Open photos button (in the snippet, a box in window coordinates), the M3 container transform.',
+    },
+    toggledSlots: {
+      // In the preview the origin is the button that opened it; the snippet gives a box.
+      origin: 'new DOMRect(16, 120, 96, 96)',
+      actions: '<Button variant="text" href="/posts/42">View post</Button>',
+      closeIcon: '<ArrowBackIcon />',
+      previousIcon: '<ArrowBackIcon />',
+      nextIcon: '<ArrowForwardIcon />',
+      zoomInIcon: '<ZoomInIcon />',
+      zoomOutIcon: '<ZoomOutIcon />',
+    },
     codeImports: [
       "import { Button } from '@windmorph/react';",
       "import { photos } from './photos';",
@@ -280,31 +356,36 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     component: 'Collapse',
     importFrom: '@windmorph/react-pro',
     // A new `appear` remounts it, so the switch shows what it does on mount.
-    render: ({ isOpen, appear }, update) =>
+    render: ({ open, appear, keepMounted }, update) =>
       createElement(
         'div',
         { className: 'flex w-full max-w-md flex-col items-start' },
         <Button
           key="toggle"
           variant="text"
-          aria-expanded={isOpen === true}
-          onPress={() => update('isOpen', isOpen !== true)}
+          aria-expanded={open === true}
+          onPress={() => update('open', open !== true)}
         >
           Can I bring a guest?
         </Button>,
         createElement(
           CollapseAny,
-          { key: `collapse-${String(appear)}`, isOpen: isOpen === true, appear },
+          {
+            key: `collapse-${String(appear)}`,
+            open: open === true,
+            onOpenChange: (next: boolean) => update('open', next),
+            appear,
+            keepMounted,
+          },
           <p className="px-3 pb-3 text-body-medium text-on-surface-variant">
             Yes, one guest per member. Add their name when you book, so there&apos;s a seat for
             them.
           </p>,
         ),
       ),
-    // `isOpen` is required, so the snippet always writes it.
-    defaultProps: { appear: true },
-    surfacedProps: ['isOpen', 'appear'],
-    initialState: { isOpen: true },
+    defaultProps: { appear: true, keepMounted: false },
+    surfacedProps: ['open', 'appear', 'keepMounted'],
+    initialState: { open: true },
     codeChildren:
       '<p className="px-3 pb-3 text-body-medium text-on-surface-variant">\n    Yes, one guest per member.\n  </p>',
   },
