@@ -29,10 +29,12 @@ const LIBRARY = decode('bXVp');
 const PREFIX = decode('dms=');
 /** Product names that are never English words: matched in any case. */
 const PRODUCTS = decode(
-  'RmFjZWJvb2ssV2hhdHNBcHAsSW5zdGFncmFtLGlNZXNzYWdlLFRpa1RvayxMaW5rZWRJbixUd2l0dGVyLEdtYWlsLE1pY3Jvc29mdCBUZWFtcyxHb29nbGUgUGhvdG9zLEFwcGxlIFBob3Rvcw==',
+  'RmFjZWJvb2ssV2hhdHNBcHAsSW5zdGFncmFtLGlNZXNzYWdlLFRpa1RvayxMaW5rZWRJbixUd2l0dGVyLEdtYWlsLE1pY3Jvc29mdCBUZWFtcyxHb29nbGUgUGhvdG9zLEFwcGxlIFBob3RvcyxDaGF0R1BU',
 ).split(',');
 /** Product names that are also English words: matched only capitalised. */
-const CASED_PRODUCTS = decode('U2xhY2ssTWVzc2VuZ2VyLFRlbGVncmFtLERpc2NvcmQ=').split(',');
+const CASED_PRODUCTS = decode(
+  'U2xhY2ssTWVzc2VuZ2VyLFRlbGVncmFtLERpc2NvcmQsR2VtaW5pLENsYXVkZQ==',
+).split(',');
 /**
  * Allowed: the social-card metadata standard is named after a product, so its keys
  * (`<meta name="…:card">`, Next.js's `metadata.…` field) keep that name.
