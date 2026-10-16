@@ -10,7 +10,7 @@
     "components/checkbox/Checkbox": 11100,
     "components/chip/Chip": 14400,
     "components/chip/ChipSet": 16250,
-    "components/date-picker/DateField": 54850,
+    "components/date-picker/DateField": 47000,
     "components/date-picker/DatePicker": 38150,
     "components/date-picker/PickerDialog": 28450,
     "components/dialog/Dialog": 32000,

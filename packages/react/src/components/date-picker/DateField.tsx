@@ -27,12 +27,12 @@ import type { Density } from '../../tokens/density';
 import { OptionPopover } from '../select/option-list';
 import type { TextFieldClassNames } from '../text-field/TextField';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
+import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
 import { DateInput, type DateInputStrings } from './DateInput';
-import { DatePicker } from './DatePicker';
-import { PickerDialog } from './PickerDialog';
+import type { CompactDateDialogProps } from './CompactDateDialog';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
 import { datePickerStyles, dockedDatePickerStyles } from './date-picker-styles';
 import {
@@ -167,12 +167,22 @@ export interface DateFieldProps {
 }
 
 /**
+ * The full-screen modal picker a {@link DateField} opens on compact windows, loaded with
+ * `import()`: a field on a wider window never needs it.
+ */
+const compactDialog = onDemand<CompactDateDialogProps>(() =>
+  import('./CompactDateDialog').then((module) => module.CompactDateDialog),
+);
+
+/**
  * M3 docked date picker: an outlined date field you can type in (no input mask; the
  * locale's format as helper text), whose calendar button opens a calendar just below it
  * with month and year menus, previous / next month and year buttons, the days of the
  * months around the shown one, and Cancel / OK. On compact windows (below 600px) the
  * button opens the modal {@link DatePicker} in a full-screen {@link PickerDialog} instead,
- * as M3 recommends there: the 360px docked calendar doesn't fit a phone.
+ * as M3 recommends there: the 360px docked calendar doesn't fit a phone. That picker's
+ * code loads on demand, only on a compact window: when the browser is next idle, or as soon
+ * as the pointer or focus reaches the field, so it's in before the first press.
  *
  * @example
  * <DateField label="Date" value={date} onChange={setDate} />
@@ -223,6 +233,11 @@ function DateFieldInner({
   // M3: "On compact breakpoints … a full-screen modal date picker is recommended". Below
   // 600px the docked calendar's header was cut off and its day targets overlapped.
   const compact = useMediaQuery(COMPACT_WINDOW);
+  usePreloadOnIntent(fieldRef, compactDialog.preload, compact);
+  // Mounted from the first open on, so it can play its exit; the module is usually in by
+  // then, and if not it opens as it arrives, taking focus as it would have.
+  const [compactOpened, setCompactOpened] = useState(compact && overlay.isOpen);
+  if (compact && overlay.isOpen && !compactOpened) setCompactOpened(true);
   const { root, calendar, menuButton, weekday, day, item, ...fieldClassNames } = classNames ?? {};
   return (
     <>
@@ -266,18 +281,20 @@ function DateFieldInner({
         }
       />
       {compact ? (
-        <CompactDateDialog
-          open={overlay.isOpen}
-          onOpenChange={overlay.setOpen}
-          value={value}
-          onCommit={setValue}
-          minValue={minValue}
-          maxValue={maxValue}
-          isDateUnavailable={isDateUnavailable}
-          yearRange={yearRange}
-          strings={strings}
-          className={calendar}
-        />
+        compactOpened && (
+          <compactDialog.Component
+            open={overlay.isOpen}
+            onOpenChange={overlay.setOpen}
+            value={value}
+            onCommit={setValue}
+            minValue={minValue}
+            maxValue={maxValue}
+            isDateUnavailable={isDateUnavailable}
+            yearRange={yearRange}
+            strings={strings}
+            className={calendar}
+          />
+        )
       ) : (
         <OptionPopover state={overlay} triggerRef={fieldRef} popoverRef={popoverRef}>
           <DockedCalendar
@@ -298,77 +315,6 @@ function DateFieldInner({
         </OptionPopover>
       )}
     </>
-  );
-}
-
-/**
- * A {@link DateField}'s calendar on a compact window: the modal date picker in a
- * full-screen dialog, editing a draft that Save (or Enter on a day) keeps and the close
- * button drops, as the docked calendar's OK and Cancel do.
- */
-function CompactDateDialog({
-  open,
-  onOpenChange,
-  value,
-  onCommit,
-  minValue,
-  maxValue,
-  isDateUnavailable,
-  yearRange,
-  strings,
-  className,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  value: CalendarDate | null;
-  onCommit: (date: CalendarDate | null) => void;
-  minValue: DateValue | undefined;
-  maxValue: DateValue | undefined;
-  isDateUnavailable: ((date: DateValue) => boolean) | undefined;
-  yearRange: [number, number];
-  strings: DateFieldStrings;
-  className: string | undefined;
-}) {
-  const [draft, setDraft] = useState(value);
-  // Each opening starts from the field's date (state adjusted while rendering, no effect).
-  const [wasOpen, setWasOpen] = useState(open);
-  if (open !== wasOpen) {
-    setWasOpen(open);
-    if (open) setDraft(value);
-  }
-  const confirm = () => {
-    onCommit(draft);
-    onOpenChange(false);
-  };
-  return (
-    <PickerDialog
-      aria-label={strings.calendar ?? 'Choose a date'}
-      open={open}
-      onOpenChange={onOpenChange}
-      onConfirm={confirm}
-      fullScreen="compact"
-      dismissButton={
-        <Button variant="text" onPress={() => onOpenChange(false)}>
-          {strings.cancel ?? 'Cancel'}
-        </Button>
-      }
-      confirmButton={
-        <Button variant="text" onPress={confirm}>
-          {strings.ok ?? 'OK'}
-        </Button>
-      }
-    >
-      <DatePicker
-        value={draft}
-        onChange={setDraft}
-        minValue={minValue}
-        maxValue={maxValue}
-        isDateUnavailable={isDateUnavailable}
-        yearRange={yearRange}
-        strings={strings}
-        className={className}
-      />
-    </PickerDialog>
   );
 }
 

@@ -8,7 +8,8 @@
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either. Components that show a tooltip of their own
  *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
- *   and option lists load their loading indicator only while loading,
+ *   and option lists load their loading indicator only while loading. DateField loads the
+ *   modal date picker it opens on compact windows only there,
  * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
  *   with those controls, not from the controls' own modules,
  * - both stylesheets carry the component tokens (`generated/components.css`).
@@ -73,6 +74,10 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
     'components/date-picker/DatePicker.js',
     'components/date-picker/DateField.js',
   ].map((component) => ({ component, lazy: 'components/tooltip/Tooltip.js' })),
+  // DateField opens the modal picker only on compact windows, so it loads it there.
+  ...['components/date-picker/CompactDateDialog.js', 'components/date-picker/DatePicker.js'].map(
+    (lazy) => ({ component: 'components/date-picker/DateField.js', lazy }),
+  ),
   ...[
     'components/select/option-list.js',
     'components/select/Select.js',

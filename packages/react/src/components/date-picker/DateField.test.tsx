@@ -1,5 +1,5 @@
 import { CalendarDate } from '@internationalized/date';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -40,6 +40,21 @@ describe('DateField (docked date picker)', () => {
       timeout: 1500,
     });
     expect(screen.getByRole('textbox', { name: 'Start date' })).toHaveValue('03/12/2030');
+  });
+
+  // The modal picker loads with import() on compact windows only (2026-10-16): pointer or
+  // focus on the field preloads it, so the first press opens it in the same pass.
+  it('loads the compact picker on demand, before the first press', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    render(<DateField label="Start date" defaultValue={march} />);
+    expect(screen.queryByRole('dialog')).toBe(null);
+    const open = screen.getByRole('button', { name: 'Open calendar' });
+    await userEvent.hover(open);
+    await act(() => import('./CompactDateDialog'));
+    await userEvent.click(open);
+    const dialog = screen.getByRole('dialog', { name: 'Choose a date' });
+    expect(within(dialog).getByText('Select date')).toBeInTheDocument();
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
   });
 
   it('is an outlined field with the format as helper text, taking typed dates', async () => {
