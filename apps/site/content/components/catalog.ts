@@ -253,7 +253,6 @@ export const COMPONENT_META: ComponentMeta[] = [
       'long press',
       'feed',
       'social',
-      'facebook',
     ],
   },
   {
