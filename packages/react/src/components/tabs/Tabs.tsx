@@ -31,7 +31,7 @@ import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 
@@ -160,7 +160,7 @@ export function Tabs(props: TabsProps) {
       {...data}
       ref={rootRef}
       style={style}
-      data-tokens="md-comp-tabs"
+      data-tokens={mergeDataTokens('md-comp-tabs', data)}
       data-variant={props.variant ?? 'primary'}
       className={tabsStyles().root({ class: cn(classNames?.root, className) })}
     >
@@ -475,7 +475,7 @@ function TabButton({
       aria-describedby={badge != null ? badgeId : undefined}
       data-key={String(item.key)}
       // Each tab resolves its own tokens, so its selection picks its colours.
-      data-tokens="md-comp-tabs"
+      data-tokens={mergeDataTokens('md-comp-tabs', ownProps)}
       data-variant={variant}
       data-slot="tab"
       ref={ref}

@@ -58,7 +58,7 @@ export {
 } from './primitives/morph-path';
 export { useM3Morph } from './primitives/use-m3-morph';
 
-export { splitDataAttributes } from './utils/split-data-attributes';
+export { mergeDataTokens, splitDataAttributes } from './utils/split-data-attributes';
 export { ThemeScopeContext } from './theme/context';
 export { generateSchemeColors } from './theme/scheme';
 

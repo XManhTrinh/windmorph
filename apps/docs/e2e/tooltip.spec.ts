@@ -521,7 +521,7 @@ test.describe('Tooltip in forced colours', () => {
     await openStory(page, 'components-tooltip--plain', {}, { caret: true });
     await page.mouse.move(0, 0);
     await page.getByRole('button', { name: 'Edit' }).hover();
-    const plain = page.locator('[data-tokens="md-comp-plain-tooltip"]');
+    const plain = page.locator('[data-tokens~="md-comp-plain-tooltip"]');
     await expect(plain).toBeVisible();
     expect(await plain.evaluate(edge)).toBe('solid 1px');
     expect(
@@ -530,7 +530,7 @@ test.describe('Tooltip in forced colours', () => {
 
     await openStory(page, 'components-tooltip--rich', {}, { caret: true, placement: 'bottom' });
     await page.getByRole('button', { name: 'What are grouped tabs?' }).click();
-    const rich = page.locator('[data-tokens="md-comp-rich-tooltip"]');
+    const rich = page.locator('[data-tokens~="md-comp-rich-tooltip"]');
     await expect(rich).toBeVisible();
     expect(await rich.evaluate(edge)).toBe('solid 1px');
     expect(

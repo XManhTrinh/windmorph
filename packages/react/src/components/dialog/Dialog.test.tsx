@@ -899,3 +899,17 @@ describe('DialogActions with more than two actions', () => {
     ).toEqual([]);
   });
 });
+
+describe('Dialog token sets', () => {
+  it("puts an app's token set after the dialog's own, also full screen", async () => {
+    render(
+      <Dialog defaultOpen fullScreen="always" aria-label="Photo" data-tokens="app-viewer">
+        <DialogContent>A photo.</DialogContent>
+      </Dialog>,
+    );
+    expect(await screen.findByRole('dialog', { name: 'Photo' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-dialog app-viewer',
+    );
+  });
+});

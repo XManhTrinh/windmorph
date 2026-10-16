@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -5,6 +6,8 @@ import { axeViolations } from '../../../test/axe';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { AssistChip, FilterChip, InputChip, SuggestionChip } from './Chip';
 import { ChipSet } from './ChipSet';
+import { color, componentTokensCss, corner, defineComponentTokens } from '../../tokens/component';
+import { assistChipTokenSet } from './chip-tokens';
 
 const Icon = ({ id = 'icon' }: { id?: string }) => <svg data-testid={id} viewBox="0 0 24 24" />;
 
@@ -429,5 +432,68 @@ describe('InputChip selection without an action', () => {
     );
     expect(screen.getByRole('button', { name: 'Alex' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Remove Alex' })).not.toHaveAccessibleDescription();
+  });
+});
+
+describe('Chip token sets', () => {
+  it("puts an app's token set after each chip's own", () => {
+    render(
+      <>
+        <AssistChip data-tokens="app-reaction">Assist</AssistChip>
+        <SuggestionChip data-tokens="app-reaction">Suggestion</SuggestionChip>
+        <FilterChip data-tokens="app-reaction">Filter</FilterChip>
+        <InputChip data-tokens="app-reaction md-comp-input-chip" onPress={() => {}}>
+          Input
+        </InputChip>
+      </>,
+    );
+    const root = (name: string) =>
+      screen.getByRole('button', { name }).closest('[data-tokens]') as HTMLElement;
+    expect(root('Assist')).toHaveAttribute('data-tokens', 'md-comp-assist-chip app-reaction');
+    expect(root('Suggestion')).toHaveAttribute(
+      'data-tokens',
+      'md-comp-suggestion-chip app-reaction',
+    );
+    expect(root('Filter')).toHaveAttribute('data-tokens', 'md-comp-filter-chip app-reaction');
+    expect(root('Input')).toHaveAttribute('data-tokens', 'md-comp-input-chip app-reaction');
+  });
+
+  it("keeps the chip's token values and the app's own variables on one root", () => {
+    const appSet = defineComponentTokens({
+      name: 'wm-reaction-summary',
+      tokens: {
+        'chip-container': { value: color('secondary-container'), description: 'Container.' },
+        'chip-corner': { value: corner('small'), description: 'Corners.' },
+      },
+    });
+    const style = document.createElement('style');
+    style.textContent = `${componentTokensCss(assistChipTokenSet)}\n${componentTokensCss(appSet)}`;
+    document.head.append(style);
+    try {
+      render(
+        <AssistChip
+          data-tokens="wm-reaction-summary"
+          style={{ '--wm-reaction-summary-chip-corner': '4px' } as CSSProperties}
+        >
+          Like
+        </AssistChip>,
+      );
+      const computed = getComputedStyle(screen.getByRole('button', { name: 'Like' }));
+      const value = (name: string) => computed.getPropertyValue(name).replace(/\s+/gu, '');
+      // The core's set still resolves on the root, so the chip keeps its own styles.
+      expect(value('--_md-comp-assist-chip-container-shape')).toBe(
+        'var(--md-comp-assist-chip-container-shape,var(--md-sys-shape-corner-small))',
+      );
+      // And the app's set resolves beside it, with the app's override.
+      expect(value('--_wm-reaction-summary-chip-container')).toBe(
+        'var(--wm-reaction-summary-chip-container,var(--md-sys-color-secondary-container))',
+      );
+      expect(value('--_wm-reaction-summary-chip-corner')).toBe(
+        'var(--wm-reaction-summary-chip-corner,var(--md-sys-shape-corner-small))',
+      );
+      expect(value('--wm-reaction-summary-chip-corner')).toBe('4px');
+    } finally {
+      style.remove();
+    }
   });
 });

@@ -69,6 +69,7 @@ export {
   type ContextMenuTriggerProps,
   type MenuTriggerProps,
 } from './menu-trigger';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -696,7 +697,7 @@ function MenuList({
       })}
       ref={ref}
       {...densityAttribute(density)}
-      data-tokens="md-comp-menus"
+      data-tokens={mergeDataTokens('md-comp-menus', menuProps)}
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}
@@ -1151,7 +1152,7 @@ function MenuItemView({
       aria-describedby={describedBy}
       data-menu-open={submenuOpen || undefined}
       // Each item resolves the menu's tokens, so its selection picks its colours.
-      data-tokens="md-comp-menus"
+      data-tokens={mergeDataTokens('md-comp-menus', menuItemProps)}
       data-variant={variant}
       data-slot="item"
       ref={ref}

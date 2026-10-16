@@ -20,6 +20,7 @@ import {
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */
@@ -117,15 +118,17 @@ function ChipContent({
 }
 
 /**
- * The component tokens' hooks (chip-tokens.ts): each kind's set, and whether the chip is
- * elevated, which picks its elevated container token; and the chip's own density, if set.
+ * The component tokens' hooks (chip-tokens.ts): each kind's set, followed by any set the app
+ * passed on the same element (`props`), and whether the chip is elevated, which picks its
+ * elevated container token; and the chip's own density, if set.
  */
 const tokenAttributes = (
   kind: 'assist' | 'suggestion' | 'filter' | 'input',
   elevated: boolean | undefined,
   density: Density | undefined,
+  props?: object,
 ) => ({
-  'data-tokens': `md-comp-${kind}-chip`,
+  'data-tokens': mergeDataTokens(`md-comp-${kind}-chip`, props),
   'data-elevated': elevated || undefined,
   ...densityAttribute(density),
 });
@@ -232,7 +235,7 @@ export function AssistChip({
   return (
     <ButtonBase
       {...(base as ButtonBaseActionProps)}
-      {...tokenAttributes('assist', elevated, density)}
+      {...tokenAttributes('assist', elevated, density, base)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -282,7 +285,7 @@ export function SuggestionChip({
   return (
     <ButtonBase
       {...base}
-      {...tokenAttributes('suggestion', elevated, density)}
+      {...tokenAttributes('suggestion', elevated, density, base)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -381,7 +384,7 @@ function SimpleFilterChip({
   return (
     <ButtonBase
       {...base}
-      {...tokenAttributes('filter', elevated, density)}
+      {...tokenAttributes('filter', elevated, density, base)}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -592,7 +595,7 @@ export function InputChip({
   return (
     <div
       {...rest}
-      {...tokenAttributes('input', undefined, density)}
+      {...tokenAttributes('input', undefined, density, rest)}
       data-selected={selected || undefined}
       data-disabled={disabled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}

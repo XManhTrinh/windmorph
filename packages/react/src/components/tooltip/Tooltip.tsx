@@ -50,6 +50,7 @@ import {
   type TooltipContextValue,
   type TooltipTriggerProps,
 } from './tooltip-trigger';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export {
   TooltipPlacementContext,
@@ -192,7 +193,7 @@ function TooltipPopup({
       <div
         {...mergeProps(tooltipProps, exitProps)}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens="md-comp-plain-tooltip"
+        data-tokens={mergeDataTokens('md-comp-plain-tooltip', tooltipProps)}
         data-placement={side}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}
@@ -570,7 +571,7 @@ function RichBody({
       <div
         {...domProps}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens="md-comp-rich-tooltip"
+        data-tokens={mergeDataTokens('md-comp-rich-tooltip', domProps)}
         data-placement={placement}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}

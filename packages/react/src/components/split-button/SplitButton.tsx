@@ -26,6 +26,7 @@ import {
   type SplitButtonSize,
   type SplitButtonVariant,
 } from './split-button-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** Material Symbols "keyboard_arrow_down" (Apache-2.0). */
 function ArrowDownIcon() {
@@ -236,7 +237,7 @@ export function SplitButton(props: SplitButtonProps) {
       {...root}
       // The component tokens' hooks (split-button-tokens.ts); `data-variant` and `data-size`
       // are also public styling hooks for apps.
-      data-tokens="md-comp-split-button"
+      data-tokens={mergeDataTokens('md-comp-split-button', root)}
       data-variant={variant}
       data-size={size}
       className={styles.root({ class: cn(classNames?.root, className) })}

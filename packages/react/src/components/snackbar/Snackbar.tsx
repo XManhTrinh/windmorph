@@ -21,6 +21,7 @@ import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { durationMillis, SnackbarHostState, type SnackbarData } from './snackbar-state';
 import { snackbarHostStyles, snackbarStyles } from './snackbar-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** Whether a snackbar is inside a {@link SnackbarHost}, whose live region announces it. */
 const InSnackbarHost = createContext(false);
@@ -131,7 +132,7 @@ export function Snackbar({
         }
       }}
       // The component tokens' hook (snackbar-tokens.ts).
-      data-tokens="md-comp-snackbar"
+      data-tokens={mergeDataTokens('md-comp-snackbar', rest)}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <div ref={messageRef} className={styles.message({ class: classNames?.message })}>

@@ -242,7 +242,7 @@ test.describe('Density · Autocomplete', () => {
         const chips = field('chips');
         expect((await box(container(chips))).height).toBeCloseTo(chipsHeight, 0);
         expect((await box(container(field('chips-no-label')))).height).toBeCloseTo(h, 0);
-        const chip = await box(chips.locator('[data-tokens="md-comp-input-chip"]').first());
+        const chip = await box(chips.locator('[data-tokens~="md-comp-input-chip"]').first());
         const chipsContainer = await box(container(chips));
         const label = await box(chips.locator('label[data-slot="label"]'));
         expect(chip.y).toBeGreaterThanOrEqual(chipsContainer.y);
@@ -822,7 +822,7 @@ test.describe('Density · control screenshots', () => {
 test.describe('Density · icon buttons in parts that keep their size', () => {
   /** The size of every icon button in the story, in document order (portalled ones too). */
   const iconButtonSizes = (page: Page) =>
-    page.locator('[data-tokens="md-comp-icon-button"]').evaluateAll((buttons) =>
+    page.locator('[data-tokens~="md-comp-icon-button"]').evaluateAll((buttons) =>
       buttons.map((button) => {
         const { width, height } = button.getBoundingClientRect();
         return `${button.getAttribute('aria-label')}: ${Math.round(width)} × ${Math.round(height)}`;

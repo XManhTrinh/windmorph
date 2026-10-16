@@ -28,6 +28,7 @@ import {
   type IconButtonVariant,
   type IconButtonWidth,
 } from './icon-button-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface IconButtonClassNames {
   /** The button element itself; merged with `className`. */
@@ -180,7 +181,7 @@ export function IconButton(props: IconButtonProps) {
   // Destructuring a union merges its members (see Button); `base` holds one member's props.
   // The component tokens' hooks (icon-button-tokens.ts), also public styling hooks for apps.
   const tokenAttributes = {
-    'data-tokens': 'md-comp-icon-button',
+    'data-tokens': mergeDataTokens('md-comp-icon-button', base),
     'data-variant': variant,
     'data-size': size,
   };

@@ -440,3 +440,13 @@ describe('IconButton density', () => {
     );
   });
 });
+
+describe('IconButton token sets', () => {
+  it("puts an app's token set after the icon button's own", () => {
+    render(<IconButton aria-label="Like" icon={<svg />} data-tokens="app-reaction" />);
+    expect(screen.getByRole('button', { name: 'Like' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-icon-button app-reaction',
+    );
+  });
+});

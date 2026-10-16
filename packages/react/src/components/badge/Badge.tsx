@@ -4,6 +4,7 @@ import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
 import { useNumberFormatter, VisuallyHidden } from 'react-aria';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** Words a {@link Badge} announces. */
 export interface BadgeLabels {
@@ -74,7 +75,7 @@ export function Badge({
     <span
       {...rest}
       // The component tokens' hooks (badge-tokens.ts); `data-size` is also a public hook.
-      data-tokens="md-comp-badge"
+      data-tokens={mergeDataTokens('md-comp-badge', rest)}
       data-size={size}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

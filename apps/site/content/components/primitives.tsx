@@ -24,7 +24,8 @@ const importSnippet = `import {
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Building your own component
-  splitDataAttributes, ThemeScopeContext, generateSchemeColors, materialShapeMask,
+  splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
+  materialShapeMask,
   // Morph & shapes
   useM3Morph, morphPathAt, getMorph,
   RoundedPolygon, CornerRounding, Cubic, Morph,
@@ -223,7 +224,9 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
             <li>
               For a component of your own: <InlineCode>splitDataAttributes</InlineCode> (puts{' '}
               <InlineCode>data-*</InlineCode> props on the root when the rest go to a React Aria
-              hook), <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
+              hook), <InlineCode>mergeDataTokens</InlineCode> (adds your own token set after a
+              component's, as the core components do with a <InlineCode>data-tokens</InlineCode>{' '}
+              they are given), <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
               <InlineCode>ThemeProvider</InlineCode> or <InlineCode>ThemeScope</InlineCode>, to
               provide one for a subtree), <InlineCode>generateSchemeColors</InlineCode> (every
               colour role as a hex value, for checks such as contrast) and{' '}

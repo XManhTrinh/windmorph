@@ -32,6 +32,7 @@ import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface SideSheetClassNames {
   /**
@@ -351,7 +352,7 @@ function ModalSideSheet({
               {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
               ref={panelRef}
               // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
-              data-tokens="md-comp-sheet-side"
+              data-tokens={mergeDataTokens('md-comp-sheet-side', rest)}
               data-variant="modal"
               data-detached={detached || undefined}
               data-exiting={exiting}
@@ -443,7 +444,7 @@ function StandardSideSheet({
       role="dialog"
       style={rootStyle}
       // The component tokens' hooks (sheet-tokens.ts), read by the panel inside.
-      data-tokens="md-comp-sheet-side"
+      data-tokens={mergeDataTokens('md-comp-sheet-side', rest)}
       data-variant="standard"
       data-detached={detached || undefined}
       data-closed={closed}

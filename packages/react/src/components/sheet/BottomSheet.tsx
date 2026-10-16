@@ -29,6 +29,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
 import {
@@ -623,7 +624,7 @@ function BottomSheetPanel({
           }}
           ref={panelRef}
           // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
-          data-tokens="md-comp-sheet-bottom-docked"
+          data-tokens={mergeDataTokens('md-comp-sheet-bottom-docked', rest)}
           data-variant={variant}
           data-detent={detentName}
           data-exiting={exiting}

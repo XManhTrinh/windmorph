@@ -419,3 +419,13 @@ describe('TextField classNames', () => {
     expect(container.querySelector('[data-slot="active-indicator"]')).toHaveClass('indicator-x');
   });
 });
+
+describe('TextField token sets', () => {
+  it("puts an app's token set after the field's own", () => {
+    const { container } = render(<TextField label="Name" data-tokens="app-profile" />);
+    expect(container.firstElementChild).toHaveAttribute(
+      'data-tokens',
+      'md-comp-text-field app-profile',
+    );
+  });
+});

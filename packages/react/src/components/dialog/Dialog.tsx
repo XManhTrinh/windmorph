@@ -40,6 +40,7 @@ import { useWarnOnce } from '../../utils/warn-once';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { DIALOG_ROOT_STYLE, dialogStyles } from './dialog-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** Material Symbols "close" (Apache-2.0). */
 function CloseIcon() {
@@ -509,7 +510,7 @@ function DialogModal({
               ref={panelRef}
               data-exiting={exiting}
               // The component tokens' hook (dialog-tokens.ts).
-              data-tokens="md-comp-dialog"
+              data-tokens={mergeDataTokens('md-comp-dialog', rest)}
               data-full-screen={fullScreen === 'never' ? undefined : fullScreen}
               data-origin={origin || undefined}
               className={styles.panel({

@@ -30,7 +30,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { radioGroupStyles, radioStyles } from './radio-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { RadioRing } from './radio-ring';
@@ -295,7 +295,11 @@ export function Radio({
       inputRef={domInputRef}
       // The ring resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
-      rootData={{ ...data, ...densityAttribute(density), 'data-tokens': 'md-comp-radio-button' }}
+      rootData={{
+        ...data,
+        ...densityAttribute(density),
+        'data-tokens': mergeDataTokens('md-comp-radio-button', data),
+      }}
       state={{
         'data-selected': isSelected || undefined,
         'data-disabled': isDisabled || undefined,

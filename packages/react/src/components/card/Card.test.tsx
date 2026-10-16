@@ -256,3 +256,23 @@ describe('Card', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Card token sets', () => {
+  it("puts an app's token set after the card's own, static or pressable", () => {
+    render(
+      <>
+        <Card data-testid="static" data-tokens="app-post">
+          Static
+        </Card>
+        <Card onPress={() => {}} data-tokens="app-post">
+          Pressable
+        </Card>
+      </>,
+    );
+    expect(screen.getByTestId('static')).toHaveAttribute('data-tokens', 'md-comp-card app-post');
+    expect(screen.getByRole('button', { name: 'Pressable' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-card app-post',
+    );
+  });
+});

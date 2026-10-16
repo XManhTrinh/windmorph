@@ -19,6 +19,7 @@ import {
   type Frame,
 } from './loading-indicator-frames';
 import { loadingIndicatorStyles, type LoadingIndicatorVariant } from './loading-indicator-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** The spec's range for a loading indicator's size, in px. */
 const MIN_SIZE = 24;
@@ -139,7 +140,7 @@ export function LoadingIndicator({
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
       // The component tokens' hooks (loading-indicator-tokens.ts); `data-variant` is also public.
-      data-tokens="md-comp-loading-indicator"
+      data-tokens={mergeDataTokens('md-comp-loading-indicator', rest)}
       data-variant={variant ?? 'default'}
       data-indeterminate={indeterminate || undefined}
       style={

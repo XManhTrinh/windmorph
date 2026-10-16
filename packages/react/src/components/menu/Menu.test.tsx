@@ -763,3 +763,19 @@ describe('Menu classNames', () => {
     expect(within(sheet).getByRole('menu')).toHaveClass('panel-x');
   });
 });
+
+describe('Menu token sets', () => {
+  it("puts an app's token set after the menu's own", async () => {
+    render(<EditMenu data-tokens="app-actions" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.getByRole('menu', { name: 'Edit' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-menus app-actions',
+    );
+    // Items keep the menu's set alone.
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-menus',
+    );
+  });
+});

@@ -28,7 +28,7 @@ import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { KeyboardIcon, ScheduleIcon } from '../date-picker/picker-icons';
 import { useMediaQuery } from '../date-picker/use-media-query';
 import { IconButton } from '../icon-button/IconButton';
@@ -217,7 +217,7 @@ export function TimePicker({
       ref={ref}
       style={style}
       // The time picker's component tokens (time-picker-tokens.ts).
-      data-tokens="md-comp-time-picker"
+      data-tokens={mergeDataTokens('md-comp-time-picker', data)}
       data-mode={mode}
       data-layout={resolvedLayout}
       {...densityAttribute(density)}

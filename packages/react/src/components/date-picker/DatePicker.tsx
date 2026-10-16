@@ -40,7 +40,7 @@ import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -422,7 +422,7 @@ function PickerFrame({
       }}
       style={style}
       // The modal date picker's component tokens (date-picker-tokens.ts).
-      data-tokens="md-comp-date-picker-modal"
+      data-tokens={mergeDataTokens('md-comp-date-picker-modal', data)}
       data-years={years || undefined}
       data-mode={mode}
       className={styles.root({ class: cn(classNames?.root, className) })}

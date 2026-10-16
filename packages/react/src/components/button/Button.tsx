@@ -17,6 +17,7 @@ import {
   type ButtonVariant,
 } from './button-styles';
 import { ButtonContext } from './ButtonContext';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface ButtonClassNames {
   /** The button element itself; merged with `className`. */
@@ -118,7 +119,7 @@ export function Button({
   // `href`/`toggle` with their `ref` types. `base` still holds exactly one member's props.
   // The component tokens' hooks (button-tokens.ts), also public styling hooks for apps.
   const tokenAttributes = {
-    'data-tokens': 'md-comp-button',
+    'data-tokens': mergeDataTokens('md-comp-button', base),
     'data-variant': variant,
     'data-size': size,
   };

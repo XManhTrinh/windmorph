@@ -6,6 +6,7 @@ import { cn } from '../../utils/cn';
 import { AppBarItems } from './AppBarItems';
 import { topAppBarStyles, type TopAppBarTitleAlign, type TopAppBarVariant } from './app-bar-styles';
 import { useAppBarScroll, type TopAppBarScrollBehavior } from './use-app-bar-scroll';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface TopAppBarClassNames {
   /** The `<header>` container, merged with `className`. */
@@ -137,7 +138,7 @@ export function TopAppBar({
     <header
       {...rest}
       ref={rootRef}
-      data-tokens="md-comp-app-bar"
+      data-tokens={mergeDataTokens('md-comp-app-bar', rest)}
       data-variant={variant}
       data-scrolled={scroll.scrolled || undefined}
       data-collapsed={scroll.collapsed || undefined}

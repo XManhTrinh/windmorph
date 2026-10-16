@@ -524,3 +524,24 @@ describe('Button link', () => {
     expect(link).toHaveAttribute('data-disabled');
   });
 });
+
+describe('Button token sets', () => {
+  it("puts an app's token set after the button's own", () => {
+    render(
+      <>
+        <Button data-tokens="app-send">Send</Button>
+        <Button href="/inbox" data-tokens="app-send md-comp-button">
+          Inbox
+        </Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-button app-send',
+    );
+    expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-button app-send',
+    );
+  });
+});

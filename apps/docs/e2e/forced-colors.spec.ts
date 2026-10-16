@@ -45,7 +45,7 @@ test('checkbox: disabled boxes are GrayText', async ({ page }) => {
       .getByRole('checkbox', { name: 'Unchecked' })
       .nth(index)
       .locator('xpath=ancestor::label')
-      .locator('[data-tokens="md-comp-checkbox"]')
+      .locator('[data-tokens~="md-comp-checkbox"]')
       .last();
   const enabled = await computedStyle(box(0), 'border-top-color');
   const disabled = await computedStyle(box(2), 'border-top-color');
@@ -56,7 +56,7 @@ test('checkbox: disabled boxes are GrayText', async ({ page }) => {
 test('slider: the tracks and the handle stay visible', async ({ page }) => {
   await openStory(page, 'components-slider--variants');
   const background = await canvas(page);
-  const slider = page.getByTestId('variants').locator('[data-tokens="md-comp-slider"]').first();
+  const slider = page.getByTestId('variants').locator('[data-tokens~="md-comp-slider"]').first();
   const active = slider.locator('[data-tone=active]').first();
   const inactive = slider.locator('[data-tone=inactive]').first();
   expect(await computedStyle(active, 'background-color')).not.toBe(background);

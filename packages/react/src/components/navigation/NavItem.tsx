@@ -23,6 +23,7 @@ import {
 import { cn } from '../../utils/cn';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { navItemStyles, type NavItemLayout } from './nav-item-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface NavItemClassNames {
   /** The item's button or link, merged with `className`. */
@@ -228,7 +229,10 @@ export function NavItem({
       }
       data-current={selected || undefined}
       // The bar's or rail's component tokens, resolved on the item for its state and layout.
-      data-tokens={layout.startsWith('rail') ? 'md-comp-nav-rail' : 'md-comp-nav-bar'}
+      data-tokens={mergeDataTokens(
+        layout.startsWith('rail') ? 'md-comp-nav-rail' : 'md-comp-nav-bar',
+        action,
+      )}
       data-layout={layout}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

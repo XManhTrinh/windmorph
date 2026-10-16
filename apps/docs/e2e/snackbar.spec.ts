@@ -166,7 +166,7 @@ test.describe('Snackbar in forced colours', () => {
   test('the snackbar keeps an edge', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
     await openStory(page, 'components-snackbar--layouts');
-    const snackbar = page.locator('[data-tokens="md-comp-snackbar"]').first();
+    const snackbar = page.locator('[data-tokens~="md-comp-snackbar"]').first();
     const style = await snackbar.evaluate((el) => {
       const s = getComputedStyle(el);
       return `${s.outlineStyle} ${s.outlineWidth}`;

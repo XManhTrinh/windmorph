@@ -896,6 +896,36 @@ describe('List component tokens', () => {
     expect(item).toHaveClass('bg-tertiary');
     expect(item).not.toHaveClass('bg-[var(--_md-comp-list-container-color)]');
   });
+
+  it("puts an app's token set after the list's own on each kind of root", () => {
+    render(
+      <>
+        <List aria-label="Static" data-tokens="app-feed">
+          <ListItem key="a">Alex</ListItem>
+        </List>
+        <List aria-label="Pick" selectionMode="single" data-tokens="app-feed">
+          <ListItem key="b">Sam</ListItem>
+        </List>
+        <List aria-label="Theme" defaultValue="dark" data-tokens="app-feed">
+          <ListItem key="dark" value="dark">
+            Dark
+          </ListItem>
+        </List>
+      </>,
+    );
+    for (const root of [
+      screen.getByRole('list', { name: 'Static' }),
+      screen.getByRole('listbox', { name: 'Pick' }),
+      screen.getByRole('radiogroup', { name: 'Theme' }),
+    ]) {
+      expect(root).toHaveAttribute('data-tokens', 'md-comp-list app-feed');
+    }
+    // Items keep the list's set alone.
+    expect(screen.getByRole('option', { name: 'Sam' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-list',
+    );
+  });
 });
 
 describe('List switch items', () => {

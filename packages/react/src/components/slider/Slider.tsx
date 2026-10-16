@@ -22,7 +22,7 @@ import {
 import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { useTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
@@ -283,7 +283,7 @@ function SliderRoot(props: RootProps) {
         directionRef(element);
       }}
       style={style}
-      data-tokens="md-comp-slider"
+      data-tokens={mergeDataTokens('md-comp-slider', data)}
       data-size={size}
       data-orientation={orientation}
       data-disabled={disabled || undefined}

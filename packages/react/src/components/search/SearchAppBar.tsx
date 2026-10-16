@@ -7,6 +7,7 @@ import { AppBarItems } from '../app-bar/AppBarItems';
 import { useAppBarScroll } from '../app-bar/use-app-bar-scroll';
 import { SearchAppBarContext } from './SearchBar';
 import { searchAppBarStyles } from './search-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 export interface SearchAppBarClassNames {
   /** The `<header>` container, merged with `className`. */
@@ -77,7 +78,7 @@ export function SearchAppBar({
       {...rest}
       ref={rootRef}
       // The app bar's component tokens (app-bar-tokens.ts).
-      data-tokens="md-comp-app-bar"
+      data-tokens={mergeDataTokens('md-comp-app-bar', rest)}
       data-scrolled={scroll.scrolled || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

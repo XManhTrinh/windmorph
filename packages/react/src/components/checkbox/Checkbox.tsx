@@ -15,7 +15,7 @@ import {
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';
@@ -152,7 +152,11 @@ export function Checkbox({
       inputRef={domInputRef}
       // The box resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
-      rootData={{ ...rootData, ...densityAttribute(density), 'data-tokens': 'md-comp-checkbox' }}
+      rootData={{
+        ...rootData,
+        ...densityAttribute(density),
+        'data-tokens': mergeDataTokens('md-comp-checkbox', rootData),
+      }}
       state={{
         'data-selected': filled || undefined,
         'data-checked': (isSelected && !indeterminate) || undefined,

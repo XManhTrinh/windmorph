@@ -24,7 +24,7 @@ import {
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
@@ -242,7 +242,11 @@ export function Switch({
       rootProps={mergeProps(labelProps, hoverProps)}
       inputProps={mergeProps(inputProps, focusProps, enterProps)}
       inputRef={domInputRef}
-      rootData={{ ...data, ...densityAttribute(density), 'data-tokens': 'md-comp-switch' }}
+      rootData={{
+        ...data,
+        ...densityAttribute(density),
+        'data-tokens': mergeDataTokens('md-comp-switch', data),
+      }}
       state={stateAttributes}
       styles={styles}
       className={className}

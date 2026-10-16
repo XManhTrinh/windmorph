@@ -691,7 +691,7 @@ test.describe('Sheets keep focus on the page after their own buttons', () => {
     await settle(page);
     const collapse = page.locator('button[aria-label="Collapse sheet"]');
     await collapse.click();
-    await expect(page.locator('[data-tokens="md-comp-sheet-bottom-docked"]')).toHaveAttribute(
+    await expect(page.locator('[data-tokens~="md-comp-sheet-bottom-docked"]')).toHaveAttribute(
       'data-detent',
       'collapsed',
     );
@@ -815,7 +815,7 @@ test.describe('Moving down to a lower detent never overshoots it', () => {
       const frames: number[] = [];
       (window as unknown as { tops: number[] }).tops = frames;
       const sample = () => {
-        const panel = document.querySelector('[data-tokens="md-comp-sheet-bottom-docked"]');
+        const panel = document.querySelector('[data-tokens~="md-comp-sheet-bottom-docked"]');
         if (panel) frames.push(panel.getBoundingClientRect().top);
         if (frames.length < 90) requestAnimationFrame(sample);
       };

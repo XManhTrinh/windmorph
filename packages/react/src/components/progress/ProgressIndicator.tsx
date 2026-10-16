@@ -37,6 +37,7 @@ import {
   type Strokes,
 } from './progress-geometry';
 import { circularProgressStyles, linearProgressStyles } from './progress-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 
@@ -317,7 +318,7 @@ export function LinearProgressIndicator({
       {...mergeProps(rest, progressBarProps)}
       ref={rootRef}
       // The component tokens' hook (progress-tokens.ts).
-      data-tokens="md-comp-progress-indicator"
+      data-tokens={mergeDataTokens('md-comp-progress-indicator', rest)}
       data-indeterminate={indeterminate || undefined}
       style={{ '--m3-progress-height': `${height}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -541,7 +542,7 @@ export function CircularProgressIndicator({
       {...mergeProps(rest, progressBarProps)}
       ref={ref}
       // The component tokens' hook (progress-tokens.ts).
-      data-tokens="md-comp-progress-indicator"
+      data-tokens={mergeDataTokens('md-comp-progress-indicator', rest)}
       data-indeterminate={indeterminate || undefined}
       style={{ '--m3-progress-size': `${size}px`, ...style } as CSSProperties}
       className={styles.root({ class: cn(classNames?.root, className) })}

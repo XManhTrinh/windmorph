@@ -10,6 +10,7 @@ import {
 } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
 import { cardStyles, type CardVariant } from './card-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 interface CardOwnProps {
   /** The M3 style: filled, elevated or outlined. @default "filled" */
@@ -87,7 +88,10 @@ export function Card(props: CardProps) {
 
   const classes = cn(cardStyles({ variant, interactive }), className);
   // The component tokens' hooks (card-tokens.ts), also public styling hooks for apps.
-  const tokenAttributes = { 'data-tokens': 'md-comp-card', 'data-variant': variant ?? 'filled' };
+  const tokenAttributes = {
+    'data-tokens': mergeDataTokens('md-comp-card', rest),
+    'data-variant': variant ?? 'filled',
+  };
 
   if (!interactive) {
     const { href, onPress, disabled, ...div } = rest as CardStaticProps;

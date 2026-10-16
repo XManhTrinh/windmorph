@@ -21,6 +21,7 @@ import {
   type FabElevation,
   type FabSize,
 } from './fab-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** FABs have no disabled or toggle state in M3. */
 type FabBaseKeys = 'children' | 'disabled' | 'toggle';
@@ -146,7 +147,7 @@ export function Fab({
     <ButtonBase
       {...baseProps}
       // The component tokens' hooks (fab-tokens.ts), also public styling hooks for apps.
-      data-tokens="md-comp-fab"
+      data-tokens={mergeDataTokens('md-comp-fab', base)}
       data-color={color ?? 'primary-container'}
       data-size={size ?? 'default'}
     >
@@ -258,7 +259,7 @@ export function ExtendedFab({
     <ButtonBase
       {...baseProps}
       // The component tokens' hooks (fab-tokens.ts), also public styling hooks for apps.
-      data-tokens="md-comp-extended-fab"
+      data-tokens={mergeDataTokens('md-comp-extended-fab', base)}
       data-color={color ?? 'primary-container'}
       data-size={size ?? 'sm'}
       data-expanded={!collapsed}

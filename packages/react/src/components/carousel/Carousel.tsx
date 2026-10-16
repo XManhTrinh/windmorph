@@ -17,7 +17,7 @@ import {
 import { useNumberFormatter, useObjectRef } from 'react-aria';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import {
   createStrategy,
   heroKeylineList,
@@ -500,7 +500,7 @@ export function Carousel({
       aria-label={label}
       aria-labelledby={labelledBy}
       // The component token's hooks (carousel-tokens.ts), also public styling hooks for apps.
-      data-tokens="md-comp-carousel"
+      data-tokens={mergeDataTokens('md-comp-carousel', data)}
       data-variant={variant}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}

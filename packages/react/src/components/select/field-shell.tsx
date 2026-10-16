@@ -3,6 +3,7 @@ import { ErrorText, FieldErrorIcon, FieldLabel, SupportingText } from '../../pri
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { textFieldStyles, type TextFieldVariant } from '../text-field/text-field-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 /** The text field's one state at a time, in priority order (see text-field-styles). */
 export type FieldState =
@@ -165,7 +166,7 @@ export function FieldShell({
       ref={rootRef}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
-      data-tokens="md-comp-text-field"
+      data-tokens={mergeDataTokens('md-comp-text-field', rootProps)}
       data-variant={variant}
       {...densityAttribute(density)}
       data-field-state={state}

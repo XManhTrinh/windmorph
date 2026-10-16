@@ -27,7 +27,7 @@ import {
 } from '../../primitives/Field';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {
@@ -371,7 +371,7 @@ export function TextField(props: TextFieldProps) {
       ref={ref}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
-      data-tokens="md-comp-text-field"
+      data-tokens={mergeDataTokens('md-comp-text-field', rootData)}
       data-variant={variant}
       {...densityAttribute(density)}
       data-field-state={state}

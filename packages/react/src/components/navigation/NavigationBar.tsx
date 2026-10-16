@@ -18,6 +18,7 @@ import { NavItem, type NavItemProps } from './NavItem';
 import { navigationBarStyles, type NavigationBarArrangement } from './navigation-styles';
 import { useHideOnScroll } from './use-hide-on-scroll';
 import { onItemArrowKeys } from './use-item-arrow-keys';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 interface BarContextValue {
   iconPosition: 'top' | 'start';
@@ -131,7 +132,7 @@ export function NavigationBar({
         arrowKeys(event);
       }}
       style={{ paddingInline: padding, ...style } as CSSProperties}
-      data-tokens="md-comp-nav-bar"
+      data-tokens={mergeDataTokens('md-comp-nav-bar', rest)}
       data-stacked={stacked || undefined}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >

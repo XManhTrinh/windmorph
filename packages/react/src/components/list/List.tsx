@@ -72,7 +72,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
@@ -576,10 +576,14 @@ function itemStyles(
 
 /**
  * The component tokens' hooks (`list-tokens.ts`), on a list's root and on each item, so an
- * item's own state (`data-selected`) picks its colours.
+ * item's own state (`data-selected`) picks its colours. On the root, any set the app passed
+ * (`props`) follows the list's own.
  */
-function tokenAttributes(variant: ListVariant | undefined) {
-  return { 'data-tokens': 'md-comp-list', 'data-variant': variant ?? 'standard' } as const;
+function tokenAttributes(variant: ListVariant | undefined, props?: object) {
+  return {
+    'data-tokens': mergeDataTokens('md-comp-list', props),
+    'data-variant': variant ?? 'standard',
+  } as const;
 }
 
 /** An item's token hooks and its `data-slot`. */
@@ -764,6 +768,7 @@ function StaticList({
   ...rest
 }: ListProps & { entries: ReactElement[] }) {
   const { data } = splitDataAttributes(rest);
+  const rootTokens = tokenAttributes(variant, data);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
     'aria-labelledby'?: string;
@@ -793,7 +798,7 @@ function StaticList({
   return (
     <ul
       {...data}
-      {...tokenAttributes(variant)}
+      {...rootTokens}
       ref={ref as Ref<HTMLUListElement>}
       style={style}
       aria-label={label}
@@ -1030,7 +1035,7 @@ function CollectionList({
     options,
     listRef: ref,
     directionRef,
-    data: { ...data, ...tokenAttributes(variant) },
+    data: { ...data, ...tokenAttributes(variant, data) },
     style,
     className: listStyles({ variant }).root({ class: cn(classNames?.root, className) }),
     variant,
@@ -1883,7 +1888,7 @@ function RadioList({
   return (
     <div
       {...mergeProps(data, radioGroupProps)}
-      {...tokenAttributes(variant)}
+      {...tokenAttributes(variant, data)}
       ref={ref as Ref<HTMLDivElement>}
       style={style}
       className={listStyles({ variant }).root({ class: cn(classNames?.root, className) })}

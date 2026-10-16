@@ -44,6 +44,7 @@ import {
   type ToolbarExitEdge,
   type ToolbarOrientation,
 } from './toolbar-styles';
+import { mergeDataTokens } from '../../utils/split-data-attributes';
 
 const DOCKED = {
   standard: { kind: 'docked', color: 'standard' },
@@ -171,7 +172,7 @@ function DockedToolbarRoot({
       {...mergeProps(rest, toolbarProps)}
       {...exitProps(visible)}
       ref={rootRef}
-      data-tokens="md-comp-toolbar-docked"
+      data-tokens={mergeDataTokens('md-comp-toolbar-docked', rest)}
       data-color={color}
       className={dockedToolbarStyles({ arrangement, color }).root({
         class: cn(classNames?.root, className),
@@ -367,7 +368,7 @@ function FloatingToolbarRoot({
       {...mergeProps(rest, toolbarProps, focusProps, collapsedFocusProps)}
       {...exitProps(visible)}
       ref={rootRef}
-      data-tokens="md-comp-toolbar-floating"
+      data-tokens={mergeDataTokens('md-comp-toolbar-floating', rest)}
       data-color={color}
       data-expanded={expanded}
       style={
