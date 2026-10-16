@@ -17,7 +17,7 @@ import {
   type ButtonVariant,
 } from './button-styles';
 import { ButtonContext } from './ButtonContext';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface ButtonClassNames {
   /** The button element itself; merged with `className`. */

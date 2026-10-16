@@ -32,7 +32,7 @@ import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface SideSheetClassNames {
   /**

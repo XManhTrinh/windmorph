@@ -50,7 +50,7 @@ import {
   type TooltipContextValue,
   type TooltipTriggerProps,
 } from './tooltip-trigger';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export {
   TooltipPlacementContext,

@@ -37,7 +37,7 @@ import {
   type Strokes,
 } from './progress-geometry';
 import { circularProgressStyles, linearProgressStyles } from './progress-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
 

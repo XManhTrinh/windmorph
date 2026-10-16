@@ -4,7 +4,7 @@ import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
 import { useNumberFormatter, VisuallyHidden } from 'react-aria';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Words a {@link Badge} announces. */
 export interface BadgeLabels {

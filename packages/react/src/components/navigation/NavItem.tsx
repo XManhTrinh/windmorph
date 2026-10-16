@@ -23,7 +23,7 @@ import {
 import { cn } from '../../utils/cn';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { navItemStyles, type NavItemLayout } from './nav-item-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface NavItemClassNames {
   /** The item's button or link, merged with `className`. */

@@ -10,7 +10,7 @@ import {
 } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
 import { cardStyles, type CardVariant } from './card-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 interface CardOwnProps {
   /** The M3 style: filled, elevated or outlined. @default "filled" */

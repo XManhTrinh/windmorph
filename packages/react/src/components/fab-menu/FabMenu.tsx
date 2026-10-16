@@ -34,7 +34,7 @@ import type { FabElevation } from '../fab/fab-styles';
 import { FabTooltip } from '../fab/FabTooltip';
 import { staggerSteps } from './fab-menu-stagger';
 import { fabMenuStyles, type FabMenuColor, type FabMenuSize } from './fab-menu-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 type Styles = ReturnType<typeof fabMenuStyles>;
 

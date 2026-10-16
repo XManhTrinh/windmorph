@@ -6,7 +6,7 @@ import {
   type DividerInset,
   type DividerOrientation,
 } from './divider-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface DividerProps extends Omit<ComponentPropsWithRef<'div'>, 'children'> {
   /**

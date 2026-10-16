@@ -21,7 +21,7 @@ import {
   type FabElevation,
   type FabSize,
 } from './fab-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** FABs have no disabled or toggle state in M3. */
 type FabBaseKeys = 'children' | 'disabled' | 'toggle';

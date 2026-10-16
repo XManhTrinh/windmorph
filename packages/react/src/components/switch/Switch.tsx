@@ -24,7 +24,8 @@ import {
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {

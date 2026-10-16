@@ -17,7 +17,8 @@ import {
 import { useNumberFormatter, useObjectRef } from 'react-aria';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import {
   createStrategy,
   heroKeylineList,

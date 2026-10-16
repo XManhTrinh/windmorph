@@ -31,7 +31,8 @@ import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 

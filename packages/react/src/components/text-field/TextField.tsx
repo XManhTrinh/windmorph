@@ -27,7 +27,8 @@ import {
 } from '../../primitives/Field';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {

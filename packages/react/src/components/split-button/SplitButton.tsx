@@ -26,7 +26,7 @@ import {
   type SplitButtonSize,
   type SplitButtonVariant,
 } from './split-button-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Material Symbols "keyboard_arrow_down" (Apache-2.0). */
 function ArrowDownIcon() {

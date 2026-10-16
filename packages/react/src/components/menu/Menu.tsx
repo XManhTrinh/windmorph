@@ -69,7 +69,7 @@ export {
   type ContextMenuTriggerProps,
   type MenuTriggerProps,
 } from './menu-trigger';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">

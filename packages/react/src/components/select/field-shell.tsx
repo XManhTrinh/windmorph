@@ -3,7 +3,7 @@ import { ErrorText, FieldErrorIcon, FieldLabel, SupportingText } from '../../pri
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { textFieldStyles, type TextFieldVariant } from '../text-field/text-field-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** The text field's one state at a time, in priority order (see text-field-styles). */
 export type FieldState =

@@ -21,7 +21,7 @@ import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { durationMillis, SnackbarHostState, type SnackbarData } from './snackbar-state';
 import { snackbarHostStyles, snackbarStyles } from './snackbar-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Whether a snackbar is inside a {@link SnackbarHost}, whose live region announces it. */
 const InSnackbarHost = createContext(false);

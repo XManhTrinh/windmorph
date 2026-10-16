@@ -18,7 +18,7 @@ import { NavItem, type NavItemProps } from './NavItem';
 import { navigationBarStyles, type NavigationBarArrangement } from './navigation-styles';
 import { useHideOnScroll } from './use-hide-on-scroll';
 import { onItemArrowKeys } from './use-item-arrow-keys';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 interface BarContextValue {
   iconPosition: 'top' | 'start';

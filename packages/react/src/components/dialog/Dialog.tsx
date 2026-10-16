@@ -40,7 +40,7 @@ import { useWarnOnce } from '../../utils/warn-once';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { IconButton } from '../icon-button/IconButton';
 import { DIALOG_ROOT_STYLE, dialogStyles } from './dialog-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Material Symbols "close" (Apache-2.0). */
 function CloseIcon() {

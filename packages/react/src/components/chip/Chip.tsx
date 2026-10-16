@@ -20,7 +20,7 @@ import {
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */

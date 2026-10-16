@@ -28,7 +28,7 @@ import {
   type IconButtonVariant,
   type IconButtonWidth,
 } from './icon-button-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface IconButtonClassNames {
   /** The button element itself; merged with `className`. */

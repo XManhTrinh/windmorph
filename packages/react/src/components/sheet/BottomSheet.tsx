@@ -29,7 +29,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
 import {

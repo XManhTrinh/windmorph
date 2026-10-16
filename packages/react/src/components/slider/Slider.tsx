@@ -22,7 +22,8 @@ import {
 import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { useTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,

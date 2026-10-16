@@ -30,7 +30,8 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { radioGroupStyles, radioStyles } from './radio-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { RadioRing } from './radio-ring';

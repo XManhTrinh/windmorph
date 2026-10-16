@@ -7,7 +7,7 @@ import { AppBarItems } from '../app-bar/AppBarItems';
 import { useAppBarScroll } from '../app-bar/use-app-bar-scroll';
 import { SearchAppBarContext } from './SearchBar';
 import { searchAppBarStyles } from './search-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface SearchAppBarClassNames {
   /** The `<header>` container, merged with `className`. */

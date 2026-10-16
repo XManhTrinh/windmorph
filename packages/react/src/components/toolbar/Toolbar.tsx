@@ -44,7 +44,7 @@ import {
   type ToolbarExitEdge,
   type ToolbarOrientation,
 } from './toolbar-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 const DOCKED = {
   standard: { kind: 'docked', color: 'standard' },

@@ -19,7 +19,7 @@ import {
   type Frame,
 } from './loading-indicator-frames';
 import { loadingIndicatorStyles, type LoadingIndicatorVariant } from './loading-indicator-styles';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** The spec's range for a loading indicator's size, in px. */
 const MIN_SIZE = 24;

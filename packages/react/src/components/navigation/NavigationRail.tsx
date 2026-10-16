@@ -22,7 +22,7 @@ import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationRailStyles } from './navigation-styles';
 import { onItemArrowKeys } from './use-item-arrow-keys';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Registered in utilities.css (96px); every rail inset is derived from it. */
 const COLLAPSED_WIDTH_VAR = '--m3-rail-collapsed-width';

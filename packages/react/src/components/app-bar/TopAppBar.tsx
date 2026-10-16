@@ -6,7 +6,7 @@ import { cn } from '../../utils/cn';
 import { AppBarItems } from './AppBarItems';
 import { topAppBarStyles, type TopAppBarTitleAlign, type TopAppBarVariant } from './app-bar-styles';
 import { useAppBarScroll, type TopAppBarScrollBehavior } from './use-app-bar-scroll';
-import { mergeDataTokens } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface TopAppBarClassNames {
   /** The `<header>` container, merged with `className`. */

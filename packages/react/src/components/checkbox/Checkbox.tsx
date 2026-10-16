@@ -15,7 +15,8 @@ import {
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';

@@ -72,7 +72,8 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
-import { mergeDataTokens, splitDataAttributes } from '../../utils/split-data-attributes';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
