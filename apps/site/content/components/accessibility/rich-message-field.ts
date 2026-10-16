@@ -35,7 +35,8 @@ export const richMessageField: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Up', 'Arrow Down'],
-      action: 'Moves the active person up or down the list, wrapping.',
+      action:
+        'Moves the active person up or down the list, wrapping, and shows it with the focus layer and an inset focus ring.',
       where: 'With the mention list open',
     },
     {
@@ -45,8 +46,12 @@ export const richMessageField: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Left', 'Arrow Right'],
-      action:
-        'Moves between buttons. The tools wrap at the ends and take Home and End; the formatting buttons stop at the ends.',
+      action: 'Moves between buttons, wrapping at the ends.',
+      where: 'In the tools and the formatting toolbar',
+    },
+    {
+      keys: ['Home', 'End'],
+      action: 'Moves to the first or last button, without scrolling the page.',
       where: 'In the tools and the formatting toolbar',
     },
     {
@@ -62,25 +67,29 @@ export const richMessageField: ComponentAccessibility = {
     'Arrow keys in the toolbars are mirrored in right-to-left text.',
   ],
   screenReader: {
-    role: 'The editor is a `textbox` with `aria-multiline`. The tools and the formatting buttons are two `toolbar`s of icon buttons; the formatting buttons and the Aa tool are toggle buttons. The mention list is a `listbox` of `option`s. Link asks in a `dialog`.',
+    role: 'The editor is a `textbox` with `aria-multiline`. The tools and the formatting buttons are two `toolbar`s of icon buttons; the formatting buttons and the Aa tool are toggle buttons. A `separator` divides the formatting groups. The mention list is a `listbox` of `option`s. Link asks in a `dialog` (pressing outside it cancels).',
     name: 'The editor is named by `label`, `aria-label` or `aria-labelledby` (required), and described by the description, error and counter as {@link MessageField} is. The formatting toolbar and the Aa tool are named `labels.formatting` ("Formatting"), each format by its label ("Bold", "Bulleted list"), and the mention list `labels.mentionSuggestions` ("People to mention").',
     states:
       'The formatting buttons are pressed where their format is on (`aria-pressed`). The editor has `aria-invalid`, `aria-required`, `aria-disabled` and `aria-readonly` as they apply. With `mentions` it has `aria-autocomplete="list"`; while the list is open it points at it (`aria-controls`) and at the active person (`aria-activedescendant`), who is `aria-selected`.',
     notes: [
-      'A polite status says how many people the list shows (`labels.mentionResults`), and a slow search shows a loading indicator named `labels.mentionLoading` ("Finding people").',
+      'A polite status says how many people the list shows (`labels.mentionResults`). It goes into the page before its first count, so the first count is announced too. A slow search shows a loading indicator named `labels.mentionLoading` ("Finding people").',
+      "In `FormattedText`, a code block takes keyboard focus (with M3's focus indicator) so a long line can be scrolled, unless it sits inside something pressable.",
       "Avatars in the mention list are decorative (`aria-hidden`), and the limit announcements, error and Send are the {@link MessageField}'s.",
     ],
   },
   focus: [
     "Focus stays in the text while the mention list is open: the list is pointed at, not focused, and pressing a person picks them without taking focus. The formatting buttons and the Aa tool don't take focus on a press either, so the selection stays.",
     'The tools and the formatting toolbar are one Tab stop each. The link dialog focuses its address field, and closing it puts focus back in the text.',
-    "Keyboard focus in the text draws M3's focus indicator around the whole field; the active person is highlighted like a hovered row, with no focus ring. In forced-colours mode it is outlined in `Highlight`.",
+    "Keyboard focus in the text draws M3's focus indicator around the whole field. In the mention list, the person reached with the arrow keys shows the focus layer and an inset focus ring; the first suggestion and the one under the pointer show the hover layer. In forced-colours mode the active person is outlined in `Highlight`.",
+    "Putting the caret back in the text (a press on the field or a tool, `insertText`) never lets the editor scroll the page. The app's own `focus()` brings a field that is wholly off screen into view with a nearest, smooth scroll.",
   ],
   touchTarget: [
-    'The formatting buttons, the Aa tool and the other field buttons are icon buttons with 48 × 48px touch targets. Each person in the mention list is a full-width row.',
+    'The formatting buttons, the Aa tool and the other field buttons are icon buttons with 48 × 48px touch targets. They stay at density 0 in a dense theme, and on its own (`formatting="none"` with a `FormattingToolbar` elsewhere) the toolbar spaces its 40px buttons 8px apart, so the targets never overlap.',
+    'Each person in the mention list is a full-width row.',
   ],
   motion: [
-    "Under reduced motion `autoFocus` brings the field into view at once instead of gliding, and the field's rows, Send and the link dialog keep only their fades, as in {@link MessageField}.",
+    "Under reduced motion `autoFocus` and the app's `focus()` bring the field into view at once instead of gliding. Nothing moves or scales, but the fades stay on their effects timing: the field's rows, Send, its icon, the loading indicator and the link dialog still fade, as in {@link MessageField}.",
+    "The mention list's pressed ripple appears at full size without growing.",
   ],
   consumer: [
     'Name the field for what is being written ("Write a comment"), not only with a placeholder.',

@@ -43,12 +43,12 @@ export const pinInput: ComponentAccessibility = {
     'A tap or click on a box puts the caret in that box.',
   ],
   touchTarget: [
-    'The input covers the whole row of boxes, so any tap on the row lands on it. Boxes are 48, 56 or 64px tall (`small`, `medium`, `large`).',
+    'The input covers the whole row of boxes, so any tap on the row lands on it. Boxes are at least 48, 56 or 64px tall (`small`, `medium`, `large`), 4px less a density step (44px at -3 at `medium`), and grow with larger text.',
     'On narrow screens the boxes shrink to fit, down to 32px wide each.',
   ],
   motion: [
-    'A new character pops into its box (scale and fade, on the fast spatial spring); the caret blinks; an invalid code shakes the row once.',
-    'Under reduced motion characters appear at once, the caret stays on and nothing shakes. Border colours still fade.',
+    'A new character pops into its box (a scale on the fast spatial spring and a fade on the fast effects spring); the caret blinks as a step, 500ms on and 500ms off; an invalid code shakes the row once, on the default spatial spring.',
+    'Under reduced motion the pop is skipped but new characters still fade in, the caret stays on and nothing shakes. Border colours still fade.',
   ],
   consumer: [
     'Give it a visible `label` that says what code to enter and how long it is ("6-digit code"); use `aria-label` only where a visible label is impossible.',

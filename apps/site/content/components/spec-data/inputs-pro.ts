@@ -229,6 +229,11 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['phone-field/phone-field-states'],
       },
       {
+        name: 'Density, 56 to 44px (`density`)',
+        kind: 'configuration',
+        examples: ['phone-field/phone-field-density'],
+      },
+      {
         name: 'A phone number at sign-up',
         kind: 'use case',
         examples: ['phone-field/phone-field-signup'],
@@ -279,6 +284,11 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['pin-input/pin-input-states', 'pin-input/pin-input-verification'],
       },
       {
+        name: 'Density, 56 to 44px (`density`)',
+        kind: 'configuration',
+        examples: ['pin-input/pin-input-density'],
+      },
+      {
         name: 'A verification code that submits itself',
         kind: 'use case',
         examples: ['pin-input/pin-input-verification'],
@@ -287,7 +297,7 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
     extensions: [
       {
         item: 'Built on the M3 text field',
-        note: 'Each box is drawn with the text field’s outlined or filled tokens, and one real input sits over them, so autofill, paste and screen readers see a single field.',
+        note: 'Each box reads the `--wm-pin-input-*` tokens, whose defaults are the text field’s outlined or filled tokens, so a text field theme restyles it too. One real input sits over the boxes, so autofill, paste and screen readers see a single field.',
       },
     ],
   },

@@ -1,5 +1,7 @@
 import type { ComponentDoc } from './doc';
+import { mediaUploadGridTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
@@ -84,7 +86,9 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             A grid fills its container&apos;s width with 3 columns, 4 from 600px and 5 from 840px
             (the grid&apos;s own width, so it fits a dialog as well as a page);{' '}
-            <InlineCode>{'layout="row"'}</InlineCode> is one scrolling row of 112px tiles.
+            <InlineCode>{'layout="row"'}</InlineCode> is one scrolling row of 112px tiles. Below
+            280px the grid drops to 2 columns, so tiles stay 88px or more and their corner
+            buttons&apos; touch targets never overlap.
           </p>
         </section>
 
@@ -118,6 +122,12 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
               Check every file on the server too: its name and type can lie. Pasting photos is up to
               the app, which owns the focused text field.
             </li>
+            <li>
+              A failed photo&apos;s Retry sits in the start corner (its action menu steps aside), so
+              no two 48px targets overlap. Removing a photo moves focus to its neighbour without
+              scrolling the page, and the arrow keys stop at the grid&apos;s edge rather than
+              scrolling it.
+            </li>
           </ul>
         </section>
       </>
@@ -126,7 +136,7 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
       <>
         <section className="flex flex-col gap-3">
           <h2 id="theming" className="text-headline-small text-on-surface">
-            Theming
+            Theming &amp; tokens
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
@@ -145,11 +155,33 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
             <li>
               A dragged photo dims, and a <InlineCode>primary</InlineCode> bar marks where it lands.
               Files dragged over the grid show a dashed <InlineCode>primary</InlineCode> outline and
-              the drop message. Tiles slide to their new places on the default spatial spring and
-              new ones grow in on the fast one; with reduced motion nothing moves. Forced colours
-              draw the edges, bars and outline in system colours.
+              the drop message. Photos show the pressed state and ripple as they&apos;re picked up.
+              Tiles slide to their new places on the default spatial spring and new ones grow in on
+              the fast one; with reduced motion nothing moves, but a new photo still fades in. An
+              uploading photo isn&apos;t dimmed. Disabled and drag opacities use the system{' '}
+              <InlineCode>--md-sys-state-disabled-*</InlineCode> tokens. Forced colours draw the
+              edges, bars and outline in system colours.
+            </li>
+            <li>
+              The corner buttons stay at density 0 in a dense theme, as the tiles keep their size.
+            </li>
+            <li>
+              <InlineCode>classNames</InlineCode> styles the <InlineCode>root</InlineCode>,{' '}
+              <InlineCode>grid</InlineCode>, each <InlineCode>item</InlineCode>,{' '}
+              <InlineCode>image</InlineCode> and <InlineCode>status</InlineCode>, the{' '}
+              <InlineCode>remove</InlineCode>, <InlineCode>retry</InlineCode> and{' '}
+              <InlineCode>actions</InlineCode> buttons, the <InlineCode>add</InlineCode> tile and
+              the <InlineCode>drop</InlineCode> overlay. <InlineCode>removeIcon</InlineCode>,{' '}
+              <InlineCode>retryIcon</InlineCode>, <InlineCode>actionsIcon</InlineCode> and{' '}
+              <InlineCode>addIcon</InlineCode> replace the icons.
+            </li>
+            <li>
+              Set the tokens below on the grid (<InlineCode>className</InlineCode>) or any ancestor;
+              the root is marked{' '}
+              <InlineCode>data-tokens=&quot;wm-media-upload-grid&quot;</InlineCode>.
             </li>
           </ul>
+          <TokenTable set={mediaUploadGridTokenSet} caption="Media upload grid tokens" />
         </section>
       </>
     ),

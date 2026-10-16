@@ -209,7 +209,22 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               Icon buttons in <InlineCode>leading</InlineCode> and <InlineCode>trailing</InlineCode>{' '}
               take the field&apos;s size. An avatar as tall as them (32px at{' '}
               <InlineCode>sm</InlineCode>, 40px at <InlineCode>md</InlineCode> and{' '}
-              <InlineCode>lg</InlineCode>) sits concentric in the pill.
+              <InlineCode>lg</InlineCode>) sits concentric in the pill. Slot buttons sit 48px apart
+              (16px beside <InlineCode>xs</InlineCode> buttons, 8px beside{' '}
+              <InlineCode>sm</InlineCode>), so their 48px touch targets never overlap.
+            </li>
+            <li>
+              The field keeps its height in a dense theme: its icon buttons stay at density 0 (the
+              tools, Send, the banner&apos;s close and the slots), so a{' '}
+              <InlineCode>density</InlineCode> on a provider or <InlineCode>ThemeScope</InlineCode>{' '}
+              never squeezes their touch targets together.
+            </li>
+            <li>
+              Focusing the text never scrolls the page: a press on the field, Send, the
+              banner&apos;s close and <InlineCode>insertText</InlineCode> put the caret back without
+              moving it. The app&apos;s own <InlineCode>focus()</InlineCode> (through{' '}
+              <InlineCode>handleRef</InlineCode>) brings a field that is wholly off screen into view
+              with a short, smooth scroll.
             </li>
           </ul>
         </section>
@@ -227,9 +242,10 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The send button grows in from a small circle on the fast spatial spring and shrinks
-              away with the last character. Pressing it, or the trigger, squares its corners and
-              springs back. While sending, its icon gives way to the loading indicator, which morphs
-              through Material shapes.
+              away with the last character. Pressing it squares its corners and springs back;{' '}
+              <InlineCode>MessageFieldTrigger</InlineCode>&apos;s press morph runs on the effects
+              spring, with no bounce, as the core&apos;s non-toggle buttons. While sending, the send
+              icon gives way to the loading indicator, which morphs through Material shapes.
             </li>
             <li>
               Opening on focus puts the tools on their row at once, as Facebook does, and springs
@@ -240,8 +256,13 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               jumps; the counter fades in.
             </li>
             <li>
+              A send that fails while <InlineCode>invalid</InlineCode> shakes the field once, each
+              step on the fast spatial spring.
+            </li>
+            <li>
               The springs follow the motion scheme. Under reduced motion, shapes and heights change
-              at once, nothing scales or shakes, and only fades remain.
+              at once and nothing scales or shakes, but the fades stay on their effects timing: the
+              rows, Send, its icon and the loading indicator still fade in and out.
             </li>
           </ul>
         </section>
@@ -259,10 +280,14 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>surface-container-high</InlineCode>, as the search bar),{' '}
               <InlineCode>tonal</InlineCode> (<InlineCode>secondary-container</InlineCode>) or{' '}
               <InlineCode>outlined</InlineCode> (an <InlineCode>outline</InlineCode> border,{' '}
-              <InlineCode>primary</InlineCode> while focused). <InlineCode>size</InlineCode>:{' '}
-              <InlineCode>sm</InlineCode> 40px (<InlineCode>body-medium</InlineCode>),{' '}
-              <InlineCode>md</InlineCode> 48px and <InlineCode>lg</InlineCode> 56px (
-              <InlineCode>body-large</InlineCode>).
+              <InlineCode>primary</InlineCode> while focused). The tonal placeholder is{' '}
+              <InlineCode>on-surface-variant</InlineCode>, quieter than the text, and switches to{' '}
+              <InlineCode>on-secondary-container</InlineCode> at medium and high contrast so it
+              keeps 4.5:1 (an app&apos;s <InlineCode>--wm-message-field-placeholder</InlineCode>{' '}
+              still wins). Disabled colours use the system disabled opacities.{' '}
+              <InlineCode>size</InlineCode>: <InlineCode>sm</InlineCode> 40px (
+              <InlineCode>body-medium</InlineCode>), <InlineCode>md</InlineCode> 48px and{' '}
+              <InlineCode>lg</InlineCode> 56px (<InlineCode>body-large</InlineCode>).
             </li>
             <li>
               Every value the field paints is a token: set the variables below on the field (

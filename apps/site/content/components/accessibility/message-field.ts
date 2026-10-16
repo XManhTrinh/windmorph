@@ -54,7 +54,7 @@ export const messageField: ComponentAccessibility = {
     states:
       'The text has `aria-invalid` (also while over `maxLength`) and `aria-required`, and `aria-describedby` links `description` and `errorMessage`. Send is disabled while there is nothing to send. While sending it stays focusable with `aria-disabled`, and its loading indicator is a `progressbar` named `labels.sending` ("Sending").',
     notes: [
-      'The error appears with the `alert` role, so it is announced. While it shows, the description is visually hidden but still read.',
+      'The error is an `alert` region that goes into the page before its message, so screen readers announce the message when it arrives. While it shows, the description is visually hidden but still read.',
       'A polite live region announces the limit once per change: `labels.nearLimit` from `counterThreshold`, then `labels.atLimit` and `labels.overLimit`. The visible counter is hidden from assistive tech.',
       "`MessageFieldTrigger`'s avatar, tools and trailing icon are decorative (`aria-hidden`).",
     ],
@@ -62,13 +62,15 @@ export const messageField: ComponentAccessibility = {
   focus: [
     'The text, the tools (one Tab stop), the slot buttons and Send are in Tab order. Pressing the field anywhere outside its controls puts the caret in the text, and so do Send and the banner close.',
     "Keyboard focus in the text draws M3's focus indicator around the whole field: a 3px `secondary` outline 2px outside; pointer focus draws only the thicker focus border.",
+    "Putting the caret back in the text (after a press on the field, Send, the banner close or `insertText`) never scrolls the page. The app's own `focus()` brings a field that is wholly off screen into view with a nearest, smooth scroll (instant under reduced motion).",
   ],
   touchTarget: [
-    'The field is 40, 48 or 56px tall (`sm`, `md`, `lg`). Its buttons are extra-small or small icon buttons with 48 × 48px touch targets.',
-    '`MessageFieldTrigger` is as tall as the field; at `sm` (40px) it gets an invisible 48 × 48px touch target.',
+    'The field is 40, 48 or 56px tall (`sm`, `md`, `lg`). Its buttons are extra-small or small icon buttons with 48 × 48px touch targets, spaced 48px apart so the targets never overlap.',
+    'Its icon buttons stay at density 0 in a dense theme, so their targets keep their size and spacing while the field keeps its height.',
+    '`MessageFieldTrigger` is as tall as the field; at `sm` (40px) it gets an invisible 48 × 48px touch target. It grows with larger text instead of cutting it.',
   ],
   motion: [
-    'Under reduced motion nothing moves or scales: rows open, Send appears and the field grows without movement, keeping only their fades, and an invalid send does not shake the field.',
+    'Under reduced motion nothing moves or scales: rows open, Send appears and the field grows without movement, and an invalid send does not shake the field. The fades stay on their effects timing, so the rows, Send, its icon and the loading indicator still fade in and out.',
     'The press ripple appears at full size without growing, and corner changes snap.',
   ],
   consumer: [

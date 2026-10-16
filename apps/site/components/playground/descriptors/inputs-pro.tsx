@@ -15,15 +15,25 @@ import {
   AddAPhotoIcon,
   ArrowForwardIcon,
   DeleteIcon,
+  EditIcon,
   FormatBoldIcon,
   FormatItalicIcon,
+  HistoryIcon,
   InkPenIcon,
   MicIcon,
   ScheduleIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
 } from '../../icons';
 import { SAMPLE_PHOTO, SAMPLE_PORTRAIT } from '../../../examples/image-crop/sample-photo';
 import { SAMPLE_PHOTOS } from '../../../examples/media-upload-grid/sample-photos';
-import { loose, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
+import {
+  DENSITY_OPTIONS,
+  asDensity,
+  loose,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+} from './shared';
 
 const PinInputAny = loose(PinInput);
 const MessageFieldAny = loose(MessageField);
@@ -257,12 +267,22 @@ const UPLOAD_ITEMS: MediaUploadItem[] = [
 ];
 
 /** A grid the preview can add to, reorder, retry and remove from. */
-function MediaUploadGridPreview(props: Record<string, unknown>) {
+function MediaUploadGridPreview({
+  removeIcon,
+  retryIcon,
+  actionsIcon,
+  addIcon,
+  ...props
+}: Record<string, unknown>) {
   const [items, setItems] = useState<MediaUploadItem[]>(UPLOAD_ITEMS);
   return (
     <div className="w-full max-w-[480px]">
       {createElement(MediaUploadGridAny, {
         ...props,
+        removeIcon: removeIcon ? <DeleteIcon /> : undefined,
+        retryIcon: retryIcon ? <HistoryIcon /> : undefined,
+        actionsIcon: actionsIcon ? <EditIcon /> : undefined,
+        addIcon: addIcon ? <AddAPhotoIcon /> : undefined,
         'aria-label': 'Photos in your post',
         items,
         accept: ['image/*'],
@@ -443,13 +463,15 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         'The cropping area on its own, for a custom layout; the preview shows it inside the crop dialog.',
     },
     importFrom: '@windmorph/react-pro',
-    render: ({ src, ...props }, update) => (
+    render: ({ src, zoomInIcon, zoomOutIcon, ...props }, update) => (
       <>
         <Button variant="tonal" onPress={() => update('open', true)}>
           Crop the photo
         </Button>
         {createElement(ImageCropDialogAny, {
           ...props,
+          zoomInIcon: zoomInIcon ? <ZoomInIcon /> : undefined,
+          zoomOutIcon: zoomOutIcon ? <ZoomOutIcon /> : undefined,
           src: CROP_PHOTOS[String(src)] ?? SAMPLE_PHOTO,
           open: Boolean(props.open),
           onOpenChange: (open: boolean) => update('open', open),
@@ -458,8 +480,25 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       </>
     ),
     // `open` and `src` are required, so the snippet always writes them.
-    defaultProps: { aspect: 1, guide: 'none', maxZoom: 4, busy: false },
-    surfacedProps: ['open', 'src', 'aspect', 'guide', 'maxZoom', 'busy', 'progress'],
+    defaultProps: {
+      aspect: 1,
+      guide: 'none',
+      maxZoom: 4,
+      busy: false,
+      zoomInIcon: false,
+      zoomOutIcon: false,
+    },
+    surfacedProps: [
+      'open',
+      'src',
+      'aspect',
+      'guide',
+      'maxZoom',
+      'zoomInIcon',
+      'zoomOutIcon',
+      'busy',
+      'progress',
+    ],
     initialState: { open: false, src: '/photos/landscape.jpg', guide: 'circle' },
     numberRanges: {
       aspect: { min: 0.5, max: 2, step: 0.25 },
@@ -467,6 +506,8 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       progress: { min: 0, max: 1, step: 0.05 },
     },
     enumOptions: { src: Object.keys(CROP_PHOTOS) },
+    controlKinds: { zoomInIcon: 'boolean', zoomOutIcon: 'boolean' },
+    toggledSlots: { zoomInIcon: '<ZoomInIcon />', zoomOutIcon: '<ZoomOutIcon />' },
     codeSlots: {
       onOpenChange: '(open) => console.log(open)',
       onConfirm: '(result) => console.log(result.crop)',
@@ -476,13 +517,40 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     component: 'MediaUploadGrid',
     importFrom: '@windmorph/react-pro',
     render: (props) => createElement(MediaUploadGridPreview, props),
-    defaultProps: { layout: 'grid', disabled: false },
-    surfacedProps: ['layout', 'maxItems', 'disabled'],
+    defaultProps: {
+      layout: 'grid',
+      disabled: false,
+      removeIcon: false,
+      retryIcon: false,
+      actionsIcon: false,
+      addIcon: false,
+    },
+    surfacedProps: [
+      'layout',
+      'maxItems',
+      'removeIcon',
+      'retryIcon',
+      'actionsIcon',
+      'addIcon',
+      'disabled',
+    ],
     notControlled: {
       accept: 'The file types the add tile and a drop take, a list; the preview takes images.',
     },
     initialState: { maxItems: 6 },
     numberRanges: { maxItems: { min: 1, max: 12 } },
+    controlKinds: {
+      removeIcon: 'boolean',
+      retryIcon: 'boolean',
+      actionsIcon: 'boolean',
+      addIcon: 'boolean',
+    },
+    toggledSlots: {
+      removeIcon: '<DeleteIcon />',
+      retryIcon: '<HistoryIcon />',
+      actionsIcon: '<EditIcon />',
+      addIcon: '<AddAPhotoIcon />',
+    },
     codeSlots: {
       'aria-label': '"Photos in your post"',
       items:
@@ -494,9 +562,10 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     component: 'PhoneField',
     groups: { country: 'content', locale: 'content' },
     importFrom: '@windmorph/react-pro',
-    render: ({ priorityCountries, ...props }, update) =>
+    render: ({ priorityCountries, density, ...props }, update) =>
       createElement(PhoneFieldAny, {
         ...props,
+        density: asDensity(density),
         key: mountKey(props, ['autoFocus']),
         ...(priorityCountries === true && { priorityCountries: ['GB', 'US', 'CA', 'AU'] }),
         value: typeof props.value === 'string' ? props.value : '',
@@ -505,6 +574,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       }),
     defaultProps: {
       variant: 'outlined',
+      density: 0,
       value: '',
       country: 'GB',
       priorityCountries: false,
@@ -517,6 +587,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     surfacedProps: [
       'variant',
+      'density',
       'label',
       'value',
       'country',
@@ -539,24 +610,27 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       errorMessage: 'Enter a valid phone number',
     },
     enumOptions: {
+      ...DENSITY_OPTIONS,
       country: ['GB', 'US', 'CA', 'AU', 'FR', 'DE'],
       locale: ['en-US', 'fr-FR', 'de-DE'],
     },
-    controlKinds: { priorityCountries: 'boolean', supportingText: 'string' },
+    controlKinds: { priorityCountries: 'boolean', supportingText: 'string', density: 'number' },
     toggledSlots: { priorityCountries: "['GB', 'US', 'CA', 'AU']" },
   },
   'pin-input': {
     component: 'PinInput',
     importFrom: '@windmorph/react-pro',
-    render: (props, update) =>
+    render: ({ density, ...props }, update) =>
       createElement(PinInputAny, {
         ...props,
+        density: asDensity(density),
         value: typeof props.value === 'string' ? props.value : '',
         onChange: (value: string) => update('value', value),
       }),
     defaultProps: {
       variant: 'outlined',
       size: 'medium',
+      density: 0,
       corner: 'extra-small',
       length: 6,
       type: 'numeric',
@@ -571,6 +645,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     surfacedProps: [
       'variant',
       'size',
+      'density',
       'corner',
       'label',
       'length',
@@ -598,6 +673,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       supportingText: 'We sent it to your email.',
     },
     enumOptions: {
+      ...DENSITY_OPTIONS,
       corner: [
         'none',
         'extra-small',
@@ -611,7 +687,12 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         'full',
       ],
     },
-    controlKinds: { label: 'string', supportingText: 'string', errorMessage: 'string' },
+    controlKinds: {
+      label: 'string',
+      supportingText: 'string',
+      errorMessage: 'string',
+      density: 'number',
+    },
     numberRanges: { length: { min: 4, max: 8 } },
   },
 };

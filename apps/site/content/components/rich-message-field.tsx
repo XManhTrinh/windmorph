@@ -118,6 +118,9 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               inserting anything visible, and show pressed where their format is on. Typing the
               markers turns them into formatting; <InlineCode>{'```'}</InlineCode> then Enter starts
               a code block. Link asks for an http or https address in a dialog, or takes a link off.
+              The toolbar is one Tab stop: the arrows move between its buttons and wrap, Home and
+              End reach the first and last, and a <InlineCode>separator</InlineCode> divides its
+              groups. Its buttons stay at density 0, so the field keeps its height in a dense theme.
             </li>
             <li>
               Enter sends, except in a list (the next item; an empty one ends the list) or a code
@@ -136,7 +139,9 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>handleRef</InlineCode> adds <InlineCode>format</InlineCode>,{' '}
               <InlineCode>setLink</InlineCode> and <InlineCode>removeLink</InlineCode> to{' '}
               <InlineCode>focus</InlineCode>, <InlineCode>insertText</InlineCode> and{' '}
-              <InlineCode>clear</InlineCode>.
+              <InlineCode>clear</InlineCode>. Focusing the text (a press on the field or a tool,{' '}
+              <InlineCode>insertText</InlineCode>) never scrolls the page; the app&apos;s{' '}
+              <InlineCode>focus()</InlineCode> brings a field that is wholly off screen into view.
             </li>
             <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML
@@ -165,9 +170,12 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               shows nothing. <InlineCode>maxItems</InlineCode> (8) caps the list.
             </li>
             <li>
-              The list sits over the field, below it or above when there&apos;s no room, on the M3
-              Expressive menu&apos;s surface. Arrows move, Enter or Tab picks, Escape closes, and
-              pressing a person picks them; focus stays in the text throughout.
+              The list sits over the field, below it or above when there&apos;s no room, drawn as
+              the core&apos;s menu: its container, elevation 2, state layers and the pressed ripple.
+              Arrows move (the arrowed person shows keyboard focus), Enter or Tab picks, Escape
+              closes, and pressing a person picks them; focus stays in the text throughout. The
+              &quot;N people&quot; status is in the page before its first count, so screen readers
+              announce it.
             </li>
             <li>
               A picked person is one <InlineCode>@Name</InlineCode> token (Backspace takes it out
@@ -196,15 +204,21 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             The field takes every <InlineCode>--wm-message-field-*</InlineCode> token (see Message
             field). The formatted text, while writing and in <InlineCode>FormattedText</InlineCode>,
-            takes these, on the text or any ancestor. <InlineCode>classNames</InlineCode> reaches
-            the field&apos;s parts and, through <InlineCode>formattingToolbar</InlineCode>, the
+            takes these, on the text or any ancestor: bold and mentions use the emphasized body
+            weight, inline code keeps the text&apos;s size and code blocks are{' '}
+            <InlineCode>body-medium</InlineCode>. <InlineCode>classNames</InlineCode> reaches the
+            field&apos;s parts and, through <InlineCode>formattingToolbar</InlineCode>, the
             toolbar&apos;s <InlineCode>root</InlineCode>, <InlineCode>button</InlineCode> and{' '}
             <InlineCode>divider</InlineCode>; <InlineCode>formattingIcon</InlineCode> and{' '}
             <InlineCode>formattingToolbar.icons</InlineCode> replace the icons.
           </p>
           <TokenTable set={richTextTokenSet} caption="Rich text tokens" />
           <p className="text-body-large text-on-surface-variant">
-            The mention list takes these. It renders in a popover outside the field, so set them on{' '}
+            The mention list carries the core menu&apos;s tokens, and its{' '}
+            <InlineCode>container</InlineCode>, <InlineCode>corner</InlineCode> and{' '}
+            <InlineCode>label-color</InlineCode> default to the{' '}
+            <InlineCode>--md-comp-menus-*</InlineCode> ones, so an app&apos;s menu theme reaches it
+            too. Its own tokens are these. It renders in a popover outside the field, so set them on{' '}
             <InlineCode>:root</InlineCode> or a theme wrapper, or for one field in{' '}
             <InlineCode>mentions.classNames.list</InlineCode> (for example{' '}
             <InlineCode>[--wm-mention-list-corner:8px]</InlineCode>).{' '}

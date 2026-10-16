@@ -1,11 +1,14 @@
 import type { ComponentDoc } from './doc';
+import { pinInputTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 import { lazyExample } from '../../lib/lazy-example';
 
 const PinInputCorners = lazyExample('pin-input/pin-input-corners', 'PinInputCorners');
+const PinInputDensity = lazyExample('pin-input/pin-input-density', 'PinInputDensity');
 const PinInputGroups = lazyExample('pin-input/pin-input-groups', 'PinInputGroups');
 const PinInputPin = lazyExample('pin-input/pin-input-pin', 'PinInputPin');
 const PinInputStates = lazyExample('pin-input/pin-input-states', 'PinInputStates');
@@ -17,14 +20,16 @@ const PinInputVerification = lazyExample(
 
 /** PIN input page body: purpose, examples and theming. */
 export async function PinInputBody(): Promise<ComponentDoc> {
-  const [verification, variants, groups, pin, corners, states] = await Promise.all([
+  const [verification, variants, groups, pin, corners, states, density] = await Promise.all([
     readExampleSource('pin-input/pin-input-verification.tsx'),
     readExampleSource('pin-input/pin-input-variants.tsx'),
     readExampleSource('pin-input/pin-input-groups.tsx'),
     readExampleSource('pin-input/pin-input-pin.tsx'),
     readExampleSource('pin-input/pin-input-corners.tsx'),
     readExampleSource('pin-input/pin-input-states.tsx'),
+    readExampleSource('pin-input/pin-input-density.tsx'),
   ]);
+  const densityHtml = await highlightSource(density);
   const [verificationHtml, variantsHtml, groupsHtml, pinHtml, cornersHtml, statesHtml] =
     await Promise.all([
       highlightSource(verification),
@@ -90,6 +95,14 @@ export async function PinInputBody(): Promise<ComponentDoc> {
           >
             <PinInputStates />
           </ExampleViewer>
+          <ExampleViewer
+            title="Density, from 56px to 44px"
+            code={density}
+            html={densityHtml}
+            fileName="pin-input-density.tsx"
+          >
+            <PinInputDensity />
+          </ExampleViewer>
         </section>
       </>
     ),
@@ -113,13 +126,35 @@ export async function PinInputBody(): Promise<ComponentDoc> {
             six characters fit a 320px phone in every size.
           </p>
         </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 id="behaviour" className="text-headline-small text-on-surface">
+            Behaviour
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              <InlineCode>density</InlineCode> (or the theme&apos;s, through a provider or{' '}
+              <InlineCode>ThemeScope</InlineCode>) takes 4px a step off the boxes&apos; height: 56px
+              at 0 to 44px at -3 at the medium size, as the core&apos;s fields.
+            </li>
+            <li>
+              Box sizes are minimums (at least 1.25em each way), so text at 200% makes the boxes
+              bigger instead of clipping the characters.
+            </li>
+            <li>
+              Disabled parts dim with the M3 disabled state opacities. An invalid code shakes the
+              row on the default spatial spring on every swing, and the caret blinks as a step
+              (500ms on, 500ms off).
+            </li>
+          </ul>
+        </section>
       </>
     ),
     api: (
       <>
         <section className="flex flex-col gap-3">
           <h2 id="theming" className="text-headline-small text-on-surface">
-            Theming
+            Theming &amp; tokens
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
@@ -131,14 +166,27 @@ export async function PinInputBody(): Promise<ComponentDoc> {
               contrast level follows.
             </li>
             <li>
-              <InlineCode>corner</InlineCode> takes any step of the M3 shape scale; the default is
-              the text field&apos;s extra-small.
+              The boxes read the <InlineCode>--wm-pin-input-*</InlineCode> tokens below, whose
+              defaults are the core&apos;s text field tokens: a{' '}
+              <InlineCode>--md-comp-outlined-text-field-*</InlineCode> or{' '}
+              <InlineCode>--md-comp-filled-text-field-*</InlineCode> override restyles the boxes as
+              it does a Text field and a Phone field. Set them on the input (
+              <InlineCode>className</InlineCode>) or any ancestor; the root is marked{' '}
+              <InlineCode>data-tokens=&quot;wm-pin-input&quot;</InlineCode>.
             </li>
             <li>
-              New characters pop in on the fast spatial spring, and border changes use the fast
-              effects spring, from the active motion scheme.
+              <InlineCode>corner</InlineCode> takes any step of the M3 shape scale; the default is
+              the text field&apos;s extra-small. For a corner of your own, set{' '}
+              <InlineCode>--wm-pin-input-container-shape</InlineCode> (the old{' '}
+              <InlineCode>--wm-pin-corner</InlineCode> variable is gone).
+            </li>
+            <li>
+              New characters pop in on the fast spatial spring and fade in on the fast effects
+              spring, and border changes use the fast effects spring, from the active motion scheme.
+              Under reduced motion the pop is skipped but the fade stays.
             </li>
           </ul>
+          <TokenTable set={pinInputTokenSet} caption="PIN input tokens" />
         </section>
       </>
     ),

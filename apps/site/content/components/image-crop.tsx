@@ -68,6 +68,35 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
             first: <InlineCode>sharp(file).rotate().extract(crop)</InlineCode>.
           </p>
         </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 id="behaviour" className="text-headline-small text-on-surface">
+            Behaviour
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              A pointer drags the photo and two fingers pinch to zoom. Ctrl or ⌘ with the wheel (and
+              a trackpad pinch) zooms around the pointer; a plain wheel scrolls the page, as in
+              Media viewer.
+            </li>
+            <li>
+              Inline, a vertical swipe over the photo scrolls the page until the photo is zoomed in
+              (<InlineCode>touch-action: pan-y</InlineCode>), so a cropper in a form never traps the
+              page; once zoomed in, every gesture moves the photo. Inside{' '}
+              <InlineCode>ImageCropDialog</InlineCode> it keeps every gesture from the start. The
+              area carries <InlineCode>data-zoomed</InlineCode> while zoomed in.
+            </li>
+            <li>
+              When Zoom out or Zoom in reaches its limit and turns itself off, focus moves to the
+              other zoom button (or the area), so it never drops to the page.
+            </li>
+            <li>
+              <InlineCode>ImageCropDialog</InlineCode> caps the photo frame&apos;s height to the
+              window, so the zoom controls and the actions stay in view inside the dialog&apos;s
+              56px margins.
+            </li>
+          </ul>
+        </section>
       </>
     ),
     api: (
@@ -79,13 +108,37 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               The area is <InlineCode>surface-container-highest</InlineCode> with medium corners;
-              outside the frame the photo is dimmed with <InlineCode>scrim</InlineCode> at 56%,
-              stronger than a dialog&apos;s 32% so the frame reads over any photo.
+              outside the frame the photo is dimmed with <InlineCode>scrim</InlineCode> at M3&apos;s
+              32%, as a dialog&apos;s scrim. In forced colours the dimmed photo around the frame
+              stays visible.
             </li>
             <li>
               The frame is a 2px <InlineCode>outline-variant</InlineCode> edge, and{' '}
               <InlineCode>guide=&quot;circle&quot;</InlineCode> adds a dashed circle showing what a
               round avatar shows. Forced colours draw both in the system text colour.
+            </li>
+            <li>
+              <InlineCode>classNames</InlineCode> styles the cropper&apos;s{' '}
+              <InlineCode>root</InlineCode>, <InlineCode>area</InlineCode>,{' '}
+              <InlineCode>image</InlineCode>, <InlineCode>frame</InlineCode>,{' '}
+              <InlineCode>guide</InlineCode>, <InlineCode>skeleton</InlineCode>,{' '}
+              <InlineCode>error</InlineCode>, <InlineCode>controls</InlineCode>,{' '}
+              <InlineCode>slider</InlineCode>, <InlineCode>zoomOut</InlineCode> and{' '}
+              <InlineCode>zoomIn</InlineCode>. On <InlineCode>ImageCropDialog</InlineCode> it also
+              takes the dialog&apos;s <InlineCode>scrim</InlineCode>, <InlineCode>panel</InlineCode>{' '}
+              (its surface) and <InlineCode>content</InlineCode>, and{' '}
+              <InlineCode>className</InlineCode> goes on the outermost full-window layer, as on the
+              core <InlineCode>Dialog</InlineCode>.
+            </li>
+            <li>
+              <InlineCode>zoomInIcon</InlineCode> and <InlineCode>zoomOutIcon</InlineCode> replace
+              the zoom buttons&apos; icons, on both components.
+            </li>
+            <li>
+              The dialog&apos;s panel carries the core Dialog&apos;s token set (
+              <InlineCode>data-tokens=&quot;md-comp-dialog wm-image-crop-dialog&quot;</InlineCode>),
+              so a <InlineCode>--md-comp-dialog-*</InlineCode> theme reaches it; the cropper is
+              marked <InlineCode>data-tokens=&quot;wm-image-cropper&quot;</InlineCode>.
             </li>
             <li>Resetting eases back on the M3 spatial spring; with reduced motion it jumps.</li>
           </ul>
