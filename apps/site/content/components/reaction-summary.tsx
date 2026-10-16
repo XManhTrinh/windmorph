@@ -89,6 +89,12 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
               <InlineCode>size</InlineCode>: <InlineCode>sm</InlineCode> for comments and messages,{' '}
               <InlineCode>md</InlineCode> for posts.
             </li>
+            <li>
+              The <InlineCode>chip</InlineCode> variant is an M3 chip: the core&apos;s{' '}
+              <InlineCode>AssistChip</InlineCode> when pressable, and the assist chip&apos;s look
+              when static (32px tall, 8px corners, an <InlineCode>outline-variant</InlineCode>{' '}
+              border). Emoji take type-scale sizes.
+            </li>
           </ul>
         </section>
       </>
@@ -101,10 +107,14 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             Set the tokens below on a summary or any ancestor; match{' '}
-            <InlineCode>--wm-reaction-summary-icon-ring</InlineCode> to the surface it sits on.
-            Style the parts with <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
-            <InlineCode>icons</InlineCode>, <InlineCode>icon</InlineCode>,{' '}
-            <InlineCode>count</InlineCode>).
+            <InlineCode>--wm-reaction-summary-icon-ring</InlineCode> to the surface it sits on. A
+            chip also carries the assist chip&apos;s tokens (
+            <InlineCode>data-tokens=&quot;md-comp-assist-chip wm-reaction-summary&quot;</InlineCode>
+            ), so an app&apos;s chip theme reaches it; <InlineCode>chip-container</InlineCode>{' '}
+            defaults to transparent and <InlineCode>chip-corner</InlineCode> to the small corner, as
+            M3&apos;s flat chip. Style the parts with <InlineCode>classNames</InlineCode> (
+            <InlineCode>root</InlineCode>, <InlineCode>icons</InlineCode>,{' '}
+            <InlineCode>icon</InlineCode>, <InlineCode>count</InlineCode>).
           </p>
           <TokenTable set={reactionSummaryTokenSet} caption="Reaction summary tokens" />
         </section>

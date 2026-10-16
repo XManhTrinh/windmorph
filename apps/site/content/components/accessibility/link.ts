@@ -24,8 +24,8 @@ export const link: ComponentAccessibility = {
     "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the link. A `standalone` link also underlines while focused. Pointer presses show no ring.",
   ],
   touchTarget: [
-    'A link is as tall as its line of text and has no extended touch target, as text links in running text usually do not. WCAG 2.5.8 exempts links inside a sentence.',
-    'For a link on its own line, give it room (a `size` label role and spacing around it), or use `Button variant="text"`, whose small sizes do get a 48px target.',
+    'A `standalone` link, on a line of its own, has an invisible 48 × 48px touch target (`TouchTarget`) around its text, in an inline wrapper so the underline still reaches the text.',
+    'An `inline` or `plain` link is as tall as its line of text and has no extended target, as text links in running text usually do not; WCAG 2.5.8 exempts links inside a sentence. Give a `plain` link that stands alone (a logo, a photo tile) room of its own.',
   ],
   motion: {
     none: 'It has no animation: the underline appears and goes without a transition.',

@@ -10,7 +10,7 @@ export const emptyState: ComponentAccessibility = {
     states: 'None.',
     notes: [
       'The icon is decorative and hidden from assistive tech (`aria-hidden`).',
-      'With `announce`, it is a `status` live region, so the title and description are read politely when it replaces results after a search or filter.',
+      "With `announce`, it is a `status` live region that goes into the page a moment (100ms) before its title and description, so they are read politely when it replaces results after a search or filter. One in the server's HTML shows at once.",
     ],
   },
   focus: [
@@ -20,7 +20,7 @@ export const emptyState: ComponentAccessibility = {
     'It has nothing to press itself. Its actions keep their own {@link Button} targets: 48 × 48px at the least, through an invisible touch target on the small sizes.',
   ],
   motion: [
-    'It fades in on the default effects spring as it appears. Under reduced motion it appears at once.',
+    'It fades in on the default effects spring as it appears, under reduced motion too: a fade is not movement.',
   ],
   consumer: [
     'Write a title that says what is missing ("No results"), and a description that says why or what to do; the icon and tone colour are not read.',

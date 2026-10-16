@@ -247,10 +247,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   alert: {
     component: 'Alert',
     importFrom: '@windmorph/react-pro',
-    render: ({ icon, actions, focusOnMount, ...props }) =>
+    render: ({ icon, actions, focusOnMount, open, ...props }, update) =>
       createElement(
         'div',
-        { className: 'w-full max-w-md' },
+        { className: 'flex w-full max-w-md flex-col items-start gap-3' },
         createElement(
           AlertAny,
           {
@@ -258,6 +258,8 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
             // `focusOnMount` acts as the alert appears, so switching it shows the alert afresh.
             key: String(focusOnMount),
             focusOnMount,
+            // `open={false}` lets it leave with its exit motion; the button brings it back.
+            open: open !== false,
             ...(icon === true && { icon: createElement(LockIcon) }),
             ...(actions === true && {
               actions: createElement(ButtonAny, { variant: 'text' }, 'Reset password'),
@@ -265,8 +267,15 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           },
           "That email and password don't match.",
         ),
+        open === false &&
+          createElement(
+            ButtonAny,
+            { key: 'show', variant: 'tonal', onPress: () => update('open', true) },
+            'Show the alert again',
+          ),
       ),
     defaultProps: {
+      open: true,
       tone: 'error',
       variant: 'tonal',
       titleAs: 'p',
@@ -274,7 +283,16 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       actions: false,
       focusOnMount: false,
     },
-    surfacedProps: ['tone', 'variant', 'title', 'titleAs', 'icon', 'actions', 'focusOnMount'],
+    surfacedProps: [
+      'open',
+      'tone',
+      'variant',
+      'title',
+      'titleAs',
+      'icon',
+      'actions',
+      'focusOnMount',
+    ],
     enumOptions: {
       tone: ['error', 'info', 'success', 'warning', 'neutral'],
       variant: ['tonal', 'outlined'],

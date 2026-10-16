@@ -19,13 +19,14 @@ export const loadMore: ComponentAccessibility = {
     name: 'The buttons are named by `labels.loadMore` and `labels.retry`; the loading indicator by `labels.loading` ("Loading more").',
     states: 'None on the buttons.',
     notes: [
-      "A failure's message (`labels.error`) and its Retry button sit in a `status` live region, read politely.",
+      "A failure's message (`labels.error`) is read politely through a visually hidden `status` region that is in the page from the start, so it is always announced; the visible copy beside Retry is hidden from screen readers so it is not read twice.",
       'Once all is loaded it shows nothing, or the `end` you pass.',
     ],
   },
   focus: [
     'Load more sits in the Tab order after the list, where the component is placed.',
-    'Pressing Load more replaces the button with the loading state, and Retry replaces it again after a failure. It moves no focus itself, so focus is lost from the removed button.',
+    'Focus never drops to the top of the page. While focus is inside it (after a press on Load more or Retry, or on Load more as it starts loading by itself), it holds focus on its root while the page loads (or once all is loaded), then moves it to the next Load more or Retry. It moves focus with `preventScroll`, and tabbing to Load more brings it into view.',
+    'The root shows the M3 focus indicator while it holds focus from the keyboard.',
     "Keyboard focus on the buttons shows M3's focus indicator: a 3px `secondary` outline 2px outside the button.",
   ],
   touchTarget: [
@@ -37,7 +38,8 @@ export const loadMore: ComponentAccessibility = {
   consumer: [
     'Pass every word through `labels` (`loadMore`, `retry`, `error`, `loading`) so they come from your translations.',
     "A custom `loading` (a skeleton of one item, say) needs its own accessible text, or a busy state on the list, since the default indicator's name is gone.",
-    'After a page loads from the button, move focus to the first new item, so keyboard users do not land at the top of the page.',
+    'Focus stays on Load more for the next page; if your readers should go to the first new item instead, move focus there yourself once it has loaded.',
+    'It opts out of scroll anchoring, so a new page goes in below what is on screen without moving the page; avoid turning `overflow-anchor` back on around it.',
     'Set `status` to `done` when there is nothing more, so the button goes.',
   ],
 };

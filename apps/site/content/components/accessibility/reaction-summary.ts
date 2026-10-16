@@ -26,7 +26,7 @@ export const reactionSummary: ComponentAccessibility = {
     "Pressable, it is in the Tab order where it sits and shows M3's focus indicator on keyboard focus: a 3px `secondary` outline 2px outside.",
   ],
   touchTarget: [
-    'Pressable, it gets an invisible 48 × 48px touch target (`TouchTarget`): the `stacked` button is 40px tall, and the `chip` smaller still.',
+    'Pressable, it gets an invisible 48 × 48px touch target: the `stacked` button is 40px tall (`TouchTarget`), and the `chip` is the core {@link AssistChip}, 32px tall with its own 48px target.',
   ],
   motion: [
     'Pressable, the press ripple appears at full size without growing under reduced motion. Nothing else moves.',
@@ -34,6 +34,6 @@ export const reactionSummary: ComponentAccessibility = {
   consumer: [
     'When it opens the list of who reacted, say so in `labels.count` ("128 reactions. See who reacted"), since that is the button\'s whole name.',
     'Translate `labels.count`, with the plural forms your language needs.',
-    'In forced-colours mode the chip keeps a border; keep `classNames` overrides from removing it.',
+    'In forced-colours mode the chip keeps its border, and a pressable `stacked` summary draws a `CanvasText` border; keep `classNames` overrides from removing them.',
   ],
 };

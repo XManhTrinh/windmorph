@@ -25,16 +25,19 @@ export const skipLink: ComponentAccessibility = {
   focus: [
     'It is off screen until it takes focus, then fixed at the top start of the window, above other content. It leaves the screen again when focus moves on.',
     'Pressing it focuses the target, giving it `tabindex="-1"` first if it cannot take focus already. A target that is already focusable keeps its own `tabindex`.',
-    "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the link.",
+    "Keyboard focus shows M3's focus indicator, as on every core {@link Button}: a 3px `secondary` outline 2px outside the link.",
+    'Pressing it also scrolls the target into view, on purpose: the reader asked to go there.',
   ],
   touchTarget: [
-    'It is 48px tall, the minimum, and as wide as its label plus 24px padding on each side.',
+    'It is the core filled {@link Button} at its small size: 40px tall, with an invisible 48 × 48px touch target.',
   ],
   motion: [
-    'It slides in on the fast spatial spring. Under reduced motion it appears at once instead.',
+    'It slides in on the fast spatial spring. Under reduced motion it fades in on the effects spring instead.',
+    'The press ripple and state layer follow {@link Button}: under reduced motion the ripple appears at full size without growing.',
   ],
   consumer: [
     'Put it first in the page, before the top bar, and give the content an id: `<main id="main">` with `target="main"`.',
     'Give it a label in the page\'s language ("Skip to content").',
+    'Under a sticky top bar, move it with `className` (on its fixed wrapper) so it shows below the bar, not hidden behind it.',
   ],
 };

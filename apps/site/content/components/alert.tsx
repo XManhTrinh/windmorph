@@ -1,8 +1,10 @@
 import type { ComponentDoc } from './doc';
+import { alertTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { TokenTable } from '../../components/token-table';
 import { lazyExample } from '../../lib/lazy-example';
 
 const AlertDismissible = lazyExample('alert/alert-dismissible', 'AlertDismissible');
@@ -46,7 +48,7 @@ export async function AlertBody(): Promise<ComponentDoc> {
             <AlertTones />
           </ExampleViewer>
           <ExampleViewer
-            title="Dismissible"
+            title="Dismissible, leaving with its exit motion"
             code={dismissible}
             html={dismissibleHtml}
             fileName="alert-dismissible.tsx"
@@ -79,6 +81,44 @@ export async function AlertBody(): Promise<ComponentDoc> {
             </li>
           </ul>
         </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 id="behaviour" className="text-headline-small text-on-surface">
+            Behaviour
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              It is a live region (<InlineCode>alert</InlineCode> for the{' '}
+              <InlineCode>error</InlineCode> tone, <InlineCode>status</InlineCode> for the others)
+              that goes into the page first and shows its content a moment later, so screen readers
+              announce it even when it mounts with its message. One in the server&apos;s HTML shows
+              at once.
+            </li>
+            <li>It fades in on the default effects spring, under reduced motion too.</li>
+            <li>
+              To let it leave, set <InlineCode>{'open={false}'}</InlineCode> instead of unmounting
+              it: it fades out as its height folds (on the effects easing, so it never bounces),
+              then unmounts its content and calls <InlineCode>onExited</InlineCode>. Under reduced
+              motion it only fades, keeping its height until it has gone.
+            </li>
+            <li>
+              <InlineCode>onClose</InlineCode> adds a close button. Before{' '}
+              <InlineCode>onClose</InlineCode> runs, focus moves back to where it was before{' '}
+              <InlineCode>focusOnMount</InlineCode>, or on to the next control, so hiding the alert
+              never drops focus to the page.
+            </li>
+            <li>
+              <InlineCode>focusOnMount</InlineCode> moves focus to the alert as it appears, for an
+              error that blocks a form, and scrolls it into view no further than needed. A keyboard
+              user sees the M3 focus indicator on it.
+            </li>
+            <li>
+              Up to two actions move beside the text once the alert is at least 480px wide. Text
+              buttons in a tonal alert take its content colour; its close button keeps its size at
+              every density.
+            </li>
+          </ul>
+        </section>
       </>
     ),
     api: (
@@ -91,11 +131,16 @@ export async function AlertBody(): Promise<ComponentDoc> {
             Tonal alerts use the tone&apos;s container and on-container roles; outlined ones have no
             fill and <InlineCode>on-surface</InlineCode> text, with the border and icon in the
             tone&apos;s colour. A test keeps the text at 4.5:1 in every theme, mode and contrast
-            level. Set <InlineCode>--wm-alert-container</InlineCode>,{' '}
-            <InlineCode>-content</InlineCode>, <InlineCode>-outline</InlineCode>,{' '}
-            <InlineCode>-icon</InlineCode> or <InlineCode>-corner</InlineCode> on an alert or an
-            ancestor.
+            level. Set the tokens below on an alert or an ancestor (the root carries{' '}
+            <InlineCode>data-tokens=&quot;wm-alert&quot;</InlineCode>, with{' '}
+            <InlineCode>data-tone</InlineCode> and <InlineCode>data-variant</InlineCode> picking
+            each one&apos;s default), and style the parts with <InlineCode>classNames</InlineCode> (
+            <InlineCode>root</InlineCode>, <InlineCode>icon</InlineCode>,{' '}
+            <InlineCode>title</InlineCode>, <InlineCode>message</InlineCode>,{' '}
+            <InlineCode>actions</InlineCode>, <InlineCode>close</InlineCode>). In forced colours
+            every alert keeps a border.
           </p>
+          <TokenTable set={alertTokenSet} caption="Alert tokens" />
         </section>
       </>
     ),

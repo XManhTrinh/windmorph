@@ -136,7 +136,14 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
             <li>
               Override the container colour with <InlineCode>className</InlineCode>, and any part
               with <InlineCode>classNames</InlineCode> (root, media, icon, title, description,
-              actions).
+              actions). A plain root carries{' '}
+              <InlineCode>data-tokens=&quot;wm-empty-state&quot;</InlineCode>; it has no values of
+              its own to override beyond the roles above.
+            </li>
+            <li>
+              It fades in on the default effects spring, under reduced motion too. With{' '}
+              <InlineCode>announce</InlineCode>, its live region goes into the page a moment before
+              its content, so screen readers read it; one in the server&apos;s HTML shows at once.
             </li>
           </ul>
         </section>

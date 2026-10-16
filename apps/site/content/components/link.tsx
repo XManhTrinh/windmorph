@@ -1,8 +1,10 @@
 import type { ComponentDoc } from './doc';
+import { linkTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { TokenTable } from '../../components/token-table';
 import { lazyExample } from '../../lib/lazy-example';
 
 const LinkButton = lazyExample('link/link-button', 'LinkButton');
@@ -103,12 +105,16 @@ export async function LinkBody(): Promise<ComponentDoc> {
             Theming &amp; tokens
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            The colour is <InlineCode>primary</InlineCode> (or the text&apos;s, with{' '}
-            <InlineCode>tone=&quot;inherit&quot;</InlineCode>). Set{' '}
-            <InlineCode>--wm-link-color</InlineCode>,{' '}
-            <InlineCode>--wm-link-underline-thickness</InlineCode> or{' '}
-            <InlineCode>--wm-link-underline-offset</InlineCode> on a link or an ancestor.
+            The colour is <InlineCode>primary</InlineCode>; with{' '}
+            <InlineCode>tone=&quot;inherit&quot;</InlineCode> it defaults to the surrounding
+            text&apos;s (<InlineCode>currentColor</InlineCode>), for links on a coloured container.
+            Set the tokens below on a link or an ancestor. Each link carries{' '}
+            <InlineCode>data-tokens=&quot;wm-link&quot;</InlineCode>, so a value set on an outer
+            link no longer leaks into a link nested inside it. A <InlineCode>standalone</InlineCode>{' '}
+            link has a 48px touch target, in an inner wrapper so the underline still reaches the
+            text.
           </p>
+          <TokenTable set={linkTokenSet} caption="Link tokens" />
         </section>
       </>
     ),

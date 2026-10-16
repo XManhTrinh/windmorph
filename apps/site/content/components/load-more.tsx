@@ -84,6 +84,19 @@ export async function LoadMoreBody(): Promise<ComponentDoc> {
               <InlineCode>loading</InlineCode> replaces the default loading indicator (e.g. a
               skeleton of one item); <InlineCode>end</InlineCode> shows once everything is loaded.
             </li>
+            <li>
+              Focus never drops to the page: while focus is inside it (after a press on Load more or
+              Retry, or on Load more as it loads by itself), it holds focus on its root while the
+              page loads, then on the next Load more or Retry, without scrolling the page.
+            </li>
+            <li>
+              It opts out of the browser&apos;s scroll anchoring (
+              <InlineCode>overflow-anchor: none</InlineCode>), so a new page goes in below
+              what&apos;s on screen instead of moving the page by its whole height.
+            </li>
+            <li>
+              A failure is announced through a live region that&apos;s in the page from the start.
+            </li>
           </ul>
         </section>
       </>

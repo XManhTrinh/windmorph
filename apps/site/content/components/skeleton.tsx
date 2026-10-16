@@ -1,8 +1,10 @@
 import type { ComponentDoc } from './doc';
+import { skeletonTokenSet } from '@windmorph/react-pro';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
+import { TokenTable } from '../../components/token-table';
 import { lazyExample } from '../../lib/lazy-example';
 
 const SkeletonAnimations = lazyExample('skeleton/skeleton-animations', 'SkeletonAnimations');
@@ -75,8 +77,10 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             page loading, and a Progress indicator when progress can be measured.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            It is pure CSS with no client code, so it animates in server components and in streamed
-            Suspense fallbacks before the page hydrates.
+            A skeleton is pure CSS, so it animates in server components and in streamed Suspense
+            fallbacks before the page hydrates. A <InlineCode>SkeletonGroup</InlineCode>&apos;s
+            label is a live region that goes into the page first and takes its text a moment later,
+            so it&apos;s announced even when the group appears after the page has loaded.
           </p>
         </section>
       </>
@@ -85,7 +89,7 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
       <>
         <section className="flex flex-col gap-3">
           <h2 id="theming" className="text-headline-small text-on-surface">
-            Theming
+            Theming &amp; tokens
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
@@ -95,14 +99,24 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
               contrast level.
             </li>
             <li>
-              Corners come from the shape scale; text lines take the line height of a type-scale
-              role.
+              Corners come from the shape scale (<InlineCode>corner</InlineCode>); text lines take
+              the line height of a type-scale role, and a line&apos;s corner is measured on its
+              visible bar.
             </li>
             <li>
-              The shimmer highlight is <InlineCode>on-surface</InlineCode> at the hover state-layer
-              opacity, and both animations use the M3 duration and easing tokens.
+              The pulse and the shimmer ease on the slow effects spring. The shimmer&apos;s
+              highlight is <InlineCode>on-surface</InlineCode> at the hover state-layer opacity.
+            </li>
+            <li>
+              Set the tokens below on a skeleton or any ancestor. Each skeleton carries{' '}
+              <InlineCode>data-tokens=&quot;wm-skeleton&quot;</InlineCode>, with{' '}
+              <InlineCode>data-tone</InlineCode> and <InlineCode>data-corner</InlineCode> picking
+              the defaults, so a token set on a parent overrides every tone and corner.{' '}
+              <InlineCode>skeletonStyles</InlineCode> no longer has <InlineCode>tone</InlineCode> or{' '}
+              <InlineCode>corner</InlineCode> variants: the tokens hold them.
             </li>
           </ul>
+          <TokenTable set={skeletonTokenSet} caption="Skeleton tokens" />
         </section>
       </>
     ),

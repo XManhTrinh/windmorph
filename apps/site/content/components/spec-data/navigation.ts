@@ -9,9 +9,14 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['skip-link/skip-link-page'],
       },
+      {
+        name: 'Placed below a sticky top bar (`className` on its wrapper)',
+        kind: 'configuration',
+        examples: ['skip-link/skip-link-below-bar'],
+      },
     ],
     showcaseReason:
-      'Its one prop, `target`, is the id of an element in the page, and the link only shows on keyboard focus, so a control panel would have nothing visible to change; the example lets you try it with Tab.',
+      'Its one prop, `target`, is the id of an element in the page, and the link only shows on keyboard focus, so a control panel would have nothing visible to change; the examples let you try it with Tab.',
   },
   link: {
     covers: [

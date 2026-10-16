@@ -594,6 +594,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       },
       { name: 'With actions', kind: 'configuration', examples: ['alert/alert-form-error'] },
       { name: 'Dismissible', kind: 'configuration', examples: ['alert/alert-dismissible'] },
+      {
+        name: 'Leaving with its exit motion (`open={false}`)',
+        kind: 'configuration',
+        examples: ['alert/alert-dismissible'],
+      },
       { name: 'A form’s error', kind: 'use case', examples: ['alert/alert-form-error'] },
     ],
   },

@@ -10,6 +10,7 @@ export const skeleton: ComponentAccessibility = {
     states: '`aria-busy` on the group, for as long as it is on the page.',
     notes: [
       'With `as="ul"`, the label sits in its own visually hidden list item, so the list stays valid.',
+      "The label's `status` region goes into the page a moment (100ms) before its text, so it is announced even when the group appears after the page has loaded.",
     ],
   },
   focus: {
@@ -19,7 +20,7 @@ export const skeleton: ComponentAccessibility = {
     none: 'A skeleton has nothing to press; it stands in for content until it loads.',
   },
   motion: [
-    'Both animations, the pulse and the shimmer, stop under reduced motion, leaving a still fill. `animation="none"` stops them for everyone.',
+    'Both animations, the pulse and the shimmer, stop under reduced motion, leaving a still fill: a still placeholder still reads as loading. `animation="none"` stops them for everyone.',
   ],
   consumer: [
     'Wrap skeletons in a `SkeletonGroup` with a `label` that says what is loading; a lone `Skeleton` is silent to screen readers.',
