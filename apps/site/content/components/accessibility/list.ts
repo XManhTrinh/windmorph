@@ -61,7 +61,7 @@ export const list: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'A plain `ul` of `li` items. With `onAction`, or links in a list that acts, a `grid` of `row`s; with `selectionMode` (and no `onAction` or links) a `listbox` of `option`s, as M3 asks on the web; with `childItems` a `treegrid`. A switch or checkbox item is a native checkbox (with `role="switch"` for a switch), and a radio list is a `radiogroup` of native radio buttons.',
-    name: "The list takes `aria-label` or `aria-labelledby`, which its types require. An item is named by its headline; give a headline that isn't plain text a `textValue`, used for typeahead and announcements. A `ListSection` is named by its subheader (`title`), or its `aria-label`.",
+    name: "The list takes `aria-label` or `aria-labelledby`, which its types require. An item is named by its headline, and an option in a selectable list by all of its visible text (overline, headline, supporting and trailing text, in that order), so its name holds every word it shows and each is read once. Give a headline that isn't plain text a `textValue`, used for typeahead and announcements. A `ListSection` is named by its subheader (`title`), or its `aria-label`.",
     states:
       'Selected (`aria-selected`) in a selectable list, disabled, expanded or collapsed (`aria-expanded`) with its level and position (`aria-level`, `aria-posinset`, `aria-setsize`) in a tree, `aria-current="page"` on a `current` link item, and on or off for a switch or checkbox item.',
     notes: [

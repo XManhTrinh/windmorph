@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { labelInNameViolations } from '../../../test/label-in-name';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Switch } from '../switch/Switch';
 import type { ReactElement } from 'react';
@@ -844,6 +845,31 @@ describe('List (expandable items)', () => {
 });
 
 describe('List accessibility tree', () => {
+  // 2026-10-16: an option was named by its headline and described by its supporting text,
+  // so its name left out visible text (axe's label-content-name-mismatch, WCAG 2.5.3).
+  it('names an option by all its visible text, each part read once', async () => {
+    const { container } = render(
+      <List aria-label="Settings" selectionMode="single" defaultSelectedKeys={['profile']}>
+        <ListItem key="profile" supportingText="Name, photo, email">
+          Profile
+        </ListItem>
+        <ListItem key="security" overline="Account" supportingText="Sessions" trailing="2">
+          Security
+        </ListItem>
+        <ListItem key="about">About</ListItem>
+      </List>,
+    );
+    expect(await labelInNameViolations(container)).toEqual([]);
+    const profile = screen.getByRole('option', { name: /^Profile\s*Name, photo, email$/ });
+    expect(profile).not.toHaveAttribute('aria-labelledby');
+    expect(profile).not.toHaveAccessibleDescription();
+    expect(
+      screen.getByRole('option', { name: /^Account\s*Security\s*Sessions\s*2$/ }),
+    ).not.toHaveAccessibleDescription();
+    expect(screen.getByRole('option', { name: 'About' })).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it("reads a control item's text once: as the input's name and description", () => {
     render(
       <List aria-label="Theme" defaultValue="dark">

@@ -1353,8 +1353,11 @@ function OptionRow({
 }) {
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
-  const { optionProps, labelProps, descriptionProps, isPressed, isSelected, isDisabled } =
-    useOption({ key: node.key }, state, ref);
+  const { optionProps, isPressed, isSelected, isDisabled } = useOption(
+    { key: node.key },
+    state,
+    ref,
+  );
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1377,6 +1380,12 @@ function OptionRow({
     <div
       {...mergeProps(optionProps, hoverProps, interactionProps)}
       {...dataAttributes}
+      // Named by its content: the overline, headline, supporting and trailing text in the
+      // order they show, each read once. Naming it by the headline alone (React Aria's
+      // default) leaves visible text out of its name (WCAG 2.5.3), and describing it by the
+      // supporting text as well would read that twice. Select's options are named the same way.
+      aria-labelledby={undefined}
+      aria-describedby={undefined}
       ref={ref}
       data-selected={isSelected || undefined}
       data-shape={shape}
@@ -1385,13 +1394,7 @@ function OptionRow({
       className={styles.item({ class: cn(classNames?.item, item.className) })}
     >
       <span className={styles.cell()}>
-        <ItemContent
-          item={item}
-          styles={styles}
-          classNames={classNames}
-          ids={{ headline: labelProps.id, supporting: descriptionProps.id }}
-          end={check}
-        />
+        <ItemContent item={item} styles={styles} classNames={classNames} end={check} />
       </span>
     </div>
   );
