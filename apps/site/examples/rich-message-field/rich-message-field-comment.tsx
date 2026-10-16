@@ -5,9 +5,9 @@ import { FormattedText, RichMessageField } from '@windmorph/react-pro/rich-text'
 import { useState } from 'react';
 
 /**
- * A comment field that formats as you type, as Slack's: Aa shows the formatting toolbar, and
- * `*bold*`, `_italic_`, `` `code` ``, `- ` or ```` ``` ```` typed turn into formatting. It
- * hands out the marker format, which `FormattedText` shows once posted.
+ * A comment field that formats as you type, with markers in plain text: Aa shows the
+ * formatting toolbar, and `*bold*`, `_italic_`, `` `code` ``, `- ` or ```` ``` ```` typed turn
+ * into formatting. It hands out the marker format, which `FormattedText` shows once posted.
  */
 export function RichMessageFieldComment() {
   const [comments, setComments] = useState([

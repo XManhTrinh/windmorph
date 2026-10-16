@@ -138,13 +138,13 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>submitOn</InlineCode>: <InlineCode>{"'enter'"}</InlineCode> (Enter sends,
-              Shift+Enter is a new line; on touch screens Enter is a new line and Send sends, as in
-              Slack&apos;s and Messenger&apos;s apps), <InlineCode>{"'mod-enter'"}</InlineCode>{' '}
-              (Ctrl or ⌘+Enter sends) or <InlineCode>{"'none'"}</InlineCode> (only the button).
-              Nothing is sent while an input method is composing (Vietnamese Telex, pinyin, kana),
-              and a blank value is never sent. <InlineCode>onSubmit</InlineCode> gets the trimmed
-              text. <InlineCode>canSend</InlineCode> overrides &quot;any text&quot;: a photo alone
-              can be sent, or Send can wait for an upload.
+              Shift+Enter is a new line; on touch screens Enter is a new line and Send sends, as
+              most chat apps do on phones), <InlineCode>{"'mod-enter'"}</InlineCode> (Ctrl or
+              ⌘+Enter sends) or <InlineCode>{"'none'"}</InlineCode> (only the button). Nothing is
+              sent while an input method is composing (Vietnamese Telex, pinyin, kana), and a blank
+              value is never sent. <InlineCode>onSubmit</InlineCode> gets the trimmed text.{' '}
+              <InlineCode>canSend</InlineCode> overrides &quot;any text&quot;: a photo alone can be
+              sent, or Send can wait for an upload.
             </li>
             <li>
               The field doesn&apos;t clear itself: clear <InlineCode>value</InlineCode> once the
@@ -184,10 +184,10 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>tools</InlineCode> holds icon buttons with their own actions (emoji,
               attach, GIF), at the end of the text row, in a toolbar: one Tab stop, and arrow keys
               between them. With <InlineCode>expandOnFocus</InlineCode>, the first focus opens the
-              field as Facebook&apos;s comment field does: the text takes the first row, and the
-              tools and Send are on the second, with Send disabled until there&apos;s text. It stays
-              open, so the page doesn&apos;t move each time focus leaves; it also starts open with
-              text or a banner in it. A tool reaches the field with{' '}
+              field, as a comment field under a post often does: the text takes the first row, and
+              the tools and Send are on the second, with Send disabled until there&apos;s text. It
+              stays open, so the page doesn&apos;t move each time focus leaves; it also starts open
+              with text or a banner in it. A tool reaches the field with{' '}
               <InlineCode>useMessageField()</InlineCode>: <InlineCode>insertText</InlineCode> puts
               text at the caret (over the selection), and the app gets the same through{' '}
               <InlineCode>handleRef</InlineCode>. The closed pill hides its tools when they&apos;d
@@ -248,8 +248,8 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               icon gives way to the loading indicator, which morphs through Material shapes.
             </li>
             <li>
-              Opening on focus puts the tools on their row at once, as Facebook does, and springs
-              the field&apos;s height and corners, so the new row slides into view; Send grows in.
+              Opening on focus puts the tools on their row at once and springs the field&apos;s
+              height and corners, so the new row slides into view; Send grows in.
             </li>
             <li>
               The banner and attachments open and close on a spring with a fade, so the text never

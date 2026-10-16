@@ -75,8 +75,8 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
             Purpose
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            A message field that formats as you type, as Slack&apos;s: bold looks bold, code gets
-            its box, and lists, quotes and code blocks are blocks. It is the{' '}
+            A message field that formats as you type, with markers in plain text: bold looks bold,
+            code gets its box, and lists, quotes and code blocks are blocks. It is the{' '}
             <InlineCode>MessageField</InlineCode> frame (its look, rows, tools, Send, counter and
             tokens) with a rich editor inside, and it hands out plain text in the{' '}
             <strong className="text-on-surface">marker format</strong> (

@@ -341,7 +341,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Inputs & selection',
     railGroup: 'inputs',
     summary:
-      'A message field that formats as you type, as Slack’s: bold, italic, strike, code, links, lists, quotes and code blocks, with a formatting toolbar, and @mentions that suggest people; plus FormattedText, which shows what it wrote. Not an M3 component (@windmorph/react-pro/rich-text, with Tiptap).',
+      'A message field that formats as you type, with markers in plain text: bold, italic, strike, code, links, lists, quotes and code blocks, with a formatting toolbar, and @mentions that suggest people; plus FormattedText, which shows what it wrote. Not an M3 component (@windmorph/react-pro/rich-text, with Tiptap).',
     propsComponents: ['RichMessageField', 'FormattingToolbar', 'FormattedText'],
     playground: 'full',
     pro: true,

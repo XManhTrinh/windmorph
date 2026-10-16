@@ -25,9 +25,8 @@ function EmojiTool() {
 }
 
 /**
- * A comment field under a post, as Facebook's: a pill with its tools at the end, which opens
- * on focus into the text and a row of tools with Send. Enter posts, Shift+Enter starts a new
- * line.
+ * A comment field under a post: a pill with its tools at the end, which opens on first focus
+ * into the text and a row of tools with Send. Enter posts, Shift+Enter starts a new line.
  */
 export function MessageFieldComment() {
   const [comments, setComments] = useState(['Count me in! I’ll bring spring rolls.']);

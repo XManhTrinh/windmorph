@@ -78,10 +78,10 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             A reaction button that likes on a tap, with a floating row of reactions that opens on a
-            long press, when the mouse rests on it, or from the keyboard: Facebook&apos;s pattern,
-            also used by LinkedIn and Teams, for posts, comments and messages. The timings (a long
-            press against a tap, hover intent), the row&apos;s keyboard and focus, and sliding a
-            finger along the row are easy to get wrong, so they live in one component. It is{' '}
+            long press, when the mouse rests on it, or from the keyboard: the common pattern on
+            social and work apps for posts, comments and messages. The timings (a long press against
+            a tap, hover intent), the row&apos;s keyboard and focus, and sliding a finger along the
+            row are easy to get wrong, so they live in one component. It is{' '}
             <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
             <InlineCode>@windmorph/react-pro</InlineCode>.
           </p>
