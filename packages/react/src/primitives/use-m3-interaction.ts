@@ -166,11 +166,31 @@ export function useM3Interaction(
   options: M3InteractionOptions,
   ref: RefObject<HTMLElement | null>,
 ): M3InteractionResult {
-  const { isDisabled, isSelected, isDragged, within, isTextInput, autoFocus } = options;
+  const {
+    isDisabled,
+    isSelected,
+    isDragged,
+    within,
+    isTextInput,
+    autoFocus,
+    onPress,
+    onPressStart,
+    onPressEnd,
+    onPressChange,
+    onPressUp,
+    onClick,
+  } = options;
   const hasExternalPress = options.isPressed !== undefined;
 
+  // Only `usePress`'s own options: it spreads any others onto the props it returns, so this
+  // hook's options (`isDragged`, `within` …) would reach the DOM as unknown attributes.
   const { pressProps, isPressed: isOwnPressed } = usePress({
-    ...options,
+    onPress,
+    onPressStart,
+    onPressEnd,
+    onPressChange,
+    onPressUp,
+    onClick,
     ref,
     isDisabled: isDisabled || hasExternalPress,
   });

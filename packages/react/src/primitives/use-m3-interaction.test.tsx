@@ -150,4 +150,20 @@ describe('useM3Interaction', () => {
     fireEvent.click(target);
     expect(onPress).not.toHaveBeenCalled();
   });
+
+  it('keeps its own options off the DOM when it handles the press', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<Pressable isSelected isDragged within isTextInput onPress={() => {}} />);
+      const target = screen.getByRole('button');
+      const attributes = target.getAttributeNames();
+      for (const name of ['isselected', 'isdragged', 'within', 'istextinput', 'autofocus']) {
+        expect(attributes).not.toContain(name);
+      }
+      expect(target).toHaveAttribute('data-dragged');
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
