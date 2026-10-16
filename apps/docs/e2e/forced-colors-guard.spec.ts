@@ -101,7 +101,7 @@ function inspect(): Findings {
   };
   const keyOf = (root: HTMLElement) => {
     // The component's own set comes first; an app's sets may follow it.
-    const set = root.dataset.tokens!.split(' ')[0];
+    const [set = ''] = root.dataset.tokens!.split(' ');
     const part = root.dataset.variant ?? root.dataset.layout;
     return part ? `${set}/${part}` : set;
   };

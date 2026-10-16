@@ -113,6 +113,10 @@ export const primitivesChecks = {
   getMorph: { kind: 'value', run: () => Primitives.getMorph(circle, star) },
   localeWithDirection: { kind: 'value', run: () => Primitives.localeWithDirection('en-GB', 'rtl') },
   materialShapeMask: { kind: 'value', run: () => Primitives.materialShapeMask('Cookie9Sided') },
+  mergeDataTokens: {
+    kind: 'value',
+    run: () => Primitives.mergeDataTokens('md-comp-assist-chip', { 'data-tokens': 'app-chip' }),
+  },
   morphPathAt: { kind: 'value', run: () => Primitives.morphPathAt(['Circle', 'Square'], 0.5) },
   morphToPath: {
     kind: 'value',
