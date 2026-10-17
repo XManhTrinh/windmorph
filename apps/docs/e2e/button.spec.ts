@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
+import { pauseClock } from './clock';
+import { indicatorContrasts, layoutBoxes, pendingCheck, waitForIndicators } from './pending';
+import { expectNoMovement } from './reduced-motion';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { systemColor, underForcedColors } from './forced-colors';
 import { overshoots, probeNextMorph } from './morph-probe';
@@ -424,6 +427,16 @@ test.describe('Button layout safety', () => {
   layoutSafetySuite('components-button--layout-override', { height: 40, radius: '20px' });
 });
 
+test.describe('Button layout safety · pending', () => {
+  layoutSafetySuite('components-button--layout-override', {
+    height: 40,
+    radius: '20px',
+    args: { pending: true },
+    interactive: false,
+    check: pendingCheck,
+  });
+});
+
 test.describe('Button disabled outlines (2026-10-13)', () => {
   test('a disabled outline dims to 10%, and a selected toggle has none', async ({ page }) => {
     await openStory(page, 'components-button--disabled-outlined');
@@ -480,6 +493,154 @@ test.describe('Button forced colours', () => {
       if (names[index] === 'Disabled') expect(look.color, label).toBe(grayText);
       if (names[index] === 'Selected') expect(look.background, label).toBe(highlight);
       if (names[index] === 'Toggle') expect(look.background, label).not.toBe(highlight);
+    });
+  });
+});
+
+// Button pending (docs/plans/button-pending.md, 2026-10-17).
+test.describe('Button pending', () => {
+  test('every variant and size keeps its size and place, and nothing around it moves', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-button--pending', {}, { pending: false });
+    const before = await layoutBoxes(page.getByTestId('pending'));
+    await openStory(page, 'components-button--pending', {}, { pending: true });
+    await waitForIndicators(page.getByTestId('pending'));
+    expect(await layoutBoxes(page.getByTestId('pending'))).toEqual(before);
+  });
+
+  for (const theme of THEMES) {
+    test(`the indicator is at least 3:1 against every variant · ${theme}`, async ({ page }) => {
+      for (const mode of MODES) {
+        for (const contrast of ['standard', 'medium', 'high'] as const) {
+          await openStory(page, 'components-button--pending', { theme, mode, contrast });
+          const ratios = await indicatorContrasts(page.getByTestId('pending'));
+          for (const [id, ratio] of Object.entries(ratios)) {
+            // Disabled content is 38% on-surface by design (M3's disabled state).
+            if (id === 'pending-disabled') continue;
+            expect(ratio, `${id} · ${mode} · ${contrast}`).toBeGreaterThanOrEqual(3);
+          }
+        }
+      }
+    });
+  }
+
+  test('focus stays on the button on every frame of a keyboard press that makes it pending', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-button--pending-action', {}, { duration: '600' });
+    const save = page.getByTestId('save');
+    await page.keyboard.press('Tab');
+    await expect(save).toBeFocused();
+    await page.evaluate(() => {
+      const store = window as unknown as { focusFrames: boolean[]; stopFrames?: boolean };
+      store.focusFrames = [];
+      const button = document.querySelector('[data-testid="save"]');
+      const sample = () => {
+        if (store.stopFrames) return;
+        store.focusFrames.push(document.activeElement === button);
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await page.keyboard.press('Enter');
+    await expect(save).toHaveAttribute('data-pending', 'true');
+    // Chromium puts a space before the visually hidden suffix's comma ("Save , Loading").
+    await expect(save).toHaveAccessibleName(/^Save ?, Loading$/);
+    await expect(page.getByTestId('saves')).toHaveText('Saved 1');
+    const frames = await page.evaluate(() => {
+      const store = window as unknown as { focusFrames: boolean[]; stopFrames?: boolean };
+      store.stopFrames = true;
+      return store.focusFrames;
+    });
+    expect(frames.length).toBeGreaterThan(20);
+    expect(frames.every(Boolean)).toBe(true);
+    await expect(save).toHaveAccessibleName('Save');
+  });
+
+  test('a wait under 200ms changes nothing visible', async ({ page }) => {
+    await openStory(page, 'components-button--pending-action', {}, { duration: '100' });
+    const save = page.getByTestId('save');
+    // Load the indicator first, so the short wait is the only thing that varies.
+    await save.hover();
+    await page.evaluate(() => {
+      const store = window as unknown as { opacities: string[]; stopFrames?: boolean };
+      store.opacities = [];
+      const button = document.querySelector('[data-testid="save"]')!;
+      const sample = () => {
+        if (store.stopFrames) return;
+        const slot = button.querySelector('[data-slot="pending-indicator"]')!;
+        const faces = slot.previousElementSibling!;
+        store.opacities.push(
+          `${getComputedStyle(faces).opacity}/${getComputedStyle(slot).opacity}`,
+        );
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await save.click();
+    await expect(page.getByTestId('saves')).toHaveText('Saved 1');
+    await page.waitForTimeout(300);
+    const opacities = await page.evaluate(() => {
+      const store = window as unknown as { opacities: string[]; stopFrames?: boolean };
+      store.stopFrames = true;
+      return store.opacities;
+    });
+    expect(new Set(opacities)).toEqual(new Set(['1/0']));
+  });
+
+  test('pressing a pending button does nothing', async ({ page }) => {
+    await openStory(page, 'components-button--pending-action', {}, { duration: '800' });
+    const save = page.getByTestId('save');
+    await save.click();
+    await expect(save).toHaveAttribute('data-pending', 'true');
+    // `force`: Playwright counts `aria-disabled` as not enabled and would wait for it.
+    await save.click({ force: true });
+    await page.keyboard.press('Enter');
+    await expect(page.getByTestId('saves')).toHaveText('Saved 1');
+    await page.waitForTimeout(1000);
+    await expect(page.getByTestId('saves')).toHaveText('Saved 1');
+  });
+
+  test.describe('reduced motion', () => {
+    test.use({ reducedMotion: 'reduce' });
+
+    test('only the content and the indicator fade', async ({ page }) => {
+      await openStory(page, 'components-button--pending-action', {}, { duration: '1500' });
+      const save = page.getByTestId('save');
+      await save.hover();
+      const result = await expectNoMovement(page, {
+        parts: {
+          button: save,
+          faces: '[data-testid="save"] :has(+ [data-slot="pending-indicator"])',
+          indicator: '[data-testid="save"] [data-slot="pending-indicator"]',
+        },
+        act: () => save.click(),
+      });
+      await expect(save).toHaveAttribute('data-pending', 'true');
+      expect(result.frames.indicator!.at(-1)!.opacity).toBe(1);
+    });
+  });
+
+  test.describe('screenshots', () => {
+    const shoot = async (page: Page, name: string, globals = {}) => {
+      await pauseClock(page);
+      await openStory(page, 'components-button--pending', globals);
+      const root = page.getByTestId('pending');
+      await expect(root.locator('[data-slot="pending-indicator"] svg')).toHaveCount(
+        await root.locator('[data-pending]').count(),
+      );
+      await expect(root).toHaveScreenshot(name);
+    };
+    for (const mode of MODES) {
+      test(`pending · ${mode}`, async ({ page }) => shoot(page, `pending-${mode}.png`, { mode }));
+    }
+    test('pending · high contrast', async ({ page }) =>
+      shoot(page, 'pending-high-contrast.png', { contrast: 'high' }));
+    test('pending · rtl', async ({ page }) => shoot(page, 'pending-rtl.png', { dir: 'rtl' }));
+    test('pending · forced colours', async ({ page }) => {
+      await page.emulateMedia({ forcedColors: 'active' });
+      await shoot(page, 'pending-forced-colors.png');
     });
   });
 });
