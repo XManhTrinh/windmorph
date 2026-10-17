@@ -103,6 +103,13 @@ export async function FabMenuBody(): Promise<ComponentDoc> {
             short windows they scroll behind the close button, which stays reachable.
           </p>
           <p className="text-body-large text-on-surface-variant">
+            Keep the menu out of normal flow: <InlineCode>fixed</InlineCode>, or at the bottom of a
+            box (<InlineCode>absolute end-4 bottom-4</InlineCode> in a{' '}
+            <InlineCode>relative</InlineCode> one, or <InlineCode>items-end</InlineCode> in a
+            fixed-height flex box). In normal flow the open list takes up room, so it pushes the
+            button down and can scroll the page as it opens and closes.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
             On the web, M3 has the FAB open a standard menu: use{' '}
             <InlineCode>presentation=&quot;menu&quot;</InlineCode> on large screens (the expanded
             window class, 840px and up), and keep the default <InlineCode>list</InlineCode> in

@@ -144,7 +144,11 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
         <section className="flex flex-col gap-6">
           <SectionHeading id="props">Props</SectionHeading>
           <PropsReference
-            components={tables.map(({ name, json }) => ({ name, props: json?.props ?? [] }))}
+            components={tables.map(({ name, json }) => ({
+              name,
+              props: json?.props ?? [],
+              htmlAttributes: json?.htmlAttributes,
+            }))}
           />
         </section>
       )}

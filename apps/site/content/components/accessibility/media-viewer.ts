@@ -16,6 +16,11 @@ export const mediaViewer: ComponentAccessibility = {
       action: 'Pan the photo while zoomed. Unzoomed, they do nothing.',
     },
     { keys: ['Home', 'End'], action: 'Show the first or last photo.' },
+    {
+      keys: ['Arrow Up', 'Arrow Down', 'Page Up', 'Page Down'],
+      action: 'Scroll an expanded caption that is longer than its space.',
+      where: 'On the caption',
+    },
     { keys: ['+', '-'], action: 'Zoom in or out (`=` and `_` work too).' },
     { keys: ['0'], action: 'Resets the zoom.' },
     { keys: ['Escape'], action: 'Closes the viewer.' },

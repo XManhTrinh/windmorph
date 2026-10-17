@@ -64,7 +64,7 @@ export const richMessageField: ComponentAccessibility = {
   keyboardNotes: [
     'On a Mac, ⌘ takes the place of Ctrl.',
     "Typing the marker format (`*bold*`, `- `, ```` ``` ````) formats as you go, so every format is reachable without the toolbar. Enter that confirms an input method's candidate never sends.",
-    'Arrow keys in the toolbars are mirrored in right-to-left text.',
+    'Arrow keys in the toolbars follow the laid-out direction, so they are mirrored in right-to-left text, including a `dir="rtl"` region of a left-to-right app.',
   ],
   screenReader: {
     role: 'The editor is a `textbox` with `aria-multiline`. The tools and the formatting buttons are two `toolbar`s of icon buttons; the formatting buttons and the Aa tool are toggle buttons. A `separator` divides the formatting groups. The mention list is a `listbox` of `option`s. Link asks in a `dialog` (pressing outside it cancels).',
@@ -88,6 +88,7 @@ export const richMessageField: ComponentAccessibility = {
     'Each person in the mention list is a full-width row.',
   ],
   motion: [
+    "Growing and shrinking by a line slide on the field's spring, as in {@link MessageField}; getting shorter eases without overshoot. Under reduced motion the height changes at once.",
     "Under reduced motion `autoFocus` and the app's `focus()` bring the field into view at once instead of gliding. Nothing moves or scales, but the fades stay on their effects timing: the field's rows, Send, its icon, the loading indicator and the link dialog still fade, as in {@link MessageField}.",
     "The mention list's pressed ripple appears at full size without growing.",
   ],

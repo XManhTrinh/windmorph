@@ -6,6 +6,7 @@ import {
   iconsUsed,
   normalizeDefault,
   propDefaultsFrom,
+  stateTypeArgument,
 } from './code-emit';
 
 describe('normalizeDefault', () => {
@@ -229,5 +230,74 @@ describe('emitSnippet icons', () => {
       'EditIcon',
       'SendIcon',
     ]);
+  });
+});
+
+describe('controlled props', () => {
+  const base = { surfacedProps: ['selected'], values: { selected: true } };
+
+  it('keeps a controlled prop in a useState pair, as docs show controlled use', () => {
+    const code = emitSnippet({
+      ...base,
+      component: 'Checkbox',
+      propNames: ['selected', 'defaultSelected', 'onSelectedChange'],
+    });
+    expect(code).toContain('const [selected, setSelected] = useState(true);');
+    expect(code).toContain('selected={selected}\n      onSelectedChange={setSelected}');
+    expect(code).toMatch(/^import \{ useState \} from 'react';/);
+  });
+
+  it('keeps a controlled prop without a twin in a useState pair', () => {
+    const code = emitSnippet({
+      component: 'Picker',
+      surfacedProps: ['open'],
+      values: { open: true },
+      propNames: ['open', 'onOpenChange'],
+    });
+    expect(code).toContain("import { useState } from 'react';");
+    expect(code).toContain('const [open, setOpen] = useState(true);');
+    expect(code).toContain('open={open}\n      onOpenChange={setOpen}');
+  });
+
+  it("pairs `value` with React Aria's `onChange`", () => {
+    const code = emitSnippet({
+      component: 'Field',
+      surfacedProps: ['value'],
+      values: { value: 'Alex' },
+      propNames: ['value', 'onChange'],
+    });
+    expect(code).toContain("useState('Alex')");
+    expect(code).toContain('onChange={setValue}');
+  });
+
+  it('leaves a controlled prop whose handler the snippet writes as it is', () => {
+    const code = emitSnippet({
+      ...base,
+      component: 'Toggle',
+      propNames: ['selected', 'defaultSelected', 'onSelectedChange'],
+      codeSlots: { onSelectedChange: 'setSelected' },
+    });
+    expect(code).toContain('  selected\n');
+  });
+});
+
+describe('stateTypeArgument', () => {
+  it('types a string state as narrowly as its prop', () => {
+    expect(
+      stateTypeArgument('TimePicker', 'mode', 'input', {
+        type: 'enum',
+        values: ['"dial"', '"input"'],
+      }),
+    ).toBe("<'dial' | 'input'>");
+    expect(stateTypeArgument('List', 'value', 'alex', { type: 'string | null' })).toBe(
+      '<string | null>',
+    );
+    expect(
+      stateTypeArgument('PhoneField', 'country', 'FR', {
+        type: 'enum',
+        values: Array.from({ length: 20 }, (_, index) => `"C${index}"`),
+      }),
+    ).toBe("<ComponentProps<typeof PhoneField>['country']>");
+    expect(stateTypeArgument('Checkbox', 'selected', true, { type: 'boolean' })).toBe('');
   });
 });

@@ -126,6 +126,7 @@ export interface TooltipClassNames {
 }
 
 export interface TooltipProps {
+  /** The label: a few words, with no links or buttons (use a rich tooltip for those). */
   children: ReactNode;
   /** Draw a 16×8px caret pointing at the anchor. @default false */
   caret?: boolean;
@@ -235,6 +236,11 @@ export interface RichTooltipTriggerProps {
   delay?: number;
   /** Milliseconds before a transient tooltip hides after the pointer leaves. @default 1500 */
   closeDelay?: number;
+  /**
+   * The trigger opens nothing: a transient tooltip ignores hover, focus and long press, and a
+   * persistent one's trigger works as a plain button, without `aria-expanded`. @default false
+   */
+  disabled?: boolean;
   /** Whether the tooltip is shown (controlled). */
   open?: boolean;
   /** Whether the tooltip starts shown when uncontrolled. @default false */
@@ -258,6 +264,7 @@ function PersistentRichTrigger({
   children,
   placement = 'bottom start',
   offset = DEFAULT_OFFSET,
+  disabled = false,
   open,
   defaultOpen,
   onOpenChange,
@@ -266,7 +273,7 @@ function PersistentRichTrigger({
   const triggerRef = useRef<HTMLElement>(null);
   const { triggerProps, overlayProps } = useOverlayTrigger({ type: 'dialog' }, state, triggerRef);
   const triggerValue = useTriggerProps({
-    ...(triggerProps as TriggerContextValue),
+    ...(disabled ? {} : (triggerProps as TriggerContextValue)),
     ref: triggerRef,
   });
   const [trigger, ...tooltip] = Children.toArray(children);
@@ -284,18 +291,26 @@ function TransientRichTrigger({
   offset = DEFAULT_OFFSET,
   delay = 0,
   closeDelay = CLOSE_DELAY,
+  disabled,
   open,
   defaultOpen,
   onOpenChange,
 }: Omit<RichTooltipTriggerProps, 'persistent'>) {
-  const options = { delay, closeDelay, isOpen: open, defaultOpen, onOpenChange };
+  const options = {
+    delay,
+    closeDelay,
+    isDisabled: disabled,
+    isOpen: open,
+    defaultOpen,
+    onOpenChange,
+  };
   const state = useTooltipTriggerState(options);
   const triggerRef = useRef<HTMLElement>(null);
   const { triggerProps, tooltipProps } = useTooltipTrigger(options, state, triggerRef);
   const longPressProps = useTouchLongPress(
     () => state.open(true),
     () => state.close(),
-    false,
+    disabled,
   );
   const triggerValue = useTriggerProps({
     ...(mergeProps(triggerProps, longPressProps) as TriggerContextValue),

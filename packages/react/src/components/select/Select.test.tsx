@@ -184,6 +184,10 @@ describe('Select', () => {
     const reveal = screen.getByRole('listbox').closest('[data-placement]');
     expect(reveal).toHaveClass('w-auto');
     expect(reveal).not.toHaveClass('w-max');
+    // The field's width is an inline minimum, so no `!important` width class of the menu's
+    // (which keeps a consumer's `w-full` from moving a Menu) may override it.
+    const popover = reveal!.parentElement!;
+    expect(popover.className).not.toMatch(/(^|\s)(min-)?w-[^\s]*!/);
   });
 
   it('chooses several options, lists them in the field and keeps the menu open', async () => {

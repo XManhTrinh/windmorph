@@ -338,3 +338,41 @@ test.describe('Slider on a phone (touch)', () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 });
+
+/*
+ * Discrete values are drawn between the track's corners (Compose), so a press maps back
+ * through the same inset: a tap on any drawn stop selects that stop, at every size, with the
+ * mouse and with a finger (2026-10-17; an XL slider's ends picked the next stop).
+ */
+async function stopPoints(page: Page) {
+  return page.getByTestId('slider').evaluate((root) => {
+    const track = root.firstElementChild as HTMLElement;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:absolute;width:var(--m3-slider-corner)';
+    track.append(probe);
+    const corner = probe.getBoundingClientRect().width;
+    probe.remove();
+    const box = track.getBoundingClientRect();
+    return Array.from({ length: 11 }, (_, i) => ({
+      value: i * 10,
+      x: box.left + corner + (box.width - 2 * corner) * (i / 10),
+      y: box.top + box.height / 2,
+    }));
+  });
+}
+
+for (const pointer of ['mouse', 'touch'] as const) {
+  test.describe(`Discrete slider stops · ${pointer}`, () => {
+    if (pointer === 'touch') test.use({ hasTouch: true });
+    for (const size of ['xs', 'sm', 'md', 'lg', 'xl'] as const) {
+      test(`a press on each drawn stop selects it · ${size}`, async ({ page }) => {
+        await openStory(page, 'components-slider--playground', {}, { size, ticks: true });
+        for (const stop of await stopPoints(page)) {
+          if (pointer === 'mouse') await page.mouse.click(stop.x, stop.y);
+          else await page.touchscreen.tap(stop.x, stop.y);
+          await expect(page.getByTestId('value')).toHaveText(`Value ${stop.value}`);
+        }
+      });
+    }
+  });
+}

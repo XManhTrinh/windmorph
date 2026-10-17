@@ -454,6 +454,42 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={48} h={20} tone="outline" round="sm" />
     </Row>
   ),
+  'code-block': (
+    <Panel w={150} h={72} round="md" tone="high">
+      <Col gap={1}>
+        <Row gap={1}>
+          <span className="block h-1.5 w-8 rounded-full bg-primary" />
+          <Text w={60} />
+        </Row>
+        <Row gap={1}>
+          <span className="block h-1.5 w-6 rounded-full bg-tertiary" />
+          <Text w={44} />
+        </Row>
+        <Text w={30} />
+      </Col>
+    </Panel>
+  ),
+  'props-table': (
+    <Panel w={150} h={72} round="md" tone="outline">
+      <Col gap={2}>
+        <Row gap={2}>
+          <Text w={30} strong />
+          <Text w={40} strong />
+          <Text w={36} strong />
+        </Row>
+        <Row gap={2}>
+          <Text w={30} />
+          <Text w={40} />
+          <Text w={36} />
+        </Row>
+        <Row gap={2}>
+          <Text w={30} />
+          <Text w={40} />
+          <Text w={36} />
+        </Row>
+      </Col>
+    </Panel>
+  ),
   divider: (
     <Col gap={3}>
       <Text w={150} />

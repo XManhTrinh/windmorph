@@ -591,7 +591,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     related: ['checkbox', 'switch'],
     whenNotToUse:
-      'When any number of options may be selected use checkboxes; for a long list of choices use a Menu.',
+      'When any number of options may be selected use checkboxes; for a long list of choices use a Select.',
   },
   {
     slug: 'switch',
@@ -644,7 +644,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A stack of headers that open and fold panels of content: FAQs, settings groups, product details and filters. Not an M3 component (@windmorph/react-pro).',
+      'A stack of headers that open and fold panels of content, one at a time or several: FAQs, settings groups, product details and filters. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['Accordion', 'AccordionItem', 'AccordionHeader', 'AccordionPanel'],
     playground: 'full',
     pro: true,
@@ -775,8 +775,8 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     specs: {
       variants: ['modal', 'standard'],
-      shape: 'rounded-corner-large',
-      elevation: 'level1',
+      shape: 'bottom: rounded-corner-extra-large (top corners) · side: rounded-corner-large',
+      elevation: 'level1 · standard side sheet: level0',
     },
     related: ['dialog', 'menu'],
     keywords: ['drawer', 'panel', 'peek', 'non-modal', 'filters', 'drag handle'],
@@ -1055,6 +1055,37 @@ export const COMPONENT_META: ComponentMeta[] = [
     whenNotToUse:
       'For something pressable use a chip; for a count on an icon or avatar use a Badge.',
     keywords: ['tag', 'label', 'status', 'pill', 'lozenge', 'category', 'chip', 'badge', 'token'],
+  },
+  {
+    slug: 'code-block',
+    title: 'Code block',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'Source code for documentation, highlighted at build time, with a copy button and optional line numbers. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['CodeBlock'],
+    playground: 'showcase',
+    pro: true,
+    specs: { shape: 'rounded-corner-medium' },
+    related: ['props-table'],
+    whenNotToUse: 'For a word of code inside a sentence, use inline code.',
+    keywords: ['code', 'snippet', 'source', 'syntax highlighting', 'copy', 'pre', 'documentation'],
+  },
+  {
+    slug: 'props-table',
+    title: 'Props table',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      "A component's props as a table: name, type, default and description, for documentation. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['PropsTable'],
+    playground: 'showcase',
+    pro: true,
+    specs: { shape: 'rounded-corner-medium' },
+    related: ['code-block'],
+    whenNotToUse:
+      'For data people sort, select or page through, build a data table; this one only documents an API.',
+    keywords: ['props', 'api', 'properties', 'table', 'reference', 'documentation'],
   },
   {
     slug: 'divider',
@@ -1467,7 +1498,14 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The internal building blocks M3 components are made from, exported for custom controls.',
     propsComponents: [],
-    hooks: ['useM3Interaction', 'useM3Morph', 'useM3Spring', 'usePresence', 'useTriggerProps'],
+    hooks: [
+      'useKeepPressedInPlace',
+      'useM3Interaction',
+      'useM3Morph',
+      'useM3Spring',
+      'usePresence',
+      'useTriggerProps',
+    ],
   },
 ];
 

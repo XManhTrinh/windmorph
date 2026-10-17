@@ -26,7 +26,7 @@ export const carousel: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'In a right-to-left layout Arrow Left and Arrow Right swap, so the arrow always points the way focus moves.',
-    'Focusing an item with the keyboard scrolls it into view: a multi-browse or hero carousel scrolls it to its snap position. A press focuses the item without moving the carousel.',
+    'Focusing an item with the keyboard scrolls it into view: a multi-browse or hero carousel scrolls it to its snap position. A press, a click or a tap focuses the item without moving the carousel, on an actionable carousel (`onAction`) too.',
   ],
   screenReader: {
     role: 'A `region` described as a "carousel" (`aria-roledescription`). Each item is a `group` described as a "slide".',
@@ -43,7 +43,7 @@ export const carousel: ComponentAccessibility = {
     'Items in `disabledIndexes` can still take focus, but a press, Enter or Space does nothing.',
   ],
   touchTarget: [
-    'Touch, trackpads and mouse drags scroll the carousel; snapping pauses while dragging, and a drag never activates an item.',
+    'Touch, trackpads and mouse drags scroll the carousel, also when the drag starts on an actionable item; snapping pauses while dragging and resumes on release, and a drag never activates an item.',
     "Large and medium items are well over 48px. The small items of a multi-browse or hero carousel are 40 to 56px wide (`minSmallItemSize`, `maxSmallItemSize`); one narrower than 48px still takes 48px of presses, its press area grown into the spacing beside it (half of it next to another small item, and toward its neighbour where it meets the carousel's edge), so press areas never overlap.",
     "Only an item's visible part (and that press area) takes presses, so a press in the spacing between two items reaches neither.",
   ],

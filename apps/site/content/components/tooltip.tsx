@@ -67,6 +67,12 @@ export async function TooltipBody(): Promise<ComponentDoc> {
             <InlineCode>RichTooltip</InlineCode>. The trigger must read{' '}
             <InlineCode>TriggerContext</InlineCode>, which the library buttons already do.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            Avoid persistent rich tooltips on icon buttons, as M3 advises: an icon button needs its
+            plain tooltip to say what it does, and a persistent tooltip would take over its press.
+            Open persistent rich tooltips from a dedicated control, such as an information button
+            beside the text they explain.
+          </p>
         </section>
       </>
     ),

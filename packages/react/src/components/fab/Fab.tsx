@@ -9,6 +9,7 @@ import {
 } from '../../primitives/ButtonBase';
 import { ToolbarContext } from '../../primitives/ToolbarContext';
 import { cn } from '../../utils/cn';
+import { useNaturalSize } from '../../utils/natural-size';
 import { useWarnOnce } from '../../utils/warn-once';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
 import { TooltipTrigger, WithoutDescription } from '../tooltip/tooltip-trigger';
@@ -189,6 +190,14 @@ interface ExtendedFabOwnProps extends FabCommonProps {
   /** The visible label; it also names the FAB, including while collapsed. */
   children: Exclude<ReactNode, null | undefined | boolean>;
   /**
+   * A name that replaces the label, only to add detail. Start it with the visible label's
+   * first word ("Create a new invite" for "Create"), as M3 asks, so voice control can name
+   * the FAB; it warns once in development when the first words differ.
+   */
+  'aria-label'?: string;
+  /** The id of an element that names the FAB instead of its label. */
+  'aria-labelledby'?: string;
+  /**
    * Shows the label. Collapsing animates the FAB to a square showing only the icon
    * (e.g. while the page scrolls). @default true
    */
@@ -249,6 +258,10 @@ export function ExtendedFab({
     `[@windmorph/react] An ExtendedFab's aria-label should start with its visible label's first word ("${visibleWord}"), as M3 asks, so voice control can name it.`,
   );
   const collapsed = !expanded && Boolean(icon);
+  const [labelRef, labelWidth, labelResized] = useNaturalSize<HTMLSpanElement>(
+    'width',
+    Boolean(icon),
+  );
   const styles = extendedFabStyles({ size, color, elevation, hasIcon: Boolean(icon) });
   const baseProps = {
     ...base,
@@ -270,8 +283,13 @@ export function ExtendedFab({
             {icon}
           </span>
         )}
-        <span data-collapsed={collapsed || undefined} className={styles.collapse()}>
-          <span className={styles.label({ class: classNames?.label })}>
+        <span
+          data-collapsed={collapsed || undefined}
+          data-resized={labelResized || undefined}
+          style={labelWidth === undefined ? undefined : { width: collapsed ? 0 : labelWidth }}
+          className={styles.collapse()}
+        >
+          <span ref={labelRef} className={styles.label({ class: classNames?.label })}>
             <span className={styles.text({ class: classNames?.text })}>{children}</span>
           </span>
         </span>

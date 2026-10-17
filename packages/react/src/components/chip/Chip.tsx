@@ -534,6 +534,7 @@ export type InputChipProps = InputChipOwnProps &
 
 /**
  * M3 input chip: a discrete piece of information the user entered, such as a recipient.
+ * M3 expects input chips to be removable: give it `onRemove` unless the entry is fixed.
  *
  * With `onPress` and `onRemove`, the chip's action and its remove button are two focus
  * stops. With only `onRemove`, the chip is one focus stop (the remove button, named

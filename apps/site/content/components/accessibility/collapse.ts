@@ -11,7 +11,7 @@ export const collapse: ComponentAccessibility = {
       'None of its own. Open, the content is read as part of the page; folded, it is unmounted, or with `keepMounted` kept as `hidden="until-found"`, so screen readers and Tab skip it either way.',
     notes: [
       'While it folds, the content it last showed stays on screen but is `inert`, so it is already out of reach.',
-      'With `keepMounted`, find-in-page and a `#fragment` link still find the folded content, and it opens at once (calling `onOpenChange`) so the browser can scroll to the match.',
+      'With `keepMounted`, find-in-page and a `#fragment` link still find the folded content, and it opens at once (calling `onOpenChange`) so the browser can scroll to the match. A page opened at a `#fragment` inside it, or a hash change to one, opens it and scrolls there.',
     ],
   },
   focus: [
@@ -22,7 +22,8 @@ export const collapse: ComponentAccessibility = {
     none: "It has nothing to press; the control that opens it is the app's, with that control's own target.",
   },
   motion: [
-    'Under reduced motion the height (`grid-template-rows`) no longer animates: the content only fades, over `--wm-collapse-fade-duration`, and `onExited` runs when the fade ends. Content shown from the start (`appear={false}`) does not animate at all.',
+    "It opens on the default spatial spring and folds over the same time on the default effects spring's easing, which never overshoots, so a folding height never bounces back open (`--wm-collapse-spring-duration`, `-spring-easing`, `-fold-easing`). Its content fades on the default effects spring (`-fade-duration`, `-fade-easing`).",
+    "Under reduced motion the height no longer animates: an opening collapse appears at full height and fades in, and a folding one fades out where it is, over `--wm-collapse-fade-duration`, then goes (`onExited` runs when the fade ends). One that folds as another opens goes at once, so what's below shifts once. Content shown from the start (`appear={false}`) does not animate.",
   ],
   consumer: [
     'What opens it is yours. For a disclosure, make it a button with `aria-expanded` and `aria-controls` pointing at the content.',

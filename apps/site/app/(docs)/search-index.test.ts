@@ -49,6 +49,21 @@ const entries: SearchEntry[] = [
 const index = createSearchIndex(entries);
 
 describe('searchPages', () => {
+  it("puts a component's own page first for its name, also once grouped", () => {
+    const own: Record<string, string> = {
+      menu: '/components/menu',
+      button: '/components/button',
+      list: '/components/list',
+      card: '/components/card',
+      tab: '/components/tabs',
+    };
+    for (const [query, href] of Object.entries(own)) {
+      const results = searchPages(index, query);
+      expect(results[0]?.href, query).toBe(href);
+      expect(groupResults(results)[0]?.results[0]?.href, query).toBe(href);
+    }
+  });
+
   it('finds a component by title', () => {
     expect(searchPages(index, 'pin')[0]?.href).toBe('/components/pin-input');
   });

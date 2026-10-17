@@ -288,11 +288,24 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     controlDescriptions: {
       origin:
-        'Grows the viewer out of the Open photos button (in the snippet, a box in window coordinates), the M3 container transform.',
+        'Grows the viewer out of the Open photos button that opened it, the M3 container transform.',
     },
+    // The snippet opens the viewer from a button, as the preview does, and keeps `open` in
+    // state; with `origin`, the button it was opened from.
+    codeState: (values) => ({
+      open: `useState(${values.open === true})`,
+      ...(values.origin === true && { opener: 'useState<Element>()' }),
+    }),
+    codeWrap: (values) => ({
+      before: `<>\n  <Button\n    variant="tonal"\n    onPress={${
+        values.origin === true
+          ? '(event) => {\n      setOpener(event.target);\n      setOpen(true);\n    }'
+          : '() => setOpen(true)'
+      }}\n  >\n    Open photos\n  </Button>`,
+      after: '</>',
+    }),
     toggledSlots: {
-      // In the preview the origin is the button that opened it; the snippet gives a box.
-      origin: 'new DOMRect(16, 120, 96, 96)',
+      origin: 'opener',
       actions: '<Button variant="text" href="/posts/42">View post</Button>',
       closeIcon: '<ArrowBackIcon />',
       previousIcon: '<ArrowBackIcon />',
@@ -304,7 +317,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       "import { Button } from '@windmorph/react';",
       "import { photos } from './photos';",
     ],
-    codeSlots: { items: 'photos', 'aria-label': '"Photos"' },
+    codeSlots: {
+      items: 'photos',
+      open: 'open',
+      onOpenChange: 'setOpen',
+      'aria-label': '"Photos"',
+    },
   },
   'shaped-icon': {
     component: 'ShapedIcon',
@@ -408,7 +426,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
           {
             ...props,
             // Switching to several open at once keeps what is open; back to one starts afresh.
-            key: String(props.allowsMultipleExpanded),
+            key: String(props.multiple),
             defaultExpandedKeys: ['arrival'],
             density: asDensity(density),
             headingLevel: headingLevel == null ? undefined : Number(headingLevel),
@@ -420,12 +438,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       ),
     defaultProps: {
       variant: 'standard',
-      allowsMultipleExpanded: false,
+      multiple: false,
       disabled: false,
       headingLevel: 3,
       density: 0,
     },
-    surfacedProps: ['variant', 'allowsMultipleExpanded', 'disabled', 'headingLevel', 'density'],
+    surfacedProps: ['variant', 'multiple', 'disabled', 'headingLevel', 'density'],
     enumOptions: { ...DENSITY_OPTIONS, headingLevel: ['2', '3', '4', '5', '6'] },
     // The heading level and density are numbers, so the snippet writes them as numbers.
     controlKinds: { headingLevel: 'number', density: 'number' },

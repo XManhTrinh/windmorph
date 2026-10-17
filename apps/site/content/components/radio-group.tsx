@@ -92,6 +92,12 @@ export async function RadioGroupBody(): Promise<ComponentDoc> {
             navigation and validation. A <InlineCode>Radio</InlineCode> rendered outside a group
             throws.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            List the options vertically, one per line, as M3 asks (&ldquo;Avoid using horizontal
+            radio button lists&rdquo;): a column is quicker to scan and keeps each label beside its
+            own button. Keep <InlineCode>orientation=&quot;horizontal&quot;</InlineCode> for two or
+            three short options, such as Yes and No.
+          </p>
         </section>
       </>
     ),

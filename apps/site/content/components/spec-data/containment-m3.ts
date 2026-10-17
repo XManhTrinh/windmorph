@@ -243,6 +243,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         params: [
           { compose: 'positionProvider', windmorph: 'TooltipTrigger placement, offset' },
           { compose: 'state', windmorph: 'TooltipTrigger open, onOpenChange' },
+          { compose: 'enableUserInput', windmorph: 'TooltipTrigger disabled', note: 'inverted' },
           { compose: 'caretShape', windmorph: 'Tooltip caret' },
         ],
       },
@@ -256,6 +257,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           {
             compose: 'rememberTooltipState(isPersistent = true)',
             windmorph: 'RichTooltipTrigger persistent',
+          },
+          {
+            compose: 'enableUserInput',
+            windmorph: 'RichTooltipTrigger disabled',
+            note: 'inverted',
           },
         ],
       },
@@ -306,8 +312,8 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     notBuilt: [
       {
-        item: 'Predictive back and upward nested scrolling',
-        note: "The predictive back gesture isn't built. A downward drag on content scrolled to its top moves the sheet, but an upward drag scrolls the content rather than expanding a half-open sheet first.",
+        item: 'Predictive back',
+        note: "The predictive back gesture isn't built. Nested scrolling is: an upward swipe on a half-open sheet's content raises the sheet first and then scrolls the content, and a downward drag on content scrolled to its top moves the sheet.",
       },
       {
         item: 'More detents',

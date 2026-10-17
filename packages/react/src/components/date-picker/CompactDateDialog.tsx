@@ -3,7 +3,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { useState } from 'react';
 import { Button } from '../button/Button';
-import type { DateFieldStrings } from './DateField';
+import type { DateFieldClassNames, DateFieldStrings } from './DateField';
 import { DatePicker } from './DatePicker';
 import { PickerDialog } from './PickerDialog';
 
@@ -18,7 +18,8 @@ export interface CompactDateDialogProps {
   isDateUnavailable: ((date: DateValue) => boolean) | undefined;
   yearRange: [number, number];
   strings: DateFieldStrings;
-  className: string | undefined;
+  /** The field's calendar parts: `calendar` styles the dialog's surface here. */
+  classNames: Pick<DateFieldClassNames, 'calendar' | 'menuButton' | 'weekday' | 'day' | 'item'>;
 }
 
 /**
@@ -38,7 +39,7 @@ export function CompactDateDialog({
   isDateUnavailable,
   yearRange,
   strings,
-  className,
+  classNames,
 }: CompactDateDialogProps) {
   const [draft, setDraft] = useState(value);
   // Each opening starts from the field's date (state adjusted while rendering, no effect).
@@ -58,6 +59,7 @@ export function CompactDateDialog({
       onOpenChange={onOpenChange}
       onConfirm={confirm}
       fullScreen="compact"
+      {...(classNames.calendar && { classNames: { panel: classNames.calendar } })}
       dismissButton={
         <Button variant="text" onPress={() => onOpenChange(false)}>
           {strings.cancel ?? 'Cancel'}
@@ -77,7 +79,12 @@ export function CompactDateDialog({
         isDateUnavailable={isDateUnavailable}
         yearRange={yearRange}
         strings={strings}
-        className={className}
+        classNames={{
+          day: classNames.day,
+          weekday: classNames.weekday,
+          year: classNames.item,
+          yearButton: classNames.menuButton,
+        }}
       />
     </PickerDialog>
   );

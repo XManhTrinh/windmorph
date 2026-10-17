@@ -317,8 +317,9 @@ export async function DialogBody(): Promise<ComponentDoc> {
               <InlineCode>title-large</InlineCode> headline, content padded 24px at the top and
               sides, and the panel sliding up 48px as it fades in on the slow springs. With{' '}
               <InlineCode>origin</InlineCode> it is a container transform instead: the clip, corners
-              and container colour move from the origin to the window on the slow spatial spring,
-              and back on the fast springs.
+              and container colour move from the origin to the window on the slow spatial spring.
+              Closing, they go back into the origin over 250ms (emphasized accelerate), the
+              container staying opaque until it fades over the last 100ms.
             </li>
           </ul>
         </section>

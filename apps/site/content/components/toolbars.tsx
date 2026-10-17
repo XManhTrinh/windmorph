@@ -1,4 +1,8 @@
-import { dockedToolbarTokenSet, floatingToolbarTokenSet } from '@windmorph/react';
+import {
+  dockedToolbarTokenSet,
+  floatingToolbarTokenSet,
+  toolbarFabTokenSet,
+} from '@windmorph/react';
 import type { ComponentDoc } from './doc';
 import { ExampleViewer } from '../../components/example-viewer';
 import { readExampleSource } from '../../lib/example-source';
@@ -48,7 +52,7 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
   ]);
 
   return {
-    tokens: [dockedToolbarTokenSet, floatingToolbarTokenSet],
+    tokens: [dockedToolbarTokenSet, floatingToolbarTokenSet, toolbarFabTokenSet],
     overview: (
       <>
         <section className="flex flex-col gap-6">
@@ -175,10 +179,12 @@ export async function ToolbarsBody(): Promise<ComponentDoc> {
               on them expands the toolbar.
             </li>
             <li>
-              Collapsing closes the leading / trailing content through a grid track on the fast
-              spatial spring, clipping only along the toolbar so focus rings and touch targets
-              survive. With a FAB, the toolbar keeps its measured width while the surface springs to
-              0 and the FAB&apos;s box grows 56 → 80px.
+              Leading / trailing content opens to its measured width on the fast spatial spring,
+              overshooting as Compose&apos;s <InlineCode>expandHorizontally</InlineCode> does, and
+              closes on the fast effects curve (a size can&apos;t go below 0), clipping only along
+              the toolbar so focus rings and touch targets survive. With a FAB, the toolbar keeps
+              its measured width while the surface springs to 0 and the FAB&apos;s box grows 56 →
+              80px.
             </li>
             <li>
               <InlineCode>useToolbarScrollExpansion</InlineCode> ports Compose&apos;s vertical

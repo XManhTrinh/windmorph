@@ -356,6 +356,40 @@ function propMatches(name: string, q: string): boolean {
 }
 
 /**
+ * How closely a text matches a query, best first: the whole text (0), its start (1), the start
+ * of a later word (2), anywhere inside (3); `undefined` when it doesn't hold the query.
+ */
+export function matchRank(text: string, q: string): number | undefined {
+  if (text === q) return 0;
+  if (text.startsWith(q)) return 1;
+  const at = text.indexOf(q);
+  if (at < 0) return undefined;
+  return /[\s(/-]/.test(text[at - 1] ?? '') ? 2 : 3;
+}
+
+/**
+ * The items whose texts hold the query, best match first ({@link matchRank}), keeping the
+ * index order among equals, with the text that matched best.
+ */
+function ranked<T>(
+  items: readonly T[],
+  texts: (item: T) => readonly string[],
+  q: string,
+): { item: T; at: number }[] {
+  return items
+    .flatMap((item, order) => {
+      let best: { rank: number; at: number } | undefined;
+      texts(item).forEach((text, at) => {
+        const rank = matchRank(text, q);
+        if (rank !== undefined && (!best || rank < best.rank)) best = { rank, at };
+      });
+      return best ? [{ item, order, ...best }] : [];
+    })
+    .sort((a, b) => a.rank - b.rank || a.order - b.order)
+    .map(({ item, at }) => ({ item, at }));
+}
+
+/**
  * Pages matching a query, at most `limit` of them, best first: a component asked for on a
  * tab, then matches on the title, the summary, keywords, code names and prop names (which
  * open the API tab), then pages holding every word of the query somewhere. An empty query
@@ -375,11 +409,14 @@ export function searchPages(index: SearchIndex, query: string, limit = 12): Sear
   const rest = () => index.entries.filter((item) => !found.has(item.entry));
 
   for (const result of tabMatches(index, q)) add(result);
-  for (const item of rest()) if (item.title.includes(q)) add(pageResult(item.entry, terms));
+  // Titles and keywords rank an exact match, then one at the start, then the rest ("menu" puts
+  // Menu before FAB menu and Split button).
+  for (const { item } of ranked(rest(), (item) => [item.title], q)) {
+    add(pageResult(item.entry, terms));
+  }
   for (const item of rest()) if (item.summary.includes(q)) add(pageResult(item.entry, terms));
-  for (const item of rest()) {
-    const at = item.keywords.findIndex((keyword) => keyword.includes(q));
-    if (at >= 0) add(pageResult(item.entry, terms, item.entry.keywords?.[at]));
+  for (const { item, at } of ranked(rest(), (item) => item.keywords, q)) {
+    add(pageResult(item.entry, terms, item.entry.keywords?.[at]));
   }
   for (const item of rest()) {
     const at = item.codeNames.findIndex((name) => name.includes(q));

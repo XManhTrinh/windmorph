@@ -14,6 +14,7 @@ import {
 } from 'react';
 import { useObjectRef } from 'react-aria';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationBarStyles, type NavigationBarArrangement } from './navigation-styles';
 import { useHideOnScroll } from './use-hide-on-scroll';
@@ -117,6 +118,11 @@ export function NavigationBar({
     hideOnScroll,
   });
   const count = Children.toArray(children).filter(isValidElement).length;
+  // M3: a navigation bar holds three to five destinations (fewer: tabs; more: a rail).
+  useWarnOnce(
+    count > 0 && (count < 3 || count > 5),
+    `[@windmorph/react] A NavigationBar should have 3 to 5 destinations (M3); it has ${count}. Use tabs for two, and a navigation rail for more than five.`,
+  );
   // Compose: centred stacked items sit within (100% − 10% × (n + 3)) / 2 each side, up to 6.
   const padding =
     arrangement === 'centered' && iconPosition === 'top' && count <= 6

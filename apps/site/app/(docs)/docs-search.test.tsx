@@ -42,6 +42,13 @@ const items = (container: HTMLElement) =>
     .filter((row) => within(row).queryByRole('rowheader') === null);
 
 describe('DocsSearch', () => {
+  it("keeps a phone bar's placeholder short, and its full name", () => {
+    const { container } = render(<DocsSearch entries={entries} view="full-screen" />);
+    const field = container.querySelector('input');
+    expect(field).toHaveAttribute('placeholder', 'Search docs');
+    expect(field).toHaveAccessibleName(LABEL);
+  });
+
   it('opens with Ctrl+K from anywhere, and with / outside a field', async () => {
     const user = userEvent.setup();
     render(

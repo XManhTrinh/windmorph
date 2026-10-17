@@ -19,7 +19,7 @@ export const radioGroup: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'The arrow keys wrap from the last option to the first and back, and skip disabled options.',
-    'In a right-to-left locale, Arrow Left and Arrow Right are mirrored in a horizontal group.',
+    'In a horizontal group, Arrow Left and Arrow Right follow the laid-out direction, so they are mirrored in right-to-left text, including a `dir="rtl"` region of a left-to-right app.',
   ],
   screenReader: {
     role: 'The group is a `radiogroup` (React Aria `useRadioGroup`) with `aria-orientation`. Each option is a visually hidden native `<input type="radio">`, inside a `<label>`.',

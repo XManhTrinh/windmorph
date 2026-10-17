@@ -113,13 +113,41 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
       group.removeAttribute(PINNED);
     };
 
+    // Unpins once the release's `flex-basis` transitions have ended. They end later than the
+    // spring's duration when a busy main thread started them late, and unpinning then would
+    // snap each item the rest of the way (2026-10-17). A new press cancels the wait.
+    let releases = 0;
+    const unpinWhenSettled = () => {
+      const release = releases;
+      const running = [...pinned.keys()].flatMap((element) =>
+        typeof element.getAnimations === 'function'
+          ? element
+              .getAnimations()
+              .filter(
+                (animation) =>
+                  animation instanceof CSSTransition &&
+                  animation.transitionProperty === 'flex-basis' &&
+                  animation.playState === 'running',
+              )
+          : [],
+      );
+      if (running.length === 0) {
+        unpin();
+        return;
+      }
+      void Promise.allSettled(running.map((animation) => animation.finished)).then(() => {
+        if (release === releases) unpin();
+      });
+    };
+
     // Back to the rest widths, then unpinned once that has settled.
     const release = () => {
       const [first] = pinned.keys();
       if (!first) return;
       for (const [element, entry] of pinned) element.style.flexBasis = `${entry.rest}px`;
       clearTimeout(settle);
-      settle = setTimeout(unpin, settleDuration(first));
+      releases++;
+      settle = setTimeout(unpinWhenSettled, settleDuration(first));
     };
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -135,6 +163,7 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
       release();
       if (!next || items.length < 2 || reducedMotion.matches) return;
       clearTimeout(settle);
+      releases++;
 
       const index = items.indexOf(next);
       const neighbours = [items[index - 1], items[index + 1]].filter(
@@ -176,6 +205,7 @@ export function usePressExpansion(groupRef: RefObject<HTMLElement | null>, expan
     return () => {
       observer.disconnect();
       clearTimeout(settle);
+      releases++;
       unpin();
     };
   }, [groupRef, expandedRatio]);

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
   Badge,
   type BadgeProps,
-  Fab,
+  ExtendedFab,
   IconButton,
   NavigationBar,
   NavigationBarItem,
@@ -88,7 +88,10 @@ function RailDemo({
               aria-label={open ? 'Collapse navigation' : 'Expand navigation'}
               onPress={toggle}
             />
-            <Fab icon={<EditIcon />} aria-label="Compose" elevation="flat" className="mt-[4px]" />
+            {/* M3: the rail's FAB transitions into an extended FAB as the rail expands. */}
+            <ExtendedFab icon={<EditIcon />} expanded={open} elevation="flat" className="mt-[4px]">
+              Compose
+            </ExtendedFab>
           </>
         )}
       >
@@ -154,7 +157,11 @@ export const RailStates: Story = {
             aria-label={expanded ? 'Expanded' : 'Collapsed'}
             expanded={expanded}
             divider
-            header={<Fab icon={<EditIcon />} aria-label="Compose" elevation="flat" />}
+            header={
+              <ExtendedFab icon={<EditIcon />} expanded={expanded} elevation="flat">
+                Compose
+              </ExtendedFab>
+            }
             className="h-full"
           >
             {DESTINATIONS.map(({ id, label, icon }, i) => (

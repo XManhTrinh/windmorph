@@ -306,6 +306,21 @@ function adjustToolbarContent(
   return values;
 }
 
+/**
+ * `hideOnCollapse` only applies to a modal rail, so turning it on makes the rail modal and
+ * turning `modal` off turns it off: the snippet never carries a prop that does nothing.
+ */
+export function adjustRailModal(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'hideOnCollapse' && values.hideOnCollapse === true) {
+    return { ...values, modal: true };
+  }
+  if (changed === 'modal' && values.modal === false) return { ...values, hideOnCollapse: false };
+  return values;
+}
+
 /** Playgrounds for Navigation, by page slug. */
 export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'navigation-rail': {
@@ -334,6 +349,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'indicatorMotion',
     ],
     initialState: { header: true },
+    adjust: adjustRailModal,
     enumOptions: { itemAlignment: ['top', 'center'], indicatorMotion: ['expand', 'slide'] },
     controlKinds: { header: 'boolean' },
     toggledSlots: {
@@ -342,8 +358,16 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     importMembers: ['NavigationRailItem', 'IconButton', 'ExtendedFab'],
     codeSlots: { 'aria-label': '"Folders"' },
-    codeChildren:
-      '<NavigationRailItem icon={<HomeIcon />} selected>Home</NavigationRailItem>\n  <NavigationRailItem icon={<SearchIcon />}>Search</NavigationRailItem>',
+    codeState: { current: "useState('home')" },
+    codeChildren: [
+      ['home', 'Home', 'HomeIcon'],
+      ['search', 'Search', 'SearchIcon'],
+    ]
+      .map(
+        ([id, label, icon]) =>
+          `<NavigationRailItem\n    icon={<${icon} />}\n    selected={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationRailItem>`,
+      )
+      .join('\n  '),
   },
   'navigation-bar': {
     component: 'NavigationBar',
@@ -361,8 +385,18 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     },
     importMembers: ['NavigationBarItem'],
     codeSlots: { 'aria-label': '"Mail"' },
-    codeChildren:
-      '<NavigationBarItem icon={<HomeIcon />} selected>Home</NavigationBarItem>\n  <NavigationBarItem icon={<SearchIcon />}>Search</NavigationBarItem>',
+    codeState: { current: "useState('home')" },
+    // Three destinations, a navigation bar's minimum (M3: three to five).
+    codeChildren: [
+      ['home', 'Home', 'HomeIcon'],
+      ['search', 'Search', 'SearchIcon'],
+      ['starred', 'Starred', 'StarIcon'],
+    ]
+      .map(
+        ([id, label, icon]) =>
+          `<NavigationBarItem\n    icon={<${icon} />}\n    selected={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationBarItem>`,
+      )
+      .join('\n  '),
   },
   tabs: {
     component: 'Tabs',
@@ -408,6 +442,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       swipeable: false,
       keyboardActivation: 'manual',
       density: 0,
+      disabled: false,
     },
     surfacedProps: [
       'variant',
@@ -417,6 +452,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'density',
       'swipeable',
       'keyboardActivation',
+      'disabled',
     ],
     initialState: { variant: 'primary' },
     enumOptions: DENSITY_OPTIONS,

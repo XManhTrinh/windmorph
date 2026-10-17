@@ -54,10 +54,21 @@ export const persistentScrollbar = [
 ];
 
 /** Variant definitions for {@link Menu} and its parts. */
+/**
+ * Keeps a menu's placed box at the menu's own width (`!`, so a consumer's `w-full` or `min-w-*`
+ * doesn't merge it away): React Aria places the box by its size, so a full-width box was held
+ * 12px from the window's edge and the menu inside it sat off its trigger (2026-10-17). Only the
+ * menus take it: an `!important` minimum would also beat the inline minimum that keeps a
+ * Select's or Autocomplete's option list as wide as its field.
+ */
+export const menuOwnWidth = 'w-max! min-w-0!';
+
 export const menuStyles = tv({
   slots: {
     // The outermost element, which React Aria places (inline `position` and insets) and which
-    // takes the consumer's `className` and `style`.
+    // takes the consumer's `className` and `style`. A menu adds `menuOwnWidth` to it; the
+    // option list of a Select or Autocomplete doesn't, since it sets its own minimum (the
+    // field's width) inline.
     popover: 'z-(--md-sys-z-menu)',
     // The menu's enter and exit: revealed from its anchored edge with a clip (24px of room
     // for the shadows) as it fades in. M3 motion avoids scale, and a clip leaves the items'

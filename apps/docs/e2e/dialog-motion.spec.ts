@@ -417,6 +417,40 @@ test.describe('Dialog motion, frame by frame', () => {
     expect(part(at(exit, 128), 'motion').opacity).toBeLessThan(0.02);
     for (const { parts } of exit) expect(part(parts, 'content').opacity).toBe(1);
   });
+
+  // The container stays opaque for 150ms and fades over the last 100ms, ending with the
+  // collapse, so it is seen going back into the FAB (2026-10-17): full screen's own exit had
+  // started the fade at once, and it was gone before most of the collapse.
+  test('container transform: visible while it shrinks back into the FAB', async ({ page }) => {
+    const viewport = { width: 390, height: 760 };
+    const target: Target = {
+      story: 'components-dialog--container-transform',
+      role: 'dialog',
+      early: {},
+      late: {},
+      viewport,
+    };
+    await page.setViewportSize(viewport);
+    await openStory(page, target.story);
+    const fab = page.getByRole('button', { name: 'New event' });
+    const fabTop = (await fab.boundingBox())!.y;
+    await fab.click();
+    await expect(page.getByRole('dialog', { name: 'New event' })).toBeVisible();
+    await page.waitForTimeout(700);
+    const exit = await closeFrames(page, target, 272);
+    const frames = exit.map(({ t, parts }) => {
+      const motion = part(parts, 'motion');
+      const [top = 0] = insetEdges(motion.clipPath, viewport.width, viewport.height);
+      return { t, opacity: motion.opacity, shrunk: top / fabTop };
+    });
+    const trace = frames.map((f) => `${f.t}:${f.opacity.toFixed(2)}/${f.shrunk.toFixed(2)}`);
+    // Opaque for the first 150ms, then fading out as the collapse ends.
+    for (const frame of frames.filter((f) => f.t <= 144)) expect(frame.opacity).toBe(1);
+    for (const frame of frames.filter((f) => f.shrunk < 0.5)) {
+      expect(frame.opacity, trace.join(' ')).toBeGreaterThanOrEqual(0.5);
+    }
+    expect(part(at(exit, 240), 'motion').opacity, trace.join(' ')).toBeLessThan(0.15);
+  });
 });
 
 test.describe('Dialog motion under reduced motion', () => {

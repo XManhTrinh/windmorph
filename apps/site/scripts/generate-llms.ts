@@ -15,6 +15,7 @@
  * component token the core exports must appear in `llms-full.txt` (from the API tabs' Tokens
  * tables), or the script fails.
  */
+import { asAppSource } from '../lib/example-source';
 import { readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,7 +71,8 @@ function exampleSources(): Map<string, string> {
   for (const entry of readdirSync(examplesDir, { recursive: true, withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue;
     if (sources.has(entry.name)) throw new Error(`Two examples are named ${entry.name}`);
-    sources.set(entry.name, readFileSync(join(entry.parentPath, entry.name), 'utf8'));
+    // As the page shows it: icons and sample data from the reader's own modules.
+    sources.set(entry.name, asAppSource(readFileSync(join(entry.parentPath, entry.name), 'utf8')));
   }
   return sources;
 }

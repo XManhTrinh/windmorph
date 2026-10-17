@@ -5,7 +5,7 @@ export const skeleton: ComponentAccessibility = {
     none: 'Nothing in a skeleton is focusable, so it has no keys.',
   },
   screenReader: {
-    role: 'Each `Skeleton` is hidden from assistive tech (`aria-hidden`). `SkeletonGroup` is a region marked `aria-busy="true"`, holding a `status` label.',
+    role: 'Each `Skeleton` is hidden from assistive tech (`aria-hidden`). `SkeletonGroup` marks its skeletons busy (`aria-busy="true"`); its `status` label sits just before them, outside the busy element, so screen readers announce it.',
     name: 'The group\'s `label` ("Loading businesses"), read once as status text instead of announcing every placeholder.',
     states: '`aria-busy` on the group, for as long as it is on the page.',
     notes: [

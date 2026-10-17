@@ -60,7 +60,7 @@ import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { BackIcon } from '../sheet/sheet-icons';
 import { useRevealEntering } from './use-reveal-entering';
-import { menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
+import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 import { MenuTriggerContext, type MenuTriggerContextValue } from './menu-trigger';
 
 export {
@@ -267,14 +267,18 @@ export interface MenuProps extends Omit<
   labels?: Partial<MenuLabels>;
   /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can
-   * open instantly to reduce motion"). Submenus follow their root menu.
+   * open instantly to reduce motion"). Submenus follow their root menu. Popovers only: a menu
+   * shown as a bottom sheet (`presentation="sheet"`, or `auto` on a compact window) keeps the
+   * sheet's slide, as M3's and Compose's modal bottom sheets always animate; under reduced
+   * motion it fades instead.
    * @default false
    */
   instant?: boolean;
   /**
    * Goes with `style` on the menu's outermost element: the box React Aria places against the
    * trigger, or the bottom sheet's outermost element in a sheet. The surface inside keeps
-   * its size whatever layout class lands here; style it with `classNames.panel`.
+   * its size and its place against the trigger whatever layout class lands here (the box
+   * keeps the menu's own width); style it with `classNames.panel`.
    */
   className?: string;
   /** Classes for each part, by slot. */
@@ -540,7 +544,7 @@ function MenuPopover({
         // (styles/utilities.css), over consumer inset classes.
         style={{ ...style, ...popoverProps.style }}
         data-overlay-placement=""
-        className={styles.popover({ class: className })}
+        className={styles.popover({ class: cn(menuOwnWidth, className) })}
       >
         <DismissButton onDismiss={trigger.state.close} />
         <div
@@ -1051,7 +1055,7 @@ function SubmenuPopoverContent({
   const { className, style, ...own } = submenu.props;
   const styles = menuStyles();
   return (
-    // `w-max`: positioned inside the narrower root popover, it would otherwise shrink to fit
+    // `w-max` (`menuOwnWidth`): positioned inside the narrower root popover, it would otherwise shrink to fit
     // what's left of that popover's width and wrap every label. Like the root menu's, the
     // submenu's `className` and `style` go on this outermost element.
     <div
@@ -1059,7 +1063,7 @@ function SubmenuPopoverContent({
       ref={popoverRef}
       style={{ ...style, ...positionProps.style }}
       data-overlay-placement=""
-      className={styles.popover({ class: cn('w-max', className) })}
+      className={styles.popover({ class: cn(menuOwnWidth, className) })}
     >
       <div
         {...exitProps}

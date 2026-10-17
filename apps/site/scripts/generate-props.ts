@@ -97,6 +97,11 @@ export interface PropsRecord {
    * with the key's own description and default, so the table lists what can be overridden.
    */
   keys?: PropsRecord[];
+  /**
+   * Inherited from React Aria (`react-aria`, `react-stately`, `@react-types/*`) rather than
+   * declared by the component: the props list folds these into their own group.
+   */
+  inherited?: true;
 }
 
 export interface ComponentPropsFile {
@@ -105,10 +110,133 @@ export interface ComponentPropsFile {
   /** The package that exports the component: the core, or the installed Windmorph Pro. */
   source: 'core' | 'pro';
   props: PropsRecord[];
+  /**
+   * The element whose HTML attributes the component also accepts and passes on (`button`,
+   * `a`, `input`), or `element` when the props extend the generic `HTMLAttributes`. The
+   * table names it in one line instead of listing every DOM attribute.
+   */
+  htmlAttributes?: string[];
 }
 
 /** The object props whose keys the tables list one by one. */
 export const OBJECT_KEY_PROPS = ['strings', 'labels', 'classNames'] as const;
+
+/** Where a prop is declared: by the package, by React Aria, by React's DOM types, or elsewhere. */
+export type PropOrigin = 'own' | 'react-aria' | 'dom' | 'other';
+
+const REACT_ARIA_FILE =
+  /\/node_modules\/(?:react-aria|react-aria-components|react-stately|@react-aria|@react-stately|@react-types)\//;
+const DOM_TYPES_FILE = /\/node_modules\/@types\/react\//;
+
+/** The origin of one declaring file (the installed Windmorph Pro counts as the package's own). */
+export function fileOrigin(fileName: string): PropOrigin {
+  if (!/\/node_modules\//.test(fileName) || /@windmorph\/react-pro\//.test(fileName)) return 'own';
+  if (REACT_ARIA_FILE.test(fileName)) return 'react-aria';
+  if (DOM_TYPES_FILE.test(fileName)) return 'dom';
+  return 'other';
+}
+
+const ORIGIN_RANK: PropOrigin[] = ['own', 'react-aria', 'dom', 'other'];
+
+/**
+ * A prop's origin from every file that declares it, the closest one winning: a prop the
+ * component redeclares (`aria-label` in a naming union over `HTMLAttributes`) is its own, even
+ * when docgen names React's DOM types as its parent.
+ */
+export function propOrigin(prop: {
+  parent?: { fileName: string };
+  declarations?: { fileName: string }[];
+}): PropOrigin {
+  const files = [...(prop.declarations ?? []), ...(prop.parent ? [prop.parent] : [])];
+  if (files.length === 0) return 'own';
+  const origins = new Set(files.map(({ fileName }) => fileOrigin(fileName)));
+  return ORIGIN_RANK.find((origin) => origins.has(origin))!;
+}
+
+/**
+ * React Aria props left out of the tables: deprecated or escape-hatch props, and the ARIA
+ * plumbing a component sets itself. React Aria's `is*` names are left out too: the
+ * components take the plain names (`disabled`, `required`), and an `is*` prop still passed
+ * through is not part of the documented API.
+ */
+export const INHERITED_DENYLIST: ReadonlySet<string> = new Set([
+  'validationState',
+  'excludeFromTabOrder',
+  'aria-activedescendant',
+  'aria-autocomplete',
+  'aria-haspopup',
+  'aria-controls',
+  // React Aria's own note: "Not recommended – use `onPress` instead."
+  'onClick',
+]);
+
+/**
+ * Props from React's DOM types the tables still list, the ones every component documents,
+ * with the description React's types don't give them.
+ */
+const DOM_PROPS_KEPT: Readonly<Record<string, string>> = {
+  ref: 'Ref to the root element.',
+  className: "Classes for the root element, merged with the component's own (yours win).",
+  style: 'Inline styles for the root element.',
+};
+
+/**
+ * Whether a prop gets a row: the package's own props, React Aria's (minus
+ * {@link INHERITED_DENYLIST}, `UNSAFE_*` and `is*`), and from React's DOM types only `ref`,
+ * `className` and `style`. The rest of the DOM attributes are summed up in one line.
+ */
+export function keepProp(prop: {
+  name: string;
+  parent?: { fileName: string };
+  declarations?: { fileName: string }[];
+}): boolean {
+  switch (propOrigin(prop)) {
+    case 'own':
+      return true;
+    case 'react-aria':
+      return (
+        !INHERITED_DENYLIST.has(prop.name) &&
+        !/^UNSAFE_/.test(prop.name) &&
+        !/^is[A-Z]/.test(prop.name)
+      );
+    case 'dom':
+      return Object.hasOwn(DOM_PROPS_KEPT, prop.name);
+    default:
+      return false;
+  }
+}
+
+/** React's attribute interfaces and the element each one describes. */
+const HTML_ATTRIBUTE_ELEMENTS: Record<string, string> = {
+  AnchorHTMLAttributes: 'a',
+  ButtonHTMLAttributes: 'button',
+  FormHTMLAttributes: 'form',
+  ImgHTMLAttributes: 'img',
+  InputHTMLAttributes: 'input',
+  LabelHTMLAttributes: 'label',
+  LiHTMLAttributes: 'li',
+  OlHTMLAttributes: 'ol',
+  TextareaHTMLAttributes: 'textarea',
+  VideoHTMLAttributes: 'video',
+  DialogHTMLAttributes: 'dialog',
+  TableHTMLAttributes: 'table',
+};
+
+/**
+ * The elements whose attributes a component accepts, from the React interfaces its left-out
+ * DOM props come from: the specific elements (`button`, `a`), else `element` for the generic
+ * `HTMLAttributes`. `undefined` when it accepts none.
+ */
+export function htmlAttributeElements(interfaces: Iterable<string>): string[] | undefined {
+  const names = [...interfaces];
+  const specific = [
+    ...new Set(names.flatMap((name) => HTML_ATTRIBUTE_ELEMENTS[name] ?? [])),
+  ].sort();
+  if (specific.length > 0) return specific;
+  return names.some((name) => /HTMLAttributes$|^AllHTMLAttributes$/.test(name))
+    ? ['element']
+    : undefined;
+}
 
 /**
  * Reads the core's and Pro's entries and collects their capitalised value exports: the core's
@@ -201,6 +329,7 @@ export function extractProps(
   parser: Parser,
   allow: Set<string>,
   source: ComponentPropsFile['source'] = 'core',
+  droppedInterfaces: ReadonlyMap<string, ReadonlySet<string>> = new Map(),
 ): ComponentPropsFile[] {
   const records: ComponentPropsFile[] = [];
   for (const file of files) {
@@ -219,16 +348,24 @@ export function extractProps(
             ...(prop.defaultValue?.value != null
               ? { defaultValue: normalizeDefaultValue(String(prop.defaultValue.value)) }
               : {}),
-            ...(prop.description ? { description: prop.description } : {}),
+            // A DOM prop kept (`ref`, `className`, `style`) reads our words, not React's.
+            ...(propOrigin(prop) === 'dom' && DOM_PROPS_KEPT[prop.name]
+              ? { description: DOM_PROPS_KEPT[prop.name] }
+              : prop.description
+                ? { description: prop.description }
+                : {}),
             ...(options && options.length > 0 ? { options } : {}),
             ...(values ? { values } : {}),
+            ...(propOrigin(prop) === 'react-aria' ? { inherited: true as const } : {}),
           };
         });
+        const htmlAttributes = htmlAttributeElements(droppedInterfaces.get(doc.displayName) ?? []);
         records.push({
           displayName: doc.displayName,
           description: doc.description ?? '',
           source,
           props,
+          ...(htmlAttributes ? { htmlAttributes } : {}),
         });
       }
     } catch (error) {
@@ -271,11 +408,128 @@ function keysOf(type: ts.Type, checker: ts.TypeChecker): PropsRecord[] {
   return objectFields(type, checker, '');
 }
 
+/** A union props type's members (Button's action, link and toggle forms); else the type itself. */
+function membersOf(type: ts.Type): readonly ts.Type[] {
+  return type.isUnion() ? type.types : [type];
+}
+
+/** A JSDoc comment's text as written, keeping `{@link Name}` for the props list to link. */
+function declarationDoc(declaration: ts.Declaration): string {
+  return ts
+    .getJSDocCommentsAndTags(declaration)
+    .filter(ts.isJSDoc)
+    .map((doc) => ts.getTextOfJSDocComment(doc.comment) ?? '')
+    .join('\n')
+    .trim();
+}
+
 /**
- * Adds `keys` to each record's {@link OBJECT_KEY_PROPS}: the object's fields, with their JSDoc
- * description and `@default`, read with the TypeScript checker from the package's entries.
+ * A property's description, from the closest declaration that has one: the package's own,
+ * then React Aria's, then React's. Docgen would join every declaration's text instead.
  */
-export function addObjectKeys(
+function propertyDoc(property: ts.Symbol): string {
+  const declarations = property.declarations ?? [];
+  // `ref`, `className` and `style` read our own words rather than React's.
+  const origins = Object.hasOwn(DOM_PROPS_KEPT, property.getName())
+    ? ORIGIN_RANK.filter((origin) => origin !== 'dom')
+    : ORIGIN_RANK;
+  for (const origin of origins) {
+    for (const declaration of declarations) {
+      if (fileOrigin(declaration.getSourceFile().fileName) !== origin) continue;
+      const text = declarationDoc(declaration);
+      if (text) return text;
+    }
+  }
+  return '';
+}
+
+/** Whether a property is typed `never` (`href?: never`), ruling the prop out of a form. */
+function rulesOut(property: ts.Symbol, checker: ts.TypeChecker): boolean {
+  const type = checker.getNonNullableType(checker.getTypeOfSymbol(property));
+  return (type.flags & ts.TypeFlags.Never) !== 0;
+}
+
+/** Whether a member requires the property: declared, not optional and not `never`. */
+function requires(member: ts.Type, name: string, checker: ts.TypeChecker): boolean {
+  const property = checker.getPropertyOfType(member, name);
+  if (!property || property.flags & ts.SymbolFlags.Optional) return false;
+  return !rulesOut(property, checker);
+}
+
+/** Props that name an element; a union often requires exactly one of them. */
+const NAMING_PROPS = ['title', 'label', 'aria-label', 'aria-labelledby'];
+
+/**
+ * Pure core: removes raw JSDoc block tags (`@see aria-labelledby.`) that docgen leaves in a
+ * description read from React's types.
+ */
+export function stripDocTags(description: string): string {
+  return description
+    .split('\n')
+    .filter((line) => !/^\s*@(?:see|link|remarks|example)\b/.test(line))
+    .join('\n')
+    .trim();
+}
+
+/**
+ * Pure core: a bare default as the TypeScript it stands for. Docgen gives a destructured
+ * default without its quotes (`presentation = 'popover'` → `popover`), so a default that is
+ * one of the enum's members once quoted, or a plain word on a `string` prop with no `@default`
+ * tag, is quoted like the `@default "sm"` ones.
+ */
+export function quoteDefault(
+  value: string,
+  prop: Pick<PropsRecord, 'type' | 'values'>,
+  hasDefaultTag: boolean,
+): string {
+  if (/^["'`]/.test(value)) return value;
+  if (prop.values?.includes(`"${value}"`)) return `"${value}"`;
+  if (!hasDefaultTag && prop.type === 'string' && /^[\w-]+$/.test(value)) return `"${value}"`;
+  return value;
+}
+
+/**
+ * Pure core: one `ref` description for a component whose forms render different elements
+ * (`Ref to the root <button> element.` and `Ref to the root <a> element.`): "Ref to the root
+ * element: the `<button>`, or the `<a>` with `href`." `undefined` unless each form's text
+ * names one element and the first form's differs from the rest.
+ */
+export function refByForm(docs: readonly string[]): string | undefined {
+  const tags = docs.map((doc) => {
+    const found = [...doc.matchAll(/`<([a-z]+)>`/g)].map((match) => match[1]!);
+    return found.length === 1 ? found[0] : undefined;
+  });
+  if (tags.length < 2 || tags.some((tag) => tag === undefined)) return undefined;
+  const [first, ...rest] = [...new Set(tags)] as string[];
+  if (rest.length === 0) return undefined;
+  const others = rest.map((tag) => (tag === 'a' ? '`<a>` with `href`' : `\`<${tag}>\``));
+  return `Ref to the root element: the \`<${first}>\`, or the ${others.join(', or the ')}.`;
+}
+
+/** Joins names as prose code: `a`, `b` or `c`. */
+function orList(names: readonly string[]): string {
+  const code = names.map((name) => `\`${name}\``);
+  return code.length <= 2
+    ? code.join(' or ')
+    : `${code.slice(0, -1).join(', ')} or ${code[code.length - 1]}`;
+}
+
+/**
+ * Corrects what docgen reads wrong from a component's props type, with the TypeScript checker
+ * over the package's entries:
+ *
+ * - **Required** only when every member of a union props type requires the prop (docgen marks
+ *   it required when any does: SplitButton's `href`, required by its link forms only). When
+ *   every member requires one of its naming props (`aria-label` or `aria-labelledby`), both
+ *   rows say so.
+ * - **One description:** a prop declared in several members, or redeclared over a library type,
+ *   takes the first member's own text; docgen joins them all.
+ * - **Defaults:** a `@default` tag wins over the destructured value, and a bare string default is
+ *   quoted ({@link quoteDefault}).
+ * - **Keys:** each {@link OBJECT_KEY_PROPS} prop lists its object's fields, with their JSDoc
+ *   description and `@default`.
+ */
+export function refineWithChecker(
   records: ComponentPropsFile[],
   entries: string[],
   options: ts.CompilerOptions,
@@ -298,13 +552,67 @@ export function addObjectKeys(
     const symbol = exported.get(record.displayName);
     const propsType = symbol && propsTypeOf(symbol, checker);
     if (!propsType) continue;
+    const members = membersOf(propsType);
+    const partlyRequired = new Set<string>();
+    const domOnly = new Set<string>();
     for (const prop of record.props) {
+      const declared = members
+        .map((member) => checker.getPropertyOfType(member, prop.name))
+        .filter((property): property is ts.Symbol => property !== undefined);
+      if (declared.length > 0) {
+        const requiredBy = members.filter((member) => requires(member, prop.name, checker));
+        if (requiredBy.length < members.length) prop.required = false;
+        if (requiredBy.length > 0 && requiredBy.length < members.length) {
+          partlyRequired.add(prop.name);
+        }
+        // A form that rules the prop out (`href?: never` on the button form) doesn't describe it.
+        const usable = declared.filter((property) => !rulesOut(property, checker));
+        // A prop only ruled out by the package (`target?: never` on the button form) and
+        // otherwise a DOM attribute (the link form's `target`) is one of the DOM attributes.
+        const fromPackage = usable.some((property) =>
+          (property.declarations ?? []).some((declaration) => {
+            const origin = fileOrigin(declaration.getSourceFile().fileName);
+            return origin === 'own' || origin === 'react-aria';
+          }),
+        );
+        if (!fromPackage && !Object.hasOwn(DOM_PROPS_KEPT, prop.name)) {
+          domOnly.add(prop.name);
+          continue;
+        }
+        const docs = (usable.length > 0 ? usable : declared).map(propertyDoc).filter(Boolean);
+        const own = (prop.name === 'ref' && refByForm(docs)) || docs[0];
+        if (own && own !== prop.description) prop.description = own;
+        const defaultTag = declared
+          .flatMap((property) => property.getJsDocTags(checker))
+          .find((tag) => tag.name === 'default');
+        const tagText = defaultTag?.text ? ts.displayPartsToString(defaultTag.text).trim() : '';
+        if (tagText) prop.defaultValue = tagText;
+        if (prop.defaultValue)
+          prop.defaultValue = quoteDefault(prop.defaultValue, prop, Boolean(tagText));
+      }
+      if (prop.description) prop.description = stripDocTags(prop.description);
       if (!(OBJECT_KEY_PROPS as readonly string[]).includes(prop.name)) continue;
       const property = propertyOf(propsType, prop.name, checker);
       if (!property) continue;
       const keys = keysOf(checker.getNonNullableType(checker.getTypeOfSymbol(property)), checker);
       if (keys.length > 0)
         prop.keys = keys.map((key) => ({ ...key, name: `${prop.name}.${key.name}` }));
+    }
+    record.props = record.props.filter((prop) => !domOnly.has(prop.name));
+    // A naming choice: every form requires one of these props, none requires them all.
+    const naming = NAMING_PROPS.filter((name) => partlyRequired.has(name));
+    if (
+      naming.length > 1 &&
+      members.every((member) => naming.some((name) => requires(member, name, checker)))
+    ) {
+      const note = `One of ${orList(naming)} is required.`;
+      for (const prop of record.props) {
+        if (!naming.includes(prop.name)) continue;
+        // A description that already names the alternative ("Required unless …") says it.
+        const others = naming.filter((name) => name !== prop.name);
+        if (others.some((name) => prop.description?.includes(`\`${name}\``))) continue;
+        prop.description = prop.description ? `${prop.description}\n\n${note}` : note;
+      }
     }
   }
 }
@@ -323,23 +631,33 @@ async function main(): Promise<void> {
 
   const records: ComponentPropsFile[] = [];
   for (const { source, entries, tsconfigPath, sourceRoots, extension } of packages) {
+    // The React interfaces each component's left-out DOM props come from, for its
+    // "also accepts" line.
+    const droppedInterfaces = new Map<string, Set<string>>();
     const parser = withCustomConfig(tsconfigPath, {
       savePropValueAsString: true,
       shouldExtractLiteralValuesFromEnum: true,
       shouldRemoveUndefinedFromOptional: true,
-      // Skip props inherited from React and other libraries, but keep the installed Pro's own.
-      propFilter: (prop) =>
-        !prop.parent ||
-        !/node_modules/.test(prop.parent.fileName) ||
-        /@windmorph\/react-pro\//.test(prop.parent.fileName),
+      propFilter: (prop, component) => {
+        if (keepProp(prop)) return true;
+        if (prop.parent && propOrigin(prop) === 'dom') {
+          const names = droppedInterfaces.get(component.name) ?? new Set<string>();
+          droppedInterfaces.set(component.name, names.add(prop.parent.name));
+        }
+        return false;
+      },
     });
-    const found = extractProps(await collectSources(sourceRoots, extension), parser, allow, source);
+    const found = extractProps(
+      await collectSources(sourceRoots, extension),
+      parser,
+      allow,
+      source,
+      droppedInterfaces,
+    );
     try {
-      addObjectKeys(found, entries, compilerOptionsOf(tsconfigPath));
+      refineWithChecker(found, entries, compilerOptionsOf(tsconfigPath));
     } catch (error) {
-      console.error(
-        `[generate-props] cannot list the object props' keys: ${(error as Error).message}`,
-      );
+      console.error(`[generate-props] cannot read the props types: ${(error as Error).message}`);
       process.exit(1);
     }
     records.push(...found);

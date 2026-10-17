@@ -104,6 +104,23 @@ function PickerDialogPreview({
   );
 }
 
+/**
+ * The mode toggle belongs to a time dialog (a date picker has its own, in its header):
+ * turning it on makes the dialog a time dialog, and choosing the date variant turns it off.
+ */
+export function adjustPickerModeToggle(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'modeToggleButton' && values.modeToggleButton === true) {
+    return { ...values, variant: 'time' };
+  }
+  if (changed === 'variant' && values.variant !== 'time') {
+    return { ...values, modeToggleButton: false };
+  }
+  return values;
+}
+
 /** Playgrounds for Feedback and Pickers, by page slug. */
 export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   progress: {
@@ -554,6 +571,11 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'closeIcon',
     ],
     initialState: { dismissButton: true },
+    adjust: adjustPickerModeToggle,
+    controlDescriptions: {
+      modeToggleButton:
+        "The time picker's dial and keyboard switch, at the dialog's bottom start (time dialogs only; a date picker's switch is in its header). Turning it on makes the dialog a time dialog.",
+    },
     controlKinds: {
       title: 'string',
       dismissButton: 'boolean',
@@ -561,20 +583,36 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       closeIcon: 'boolean',
     },
     toggledSlots: {
-      dismissButton: '<Button variant="text">Cancel</Button>',
-      modeToggleButton: '<TimePickerModeToggle mode="dial" onModeChange={() => {}} />',
+      dismissButton: '<Button variant="text" onPress={() => setOpen(false)}>Cancel</Button>',
+      modeToggleButton: '<TimePickerModeToggle mode={mode} onModeChange={setMode} />',
       closeIcon: CLOSE,
     },
+    // The snippet opens the dialog from a button and keeps `open` in state, as the preview
+    // does; with the mode toggle, the time picker's mode too.
+    codeState: (values) => ({
+      open: `useState(${values.open === true})`,
+      ...(values.modeToggleButton === true && { mode: "useState<'dial' | 'input'>('dial')" }),
+    }),
+    codeWrap: (values) => ({
+      before: `<>\n  <Button variant="tonal" onPress={() => setOpen(true)}>\n    ${
+        values.variant === 'time' ? 'Pick a time' : 'Pick a date'
+      }\n  </Button>`,
+      after: '</>',
+    }),
     importMembers: ['Button', 'DatePicker', 'TimePicker', 'TimePickerModeToggle'],
     codeImports: [CALENDAR_DATE_IMPORT, "import { Time } from '@internationalized/date';"],
     codeSlots: {
-      'aria-label': '"Select date"',
-      confirmButton: '<Button variant="text">OK</Button>',
-      onConfirm: '() => {}',
+      open: 'open',
+      onOpenChange: 'setOpen',
+      'aria-label': (values) => (values.variant === 'time' ? '"Select time"' : '"Select date"'),
+      confirmButton: '<Button variant="text" onPress={() => setOpen(false)}>OK</Button>',
+      onConfirm: "() => console.log('Saved')",
     },
     codeChildren: (values) =>
       values.variant === 'time'
-        ? '<TimePicker defaultValue={new Time(14, 35)} />'
+        ? values.modeToggleButton === true
+          ? '<TimePicker defaultValue={new Time(14, 35)} mode={mode} onModeChange={setMode} />'
+          : '<TimePicker defaultValue={new Time(14, 35)} />'
         : '<DatePicker defaultValue={new CalendarDate(2030, 3, 14)} />',
   },
 };

@@ -57,8 +57,9 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
             <strong className="text-on-surface">not an M3 component</strong>: it comes from{' '}
             <InlineCode>@windmorph/react-pro</InlineCode>, built from the library&apos;s Dialog,
             Slider and Icon buttons. <InlineCode>ImageCropDialog</InlineCode> is full screen on
-            compact windows and a basic dialog on larger ones; <InlineCode>ImageCropper</InlineCode>{' '}
-            is the same area inline.
+            compact windows, narrow (below 600px wide) or short (below 480px tall, a phone held
+            sideways), and a basic dialog on larger ones; <InlineCode>ImageCropper</InlineCode> is
+            the same area inline.
           </p>
           <p className="text-body-large text-on-surface-variant">
             It reports <strong className="text-on-surface">a rectangle, not an image</strong>: the
@@ -80,11 +81,11 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
               Media viewer.
             </li>
             <li>
-              Inline, a vertical swipe over the photo scrolls the page until the photo is zoomed in
-              (<InlineCode>touch-action: pan-y</InlineCode>), so a cropper in a form never traps the
-              page; once zoomed in, every gesture moves the photo. Inside{' '}
-              <InlineCode>ImageCropDialog</InlineCode> it keeps every gesture from the start. The
-              area carries <InlineCode>data-zoomed</InlineCode> while zoomed in.
+              Inline, a vertical swipe over the photo scrolls the page while the photo has nothing
+              to move vertically (a landscape photo at zoom 1), so a cropper in a form never traps
+              the page. A portrait photo, or one zoomed in, takes the swipe to move. Inside{' '}
+              <InlineCode>ImageCropDialog</InlineCode> every gesture moves the photo. The area
+              carries <InlineCode>data-zoomed</InlineCode> while zoomed in.
             </li>
             <li>
               When Zoom out or Zoom in reaches its limit and turns itself off, focus moves to the
@@ -131,6 +132,13 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
               core <InlineCode>Dialog</InlineCode>.
             </li>
             <li>
+              <InlineCode>ImageCropDialog</InlineCode>&apos;s <InlineCode>ref</InlineCode>,{' '}
+              <InlineCode>id</InlineCode>, <InlineCode>aria-*</InlineCode> and{' '}
+              <InlineCode>data-*</InlineCode> attributes go on the dialog panel (the element with{' '}
+              <InlineCode>role=&quot;dialog&quot;</InlineCode>), as on the core{' '}
+              <InlineCode>Dialog</InlineCode>.
+            </li>
+            <li>
               <InlineCode>zoomInIcon</InlineCode> and <InlineCode>zoomOutIcon</InlineCode> replace
               the zoom buttons&apos; icons, on both components.
             </li>
@@ -140,7 +148,10 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
               so a <InlineCode>--md-comp-dialog-*</InlineCode> theme reaches it; the cropper is
               marked <InlineCode>data-tokens=&quot;wm-image-cropper&quot;</InlineCode>.
             </li>
-            <li>Resetting eases back on the M3 spatial spring; with reduced motion it jumps.</li>
+            <li>
+              Resetting with 0 eases the photo back on the M3 effects spring, which never uncovers
+              the frame; under reduced motion it jumps there.
+            </li>
           </ul>
         </section>
       </>

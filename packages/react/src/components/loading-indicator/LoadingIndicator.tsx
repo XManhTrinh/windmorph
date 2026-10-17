@@ -32,7 +32,19 @@ export interface LoadingIndicatorClassNames {
   indicator?: string;
 }
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Names the indicator ("Loading messages"). Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+      /** The id of the visible text that names the indicator. Required unless `aria-label` is set. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** Names the indicator ("Loading messages"). Required unless `aria-labelledby` is set. */
+      'aria-label'?: string;
+      /** The id of the visible text that names the indicator. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 interface LoadingIndicatorOwnProps {
   /**
@@ -62,7 +74,10 @@ interface LoadingIndicatorOwnProps {
 
 export type LoadingIndicatorProps = LoadingIndicatorOwnProps &
   Naming &
-  Omit<ComponentPropsWithRef<'div'>, 'children' | 'role' | keyof LoadingIndicatorOwnProps>;
+  Omit<
+    ComponentPropsWithRef<'div'>,
+    'children' | 'role' | 'aria-label' | 'aria-labelledby' | keyof LoadingIndicatorOwnProps
+  >;
 
 const polygonIds = new WeakMap<RoundedPolygon, number>();
 let nextPolygonId = 0;

@@ -23,9 +23,14 @@ export const Probe: StoryObj = {
   render: () => (
     <TokenProbe
       instances={
-        <DockedToolbar aria-label="Docked">
-          <Buttons />
-        </DockedToolbar>
+        <div className="flex flex-col gap-4">
+          <DockedToolbar aria-label="Docked">
+            <Buttons />
+          </DockedToolbar>
+          <DockedToolbar aria-label="Docked vibrant" color="vibrant">
+            <Buttons />
+          </DockedToolbar>
+        </div>
       }
       scoped={
         <DockedToolbar aria-label="Scoped">

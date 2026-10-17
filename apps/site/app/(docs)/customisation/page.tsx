@@ -20,8 +20,9 @@ const TOKENS_SNIPPET = `/* Every filled card, in every theme. Declared on :root 
 
 const TOKENS_SCOPE_SNIPPET = `import { Card, ThemeScope } from '@windmorph/react';
 
-// A ThemeScope's class also goes on the overlays opened inside it
-// (menus, dialogs, tooltips), so tokens set through it reach them.
+// A ThemeScope's class and the CSS variables of its style also go on the
+// overlays opened inside it (menus, dialogs, tooltips), so tokens set through
+// either reach them.
 <ThemeScope className="compact">
   <Card variant="elevated">…</Card>
 </ThemeScope>;
@@ -196,8 +197,9 @@ export default async function CustomisationPage() {
             <span className="text-on-surface">Overlays</span> portal to{' '}
             <InlineCode>body</InlineCode>, so tokens set on an arbitrary ancestor don&apos;t reach
             them. Tokens on <InlineCode>:root</InlineCode>, on <InlineCode>[data-theme]</InlineCode>
-            , on the overlay&apos;s own <InlineCode>className</InlineCode>, or through the class of
-            a <InlineCode>ThemeScope</InlineCode> around it do.
+            , on the overlay&apos;s own <InlineCode>className</InlineCode>, or through the class or
+            the inline <InlineCode>style</InlineCode> variables of a{' '}
+            <InlineCode>ThemeScope</InlineCode> around it do.
           </li>
           <li>
             <span className="text-on-surface">Precedence:</span> system token, then component token,

@@ -508,9 +508,19 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     enumOptions: { src: Object.keys(CROP_PHOTOS) },
     controlKinds: { zoomInIcon: 'boolean', zoomOutIcon: 'boolean' },
     toggledSlots: { zoomInIcon: '<ZoomInIcon />', zoomOutIcon: '<ZoomOutIcon />' },
+    // The snippet opens the dialog from a button, as the preview does, and keeps `open` in
+    // state: confirming hands over the crop and closes it.
+    codeState: (values) => ({ open: `useState(${values.open === true})` }),
+    codeWrap: {
+      before:
+        '<>\n  <Button variant="tonal" onPress={() => setOpen(true)}>\n    Crop the photo\n  </Button>',
+      after: '</>',
+    },
+    codeImports: ["import { Button } from '@windmorph/react';"],
     codeSlots: {
-      onOpenChange: '(open) => console.log(open)',
-      onConfirm: '(result) => console.log(result.crop)',
+      open: 'open',
+      onOpenChange: 'setOpen',
+      onConfirm: '(result) => {\n    console.log(result.crop);\n    setOpen(false);\n  }',
     },
   },
   'media-upload-grid': {

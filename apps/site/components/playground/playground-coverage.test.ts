@@ -48,6 +48,9 @@ function isExempt(prop: PropsRecord): boolean {
     name === 'id' ||
     // Render props and other functions (`filter`, `renderValue`, `isDateUnavailable`).
     /=>/.test(type) ||
+    // React Aria's props passed through (form names, validation, focus and press events,
+    // selection keys): wiring and behaviour, listed in the props table's Inherited group.
+    prop.inherited === true ||
     // Required props (a FAB's `icon`, a picker dialog's `confirmButton`): the preview always
     // passes one and the snippet always writes it, so there is nothing to switch.
     prop.required

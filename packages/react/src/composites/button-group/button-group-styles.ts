@@ -38,18 +38,38 @@ export const buttonGroupStyles = tv({
     { variant: 'standard', overflow: true, class: 'flex' },
     // XS and S: the spec's 18 / 12px, growing as density shrinks the icon buttons (their
     // default widths: XS max(24px, 32px + 4px a step), S 40px + 4px a step), so neighbouring
-    // centres stay 48px apart and their 48px touch targets never overlap (2026-10-15).
+    // centres stay 48px apart and their 48px touch targets never overlap (2026-10-15). A
+    // group holding a narrow icon button spaces by the narrow width instead (XS max(24px,
+    // 28px + 4px a step), S max(28px, 32px + 4px a step), M 48px + 4px a step), so the gap is
+    // max(spec, 48px − narrow width) (2026-10-17). The gap is a variable, so a consumer `gap-*`
+    // still replaces it.
     {
       variant: 'standard',
       size: 'xs',
-      class: 'gap-[max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]',
+      class: [
+        'gap-(--m3-button-group-gap)',
+        '[--m3-button-group-gap:max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]',
+        'has-[[data-tokens~=md-comp-icon-button][data-width=narrow]]:[--m3-button-group-gap:max(18px,calc(48px-max(24px,calc(28px+var(--md-sys-density,0)*4px))))]',
+      ],
     },
     {
       variant: 'standard',
       size: 'sm',
-      class: 'gap-[max(12px,calc(8px-var(--md-sys-density,0)*4px))]',
+      class: [
+        'gap-(--m3-button-group-gap)',
+        '[--m3-button-group-gap:max(12px,calc(8px-var(--md-sys-density,0)*4px))]',
+        'has-[[data-tokens~=md-comp-icon-button][data-width=narrow]]:[--m3-button-group-gap:max(12px,calc(48px-max(28px,calc(32px+var(--md-sys-density,0)*4px))))]',
+      ],
     },
-    { variant: 'standard', size: ['md', 'lg', 'xl'], class: 'gap-[8px]' },
+    {
+      variant: 'standard',
+      size: 'md',
+      class: [
+        'gap-(--m3-button-group-gap) [--m3-button-group-gap:8px]',
+        'has-[[data-tokens~=md-comp-icon-button][data-width=narrow]]:[--m3-button-group-gap:max(8px,calc(var(--md-sys-density,0)*-4px))]',
+      ],
+    },
+    { variant: 'standard', size: ['lg', 'xl'], class: 'gap-[8px]' },
   ],
   defaultVariants: { variant: 'standard', size: 'sm', overflow: false },
 });

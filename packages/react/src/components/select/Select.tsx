@@ -5,6 +5,7 @@ import {
   useRef,
   useSyncExternalStore,
   type CSSProperties,
+  type HTMLAttributes,
   type ReactNode,
   type Ref,
 } from 'react';
@@ -335,6 +336,34 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   // field on closing (WAI-ARIA, right after Escape or a choice) is let go, so one press
   // outside leaves the field, as it does any other field.
   const releaseFocusRef = useRef(false);
+  // Chrome's touch adjustment can split a tap between the trigger and the padding just above
+  // or below it (the 8px either side of the value line): `pointerdown` reaches the trigger
+  // while `pointerup` or the click lands beside it, so React Aria cancels the press or never
+  // sees it, and about a third of the field ignored a finger (2026-10-17). A touch that
+  // starts on the trigger but doesn't end there (its `pointerup` and its click both on it)
+  // opens the menu on its click instead. The mouse never gets here: it opens on the press
+  // start.
+  const touchOnTriggerRef = useRef(false);
+  const touchLeftTriggerRef = useRef(false);
+  const onTrigger = (target: EventTarget) => Boolean(triggerRef.current?.contains(target as Node));
+  const strayTouchProps: HTMLAttributes<HTMLDivElement> = {
+    onPointerDownCapture: (event) => {
+      touchOnTriggerRef.current = event.pointerType !== 'mouse' && onTrigger(event.target);
+      touchLeftTriggerRef.current = false;
+    },
+    onPointerUpCapture: (event) => {
+      touchLeftTriggerRef.current = !onTrigger(event.target);
+    },
+    onClickCapture: (event) => {
+      if (!touchOnTriggerRef.current) return;
+      touchOnTriggerRef.current = false;
+      if (!touchLeftTriggerRef.current && onTrigger(event.target)) return;
+      if (disabled || state.isOpen) return;
+      releaseFocusRef.current = false;
+      triggerRef.current?.focus({ preventScroll: true });
+      if (!readOnly) state.open();
+    },
+  };
   const listBoxRef = useRef<HTMLUListElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const dialogId = useId();
@@ -465,7 +494,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
         errorMessageProps={errorMessageProps}
         showError={isInvalid && Boolean(resolvedError)}
         containerRef={containerRef}
-        containerProps={hoverProps}
+        // No handler is shared: the hover ones and the touch fallback's capture ones.
+        containerProps={{ ...hoverProps, ...strayTouchProps }}
         onContainerPointerDown={(event) => {
           // A press anywhere on the field (not only its text) opens it, like Compose.
           if (disabled || triggerRef.current?.contains(event.target as Node)) return;

@@ -50,7 +50,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  *
  * Forced colours (2026-10-15): the current pill keeps a `Highlight` fill
  * (`forced-color-adjust: none`), with its icon, and a label inside it, in `HighlightText`;
- * otherwise the pill became Canvas and only the bold label marked the current item.
+ * otherwise the pill became Canvas and only the bold label marked the current item. The
+ * icon and a label inside the pill opt out of forced colours too (2026-10-17): with
+ * `forced-color-adjust: auto` the browser paints a `Canvas` backplate behind text, so a
+ * `HighlightText` label read white on white.
  *
  * The pill, its state layer and its content share one grid cell, so nothing is positioned.
  *
@@ -102,7 +105,8 @@ export const navItemStyles = tv({
     icon: [
       'inline-grid size-[24px] shrink-0 place-items-center [&>svg]:size-full',
       'group-data-disabled/nav:text-on-surface-variant/38',
-      'forced-colors:group-data-current/nav:text-[HighlightText]',
+      // HighlightText on the Highlight pill, kept as painted (no Canvas backplate).
+      'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
       'transition-colors duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
     ],
     // An icon and its selected variant share one cell and cross-fade.
@@ -114,8 +118,9 @@ export const navItemStyles = tv({
     iconStack: 'inline-grid size-[24px] place-items-center [&>svg]:size-full',
     // The expanded rail's badge, 4px after the label (the content gap is 8px).
     badge: 'inline-flex shrink-0 -ms-[4px]',
-    // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in).
-    badgedBox: '',
+    // The `BadgedBox` around a badged icon (its root; `classNames.badge` merges in). The
+    // badge takes forced colours back, which the current icon opts out of.
+    badgedBox: 'forced-colors:[&>span:last-child]:forced-color-adjust-auto',
     label: [
       'min-w-0 overflow-hidden text-ellipsis text-balance hyphens-auto wrap-normal group-data-disabled/nav:text-on-surface-variant/38',
       '[transition-property:color,opacity] duration-(--md-sys-motion-spring-effects-default-duration) ease-(--md-sys-motion-spring-effects-default-easing)',
@@ -125,6 +130,7 @@ export const navItemStyles = tv({
     layout: {
       'rail-top': {
         // The 56px pill centres in the collapsed width; labels may use all of it (Compose).
+        // The minimum height springs 64 ↔ 48px with the rail's width (`railMorph`).
         root: 'min-h-[64px] w-(--m3-rail-collapsed-width) content-start',
         pill: 'h-[32px] w-[56px]',
         indicator:
@@ -137,7 +143,7 @@ export const navItemStyles = tv({
         ],
       },
       'rail-start': {
-        root: 'w-full justify-items-start px-(--m3-rail-item-inset)',
+        root: 'min-h-[48px] w-full justify-items-start px-(--m3-rail-item-inset)',
         pill: 'min-h-[56px] max-w-full',
         // The icon's centre: 16px padding + half the 24px icon from the start edge.
         indicator: [
@@ -147,7 +153,9 @@ export const navItemStyles = tv({
         content: 'justify-start gap-[8px] ps-[16px] pe-[16px] py-[8px]',
         icon: 'text-[color:var(--_md-comp-nav-rail-item-inactive-icon-color)] group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-icon-color)]',
         label: [
-          'forced-colors:group-data-current/nav:text-[HighlightText]',
+          // Inside the Highlight pill: HighlightText, without the Canvas backplate forced
+          // colours paint behind text (white on white otherwise).
+          'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
           'text-label-large text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
           'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
@@ -190,7 +198,9 @@ export const navItemStyles = tv({
           '[&>span:last-child:has([data-size=large])]:w-max [&>span:last-child:has([data-size=large])]:ms-[12px]',
         ],
         label: [
-          'forced-colors:group-data-current/nav:text-[HighlightText]',
+          // Inside the Highlight pill: HighlightText, without the Canvas backplate forced
+          // colours paint behind text (white on white otherwise).
+          'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
           'text-label-medium text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
           'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],
@@ -207,6 +217,17 @@ export const navItemStyles = tv({
       false: {},
     },
   },
+  compoundVariants: [
+    // As the rail expands or collapses, an item's minimum height springs between 64px and
+    // 48px on the default spatial spring, as Compose's itemMinHeight (WideNavigationRail.kt;
+    // 2026-10-17: it swapped in one frame, so the icons jumped). Instant under reduced motion.
+    {
+      layout: ['rail-top', 'rail-start'],
+      class: {
+        root: '[transition-property:min-height] [transition-duration:var(--md-sys-motion-spring-spatial-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      },
+    },
+  ],
   defaultVariants: { layout: 'bar-top', enterLabel: false, slide: false },
 });
 

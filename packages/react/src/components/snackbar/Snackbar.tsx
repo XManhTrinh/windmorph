@@ -153,6 +153,8 @@ export function Snackbar({
           {onDismiss && (
             <IconButton
               variant="standard"
+              // The snackbar keeps its 48px height at every density, as a dialog header does.
+              density={0}
               icon={<CloseIcon />}
               aria-label={labels.dismiss}
               onPress={onDismiss}

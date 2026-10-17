@@ -136,9 +136,9 @@ export async function SliderBody(): Promise<ComponentDoc> {
               passes 8px. Mouse presses set the value at once.
             </li>
             <li>
-              <strong>Deviation:</strong> pressing the track maps linearly to the value while
-              discrete thumbs are drawn between the corners, so a press near the ends of a discrete
-              track can land one step off Compose; there are no haptics.
+              <strong>Deviation:</strong> there are no haptics. A press on a discrete track maps
+              through the same corner inset its stops are drawn with, so a tap on a drawn stop
+              selects that stop at every size.
             </li>
           </ul>
         </section>

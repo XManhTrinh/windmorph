@@ -291,6 +291,52 @@ test.describe('Toolbar scroll exit', () => {
   });
 });
 
+test.describe('Toolbar expand motion', () => {
+  // Re-audit 2026-10-16: 0fr ↔ 1fr tracks and a shrinking surface hid the fast spatial
+  // spring's overshoot (Compose's expandHorizontally shows it).
+  for (const withFab of [false, true]) {
+    test(`expanding overshoots on the fast spatial spring · ${withFab ? 'FAB surface' : 'leading'}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-toolbar--collapse', {}, { withFab });
+      const box = page.locator('[data-toolbar-collapsible]').first();
+      const open = (await box.boundingBox())!.width;
+      await page.getByRole('button', { name: 'Collapse' }).click();
+      await expect.poll(async () => (await box.boundingBox())!.width).toBe(0);
+      // Sampled for 700ms from the press itself, which a loaded runner may deliver well after
+      // this evaluate starts.
+      const sampled = page.evaluate(
+        () =>
+          new Promise<number[]>((resolve) => {
+            const out: number[] = [];
+            let start = 0;
+            const tick = () => {
+              out.push(
+                document.querySelector('[data-toolbar-collapsible]')!.getBoundingClientRect().width,
+              );
+              if (performance.now() - start < 700) requestAnimationFrame(tick);
+              else resolve(out);
+            };
+            document.addEventListener(
+              'pointerdown',
+              () => {
+                start = performance.now();
+                requestAnimationFrame(tick);
+              },
+              { capture: true, once: true },
+            );
+          }),
+      );
+      const scrollY = await page.evaluate(() => window.scrollY);
+      await page.getByRole('button', { name: 'Expand' }).click();
+      const series = await sampled;
+      expect(Math.max(...series)).toBeGreaterThan(open + 2);
+      expect(series.at(-1)!).toBeCloseTo(open, 0);
+      expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+    });
+  }
+});
+
 test.describe('Toolbar layout safety', () => {
   layoutSafetySuite('components-toolbar--layout-override', {
     height: 64,

@@ -214,6 +214,43 @@ test.describe('Date picker motion', () => {
     await expect.poll(calendar).toEqual(expect.arrayContaining(['translate', 'opacity']));
   });
 
+  // Compose's `SizeTransform`: the picker's height moves between the views on the default
+  // spatial spring instead of jumping (2026-10-17); reduced motion jumps.
+  test('the height follows the view on a spring', async ({ page }) => {
+    await openStory(page, 'components-pickers--date');
+    const picker = page.locator('[data-tokens~="md-comp-date-picker-modal"][data-mode]').first();
+    const sampleHeights = () =>
+      picker.evaluate(
+        (el) =>
+          new Promise<number[]>((resolve) => {
+            const heights: number[] = [];
+            const start = performance.now();
+            const frame = () => {
+              heights.push(Math.round(el.getBoundingClientRect().height));
+              if (performance.now() - start < 700) requestAnimationFrame(frame);
+              else resolve(heights);
+            };
+            requestAnimationFrame(frame);
+          }),
+      );
+    const calendarHeight = (await rect(picker)).height;
+    const sampling = sampleHeights();
+    await page.getByRole('button', { name: 'Switch to text input mode' }).click();
+    const heights = await sampling;
+    const inputHeight = heights.at(-1)!;
+    expect(inputHeight).toBeLessThan(calendarHeight - 100);
+    // Several heights in between, not one jump.
+    const between = heights.filter((h) => h < calendarHeight - 4 && h > inputHeight + 4);
+    expect(new Set(between).size).toBeGreaterThan(3);
+    expect(await picker.evaluate((el) => el.style.height)).toBe('');
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const reduced = sampleHeights();
+    await page.getByRole('button', { name: 'Switch to calendar input mode' }).click();
+    const jumped = await reduced;
+    expect(jumped.filter((h) => h > inputHeight + 4 && h < calendarHeight - 4)).toEqual([]);
+  });
+
   // Compose: the year list expands down (`expandVertically`) as it fades in from 60%.
   test('the year list expands as it fades in', async ({ page }) => {
     await openStory(page, 'components-pickers--date');
@@ -405,6 +442,38 @@ test.describe('Time picker', () => {
     await expect.poll(crossfade).toContain('opacity');
   });
 
+  // Compose ends the tap's turn at the spring's 0.01 rad threshold, then holds 100ms; waiting
+  // for the spring's full rest held the hour about 0.3s longer (2026-10-17).
+  test('a tapped hour switches to minutes 100ms after the hand arrives', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12');
+    const box = await rect(page.getByRole('group', { name: 'Clock' }));
+    const minute = page.getByRole('textbox', { name: 'Minute' });
+    // 4 o'clock, 60° on from the story's 2.
+    await page.mouse.move(box.x + 128 + 101 * Math.sin((2 * Math.PI) / 3), box.y + 128 + 101 * 0.5);
+    await minute.evaluate((field) => {
+      const record = window as unknown as { pressedAt?: number; switchedAt?: number };
+      document.addEventListener('pointerdown', () => (record.pressedAt = performance.now()), {
+        once: true,
+      });
+      new MutationObserver((_, observer) => {
+        if (field.getAttribute('data-selected') !== 'true') return;
+        record.switchedAt = performance.now();
+        observer.disconnect();
+      }).observe(field, { attributes: true });
+    });
+    await page.mouse.down();
+    await page.mouse.up();
+    await expect(minute).toHaveAttribute('data-selected', 'true');
+    const elapsed = await page.evaluate(() => {
+      const record = window as unknown as { pressedAt: number; switchedAt: number };
+      return record.switchedAt - record.pressedAt;
+    });
+    // The expressive default spatial spring arrives in about 0.3s over 60°, then the 100ms
+    // hold; its full rest came at about 0.6s.
+    expect(elapsed).toBeGreaterThan(250);
+    expect(elapsed).toBeLessThan(520);
+  });
+
   test('reduced motion: the hand jumps', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-pickers--time-12');
@@ -509,6 +578,14 @@ test.describe('Time picker', () => {
     const am = await rect(page.getByRole('radio', { name: 'AM' }));
     expect(await x('Hour')).toBeLessThan(await x('Minute'));
     expect(await x('Minute')).toBeLessThan(am.x);
+  });
+
+  // The page's `dir` with an English locale: AM / PM follow the page, not only the locale.
+  test('AM and PM follow a right-to-left page inside the left-to-right time', async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12', { dir: 'rtl' });
+    await expect(page.getByRole('radiogroup', { name: 'AM or PM' })).toHaveAttribute('dir', 'rtl');
+    await openStory(page, 'components-pickers--time-12');
+    await expect(page.getByRole('radiogroup', { name: 'AM or PM' })).toHaveAttribute('dir', 'ltr');
   });
 
   test('the dial numbers are 48px buttons you can Tab to and press', async ({ page }) => {

@@ -177,6 +177,56 @@ export const Expandable: Story = {
   },
 };
 
+/**
+ * One item open at a time (the app keeps only the newest key): opening Documents folds Photos
+ * in the same change. Under reduced motion the folding rows go at once and the opening ones
+ * fade in, so Music moves once.
+ */
+export const OneOpenAtATime: Story = {
+  render: function OneOpenAtATimeStory({ variant }) {
+    const [expanded, setExpanded] = useState<Set<string | number>>(new Set(['photos']));
+    return (
+      <div
+        className="w-[360px] rounded-corner-extra-large bg-surface-container p-3"
+        data-testid="one-open"
+      >
+        <List
+          aria-label="Folders"
+          variant={variant}
+          expandedKeys={expanded}
+          onExpandedChange={(keys) =>
+            setExpanded(new Set([...keys].filter((key) => !expanded.has(key))))
+          }
+        >
+          <ListItem
+            key="photos"
+            leading={<StarIcon />}
+            childItems={[
+              <ListItem key="trips">Trips</ListItem>,
+              <ListItem key="family">Family</ListItem>,
+            ]}
+          >
+            Photos
+          </ListItem>
+          <ListItem
+            key="documents"
+            leading={<FeedIcon />}
+            childItems={[
+              <ListItem key="taxes">Taxes</ListItem>,
+              <ListItem key="letters">Letters</ListItem>,
+            ]}
+          >
+            Documents
+          </ListItem>
+          <ListItem key="music" leading={<HomeIcon />}>
+            Music
+          </ListItem>
+        </List>
+      </div>
+    );
+  },
+};
+
 /** Link items: real anchors, each a Tab stop; `current` marks the page being shown. */
 export const Links: Story = {
   render: ({ variant }) => (

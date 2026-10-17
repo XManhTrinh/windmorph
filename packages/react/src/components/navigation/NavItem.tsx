@@ -236,7 +236,7 @@ export function NavItem({
       data-layout={layout}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      <span className={styles.pill({ class: classNames?.pill })}>
+      <span data-slot="pill" className={styles.pill({ class: classNames?.pill })}>
         <span
           ref={indicatorRef}
           aria-hidden="true"

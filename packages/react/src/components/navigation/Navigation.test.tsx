@@ -645,6 +645,21 @@ describe('NavigationBar', () => {
     );
   }
 
+  it('warns once in development outside 3 to 5 destinations', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <NavigationBar aria-label="Two">
+        <NavigationBarItem icon={<Icon id="a" />}>Home</NavigationBarItem>
+        <NavigationBarItem icon={<Icon id="b" />}>Search</NavigationBarItem>
+      </NavigationBar>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('3 to 5 destinations'));
+    warn.mockClear();
+    render(<Bar />);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it('shares the width equally with stacked items', async () => {
     const { container } = render(<Bar />);
     const nav = screen.getByRole('navigation', { name: 'Main' });
@@ -837,6 +852,29 @@ describe('NavigationBar', () => {
     expect(offset()).toBe('-64px');
     expect(nav).toHaveAttribute('inert');
     scrollTo(0);
+    vi.restoreAllMocks();
+  });
+
+  // `scrollend` can come in the frame of the last scroll event, before its update: the
+  // bar settled from the old offset, then rested part-hidden (2026-10-17).
+  it('settles after an instant scroll whose end comes before its frame', () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      frames.push(callback);
+      return frames.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
+      frames[id - 1] = () => {};
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(64);
+    render(<Bar scrollBehavior="hide-on-scroll" />);
+    const nav = screen.getByRole('navigation');
+    Object.defineProperty(window, 'scrollY', { value: 24, configurable: true });
+    fireEvent.scroll(window);
+    fireEvent(window, new Event('scrollend'));
+    frames.splice(0).forEach((callback) => callback(0));
+    expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('0px');
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
     vi.restoreAllMocks();
   });
 

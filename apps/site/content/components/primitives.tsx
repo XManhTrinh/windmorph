@@ -23,6 +23,8 @@ const importSnippet = `import {
   useM3Spring, getM3Spring,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
+  // Scrolling
+  useKeepPressedInPlace,
   // Building your own component
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
   materialShapeMask,
@@ -207,6 +209,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               transition ends), and <InlineCode>DomDirectionLocale</InlineCode> /{' '}
               <InlineCode>localeWithDirection</InlineCode> (give React Aria the keyboard direction
               of the DOM without changing the app&apos;s language).
+            </li>
+            <li>
+              <InlineCode>useKeepPressedInPlace</InlineCode> (keeps the item a person pressed still
+              on screen while an open item above it folds, by scrolling its scroller as much as the
+              fold on every frame, as the List&apos;s tree grid does; pair it with{' '}
+              <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
             </li>
             <li>
               The morph engine (<InlineCode>useM3Morph</InlineCode>,{' '}

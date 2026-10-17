@@ -184,6 +184,8 @@ export function IconButton(props: IconButtonProps) {
     'data-tokens': mergeDataTokens('md-comp-icon-button', base),
     'data-variant': variant,
     'data-size': size,
+    // Read by a button group, which spaces narrow icon buttons wider apart.
+    'data-width': width,
   };
   const baseProps = {
     ...base,

@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -16,7 +17,14 @@ import {
   type RefObject,
 } from 'react';
 import { useReducedMotion } from 'motion/react';
-import { mergeProps, useDialog, useFocusRing, useModalOverlay, useObjectRef } from 'react-aria';
+import {
+  mergeProps,
+  mergeRefs,
+  useDialog,
+  useFocusRing,
+  useModalOverlay,
+  useObjectRef,
+} from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { Overlay } from '../../primitives/Overlay';
@@ -261,6 +269,36 @@ export function SearchBar(props: SearchBarProps) {
     reduceMotion ? 'opacity' : '--m3-search-progress',
   );
 
+  // As the view starts leaving, focus goes back at once to what had it when the view opened
+  // (WAI-ARIA: a closing dialog returns focus to what opened it), not when the view unmounts
+  // ~450ms later: typing meanwhile reaches the bar, which opens the view again (2026-10-17).
+  // That's the bar's input when the bar opened it, and whatever had focus when an app's
+  // shortcut did (a link stays focused after ⌘K and Escape); the bar's input otherwise.
+  const collapsedRef = useRef<HTMLInputElement>(null);
+  const collapsedInputRef = useMemo(
+    () => mergeRefs(collapsedRef, isPresent ? undefined : inputRef),
+    [isPresent, inputRef],
+  );
+  // Read before the view's input takes focus (a passive effect) and before React Aria's
+  // focus scope would restore it on unmount, which this hand-over replaces.
+  const restoreRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const doc = collapsedRef.current?.ownerDocument;
+    if (!state.isOpen || !doc) return;
+    const active = doc.activeElement;
+    restoreRef.current = active instanceof HTMLElement && active !== doc.body ? active : null;
+  }, [state.isOpen]);
+  useEffect(() => {
+    const collapsed = collapsedRef.current;
+    if (!isExiting || !collapsed) return;
+    // Only from inside the leaving view: a press outside that moved focus elsewhere keeps it.
+    if (!collapsed.ownerDocument.activeElement?.closest('[data-exiting]')) return;
+    const previous = restoreRef.current;
+    const target =
+      previous?.isConnected && !previous.closest('[data-exiting]') ? previous : collapsed;
+    target.focus({ preventScroll: true });
+  }, [isExiting]);
+
   // The expanded view starts from the bar's bounds; measure them when it opens.
   useLayoutEffect(() => {
     const root = rootRef.current;
@@ -377,9 +415,12 @@ export function SearchBar(props: SearchBarProps) {
           data-slot="input"
           className={inputClass(textAlign)}
           // The consumer's `inputRef` follows whichever input is live.
-          ref={isPresent ? undefined : inputRef}
-          inert={isPresent}
-          aria-hidden={isPresent || undefined}
+          ref={collapsedInputRef}
+          // Live again as soon as the view starts leaving: a press or typing on the bar
+          // while the view leaves (its parts take no presses) opens it again from where it
+          // is, instead of being swallowed for the ~450ms of the exit (2026-10-17).
+          inert={state.isOpen}
+          aria-hidden={state.isOpen || undefined}
           // A combobox whose popup is the search view's dialog (ARIA 1.2).
           role="combobox"
           aria-expanded={state.isOpen}
@@ -425,6 +466,7 @@ export function SearchBar(props: SearchBarProps) {
                   data-slot="input"
                   className={inputClass('start')}
                   inputRef={inputRef}
+                  open={state.isOpen}
                 />,
                 'default',
               )
@@ -470,16 +512,21 @@ function SearchField({
 
 function ExpandedInput({
   inputRef,
+  open,
   ...props
-}: Omit<ComponentProps<'input'>, 'ref'> & { inputRef?: Ref<HTMLInputElement> }) {
+}: Omit<ComponentProps<'input'>, 'ref'> & {
+  inputRef?: Ref<HTMLInputElement>;
+  /** The view is open (not leaving): reopened while leaving, the input takes focus again. */
+  open: boolean;
+}) {
   const ref = useObjectRef(inputRef);
   // Take focus when the view opens, with the caret after the query.
   useEffect(() => {
     const input = ref.current;
-    if (!input) return;
+    if (!input || !open) return;
     input.focus({ preventScroll: true });
     input.setSelectionRange(input.value.length, input.value.length);
-  }, [ref]);
+  }, [ref, open]);
   return <input {...props} ref={ref} />;
 }
 

@@ -22,6 +22,7 @@ import { DensityZeroButtons } from '../button/DensityZeroButtons';
 import { NavItem, type NavItemProps } from './NavItem';
 import { navigationRailStyles } from './navigation-styles';
 import { onItemArrowKeys } from './use-item-arrow-keys';
+import { useRailItemMorph } from './use-rail-item-morph';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 /** Registered in utilities.css (96px); every rail inset is derived from it. */
@@ -240,7 +241,10 @@ export function NavigationRail({
   // Labels fade in at their new place once the rail has changed mode (not on first render).
   const [mode, setMode] = useState(inlineExpanded);
   const [modeChanged, setModeChanged] = useState(false);
+  const captureItems = useRailItemMorph(rootRef, mode);
   if (mode !== inlineExpanded) {
+    // The DOM still shows the old layout: note where each item's icon is.
+    captureItems();
     setMode(inlineExpanded);
     setModeChanged(true);
   }

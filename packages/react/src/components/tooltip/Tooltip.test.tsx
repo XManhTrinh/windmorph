@@ -289,6 +289,36 @@ describe('RichTooltip', () => {
     await gone('dialog');
   });
 
+  it('disabled: the trigger opens nothing, transient or persistent', async () => {
+    const onPress = vi.fn();
+    const { rerender } = render(
+      <RichTooltipTrigger disabled>
+        <Button variant="text">What’s this?</Button>
+        <RichTooltip title="Grouped tabs">Tabs from the same site stay together.</RichTooltip>
+      </RichTooltipTrigger>,
+    );
+    const trigger = screen.getByRole('button', { name: 'What’s this?' });
+    await hover(trigger);
+    await userEvent.tab();
+    expect(trigger).toHaveFocus();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    rerender(
+      <RichTooltipTrigger persistent disabled>
+        <Button variant="text" onPress={onPress}>
+          What’s this?
+        </Button>
+        <RichTooltip title="Grouped tabs">Tabs from the same site stay together.</RichTooltip>
+      </RichTooltipTrigger>,
+    );
+    const plain = screen.getByRole('button', { name: 'What’s this?' });
+    expect(plain).not.toHaveAttribute('aria-expanded');
+    await userEvent.click(plain);
+    expect(onPress).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   it('leaves focus on its trigger, as a non-modal dialog the trigger controls', async () => {
     const { container } = render(<Rich />);
     const trigger = screen.getByRole('button', { name: 'What’s this?' });

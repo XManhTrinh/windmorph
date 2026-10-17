@@ -39,7 +39,11 @@ export default function WhatsNewPage() {
                 )}
               </div>
               <p className="text-body-medium text-on-surface-variant">
-                <time dateTime={release.date}>{formatDate(release.date)}</time>
+                {release.date ? (
+                  <time dateTime={release.date}>{formatDate(release.date)}</time>
+                ) : (
+                  'Not released yet'
+                )}
               </p>
               <p className="text-body-large text-on-surface-variant">{release.summary}</p>
             </div>

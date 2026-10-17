@@ -120,7 +120,10 @@ export async function TabsBody(): Promise<ComponentDoc> {
               content resizes (a web font loading) it moves into place at once. Primary tabs draw it
               3px high with only its top corners rounded, as wide as the content (at least 24px);
               secondary tabs draw it 2px high across the whole tab (m3.material.io&apos;s
-              measurements; Compose rounds every corner and uses 3px for both).
+              measurements; Compose rounds every corner and uses 3px for both). The spec also says
+              primary indicators are &quot;inset 2dp on each side&quot;; like Compose, the indicator
+              is as wide as the tab&apos;s content (its label, or its icon when there is none),
+              which already sits inside the tab&apos;s 16px padding, rather than 4px narrower.
             </li>
             <li>
               Where Compose defaults an unselected tab&apos;s colour to the selected one, the token

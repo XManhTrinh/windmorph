@@ -51,7 +51,7 @@ export const search: ComponentAccessibility = {
   },
   focus: [
     'The bar is in the Tab order where it sits. Keyboard focus in the input draws the 3px `secondary` focus ring inside the pill; pointer presses show no ring.',
-    "When the view opens, focus moves to the view's input with the caret after the query. Focus stays inside the view while it is open, and returns to the bar when it closes.",
+    "When the view opens, focus moves to the view's input with the caret after the query. Focus stays inside the view while it is open, and returns as soon as it starts closing to what had it when the view opened: the bar, so pressing or typing on it while the view leaves opens it again, or, when a keyboard shortcut opened the view, the element that was focused then.",
   ],
   touchTarget: [
     'The bar is 56px tall, and the leading and trailing icon slots are 48 × 48px.',

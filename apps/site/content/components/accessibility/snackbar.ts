@@ -35,7 +35,7 @@ export const snackbar: ComponentAccessibility = {
     "The auto-dismiss timer (4s `short`, 10s `long`) pauses while the pointer or focus is on the snackbar, so someone reading it or reaching for it doesn't lose the message (WCAG 2.2.1). Snackbars with an action never time out.",
   ],
   touchTarget: [
-    'The snackbar is at least 48px tall. Its action is a small text {@link Button} and its dismiss button an {@link IconButton}, which both keep their 48 × 48px touch target.',
+    'The snackbar is at least 48px tall. Its action is a small text {@link Button} and its dismiss button an {@link IconButton}, which both keep their 48 × 48px touch target. The dismiss button stays at density 0 in a dense theme, as the snackbar keeps its height.',
   ],
   motion: [
     'Under reduced motion a snackbar only fades in and out, without expanding upward from the bottom edge.',

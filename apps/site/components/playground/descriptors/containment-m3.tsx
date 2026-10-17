@@ -21,11 +21,13 @@ import {
   MenuGroup,
   MenuItem,
   MenuTrigger,
+  SideSheet,
   Tooltip,
   TooltipTrigger,
 } from '@windmorph/react';
 import { createElement } from 'react';
 import {
+  ArrowBackIcon,
   CloseIcon,
   DeleteIcon,
   EditIcon,
@@ -45,6 +47,7 @@ const DialogAny = loose(Dialog);
 const MenuAny = loose(Menu);
 const TooltipAny = loose(Tooltip);
 const BottomSheetAny = loose(BottomSheet);
+const SideSheetAny = loose(SideSheet);
 const CarouselAny = loose(Carousel);
 const BadgeAny = loose(Badge);
 
@@ -94,6 +97,42 @@ const NONE = 'none';
 const unlessNone = (value: unknown) => (value === NONE ? undefined : value);
 const asNumber = (value: unknown) => (value == null || value === '' ? undefined : Number(value));
 
+/** A line-limit control's value as the snippet's number, or nothing while unset. */
+const lineLimit = (value: unknown) => (value === NONE || value == null ? null : String(value));
+
+/**
+ * `required` only applies to a radio list (one with a `value`): turning it on picks the first
+ * contact, and going back to a plain list turns it off.
+ */
+export function adjustListRadio(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'required' && values.required === true && values.value === NONE) {
+    return { ...values, value: CONTACTS[0]!.key };
+  }
+  if (changed === 'value' && values.value === NONE) return { ...values, required: false };
+  return values;
+}
+
+/**
+ * `instant` skips the popover's motion; a sheet keeps its slide, so the snippet never pairs
+ * them: choosing the sheet turns `instant` off, and turning `instant` on with the sheet goes
+ * back to the popover (`auto` keeps it, since it's a popover on wider windows).
+ */
+export function adjustMenuInstant(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'presentation' && values.presentation === 'sheet') {
+    return { ...values, instant: false };
+  }
+  if (changed === 'instant' && values.instant === true && values.presentation === 'sheet') {
+    return { ...values, presentation: 'popover' };
+  }
+  return values;
+}
+
 /** Playgrounds for the M3 containment and overlay components, by page slug. */
 export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   card: {
@@ -116,11 +155,6 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     codeSlots: {
       onPress: (values) =>
         !values.href && (values.disabled === true || values.dragged === true) ? '() => {}' : null,
-    },
-    notControlled: {
-      preventFocusOnPress:
-        'Only stops a press from moving focus (menu triggers set it); the preview looks the same.',
-      toggle: 'Typed `false`: it only rules out a toggle form, which cards have no use for.',
     },
     codeChildren:
       '<div className="flex flex-col gap-1 p-4">\n    <h3 className="text-title-medium text-on-surface">Alpine hut trail</h3>\n    <p className="text-body-medium text-on-surface-variant">\n      A guided three-day walk with two nights in mountain huts, from €320.\n    </p>\n  </div>',
@@ -207,6 +241,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       before: '<DialogTrigger>\n  <Button variant="tonal">Open dialog</Button>',
       after: '</DialogTrigger>',
     },
+    // The trigger opens and closes the dialog, so the snippet leaves `open` to it.
+    codeSlots: { open: () => null },
     codeChildren:
       '<DialogHeader closeLabel="Close">Delete draft?</DialogHeader>\n  <DialogContent>The draft and its attachments will be removed from this device.</DialogContent>\n  <DialogActions>\n    <Button variant="text">Cancel</Button>\n    <Button variant="text">Delete</Button>\n  </DialogActions>',
   },
@@ -275,6 +311,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'presentation',
       'instant',
     ],
+    adjust: adjustMenuInstant,
     enumOptions: {
       placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],
@@ -331,53 +368,103 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
   },
   sheets: {
     component: 'BottomSheet',
+    componentSwitch: { control: 'sheet', components: { bottom: 'BottomSheet', side: 'SideSheet' } },
+    controlDescriptions: {
+      sheet: 'Which sheet the playground shows: a bottom sheet or a side sheet.',
+    },
     notControlled: {
       detent:
         'Controlled by the app; the `defaultDetent` control picks where the sheet starts, and its handle moves it from there.',
     },
     notRendered: {
-      SideSheet:
-        'A side panel with its own options (detached, levels and back button); the Side sheet examples show it.',
       SheetTrigger:
         'Opens the sheet from a button; the preview opens it from the `open` control instead.',
     },
-    // In a bounded frame: a standard sheet is placed in it (`classNames.container`), and a
-    // modal one opens over the window from the button.
-    render: ({ open, closeIcon, collapseIcon, peekHeight, ...props }, update) =>
-      createElement(
+    // In a bounded frame: a standard sheet is placed in it, and a modal one opens over the
+    // window from the button.
+    render: (
+      {
+        sheet,
+        open,
+        closeIcon,
+        collapseIcon,
+        backIcon,
+        onBack,
+        actions,
+        footer,
+        title,
+        peekHeight,
+        ...props
+      },
+      update,
+    ) => {
+      const side = sheet === 'side';
+      const standard = props.variant === 'standard';
+      const content = (
+        <div
+          key="content"
+          className={side ? 'flex flex-col gap-2' : 'flex flex-col gap-2 px-6 pb-6'}
+        >
+          {!side && <p className="text-title-medium text-on-surface">Now playing</p>}
+          <p className="text-body-medium text-on-surface-variant">
+            Track details and controls stay at hand while the page scrolls.
+          </p>
+        </div>
+      );
+      const shared = {
+        // A new variant, or a new starting detent, starts afresh.
+        key: `${String(sheet)}-${String(props.variant)}-${String(props.defaultDetent)}`,
+        ...props,
+        open: Boolean(open),
+        onOpenChange: (next: boolean) => update('open', next),
+        ...(closeIcon === true && { closeIcon: <CloseIcon /> }),
+      };
+      return createElement(
         'div',
         {
-          className:
-            'relative h-[320px] w-full max-w-md overflow-hidden rounded-corner-large border border-outline-variant',
+          className: `relative h-[320px] w-full max-w-md overflow-hidden rounded-corner-large border border-outline-variant${side && standard ? ' flex' : ''}`,
         },
-        <div key="page" className="flex flex-col items-start gap-3 p-6">
+        <div key="page" className="flex flex-1 flex-col items-start gap-3 p-6">
           <p className="text-body-large text-on-surface">Midnight Drive · 12 songs</p>
-          <Button variant="tonal" onPress={() => update('open', true)}>
-            Show player
+          <Button variant="tonal" onPress={() => update('open', !(open === true))}>
+            {side ? 'Show details' : 'Show player'}
           </Button>
         </div>,
-        createElement(
-          BottomSheetAny,
-          {
-            // A new variant, or a new starting detent, starts afresh.
-            key: `${String(props.variant)}-${String(props.defaultDetent)}`,
-            ...props,
-            'aria-label': 'Now playing',
-            open: Boolean(open),
-            onOpenChange: (next: boolean) => update('open', next),
-            peekHeight: asNumber(peekHeight),
-            ...(closeIcon === true && { closeIcon: <CloseIcon /> }),
-            ...(collapseIcon === true && { collapseIcon: <ExpandMoreIcon /> }),
-            ...(props.variant === 'standard' && { classNames: { container: 'absolute' } }),
-          },
-          <div key="content" className="flex flex-col gap-2 px-6 pb-6">
-            <p className="text-title-medium text-on-surface">Now playing</p>
-            <p className="text-body-medium text-on-surface-variant">
-              Track details and controls stay at hand while the page scrolls.
-            </p>
-          </div>,
-        ),
-      ),
+        side
+          ? createElement(
+              SideSheetAny,
+              {
+                ...shared,
+                title: title === '' || title == null ? undefined : title,
+                ...((title === '' || title == null) && { 'aria-label': 'Details' }),
+                ...(onBack === true && { onBack: () => update('open', false) }),
+                ...(backIcon === true && { backIcon: <ArrowBackIcon /> }),
+                ...(actions === true && {
+                  actions: <Button variant="text">Edit</Button>,
+                }),
+                ...(footer === true && {
+                  footer: (
+                    <Button variant="filled" onPress={() => update('open', false)}>
+                      Save
+                    </Button>
+                  ),
+                }),
+              },
+              content,
+            )
+          : createElement(
+              BottomSheetAny,
+              {
+                ...shared,
+                'aria-label': 'Now playing',
+                peekHeight: asNumber(peekHeight),
+                ...(collapseIcon === true && { collapseIcon: <ExpandMoreIcon /> }),
+                ...(standard && { classNames: { container: 'absolute' } }),
+              },
+              content,
+            ),
+      );
+    },
     defaultProps: {
       variant: 'modal',
       open: false,
@@ -389,30 +476,86 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       closeButton: true,
       closeIcon: false,
       collapseIcon: false,
+      detached: false,
+      onBack: false,
+      backIcon: false,
+      actions: false,
+      footer: false,
+      footerDivider: false,
+      divider: true,
     },
     surfacedProps: [
+      'sheet',
       'variant',
       'open',
+      'title',
+      'detached',
       'dragHandle',
       'skipPartiallyExpanded',
       'peekHeight',
       'defaultDetent',
       'dismissable',
       'closeButton',
+      'onBack',
+      'actions',
+      'footer',
+      'footerDivider',
+      'divider',
       'closeIcon',
       'collapseIcon',
+      'backIcon',
     ],
-    controlKinds: { closeIcon: 'boolean', collapseIcon: 'boolean' },
-    toggledSlots: { closeIcon: CLOSE, collapseIcon: EXPAND_MORE },
-    numberRanges: { peekHeight: { min: 32, max: 240, step: 8 } },
-    codeSlots: { 'aria-label': '"Now playing"' },
-    importMembers: ['Button', 'SheetTrigger'],
-    codeWrap: {
-      before: '<SheetTrigger>\n  <Button variant="tonal">Show player</Button>',
-      after: '</SheetTrigger>',
+    initialState: { title: 'Details' },
+    controlKinds: {
+      title: 'string',
+      closeIcon: 'boolean',
+      collapseIcon: 'boolean',
+      backIcon: 'boolean',
+      onBack: 'boolean',
+      actions: 'boolean',
+      footer: 'boolean',
     },
-    codeChildren:
-      '<div className="flex flex-col gap-2 px-6 pb-6">\n    <p className="text-title-medium text-on-surface">Now playing</p>\n    <p className="text-body-medium text-on-surface-variant">Track details and controls stay at hand while the page scrolls.</p>\n  </div>',
+    groups: { onBack: 'content' },
+    toggledSlots: {
+      closeIcon: CLOSE,
+      collapseIcon: EXPAND_MORE,
+      backIcon: '<ArrowBackIcon />',
+      onBack: "() => console.log('Back')",
+      actions: '<Button variant="text">Edit</Button>',
+      footer: '<Button variant="filled">Save</Button>',
+    },
+    numberRanges: { peekHeight: { min: 32, max: 240, step: 8 } },
+    // A modal sheet's trigger opens and closes it; a standard sheet keeps `open` in state,
+    // toggled by a button beside it.
+    codeState: (values): Record<string, string> =>
+      values.variant === 'standard' ? { open: `useState(${values.open === true})` } : {},
+    codeSlots: {
+      open: (values) => (values.variant === 'standard' ? 'open' : null),
+      onOpenChange: (values) => (values.variant === 'standard' ? 'setOpen' : null),
+      // A side sheet with a title is named by it; the bottom sheet's needs a name.
+      'aria-label': (values) =>
+        values.sheet === 'side' && values.title
+          ? null
+          : values.sheet === 'side'
+            ? '"Details"'
+            : '"Now playing"',
+    },
+    importMembers: ['Button', 'SheetTrigger'],
+    // A modal sheet opens from a button; a standard one sits in the layout, open to begin with.
+    codeWrap: (values) =>
+      values.variant === 'standard'
+        ? {
+            before: `<div className="flex">\n  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    ${values.sheet === 'side' ? 'Show details' : 'Show player'}\n  </Button>`,
+            after: '</div>',
+          }
+        : {
+            before: `<SheetTrigger>\n  <Button variant="tonal">${values.sheet === 'side' ? 'Show details' : 'Show player'}</Button>`,
+            after: '</SheetTrigger>',
+          },
+    codeChildren: (values) =>
+      values.sheet === 'side'
+        ? '<p className="text-body-medium text-on-surface-variant">Track details and controls stay at hand while the page scrolls.</p>'
+        : '<div className="flex flex-col gap-2 px-6 pb-6">\n    <p className="text-title-medium text-on-surface">Now playing</p>\n    <p className="text-body-medium text-on-surface-variant">Track details and controls stay at hand while the page scrolls.</p>\n  </div>',
   },
   list: {
     component: 'List',
@@ -448,8 +591,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             value: unlessNone(value),
             dividers: unlessNone(dividers),
             disabledKeys: disabledKeys === true ? ['priya'] : undefined,
-            headlineLines: asNumber(headlineLines),
-            supportingTextLines: asNumber(supportingTextLines),
+            headlineLines: asNumber(unlessNone(headlineLines)),
+            supportingTextLines: asNumber(unlessNone(supportingTextLines)),
             density: asDensity(density),
           },
           ...CONTACTS.map(({ key, name, role }) =>
@@ -468,6 +611,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       controlPlacement: 'leading',
       dividers: NONE,
       selectionIndicator: true,
+      headlineLines: NONE,
+      supportingTextLines: NONE,
       density: 0,
     },
     surfacedProps: [
@@ -486,23 +631,17 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'density',
     ],
     initialState: { variant: 'segmented' },
+    adjust: adjustListRadio,
+    // Line limits are unset (no limit) or 1 to 3.
     enumOptions: {
       ...DENSITY_OPTIONS,
       value: [NONE, ...CONTACTS.map(({ key }) => key)],
       dividers: [NONE, 'full', 'inset'],
+      headlineLines: [NONE, '1', '2', '3'],
+      supportingTextLines: [NONE, '1', '2', '3'],
     },
-    // Line limits are numbers (1 to 3), so the snippet writes them as numbers.
-    controlKinds: {
-      disabledKeys: 'boolean',
-      headlineLines: 'number',
-      supportingTextLines: 'number',
-      density: 'number',
-    },
+    controlKinds: { disabledKeys: 'boolean', density: 'number' },
     toggledSlots: { disabledKeys: "['priya']" },
-    numberRanges: {
-      headlineLines: { min: 1, max: 3 },
-      supportingTextLines: { min: 1, max: 3 },
-    },
     notControlled: {
       selectedKeys:
         'An Iterable of item keys; choose items in the preview with `selectionMode` on instead.',
@@ -515,11 +654,18 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       name: "A radio list's form field name, with no visible effect.",
     },
     importMembers: ['ListItem'],
-    codeSlots: { 'aria-label': '"Contacts"' },
-    codeChildren: CONTACTS.map(
-      ({ key, name, role }) =>
-        `<ListItem key="${key}" value="${key}" supportingText="${role}">\n    ${name}\n  </ListItem>`,
-    ).join('\n  '),
+    codeSlots: {
+      'aria-label': '"Contacts"',
+      // The line limits are numbers, written only when set.
+      headlineLines: (values) => lineLimit(values.headlineLines),
+      supportingTextLines: (values) => lineLimit(values.supportingTextLines),
+    },
+    // Items carry a `value` only in a radio list.
+    codeChildren: (values) =>
+      CONTACTS.map(
+        ({ key, name, role }) =>
+          `<ListItem key="${key}"${values.value === NONE ? '' : ` value="${key}"`} supportingText="${role}">\n    ${name}\n  </ListItem>`,
+      ).join('\n  '),
   },
   carousel: {
     component: 'Carousel',
@@ -661,7 +807,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
               createElement(DividerAny, { key: 'd', ...props }),
               <span key="b">Payment method</span>,
             ),
-    defaultProps: { orientation: 'horizontal', inset: 'none', decorative: false },
+    defaultProps: { orientation: 'horizontal', inset: 'none', decorative: true },
     surfacedProps: ['divider', 'orientation', 'inset', 'decorative'],
     initialState: { orientation: 'horizontal', inset: 'none' },
     codeChildren: (values) => (values.divider === 'labeled' ? 'Or' : ''),

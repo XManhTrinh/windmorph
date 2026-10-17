@@ -114,6 +114,8 @@ function useSearchEntries(given: SearchEntry[] | undefined, wanted: boolean): In
 
 /** The search's name, which is also its hinted text (M3: the hint labels the bar). */
 const LABEL = 'Search documentation';
+/** The placeholder on a phone's narrower bar; the field's name stays {@link LABEL}. */
+const SHORT_LABEL = 'Search docs';
 
 /** The keys that open the search, as `aria-keyshortcuts` names them. */
 const KEY_SHORTCUTS = 'Meta+K Control+K /';
@@ -334,7 +336,8 @@ export function DocsSearch({
       inputRef={inputRef}
       inputProps={{ 'aria-keyshortcuts': KEY_SHORTCUTS }}
       aria-label={LABEL}
-      placeholder={LABEL}
+      // A phone's bar (the full-screen view) is too narrow for the whole label to show.
+      placeholder={view === 'full-screen' ? SHORT_LABEL : LABEL}
       leadingIcon={leadingIcon}
       trailingIcon={trailingIcon}
       view={view}

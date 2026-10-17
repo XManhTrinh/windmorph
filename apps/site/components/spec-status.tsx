@@ -133,7 +133,8 @@ export function SpecStatus({
           </tbody>
         </table>
       </div>
-      <ul aria-label={caption} className="flex flex-col gap-3 medium:hidden">
+      {/* The table's rows again as cards for phones: the Markdown twin keeps the table only. */}
+      <ul aria-label={caption} data-markdown="skip" className="flex flex-col gap-3 medium:hidden">
         {rows.map((row) => (
           <li key={`${row.status}-${row.item}`}>
             <Card variant="outlined" className="gap-2 p-4">

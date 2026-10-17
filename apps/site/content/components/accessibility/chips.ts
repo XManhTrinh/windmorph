@@ -60,7 +60,7 @@ export const chips: ComponentAccessibility = {
     role: '`AssistChip` and `SuggestionChip` are a `button` (an assist chip with `href` is a `link`). `FilterChip` is a toggle `button`, or a `radio` in a single-select `ChipSet`. `ChipSet` is a `group`, or a `radiogroup` with `selectionMode="single"`.',
     name: 'The chip\'s label (`children`). The remove button is named from `labels.remove` plus the label ("Remove Alex"). A `ChipSet` takes `aria-label` or `aria-labelledby`, which its types require.',
     states:
-      'A filter chip announces pressed (`aria-pressed`), or checked (`aria-checked`) in a single-select set. An input chip with `onPress` and `selected` announces pressed. Disabled on every chip; a disabled `ChipSet` sets `aria-disabled`.',
+      'A filter chip announces pressed (`aria-pressed`), or checked (`aria-checked`) in a single-select set. An input chip with `onPress` and `selected` announces pressed; a selected input chip without `onPress` is described as "Selected" (`labels.selected`), on its remove button or as hidden text. Disabled on every chip; a disabled `ChipSet` sets `aria-disabled`.',
     notes: [
       'Leading icons, avatars, the filter check, the trailing icon and the close icon are decorative and hidden from assistive tech (`aria-hidden`).',
       'An input chip with neither `onPress` nor `onRemove` is static text, with no role and no focus stop.',
@@ -75,7 +75,7 @@ export const chips: ComponentAccessibility = {
   touchTarget: [
     'Chips are at least 32px tall. An invisible `TouchTarget` gives each chip a 48px-tall touch target without changing its layout.',
     'The remove button is 24px with its own 48 × 48px `TouchTarget`. A chip with a remove button is at least 88px wide, so that target never covers the label.',
-    'A scrolling `ChipSet` (`layout="scroll"`) pads its row so the touch targets and focus rings stay inside the scroll area.',
+    'A scrolling `ChipSet` (`layout="scroll"`) pads its row so the touch targets and focus rings stay inside the scroll area, and keeps a thin scrollbar (in `outline`), so a mouse user sees that more chips lie beyond the edge and can reach them. Where every chip must be seen at once, use the default wrapping layout.',
     "With `density` (or the theme's), chips lose 4px a step, to 24px at -2 and -3, and keep their 48px targets, as M3 asks of chips at every density. A wrapping `ChipSet` puts 2px more between rows a step (12px at -2 and -3), and a scrolling one pads its row by as much, so a chip's target never reaches the chips above or below it.",
   ],
   motion: [
@@ -84,7 +84,7 @@ export const chips: ComponentAccessibility = {
   consumer: [
     'Give every `ChipSet` a name with `aria-label`, or `aria-labelledby` pointing at a visible heading.',
     'Keep chip labels short and unique within a set, so the remove buttons\' names ("Remove Alex") stay distinct.',
-    "Pass `labels` to translate the remove button's name.",
+    "Pass `labels` to translate the remove button's name (`labels.remove`) and the word that describes a selected input chip (`labels.selected`).",
     'Use `outline="strong"` where nothing else shows that a flat chip is interactive, so its border meets 3:1 contrast.',
   ],
 };

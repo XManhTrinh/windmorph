@@ -68,6 +68,10 @@ export const Feed: Story = {
         </div>
         <PullToRefresh
           data-testid="area"
+          // A scrolling area with nothing focusable in it takes focus, so keys can scroll it.
+          role="region"
+          aria-label="Inbox messages"
+          tabIndex={0}
           refreshing={refreshing}
           onRefresh={() => {
             setCount((value) => value + 1);
@@ -75,7 +79,7 @@ export const Feed: Story = {
           }}
           threshold={threshold}
           disabled={disabled}
-          className="min-h-0 grow overflow-y-auto"
+          className="min-h-0 grow overflow-y-auto -outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary"
         >
           <List aria-label="Messages">
             {Array.from({ length: items }, (_, index) => (
@@ -107,6 +111,9 @@ export const Refreshing: Story = {
       refreshing
       onRefresh={() => undefined}
       data-testid="area"
+      role="region"
+      aria-label="Messages"
+      tabIndex={0}
       className="h-[320px] w-[360px] overflow-y-auto bg-surface"
     >
       <List aria-label="Messages">

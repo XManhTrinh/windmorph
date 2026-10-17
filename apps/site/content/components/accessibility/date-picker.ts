@@ -104,7 +104,7 @@ export const datePicker: ComponentAccessibility = {
     'A horizontal swipe on the grid pages months; the previous and next buttons and Page Up / Page Down do the same without a gesture.',
   ],
   motion: [
-    'Under reduced motion a new month fades in without sliding, the calendar and text input modes swap with a fade only, and the year list fades in without expanding.',
+    'Under reduced motion a new month fades in without sliding, the calendar and text input modes swap with a fade only (the height of the picker changes at once instead of on a spring), and the year list fades in without expanding.',
     'A {@link PickerDialog} keeps only its fades under reduced motion.',
   ],
   consumer: [

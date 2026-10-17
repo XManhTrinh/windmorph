@@ -38,6 +38,7 @@ import {
 } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { useSizeTransform } from './use-size-transform';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -119,6 +120,8 @@ export interface DatePickerClassNames {
   day?: string;
   /** Each year of the year list. */
   year?: string;
+  /** The month and year button above the days, which shows the year list. */
+  yearButton?: string;
   /** Each month's subhead in the range picker's scrolling month list. */
   monthSubhead?: string;
 }
@@ -399,6 +402,9 @@ function PickerFrame({
   // Set once the mode has been switched, so only a switch animates (not the first render).
   const [switched, setSwitched] = useState(false);
   const [years, setYears] = useState(false);
+  // The picker's height follows the view on the default spatial spring (Compose's
+  // `SizeTransform` in its display mode animation), as the views swap.
+  const { attach: attachSize, capture: captureSize } = useSizeTransform<HTMLDivElement>(mode);
   const styles = datePickerStyles({ range });
   const title =
     mode === 'input'
@@ -417,6 +423,7 @@ function PickerFrame({
     <div
       {...data}
       ref={(element) => {
+        attachSize(element);
         directionRef(element);
         if (typeof ref === 'function') ref(element);
         else if (ref) ref.current = element;
@@ -451,6 +458,7 @@ function PickerFrame({
                     : (strings.calendarMode ?? 'Switch to calendar input mode')
                 }
                 onPress={() => {
+                  captureSize();
                   setSwitched(true);
                   setMode(mode === 'calendar' ? 'input' : 'calendar');
                 }}
@@ -561,7 +569,7 @@ function CalendarBody({
           <Button
             ref={menuRef}
             variant="text"
-            className="text-on-surface-variant"
+            className={cn('text-on-surface-variant', classNames?.yearButton)}
             aria-label={`${monthLabel}, ${years ? (strings.showDays ?? 'Switch to selecting a day') : (strings.showYears ?? 'Switch to selecting a year')}`}
             onPress={() => {
               setFocusYears(false);

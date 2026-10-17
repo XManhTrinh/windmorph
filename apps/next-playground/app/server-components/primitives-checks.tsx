@@ -133,6 +133,7 @@ export const primitivesChecks = {
     run: () => Primitives.splitDataAttributes({ 'data-state': 'on', title: 'Sample' }),
   },
   surfaceStyles: { kind: 'value', run: () => Primitives.surfaceStyles() },
+  useKeepPressedInPlace: hook,
   useM3Interaction: hook,
   useM3Morph: hook,
   useM3Spring: hook,

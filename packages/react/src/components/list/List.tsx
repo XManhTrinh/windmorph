@@ -17,6 +17,7 @@ import {
   type JSX,
   type KeyboardEvent,
   type LabelHTMLAttributes,
+  type MouseEvent,
   type ReactElement,
   type ReactNode,
   type Ref,
@@ -69,6 +70,7 @@ import { RadioRing } from '../radio/radio-ring';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
 import { switchStyles } from '../switch/switch-styles';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
+import { useKeepPressedInPlace } from '../../utils/keep-pressed-in-place';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
@@ -1420,11 +1422,28 @@ function TreeList({
   const rows = [...state.collection.getKeys()]
     .map((key) => state.collection.getItem(key))
     .filter((node): node is Node<object> => node?.type === 'item');
-  const { shown, onExited } = useRowPresence(rows);
-  const reveal = listStyles();
+  const { shown, onExited, version } = useRowPresence(rows);
+  // A press that opens an item while an open item above it folds keeps the pressed row
+  // where it was: the page scrolls by the folded height as the rows close.
+  const { capture, release } = useKeepPressedInPlace(
+    '[role=row]',
+    version,
+    shown.some((row) => row.exiting),
+  );
+  const reveal = listStyles({ variant });
   return (
     <div
-      {...mergeProps(data, gridProps)}
+      {...mergeProps(data, gridProps, {
+        onPointerDownCapture: capture,
+        onKeyDownCapture: capture,
+        onPointerUpCapture: release,
+        onKeyUpCapture: release,
+        onClickCapture: (event: MouseEvent<HTMLDivElement>) => {
+          // A virtual click (assistive tech) presses with no pointer down before it.
+          if (event.detail === 0) capture(event);
+          release();
+        },
+      })}
       ref={(element) => {
         rootRef.current = element;
         directionRef(element);
@@ -1462,6 +1481,11 @@ function TreeList({
     </div>
   );
 }
+
+/** Whether the reader asks for reduced motion (read on a change, never on the server). */
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
 
 /** A tree row as shown: live, opening in, or gone from the tree and closing. */
 interface ShownRow {
@@ -1511,7 +1535,15 @@ function useRowPresence(rows: Node<object>[]) {
       else if (index >= cursor) takeUpTo(index);
     }
     takeUpTo(rows.length - 1);
-    shown = next;
+    // A switch under reduced motion (2026-10-17): when rows open while others leave, the
+    // leaving ones go at once instead of holding their height while they fade, and the
+    // opening ones appear at full height and fade in, so the rows below shift once, never
+    // twice. A lone fold still fades where it is.
+    const opening = next.some((row) => !row.exiting && !before.has(row.node.key));
+    shown =
+      opening && next.some((row) => row.exiting) && prefersReducedMotion()
+        ? next.filter((row) => !row.exiting)
+        : next;
     setPresence({ keys, shown });
   }
   const onExited = useCallback(
@@ -1527,6 +1559,8 @@ function useRowPresence(rows: Node<object>[]) {
   return {
     shown: shown.map((row) => (row.exiting ? row : { ...row, node: current.get(row.node.key)! })),
     onExited,
+    /** Changes whenever the rows shown change. */
+    version: presence,
   };
 }
 

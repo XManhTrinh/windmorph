@@ -5,16 +5,21 @@ import {
   Autocomplete,
   AutocompleteItem,
   Checkbox,
+  FilterChip,
+  InputChip,
   Radio,
   RadioGroup,
   Select,
   SelectItem,
   Slider,
+  SuggestionChip,
   Switch,
   TextField,
 } from '@windmorph/react';
 import { createElement, type ReactElement } from 'react';
+import { SAMPLE_PORTRAIT } from '../../../examples/image-crop/sample-photo';
 import {
+  ExpandMoreIcon,
   CloseIcon,
   DarkModeIcon,
   EditIcon,
@@ -26,7 +31,15 @@ import {
   VolumeDownIcon,
   VolumeUpIcon,
 } from '../../icons';
-import { DENSITY_OPTIONS, EDIT, type PlaygroundDescriptor, asDensity, loose } from './shared';
+import {
+  DENSITY_OPTIONS,
+  EDIT,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+  asDensity,
+  loose,
+  noop,
+} from './shared';
 
 const TextFieldAny = loose(TextField);
 const CheckboxAny = loose(Checkbox);
@@ -34,6 +47,9 @@ const RadioGroupAny = loose(RadioGroup);
 const SwitchAny = loose(Switch);
 const SliderAny = loose(Slider);
 const AssistChipAny = loose(AssistChip);
+const FilterChipAny = loose(FilterChip);
+const InputChipAny = loose(InputChip);
+const SuggestionChipAny = loose(SuggestionChip);
 const RadioAny = loose(Radio);
 const SelectAny = loose(Select);
 const SelectItemAny = loose(SelectItem);
@@ -57,6 +73,86 @@ const fieldSlots = (props: Record<string, unknown>, leading: () => ReactElement)
   leadingIcon: slot(props.leadingIcon, leading),
   errorIcon: slot(props.errorIcon, () => createElement(HelpIcon)),
 });
+
+/** The chip types the chips playground switches between, by its `type` control's options. */
+const CHIP_TYPES = {
+  assist: 'AssistChip',
+  filter: 'FilterChip',
+  input: 'InputChip',
+  suggestion: 'SuggestionChip',
+} as const;
+
+/** Each chip type's label, live and in the snippet. */
+const CHIP_LABELS: Record<string, string> = {
+  assist: 'Add note',
+  filter: 'Vegetarian',
+  input: 'Alex',
+  suggestion: 'Sounds good',
+};
+
+/** The chip type chosen in the chips playground, rendered with the controls' values. */
+function chipPreview(
+  { type, leadingIcon, trailingIcon, avatar, onRemove, href, ...props }: Record<string, unknown>,
+  update: PlaygroundUpdate,
+): ReactElement {
+  const shared = {
+    ...props,
+    density: asDensity(props.density),
+    leadingIcon: slot(leadingIcon, () => createElement(EditIcon)),
+  };
+  const label = CHIP_LABELS[String(type)] ?? CHIP_LABELS.assist;
+  switch (type) {
+    case 'filter':
+      return createElement(
+        FilterChipAny,
+        {
+          ...shared,
+          selected: props.selected === true,
+          onSelectedChange: (next: boolean) => update('selected', next),
+          trailingIcon:
+            onRemove === true ? undefined : slot(trailingIcon, () => createElement(ExpandMoreIcon)),
+          onRemove: onRemove === true ? noop : undefined,
+        },
+        label,
+      );
+    case 'input':
+      return createElement(
+        InputChipAny,
+        {
+          ...shared,
+          avatar:
+            avatar === true ? createElement('img', { src: SAMPLE_PORTRAIT, alt: '' }) : undefined,
+          onRemove: onRemove === true ? noop : undefined,
+        },
+        label,
+      );
+    case 'suggestion':
+      return createElement(SuggestionChipAny, shared, label);
+    default:
+      return createElement(
+        AssistChipAny,
+        { ...shared, href: href === '' ? undefined : href },
+        label,
+      );
+  }
+}
+
+/**
+ * A filter chip's trailing icon and remove button rule each other out (the types say so):
+ * turning one on turns the other off.
+ */
+export function adjustChipTrailing(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'onRemove' && values.onRemove === true && values.type === 'filter') {
+    return { ...values, trailingIcon: false };
+  }
+  if (changed === 'trailingIcon' && values.trailingIcon === true) {
+    return { ...values, onRemove: false };
+  }
+  return values;
+}
 
 /** Playgrounds for the M3 inputs and selection controls, by page slug. */
 export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
@@ -183,6 +279,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'density',
       'label',
       'supportingText',
+      'placeholder',
       'selectionMode',
       'maxSelections',
       'presentation',
@@ -262,6 +359,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'density',
       'label',
       'supportingText',
+      'placeholder',
       'selectionMode',
       'maxSelections',
       'allowsCustomValue',
@@ -337,7 +435,6 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
           ...props,
           density: asDensity(props.density),
           defaultValue: 'standard',
-          errorMessage: 'Choose a delivery option.',
         },
         createElement(RadioAny, { key: 'standard', value: 'standard' }, 'Standard'),
         createElement(RadioAny, { key: 'express', value: 'express' }, 'Express'),
@@ -359,12 +456,25 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'readOnly',
       'required',
       'invalid',
+      'errorMessage',
     ],
-    initialState: { label: 'Delivery', orientation: 'vertical' },
+    initialState: {
+      label: 'Delivery',
+      orientation: 'vertical',
+      errorMessage: 'Choose a delivery option.',
+    },
     enumOptions: { ...DENSITY_OPTIONS, orientation: ['vertical', 'horizontal'] },
-    controlKinds: { density: 'number' },
     importMembers: ['Radio'],
-    codeSlots: { defaultValue: '"standard"' },
+    controlKinds: { density: 'number', errorMessage: 'string' },
+    groups: { errorMessage: 'content' },
+    codeSlots: {
+      defaultValue: '"standard"',
+      // Shown only while invalid, so the snippet writes it only then.
+      errorMessage: (values) =>
+        values.invalid === true && typeof values.errorMessage === 'string' && values.errorMessage
+          ? JSON.stringify(values.errorMessage)
+          : null,
+    },
     codeChildren:
       '<Radio value="standard">Standard</Radio>\n  <Radio value="express">Express</Radio>',
   },
@@ -472,26 +582,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   },
   chips: {
     component: 'AssistChip',
+    componentSwitch: { control: 'type', components: CHIP_TYPES },
+    controlDescriptions: {
+      type: 'The chip type: assist (an action), filter (a selectable option), input (an entry the user added) or suggestion (a suggested reply or query).',
+    },
     notRendered: {
-      SuggestionChip:
-        'A chip type of its own with its own look; the Assist and suggestion example shows it beside the assist chip.',
-      FilterChip:
-        'A selectable chip type with its own look and states; the Filter example shows it.',
-      InputChip: 'A removable chip type, with an avatar or icon; the Input example shows it.',
       ChipSet:
         'Lays out and groups several chips (selection, wrapping or scrolling); the examples show it around each chip type.',
     },
-    render: (props) =>
-      createElement(
-        AssistChipAny,
-        {
-          ...props,
-          density: asDensity(props.density),
-          leadingIcon: slot(props.leadingIcon, () => createElement(EditIcon)),
-          href: props.href === '' ? undefined : props.href,
-        },
-        'Add note',
-      ),
+    render: chipPreview,
     defaultProps: {
       elevated: false,
       outline: 'standard',
@@ -499,18 +598,50 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       disabled: false,
       dragged: false,
       leadingIcon: false,
+      trailingIcon: false,
+      selected: false,
+      onRemove: false,
+      avatar: false,
     },
-    surfacedProps: ['elevated', 'outline', 'density', 'leadingIcon', 'disabled', 'dragged', 'href'],
+    surfacedProps: [
+      'type',
+      'selected',
+      'elevated',
+      'outline',
+      'density',
+      'leadingIcon',
+      'trailingIcon',
+      'avatar',
+      'onRemove',
+      'disabled',
+      'dragged',
+      'href',
+    ],
     initialState: { leadingIcon: true },
+    adjust: adjustChipTrailing,
     enumOptions: DENSITY_OPTIONS,
-    controlKinds: { leadingIcon: 'boolean', density: 'number' },
-    toggledSlots: { leadingIcon: EDIT },
+    controlKinds: {
+      leadingIcon: 'boolean',
+      trailingIcon: 'boolean',
+      avatar: 'boolean',
+      onRemove: 'boolean',
+      density: 'number',
+    },
+    groups: { onRemove: 'content' },
+    toggledSlots: {
+      leadingIcon: EDIT,
+      trailingIcon: '<ExpandMoreIcon />',
+      avatar: '<img src="/avatars/alex.jpg" alt="" />',
+      onRemove: "() => console.log('Remove')",
+    },
     notControlled: {
       elementType:
         'Only changes the rendered element (`button` is the one choice); nothing in the preview changes.',
       preventFocusOnPress:
         'Keeps focus where it was when the chip is pressed (for menu triggers); nothing in the preview changes.',
+      value:
+        "Only identifies a filter chip in a selection group's keys; nothing the preview shows.",
     },
-    codeChildren: 'Add note',
+    codeChildren: (values) => CHIP_LABELS[String(values.type)] ?? CHIP_LABELS.assist!,
   },
 };

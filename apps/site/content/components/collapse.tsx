@@ -101,8 +101,12 @@ export async function CollapseBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>open</InlineCode> (or <InlineCode>defaultOpen</InlineCode>, uncontrolled)
               opens and folds it on its grid track, so no height is measured. It opens on the
-              default spatial spring and folds on the default effects spring, which never
-              overshoots, with the content fading on the effects spring.
+              default spatial spring and folds over the same time on the default effects
+              spring&apos;s easing, which never overshoots, so a folding height never bounces back
+              open (<InlineCode>--wm-collapse-spring-duration</InlineCode>,{' '}
+              <InlineCode>-spring-easing</InlineCode>, <InlineCode>-fold-easing</InlineCode>). Its
+              content fades on the default effects spring (<InlineCode>-fade-duration</InlineCode>,{' '}
+              <InlineCode>-fade-easing</InlineCode>).
             </li>
             <li>
               Folding keeps it in the page, showing what it last showed even if the app has moved
@@ -133,9 +137,11 @@ export async function CollapseBody(): Promise<ComponentDoc> {
               a gap around it.
             </li>
             <li>
-              Under reduced motion the height no longer moves: it only fades, over{' '}
-              <InlineCode>--wm-collapse-fade-duration</InlineCode>, and{' '}
-              <InlineCode>onExited</InlineCode> runs when the fade ends.
+              Under reduced motion the height no longer animates: an opening collapse appears at
+              full height and fades in, and a folding one fades out where it is, over{' '}
+              <InlineCode>--wm-collapse-fade-duration</InlineCode>, then goes (
+              <InlineCode>onExited</InlineCode> runs when the fade ends). One that folds as another
+              opens goes at once, so what&apos;s below shifts once.
             </li>
           </ul>
         </section>

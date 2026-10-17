@@ -52,7 +52,7 @@ export const navigationRail: ComponentAccessibility = {
   ],
   consumer: [
     'Name the rail with `aria-label` or `aria-labelledby`, distinct from other navigation on the page.',
-    'Give every item a short visible label. Labels wrap rather than truncate, so keep the full text.',
+    'Give every item a short visible label. Labels wrap between words, so keep the full text; only a single word too wide for its item at large text sizes ends with an ellipsis.',
     'Give a menu button in `header` an `aria-label` that says what it does ("Expand navigation" / "Collapse navigation").',
     'Mark the current destination with `selected`, and give it a filled `selectedIcon` where the icon set has one, so the state does not rest on colour alone.',
     'Scroll the page to the top in `onReselect`, as M3 asks.',

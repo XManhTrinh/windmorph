@@ -1,16 +1,26 @@
 import { expect, test, type Page } from '@playwright/test';
 import { componentStoryIds } from './catalog-stories';
+import { samplePaintedFrames } from './painted-frames';
 import { openStory } from './story';
 
 /*
  * Scroll-jump guard (2026-10-15). The re-audit found pages that jumped when a control took
  * focus (a checkbox 430px, scrollable tabs 190px, a snackbar's focus return 1130px) or when
  * the browser's scroll anchor moved. Every component story is placed on a scrolled page with
- * its first interactive element partly above the window, at phone and desktop sizes; the
- * element is pressed where it shows, as a reader would, and `window.scrollY` must not move on
- * any frame. On desktop, a press that lands in a composite widget (tabs, radio group, list,
- * menu, toolbar, slider) then moves focus with an arrow key, the widget fully in view: the
- * page may scroll only as far as revealing a newly focused element that was off-screen needs.
+ * its first interactive element partly above the window, at phone and desktop sizes, and the
+ * element is pressed where it shows, as a reader would.
+ *
+ * What it protects (2026-10-17): nothing moves out from under the reader. On every painted
+ * frame the pressed element stays where it was on screen. The page may scroll only to keep it
+ * there, by exactly as much as the content above it changed size (an open item folding above a
+ * pressed one); with that element held, any other scroll would move it, so a page that scrolls
+ * when nothing above changed still fails. A pressed element that is fixed or sticky (in an
+ * overlay, a bar) doesn't follow the page, so there `window.scrollY` must not move at all, and
+ * once a pressed element leaves the page (a dismissed chip), the page must not scroll after.
+ *
+ * On desktop, a press that lands in a composite widget (tabs, radio group, list, menu, toolbar,
+ * slider) then moves focus with an arrow key, the widget fully in view: the page may scroll
+ * only as far as revealing a newly focused element that was off-screen needs.
  *
  * One test per story and size, so the suite shards freely.
  */
@@ -23,6 +33,33 @@ interface Target {
   y: number;
   /** The element's text or label, for failure messages. */
   name: string;
+  /** Fixed or sticky (itself or an ancestor): it doesn't move with the page. */
+  pinned: boolean;
+}
+
+/**
+ * Stories whose press moves the pressed element by its own component's motion, so it isn't
+ * held there: only the page is checked (`window.scrollY` must not move on any frame).
+ */
+const MOVES_ITSELF: Record<string, string> = {
+  // The menu sits in the page's flow here (in an app it's fixed to the window's corner), so a
+  // press that folds the menus' lists above their FABs moves the FABs up with them.
+  'components-fabmenu--colors': 'the lists above the FABs fold',
+  'components-fabmenu--sizes': 'the lists above the FABs fold and open',
+  'components-fabmenu--layout-override': 'the list above the FAB folds',
+  // The press expands the sheet, and its handle rises with the sheet's top edge.
+  'components-sheet--bottom-layout-override': 'the handle rises as the sheet expands',
+  // The thumb jumps to the value pressed.
+  'components-slider--vertical': 'the thumb moves to the press',
+  // The 80px FAB becomes the expanded toolbar's 56px close button, centred where it was.
+  'components-toolbar--fab-icons': 'the FAB shrinks into the close button',
+};
+
+/** One painted frame during the press. */
+interface PressFrame {
+  scroll: number;
+  /** The pressed element's top in the window, or null once it has left the page. */
+  top: number | null;
 }
 
 /**
@@ -137,8 +174,18 @@ function placeTarget(page: Page) {
       window.scrollTo(0, Math.max(documentTop + rect.height / 3, 600));
       const point = pressPoint(element);
       if (point) {
+        // The control the press lands on is held (a row inside a list, not the list; the
+        // button, not its icon, which may turn).
+        const hit = document.elementFromPoint(point.x, point.y)?.closest(INTERACTIVE);
+        const held = hit && element.contains(hit) ? hit : element;
+        held.setAttribute('data-scroll-guard-target', '');
+        let pinned = false;
+        for (let node: Element | null = held; node; node = node.parentElement) {
+          if (/fixed|sticky/.test(getComputedStyle(node).position)) pinned = true;
+        }
         return {
           ...point,
+          pinned,
           name: (element.getAttribute('aria-label') ?? element.textContent ?? element.tagName)
             .trim()
             .slice(0, 40),
@@ -210,14 +257,41 @@ for (const [size, device] of [
           test.info().annotations.push({ type: 'static', description: 'nothing to press' });
           return;
         }
-        const { x, y, name } = target;
+        const { x, y, name, pinned } = target;
 
-        const pressed = await scrollDuring(page, () =>
-          size === 'phone' ? page.touchscreen.tap(x, y) : page.mouse.click(x, y),
+        const frames = await samplePaintedFrames<PressFrame>(
+          page,
+          `(() => {
+            const target = document.querySelector('[data-scroll-guard-target]');
+            const rect = target && target.isConnected ? target.getBoundingClientRect() : null;
+            return { scroll: window.scrollY, top: rect && rect.height > 0 ? rect.top : null };
+          })()`,
+          () => (size === 'phone' ? page.touchscreen.tap(x, y) : page.mouse.click(x, y)),
+          700,
         );
-        expect(new Set(pressed), `pressing "${name}": ${pressed.join(' ')}`).toEqual(
-          new Set([pressed[0]]),
-        );
+        const trace = frames
+          .map((frame) => `${frame.top === null ? '-' : Math.round(frame.top)}@${frame.scroll}`)
+          .join(' ');
+        const message = `pressing "${name}" (top@scrollY): ${trace}`;
+        const first = frames[0]!;
+        if (pinned || first.top === null || id in MOVES_ITSELF) {
+          // Pinned, or moved by its own motion: the page itself must not move.
+          expect(new Set(frames.map((frame) => frame.scroll)), message).toEqual(
+            new Set([first.scroll]),
+          );
+        } else {
+          let lastScroll = first.scroll;
+          for (const frame of frames) {
+            if (frame.top === null) {
+              // Gone from the page: nothing to hold, so the page stays where it was.
+              expect(frame.scroll, message).toBe(lastScroll);
+              continue;
+            }
+            // Held where it was pressed; any scroll is the content above it changing size.
+            expect(Math.abs(frame.top - first.top!), message).toBeLessThanOrEqual(1);
+            lastScroll = frame.scroll;
+          }
+        }
 
         if (size === 'phone') return;
         const key = await arrowKeyFor(page);

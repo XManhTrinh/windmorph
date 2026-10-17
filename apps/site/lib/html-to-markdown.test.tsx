@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { PropsList } from '../components/props-list';
+import { SpecStatus } from '../components/spec-status';
+import { SPEC_DATA } from '../content/components/spec-data';
 import { htmlToMarkdown } from './html-to-markdown';
 
 function markdown(html: string, headingOffset = 0): string {
@@ -63,6 +65,28 @@ describe('htmlToMarkdown', () => {
         '<p>Kept</p><button>Press</button><div role="tablist"><span>Tab</span></div><span aria-hidden="true">icon</span><section data-markdown="skip"><h2>Playground</h2></section><svg></svg>',
       ),
     ).toBe('Kept');
+  });
+
+  it("keeps an accordion header's text, and a closed panel's content", () => {
+    expect(
+      markdown(
+        '<h3><button aria-expanded="false">Is there a free trial?<svg></svg></button></h3><div hidden="until-found"><p>Not yet.</p></div>',
+      ),
+    ).toBe('### Is there a free trial?\n\nNot yet.');
+  });
+
+  it('writes no heading without text', () => {
+    expect(markdown('<h3><button>Can I use it offline?</button></h3>')).toMatch(/^### \S/);
+  });
+
+  it("writes a spec status once, as a table, without the phone cards' glued text", () => {
+    const text = markdown(
+      renderToStaticMarkup(<SpecStatus slug="button" title="Button" data={SPEC_DATA.button!} />),
+    );
+    const firstItem = /^\| ([^|]+) \|/m.exec(text.split('\n').slice(4).join('\n'))?.[1]?.trim();
+    expect(firstItem).toBeTruthy();
+    expect(text.split(firstItem!).length - 1).toBe(1);
+    expect(text).not.toMatch(/\n- /);
   });
 
   it('writes definition lists whose terms sit in their own elements', () => {

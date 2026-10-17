@@ -5,14 +5,14 @@ import { useState } from 'react';
 import { LockIcon, NotificationsIcon, PersonIcon } from '../../components/icons';
 
 /**
- * Settings groups that open side by side (`allowsMultipleExpanded`), controlled through
+ * Settings groups that open side by side (`multiple`), controlled through
  * `expandedKeys`, with leading icons and supporting text.
  */
 export function AccordionMultiple() {
   const [expanded, setExpanded] = useState<Set<string | number>>(new Set(['notifications']));
   return (
     <div className="flex w-full max-w-md flex-col gap-3">
-      <Accordion allowsMultipleExpanded expandedKeys={expanded} onExpandedChange={setExpanded}>
+      <Accordion multiple expandedKeys={expanded} onExpandedChange={setExpanded}>
         <AccordionItem
           id="account"
           title="Account"

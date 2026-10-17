@@ -48,20 +48,20 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           <AccordionFaq />
         </ExampleViewer>
         <ExampleViewer
+          title="Several open at once (multiple), controlled"
+          code={multiple}
+          html={multipleHtml!}
+          fileName="accordion-multiple.tsx"
+        >
+          <AccordionMultiple />
+        </ExampleViewer>
+        <ExampleViewer
           title="Segmented"
           code={segmented}
           html={segmentedHtml!}
           fileName="accordion-segmented.tsx"
         >
           <AccordionSegmented />
-        </ExampleViewer>
-        <ExampleViewer
-          title="Several open at once, controlled"
-          code={multiple}
-          html={multipleHtml!}
-          fileName="accordion-multiple.tsx"
-        >
-          <AccordionMultiple />
         </ExampleViewer>
         <ExampleViewer
           title="A header from parts, and a disabled item"
@@ -112,6 +112,11 @@ export async function AccordionBody(): Promise<ComponentDoc> {
             the panels open on Expressive springs.
           </p>
           <p className={TEXT}>
+            One item opens at a time by default, which keeps a long list short; pass{' '}
+            <InlineCode>multiple</InlineCode> to let several stay open, when people compare panels
+            or work through them in any order.
+          </p>
+          <p className={TEXT}>
             Use Collapse for one region your own control opens, a List with{' '}
             <InlineCode>childItems</InlineCode> for nested rows, and Tabs for peer views the person
             switches between.
@@ -124,12 +129,17 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           </h2>
           <ul className={LIST}>
             <li>
-              One item is open at a time, and it can fold fully;{' '}
-              <InlineCode>allowsMultipleExpanded</InlineCode> lets several stay open. The open items
-              are <InlineCode>expandedKeys</InlineCode> (controlled) or{' '}
-              <InlineCode>defaultExpandedKeys</InlineCode>, by each item&apos;s{' '}
+              One item is open at a time, and it can fold fully; <InlineCode>multiple</InlineCode>{' '}
+              lets several stay open. The open items are <InlineCode>expandedKeys</InlineCode>{' '}
+              (controlled) or <InlineCode>defaultExpandedKeys</InlineCode>, by each item&apos;s{' '}
               <InlineCode>id</InlineCode>, and <InlineCode>onExpandedChange</InlineCode> gets the
               new set.
+            </li>
+            <li>
+              An item&apos;s <InlineCode>onExpandedChange</InlineCode> reports every open or fold a
+              person causes: its header pressed, its content found by find-in-page or a link, or,
+              one at a time, folded because another item opened. It isn&apos;t called when your app
+              changes <InlineCode>expanded</InlineCode> or <InlineCode>expandedKeys</InlineCode>.
             </li>
             <li>
               <InlineCode>standard</InlineCode> items are transparent rows with a divider between
@@ -147,7 +157,9 @@ export async function AccordionBody(): Promise<ComponentDoc> {
               Closed panels stay in the page as{' '}
               <InlineCode>hidden=&quot;until-found&quot;</InlineCode>: the browser&apos;s
               find-in-page and a <InlineCode>#fragment</InlineCode> link open the panel holding the
-              match, and closed answers are in the server&apos;s HTML for search engines.
+              match, and closed answers are in the server&apos;s HTML for search engines. Safari
+              before 26.2 can&apos;t find text in a closed panel (26.2 finds it but may not scroll
+              to it); its panels still open from their headers as everywhere else.
             </li>
             <li>
               An item takes a <InlineCode>title</InlineCode> (with <InlineCode>leading</InlineCode>{' '}

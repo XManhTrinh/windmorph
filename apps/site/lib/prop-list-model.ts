@@ -22,10 +22,12 @@ export interface PropItem {
   description?: string;
   /** An object prop's keys (`labels.close`), listed under it. */
   keys: PropItem[];
+  /** Inherited from React Aria rather than declared by the component. */
+  inherited?: boolean;
 }
 
 /** The groups a component's props are sorted into, in display order. */
-export type PropGroupId = 'props' | 'events' | 'text' | 'styling';
+export type PropGroupId = 'props' | 'events' | 'text' | 'styling' | 'inherited';
 
 export interface PropGroup {
   id: PropGroupId;
@@ -38,10 +40,14 @@ export const PROP_GROUP_LABELS: Record<PropGroupId, string> = {
   events: 'Events',
   text: 'Text',
   styling: 'Styling',
+  inherited: 'Inherited from React Aria',
 };
 
-/** The groups that start folded: styling hooks are looked up, not read through. */
-export const FOLDED_GROUPS: ReadonlySet<PropGroupId> = new Set(['styling']);
+/**
+ * The groups that start folded: styling hooks and the props React Aria passes through are
+ * looked up, not read through.
+ */
+export const FOLDED_GROUPS: ReadonlySet<PropGroupId> = new Set(['styling', 'inherited']);
 
 /** The ARIA attributes that name or describe an element: text a reader hears. */
 const ARIA_TEXT = new Set([
@@ -130,11 +136,12 @@ export function propListItems(scope: string, props: readonly PropsRecord[]): Pro
       ...(defaultValue && { defaultValue, defaultText: defaultValue.text }),
       ...(prop.description && { description: prop.description }),
       keys: propListItems(scope, prop.keys ?? []),
+      ...(prop.inherited && { inherited: true }),
     };
   });
 }
 
-/** The group a prop belongs to, from its name alone. */
+/** The group a prop the component declares belongs to, from its name alone. */
 export function propGroupOf(name: string): PropGroupId {
   if (name === 'className' || name === 'classNames' || name === 'style') return 'styling';
   if (/^on[A-Z]/.test(name)) return 'events';
@@ -143,13 +150,13 @@ export function propGroupOf(name: string): PropGroupId {
 }
 
 /**
- * A component's props sorted into groups (Props, Events, Text, Styling), leaving out the
+ * A component's props sorted into groups (Props, Events, Text, Styling, Inherited), leaving out the
  * empty ones. Each group keeps the source order, except that required props lead Props.
  */
 export function groupPropItems(items: readonly PropItem[]): PropGroup[] {
   const byGroup = new Map<PropGroupId, PropItem[]>();
   for (const item of items) {
-    const id = propGroupOf(item.name);
+    const id = item.inherited ? 'inherited' : propGroupOf(item.name);
     byGroup.set(id, [...(byGroup.get(id) ?? []), item]);
   }
   const core = byGroup.get('props');
@@ -176,6 +183,17 @@ export function matchesPropFilter(text: string, query: string): boolean {
     .split(/\s+/)
     .filter(Boolean)
     .every((word) => haystack.includes(word));
+}
+
+/** React's name for the attributes of an element, as the props list's closing line says it. */
+export function htmlAttributesNote(elements: readonly string[] | undefined): string | undefined {
+  if (!elements || elements.length === 0) return undefined;
+  if (elements.includes('element')) {
+    return "Also accepts the root element's HTML attributes (`id`, `data-*`, event handlers).";
+  }
+  const tags = elements.map((element) => `\`<${element}>\``);
+  const named = tags.length > 1 ? `${tags.slice(0, -1).join(', ')} or ${tags.at(-1)}` : tags[0];
+  return `Also accepts every ${named} attribute.`;
 }
 
 /** A count of props in words: `1 prop`, `12 props`. */

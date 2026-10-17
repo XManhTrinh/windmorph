@@ -96,11 +96,12 @@ export interface ContextMenuTriggerProps {
  * F10 or a long press on a touch screen opens it at the pointer (React Aria
  * `useMenuTrigger` with `trigger: 'contextMenu'`). The first child is the content the menu
  * belongs to, wrapped in a `display: contents` element so its layout doesn't change; the
- * rest is the menu.
+ * rest is the menu. Make that content focusable (a link, a button or `tabIndex={0}`), so
+ * the keyboard can open the menu and Escape can return focus to it.
  *
  * @example
  * <ContextMenuTrigger>
- *   <Card>…</Card>
+ *   <Card tabIndex={0}>…</Card>
  *   <Menu onAction={(key) => run(key)}>…</Menu>
  * </ContextMenuTrigger>
  */

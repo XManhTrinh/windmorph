@@ -8,6 +8,7 @@ import { NavigationRail, NavigationRailItem } from '../navigation/NavigationRail
 import { SearchAppBar } from '../search/SearchAppBar';
 import { SearchBar } from '../search/SearchBar';
 import { SideSheet } from '../sheet/SideSheet';
+import { Snackbar } from '../snackbar/Snackbar';
 import { SheetTrigger } from '../sheet/SheetTrigger';
 import { DockedToolbar, FloatingToolbar } from '../toolbar/Toolbar';
 import { IconButton } from './IconButton';
@@ -104,5 +105,16 @@ describe('icon buttons in parts that keep their size', () => {
     for (const name of ['Back', 'Reset', 'Close']) {
       expect(within(side).getByRole('button', { name }), name).toHaveAttribute('data-density', '0');
     }
+  });
+
+  it("stay at density 0 in a snackbar's 48px row", () => {
+    render(
+      <ThemeScope density={-3}>
+        <Snackbar actionLabel="Undo" onDismiss={() => {}}>
+          Message archived
+        </Snackbar>
+      </ThemeScope>,
+    );
+    expect(button('Dismiss')).toHaveAttribute('data-density', '0');
   });
 });

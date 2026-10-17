@@ -4,6 +4,7 @@ import { markdownParagraphs } from '../lib/inline-markdown';
 import {
   FOLDED_GROUPS,
   groupPropItems,
+  htmlAttributesNote,
   propCount,
   propListItems,
   type PropItem,
@@ -212,6 +213,8 @@ export function PropsList({ caption, scope, props, grouped = false }: PropsListP
 export interface ComponentPropsEntry {
   name: string;
   props: PropsRecord[];
+  /** The elements whose HTML attributes the component also accepts (`button`, `a`). */
+  htmlAttributes?: string[];
 }
 
 /** The id of a component's heading in the props section: `props-Dialog`. */
@@ -219,7 +222,8 @@ export function componentPropsId(name: string): string {
   return `props-${name}`;
 }
 
-function ComponentProps({ name, props }: ComponentPropsEntry) {
+function ComponentProps({ name, props, htmlAttributes }: ComponentPropsEntry) {
+  const note = htmlAttributesNote(htmlAttributes);
   return (
     <div data-props-component={name} className="flex flex-col gap-4">
       <h3
@@ -234,6 +238,11 @@ function ComponentProps({ name, props }: ComponentPropsEntry) {
       </h3>
       {props.length > 0 && (
         <PropsList caption={`${name} props`} scope={name} props={props} grouped />
+      )}
+      {note && (
+        <p data-props-note="" className="text-body-medium text-on-surface-variant">
+          <InlineMarkdown text={note} />
+        </p>
       )}
     </div>
   );

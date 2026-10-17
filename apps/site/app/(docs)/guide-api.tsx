@@ -28,7 +28,11 @@ export async function GuideApiReference({ path }: { path: string }) {
       <PropsReference
         components={components
           .filter((json): json is ComponentPropsFile => json !== null && json.props.length > 0)
-          .map((json) => ({ name: json.displayName, props: json.props }))}
+          .map((json) => ({
+            name: json.displayName,
+            props: json.props,
+            htmlAttributes: json.htmlAttributes,
+          }))}
       />
       {hooks
         .filter((doc): doc is HookDocFile => doc !== null)

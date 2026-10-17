@@ -158,7 +158,62 @@ export function playgroundSnippet(
       typeof descriptor.codeChildren === 'function'
         ? descriptor.codeChildren(values)
         : descriptor.codeChildren,
-    codeWrap: descriptor.codeWrap,
+    codeWrap:
+      typeof descriptor.codeWrap === 'function' ? descriptor.codeWrap(values) : descriptor.codeWrap,
+    codeState:
+      typeof descriptor.codeState === 'function'
+        ? descriptor.codeState(values)
+        : descriptor.codeState,
     importFrom: descriptor.importFrom,
+    propNames: (componentProps[active] ?? []).map((record) => record.name),
+    propTypes: Object.fromEntries(
+      (componentProps[active] ?? []).map((record) => [
+        record.name,
+        { type: record.type, ...(record.values && { values: record.values }) },
+      ]),
+    ),
+  });
+}
+
+/** The values a control can take, as its control would set them. */
+function valuesOf(kind: string, options: string[] | undefined, numeric: boolean): unknown[] {
+  if (kind === 'boolean') return [true, false];
+  if (kind === 'enum') return (options ?? []).map((option) => (numeric ? Number(option) : option));
+  if (kind === 'number') return [2];
+  return ['/sample'];
+}
+
+/**
+ * Every snippet a playground can produce, one control changed at a time, from the starting
+ * state of each component its switch shows (after the descriptor's `adjust`). `componentProps`
+ * holds the props of the descriptor's component and its siblings.
+ */
+export function playgroundSnippets(
+  descriptor: PlaygroundDescriptor,
+  componentProps: ComponentProps,
+): string[] {
+  const initial = initialValues(descriptor);
+  const switcher = descriptor.componentSwitch;
+  const starts = switcher
+    ? Object.keys(switcher.components).map((option) => {
+        const next = { ...initial, [switcher.control]: option };
+        return descriptor.adjust ? descriptor.adjust(next, switcher.control) : next;
+      })
+    : [initial];
+  return starts.flatMap((start) => {
+    const controls = playgroundControls(
+      descriptor,
+      componentProps,
+      activeComponent(descriptor, start),
+    );
+    const states: Record<string, unknown>[] = [start];
+    for (const control of controls) {
+      if (control.name === switcher?.control) continue;
+      for (const value of valuesOf(control.kind, control.options, control.numeric === true)) {
+        const next = { ...start, [control.name]: value };
+        states.push(descriptor.adjust ? descriptor.adjust(next, control.name) : next);
+      }
+    }
+    return states.map((values) => playgroundSnippet(descriptor, componentProps, values, controls));
   });
 }

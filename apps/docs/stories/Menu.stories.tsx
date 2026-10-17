@@ -220,7 +220,12 @@ export const ContextMenu: Story = {
     return (
       <div className="flex flex-col items-start gap-4">
         <ContextMenuTrigger>
-          <Card variant="outlined" className="w-[320px] p-[16px]" data-testid="target">
+          <Card
+            variant="outlined"
+            tabIndex={0}
+            className="w-[320px] p-[16px] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            data-testid="target"
+          >
             <p className="text-body-large">Right-click this card</p>
           </Card>
           <Menu

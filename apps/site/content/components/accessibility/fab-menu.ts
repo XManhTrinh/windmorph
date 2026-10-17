@@ -10,7 +10,7 @@ export const fabMenu: ComponentAccessibility = {
     {
       keys: ['Tab'],
       action:
-        'Moves from the button to the top item, down through the items, then out of the menu, which stays open.',
+        'Moves from the button to the top item, down through the items, then out of the menu. Focus leaving the open menu, with Tab or Shift+Tab from any of its parts, closes it, as an outside press does.',
     },
     {
       keys: ['Arrow Down'],

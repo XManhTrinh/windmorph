@@ -91,9 +91,15 @@ export interface DateFieldClassNames extends Omit<
   root?: string;
   /** The `<input>`. */
   input?: string;
-  /** The dropdown calendar's panel. */
+  /**
+   * The calendar's panel: the dropdown panel, or on compact windows the full-screen
+   * dialog's surface.
+   */
   calendar?: string;
-  /** The calendar's month and year menu buttons. */
+  /**
+   * The calendar's month and year menu buttons (on compact windows, the modal picker's one
+   * month and year button).
+   */
   menuButton?: string;
   /** The calendar's weekday names. */
   weekday?: string;
@@ -292,7 +298,7 @@ function DateFieldInner({
             isDateUnavailable={isDateUnavailable}
             yearRange={yearRange}
             strings={strings}
-            className={calendar}
+            classNames={{ calendar, menuButton, weekday, day, item }}
           />
         )
       ) : (

@@ -108,6 +108,14 @@ export const coreChecks = {
   springPosition: { kind: 'value', run: () => Core.springPosition(spring, 0.1) },
   springSettleDuration: { kind: 'value', run: () => Core.springSettleDuration(spring) },
   springToLinearEasing: { kind: 'value', run: () => Core.springToLinearEasing(spring) },
+  springProgressWithVelocity: {
+    kind: 'value',
+    run: () => Core.springProgressWithVelocity(spring, 2, 0.1),
+  },
+  springWithVelocityToLinearEasing: {
+    kind: 'value',
+    run: () => Core.springWithVelocityToLinearEasing(spring, 2),
+  },
   toMotionSpring: { kind: 'value', run: () => Core.toMotionSpring(spring) },
 
   // Component tokens
@@ -272,6 +280,8 @@ export const coreChecks = {
         <Core.NavigationBarItem icon={icon} selected>
           Home
         </Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon}>Search</Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon}>Starred</Core.NavigationBarItem>
       </Core.NavigationBar>
     ),
   },
@@ -279,8 +289,14 @@ export const coreChecks = {
     kind: 'component',
     render: () => (
       <Core.NavigationBar aria-label="Sections">
+        <Core.NavigationBarItem icon={icon} href="#home">
+          Home
+        </Core.NavigationBarItem>
         <Core.NavigationBarItem icon={icon} href="#search">
           Search
+        </Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon} href="#starred">
+          Starred
         </Core.NavigationBarItem>
       </Core.NavigationBar>
     ),
@@ -482,6 +498,7 @@ export const coreChecks = {
   },
   dockedToolbarStyles: { kind: 'value', run: () => Core.dockedToolbarStyles() },
   dockedToolbarTokenSet: read(Core.dockedToolbarTokenSet),
+  toolbarFabTokenSet: read(Core.toolbarFabTokenSet),
   floatingToolbarStyles: { kind: 'value', run: () => Core.floatingToolbarStyles() },
   floatingToolbarTokenSet: read(Core.floatingToolbarTokenSet),
   toolbarFabStyles: { kind: 'value', run: () => Core.toolbarFabStyles() },

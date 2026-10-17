@@ -15,7 +15,7 @@ export const reactionSummary: ComponentAccessibility = {
   keyboardNotes: ["Without `onPress` it is plain text: it isn't focusable and has no keys."],
   screenReader: {
     role: 'A `button` with `onPress`; otherwise plain text.',
-    name: '`labels.count(total)` ("1 reaction", "128 reactions"): the button\'s name when pressable, or visually hidden text read in place of the icons and number.',
+    name: '`labels.count(total, formatted)` ("1 reaction", "128 reactions", "1.3K reactions"): the button\'s name when pressable, or visually hidden text read in place of the icons and number. `formatted` is the compact number as shown; keep it in the words so the name contains the visible text.',
     states: 'None: it announces the count only.',
     notes: [
       'The icons and the compact number ("1.2K") are hidden from assistive tech (`aria-hidden`).',
@@ -32,8 +32,8 @@ export const reactionSummary: ComponentAccessibility = {
     'Pressable, the press ripple appears at full size without growing under reduced motion. Nothing else moves.',
   ],
   consumer: [
-    'When it opens the list of who reacted, say so in `labels.count` ("128 reactions. See who reacted"), since that is the button\'s whole name.',
-    'Translate `labels.count`, with the plural forms your language needs.',
+    "When it opens the list of who reacted, say so in `labels.count`, since that is the button's whole name: `` (total, formatted) => `${formatted} reactions. See who reacted` ``.",
+    "Translate `labels.count`, with your language's plural forms (choose them from `total`).",
     'In forced-colours mode the chip keeps its border, and a pressable `stacked` summary draws a `CanvasText` border; keep `classNames` overrides from removing them.',
   ],
 };

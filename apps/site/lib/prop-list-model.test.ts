@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { PropsRecord } from './component-props';
 import {
   groupPropItems,
+  htmlAttributesNote,
   matchesPropFilter,
   matchOffsets,
   propAnchor,
@@ -161,6 +162,23 @@ describe('groupPropItems', () => {
     required,
   });
 
+  it("folds React Aria's inherited props into their own group, last", () => {
+    const groups = groupPropItems(
+      propListItems('Button', [
+        { ...record('onPressStart'), inherited: true },
+        record('onPress'),
+        record('variant'),
+        { ...record('aria-describedby'), inherited: true },
+      ]),
+    );
+    expect(groups.map(({ id, items }) => [id, items.map((item) => item.name)])).toEqual([
+      ['props', ['variant']],
+      ['events', ['onPress']],
+      ['inherited', ['onPressStart', 'aria-describedby']],
+    ]);
+    expect(groups.at(-1)?.label).toBe('Inherited from React Aria');
+  });
+
   it('keeps source order in each group, puts required props first, and drops empty groups', () => {
     const groups = groupPropItems(
       propListItems('Dialog', [
@@ -215,5 +233,15 @@ describe('matchOffsets', () => {
     ]);
     expect(matchOffsets('scrimscrim', 'scrim crims')).toEqual([[0, 10]]);
     expect(matchOffsets('anything', ' ')).toEqual([]);
+  });
+});
+
+describe('htmlAttributesNote', () => {
+  it('names the element whose attributes the component accepts', () => {
+    expect(htmlAttributesNote(['a', 'button'])).toBe(
+      'Also accepts every `<a>` or `<button>` attribute.',
+    );
+    expect(htmlAttributesNote(['element'])).toMatch(/root element's HTML attributes/);
+    expect(htmlAttributesNote(undefined)).toBeUndefined();
   });
 });

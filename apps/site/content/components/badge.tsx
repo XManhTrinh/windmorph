@@ -58,7 +58,8 @@ export async function BadgeBody(): Promise<ComponentDoc> {
             A <InlineCode>Badge</InlineCode> with no children is the small dot; with children it is
             the large badge. Keep large badges to four characters, including a &quot;+&quot;:
             numbers are capped at <InlineCode>max</InlineCode> (999 by default, so
-            &quot;999+&quot;), and longer text is truncated at the badge&apos;s 34px maximum width.
+            &quot;999+&quot;), and longer text is truncated at the badge&apos;s maximum width (34px
+            at the default text size, growing with larger text).
           </p>
         </section>
       </>
@@ -74,7 +75,8 @@ export async function BadgeBody(): Promise<ComponentDoc> {
               No children is the small 6px dot; children give the large badge (16px tall, at least
               16px wide, with text over four characters cut at 34px, full corners, 4px side padding,{' '}
               <InlineCode>label-small</InlineCode>), both in <InlineCode>error</InlineCode> /{' '}
-              <InlineCode>on-error</InlineCode>.
+              <InlineCode>on-error</InlineCode>. Its height and width limits grow with a larger text
+              size, so a single digit stays a circle.
             </li>
             <li>
               <InlineCode>BadgedBox</InlineCode> places the badge like Compose: a small badge 6px

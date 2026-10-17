@@ -2,9 +2,7 @@
 
 import {
   useContext,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   type ComponentPropsWithRef,
   type CSSProperties,
@@ -45,6 +43,7 @@ import {
   type ToolbarOrientation,
 } from './toolbar-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { useNaturalSize } from '../../utils/natural-size';
 
 const DOCKED = {
   standard: { kind: 'docked', color: 'standard' },
@@ -336,7 +335,12 @@ function FloatingToolbarRoot({
     hasFab,
     fabAt,
   });
-  const [contentRef, toolbarSize] = useContentSize(hasFab, orientation);
+  // The toolbar content's natural length, so the slot keeps the expanded size and the
+  // surface can animate between it and 0.
+  const [contentRef, toolbarSize, toolbarResized] = useNaturalSize<HTMLDivElement>(
+    orientation === 'horizontal' ? 'width' : 'height',
+    hasFab,
+  );
   const context = useMemo(
     () => ({ kind: 'floating', color, expanded, orientation }) as const,
     [color, expanded, orientation],
@@ -349,18 +353,15 @@ function FloatingToolbarRoot({
 
   const collapsible = (slot: 'leading' | 'trailing', content: ReactNode) =>
     content != null && (
-      <div
-        data-collapsed={!expanded || undefined}
-        data-toolbar-collapsible=""
-        className={styles.collapse()}
+      <ToolbarCollapsible
+        slot={slot}
+        expanded={expanded}
+        orientation={orientation}
+        styles={styles}
+        className={classNames?.[slot]}
       >
-        <div
-          data-collapsed={!expanded || undefined}
-          className={styles.clip({ class: toolbarCollapseAnchor({ slot, orientation }) })}
-        >
-          <div className={styles.items({ class: classNames?.[slot] })}>{content}</div>
-        </div>
-      </div>
+        {content}
+      </ToolbarCollapsible>
     );
 
   return (
@@ -386,6 +387,7 @@ function FloatingToolbarRoot({
                 <div
                   data-collapsed={!expanded || undefined}
                   data-toolbar-collapsible=""
+                  data-resized={toolbarResized || undefined}
                   className={styles.surface({ class: classNames?.surface })}
                 >
                   <div ref={contentRef} className={styles.content({ class: classNames?.items })}>
@@ -415,30 +417,53 @@ function FloatingToolbarRoot({
   );
 }
 
+/**
+ * Leading or trailing content: its box animates its width (or height) in px between 0 and
+ * the content's measured size, so expanding shows the spatial spring's overshoot.
+ */
+function ToolbarCollapsible({
+  slot,
+  expanded,
+  orientation,
+  styles,
+  className,
+  children,
+}: {
+  slot: 'leading' | 'trailing';
+  expanded: boolean;
+  orientation: ToolbarOrientation;
+  styles: ReturnType<typeof floatingToolbarStyles>;
+  className?: string;
+  children: ReactNode;
+}) {
+  const axis = orientation === 'horizontal' ? 'width' : 'height';
+  const [ref, size, resized] = useNaturalSize<HTMLDivElement>(axis);
+  return (
+    <div
+      data-collapsed={!expanded || undefined}
+      data-toolbar-collapsible=""
+      data-resized={resized || undefined}
+      style={size === undefined ? undefined : { [axis]: expanded ? size : 0 }}
+      className={styles.collapse()}
+    >
+      <div
+        data-collapsed={!expanded || undefined}
+        className={styles.clip({ class: toolbarCollapseAnchor({ slot, orientation }) })}
+      >
+        <div
+          ref={ref}
+          className={styles.items({ class: cn(styles.collapsibleItems(), className) })}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Whether an element sits in collapsible content (leading, trailing or the FAB's toolbar). */
 function isInCollapsed(element: EventTarget | null) {
   return element instanceof Element && element.closest('[data-toolbar-collapsible]') !== null;
-}
-
-/**
- * Measures the toolbar content's natural length along the toolbar, so the slot keeps the
- * expanded size and the surface can animate between it and 0.
- */
-function useContentSize(enabled: boolean, orientation: ToolbarOrientation) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState<number>();
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!enabled || !element) return;
-    const measure = () =>
-      setSize(orientation === 'horizontal' ? element.offsetWidth : element.offsetHeight);
-    measure();
-    if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [enabled, orientation]);
-  return [ref, size] as const;
 }
 
 export interface ToolbarFabClassNames {
@@ -530,13 +555,19 @@ export function ToolbarFab({
   ...base
 }: ToolbarFabProps) {
   const toolbar = useContext(ToolbarContext);
-  const styles = toolbarFabStyles({ color: color ?? toolbar?.color ?? 'standard', elevation });
+  const fabColor = color ?? toolbar?.color ?? 'standard';
+  const styles = toolbarFabStyles({ color: fabColor, elevation });
   const baseProps = {
     ...base,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
   const fab = (
-    <ButtonBase {...baseProps}>
+    <ButtonBase
+      {...baseProps}
+      // The component tokens' hooks (toolbar-tokens.ts), also public styling hooks for apps.
+      data-tokens={mergeDataTokens('md-comp-toolbar-floating-fab', base)}
+      data-color={fabColor}
+    >
       <span
         aria-hidden="true"
         className={styles.icon({

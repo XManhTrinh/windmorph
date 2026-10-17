@@ -20,7 +20,7 @@ export const card: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'A static card is a plain `div` with no role. A pressable card is a `div` with `role="button"`, because a `<button>` can\'t hold headings or media; a link card is a `link` (`<a>`).',
-    name: 'For a pressable or link card, `aria-labelledby` pointing at its headline, or `aria-label`. Without either, the name is all of its text read together.',
+    name: 'A pressable or link card is named by all of its visible text, in reading order, as a link wrapping it would be, so the name holds everything the card shows (WCAG 2.5.3). Images with `alt=""` add nothing.',
     states: 'Disabled (`aria-disabled`) on a pressable card.',
     notes: ["A static card's content is read in order, like any other content."],
   },
@@ -35,7 +35,7 @@ export const card: ComponentAccessibility = {
     'Under reduced motion the press ripple of an interactive card appears at full size without growing. Colours and elevation still fade.',
   ],
   consumer: [
-    'Name a pressable or link card with `aria-labelledby` pointing at its headline (or `aria-label`), so it is announced by its title and not by all of its text.',
+    "Put a pressable or link card's headline first and keep its text short: the card is announced by all of it. Don't name it by its headline alone with `aria-labelledby` or `aria-label`, which leaves its other visible text out of the name (WCAG 2.5.3). When a card holds more than a short name should, make it a static card with its own link or button.",
     "Don't put buttons, links or fields inside a pressable or link card: interactive content can't nest. In development the card warns when it finds any. Use a static card with its own actions instead.",
     'Use `href` for a card that navigates and `onPress` for one that runs an action.',
     'Give images in a card an `alt` text, or `alt=""` when the headline already says what they show.',

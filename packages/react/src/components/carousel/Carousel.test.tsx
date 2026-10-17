@@ -302,6 +302,45 @@ describe('Carousel', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 
+  // An actionable item's press handler stops the pointer events and focuses the item on
+  // pointer down; the scroller missed both, so a press scrolled the carousel and a drag
+  // opened the item (2026-10-17).
+  it('never scrolls on a press of an actionable item, and a mouse drag never activates it', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollTo = scrollTo;
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const onAction = vi.fn();
+    render(
+      <Carousel aria-label="Photos" onAction={onAction}>
+        {slides(3)}
+      </Carousel>,
+    );
+    const item = screen.getAllByRole('group')[1]!;
+    const scroller = item.parentElement!;
+    await user.click(item);
+    expect(onAction).toHaveBeenCalledWith(1);
+    expect(item).toHaveFocus();
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    onAction.mockClear();
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: item, coords: { clientX: 100, clientY: 10 } },
+      { target: item, coords: { clientX: 60, clientY: 10 } },
+    ]);
+    expect(scroller.scrollLeft).toBe(40);
+    expect(scroller).toHaveAttribute('data-dragging');
+    await user.pointer({
+      keys: '[/MouseLeft]',
+      target: item,
+      coords: { clientX: 60, clientY: 10 },
+    });
+    expect(scroller).not.toHaveAttribute('data-dragging');
+    expect(onAction).not.toHaveBeenCalled();
+  });
+
   it('has no state layer when items are not actionable', () => {
     render(<Carousel aria-label="Photos">{slides(1)}</Carousel>);
     expect(mask(0).children).toHaveLength(1);

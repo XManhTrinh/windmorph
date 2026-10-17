@@ -24,6 +24,9 @@ interface CardOwnProps {
   dragged?: boolean;
 }
 
+/** Button props that don't apply to a card: cards aren't toggles or menu triggers. */
+type NotForCards = 'toggle' | 'preventFocusOnPress';
+
 /** A container card. */
 export interface CardStaticProps extends CardOwnProps, ComponentPropsWithRef<'div'> {
   /** Makes the card a link (`<a>`). It must not contain other buttons or links then. */
@@ -36,16 +39,17 @@ export interface CardStaticProps extends CardOwnProps, ComponentPropsWithRef<'di
 
 /**
  * A pressable card, rendered as `<div role="button">` because cards hold headings, media
- * and blocks that a `<button>` may not. Name it with `aria-labelledby` (its headline) or
- * `aria-label`; it must not contain other buttons or links.
+ * and blocks that a `<button>` may not. It is named by its text, in reading order, as a link
+ * card is: keep the headline first and the text short. Use `aria-label` only for a card that
+ * shows no text. It must not contain other buttons or links.
  */
 export interface CardActionProps
-  extends CardOwnProps, Omit<ButtonBaseDivActionProps, 'elementType' | 'onPress'> {
+  extends CardOwnProps, Omit<ButtonBaseDivActionProps, 'elementType' | 'onPress' | NotForCards> {
   onPress: NonNullable<ButtonBaseDivActionProps['onPress']>;
 }
 
-/** A card that is a link. It must not contain other buttons or links. */
-export interface CardLinkProps extends CardOwnProps, ButtonBaseLinkProps {}
+/** A card that is a link, named by its text. It must not contain other buttons or links. */
+export interface CardLinkProps extends CardOwnProps, Omit<ButtonBaseLinkProps, NotForCards> {}
 
 export type CardProps = CardStaticProps | CardActionProps | CardLinkProps;
 
@@ -73,9 +77,9 @@ function useNoNestedInteractive(ref: RefObject<HTMLElement | null>, interactive:
  *
  * @example
  * <Card variant="elevated" className="p-4">…</Card>
- * <Card href="/trips/kyoto" aria-labelledby="kyoto-title">
+ * <Card href="/trips/kyoto">
  *   <img src={photo} alt="" />
- *   <h3 id="kyoto-title" className="p-4 text-title-medium">Kyoto</h3>
+ *   <h3 className="p-4 text-title-medium">Kyoto</h3>
  * </Card>
  */
 export function Card(props: CardProps) {

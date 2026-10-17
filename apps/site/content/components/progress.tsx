@@ -96,6 +96,13 @@ export async function ProgressBody(): Promise<ComponentDoc> {
             <InlineCode>classNames.indicator</InlineCode> set to{' '}
             <InlineCode>stroke-current</InlineCode>.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            A linear indicator is 240px wide by default and never wider than its container. To span
+            an element, as M3 recommends, give it <InlineCode>w-full</InlineCode> and leave at least
+            4px between each end and the element&apos;s edge (for example{' '}
+            <InlineCode>px-1</InlineCode> on the container). Don&apos;t place it in anything
+            narrower than 40px.
+          </p>
         </section>
       </>
     ),

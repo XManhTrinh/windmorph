@@ -194,6 +194,10 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>markersToPlainText(text)</InlineCode> gives the words without the markers,
               for a page&apos;s title and description, a link preview or a notification.
             </li>
+            <li>
+              The suggestion list&apos;s rows follow density as the core menu&apos;s do (44px at 0,
+              32px at −3).
+            </li>
           </ul>
         </section>
 

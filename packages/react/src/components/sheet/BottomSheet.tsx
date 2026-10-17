@@ -14,6 +14,7 @@ import {
   type ReactElement,
   type ReactNode,
   type Ref,
+  type TransitionEvent,
 } from 'react';
 import {
   mergeProps,
@@ -30,6 +31,9 @@ import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { useThemeScope } from '../../theme/context';
+import { SPRINGS } from '../../tokens/motion';
+import { springWithVelocityToLinearEasing } from '../../tokens/spring-velocity';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
 import {
@@ -359,6 +363,15 @@ function BottomSheetPanel({
   const maxOffset = standard ? Math.max(0, lowerOffset) : height;
   const detentName = current === 'expanded' ? 'expanded' : standard ? 'collapsed' : 'partial';
 
+  // A drag's settle continues at the speed the pointer let go with, as Compose's
+  // `animateTo(target, velocity)` does: the spring starts with that velocity, as a `linear()`
+  // easing and duration set on the moving layer until its move ends (2026-10-17; it started
+  // from rest). Under reduced motion settling stays instant.
+  const { motion: motionScheme } = useThemeScope();
+  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
+    null,
+  );
+
   // Moving down to a lower detent while staying open (Escape, the handle or the collapse
   // button on a full sheet, or the app lowering it) runs on the fast effects spring, which
   // doesn't overshoot, as Compose's `partialExpand()` (`hideMotionSpec`); on the spatial
@@ -370,11 +383,13 @@ function BottomSheetPanel({
   if (controlledDetent !== previousControlled) {
     setPreviousControlled(controlledDetent);
     setLowering(controlledDetent === 'lower');
+    setSettleMotion(null);
   }
 
   /** Moves to `next`, telling `onDetentChange` when a standard sheet's detent changes. */
   const setDetent = (next: 'expanded' | 'lower', fromDrag = false) => {
     setLowering(next === 'lower' && !fromDrag);
+    if (!fromDrag) setSettleMotion(null);
     if (controlledDetent === undefined) setOwnDetent(next);
     const resting = next === 'lower' && hasLower ? 'lower' : 'expanded';
     if (standard && resting !== current)
@@ -408,8 +423,23 @@ function BottomSheetPanel({
       ? [0, lowerOffset, height]
       : [0, height];
 
-  const settle = (target: number) => {
+  const settle = (target: number, velocity: number) => {
     setDrag(null);
+    const closing = !standard && target >= height - 0.5;
+    // A closing sheet leaves to 112% of its height on the fast spatial spring (its exit).
+    const end = closing ? height * 1.12 : target;
+    const distance = end - (drag ?? restingOffset);
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    setSettleMotion(
+      reduced || Math.abs(distance) < 0.5
+        ? null
+        : springWithVelocityToLinearEasing(
+            SPRINGS[motionScheme].spatial[closing ? 'fast' : 'default'],
+            velocity / distance,
+          ),
+    );
     if (!standard && target >= height - 0.5) close();
     else setDetent(target === 0 ? 'expanded' : 'lower', true);
   };
@@ -427,6 +457,7 @@ function BottomSheetPanel({
     fromContent = false,
   ) => {
     if (event.button !== 0) return;
+    setSettleMotion(null);
     pointer.current = {
       pending: true,
       fromHandle,
@@ -479,10 +510,11 @@ function BottomSheetPanel({
     const first = start.samples[0]!;
     const elapsed = (event.timeStamp - first.t) / 1000;
     const velocity = elapsed > 0 ? (event.clientY - first.y) / elapsed : 0;
-    settle(settleTarget(anchors, start.offset, drag, velocity));
+    settle(settleTarget(anchors, start.offset, drag, velocity), velocity);
   };
   const cancelPointer = () => {
     pointer.current.pending = false;
+    setSettleMotion(null);
     setDrag(null);
   };
 
@@ -578,12 +610,26 @@ function BottomSheetPanel({
       className={styles.container({ class: cn(classNames?.container, className) })}
     >
       <div
-        {...exitProps}
+        {...mergeProps(exitProps, {
+          onTransitionEnd: (event: TransitionEvent<HTMLDivElement>) => {
+            if (event.target === event.currentTarget && event.propertyName === 'translate')
+              setSettleMotion(null);
+          },
+        })}
         ref={motionRef}
         data-exiting={exiting}
         data-dragging={dragging}
         data-lowering={lowering || undefined}
-        style={{ '--m3-sheet-offset': `${offset}px` } as CSSProperties}
+        data-settling={settleMotion ? '' : undefined}
+        style={
+          {
+            '--m3-sheet-offset': `${offset}px`,
+            ...(settleMotion && {
+              transitionDuration: `${settleMotion.duration}ms`,
+              transitionTimingFunction: settleMotion.easing,
+            }),
+          } as CSSProperties
+        }
         className={styles.motion()}
       >
         <div

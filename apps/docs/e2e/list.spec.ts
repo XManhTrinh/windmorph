@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
+import { samplePaintedFrames } from './painted-frames';
 import { openStory } from './story';
 
 const rect = (locator: Locator) =>
@@ -372,6 +373,17 @@ test.describe('List geometry and interaction', () => {
  * Samples, on every frame for 700ms, the height and opacity of the tree row wrapper that
  * holds `text` (absent frames are left out), while `act` runs.
  */
+/** The height of a tree row's reveal: the row, and in a segmented list the 2px gap above it. */
+function revealHeight(page: Page, text: string) {
+  return page.evaluate(
+    (text) =>
+      [...document.querySelectorAll('[role="treegrid"] > div')]
+        .find((el) => el.textContent?.includes(text))!
+        .getBoundingClientRect().height,
+    text,
+  );
+}
+
 async function sampleRow(page: Page, text: string, act: () => Promise<void>) {
   const samples = page.evaluate(async (text) => {
     const out: { height: number; opacity: number }[] = [];
@@ -420,7 +432,8 @@ test.describe('List spec measurements', () => {
   test('nested items open and close their height on a spring, fading', async ({ page }) => {
     await openStory(page, 'components-list--expandable');
     const photos = page.getByRole('row', { name: /Photos/ });
-    const full = (await rect(page.getByRole('row', { name: 'Trips' }))).height;
+    await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+    const full = await revealHeight(page, 'Trips');
     await photos.focus();
     const closing = await sampleRow(page, 'Trips', () => page.keyboard.press('ArrowLeft'));
     // Kept while it closes: heights between full and nothing, then gone.
@@ -438,13 +451,88 @@ test.describe('List spec measurements', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-list--expandable');
     const photos = page.getByRole('row', { name: /Photos/ });
-    const full = (await rect(page.getByRole('row', { name: 'Trips' }))).height;
+    await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+    const full = await revealHeight(page, 'Trips');
     await photos.focus();
     await page.keyboard.press('ArrowLeft');
     await expect(page.getByText('Trips')).toHaveCount(0);
     const opening = await sampleRow(page, 'Trips', () => page.keyboard.press('ArrowRight'));
     expect(opening.every((frame) => frame.height === full)).toBe(true);
     expect(opening.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+  });
+
+  // A switch under reduced motion (2026-10-17): the folding rows go at once and the opening ones
+  // appear at full height and fade in, so what's below moves once (here not at all: both items
+  // hold two rows). Before, the folding rows held their height while they faded.
+  test('under reduced motion a switch folds at once and fades the opening rows in', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-list--one-open-at-a-time');
+    await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+    await page.getByRole('row', { name: /Documents/ }).focus();
+    const frames = await page.evaluate(async () => {
+      const row = (text: string) =>
+        [...document.querySelectorAll<HTMLElement>('[role="treegrid"] > div')].find((el) =>
+          el.textContent?.includes(text),
+        );
+      const out: { music: number; trips: boolean; taxes: number | null }[] = [];
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+      );
+      for (let i = 0; i < 24; i++) {
+        await new Promise(requestAnimationFrame);
+        const taxes = row('Taxes');
+        out.push({
+          music: row('Music')!.getBoundingClientRect().top,
+          trips: Boolean(row('Trips')),
+          taxes: taxes ? Number(getComputedStyle(taxes).opacity) : null,
+        });
+      }
+      return out;
+    });
+    const trace = frames.map((f) => `${f.music}/${f.trips ? 'T' : '-'}/${f.taxes}`).join(' ');
+    expect(new Set(frames.map((frame) => frame.music)).size, trace).toBe(1);
+    expect(
+      frames.every((frame) => !frame.trips),
+      trace,
+    ).toBe(true);
+    expect(
+      frames.some((frame) => frame.taxes !== null && frame.taxes < 1),
+      trace,
+    ).toBe(true);
+    expect(frames.at(-1)!.taxes, trace).toBe(1);
+  });
+
+  // A segmented tree's 2px gaps fold with their rows (2026-10-17): a switch between items of
+  // two rows each holds the total height, so Music never moves, also on the frame the folded
+  // rows leave the page. Before, their gaps stayed until then and Music jumped 4px (on a
+  // scrolled page, the browser's scroll anchoring scrolled the page 4px instead).
+  test('a switch in a segmented tree holds what follows still, as the folded rows leave too', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-list--one-open-at-a-time');
+    await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+    const frames = await page.evaluate(async () => {
+      const row = (text: string) =>
+        [...document.querySelectorAll<HTMLElement>('[role="treegrid"] > div')].find((el) =>
+          el.textContent?.includes(text),
+        );
+      const out: { music: number; trips: boolean }[] = [];
+      row('Documents')!.querySelector<HTMLElement>('[role="row"]')!.click();
+      // Sampled by time, until the folded rows are gone and one more frame after.
+      const start = performance.now();
+      while (performance.now() - start < 2000) {
+        await new Promise(requestAnimationFrame);
+        const trips = Boolean(row('Trips'));
+        out.push({ music: row('Music')!.getBoundingClientRect().top, trips });
+        if (!trips && out.length > 1 && !out.at(-2)!.trips) break;
+      }
+      return out;
+    });
+    const trace = frames.map((f) => `${f.music}/${f.trips ? 'T' : '-'}`).join(' ');
+    expect(frames.at(-1)!.trips, trace).toBe(false);
+    expect(new Set(frames.map((frame) => Math.round(frame.music))).size, trace).toBe(1);
   });
 
   test('arrow keys move between the links of a list of links', async ({ page }) => {
@@ -466,6 +554,93 @@ test.describe('List spec measurements', () => {
     // The page doesn't scroll on the way.
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
+});
+
+// A press that opens an item while the open item above it folds keeps the pressed row where it
+// was on screen, on every frame (2026-10-17): the page scrolls by the folded height. Before,
+// the folded rows' scroll anchor held them still and the pressed row slid up by their height,
+// off the window when they were partly above it.
+test.describe('List: the pressed row stays put as the rows above fold', () => {
+  for (const [label, options] of [
+    ['touch phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }],
+    ['desktop', { viewport: { width: 1280, height: 800 } }],
+    [
+      'touch phone, reduced motion',
+      {
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+        reducedMotion: 'reduce',
+      },
+    ],
+  ] as const) {
+    test.describe(label, () => {
+      test.use(options);
+
+      for (const [where, at] of [
+        ['the folding rows partly above the window', 20],
+        ['the whole open item on screen', 300],
+      ] as const) {
+        test(`with ${where}`, async ({ page }) => {
+          await openStory(page, 'components-list--one-open-at-a-time');
+          await expect(page.getByRole('row', { name: 'Trips' })).toBeVisible();
+          // A tall page, scrolled so Documents' row is `at`px from the window's top.
+          const shown = await page.evaluate(async (at) => {
+            const root = document.getElementById('storybook-root')!;
+            const spacer = (height: number) => {
+              const element = document.createElement('div');
+              element.style.height = `${height}px`;
+              return element;
+            };
+            root.before(spacer(1500));
+            root.after(spacer(2500));
+            const row = [...document.querySelectorAll('[role="row"]')].find((el) =>
+              el.textContent?.includes('Documents'),
+            )!;
+            window.scrollTo(0, window.scrollY + row.getBoundingClientRect().top - at);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            const rect = row.getBoundingClientRect();
+            return { x: rect.left + 120, y: rect.top + rect.height / 2, top: rect.top };
+          }, at);
+          expect(shown.top).toBeCloseTo(at, 0);
+          // Sampled as painted, by time, from before the press until the folded rows are gone.
+          const samples = await samplePaintedFrames<{
+            top: number;
+            scroll: number;
+            trips: boolean;
+          }>(
+            page,
+            `(() => {
+              const find = (text) => [...document.querySelectorAll('[role="treegrid"] [role="row"]')]
+                .find((el) => el.textContent.includes(text));
+              return {
+                top: find('Documents').getBoundingClientRect().top,
+                scroll: window.scrollY,
+                trips: Boolean(find('Trips')),
+              };
+            })()`,
+            () =>
+              options.hasTouch
+                ? page.touchscreen.tap(shown.x, shown.y)
+                : page.mouse.click(shown.x, shown.y),
+          );
+          const trace = samples
+            .map((f) => `${Math.round(f.top)}@${Math.round(f.scroll)}${f.trips ? 'T' : ''}`)
+            .join(' ');
+          await expect(page.getByRole('row', { name: /Documents/ })).toHaveAttribute(
+            'aria-expanded',
+            'true',
+          );
+          // The switch happened (Photos' rows are gone, the page scrolled back by their height)…
+          expect(samples.at(-1)!.trips, trace).toBe(false);
+          expect(samples[0]!.scroll - samples.at(-1)!.scroll, trace).toBeGreaterThan(100);
+          // …and Documents never moved on screen.
+          for (const frame of samples)
+            expect(Math.abs(frame.top - shown.top), trace).toBeLessThan(1);
+        });
+      }
+    });
+  }
 });
 
 test.describe('List layout safety', () => {

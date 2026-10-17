@@ -133,8 +133,10 @@ export async function CarouselBody(): Promise<ComponentDoc> {
               Padding follows the spec: 16px before and after the items and 8px across them
               (uncontained and multi-aspect: 16px before only; full-screen: none), set with{' '}
               <InlineCode>contentPadding</InlineCode>. As in Compose, items scroll over the start
-              and end padding. Unlike Compose, only the large and medium items give up the padding
-              at the ends, so small items never drop below the spec&apos;s 40px minimum.
+              and end padding (the spec: items &quot;bleed over the padding on each side when
+              scrolling&quot;), so the 16px after the items shows only at the end of the scroll,
+              where the last item rests. Unlike Compose, only the large and medium items give up the
+              padding at the ends, so small items never drop below the spec&apos;s 40px minimum.
             </li>
             <li>
               Items are masked with 28px (extra-large) corners, tightening to 20px while pressed

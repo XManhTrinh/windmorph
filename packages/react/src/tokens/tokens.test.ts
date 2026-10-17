@@ -7,6 +7,8 @@ import {
   springPosition,
   springSettleDuration,
   springToLinearEasing,
+  springProgressWithVelocity,
+  springWithVelocityToLinearEasing,
   toMotionSpring,
 } from '.';
 
@@ -71,6 +73,22 @@ describe('springs', () => {
     expect(points[0]).toBe(0);
     expect(points.at(-1)).toBe(1);
     expect(Math.max(...points)).toBeGreaterThan(1.08);
+  });
+
+  it('starts a spring with a velocity, as a released gesture continues', () => {
+    for (const token of [SPRINGS.expressive.spatial.default, SPRINGS.standard.effects.fast]) {
+      for (const t of [0, 0.05, 0.2]) {
+        expect(springProgressWithVelocity(token, 0, t)).toBeCloseTo(springPosition(token, t), 9);
+      }
+      // The slope at the start is the velocity (2 distances a second here).
+      expect(springProgressWithVelocity(token, 2, 1e-6) / 1e-6).toBeCloseTo(2, 1);
+    }
+    const resting = springWithVelocityToLinearEasing(SPRINGS.expressive.spatial.default, 0);
+    const flung = springWithVelocityToLinearEasing(SPRINGS.expressive.spatial.default, 8);
+    const second = (easing: string) => Number(easing.slice('linear('.length, -1).split(', ')[1]);
+    expect(second(flung.easing)).toBeGreaterThan(second(resting.easing));
+    expect(flung.easing.endsWith(', 1)')).toBe(true);
+    expect(resting.duration).toBe(springSettleDuration(SPRINGS.expressive.spatial.default));
   });
 
   it('settles faster for stiffer springs', () => {
