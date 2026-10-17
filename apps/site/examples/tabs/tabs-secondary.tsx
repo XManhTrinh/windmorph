@@ -4,8 +4,8 @@ import { Tab, Tabs } from '@windmorph/react';
 
 /**
  * Secondary tabs for a nested level of navigation: a full-width indicator marks the
- * selection and the labels are text only. `defaultSelectedKey` sets the initial tab when
- * the selection is uncontrolled, and `disabledKeys` skips a tab.
+ * selection and the labels are text only. `defaultValue` sets the initial tab when
+ * the selection is uncontrolled, and `disabledKeys` disables a tab, which still takes focus so screen readers find it.
  */
 export function TabsSecondary() {
   return (
