@@ -148,6 +148,10 @@ export const primitivesChecks = {
     kind: 'value',
     run: () => Primitives.splitDataAttributes({ 'data-state': 'on', title: 'Sample' }),
   },
+  splitRootProps: {
+    kind: 'value',
+    run: () => Primitives.splitRootProps({ 'aria-busy': true, title: 'Sample', isDisabled: true }),
+  },
   surfaceStyles: { kind: 'value', run: () => Primitives.surfaceStyles() },
   useKeepPressedInPlace: hook,
   useM3Interaction: hook,

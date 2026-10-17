@@ -27,7 +27,7 @@ const importSnippet = `import {
   // Scrolling
   useKeepPressedInPlace,
   // Building your own component
-  splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
+  splitRootProps, type RootDOMProps, splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
   // Static shapes (precomputed outlines, no shape engine)
   type MaterialShapePath, materialShapeMask, materialShapePaths,
   circleShape, cookie12SidedShape, sunnyShape, /* … one <name>Shape per shape */
@@ -302,9 +302,13 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>cubicsToPath</InlineCode>).
             </li>
             <li>
-              For a component of your own: <InlineCode>splitDataAttributes</InlineCode> (puts{' '}
-              <InlineCode>data-*</InlineCode> props on the root when the rest go to a React Aria
-              hook), <InlineCode>mergeDataTokens</InlineCode> (adds your own token set after a
+              For a component of your own: <InlineCode>splitRootProps</InlineCode> and its{' '}
+              <InlineCode>RootDOMProps</InlineCode> type (put <InlineCode>data-*</InlineCode>,{' '}
+              <InlineCode>aria-*</InlineCode> other than the naming ones, global attributes such as{' '}
+              <InlineCode>title</InlineCode> and pointer events on the root when the rest go to a
+              React Aria hook, as the core components do),{' '}
+              <InlineCode>splitDataAttributes</InlineCode> (only the <InlineCode>data-*</InlineCode>{' '}
+              props), <InlineCode>mergeDataTokens</InlineCode> (adds your own token set after a
               component's, as the core components do with a <InlineCode>data-tokens</InlineCode>{' '}
               they are given), <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
               <InlineCode>ThemeProvider</InlineCode> or <InlineCode>ThemeScope</InlineCode>, to

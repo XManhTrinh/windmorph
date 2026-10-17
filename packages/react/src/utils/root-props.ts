@@ -45,10 +45,37 @@ export type RootDOMProps<E extends Element = HTMLDivElement> = Pick<
   Pick<HTMLAttributes<E>, Global>;
 
 /**
- * Splits a component's {@link RootDOMProps} from the props for its React Aria hook. A component
- * whose hook labels the root itself (a radio group, a slider's group) merges both there.
+ * Splits a component's {@link RootDOMProps} (and every `data-*` attribute) from the props for its
+ * React Aria hook, for a component whose hook forwards only the attributes it knows. Spread
+ * `root` on the root element (merging its handlers with the hook's, React Aria's `mergeProps`)
+ * and pass `rest` to the hook. A component whose hook labels the root itself (a radio group, a
+ * slider's group) merges both there.
+ *
+ * Server-callable: it is a plain function, so it can run in a Server Component.
+ *
+ * @example
+ * ```tsx
+ * function QuantityField({ label, ...props }: AriaTextFieldProps & RootDOMProps) {
+ *   const ref = useRef<HTMLInputElement>(null);
+ *   const { root, rest } = splitRootProps(props);
+ *   const { labelProps, inputProps } = useTextField({ ...rest, label }, ref);
+ *   return (
+ *     <div {...root}>
+ *       <label {...labelProps}>{label}</label>
+ *       <input {...inputProps} ref={ref} />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
-export function splitRootProps<T extends object>(props: T) {
+export function splitRootProps<T extends object>(
+  props: T,
+): {
+  /** `data-*`, `aria-*` but the naming ones, global attributes and root events. */
+  root: Record<string, unknown>;
+  /** Everything else, for the hook. */
+  rest: Omit<T, keyof RootDOMProps | `data-${string}`>;
+} {
   const root: Record<string, unknown> = {};
   const rest: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
@@ -60,5 +87,5 @@ export function splitRootProps<T extends object>(props: T) {
     if (toRoot) root[key] = value;
     else rest[key] = value;
   }
-  return { root, rest: rest as Omit<T, `data-${string}`> };
+  return { root, rest: rest as Omit<T, keyof RootDOMProps | `data-${string}`> };
 }
