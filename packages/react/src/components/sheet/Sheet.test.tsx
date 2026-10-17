@@ -141,6 +141,43 @@ describe('BottomSheet', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
+  it('leaves from where a drag let it go, and springs back when the app keeps it open', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const motionOf = () => screen.getByRole('dialog').parentElement!;
+    const dragClosed = () => {
+      const handle = screen.getByRole('button', { name: 'Close sheet' });
+      fireEvent.pointerDown(handle, { button: 0, clientY: 500, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientY: 540, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientY: 620, pointerId: 1 });
+      fireEvent.pointerUp(handle, { clientY: 620, pointerId: 1 });
+    };
+    // Closed: the exit keeps the release offset (under reduced motion it fades there) and
+    // is no longer a drag, so its transition runs.
+    const { unmount } = render(
+      <BottomSheet aria-label="Details" defaultOpen>
+        Content
+      </BottomSheet>,
+    );
+    dragClosed();
+    expect(motionOf()).toHaveAttribute('data-exiting');
+    expect(motionOf()).not.toHaveAttribute('data-dragging');
+    expect(motionOf().style.getPropertyValue('--m3-sheet-offset')).toBe('120px');
+    unmount();
+    // Refused: a controlled `open` left `true` returns the sheet to rest.
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" open onOpenChange={onOpenChange}>
+        Content
+      </BottomSheet>,
+    );
+    dragClosed();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(motionOf()).not.toHaveAttribute('data-exiting');
+    expect(motionOf()).not.toHaveAttribute('data-dragging');
+    expect(motionOf().style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+  });
+
   it('with swipeable={false}, dragging does nothing and the handle stays a button', () => {
     vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
     vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);

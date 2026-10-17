@@ -52,7 +52,7 @@ export const sheets: ComponentAccessibility = {
     "`swipeable={false}` turns dragging off on either sheet; a bottom sheet's handle then stays a button.",
   ],
   motion: [
-    'Under reduced motion modal sheets fade in and out where they rest instead of sliding, and a bottom sheet moves to a new detent at once; a drag still follows the finger or pointer. A modal side sheet let go past its threshold fades out where it was released, and one let go short of it returns at once. A standard side sheet opens and closes its width at once. The scrim still fades.',
+    'Under reduced motion modal sheets fade in and out where they rest instead of sliding, and a bottom sheet moves to a new detent at once; a drag still follows the finger or pointer. A modal sheet (bottom or side) dragged past its threshold fades out where it was released, and one let go short of it returns at once. A standard side sheet opens and closes its width at once. The scrim still fades.',
   ],
   consumer: [
     'Name every sheet: `aria-label` or `aria-labelledby` on a `BottomSheet`, a `title` (or `aria-label`) on a `SideSheet`.',

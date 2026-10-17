@@ -118,6 +118,51 @@ test.describe('Bottom sheet', () => {
     await expect(sheet).toBeHidden();
   });
 
+  test('under reduced motion a drag down follows the pointer, then fades where it was let go', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 412, height: 800 });
+    await openStory(page, 'components-sheet--bottom');
+    await page.getByRole('button', { name: 'Open sheet' }).click();
+    await settle(page);
+    const top = (await rect(page.getByRole('dialog'))).y;
+    const handle = await rect(page.getByRole('button', { name: 'Close sheet' }));
+    const x = handle.x + handle.width / 2;
+    const y = handle.y + handle.height / 2;
+    await page.evaluate(() => {
+      const frames: { y: number; opacity: number }[] = [];
+      (window as unknown as { dragFrames: typeof frames }).dragFrames = frames;
+      const sample = () => {
+        const panel = document.querySelector('[role="dialog"]');
+        if (!panel) return;
+        frames.push({
+          y: panel.getBoundingClientRect().y,
+          opacity: Number(getComputedStyle(panel.parentElement!).opacity),
+        });
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 10; i++) await page.mouse.move(x, y + i * 15);
+    await page.mouse.up();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    const frames = await page.evaluate(
+      () => (window as unknown as { dragFrames: { y: number; opacity: number }[] }).dragFrames,
+    );
+    // It moved with the pointer…
+    const released = top + 150;
+    expect(frames.some((f) => Math.abs(f.y - released) <= 1)).toBe(true);
+    // …and after the release only fades: no snap back to rest before it goes.
+    const atRelease = frames.findIndex((f) => Math.abs(f.y - released) <= 1);
+    for (const frame of frames.slice(atRelease)) expect(frame.y).toBeGreaterThan(released - 1);
+    const fading = frames.filter((f) => f.opacity < 1);
+    expect(fading.length).toBeGreaterThan(0);
+    for (const frame of fading) expect(Math.abs(frame.y - released)).toBeLessThanOrEqual(1);
+  });
+
   test('above 640px it keeps 56px top and side margins', async ({ page }) => {
     await page.setViewportSize({ width: 700, height: 800 });
     await openStory(page, 'components-sheet--bottom-tall');

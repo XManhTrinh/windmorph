@@ -354,6 +354,23 @@ function BottomSheetPanel({
       : undefined;
   const detent = controlledDetent ?? ownDetent;
   const [drag, setDrag] = useState<number | null>(null);
+  // A drag's settle continues at the speed the pointer let go with, as Compose's
+  // `animateTo(target, velocity)` does: the spring starts with that velocity, as a `linear()`
+  // easing and duration set on the moving layer until its move ends (2026-10-17; it started
+  // from rest). Under reduced motion settling stays instant.
+  const { motion: motionScheme } = useThemeScope();
+  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
+    null,
+  );
+  // A drag let go to close: the offset stays where the pointer left it, so the exit leaves
+  // from there (and, under reduced motion, fades there, as the side sheet does). If the
+  // sheet is still open after that render, the app refused and the sheet springs back.
+  const [dragClosing, setDragClosing] = useState(false);
+  if (dragClosing && state.isOpen) {
+    setDragClosing(false);
+    setDrag(null);
+    setSettleMotion(null);
+  }
   const contentRef = useRef<HTMLDivElement>(null);
   const pointer = useRef({
     pending: false,
@@ -378,15 +395,6 @@ function BottomSheetPanel({
   const offset = drag ?? restingOffset;
   const maxOffset = standard ? Math.max(0, lowerOffset) : height;
   const detentName = current === 'expanded' ? 'expanded' : standard ? 'collapsed' : 'partial';
-
-  // A drag's settle continues at the speed the pointer let go with, as Compose's
-  // `animateTo(target, velocity)` does: the spring starts with that velocity, as a `linear()`
-  // easing and duration set on the moving layer until its move ends (2026-10-17; it started
-  // from rest). Under reduced motion settling stays instant.
-  const { motion: motionScheme } = useThemeScope();
-  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
-    null,
-  );
 
   // Moving down to a lower detent while staying open (Escape, the handle or the collapse
   // button on a full sheet, or the app lowering it) runs on the fast effects spring, which
@@ -436,7 +444,6 @@ function BottomSheetPanel({
   const anchors = [0, ...(hasLower ? [lowerOffset] : []), ...(closable ? [height] : [])];
 
   const settle = (target: number, velocity: number) => {
-    setDrag(null);
     const closing = !standard && target >= height - 0.5;
     // A closing sheet leaves to 112% of its height on the fast spatial spring (its exit).
     const end = closing ? height * 1.12 : target;
@@ -452,8 +459,13 @@ function BottomSheetPanel({
             velocity / distance,
           ),
     );
-    if (!standard && target >= height - 0.5) close();
-    else setDetent(target === 0 ? 'expanded' : 'lower', true);
+    if (closing) {
+      setDragClosing(true);
+      close();
+    } else {
+      setDrag(null);
+      setDetent(target === 0 ? 'expanded' : 'lower', true);
+    }
   };
 
   /** The handle's action: expand a lower sheet, collapse a standard one, close a modal one. */
@@ -468,7 +480,8 @@ function BottomSheetPanel({
     fromHandle: boolean,
     fromContent = false,
   ) => {
-    if (event.button !== 0) return;
+    // A leaving sheet takes no new drag.
+    if (event.button !== 0 || isExiting) return;
     setSettleMotion(null);
     pointer.current = {
       pending: true,
@@ -605,7 +618,7 @@ function BottomSheetPanel({
 
   const { focusProps: handleFocusProps, isFocusVisible: handleFocusVisible } = useFocusRing();
   const exiting = isExiting || undefined;
-  const dragging = drag !== null || undefined;
+  const dragging = (drag !== null && !dragClosing) || undefined;
   const handleLabel =
     current === 'lower' ? labels.expand : standard ? labels.collapse : labels.dismiss;
   // The sheet fills the window up to its top margin: 72px, or 56px above 640px wide.
