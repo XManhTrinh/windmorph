@@ -68,7 +68,7 @@ const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [
   {
     compose: '`MaterialShapes`, `Morph`',
     windmorph: '`MaterialShapes`, `Morph`, `useM3Morph`',
-    note: 'A port of `androidx.graphics.shapes`, from `@windmorph/react/primitives`.',
+    note: 'A port of `androidx.graphics.shapes`, from `@windmorph/react/primitives`. Static shapes also come precomputed, one constant each (`cookie12SidedShape`), drawn with `materialShapeMask`.',
   },
 ];
 
