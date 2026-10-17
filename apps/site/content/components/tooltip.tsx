@@ -97,7 +97,7 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               Both sit 4px from the anchor (<InlineCode>offset</InlineCode>; use 8 for text anchors,
               and the optional 16×8 caret adds 8px) and keep 8px from the screen edge. Plain
               tooltips default to <InlineCode>top</InlineCode>, rich ones to{' '}
-              <InlineCode>bottom start</InlineCode> (bottom right in left-to-right layouts); in a
+              <InlineCode>bottom-start</InlineCode> (bottom right in left-to-right layouts); in a
               top app bar or search app bar, plain tooltips open below (
               <InlineCode>TooltipPlacementContext</InlineCode>). At the screen edge they keep their
               natural width and move inside the margin. They expand from the anchor&apos;s side

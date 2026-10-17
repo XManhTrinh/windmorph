@@ -28,7 +28,7 @@ export function ToolbarDockedOverflow() {
         <IconButton variant="filled" icon={<EditIcon />} aria-label="Compose" />
         <MenuTrigger>
           <IconButton icon={<MoreVertIcon />} aria-label="More actions" />
-          <Menu aria-label="More actions" placement="top end">
+          <Menu aria-label="More actions" placement="top-end">
             <MenuItem key="copy" leadingIcon={<ContentCopyIcon />}>
               Copy
             </MenuItem>

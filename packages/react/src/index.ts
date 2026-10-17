@@ -389,6 +389,7 @@ export {
   type MenuItemProps,
   type MenuKey,
   type MenuLabels,
+  type MenuPlacement,
   type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,

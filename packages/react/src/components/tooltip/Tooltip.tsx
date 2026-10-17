@@ -35,6 +35,7 @@ import {
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { toAriaPlacement } from '../../utils/placement';
 import { tabbables } from '../../utils/focus';
 import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
 import { TooltipPlacementContext, type TooltipPlacement } from './tooltip-placement';
@@ -81,10 +82,7 @@ function usePhysicalPlacement(
     () => (triggerRef.current ? getComputedStyle(triggerRef.current).direction : 'ltr'),
     () => 'ltr',
   );
-  const rtl = direction === 'rtl';
-  return placement
-    .replace('start', rtl ? 'right' : 'left')
-    .replace('end', rtl ? 'left' : 'right') as Placement;
+  return toAriaPlacement(placement, direction === 'rtl');
 }
 
 /**
@@ -228,7 +226,7 @@ export interface RichTooltipTriggerProps {
    * @default false
    */
   persistent?: boolean;
-  /** Bottom right of the anchor in left-to-right layouts (the spec). @default "bottom start" */
+  /** Bottom right of the anchor in left-to-right layouts (the spec). @default "bottom-start" */
   placement?: TooltipPlacement;
   /** Distance from the anchor in px. @default 4 */
   offset?: number;
@@ -262,7 +260,7 @@ export function RichTooltipTrigger({ persistent = false, ...props }: RichTooltip
 
 function PersistentRichTrigger({
   children,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = DEFAULT_OFFSET,
   disabled = false,
   open,
@@ -287,7 +285,7 @@ function PersistentRichTrigger({
 
 function TransientRichTrigger({
   children,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = DEFAULT_OFFSET,
   delay = 0,
   closeDelay = CLOSE_DELAY,

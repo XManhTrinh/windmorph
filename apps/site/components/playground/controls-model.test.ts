@@ -192,6 +192,6 @@ describe('isSegmented', () => {
     expect(isSegmented(['auto', 'top', 'bottom'])).toBe(false);
     expect(isSegmented(['none', 'single', 'multiple'])).toBe(false);
     expect(isSegmented(['xs', 'sm', 'md', 'lg'])).toBe(false);
-    expect(isSegmented(['bottom start', 'bottom end', 'top'])).toBe(false);
+    expect(isSegmented(['bottom-start', 'bottom-end', 'top'])).toBe(false);
   });
 });

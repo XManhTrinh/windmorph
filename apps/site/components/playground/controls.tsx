@@ -148,7 +148,7 @@ function ControlInfo({ def, slug }: { def: ControlDef; slug: string }) {
       ? `${componentTabHref(slug, 'api')}#${propAnchor(def.docsComponent, def.docsProp)}`
       : undefined;
   return (
-    <RichTooltipTrigger persistent placement="bottom start">
+    <RichTooltipTrigger persistent placement="bottom-start">
       <IconButton
         variant="standard"
         size="xs"

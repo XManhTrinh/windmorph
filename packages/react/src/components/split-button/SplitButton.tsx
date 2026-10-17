@@ -202,7 +202,7 @@ export function SplitButton(props: SplitButtonProps) {
           <TrailingButton {...trailingProps} open={isOpen} onPress={onTrailingPress} />
         </OpenOnMouseRelease>
         {cloneElement(menu, {
-          placement: menu.props.placement ?? 'bottom end',
+          placement: menu.props.placement ?? 'bottom-end',
           offset: menu.props.offset ?? 4,
           // Aligned with the trailing button even against the window's edge.
           containerPadding: menu.props.containerPadding ?? 0,

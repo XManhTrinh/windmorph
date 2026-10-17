@@ -32,7 +32,7 @@ export interface OverflowMenuListProps extends Pick<
  */
 export function OverflowMenuList({ items, ...props }: OverflowMenuListProps) {
   return (
-    <Menu {...props} placement="bottom end">
+    <Menu {...props} placement="bottom-end">
       {items.map(({ key, label, icon, checkable }) => (
         <CheckableMenuItem
           key={key}

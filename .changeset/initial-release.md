@@ -41,3 +41,5 @@ The arrow keys wrap at the ends of a `Menu` and of the `Select` and `Autocomplet
 Disabled items in an interactive `List` (actions, selection or nested items) take focus with the arrow keys, as the WAI-ARIA practices recommend, but can't be pressed, selected, expanded or followed.
 
 Placement props share one vocabulary: `NavigationBar` takes `iconPlacement` (was `iconPosition`, now matching `Tabs`), `FloatingToolbar` takes `fabPlacement` (was `fabPosition`), and `List` / `ListItem` `controlPlacement` takes `start` or `end` (was `leading` or `trailing`).
+
+Placements are hyphenated, like every other multi-word value: `'bottom-start'`, `'top-end'` and so on for `TooltipTrigger`, `RichTooltipTrigger` and `Menu` (whose placements are now the `MenuPlacement` type, logical sides only), instead of `'bottom start'`.

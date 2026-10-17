@@ -298,7 +298,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       variant: 'standard',
       layout: 'divider',
       density: 0,
-      placement: 'bottom start',
+      placement: 'bottom-start',
       offset: 0,
       containerPadding: 12,
       presentation: 'popover',
@@ -320,7 +320,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         "Applies only to a menu with `selectionMode`, which the preview's action menu doesn't have; the Selection example shows it.",
     },
     enumOptions: {
-      placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
+      placement: ['bottom-start', 'bottom-end', 'top-start', 'top-end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],
       presentation: ['popover', 'sheet', 'auto'],
     },

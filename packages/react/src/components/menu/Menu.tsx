@@ -52,6 +52,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { densityAttribute, type Density } from '../../tokens/density';
+import { toAriaPlacement } from '../../utils/placement';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
@@ -257,8 +258,12 @@ export interface MenuProps extends Omit<
    * @default 0
    */
   density?: Density;
-  /** Placement relative to the trigger (a submenu always opens beside its item). @default "bottom start" */
-  placement?: Placement;
+  /**
+   * Placement relative to the trigger: a side, then optionally the edge to align with
+   * (`start` / `end` follow the text direction). A submenu always opens beside its item.
+   * @default "bottom-start"
+   */
+  placement?: MenuPlacement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
   /**
@@ -298,6 +303,21 @@ export interface MenuProps extends Omit<
   /** Goes on the menu's outermost element, with `className`. */
   style?: CSSProperties;
 }
+
+/** Where a {@link Menu} sits against its trigger: a side, then optionally the edge it aligns with. */
+export type MenuPlacement =
+  | 'top'
+  | 'bottom'
+  | 'start'
+  | 'end'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'start-top'
+  | 'start-bottom'
+  | 'end-top'
+  | 'end-bottom';
 
 /** Where a {@link Menu} opens. */
 export type MenuPresentation = 'popover' | 'sheet' | 'auto';
@@ -464,11 +484,8 @@ const subscribeToNothing = () => () => {};
  * RTL region without an `I18nProvider` would align the menu to the wrong edge. Resolve
  * them to physical sides from the trigger's computed direction instead.
  */
-function toPhysicalPlacement(placement: Placement, direction: string): Placement {
-  const rtl = direction === 'rtl';
-  return placement
-    .replace('start', rtl ? 'right' : 'left')
-    .replace('end', rtl ? 'left' : 'right') as Placement;
+function toPhysicalPlacement(placement: MenuPlacement, direction: string): Placement {
+  return toAriaPlacement(placement, direction === 'rtl');
 }
 
 type ExitProps = ReturnType<typeof usePresence>['exitProps'];
@@ -478,7 +495,7 @@ function MenuPopover({
   instant,
   isExiting,
   exitProps,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = 0,
   containerPadding = 12,
   layout = 'divider',
