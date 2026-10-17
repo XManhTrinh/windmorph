@@ -48,7 +48,7 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           <AccordionFaq />
         </ExampleViewer>
         <ExampleViewer
-          title="Several open at once (allowsMultipleExpanded), controlled"
+          title="Several open at once (multiple), controlled"
           code={multiple}
           html={multipleHtml!}
           fileName="accordion-multiple.tsx"
@@ -113,8 +113,8 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           </p>
           <p className={TEXT}>
             One item opens at a time by default, which keeps a long list short; pass{' '}
-            <InlineCode>allowsMultipleExpanded</InlineCode> to let several stay open, when people
-            compare panels or work through them in any order.
+            <InlineCode>multiple</InlineCode> to let several stay open, when people compare panels
+            or work through them in any order.
           </p>
           <p className={TEXT}>
             Use Collapse for one region your own control opens, a List with{' '}
@@ -129,12 +129,17 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           </h2>
           <ul className={LIST}>
             <li>
-              One item is open at a time, and it can fold fully;{' '}
-              <InlineCode>allowsMultipleExpanded</InlineCode> lets several stay open. The open items
-              are <InlineCode>expandedKeys</InlineCode> (controlled) or{' '}
-              <InlineCode>defaultExpandedKeys</InlineCode>, by each item&apos;s{' '}
+              One item is open at a time, and it can fold fully; <InlineCode>multiple</InlineCode>{' '}
+              lets several stay open. The open items are <InlineCode>expandedKeys</InlineCode>{' '}
+              (controlled) or <InlineCode>defaultExpandedKeys</InlineCode>, by each item&apos;s{' '}
               <InlineCode>id</InlineCode>, and <InlineCode>onExpandedChange</InlineCode> gets the
               new set.
+            </li>
+            <li>
+              An item&apos;s <InlineCode>onExpandedChange</InlineCode> reports every open or fold a
+              person causes: its header pressed, its content found by find-in-page or a link, or,
+              one at a time, folded because another item opened. It isn&apos;t called when your app
+              changes <InlineCode>expanded</InlineCode> or <InlineCode>expandedKeys</InlineCode>.
             </li>
             <li>
               <InlineCode>standard</InlineCode> items are transparent rows with a divider between

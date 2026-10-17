@@ -101,8 +101,12 @@ export async function CollapseBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>open</InlineCode> (or <InlineCode>defaultOpen</InlineCode>, uncontrolled)
               opens and folds it on its grid track, so no height is measured. It opens on the
-              default spatial spring and folds on the default effects spring, which never
-              overshoots, with the content fading on the effects spring.
+              default spatial spring and folds over the same time on the default effects
+              spring&apos;s easing, which never overshoots, so a folding height never bounces back
+              open (<InlineCode>--wm-collapse-spring-duration</InlineCode>,{' '}
+              <InlineCode>-spring-easing</InlineCode>, <InlineCode>-fold-easing</InlineCode>). Its
+              content fades on the default effects spring (<InlineCode>-fade-duration</InlineCode>,{' '}
+              <InlineCode>-fade-easing</InlineCode>).
             </li>
             <li>
               Folding keeps it in the page, showing what it last showed even if the app has moved

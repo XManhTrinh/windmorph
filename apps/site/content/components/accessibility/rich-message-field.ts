@@ -88,6 +88,7 @@ export const richMessageField: ComponentAccessibility = {
     'Each person in the mention list is a full-width row.',
   ],
   motion: [
+    "Growing and shrinking by a line slide on the field's spring, as in {@link MessageField}; getting shorter eases without overshoot. Under reduced motion the height changes at once.",
     "Under reduced motion `autoFocus` and the app's `focus()` bring the field into view at once instead of gliding. Nothing moves or scales, but the fades stay on their effects timing: the field's rows, Send, its icon, the loading indicator and the link dialog still fade, as in {@link MessageField}.",
     "The mention list's pressed ripple appears at full size without growing.",
   ],

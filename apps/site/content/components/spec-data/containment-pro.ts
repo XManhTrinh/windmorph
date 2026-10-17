@@ -174,7 +174,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['accordion/accordion-faq'],
       },
       {
-        name: 'Several open at once, controlled (`allowsMultipleExpanded`, `expandedKeys`)',
+        name: 'Several open at once, controlled (`multiple`, `expandedKeys`)',
         kind: 'configuration',
         examples: ['accordion/accordion-multiple'],
       },
@@ -243,7 +243,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         composable: 'AnimatedVisibility(enter = expandVertically(), exit = shrinkVertically())',
         component: 'Collapse',
         params: [{ compose: 'visible', windmorph: 'open' }],
-        note: "Compose's animation API, not a Material 3 component. `Collapse` opens its height (a CSS grid row, so nothing is measured) on the default spatial spring and folds it on the default effects spring, with the content fading on the effects spring.",
+        note: "Compose's animation API, not a Material 3 component. `Collapse` opens its height (a CSS grid row, so nothing is measured) on the default spatial spring and folds it over the same time on the default effects spring's easing, which never overshoots, with the content fading on the effects spring.",
       },
     ],
   },

@@ -132,6 +132,13 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
               core <InlineCode>Dialog</InlineCode>.
             </li>
             <li>
+              <InlineCode>ImageCropDialog</InlineCode>&apos;s <InlineCode>ref</InlineCode>,{' '}
+              <InlineCode>id</InlineCode>, <InlineCode>aria-*</InlineCode> and{' '}
+              <InlineCode>data-*</InlineCode> attributes go on the dialog panel (the element with{' '}
+              <InlineCode>role=&quot;dialog&quot;</InlineCode>), as on the core{' '}
+              <InlineCode>Dialog</InlineCode>.
+            </li>
+            <li>
               <InlineCode>zoomInIcon</InlineCode> and <InlineCode>zoomOutIcon</InlineCode> replace
               the zoom buttons&apos; icons, on both components.
             </li>

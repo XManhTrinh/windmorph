@@ -426,7 +426,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
           {
             ...props,
             // Switching to several open at once keeps what is open; back to one starts afresh.
-            key: String(props.allowsMultipleExpanded),
+            key: String(props.multiple),
             defaultExpandedKeys: ['arrival'],
             density: asDensity(density),
             headingLevel: headingLevel == null ? undefined : Number(headingLevel),
@@ -438,12 +438,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       ),
     defaultProps: {
       variant: 'standard',
-      allowsMultipleExpanded: false,
+      multiple: false,
       disabled: false,
       headingLevel: 3,
       density: 0,
     },
-    surfacedProps: ['variant', 'allowsMultipleExpanded', 'disabled', 'headingLevel', 'density'],
+    surfacedProps: ['variant', 'multiple', 'disabled', 'headingLevel', 'density'],
     enumOptions: { ...DENSITY_OPTIONS, headingLevel: ['2', '3', '4', '5', '6'] },
     // The heading level and density are numbers, so the snippet writes them as numbers.
     controlKinds: { headingLevel: 'number', density: 'number' },

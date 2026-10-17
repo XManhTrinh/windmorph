@@ -25,13 +25,13 @@ export const accordion: ComponentAccessibility = {
     'Moving focus with the arrow keys scrolls the page no further than it takes to show the header.',
   ],
   screenReader: {
-    role: 'The WAI-ARIA accordion pattern: each header is a heading (`h3` by default, set with `headingLevel`) holding a `button`. With six items or fewer, each panel is a `region`.',
+    role: 'The WAI-ARIA accordion pattern: each header is a heading (`h3` by default, set with `headingLevel`) holding a `button`. With six items or fewer each panel is a `region` named by its header.',
     name: "The button is named by the header's title (its supporting text is read with it); a panel's region is named by its header.",
     states:
       'The button announces expanded or collapsed (`aria-expanded`) and points at its panel (`aria-controls`); a disabled header is announced as dimmed.',
     notes: [
       'Closed panels stay in the page as `hidden="until-found"`: screen readers and Tab skip them, while find-in-page and `#fragment` links can still reach their text and open them. Safari before 26.2 can\'t find text in a closed panel (26.2 finds it but may not scroll to it); the headers still open every panel.',
-      'Past six items the panels are plain groups rather than regions, so the page has no flood of landmarks.',
+      "Past six, panels have no role, so a long accordion doesn't fill the landmarks list.",
       'The chevron is decorative (`aria-hidden`).',
     ],
   },
@@ -47,7 +47,7 @@ export const accordion: ComponentAccessibility = {
   motion: [
     'Under reduced motion nothing moves: a panel opening on its own appears at full height and fades in, and one folding on its own fades out where it is, then goes. When one opens as another folds, the folding one goes at once and the opening one fades in, so the content below shifts once, never twice. The chevron flips without turning, and segmented corners snap to their new shape.',
     'Opening an item as the one above it folds keeps the header you pressed where it is.',
-    'In forced-colours mode segmented items keep a border, so each container stays visible.',
+    'In forced colours every standard item ends with a `CanvasText` rule, the last one too; segmented items keep their border.',
   ],
   consumer: [
     'Pick a `headingLevel` that fits the page outline: one below the heading the accordion sits under.',
