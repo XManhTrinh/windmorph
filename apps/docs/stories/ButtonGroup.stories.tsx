@@ -409,3 +409,33 @@ export const Density: Story = {
     </DensityColumns>
   ),
 };
+
+/**
+ * Narrow icon buttons in standard groups, at every density: the gap grows to 48px minus the
+ * narrow width wherever the spec's is smaller, so neighbouring 48px targets never overlap.
+ */
+export const NarrowDensity: Story = {
+  render: () => (
+    <DensityColumns>
+      {(density) => (
+        <ThemeScope density={density}>
+          <div className="flex flex-col items-start gap-4">
+            {(['xs', 'sm', 'md'] as const).map((size) => (
+              <ButtonGroup
+                key={size}
+                size={size}
+                buttonVariant="tonal"
+                aria-label={`Narrow formatting ${size}`}
+                data-testid={`${density}-narrow-${size}`}
+              >
+                <IconButton icon={<FormatBoldIcon />} aria-label="Bold" width="narrow" />
+                <IconButton icon={<FormatItalicIcon />} aria-label="Italic" width="narrow" />
+                <IconButton icon={<FormatUnderlinedIcon />} aria-label="Underline" width="narrow" />
+              </ButtonGroup>
+            ))}
+          </div>
+        </ThemeScope>
+      )}
+    </DensityColumns>
+  ),
+};

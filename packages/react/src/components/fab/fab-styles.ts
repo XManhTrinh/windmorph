@@ -97,17 +97,23 @@ export const extendedFabStyles = tv({
     // Library-owned inner wrapper for the icon and the collapsing label.
     content: 'inline-flex items-center',
     icon: 'inline-flex shrink-0 items-center justify-center [&>svg]:size-full',
-    // The label column animates between 0fr and 1fr, so the FAB's width follows it.
+    // The label's box animates its width in px between 0 and the label's measured width
+    // (2026-10-17, as Compose lerps the width), so the FAB's width follows it with the fast
+    // spatial spring's overshoot, which a 0fr ↔ 1fr track couldn't show. Before it is
+    // measured (on the server) it takes the label's natural width, or 0 collapsed.
     collapse: [
-      'grid grid-cols-[1fr] opacity-100',
-      '[transition-property:grid-template-columns,opacity]',
+      'flex overflow-hidden opacity-100',
+      '[transition-property:width,opacity]',
       // All component motion runs on the fast spatial and fast effects springs.
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-effects-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
-      'data-collapsed:grid-cols-[0fr] data-collapsed:opacity-0',
+      'data-collapsed:w-0 data-collapsed:opacity-0',
+      // The label itself changed size (a web font arriving): follow it at once.
+      'data-resized:[transition-duration:0s]',
     ],
-    // Clips the label while collapsing; the icon gap lives on `text` so it clips too.
-    label: 'min-w-0 overflow-hidden',
+    // Keeps its natural width while its box closes (it is the measured element); the icon
+    // gap lives on `text` so it clips too.
+    label: 'w-max shrink-0',
     text: '',
   },
   variants: {

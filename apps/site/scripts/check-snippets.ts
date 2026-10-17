@@ -11,25 +11,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { PLAYGROUND_DESCRIPTORS } from '../components/playground/descriptors';
-import {
-  activeComponent,
-  initialValues,
-  playgroundControls,
-  playgroundSnippet,
-} from '../components/playground/playground-state';
+import { playgroundSnippets } from '../components/playground/playground-state';
 import type { PlaygroundDescriptor } from '../components/playground/descriptors';
 import type { PropsRecord } from '../lib/component-props';
 
 const siteRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(siteRoot, '.generated/snippets');
-
-/** The values a control can take, as its control would set them. */
-function valuesOf(kind: string, options: string[] | undefined, numeric: boolean): unknown[] {
-  if (kind === 'boolean') return [true, false];
-  if (kind === 'enum') return (options ?? []).map((option) => (numeric ? Number(option) : option));
-  if (kind === 'number') return [2];
-  return ['/sample'];
-}
 
 /** A component's generated props, or none for one the generator skipped. */
 function readProps(name: string): PropsRecord[] {
@@ -40,40 +27,16 @@ function readProps(name: string): PropsRecord[] {
   ).props;
 }
 
-/**
- * Every snippet a playground can produce, one control changed at a time, from the starting
- * state of each component its switch shows.
- */
+/** Every snippet a playground can produce (see {@link playgroundSnippets}). */
 function snippetsOf(descriptor: PlaygroundDescriptor): string[] {
   const names = [
     descriptor.component,
     ...Object.values(descriptor.componentSwitch?.components ?? {}),
   ];
-  const componentProps = Object.fromEntries(names.map((name) => [name, readProps(name)]));
-  const initial = initialValues(descriptor);
-  const switcher = descriptor.componentSwitch;
-  const starts = switcher
-    ? Object.keys(switcher.components).map((option) => {
-        const next = { ...initial, [switcher.control]: option };
-        return descriptor.adjust ? descriptor.adjust(next, switcher.control) : next;
-      })
-    : [initial];
-  return starts.flatMap((start) => {
-    const controls = playgroundControls(
-      descriptor,
-      componentProps,
-      activeComponent(descriptor, start),
-    );
-    const states: Record<string, unknown>[] = [start];
-    for (const control of controls) {
-      if (control.name === switcher?.control) continue;
-      for (const value of valuesOf(control.kind, control.options, control.numeric === true)) {
-        const next = { ...start, [control.name]: value };
-        states.push(descriptor.adjust ? descriptor.adjust(next, control.name) : next);
-      }
-    }
-    return states.map((values) => playgroundSnippet(descriptor, componentProps, values, controls));
-  });
+  return playgroundSnippets(
+    descriptor,
+    Object.fromEntries(names.map((name) => [name, readProps(name)])),
+  );
 }
 
 rmSync(outDir, { recursive: true, force: true });

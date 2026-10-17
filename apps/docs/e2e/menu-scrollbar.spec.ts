@@ -26,3 +26,22 @@ test('a menu that fits shows no scrollbar', async ({ page }) => {
   const menu = page.getByRole('menu');
   expect(await menu.evaluate((el: HTMLElement) => el.offsetWidth - el.clientWidth)).toBe(0);
 });
+
+// A scrolling chip set keeps its scrollbar, thin and in `outline` (2026-10-17): hidden, a
+// mouse user had no sign of the chips past the edge.
+test('a scrolling chip set shows a thin scrollbar', async ({ page }) => {
+  await openStory(page, 'components-chips--single-select');
+  const set = page.getByTestId('single');
+  const bar = await set.evaluate((el: HTMLElement) => {
+    const style = getComputedStyle(el);
+    return {
+      overflows: el.scrollWidth > el.clientWidth,
+      width: style.scrollbarWidth,
+      color: style.scrollbarColor,
+    };
+  });
+  expect(bar.overflows).toBe(true);
+  expect(bar.width).toBe('thin');
+  // The platform decides whether it overlays (macOS) or takes room; either way it is drawn.
+  expect(bar.color).not.toBe('auto');
+});

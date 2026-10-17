@@ -710,6 +710,33 @@ test.describe('Density · ButtonGroup', () => {
   });
 });
 
+test.describe('Density · ButtonGroup · narrow icon buttons', () => {
+  // Re-audit 2026-10-16: narrow icon buttons sat 44–46px apart, so neighbouring 48px targets
+  // overlapped by up to 8px; the gap is now max(spec, 48px − the narrow width).
+  test('no target reaches a neighbour, at every size and density', async ({ page }) => {
+    await openStory(page, 'composites-buttongroup--narrow-density');
+    for (const level of LEVELS) {
+      for (const size of ['xs', 'sm', 'md'] as const) {
+        const centres = await page
+          .getByTestId(`${level}-narrow-${size}`)
+          .getByRole('button')
+          .evaluateAll((elements) =>
+            elements.map((element) => {
+              const rect = element.getBoundingClientRect();
+              return rect.left + rect.width / 2;
+            }),
+          );
+        expect(centres).toHaveLength(3);
+        for (let index = 1; index < 3; index++) {
+          expect(centres[index]! - centres[index - 1]!, `${level} ${size}`).toBeGreaterThanOrEqual(
+            47.9,
+          );
+        }
+      }
+    }
+  });
+});
+
 test.describe('Density · Tabs', () => {
   test('tabs lose 4px a step; adjacent tabs keep their own full-height targets', async ({
     page,

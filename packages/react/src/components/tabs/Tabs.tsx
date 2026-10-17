@@ -31,6 +31,7 @@ import { densityAttribute, type Density } from '../../tokens/density';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
+import { useWarnOnce } from '../../utils/warn-once';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitDataAttributes } from '../../utils/split-data-attributes';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
@@ -82,10 +83,12 @@ export interface TabsClassNames {
 
 export interface TabsProps extends Omit<
   AriaTabListProps<object>,
-  'children' | 'orientation' | 'items'
+  'children' | 'orientation' | 'items' | 'isDisabled'
 > {
   /** `Tab` elements. */
   children: ReactNode;
+  /** Disables every tab (`disabledKeys` disables some). @default false */
+  disabled?: boolean;
   /**
    * `primary` tabs sit below the top app bar and switch the page's main content;
    * `secondary` tabs switch content within one section. @default "primary"
@@ -191,8 +194,10 @@ function TabsInner({
   } = props;
   // A Tab's children are its panel content, which can be server-rendered: check only the Tabs.
   assertCollectionChildren(props.children, 'Tabs', 'Tab elements', { nested: false });
+  const { disabled, ...rest } = props;
   const ariaProps = {
-    ...props,
+    ...rest,
+    isDisabled: disabled,
     keyboardActivation: props.keyboardActivation ?? 'manual',
   } as AriaTabListProps<object>;
   const state = useTabListState(ariaProps);
@@ -203,6 +208,18 @@ function TabsInner({
   const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
   const hasText = items.some((item) => (item.props as TabProps).title != null);
   const hasPanels = items.some((item) => (item.props as TabProps).children != null);
+  // M3: every tab in a row has an icon, or none does; an icon-only tab needs a name.
+  useWarnOnce(
+    hasIcon && items.some((item) => (item.props as TabProps).icon == null),
+    '[@windmorph/react] Give every Tab an icon, or none (M3: tabs in a row are consistent).',
+  );
+  const unnamed = items.find(
+    (item) => (item.props as TabProps).title == null && !(item.props as TabProps)['aria-label'],
+  );
+  useWarnOnce(
+    unnamed !== undefined,
+    '[@windmorph/react] An icon-only Tab needs an aria-label; screen readers have no other name for it.',
+  );
   const layout =
     hasIcon && hasText
       ? iconPlacement === 'start'

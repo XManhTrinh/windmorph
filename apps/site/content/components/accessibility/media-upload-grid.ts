@@ -43,6 +43,7 @@ export const mediaUploadGrid: ComponentAccessibility = {
   focus: [
     "The grid is one Tab stop: focus returns to the last focused tile. A focused tile shows M3's focus indicator inside its edge (a 3px `secondary` outline drawn inset), so a scrolling row never clips it.",
     'Removing a photo moves focus to the tile after it (which may be the add tile), or else the one before it, without scrolling the page. Retry keeps focus on the photo.',
+    "When a photo's Options menu closes (Escape, a choice, a press outside), focus returns to its Options button.",
   ],
   touchTarget: [
     "Tiles are square: a third to a fifth of the grid's width (2 columns below 280px, 3 below 600px, 4 up to 839px, 5 from 840px), so they stay 88px or more, or 112px in the `row` layout.",

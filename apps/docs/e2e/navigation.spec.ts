@@ -219,8 +219,12 @@ test.describe('NavigationBar behaviour', () => {
     const height = await bar.evaluate((el) => (el as HTMLElement).offsetHeight);
     await scroller.evaluate((el) => el.scrollBy(0, 300));
     await expect.poll(offset).toBe(`-${height}px`);
+    // An instant scroll that ends part-way settles to the nearer state (2026-10-17: the
+    // bar rested part-hidden, settling before the frame applied the scroll).
     await scroller.evaluate((el) => el.scrollBy(0, -20));
-    await expect.poll(offset).toBe(`-${height - 20}px`);
+    await expect.poll(offset).toBe(`-${height}px`);
+    await scroller.evaluate((el) => el.scrollBy(0, -40));
+    await expect.poll(offset).toBe('0px');
   });
 
   test('inline items are centred with the extra space at the ends', async ({ page }) => {
@@ -329,16 +333,20 @@ test.describe('NavigationRail width motion', () => {
     await expect(rail).not.toHaveAttribute('data-widening');
     const last = samples.at(-1)!;
     expect(samples.length).toBeGreaterThan(10);
-    // From the first expanded frame on (collapsed items are 64px, expanded ones 56px).
-    const expanded = samples.findIndex((sample) => sample.heights[0] !== samples[0]!.heights[0]);
-    expect(expanded).toBeGreaterThan(0);
-    for (const sample of samples.slice(expanded)) {
-      // Expanded items are 56px; none grows taller mid-transition.
-      expect(Math.max(...sample.heights)).toBeLessThanOrEqual(Math.max(...last.heights));
-      sample.icons.forEach((top, index) =>
-        expect(Math.abs(top - last.icons[index]!)).toBeLessThan(2),
+    // Items spring from 64px to 56px (2026-10-17, as Compose); none grows taller than a
+    // collapsed item mid-transition, as a label wrapping letter by letter would make it.
+    for (const sample of samples) expect(Math.max(...sample.heights)).toBeLessThanOrEqual(64.5);
+    // The icons move continuously to their places, never in a jump.
+    samples
+      .slice(1)
+      .forEach((sample, frame) =>
+        sample.icons.forEach((top, index) =>
+          expect(Math.abs(top - samples[frame]!.icons[index]!)).toBeLessThan(8),
+        ),
       );
-    }
+    last.icons.forEach((top, index) =>
+      expect(Math.abs(top - samples.at(-2)!.icons[index]!)).toBeLessThan(0.5),
+    );
   });
 
   test('the modal rail grows without its labels wrapping', async ({ page }) => {
@@ -464,6 +472,71 @@ test.describe('Navigation motion edges and forced colours', () => {
           .evaluate((el) => getComputedStyle(el).color),
       ).toBe(highlightText);
     }
+  });
+
+  // Compose springs the items' height and spacing (64 → 48px, 4 → 0px) and lerps each icon
+  // between its top and start places; the layout used to swap in one frame, the icons
+  // jumping 12–24px (2026-10-17).
+  for (const reduced of [false, true]) {
+    test(`rail items move continuously as it expands${reduced ? ' · reduced motion: at once' : ''}`, async ({
+      page,
+    }) => {
+      if (reduced) await page.emulateMedia({ reducedMotion: 'reduce' });
+      await openStory(page, 'components-navigation--rail');
+      const sampled = page.evaluate(
+        () =>
+          new Promise<number[][]>((resolve) => {
+            // Each sample starts with its time, so a dropped frame reads as one longer step.
+            const out: number[][] = [];
+            const start = performance.now();
+            const tick = () => {
+              out.push([
+                performance.now(),
+                ...[...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
+                  (icon) => icon.getBoundingClientRect().top,
+                ),
+              ]);
+              if (performance.now() - start < 800) requestAnimationFrame(tick);
+              else resolve(out);
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      await page.getByRole('button', { name: 'Expand navigation' }).click();
+      const frames = await sampled;
+      // The largest move per 60Hz frame (16.7ms), so a frame the machine drops under load
+      // doesn't read as a jump.
+      const steps = frames.slice(1).map(([time, ...tops], index) => {
+        const [previousTime, ...previous] = frames[index]!;
+        const frame = Math.max(1, (time! - previousTime!) / (1000 / 60));
+        return Math.max(...tops.map((top, item) => Math.abs(top - previous[item]!))) / frame;
+      });
+      const moving = steps.filter((step) => step > 0.5);
+      if (reduced) expect(moving.length).toBeLessThanOrEqual(1);
+      else {
+        expect(moving.length).toBeGreaterThan(5);
+        expect(Math.max(...steps)).toBeLessThan(8);
+      }
+    });
+  }
+
+  // A label inside the pill (inline bar items, the expanded rail) is HighlightText on the
+  // Highlight pill, with no Canvas backplate behind it: it read white on white (2026-10-17).
+  test('forced colours keep a label inside the pill readable', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await openStory(page, 'components-navigation--bar');
+    const inline = page.getByTestId('bars').getByRole('navigation').nth(1);
+    const label = inline.locator('[aria-current="page"] [data-nav-label]');
+    await expect(label).toHaveCSS('forced-color-adjust', 'none');
+    const colours = await label.evaluate((el) => {
+      const probe = document.createElement('span');
+      probe.style.cssText = 'forced-color-adjust:none;color:HighlightText';
+      document.body.append(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      return { actual: getComputedStyle(el).color, expected };
+    });
+    expect(colours.actual).toBe(colours.expected);
   });
 });
 

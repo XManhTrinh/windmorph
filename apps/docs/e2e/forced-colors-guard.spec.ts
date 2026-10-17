@@ -16,7 +16,11 @@ import { openStory } from './story';
  *   component's root (a menu item inside a menu's outline). Components M3 draws without a
  *   container are listed in `FORCED_COLORS_EXCEPTIONS` with a reason;
  * - a selected state (`aria-selected`, `aria-checked`, `aria-pressed`, `aria-current`, a
- *   checked input) that looks different from an unselected peer of the same kind.
+ *   checked input) that looks different from an unselected peer of the same kind;
+ * - readable text (2026-10-17): no text in the colour of what is painted behind it. Text
+ *   left to forced colours (`forced-color-adjust: auto`) gets a `Canvas` backplate, so
+ *   `HighlightText` there reads white on white (a navigation label inside its `Highlight`
+ *   pill did); text that opts out is compared with the nearest fill below it.
  *
  * One test per story, so the suite shards freely.
  */
@@ -24,6 +28,7 @@ import { openStory } from './story';
 interface Findings {
   edgeless: { key: string; name: string }[];
   undistinguished: string[];
+  unreadable: string[];
 }
 
 /** Reads what forced colours leave of the story's components (runs in the page). */
@@ -180,7 +185,46 @@ function inspect(): Findings {
       );
     }
   }
-  return { edgeless, undistinguished };
+
+  /*
+   * Text drawn in the colour behind it. Hit testing finds what is painted under the text,
+   * so every element takes part in it for the check (state layers ignore the pointer).
+   */
+  const hitAll = document.createElement('style');
+  hitAll.textContent = '* { pointer-events: auto !important; }';
+  document.head.append(hitAll);
+  const shown = (element: Element) =>
+    element.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+  /** The first fill painted at the text's centre, from the text's own box down. */
+  const fillBehind = (element: Element) => {
+    const rect = element.getBoundingClientRect();
+    const stack = document.elementsFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    const start = stack.indexOf(element);
+    if (start < 0) return null;
+    for (const below of stack.slice(start)) {
+      const background = getComputedStyle(below).backgroundColor;
+      if (shown(below) && alpha(background) > 0.5) return background;
+    }
+    return canvas;
+  };
+  const unreadable: string[] = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const seen = new Set<Element>();
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const host = node.parentElement;
+    if (!host || seen.has(host) || !node.textContent?.trim()) continue;
+    seen.add(host);
+    if (!host.closest('[data-tokens^="md-comp-"]') || host.closest(storybookChrome)) continue;
+    const rect = host.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1 || !shown(host)) continue;
+    const style = getComputedStyle(host);
+    const backdrop = style.forcedColorAdjust === 'none' ? fillBehind(host) : canvas;
+    if (backdrop !== null && normal(style.color) === normal(backdrop)) {
+      unreadable.push(`"${nameOf(host)}" is ${style.color} on ${backdrop}`);
+    }
+  }
+  hitAll.remove();
+  return { edgeless, undistinguished, unreadable };
 }
 
 test.describe('Forced-colours guard', () => {
@@ -195,7 +239,7 @@ test.describe('Forced-colours guard', () => {
       await page.emulateMedia({ forcedColors: 'active' });
       // Colours transition into their forced values.
       await page.waitForTimeout(500);
-      const { edgeless, undistinguished } = await page.evaluate(inspect);
+      const { edgeless, undistinguished, unreadable } = await page.evaluate(inspect);
       const excused = (key: string) =>
         FORCED_COLORS_EXCEPTIONS.some(
           (exception) =>
@@ -205,6 +249,7 @@ test.describe('Forced-colours guard', () => {
       const missing = edgeless.filter(({ key }) => !excused(key));
       expect(missing, 'components with no visible boundary in forced colours').toEqual([]);
       expect(undistinguished, 'selected states forced colours hide').toEqual([]);
+      expect(unreadable, 'text in the colour behind it').toEqual([]);
     });
   }
 });

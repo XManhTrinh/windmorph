@@ -140,7 +140,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               Compose&apos;s nested scrolling, an upward swipe on a half-open sheet&apos;s content
               raises the sheet first and then scrolls the content. Moving down to a lower detent
               (Escape, the handle, the collapse button) runs on the fast effects spring, so it never
-              drops below the detent; a drag&apos;s settle keeps the spatial spring.
+              drops below the detent; a drag&apos;s settle keeps the spatial spring and starts at
+              the speed the sheet was let go with, as Compose&apos;s does.
             </li>
             <li>
               Side sheets aren&apos;t in Compose; their values follow m3.material.io and Material

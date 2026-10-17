@@ -21,6 +21,7 @@ export function App({ children }) {
 }`;
 
 const FONT_SNIPPET = `// app/layout.tsx
+import type { CSSProperties } from 'react';
 import { Roboto_Flex } from 'next/font/google';
 
 const robotoFlex = Roboto_Flex({
@@ -33,7 +34,7 @@ const robotoFlex = Roboto_Flex({
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={robotoFlex.variable}>
-      <body style={{ '--md-ref-typeface-plain': 'var(--md-ref-typeface-brand)' }}>
+      <body style={{ '--md-ref-typeface-plain': 'var(--md-ref-typeface-brand)' } as CSSProperties}>
         {children}
       </body>
     </html>
@@ -54,7 +55,7 @@ const SearchIcon = (
 
 const ROUTER_SNIPPET = `// Non-Next apps: client-side links go through React Aria's RouterProvider.
 import { RouterProvider } from 'react-aria';
-import { useNavigate, useHref } from 'react-router-dom';
+import { useNavigate, useHref } from 'react-router';
 
 function Providers({ children }) {
   const navigate = useNavigate();

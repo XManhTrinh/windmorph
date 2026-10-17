@@ -169,9 +169,10 @@ export async function AvatarBody(): Promise<ComponentDoc> {
               or button avatar.
             </li>
             <li>
-              In forced colours the shape and the badge keep a <InlineCode>CanvasText</InlineCode>{' '}
-              edge, and presence keeps its meaning: online <InlineCode>CanvasText</InlineCode>, away{' '}
-              <InlineCode>GrayText</InlineCode>, offline a ring.
+              In forced colours an Expressive shape becomes a circle, and the shape and the badge
+              keep a <InlineCode>CanvasText</InlineCode> edge; presence keeps its meaning: online{' '}
+              <InlineCode>CanvasText</InlineCode>, away <InlineCode>GrayText</InlineCode>, offline a
+              ring.
             </li>
             <li>
               Rounded squares take a corner from the shape scale for their size; Expressive shapes

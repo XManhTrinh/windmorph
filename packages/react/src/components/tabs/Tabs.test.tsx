@@ -172,6 +172,33 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'Cars' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  it('warns once in development about mixed icons and unnamed icon-only tabs', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <Tabs aria-label="Media">
+        <Tab key="photos" title="Photos" icon={<Icon id="p" />} />
+        <Tab key="videos" title="Videos" />
+        <Tab key="music" icon={<Icon id="m" />} />
+      </Tabs>,
+    );
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('every Tab an icon, or none'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('icon-only Tab needs an aria-label'));
+    warn.mockClear();
+    render(<Trip />);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  // The core's prop names: `disabled`, not React Aria's `isDisabled` (2026-10-17).
+  it('disables every tab with `disabled`, and takes no `isDisabled`', () => {
+    render(<Trip disabled />);
+    for (const tab of screen.getAllByRole('tab')) {
+      expect(tab).toHaveAttribute('aria-disabled', 'true');
+    }
+    // @ts-expect-error React Aria's name is not part of the API.
+    void (<Trip isDisabled />);
+  });
+
   it('uses 64px tabs (the M3 token) for icons above labels and 48px for icons before them', () => {
     const { unmount } = render(
       <Tabs aria-label="Media">

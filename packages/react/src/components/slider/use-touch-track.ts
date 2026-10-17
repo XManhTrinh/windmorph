@@ -12,6 +12,11 @@ interface TouchTrackOptions {
   orientation: 'horizontal' | 'vertical';
   direction: 'ltr' | 'rtl';
   disabled: boolean;
+  /**
+   * A discrete slider with drawn stops (`ticks`): its values are spread between the track's
+   * corners (`positionOf`), so a press maps back through the same inset.
+   */
+  discrete?: boolean;
 }
 
 /** The thumb nearest to `value`, picked as React Aria's track press picks it. */
@@ -34,33 +39,52 @@ function closestThumb(state: SliderState, value: number): number {
  * the track is left to the browser, which scrolls (the slider's `touch-action` allows the
  * cross axis) and cancels the pointer. Mouse presses keep React Aria's handling.
  *
+ * With drawn stops (`discrete`), every press, the mouse's too, maps through the corner inset
+ * the stops and thumb are drawn with (`(offset − corner) / (length − 2 × corner)`), so a tap
+ * on a drawn stop selects that stop: React Aria's linear mapping picked the next one near the
+ * ends of a large slider, whose corners are wider than half a step (2026-10-17).
+ *
  * Returns handlers that wrap React Aria's `trackProps`.
  */
 export function useTouchTrack(
   trackProps: HTMLAttributes<HTMLElement>,
-  { state, trackRef, orientation, direction, disabled }: TouchTrackOptions,
+  { state, trackRef, orientation, direction, disabled, discrete = false }: TouchTrackOptions,
 ): HTMLAttributes<HTMLElement> {
   const vertical = orientation === 'vertical';
   const cleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => cleanup.current?.(), []);
 
-  const percentAt = (clientX: number, clientY: number) => {
+  /** The track's corner in px (`--m3-slider-corner`, which a token may set as any length). */
+  const cornerOf = (track: HTMLElement) => {
+    if (!discrete) return 0;
+    const probe = track.ownerDocument.createElement('div');
+    probe.style.cssText = 'position:absolute;visibility:hidden;width:var(--m3-slider-corner)';
+    track.append(probe);
+    const corner = probe.getBoundingClientRect().width;
+    probe.remove();
+    return corner;
+  };
+
+  const percentAt = (clientX: number, clientY: number, corner: number) => {
     const rect = trackRef.current!.getBoundingClientRect();
     const size = vertical ? rect.height : rect.width;
-    const offset = vertical ? clientY - rect.top : clientX - rect.left;
-    let percent = size > 0 ? offset / size : 0;
-    if (vertical || direction === 'rtl') percent = 1 - percent;
+    // Along the track from its minimum end.
+    const offset = vertical
+      ? rect.bottom - clientY
+      : direction === 'rtl'
+        ? rect.right - clientX
+        : clientX - rect.left;
+    const span = size - 2 * corner;
+    const percent = span > 0 ? (offset - corner) / span : 0;
     return Math.min(1, Math.max(0, percent));
   };
 
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
-    if (event.pointerType === 'mouse') {
-      trackProps.onPointerDown?.(event);
-      return;
-    }
+    const mouse = event.pointerType === 'mouse';
     // A press on a thumb drags that thumb (React Aria's thumb handling).
     const onThumb = (event.target as Element).closest?.('[data-thumb]');
     if (
+      (mouse && (!discrete || event.button !== 0)) ||
       onThumb ||
       disabled ||
       !trackRef.current ||
@@ -75,7 +99,27 @@ export function useTouchTrack(
     cleanup.current?.();
     const { pointerId, clientX: startX, clientY: startY } = event;
     const track = trackRef.current;
+    const corner = cornerOf(track);
     let dragging: number | null = null;
+    const startDragging = (index: number, percent: number) => {
+      dragging = index;
+      try {
+        track.setPointerCapture(pointerId);
+      } catch {
+        // The pointer may already be gone.
+      }
+      state.setFocusedThumb(index);
+      state.setThumbDragging(index, true);
+      state.setThumbPercent(index, percent);
+    };
+    // The mouse (on a discrete slider) sets the value as it goes down and drags from there,
+    // as React Aria does; a touch waits to tell a tap, a drag and a scroll apart.
+    if (mouse) {
+      const percent = percentAt(startX, startY, corner);
+      const index = closestThumb(state, state.getPercentValue(percent));
+      if (!state.isThumbEditable(index)) return;
+      startDragging(index, percent);
+    }
 
     const move = (e: globalThis.PointerEvent) => {
       if (e.pointerId !== pointerId) return;
@@ -86,21 +130,13 @@ export function useTouchTrack(
         // no longer a tap either.
         if (across >= TOUCH_SLOP && across >= along) return end();
         if (along < TOUCH_SLOP || along <= across) return;
-        const percent = percentAt(e.clientX, e.clientY);
+        const percent = percentAt(e.clientX, e.clientY, corner);
         const index = closestThumb(state, state.getPercentValue(percent));
         if (!state.isThumbEditable(index)) return end();
-        dragging = index;
-        try {
-          track.setPointerCapture(pointerId);
-        } catch {
-          // The pointer may already be gone.
-        }
-        state.setFocusedThumb(index);
-        state.setThumbDragging(index, true);
-        state.setThumbPercent(index, percent);
+        startDragging(index, percent);
         return;
       }
-      state.setThumbPercent(dragging, percentAt(e.clientX, e.clientY));
+      state.setThumbPercent(dragging, percentAt(e.clientX, e.clientY, corner));
     };
     const up = (e: globalThis.PointerEvent) => {
       if (e.pointerId !== pointerId) return;
@@ -108,7 +144,7 @@ export function useTouchTrack(
         state.setThumbDragging(dragging, false);
       } else {
         // A tap: the nearest thumb jumps to it on release.
-        const value = state.getPercentValue(percentAt(e.clientX, e.clientY));
+        const value = state.getPercentValue(percentAt(e.clientX, e.clientY, corner));
         const index = closestThumb(state, value);
         if (state.isThumbEditable(index)) {
           state.setFocusedThumb(index);

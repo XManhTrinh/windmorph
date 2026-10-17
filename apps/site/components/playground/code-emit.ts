@@ -29,7 +29,94 @@ export interface EmitInput {
   codeWrap?: { before: string; after: string };
   /** The entry the component is imported from. @default '@windmorph/react' */
   importFrom?: string;
+  /**
+   * The component's prop names, from its generated props JSON. A controlled prop (one with an
+   * `on<Prop>Change` handler) is written with a `useState` pair, so a pasted snippet is never
+   * stuck (see {@link controlledForm}).
+   */
+  propNames?: readonly string[];
+  /** The component's prop types, from its generated props JSON, to type a `useState` pair. */
+  propTypes?: Record<string, { type: string; values?: string[] }>;
+  /**
+   * State the snippet's own JSX reads, as `useState` pairs, each name mapped to its hook call
+   * (`{ current: "useState('home')" }` → `const [current, setCurrent] = useState('home');`),
+   * e.g. the destination a navigation item's `onPress` selects. With state, the element
+   * becomes the body of an `Example` component.
+   */
+  codeState?: Record<string, string>;
 }
+
+/** `open` → `Open`. */
+const capitalize = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
+
+/**
+ * How a control's prop is written so the pasted snippet still responds: `as-is` for an
+ * uncontrolled prop or one whose handler the snippet already writes; `state` for a controlled
+ * prop (`open={open} onOpenChange={setOpen}` and a `useState` line), the controlled form docs
+ * sites show (React Aria's among them), rather than a bare value nothing can change.
+ */
+export function controlledForm(
+  name: string,
+  propNames: readonly string[] | undefined,
+  written: ReadonlySet<string>,
+): 'as-is' | 'state' {
+  if (!propNames) return 'as-is';
+  const handler = changeHandlerOf(name, propNames);
+  return handler && !written.has(handler) ? 'state' : 'as-is';
+}
+
+/** Handlers React Aria names after something other than the prop (`value` → `onChange`). */
+const HANDLER_NAMES: Record<string, string[]> = {
+  value: ['onValueChange', 'onChange'],
+  selectedKey: ['onSelectionChange'],
+  selectedKeys: ['onSelectionChange'],
+  inputValue: ['onInputChange'],
+};
+
+/**
+ * The handler that reports a controlled prop's changes (`open` → `onOpenChange`, `value` →
+ * `onChange`), when the component declares one; `undefined` for an uncontrolled prop.
+ */
+export function changeHandlerOf(name: string, propNames: readonly string[]): string | undefined {
+  const candidates = HANDLER_NAMES[name] ?? [`on${capitalize(name)}Change`];
+  return candidates.find((handler) => propNames.includes(handler));
+}
+
+/** A short union stays readable as the state's type; a longer one is read off the component. */
+const UNION_MAX = 8;
+
+/**
+ * The type argument a `useState` pair for a prop needs, so a string state is as narrow as the
+ * prop (`useState<'dial' | 'input'>('input')`): the prop's short union, a type of primitives
+ * as written (`string | null`), or the prop's type read from the component
+ * (`ComponentProps<typeof PhoneField>['country']`). Nothing for a boolean, a number or a
+ * plain string.
+ */
+export function stateTypeArgument(
+  component: string,
+  name: string,
+  value: unknown,
+  record: { type: string; values?: string[] } | undefined,
+): string {
+  if (typeof value !== 'string' || !record || record.type === 'string') return '';
+  if (record.values && record.values.length <= UNION_MAX) {
+    const members = record.values.map((member) => member.replace(/^"([^"'\\]*)"$/, "'$1'"));
+    return `<${members.join(' | ')}>`;
+  }
+  if (
+    !record.values &&
+    /^(?:string|number|null|undefined)(?:\s*\|\s*(?:string|number|null|undefined))*$/.test(
+      record.type,
+    )
+  ) {
+    return `<${record.type}>`;
+  }
+  return `<ComponentProps<typeof ${component}>['${name}']>`;
+}
+
+/** A value as a JavaScript literal, for a `useState` line. */
+const literal = (value: unknown) =>
+  typeof value === 'string' ? `'${value.replace(/[\\']/g, '\\$&')}'` : JSON.stringify(value);
 
 /**
  * Where a snippet's icons come from: the reader's own icon components (Material Symbols SVGs
@@ -100,9 +187,22 @@ function slotAttribute(name: string, jsx: string): string {
  */
 export function emitSnippet(input: EmitInput): string {
   const attrs: string[] = [];
+  // State the snippet keeps itself, for a controlled prop with no uncontrolled twin.
+  const state: { name: string; hook: string }[] = Object.entries(input.codeState ?? {}).map(
+    ([name, hook]) => ({ name, hook }),
+  );
+  const written = new Set(
+    [...Object.keys(input.codeSlots ?? {}), ...Object.keys(input.toggledSlots ?? {})].filter(
+      (name) => {
+        const slot = input.codeSlots?.[name];
+        return typeof slot !== 'function' || slot(input.values) !== null;
+      },
+    ),
+  );
   for (const name of input.surfacedProps) {
-    // A `slot.prop` control is written inside its slot's JSX, not on the element.
-    if (name.includes('.')) continue;
+    // A `slot.prop` control is written inside its slot's JSX, not on the element, and a prop
+    // the descriptor writes itself (`open={open}`) isn't written again from its control.
+    if (name.includes('.') || name in (input.codeSlots ?? {})) continue;
     const value = input.values[name];
     const slot = input.toggledSlots?.[name];
     if (slot !== undefined) {
@@ -112,6 +212,15 @@ export function emitSnippet(input: EmitInput): string {
       continue;
     }
     if (isDefault(name, value, input)) continue;
+    const form = controlledForm(name, input.propNames, written);
+    if (form === 'state' && value !== undefined && value !== null && value !== '') {
+      const typeArgument = stateTypeArgument(input.component, name, value, input.propTypes?.[name]);
+      state.push({ name, hook: `useState${typeArgument}(${literal(value)})` });
+      const handler = changeHandlerOf(name, input.propNames ?? [])!;
+      // `onChange` hands over the new value as `onValueChange` does (React Aria's fields).
+      attrs.push(`${name}={${name}}`, `${handler}={set${capitalize(name)}}`);
+      continue;
+    }
     const attr = attribute(name, value);
     if (attr) attrs.push(attr);
   }
@@ -161,7 +270,24 @@ export function emitSnippet(input: EmitInput): string {
     ),
   ]);
   const icons = iconsUsed(element).filter((name) => !imported.has(name));
+  if (state.length > 0) {
+    const body = element
+      .split('\n')
+      .map((line) => (line ? `    ${line}` : line))
+      .join('\n');
+    const hooks = state
+      .map(({ name, hook }) => `  const [${name}, set${capitalize(name)}] = ${hook};`)
+      .join('\n');
+    element = `export function Example() {\n${hooks}\n\n  return (\n${body}\n  );\n}`;
+  }
   const importLines = [
+    ...(state.length > 0
+      ? [
+          state.some(({ hook }) => hook.includes('ComponentProps<'))
+            ? "import { useState, type ComponentProps } from 'react';"
+            : "import { useState } from 'react';",
+        ]
+      : []),
     ...extraImports,
     ...(icons.length > 0
       ? [ICONS_COMMENT, `import { ${icons.sort().join(', ')} } from '${ICONS_MODULE}';`]

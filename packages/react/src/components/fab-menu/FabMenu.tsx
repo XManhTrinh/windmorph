@@ -162,12 +162,14 @@ const ITEM_SELECTOR = '[data-fab-menu-item]:not([inert])';
  * another from the button upwards, each springing out to its full width; on short windows
  * they scroll behind the close button. Under reduced motion the button changes at once and
  * the items fade in and out together. Position the menu on the window's trailing edge
- * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows).
+ * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows). Keep it
+ * out of normal flow: `fixed`, or at the bottom of a box. In flow, the open list pushes the
+ * button down and can scroll the page.
  *
  * The button is named by `aria-label`, which it shows in a tooltip while closed, and reports
- * `aria-expanded`. Tab or ↓ moves from the
- * button to the top item; ↑ / ↓ move between items and back to the button. Escape, an
- * outside press or choosing an item closes the menu. With `presentation="menu"` the
+ * `aria-expanded`. Tab or ↓ moves from the button to the top item; ↑ / ↓ move between
+ * items and back to the button. Escape, an outside press, focus leaving the menu or
+ * choosing an item closes it. With `presentation="menu"` the
  * button opens a standard `Menu` instead, with menu semantics and keyboard support.
  *
  * @example
@@ -209,6 +211,7 @@ export function FabMenu({
   }
   const isMenu = presentation === 'menu';
   const styles = fabMenuStyles({ size, color, elevation });
+  const menuColor = color ?? 'primary';
   const listId = useId();
   const rootRef = useObjectRef(ref);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -253,10 +256,11 @@ export function FabMenu({
 
   // Tabbing out of the open menu closes it, as an outside press does, so the open list never
   // covers what takes focus next (M3: don't obscure the focus indicator; 2026-10-15). Focus
-  // leaving the window (no new target) keeps it open.
+  // leaving the window (no new target) keeps it open. Always tracked, so focus that came in
+  // while it was closed (the button, then Enter) closes it too as it leaves (2026-10-17).
   const { focusWithinProps } = useFocusWithin({
-    isDisabled: !isOpen || isMenu,
     onBlurWithin: (event) => {
+      if (!isOpen || isMenu) return;
       const next = event.relatedTarget;
       if (next instanceof Node && !rootRef.current?.contains(next)) setOpen(false);
     },
@@ -313,6 +317,9 @@ export function FabMenu({
           })}
       data-open={(isOpen && !isMenu) || undefined}
       data-slot="button"
+      // Closed, the button is a FAB of the menu's container colour, painted by its tokens.
+      data-tokens="md-comp-fab"
+      data-color={`${menuColor}-container`}
       className={styles.button({ class: classNames?.button })}
     >
       <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
@@ -353,6 +360,8 @@ export function FabMenu({
       inert={!visible || undefined}
       // The component tokens' hook (fab-menu-tokens.ts).
       data-tokens={mergeDataTokens('md-comp-fab-menu', rest)}
+      data-color={menuColor}
+      data-item-color={`${menuColor}-container`}
       data-open={isOpen || undefined}
       data-presentation={presentation}
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -510,7 +519,11 @@ export function FabMenuItem({
     <ButtonBase {...(props as ButtonBaseActionProps)}>
       <span ref={contentRef} className={styles.itemContent({ class: classNames?.content })}>
         {icon && (
-          <span aria-hidden="true" className={styles.itemIcon({ class: classNames?.icon })}>
+          <span
+            aria-hidden="true"
+            data-slot="item-icon"
+            className={styles.itemIcon({ class: classNames?.icon })}
+          >
             {icon}
           </span>
         )}

@@ -15,8 +15,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * or `on-primary-container` (vibrant). Compose's icon buttons take up 48px of layout while
  * ours take 40px (the 48px touch target is overlaid), so every content group adds 4px at
  * its ends and 8px between items, which reproduces Compose's spacing for icon buttons.
- * Leading / trailing content collapses on the fast spatial spring (grid 0fr ↔ 1fr), so the
- * root's size follows it without transforms. Collapsed content stays in the tab order and
+ * Leading / trailing content expands on the fast spatial spring and collapses on the fast
+ * effects curve, its box's width (or height) in px between 0 and the content's measured
+ * size, so the root's size follows it without transforms. Collapsed content stays in the tab order and
  * the accessibility tree, clipped to nothing, and focusing it expands the toolbar.
  *
  * Exiting on scroll (`visible={false}`): the toolbar slides off its edge on the fast
@@ -77,12 +78,12 @@ export const dockedToolbarStyles = tv({
       'space-between': { root: 'justify-between' },
       centered: { root: 'justify-center gap-[32px]' },
     },
-    // As the floating toolbar's (2026-10-15): vibrant is primary-container, and standard icon
-    // buttons take its content colour. M3 has no vibrant docked token, so it's a class.
+    // As the floating toolbar's (2026-10-15): vibrant is primary-container (its own token,
+    // scoped by `data-color`, 2026-10-17), and standard icon buttons take its content colour.
     color: {
       standard: { root: 'text-on-surface-variant' },
       vibrant: {
-        root: 'bg-primary-container text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]',
+        root: 'text-on-primary-container [--md-comp-icon-button-icon-color:currentColor]',
       },
     },
   },
@@ -102,16 +103,23 @@ export const floatingToolbarStyles = tv({
     ],
     // A group of items (main, leading or trailing content).
     items: 'flex shrink-0 items-center',
-    // Collapsible leading / trailing content: a grid track that animates 0fr ↔ 1fr.
-    // Expanding uses the spatial spring; collapsing uses the effects spring, which doesn't
+    collapsibleItems: '',
+    // Collapsible leading / trailing content: a box that animates its width (or height) in
+    // px between 0 and the content's measured size (2026-10-17, as Compose's
+    // `expandHorizontally`), so expanding shows the spatial spring's overshoot, which a
+    // 0fr ↔ 1fr track couldn't. Collapsing uses the effects spring, which doesn't
     // overshoot, because a size can't overshoot below 0 and would bounce back open by a
-    // pixel or two. Collapsed content stays focusable and in the accessibility tree.
+    // pixel or two. Before it is measured (on the server) the box takes the content's
+    // natural size, or 0 collapsed. Collapsed content stays focusable and in the
+    // accessibility tree.
     collapse: [
-      'grid',
-      '[transition-property:grid-template-columns,grid-template-rows]',
+      'flex shrink-0',
+      '[transition-property:width,height]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration),var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing),var(--md-sys-motion-spring-spatial-fast-easing)]',
       'data-collapsed:[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing),var(--md-sys-motion-spring-effects-fast-easing)]',
+      // The content itself changed size (a web font arriving): follow it at once.
+      'data-resized:[transition-duration:0s]',
     ],
     // Clips the content horizontally (or vertically) while it collapses, leaving room for
     // focus rings and touch targets on the other axis. Once the track has closed (a delay
@@ -132,6 +140,7 @@ export const floatingToolbarStyles = tv({
       // as menus and FABs (2026-10-15).
       'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       'data-collapsed:opacity-0 data-collapsed:shadow-elevation-0',
+      'data-resized:[transition-duration:0s]',
       // Width, height and shadow move on the spatial spring; the surface also fades on the
       // fast effects spring, so the last pixels of a collapse never show as a thin line.
       // Collapsed, it stays focusable and in the accessibility tree, clipped to nothing.
@@ -153,20 +162,23 @@ export const floatingToolbarStyles = tv({
       horizontal: {
         root: 'min-h-[64px] flex-row',
         items: 'flex-row gap-[8px] ps-[4px] pe-[4px]',
-        collapse: 'grid-cols-[1fr] data-collapsed:grid-cols-[0fr]',
-        clip: 'flex-row [clip-path:inset(-12px_-2px)]',
+        // Collapsible content keeps its natural width while its box closes (it's measured).
+        collapsibleItems: 'w-max shrink-0',
+        collapse: 'data-collapsed:w-0',
+        clip: 'w-full flex-row [clip-path:inset(-12px_-2px)]',
         toolbarSlot: 'h-[64px] w-(--m3-toolbar-size) flex-row',
-        surface: 'h-[64px] w-(--m3-toolbar-size) data-collapsed:w-0',
+        surface: 'h-[64px] w-(--m3-toolbar-size) shrink-0 data-collapsed:w-0',
         content: 'h-full w-max flex-row gap-[8px] ps-[12px] pe-[12px]',
         fabSlot: 'w-[56px] flex-row',
       },
       vertical: {
         root: 'min-w-[64px] flex-col',
         items: 'flex-col gap-[8px] pt-[4px] pb-[4px]',
-        collapse: 'grid-rows-[1fr] data-collapsed:grid-rows-[0fr]',
-        clip: 'flex-col [clip-path:inset(-2px_-12px)]',
+        collapsibleItems: 'h-max shrink-0',
+        collapse: 'flex-col data-collapsed:h-0',
+        clip: 'h-full flex-col [clip-path:inset(-2px_-12px)]',
         toolbarSlot: 'h-(--m3-toolbar-size) w-[64px] flex-col',
-        surface: 'h-(--m3-toolbar-size) w-[64px] data-collapsed:h-0',
+        surface: 'h-(--m3-toolbar-size) w-[64px] shrink-0 data-collapsed:h-0',
         content: 'h-max w-full flex-col gap-[8px] pt-[12px] pb-[12px]',
         fabSlot: 'h-[56px] flex-col',
       },
@@ -259,17 +271,16 @@ export const toolbarFabStyles = tv({
   slots: {
     root: [
       'inline-flex size-full cursor-pointer items-center justify-center select-none',
-      'rounded-corner-large',
+      'rounded-[var(--_md-comp-toolbar-floating-fab-container-shape)]',
+      'bg-[var(--_md-comp-toolbar-floating-fab-container-color)] text-[color:var(--_md-comp-toolbar-floating-fab-icon-color)]',
       'state-layer focus-ring container-motion',
       'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
     icon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
   },
   variants: {
-    color: {
-      standard: { root: 'bg-primary-container text-on-primary-container' },
-      vibrant: { root: 'bg-tertiary-container text-on-tertiary-container' },
-    },
+    // The colours come from the FAB's tokens (`toolbarFabTokenSet`), picked by `data-color`.
+    color: { standard: {}, vibrant: {} },
     /**
      * Like `Fab`: level 2 (Compose's toolbar FAB: hover 3, pressed 2), level 1 (hover 2,
      * pressed 1), or level 0 for a flat FAB. The hover level never applies while pressed.

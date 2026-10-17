@@ -6,8 +6,9 @@ import type { ComponentPropsFile, PropsRecord } from './generate-props';
 /**
  * Every public prop of every component, the core's and Pro's, is documented: the generated
  * props tables are read from the components' JSDoc (the core's sources, Pro's installed
- * declarations), so a prop without a description shows as an empty row. Props inherited from
- * React and DOM types are already left out by the generator; the allowlists below are for
+ * declarations), so a prop without a description shows as an empty row. DOM attributes are
+ * already left out by the generator and React Aria's props bring their own docs; the
+ * allowlists below are for
  * anything else that genuinely can't be described or defaulted.
  */
 
@@ -127,7 +128,9 @@ function describePackage(
     it('gives every optional string-literal prop its default', () => {
       expect(
         gaps(
-          (prop) => !prop.required && Boolean(prop.options) && !prop.defaultValue,
+          // React Aria's own props carry React Aria's docs, which rarely give a default.
+          (prop) =>
+            !prop.required && !prop.inherited && Boolean(prop.options) && !prop.defaultValue,
           allow.noEnumDefault,
         ),
       ).toEqual([]);

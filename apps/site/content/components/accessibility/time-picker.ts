@@ -42,7 +42,7 @@ export const timePicker: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'The selectors take typed digits: focusing one selects its text and shows its face on the dial. In input mode a complete hour moves focus on to the minute.',
-    'The time reads hour, minute, then AM / PM left to right in right-to-left layouts too, as Compose does. The AM / PM group keeps the locale direction, so its left and right arrows are mirrored there.',
+    'The time reads hour, minute, then AM / PM left to right in right-to-left layouts too, as Compose does. The AM / PM group follows the page direction (its `dir`, not only the locale), so its left and right arrows are mirrored in a right-to-left page.',
     'Pressing or dragging the dial picks the nearest hour (the inner ring within 74px of the centre, on a 24-hour clock) or five minutes; the keys and typing reach any minute.',
   ],
   screenReader: {

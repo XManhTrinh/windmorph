@@ -48,20 +48,20 @@ export async function AccordionBody(): Promise<ComponentDoc> {
           <AccordionFaq />
         </ExampleViewer>
         <ExampleViewer
+          title="Several open at once (allowsMultipleExpanded), controlled"
+          code={multiple}
+          html={multipleHtml!}
+          fileName="accordion-multiple.tsx"
+        >
+          <AccordionMultiple />
+        </ExampleViewer>
+        <ExampleViewer
           title="Segmented"
           code={segmented}
           html={segmentedHtml!}
           fileName="accordion-segmented.tsx"
         >
           <AccordionSegmented />
-        </ExampleViewer>
-        <ExampleViewer
-          title="Several open at once, controlled"
-          code={multiple}
-          html={multipleHtml!}
-          fileName="accordion-multiple.tsx"
-        >
-          <AccordionMultiple />
         </ExampleViewer>
         <ExampleViewer
           title="A header from parts, and a disabled item"
@@ -112,6 +112,11 @@ export async function AccordionBody(): Promise<ComponentDoc> {
             the panels open on Expressive springs.
           </p>
           <p className={TEXT}>
+            One item opens at a time by default, which keeps a long list short; pass{' '}
+            <InlineCode>allowsMultipleExpanded</InlineCode> to let several stay open, when people
+            compare panels or work through them in any order.
+          </p>
+          <p className={TEXT}>
             Use Collapse for one region your own control opens, a List with{' '}
             <InlineCode>childItems</InlineCode> for nested rows, and Tabs for peer views the person
             switches between.
@@ -147,7 +152,9 @@ export async function AccordionBody(): Promise<ComponentDoc> {
               Closed panels stay in the page as{' '}
               <InlineCode>hidden=&quot;until-found&quot;</InlineCode>: the browser&apos;s
               find-in-page and a <InlineCode>#fragment</InlineCode> link open the panel holding the
-              match, and closed answers are in the server&apos;s HTML for search engines.
+              match, and closed answers are in the server&apos;s HTML for search engines. Safari
+              before 26.2 can&apos;t find text in a closed panel (26.2 finds it but may not scroll
+              to it); its panels still open from their headers as everywhere else.
             </li>
             <li>
               An item takes a <InlineCode>title</InlineCode> (with <InlineCode>leading</InlineCode>{' '}

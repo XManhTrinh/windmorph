@@ -101,8 +101,20 @@ export interface PlaygroundDescriptor {
   codeSlots?: Record<string, string | ((values: Record<string, unknown>) => string | null)>;
   /** Verbatim children JSX emitted in the copied snippet, or a function of the control values. */
   codeChildren?: string | ((values: Record<string, unknown>) => string);
-  /** JSX around the snippet's element, such as an overlay's trigger (see `emitSnippet`). */
-  codeWrap?: { before: string; after: string };
+  /**
+   * State the snippet's JSX reads, each name mapped to its hook call
+   * (`{ open: 'useState(false)' }`), or a function of the values that returns them (see
+   * `emitSnippet`).
+   */
+  codeState?:
+    Record<string, string> | ((values: Record<string, unknown>) => Record<string, string>);
+  /**
+   * JSX around the snippet's element, such as an overlay's trigger (see `emitSnippet`), or a
+   * function of the values that returns it.
+   */
+  codeWrap?:
+    | { before: string; after: string }
+    | ((values: Record<string, unknown>) => { before: string; after: string } | undefined);
   /** The entry the component is imported from in the snippet. @default '@windmorph/react' */
   importFrom?: '@windmorph/react' | '@windmorph/react-pro' | '@windmorph/react-pro/rich-text';
 }

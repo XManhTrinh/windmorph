@@ -52,10 +52,10 @@ export const imageCrop: ComponentAccessibility = {
     "The photo area spans the cropper's full width, with 24px around the frame.",
     'Zoom out and Zoom in are small icon buttons (40px) with an invisible 48 × 48px touch target.',
     'Dragging is never required: the zoom slider and buttons zoom, and the arrow keys move the photo (WCAG 2.2, 2.5.7). A pointer drags the photo, two fingers pinch to zoom, and Ctrl or ⌘ with the wheel (or a trackpad pinch) zooms around the pointer; a plain wheel scrolls the page.',
-    'Inline, a vertical swipe over the photo scrolls the page until it is zoomed in, so the cropper never traps a touch screen; inside the dialog every gesture moves the photo.',
+    'Inline, a vertical swipe over the photo scrolls the page while the photo has nothing to move vertically (a landscape photo at zoom 1), so the cropper never traps a touch screen. A portrait photo, or one zoomed in, takes the swipe to move. Inside the dialog every gesture moves the photo.',
   ],
   motion: [
-    'Resetting with 0 eases the photo back into place; under reduced motion it jumps there. Dragging, pinching and the wheel follow the pointer without easing.',
+    'Resetting with 0 eases the photo back on the M3 effects spring, which never uncovers the frame; under reduced motion it jumps there. Dragging, pinching and the wheel follow the pointer without easing.',
     'The dialog opens and closes with the {@link Dialog} motion.',
   ],
   consumer: [

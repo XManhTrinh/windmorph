@@ -51,6 +51,11 @@ const NO_VISIBLE_EFFECT = {
   preventFocusOnPress: 'Only keeps focus where it was on press; nothing the preview shows.',
 };
 
+/** A button's `value`, besides {@link NO_VISIBLE_EFFECT}. */
+const SELECTION_VALUE = {
+  value: 'Only identifies the button in a selection group; nothing the preview shows.',
+};
+
 /** The reaction picker's options, live and as the snippet writes them. */
 const REACTIONS = [
   { id: 'like', label: 'Like', icon: '👍', color: 'primary' },
@@ -122,7 +127,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
     controlKinds: { leadingIcon: 'boolean', selectedLeadingIcon: 'boolean' },
     toggledSlots: { leadingIcon: STAR_OUTLINE, selectedLeadingIcon: STAR },
-    notControlled: NO_VISIBLE_EFFECT,
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
     codeChildren: 'Favourite',
   },
   'icon-button': {
@@ -185,7 +190,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     enumOptions: DENSITY_OPTIONS,
     controlKinds: { selectedIcon: 'boolean', density: 'number' },
     toggledSlots: { selectedIcon: STAR },
-    notControlled: NO_VISIBLE_EFFECT,
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
     codeSlots: { icon: STAR_OUTLINE, 'aria-label': '"Favourite"' },
   },
   'button-group': {
@@ -242,6 +247,11 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         "The uncontrolled twin of `selectedKeys`, a set of the buttons' values: press the buttons in the preview to select them.",
     },
     importMembers: ['Button'],
+    // The preview's narrow box, so the pasted group folds as it does there.
+    codeWrap: (values) =>
+      values.overflow === true
+        ? { before: '<div className="w-[180px]">', after: '</div>' }
+        : undefined,
     codeSlots: {
       'aria-label': '"View"',
       defaultSelectedKeys: (values) => (values.selectionMode === 'none' ? null : "['week']"),

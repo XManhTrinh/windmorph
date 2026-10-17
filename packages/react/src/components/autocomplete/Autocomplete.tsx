@@ -327,6 +327,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     },
     buttonRef,
   );
+  // A touch on the arrow, opening the list on its click (see the arrow's handlers).
+  const fingerOnArrowRef = useRef(false);
   const { focusProps, isFocused } = useFocusRing({ within: true, isTextInput: true });
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
@@ -383,6 +385,25 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
         trailing={
           <button
             {...arrowProps}
+            // A finger opens the list on the click, with focus in the input. React Aria's
+            // touch press never ended here in Chrome (the list stayed closed), and the mouse
+            // events a tap emulates focused the arrow, out of the Tab order (2026-10-17). So a
+            // touch keeps both away from the arrow; the mouse and the keyboard keep React
+            // Aria's press, which opens on the press start.
+            onPointerDown={(event) => {
+              fingerOnArrowRef.current = event.pointerType !== 'mouse';
+              if (!fingerOnArrowRef.current) return arrowProps.onPointerDown?.(event);
+              event.preventDefault();
+            }}
+            onPointerCancel={() => {
+              fingerOnArrowRef.current = false;
+            }}
+            onClick={(event) => {
+              if (!fingerOnArrowRef.current) return arrowProps.onClick?.(event);
+              fingerOnArrowRef.current = false;
+              inputRef.current?.focus({ preventScroll: true });
+              if (!disabled && !readOnly) state.toggle(null, 'manual');
+            }}
             ref={buttonRef}
             aria-label={labels.showOptions}
             className="relative flex size-[40px] items-center justify-center rounded-corner-full outline-none state-layer focus-ring [&>svg]:size-[24px]"

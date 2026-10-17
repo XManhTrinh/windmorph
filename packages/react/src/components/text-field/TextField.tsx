@@ -4,6 +4,7 @@ import {
   useId,
   useLayoutEffect,
   type CSSProperties,
+  type MouseEvent,
   type PointerEvent,
   type ReactNode,
   type Ref,
@@ -360,6 +361,23 @@ export function TextField(props: TextFieldProps) {
     // The field is where the press landed: the page never scrolls to it (2026-10-15).
     domInputRef.current?.focus({ preventScroll: true });
   };
+  // Chrome's touch adjustment can send a tap's pointer events to the input while the mouse
+  // events it emulates, and the click, land on the padding beside it, so the input never
+  // takes focus (2026-10-17). A click on the field that leaves the input unfocused focuses it.
+  // The mouse never needs it: its press on the padding already focused the input.
+  const focusInputOnClick = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target as Element;
+    if (
+      (event.nativeEvent as globalThis.PointerEvent).pointerType === 'mouse' ||
+      !event.currentTarget.contains(target) ||
+      target.closest(INTERACTIVE) ||
+      disabled ||
+      document.activeElement === domInputRef.current
+    ) {
+      return;
+    }
+    domInputRef.current?.focus({ preventScroll: true });
+  };
 
   // Part of the accessible name, as M3 asks ("The accessibility label must include the
   // asterisk"); the copy in the outline's notch is hidden with the fieldset.
@@ -386,6 +404,7 @@ export function TextField(props: TextFieldProps) {
       <div
         {...hoverProps}
         onPointerDown={focusInput}
+        onClick={focusInputOnClick}
         data-slot="container"
         className={styles.container({ class: classNames?.container })}
       >

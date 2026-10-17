@@ -47,7 +47,7 @@ export const sheets: ComponentAccessibility = {
   touchTarget: [
     "The bottom sheet's drag handle spans the sheet's width and is 48px tall (a 4px bar with 22px above and below). Without a handle, the top 48px of the sheet still drags it.",
     'The close, collapse and back buttons are 48 × 48px icon buttons.',
-    'On a touch screen, a drag down that starts on the content while it is scrolled to its top moves the sheet; a drag up, or any drag while the content is scrolled, scrolls it. Sideways drags, form fields and elements that handle their own drags (such as sliders) are left alone, and a mouse drag on the content selects text as usual.',
+    "On a touch screen, a drag down that starts on the content while it is scrolled to its top moves the sheet, and a drag up on a half-open sheet's content raises the sheet first, then scrolls the content; otherwise a drag on the content scrolls it. Sideways drags, form fields and elements that handle their own drags (such as sliders) are left alone, and a mouse drag on the content selects text as usual.",
   ],
   motion: [
     'Under reduced motion modal sheets fade in and out where they rest instead of sliding, and a bottom sheet moves to a new detent at once; a drag still follows the finger or pointer. A standard side sheet opens and closes its width at once. The scrim still fades.',

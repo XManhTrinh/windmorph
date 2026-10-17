@@ -46,7 +46,7 @@ export const messageField: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'Nothing is sent while the text is blank (unless `canSend`), over `maxLength`, or already sending.',
-    'The tools are mirrored in right-to-left text, and so are the slots and the counter.',
+    'The tools are mirrored in right-to-left text, and so are the slots and the counter. Arrow keys in the toolbars follow the laid-out direction, including a `dir="rtl"` region of a left-to-right app.',
   ],
   screenReader: {
     role: 'The text is a `textarea`. The tools are a `toolbar` of buttons; Send, the banner close and the slot buttons are icon buttons. `MessageFieldTrigger` is a `button`, or a `link` with `href`.',

@@ -28,6 +28,8 @@ import { MediaViewerBody } from './media-viewer';
 import { LinkBody } from './link';
 import { FileTriggerBody } from './file-trigger';
 import { SkipLinkBody } from './skip-link';
+import { CodeBlockBody } from './code-block';
+import { PropsTableBody } from './props-table';
 import { ShapedIconBody } from './shaped-icon';
 import { CollapseBody } from './collapse';
 import { CommentRowBody } from './comment-row';
@@ -137,6 +139,8 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'pull-to-refresh': PullToRefreshBody,
   skeleton: SkeletonBody,
   tag: TagBody,
+  'code-block': CodeBlockBody,
+  'props-table': PropsTableBody,
   link: LinkBody,
   'file-trigger': FileTriggerBody,
   'skip-link': SkipLinkBody,

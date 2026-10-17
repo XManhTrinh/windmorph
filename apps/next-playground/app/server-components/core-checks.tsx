@@ -108,6 +108,14 @@ export const coreChecks = {
   springPosition: { kind: 'value', run: () => Core.springPosition(spring, 0.1) },
   springSettleDuration: { kind: 'value', run: () => Core.springSettleDuration(spring) },
   springToLinearEasing: { kind: 'value', run: () => Core.springToLinearEasing(spring) },
+  springProgressWithVelocity: {
+    kind: 'value',
+    run: () => Core.springProgressWithVelocity(spring, 2, 0.1),
+  },
+  springWithVelocityToLinearEasing: {
+    kind: 'value',
+    run: () => Core.springWithVelocityToLinearEasing(spring, 2),
+  },
   toMotionSpring: { kind: 'value', run: () => Core.toMotionSpring(spring) },
 
   // Component tokens
@@ -482,6 +490,7 @@ export const coreChecks = {
   },
   dockedToolbarStyles: { kind: 'value', run: () => Core.dockedToolbarStyles() },
   dockedToolbarTokenSet: read(Core.dockedToolbarTokenSet),
+  toolbarFabTokenSet: read(Core.toolbarFabTokenSet),
   floatingToolbarStyles: { kind: 'value', run: () => Core.floatingToolbarStyles() },
   floatingToolbarTokenSet: read(Core.floatingToolbarTokenSet),
   toolbarFabStyles: { kind: 'value', run: () => Core.toolbarFabStyles() },

@@ -226,6 +226,31 @@ test.describe('Containers grow around 200% text instead of clipping it', () => {
     );
     expect(await overflow(badge, container)).toBe(0);
   });
+
+  // Its width limits grow with the text too (2026-10-17): in px, a digit stood in an upright
+  // capsule and "Longer" cut to its first letter.
+  test("a large badge's width limits grow with its text", async ({ page }) => {
+    await openStory(page, 'components-badge--badges');
+    await setRootFontSize(page, 32);
+    const badges = page.getByTestId('badges');
+    const root = (text: string) =>
+      badges
+        .getByText(text, { exact: true })
+        .first()
+        .locator(
+          'xpath=ancestor-or-self::span[contains(concat(" ", @data-tokens, " "), " md-comp-badge ")][1]',
+        );
+    const digit = (await root('3').boundingBox())!;
+    expect(digit.height).toBe(32);
+    expect(digit.width).toBe(32);
+    const longer = (await root('Longer').boundingBox())!;
+    expect(longer.width).toBe(68);
+    // Still cut, as at 1x: about the same share of the text shows.
+    const shown = await badges
+      .getByText('Longer', { exact: true })
+      .evaluate((label) => label.clientWidth / label.scrollWidth);
+    expect(shown).toBeGreaterThan(0.5);
+  });
 });
 
 /**

@@ -3,8 +3,8 @@ import { tv, type VariantProps } from '../../utils/tv';
 /*
  * Values follow Compose Material 3 (Badge.kt, BadgeTokens).
  *
- * Small badge: a 6px `error` dot. Large badge: at least 16px, full corners, 4px side
- * padding, `label-small` `on-error`. Counts are capped ("999+"). M3 allows up to four
+ * Small badge: a 6px `error` dot. Large badge: at least 16px (1rem, so it grows with the
+ * text), full corners, 4px side padding, `label-small` `on-error`. Counts are capped ("999+"). M3 allows up to four
  * characters, including "+", within "16x34dp": a label of four characters or fewer is never
  * cut ("999+" renders about a pixel wider than 34px), and only longer text stops at 34px and
  * truncates.
@@ -42,18 +42,20 @@ export const badgeStyles = tv({
       },
       large: {
         root: [
-          'min-h-[16px] min-w-[16px] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
+          // In rem, as the label's 16px line height is (1rem): at a larger text size a digit stays
+          // a circle and the 34px limit grows with the text (2026-10-17).
+          'min-h-[1rem] min-w-[1rem] ps-[4px] pe-[4px] text-label-small whitespace-nowrap',
           'forced-colors:outline forced-colors:outline-1 forced-colors:outline-solid forced-colors:outline-[CanvasText]',
         ],
       },
     },
-    /** Text longer than four characters stops at 34px and truncates. */
+    /** Text longer than four characters stops at 34px (2.125rem) and truncates. */
     overflow: {
       true: {},
       false: {},
     },
   },
-  compoundVariants: [{ size: 'large', overflow: true, class: { root: 'max-w-[34px]' } }],
+  compoundVariants: [{ size: 'large', overflow: true, class: { root: 'max-w-[2.125rem]' } }],
   defaultVariants: { size: 'small', overflow: false },
 });
 

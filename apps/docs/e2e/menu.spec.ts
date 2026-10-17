@@ -520,7 +520,12 @@ test.describe('Menu layout safety', () => {
    * override positions the menu itself), picks Delete from the keyboard and checks focus
    * returns to the trigger.
    */
-  async function openCheckAndPick(page: Page, override: string, anchored: boolean) {
+  async function openCheckAndPick(
+    page: Page,
+    override: string,
+    anchored: boolean,
+    part: 'trigger' | 'panel' = 'trigger',
+  ) {
     const target = page.getByTestId('target');
     await target.click();
     const menu = page.getByRole('menu');
@@ -528,10 +533,9 @@ test.describe('Menu layout safety', () => {
     await settle(page);
     const panel = await panelLayout(menu);
     expect(panel).toMatchObject({ radius: '16px', inWindow: true, onTop: true });
-    if (override !== 'fullWidth') {
-      expect(panel.width).toBeGreaterThanOrEqual(112);
-      expect(panel.width).toBeLessThanOrEqual(280);
-    }
+    // A width class on the placed box (`fullWidth`) leaves the menu its own width too.
+    expect(panel.width).toBeGreaterThanOrEqual(112);
+    expect(panel.width).toBeLessThanOrEqual(280);
     // Layout height: a rotate transform enlarges the on-screen box.
     expect(
       await menu
@@ -539,6 +543,12 @@ test.describe('Menu layout safety', () => {
         .evaluate((el) => (el as HTMLElement).offsetHeight),
     ).toBe(44);
     if (anchored) await expectAnchored(menu, target, 0);
+    if (anchored && part === 'panel') {
+      // Opened below its start corner: the menu's start edge meets the trigger's (a full-width
+      // box once held it 12px from the window's edge instead, 2026-10-17).
+      const [m, t] = await Promise.all([menu.boundingBox(), target.boundingBox()]);
+      expect(Math.abs(m!.x - t!.x)).toBeLessThanOrEqual(1);
+    }
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('count')).toHaveText('Last action: delete');
@@ -565,7 +575,7 @@ test.describe('Menu layout safety', () => {
   for (const override of OVERRIDES) {
     test(`panel · ${override}`, async ({ page }) => {
       await openStory(page, 'components-menu--layout-override', {}, { override, part: 'panel' });
-      await openCheckAndPick(page, override, !POSITIONING_OVERRIDES.includes(override));
+      await openCheckAndPick(page, override, !POSITIONING_OVERRIDES.includes(override), 'panel');
     });
   }
 });

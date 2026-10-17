@@ -58,6 +58,10 @@ export {
 } from './primitives/morph-path';
 export { useM3Morph } from './primitives/use-m3-morph';
 
+export {
+  useKeepPressedInPlace,
+  type KeepPressedInPlaceResult,
+} from './utils/keep-pressed-in-place';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export { ThemeScopeContext } from './theme/context';

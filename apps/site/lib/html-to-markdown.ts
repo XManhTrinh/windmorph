@@ -79,11 +79,14 @@ function tagOf(element: Element): string {
 }
 
 function isSkipped(element: Element): boolean {
+  // A heading's button (an accordion header) holds the heading's text.
+  if (tagOf(element) === 'button' && element.closest('h1, h2, h3, h4, h5, h6')) return false;
   if (SKIPPED_TAGS.has(tagOf(element))) return true;
   const role = element.getAttribute('role');
   if (role && SKIPPED_ROLES.has(role)) return true;
   return (
-    element.hasAttribute('hidden') ||
+    // Content hidden until found (a closed accordion panel) is still the page's content.
+    (element.hasAttribute('hidden') && element.getAttribute('hidden') !== 'until-found') ||
     element.getAttribute('aria-hidden') === 'true' ||
     element.getAttribute('data-markdown') === 'skip' ||
     // A live example's preview: its source file stands in for it.

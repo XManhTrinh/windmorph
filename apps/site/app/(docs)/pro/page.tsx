@@ -97,7 +97,7 @@ const FAQ = [
     id: 'theming',
     question: 'Do Pro components follow my theme?',
     answer:
-      'Yes. They read the core’s ThemeProvider and M3 colour roles, so every theme, mode, contrast level and density reaches them, and each has --wm-* tokens of its own to override.',
+      'Yes. They read the core’s ThemeProvider and M3 colour roles, so every theme, mode, contrast level and density reaches them, and most have --wm-* tokens of their own to override.',
   },
 ];
 
@@ -167,15 +167,13 @@ export default async function ProPage() {
 
       <section className="flex flex-col gap-4">
         <SectionHeading id="licence">Licence</SectionHeading>
-        <p className={TEXT}>Pro isn&apos;t on sale yet. This is the plan for when it is:</p>
-        <ul className={LIST}>
-          <li>A commercial licence, per developer.</li>
-          <li>A year of updates.</li>
-          <li>
-            The core, <InlineCode>@windmorph/react</InlineCode>, stays free under the MIT licence.
-          </li>
-        </ul>
-        <p className={TEXT}>Pricing will be announced.</p>
+        <p className={TEXT}>
+          Pro isn&apos;t on sale yet. It will be sold under a commercial licence; the licence terms
+          and pricing will be announced before it goes on sale.
+        </p>
+        <p className={TEXT}>
+          The core, <InlineCode>@windmorph/react</InlineCode>, stays free under the MIT licence.
+        </p>
       </section>
 
       <section className="flex flex-col gap-4">

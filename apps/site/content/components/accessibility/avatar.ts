@@ -17,6 +17,7 @@ export const avatar: ComponentAccessibility = {
       'None beyond the name: presence and the badge are read as part of it, not as separate states.',
     notes: [
       'The photo (`alt=""`), the initials or icon, the presence dot and the badge are all hidden from assistive tech; the name on the root carries their meaning.',
+      "Initials are drawn as generated content, so a link or button's visible text never differs from its name.",
       'In `AvatarGroup`, static avatars become decorative, so the group is read once; linked or pressable avatars keep their own names. A "+N" avatar is decorative, or named by `overflowLabel` ("3 more") when it is a link or button.',
     ],
   },
@@ -35,6 +36,6 @@ export const avatar: ComponentAccessibility = {
     'Give every avatar `alt` (usually the person or business name), or mark it `decorative` when the name is written next to it. The types require one of the two, and `alt` for a link or button.',
     'Pass `labels` to translate the presence words, and `badgeLabel` to say what the badge means.',
     'Give `AvatarGroup` a `label` that names everyone it stands for ("Alex, Sam and 3 others"), and an `overflowLabel` in your language when "+N" is a link or button.',
-    'Your own component around an Avatar in a group is fine: the group reaches it through context. Pass `alt` and `href` or `onPress` to the Avatar inside, as you would directly.',
+    'Your own component around an Avatar in a group is fine: the group reaches it through context. Pass `alt` and `href` or `onPress` to the Avatar inside, or wrap a static Avatar (with `alt`) in your own link or button: the avatar then names that control, and it takes presses.',
   ],
 };

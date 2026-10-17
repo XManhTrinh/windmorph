@@ -170,9 +170,11 @@ export const sideSheetStyles = tv({
       'ps-[24px] pe-[24px] pt-[16px] pb-[24px]',
     ],
     // Standard sheets sit in the layout; their width opens and closes (a measured length, so
-    // the panel stays on its edge), on the default spatial spring.
+    // the panel stays on its edge), on the default spatial spring. The measured width is also
+    // the maximum, so the spring's overshoot never opens a strip beside the panel.
     standard: [
       'flex h-full w-[var(--m3-side-sheet-width,auto)] shrink-0 visible data-closed:invisible data-closed:w-0',
+      'max-w-[var(--m3-side-sheet-width,none)]',
       '[transition-property:width,visibility]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',

@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
@@ -189,6 +189,58 @@ test.describe('FAB interaction', () => {
       await expect.poll(async () => (await size(fab)).width).toBe(expanded.width);
     });
   }
+});
+
+/** Reads `testId`'s width on every frame for `ms` while `act` runs. */
+async function widths(page: Page, testId: string, act: () => Promise<void>, ms = 700) {
+  const sampled = page.evaluate(
+    ([id, duration]) =>
+      new Promise<number[]>((resolve) => {
+        const out: number[] = [];
+        const start = performance.now();
+        const tick = () => {
+          out.push(document.querySelector(`[data-testid="${id}"]`)!.getBoundingClientRect().width);
+          if (performance.now() - start < duration) requestAnimationFrame(tick);
+          else resolve(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+    [testId, ms] as const,
+  );
+  await act();
+  return sampled;
+}
+
+test.describe('Extended FAB expand motion', () => {
+  // Re-audit 2026-10-16: the width followed a 0fr ↔ 1fr track, which can't pass the label's
+  // width, so the fast spatial spring's overshoot (Compose lerps the width) never showed.
+  test('expanding overshoots its width on the fast spatial spring', async ({ page }) => {
+    await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });
+    const fab = page.getByTestId('extended-fab');
+    const expanded = (await size(fab)).width;
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await size(fab)).width).toBe(96);
+    const series = await widths(page, 'extended-fab', () =>
+      page.getByRole('button', { name: 'Expand' }).click(),
+    );
+    expect(Math.max(...series)).toBeGreaterThan(expanded + 4);
+    expect(series.at(-1)!).toBeCloseTo(expanded, 0);
+  });
+
+  test('under reduced motion it expands at once', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });
+    const fab = page.getByTestId('extended-fab');
+    const expanded = (await size(fab)).width;
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await size(fab)).width).toBe(96);
+    const series = await widths(page, 'extended-fab', () =>
+      page.getByRole('button', { name: 'Expand' }).click(),
+    );
+    const moving = series.filter((width) => width > 96.5 && width < expanded - 0.5);
+    expect(moving).toEqual([]);
+    expect(Math.max(...series)).toBeLessThanOrEqual(expanded + 0.5);
+  });
 });
 
 test.describe('FAB layout safety', () => {

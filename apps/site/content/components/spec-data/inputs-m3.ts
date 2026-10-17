@@ -406,8 +406,8 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     differences: [
       {
-        item: 'Pressing a discrete track',
-        note: 'A press maps linearly to the value while discrete stops are drawn between the corners, so a press near the ends can land one step off; there are no haptics.',
+        item: 'Haptics',
+        note: 'There are no haptics. A press on a discrete track maps through the corner inset its stops are drawn with, so a tap on a drawn stop selects that stop.',
       },
     ],
     extensions: [

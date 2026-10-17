@@ -138,6 +138,30 @@ describe('SearchBar', () => {
     }
   });
 
+  // The bar is live again while the view leaves: a press or typing reopens it from there.
+  it('reopens from a press or typing on the bar while the view leaves', async () => {
+    const onSubmit = vi.fn();
+    render(<Controlled view="docked" onSubmit={onSubmit} />);
+    const bar = screen.getByRole('combobox');
+    await userEvent.click(bar);
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute('data-exiting', 'true');
+    await userEvent.click(bar);
+    const dialog = screen.getByRole('dialog', { name: 'Search mail' });
+    expect(dialog).not.toHaveAttribute('data-exiting');
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+
+    await userEvent.keyboard('{Escape}');
+    expect(dialog).toHaveAttribute('data-exiting', 'true');
+    // Focus is back on the bar as the view starts leaving, so typing reaches it.
+    expect(bar).toHaveFocus();
+    await userEvent.keyboard('a');
+    expect(dialog).not.toHaveAttribute('data-exiting');
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+    expect(screen.getByRole('searchbox')).toHaveValue('a');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('opens a 56px docked field centred on a shorter bar', async () => {
     render(<SearchBar aria-label="Search" className="h-[48px]" data-testid="search" />);
     const bar = screen.getByTestId('search');

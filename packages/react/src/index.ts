@@ -426,6 +426,7 @@ export {
 export {
   dockedToolbarTokenSet,
   floatingToolbarTokenSet,
+  toolbarFabTokenSet,
 } from './components/toolbar/toolbar-tokens';
 export {
   useToolbarScrollExit,

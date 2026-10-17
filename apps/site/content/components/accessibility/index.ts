@@ -41,6 +41,8 @@ import { badge } from './badge';
 import { tag } from './tag';
 import { divider } from './divider';
 import { skipLink } from './skip-link';
+import { codeBlock } from './code-block';
+import { propsTable } from './props-table';
 import { link } from './link';
 import { navigationRail } from './navigation-rail';
 import { navigationBar } from './navigation-bar';
@@ -108,6 +110,8 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   avatar: avatar,
   badge: badge,
   tag: tag,
+  'code-block': codeBlock,
+  'props-table': propsTable,
   divider: divider,
   'skip-link': skipLink,
   link: link,

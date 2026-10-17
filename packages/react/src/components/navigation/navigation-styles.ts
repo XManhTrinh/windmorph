@@ -75,7 +75,12 @@ export const navigationRailStyles = tv({
     // Children keep their own width (a centred grid item would shrink to the 56px column).
     header:
       'grid grid-cols-[56px] justify-items-center-safe ps-(--m3-rail-item-inset) pb-[40px] [&>*]:min-w-max',
-    items: 'flex flex-col',
+    // The gap between items springs 4 → 0px as the rail expands (default spatial, as
+    // Compose's itemVerticalSpacedBy; 2026-10-17), instant under reduced motion.
+    items: [
+      'flex flex-col',
+      '[transition-property:gap] [transition-duration:var(--md-sys-motion-spring-spatial-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+    ],
     scrim: [
       'fixed inset-0 z-(--md-sys-z-scrim) bg-scrim/32 opacity-100',
       '[transition-property:opacity]',

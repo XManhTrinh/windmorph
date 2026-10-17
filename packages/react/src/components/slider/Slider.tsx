@@ -246,15 +246,16 @@ function SliderRoot(props: RootProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
   const { direction } = useLocale();
+  const count = Math.round((maxValue - minValue) / step);
   const touchTrackProps = useTouchTrack(trackProps, {
     state,
     trackRef,
     orientation,
     direction,
     disabled,
+    discrete: ticks && count > 0,
   });
 
-  const count = Math.round((maxValue - minValue) / step);
   const tickFractions =
     ticks && count > 0 ? Array.from({ length: count + 1 }, (_, i) => i / count) : [];
   const fractions = state.values.map((_, index) => state.getThumbPercent(index));

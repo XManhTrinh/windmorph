@@ -12,8 +12,12 @@ export interface ReleaseSection {
 export interface Release {
   /** The npm version, e.g. `0.2.0`. */
   version: string;
-  /** The publish date, `YYYY-MM-DD`. */
-  date: string;
+  /**
+   * The publish date, `YYYY-MM-DD`. Left out until the version is published, so the page says
+   * it's coming instead of showing a date that hasn't happened (`releases.test.ts` fails once
+   * the core's `package.json` reaches an undated version).
+   */
+  date?: string;
   /** One or two sentences on what the release is about. */
   summary: ReactNode;
   sections: ReleaseSection[];
@@ -31,8 +35,7 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
 export const RELEASES: Release[] = [
   {
     version: '0.1.0',
-    // A placeholder: the real publish date is set when 0.1.0 is released.
-    date: '2026-10-13',
+    // No date until 0.1.0 is published: set it on release day.
     summary: (
       <>
         The first release: Material Design 3 Expressive for React, with {CORE_PAGE_COUNT} documented
@@ -97,6 +100,12 @@ export const RELEASES: Release[] = [
             writes it to static CSS.
           </>,
           <>
+            Density, as M3 defines it: <InlineCode>density</InlineCode> from 0 to −3 on{' '}
+            <InlineCode>ThemeProvider</InlineCode>, a <InlineCode>ThemeScope</InlineCode> or a
+            single component makes fields, menus, controls, lists and tabs more compact, 4px a step,
+            while touch targets stay 48px.
+          </>,
+          <>
             No theme flash: the theme is read from a cookie on the server, or applied before first
             paint by <InlineCode>ThemeScript</InlineCode> on static sites.
           </>,
@@ -123,7 +132,11 @@ export const RELEASES: Release[] = [
             The 35 Expressive shapes and shape morphing, from a port of Android&apos;s{' '}
             <InlineCode>graphics.shapes</InlineCode> library.
           </>,
-          <>Reduced motion is respected everywhere: morphs and overshoot are switched off.</>,
+          <>
+            Reduced motion is respected everywhere: slides, size and shape changes, morphs and
+            rotations happen at once, while fades, colours and essential motion (progress, drags, a
+            pull) stay.
+          </>,
         ],
       },
       {

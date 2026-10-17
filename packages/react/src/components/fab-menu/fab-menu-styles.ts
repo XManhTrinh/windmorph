@@ -23,28 +23,18 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   rings inside the scroll container; that ring lets clicks through.
  *
  * Colour styles are m3.material.io's primary / secondary / tertiary sets; Compose's
- * defaults are the primary set. The close button's and the items' corners come from the
- * component tokens (`fab-menu-tokens.ts`, `--md-comp-fab-menu-*`), resolved on the root.
+ * defaults are the primary set. The close button's and the items' colours and corners come
+ * from the component tokens (`fab-menu-tokens.ts`, `--md-comp-fab-menu-*`), resolved on the
+ * root; the closed button's colours from the FAB's (`fab-tokens.ts`).
  * Every class is written out in full so Tailwind can find it.
  */
 
-const colors = {
-  primary: {
-    button:
-      'bg-primary-container text-on-primary-container data-open:bg-primary data-open:text-on-primary',
-    item: 'bg-primary-container text-on-primary-container',
-  },
-  secondary: {
-    button:
-      'bg-secondary-container text-on-secondary-container data-open:bg-secondary data-open:text-on-secondary',
-    item: 'bg-secondary-container text-on-secondary-container',
-  },
-  tertiary: {
-    button:
-      'bg-tertiary-container text-on-tertiary-container data-open:bg-tertiary data-open:text-on-tertiary',
-    item: 'bg-tertiary-container text-on-tertiary-container',
-  },
-} as const;
+/*
+ * Colours come from the tokens: the closed button is a FAB (the FAB's tokens, resolved on
+ * the button), the open close button and the items read the menu's set. The `color`
+ * variant picks which set the attributes name; its classes are empty, for extension.
+ */
+const colors = { primary: {}, secondary: {}, tertiary: {} } as const;
 
 /** Variant definitions for {@link FabMenu}; extend them to add colour styles. */
 export const fabMenuStyles = tv({
@@ -70,6 +60,8 @@ export const fabMenuStyles = tv({
       // Forced colours paint containers as Canvas: the button and items draw a 1px
       // CanvasText boundary there, as a FAB does (2026-10-15).
       'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+      'bg-[var(--_md-comp-fab-container-color)] text-[color:var(--_md-comp-fab-icon-color)]',
+      'data-open:bg-[var(--_md-comp-fab-menu-close-button-container-color)] data-open:text-[color:var(--_md-comp-fab-menu-close-button-icon-color)]',
       // Open: the 56px close button, its corners half its size (a length, so they interpolate).
       'data-open:size-[56px] data-open:rounded-[var(--_md-comp-fab-menu-close-button-container-shape)]',
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
@@ -96,6 +88,7 @@ export const fabMenuStyles = tv({
     item: [
       'pointer-events-auto flex h-[56px] shrink-0 cursor-pointer justify-end overflow-hidden select-none',
       'rounded-[var(--_md-comp-fab-menu-menu-item-container-shape)]',
+      'bg-[var(--_md-comp-fab-menu-list-item-container-color)] text-[color:var(--_md-comp-fab-menu-list-item-label-text-color)]',
       'opacity-0 data-visible:opacity-100',
       // Under reduced motion the items show with the list, which was hidden: fade them in.
       'motion-reduce:data-visible:starting:opacity-0',
@@ -109,7 +102,8 @@ export const fabMenuStyles = tv({
     // Natural-width content; the item clips it while its width animates.
     itemContent:
       'flex h-[56px] min-w-[56px] shrink-0 items-center justify-center gap-[8px] ps-[24px] pe-[24px] font-plain text-title-medium whitespace-nowrap',
-    itemIcon: 'inline-flex size-[24px] shrink-0 items-center justify-center [&>svg]:size-full',
+    itemIcon:
+      'inline-flex size-[24px] shrink-0 items-center justify-center text-[color:var(--_md-comp-fab-menu-list-item-icon-color)] [&>svg]:size-full',
     // presentation="menu": a standard Menu 4px from the FAB, on whichever side it opened
     // (the menu list already cancels its own 8px shadow room with -8px).
     // The web menu's 4px gap comes from `offset` on the Menu; this slot is for consumers.

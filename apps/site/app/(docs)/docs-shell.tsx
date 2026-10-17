@@ -78,6 +78,9 @@ export function DocsShell({ children }: { children: ReactNode }) {
             hideOnCollapse
             expanded={navOpen}
             onExpandedChange={setNavOpen}
+            // As wide as M3's modal drawer (360px), leaving 56px of the page in view, so names
+            // and their chips never truncate; the rail would size itself to the truncated rows.
+            classNames={{ sheet: 'w-[min(360px,calc(100vw-56px))]' }}
           >
             <DrawerNav pathname={pathname} onNavigate={() => setNavOpen(false)} />
           </NavigationRail>

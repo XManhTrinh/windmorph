@@ -172,9 +172,10 @@ export async function FabBody(): Promise<ComponentDoc> {
               ships tokens only for the first two, the rest follow m3.material.io.
             </li>
             <li>
-              <InlineCode>expanded</InlineCode> animates a CSS grid column between{' '}
-              <InlineCode>0fr</InlineCode> and <InlineCode>1fr</InlineCode>, so the width animates
-              without transforms, on the fast spatial and fast effects springs both ways.
+              <InlineCode>expanded</InlineCode> animates the label&apos;s width in px between 0 and
+              its measured width, as Compose interpolates the FAB&apos;s width, so expanding shows
+              the fast spatial spring&apos;s overshoot; the label fades on the fast effects spring,
+              and nothing uses transforms. Under reduced motion the width changes at once.
             </li>
             <li>
               <InlineCode>visible</InlineCode> follows Compose&apos;s show / hide: the FAB expands

@@ -390,8 +390,13 @@ export const chipSetStyles = tv({
       wrap: { root: 'flex-wrap' },
       // One row that scrolls sideways. The padding keeps the chips' 48px targets and focus
       // rings inside the scroll area (more above and below as density makes chips shorter).
+      // The scrollbar stays, thin and in `outline` (2026-10-17): hidden, nothing showed a
+      // mouse user that more chips lay beyond the edge, or gave them a way to reach them.
       scroll: {
-        root: 'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] pb-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] [scrollbar-width:none]',
+        root: [
+          'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] pb-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+          '[scrollbar-width:thin] [scrollbar-color:var(--md-sys-color-outline)_transparent]',
+        ],
       },
     },
   },

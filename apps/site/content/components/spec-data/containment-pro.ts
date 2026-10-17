@@ -354,4 +354,41 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'code-block': {
+    covers: [
+      {
+        name: 'Highlighted at build time (`html`), with a title',
+        kind: 'use case',
+        examples: ['code-block/code-block-highlighted'],
+      },
+      {
+        name: 'Line numbers (`showLineNumbers`)',
+        kind: 'configuration',
+        examples: ['code-block/code-block-line-numbers'],
+      },
+      {
+        name: 'Plain text, without a title, and without the copy button (`copyable`)',
+        kind: 'configuration',
+        examples: ['code-block/code-block-plain'],
+      },
+    ],
+    showcaseReason:
+      'Its content is source code and the markup a build-time highlighter makes from it, which a control panel cannot produce; the examples show each option with real highlighted code.',
+  },
+  'props-table': {
+    covers: [
+      {
+        name: "A component's props, with required and default values",
+        kind: 'use case',
+        examples: ['props-table/props-table-basic'],
+      },
+      {
+        name: 'Translated caption and headings (`labels`)',
+        kind: 'configuration',
+        examples: ['props-table/props-table-labels'],
+      },
+    ],
+    showcaseReason:
+      'Its only content is the rows, data your docs build reads from your types, so a control panel would have nothing to change; the examples show a filled table and translated headings.',
+  },
 };

@@ -46,12 +46,13 @@ describe('DockedToolbar', () => {
     );
     const toolbar = screen.getByRole('toolbar');
     expect(toolbar).toHaveAttribute('data-color', 'vibrant');
+    // Its container is a token of its own, scoped by `data-color` (2026-10-17).
     expect(toolbar).toHaveClass(
-      'bg-primary-container',
+      'bg-[var(--_md-comp-toolbar-docked-container-color)]',
       'text-on-primary-container',
       '[--md-comp-icon-button-icon-color:currentColor]',
     );
-    expect(toolbar).not.toHaveClass('bg-[var(--_md-comp-toolbar-docked-container-color)]');
+    expect(toolbar).not.toHaveClass('bg-primary-container');
     expect(toolbar).not.toHaveClass('text-on-surface-variant');
     expect(screen.getByRole('button', { name: 'Bold' })).toHaveClass(
       'data-selected:not-data-disabled:bg-surface-container',
@@ -381,7 +382,8 @@ describe('FloatingToolbar', () => {
       .getByRole('button', { name: 'Undo' })
       .closest('[data-toolbar-collapsible]');
     expect(undoSlot).toHaveAttribute('data-collapsed', 'true');
-    expect(undoSlot).toHaveClass('data-collapsed:grid-cols-[0fr]');
+    // Its box closes to 0 in px (a measured width when open), 2026-10-17.
+    expect(undoSlot).toHaveClass('data-collapsed:w-0', '[transition-property:width,height]');
     // Clipped to nothing, but still in the tab order and the accessibility tree.
     expect(undoSlot!.firstElementChild).toHaveClass('data-collapsed:[clip-path:inset(50%)]');
     expect(toolbar.querySelector('[inert]')).toBe(null);
@@ -437,12 +439,16 @@ describe('FloatingToolbar', () => {
     const fab = screen.getByRole('button', { name: 'New' });
     expect(fab).toHaveClass(
       'size-full',
-      'rounded-corner-large',
-      'bg-primary-container',
+      'rounded-[var(--_md-comp-toolbar-floating-fab-container-shape)]',
+      'bg-[var(--_md-comp-toolbar-floating-fab-container-color)]',
+      'text-[color:var(--_md-comp-toolbar-floating-fab-icon-color)]',
       'shadow-elevation-2',
       // Hover 3, pressed 2: the hover level never applies while pressed.
       'data-hovered:not-data-pressed:shadow-elevation-3',
     );
+    // Its own token set (2026-10-17), the colour picked by `data-color`.
+    expect(fab).toHaveAttribute('data-tokens', 'md-comp-toolbar-floating-fab');
+    expect(fab).toHaveAttribute('data-color', 'standard');
     expect(fab.parentElement).toHaveClass('size-[56px]', 'data-collapsed:size-[80px]');
     const surface = screen.getByRole('button', { name: 'Search' }).parentElement!.parentElement!;
     expect(surface).toHaveClass(
@@ -467,7 +473,7 @@ describe('FloatingToolbar', () => {
         {button('Search')}
       </FloatingToolbar>,
     );
-    expect(screen.getByRole('button', { name: 'New' })).toHaveClass('bg-tertiary-container');
+    expect(screen.getByRole('button', { name: 'New' })).toHaveAttribute('data-color', 'vibrant');
     expect(screen.getByRole('button', { name: 'New' }).parentElement).toHaveAttribute(
       'data-collapsed',
       'true',

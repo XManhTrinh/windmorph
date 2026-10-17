@@ -71,6 +71,13 @@ export function useHideOnScroll(
     };
     const settle = () => {
       clearTimeout(endTimer);
+      // An instant scroll ends in the frame of its last scroll event, before that frame's
+      // update has run: apply it first, or the bar settles from the old offset and the
+      // update then leaves it part-hidden (2026-10-17).
+      if (frame) {
+        cancelAnimationFrame(frame);
+        update();
+      }
       const height = bar.offsetHeight;
       if (offset >= 0 || offset <= -height) return;
       bar.toggleAttribute('data-settling', true);

@@ -342,6 +342,64 @@ test.describe('Standard bottom sheet detents, frame by frame (2026-10-15)', () =
     await expect(page.getByTestId('detent')).toHaveText('Reported: collapsed');
   });
 
+  // Compose's settle starts its spring with the release velocity (2026-10-17): it used to
+  // start from rest, so a flung sheet stalled for a few frames as it was let go.
+  test('a released drag settles at the speed it was let go with, without moving the page', async ({
+    page,
+  }) => {
+    await open(page, { defaultDetent: 'collapsed' });
+    const handle = page.getByRole('button', { name: 'Expand sheet' });
+    const box = (await handle.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    const scrollY = await page.evaluate(() => window.scrollY);
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    const recorder = await recordFrames(page);
+    for (let step = 1; step <= 8; step++) {
+      await page.mouse.move(x, y - step * 15);
+      await page.waitForTimeout(16);
+    }
+    // The pointer's speed over its last moves, in px per ms, from the frames the drag drew.
+    const drag = (await recorder.stop()).filter((frame) => frame.dragging);
+    expect(drag.length).toBeGreaterThan(4);
+    const span = drag.slice(-4);
+    const dragSpeed = (span[0]!.top - span.at(-1)!.top) / ((span.length - 1) * 16.7);
+    // Let go, then pause the settle and read how far it moves in its first 4ms.
+    await page.mouse.up();
+    const motionSpeed = await page.evaluate(async () => {
+      const motion = document.querySelector<HTMLElement>('[data-testid="sheet"]')!.parentElement!;
+      void getComputedStyle(motion).translate;
+      const transition = motion
+        .getAnimations()
+        .find(
+          (animation) =>
+            animation instanceof CSSTransition && animation.transitionProperty === 'translate',
+        );
+      if (!transition) return null;
+      transition.pause();
+      const top = (time: number) => {
+        transition.currentTime = time;
+        return motion.getBoundingClientRect().top;
+      };
+      const start = top(0);
+      const after = top(4);
+      transition.play();
+      return {
+        speed: (start - after) / 4,
+        settling: motion.hasAttribute('data-settling'),
+      };
+    });
+    expect(motionSpeed).not.toBeNull();
+    expect(motionSpeed!.settling).toBe(true);
+    expect(motionSpeed!.speed, `drag ${dragSpeed.toFixed(2)}px/ms`).toBeGreaterThan(
+      dragSpeed * 0.6,
+    );
+    await settle(page);
+    await expect(page.getByTestId('sheet')).toHaveAttribute('data-detent', 'expanded');
+    expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+  });
+
   test('the keyboard moves it between detents: Enter and Space on the handle', async ({ page }) => {
     await open(page, { defaultDetent: 'collapsed' });
     const { expanded, collapsed } = await stops(page);
@@ -747,6 +805,30 @@ test.describe('Standard side sheet width motion', () => {
       expect(gaps.length).toBeGreaterThan(20);
       expect(Math.max(...gaps.map(Math.abs)), dir).toBeLessThanOrEqual(0.5);
     }
+  });
+
+  // The spring overshot the measured 256px to 259.8px, opening a strip between the content and
+  // the panel's divider (2026-10-17).
+  test('its width never passes the measured width as it opens', async ({ page }) => {
+    await openStory(page, 'components-sheet--side-standard');
+    await page.getByRole('button', { name: 'Hide details' }).click();
+    const sheet = page.getByTestId('sheet');
+    await expect.poll(async () => (await rect(sheet)).width).toBe(0);
+    await page.evaluate(() => {
+      const sheet = document.querySelector('[data-testid="sheet"]')!;
+      const widths: number[] = [];
+      (window as unknown as { widths: number[] }).widths = widths;
+      const sample = () => {
+        widths.push(sheet.getBoundingClientRect().width);
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    await page.getByRole('button', { name: 'Show details' }).click();
+    await page.waitForTimeout(700);
+    const widths = await page.evaluate(() => (window as unknown as { widths: number[] }).widths);
+    expect(widths.filter((width) => width > 0 && width < 256).length).toBeGreaterThan(3);
+    expect(Math.max(...widths), widths.join(' ')).toBeLessThanOrEqual(256);
   });
 });
 

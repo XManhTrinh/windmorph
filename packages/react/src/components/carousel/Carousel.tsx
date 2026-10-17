@@ -369,7 +369,11 @@ export function Carousel({
   });
 
   // Mouse drag scrolls the carousel (touch and trackpads scroll natively); snapping is
-  // paused while dragging and resumes on release. A drag never activates an item.
+  // paused while dragging and resumes on release. A drag never activates an item. The
+  // handlers run in the capture phase: an actionable item's press handler stops the
+  // pointer events' propagation and focuses the item on pointer down, so in the bubble
+  // phase the scroller never saw the press (the focus then read as keyboard focus and
+  // scrolled the item to its snap position, and a drag neither scrolled nor was ignored).
   const drag = useRef<{ start: number; scroll: number; id: number } | null>(null);
   const dragged = useRef(false);
   const pointerFocus = useRef(false);
@@ -508,10 +512,10 @@ export function Carousel({
     >
       <div
         ref={scrollerRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
+        onPointerDownCapture={onPointerDown}
+        onPointerMoveCapture={onPointerMove}
+        onPointerUpCapture={endDrag}
+        onPointerCancelCapture={endDrag}
         onKeyDown={onKeyDown}
         style={
           {

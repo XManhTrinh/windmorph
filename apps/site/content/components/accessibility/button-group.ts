@@ -55,9 +55,9 @@ export const buttonGroup: ComponentAccessibility = {
     'The overflow menu takes focus when it opens and gives it back to the "More options" button when it closes, as any {@link Menu} does.',
   ],
   touchTarget: [
-    'Extra-small and small buttons keep their invisible 48 × 48px touch targets. A standard group spaces them 18px (XS) and 12px (S) apart, so the targets of neighbours never overlap.',
+    'Extra-small and small buttons keep their invisible 48 × 48px touch targets. A standard group spaces them 18px (XS) and 12px (S) apart, and narrow icon buttons 48px minus their width (20px at XS, 16px at S), so the targets of neighbours never overlap.',
     'In a connected group, extra-small and small icon buttons are at least 48px wide; buttons sit 2px apart at every size.',
-    "A group follows the density of the icon buttons inside (the theme's or a `ThemeScope`'s): they get smaller and keep their gaps and 48px targets, which can meet in the gaps but never reach a neighbour.",
+    "A group follows the density of the icon buttons inside (the theme's or a `ThemeScope`'s): they get smaller and keep their 48px targets, and the XS and S gaps grow as they shrink, so neighbouring targets meet but never overlap.",
   ],
   motion: [
     "Under reduced motion a pressed button doesn't grow into its neighbours' space, and the press and selection morphs snap to their new corners. Colours still fade.",

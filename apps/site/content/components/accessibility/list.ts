@@ -82,7 +82,8 @@ export const list: ComponentAccessibility = {
     "With `density` (or the theme's), items lose 4px a step (one line 44px at -3). They're stacked rows, so each keeps a full-row target that never overlaps the next, above WCAG 2.5.8's 24px minimum, and the chevron's target is at most one row tall. M3 lets lists adjust their density; leave it to the reader's choice.",
   ],
   motion: [
-    'Under reduced motion nested items only fade in and out instead of also opening their height, and the expand chevron flips without rotating. Item corners snap to their new shape, and the press ripple appears at full size without growing.',
+    'Under reduced motion nested items only fade in and out instead of also opening their height. When items open as others fold (an app keeping one item open), the folding ones go at once and the opening ones fade in, so the items below move once. The expand chevron flips without rotating. Item corners snap to their new shape, and the press ripple appears at full size without growing.',
+    'When a press opens an item while an open item above it folds, the item pressed stays where it is on screen, with or without reduced motion: the page scrolls by the folded height as the rows close, so nothing moves out from under the finger or pointer.',
   ],
   consumer: [
     'Name every list with `aria-label`, or `aria-labelledby` pointing at a visible heading.',

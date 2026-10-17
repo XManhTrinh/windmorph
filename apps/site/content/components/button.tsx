@@ -146,11 +146,12 @@ export async function ButtonBody(): Promise<ComponentDoc> {
               <InlineCode>primary</InlineCode>.
             </li>
             <li>
-              The press morph is a CSS <InlineCode>border-radius</InlineCode> transition on the fast
-              spatial spring, which bounces in the expressive scheme (Compose uses a non-bouncing
-              effects spring; the spec puts corners on spatial springs). A press that starts while
-              the last morph is still settling uses the fast effects spring instead, the web&apos;s
-              modified curve against rapid-click resonance.
+              The press morph is a CSS <InlineCode>border-radius</InlineCode> transition. A plain
+              button&apos;s press morph runs on the default effects spring, which never bounces, as
+              Compose&apos;s <InlineCode>Button</InlineCode> does; a toggle&apos;s selection morph
+              uses the fast spatial spring, as Compose&apos;s <InlineCode>ToggleButton</InlineCode>.
+              A press that starts while the last morph is still settling uses the fast effects
+              spring, the web&apos;s modified curve against rapid-click resonance.
             </li>
             <li>
               Selected round toggle buttons become square and selected square ones become round (the
@@ -175,7 +176,7 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             <li>
               XS and S buttons are at least 32 and 40px tall and grow with a large browser font
               size, as Compose&apos;s buttons do; a stretching flex or grid parent doesn&apos;t make
-              them taller. The XS split button&apos;s halves do the same.
+              them taller. The XS and S split button halves do the same.
             </li>
             <li>
               A disabled outlined button dims its outline to 10%; a selected outlined toggle has no

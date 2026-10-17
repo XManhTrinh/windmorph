@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { canvas, computedStyle } from './forced-colors';
+import { canvas, computedStyle, systemColor } from './forced-colors';
 import { openStory } from './story';
 
 /*
@@ -114,4 +114,21 @@ test('sheets: an edge against the page and a visible drag handle', async ({ page
   const side = page.getByRole('dialog', { name: 'Filters' });
   await expect(side).toBeVisible();
   expect(await computedStyle(side, 'border-inline-start-width')).toBe('1px');
+});
+
+test('time picker: the dial takes system colours', async ({ page }) => {
+  await openStory(page, 'components-pickers--time-12');
+  const dial = page.getByRole('group', { name: 'Clock' });
+  const [canvasColor, text, highlight, highlightText] = await Promise.all(
+    ['Canvas', 'CanvasText', 'Highlight', 'HighlightText'].map((name) => systemColor(page, name)),
+  );
+  const face = dial.locator(':scope > circle').first();
+  expect(await computedStyle(face, 'fill')).toBe(canvasColor);
+  expect(await computedStyle(face, 'stroke')).toBe(text);
+  const handle = dial.locator(':scope > line').first();
+  expect(await computedStyle(handle, 'stroke')).toBe(highlight);
+  const number = dial.getByRole('button', { name: '6 hours of 12' }).locator('text').first();
+  expect(await computedStyle(number, 'fill')).toBe(text);
+  const picked = dial.getByRole('button', { name: '2 hours of 12' }).locator('text[data-selected]');
+  expect(await computedStyle(picked, 'fill')).toBe(highlightText);
 });

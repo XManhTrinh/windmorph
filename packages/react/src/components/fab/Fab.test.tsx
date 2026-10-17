@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { FloatingToolbar } from '../toolbar/Toolbar';
 import { ExtendedFab, Fab } from './Fab';
@@ -234,9 +234,20 @@ describe('ExtendedFab', () => {
   });
 
   it('collapses to the icon while keeping the label as its accessible name', () => {
+    // The label's box animates a measured width in px, so the spring's overshoot shows
+    // (2026-10-17; a 0fr ↔ 1fr track stopped at the label's width).
+    const computed = window.getComputedStyle;
+    const width = vi
+      .spyOn(window, 'getComputedStyle')
+      .mockImplementation((element) =>
+        Object.assign(computed(element), { width: '89.5px' } as Partial<CSSStyleDeclaration>),
+      );
+    onTestFinished(() => width.mockRestore());
     const { rerender } = render(<ExtendedFab icon={<Icon />}>Compose</ExtendedFab>);
     const collapse = screen.getByText('Compose').parentElement!.parentElement!;
     expect(collapse).not.toHaveAttribute('data-collapsed');
+    expect(collapse.style.width).toBe('89.5px');
+    expect(collapse).toHaveClass('[transition-property:width,opacity]');
 
     rerender(
       <ExtendedFab icon={<Icon />} expanded={false}>
@@ -244,7 +255,8 @@ describe('ExtendedFab', () => {
       </ExtendedFab>,
     );
     expect(collapse).toHaveAttribute('data-collapsed');
-    expect(collapse).toHaveClass('data-collapsed:grid-cols-[0fr]', 'data-collapsed:opacity-0');
+    expect(collapse).toHaveClass('data-collapsed:w-0', 'data-collapsed:opacity-0');
+    expect(collapse.style.width).toBe('0px');
     // Both directions run on the fast spatial and fast effects springs.
     expect(collapse.className).not.toMatch(/-default-/);
     expect(screen.getByRole('button', { name: 'Compose' })).toHaveAttribute(

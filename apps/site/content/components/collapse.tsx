@@ -133,9 +133,11 @@ export async function CollapseBody(): Promise<ComponentDoc> {
               a gap around it.
             </li>
             <li>
-              Under reduced motion the height no longer moves: it only fades, over{' '}
-              <InlineCode>--wm-collapse-fade-duration</InlineCode>, and{' '}
-              <InlineCode>onExited</InlineCode> runs when the fade ends.
+              Under reduced motion the height no longer animates: an opening collapse appears at
+              full height and fades in, and a folding one fades out where it is, over{' '}
+              <InlineCode>--wm-collapse-fade-duration</InlineCode>, then goes (
+              <InlineCode>onExited</InlineCode> runs when the fade ends). One that folds as another
+              opens goes at once, so what&apos;s below shifts once.
             </li>
           </ul>
         </section>

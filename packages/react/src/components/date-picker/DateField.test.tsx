@@ -42,6 +42,32 @@ describe('DateField (docked date picker)', () => {
     expect(screen.getByRole('textbox', { name: 'Start date' })).toHaveValue('03/12/2030');
   });
 
+  it('styles the compact picker with the calendar classNames', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    render(
+      <DateField
+        label="Start date"
+        defaultValue={march}
+        classNames={{
+          calendar: 'cal',
+          day: 'day',
+          weekday: 'wd',
+          menuButton: 'menu',
+          item: 'item',
+        }}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Open calendar' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Choose a date' });
+    expect(dialog).toHaveClass('cal');
+    expect(within(dialog).getByRole('button', { name: /March 12, 2030/ })).toHaveClass('day');
+    expect(dialog.querySelector('.wd')).not.toBe(null);
+    const yearButton = within(dialog).getByRole('button', { name: /Switch to selecting a year/ });
+    expect(yearButton).toHaveClass('menu');
+    await userEvent.click(yearButton);
+    expect(within(dialog).getByRole('radio', { name: '2030' })).toHaveClass('item');
+  });
+
   // The modal picker loads with import() on compact windows only (2026-10-16): pointer or
   // focus on the field preloads it, so the first press opens it in the same pass.
   it('loads the compact picker on demand, before the first press', async () => {

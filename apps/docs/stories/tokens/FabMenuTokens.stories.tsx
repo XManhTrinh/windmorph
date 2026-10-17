@@ -15,10 +15,21 @@ export const Probe: StoryObj = {
   render: () => (
     <TokenProbe
       instances={
-        <FabMenu icon={<AddIcon />} openIcon={<CloseIcon />} aria-label="Create" defaultOpen>
-          <FabMenuItem icon={<EditIcon />}>Edit</FabMenuItem>
-          <FabMenuItem icon={<SendIcon />}>Send</FabMenuItem>
-        </FabMenu>
+        <div className="flex items-end gap-6">
+          {(['primary', 'secondary', 'tertiary'] as const).map((color) => (
+            <FabMenu
+              key={color}
+              color={color}
+              icon={<AddIcon />}
+              openIcon={<CloseIcon />}
+              aria-label={`Create ${color}`}
+              defaultOpen
+            >
+              <FabMenuItem icon={<EditIcon />}>Edit</FabMenuItem>
+              <FabMenuItem icon={<SendIcon />}>Send</FabMenuItem>
+            </FabMenu>
+          ))}
+        </div>
       }
       scoped={
         <FabMenu icon={<AddIcon />} openIcon={<CloseIcon />} aria-label="Scoped" defaultOpen>

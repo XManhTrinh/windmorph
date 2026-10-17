@@ -28,7 +28,7 @@ export const expandableText: ComponentAccessibility = {
     "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the button or the text. Pointer presses show no ring.",
   ],
   touchTarget: [
-    'The buttons are one line of text tall, and each gets an invisible touch target 48px tall and at least 48px wide.',
+    'The buttons are one line of text tall, and each gets an invisible touch target 48px tall and at least 48px wide, growing down and sideways from its line, so it never covers the line above.',
   ],
   motion: [
     'Expanding and collapsing are instant, with no height animation. When "See less" brings the text\'s start back into view, the page scrolls smoothly, and at once under reduced motion.',

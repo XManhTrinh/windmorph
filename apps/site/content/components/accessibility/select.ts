@@ -85,7 +85,7 @@ export const select: ComponentAccessibility = {
     "The field shows focus as a text field does: its indicator line or border thickens to 2px and takes the focus colour. Options show M3's focus indicator drawn inside the row.",
   ],
   touchTarget: [
-    'The field is at least 56px tall and opens from a press anywhere on it.',
+    'The field is at least 56px tall and opens from a press anywhere on it, with a mouse or a finger.',
     "Options are M3's 44px menu rows, spanning the list's width, and stacked with no gap, so they have no extra touch target; the search field in a `searchable` menu is 48px tall.",
   ],
   motion: [

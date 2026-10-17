@@ -78,6 +78,14 @@ export async function SnackbarBody(): Promise<ComponentDoc> {
             <InlineCode>showSnackbar</InlineCode>. The host queues messages and shows one at a time.
             Render a <InlineCode>Snackbar</InlineCode> directly only for custom placement.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            Snackbars appear above FABs, never in front of or behind them, and never over a
+            navigation bar. Lift the host above what sits at the bottom of the screen: with a 56px
+            FAB at <InlineCode>bottom-4</InlineCode>, place it at{' '}
+            <InlineCode>fixed inset-x-0 bottom-[72px]</InlineCode> (the FAB&apos;s 16px margin and
+            its height; the host&apos;s own 12px padding is the gap), and above a navigation bar add
+            the bar&apos;s height. Move the host back down when the FAB hides.
+          </p>
         </section>
       </>
     ),

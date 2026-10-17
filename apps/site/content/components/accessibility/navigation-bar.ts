@@ -43,7 +43,7 @@ export const navigationBar: ComponentAccessibility = {
   ],
   consumer: [
     'Name the bar with `aria-label` or `aria-labelledby`, distinct from other navigation on the page.',
-    'Give every item a short visible label. Labels wrap rather than truncate, so keep the full text.',
+    'Give every item a short visible label. Labels wrap between words, so keep the full text; only a single word too wide for its item at large text sizes ends with an ellipsis.',
     'Mark the current destination with `selected`, and give it a filled `selectedIcon` where the icon set has one, so the state does not rest on colour alone.',
     "Leave `hide-on-scroll` off where a screen reader is in use, as M3 asks; the bar can't detect one.",
     'Scroll the page to the top in `onReselect`, as M3 asks.',

@@ -127,6 +127,10 @@ export const listStyles = tv({
       // apply in the first frame and hide the fade).
       'motion-safe:data-appear:starting:grid-rows-[0fr] data-appear:starting:opacity-0',
       'motion-safe:data-exiting:grid-rows-[0fr] data-exiting:opacity-0',
+      // A closing row is never the scroll anchor: the browser would pick it (its top stays
+      // put) and let a row pressed below it slide up by its height. The pressed row is held
+      // in place by the tree itself when the anchor is above it (2026-10-17).
+      'data-exiting:[overflow-anchor:none]',
     ],
     // Lets the row's height close to nothing inside the reveal.
     revealClip: 'flex min-h-0 flex-col overflow-hidden',
@@ -145,7 +149,15 @@ export const listStyles = tv({
       // Item colours are tokens: a standard item is see-through, so it takes its
       // container's colour (a sheet, a card); a segmented item is `surface`.
       standard: {},
-      segmented: { root: 'gap-[2px]', group: 'gap-[2px]' },
+      segmented: {
+        // A tree's 2px gaps are inside each row's reveal (above every row but the first), so
+        // a closing row takes its gap with it: a gap left between rows of no height would
+        // shift what follows by 2px per row as the ghosts are removed, and the browser's
+        // scroll anchoring then scrolled the page by as much (2026-10-17).
+        root: 'gap-[2px] [&[role=treegrid]]:gap-0',
+        group: 'gap-[2px]',
+        reveal: 'not-first:[&>*>*]:mt-[2px]',
+      },
     },
     interactive: {
       true: {

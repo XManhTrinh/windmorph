@@ -68,39 +68,20 @@ export const Interactive: Story = {
     return (
       <div className="flex max-w-md flex-col gap-4" data-testid="interactive">
         {VARIANTS.map((variant) => (
-          <Card
-            key={variant}
-            variant={variant}
-            onPress={() => setCount((c) => c + 1)}
-            aria-labelledby={`${variant}-title`}
-          >
+          <Card key={variant} variant={variant} onPress={() => setCount((c) => c + 1)}>
             <div className="p-4">
-              <h3 id={`${variant}-title`} className="text-title-medium">
-                Pressable {variant}
-              </h3>
+              <h3 className="text-title-medium">Pressable {variant}</h3>
               <p className="text-body-medium text-on-surface-variant">Pressed {count}</p>
             </div>
           </Card>
         ))}
-        <Card
-          variant="outlined"
-          href="https://m3.material.io/components/cards"
-          aria-labelledby="link-title"
-        >
+        <Card variant="outlined" href="https://m3.material.io/components/cards">
           <div className="p-4">
-            <h3 id="link-title" className="text-title-medium">
-              Link card
-            </h3>
+            <h3 className="text-title-medium">Link card</h3>
           </div>
         </Card>
         {VARIANTS.map((variant) => (
-          <Card
-            key={`${variant}-disabled`}
-            variant={variant}
-            onPress={() => {}}
-            disabled
-            aria-label="Disabled"
-          >
+          <Card key={`${variant}-disabled`} variant={variant} onPress={() => {}} disabled>
             <div className="p-4 text-title-medium">Disabled {variant}</div>
           </Card>
         ))}

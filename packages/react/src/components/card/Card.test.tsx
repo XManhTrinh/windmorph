@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { labelInNameViolations } from '../../../test/label-in-name';
 import { Card } from './Card';
 
 describe('Card', () => {
@@ -92,12 +93,12 @@ describe('Card', () => {
   it('renders a pressable card as a div button that works with mouse and keyboard', async () => {
     const onPress = vi.fn();
     render(
-      <Card variant="elevated" onPress={onPress} aria-labelledby="title">
-        <h3 id="title">Kyoto</h3>
+      <Card variant="elevated" onPress={onPress}>
+        <h3>Kyoto</h3>
         <p>Temples and gardens</p>
       </Card>,
     );
-    const card = screen.getByRole('button', { name: 'Kyoto' });
+    const card = screen.getByRole('button', { name: 'Kyoto Temples and gardens' });
     expect(card.tagName).toBe('DIV');
     expect(card).toHaveAttribute('tabindex', '0');
     expect(card).toHaveAttribute('data-tokens', 'md-comp-card');
@@ -197,8 +198,8 @@ describe('Card', () => {
     const navigate = vi.fn();
     render(
       <RouterProvider navigate={navigate}>
-        <Card href="/trips/kyoto" aria-labelledby="kyoto">
-          <h3 id="kyoto">Kyoto</h3>
+        <Card href="/trips/kyoto">
+          <h3>Kyoto</h3>
         </Card>
       </RouterProvider>,
     );
@@ -240,16 +241,50 @@ describe('Card', () => {
     expect(staticDisabled).toBeTruthy();
   });
 
+  it('takes no toggle or menu-trigger props, which no card uses', () => {
+    const cards = [
+      // @ts-expect-error a pressable card is never a toggle
+      <Card key="a" onPress={() => {}} aria-label="Open" toggle={false} />,
+      // @ts-expect-error a pressable card always takes focus on press
+      <Card key="b" onPress={() => {}} aria-label="Open" preventFocusOnPress />,
+      // @ts-expect-error a link card always takes focus on press
+      <Card key="c" href="/a" preventFocusOnPress />,
+    ];
+    expect(cards).toHaveLength(3);
+  });
+
+  // 2026-10-17: the documented pattern named a card by its headline alone, leaving its other
+  // visible text out of the name (axe's label-content-name-mismatch, WCAG 2.5.3).
+  it('is named by all its visible text, in reading order', async () => {
+    const { container } = render(
+      <div>
+        <Card onPress={() => {}}>
+          <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" />
+          <h3>Kyoto</h3>
+          <p>Temples and gardens</p>
+        </Card>
+        <Card href="/trips/lisbon">
+          <p>Next week</p>
+          <h3>Lisbon</h3>
+          <p>Trams and tiles</p>
+        </Card>
+      </div>,
+    );
+    expect(screen.getByRole('button')).toHaveAccessibleName('Kyoto Temples and gardens');
+    expect(screen.getByRole('link')).toHaveAccessibleName('Next week Lisbon Trams and tiles');
+    expect(await labelInNameViolations(container)).toEqual([]);
+  });
+
   it('has no axe violations', async () => {
     const { container } = render(
       <div>
         <Card>Static</Card>
-        <Card onPress={() => {}} aria-labelledby="a">
-          <h3 id="a">Pressable</h3>
+        <Card onPress={() => {}}>
+          <h3>Pressable</h3>
           <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" />
         </Card>
-        <Card href="/x" aria-labelledby="b">
-          <h3 id="b">Link</h3>
+        <Card href="/x">
+          <h3>Link</h3>
         </Card>
       </div>,
     );

@@ -83,8 +83,9 @@ export default async function MotionPage() {
         </h2>
         <p className="text-body-large text-on-surface-variant">
           The box below springs with the fast spatial spring. In the expressive scheme it
-          overshoots; switch the top-bar motion toggle to standard (or enable{' '}
-          <InlineCode>prefers-reduced-motion</InlineCode>) and the overshoot disappears.
+          overshoots; switch the top-bar motion toggle to standard and the overshoot disappears.
+          With <InlineCode>prefers-reduced-motion</InlineCode> set, it moves to its new place at
+          once, as every component&apos;s spatial motion does.
         </p>
         {/* A live demo: the Markdown version of the page leaves it out. */}
         <div className="contents" data-markdown="skip">
@@ -198,11 +199,39 @@ export default async function MotionPage() {
           Reduced motion
         </h2>
         <p className="text-body-large text-on-surface-variant">
-          <InlineCode>useM3Spring</InlineCode> forces the <InlineCode>standard</InlineCode> scheme
-          when <InlineCode>prefers-reduced-motion</InlineCode> is set (via Motion’s{' '}
-          <InlineCode>useReducedMotion</InlineCode>), so it never visibly overshoots. The CSS spring
-          variables switch to the standard values in the same case. Morphs and overshoot are
-          removed; indeterminate motion that conveys activity stays.
+          When <InlineCode>prefers-reduced-motion</InlineCode> is set, the components remove
+          movement that isn&apos;t essential, following WCAG 2.3.3 (Animation from Interactions).
+          Slides, size and shape changes, morphs, rotations and travelling indicators happen at
+          once; a surface that enters or leaves fades instead. State changes stay visible: colours
+          and opacity still fade on the effects springs.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          When one panel or row opens as another folds (an accordion, a list&apos;s nested rows),
+          the folding one goes at once and the opening one appears at full height and fades in, so
+          the content below shifts once, and not at all when the two are the same height.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Essential motion keeps working: indeterminate progress and loading indicators, which show
+          that something is happening, and anything that follows a finger, the pointer or the scroll
+          position directly (a drag, a pull to refresh, an app bar collapsing with the page).
+          Nothing springs or overshoots after it.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          In CSS this needs no code of your own: under reduced motion every{' '}
+          <InlineCode>--md-sys-motion-spring-spatial-*-duration</InlineCode> is 0ms, so anything on
+          the spatial springs (and the <InlineCode>duration-m3-spatial-*</InlineCode> utilities)
+          changes at once, while the effects springs keep their durations. A transition list that
+          drops to <InlineCode>opacity</InlineCode> under reduced motion should give the fade an
+          effects duration of its own. In script, <InlineCode>useM3Spring</InlineCode> still returns
+          the <InlineCode>standard</InlineCode> spring, so check Motion&apos;s{' '}
+          <InlineCode>useReducedMotion</InlineCode> and skip the movement yourself, as the demo
+          above does.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Content that opens and folds (a list&apos;s nested items, Pro&apos;s Accordion and
+          Collapse) only fades: a lone fold fades out where it is, then goes. When one item opens as
+          another folds, the folding one goes at once and the opening one appears at full height and
+          fades in, so the content below moves once, or not at all when both are the same height.
         </p>
       </section>
 

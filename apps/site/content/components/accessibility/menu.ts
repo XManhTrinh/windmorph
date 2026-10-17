@@ -89,11 +89,12 @@ export const menu: ComponentAccessibility = {
     'For touch, keep `density` at 0, or use `presentation="auto"`, which opens the menu in a bottom sheet on compact windows.',
   ],
   motion: [
-    "Under reduced motion the menu only fades: it isn't revealed from its anchored edge. The press ripple appears at full size without growing, and corner morphs (a selected item's, and the menus' while a submenu is open) snap. `instant` turns the open and close motion off entirely.",
+    "Under reduced motion the menu only fades: it isn't revealed from its anchored edge. The press ripple appears at full size without growing, and corner morphs (a selected item's, and the menus' while a submenu is open) snap. `instant` turns the open and close motion of a popover menu off entirely; a menu shown as a bottom sheet keeps the sheet's motion.",
   ],
   consumer: [
     'Give an icon-only trigger an `aria-label` (an {@link IconButton} requires one).',
     'Give every `ContextMenuTrigger` menu an `aria-label`, and every `MenuGroup` without a visible heading an `aria-label`.',
+    "Make a `ContextMenuTrigger`'s target focusable (a link, a button, or `tabIndex={0}` with a visible focus indicator), so Shift + F10 and the context-menu key can reach it and Escape returns focus to it. Keep every action of the menu available another way too, as context menus are hard to discover.",
     'Pass `labels` to translate the back button of a sheet.',
     'Use `disabledKeys` rather than removing an item when people should still learn it exists.',
   ],

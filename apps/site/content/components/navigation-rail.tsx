@@ -146,9 +146,18 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
               consumer <InlineCode>w-*</InlineCode> class still wins.
             </li>
             <li>
-              Where Compose cross-fades each label while sliding it as the rail changes mode, here
-              the items switch layout at once, the labels fade in at their new place, and the
-              rail&apos;s width does the spring.
+              As in Compose, the items&apos; height and spacing spring with the rail&apos;s width
+              (64 → 48px and 4 → 0px) and each icon moves to its new place on the default spatial
+              spring. Where Compose cross-fades each label while sliding it, the labels fade in at
+              their new place. Under reduced motion it all changes at once.
+            </li>
+            <li>
+              The modal rail&apos;s sheet is portalled to the end of the page, so a token set inline
+              on an element around the rail doesn&apos;t reach it. Set the{' '}
+              <InlineCode>--md-comp-nav-rail-expanded-modal-*</InlineCode> tokens on{' '}
+              <InlineCode>:root</InlineCode> or a theme, in a class on a{' '}
+              <InlineCode>ThemeScope</InlineCode> (overlays opened in it carry its class), or with{' '}
+              <InlineCode>classNames.sheet</InlineCode>.
             </li>
             <li>
               Selection is <InlineCode>aria-current=&quot;page&quot;</InlineCode> via a{' '}

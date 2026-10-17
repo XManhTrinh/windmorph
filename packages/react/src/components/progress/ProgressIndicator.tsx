@@ -39,7 +39,19 @@ import {
 import { circularProgressStyles, linearProgressStyles } from './progress-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
-type Naming = { 'aria-label': string } | { 'aria-labelledby': string };
+type Naming =
+  | {
+      /** Names the indicator ("Loading messages"). Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+      /** The id of the visible text that names the indicator. Required unless `aria-label` is set. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** Names the indicator ("Loading messages"). Required unless `aria-labelledby` is set. */
+      'aria-label'?: string;
+      /** The id of the visible text that names the indicator. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
 
 const clamp01 = (value: number) => (Number.isNaN(value) ? 0 : Math.min(Math.max(value, 0), 1));
 
@@ -199,7 +211,7 @@ interface SharedOwnProps {
    * track); the indicator grows to fit, keeping room for the wave. @default 4
    */
   thickness?: number;
-  /** Thickness of the track in px. @default thickness */
+  /** Thickness of the track in px. @default the same as `thickness` */
   trackThickness?: number;
   /**
    * Draw the track (and the linear stop dot). Remove it inside a button, colouring the
@@ -231,7 +243,10 @@ interface LinearOwnProps extends SharedOwnProps {
 
 export type LinearProgressIndicatorProps = LinearOwnProps &
   Naming &
-  Omit<ComponentPropsWithRef<'div'>, keyof LinearOwnProps | 'children' | 'role'>;
+  Omit<
+    ComponentPropsWithRef<'div'>,
+    keyof LinearOwnProps | 'aria-label' | 'aria-labelledby' | 'children' | 'role'
+  >;
 
 /**
  * M3 linear progress indicator: determinate (`value`) or indeterminate, flat or wavy, with a
@@ -392,7 +407,10 @@ interface CircularOwnProps extends SharedOwnProps {
 
 export type CircularProgressIndicatorProps = CircularOwnProps &
   Naming &
-  Omit<ComponentPropsWithRef<'div'>, keyof CircularOwnProps | 'children' | 'role'>;
+  Omit<
+    ComponentPropsWithRef<'div'>,
+    keyof CircularOwnProps | 'aria-label' | 'aria-labelledby' | 'children' | 'role'
+  >;
 
 interface CircularFrame {
   /** Degrees clockwise from 12 o'clock where the arc starts. */

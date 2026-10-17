@@ -44,6 +44,24 @@ describe('Overlay', () => {
     expect(wrapper).toHaveAttribute('data-density', '-3');
   });
 
+  it("sets the enclosing ThemeScopes' inline CSS variables on its wrapper", () => {
+    render(
+      <ThemeScope style={{ '--md-comp-menu-container-color': 'red', padding: 4 } as object}>
+        <ThemeScope style={{ '--md-comp-menu-container-color': 'blue', '--x': '1' } as object}>
+          <Overlay>
+            <div>Menu</div>
+          </Overlay>
+        </ThemeScope>
+      </ThemeScope>,
+    );
+    const wrapper = screen.getByText('Menu').closest<HTMLElement>('[data-overlay-scope]');
+    // The inner scope wins; only variables travel, not the scope's own layout styles.
+    expect(wrapper?.style.getPropertyValue('--md-comp-menu-container-color')).toBe('blue');
+    expect(wrapper?.style.getPropertyValue('--x')).toBe('1');
+    expect(wrapper?.style.padding).toBe('');
+    expect(wrapper).toHaveStyle({ display: 'contents' });
+  });
+
   it("puts the enclosing ThemeScopes' classes on its wrapper, so their variables reach it", () => {
     render(
       <ThemeScope className="brand-a p-4">

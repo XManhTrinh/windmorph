@@ -44,7 +44,7 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveClass(
       'size-[56px]',
       'rounded-corner-large',
-      'bg-primary-container',
+      'bg-[var(--_md-comp-fab-container-color)]',
       'shadow-elevation-3',
     );
     expect(screen.getByTestId('add')).toBeInTheDocument();
@@ -59,7 +59,10 @@ describe('FabMenu', () => {
     fireEvent.click(toggle());
     expect(toggle()).toHaveAttribute('aria-expanded', 'true');
     expect(toggle()).toHaveAttribute('data-open', 'true');
-    expect(toggle()).toHaveClass('data-open:size-[56px]', 'data-open:bg-primary');
+    expect(toggle()).toHaveClass(
+      'data-open:size-[56px]',
+      'data-open:bg-[var(--_md-comp-fab-menu-close-button-container-color)]',
+    );
     // Size and corners on fast spatial; colours on fast effects, which never overshoot.
     expect(toggle()).toHaveClass(
       '[--m3-transition-property:width,height,border-radius,background-color,color]',
@@ -234,6 +237,25 @@ describe('FabMenu', () => {
     expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
   });
 
+  // Re-audit 2026-10-16: opened from the focused button, Shift+Tab straight out of it left
+  // the list open (focus had come in while it was closed).
+  it('closes when focus leaves straight from the button it was opened with', async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Menu />
+      </>,
+    );
+    act(() => toggle().focus());
+    await user.keyboard('{Enter}');
+    expect(toggle()).toHaveAttribute('aria-expanded', 'true');
+    await user.tab({ shift: true });
+    expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus();
+    expect(toggle()).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('closes on an outside press', async () => {
     render(
       <>
@@ -283,13 +305,19 @@ describe('FabMenu', () => {
     );
   });
 
-  it.each([
-    ['secondary', 'bg-secondary-container', 'data-open:bg-secondary'],
-    ['tertiary', 'bg-tertiary-container', 'data-open:bg-tertiary'],
-  ] as const)('uses the %s colour set', (color, closed, open) => {
-    render(<Menu color={color} defaultOpen />);
-    expect(toggle()).toHaveClass(closed, open);
-    expect(item('Reply')).toHaveClass(closed);
+  // Colours are tokens (2026-10-17): the root names the close button's and the items' sets,
+  // and the closed button is a FAB of the container colour.
+  it.each(['primary', 'secondary', 'tertiary'] as const)('uses the %s colour set', (color) => {
+    render(<Menu color={color} defaultOpen data-testid="menu" />);
+    const root = screen.getByTestId('menu');
+    expect(root).toHaveAttribute('data-color', color);
+    expect(root).toHaveAttribute('data-item-color', `${color}-container`);
+    expect(toggle()).toHaveAttribute('data-tokens', 'md-comp-fab');
+    expect(toggle()).toHaveAttribute('data-color', `${color}-container`);
+    expect(item('Reply')).toHaveClass(
+      'bg-[var(--_md-comp-fab-menu-list-item-container-color)]',
+      'text-[color:var(--_md-comp-fab-menu-list-item-label-text-color)]',
+    );
   });
 
   it('reads its close button’s and items’ corners from its component tokens', () => {

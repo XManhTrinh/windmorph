@@ -32,7 +32,11 @@ describe('ButtonGroup', () => {
     );
     const group = screen.getByRole('toolbar', { name: 'Actions' });
     // Medium standard groups space their buttons 8px apart.
-    expect(group).toHaveClass('inline-flex', 'gap-[8px]');
+    expect(group).toHaveClass(
+      'inline-flex',
+      'gap-(--m3-button-group-gap)',
+      '[--m3-button-group-gap:8px]',
+    );
     const copy = screen.getByRole('button', { name: 'Copy' });
     expect(copy).toHaveClass('h-[56px]');
     expect(copy).toHaveAttribute('data-variant', 'tonal');
@@ -122,9 +126,12 @@ describe('ButtonGroup', () => {
 
   it.each([
     // 18 / 12px at density 0, growing with density so 48px targets never overlap.
-    ['xs', 'gap-[max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]'],
-    ['sm', 'gap-[max(12px,calc(8px-var(--md-sys-density,0)*4px))]'],
-    ['md', 'gap-[8px]'],
+    [
+      'xs',
+      '[--m3-button-group-gap:max(18px,calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px))))]',
+    ],
+    ['sm', '[--m3-button-group-gap:max(12px,calc(8px-var(--md-sys-density,0)*4px))]'],
+    ['md', '[--m3-button-group-gap:8px]'],
     ['lg', 'gap-[8px]'],
     ['xl', 'gap-[8px]'],
   ] as const)('spaces a standard %s group %s apart', (size, gap) => {
@@ -134,6 +141,24 @@ describe('ButtonGroup', () => {
       </ButtonGroup>,
     );
     expect(screen.getByRole('toolbar')).toHaveClass(gap);
+  });
+
+  // Narrow icon buttons: the gap is max(spec, 48px − the narrow width), so their 48px
+  // targets never overlap (2026-10-17); the browser measures it in e2e/button-group.spec.ts.
+  it.each([
+    ['xs', 'max(18px,calc(48px-max(24px,calc(28px+var(--md-sys-density,0)*4px))))'],
+    ['sm', 'max(12px,calc(48px-max(28px,calc(32px+var(--md-sys-density,0)*4px))))'],
+    ['md', 'max(8px,calc(var(--md-sys-density,0)*-4px))'],
+  ] as const)('spaces a standard %s group by its narrow icon buttons', (size, gap) => {
+    render(
+      <ButtonGroup aria-label="Actions" size={size}>
+        <IconButton icon={<Icon />} aria-label="Bold" width="narrow" />
+      </ButtonGroup>,
+    );
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('data-width', 'narrow');
+    expect(screen.getByRole('toolbar')).toHaveClass(
+      `has-[[data-tokens~=md-comp-icon-button][data-width=narrow]]:[--m3-button-group-gap:${gap}]`,
+    );
   });
 
   it('moves focus with the arrow keys without a selection mode, mirrored in RTL', async () => {
@@ -323,7 +348,7 @@ describe('ButtonGroup', () => {
     );
     const group = screen.getByRole('toolbar');
     expect(group).toHaveClass('flex', 'w-full', 'gap-1');
-    expect(group).not.toHaveClass('inline-flex', 'gap-[12px]');
+    expect(group).not.toHaveClass('inline-flex', 'gap-(--m3-button-group-gap)');
   });
 });
 
@@ -583,6 +608,44 @@ describe('ButtonGroup press expansion', () => {
     expect(one.style.flexBasis).toBe('100px');
     await act(() => vi.advanceTimersByTimeAsync(200));
     expect(one.style.flex).toBe('');
+    vi.useRealTimers();
+  });
+
+  it('waits for a release that started late to end before removing its inline sizing', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <ButtonGroup aria-label="Actions">
+        <Button>One</Button>
+        <Button>Two</Button>
+      </ButtonGroup>,
+    );
+    const [one, two] = screen.getAllByRole('button') as [HTMLElement, HTMLElement];
+    stubWidths([one, two], 100, 60);
+
+    await user.pointer({ keys: '[MouseLeft>]', target: one });
+    await user.pointer({ keys: '[/MouseLeft]', target: one });
+    // The release's transition still runs once the spring's time has passed.
+    class CSSTransitionStub {
+      transitionProperty = 'flex-basis';
+      playState = 'running';
+      finished: Promise<void>;
+      end!: () => void;
+      constructor() {
+        this.finished = new Promise((resolve) => (this.end = resolve));
+      }
+      finish() {}
+    }
+    const globals = globalThis as { CSSTransition?: unknown };
+    const original = globals.CSSTransition;
+    globals.CSSTransition = CSSTransitionStub;
+    const late = new CSSTransitionStub();
+    one.getAnimations = () => [late as unknown as Animation];
+    await act(() => vi.advanceTimersByTimeAsync(1000));
+    expect(one.style.flexBasis).toBe('100px');
+    await act(async () => late.end());
+    expect(one.style.flex).toBe('');
+    globals.CSSTransition = original;
     vi.useRealTimers();
   });
 

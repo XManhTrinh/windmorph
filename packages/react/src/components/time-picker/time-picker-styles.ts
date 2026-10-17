@@ -78,13 +78,26 @@ export const timePickerStyles = tv({
       'data-selected:text-on-tertiary-container',
       ...forcedSelection,
     ],
-    dial: 'size-[256px] shrink-0 touch-none rounded-full outline-none select-none',
-    dialFace: 'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
+    // Forced colours don't reach an SVG's fills, so the dial kept the theme's light disc and
+    // purple handle on the forced canvas: it paints itself in system colours there, a Canvas
+    // disc with a CanvasText edge and numbers, and a Highlight handle and track with
+    // HighlightText numbers (2026-10-17).
+    dial: [
+      'size-[256px] shrink-0 touch-none rounded-full outline-none select-none',
+      'forced-colors:forced-color-adjust-none',
+    ],
+    dialFace: [
+      'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
+      'forced-colors:fill-[Canvas] forced-colors:stroke-[CanvasText] forced-colors:[stroke-width:1px]',
+    ],
     dialNumber: 'cursor-pointer outline-none',
     dialNumberHit: 'fill-transparent',
-    dialNumberText: 'fill-on-surface text-body-large data-selected:fill-on-primary',
+    dialNumberText: [
+      'fill-on-surface text-body-large data-selected:fill-on-primary',
+      'forced-colors:fill-[CanvasText] forced-colors:data-selected:fill-[HighlightText]',
+    ],
     // The copy of the numbers clipped to the handle.
-    dialNumberOnHandle: 'fill-on-primary text-body-large',
+    dialNumberOnHandle: 'fill-on-primary text-body-large forced-colors:fill-[HighlightText]',
     // The hour and minute faces crossfade on the default effects spring (Compose).
     dialFaceEntering: [
       'transition-opacity starting:opacity-0',
@@ -94,10 +107,15 @@ export const timePickerStyles = tv({
       'pointer-events-none opacity-0 transition-opacity starting:opacity-100',
       '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
     ],
-    dialFocus: 'fill-none stroke-secondary',
-    dialHandle: 'fill-[var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
-    dialTrack:
+    dialFocus: 'fill-none stroke-secondary forced-colors:stroke-[CanvasText]',
+    dialHandle: [
+      'fill-[var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+      'forced-colors:fill-[Highlight]',
+    ],
+    dialTrack: [
       'stroke-[color:var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+      'forced-colors:stroke-[Highlight]',
+    ],
     field: [
       'h-[calc(72px+var(--md-sys-density,0)*4px)] w-[96px] rounded-corner-small border-2 border-transparent bg-surface-container-highest',
       'text-center text-display-medium text-on-surface caret-primary outline-none tabular-nums',

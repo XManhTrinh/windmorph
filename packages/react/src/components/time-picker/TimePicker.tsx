@@ -3,9 +3,11 @@
 import { Time } from '@internationalized/date';
 import { animate, useReducedMotion, type AnimationPlaybackControls } from 'motion/react';
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -13,10 +15,12 @@ import {
   type PointerEvent,
   type ReactElement,
   type Ref,
+  type RefCallback,
   type RefObject,
 } from 'react';
 import {
   mergeProps,
+  mergeRefs,
   useFocusRing,
   useFocusVisible,
   useHover,
@@ -211,11 +215,18 @@ export function TimePicker({
   const hourLabel = strings.hour ?? 'Hour';
   const minuteLabel = strings.minute ?? 'Minute';
   const minuteRef = useRef<HTMLInputElement>(null);
+  // The page's direction where the picker sits (its `dir`, not only the locale's), which the
+  // AM / PM options follow inside the time's left-to-right row (2026-10-17).
+  const [domDirection, setDomDirection] = useState<'ltr' | 'rtl' | undefined>(undefined);
+  const directionRef = useCallback<RefCallback<HTMLDivElement>>((element) => {
+    if (element) setDomDirection(getComputedStyle(element).direction === 'rtl' ? 'rtl' : 'ltr');
+  }, []);
+  const rootRef = useMemo(() => mergeRefs<HTMLDivElement>(ref, directionRef), [ref, directionRef]);
 
   return (
     <div
       {...data}
-      ref={ref}
+      ref={rootRef}
       style={style}
       // The time picker's component tokens (time-picker-tokens.ts).
       data-tokens={mergeDataTokens('md-comp-time-picker', data)}
@@ -267,6 +278,7 @@ export function TimePicker({
             pm={strings.pm ?? 'PM'}
             isPm={isPm}
             onChange={setPeriod}
+            direction={domDirection}
             styles={styles}
             classNames={classNames}
           />
@@ -362,6 +374,7 @@ function PeriodGroup({
   pm,
   isPm,
   onChange,
+  direction: domDirection,
   styles,
   classNames,
 }: {
@@ -370,10 +383,13 @@ function PeriodGroup({
   pm: string;
   isPm: boolean;
   onChange: (pm: boolean) => void;
+  /** The picker's laid-out direction, once known; the locale's until then (server render). */
+  direction: 'ltr' | 'rtl' | undefined;
   styles: ReturnType<typeof timePickerStyles>;
   classNames: TimePickerClassNames | undefined;
 }) {
-  const { direction } = useLocale();
+  const { direction: localeDirection } = useLocale();
+  const direction = domDirection ?? localeDirection;
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const forward = direction === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
@@ -392,7 +408,7 @@ function PeriodGroup({
     refs.current[next ? 1 : 0]?.focus();
   };
   return (
-    // The options keep the locale's direction for their order in the horizontal layout.
+    // The options keep the page's direction for their order in the horizontal layout.
     <div
       role="radiogroup"
       aria-label={label}
@@ -582,6 +598,14 @@ function dialNumbers(minutes: boolean, hourCycle: 12 | 24): DialNumber[] {
 /** The shortest signed way round the dial from one turn to another, in turns (−½ to ½). */
 const shortestTurn = (from: number, to: number) => ((((to - from) % 1) + 1.5) % 1) - 0.5;
 
+/**
+ * How close the hand is to its value when it counts as there: Compose's turn ends at the
+ * spring's visibility threshold of 0.01 rad (about 0.6°), and here within 1px of the radius
+ * too, while the last fraction of the spring still plays out.
+ */
+const ARRIVED_TURN = 0.01 / (2 * Math.PI);
+const ARRIVED_RADIUS = 1;
+
 /** Runs and clears the callbacks waiting in `queue`. */
 const flush = (queue: RefObject<(() => void)[]>) => {
   const callbacks = queue.current;
@@ -611,8 +635,9 @@ function useDialHand(
   const reducedMotion = useReducedMotion() ?? false;
   const drawn = useRef({ turn, radius });
   const animation = useRef<AnimationPlaybackControls | null>(null);
-  // Callbacks waiting for the hand to come to rest (`whenSettled`).
+  // Callbacks waiting for the hand to arrive (`whenSettled`), and whether it has.
   const settled = useRef<(() => void)[]>([]);
+  const arrived = useRef(true);
 
   // Before paint, so the hand never flashes at its new value before turning there.
   useLayoutEffect(() => {
@@ -633,19 +658,34 @@ function useDialHand(
     animation.current = null;
     if (follow.current || reducedMotion || (delta === 0 && from.radius === radius)) {
       draw(turn, radius);
+      arrived.current = true;
       flush(settled);
       return;
     }
     // React has written the new value's attributes; start from where the hand was.
     draw(from.turn, from.radius);
+    arrived.current = false;
+    // Two frames in a row within the threshold: the hand swinging past its value at speed
+    // (the expressive spring overshoots by about 1.5%) doesn't count as there.
+    let near = false;
     animation.current = animate(0, 1, {
       ...spring,
-      onUpdate: (progress) =>
-        draw(from.turn + delta * progress, from.radius + (radius - from.radius) * progress),
+      onUpdate: (progress) => {
+        draw(from.turn + delta * progress, from.radius + (radius - from.radius) * progress);
+        const close =
+          Math.abs(delta * (1 - progress)) <= ARRIVED_TURN &&
+          Math.abs((radius - from.radius) * (1 - progress)) <= ARRIVED_RADIUS;
+        if (close && near && !arrived.current) {
+          arrived.current = true;
+          flush(settled);
+        }
+        near = close;
+      },
       // A spring rests within a small distance of its target; end exactly on the value.
       onComplete: () => {
         draw(turn, radius);
         animation.current = null;
+        arrived.current = true;
         flush(settled);
       },
     });
@@ -659,9 +699,9 @@ function useDialHand(
     [],
   );
 
-  /** Runs `callback` once the hand rests on its value (at once if it already does). */
+  /** Runs `callback` once the hand has arrived at its value (at once if it already has). */
   return (callback: () => void) => {
-    if (animation.current) settled.current.push(callback);
+    if (animation.current && !arrived.current) settled.current.push(callback);
     else callback();
   };
 }

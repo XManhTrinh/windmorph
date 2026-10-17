@@ -13,11 +13,13 @@ const SIZES: SliderSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 interface Args {
   size: SliderSize;
   showValueLabel: boolean;
+  /** Discrete, in steps of 10 with a stop indicator at each. */
+  ticks: boolean;
 }
 
 const meta = {
   title: 'Components/Slider',
-  args: { size: 'xs', showValueLabel: true },
+  args: { size: 'xs', showValueLabel: true, ticks: false },
   argTypes: { size: { control: 'inline-radio', options: SIZES } },
 } satisfies Meta<Args>;
 
@@ -25,7 +27,7 @@ export default meta;
 type Story = StoryObj<Args>;
 
 export const Playground: Story = {
-  render: ({ size, showValueLabel }) => {
+  render: ({ size, showValueLabel, ticks }) => {
     function Demo() {
       const [value, setValue] = useState(40);
       return (
@@ -37,6 +39,7 @@ export const Playground: Story = {
             value={value}
             onChange={setValue}
             showValueLabel={showValueLabel}
+            {...(ticks && { step: 10, ticks: true })}
           />
           <p className="text-body-medium" data-testid="value">
             Value {value}

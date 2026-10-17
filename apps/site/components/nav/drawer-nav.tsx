@@ -8,7 +8,7 @@ import {
   type RailGroupId,
 } from '../../content/components/catalog';
 import { DOCS_SECTIONS } from '../../app/(docs)/sections';
-import { ExpandMoreIcon, WidgetsIcon } from '../icons';
+import { ExpandMoreIcon, WidgetsIcon, WorkspacePremiumIcon } from '../icons';
 import { GROUP_ICONS } from './group-icons';
 import { PageChips } from '../page-chips';
 
@@ -44,7 +44,7 @@ function DrawerLink({
       href={href}
       aria-current={active ? 'page' : undefined}
       onClick={onNavigate}
-      className="flex items-center gap-3 rounded-full px-4 py-2.5 text-label-large text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary aria-[current=page]:bg-secondary-container aria-[current=page]:text-on-secondary-container motion-reduce:transition-none"
+      className="flex min-h-12 items-center gap-3 rounded-full px-4 py-2.5 text-label-large text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary aria-[current=page]:bg-secondary-container aria-[current=page]:text-on-secondary-container motion-reduce:transition-none"
     >
       {icon != null && (
         <span className="inline-flex size-6 shrink-0 [&>svg]:size-full">{icon}</span>
@@ -85,7 +85,7 @@ function AccordionSection({
         aria-controls={open ? panelId : undefined}
         data-current={current ? 'true' : undefined}
         onClick={() => setOpen((value) => !value)}
-        className="flex items-center gap-3 rounded-full px-4 py-2.5 text-label-large text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary data-current:text-on-secondary-container motion-reduce:transition-none"
+        className="flex min-h-12 items-center gap-3 rounded-full px-4 py-2.5 text-label-large text-on-surface-variant outline-none transition-colors hover:bg-on-surface/8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary data-current:text-on-secondary-container motion-reduce:transition-none"
       >
         <span className="inline-flex size-6 shrink-0 [&>svg]:size-full">{icon}</span>
         <span className="min-w-0 flex-1 truncate text-start">{railLabel}</span>
@@ -155,6 +155,16 @@ export function DrawerNav({ pathname, onNavigate }: { pathname: string; onNaviga
         onNavigate={onNavigate}
       >
         All components
+      </DrawerLink>
+      {/* The Pro tags beside names stay text inside each row's link (a link can't hold
+          another); the filtered index has a link of its own here, one tab stop. */}
+      <DrawerLink
+        href="/components?filter=pro"
+        icon={<WorkspacePremiumIcon />}
+        active={false}
+        onNavigate={onNavigate}
+      >
+        Pro components
       </DrawerLink>
       {RAIL_GROUPS.map((group) => (
         <AccordionSection

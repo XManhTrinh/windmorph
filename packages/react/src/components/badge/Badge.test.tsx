@@ -25,8 +25,8 @@ describe('Badge', () => {
     render(<Badge data-testid="badge">{3}</Badge>);
     const badge = screen.getByTestId('badge');
     expect(badge).toHaveClass(
-      'min-h-[16px]',
-      'min-w-[16px]',
+      'min-h-[1rem]',
+      'min-w-[1rem]',
       'ps-[4px]',
       'pe-[4px]',
       'text-label-small',
@@ -55,13 +55,13 @@ describe('Badge', () => {
 
   it('stops text longer than four characters at 34px, truncating', () => {
     render(<Badge data-testid="badge">Longer</Badge>);
-    expect(screen.getByTestId('badge')).toHaveClass('max-w-[34px]');
+    expect(screen.getByTestId('badge')).toHaveClass('max-w-[2.125rem]');
     expect(screen.getByTestId('badge').firstElementChild).toHaveClass('truncate');
   });
 
   it('never cuts a label of four characters or fewer, "+" included', () => {
     render(<Badge data-testid="badge">999+</Badge>);
-    expect(screen.getByTestId('badge')).not.toHaveClass('max-w-[34px]');
+    expect(screen.getByTestId('badge')).not.toHaveClass('max-w-[2.125rem]');
   });
 
   it('caps counts at max with a "+" and formats them for the locale', () => {

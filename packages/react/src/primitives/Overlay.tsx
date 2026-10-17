@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
-import { useThemeScope, useThemeScopeClassName } from '../theme/context';
+import { useThemeScope, useThemeScopeClassName, useThemeScopeVariables } from '../theme/context';
 import { themeAttributes } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ToolbarContext } from './ToolbarContext';
@@ -32,7 +32,7 @@ export interface OverlayProps {
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
  * while keeping the theme, mode, contrast, motion scheme, density, **text direction and the
- * enclosing `ThemeScope`s' classes** of the place it was rendered from, so overlays opened
+ * enclosing `ThemeScope`s' classes and inline CSS variables** of the place it was rendered from, so overlays opened
  * inside a `ThemeScope` or an RTL region still match it, and CSS variables set through a
  * scope's class (component tokens) reach them. The wrapper is `display: contents`, so the
  * classes affect only what children inherit. Dismissal, focus containment and scroll locking come from the React
@@ -51,6 +51,7 @@ export function Overlay({
 }: OverlayProps) {
   const scope = useThemeScope();
   const scopeClassName = useThemeScopeClassName();
+  const scopeVariables = useThemeScopeVariables();
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -92,7 +93,11 @@ export function Overlay({
           className={scopeClassName || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
-          style={{ display: 'contents', color: 'var(--md-sys-color-on-surface)' }}
+          style={{
+            ...scopeVariables,
+            display: 'contents',
+            color: 'var(--md-sys-color-on-surface)',
+          }}
         >
           {/* An overlay opened from a toolbar isn't part of it. */}
           <ToolbarContext value={null}>{children}</ToolbarContext>

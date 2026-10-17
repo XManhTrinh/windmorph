@@ -64,7 +64,7 @@ export const richMessageField: ComponentAccessibility = {
   keyboardNotes: [
     'On a Mac, ⌘ takes the place of Ctrl.',
     "Typing the marker format (`*bold*`, `- `, ```` ``` ````) formats as you go, so every format is reachable without the toolbar. Enter that confirms an input method's candidate never sends.",
-    'Arrow keys in the toolbars are mirrored in right-to-left text.',
+    'Arrow keys in the toolbars follow the laid-out direction, so they are mirrored in right-to-left text, including a `dir="rtl"` region of a left-to-right app.',
   ],
   screenReader: {
     role: 'The editor is a `textbox` with `aria-multiline`. The tools and the formatting buttons are two `toolbar`s of icon buttons; the formatting buttons and the Aa tool are toggle buttons. A `separator` divides the formatting groups. The mention list is a `listbox` of `option`s. Link asks in a `dialog` (pressing outside it cancels).',
