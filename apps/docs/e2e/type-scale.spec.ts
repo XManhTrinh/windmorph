@@ -1,0 +1,416 @@
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { openStory } from './story';
+
+/*
+ * Type is in rem and layout in px (2026-10-13): text follows the reader's browser font size,
+ * as Android's sp follows the system font scale, while containers keep their dp sizes. These
+ * checks set a 32px root (a 200% font size) and expect every type role to double, and the
+ * containers that used to have a fixed height to grow around their text instead of clipping it.
+ */
+
+/** A few roles of the M3 type scale at the default 16px root: size, line height, tracking. */
+const ROLES = {
+  'display-large': [57, 64, -0.2],
+  'headline-small': [24, 32, 0],
+  'title-large': [22, 28, 0],
+  'title-medium': [16, 24, 0.2],
+  'body-large': [16, 24, 0.5],
+  'body-medium': [14, 20, 0.2],
+  'label-large': [14, 20, 0.1],
+  'label-small': [11, 16, 0.5],
+} as const;
+
+/** Sets the root font size, as a reader's browser font-size setting does. */
+const setRootFontSize = (page: Page, px: number) =>
+  page.addStyleTag({ content: `html { font-size: ${px}px; }` });
+
+/** The computed size, line height and tracking of each role, read through its tokens. */
+const measureRoles = (page: Page) =>
+  page.evaluate((roles) => {
+    const probe = document.createElement('span');
+    document.body.append(probe);
+    const result = Object.fromEntries(
+      roles.map((role) => {
+        const token = `--md-sys-typescale-${role}`;
+        probe.style.fontSize = `var(${token}-size)`;
+        probe.style.lineHeight = `var(${token}-line-height)`;
+        probe.style.letterSpacing = `var(${token}-tracking)`;
+        const style = getComputedStyle(probe);
+        const px = (value: string) => (value === 'normal' ? 0 : Number.parseFloat(value));
+        return [role, [px(style.fontSize), px(style.lineHeight), px(style.letterSpacing)]];
+      }),
+    );
+    probe.remove();
+    return result;
+  }, Object.keys(ROLES));
+
+/** How far the text inside `text` reaches above or below `container`, in px (0 when it fits). */
+async function overflow(text: Locator, container: Locator) {
+  const inner = await text.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const { top, bottom } = range.getBoundingClientRect();
+    return { top, bottom };
+  });
+  const outer = (await container.boundingBox())!;
+  return Math.max(0, outer.y - inner.top, inner.bottom - (outer.y + outer.height));
+}
+
+const fontSize = (locator: Locator) =>
+  locator.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+
+test.describe('Type scale follows the root font size', () => {
+  test('every role is the spec value at the default 16px root', async ({ page }) => {
+    await openStory(page, 'components-button--variants');
+    const measured = await measureRoles(page);
+    for (const [role, [size, lineHeight, tracking]] of Object.entries(ROLES)) {
+      expect(measured[role], role).toEqual([size, lineHeight, tracking]);
+    }
+  });
+
+  test('every role doubles at a 32px root', async ({ page }) => {
+    await openStory(page, 'components-button--variants');
+    await setRootFontSize(page, 32);
+    const measured = await measureRoles(page);
+    for (const [role, [size, lineHeight, tracking]] of Object.entries(ROLES)) {
+      expect(measured[role], role).toEqual([size * 2, lineHeight * 2, tracking * 2]);
+    }
+  });
+
+  test("a component's text doubles while its layout keeps its px sizes", async ({ page }) => {
+    await openStory(page, 'components-dialog--basic');
+    await setRootFontSize(page, 32);
+    const trigger = page.getByRole('button').first();
+    await trigger.click();
+    const dialog = page.getByRole('alertdialog');
+    await expect(dialog).toBeVisible();
+    await page.waitForTimeout(600);
+    // headline-small 24px and body-medium 14px, doubled.
+    expect(await fontSize(dialog.getByRole('heading'))).toBe(48);
+    expect(await fontSize(dialog.getByRole('button').first())).toBe(28);
+    // Layout stays in px: the panel keeps its 24px padding and 28px corners.
+    const panel = await dialog.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return [style.paddingTop, style.borderTopLeftRadius];
+    });
+    expect(panel).toEqual(['24px', '28px']);
+  });
+});
+
+/** The size of every `[data-touch-target]` in the page, deduplicated. */
+const touchTargetSizes = (page: Page) =>
+  page.locator('[data-touch-target]').evaluateAll((targets) => [
+    ...new Set(
+      targets.map((target) => {
+        const { width, height } = target.getBoundingClientRect();
+        return `${Math.round(height)}:${width >= 47.5 ? 'wide' : Math.round(width)}`;
+      }),
+    ),
+  ]);
+
+/*
+ * Touch targets are layout, so they're in px (2026-10-16): in rem (`h-12`), a 32px root made
+ * them 96px tall, so neighbours spaced 48px apart in px overlapped.
+ */
+test.describe('Touch targets keep 48px at a 32px root', () => {
+  for (const story of [
+    'components-button--sizes-and-shapes',
+    'components-checkbox--states',
+    'components-chips--types',
+    'components-iconbutton--sizes-and-widths',
+  ]) {
+    test(story, async ({ page }) => {
+      await openStory(page, story);
+      await setRootFontSize(page, 32);
+      // Every target is 48px tall and at least 48px wide.
+      expect(await touchTargetSizes(page)).toEqual(['48:wide']);
+    });
+  }
+
+  test("a dense M icon button's ::after target stays 48 × 48px", async ({ page }) => {
+    await openStory(page, 'components-iconbutton--density');
+    await setRootFontSize(page, 32);
+    const sizes = await page
+      .locator('[data-tokens~="md-comp-icon-button"] *')
+      .evaluateAll((elements) => [
+        ...new Set(
+          elements
+            .map((element) => getComputedStyle(element, '::after'))
+            .filter((after) => after.content !== 'none' && after.position === 'absolute')
+            .map((after) => `${after.height} ${after.minWidth === 'auto' ? '' : after.minWidth}`),
+        ),
+      ]);
+    expect(sizes.length).toBeGreaterThan(0);
+    for (const size of sizes) expect(size).toMatch(/^48px/);
+  });
+});
+
+test.describe('Containers grow around 200% text instead of clipping it', () => {
+  test.beforeEach(({ page }) => page.setViewportSize({ width: 1280, height: 1400 }));
+
+  test('the small top app bar grows to fit its title and subtitle', async ({ page }) => {
+    await openStory(page, 'components-topappbar--variants');
+    await setRootFontSize(page, 32);
+    const subtitle = page.getByText('Subtitle', { exact: true }).first();
+    const row = subtitle.locator('xpath=ancestor::div[contains(@class, "grid")][1]');
+    expect(await overflow(subtitle, row)).toBe(0);
+    expect((await row.boundingBox())!.height).toBeGreaterThan(64);
+  });
+
+  test('a tab with its icon on top grows to fit its label', async ({ page }) => {
+    await openStory(page, 'components-tabs--variants');
+    await setRootFontSize(page, 32);
+    // The first "Search" tab has its icon on top: 24px icon, 2px gap, 40px label line.
+    const tab = page.getByRole('tab', { name: 'Search' }).first();
+    expect(await tab.evaluate((element) => getComputedStyle(element).flexDirection)).toBe('column');
+    expect((await tab.boundingBox())!.height).toBeGreaterThanOrEqual(66);
+    expect(await overflow(tab.getByText('Search'), tab)).toBe(0);
+  });
+
+  test("the time picker's period selector shows AM and PM in full", async ({ page }) => {
+    await openStory(page, 'components-pickers--time-12');
+    await setRootFontSize(page, 32);
+    const period = page
+      .getByRole('radiogroup')
+      .or(page.getByRole('group'))
+      .filter({ hasText: 'PM' });
+    for (const label of ['AM', 'PM']) {
+      expect(await overflow(period.getByText(label, { exact: true }), period), label).toBe(0);
+    }
+  });
+
+  test('XS and S buttons grow to fit their labels', async ({ page }) => {
+    await openStory(page, 'components-button--sizes-and-shapes');
+    await setRootFontSize(page, 32);
+    for (const [name, min] of [
+      ['XS', 32],
+      ['SM', 40],
+    ] as const) {
+      const button = page.getByRole('button', { name, exact: true }).first();
+      expect(await overflow(button.getByText(name, { exact: true }), button), name).toBe(0);
+      // At least its minimum, and never shorter than its 40px label line.
+      expect((await button.boundingBox())!.height, name).toBeGreaterThanOrEqual(Math.max(min, 40));
+    }
+  });
+
+  test('the XS split button grows to fit its label, both halves together', async ({ page }) => {
+    await openStory(page, 'components-splitbutton--variants-and-sizes');
+    await setRootFontSize(page, 32);
+    const trailing = page.getByRole('button', { name: 'filled xs options' });
+    const root = trailing.locator('xpath=..');
+    const leading = root.getByRole('button', { name: 'Edit' });
+    expect(await overflow(leading.getByText('Edit'), leading)).toBe(0);
+    const [lead, trail] = [(await leading.boundingBox())!, (await trailing.boundingBox())!];
+    expect(lead.height).toBeGreaterThan(32);
+    expect(trail.height).toBe(lead.height);
+  });
+
+  test('chips grow to fit their labels', async ({ page }) => {
+    await openStory(page, 'components-chips--types');
+    await setRootFontSize(page, 32);
+    const chips = page.getByTestId('types');
+    for (const name of ['Assist', 'Suggestion', 'Filter']) {
+      const chip = chips.getByRole('button', { name, exact: true }).first();
+      expect(await overflow(chip.getByText(name, { exact: true }), chip), name).toBe(0);
+      expect((await chip.boundingBox())!.height, name).toBeGreaterThan(32);
+    }
+  });
+
+  test('a large badge grows around its label', async ({ page }) => {
+    await openStory(page, 'components-badge--badges');
+    await setRootFontSize(page, 32);
+    const badge = page.getByTestId('badges').getByText('999+').first();
+    // The badge's root, which paints the container (its class reads the component token).
+    const container = badge.locator(
+      'xpath=ancestor-or-self::span[contains(concat(" ", @data-tokens, " "), " md-comp-badge ")][1]',
+    );
+    expect(await overflow(badge, container)).toBe(0);
+  });
+
+  // Its width limits grow with the text too (2026-10-17): in px, a digit stood in an upright
+  // capsule and "Longer" cut to its first letter.
+  test("a large badge's width limits grow with its text", async ({ page }) => {
+    await openStory(page, 'components-badge--badges');
+    await setRootFontSize(page, 32);
+    const badges = page.getByTestId('badges');
+    const root = (text: string) =>
+      badges
+        .getByText(text, { exact: true })
+        .first()
+        .locator(
+          'xpath=ancestor-or-self::span[contains(concat(" ", @data-tokens, " "), " md-comp-badge ")][1]',
+        );
+    const digit = (await root('3').boundingBox())!;
+    expect(digit.height).toBe(32);
+    expect(digit.width).toBe(32);
+    const longer = (await root('Longer').boundingBox())!;
+    expect(longer.width).toBe(68);
+    // Still cut, as at 1x: about the same share of the text shows.
+    const shown = await badges
+      .getByText('Longer', { exact: true })
+      .evaluate((label) => label.clientWidth / label.scrollWidth);
+    expect(shown).toBeGreaterThan(0.5);
+  });
+});
+
+/**
+ * Each navigation label in `scope`: the words split across two lines, those still split with
+ * hyphenation turned off (a bare break, which none may have), whether its text is wider than
+ * the label (a line then ends with an ellipsis), whether the label pokes out of its item, its
+ * `text-overflow`, and how many lines it takes.
+ */
+const navLabels = (scope: Locator) =>
+  scope.locator('[data-nav-label]').evaluateAll((labels) =>
+    labels.map((label) => {
+      const tops = (rects: DOMRectList) =>
+        new Set([...rects].filter((rect) => rect.width > 0).map((rect) => Math.round(rect.top)));
+      const splitWords = () => {
+        const split: string[] = [];
+        const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          for (const match of (node.textContent ?? '').matchAll(/\S+/g)) {
+            const range = document.createRange();
+            range.setStart(node, match.index);
+            range.setEnd(node, match.index + match[0].length);
+            if (tops(range.getClientRects()).size > 1) split.push(match[0]);
+          }
+        }
+        return split;
+      };
+      const split = splitWords();
+      // Only hyphenation may split a word, and it draws a hyphen: without it, none splits.
+      const el = label as HTMLElement;
+      el.style.hyphens = 'none';
+      const bare = splitWords();
+      el.style.hyphens = '';
+      const whole = document.createRange();
+      whole.selectNodeContents(label);
+      const style = getComputedStyle(label);
+      const box = label.getBoundingClientRect();
+      const item = label.closest('a, button')!.getBoundingClientRect();
+      return {
+        text: label.textContent ?? '',
+        split,
+        bare,
+        overflows: label.scrollWidth > label.clientWidth + 0.5,
+        outside:
+          box.left < item.left - 0.5 ||
+          box.right > item.right + 0.5 ||
+          box.top < item.top - 0.5 ||
+          box.bottom > item.bottom + 0.5,
+        ellipsis: style.textOverflow === 'ellipsis' && style.overflowX === 'hidden',
+        lines: tops(whole.getClientRects()).size,
+      };
+    }),
+  );
+
+test.describe('Navigation labels at a 32px root (2026-10-13)', () => {
+  test.beforeEach(({ page }) => page.setViewportSize({ width: 1280, height: 1400 }));
+
+  /**
+   * No label pokes out of its item or breaks a word bare (2026-10-16): a word wider than its
+   * item may hyphenate, and a line it still overflows ends with an ellipsis. With room for
+   * every word, nothing is split or cut.
+   */
+  const expectSafe = (
+    labels: Awaited<ReturnType<typeof navLabels>>,
+    { wordsFit }: { wordsFit: boolean },
+  ) => {
+    expect(labels.length).toBeGreaterThan(0);
+    for (const label of labels) {
+      expect(label.outside, `${label.text}: outside its item`).toBe(false);
+      expect(label.bare, `${label.text}: split inside a word without a hyphen`).toEqual([]);
+      expect(label.ellipsis, `${label.text}: an overflowing line ends with an ellipsis`).toBe(true);
+      if (wordsFit) {
+        expect(label.split, `${label.text}: split inside a word`).toEqual([]);
+        expect(label.overflows, `${label.text}: cut off`).toBe(false);
+      }
+    }
+  };
+
+  test('bar labels, stacked and inline, wrap between words and never break one bare', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 32);
+    const bars = page.getByTestId('bars').getByRole('navigation');
+    await expect(bars).toHaveCount(3);
+    expectSafe(await navLabels(bars.nth(0)), { wordsFit: true });
+    expectSafe(await navLabels(bars.nth(1)), { wordsFit: true });
+    // The narrow bar's "Recently shared files" wraps onto several lines.
+    const narrow = await navLabels(bars.nth(2));
+    expectSafe(narrow, { wordsFit: false });
+    expect(narrow.find((label) => label.text === 'Recently shared files')!.lines).toBeGreaterThan(
+      1,
+    );
+  });
+
+  /*
+   * 2026-10-15: four stacked items in a 320px window at 2x text. Breaking a word wherever it
+   * met the item's edge gave "Searc/h" and "Starre/d"; since 2026-10-16 a word wider than its
+   * item keeps its line and ends with an ellipsis, and the other words still wrap.
+   */
+  test('four stacked items at 320px and 2x text end a word too wide with an ellipsis', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 32);
+    const bars = page.getByTestId('bars').getByRole('navigation');
+    await bars.first().evaluate((bar) => {
+      // The phone-width case: the stacked bar spans the 320px window.
+      (bar.parentElement as HTMLElement).style.width = '320px';
+    });
+    for (const index of [0, 2]) {
+      const labels = await navLabels(bars.nth(index));
+      expect(labels.length).toBe(4);
+      expectSafe(labels, { wordsFit: false });
+      expect(
+        labels.some((label) => label.overflows),
+        'a word wider than its item, ending with an ellipsis',
+      ).toBe(true);
+    }
+  });
+
+  test('a one-word label too wide for its item stays on one line with an ellipsis', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 48);
+    const stacked = await navLabels(page.getByTestId('bars').getByRole('navigation').first());
+    expectSafe(stacked, { wordsFit: false });
+    const word = stacked.find((label) => !/\s/.test(label.text) && label.overflows);
+    expect(word, 'a one-word label wider than its item').toBeDefined();
+    expect(word!.split).toEqual([]);
+    expect(word!.lines).toBe(1);
+  });
+
+  for (const expanded of [false, true]) {
+    test(`${expanded ? 'expanded' : 'collapsed'} rail labels wrap and never break a word bare`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: expanded });
+      await setRootFontSize(page, 32);
+      const rail = page.getByTestId('rail');
+      await page.waitForTimeout(600);
+      expectSafe(await navLabels(rail), { wordsFit: false });
+    });
+  }
+
+  // M3: "Ensure the full label is always visible on-screen at up to 2x text sizing". Inline
+  // items whose labels don't fit side by side stack instead (2026-10-15), so no label is cut.
+  test('at 2x text, the stacked and inline bars show every label whole', async ({ page }) => {
+    await openStory(page, 'components-navigation--bar');
+    await setRootFontSize(page, 32);
+    const bars = page.getByTestId('bars').getByRole('navigation');
+    await expect(bars.nth(1)).toHaveAttribute('data-stacked', 'true');
+    for (const index of [0, 1]) {
+      for (const label of await navLabels(bars.nth(index))) {
+        expect(label.overflows, `${label.text}: cut off`).toBe(false);
+      }
+    }
+    // Back at 1x the inline bar fits again and leaves stacking.
+    await setRootFontSize(page, 16);
+    await expect(bars.nth(1)).not.toHaveAttribute('data-stacked');
+  });
+});

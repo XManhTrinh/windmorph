@@ -1,0 +1,60 @@
+import { tv, type VariantProps } from '../../utils/tv';
+
+/*
+ * Values follow Compose Material 3 (Divider.kt, DividerTokens): 1px of `outline-variant`.
+ * Insets follow m3.material.io (16px at the start, or at both ends for a middle inset);
+ * Compose leaves them to padding. The line is the element's background clipped to its
+ * content box, so the inset is padding and the root keeps no margins (§10). Its colour comes
+ * from the divider's component token (`divider-tokens.ts`, `--md-comp-divider-color`); the root
+ * carries `data-tokens="md-comp-divider"`, and a consumer class (`bg-primary`) still wins.
+ * Every class is written out in full so Tailwind can find it.
+ */
+
+/** Variant definitions for {@link Divider}; extend them to add variants. */
+export const dividerStyles = tv({
+  base: [
+    'm-0 shrink-0 border-0 bg-[var(--_md-comp-divider-color)] bg-clip-content',
+    // The line is a background, which forced colours drop.
+    'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
+  ],
+  variants: {
+    orientation: {
+      horizontal: 'h-px w-full',
+      vertical: 'w-px self-stretch',
+    },
+    inset: { none: '', start: '', middle: '' },
+  },
+  compoundVariants: [
+    { orientation: 'horizontal', inset: 'start', class: 'ps-[16px]' },
+    { orientation: 'horizontal', inset: 'middle', class: 'ps-[16px] pe-[16px]' },
+    { orientation: 'vertical', inset: 'start', class: 'pt-[16px]' },
+    { orientation: 'vertical', inset: 'middle', class: 'pt-[16px] pb-[16px]' },
+  ],
+  defaultVariants: { orientation: 'horizontal', inset: 'none' },
+});
+
+/**
+ * Variant definitions for {@link LabeledDivider}: a divider with supporting text 4px below
+ * it, the text 8px clear of the end and 8px clear below (m3.material.io's divider
+ * measurements); the line itself runs the full width (2026-10-15: the end padding was on the
+ * root, which shortened the line by 8px). The spec
+ * names no type role for the text; it uses `label-small` in `on-surface-variant`.
+ */
+export const labeledDividerStyles = tv({
+  slots: {
+    root: 'flex min-w-0 flex-col gap-[4px] pb-[8px]',
+    label: 'pe-[8px] text-label-small text-on-surface-variant',
+  },
+  variants: {
+    inset: {
+      none: {},
+      start: { label: 'ps-[16px]' },
+      middle: { label: 'ps-[16px] pe-[24px]' },
+    },
+  },
+  defaultVariants: { inset: 'none' },
+});
+
+export type DividerStyleProps = VariantProps<typeof dividerStyles>;
+export type DividerOrientation = NonNullable<DividerStyleProps['orientation']>;
+export type DividerInset = NonNullable<DividerStyleProps['inset']>;

@@ -1,0 +1,33 @@
+packages:
+  - packages/*
+  - apps/*
+minimumReleaseAgeExclude:
+  - '@turbo/darwin-64@2.11.7'
+  - '@turbo/darwin-arm64@2.11.7'
+  - '@turbo/linux-64@2.11.7'
+  - '@turbo/linux-arm64@2.11.7'
+  - '@turbo/windows-64@2.11.7'
+  - '@turbo/windows-arm64@2.11.7'
+  - globals@17.13.0
+  - motion-dom@14.0.0
+  - motion-utils@14.0.0
+  - motion@14.0.0
+  - turbo@2.11.7
+  - vite@8.3.3
+  - '@next/env@16.4.0'
+  - '@next/mdx@16.4.0'
+  - '@next/swc-darwin-arm64@16.4.0'
+  - '@next/swc-darwin-x64@16.4.0'
+  - '@next/swc-linux-arm64-gnu@16.4.0'
+  - '@next/swc-linux-arm64-musl@16.4.0'
+  - '@next/swc-linux-x64-gnu@16.4.0'
+  - '@next/swc-linux-x64-musl@16.4.0'
+  - '@next/swc-win32-arm64-msvc@16.4.0'
+  - '@next/swc-win32-x64-msvc@16.4.0'
+  - next@16.4.0
+
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true
+  # Postinstall only fetches a fallback binary; the prebuilt optional dependency is used.
+  unrs-resolver: false

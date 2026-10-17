@@ -1,0 +1,113 @@
+import type { ComponentDoc } from './doc';
+import { commentRowTokenSet } from '@windmorph/react-pro';
+import { ExampleViewer } from '../../components/example-viewer';
+import { TokenTable } from '../../components/token-table';
+import { readExampleSource } from '../../lib/example-source';
+import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CommentRowThread = lazyExample('comment-row/comment-row-thread', 'CommentRowThread');
+const CommentRowStates = lazyExample('comment-row/comment-row-states', 'CommentRowStates');
+
+/** CommentRow page body: purpose, example, behaviour and tokens. */
+export async function CommentRowBody(): Promise<ComponentDoc> {
+  const source = await readExampleSource('comment-row/comment-row-thread.tsx');
+  const html = await highlightSource(source);
+
+  const states = await readExampleSource('comment-row/comment-row-states.tsx');
+  const statesHtml = await highlightSource(states);
+  return {
+    overview: (
+      <>
+        <section className="flex flex-col gap-6">
+          <h2 id="examples" className="text-headline-small text-on-surface">
+            Examples
+          </h2>
+          <ExampleViewer
+            title="A thread"
+            code={source}
+            html={html}
+            fileName="comment-row-thread.tsx"
+          >
+            <CommentRowThread />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A photo below, and a removed comment"
+            code={states}
+            html={statesHtml}
+            fileName="comment-row-states.tsx"
+          >
+            <CommentRowStates />
+          </ExampleViewer>
+        </section>
+      </>
+    ),
+    guidelines: (
+      <>
+        <section className="flex flex-col gap-3">
+          <h2 id="purpose" className="text-headline-small text-on-surface">
+            Purpose
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            One comment or message in a thread: the avatar, the bubble with the name and the words,
+            what goes under it (a photo, a note) and a 48px row of actions. That row spaces one
+            comment from the next, so a list of them needs no gaps, and every place that shows
+            comments looks the same. It is{' '}
+            <strong className="text-on-surface">not an M3 component</strong>, so it comes from{' '}
+            <InlineCode>@windmorph/react-pro</InlineCode>.
+          </p>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h2 id="behaviour" className="text-headline-small text-on-surface">
+            Behaviour
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              The bubble is static, a button (<InlineCode>onPress</InlineCode>, e.g. opening the
+              conversation) or a link (<InlineCode>href</InlineCode>), with the state layer and
+              focus ring when pressable.
+            </li>
+            <li>
+              <InlineCode>{'variant="outlined"'}</InlineCode> draws a dashed bubble, for a removed
+              comment only its writer sees.
+            </li>
+            <li>
+              <InlineCode>pending</InlineCode> paints the bubble in the opaque{' '}
+              <InlineCode>surface-container</InlineCode> role while it&apos;s being sent, keeping
+              the words at full contrast, and sets <InlineCode>aria-busy</InlineCode>; say it in the
+              actions row too (&quot;Sending…&quot;). The bubble fades to its sent colour on the
+              effects spring, under reduced motion too.
+            </li>
+            <li>
+              What goes in <InlineCode>below</InlineCode> keeps 4px off the bubble; the actions row
+              sits right under it.
+            </li>
+            <li>
+              The words, the actions and what they do are the app&apos;s: pass a{' '}
+              <InlineCode>ReactionPicker</InlineCode>, Reply and a menu in{' '}
+              <InlineCode>actions</InlineCode>.
+            </li>
+          </ul>
+        </section>
+      </>
+    ),
+    api: (
+      <>
+        <section className="flex flex-col gap-3">
+          <h2 id="theming-and-tokens" className="text-headline-small text-on-surface">
+            Theming &amp; tokens
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            Set the tokens below on a row or any ancestor. Style the parts with{' '}
+            <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
+            <InlineCode>avatar</InlineCode>, <InlineCode>bubble</InlineCode>,{' '}
+            <InlineCode>below</InlineCode>, <InlineCode>actions</InlineCode>).
+          </p>
+          <TokenTable set={commentRowTokenSet} caption="Comment row tokens" />
+        </section>
+      </>
+    ),
+  };
+}

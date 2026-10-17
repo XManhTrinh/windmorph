@@ -1,0 +1,52 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalPassThroughEnv": ["NODE_EXTRA_CA_CERTS"],
+  "agentGuidance": false,
+  "tasks": {
+    "generate": {
+      "inputs": [
+        "src/tokens/**",
+        "src/**/*-tokens.ts",
+        "src/theme/css.ts",
+        "src/theme/scheme.ts",
+        "scripts/**"
+      ],
+      "outputs": ["src/styles/generated/*.css", "component-tokens.txt"]
+    },
+    "build": {
+      "dependsOn": ["^build", "generate"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "storybook-static/**"]
+    },
+    "size": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "generate"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tsconfig.base.json"]
+    },
+    "lint": {
+      "dependsOn": ["generate"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/eslint.config.js"]
+    },
+    "test": {
+      "dependsOn": ["^build", "generate"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tsconfig.base.json"],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "passThroughEnv": ["E2E_PORT", "E2E_DEV_PORT"]
+    },
+    "link-check": {
+      "dependsOn": ["build"],
+      "cache": false
+    }
+  }
+}

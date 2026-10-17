@@ -1,0 +1,118 @@
+{
+  "name": "@windmorph/react",
+  "version": "0.0.0",
+  "description": "React component library implementing Material Design 3 Expressive, built on React Aria, Tailwind CSS v4 and Motion.",
+  "keywords": [
+    "react",
+    "material-design",
+    "material-3",
+    "m3-expressive",
+    "design-system",
+    "component-library",
+    "react-aria",
+    "tailwindcss",
+    "nextjs",
+    "accessibility"
+  ],
+  "license": "MIT",
+  "homepage": "https://windmorph.vercel.app/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XManhTrinh/windmorph.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/XManhTrinh/windmorph/issues"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "!dist/bundle-size.json",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./primitives": {
+      "types": "./dist/primitives.d.ts",
+      "import": "./dist/primitives.js"
+    },
+    "./next": {
+      "types": "./dist/next.d.ts",
+      "import": "./dist/next.js"
+    },
+    "./styles.css": "./dist/styles/styles.css",
+    "./styles.compiled.css": "./dist/styles.compiled.css",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "windmorph": "dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "generate": "tsx scripts/generate.ts",
+    "build": "tsdown && tsx scripts/build-css.ts && tsx scripts/check-dist.ts && tsx scripts/bundle-size.ts report",
+    "prepare": "pnpm run generate && pnpm run build",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint --max-warnings 0 .",
+    "test": "vitest run",
+    "size": "tsx scripts/bundle-size.ts check",
+    "size:update": "tsx scripts/bundle-size.ts check --update"
+  },
+  "dependencies": {
+    "@internationalized/date": "^3.12.4",
+    "clsx": "^2.1.1",
+    "react-aria": "^3.52.1",
+    "react-stately": "^3.50.0",
+    "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^3.3.1"
+  },
+  "peerDependencies": {
+    "motion": "^14.0.0",
+    "next": ">=15.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "tailwindcss": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@material/material-color-utilities": "0.4.0",
+    "@tailwindcss/cli": "^4.3.3",
+    "@tailwindcss/node": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@windmorph/test-utils": "workspace:*",
+    "axe-core": "^4.14.0",
+    "jsdom": "^30.1.2",
+    "motion": "^14.0.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.0",
+    "tsx": "^4.23.15",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
+  }
+}

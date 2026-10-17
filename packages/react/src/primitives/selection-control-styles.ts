@@ -1,0 +1,48 @@
+import { tv } from '../utils/tv';
+
+/**
+ * Shared anatomy of checkboxes, radio buttons and switches: a root `<label>`, the
+ * control (focus ring, touch target; for `kind: 'circle'` also the 40px round state
+ * layer, which web density shrinks) and the label text. State layers
+ * follow the M3 spec: on-surface when unselected, primary when selected, inverted while
+ * pressed, error when invalid. Recipes `extend` this and style their own indicator with
+ * `group-data-*\/control:` variants. Every class is written out in full.
+ */
+export const selectionControlStyles = tv({
+  slots: {
+    root: [
+      'group/control inline-flex cursor-pointer items-center align-middle select-none',
+      'text-body-large text-on-surface',
+      'data-disabled:cursor-default data-disabled:text-on-surface/38',
+    ],
+    // Library-owned inner wrapper holding the indicator, focus ring and touch target.
+    control: 'relative inline-flex shrink-0 items-center justify-center focus-ring',
+    label: 'min-w-0 pe-[8px]',
+  },
+  variants: {
+    kind: {
+      // Checkboxes and radio buttons: the control is the 40px state-layer circle, 4px less per
+      // density step (40 → 36 → 32 → 28px, Material Components Web's checkbox and radio
+      // density); the ripple keeps its proportions (half the size, from 30%).
+      circle: {
+        control: [
+          'size-[calc(40px+var(--md-sys-density,0)*4px)] rounded-full state-layer',
+          '[--m3-ripple-size:calc(20px+var(--md-sys-density,0)*2px)] [--m3-ripple-start:calc(12px+var(--md-sys-density,0)*1.2px)]',
+          '[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+          'data-selected:[--m3-state-layer-color:var(--md-sys-color-primary)]',
+          'data-pressed:[--m3-state-layer-color:var(--md-sys-color-primary)]',
+          'data-selected:data-pressed:[--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+          // Invalid wins in every state (stacked, so it never depends on CSS order): the
+          // state layer is `error` selected or not, pressed or not (md.comp.checkbox.error.*).
+          'data-invalid:[--m3-state-layer-color:var(--md-sys-color-error)]',
+          'data-invalid:data-selected:[--m3-state-layer-color:var(--md-sys-color-error)]',
+          'data-invalid:data-pressed:[--m3-state-layer-color:var(--md-sys-color-error)]',
+          'data-invalid:data-selected:data-pressed:[--m3-state-layer-color:var(--md-sys-color-error)]',
+        ],
+      },
+      // Switches: the control is the track; the recipe adds a state layer that follows the thumb.
+      track: { control: 'rounded-full', label: 'ps-[12px]' },
+    },
+  },
+  defaultVariants: { kind: 'circle' },
+});
