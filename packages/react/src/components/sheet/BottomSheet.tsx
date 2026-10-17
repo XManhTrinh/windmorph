@@ -65,7 +65,7 @@ export interface BottomSheetClassNames {
   /** The row holding the close (modal) or collapse (standard) button. */
   closeRow?: string;
   /** The close or collapse icon button. */
-  closeButton?: string;
+  close?: string;
   /** The scrollable content area. */
   content?: string;
 }
@@ -718,7 +718,7 @@ function BottomSheetPanel({
                   }
                   aria-label={standard ? labels.collapse : labels.close}
                   onPress={standard ? collapseFromButton : close}
-                  className={classNames?.closeButton}
+                  className={classNames?.close}
                 />
               </div>
             )}

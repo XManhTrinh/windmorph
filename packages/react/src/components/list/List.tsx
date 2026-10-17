@@ -350,7 +350,7 @@ export interface ListClassNames {
   /** Each item's headline. */
   headline?: string;
   /** Each item's supporting text. */
-  supporting?: string;
+  supportingText?: string;
   /** Each item's trailing content. */
   trailing?: string;
   /** The drawn switch, checkbox or radio button of an item that is one. */
@@ -678,7 +678,7 @@ function ItemContent({
           <span
             id={ids?.supporting}
             data-slot="supporting"
-            className={styles.supporting({ class: classNames?.supporting })}
+            className={styles.supporting({ class: classNames?.supportingText })}
           >
             {item.supportingText}
           </span>

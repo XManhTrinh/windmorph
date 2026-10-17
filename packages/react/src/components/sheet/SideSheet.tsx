@@ -48,13 +48,13 @@ export interface SideSheetClassNames {
   /** The header row: back button, title, actions and close button. */
   header?: string;
   /** The back button. */
-  backButton?: string;
+  back?: string;
   /** The headline. */
   title?: string;
   /** The end of the header: `actions` and the close button. */
   headerActions?: string;
   /** The close button. */
-  closeButton?: string;
+  close?: string;
   /** The scrollable content area. */
   content?: string;
   /** The bottom row of action buttons. */
@@ -238,7 +238,7 @@ function SheetBody({
             icon={backIcon ?? <BackIcon />}
             aria-label={labels.back}
             onPress={onBack}
-            className={classNames?.backButton}
+            className={classNames?.back}
           />
         )}
         {title != null && (
@@ -254,7 +254,7 @@ function SheetBody({
             icon={closeIcon ?? <CloseIcon />}
             aria-label={labels.close}
             onPress={close}
-            className={classNames?.closeButton}
+            className={classNames?.close}
           />
         </div>
       </div>

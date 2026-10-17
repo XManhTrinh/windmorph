@@ -53,3 +53,5 @@ Placements are hyphenated, like every other multi-word value: `'bottom-start'`, 
 Sizes use one scale: `Fab` and `FabMenu` take `size="md"` and `size="lg"` (were `medium` and `large`), and `ListItemVideo` takes `sm` and `lg` (were `small` and `large`).
 
 `useToolbarScrollExpansion` and `useToolbarScrollExit` take `defaultExpanded` and `defaultVisible` instead of `initialExpanded` and `initialVisible`.
+
+`classNames` slots use one name per part: `List`'s `supporting` is `supportingText`, `BottomSheet`'s and `SideSheet`'s `closeButton` slot is `close`, and `SideSheet`'s `backButton` is `back`.

@@ -549,8 +549,8 @@ describe('SideSheet', () => {
           onBack={() => undefined}
           footer={<Button>Save</Button>}
           classNames={{
-            backButton: 'back-x',
-            closeButton: 'close-x',
+            back: 'back-x',
+            close: 'close-x',
             headerActions: 'actions-x',
             footer: 'footer-x',
             panel: 'panel-x',
