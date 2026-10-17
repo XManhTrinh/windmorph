@@ -9,12 +9,18 @@ import {
   type Ref,
 } from 'react';
 import { cn } from '../../utils/cn';
+import type { RootDOMProps } from '../../utils/root-props';
 import { listMediaStyles } from './list-styles';
 
 /** What a {@link List} passes to the media in its items: `classNames.media`. */
 export const ListMediaContext = createContext<string | undefined>(undefined);
 
-interface MediaImageProps {
+/** The frame (`<span>`) takes the DOM attributes, as it takes `className`, `style` and `ref`. */
+type FrameDOMProps = RootDOMProps<HTMLSpanElement> & {
+  [data: `data-${string}`]: string | number | boolean | undefined;
+};
+
+interface MediaImageProps extends FrameDOMProps {
   /** The image. Without it, or when it fails to load, `fallback` shows. */
   src?: string | undefined;
   /** What the image shows; `""` when the headline already says it. */
@@ -49,7 +55,16 @@ export interface ListItemVideoProps extends MediaImageProps {
   size?: 'sm' | 'lg';
 }
 
-function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageProps) {
+interface ImageSource {
+  src?: string | undefined;
+  alt: string;
+  srcSet?: string | undefined;
+  sizes?: string | undefined;
+  children?: ReactNode;
+  fallback?: ReactNode;
+}
+
+function MediaImage({ src, alt, srcSet, sizes, children, fallback }: ImageSource) {
   const [failed, setFailed] = useState<string | null>(null);
   if (children != null) return children;
   if (src == null || failed === src) return fallback ?? null;
@@ -83,10 +98,24 @@ function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageP
  *   Dinner at our place
  * </ListItem>
  */
-export function ListItemImage({ className, style, id, ref, ...image }: ListItemImageProps) {
+export function ListItemImage({
+  className,
+  style,
+  id,
+  ref,
+  src,
+  alt,
+  srcSet,
+  sizes,
+  children,
+  fallback,
+  ...dom
+}: ListItemImageProps) {
   const media = useContext(ListMediaContext);
+  const image = { src, alt, srcSet, sizes, children, fallback };
   return (
     <span
+      {...dom}
       style={style}
       id={id}
       ref={ref}
@@ -109,12 +138,25 @@ export function ListItemVideo({
   ref,
   duration,
   size = 'sm',
-  ...image
+  src,
+  alt,
+  srcSet,
+  sizes,
+  children,
+  fallback,
+  ...dom
 }: ListItemVideoProps) {
   const media = useContext(ListMediaContext);
   const styles = listMediaStyles({ kind: 'video', size });
+  const image = { src, alt, srcSet, sizes, children, fallback };
   return (
-    <span style={style} id={id} ref={ref} className={styles.frame({ class: cn(media, className) })}>
+    <span
+      {...dom}
+      style={style}
+      id={id}
+      ref={ref}
+      className={styles.frame({ class: cn(media, className) })}
+    >
       <MediaImage {...image} />
       <span aria-hidden="true" className={styles.badge()}>
         <svg viewBox="0 -960 960 960">
@@ -126,7 +168,7 @@ export function ListItemVideo({
   );
 }
 
-export interface ListItemAvatarProps {
+export interface ListItemAvatarProps extends FrameDOMProps {
   /** The person's photo. Without it, or when it fails to load, `children` show. */
   src?: string | undefined;
   /** What the photo shows; `""` (the default) when the headline names the person. */
@@ -163,11 +205,16 @@ export function ListItemAvatar({
   ref,
   alt = '',
   children,
-  ...image
+  src,
+  srcSet,
+  sizes,
+  ...dom
 }: ListItemAvatarProps) {
   const media = useContext(ListMediaContext);
+  const image = { src, srcSet, sizes };
   return (
     <span
+      {...dom}
       style={style}
       id={id}
       ref={ref}

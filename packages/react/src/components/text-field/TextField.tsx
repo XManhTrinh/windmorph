@@ -29,7 +29,7 @@ import {
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {
@@ -98,7 +98,10 @@ type RenamedAriaProps =
   | 'validationState'
   | 'excludeFromTabOrder';
 
-interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps> {
+interface TextFieldOwnProps
+  extends
+    Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps>,
+    Omit<RootDOMProps, keyof AriaTextFieldProps<HTMLInputElement>> {
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**
@@ -266,7 +269,7 @@ export function TextField(props: TextFieldProps) {
 
   // `data-*` attributes describe the component, so they go on the root with `className`;
   // everything else (ARIA, input attributes, events) goes to the input via React Aria.
-  const { data: rootData, rest: ariaProps } = splitDataAttributes(otherProps);
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps);
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const prefixId = useId();
   const suffixId = useId();

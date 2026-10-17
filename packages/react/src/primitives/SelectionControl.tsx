@@ -35,8 +35,11 @@ export interface SelectionControlProps {
   inputRef: Ref<HTMLInputElement>;
   /** State attributes, set on both the root and the control. */
   state: Record<`data-${string}`, true | undefined>;
-  /** Consumer `data-*` attributes for the root. */
-  rootData?: Record<`data-${string}`, unknown>;
+  /**
+   * The consumer's DOM attributes for the root (`data-*`, `aria-*`, `title`, pointer events:
+   * `splitRootProps`), merged before `rootProps`, so handlers chain.
+   */
+  rootData?: Record<string, unknown>;
   /** The drawn indicator (box, ring, track), hidden from assistive tech. */
   indicator: ReactNode;
   children?: ReactNode;
@@ -93,8 +96,7 @@ export function SelectionControl({
   };
   return (
     <label
-      {...rootData}
-      {...mergeProps(rootProps, rippleProps)}
+      {...mergeProps(rootData, rootProps, rippleProps)}
       {...state}
       ref={ref}
       style={style}

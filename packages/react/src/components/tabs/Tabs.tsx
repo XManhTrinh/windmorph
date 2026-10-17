@@ -34,7 +34,7 @@ import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 
@@ -82,16 +82,19 @@ export interface TabsClassNames {
   panel?: string;
 }
 
-export interface TabsProps extends Omit<
-  AriaTabListProps<object>,
-  | 'children'
-  | 'orientation'
-  | 'items'
-  | 'isDisabled'
-  | 'selectedKey'
-  | 'defaultSelectedKey'
-  | 'onSelectionChange'
-> {
+export interface TabsProps
+  extends
+    Omit<
+      AriaTabListProps<object>,
+      | 'children'
+      | 'orientation'
+      | 'items'
+      | 'isDisabled'
+      | 'selectedKey'
+      | 'defaultSelectedKey'
+      | 'onSelectionChange'
+    >,
+    Omit<RootDOMProps, keyof AriaTabListProps<object>> {
   /** `Tab` elements. */
   children: ReactNode;
   /** The selected tab's `key` (controlled). */
@@ -160,7 +163,8 @@ export interface TabsProps extends Omit<
  */
 export function Tabs(props: TabsProps) {
   const { className, style, classNames, ref, ...rest } = props;
-  const { data, rest: ariaProps } = splitDataAttributes(rest);
+  // The root's DOM attributes; the naming and the rest go to the tab list.
+  const { root: data, rest: ariaProps } = splitRootProps(rest);
   const rootRef = useObjectRef(ref);
   // React Aria takes arrow-key direction from its locale, not the DOM `dir`; follow the
   // direction the tabs are actually laid out in.

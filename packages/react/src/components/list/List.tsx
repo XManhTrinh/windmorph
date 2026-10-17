@@ -76,7 +76,7 @@ import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
@@ -375,7 +375,7 @@ type Naming =
 
 type ListChild = ReactElement<ListItemProps> | ReactElement<ListSectionProps>;
 
-interface ListOwnProps {
+interface ListOwnProps extends RootDOMProps {
   /** The root element's id. */
   id?: string;
   /** Flush items, or separate items 2px apart with rounded group corners. @default "standard" */
@@ -776,7 +776,7 @@ function StaticList({
   entries,
   ...rest
 }: ListProps & { entries: ReactElement[] }) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest);
   const rootTokens = tokenAttributes(variant, data);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
@@ -1020,7 +1020,7 @@ function CollectionList({
   directionRef,
   ...rest
 }: ListProps & { expandable: boolean; directionRef: (element: HTMLElement | null) => void }) {
-  const { data, rest: ariaProps } = splitDataAttributes(rest);
+  const { root: data, rest: ariaProps } = splitRootProps(rest);
   assertCollectionChildren(rest.children, 'List', 'ListItem elements');
   const scan = useCollectionScan(rest.children);
   if (scan.items.some((item) => item.control != null)) throw new Error(CONTROL_ERROR);
@@ -1937,7 +1937,7 @@ function RadioList({
   entries,
   ...rest
 }: ListProps & { entries: ReactElement[] }) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
     'aria-labelledby'?: string;

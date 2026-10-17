@@ -13,7 +13,10 @@ import ts from 'typescript';
  * - none of the names this library replaced (`strings`, `minValue`, `dismissable`…);
  * - multi-word enum values are hyphenated (`'bottom-start'`), never spaced (`'bottom start'`);
  * - every component takes `className`, `style` and `ref`, and every one but an overlay that
- *   only exists while open takes `id`.
+ *   only exists while open takes `id`;
+ * - every component with an element of its own takes that element's DOM attributes too
+ *   (`data-*`, `aria-*`, global attributes, events; 2026-10-17), checked through three that
+ *   stand for the groups: `aria-hidden`, `title` and `onPointerEnter`.
  */
 const src = dirname(fileURLToPath(import.meta.url));
 const ENTRIES = ['index.ts', 'primitives.ts', 'next.ts'].map((file) => join(src, file));
@@ -111,6 +114,19 @@ const NO_ID: Record<string, string> = {
   Tooltip: "React Aria gives the tooltip the id its trigger's `aria-describedby` points at.",
   RichTooltip: "React Aria gives the tooltip the id its trigger's `aria-describedby` points at.",
   SelectionControl: "A primitive: its `inputProps` carry the input's id.",
+};
+
+/** Attributes that stand for the root's DOM props: an ARIA one, a global one and an event. */
+const DOM_PROBES = ['aria-hidden', 'title', 'onPointerEnter'];
+
+/** Components that take a DOM probe under their own meaning, or none, with the reason. */
+const DOM_PROBE_EXEMPT: Record<string, Partial<Record<string, string>>> = {
+  DialogHeader: { title: 'Its `title` is the headline, as Dialog names it.' },
+  PickerDialog: { title: 'Its `title` is the headline above the picker.' },
+  RichTooltip: { title: 'Its `title` is the subhead, which names a persistent tooltip.' },
+  SelectionControl: Object.fromEntries(
+    DOM_PROBES.map((probe) => [probe, "A primitive: its `rootProps` carry the root's attributes."]),
+  ),
 };
 
 const program = ts.createProgram(ENTRIES, {
@@ -218,6 +234,15 @@ describe('public API names', () => {
     const missing = all.flatMap(({ name, props }) =>
       (name in NO_ROOT ? [] : ['className', 'style', 'ref', ...(name in NO_ID ? [] : ['id'])])
         .filter((prop) => !props.has(prop))
+        .map((prop) => `${name}.${prop}`),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  it("passes its root element's DOM attributes on every component with one", () => {
+    const missing = all.flatMap(({ name, props }) =>
+      (name in NO_ROOT ? [] : DOM_PROBES)
+        .filter((prop) => !props.has(prop) && DOM_PROBE_EXEMPT[name]?.[prop] === undefined)
         .map((prop) => `${name}.${prop}`),
     );
     expect(missing).toEqual([]);

@@ -25,7 +25,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
@@ -60,7 +60,10 @@ type RenamedAriaProps =
   | 'validationState'
   | 'excludeFromTabOrder';
 
-interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
+interface SwitchOwnProps
+  extends
+    Omit<AriaSwitchProps, RenamedAriaProps>,
+    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaSwitchProps> {
   /** Controlled on state (`checked`, as an HTML checkbox). */
   checked?: boolean;
   /** Initial on state when uncontrolled. */
@@ -146,7 +149,8 @@ export function Switch({
   children,
   ...otherProps
 }: SwitchProps) {
-  const { data, rest } = splitDataAttributes(otherProps);
+  // DOM attributes for the whole control go on the root; the rest goes to the input.
+  const { root: data, rest } = splitRootProps(otherProps);
   const domInputRef = useObjectRef(inputRef);
   const options: AriaSwitchProps = {
     ...rest,
