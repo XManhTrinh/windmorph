@@ -301,7 +301,7 @@ export const Density: Story = {
               density={density}
               defaultMode="input"
               defaultValue={DATE}
-              showHeader={false}
+              header={false}
               className="w-full"
               data-testid={`${density}-date-input`}
             />

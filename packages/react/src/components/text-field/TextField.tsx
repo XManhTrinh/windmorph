@@ -176,7 +176,7 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   /** With `autoGrow`: lines after which the field scrolls instead of growing. */
   maxRows?: number;
   /** Shows `count/maxLength` below the field. Defaults to `true` when `maxLength` is set. */
-  showCharacterCount?: boolean;
+  counter?: boolean;
   /** Words the field announces, for other languages. */
   labels?: Partial<TextFieldLabels>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -250,7 +250,7 @@ export function TextField(props: TextFieldProps) {
     autoGrow = false,
     rows = autoGrow ? 1 : 4,
     maxRows,
-    showCharacterCount,
+    counter,
     labels: labelsProp,
     className,
     classNames,
@@ -331,7 +331,7 @@ export function TextField(props: TextFieldProps) {
       : (errorMessage ?? validationErrors.join(' '));
   const showError = isInvalid && Boolean(resolvedError);
   const maxLength = ariaProps.maxLength;
-  const showCounter = maxLength !== undefined && showCharacterCount !== false;
+  const showCounter = maxLength !== undefined && counter !== false;
   const showErrorIcon = isInvalid && !trailingIcon && errorIcon !== false;
 
   const styles = textFieldStyles({

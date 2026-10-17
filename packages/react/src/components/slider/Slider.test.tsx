@@ -73,7 +73,7 @@ describe('Slider', () => {
   });
 
   it('shows the value indicator while keyboard-focused', async () => {
-    render(<Slider aria-label="Brightness" defaultValue={42} showValueLabel />);
+    render(<Slider aria-label="Brightness" defaultValue={42} valueLabel />);
     expect(screen.queryByText('42')).toBe(null);
     await userEvent.tab();
     expect(screen.getByText('42')).toHaveClass(
@@ -88,7 +88,7 @@ describe('Slider', () => {
       <Slider
         aria-label="Brightness"
         defaultValue={42}
-        showValueLabel
+        valueLabel
         classNames={{ label: 'bg-tertiary text-on-tertiary' }}
       />,
     );

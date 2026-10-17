@@ -26,7 +26,7 @@ export const Probe: StoryObj = {
     <TokenProbe
       instances={
         <Focused>
-          <Slider aria-label="Volume" defaultValue={40} showValueLabel className="w-80" />
+          <Slider aria-label="Volume" defaultValue={40} valueLabel className="w-80" />
         </Focused>
       }
       scoped={<Slider aria-label="Scoped" defaultValue={40} className="w-80" />}

@@ -43,7 +43,7 @@ export const slider: ComponentAccessibility = {
   focus: [
     "Each thumb is in the Tab order. A disabled slider can't be focused.",
     "Keyboard focus shows M3's focus indicator around the handle: a 3px `secondary` outline 2px outside it, with the gap to the track widened from 6px to 10px to make room. The handle narrows from 4px to 2px, as it does while dragged.",
-    'With `showValueLabel`, the value indicator shows while a thumb is dragged or has keyboard focus. Pointer presses show no ring.',
+    'With `valueLabel`, the value indicator shows while a thumb is dragged or has keyboard focus. Pointer presses show no ring.',
   ],
   touchTarget: [
     'Pressing anywhere on the track moves the nearest thumb there, so the hit area is the full length of the track.',
@@ -56,6 +56,6 @@ export const slider: ComponentAccessibility = {
     'Name every slider with `aria-label`, or `aria-labelledby` pointing at a visible label.',
     'For a range slider, pass `labels` when "Minimum" and "Maximum" don\'t fit, or to translate them.',
     'Pass `formatOptions` when the number alone is unclear (a percentage, a currency), so the value is announced with its unit.',
-    'When the exact value matters, show it (`showValueLabel`, or a text field beside the slider) rather than relying on the track position.',
+    'When the exact value matters, show it (`valueLabel`, or a text field beside the slider) rather than relying on the track position.',
   ],
 };

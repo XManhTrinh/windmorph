@@ -142,9 +142,9 @@ interface DatePickerCommonProps {
   /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** Show the header (title, headline and mode toggle). @default true */
-  showHeader?: boolean;
+  header?: boolean;
   /** Show the calendar ↔ text input toggle. @default true */
-  showModeToggle?: boolean;
+  modeToggle?: boolean;
   /** Start in calendar or text input mode. @default "calendar" */
   defaultMode?: 'calendar' | 'input';
   /**
@@ -375,8 +375,8 @@ function PickerFrame({
   state,
   headline,
   input,
-  showHeader = true,
-  showModeToggle = true,
+  header = true,
+  modeToggle = true,
   defaultMode = 'calendar',
   yearRange = [1900, 2100],
   labels = {},
@@ -435,7 +435,7 @@ function PickerFrame({
       data-mode={mode}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      {showHeader && (
+      {header && (
         <div className={styles.header({ class: classNames?.header })}>
           <div className={styles.title({ class: classNames?.title })}>{title}</div>
           <div className={styles.headlineRow()}>
@@ -446,7 +446,7 @@ function PickerFrame({
             >
               {headline}
             </div>
-            {showModeToggle && (
+            {modeToggle && (
               <IconButton
                 variant="standard"
                 // The picker's surface isn't dense, only its input mode's fields.

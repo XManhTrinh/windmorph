@@ -237,7 +237,7 @@ describe('TextField', () => {
       />,
     );
     expect(screen.getByLabelText('Bio')).toHaveAccessibleDescription('5 left');
-    rerender(<TextField label="Bio" maxLength={10} showCharacterCount={false} />);
+    rerender(<TextField label="Bio" maxLength={10} counter={false} />);
     expect(screen.queryByText('5/10')).not.toBeInTheDocument();
   });
 

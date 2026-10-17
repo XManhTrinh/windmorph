@@ -404,8 +404,8 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
             compose: 'selectableDates',
             windmorph: 'min, max, isDateUnavailable',
           },
-          { compose: 'showModeToggle', windmorph: 'showModeToggle' },
-          { compose: 'title, headline', windmorph: 'showHeader, labels' },
+          { compose: 'showModeToggle', windmorph: 'modeToggle' },
+          { compose: 'title, headline', windmorph: 'header, labels' },
         ],
       },
       {

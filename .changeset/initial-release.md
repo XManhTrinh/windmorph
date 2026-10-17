@@ -23,3 +23,5 @@ The date and time pickers take their words in `labels`, like every other compone
 `Checkbox` and `Switch` take `checked`, `defaultChecked` and `onCheckedChange`, as HTML and Compose name them, instead of `selected`, `defaultSelected` and `onSelectedChange`; checkboxes, switches and radios mark their state with `data-checked` instead of `data-selected` (a checkbox's `data-indeterminate` is unchanged). Toggle buttons, chips and navigation items keep `selected`.
 
 `Slider`, `RangeSlider`, `DatePicker`, `DateRangePicker` and `DateField` take `min` and `max`, as HTML's range and date inputs do, instead of `minValue` and `maxValue`.
+
+Props that show or hide an optional part are named after the part: `valueLabel` on `Slider` and `RangeSlider` (was `showValueLabel`), `header` and `modeToggle` on `DatePicker` and `DateRangePicker` (were `showHeader` and `showModeToggle`), and `counter` on `TextField` (was `showCharacterCount`).

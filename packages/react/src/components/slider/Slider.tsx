@@ -51,7 +51,7 @@ export interface SliderClassNames {
   thumb?: string;
   /** The handle bar drawn inside each thumb. */
   handle?: string;
-  /** The value indicator above a thumb (`showValueLabel`). */
+  /** The value indicator above a thumb (`valueLabel`). */
   label?: string;
 }
 
@@ -85,7 +85,7 @@ interface SliderCommonProps {
   /** Turns the slider off: it can't be moved or focused. @default false */
   disabled?: boolean;
   /** Show the value above the thumb while it is dragged or keyboard-focused. @default false */
-  showValueLabel?: boolean;
+  valueLabel?: boolean;
   /** Formats the value for the value indicator and assistive tech. */
   formatOptions?: Intl.NumberFormatOptions;
   /** Form field name (one hidden input per thumb). */
@@ -195,7 +195,7 @@ function SliderRoot(props: RootProps) {
     step = 1,
     ticks = false,
     disabled = false,
-    showValueLabel = false,
+    valueLabel = false,
     formatOptions,
     name,
     ref,
@@ -336,7 +336,7 @@ function SliderRoot(props: RootProps) {
             trackRef={trackRef}
             name={name}
             label={range ? (index === 0 ? labels.start : labels.end) : undefined}
-            showValueLabel={showValueLabel}
+            valueLabel={valueLabel}
             styles={styles}
             classNames={classNames}
           />
@@ -420,7 +420,7 @@ function Thumb({
   trackRef,
   name,
   label,
-  showValueLabel,
+  valueLabel,
   styles,
   classNames,
 }: {
@@ -430,7 +430,7 @@ function Thumb({
   trackRef: RefObject<HTMLDivElement | null>;
   name?: string;
   label?: string;
-  showValueLabel: boolean;
+  valueLabel: boolean;
   styles: ReturnType<typeof sliderStyles>;
   classNames?: SliderClassNames;
 }) {
@@ -486,7 +486,7 @@ function Thumb({
           <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>
       </div>
-      {showValueLabel && (isDragging || isFocusVisible) && (
+      {valueLabel && (isDragging || isFocusVisible) && (
         <span aria-hidden="true" style={{ marginInlineStart: at }} className={styles.labelAnchor()}>
           <span data-slot="value-indicator" className={styles.label({ class: classNames?.label })}>
             {state.getThumbValueLabel(index)}
