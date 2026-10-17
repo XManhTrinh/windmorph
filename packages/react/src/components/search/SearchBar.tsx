@@ -271,21 +271,34 @@ export function SearchBar(props: SearchBarProps) {
     reduceMotion ? 'opacity' : '--m3-search-progress',
   );
 
-  // As the view starts leaving, focus goes back to the bar's input at once (WAI-ARIA: a
-  // closing dialog returns focus to what opened it), not when the view unmounts ~450ms
-  // later: typing meanwhile reaches the bar, which opens the view again (2026-10-17).
+  // As the view starts leaving, focus goes back at once to what had it when the view opened
+  // (WAI-ARIA: a closing dialog returns focus to what opened it), not when the view unmounts
+  // ~450ms later: typing meanwhile reaches the bar, which opens the view again (2026-10-17).
+  // That's the bar's input when the bar opened it, and whatever had focus when an app's
+  // shortcut did (a link stays focused after ⌘K and Escape); the bar's input otherwise.
   const collapsedRef = useRef<HTMLInputElement>(null);
   const collapsedInputRef = useMemo(
     () => mergeRefs(collapsedRef, isPresent ? undefined : inputRef),
     [isPresent, inputRef],
   );
+  // Read before the view's input takes focus (a passive effect) and before React Aria's
+  // focus scope would restore it on unmount, which this hand-over replaces.
+  const restoreRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const doc = collapsedRef.current?.ownerDocument;
+    if (!state.isOpen || !doc) return;
+    const active = doc.activeElement;
+    restoreRef.current = active instanceof HTMLElement && active !== doc.body ? active : null;
+  }, [state.isOpen]);
   useEffect(() => {
     const collapsed = collapsedRef.current;
     if (!isExiting || !collapsed) return;
     // Only from inside the leaving view: a press outside that moved focus elsewhere keeps it.
-    if (collapsed.ownerDocument.activeElement?.closest('[data-exiting]')) {
-      collapsed.focus({ preventScroll: true });
-    }
+    if (!collapsed.ownerDocument.activeElement?.closest('[data-exiting]')) return;
+    const previous = restoreRef.current;
+    const target =
+      previous?.isConnected && !previous.closest('[data-exiting]') ? previous : collapsed;
+    target.focus({ preventScroll: true });
   }, [isExiting]);
 
   // The expanded view starts from the bar's bounds; measure them when it opens.

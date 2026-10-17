@@ -295,17 +295,21 @@ test.describe('Navigation item ripple', () => {
 });
 
 test.describe('NavigationRail width motion', () => {
-  /** Every item's height and icon top, sampled each frame for `ms` after `act`. */
+  /**
+   * Every item's height and icon top, sampled each frame for `ms` after `act`, with the
+   * frame's time, so a frame the machine drops under load reads as one longer step.
+   */
   async function sampleItems(page: Page, scope: string, act: () => Promise<void>, ms = 900) {
     await page.evaluate(
       ({ scope, ms }) => {
-        const samples: { heights: number[]; icons: number[] }[] = [];
+        const samples: { time: number; heights: number[]; icons: number[] }[] = [];
         (window as unknown as { __items: typeof samples }).__items = samples;
         const start = performance.now();
         const tick = () => {
           const items = [...document.querySelectorAll<HTMLElement>(`${scope} [data-nav-item]`)];
           if (items.length)
             samples.push({
+              time: performance.now(),
               heights: items.map((item) => Math.round(item.getBoundingClientRect().height)),
               icons: items.map((item) =>
                 Math.round(item.querySelector('svg')!.getBoundingClientRect().top),
@@ -320,7 +324,12 @@ test.describe('NavigationRail width motion', () => {
     await act();
     await page.waitForTimeout(ms + 100);
     return page.evaluate(
-      () => (window as unknown as { __items: { heights: number[]; icons: number[] }[] }).__items,
+      () =>
+        (
+          window as unknown as {
+            __items: { time: number; heights: number[]; icons: number[] }[];
+          }
+        ).__items,
     );
   }
 
@@ -336,14 +345,15 @@ test.describe('NavigationRail width motion', () => {
     // Items spring from 64px to 56px (2026-10-17, as Compose); none grows taller than a
     // collapsed item mid-transition, as a label wrapping letter by letter would make it.
     for (const sample of samples) expect(Math.max(...sample.heights)).toBeLessThanOrEqual(64.5);
-    // The icons move continuously to their places, never in a jump.
-    samples
-      .slice(1)
-      .forEach((sample, frame) =>
-        sample.icons.forEach((top, index) =>
-          expect(Math.abs(top - samples[frame]!.icons[index]!)).toBeLessThan(8),
-        ),
+    // The icons move continuously to their places, never in a jump: at most 8px per 60Hz
+    // frame (16.7ms), as `rail items move continuously as it expands` measures it.
+    samples.slice(1).forEach((sample, index) => {
+      const previous = samples[index]!;
+      const frames = Math.max(1, (sample.time - previous.time) / (1000 / 60));
+      sample.icons.forEach((top, item) =>
+        expect(Math.abs(top - previous.icons[item]!) / frames).toBeLessThan(8),
       );
+    });
     last.icons.forEach((top, index) =>
       expect(Math.abs(top - samples.at(-2)!.icons[index]!)).toBeLessThan(0.5),
     );

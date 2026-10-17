@@ -33,7 +33,8 @@ import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useThemeScope } from '../../theme/context';
-import { SPRINGS, springWithVelocityToLinearEasing } from '../../tokens/motion';
+import { SPRINGS } from '../../tokens/motion';
+import { springWithVelocityToLinearEasing } from '../../tokens/spring-velocity';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
 import {
