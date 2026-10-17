@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, SheetTrigger, SideSheet } from '@windmorph/react';
+import { Button, SideSheet } from '@windmorph/react';
 import { useState } from 'react';
 
 /**
