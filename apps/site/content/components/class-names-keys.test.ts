@@ -60,7 +60,7 @@ describe('classNames slots', () => {
   const { slots: core } = coreSlots();
 
   it('finds the core components with classNames', () => {
-    expect(core.get('Button')).toEqual(['root', 'content', 'label', 'icon']);
+    expect(core.get('Button')).toEqual(['root', 'content', 'label', 'icon', 'pendingIndicator']);
   });
 
   it("lists every core component's slots exactly, as its classNames keys", () => {

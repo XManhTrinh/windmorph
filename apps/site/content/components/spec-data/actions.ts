@@ -32,6 +32,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['button/button-link'],
       },
+      {
+        name: 'Loading indicator in a button',
+        kind: 'use case',
+        examples: ['button/button-pending', 'button/button-pending-indicator'],
+      },
     ],
     differences: [
       {
@@ -43,6 +48,10 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
       {
         item: 'Links',
         note: '`href` renders an `<a>` that routes through React Aria’s `RouterProvider`, so a link can look like a button.',
+      },
+      {
+        item: '`pending`',
+        note: 'M3 guidance with no button prop or token: the core `LoadingIndicator` replaces the content after 200ms in the content colour, the button keeps its width and focus, and presses are blocked.',
       },
     ],
     notBuilt: [
@@ -128,6 +137,11 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['icon-button/icon-button-density'],
       },
+      {
+        name: 'Loading indicator in a button',
+        kind: 'use case',
+        examples: ['icon-button/icon-button-pending'],
+      },
     ],
     extensions: [
       {
@@ -137,6 +151,10 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
       {
         item: '`iconTransition="rotate"`',
         note: "Not in the M3 spec, which swaps `icon` for `selectedIcon`: the icon turns and crossfades into the other, counter-clockwise as it selects (mirrored in RTL). Matches Google's Expressive showcase motion; reduced motion keeps only the crossfade.",
+      },
+      {
+        item: '`pending`',
+        note: 'M3 guidance with no icon button prop or token: the core `LoadingIndicator` takes the icon’s place after 200ms, at least 24px, and the button keeps its size and focus.',
       },
       {
         item: 'Content colour token',

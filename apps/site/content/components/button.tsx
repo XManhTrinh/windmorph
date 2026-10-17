@@ -12,6 +12,11 @@ const ButtonToggle = lazyExample('button/button-toggle', 'ButtonToggle');
 const ButtonVariants = lazyExample('button/button-variants', 'ButtonVariants');
 const ButtonShapes = lazyExample('button/button-shapes', 'ButtonShapes');
 const ButtonToggleVariants = lazyExample('button/button-toggle-variants', 'ButtonToggleVariants');
+const ButtonPending = lazyExample('button/button-pending', 'ButtonPending');
+const ButtonPendingIndicator = lazyExample(
+  'button/button-pending-indicator',
+  'ButtonPendingIndicator',
+);
 
 /** Button page body: purpose, live examples and Compose differences. */
 export async function ButtonBody(): Promise<ComponentDoc> {
@@ -35,6 +40,15 @@ export async function ButtonBody(): Promise<ComponentDoc> {
   const [shapesSrcHtml, toggleVariantsSrcHtml] = await Promise.all([
     highlightSource(shapesSrc),
     highlightSource(toggleVariantsSrc),
+  ]);
+
+  const [pendingSrc, pendingIndicatorSrc] = await Promise.all([
+    readExampleSource('button/button-pending.tsx'),
+    readExampleSource('button/button-pending-indicator.tsx'),
+  ]);
+  const [pendingHtml, pendingIndicatorHtml] = await Promise.all([
+    highlightSource(pendingSrc),
+    highlightSource(pendingIndicatorSrc),
   ]);
 
   return {
@@ -87,6 +101,22 @@ export async function ButtonBody(): Promise<ComponentDoc> {
           </ExampleViewer>
           <ExampleViewer title="As a link" code={link} html={linkHtml} fileName="button-link.tsx">
             <ButtonLink />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Pending"
+            code={pendingSrc}
+            html={pendingHtml}
+            fileName="button-pending.tsx"
+          >
+            <ButtonPending />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Pending with another indicator"
+            code={pendingIndicatorSrc}
+            html={pendingIndicatorHtml}
+            fileName="button-pending-indicator.tsx"
+          >
+            <ButtonPendingIndicator />
           </ExampleViewer>
         </section>
       </>
@@ -190,6 +220,13 @@ export async function ButtonBody(): Promise<ComponentDoc> {
             <li>
               Under reduced motion the press and selection morphs snap to their new corners; colours
               and elevation still fade.
+            </li>
+            <li>
+              <InlineCode>pending</InlineCode> composes M3&apos;s guidance on loading indicators in
+              buttons, which defines no button prop or token: the indicator is the{' '}
+              <InlineCode>LoadingIndicator</InlineCode> at the icon&apos;s size (24px at least,
+              M3&apos;s minimum), in the content colour, loaded only once a button takes{' '}
+              <InlineCode>pending</InlineCode>. Toggle buttons have no pending state.
             </li>
             <li>
               XS and S buttons get a 48px touch target inside the library-owned inner wrapper; the
