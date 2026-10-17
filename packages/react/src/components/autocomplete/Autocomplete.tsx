@@ -29,7 +29,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { matchesSearch } from '../../utils/search';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { InputChip } from '../chip/Chip';
 import {
@@ -111,7 +111,7 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   RenamedProps
 > &
   Pick<AriaComboBoxOptions<T, M>, 'id' | 'name' | 'form'> &
-  Omit<RootDOMProps, keyof ComboBoxProps<T, M>> & {
+  Omit<WrapperRootDOMProps, keyof ComboBoxProps<T, M>> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**
@@ -257,7 +257,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
       'AutocompleteItem and AutocompleteSection elements',
     );
   }
-  const { root: rootData, rest } = splitRootProps(otherProps);
+  const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const stately = rest as Omit<ComboBoxProps<T, M>, RenamedProps>;
   const multiple = stately.selectionMode === 'multiple';

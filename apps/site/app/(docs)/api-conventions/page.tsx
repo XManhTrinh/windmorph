@@ -186,8 +186,16 @@ export default function ApiConventionsPage() {
             <InlineCode>title</InlineCode> and <InlineCode>lang</InlineCode>, and events. Where
             React Aria labels an inner element (a field&apos;s input, a tab list), the naming
             attributes (<InlineCode>aria-label</InlineCode>,{' '}
-            <InlineCode>aria-labelledby</InlineCode>, <InlineCode>aria-describedby</InlineCode>) and
-            the focus, key and input events go to that element instead.
+            <InlineCode>aria-labelledby</InlineCode>, <InlineCode>aria-describedby</InlineCode>),
+            the attributes that describe that element (<InlineCode>aria-controls</InlineCode>,{' '}
+            <InlineCode>aria-expanded</InlineCode>, <InlineCode>aria-haspopup</InlineCode>,{' '}
+            <InlineCode>aria-autocomplete</InlineCode>,{' '}
+            <InlineCode>aria-activedescendant</InlineCode>, <InlineCode>aria-required</InlineCode>,{' '}
+            <InlineCode>aria-invalid</InlineCode>, <InlineCode>aria-readonly</InlineCode>) and the
+            focus, key and input events go to that element instead, never to a wrapping{' '}
+            <InlineCode>div</InlineCode> or <InlineCode>label</InlineCode>. Where the component sets
+            those itself (a select&apos;s trigger, a combo box&apos;s input), it doesn&apos;t take
+            them.
           </Rule>
           <Rule>
             <InlineCode>className</InlineCode> and <InlineCode>style</InlineCode> go on the

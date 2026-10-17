@@ -209,6 +209,65 @@ describe('root DOM attributes', () => {
     expect(ref.current).not.toHaveAttribute('aria-label');
   });
 
+  /** The attributes that describe a widget's own state and relations (`WidgetAria`). */
+  const WIDGET = {
+    'aria-controls': 'suggestions',
+    'aria-haspopup': 'listbox',
+    'aria-autocomplete': 'list',
+    'aria-activedescendant': 'suggestion-1',
+    'aria-expanded': 'true',
+    'aria-required': 'true',
+    'aria-invalid': 'true',
+    'aria-readonly': 'true',
+  } as const;
+
+  /** Components whose root wraps the element React Aria labels (ARIA forbids these there). */
+  const WRAPPERS = [
+    'Checkbox',
+    'Switch',
+    'Radio',
+    'TextField',
+    'Select',
+    'Autocomplete',
+    'DateField',
+    'DatePicker',
+    'DateRangePicker',
+    'TimePicker',
+    'Tabs',
+    'SearchBar',
+  ];
+
+  for (const name of WRAPPERS) {
+    it(`${name} never puts the widget attributes on its wrapping root`, () => {
+      const ref = createRef<HTMLElement>();
+      render(CASES[name]!({ ...WIDGET, onDoubleClick: () => {} } as Probe, ref));
+      for (const key of Object.keys(WIDGET)) expect(ref.current).not.toHaveAttribute(key);
+    });
+  }
+
+  it('puts the widget attributes on the input of a text field, checkbox, switch and radio', () => {
+    const { getByRole } = render(
+      <>
+        <TextField label="City" {...WIDGET} />
+        <Checkbox {...WIDGET}>Terms</Checkbox>
+        <Switch {...WIDGET}>Wi-Fi</Switch>
+        <RadioGroup label="Delivery">
+          <Radio value="standard" {...(WIDGET as object)}>
+            Standard
+          </Radio>
+        </RadioGroup>
+      </>,
+    );
+    for (const input of [
+      getByRole('textbox', { name: 'City' }),
+      getByRole('checkbox', { name: 'Terms' }),
+      getByRole('switch', { name: 'Wi-Fi' }),
+      getByRole('radio', { name: 'Standard' }),
+    ]) {
+      for (const [key, value] of Object.entries(WIDGET)) expect(input).toHaveAttribute(key, value);
+    }
+  });
+
   it('covers every component that splits its props with splitRootProps', () => {
     const src = dirname(fileURLToPath(import.meta.url));
     const splitting = readdirSync(join(src, 'components'), { recursive: true, withFileTypes: true })

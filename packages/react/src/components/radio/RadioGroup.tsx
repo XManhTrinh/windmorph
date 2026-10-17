@@ -31,7 +31,12 @@ import {
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import {
+  pickWidgetAria,
+  splitRootProps,
+  type RootDOMProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { radioGroupStyles, radioStyles } from './radio-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { RadioRing } from './radio-ring';
@@ -242,7 +247,7 @@ export interface RadioClassNames extends SelectionControlClassNames {
 interface RadioOwnProps
   extends
     Omit<AriaRadioProps, 'isDisabled' | 'children'>,
-    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaRadioProps> {
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaRadioProps> {
   /** The value this option selects. */
   value: string;
   /** Turns this option off: it can't be selected or focused. @default false */
@@ -290,7 +295,7 @@ export function Radio({
 }: RadioProps) {
   const state = useContext(RadioGroupContext);
   if (!state) throw new Error('[@windmorph/react] <Radio> must be used inside <RadioGroup>.');
-  const { root: data, rest } = splitRootProps(otherProps);
+  const { root: data, rest } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const { inputProps, labelProps, isSelected, isDisabled, isPressed } = useRadio(
     { ...rest, children, isDisabled: disabled },
@@ -306,7 +311,7 @@ export function Radio({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps)}
       inputRef={domInputRef}
       // The ring resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.

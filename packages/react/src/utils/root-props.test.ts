@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitRootProps, type RootEvent } from './root-props';
+import { pickWidgetAria, splitRootProps, type RootEvent, type WidgetAria } from './root-props';
 
 /** Every root event, written out: the type checks the list, the test checks the run-time match. */
 const ROOT_EVENTS = [
@@ -92,5 +92,36 @@ describe('splitRootProps', () => {
     const { root, rest } = splitRootProps(kept);
     expect(root).toEqual({});
     expect(rest).toEqual(kept);
+  });
+
+  /** Every widget attribute, written out: the type checks the list. */
+  const WIDGET: Record<WidgetAria, string | boolean> = {
+    'aria-controls': 'list',
+    'aria-haspopup': 'listbox',
+    'aria-autocomplete': 'list',
+    'aria-activedescendant': 'option-1',
+    'aria-expanded': true,
+    'aria-required': true,
+    'aria-invalid': true,
+    'aria-readonly': true,
+  };
+
+  it('sends the widget attributes to the root when the root is the widget', () => {
+    const { root, rest } = splitRootProps(WIDGET);
+    expect(root).toEqual(WIDGET);
+    expect(rest).toEqual({});
+  });
+
+  it('leaves the widget attributes for the labelled element when the root wraps it', () => {
+    const { root, rest } = splitRootProps({ ...WIDGET, 'aria-busy': true }, { wrapper: true });
+    expect(root).toEqual({ 'aria-busy': true });
+    expect(rest).toEqual(WIDGET);
+  });
+
+  it('picks the widget attributes that are set', () => {
+    const { 'aria-expanded': _expanded, ...set } = WIDGET;
+    expect(
+      pickWidgetAria({ ...set, 'aria-expanded': undefined, 'aria-label': 'Name', id: 'name' }),
+    ).toEqual(set);
   });
 });

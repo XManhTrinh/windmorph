@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, ReactNode, Ref } from 'react';
+import type { AriaAttributes, CSSProperties, ReactNode, Ref } from 'react';
 import {
   mergeProps,
   useCheckbox,
@@ -16,7 +16,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';
@@ -47,7 +47,9 @@ type RenamedAriaProps =
 interface CheckboxOwnProps
   extends
     Omit<AriaCheckboxProps, RenamedAriaProps>,
-    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaCheckboxProps> {
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaCheckboxProps>,
+    // The input's own state attributes go to it, with React Aria's `aria-controls`.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
   /** Controlled checked state. */
   checked?: boolean;
   /** Initial checked state when uncontrolled. */
@@ -125,7 +127,7 @@ export function Checkbox({
   ...otherProps
 }: CheckboxProps) {
   // DOM attributes for the whole control go on the root; the rest goes to the input via React Aria.
-  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps);
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const options: AriaCheckboxProps = {
     ...ariaProps,
@@ -155,7 +157,7 @@ export function Checkbox({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(ariaProps), focusProps)}
       inputRef={domInputRef}
       // The box resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.

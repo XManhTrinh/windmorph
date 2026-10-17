@@ -30,7 +30,7 @@ import { useControlledState } from 'react-stately/useControlledState';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { searchBarStyles } from './search-styles';
@@ -112,7 +112,7 @@ export type SearchBarInputProps = Omit<
   [data: `data-${string}`]: string | number | boolean | undefined;
 };
 
-interface SearchBarOwnProps extends RootDOMProps {
+interface SearchBarOwnProps extends WrapperRootDOMProps {
   /** The root element's id. */
   id?: string;
   /** Controlled query. */
@@ -325,7 +325,7 @@ export function SearchBar(props: SearchBarProps) {
     hasLeading: leading != null,
     hasTrailing: trailing != null,
   });
-  const { root: data, rest: own } = splitRootProps(rest);
+  const { root: data, rest: own } = splitRootProps(rest, { wrapper: true });
   // In an app bar the collapsed field is `surface-container`; the expanded view's field
   // keeps the search view's own `surface-container-high`.
   const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';

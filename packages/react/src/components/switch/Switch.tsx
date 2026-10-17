@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type AriaAttributes,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
@@ -25,7 +26,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
@@ -63,7 +64,9 @@ type RenamedAriaProps =
 interface SwitchOwnProps
   extends
     Omit<AriaSwitchProps, RenamedAriaProps>,
-    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaSwitchProps> {
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaSwitchProps>,
+    // The input's own state attributes go to it, with React Aria's `aria-controls`.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
   /** Controlled on state (`checked`, as an HTML checkbox). */
   checked?: boolean;
   /** Initial on state when uncontrolled. */
@@ -150,7 +153,7 @@ export function Switch({
   ...otherProps
 }: SwitchProps) {
   // DOM attributes for the whole control go on the root; the rest goes to the input.
-  const { root: data, rest } = splitRootProps(otherProps);
+  const { root: data, rest } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const options: AriaSwitchProps = {
     ...rest,
@@ -267,7 +270,7 @@ export function Switch({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps, enterProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps, enterProps)}
       inputRef={domInputRef}
       rootData={{
         ...data,

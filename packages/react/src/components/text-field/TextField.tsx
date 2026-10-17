@@ -3,6 +3,7 @@
 import {
   useId,
   useLayoutEffect,
+  type AriaAttributes,
   type CSSProperties,
   type MouseEvent,
   type PointerEvent,
@@ -29,7 +30,7 @@ import {
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {
@@ -101,7 +102,11 @@ type RenamedAriaProps =
 interface TextFieldOwnProps
   extends
     Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps>,
-    Omit<RootDOMProps, keyof AriaTextFieldProps<HTMLInputElement>> {
+    Omit<WrapperRootDOMProps, keyof AriaTextFieldProps<HTMLInputElement>>,
+    // The attributes that describe the input go to it, with React Aria's `aria-controls`,
+    // `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant`: a field that opens its
+    // own suggestions can say so.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**
@@ -267,9 +272,10 @@ export function TextField(props: TextFieldProps) {
     ...otherProps
   } = props;
 
-  // `data-*` attributes describe the component, so they go on the root with `className`;
-  // everything else (ARIA, input attributes, events) goes to the input via React Aria.
-  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps);
+  // `data-*` attributes and the root's DOM attributes describe the component, so they go on the
+  // root with `className`; everything else (the input's ARIA, attributes and events) goes to
+  // the input via React Aria.
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const prefixId = useId();
   const suffixId = useId();
@@ -452,7 +458,7 @@ export function TextField(props: TextFieldProps) {
             </span>
           )}
           <Input
-            {...(mergeProps(inputProps, focusProps) as object)}
+            {...(mergeProps(inputProps, pickWidgetAria(ariaProps), focusProps) as object)}
             aria-describedby={describedBy}
             ref={domInputRef as Ref<never>}
             data-slot="input"

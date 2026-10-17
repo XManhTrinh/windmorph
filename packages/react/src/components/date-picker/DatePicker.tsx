@@ -42,7 +42,7 @@ import { useSizeTransform } from './use-size-transform';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -134,7 +134,7 @@ export interface DateRangePickerClassNames extends DatePickerClassNames {
   rangeBand?: string;
 }
 
-interface DatePickerCommonProps extends RootDOMProps {
+interface DatePickerCommonProps extends WrapperRootDOMProps {
   /** Earliest date allowed; earlier days are disabled. */
   min?: DateValue;
   /** Latest date allowed; later days are disabled. */
@@ -400,7 +400,7 @@ function PickerFrame({
   defaultValue?: unknown;
   onChange?: unknown;
 }) {
-  const { root: data } = splitRootProps(rest);
+  const { root: data } = splitRootProps(rest, { wrapper: true });
   const [mode, setMode] = useState(defaultMode);
   // Set once the mode has been switched, so only a switch animates (not the first render).
   const [switched, setSwitched] = useState(false);

@@ -30,7 +30,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
@@ -115,7 +115,7 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
   RenamedProps
 > &
   Pick<AriaSelectOptions<T, M>, 'id' | 'name' | 'autoComplete' | 'form'> &
-  Omit<RootDOMProps, keyof StatelySelectProps<T, M>> & {
+  Omit<WrapperRootDOMProps, keyof StatelySelectProps<T, M>> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**
@@ -297,7 +297,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   if (typeof props.children !== 'function') {
     assertCollectionChildren(props.children, 'Select', 'SelectItem and SelectSection elements');
   }
-  const { root: rootData, rest } = splitRootProps(otherProps);
+  const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const stately = rest as Omit<StatelySelectProps<T, M>, RenamedProps>;
   const cap = useSelectionCap({

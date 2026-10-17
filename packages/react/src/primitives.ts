@@ -65,7 +65,14 @@ export {
 } from './utils/keep-pressed-in-place';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
-export { splitRootProps, type RootDOMProps } from './utils/root-props';
+export {
+  pickWidgetAria,
+  splitRootProps,
+  type RootDOMProps,
+  type SplitRootPropsOptions,
+  type WidgetAria,
+  type WrapperRootDOMProps,
+} from './utils/root-props';
 export { ThemeScopeContext } from './theme/context';
 export { generateSchemeColors } from './theme/scheme';
 

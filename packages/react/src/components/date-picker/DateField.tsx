@@ -20,7 +20,7 @@ import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import type { Density } from '../../tokens/density';
@@ -109,7 +109,7 @@ export interface DateFieldClassNames extends Omit<
   item?: string;
 }
 
-export interface DateFieldProps extends RootDOMProps {
+export interface DateFieldProps extends WrapperRootDOMProps {
   /** The field's label, e.g. "Date of birth". */
   label: ReactNode;
   /** The date (controlled); `null` for none. */
@@ -234,7 +234,7 @@ function DateFieldInner({
   directionRef,
   ...rest
 }: DateFieldProps & { directionRef: (element: HTMLElement | null) => void }) {
-  const { root: data } = splitRootProps(rest);
+  const { root: data } = splitRootProps(rest, { wrapper: true });
   const [value, setValue] = useControlledState(valueProp, defaultValue ?? null, onChange);
   const overlay = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const fieldRef = useRef<HTMLDivElement>(null);

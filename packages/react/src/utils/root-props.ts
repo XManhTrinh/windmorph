@@ -4,6 +4,22 @@ import type { AriaAttributes, DOMAttributes, HTMLAttributes } from 'react';
 type Labelling =
   'aria-label' | 'aria-labelledby' | 'aria-describedby' | 'aria-details' | 'aria-errormessage';
 
+/**
+ * The attributes that describe a widget's own state and relations (2026-10-17): what it controls
+ * and whether it opens a popup, its autocompletion and active descendant, and whether it is
+ * expanded, required, invalid or read-only. They belong on the widget, never on a wrapper (ARIA
+ * doesn't allow them on a generic `div` or a `label`).
+ */
+export type WidgetAria =
+  | 'aria-controls'
+  | 'aria-haspopup'
+  | 'aria-autocomplete'
+  | 'aria-activedescendant'
+  | 'aria-expanded'
+  | 'aria-required'
+  | 'aria-invalid'
+  | 'aria-readonly';
+
 /** Events about the whole component: pointer, mouse, touch, drag, wheel, scroll, animation. */
 export type RootEvent =
   | 'onClick'
@@ -29,6 +45,8 @@ type Global = 'title' | 'lang' | 'dir' | 'hidden' | 'inert' | 'translate' | 'dra
 const ROOT_EVENT =
   /^on(?:Click|AuxClick|ContextMenu|DoubleClick|Mouse(?:Down|Enter|Leave|Move|Out|Over|Up)|Pointer(?:Down|Move|Up|Cancel|Enter|Leave|Over|Out)|(?:Got|Lost)PointerCapture|Touch(?:Start|Move|End|Cancel)|Drag(?:End|Enter|Exit|Leave|Over|Start)?|Drop|Wheel|Scroll|Animation(?:Start|End|Iteration)|Transition(?:Start|Run|End|Cancel))(?:Capture)?$/;
 const LABELLING = /^aria-(?:label|labelledby|describedby|details|errormessage)$/;
+const WIDGET_ARIA =
+  /^aria-(?:controls|haspopup|autocomplete|activedescendant|expanded|required|invalid|readonly)$/;
 const GLOBAL = /^(?:title|lang|dir|hidden|inert|translate|draggable)$/;
 
 /**
@@ -45,35 +63,82 @@ export type RootDOMProps<E extends Element = HTMLDivElement> = Pick<
   Pick<HTMLAttributes<E>, Global>;
 
 /**
+ * {@link RootDOMProps} for a component whose root wraps the element React Aria labels (a
+ * field's input, a checkbox's input, a select's trigger, a tab list): without the
+ * {@link WidgetAria} attributes, which describe that element. A component that lets the app set
+ * them takes them in its own props and puts them on that element.
+ */
+export type WrapperRootDOMProps<E extends Element = HTMLDivElement> = Omit<
+  RootDOMProps<E>,
+  WidgetAria
+>;
+
+/** Options for {@link splitRootProps}. */
+export interface SplitRootPropsOptions {
+  /**
+   * The root wraps the element React Aria labels (see {@link WrapperRootDOMProps}), so the
+   * {@link WidgetAria} attributes stay in `rest`, for that element, instead of going to the root.
+   * @default false
+   */
+  wrapper?: boolean;
+}
+
+/**
  * Splits a component's {@link RootDOMProps} (and every `data-*` attribute) from the props for its
  * React Aria hook, for a component whose hook forwards only the attributes it knows. Spread
  * `root` on the root element (merging its handlers with the hook's, React Aria's `mergeProps`)
  * and pass `rest` to the hook. A component whose hook labels the root itself (a radio group, a
- * slider's group) merges both there.
+ * slider's group) merges both there. One whose root wraps the labelled element passes
+ * `{ wrapper: true }`, so the attributes that describe that element (`aria-controls`,
+ * `aria-expanded`, `aria-invalid` …, {@link WidgetAria}) stay with it; React Aria's hooks forward
+ * only some of them, so {@link pickWidgetAria} hands over the rest.
  *
  * @example
- * const { root, rest } = splitRootProps(props);
+ * const { root, rest } = splitRootProps(props, { wrapper: true });
  * const { labelProps, inputProps } = useTextField(rest, inputRef);
- * return <div {...root}>…</div>;
+ * return (
+ *   <div {...root}>
+ *     <input {...mergeProps(inputProps, pickWidgetAria(rest))} />
+ *   </div>
+ * );
  */
 export function splitRootProps<T extends object>(
   props: T,
+  options: SplitRootPropsOptions = {},
 ): {
-  /** `data-*`, `aria-*` but the naming ones, global attributes and root events. */
+  /**
+   * `data-*`, `aria-*` but the naming ones (and, for a wrapper, the {@link WidgetAria} ones),
+   * global attributes and root events.
+   */
   root: Record<string, unknown>;
   /** Everything else, for the hook. */
-  rest: Omit<T, keyof RootDOMProps | `data-${string}`>;
+  rest: Omit<T, keyof WrapperRootDOMProps | `data-${string}`>;
 } {
   const root: Record<string, unknown> = {};
   const rest: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
     const toRoot =
       key.startsWith('data-') ||
-      (key.startsWith('aria-') && !LABELLING.test(key)) ||
+      (key.startsWith('aria-') &&
+        !LABELLING.test(key) &&
+        !(options.wrapper && WIDGET_ARIA.test(key))) ||
       GLOBAL.test(key) ||
       ROOT_EVENT.test(key);
     if (toRoot) root[key] = value;
     else rest[key] = value;
   }
-  return { root, rest: rest as Omit<T, keyof RootDOMProps | `data-${string}`> };
+  return { root, rest: rest as Omit<T, keyof WrapperRootDOMProps | `data-${string}`> };
+}
+
+/**
+ * The {@link WidgetAria} attributes among `props`, for the element React Aria labels: a hook
+ * forwards only those it knows (a text field's `aria-controls`, but not its `aria-expanded`), so
+ * a wrapper component merges these after the hook's own props.
+ */
+export function pickWidgetAria(props: object): Pick<AriaAttributes, WidgetAria> {
+  const picked: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(props)) {
+    if (WIDGET_ARIA.test(key) && value !== undefined) picked[key] = value;
+  }
+  return picked as Pick<AriaAttributes, WidgetAria>;
 }

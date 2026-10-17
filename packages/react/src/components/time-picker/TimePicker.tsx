@@ -33,7 +33,11 @@ import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import {
+  splitRootProps,
+  type RootDOMProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { KeyboardIcon, ScheduleIcon } from '../date-picker/picker-icons';
 import { useMediaQuery } from '../date-picker/use-media-query';
 import { IconButton } from '../icon-button/IconButton';
@@ -94,7 +98,7 @@ export interface TimePickerClassNames {
 
 export type TimePickerMode = 'dial' | 'input';
 
-export interface TimePickerProps extends RootDOMProps {
+export interface TimePickerProps extends WrapperRootDOMProps {
   /** Controlled time (`@internationalized/date` `Time`). */
   value?: Time;
   /** Initial time when uncontrolled. @default 12:00 */
@@ -192,7 +196,7 @@ export function TimePicker({
   classNames,
   ...rest
 }: TimePickerProps) {
-  const { root: data } = splitRootProps(rest);
+  const { root: data } = splitRootProps(rest, { wrapper: true });
   const { locale } = useLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
   const [time, setTime] = useControlledState(value, defaultValue ?? new Time(12, 0), onChange);
