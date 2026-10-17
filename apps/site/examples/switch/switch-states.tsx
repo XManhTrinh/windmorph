@@ -4,7 +4,7 @@ import { Switch } from '@windmorph/react';
 export function SwitchStates() {
   return (
     <div className="flex flex-col gap-3">
-      <Switch defaultSelected disabled>
+      <Switch defaultChecked disabled>
         Disabled, on
       </Switch>
       <Switch disabled>Disabled, off</Switch>

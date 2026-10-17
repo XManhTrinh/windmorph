@@ -36,15 +36,17 @@ describe('checkboxStyles', () => {
     expect(box).toContain('group-data-invalid/control:group-data-pressed/control:border-error');
   });
 
-  it("keeps an invalid box's state layer error when it is selected or pressed", () => {
+  it("keeps an invalid box's state layer error when it is checked or pressed", () => {
     const control = slots.control().split(' ');
     const error = '[--m3-state-layer-color:var(--md-sys-color-error)]';
     // Each invalid rule is at least as specific as the selected / pressed rule it must beat.
     for (const variant of [
       'data-invalid:',
-      'data-invalid:data-selected:',
+      'data-invalid:data-checked:',
+      'data-invalid:data-indeterminate:',
       'data-invalid:data-pressed:',
-      'data-invalid:data-selected:data-pressed:',
+      'data-invalid:data-checked:data-pressed:',
+      'data-invalid:data-indeterminate:data-pressed:',
     ]) {
       expect(control).toContain(`${variant}${error}`);
     }
@@ -54,16 +56,16 @@ describe('checkboxStyles', () => {
     const box = slots.box().split(' ');
     expect(box).toContain('forced-colors:group-data-disabled/control:border-[GrayText]!');
     expect(box).toContain(
-      'forced-colors:group-data-disabled/control:group-data-selected/control:bg-[GrayText]!',
+      'forced-colors:group-data-disabled/control:group-data-checked/control:bg-[GrayText]!',
     );
   });
 
-  it('gives selected boxes no outline, invalid included', () => {
+  it('gives checked boxes no outline, invalid included', () => {
     const box = slots.box().split(' ');
-    expect(box).toContain('group-data-selected/control:border-transparent');
-    expect(box).not.toContain('group-data-selected/control:border-primary');
+    expect(box).toContain('group-data-checked/control:border-transparent');
+    expect(box).not.toContain('group-data-checked/control:border-primary');
     expect(box).toContain(
-      'group-data-invalid/control:group-data-pressed/control:group-data-selected/control:border-transparent',
+      'group-data-invalid/control:group-data-pressed/control:group-data-checked/control:border-transparent',
     );
   });
 });

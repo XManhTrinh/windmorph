@@ -37,8 +37,8 @@ const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [
   },
   {
     compose: '`checked`, `onCheckedChange`',
-    windmorph: '`selected`, `onSelectedChange`',
-    note: 'Every value is controlled or uncontrolled: `defaultSelected`, `defaultValue` and `defaultOpen` start one without state.',
+    windmorph: '`checked`, `onCheckedChange`',
+    note: 'The same names on `Checkbox` and `Switch`; toggle buttons, chips and navigation items say `selected` / `onSelectedChange`, as Compose does. Every value is controlled or uncontrolled: `defaultChecked`, `defaultValue` and `defaultOpen` start one without state.',
   },
   {
     compose: '`contentDescription`',

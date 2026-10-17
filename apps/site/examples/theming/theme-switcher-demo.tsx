@@ -94,7 +94,7 @@ export function ThemeSwitcherDemo() {
           </Menu>
         </MenuTrigger>
 
-        <Switch selected={expressive} onSelectedChange={setExpressive}>
+        <Switch checked={expressive} onCheckedChange={setExpressive}>
           Expressive motion
         </Switch>
       </div>

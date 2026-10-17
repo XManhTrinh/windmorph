@@ -151,13 +151,13 @@ export function ThemeControls() {
       </div>
 
       <Switch
-        selected={motion === 'expressive'}
-        onSelectedChange={(on) => setMotion(on ? 'expressive' : 'standard')}
+        checked={motion === 'expressive'}
+        onCheckedChange={(on) => setMotion(on ? 'expressive' : 'standard')}
       >
         Expressive motion
       </Switch>
 
-      <Switch selected={rtl} onSelectedChange={setRtl}>
+      <Switch checked={rtl} onCheckedChange={setRtl}>
         Right to left
       </Switch>
     </div>

@@ -16,12 +16,12 @@ export const Probe: StoryObj = {
       instances={
         <>
           <Switch icons>Off</Switch>
-          <Switch icons defaultSelected>
+          <Switch icons defaultChecked>
             On
           </Switch>
         </>
       }
-      scoped={<Switch defaultSelected>Scoped</Switch>}
+      scoped={<Switch defaultChecked>Scoped</Switch>}
       override={{
         token: '--md-comp-switch-unselected-handle-color',
         children: <Switch classNames={{ thumb: 'bg-tertiary' }}>Override</Switch>,

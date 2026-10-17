@@ -281,7 +281,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         composable: 'Checkbox',
         component: 'Checkbox',
         params: [
-          { compose: 'checked, onCheckedChange', windmorph: '`selected`, `onSelectedChange`' },
+          { compose: 'checked, onCheckedChange', windmorph: '`checked`, `onCheckedChange`' },
           { compose: 'enabled', windmorph: '`disabled`' },
         ],
         note: 'The label is the `children`, so the whole row is the target.',
@@ -376,7 +376,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         composable: 'Switch',
         component: 'Switch',
         params: [
-          { compose: 'checked, onCheckedChange', windmorph: '`selected`, `onSelectedChange`' },
+          { compose: 'checked, onCheckedChange', windmorph: '`checked`, `onCheckedChange`' },
           { compose: 'thumbContent', windmorph: '`icons`, `selectedIcon`, `unselectedIcon`' },
           { compose: 'enabled', windmorph: '`disabled`' },
         ],

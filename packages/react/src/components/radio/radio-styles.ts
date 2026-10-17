@@ -28,10 +28,10 @@ export const radioStyles = tv({
       'group-data-hovered/control:border-on-surface',
       'group-data-focus-visible/control:border-on-surface',
       'group-data-pressed/control:border-on-surface',
-      'group-data-selected/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+      'group-data-checked/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
       'group-data-disabled/control:border-on-surface/38 group-data-disabled/control:text-on-surface/38',
       // Stacked so disabled also wins over the selected colour (equal specificity otherwise).
-      'group-data-disabled/control:group-data-selected/control:border-on-surface/38',
+      'group-data-disabled/control:group-data-checked/control:border-on-surface/38',
       'group-data-disabled/control:[transition-duration:0s]',
       // Forced colours: the ring and its dot (`bg-current`, a background forced colours would
       // drop) in system colours, `GrayText` when disabled.
@@ -43,7 +43,7 @@ export const radioStyles = tv({
       '[transition-property:scale]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
-      'group-data-selected/control:scale-100',
+      'group-data-checked/control:scale-100',
     ],
   },
 });

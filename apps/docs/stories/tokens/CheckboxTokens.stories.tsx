@@ -16,10 +16,10 @@ export const Probe: StoryObj = {
       instances={
         <>
           <Checkbox>Unchecked</Checkbox>
-          <Checkbox defaultSelected>Checked</Checkbox>
+          <Checkbox defaultChecked>Checked</Checkbox>
         </>
       }
-      scoped={<Checkbox defaultSelected>Scoped</Checkbox>}
+      scoped={<Checkbox defaultChecked>Scoped</Checkbox>}
       override={{
         token: '--md-comp-checkbox-unselected-outline-color',
         children: <Checkbox classNames={{ box: 'border-tertiary' }}>Override</Checkbox>,

@@ -25,13 +25,13 @@ export const States: Story = {
       {[false, true].map((disabled) => (
         <div key={String(disabled)} className="flex flex-col items-start gap-3">
           <Switch disabled={disabled}>Off</Switch>
-          <Switch disabled={disabled} defaultSelected>
+          <Switch disabled={disabled} defaultChecked>
             On
           </Switch>
           <Switch disabled={disabled} icons>
             Off with icon
           </Switch>
-          <Switch disabled={disabled} icons defaultSelected>
+          <Switch disabled={disabled} icons defaultChecked>
             On with icon
           </Switch>
         </div>
@@ -66,10 +66,10 @@ export const Density: Story = {
           <Switch density={density} data-testid={`${density}-off`}>
             Wi-Fi
           </Switch>
-          <Switch density={density} defaultSelected data-testid={`${density}-on`}>
+          <Switch density={density} defaultChecked data-testid={`${density}-on`}>
             Bluetooth
           </Switch>
-          <Switch density={density} defaultSelected icons data-testid={`${density}-icons`}>
+          <Switch density={density} defaultChecked icons data-testid={`${density}-icons`}>
             Airplane mode
           </Switch>
           <Switch density={density} disabled data-testid={`${density}-disabled`}>

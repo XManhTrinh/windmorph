@@ -23,7 +23,7 @@ export function DialogMotion() {
   const [status, setStatus] = useState('Closed');
   return (
     <div className="flex flex-col items-start gap-4">
-      <Switch selected={quick} onSelectedChange={setQuick}>
+      <Switch checked={quick} onCheckedChange={setQuick}>
         Quick (no motion)
       </Switch>
       <DialogTrigger onOpenChange={(open) => setStatus(open ? 'Opening…' : 'Closing…')}>

@@ -205,8 +205,8 @@ function ControlInput({
     return (
       <Switch
         aria-labelledby={labelId}
-        selected={Boolean(value)}
-        onSelectedChange={(next) => onChange(next)}
+        checked={Boolean(value)}
+        onCheckedChange={(next) => onChange(next)}
       />
     );
   }

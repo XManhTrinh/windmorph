@@ -302,7 +302,7 @@ export function Radio({
         'data-tokens': mergeDataTokens('md-comp-radio-button', data),
       }}
       state={{
-        'data-selected': isSelected || undefined,
+        'data-checked': isSelected || undefined,
         'data-disabled': isDisabled || undefined,
         'data-hovered': (isHovered && !isDisabled) || undefined,
         'data-pressed': (isPressed && !isDisabled) || undefined,

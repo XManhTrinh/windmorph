@@ -31,7 +31,7 @@ export const checkbox: ComponentAccessibility = {
   ],
   consumer: [
     'Give every checkbox a visible label that says what checking it means.',
-    'For a parent checkbox, set `indeterminate` while some, but not all, of its children are checked, and update it and the children in `onSelectedChange`.',
+    'For a parent checkbox, set `indeterminate` while some, but not all, of its children are checked, and update it and the children in `onCheckedChange`.',
     'Put related checkboxes under a visible heading or in a `fieldset` with a `legend`, so the group has a name.',
     'Show an error message next to an `invalid` checkbox and link it with `aria-describedby`; the checkbox only shows the error colour.',
   ],

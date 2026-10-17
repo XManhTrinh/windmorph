@@ -2073,8 +2073,7 @@ function ControlItem({
   const options = useContext(ListOptionsContext);
   const styles = itemStyles(item, variant, true, options);
   const controlState = {
-    'data-selected': isSelected || undefined,
-    'data-checked': (kind === 'checkbox' && isSelected) || undefined,
+    'data-checked': isSelected || undefined,
     'data-disabled': isDisabled || undefined,
   };
   return (

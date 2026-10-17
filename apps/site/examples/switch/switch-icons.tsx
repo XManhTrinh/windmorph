@@ -9,13 +9,13 @@ import { CheckIcon, StarIcon, StarOutlineIcon } from '../../components/icons';
 export function SwitchIcons() {
   return (
     <div className="flex flex-col gap-3">
-      <Switch defaultSelected selectedIcon={<CheckIcon />}>
+      <Switch defaultChecked selectedIcon={<CheckIcon />}>
         Icon when on
       </Switch>
-      <Switch defaultSelected icons>
+      <Switch defaultChecked icons>
         Icons on and off
       </Switch>
-      <Switch defaultSelected selectedIcon={<StarIcon />} unselectedIcon={<StarOutlineIcon />}>
+      <Switch defaultChecked selectedIcon={<StarIcon />} unselectedIcon={<StarOutlineIcon />}>
         Favourite
       </Switch>
     </div>

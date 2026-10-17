@@ -50,12 +50,12 @@ type RenamedAriaProps =
   'isSelected' | 'defaultSelected' | 'onChange' | 'isDisabled' | 'isReadOnly' | 'children';
 
 interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
-  /** Controlled on state. */
-  selected?: boolean;
+  /** Controlled on state (`checked`, as an HTML checkbox). */
+  checked?: boolean;
   /** Initial on state when uncontrolled. */
-  defaultSelected?: boolean;
+  defaultChecked?: boolean;
   /** Called when the user switches it on or off. */
-  onSelectedChange?: (selected: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
   /** Turns the switch off: it can't be changed or focused. @default false */
   disabled?: boolean;
   /** The switch can be focused but not changed. @default false */
@@ -106,12 +106,12 @@ const isOnAt = (center: number) => center > (THUMB_ON_CENTER + THUMB_OFF_CENTER)
  * forms and assistive tech working.
  *
  * @example
- * <Switch defaultSelected icons>Wi-Fi</Switch>
+ * <Switch defaultChecked icons>Wi-Fi</Switch>
  */
 export function Switch({
-  selected,
-  defaultSelected,
-  onSelectedChange,
+  checked,
+  defaultChecked,
+  onCheckedChange,
   disabled = false,
   readOnly,
   icons = false,
@@ -131,9 +131,9 @@ export function Switch({
   const options: AriaSwitchProps = {
     ...rest,
     children,
-    isSelected: selected,
-    defaultSelected,
-    onChange: onSelectedChange,
+    isSelected: checked,
+    defaultSelected: defaultChecked,
+    onChange: onCheckedChange,
     isDisabled: disabled,
     isReadOnly: readOnly,
   };
@@ -224,7 +224,7 @@ export function Switch({
   const { size } = geometry;
   const center = dragCenter ?? geometry.center;
   const stateAttributes = {
-    'data-selected': isSelected || undefined,
+    'data-checked': isSelected || undefined,
     'data-disabled': disabled || undefined,
     'data-hovered': (isHovered && !disabled) || undefined,
     'data-pressed': pressed || undefined,

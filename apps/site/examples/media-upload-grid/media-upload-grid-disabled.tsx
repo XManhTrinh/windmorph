@@ -20,7 +20,7 @@ export function MediaUploadGridDisabled() {
   const [sending, setSending] = useState(true);
   return (
     <div className="flex w-full max-w-[480px] flex-col gap-4">
-      <Switch selected={sending} onSelectedChange={setSending}>
+      <Switch checked={sending} onCheckedChange={setSending}>
         Sending the post
       </Switch>
       <MediaUploadGrid

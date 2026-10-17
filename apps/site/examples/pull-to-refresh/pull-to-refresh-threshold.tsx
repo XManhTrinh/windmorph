@@ -17,7 +17,7 @@ export function PullToRefreshThreshold() {
   const [disabled, setDisabled] = useState(false);
   return (
     <div className="flex w-full max-w-[412px] flex-col gap-4">
-      <Switch selected={disabled} onSelectedChange={setDisabled}>
+      <Switch checked={disabled} onCheckedChange={setDisabled}>
         Turn pulling off
       </Switch>
       <PullToRefresh

@@ -24,13 +24,12 @@ describe('Checkbox', () => {
   });
 
   it('toggles when the label is clicked and reports the change', async () => {
-    const onSelectedChange = vi.fn();
-    render(<Checkbox onSelectedChange={onSelectedChange}>Remember me</Checkbox>);
+    const onCheckedChange = vi.fn();
+    render(<Checkbox onCheckedChange={onCheckedChange}>Remember me</Checkbox>);
     await userEvent.click(screen.getByText('Remember me'));
     const input = screen.getByRole('checkbox');
     expect(input).toBeChecked();
-    expect(onSelectedChange).toHaveBeenCalledWith(true);
-    expect(rootOf(input)).toHaveAttribute('data-selected');
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
     expect(rootOf(input)).toHaveAttribute('data-checked');
   });
 
@@ -46,7 +45,7 @@ describe('Checkbox', () => {
     function Controlled() {
       const [checked, setChecked] = useState(true);
       return (
-        <Checkbox selected={checked} onSelectedChange={setChecked}>
+        <Checkbox checked={checked} onCheckedChange={setChecked}>
           Controlled
         </Checkbox>
       );
@@ -63,18 +62,17 @@ describe('Checkbox', () => {
     const input = screen.getByRole('checkbox') as HTMLInputElement;
     expect(input.indeterminate).toBe(true);
     expect(rootOf(input)).toHaveAttribute('data-indeterminate');
-    expect(rootOf(input)).toHaveAttribute('data-selected');
     expect(rootOf(input)).not.toHaveAttribute('data-checked');
   });
 
   it('is disabled, read-only, required and invalid', async () => {
-    const onSelectedChange = vi.fn();
+    const onCheckedChange = vi.fn();
     render(
       <>
-        <Checkbox disabled onSelectedChange={onSelectedChange}>
+        <Checkbox disabled onCheckedChange={onCheckedChange}>
           Disabled
         </Checkbox>
-        <Checkbox readOnly onSelectedChange={onSelectedChange}>
+        <Checkbox readOnly onCheckedChange={onCheckedChange}>
           Read only
         </Checkbox>
         <Checkbox required invalid name="terms" value="yes">
@@ -84,7 +82,7 @@ describe('Checkbox', () => {
     );
     await userEvent.click(screen.getByText('Disabled'));
     await userEvent.click(screen.getByText('Read only'));
-    expect(onSelectedChange).not.toHaveBeenCalled();
+    expect(onCheckedChange).not.toHaveBeenCalled();
     expect(screen.getByRole('checkbox', { name: 'Disabled' })).toBeDisabled();
     expect(rootOf(screen.getByRole('checkbox', { name: 'Disabled' }))).toHaveAttribute(
       'data-disabled',
@@ -132,7 +130,7 @@ describe('Checkbox', () => {
     expect(box).toHaveClass(
       'border-[color:var(--_md-comp-checkbox-unselected-outline-color)]',
       'text-[color:var(--_md-comp-checkbox-selected-icon-color)]',
-      'group-data-selected/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
+      'group-data-checked/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
     );
   });
 
@@ -160,7 +158,7 @@ describe('Checkbox', () => {
     const { container } = render(
       <div>
         <Checkbox>Unchecked</Checkbox>
-        <Checkbox defaultSelected>Checked</Checkbox>
+        <Checkbox defaultChecked>Checked</Checkbox>
         <Checkbox indeterminate>Mixed</Checkbox>
         <Checkbox disabled>Disabled</Checkbox>
         <Checkbox invalid>Invalid</Checkbox>
