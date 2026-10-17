@@ -57,3 +57,5 @@ Sizes use one scale: `Fab` and `FabMenu` take `size="md"` and `size="lg"` (were 
 `classNames` slots use one name per part: `List`'s `supporting` is `supportingText`, `BottomSheet`'s and `SideSheet`'s `closeButton` slot is `close`, and `SideSheet`'s `backButton` is `back`.
 
 Every component with an element of its own takes `className`, `style`, `ref` and `id`: a field's `id` reaches its input or trigger (`Select`, `Autocomplete`, `DateField`), so a `<label for>` or an error summary can point at it, and `Slider`, `RangeSlider`, `DatePicker`, `DateRangePicker`, `TimePicker`, `List`, `Carousel` and `SearchBar` put it on their root. `Tooltip`, `RichTooltip`, `TimePickerModeToggle`, `PickerDialog`, `ListItemAvatar`, `ListItemImage`, `ListItemVideo` and `TouchTarget` take `style` and `ref`, and `Menu`'s `ref` reaches its menu list.
+
+`SnackbarHost`'s `focusShortcut` defaults to `F6` (was `Alt+G`), the browsers' key for moving between a page's regions.

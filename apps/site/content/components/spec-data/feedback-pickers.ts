@@ -45,7 +45,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: '`focusShortcut`',
-        note: 'Alt+G (configurable, or `false`) moves focus to a snackbar with a control, the keyboard path the spec asks for on the web.',
+        note: 'F6 (configurable, or `false`) moves focus to a snackbar with a control, the keyboard path the spec asks for on the web.',
       },
     ],
     compose: [

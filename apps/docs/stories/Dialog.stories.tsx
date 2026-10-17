@@ -120,7 +120,7 @@ export const Plain: Story = {
         {({ close }) => (
           <>
             <DialogTitle>Keyboard shortcuts</DialogTitle>
-            <DialogContent>Press Alt+G to reach a snackbar's actions.</DialogContent>
+            <DialogContent>Press F6 to reach a snackbar's actions.</DialogContent>
             <DialogActions>
               <Button variant="text" onPress={close}>
                 Close

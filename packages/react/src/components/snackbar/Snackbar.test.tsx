@@ -209,7 +209,7 @@ describe('SnackbarHost', () => {
     await expect(result).resolves.toBe('dismissed');
   });
 
-  it('moves focus to an actionable snackbar with Alt+G and returns it when it leaves', async () => {
+  it('moves focus to an actionable snackbar with F6 and returns it when it leaves', async () => {
     const state = new SnackbarHostState();
     const { container } = render(
       <>
@@ -224,9 +224,8 @@ describe('SnackbarHost', () => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
     const item = screen.getByText('Archived').closest('[data-snackbar-id]')!;
-    expect(item).toHaveAttribute('aria-keyshortcuts', 'Alt+G');
-    // Alt+G types "©" on a Mac; the physical key still matches.
-    fireEvent.keyDown(document, { key: '©', code: 'KeyG', altKey: true });
+    expect(item).toHaveAttribute('aria-keyshortcuts', 'F6');
+    fireEvent.keyDown(document, { key: 'F6', code: 'F6' });
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
     expect(await axeViolations(container)).toEqual([]);
     await userEvent.keyboard('{Enter}');
@@ -247,7 +246,7 @@ describe('SnackbarHost', () => {
     act(() => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
-    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    fireEvent.keyDown(document, { key: 'F6', code: 'F6' });
     const focus = vi.spyOn(archive, 'focus');
     await userEvent.keyboard('{Escape}');
     expect(archive).toHaveFocus();
@@ -273,7 +272,7 @@ describe('SnackbarHost', () => {
     act(() => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
-    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    fireEvent.keyDown(document, { key: 'F6', code: 'F6' });
     expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
     rerender(<List rows={['Sam']} />);
     await userEvent.keyboard('{Escape}');
@@ -284,7 +283,7 @@ describe('SnackbarHost', () => {
     act(() => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
-    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    fireEvent.keyDown(document, { key: 'F6', code: 'F6' });
     rerender(<List rows={[]} />);
     await userEvent.keyboard('{Escape}');
     expect(screen.getByRole('button', { name: 'Compose' })).toHaveFocus();
@@ -297,7 +296,7 @@ describe('SnackbarHost', () => {
     act(() => {
       void state.showSnackbar({ message: 'Archived', actionLabel: 'Undo' });
     });
-    fireEvent.keyDown(document, { key: 'g', code: 'KeyG', altKey: true });
+    fireEvent.keyDown(document, { key: 'F6', code: 'F6' });
     expect(screen.getByRole('button', { name: 'Undo' })).not.toHaveFocus();
     rerender(<SnackbarHost state={state} focusShortcut="Control+Shift+S" />);
     fireEvent.keyDown(document, { key: 'S', code: 'KeyS', ctrlKey: true, shiftKey: true });

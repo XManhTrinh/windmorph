@@ -3,7 +3,7 @@ import type { ComponentAccessibility } from './types';
 export const snackbar: ComponentAccessibility = {
   keyboard: [
     {
-      keys: ['Alt + G'],
+      keys: ['F6'],
       action:
         'Moves focus to the shown snackbar when it has an action or a dismiss button, as the spec asks for on the web. Change it with `focusShortcut`, or turn it off with `false`.',
     },
@@ -42,7 +42,7 @@ export const snackbar: ComponentAccessibility = {
   ],
   consumer: [
     'On the web, use an auto-dismissing snackbar (no action) only alongside inline feedback for the same event, such as a Save button that changes to Saved: the snackbar may be gone before someone reads it. Or give it an action, and it stays until acted on or dismissed.',
-    'Document the focus shortcut (Alt + G) where your app lists its shortcuts.',
+    'Document the focus shortcut (F6) where your app lists its shortcuts.',
     "Don't put a `Snackbar` in a live region of your own; the host, or the snackbar itself, already announces it.",
     "Translate the dismiss button's name with `labels.dismiss`.",
   ],
