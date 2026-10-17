@@ -24,12 +24,12 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       { name: 'Standalone', kind: 'variant', examples: ['link/link-standalone'] },
       { name: 'Plain, around a logo or photo', kind: 'variant', examples: ['link/link-plain'] },
       {
-        name: 'Tone: primary or inherit (on colour)',
+        name: 'Colour: primary or inherit (on colour)',
         kind: 'configuration',
         examples: ['link/link-standalone'],
       },
       {
-        name: 'Size: inherit, small, medium, large',
+        name: 'Size: inherit, sm, md, lg',
         kind: 'configuration',
         examples: ['link/link-standalone'],
       },

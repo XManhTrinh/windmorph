@@ -1,6 +1,7 @@
 import { PinInput, type PinInputSize } from '@windmorph/react-pro';
 
-const SIZES: PinInputSize[] = ['small', 'medium', 'large'];
+const SIZES: PinInputSize[] = ['sm', 'md', 'lg'];
+const SIZE_NAMES: Record<PinInputSize, string> = { sm: 'small', md: 'medium', lg: 'large' };
 
 /** The M3 text field's two variants, in three sizes. */
 export function PinInputVariants() {
@@ -11,7 +12,7 @@ export function PinInputVariants() {
           {SIZES.map((size) => (
             <PinInput
               key={size}
-              label={`${variant}, ${size}`}
+              label={`${variant}, ${SIZE_NAMES[size]}`}
               variant={variant}
               size={size}
               length={4}

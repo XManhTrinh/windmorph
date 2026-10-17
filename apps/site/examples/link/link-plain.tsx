@@ -12,7 +12,7 @@ export function LinkPlain() {
     <div className="flex items-start gap-8">
       <Link
         variant="plain"
-        tone="inherit"
+        color="inherit"
         href="#demo-home"
         aria-label="Home"
         className="text-on-surface"
@@ -21,7 +21,7 @@ export function LinkPlain() {
       </Link>
       <Link
         variant="plain"
-        tone="inherit"
+        color="inherit"
         href="#demo-lan"
         className="flex w-28 flex-col gap-1 text-on-surface"
       >

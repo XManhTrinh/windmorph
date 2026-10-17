@@ -10,7 +10,7 @@ const REACTIONS: ReactionOption[] = [
 
 /**
  * The `text` (default) and `tonal` buttons in both sizes, and one without an icon before
- * anyone reacts (`showIdleIcon={false}`).
+ * anyone reacts (`idleIcon={false}`).
  */
 export function ReactionPickerVariants() {
   return (
@@ -19,7 +19,7 @@ export function ReactionPickerVariants() {
         <div key={variant} className="flex flex-wrap items-center gap-4">
           <ReactionPicker variant={variant} options={REACTIONS} />
           <ReactionPicker variant={variant} size="sm" options={REACTIONS} />
-          <ReactionPicker variant={variant} showIdleIcon={false} options={REACTIONS} />
+          <ReactionPicker variant={variant} idleIcon={false} options={REACTIONS} />
         </div>
       ))}
     </div>

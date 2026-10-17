@@ -56,7 +56,7 @@ function PreToCodeBlock(props: ComponentProps<'pre'>) {
         html={decodeURIComponent(rest['data-html'])}
         lang={rest['data-lang']}
         title={rest['data-title']}
-        showLineNumbers={rest['data-show-line-numbers'] != null}
+        lineNumbers={rest['data-show-line-numbers'] != null}
       />
     );
   }

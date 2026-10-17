@@ -5,8 +5,8 @@ import { Collapse } from '@windmorph/react-pro';
 import { useId, useState } from 'react';
 
 /**
- * Open from the start: `appear={false}` shows it in place on the first render, with no
- * opening motion, and it folds and unfolds as usual after that.
+ * Open from the start: mounted open, it shows in place on the first render with no opening
+ * motion (`appear` would add one), and it folds and unfolds as usual after that.
  */
 export function CollapseShownFirst() {
   const [open, setOpen] = useState(true);
@@ -21,7 +21,7 @@ export function CollapseShownFirst() {
       >
         {open ? 'Hide delivery details' : 'Show delivery details'}
       </Button>
-      <Collapse open={open} appear={false}>
+      <Collapse open={open}>
         <p id={details} className="px-3 pb-3 text-body-medium text-on-surface-variant">
           Orders placed before noon arrive the next working day. Bánh mì and other fresh food is
           delivered chilled, in a recyclable box.

@@ -8,16 +8,16 @@ import { StarIcon } from '../../components/icons';
 export function TagStatuses() {
   return (
     <TagGroup aria-label="Listing status">
-      <Tag variant="filled" tone="error">
+      <Tag variant="filled" color="error">
         Sold
       </Tag>
-      <Tag tone="success" dot>
+      <Tag color="success" dot>
         Open now
       </Tag>
-      <Tag tone="warning" dot>
+      <Tag color="warning" dot>
         Payment pending
       </Tag>
-      <Tag tone="tertiary" icon={<StarIcon />}>
+      <Tag color="tertiary" icon={<StarIcon />}>
         Featured
       </Tag>
       <Tag>Draft</Tag>

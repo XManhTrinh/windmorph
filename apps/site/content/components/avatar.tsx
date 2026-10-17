@@ -13,24 +13,24 @@ const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExampl
 const AvatarGroupLinks = lazyExample('avatar/avatar-group-links', 'AvatarGroupLinks');
 const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
-const AvatarTones = lazyExample('avatar/avatar-tones', 'AvatarTones');
+const AvatarColors = lazyExample('avatar/avatar-colors', 'AvatarColors');
 
 /** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const [fallbacks, photos, tones, shapes, badges, group, groupLinks] = await Promise.all([
+  const [fallbacks, photos, colors, shapes, badges, group, groupLinks] = await Promise.all([
     readExampleSource('avatar/avatar-fallbacks.tsx'),
     readExampleSource('avatar/avatar-photos.tsx'),
-    readExampleSource('avatar/avatar-tones.tsx'),
+    readExampleSource('avatar/avatar-colors.tsx'),
     readExampleSource('avatar/avatar-shapes.tsx'),
     readExampleSource('avatar/avatar-badges.tsx'),
     readExampleSource('avatar/avatar-group.tsx'),
     readExampleSource('avatar/avatar-group-links.tsx'),
   ]);
-  const [fallbacksHtml, photosHtml, tonesHtml, shapesHtml, badgesHtml, groupHtml, groupLinksHtml] =
+  const [fallbacksHtml, photosHtml, colorsHtml, shapesHtml, badgesHtml, groupHtml, groupLinksHtml] =
     await Promise.all([
       highlightSource(fallbacks),
       highlightSource(photos),
-      highlightSource(tones),
+      highlightSource(colors),
       highlightSource(shapes),
       highlightSource(badges),
       highlightSource(group),
@@ -60,11 +60,16 @@ export async function AvatarBody(): Promise<ComponentDoc> {
           >
             <AvatarPhotos />
           </ExampleViewer>
-          <ExampleViewer title="Tones" code={tones} html={tonesHtml} fileName="avatar-tones.tsx">
-            <AvatarTones />
+          <ExampleViewer
+            title="Colours"
+            code={colors}
+            html={colorsHtml}
+            fileName="avatar-colors.tsx"
+          >
+            <AvatarColors />
           </ExampleViewer>
           <ExampleViewer
-            title="All 35 Expressive shapes"
+            title="Circle, rounded and the 35 Expressive shapes"
             code={shapes}
             html={shapesHtml}
             fileName="avatar-shapes.tsx"
@@ -115,10 +120,11 @@ export async function AvatarBody(): Promise<ComponentDoc> {
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>AvatarGroup</InlineCode> shows several as one unit, named once by{' '}
-            <InlineCode>label</InlineCode>. Each child sits in an item of the group&apos;s and reads
-            the group&apos;s size through context, so an app&apos;s own component around an Avatar
-            works. When two or more avatars are links or buttons, the group spaces itself so their
-            48px touch targets never overlap.
+            <InlineCode>aria-label</InlineCode> (or <InlineCode>aria-labelledby</InlineCode>); a
+            linked or pressable &quot;+N&quot; is named by <InlineCode>labels.overflow</InlineCode>.
+            Each child sits in an item of the group&apos;s and reads the group&apos;s size through
+            context, so an app&apos;s own component around an Avatar works. When two or more avatars
+            are links or buttons, the group spaces itself so their 48px touch targets never overlap.
           </p>
           <p className="text-body-large text-on-surface-variant">
             It renders on the server (a client component, since it reads the group&apos;s context).
@@ -128,9 +134,19 @@ export async function AvatarBody(): Promise<ComponentDoc> {
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>shape</InlineCode> is <InlineCode>circle</InlineCode> by default, or{' '}
-            <InlineCode>rounded</InlineCode> (a shape-scale corner for its size), or any of the 35
-            M3 Expressive shapes. <InlineCode>icon</InlineCode> sets the fallback when there is no
-            name.
+            <InlineCode>rounded</InlineCode> (a shape-scale corner for its size), or a shape
+            outline: one of the 35 M3 Expressive shapes as a constant (
+            <InlineCode>{'shape={cookie12SidedShape}'}</InlineCode> from{' '}
+            <InlineCode>@windmorph/react/primitives</InlineCode>) or your own{' '}
+            <InlineCode>MaterialShapePath</InlineCode>. <InlineCode>icon</InlineCode> sets the
+            fallback when there is no name.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            Shapes and bundle size: circle and rounded avatars carry no shape data, and each outline
+            costs only its own path, about 0.4 kB gzipped for Cookie12Sided and up to 2.5 kB for
+            SoftBoom, the largest. <InlineCode>materialShapePaths</InlineCode> holds all 35 (about
+            11 kB), for a shape picker. Shapes aren&apos;t mirrored in right-to-left layouts, as in
+            Compose.
           </p>
         </section>
       </>
@@ -143,13 +159,13 @@ export async function AvatarBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>tone=&quot;auto&quot;</InlineCode> hashes the name into one of 12 colour
+              <InlineCode>color=&quot;auto&quot;</InlineCode> hashes the name into one of 12 colour
               slots, so a name keeps its colour. By default the slots cycle through the primary,
               secondary, tertiary and neutral containers, so they follow every theme, mode and
               contrast level. Give an app more colours by setting{' '}
-              <InlineCode>--wm-avatar-tone-1</InlineCode> …{' '}
-              <InlineCode>--wm-avatar-tone-12</InlineCode> and their{' '}
-              <InlineCode>--wm-avatar-on-tone-*</InlineCode> text colours (any colour: a theme
+              <InlineCode>--wm-avatar-color-1</InlineCode> …{' '}
+              <InlineCode>--wm-avatar-color-12</InlineCode> and their{' '}
+              <InlineCode>--wm-avatar-on-color-*</InlineCode> text colours (any colour: a theme
               variable, hex, <InlineCode>oklch()</InlineCode>).
             </li>
             <li>
@@ -159,7 +175,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Set the tokens on <InlineCode>:root</InlineCode>, a section or one avatar, in CSS or
-              with Tailwind (<InlineCode>[--wm-avatar-tone-1:#16a34a]</InlineCode>); the root
+              with Tailwind (<InlineCode>[--wm-avatar-color-1:#16a34a]</InlineCode>); the root
               carries <InlineCode>data-tokens=&quot;wm-avatar&quot;</InlineCode>. Tailwind classes
               on the parts win too:{' '}
               <InlineCode>

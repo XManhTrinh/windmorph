@@ -143,13 +143,13 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               ⌘+Enter sends) or <InlineCode>{"'none'"}</InlineCode> (only the button). Nothing is
               sent while an input method is composing (pinyin, kana or a dead-key accent), and a
               blank value is never sent. <InlineCode>onSubmit</InlineCode> gets the trimmed text.{' '}
-              <InlineCode>canSend</InlineCode> overrides &quot;any text&quot;: a photo alone can be
+              <InlineCode>sendable</InlineCode> overrides &quot;any text&quot;: a photo alone can be
               sent, or Send can wait for an upload.
             </li>
             <li>
               The field doesn&apos;t clear itself: clear <InlineCode>value</InlineCode> once the
               send succeeds, or set <InlineCode>clearOnSubmit</InlineCode>. While{' '}
-              <InlineCode>submitting</InlineCode>, the send button shows the loading indicator and
+              <InlineCode>pending</InlineCode>, the send button shows the loading indicator and
               ignores presses; a send that ends while <InlineCode>invalid</InlineCode> shakes the
               field once beside <InlineCode>errorMessage</InlineCode>.
             </li>
@@ -169,7 +169,7 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               counter turns to the error colour, the field is invalid and Send waits, so a long
               paste loses no words. The counter (&quot;1,840 / 2,000&quot;) shows from{' '}
               <InlineCode>counterThreshold</InlineCode> (90%), or always with{' '}
-              <InlineCode>showCounter</InlineCode>; nearing, reaching and passing the limit are each
+              <InlineCode>counter</InlineCode>; nearing, reaching and passing the limit are each
               announced once.
             </li>
             <li>
@@ -307,7 +307,7 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               button&apos;s parts (<InlineCode>send.root</InlineCode>,{' '}
               <InlineCode>send.icon</InlineCode>, <InlineCode>send.glyph</InlineCode>,{' '}
               <InlineCode>send.loading</InlineCode>), <InlineCode>emptyAction</InlineCode>,{' '}
-              <InlineCode>supporting</InlineCode> and <InlineCode>counter</InlineCode>; the
+              <InlineCode>supportingText</InlineCode> and <InlineCode>counter</InlineCode>; the
               trigger&apos;s <InlineCode>root</InlineCode>, <InlineCode>leading</InlineCode>,{' '}
               <InlineCode>text</InlineCode>, <InlineCode>tools</InlineCode> and{' '}
               <InlineCode>trailing</InlineCode>. <InlineCode>sendIcon</InlineCode> and{' '}

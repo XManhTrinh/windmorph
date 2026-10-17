@@ -15,17 +15,20 @@ import {
   TimePicker,
   TimePickerModeToggle,
 } from '@windmorph/react';
-import {
-  Alert,
-  avatarShapes,
-  EmptyState,
-  LoadMore,
-  Skeleton,
-  SkeletonGroup,
-} from '@windmorph/react-pro';
+import { Alert, EmptyState, LoadMore, Skeleton, SkeletonGroup } from '@windmorph/react-pro';
 import { createElement, useState } from 'react';
 import { CloseIcon, DynamicFeedIcon, LockIcon } from '../../icons';
-import { asDensity, loose, noop, type PlaygroundDescriptor, type PlaygroundUpdate } from './shared';
+import {
+  SHAPE_IMPORT,
+  asDensity,
+  loose,
+  noop,
+  shapeOptions,
+  shapeSlot,
+  shapeValue,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+} from './shared';
 
 const ButtonAny = loose(Button);
 const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
@@ -238,12 +241,12 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     defaultProps: {
       variant: 'rectangle',
       corner: 'default',
-      tone: 'highest',
+      color: 'surface-container-highest',
       animation: 'pulse',
       typescale: 'body-medium',
       lines: 1,
     },
-    surfacedProps: ['variant', 'animation', 'corner', 'tone', 'typescale', 'lines'],
+    surfacedProps: ['variant', 'animation', 'corner', 'color', 'typescale', 'lines'],
     initialState: { variant: 'text', lines: 3, animation: 'pulse' },
     numberRanges: { lines: { min: 1, max: 6 } },
     // `lines` and `typescale` belong to the text variant (the types say so).
@@ -258,13 +261,13 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       variant: ['rectangle', 'text', 'circle'],
       animation: ['pulse', 'shimmer', 'none'],
       corner: ['default', 'none', 'extra-small', 'small', 'medium', 'large', 'extra-large', 'full'],
-      tone: ['highest', 'high'],
+      color: ['surface-container-highest', 'surface-container-high'],
     },
   },
   alert: {
     component: 'Alert',
     importFrom: '@windmorph/react-pro',
-    render: ({ icon, actions, focusOnMount, open, ...props }, update) =>
+    render: ({ icon, actions, autoFocus, open, ...props }, update) =>
       createElement(
         'div',
         { className: 'flex w-full max-w-md flex-col items-start gap-3' },
@@ -272,9 +275,9 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           AlertAny,
           {
             ...props,
-            // `focusOnMount` acts as the alert appears, so switching it shows the alert afresh.
-            key: String(focusOnMount),
-            focusOnMount,
+            // `autoFocus` acts as the alert appears, so switching it shows the alert afresh.
+            key: String(autoFocus),
+            autoFocus,
             // `open={false}` lets it leave with its exit motion; the button brings it back.
             open: open !== false,
             ...(icon === true && { icon: createElement(LockIcon) }),
@@ -293,25 +296,27 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       ),
     defaultProps: {
       open: true,
-      tone: 'error',
+      severity: 'info',
       variant: 'tonal',
       titleAs: 'p',
       icon: false,
       actions: false,
-      focusOnMount: false,
+      autoFocus: false,
     },
+    // The preview shows a form error, so it starts at `error`; `info` is the default.
+    initialState: { severity: 'error' },
     surfacedProps: [
       'open',
-      'tone',
+      'severity',
       'variant',
       'title',
       'titleAs',
       'icon',
       'actions',
-      'focusOnMount',
+      'autoFocus',
     ],
     enumOptions: {
-      tone: ['error', 'info', 'success', 'warning', 'neutral'],
+      severity: ['info', 'error', 'success', 'warning', 'neutral'],
       variant: ['tonal', 'outlined'],
     },
     controlKinds: { title: 'string', icon: 'boolean', actions: 'boolean' },
@@ -325,9 +330,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   'empty-state': {
     component: 'EmptyState',
     importFrom: '@windmorph/react-pro',
-    render: ({ actions, ...props }) =>
+    render: ({ actions, shape, ...props }) =>
       createElement(EmptyStateAny, {
         ...props,
+        shape: shapeValue(shape),
         icon: createElement(DynamicFeedIcon),
         className: 'w-full max-w-md',
         ...(actions === true && {
@@ -337,7 +343,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     defaultProps: {
       variant: 'plain',
       size: 'md',
-      tone: 'secondary',
+      color: 'secondary',
       shape: 'circle',
       titleAs: 'p',
       announce: false,
@@ -346,7 +352,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     surfacedProps: [
       'variant',
       'size',
-      'tone',
+      'color',
       'shape',
       'title',
       'titleAs',
@@ -363,16 +369,14 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     enumOptions: {
       variant: ['plain', 'filled', 'elevated', 'outlined'],
       size: ['sm', 'md', 'lg'],
-      tone: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
-      shape: [
-        'circle',
-        ...avatarShapes.filter((shape) => shape !== 'circle' && shape !== 'rounded'),
-      ],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      shape: shapeOptions(['circle']),
     },
     controlKinds: { title: 'string', description: 'string', actions: 'boolean' },
     toggledSlots: { actions: '<Button variant="tonal">Create a post</Button>' },
-    codeImports: [BUTTON_IMPORT],
-    codeSlots: { icon: '<DynamicFeedIcon />' },
+    // A shape is written as its constant, imported from `@windmorph/react/primitives`.
+    codeImports: [BUTTON_IMPORT, SHAPE_IMPORT],
+    codeSlots: { icon: '<DynamicFeedIcon />', shape: shapeSlot('circle') },
   },
   'load-more': {
     component: 'LoadMore',
@@ -413,9 +417,9 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         }),
       ),
     // `status` is required, so it has no default and the snippet always writes it.
-    defaultProps: { auto: true, rootMargin: '800px 0px', loading: false, end: false },
+    defaultProps: { auto: false, rootMargin: '800px 0px', loading: false, end: false },
     surfacedProps: ['status', 'auto', 'rootMargin', 'loading', 'end'],
-    initialState: { status: 'idle', auto: false },
+    initialState: { status: 'idle' },
     controlKinds: { loading: 'boolean', end: 'boolean' },
     toggledSlots: {
       loading: '<p className="text-body-medium text-on-surface-variant">Loading more dishes…</p>',

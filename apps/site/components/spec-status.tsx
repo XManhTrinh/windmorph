@@ -10,7 +10,7 @@ import {
 import { CodeText } from './code-text';
 
 /** Each status's tag colour: built reads as done, a difference as a caution. */
-const STATUS_TONES = {
+const STATUS_COLORS = {
   built: 'success',
   differs: 'warning',
   extension: 'tertiary',
@@ -28,7 +28,7 @@ const LINK =
 
 export function SpecStatusTag({ status }: { status: SpecStatusKind }) {
   return (
-    <Tag size="sm" tone={STATUS_TONES[status]}>
+    <Tag size="sm" color={STATUS_COLORS[status]}>
       {SPEC_STATUS_LABELS[status]}
     </Tag>
   );

@@ -17,7 +17,7 @@ export function MediaGridColumns() {
   const [pressed, setPressed] = useState<number | null>(null);
   return (
     <div className="flex w-full max-w-xl flex-col gap-3">
-      <MediaGrid items={PHOTOS} columns={4} onItemPress={setPressed} aria-label="Listing photos" />
+      <MediaGrid items={PHOTOS} columns={4} onAction={setPressed} aria-label="Listing photos" />
       <p className="text-body-medium text-on-surface-variant" aria-live="polite">
         {pressed === null ? 'No photo pressed yet' : `Pressed photo ${pressed + 1}`}
       </p>

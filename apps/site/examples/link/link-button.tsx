@@ -13,13 +13,13 @@ export function LinkButton() {
     <div className="flex flex-col gap-2">
       <p className="text-body-medium text-on-surface">
         <span className="text-title-small">Alex Kim</span> is with{' '}
-        <Link variant="standalone" tone="inherit" href="#demo-sam" className="text-title-small">
+        <Link variant="standalone" color="inherit" href="#demo-sam" className="text-title-small">
           Sam Lee
         </Link>{' '}
         and{' '}
         <Link
           variant="standalone"
-          tone="inherit"
+          color="inherit"
           onPress={() => setShown((open) => !open)}
           className="text-title-small"
         >

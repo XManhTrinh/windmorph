@@ -1,3 +1,8 @@
+import {
+  materialShapeNames,
+  materialShapePaths,
+  type MaterialShapeName,
+} from '@windmorph/react/primitives';
 import type { ComponentType, ReactElement } from 'react';
 import type { ControlGroup, ControlKind, NumberRange } from '../controls-model';
 
@@ -179,3 +184,36 @@ export function adjustToggleForm(
   }
   return next;
 }
+
+/** The constant an M3 Expressive shape's outline is exported as (`Cookie12Sided` → `cookie12SidedShape`). */
+const shapeConstant = (name: MaterialShapeName) => `${name[0]!.toLowerCase()}${name.slice(1)}Shape`;
+
+const isShapeName = (value: unknown): value is MaterialShapeName =>
+  typeof value === 'string' && Object.hasOwn(materialShapePaths, value);
+
+/**
+ * A `shape` control's choices: the component's own values (`circle`, `rounded`), then the 35
+ * M3 Expressive shapes by name. The control holds the name; {@link shapeValue} turns it into the
+ * outline the component takes and {@link shapeSlot} into the snippet's constant.
+ */
+export const shapeOptions = (plain: string[]) => [...plain, ...materialShapeNames];
+
+/** The `shape` prop a control value stands for: a plain value as is, a shape's name as its outline. */
+export const shapeValue = (value: unknown) =>
+  isShapeName(value) ? materialShapePaths[value] : value;
+
+/**
+ * The snippet's `shape` prop (a `codeSlots` entry): nothing at the default, a plain value as a
+ * string, and a shape as its constant (`shape={cookie12SidedShape}`), imported by
+ * {@link SHAPE_IMPORT}.
+ */
+export const shapeSlot =
+  (defaultValue: string) =>
+  (values: Record<string, unknown>): string | null => {
+    const value = values.shape;
+    if (value == null || value === defaultValue) return null;
+    return isShapeName(value) ? shapeConstant(value) : `"${String(value)}"`;
+  };
+
+/** The snippet's import of the shape constants; `emitSnippet` keeps only the one it uses. */
+export const SHAPE_IMPORT = `import { ${materialShapeNames.map(shapeConstant).join(', ')} } from '@windmorph/react/primitives';`;

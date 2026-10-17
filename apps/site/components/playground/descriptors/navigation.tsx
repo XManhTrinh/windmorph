@@ -735,22 +735,21 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       href: '',
       variant: 'inline',
-      tone: 'primary',
+      color: 'primary',
       size: 'inherit',
       external: false,
       dragged: false,
     },
-    surfacedProps: ['href', 'variant', 'tone', 'size', 'external', 'dragged'],
+    surfacedProps: ['href', 'variant', 'color', 'size', 'external', 'dragged'],
     initialState: { href: '/legal/terms' },
     notControlled: {
-      as: 'Only changes the rendered element of a button link for a custom wrapper; nothing the preview shows.',
       preventFocusOnPress:
         'It only stops the link taking focus when pressed (menu triggers set it): nothing the preview can show.',
     },
     enumOptions: {
       variant: ['inline', 'standalone', 'plain'],
-      tone: ['primary', 'inherit'],
-      size: ['inherit', 'small', 'medium', 'large'],
+      color: ['primary', 'inherit'],
+      size: ['inherit', 'sm', 'md', 'lg'],
     },
     codeChildren: 'Terms of service',
   },

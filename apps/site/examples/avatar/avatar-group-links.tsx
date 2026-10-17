@@ -20,7 +20,7 @@ function MemberAvatar({ id, name }: { id: string; name: string }) {
  */
 export function AvatarGroupLinks() {
   return (
-    <AvatarGroup label="Organisers" size="sm">
+    <AvatarGroup aria-label="Organisers" size="sm">
       {MEMBERS.map((member) => (
         <MemberAvatar key={member.id} {...member} />
       ))}

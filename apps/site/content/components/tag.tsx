@@ -46,7 +46,7 @@ export async function TagBody(): Promise<ComponentDoc> {
             <TagStatuses />
           </ExampleViewer>
           <ExampleViewer
-            title="Variants and tones"
+            title="Variants and colours"
             code={variants}
             html={variantsHtml}
             fileName="tag-variants.tsx"
@@ -131,15 +131,17 @@ export async function TagBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              Tones use M3&apos;s roles and the theme&apos;s success and warning roles. A test keeps
-              every label at 4.5:1 in every theme, mode and contrast level.
+              Colours use M3&apos;s roles and the theme&apos;s success and warning roles. A test
+              keeps every label at 4.5:1 in every theme, mode and contrast level.
             </li>
             <li>
               The tokens below are set on a tag or an ancestor; each tag carries{' '}
               <InlineCode>data-tokens=&quot;wm-tag&quot;</InlineCode> and{' '}
-              <InlineCode>data-color=&quot;&lt;variant&gt;-&lt;tone&gt;&quot;</InlineCode>, so a
-              value set on an outer tag never leaks into a nested one. Their defaults follow the
-              tag&apos;s size, shape, variant and tone.
+              <InlineCode>data-palette=&quot;&lt;variant&gt;-&lt;color&gt;&quot;</InlineCode> (with{' '}
+              <InlineCode>data-color</InlineCode> holding the colour alone), so a value set on an
+              outer tag never leaks into a nested one. Their defaults follow the tag&apos;s size,
+              shape (<InlineCode>square-corner</InlineCode> for{' '}
+              <InlineCode>shape=&quot;square&quot;</InlineCode>), variant and colour.
             </li>
             <li>
               Its height is a minimum, so larger text makes it taller instead of spilling out.

@@ -1,3 +1,4 @@
+import { cookie9SidedShape, flowerShape, softBurstShape } from '@windmorph/react/primitives';
 import { ShapedIcon } from '@windmorph/react-pro';
 import { EditIcon, SearchIcon, SendIcon } from '../../components/icons';
 
@@ -6,22 +7,22 @@ const steps = [
     title: 'Find',
     body: 'Search shops, jobs and homes near you.',
     Icon: SearchIcon,
-    shape: 'Cookie9Sided',
-    tone: 'primary',
+    shape: cookie9SidedShape,
+    color: 'primary',
   },
   {
     title: 'Ask',
     body: 'Message sellers and businesses directly.',
     Icon: SendIcon,
-    shape: 'Flower',
-    tone: 'secondary',
+    shape: flowerShape,
+    color: 'secondary',
   },
   {
     title: 'Review',
     body: 'Share how it went, to help the next person.',
     Icon: EditIcon,
-    shape: 'SoftBurst',
-    tone: 'tertiary',
+    shape: softBurstShape,
+    color: 'tertiary',
   },
 ] as const;
 
@@ -29,9 +30,9 @@ const steps = [
 export function ShapedIconSteps() {
   return (
     <ol className="flex w-full max-w-md flex-col gap-6">
-      {steps.map(({ title, body, Icon, shape, tone }) => (
+      {steps.map(({ title, body, Icon, shape, color }) => (
         <li key={title} className="flex items-start gap-4">
-          <ShapedIcon shape={shape} tone={tone} size="lg">
+          <ShapedIcon shape={shape} color={color} size="lg">
             <Icon />
           </ShapedIcon>
           <div className="flex flex-col gap-1">

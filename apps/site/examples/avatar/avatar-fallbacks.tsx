@@ -1,7 +1,7 @@
 import { Avatar } from '@windmorph/react-pro';
 
 /**
- * Without a photo, an avatar shows initials from `name` in a stable container tone, or an
+ * Without a photo, an avatar shows initials from `name` in a stable container colour, or an
  * icon when there is no name (a person by default, or your own with `icon`). Sizes run from
  * 24px to 96px.
  */

@@ -582,15 +582,19 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
   alert: {
     covers: [
       {
-        name: 'Tone: error, info, success, warning, neutral',
+        name: 'Severity: info (default), error, success, warning, neutral',
         kind: 'variant',
-        examples: ['alert/alert-tones', 'alert/alert-form-error'],
+        examples: ['alert/alert-severities', 'alert/alert-form-error'],
       },
-      { name: 'Variant: tonal and outlined', kind: 'variant', examples: ['alert/alert-tones'] },
+      {
+        name: 'Variant: tonal and outlined',
+        kind: 'variant',
+        examples: ['alert/alert-severities'],
+      },
       {
         name: 'With a title',
         kind: 'configuration',
-        examples: ['alert/alert-tones', 'alert/alert-dismissible'],
+        examples: ['alert/alert-severities', 'alert/alert-dismissible'],
       },
       { name: 'With actions', kind: 'configuration', examples: ['alert/alert-form-error'] },
       { name: 'Dismissible', kind: 'configuration', examples: ['alert/alert-dismissible'] },
@@ -644,7 +648,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['skeleton/skeleton-animations'],
       },
       {
-        name: 'Tone: highest and high',
+        name: 'Colour: surface-container-highest and surface-container-high',
         kind: 'configuration',
         examples: ['skeleton/skeleton-variants'],
       },
@@ -677,7 +681,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         ],
       },
       {
-        name: 'Tone and an M3 Expressive shape',
+        name: 'Colour and an M3 Expressive shape (a shape constant)',
         kind: 'configuration',
         examples: ['empty-state/empty-state-search', 'empty-state/empty-state-retry'],
       },

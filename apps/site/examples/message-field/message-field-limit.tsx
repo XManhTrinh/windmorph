@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 /**
  * A note with a limit: the counter shows from 90% of `maxLength` (or always, with
- * `showCounter`), turns to the error colour past it, and Send waits. Here Ctrl or ⌘ + Enter
+ * `counter`), turns to the error colour past it, and Send waits. Here Ctrl or ⌘ + Enter
  * sends (`submitOn="mod-enter"`), so Enter starts a new line, and a failed send shows the
  * error under the field.
  */
@@ -15,10 +15,10 @@ export function MessageFieldLimit() {
     <div className="flex w-full max-w-md flex-col gap-6">
       <MessageField
         label="Note to the seller"
-        description="Ctrl or ⌘ + Enter sends."
+        supportingText="Ctrl or ⌘ + Enter sends."
         defaultValue="Could you hold the bánh mì order until 6pm? I'll pick it up on the way home."
         maxLength={120}
-        showCounter
+        counter
         submitOn="mod-enter"
         minRows={2}
         onSubmit={() => setFailed(true)}

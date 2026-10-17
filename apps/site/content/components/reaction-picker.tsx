@@ -116,7 +116,7 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>variant</InlineCode>: <InlineCode>text</InlineCode> (transparent, the
               default) or <InlineCode>tonal</InlineCode> (on a pill, as in a post&apos;s action
-              row). <InlineCode>{'showIdleIcon={false}'}</InlineCode> makes the button a word
+              row). <InlineCode>{'idleIcon={false}'}</InlineCode> makes the button a word
               (&quot;Like&quot;) until there&apos;s a reaction, as under a comment. Pair it with a
               Reaction summary to show the reactions so far.
             </li>

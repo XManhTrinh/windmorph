@@ -28,7 +28,11 @@ export const imageCrop: ComponentAccessibility = {
       action: 'Change the zoom, as on any {@link Slider}.',
       where: 'On the zoom slider',
     },
-    { keys: ['Escape'], action: 'Closes the dialog, except while `busy`.', where: 'In the dialog' },
+    {
+      keys: ['Escape'],
+      action: 'Closes the dialog, except while `pending`.',
+      where: 'In the dialog',
+    },
   ],
   keyboardNotes: ['The arrow keys move the photo the way they point in every layout direction.'],
   screenReader: {
@@ -40,7 +44,7 @@ export const imageCrop: ComponentAccessibility = {
       'The photo itself is decorative (`alt=""`); the frame and the circle guide are hidden from assistive tech.',
       "A photo that can't be opened (HEIC in some browsers, or a file that isn't an image) shows `labels.error` in an `alert` region that goes into the page before the message, so it is announced, and Save stays disabled.",
       'The zoom buttons show their names as tooltips through the icon button, without reading them twice.',
-      "While `busy`, a progress bar named by `labels.busy` shows, Cancel and Save are disabled, and the dialog can't be dismissed.",
+      "While `pending`, a progress bar named by `labels.pending` shows, Cancel and Save are disabled, and the dialog can't be dismissed.",
     ],
   },
   focus: [
@@ -60,7 +64,7 @@ export const imageCrop: ComponentAccessibility = {
   ],
   consumer: [
     'Pass `labels` from your translations, including `instructions`, the only place the keyboard controls are explained.',
-    'Keep the dialog open while you upload (`busy`, with `progress` when you know it), and close it yourself when the upload ends.',
+    'Keep the dialog open while you upload (`pending`, with `progress` when you know it), and close it yourself when the upload ends.',
     'Offer a file type the browser can show (JPEG or PNG): pick files with `accept` on a {@link FileTrigger}, and expect the error for others.',
     'In forced-colours mode the frame edge and the circle guide use the system text colour and the photo around the frame stays dimmed but visible; keep `classNames` overrides from removing them.',
     'Give a custom `zoomInIcon` or `zoomOutIcon` no name of its own: the button is named by `labels`.',

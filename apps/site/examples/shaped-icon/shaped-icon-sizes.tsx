@@ -1,3 +1,4 @@
+import { cookie12SidedShape } from '@windmorph/react/primitives';
 import { ShapedIcon } from '@windmorph/react-pro';
 import { StarIcon } from '../../components/icons';
 
@@ -5,10 +6,10 @@ import { StarIcon } from '../../components/icons';
 export function ShapedIconSizes() {
   return (
     <div className="flex flex-col gap-4">
-      {(['circle', 'Cookie12Sided'] as const).map((shape) => (
-        <div key={shape} className="flex items-end gap-4">
+      {(['circle', cookie12SidedShape] as const).map((shape) => (
+        <div key={typeof shape === 'string' ? shape : shape.name} className="flex items-end gap-4">
           {(['sm', 'md', 'lg', 'xl'] as const).map((size) => (
-            <ShapedIcon key={size} shape={shape} size={size} tone="primary">
+            <ShapedIcon key={size} shape={shape} size={size} color="primary">
               <StarIcon />
             </ShapedIcon>
           ))}

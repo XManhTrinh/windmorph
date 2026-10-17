@@ -158,11 +158,11 @@ export function switchRecords(
 
 /** Booleans that switch a slot or a decoration on and off, by name: Content. */
 const CONTENT_NAME =
-  /(?:Icon|Icons)$|^(?:icons?|label|title|subtitle|placeholder|description|supportingText|errorMessage|prefix|suffix|badge|bubble|name|initials|actionLabel|menu|leading|trailing|actions|header|bottom|toolbar|tools|attachments|send|fab|src|banner|emptyAction|mentions|below|total|maxIcons|max|length|lines|country|locale|priorityCountries|items|tooltip)$/;
+  /(?:Icon|Icons)$|^(?:icons?|label|title|subtitle|placeholder|description|supportingText|errorMessage|prefix|suffix|badge|bubble|name|initials|actionLabel|menu|leading|trailing|actions|header|bottom|toolbar|tools|attachments|send|fab|src|banner|emptyAction|mentions|below|total|max|length|lines|country|locale|priorityCountries|items|tooltip)$/;
 
 /** Props that only make sense for testing or wiring, or that only name things for assistive tech. */
 const ADVANCED_NAME =
-  /^(?:dragged|appear|autoFocus|focusOnMount|announce|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
+  /^(?:dragged|appear|autoFocus|announce|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
 
 /** Booleans and numbers that change only how it looks: Appearance. */
 const APPEARANCE_NAME =

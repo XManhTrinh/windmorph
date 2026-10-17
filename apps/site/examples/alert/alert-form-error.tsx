@@ -8,7 +8,7 @@ import { Alert } from '@windmorph/react-pro';
 export function AlertFormError() {
   return (
     <div className="flex w-full max-w-md flex-col gap-3">
-      <Alert actions={<Button variant="text">Reset password</Button>}>
+      <Alert severity="error" actions={<Button variant="text">Reset password</Button>}>
         That email and password don&apos;t match. Try again or reset your password.
       </Alert>
     </div>

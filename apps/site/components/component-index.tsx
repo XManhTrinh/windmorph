@@ -115,7 +115,7 @@ export function ComponentIndex() {
         <ComponentGallery groupHeadingTag="h2" filter={filter} />
       ) : (
         <EmptyState
-          tone="tertiary"
+          color="tertiary"
           icon={<SearchOffIcon />}
           title="No components match"
           description="Try another word, or show all components."

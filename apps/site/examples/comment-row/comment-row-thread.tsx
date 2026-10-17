@@ -23,7 +23,7 @@ const COMMENTS = [
 
 /**
  * A thread: no gaps between comments, as each one's 48px actions row spaces them. "Like" is a
- * word until there's a reaction (`showIdleIcon={false}`); the reactions so far sit at the end.
+ * word until there's a reaction (`idleIcon={false}`); the reactions so far sit at the end.
  */
 export function CommentRowThread() {
   const [liked, setLiked] = useState<Record<string, string | null>>({});
@@ -49,7 +49,7 @@ export function CommentRowThread() {
                 </time>
                 <ReactionPicker
                   size="sm"
-                  showIdleIcon={false}
+                  idleIcon={false}
                   options={REACTIONS}
                   value={mine}
                   onChange={(next) => setLiked((current) => ({ ...current, [comment.id]: next }))}

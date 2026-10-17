@@ -7,7 +7,7 @@ export function PinInputPin() {
       label="Enter your PIN"
       length={4}
       corner="full"
-      size="large"
+      size="lg"
       mask
       otp={false}
       supportingText="4 digits"

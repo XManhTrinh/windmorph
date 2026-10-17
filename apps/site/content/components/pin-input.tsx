@@ -135,7 +135,7 @@ export async function PinInputBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>density</InlineCode> (or the theme&apos;s, through a provider or{' '}
               <InlineCode>ThemeScope</InlineCode>) takes 4px a step off the boxes&apos; height: 56px
-              at 0 to 44px at -3 at the medium size, as the core&apos;s fields.
+              at 0 to 44px at -3 at the <InlineCode>md</InlineCode> size, as the core&apos;s fields.
             </li>
             <li>
               Box sizes are minimums (at least 1.25em each way), so text at 200% makes the boxes

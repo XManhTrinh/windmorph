@@ -30,7 +30,7 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['message-field/message-field-docked'],
       },
       {
-        name: 'Character limit, label, description and error',
+        name: 'Character limit, label, supporting text and error',
         kind: 'configuration',
         examples: ['message-field/message-field-limit'],
       },
@@ -147,7 +147,7 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['image-crop/image-crop-inline'],
       },
       {
-        name: 'Saving with progress (`busy`, `progress`)',
+        name: 'Saving with progress (`pending`, `progress`)',
         kind: 'configuration',
         examples: ['image-crop/image-crop-avatar'],
       },
@@ -199,7 +199,7 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
   'phone-field': {
     covers: [
       {
-        name: 'Variants: outlined and filled',
+        name: 'Variants: filled (default) and outlined',
         kind: 'variant',
         examples: ['phone-field/phone-field-variants'],
       },

@@ -45,16 +45,16 @@ export const messageField: ComponentAccessibility = {
     },
   ],
   keyboardNotes: [
-    'Nothing is sent while the text is blank (unless `canSend`), over `maxLength`, or already sending.',
+    'Nothing is sent while the text is blank (unless `sendable`), over `maxLength`, or already sending.',
     'The tools are mirrored in right-to-left text, and so are the slots and the counter. Arrow keys in the toolbars follow the laid-out direction, including a `dir="rtl"` region of a left-to-right app.',
   ],
   screenReader: {
     role: 'The text is a `textarea`. The tools are a `toolbar` of buttons; Send, the banner close and the slot buttons are icon buttons. `MessageFieldTrigger` is a `button`, or a `link` with `href`.',
     name: 'The text is named by the visible `label`, `aria-label` or `aria-labelledby`; the types require one, so the placeholder is never the only name. The tools toolbar is named `labels.tools` ("Tools"), Send `labels.send` ("Send", also its tooltip) and the banner close `labels.closeBanner` ("Close"). `MessageFieldTrigger` is named by its prompt, or its `aria-label`.',
     states:
-      'The text has `aria-invalid` (also while over `maxLength`) and `aria-required`, and `aria-describedby` links `description` and `errorMessage`. Send is disabled while there is nothing to send. While sending it stays focusable with `aria-disabled`, and its loading indicator is a `progressbar` named `labels.sending` ("Sending").',
+      'The text has `aria-invalid` (also while over `maxLength`) and `aria-required`, and `aria-describedby` links `supportingText` and `errorMessage`. Send is disabled while there is nothing to send. While sending it stays focusable with `aria-disabled`, and its loading indicator is a `progressbar` named `labels.sending` ("Sending").',
     notes: [
-      'The error is an `alert` region that goes into the page before its message, so screen readers announce the message when it arrives. While it shows, the description is visually hidden but still read.',
+      'The error is an `alert` region that goes into the page before its message, so screen readers announce the message when it arrives. While it shows, the supporting text is visually hidden but still read.',
       'A polite live region announces the limit once per change: `labels.nearLimit` from `counterThreshold`, then `labels.atLimit` and `labels.overLimit`. The visible counter is hidden from assistive tech.',
       "`MessageFieldTrigger`'s avatar, tools and trailing icon are decorative (`aria-hidden`).",
     ],
@@ -76,7 +76,7 @@ export const messageField: ComponentAccessibility = {
   consumer: [
     'Name the field (`label`, `aria-label` or `aria-labelledby`) for what is being written ("Write a comment"), not only with a placeholder.',
     'Give every tool an `aria-label`, and translate every built-in word through `labels`, including the limit announcements.',
-    'Explain a failed send in `errorMessage` with `invalid`, and keep `submitting` on while a send is in flight.',
+    'Explain a failed send in `errorMessage` with `invalid`, and keep `pending` on while a send is in flight.',
     "In forced-colours mode the field's border is `CanvasText`, `Highlight` while focused and `GrayText` while disabled; keep `classNames` overrides from removing it.",
   ],
 };

@@ -48,7 +48,7 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             <SkeletonAnimations />
           </ExampleViewer>
           <ExampleViewer
-            title="Shapes and tones"
+            title="Shapes and colours"
             code={skeletonVariants}
             html={skeletonVariantsHtml}
             fileName="skeleton-variants.tsx"
@@ -95,8 +95,8 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             <li>
               The fill is <InlineCode>surface-container-highest</InlineCode> (or{' '}
               <InlineCode>surface-container-high</InlineCode> with{' '}
-              <InlineCode>tone=&quot;high&quot;</InlineCode>), so it follows every theme, mode and
-              contrast level.
+              <InlineCode>color=&quot;surface-container-high&quot;</InlineCode>), so it follows
+              every theme, mode and contrast level.
             </li>
             <li>
               Corners come from the shape scale (<InlineCode>corner</InlineCode>); text lines take
@@ -110,10 +110,10 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             <li>
               Set the tokens below on a skeleton or any ancestor. Each skeleton carries{' '}
               <InlineCode>data-tokens=&quot;wm-skeleton&quot;</InlineCode>, with{' '}
-              <InlineCode>data-tone</InlineCode> and <InlineCode>data-corner</InlineCode> picking
-              the defaults, so a token set on a parent overrides every tone and corner.{' '}
-              <InlineCode>skeletonStyles</InlineCode> no longer has <InlineCode>tone</InlineCode> or{' '}
-              <InlineCode>corner</InlineCode> variants: the tokens hold them.
+              <InlineCode>data-color</InlineCode> and <InlineCode>data-corner</InlineCode> picking
+              the defaults, so a token set on a parent overrides every colour and corner.{' '}
+              <InlineCode>skeletonStyles</InlineCode> no longer has <InlineCode>color</InlineCode>{' '}
+              or <InlineCode>corner</InlineCode> variants: the tokens hold them.
             </li>
           </ul>
           <TokenTable set={skeletonTokenSet} caption="Skeleton tokens" />

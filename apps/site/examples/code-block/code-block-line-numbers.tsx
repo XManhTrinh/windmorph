@@ -7,12 +7,6 @@ import { SAMPLE_HTML, SAMPLE_SOURCE } from './sample-code';
  */
 export function CodeBlockLineNumbers() {
   return (
-    <CodeBlock
-      code={SAMPLE_SOURCE}
-      html={SAMPLE_HTML}
-      lang="ts"
-      title="src/greet.ts"
-      showLineNumbers
-    />
+    <CodeBlock code={SAMPLE_SOURCE} html={SAMPLE_HTML} lang="ts" title="src/greet.ts" lineNumbers />
   );
 }

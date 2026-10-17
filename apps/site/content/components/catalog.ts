@@ -944,7 +944,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      "An icon in a circle or an M3 Expressive shape, in a tone's container colours: emphasis for steps, features and empty states. Not an M3 component (@windmorph/react-pro).",
+      "An icon in a circle or an M3 Expressive shape, in a colour role's container colours: emphasis for steps, features and empty states. Not an M3 component (@windmorph/react-pro).",
     propsComponents: ['ShapedIcon'],
     playground: 'full',
     pro: true,
@@ -1067,7 +1067,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'A small, static label for a status or category: Sold, Open now, Featured. Tonal, filled or outlined, in M3 and success and warning tones. Not an M3 component (@windmorph/react-pro).',
+      'A small, static label for a status or category: Sold, Open now, Featured. Tonal, filled or outlined, in M3, success and warning colours. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['Tag', 'TagGroup'],
     playground: 'full',
     pro: true,

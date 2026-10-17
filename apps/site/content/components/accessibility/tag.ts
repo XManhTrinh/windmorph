@@ -26,10 +26,10 @@ export const tag: ComponentAccessibility = {
     'A small (`sm`) tag that takes focus for its tooltip gets a 24px touch target around its label (WCAG 2.5.8), so a long press opens the tooltip; its layout size stays the same.',
   ],
   motion: [
-    'Colours ease on the default effects spring when the variant or tone changes, and change at once under reduced motion.',
+    'Colours ease on the default effects spring when the variant or colour changes, and change at once under reduced motion.',
   ],
   consumer: [
-    'Let the label carry the meaning: the dot and the tone colour are not read, so "Open now" must say it in words.',
+    'Let the label carry the meaning: the dot and the colour are not read, so "Open now" must say it in words.',
     'Pass `fullLabel` for an abbreviation; it replaces the short label for screen readers and shows in a tooltip on hover, keyboard focus or a long press. A label cut by `maxWidth` shows its full text the same way.',
     'Give `TagGroup` an `aria-label` that says what the tags describe ("Job details").',
     'Use {@link AssistChip} or {@link FilterChip} when it should do something when pressed, and {@link Badge} for a count.',
