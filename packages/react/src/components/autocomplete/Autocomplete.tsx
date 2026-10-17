@@ -287,6 +287,8 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     isDisabled: disabled,
     isReadOnly: readOnly,
     allowsCustomValue: allowCustomValue,
+    // The arrow keys wrap at the ends of the list, as in menus and lists.
+    shouldFocusWrap: true,
     placeholder,
     inputRef,
     buttonRef,

@@ -25,7 +25,7 @@ export const select: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Up', 'Arrow Down'],
-      action: 'Moves between the options.',
+      action: 'Moves between the options, wrapping at the ends.',
       where: 'In the menu',
     },
     {

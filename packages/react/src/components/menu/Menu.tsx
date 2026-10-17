@@ -692,7 +692,9 @@ function MenuList({
   // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
   const keyboardDelegate = useTypeaheadDelegate(state, ref);
   const { menuProps } = useMenu(
-    { ...(props as AriaMenuOptions<object>), keyboardDelegate },
+    // The arrow keys wrap from the last item to the first and back, as M3's menus and the rest
+    // of the library's collections do (APG makes it optional).
+    { ...(props as AriaMenuOptions<object>), keyboardDelegate, shouldFocusWrap: true },
     state,
     ref,
   );

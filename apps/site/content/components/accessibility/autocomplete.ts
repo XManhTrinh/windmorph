@@ -10,7 +10,7 @@ export const autocomplete: ComponentAccessibility = {
     {
       keys: ['Arrow Down', 'Arrow Up'],
       action:
-        'Opens the menu on the first or last match, then moves through the matches while focus stays in the input.',
+        'Opens the menu on the first or last match, then moves through the matches, wrapping at the ends, while focus stays in the input.',
     },
     {
       keys: ['Enter'],

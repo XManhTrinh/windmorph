@@ -209,6 +209,17 @@ describe('Menu', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
   });
 
+  it('wraps the arrow keys from the first item to the last and back', async () => {
+    render(<EditMenu />);
+    screen.getByRole('button', { name: 'Edit' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+    await userEvent.keyboard('{ArrowUp}');
+    expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+  });
+
   it('opens from the keyboard and navigates with arrows and typeahead', async () => {
     const onAction = vi.fn();
     render(<EditMenu onAction={onAction} />);

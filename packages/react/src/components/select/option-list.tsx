@@ -145,7 +145,12 @@ export function OptionList<T>({
   // M3: a letter moves focus to the next option starting with it.
   const typeaheadDelegate = useTypeaheadDelegate(state, listBoxRef);
   const { listBoxProps: props } = useListBox(
-    { ...listBoxProps, keyboardDelegate: listBoxProps.keyboardDelegate ?? typeaheadDelegate },
+    {
+      ...listBoxProps,
+      keyboardDelegate: listBoxProps.keyboardDelegate ?? typeaheadDelegate,
+      // The arrow keys wrap at the ends, as in menus and lists.
+      shouldFocusWrap: true,
+    },
     state,
     listBoxRef,
   );

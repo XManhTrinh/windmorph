@@ -81,6 +81,18 @@ describe('Select', () => {
     expect(sortField()).toHaveTextContent('Price, low to high');
   });
 
+  it('wraps the arrow keys at the ends of the list', async () => {
+    render(<Sort />);
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowDown}');
+    const option = (name: string | RegExp) => screen.getByRole('option', { name });
+    await waitFor(() => expect(option('Newest first')).toHaveFocus());
+    await userEvent.keyboard('{ArrowUp}');
+    expect(option('Price, high to low')).toHaveFocus();
+    await userEvent.keyboard('{ArrowDown}');
+    expect(option('Newest first')).toHaveFocus();
+  });
+
   it('works with the keyboard: open, move, choose, and typeahead', async () => {
     render(<Sort />);
     await userEvent.tab();

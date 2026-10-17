@@ -33,3 +33,5 @@ Props that show or hide an optional part are named after the part: `valueLabel` 
 `ButtonGroup`, `ChipSet`, `List` and `Menu` take `deselectable` (default `true`) instead of `disallowEmptySelection`: pass `deselectable={false}` to keep at least one item selected.
 
 React Aria's own prop names no longer leak through: `Autocomplete` takes `allowCustomValue` (was `allowsCustomValue`), `Select` takes `closeOnSelect` (was `shouldCloseOnSelect`), `Switch` takes `required` and `invalid`, and the deprecated `selectedKey` / `defaultSelectedKey` / `onSelectionChange` (on `Select` and `Autocomplete`, which take `value` / `defaultValue` / `onChange`), `validationState`, `excludeFromTabOrder`, `allowsEmptyCollection`, `shouldFocusWrap` and `escapeKeyBehavior` are gone.
+
+The arrow keys wrap at the ends of a `Menu` and of the `Select` and `Autocomplete` option lists, as they do in lists, tabs and toolbars.
