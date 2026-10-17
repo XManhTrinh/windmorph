@@ -450,8 +450,8 @@ importers:
         version: 5.0.3(@types/node@26.6.4)(jsdom@30.1.2)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(tsx@4.23.15))
     optionalDependencies:
       '@windmorph/react-pro':
-        specifier: github:XManhTrinh/windmorph-pro#3a44b414a81efc30ad468186ba57e333613b54f7
-        version: git+https://github.com/XManhTrinh/windmorph-pro.git#3a44b414a81efc30ad468186ba57e333613b54f7(7f610d8404607e543440772c87260bb4)
+        specifier: github:XManhTrinh/windmorph-pro#ebceef0a7d04679b8f9370ae6f94b49dd08efa6a
+        version: git+https://github.com/XManhTrinh/windmorph-pro.git#ebceef0a7d04679b8f9370ae6f94b49dd08efa6a(7f610d8404607e543440772c87260bb4)
 
   packages/react:
     dependencies:
@@ -2688,8 +2688,8 @@ packages:
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#3a44b414a81efc30ad468186ba57e333613b54f7':
-    resolution: {commit: 3a44b414a81efc30ad468186ba57e333613b54f7, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#ebceef0a7d04679b8f9370ae6f94b49dd08efa6a':
+    resolution: {commit: ebceef0a7d04679b8f9370ae6f94b49dd08efa6a, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
     version: 0.0.0
     peerDependencies:
       '@tiptap/core': ^3.31.4
@@ -6655,7 +6655,7 @@ snapshots:
 
   '@webcontainer/env@1.1.1': {}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#3a44b414a81efc30ad468186ba57e333613b54f7(7f610d8404607e543440772c87260bb4)':
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#ebceef0a7d04679b8f9370ae6f94b49dd08efa6a(7f610d8404607e543440772c87260bb4)':
     dependencies:
       '@windmorph/react': link:packages/react
       libphonenumber-js: 1.13.14
