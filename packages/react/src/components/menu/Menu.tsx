@@ -222,7 +222,14 @@ export interface MenuClassNames {
 
 export interface MenuProps extends Omit<
   AriaMenuProps<object>,
-  'children' | 'items' | 'onClose' | 'autoFocus' | 'disallowEmptySelection'
+  | 'children'
+  | 'items'
+  | 'onClose'
+  | 'autoFocus'
+  | 'disallowEmptySelection'
+  // The arrow keys always wrap and Escape always closes the menu, as M3's menus do.
+  | 'shouldFocusWrap'
+  | 'escapeKeyBehavior'
 > {
   /**
    * With `selectionMode`: the last selected item can be deselected, leaving none. `false` keeps

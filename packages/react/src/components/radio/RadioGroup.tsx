@@ -52,7 +52,15 @@ export interface RadioGroupClassNames {
 }
 
 type RenamedGroupProps =
-  'isDisabled' | 'isReadOnly' | 'isRequired' | 'isInvalid' | 'description' | 'label' | 'onChange';
+  | 'isDisabled'
+  | 'isReadOnly'
+  | 'isRequired'
+  | 'isInvalid'
+  | 'description'
+  | 'label'
+  | 'onChange'
+  // The deprecated `validationState` is left out: `invalid` replaces it.
+  | 'validationState';
 
 interface RadioGroupOwnProps extends Omit<AriaRadioGroupProps, RenamedGroupProps> {
   /** Visible group label. */

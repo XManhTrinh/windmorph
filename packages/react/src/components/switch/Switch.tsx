@@ -47,7 +47,18 @@ export interface SwitchClassNames extends SelectionControlClassNames {
 }
 
 type RenamedAriaProps =
-  'isSelected' | 'defaultSelected' | 'onChange' | 'isDisabled' | 'isReadOnly' | 'children';
+  | 'isSelected'
+  | 'defaultSelected'
+  | 'onChange'
+  | 'isDisabled'
+  | 'isReadOnly'
+  | 'isRequired'
+  | 'isInvalid'
+  | 'children'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
 interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
   /** Controlled on state (`checked`, as an HTML checkbox). */
@@ -60,6 +71,13 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
   disabled?: boolean;
   /** The switch can be focused but not changed. @default false */
   readOnly?: boolean;
+  /**
+   * The switch must be on (`aria-required`; with `validationBehavior="native"`, the form can't
+   * submit until it is). @default false
+   */
+  required?: boolean;
+  /** Marks the switch invalid for assistive tech (`aria-invalid`). @default false */
+  invalid?: boolean;
   /** Shows the default check / close icons in the thumb. @default false */
   icons?: boolean;
   /**
@@ -114,6 +132,8 @@ export function Switch({
   onCheckedChange,
   disabled = false,
   readOnly,
+  required,
+  invalid,
   icons = false,
   selectedIcon,
   unselectedIcon,
@@ -136,6 +156,8 @@ export function Switch({
     onChange: onCheckedChange,
     isDisabled: disabled,
     isReadOnly: readOnly,
+    isRequired: required,
+    isInvalid: invalid,
   };
   const toggleState = useToggleState(options);
   // Dragging the thumb (M3: "Touch: Tap, Drag"). The thumb follows the pointer between its

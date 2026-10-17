@@ -99,7 +99,12 @@ type RenamedProps =
   | 'isReadOnly'
   | 'label'
   | 'description'
-  | 'validationState';
+  | 'validationState'
+  | 'allowsCustomValue'
+  // React Stately's deprecated single-selection API; `value` / `defaultValue` / `onChange` replace it.
+  | 'selectedKey'
+  | 'defaultSelectedKey'
+  | 'onSelectionChange';
 
 export type AutocompleteProps<T extends object, M extends SelectionMode = 'single'> = Omit<
   ComboBoxProps<T, M>,
@@ -108,6 +113,11 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   Pick<AriaComboBoxOptions<T, M>, 'name' | 'form'> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
+    /**
+     * Free text: whatever is typed stays as the field's text when no option matches, instead
+     * of returning to the chosen option's. @default false
+     */
+    allowCustomValue?: boolean;
     /**
      * Web density, `0` to `-3`: each step takes 4px off the field (56px at 0, 44px at -3) and
      * off its menu's options (44px at 0, 32px at -3). Left out, it takes the density of the
@@ -201,7 +211,7 @@ function withFocusInPlace(input: HTMLInputElement | null, run: () => void) {
  * `PrimaryEditable` anchor): type in the field and the menu below shows the matching
  * options. Single or multiple selection (chosen options as M3 input chips in the field),
  * accent-insensitive filtering by default, options loaded from a server through `items`,
- * `onInputChange` and `loading`, and free text with `allowsCustomValue` (React Aria
+ * `onInputChange` and `loading`, and free text with `allowCustomValue` (React Aria
  * `useComboBox`).
  *
  * @example
@@ -235,6 +245,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     inputRef: inputRefProp,
     errorMessage,
     filter,
+    allowCustomValue,
     ...otherProps
   } = props;
   // Items given as elements (not `items` with a render function) must come from a client.
@@ -275,6 +286,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     isRequired: required,
     isDisabled: disabled,
     isReadOnly: readOnly,
+    allowsCustomValue: allowCustomValue,
     placeholder,
     inputRef,
     buttonRef,

@@ -105,7 +105,7 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
             &quot;Zürich&quot;), anywhere in the option&apos;s text; <InlineCode>filter</InlineCode>{' '}
             replaces it. For server results, control <InlineCode>items</InlineCode> and{' '}
             <InlineCode>inputValue</InlineCode> and set <InlineCode>loading</InlineCode> while they
-            load. <InlineCode>allowsCustomValue</InlineCode> keeps text that matches no option.
+            load. <InlineCode>allowCustomValue</InlineCode> keeps text that matches no option.
             Options are <InlineCode>AutocompleteItem</InlineCode>s (and{' '}
             <InlineCode>AutocompleteSection</InlineCode>s), created in a client component.
           </p>
@@ -147,7 +147,7 @@ export async function AutocompleteBody(): Promise<ComponentDoc> {
               <InlineCode>placeholder</InlineCode>.
             </li>
             <li>
-              <InlineCode>allowsCustomValue</InlineCode> keeps text that matches no option;{' '}
+              <InlineCode>allowCustomValue</InlineCode> keeps text that matches no option;{' '}
               <InlineCode>menuTrigger</InlineCode> (<InlineCode>&quot;input&quot;</InlineCode> by
               default, <InlineCode>&quot;focus&quot;</InlineCode> or{' '}
               <InlineCode>&quot;manual&quot;</InlineCode>) sets when the menu opens. Pressing the

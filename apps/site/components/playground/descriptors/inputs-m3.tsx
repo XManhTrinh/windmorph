@@ -263,6 +263,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       variant: 'filled',
       density: 0,
       selectionMode: 'single',
+      closeOnSelect: true,
       presentation: 'menu',
       searchable: false,
       loading: false,
@@ -282,6 +283,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'placeholder',
       'selectionMode',
       'maxSelections',
+      'closeOnSelect',
       'presentation',
       'searchable',
       'defaultSearchValue',
@@ -295,6 +297,13 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'errorIcon',
     ],
     initialState: { variant: 'filled', label: 'Sort by' },
+    // `closeOnSelect` defaults by selection mode: on for a single choice, off for several. A mode
+    // change resets it to the new default, and the snippet writes it only when it differs.
+    codeDefaults: (values) => ({ closeOnSelect: values.selectionMode !== 'multiple' }),
+    adjust: (values, changed) =>
+      changed === 'selectionMode'
+        ? { ...values, closeOnSelect: values.selectionMode !== 'multiple' }
+        : values,
     enumOptions: {
       ...DENSITY_OPTIONS,
       selectionMode: ['single', 'multiple'],
@@ -344,7 +353,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       variant: 'filled',
       density: 0,
       selectionMode: 'single',
-      allowsCustomValue: false,
+      allowCustomValue: false,
       clearable: false,
       loading: false,
       invalid: false,
@@ -362,7 +371,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'placeholder',
       'selectionMode',
       'maxSelections',
-      'allowsCustomValue',
+      'allowCustomValue',
       'clearable',
       'loading',
       'invalid',
@@ -497,6 +506,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       checked: false,
       disabled: false,
       readOnly: false,
+      required: false,
+      invalid: false,
       icons: false,
       selectedIcon: false,
       unselectedIcon: false,
@@ -506,6 +517,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'checked',
       'disabled',
       'readOnly',
+      'required',
+      'invalid',
       'icons',
       'selectedIcon',
       'unselectedIcon',

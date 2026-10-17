@@ -102,7 +102,13 @@ type RenamedProps =
   | 'isOpen'
   | 'label'
   | 'description'
-  | 'validationState';
+  | 'validationState'
+  // React Stately's deprecated single-selection API; `value` / `defaultValue` / `onChange` replace it.
+  | 'selectedKey'
+  | 'defaultSelectedKey'
+  | 'onSelectionChange'
+  | 'shouldCloseOnSelect'
+  | 'allowsEmptyCollection';
 
 export type SelectProps<T extends object, M extends SelectionMode = 'single'> = Omit<
   StatelySelectProps<T, M>,
@@ -154,6 +160,11 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     errorIcon?: ReactNode | false;
     /** Whether the menu is open (controlled); with `defaultOpen` and `onOpenChange`. */
     open?: boolean;
+    /**
+     * Whether choosing an option closes the menu.
+     * @default true for a single choice, false with `selectionMode="multiple"`
+     */
+    closeOnSelect?: boolean;
     /**
      * With `selectionMode="multiple"`, the most options that can be chosen; the rest show as
      * disabled until one is removed.
@@ -278,6 +289,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     autoComplete,
     form,
     errorMessage,
+    closeOnSelect,
     ...otherProps
   } = props;
   // Items given as elements (not `items` with a render function) must come from a client.
@@ -313,6 +325,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     isInvalid: invalid,
     isRequired: required,
     isDisabled: disabled,
+    ...(closeOnSelect !== undefined && { shouldCloseOnSelect: closeOnSelect }),
     ...FOCUSABLE_DISABLED_OPTIONS,
     ...(readOnly
       ? { isOpen: false, keyboardDelegate: READ_ONLY_DELEGATE }

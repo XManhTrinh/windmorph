@@ -38,7 +38,11 @@ type RenamedAriaProps =
   | 'isReadOnly'
   | 'isRequired'
   | 'isInvalid'
-  | 'children';
+  | 'children'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
 interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
   /** Controlled checked state. */

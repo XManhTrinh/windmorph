@@ -92,7 +92,11 @@ type RenamedAriaProps =
   | 'inputElementType'
   | 'value'
   | 'defaultValue'
-  | 'onChange';
+  | 'onChange'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
 interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps> {
   /** The container style: a filled surface or an outline. @default "filled" */

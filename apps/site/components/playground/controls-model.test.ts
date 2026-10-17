@@ -42,12 +42,12 @@ describe('inferControls', () => {
   it('takes the kind of a prop missing from the JSON from its default', () => {
     const controls = inferControls(
       props,
-      ['allowsCustomValue', 'maxRows', 'selectionMode'],
+      ['allowCustomValue', 'maxRows', 'selectionMode'],
       { selectionMode: ['single', 'multiple'] },
-      { allowsCustomValue: false, maxRows: 4, selectionMode: 'single' },
+      { allowCustomValue: false, maxRows: 4, selectionMode: 'single' },
     );
     expect(controls.map((control) => [control.name, control.kind])).toEqual([
-      ['allowsCustomValue', 'boolean'],
+      ['allowCustomValue', 'boolean'],
       ['maxRows', 'number'],
       ['selectionMode', 'enum'],
     ]);

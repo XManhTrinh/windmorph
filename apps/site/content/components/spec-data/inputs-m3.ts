@@ -218,7 +218,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         note: '`selectionMode="multiple"` shows the choices as `InputChip`s in the field, with `maxSelections`.',
       },
       {
-        item: '`allowsCustomValue` and `loading`',
+        item: '`allowCustomValue` and `loading`',
         note: 'Keeps text that matches no option, and shows a loading indicator in the list.',
       },
     ],
