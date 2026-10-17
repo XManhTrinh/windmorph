@@ -4,7 +4,7 @@ import { SearchIcon } from '../../components/icons';
 /**
  * `valueLabel` shows a value pill above the thumb while it is dragged or
  * keyboard-focused, and `formatOptions` formats that value (and the screen-reader
- * announcement). A `startIcon` sits inside the active track on sizes md and up.
+ * announcement). A `leadingIcon` sits inside the active track on sizes md and up.
  */
 export function SliderValueLabel() {
   return (
@@ -14,7 +14,7 @@ export function SliderValueLabel() {
         size="lg"
         defaultValue={60}
         valueLabel
-        startIcon={<SearchIcon />}
+        leadingIcon={<SearchIcon />}
       />
       <Slider
         aria-label="Brightness"

@@ -123,8 +123,8 @@ describe('Slider', () => {
       <Slider
         aria-label="Volume"
         size="md"
-        startIcon={<Icon />}
-        endIcon={<Icon />}
+        leadingIcon={<Icon />}
+        trailingIcon={<Icon />}
         defaultValue={50}
       />,
     );
@@ -135,7 +135,7 @@ describe('Slider', () => {
   });
 
   it('moves the start icon to the inactive track when the active one is too short', () => {
-    render(<Slider aria-label="Volume" size="md" startIcon={<Icon />} defaultValue={2} />);
+    render(<Slider aria-label="Volume" size="md" leadingIcon={<Icon />} defaultValue={2} />);
     const [inActive, moved] = screen.getAllByTestId('icon');
     expect(inActive!.parentElement!.parentElement).toHaveAttribute('data-tone', 'active');
     const movedBox = moved!.parentElement!;
@@ -150,7 +150,7 @@ describe('Slider', () => {
 
   it('ignores inset icons on a centred slider', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    render(<Slider aria-label="Balance" size="md" centered startIcon={<Icon />} />);
+    render(<Slider aria-label="Balance" size="md" centered leadingIcon={<Icon />} />);
     expect(screen.queryByTestId('icon')).toBe(null);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();
@@ -160,7 +160,7 @@ describe('Slider', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     for (const size of ['xs', 'sm'] as const) {
       const { unmount } = render(
-        <Slider aria-label="Volume" size={size} startIcon={<Icon />} endIcon={<Icon />} />,
+        <Slider aria-label="Volume" size={size} leadingIcon={<Icon />} trailingIcon={<Icon />} />,
       );
       expect(screen.queryByTestId('icon')).toBe(null);
       unmount();
@@ -237,7 +237,7 @@ describe('Slider classNames', () => {
         step={20}
         ticks
         defaultValue={60}
-        startIcon={<svg data-testid="start-icon" />}
+        leadingIcon={<svg data-testid="start-icon" />}
         classNames={{
           activeTrack: 'active-x',
           inactiveTrack: 'inactive-x',

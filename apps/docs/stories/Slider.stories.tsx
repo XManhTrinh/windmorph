@@ -64,16 +64,16 @@ export const Sizes: Story = {
           aria-label={`Volume ${size}`}
           size={size}
           defaultValue={40}
-          startIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeDownIcon />}
-          endIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeUpIcon />}
+          leadingIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeDownIcon />}
+          trailingIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeUpIcon />}
         />
       ))}
       <Slider
         aria-label="Volume low"
         size="md"
         defaultValue={3}
-        startIcon={<VolumeDownIcon />}
-        endIcon={<VolumeUpIcon />}
+        leadingIcon={<VolumeDownIcon />}
+        trailingIcon={<VolumeUpIcon />}
         data-testid="moved-icon"
       />
     </div>
@@ -118,7 +118,7 @@ export const Vertical: Story = {
         orientation="vertical"
         size="md"
         defaultValue={30}
-        startIcon={<VolumeDownIcon />}
+        leadingIcon={<VolumeDownIcon />}
       />
       <Slider
         aria-label="Vertical discrete"

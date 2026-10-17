@@ -45,7 +45,7 @@ export interface SliderClassNames {
   inactiveTrack?: string;
   /** The stop indicators: at the track's ends, and at every step with `ticks`. */
   stop?: string;
-  /** The inset icons (`startIcon`, `endIcon`). */
+  /** The inset icons (`leadingIcon`, `trailingIcon`). */
   icon?: string;
   /** Each thumb, the pressable area around its handle. */
   thumb?: string;
@@ -114,7 +114,7 @@ export type SliderProps = SliderCommonProps &
     onChangeEnd?: (value: number) => void;
     /**
      * Fill the track from its centre (for values around a midpoint). M3 doesn't use inset
-     * icons on centred sliders, so `startIcon` and `endIcon` are ignored. @default false
+     * icons on centred sliders, so `leadingIcon` and `trailingIcon` are ignored. @default false
      */
     centered?: boolean;
     /**
@@ -122,9 +122,9 @@ export type SliderProps = SliderCommonProps &
      * warning, on xs and sm). When the active track is too short for it, it moves to the
      * start of the inactive track.
      */
-    startIcon?: ReactNode;
+    leadingIcon?: ReactNode;
     /** An icon inside the inactive track at its end (sizes md and up; ignored on xs and sm). */
-    endIcon?: ReactNode;
+    trailingIcon?: ReactNode;
   };
 
 export interface RangeSliderLabels {
@@ -156,7 +156,7 @@ export type RangeSliderProps = SliderCommonProps &
  * Page Up / Down and Home / End adjust it (mirrored in RTL).
  *
  * @example
- * <Slider aria-label="Volume" size="md" startIcon={<VolumeIcon />} defaultValue={40} />
+ * <Slider aria-label="Volume" size="md" leadingIcon={<VolumeIcon />} defaultValue={40} />
  */
 export function Slider(props: SliderProps) {
   return (
@@ -210,7 +210,11 @@ function SliderRoot(props: RootProps) {
     onChangeEnd,
     ...rest
   } = props;
-  const { centered = false, startIcon: startIconProp, endIcon: endIconProp } = props as SliderProps;
+  const {
+    centered = false,
+    leadingIcon: startIconProp,
+    trailingIcon: endIconProp,
+  } = props as SliderProps;
   // M3: only M, L and XL standard sliders take inset icons ("Avoid adding inset icons to XS
   // or S"; none on centred sliders).
   const iconSize = size === 'md' || size === 'lg' || size === 'xl';

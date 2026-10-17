@@ -412,7 +412,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     extensions: [
       {
-        item: '`endIcon`',
+        item: '`trailingIcon`',
         note: "A second inset icon at the inactive track's end (from Material Components Android); the spec shows one inset icon.",
       },
       {
