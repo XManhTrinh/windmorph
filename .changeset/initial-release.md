@@ -51,3 +51,5 @@ Placements are hyphenated, like every other multi-word value: `'bottom-start'`, 
 `ButtonBase`, and every button built on it, takes `as` (`'button' | 'div'`) instead of `elementType` to pick its element.
 
 Sizes use one scale: `Fab` and `FabMenu` take `size="md"` and `size="lg"` (were `medium` and `large`), and `ListItemVideo` takes `sm` and `lg` (were `small` and `large`).
+
+`useToolbarScrollExpansion` and `useToolbarScrollExit` take `defaultExpanded` and `defaultVisible` instead of `initialExpanded` and `initialVisible`.
