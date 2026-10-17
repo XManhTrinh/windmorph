@@ -1,6 +1,6 @@
 /*
  * A polite announcement for content that isn't in a live region of its own (a snackbar
- * rendered without its host). Screen readers announce changes to a live region only once
+ * rendered without its host, a focused button turning pending). Screen readers announce changes to a live region only once
  * they've registered it, and often skip content that arrives together with the region, so
  * one region is created on first use, kept for the page's life, and written to after
  * `LIVE_REGION_DELAY`.
@@ -35,6 +35,14 @@ function liveRegion() {
   document.body.append(element);
   region = { element, readyAt: Date.now() + LIVE_REGION_DELAY };
   return region;
+}
+
+/**
+ * Creates the region ahead of a first announcement that may come later (a button that can
+ * turn pending), so that announcement isn't held back by `LIVE_REGION_DELAY`. Browser only.
+ */
+export function prepareAnnouncer(): void {
+  liveRegion();
 }
 
 /** Announces `message` politely (queued after what the screen reader is saying). */

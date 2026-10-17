@@ -56,6 +56,7 @@ export {
   type ButtonProps,
   type ButtonToggleProps,
 } from './components/button/Button';
+export { type ButtonLabels } from './components/button/button-pending';
 export {
   ButtonContext,
   ToggleGroupStateContext,

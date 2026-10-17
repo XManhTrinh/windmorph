@@ -18,6 +18,7 @@ export {
   type ButtonBaseActionProps,
   type ButtonBaseDivActionProps,
   type ButtonBaseLinkProps,
+  type ButtonBasePendingProps,
   type ButtonBaseProps,
   type ButtonBaseRenderState,
   type ButtonBaseToggleProps,
