@@ -47,7 +47,7 @@ export const timePicker: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The hour and minute are text inputs (`inputMode="numeric"`). AM / PM is a `radiogroup` of two `radio`s. The dial is a `group` of numbers, each a `button`. `TimePickerModeToggle` is an icon button.',
-    name: 'The inputs are named `strings.hour` ("Hour") and `strings.minute` ("Minute"), the AM / PM group `strings.period` ("AM or PM"), and the dial `strings.dial` ("Clock"). Each number is named by `strings.dialValue` ("7 hours of 12", "35 minutes of 60"). The toggle is named `strings.inputMode` ("Toggle input picker") in dial mode and `strings.dialMode` ("Toggle dial picker") in input mode.',
+    name: 'The inputs are named `labels.hour` ("Hour") and `labels.minute` ("Minute"), the AM / PM group `labels.period` ("AM or PM"), and the dial `labels.dial` ("Clock"). Each number is named by `labels.dialValue` ("7 hours of 12", "35 minutes of 60"). The toggle is named `labels.inputMode` ("Toggle input picker") in dial mode and `labels.dialMode` ("Toggle dial picker") in input mode.',
     states:
       'The chosen number is pressed (`aria-pressed`). AM and PM are checked or not (`aria-checked`). A typed value out of range marks its input `aria-invalid`.',
     notes: [
@@ -71,7 +71,7 @@ export const timePicker: ComponentAccessibility = {
     'The hour and minute faces still crossfade.',
   ],
   consumer: [
-    'Give `TimePickerModeToggle` the same `strings` as the picker, so the toggle and the picker use one set of words.',
+    'Give `TimePickerModeToggle` the same `labels` as the picker, so the toggle and the picker use one set of words.',
     'Offer the mode toggle wherever the dial shows, so the time can always be typed.',
     'Name the {@link PickerDialog} for what the time is for, with a visible `title` or `aria-label`.',
   ],

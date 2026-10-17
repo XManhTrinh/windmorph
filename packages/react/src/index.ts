@@ -572,7 +572,7 @@ export {
   DateRangePicker,
   type DatePickerClassNames,
   type DatePickerProps,
-  type DatePickerStrings,
+  type DatePickerLabels,
   type DateRange,
   type DateRangePickerClassNames,
   type DateRangePickerProps,
@@ -587,14 +587,14 @@ export {
   DateField,
   type DateFieldClassNames,
   type DateFieldProps,
-  type DateFieldStrings,
+  type DateFieldLabels,
 } from './components/date-picker/DateField';
-export type { DateInputStrings } from './components/date-picker/DateInput';
+export type { DateInputLabels } from './components/date-picker/DateInput';
 export {
   PickerDialog,
   type PickerDialogClassNames,
   type PickerDialogProps,
-  type PickerDialogStrings,
+  type PickerDialogLabels,
 } from './components/date-picker/PickerDialog';
 export { pickerDialogStyles } from './components/date-picker/picker-dialog-styles';
 export {
@@ -605,7 +605,7 @@ export {
   type TimePickerMode,
   type TimePickerModeToggleProps,
   type TimePickerProps,
-  type TimePickerStrings,
+  type TimePickerLabels,
 } from './components/time-picker/TimePicker';
 export {
   timePickerStyles,

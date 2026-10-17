@@ -17,3 +17,5 @@ Touch targets (`TouchTarget` and the M icon button's) are 48px in px, so they ke
 Menu items with a `description` are named by their label and supporting text instead of the label alone with the supporting text as a description, so the accessible name contains the visible label (WCAG 2.5.3); the `shortcut` and `badge` are still read as the description, once.
 
 `Tabs` takes `disabled`, `TooltipTrigger` and `RichTooltipTrigger` take `disabled` and `open`, like the rest of the library, instead of React Aria's `isDisabled` and `isOpen`; `onOpenChange` receives `open`. The `Overlay` primitive's `isExiting` is now `exiting`, and `OptionPopover`'s `isNonModal` is now `nonModal`.
+
+The date and time pickers take their words in `labels`, like every other component, instead of `strings`: `DateField`, `DatePicker`, `DateRangePicker`, `PickerDialog`, `TimePicker` and `TimePickerModeToggle`, with the types `DateFieldLabels`, `DateInputLabels`, `DatePickerLabels`, `PickerDialogLabels` and `TimePickerLabels`. Every labels type lists all its keys, and the `labels` prop takes any of them (`Partial<…Labels>`), `Badge`'s included.

@@ -188,7 +188,7 @@ describe('DatePicker', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Switch to calendar input mode' }));
     expect(screen.getByText('Select date')).toBeInTheDocument();
     expect(view()).toHaveAttribute('data-enter', 'calendar');
-    rerender(<DateRangePicker defaultMode="input" strings={{ inputTitle: 'Type the dates' }} />);
+    rerender(<DateRangePicker defaultMode="input" labels={{ inputTitle: 'Type the dates' }} />);
     expect(screen.getByText('Type the dates')).toBeInTheDocument();
   });
 

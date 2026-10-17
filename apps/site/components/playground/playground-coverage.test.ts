@@ -42,7 +42,6 @@ function isExempt(prop: PropsRecord): boolean {
     name === 'style' ||
     // Translated strings.
     name === 'labels' ||
-    name === 'strings' ||
     // Accessibility names and ids.
     name.startsWith('aria-') ||
     name === 'id' ||

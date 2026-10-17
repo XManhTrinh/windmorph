@@ -121,7 +121,7 @@ export function propAnchor(scope: string, name: string): string {
 
 /**
  * A props list's items: each prop with its type and default worked out, and the keys of an
- * object prop (`labels`, `classNames`, `strings`) nested under it with their own anchors.
+ * object prop (`labels`, `classNames`) nested under it with their own anchors.
  */
 export function propListItems(scope: string, props: readonly PropsRecord[]): PropItem[] {
   return props.map((prop) => {
@@ -145,7 +145,7 @@ export function propListItems(scope: string, props: readonly PropsRecord[]): Pro
 export function propGroupOf(name: string): PropGroupId {
   if (name === 'className' || name === 'classNames' || name === 'style') return 'styling';
   if (/^on[A-Z]/.test(name)) return 'events';
-  if (name === 'labels' || name === 'strings' || ARIA_TEXT.has(name)) return 'text';
+  if (name === 'labels' || ARIA_TEXT.has(name)) return 'text';
   return 'props';
 }
 

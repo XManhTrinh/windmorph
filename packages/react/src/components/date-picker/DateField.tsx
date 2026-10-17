@@ -31,7 +31,7 @@ import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
 import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
-import { DateInput, type DateInputStrings } from './DateInput';
+import { DateInput, type DateInputLabels } from './DateInput';
 import type { CompactDateDialogProps } from './CompactDateDialog';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
 import { datePickerStyles, dockedDatePickerStyles } from './date-picker-styles';
@@ -44,43 +44,43 @@ import {
 } from './picker-icons';
 
 /** Words of a {@link DateField}, for localisation. */
-export interface DateFieldStrings extends DateInputStrings {
+export interface DateFieldLabels extends DateInputLabels {
   /** The calendar icon button. @default "Open calendar" */
-  openCalendar?: string;
+  openCalendar: string;
   /** Name of the dropdown calendar. @default "Choose a date" */
-  calendar?: string;
+  calendar: string;
   /** The previous month button. @default "Previous month" */
-  previousMonth?: string;
+  previousMonth: string;
   /** The next month button. @default "Next month" */
-  nextMonth?: string;
+  nextMonth: string;
   /** Tooltip of the previous month button. @default "Previous month (Page Up)" */
-  previousMonthTooltip?: string;
+  previousMonthTooltip: string;
   /** Tooltip of the next month button. @default "Next month (Page Down)" */
-  nextMonthTooltip?: string;
+  nextMonthTooltip: string;
   /** The previous year button. @default "Previous year" */
-  previousYear?: string;
+  previousYear: string;
   /** The next year button. @default "Next year" */
-  nextYear?: string;
+  nextYear: string;
   /** Tooltip of the previous year button. @default "Previous year (Shift+Page Up)" */
-  previousYearTooltip?: string;
+  previousYearTooltip: string;
   /** Tooltip of the next year button. @default "Next year (Shift+Page Down)" */
-  nextYearTooltip?: string;
+  nextYearTooltip: string;
   /** Added to the month menu button's name. @default "Choose a month" */
-  chooseMonth?: string;
+  chooseMonth: string;
   /** Added to the year menu button's name. @default "Choose a year" */
-  chooseYear?: string;
+  chooseYear: string;
   /** Tooltip of the month menu button. @default "Choose a month (Shift+M)" */
-  monthMenuTooltip?: string;
+  monthMenuTooltip: string;
   /** Tooltip of the year menu button. @default "Choose a year (Shift+Y)" */
-  yearMenuTooltip?: string;
+  yearMenuTooltip: string;
   /** Name of the month list. @default "Month" */
-  monthList?: string;
+  monthList: string;
   /** Name of the year list. @default "Year" */
-  yearList?: string;
+  yearList: string;
   /** The calendar's dismissing action. @default "Cancel" */
-  cancel?: string;
+  cancel: string;
   /** The calendar's confirming action. @default "OK" */
-  ok?: string;
+  ok: string;
 }
 
 export interface DateFieldClassNames extends Omit<
@@ -157,7 +157,7 @@ export interface DateFieldProps {
    */
   density?: Density;
   /** Words the field and its calendar show and announce, with English defaults. */
-  strings?: DateFieldStrings;
+  labels?: Partial<DateFieldLabels>;
   /** The text field's root. */
   ref?: Ref<HTMLDivElement>;
   /** The `<input>`. */
@@ -222,7 +222,7 @@ function DateFieldInner({
   name,
   calendarIcon,
   density,
-  strings = {},
+  labels = {},
   ref,
   inputRef,
   className,
@@ -261,7 +261,7 @@ function DateFieldInner({
         minValue={minValue}
         maxValue={maxValue}
         isDateUnavailable={isDateUnavailable}
-        strings={strings}
+        labels={labels}
         supportingText={supportingText}
         invalid={invalid}
         errorMessage={errorMessage}
@@ -278,7 +278,7 @@ function DateFieldInner({
           <IconButton
             variant="standard"
             icon={calendarIcon ?? <CalendarIcon />}
-            aria-label={strings.openCalendar ?? 'Open calendar'}
+            aria-label={labels.openCalendar ?? 'Open calendar'}
             aria-haspopup="dialog"
             aria-expanded={overlay.isOpen}
             disabled={disabled || readOnly}
@@ -297,7 +297,7 @@ function DateFieldInner({
             maxValue={maxValue}
             isDateUnavailable={isDateUnavailable}
             yearRange={yearRange}
-            strings={strings}
+            labels={labels}
             classNames={{ calendar, menuButton, weekday, day, item }}
           />
         )
@@ -314,7 +314,7 @@ function DateFieldInner({
             maxValue={maxValue}
             isDateUnavailable={isDateUnavailable}
             yearRange={yearRange}
-            strings={strings}
+            labels={labels}
             className={calendar}
             classNames={{ menuButton, weekday, day, item }}
           />
@@ -335,7 +335,7 @@ function DockedCalendar({
   maxValue,
   isDateUnavailable,
   yearRange,
-  strings,
+  labels,
   className,
   classNames,
 }: {
@@ -346,7 +346,7 @@ function DockedCalendar({
   maxValue: DateValue | undefined;
   isDateUnavailable: ((date: DateValue) => boolean) | undefined;
   yearRange: [number, number];
-  strings: DateFieldStrings;
+  labels: Partial<DateFieldLabels>;
   className: string | undefined;
   classNames: Pick<DateFieldClassNames, 'menuButton' | 'weekday' | 'day' | 'item'>;
 }) {
@@ -364,10 +364,7 @@ function DockedCalendar({
   });
   const { calendarProps, prevButtonProps, nextButtonProps } = useCalendar({}, state);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { dialogProps } = useDialog(
-    { 'aria-label': strings.calendar ?? 'Choose a date' },
-    panelRef,
-  );
+  const { dialogProps } = useDialog({ 'aria-label': labels.calendar ?? 'Choose a date' }, panelRef);
   const [view, setView] = useState<View>('days');
   const [focusList, setFocusList] = useState(false);
   const monthRef = useRef<HTMLButtonElement>(null);
@@ -420,15 +417,15 @@ function DockedCalendar({
           <div className={styles.group()}>
             <ShortcutIconButton
               icon={<ChevronLeftIcon />}
-              label={strings.previousMonth ?? 'Previous month'}
-              tooltip={strings.previousMonthTooltip ?? 'Previous month (Page Up)'}
+              label={labels.previousMonth ?? 'Previous month'}
+              tooltip={labels.previousMonthTooltip ?? 'Previous month (Page Up)'}
               onPress={prevButtonProps.onPress as () => void}
               disabled={view !== 'days' || prevButtonProps.isDisabled}
             />
             <MenuButton
               buttonRef={monthRef}
-              label={`${longMonth.format(at(shown))}, ${strings.chooseMonth ?? 'Choose a month'}`}
-              tooltip={strings.monthMenuTooltip ?? 'Choose a month (Shift+M)'}
+              label={`${longMonth.format(at(shown))}, ${labels.chooseMonth ?? 'Choose a month'}`}
+              tooltip={labels.monthMenuTooltip ?? 'Choose a month (Shift+M)'}
               open={view === 'months'}
               disabled={view === 'years'}
               styles={styles}
@@ -439,8 +436,8 @@ function DockedCalendar({
             </MenuButton>
             <ShortcutIconButton
               icon={<ChevronRightIcon />}
-              label={strings.nextMonth ?? 'Next month'}
-              tooltip={strings.nextMonthTooltip ?? 'Next month (Page Down)'}
+              label={labels.nextMonth ?? 'Next month'}
+              tooltip={labels.nextMonthTooltip ?? 'Next month (Page Down)'}
               onPress={nextButtonProps.onPress as () => void}
               disabled={view !== 'days' || nextButtonProps.isDisabled}
             />
@@ -448,15 +445,15 @@ function DockedCalendar({
           <div className={styles.group()}>
             <ShortcutIconButton
               icon={<ChevronLeftIcon />}
-              label={strings.previousYear ?? 'Previous year'}
-              tooltip={strings.previousYearTooltip ?? 'Previous year (Shift+Page Up)'}
+              label={labels.previousYear ?? 'Previous year'}
+              tooltip={labels.previousYearTooltip ?? 'Previous year (Shift+Page Up)'}
               onPress={() => state.setFocusedDate(shown.subtract({ years: 1 }))}
               disabled={view !== 'days' || shown.year <= firstYear}
             />
             <MenuButton
               buttonRef={yearRef}
-              label={`${yearFormat.format(at(shown))}, ${strings.chooseYear ?? 'Choose a year'}`}
-              tooltip={strings.yearMenuTooltip ?? 'Choose a year (Shift+Y)'}
+              label={`${yearFormat.format(at(shown))}, ${labels.chooseYear ?? 'Choose a year'}`}
+              tooltip={labels.yearMenuTooltip ?? 'Choose a year (Shift+Y)'}
               open={view === 'years'}
               disabled={view === 'months'}
               styles={styles}
@@ -467,8 +464,8 @@ function DockedCalendar({
             </MenuButton>
             <ShortcutIconButton
               icon={<ChevronRightIcon />}
-              label={strings.nextYear ?? 'Next year'}
-              tooltip={strings.nextYearTooltip ?? 'Next year (Shift+Page Down)'}
+              label={labels.nextYear ?? 'Next year'}
+              tooltip={labels.nextYearTooltip ?? 'Next year (Shift+Page Down)'}
               onPress={() => state.setFocusedDate(shown.add({ years: 1 }))}
               disabled={view !== 'days' || shown.year >= lastYear}
             />
@@ -482,7 +479,7 @@ function DockedCalendar({
           </div>
         )}
         {view === 'months' && (
-          <ChoiceList label={strings.monthList ?? 'Month'} autoFocus={focusList} styles={styles}>
+          <ChoiceList label={labels.monthList ?? 'Month'} autoFocus={focusList} styles={styles}>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
               <ChoiceButton
                 key={month}
@@ -499,7 +496,7 @@ function DockedCalendar({
           </ChoiceList>
         )}
         {view === 'years' && (
-          <ChoiceList label={strings.yearList ?? 'Year'} autoFocus={focusList} styles={styles}>
+          <ChoiceList label={labels.yearList ?? 'Year'} autoFocus={focusList} styles={styles}>
             {Array.from(
               { length: yearRange[1] - yearRange[0] + 1 },
               (_, i) => yearRange[0] + i,
@@ -521,10 +518,10 @@ function DockedCalendar({
       </div>
       <div className={styles.actions()}>
         <Button variant="text" onPress={onCancel}>
-          {strings.cancel ?? 'Cancel'}
+          {labels.cancel ?? 'Cancel'}
         </Button>
         <Button variant="text" onPress={() => onCommit(draft)}>
-          {strings.ok ?? 'OK'}
+          {labels.ok ?? 'OK'}
         </Button>
       </div>
     </div>

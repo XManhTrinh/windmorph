@@ -405,7 +405,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
             windmorph: 'minValue, maxValue, isDateUnavailable',
           },
           { compose: 'showModeToggle', windmorph: 'showModeToggle' },
-          { compose: 'title, headline', windmorph: 'showHeader, strings' },
+          { compose: 'title, headline', windmorph: 'showHeader, labels' },
         ],
       },
       {
@@ -514,7 +514,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'TimePickerDialogDefaults.DisplayModeToggle',
         component: 'TimePickerModeToggle',
-        note: 'Its names come from `strings.inputMode` and `strings.dialMode`, the same object as the time picker’s `strings`.',
+        note: 'Its names come from `labels.inputMode` and `labels.dialMode`, the same object as the time picker’s `labels`.',
       },
     ],
   },

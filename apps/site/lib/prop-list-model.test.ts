@@ -143,10 +143,10 @@ describe('propListItems', () => {
 describe('propGroupOf', () => {
   it('sorts props by name into Props, Events, Text and Styling', () => {
     expect(
-      ['variant', 'onPress', 'onboarding', 'labels', 'strings', 'aria-label', 'aria-expanded'].map(
+      ['variant', 'onPress', 'onboarding', 'labels', 'aria-label', 'aria-expanded'].map(
         propGroupOf,
       ),
-    ).toEqual(['props', 'events', 'props', 'text', 'text', 'text', 'props']);
+    ).toEqual(['props', 'events', 'props', 'text', 'text', 'props']);
     expect(['className', 'classNames', 'style'].map(propGroupOf)).toEqual([
       'styling',
       'styling',

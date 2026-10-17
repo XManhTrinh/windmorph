@@ -156,8 +156,7 @@ export const RELEASES: Release[] = [
           </>,
           <>
             Every built-in word a component shows or announces comes from its{' '}
-            <InlineCode>labels</InlineCode> or <InlineCode>strings</InlineCode> prop, in English by
-            default, so it can be translated.
+            <InlineCode>labels</InlineCode> prop, in English by default, so it can be translated.
           </>,
           <>
             Components expose their states as <InlineCode>data-*</InlineCode> attributes, and those

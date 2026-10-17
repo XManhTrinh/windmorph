@@ -88,9 +88,9 @@ const PRO_NO_STRING_DEFAULT: Record<string, string> = {};
 interface Allowlists {
   undescribed: Record<string, string>;
   noEnumDefault: Record<string, string>;
-  /** Keys of `strings`, `labels` and `classNames` without a description. */
+  /** Keys of `labels` and `classNames` without a description. */
   undescribedKeys: Record<string, string>;
-  /** Keys of `strings` and `labels` without an English default. */
+  /** Keys of `labels` without an English default. */
   noStringDefault: Record<string, string>;
 }
 
@@ -136,16 +136,13 @@ function describePackage(
       ).toEqual([]);
     });
 
-    it('lists the keys of every strings, labels and classNames prop', () => {
+    it('lists the keys of every labels and classNames prop', () => {
       expect(
-        gaps(
-          (prop) => ['strings', 'labels', 'classNames'].includes(prop.name) && !prop.keys?.length,
-          {},
-        ),
+        gaps((prop) => ['labels', 'classNames'].includes(prop.name) && !prop.keys?.length, {}),
       ).toEqual([]);
     });
 
-    it('describes every key of strings, labels and classNames', () => {
+    it('describes every key of labels and classNames', () => {
       expect(
         gaps(
           (key) => !key.description,
@@ -161,9 +158,7 @@ function describePackage(
           (key) => !key.defaultValue,
           allow.noStringDefault,
           (props) =>
-            props
-              .filter((prop) => prop.name === 'strings' || prop.name === 'labels')
-              .flatMap((prop) => prop.keys ?? []),
+            props.filter((prop) => prop.name === 'labels').flatMap((prop) => prop.keys ?? []),
         ),
       ).toEqual([]);
     });

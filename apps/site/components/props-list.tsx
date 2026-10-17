@@ -167,7 +167,7 @@ export interface PropsListProps {
   props: PropsRecord[];
   /**
    * Sorts a component's props into Props (required first), Events (`on…`), Text (`labels`,
-   * `strings`, the ARIA naming props) and Styling (folded); each group after the main one has
+   * the ARIA naming props) and Styling (folded); each group after the main one has
    * a subhead. A hook's parameters keep their order. @default false
    */
   grouped?: boolean;

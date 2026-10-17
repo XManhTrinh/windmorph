@@ -48,11 +48,11 @@ export interface PickerDialogClassNames {
 }
 
 /** Words of a {@link PickerDialog}, for localisation. */
-export interface PickerDialogStrings {
+export interface PickerDialogLabels {
   /** The full-screen close (x) button. @default "Close" */
-  close?: string;
+  close: string;
   /** The full-screen confirm button. @default "Save" */
-  save?: string;
+  save: string;
 }
 
 interface PickerDialogOwnProps {
@@ -101,7 +101,7 @@ interface PickerDialogOwnProps {
   /** Pressing outside closes the dialog. @default true */
   dismissable?: boolean;
   /** Words the full-screen form shows and announces, with English defaults. */
-  strings?: PickerDialogStrings;
+  labels?: Partial<PickerDialogLabels>;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);
   /**
@@ -154,7 +154,7 @@ function PickerDialogModal({
   closeIcon,
   dismissable = true,
   transition = 'reveal',
-  strings = {},
+  labels = {},
   children,
   className,
   classNames,
@@ -229,7 +229,7 @@ function PickerDialogModal({
                       variant="standard"
                       density={0}
                       icon={closeIcon ?? <CloseIcon />}
-                      aria-label={strings.close ?? 'Close'}
+                      aria-label={labels.close ?? 'Close'}
                       onPress={state.close}
                       className={styles.close({ class: classNames?.close })}
                     />
@@ -237,7 +237,7 @@ function PickerDialogModal({
                       {modeToggleButton}
                       {onConfirm ? (
                         <Button variant="text" onPress={requestConfirm}>
-                          {strings.save ?? 'Save'}
+                          {labels.save ?? 'Save'}
                         </Button>
                       ) : (
                         confirmButton

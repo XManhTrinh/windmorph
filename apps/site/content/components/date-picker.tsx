@@ -133,11 +133,11 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
             pair for a range). Each is controlled (<InlineCode>value</InlineCode> /{' '}
             <InlineCode>onChange</InlineCode>) or uncontrolled (
             <InlineCode>defaultValue</InlineCode>
-            ), and words are localised through the <InlineCode>strings</InlineCode> prop. For a date
+            ), and words are localised through the <InlineCode>labels</InlineCode> prop. For a date
             far in the past or future, such as a date of birth, prefer the docked picker or the
             typed input to paging the calendar. The typed input is titled &quot;Enter date&quot;
             (&quot;Enter dates&quot; for a range), as the M3 modal date input is;{' '}
-            <InlineCode>strings.inputTitle</InlineCode> words it for the task.
+            <InlineCode>labels.inputTitle</InlineCode> words it for the task.
           </p>
         </section>
       </>

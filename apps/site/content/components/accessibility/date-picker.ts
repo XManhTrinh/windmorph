@@ -83,7 +83,7 @@ export const datePicker: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The month is a `grid` (React Aria `useCalendarGrid`) of day buttons under `columnheader` weekdays. The year and month lists are `radiogroup`s of `radio`s. The docked calendar is a `dialog`, opened from an icon button at the end of a text field.',
-    name: 'Each day is named by its full date, and each weekday header by its full name (`abbr`, also shown on hover). The grid is named by the month it shows. The lists are named `strings.yearList` ("Year") and `strings.monthList` ("Month"), the docked calendar `strings.calendar` ("Choose a date"), and the field by its `label`.',
+    name: 'Each day is named by its full date, and each weekday header by its full name (`abbr`, also shown on hover). The grid is named by the month it shows. The lists are named `labels.yearList` ("Year") and `labels.monthList` ("Month"), the docked calendar `labels.calendar` ("Choose a date"), and the field by its `label`.',
     states:
       'Selected and unavailable days. Years and months are checked or not (`aria-checked`); those outside `minValue` / `maxValue` are disabled (`aria-disabled`) but stay focusable. The calendar button has `aria-haspopup="dialog"` and `aria-expanded`, and the month and year buttons have `aria-expanded`. A typed date that can\'t be used makes the field invalid, with the reason as its error text.',
     notes: [
@@ -110,6 +110,6 @@ export const datePicker: ComponentAccessibility = {
   consumer: [
     'Give the field (`label`) or the dialog (`aria-label`) a name that says what the date is for ("Date of birth", "Check-in").',
     "Keep the format as helper text, or replace `supportingText` with text that still gives the format. Put your own rule's message in `errorMessage` with `invalid`.",
-    'Translate every built-in word through `strings`, including the shortcut tooltips, so the keys they name stay right.',
+    'Translate every built-in word through `labels`, including the shortcut tooltips, so the keys they name stay right.',
   ],
 };

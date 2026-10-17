@@ -50,29 +50,29 @@ const INNER_RING_MAX_DISTANCE = 74;
 /** Each number on the dial is a 48px target (M3: "Targets for dial selectors should be 48x48dp"). */
 const TARGET = 48;
 
-export interface TimePickerStrings {
+export interface TimePickerLabels {
   /** Name of the hour selector and field. @default "Hour" */
-  hour?: string;
+  hour: string;
   /** Name of the minute selector and field. @default "Minute" */
-  minute?: string;
+  minute: string;
   /** The AM option. @default "AM" */
-  am?: string;
+  am: string;
   /** The PM option. @default "PM" */
-  pm?: string;
+  pm: string;
   /** Name of the AM / PM selector. @default "AM or PM" */
-  period?: string;
+  period: string;
   /** Name of the dial. @default "Clock" */
-  dial?: string;
+  dial: string;
   /** {@link TimePickerModeToggle}'s name in dial mode. @default "Toggle input picker" */
-  inputMode?: string;
+  inputMode: string;
   /** {@link TimePickerModeToggle}'s name in input mode. @default "Toggle dial picker" */
-  dialMode?: string;
+  dialMode: string;
   /**
    * Name of a number on the dial (M3: "{Value} Hours or minutes of {Total}"), e.g.
    * "7 hours of 12" or "35 minutes of 60".
    * @default `${value} ${unit} of ${total}`
    */
-  dialValue?: (value: string, total: number, unit: 'hours' | 'minutes') => string;
+  dialValue: (value: string, total: number, unit: 'hours' | 'minutes') => string;
 }
 
 export interface TimePickerClassNames {
@@ -117,7 +117,7 @@ export interface TimePickerProps {
    */
   layout?: 'vertical' | 'horizontal' | 'auto';
   /** Words the picker shows and announces, with English defaults. */
-  strings?: TimePickerStrings;
+  labels?: Partial<TimePickerLabels>;
   /**
    * Web density of the input mode, `0` to `-3`: each step takes 4px off the typed hour and
    * minute fields (72px at 0, 60px at -3). The dial keeps its size: M3 doesn't make time
@@ -181,7 +181,7 @@ export function TimePicker({
   defaultMode = 'dial',
   onModeChange,
   layout = 'auto',
-  strings = {},
+  labels = {},
   density,
   ref,
   className,
@@ -212,8 +212,8 @@ export function TimePicker({
   };
   const commitHour = (hour: number) =>
     setTime(time.set({ hour: hourCycle === 24 ? hour : (hour % 12) + (isPm ? 12 : 0) }));
-  const hourLabel = strings.hour ?? 'Hour';
-  const minuteLabel = strings.minute ?? 'Minute';
+  const hourLabel = labels.hour ?? 'Hour';
+  const minuteLabel = labels.minute ?? 'Minute';
   const minuteRef = useRef<HTMLInputElement>(null);
   // The page's direction where the picker sits (its `dir`, not only the locale's), which the
   // AM / PM options follow inside the time's left-to-right row (2026-10-17).
@@ -273,9 +273,9 @@ export function TimePicker({
         </div>
         {hourCycle === 12 && (
           <PeriodGroup
-            label={strings.period ?? 'AM or PM'}
-            am={strings.am ?? 'AM'}
-            pm={strings.pm ?? 'PM'}
+            label={labels.period ?? 'AM or PM'}
+            am={labels.am ?? 'AM'}
+            pm={labels.pm ?? 'PM'}
             isPm={isPm}
             onChange={setPeriod}
             direction={domDirection}
@@ -291,8 +291,8 @@ export function TimePicker({
           selection={selection}
           onHourPicked={() => setSelection('minute')}
           hourCycle={hourCycle}
-          label={strings.dial ?? 'Clock'}
-          valueLabel={strings.dialValue ?? defaultDialValue}
+          label={labels.dial ?? 'Clock'}
+          valueLabel={labels.dialValue ?? defaultDialValue}
           format={(n, minutes) => (minutes || hourCycle === 24 ? pad.format(n) : plain.format(n))}
           plain={(n) => plain.format(n)}
           styles={styles}
@@ -310,9 +310,9 @@ export interface TimePickerModeToggleProps {
   onModeChange: (mode: TimePickerMode) => void;
   /**
    * Words the toggle announces (`inputMode`, `dialMode`), with English defaults. Takes the
-   * same object as the time picker's `strings`, so one set of words covers both.
+   * same object as the time picker's `labels`, so one set of words covers both.
    */
-  strings?: TimePickerStrings;
+  labels?: Partial<TimePickerLabels>;
   /** Shown in dial mode. Defaults to Material Symbols' keyboard. */
   keyboardIcon?: ReactElement;
   /** Shown in input mode. Defaults to Material Symbols' schedule (a clock). */
@@ -335,7 +335,7 @@ export interface TimePickerModeToggleProps {
 export function TimePickerModeToggle({
   mode,
   onModeChange,
-  strings = {},
+  labels = {},
   keyboardIcon,
   clockIcon,
   className,
@@ -348,7 +348,7 @@ export function TimePickerModeToggle({
       // The dialog isn't dense, only the input mode's fields.
       density={0}
       icon={keyboardIcon ?? <KeyboardIcon />}
-      aria-label={strings.inputMode ?? 'Toggle input picker'}
+      aria-label={labels.inputMode ?? 'Toggle input picker'}
       onPress={() => onModeChange('input')}
       className={className}
     />
@@ -357,7 +357,7 @@ export function TimePickerModeToggle({
       variant="standard"
       density={0}
       icon={clockIcon ?? <ScheduleIcon />}
-      aria-label={strings.dialMode ?? 'Toggle dial picker'}
+      aria-label={labels.dialMode ?? 'Toggle dial picker'}
       onPress={() => onModeChange('dial')}
       className={className}
     />
