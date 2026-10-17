@@ -237,6 +237,7 @@ test.describe('Guides in the rail', () => {
       'Getting Started',
       'Theming',
       'Customisation',
+      'API conventions',
       'Motion',
       'Accessibility',
       'Next.js',
