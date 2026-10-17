@@ -6,6 +6,7 @@ import {
   ListItem,
   SheetTrigger,
   SideSheet,
+  Slider,
   type BottomSheetDetent,
 } from '@windmorph/react';
 import { useState } from 'react';
@@ -205,21 +206,25 @@ const footer = ({ close }: { close: () => void }) => (
 
 /**
  * A modal side sheet, docked or detached, with its built-in close button and bottom actions.
- * `wide` adds content wider than the sheet, which is clipped: side sheets never scroll sideways.
- * `widePanel` asks for a 480px sheet, which stops at the spec's 400px maximum.
+ * `edge` puts it on the start edge. `wide` adds content wider than the sheet, which is
+ * clipped: side sheets never scroll sideways. `widePanel` asks for a 480px sheet, which stops
+ * at the spec's 400px maximum.
  */
 export const Side: StoryObj<{
+  edge: 'start' | 'end';
   detached: boolean;
   back: boolean;
   wide: boolean;
   widePanel: boolean;
 }> = {
-  args: { detached: false, back: false, wide: false, widePanel: false },
-  render: ({ detached, back, wide, widePanel }) => (
+  args: { edge: 'end', detached: false, back: false, wide: false, widePanel: false },
+  argTypes: { edge: { control: 'inline-radio', options: ['end', 'start'] } },
+  render: ({ edge, detached, back, wide, widePanel }) => (
     <SheetTrigger>
       <Button>Open filters</Button>
       <SideSheet
         title="Filters"
+        edge={edge}
         detached={detached}
         onBack={back ? () => undefined : undefined}
         footer={footer}
@@ -240,31 +245,97 @@ export const Side: StoryObj<{
   ),
 };
 
-/** A standard side sheet beside the content; it opens and closes its width. */
-export const SideStandard: Story = {
-  render: function StandardStory() {
+/**
+ * A standard side sheet beside the content; it opens and closes its width. With
+ * `edge="start"` the app puts it first in its row, and its divider faces the content.
+ */
+export const SideStandard: StoryObj<{ edge: 'start' | 'end' }> = {
+  args: { edge: 'end' },
+  argTypes: { edge: { control: 'inline-radio', options: ['end', 'start'] } },
+  render: function StandardStory({ edge }) {
     const [open, setOpen] = useState(true);
+    const sheet = (
+      <SideSheet
+        variant="standard"
+        title="Details"
+        edge={edge}
+        open={open}
+        onOpenChange={setOpen}
+        data-testid="sheet"
+      >
+        <p className="text-body-medium text-on-surface-variant">
+          Supplementary content that sits beside the page.
+        </p>
+      </SideSheet>
+    );
     return (
       <div
         className="flex h-[360px] w-[720px] overflow-hidden rounded-corner-large border border-outline-variant"
         data-testid="layout"
       >
+        {edge === 'start' && sheet}
         <div className="flex flex-1 flex-col items-start gap-4 p-6">
           <p className="text-body-large">Main content</p>
           <Button variant="tonal" onPress={() => setOpen((v) => !v)}>
             {open ? 'Hide details' : 'Show details'}
           </Button>
         </div>
+        {edge === 'end' && sheet}
+      </div>
+    );
+  },
+};
+
+/**
+ * Swipe to dismiss on a touch screen: a swipe toward the sheet's edge closes it past half
+ * its width or on a fling, while a vertical swipe scrolls the long content, and the row of
+ * filters (a horizontal scroller) and the slider keep their own sideways drags. `veto` keeps
+ * the sheet open (a controlled `open` left `true`), so a swipe springs back; `swipeable`
+ * turns the gesture off.
+ */
+export const SideSwipe: StoryObj<{
+  edge: 'start' | 'end';
+  veto: boolean;
+  swipeable: boolean;
+}> = {
+  args: { edge: 'end', veto: false, swipeable: true },
+  argTypes: { edge: { control: 'inline-radio', options: ['end', 'start'] } },
+  render: function SwipeStory({ edge, veto, swipeable }) {
+    const [open, setOpen] = useState(false);
+    const [asked, setAsked] = useState(0);
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <Button onPress={() => setOpen(true)}>Open filters</Button>
+        <p className="text-body-medium" data-testid="asked">{`Close requests: ${asked}`}</p>
         <SideSheet
-          variant="standard"
-          title="Details"
+          title="Filters"
+          edge={edge}
+          swipeable={swipeable}
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={(next) => {
+            if (!next) setAsked((count) => count + 1);
+            if (next || !veto) setOpen(next);
+          }}
+          footer={({ close }) => <Button onPress={close}>Apply</Button>}
           data-testid="sheet"
         >
-          <p className="text-body-medium text-on-surface-variant">
-            Supplementary content that sits beside the page.
-          </p>
+          <div className="flex gap-2 overflow-x-auto pb-4" data-testid="filters">
+            {['Cafés', 'Parks', 'Museums', 'Markets', 'Libraries', 'Galleries', 'Gardens'].map(
+              (name) => (
+                <Button key={name} variant="tonal" className="shrink-0">
+                  {name}
+                </Button>
+              ),
+            )}
+          </div>
+          <Slider aria-label="Distance" defaultValue={40} data-testid="slider" className="pb-4" />
+          <div data-testid="long">
+            {Array.from({ length: 30 }, (_, index) => (
+              <p key={index} className="py-2 text-body-medium text-on-surface-variant">
+                {`Result ${index + 1}: shared by Alex, Sam or Priya.`}
+              </p>
+            ))}
+          </div>
         </SideSheet>
       </div>
     );
@@ -275,10 +346,14 @@ export const SideStandard: Story = {
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;
   transformedAncestor: boolean;
+  edge: 'start' | 'end';
 }> = {
-  args: { override: 'none', transformedAncestor: false },
-  argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
-  render: function LayoutOverrideStory({ override, transformedAncestor }) {
+  args: { override: 'none', transformedAncestor: false, edge: 'end' },
+  argTypes: {
+    override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES },
+    edge: { control: 'inline-radio', options: ['end', 'start'] },
+  },
+  render: function LayoutOverrideStory({ override, transformedAncestor, edge }) {
     const [count, setCount] = useState(0);
     return (
       <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 360 }}>
@@ -288,6 +363,7 @@ export const LayoutOverride: StoryObj<{
         <SideSheet
           variant="standard"
           title="Details"
+          edge={edge}
           data-testid="target"
           style={{ height: 300 }}
           className={LAYOUT_OVERRIDES[override]}
@@ -302,6 +378,12 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+/** The same layout-safety matrix for a standard side sheet on the start edge. */
+export const LayoutOverrideStart: typeof LayoutOverride = {
+  ...LayoutOverride,
+  args: { ...LayoutOverride.args, edge: 'start' },
 };
 
 /**
