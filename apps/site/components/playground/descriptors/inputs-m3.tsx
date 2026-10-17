@@ -648,8 +648,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       onRemove: "() => console.log('Remove')",
     },
     notControlled: {
-      elementType:
-        'Only changes the rendered element (`button` is the one choice); nothing in the preview changes.',
+      as: 'Only changes the rendered element (`button` is the one choice); nothing in the preview changes.',
       preventFocusOnPress:
         'Keeps focus where it was when the chip is pressed (for menu triggers); nothing in the preview changes.',
       value:

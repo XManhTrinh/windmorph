@@ -700,7 +700,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'fab.href': 'string',
     },
     notControlled: {
-      'fab.elementType':
+      'fab.as':
         'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
       'fab.preventFocusOnPress':
         'Only keeps focus where it was on press; nothing the preview shows.',
@@ -741,6 +741,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     surfacedProps: ['href', 'variant', 'tone', 'size', 'external', 'dragged'],
     initialState: { href: '/legal/terms' },
     notControlled: {
+      as: 'Only changes the rendered element of a button link for a custom wrapper; nothing the preview shows.',
       preventFocusOnPress:
         'It only stops the link taking focus when pressed (menu triggers set it): nothing the preview can show.',
     },

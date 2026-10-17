@@ -64,7 +64,7 @@ export interface ButtonBaseActionProps
   /** Ref to the root `<button>` element. */
   ref?: Ref<HTMLButtonElement>;
   /** The element rendered: a native `<button>`. @default "button" */
-  elementType?: 'button';
+  as?: 'button';
   /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
   /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
@@ -80,7 +80,7 @@ export interface ButtonBaseDivActionProps
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Renders a `div` with `role="button"`, for content a `<button>` may not hold. */
-  elementType: 'div';
+  as: 'div';
   /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
   /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
@@ -154,7 +154,7 @@ const render = (children: ButtonBaseCommonProps['children'], isSelected: boolean
   typeof children === 'function' ? children({ isSelected }) : children;
 
 function ActionBase(props: ButtonBaseActionProps | ButtonBaseDivActionProps) {
-  const { ref, elementType = 'button', ...rest } = props;
+  const { ref, as: elementType = 'button', ...rest } = props;
   const type =
     elementType === 'button' ? ((rest as ButtonBaseActionProps).type ?? 'button') : undefined;
   const { disabled, isDragged, element, children, press, dom } = splitProps(rest);

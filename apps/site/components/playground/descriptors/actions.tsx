@@ -45,9 +45,9 @@ const CLOSE = '<CloseIcon />';
 /** The button group's buttons: a calendar's views. */
 const VIEWS = ['Day', 'Week', 'Month'];
 
-/** Why `elementType` and `preventFocusOnPress` have no control. */
+/** Why `as` and `preventFocusOnPress` have no control. */
 const NO_VISIBLE_EFFECT = {
-  elementType: 'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
+  as: 'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
   preventFocusOnPress: 'Only keeps focus where it was on press; nothing the preview shows.',
 };
 

@@ -162,7 +162,7 @@ const CONTENT_NAME =
 
 /** Props that only make sense for testing or wiring, or that only name things for assistive tech. */
 const ADVANCED_NAME =
-  /^(?:dragged|appear|autoFocus|focusOnMount|announce|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|elementType|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
+  /^(?:dragged|appear|autoFocus|focusOnMount|announce|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
 
 /** Booleans and numbers that change only how it looks: Appearance. */
 const APPEARANCE_NAME =

@@ -47,3 +47,5 @@ Placements are hyphenated, like every other multi-word value: `'bottom-start'`, 
 `Dialog`'s `quick` is `instant`, the name `Menu` uses for the same thing.
 
 `DialogHeader` takes `labels.close` (default "Close") instead of the required `closeLabel`, and `SplitButton` takes `labels.menu` (default "More options") instead of the required `menuLabel`.
+
+`ButtonBase`, and every button built on it, takes `as` (`'button' | 'div'`) instead of `elementType` to pick its element.
