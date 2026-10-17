@@ -24,6 +24,8 @@ import { pickerDialogStyles } from './picker-dialog-styles';
 import { CloseIcon } from './picker-icons';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
 import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 
 type Naming =
   | {
@@ -58,7 +60,8 @@ export interface PickerDialogLabels {
   save: string;
 }
 
-interface PickerDialogOwnProps {
+/** The panel (the `dialog` element, where `ref` and `id` land) takes the DOM attributes. */
+interface PickerDialogOwnProps extends Omit<RootDOMProps, 'title'> {
   /** Whether the dialog is open (controlled). */
   open?: boolean;
   /** Whether the dialog starts open when uncontrolled. @default false */
@@ -185,7 +188,8 @@ function PickerDialogModal({
     state,
     panelRef,
   );
-  const { dialogProps, titleProps } = useDialog(labelling, panelRef);
+  const { root, rest: naming } = splitRootProps(labelling);
+  const { dialogProps, titleProps } = useDialog(naming, panelRef);
   const compact = useMediaQuery(COMPACT_WINDOW);
   const full = fullScreen === 'always' || (fullScreen === 'compact' && compact);
   const shell = dialogStyles({ fullScreen: full ? 'always' : 'never', transition });
@@ -225,12 +229,15 @@ function PickerDialogModal({
             className={shell.motion({ class: styles.motion() })}
           >
             <div
-              {...mergeProps(modalProps, dialogProps)}
+              {...mergeProps(root, modalProps, dialogProps)}
               ref={panelRef}
               data-exiting={exiting}
               // The picker's component tokens (date-picker-tokens.ts, time-picker-tokens.ts)
               // paint the panel; `data-variant` is also a public styling hook.
-              data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
+              data-tokens={mergeDataTokens(
+                variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal',
+                root,
+              )}
               data-variant={variant}
               data-full-screen={full || undefined}
               className={styles.panel({

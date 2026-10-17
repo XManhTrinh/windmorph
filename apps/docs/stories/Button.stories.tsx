@@ -1,6 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Button, type ButtonShape, type ButtonSize, type ButtonVariant } from '@windmorph/react';
-import { useState } from 'react';
+import {
+  Button,
+  CircularProgressIndicator,
+  type ButtonShape,
+  type ButtonSize,
+  type ButtonVariant,
+} from '@windmorph/react';
+import { useRef, useState } from 'react';
 import { AddIcon, SendIcon, StarIcon, StarOutlineIcon } from './icons';
 import {
   LAYOUT_OVERRIDES,
@@ -21,6 +27,7 @@ const meta = {
     size: { control: 'inline-radio', options: SIZES },
     shape: { control: 'inline-radio', options: SHAPES },
     disabled: { control: 'boolean' },
+    pending: { control: 'boolean' },
   },
 } satisfies Meta<typeof Button>;
 
@@ -136,6 +143,86 @@ export const DisabledOutlined: Story = {
   ),
 };
 
+/**
+ * `pending` on every variant and size, with a short and a long label: the indicator replaces
+ * the content after 200ms and the button keeps its size. Turn `pending` off to compare. The last
+ * row: disabled and pending, a pending link, and a replaced indicator.
+ */
+export const Pending: StoryObj<{ pending: boolean }> = {
+  args: { pending: true },
+  render: ({ pending }) => (
+    <div className="flex flex-col gap-4" data-testid="pending">
+      {VARIANTS.map((variant) => (
+        <div key={variant} className="flex flex-wrap items-center gap-4">
+          {SIZES.map((size) => (
+            <Button
+              key={size}
+              variant={variant}
+              size={size}
+              pending={pending}
+              leadingIcon={size === 'md' ? <SendIcon /> : undefined}
+              data-testid={`pending-${variant}-${size}`}
+            >
+              Save
+            </Button>
+          ))}
+          <Button variant={variant} pending={pending} data-testid={`pending-${variant}-long`}>
+            Check for updates
+          </Button>
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-4">
+        <Button pending={pending} disabled data-testid="pending-disabled">
+          Disabled
+        </Button>
+        <Button pending={pending} href="#report" variant="text" data-testid="pending-link">
+          Report
+        </Button>
+        <Button
+          pending={pending}
+          variant="tonal"
+          pendingIndicator={<CircularProgressIndicator size={24} aria-label="Exporting" />}
+          data-testid="pending-custom"
+        >
+          Export
+        </Button>
+      </div>
+    </div>
+  ),
+};
+
+/**
+ * Press Save (or focus it and press Enter): it stays pending for `duration` ms, keeping focus,
+ * then says it's saved. Under 200ms nothing visible changes.
+ */
+export const PendingAction: StoryObj<{ duration: number }> = {
+  args: { duration: 1500 },
+  argTypes: { duration: { control: 'number' } },
+  render: function PendingActionStory({ duration }) {
+    const [pending, setPending] = useState(false);
+    const [saves, setSaves] = useState(0);
+    const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const save = () => {
+      setPending(true);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        setPending(false);
+        setSaves((count) => count + 1);
+      }, Number(duration));
+    };
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <Button size="md" pending={pending} onPress={save} data-testid="save">
+          Save
+        </Button>
+        <p className="text-body-medium" data-testid="saves">
+          Saved {saves}
+        </p>
+      </div>
+    );
+  },
+};
+
 export const Link: Story = {
   args: { href: 'https://m3.material.io/components/buttons', variant: 'text', children: 'Spec' },
 };
@@ -147,10 +234,11 @@ export const Link: Story = {
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;
   transformedAncestor: boolean;
+  pending: boolean;
 }> = {
-  args: { override: 'none', transformedAncestor: false },
+  args: { override: 'none', transformedAncestor: false, pending: false },
   argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
-  render: function LayoutOverrideStory({ override, transformedAncestor }) {
+  render: function LayoutOverrideStory({ override, transformedAncestor, pending }) {
     const [count, setCount] = useState(0);
     return (
       <div
@@ -165,6 +253,8 @@ export const LayoutOverride: StoryObj<{
           data-testid="target"
           className={LAYOUT_OVERRIDES[override]}
           leadingIcon={<AddIcon />}
+          // Left out when off, so the default matrix renders the plain button.
+          pending={pending || undefined}
           onPress={() => setCount((c) => c + 1)}
         >
           Layout

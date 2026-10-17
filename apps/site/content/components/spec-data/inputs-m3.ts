@@ -377,7 +377,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'Switch',
         params: [
           { compose: 'checked, onCheckedChange', windmorph: '`checked`, `onCheckedChange`' },
-          { compose: 'thumbContent', windmorph: '`icons`, `selectedIcon`, `unselectedIcon`' },
+          { compose: 'thumbContent', windmorph: '`icons`, `checkedIcon`, `uncheckedIcon`' },
           { compose: 'enabled', windmorph: '`disabled`' },
         ],
       },

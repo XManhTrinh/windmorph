@@ -181,6 +181,15 @@ export default function ApiConventionsPage() {
             reaches it.
           </Rule>
           <Rule>
+            The root also takes its element&apos;s DOM attributes: <InlineCode>data-*</InlineCode>,{' '}
+            <InlineCode>aria-*</InlineCode>, global attributes such as{' '}
+            <InlineCode>title</InlineCode> and <InlineCode>lang</InlineCode>, and events. Where
+            React Aria labels an inner element (a field&apos;s input, a tab list), the naming
+            attributes (<InlineCode>aria-label</InlineCode>,{' '}
+            <InlineCode>aria-labelledby</InlineCode>, <InlineCode>aria-describedby</InlineCode>) and
+            the focus, key and input events go to that element instead.
+          </Rule>
+          <Rule>
             <InlineCode>className</InlineCode> and <InlineCode>style</InlineCode> go on the
             outermost element; <InlineCode>classNames</InlineCode> reaches each part, with one slot
             name per part everywhere (<InlineCode>supportingText</InlineCode>,{' '}

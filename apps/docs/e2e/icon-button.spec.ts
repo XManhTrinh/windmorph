@@ -1,6 +1,8 @@
 import { expect, test, type Locator } from '@playwright/test';
+import { pauseClock } from './clock';
 import { iconTransitionSuite } from './icon-faces';
 import { layoutSafetySuite } from './layout-safety';
+import { indicatorContrasts, layoutBoxes, pendingCheck, waitForIndicators } from './pending';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { overshoots, probeNextMorph } from './morph-probe';
 import { underForcedColors } from './forced-colors';
@@ -150,6 +152,17 @@ test.describe('IconButton layout safety', () => {
   });
 });
 
+test.describe('IconButton layout safety · pending', () => {
+  layoutSafetySuite('components-iconbutton--layout-override', {
+    height: 40,
+    width: 40,
+    radius: '20px',
+    args: { pending: true },
+    interactive: false,
+    check: pendingCheck,
+  });
+});
+
 test.describe('IconButton disabled outlines (2026-10-13)', () => {
   test('a disabled outline dims to 10%, and a selected toggle has none', async ({ page }) => {
     await openStory(page, 'components-iconbutton--disabled');
@@ -226,4 +239,51 @@ test.describe('IconButton forced colours', () => {
     });
     after.forEach((look, index) => expect(look.width).toBe(before[index]!.width));
   });
+});
+
+// IconButton pending (docs/plans/button-pending.md, 2026-10-17).
+test.describe('IconButton pending', () => {
+  test('every size, width and density keeps its size and place', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--pending', {}, { pending: false });
+    const before = await layoutBoxes(page.getByTestId('density'));
+    await openStory(page, 'components-iconbutton--pending', {}, { pending: true });
+    await waitForIndicators(page.getByTestId('density'));
+    expect(await layoutBoxes(page.getByTestId('density'))).toEqual(before);
+  });
+
+  test('names itself with the suffix while its tooltip shows only the label', async ({ page }) => {
+    await openStory(page, 'components-iconbutton--pending');
+    const button = page.getByTestId('pending-0-xs-narrow');
+    await expect(button).toHaveAccessibleName('Refresh, Loading');
+    await expect(button).toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Tab');
+    await expect(button).toBeFocused();
+    await expect(page.getByRole('tooltip')).toHaveText('Refresh');
+  });
+
+  for (const theme of THEMES) {
+    test(`the indicator is at least 3:1 against every variant · ${theme}`, async ({ page }) => {
+      for (const mode of MODES) {
+        for (const contrast of ['standard', 'medium', 'high'] as const) {
+          await openStory(page, 'components-iconbutton--pending', { theme, mode, contrast });
+          const ratios = await indicatorContrasts(page.getByTestId('density'));
+          for (const [id, ratio] of Object.entries(ratios)) {
+            expect(ratio, `${id} · ${mode} · ${contrast}`).toBeGreaterThanOrEqual(3);
+          }
+        }
+      }
+    });
+  }
+
+  for (const mode of MODES) {
+    test(`screenshot · ${mode}`, async ({ page }) => {
+      await pauseClock(page);
+      await openStory(page, 'components-iconbutton--pending', { mode });
+      const root = page.getByTestId('density');
+      await expect(root.locator('[data-slot="pending-indicator"] svg')).toHaveCount(
+        await root.locator('[data-pending]').count(),
+      );
+      await expect(root).toHaveScreenshot(`pending-${mode}.png`);
+    });
+  }
 });

@@ -16,7 +16,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';
@@ -44,7 +44,10 @@ type RenamedAriaProps =
   | 'validationState'
   | 'excludeFromTabOrder';
 
-interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
+interface CheckboxOwnProps
+  extends
+    Omit<AriaCheckboxProps, RenamedAriaProps>,
+    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaCheckboxProps> {
   /** Controlled checked state. */
   checked?: boolean;
   /** Initial checked state when uncontrolled. */
@@ -121,8 +124,8 @@ export function Checkbox({
   children,
   ...otherProps
 }: CheckboxProps) {
-  // `data-*` attributes go on the root; everything else goes to the input via React Aria.
-  const { data: rootData, rest: ariaProps } = splitDataAttributes(otherProps);
+  // DOM attributes for the whole control go on the root; the rest goes to the input via React Aria.
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps);
   const domInputRef = useObjectRef(inputRef);
   const options: AriaCheckboxProps = {
     ...ariaProps,

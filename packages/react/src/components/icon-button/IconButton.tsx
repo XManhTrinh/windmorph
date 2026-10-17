@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, type ReactElement } from 'react';
+import { useContext, type ReactElement, type Ref } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -29,6 +29,7 @@ import {
   type IconButtonWidth,
 } from './icon-button-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { pendingClasses, useButtonPending, type ButtonLabels } from '../button/button-pending';
 
 export interface IconButtonClassNames {
   /** The button element itself; merged with `className`. */
@@ -39,6 +40,8 @@ export interface IconButtonClassNames {
   icon?: string;
   /** The built-in plain tooltip that shows the label (`tooltip`). */
   tooltip?: string;
+  /** The slot holding the loading indicator while `pending`, centred over the hidden icon. */
+  pendingIndicator?: string;
 }
 
 /** Icon buttons have no visible text, so an accessible name is required. */
@@ -91,19 +94,52 @@ interface IconButtonOwnProps {
   tooltip?: boolean;
   /** Classes for each part. `classNames.root` is merged with `className`. */
   classNames?: IconButtonClassNames;
+  /** Words the button announces. */
+  labels?: Partial<ButtonLabels>;
 }
 
-type OmitOwn<T> = Omit<T, keyof IconButtonOwnProps | 'children' | 'aria-label' | 'aria-labelledby'>;
+interface IconButtonPendingProps {
+  /**
+   * Shows a loading indicator in place of the icon while an action runs, and blocks presses.
+   * The button keeps its size, its colours and keyboard focus; its accessible name gains
+   * `labels.pending` (the tooltip keeps showing only the `aria-label`), and a focused button
+   * announces it. The indicator appears after 200ms, so a quick action doesn't flash. Use it
+   * for actions that take a moment, not for every button in a list.
+   * @default false
+   */
+  pending?: boolean;
+  /**
+   * Replaces the loading indicator shown while `pending`, e.g. a `CircularProgressIndicator`
+   * for a wait that may pass five seconds. It's centred over the icon and takes the content
+   * colour; a progress indicator also loses its track, as M3 asks inside a button.
+   */
+  pendingIndicator?: ReactElement;
+}
+
+type OmitOwn<T> = Omit<
+  T,
+  | keyof IconButtonOwnProps
+  | keyof IconButtonPendingProps
+  | 'children'
+  | 'aria-label'
+  | 'aria-labelledby'
+>;
 
 export type IconButtonActionProps = IconButtonOwnProps &
+  IconButtonPendingProps &
   OmitOwn<ButtonBaseActionProps> &
   AccessibleName;
 export type IconButtonLinkProps = IconButtonOwnProps &
+  IconButtonPendingProps &
   OmitOwn<ButtonBaseLinkProps> &
   AccessibleName;
 export type IconButtonToggleProps = IconButtonOwnProps &
   OmitOwn<ButtonBaseToggleProps> &
   AccessibleName & {
+    /** Toggle buttons have no pending state. */
+    pending?: never;
+    /** Toggle buttons have no pending state. */
+    pendingIndicator?: never;
     /** Icon shown while selected, e.g. the filled form of `icon`. */
     selectedIcon?: ReactElement;
     /**
@@ -131,6 +167,7 @@ export type IconButtonProps = IconButtonActionProps | IconButtonLinkProps | Icon
  * <IconButton variant="standard" icon={<MoreIcon />} aria-label="More options" />
  * <IconButton toggle variant="filled" icon={<StarIcon />} selectedIcon={<StarFilledIcon />}
  *   aria-label="Favourite" selected={isFavourite} onSelectedChange={setFavourite} />
+ * <IconButton icon={<RefreshIcon />} aria-label="Refresh" pending={refreshing} onPress={refresh} />
  */
 export function IconButton(props: IconButtonProps) {
   const {
@@ -142,13 +179,16 @@ export function IconButton(props: IconButtonProps) {
     disabled: disabledProp,
     icon,
     tooltip = true,
+    pendingIndicator,
+    labels,
     classNames,
     className,
     // Only toggle props carry `selectedIcon`; the others read it as undefined.
     selectedIcon,
     iconTransition = 'swap',
     ...base
-  } = props as IconButtonToggleProps & IconButtonProps;
+  } = props as Omit<IconButtonToggleProps, 'pendingIndicator'> &
+    IconButtonProps & { pendingIndicator?: ReactElement };
   const rotates = iconTransition === 'rotate' && selectedIcon !== undefined;
 
   const context = useContext(ButtonContext);
@@ -187,9 +227,20 @@ export function IconButton(props: IconButtonProps) {
     // Read by a button group, which spaces narrow icon buttons wider apart.
     'data-width': width,
   };
+  const pending = useButtonPending<HTMLElement>({
+    pending: base.pending,
+    pendingIndicator,
+    labels,
+    size,
+    ariaLabel: base['aria-label'],
+    ariaLabelledby: base['aria-labelledby'],
+    ref: base.ref as Ref<HTMLElement> | undefined,
+    indicatorClassName: cn(pendingClasses.indicator, classNames?.pendingIndicator),
+  });
   const baseProps = {
     ...base,
     ...tokenAttributes,
+    ...pending.rootProps,
     ...densityAttribute(density),
     disabled: disabledProp ?? context.disabled ?? false,
     className: styles.root({ class: cn(classNames?.root, className) }),
@@ -198,12 +249,21 @@ export function IconButton(props: IconButtonProps) {
   const button = (
     <ButtonBase {...baseProps}>
       {({ isSelected }) => (
-        <span className={styles.content({ class: classNames?.content })}>
+        <span
+          {...pending.contentProps}
+          className={styles.content({
+            class: cn(pending.takesPending && pendingClasses.content, classNames?.content),
+          })}
+        >
           {(size === 'xs' || size === 'sm') && <TouchTarget />}
           <span
             aria-hidden="true"
             className={styles.icon({
-              class: cn(rotates && iconFacesStyles().cell(), classNames?.icon),
+              class: cn(
+                rotates && iconFacesStyles().cell(),
+                pending.takesPending && pendingClasses.replaced,
+                classNames?.icon,
+              ),
             })}
           >
             {rotates ? (
@@ -219,6 +279,8 @@ export function IconButton(props: IconButtonProps) {
               icon
             )}
           </span>
+          {pending.indicator}
+          {pending.hiddenName}
         </span>
       )}
     </ButtonBase>

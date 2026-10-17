@@ -106,7 +106,7 @@ describe('Switch', () => {
   });
 
   it('shows only a selected icon when given one', async () => {
-    render(<Switch selectedIcon={<svg data-testid="on" />}>Sync</Switch>);
+    render(<Switch checkedIcon={<svg data-testid="on" />}>Sync</Switch>);
     const input = screen.getByRole('switch');
     expect(screen.queryByTestId('on')).not.toBeInTheDocument();
     expect(thumbVars(input).size).toBe('16px');

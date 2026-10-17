@@ -25,7 +25,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
@@ -60,7 +60,10 @@ type RenamedAriaProps =
   | 'validationState'
   | 'excludeFromTabOrder';
 
-interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
+interface SwitchOwnProps
+  extends
+    Omit<AriaSwitchProps, RenamedAriaProps>,
+    Omit<RootDOMProps<HTMLLabelElement>, keyof AriaSwitchProps> {
   /** Controlled on state (`checked`, as an HTML checkbox). */
   checked?: boolean;
   /** Initial on state when uncontrolled. */
@@ -89,10 +92,10 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
    * @default 0
    */
   density?: Density;
-  /** Icon in the thumb while on (overrides the default check). */
-  selectedIcon?: ReactNode;
-  /** Icon in the thumb while off (overrides the default close). */
-  unselectedIcon?: ReactNode;
+  /** Icon in the thumb while checked (overrides the default check). */
+  checkedIcon?: ReactNode;
+  /** Icon in the thumb while unchecked (overrides the default close). */
+  uncheckedIcon?: ReactNode;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -135,8 +138,8 @@ export function Switch({
   required,
   invalid,
   icons = false,
-  selectedIcon,
-  unselectedIcon,
+  checkedIcon,
+  uncheckedIcon,
   density,
   className,
   classNames,
@@ -146,7 +149,8 @@ export function Switch({
   children,
   ...otherProps
 }: SwitchProps) {
-  const { data, rest } = splitDataAttributes(otherProps);
+  // DOM attributes for the whole control go on the root; the rest goes to the input.
+  const { root: data, rest } = splitRootProps(otherProps);
   const domInputRef = useObjectRef(inputRef);
   const options: AriaSwitchProps = {
     ...rest,
@@ -217,8 +221,8 @@ export function Switch({
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
   const icon = isSelected
-    ? (selectedIcon ?? (icons ? <CheckIcon /> : null))
-    : (unselectedIcon ?? (icons ? <CloseIcon /> : null));
+    ? (checkedIcon ?? (icons ? <CheckIcon /> : null))
+    : (uncheckedIcon ?? (icons ? <CloseIcon /> : null));
   // Browsers toggle a checkbox input on Space only; M3 also toggles a switch on Enter.
   // Enter presses like Space does: the thumb grows on key down and the switch toggles on
   // key up.

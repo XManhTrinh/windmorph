@@ -8,7 +8,7 @@ import {
   type IconButtonWidth,
 } from '@windmorph/react';
 import { useState } from 'react';
-import { AddIcon, CloseIcon, SearchIcon, StarIcon, StarOutlineIcon } from './icons';
+import { AddIcon, CloseIcon, RefreshIcon, SearchIcon, StarIcon, StarOutlineIcon } from './icons';
 import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
@@ -32,6 +32,7 @@ const meta = {
     shape: { control: 'inline-radio', options: SHAPES },
     disabled: { control: 'boolean' },
     tooltip: { control: 'boolean' },
+    pending: { control: 'boolean' },
     icon: { control: false },
   },
 } satisfies Meta<typeof IconButton>;
@@ -189,14 +190,46 @@ export const IconTransitions: StoryObj<{ iconTransition: IconTransition }> = {
   },
 };
 
+/**
+ * `pending` on every variant, size and width: the loading indicator (the icon's size, at least
+ * 24px) replaces the icon after 200ms, and the button keeps its size. Each row is a density.
+ */
+export const Pending: StoryObj<{ pending: boolean }> = {
+  args: { pending: true },
+  render: ({ pending }) => (
+    <DensityColumns className="grid-cols-1">
+      {(density) => (
+        <div className="flex flex-wrap items-center gap-3" data-testid={`pending-${density}`}>
+          {SIZES.flatMap((size, s) =>
+            WIDTHS.map((width, w) => (
+              <IconButton
+                key={`${size}-${width}`}
+                density={density}
+                size={size}
+                width={width}
+                variant={VARIANTS[(s + w) % VARIANTS.length]}
+                pending={pending}
+                icon={<RefreshIcon />}
+                aria-label="Refresh"
+                data-testid={`pending-${density}-${size}-${width}`}
+              />
+            )),
+          )}
+        </div>
+      )}
+    </DensityColumns>
+  ),
+};
+
 /** Layout safety (architecture §10). */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;
   transformedAncestor: boolean;
+  pending: boolean;
 }> = {
-  args: { override: 'none', transformedAncestor: false },
+  args: { override: 'none', transformedAncestor: false, pending: false },
   argTypes: { override: { control: 'select', options: LAYOUT_OVERRIDE_NAMES } },
-  render: function LayoutOverrideStory({ override, transformedAncestor }) {
+  render: function LayoutOverrideStory({ override, transformedAncestor, pending }) {
     const [count, setCount] = useState(0);
     return (
       <div className={transformedAncestor ? 'translate-x-2' : undefined} style={{ minHeight: 200 }}>
@@ -209,6 +242,8 @@ export const LayoutOverride: StoryObj<{
           className={LAYOUT_OVERRIDES[override]}
           icon={<SearchIcon />}
           aria-label="Search"
+          // Left out when off, so the default matrix renders the plain button.
+          pending={pending || undefined}
           onPress={() => setCount((c) => c + 1)}
         />
       </div>

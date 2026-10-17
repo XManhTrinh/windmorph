@@ -23,7 +23,7 @@ import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { useTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
@@ -66,7 +66,7 @@ type Naming =
       'aria-labelledby': string;
     };
 
-interface SliderCommonProps {
+interface SliderCommonProps extends RootDOMProps {
   /** The track's thickness, from XS (a 16px track) to XL. @default "xs" */
   size?: SliderSize;
   /**
@@ -100,7 +100,7 @@ interface SliderCommonProps {
   style?: CSSProperties;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SliderClassNames;
-  /** `data-*` attributes go to the root. */
+  /** `data-*` attributes, like the other DOM attributes, go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
 }
 
@@ -224,7 +224,8 @@ function SliderRoot(props: RootProps) {
   const startIcon = iconSize && !centered ? startIconProp : undefined;
   const endIcon = iconSize && !centered ? endIconProp : undefined;
   const labels = { ...DEFAULT_LABELS, ...(props as RangeSliderProps).labels };
-  const { data, rest: labelling } = splitDataAttributes(rest);
+  // The root is the slider's group: its DOM attributes join the hook's.
+  const { root: data, rest: labelling } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
     'aria-label'?: string;
     'aria-labelledby'?: string;

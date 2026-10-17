@@ -18,7 +18,7 @@ export const switchControl: ComponentAccessibility = {
     states:
       'On or off (`checked`), disabled, and read-only (`aria-readonly`) when `readOnly` is set.',
     notes: [
-      'The thumb, its icons (`icons`, `selectedIcon`, `unselectedIcon`) and the state layer are decorative and hidden from assistive tech (`aria-hidden`).',
+      'The thumb, its icons (`icons`, `checkedIcon`, `uncheckedIcon`) and the state layer are decorative and hidden from assistive tech (`aria-hidden`).',
     ],
   },
   focus: [

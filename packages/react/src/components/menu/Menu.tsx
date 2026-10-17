@@ -73,6 +73,7 @@ export {
   type MenuTriggerProps,
 } from './menu-trigger';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 
 const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -223,17 +224,20 @@ export interface MenuClassNames {
   divider?: string;
 }
 
-export interface MenuProps extends Omit<
-  AriaMenuProps<object>,
-  | 'children'
-  | 'items'
-  | 'onClose'
-  | 'autoFocus'
-  | 'disallowEmptySelection'
-  // The arrow keys always wrap and Escape always closes the menu, as M3's menus do.
-  | 'shouldFocusWrap'
-  | 'escapeKeyBehavior'
-> {
+export interface MenuProps
+  extends
+    Omit<
+      AriaMenuProps<object>,
+      | 'children'
+      | 'items'
+      | 'onClose'
+      | 'autoFocus'
+      | 'disallowEmptySelection'
+      // The arrow keys always wrap and Escape always closes the menu, as M3's menus do.
+      | 'shouldFocusWrap'
+      | 'escapeKeyBehavior'
+    >,
+    Omit<RootDOMProps, keyof AriaMenuProps<object>> {
   /**
    * With `selectionMode`: the last selected item can be deselected, leaving none. `false` keeps
    * at least one item selected. @default true
@@ -694,8 +698,10 @@ function MenuList({
   listRef,
   embedded = false,
   ref: forwardedRef,
-  ...props
+  ...allProps
 }: MenuListProps) {
+  // The menu list is the menu's root (its `ref` and `id` land there): its DOM attributes too.
+  const { root, rest: props } = splitRootProps(allProps);
   // MenuItem / MenuGroup are React Stately Item / Section, so children are a collection.
   assertCollectionChildren(
     props.children,
@@ -731,7 +737,7 @@ function MenuList({
 
   return (
     <div
-      {...mergeProps(menuProps, {
+      {...mergeProps(root, menuProps, {
         // Focus events bubble through portals: count only focus inside this menu's element.
         onFocus: (event: FocusEvent<HTMLDivElement>) => {
           if (event.currentTarget.contains(event.target)) setActive?.(level);
@@ -739,7 +745,7 @@ function MenuList({
       })}
       ref={ref}
       {...densityAttribute(density)}
-      data-tokens={mergeDataTokens('md-comp-menus', menuProps)}
+      data-tokens={mergeDataTokens('md-comp-menus', root)}
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}

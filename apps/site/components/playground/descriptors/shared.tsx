@@ -165,11 +165,14 @@ export function adjustToggleForm(
   if (toggleOnly.includes(changed) && next[changed] === true) next.toggle = true;
   if (changed === 'toggle' && next.toggle === false) off();
   if (changed === 'href' && typeof next.href === 'string' && next.href !== '') off();
+  // A toggle's state is its selection: it has no pending state (the types say so).
+  if (changed === 'pending' && next.pending === true) off();
   if (changed === 'variant' && noToggleVariant !== undefined && next.variant === noToggleVariant) {
     off();
   }
   if (next.toggle === true) {
     next.href = undefined;
+    if ('pending' in next) next.pending = false;
     if (noToggleVariant !== undefined && next.variant === noToggleVariant) {
       next.variant = fallbackVariant;
     }

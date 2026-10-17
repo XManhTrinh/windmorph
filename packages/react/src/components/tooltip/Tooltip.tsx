@@ -54,6 +54,7 @@ import {
   type TooltipTriggerProps,
 } from './tooltip-trigger';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import type { RootDOMProps } from '../../utils/root-props';
 
 export {
   TooltipPlacementContext,
@@ -125,7 +126,15 @@ export interface TooltipClassNames {
   caret?: string;
 }
 
-export interface TooltipProps {
+/**
+ * The outermost element's DOM attributes (`data-*`, `aria-*`, `title`, pointer events). A
+ * `data-tokens` value joins the surface's token set instead, where the tokens resolve.
+ */
+type PopupDOMProps = RootDOMProps & {
+  [data: `data-${string}`]: string | number | boolean | undefined;
+};
+
+export interface TooltipProps extends PopupDOMProps {
   /** The label: a few words, with no links or buttons (use a rich tooltip for those). */
   children: ReactNode;
   /** Draw a 16×8px caret pointing at the anchor. @default false */
@@ -167,6 +176,7 @@ function TooltipPopup({
   context,
   isExiting,
   exitProps,
+  ...rest
 }: TooltipProps & {
   context: TooltipContextValue;
   isExiting: boolean;
@@ -189,9 +199,10 @@ function TooltipPopup({
   });
   const side = revealSide(placement, requested);
   const styles = tooltipStyles();
+  const { 'data-tokens': appTokens, ...dom } = rest;
   return (
     <div
-      {...overlayProps}
+      {...mergeProps(dom, overlayProps)}
       style={{ ...style, ...overlayProps.style }}
       ref={overlayRef}
       // Only React Aria's insets apply (styles/utilities.css).
@@ -201,7 +212,9 @@ function TooltipPopup({
       <div
         {...mergeProps(tooltipProps, exitProps)}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens={mergeDataTokens('md-comp-plain-tooltip', tooltipProps)}
+        data-tokens={mergeDataTokens('md-comp-plain-tooltip', {
+          'data-tokens': appTokens ?? (tooltipProps as { 'data-tokens'?: unknown })['data-tokens'],
+        })}
         data-placement={side}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}
@@ -345,7 +358,7 @@ export interface RichTooltipClassNames {
   caret?: string;
 }
 
-export interface RichTooltipProps {
+export interface RichTooltipProps extends Omit<PopupDOMProps, 'title'> {
   /** Supporting text. */
   children: ReactNode;
   /** Subhead; it also names a persistent tooltip. */
@@ -576,6 +589,7 @@ function RichBody({
   placement,
   arrowProps,
   isExiting,
+  ...rest
 }: RichTooltipProps & {
   popupRef: RefObject<HTMLDivElement | null>;
   titleId: string;
@@ -588,9 +602,11 @@ function RichBody({
   isExiting: boolean;
 }) {
   const styles = richTooltipStyles({ subhead: title != null, action: action != null });
+  // The ref already reached `popupRef`, and `aria-label` names the dialog through `domProps`.
+  const { 'data-tokens': appTokens, 'aria-label': _label, ref: _ref, ...dom } = rest;
   return (
     <div
-      {...positionProps}
+      {...mergeProps(dom, positionProps)}
       style={{ ...style, ...positionProps.style }}
       ref={popupRef}
       data-overlay-placement=""
@@ -599,7 +615,9 @@ function RichBody({
       <div
         {...domProps}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens={mergeDataTokens('md-comp-rich-tooltip', domProps)}
+        data-tokens={mergeDataTokens('md-comp-rich-tooltip', {
+          'data-tokens': appTokens ?? (domProps as { 'data-tokens'?: unknown })['data-tokens'],
+        })}
         data-placement={placement}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}

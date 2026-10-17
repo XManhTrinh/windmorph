@@ -112,8 +112,8 @@ export async function SwitchBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>icons</InlineCode> shows the default check / close marks;{' '}
-              <InlineCode>selectedIcon</InlineCode> / <InlineCode>unselectedIcon</InlineCode>{' '}
-              override them.
+              <InlineCode>checkedIcon</InlineCode> / <InlineCode>uncheckedIcon</InlineCode> override
+              them.
             </li>
           </ul>
         </section>

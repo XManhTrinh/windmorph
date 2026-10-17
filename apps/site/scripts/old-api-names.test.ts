@@ -39,6 +39,7 @@ const REPLACED: Record<string, string> = {
   excludeFromTabOrder: 'tabIndex={-1}',
   selectedKey: 'value',
   defaultSelectedKey: 'defaultValue',
+  unselectedIcon: 'uncheckedIcon',
 };
 
 /** Patterns for old values and props that are also everyday words. */
@@ -49,6 +50,7 @@ const OLD_PATTERNS: [RegExp, string][] = [
   [/<(?:Fab|FabMenu)\b[^>]*\bsize=["'](?:medium|large)["']/, "size 'md' / 'lg'"],
   [/<ListItemVideo\b[^>]*\bsize=["'](?:small|large)["']/, "size 'sm' / 'lg'"],
   [/<Slider\b[^>]*\b(?:startIcon|endIcon)=/, 'leadingIcon / trailingIcon'],
+  [/<Switch\b[^>]*\bselectedIcon=/, 'checkedIcon'],
 ];
 
 /** A name used as code: a JSX attribute, an object key, a code span or a quoted string. */

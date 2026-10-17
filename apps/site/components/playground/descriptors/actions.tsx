@@ -51,6 +51,12 @@ const NO_VISIBLE_EFFECT = {
   preventFocusOnPress: 'Only keeps focus where it was on press; nothing the preview shows.',
 };
 
+/** Why a pending button's own indicator has no control. */
+const PENDING_INDICATOR = {
+  pendingIndicator:
+    'Takes an element (another indicator, such as a CircularProgressIndicator); the Pending example shows one.',
+};
+
 /** A button's `value`, besides {@link NO_VISIBLE_EFFECT}. */
 const SELECTION_VALUE = {
   value: 'Only identifies the button in a selection group; nothing the preview shows.',
@@ -108,6 +114,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       toggle: false,
       selected: false,
       selectedLeadingIcon: false,
+      pending: false,
     },
     surfacedProps: [
       'variant',
@@ -117,6 +124,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'toggle',
       'selected',
       'selectedLeadingIcon',
+      'pending',
       'disabled',
       'dragged',
       'href',
@@ -127,7 +135,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
     controlKinds: { leadingIcon: 'boolean', selectedLeadingIcon: 'boolean' },
     toggledSlots: { leadingIcon: STAR_OUTLINE, selectedLeadingIcon: STAR },
-    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE, ...PENDING_INDICATOR },
     codeChildren: 'Favourite',
   },
   'icon-button': {
@@ -156,6 +164,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       selected: false,
       selectedIcon: false,
       iconTransition: 'swap',
+      pending: false,
       disabled: false,
       dragged: false,
     },
@@ -170,6 +179,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'selectedIcon',
       'iconTransition',
       'tooltip',
+      'pending',
       'disabled',
       'dragged',
       'href',
@@ -183,6 +193,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         next.selectedIcon = true;
         next.toggle = true;
         next.href = undefined;
+        next.pending = false;
       }
       if (next.toggle !== true || next.selectedIcon !== true) next.iconTransition = 'swap';
       return next;
@@ -190,7 +201,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     enumOptions: DENSITY_OPTIONS,
     controlKinds: { selectedIcon: 'boolean', density: 'number' },
     toggledSlots: { selectedIcon: STAR },
-    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE, ...PENDING_INDICATOR },
     codeSlots: { icon: STAR_OUTLINE, 'aria-label': '"Favourite"' },
   },
   'button-group': {

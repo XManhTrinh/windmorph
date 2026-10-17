@@ -33,7 +33,7 @@ import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { KeyboardIcon, ScheduleIcon } from '../date-picker/picker-icons';
 import { useMediaQuery } from '../date-picker/use-media-query';
 import { IconButton } from '../icon-button/IconButton';
@@ -94,7 +94,7 @@ export interface TimePickerClassNames {
 
 export type TimePickerMode = 'dial' | 'input';
 
-export interface TimePickerProps {
+export interface TimePickerProps extends RootDOMProps {
   /** Controlled time (`@internationalized/date` `Time`). */
   value?: Time;
   /** Initial time when uncontrolled. @default 12:00 */
@@ -192,7 +192,7 @@ export function TimePicker({
   classNames,
   ...rest
 }: TimePickerProps) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest);
   const { locale } = useLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
   const [time, setTime] = useControlledState(value, defaultValue ?? new Time(12, 0), onChange);
@@ -307,7 +307,7 @@ export function TimePicker({
   );
 }
 
-export interface TimePickerModeToggleProps {
+export interface TimePickerModeToggleProps extends RootDOMProps<HTMLButtonElement> {
   /** The time picker's mode; the toggle switches to the other one. */
   mode: TimePickerMode;
   /** Called with the other mode when the toggle is pressed. */
@@ -352,10 +352,12 @@ export function TimePickerModeToggle({
   style,
   id,
   ref,
+  ...dom
 }: TimePickerModeToggleProps) {
   const room = useTimePickerRoom();
   if (room === 'none') return null;
-  const own = { className, style, id, ref };
+  // The icon button is the toggle's root: it takes the DOM attributes too.
+  const own = { ...dom, className, style, id, ref };
   return mode === 'dial' ? (
     <IconButton
       variant="standard"

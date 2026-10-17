@@ -15,6 +15,7 @@ const IconButtonToggleVariants = lazyExample(
   'icon-button/icon-button-toggle-variants',
   'IconButtonToggleVariants',
 );
+const IconButtonPending = lazyExample('icon-button/icon-button-pending', 'IconButtonPending');
 const IconButtonDensityExample = lazyExample(
   'icon-button/icon-button-density',
   'IconButtonDensity',
@@ -46,6 +47,8 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
 
   const densitySource = await readExampleSource('icon-button/icon-button-density.tsx');
   const densityHtml = await highlightSource(densitySource);
+  const pendingSource = await readExampleSource('icon-button/icon-button-pending.tsx');
+  const pendingHtml = await highlightSource(pendingSource);
   return {
     tokens: [iconButtonTokenSet],
     overview: (
@@ -103,6 +106,14 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
             <IconButtonToggleVariants />
           </ExampleViewer>
           <ExampleViewer
+            title="Pending"
+            code={pendingSource}
+            html={pendingHtml}
+            fileName="icon-button-pending.tsx"
+          >
+            <IconButtonPending />
+          </ExampleViewer>
+          <ExampleViewer
             title="Density"
             code={densitySource}
             html={densityHtml}
@@ -143,6 +154,12 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               For a toggle, show the outlined icon when unselected and its filled form when selected
               (<InlineCode>selectedIcon</InlineCode>). If an icon has no filled version, use a
               semibold weight of it for the selected state instead.
+            </li>
+            <li>
+              Set <InlineCode>pending</InlineCode> while an action the button started runs (a
+              refresh, a sync): the icon gives way to a loading indicator after 200ms and the button
+              keeps its size and focus. Don&apos;t give every icon button in a list a pending state,
+              and announce the result yourself.
             </li>
           </ul>
         </section>
@@ -191,6 +208,13 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               <InlineCode>iconButtonVariant</InlineCode> from <InlineCode>ButtonContext</InlineCode>
               , but not the Button <InlineCode>variant</InlineCode>, because the variant sets
               differ.
+            </li>
+            <li>
+              <InlineCode>pending</InlineCode> follows M3&apos;s guidance on loading indicators in
+              buttons (no Compose parameter): the <InlineCode>LoadingIndicator</InlineCode> at the
+              icon&apos;s size, 24px at least, in the icon&apos;s colour. The name gains
+              &ldquo;Loading&rdquo; (<InlineCode>labels.pending</InlineCode>); the tooltip keeps
+              showing the <InlineCode>aria-label</InlineCode>.
             </li>
           </ul>
         </section>

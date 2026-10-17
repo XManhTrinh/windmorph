@@ -18,7 +18,7 @@ import { useNumberFormatter, useObjectRef } from 'react-aria';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import {
   createStrategy,
   heroKeylineList,
@@ -89,7 +89,7 @@ type Naming =
       'aria-labelledby': string;
     };
 
-interface CarouselOwnProps {
+interface CarouselOwnProps extends RootDOMProps {
   /** The root element's id. */
   id?: string;
   /**
@@ -149,7 +149,7 @@ interface CarouselOwnProps {
   style?: CSSProperties;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: CarouselClassNames;
-  /** `data-*` attributes go to the root. */
+  /** `data-*` attributes, like the other DOM attributes, go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
 }
 
@@ -221,7 +221,7 @@ export function Carousel({
   classNames,
   ...rest
 }: CarouselProps) {
-  const { data, rest: labelling } = splitDataAttributes(rest);
+  const { root: data, rest: labelling } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
     'aria-label'?: string;
     'aria-labelledby'?: string;
