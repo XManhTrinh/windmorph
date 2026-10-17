@@ -51,22 +51,10 @@ export type RootDOMProps<E extends Element = HTMLDivElement> = Pick<
  * and pass `rest` to the hook. A component whose hook labels the root itself (a radio group, a
  * slider's group) merges both there.
  *
- * Server-callable: it is a plain function, so it can run in a Server Component.
- *
  * @example
- * ```tsx
- * function QuantityField({ label, ...props }: AriaTextFieldProps & RootDOMProps) {
- *   const ref = useRef<HTMLInputElement>(null);
- *   const { root, rest } = splitRootProps(props);
- *   const { labelProps, inputProps } = useTextField({ ...rest, label }, ref);
- *   return (
- *     <div {...root}>
- *       <label {...labelProps}>{label}</label>
- *       <input {...inputProps} ref={ref} />
- *     </div>
- *   );
- * }
- * ```
+ * const { root, rest } = splitRootProps(props);
+ * const { labelProps, inputProps } = useTextField(rest, inputRef);
+ * return <div {...root}>…</div>;
  */
 export function splitRootProps<T extends object>(
   props: T,
