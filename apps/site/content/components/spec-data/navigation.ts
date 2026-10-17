@@ -205,7 +205,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         composable: 'ShortNavigationBarItem',
         component: 'NavigationBarItem',
         params: [
-          { compose: 'iconPosition', windmorph: 'the bar’s `iconPosition`' },
+          { compose: 'iconPosition', windmorph: 'the bar’s `iconPlacement`' },
           { compose: 'selected', windmorph: '`selected`' },
           { compose: 'onClick', windmorph: '`onPress` or `href`' },
           { compose: 'icon', windmorph: '`icon` / `selectedIcon`' },
@@ -505,7 +505,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
           },
           { compose: 'content', windmorph: '`children`' },
           { compose: 'floatingActionButton', windmorph: '`fab` (a `ToolbarFab`)' },
-          { compose: 'floatingActionButtonPosition', windmorph: '`fabPosition`' },
+          { compose: 'floatingActionButtonPosition', windmorph: '`fabPlacement`' },
           {
             compose: 'colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors()',
             windmorph: '`color="vibrant"`',

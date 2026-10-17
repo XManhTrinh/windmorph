@@ -615,7 +615,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       value: NONE,
       required: false,
       disabled: false,
-      controlPlacement: 'leading',
+      controlPlacement: 'start',
       dividers: NONE,
       selectionIndicator: true,
       headlineLines: NONE,

@@ -295,14 +295,14 @@ function adjustToolbarContent(
   values: Record<string, unknown>,
   changed: string,
 ): Record<string, unknown> {
-  const fabControl = changed === 'fabPosition' || changed.startsWith('fab.');
+  const fabControl = changed === 'fabPlacement' || changed.startsWith('fab.');
   if ((changed === 'fab' && values.fab === true) || fabControl) {
     return { ...values, fab: true, leading: false, trailing: false };
   }
   if ((changed === 'leading' || changed === 'trailing') && values[changed] === true) {
-    return { ...values, fab: false, fabPosition: 'end' };
+    return { ...values, fab: false, fabPlacement: 'end' };
   }
-  if (changed === 'fab' && values.fab === false) return { ...values, fabPosition: 'end' };
+  if (changed === 'fab' && values.fab === false) return { ...values, fabPlacement: 'end' };
   return values;
 }
 
@@ -376,10 +376,10 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         "The destinations, composed in the preview as the bar's children; their icons, badges and links are per destination, as the examples show.",
     },
     render: (props) => <BarPreview {...props} />,
-    defaultProps: { iconPosition: 'top', arrangement: UNSET, scrollBehavior: 'pinned' },
-    surfacedProps: ['iconPosition', 'arrangement', 'scrollBehavior'],
+    defaultProps: { iconPlacement: 'top', arrangement: UNSET, scrollBehavior: 'pinned' },
+    surfacedProps: ['iconPlacement', 'arrangement', 'scrollBehavior'],
     enumOptions: {
-      iconPosition: ['top', 'start'],
+      iconPlacement: ['top', 'start'],
       arrangement: [UNSET, 'equal', 'centered'],
       scrollBehavior: ['pinned', 'hide-on-scroll'],
     },
@@ -648,7 +648,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       leading: false,
       trailing: false,
       fab: false,
-      fabPosition: 'end',
+      fabPlacement: 'end',
       'fab.color': UNSET,
       'fab.expandedIcon': false,
       'fab.iconTransition': 'swap',
@@ -668,7 +668,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'leading',
       'trailing',
       'fab',
-      'fabPosition',
+      'fabPlacement',
       'fab.color',
       'fab.expandedIcon',
       'fab.iconTransition',
@@ -685,7 +685,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       orientation: ['horizontal', 'vertical'],
       color: ['standard', 'vibrant'],
       exitEdge: ['bottom', 'top', 'start', 'end'],
-      fabPosition: ['end', 'start', 'top', 'bottom'],
+      fabPlacement: ['end', 'start', 'top', 'bottom'],
       'fab.color': [UNSET, 'standard', 'vibrant'],
       'fab.iconTransition': ['swap', 'rotate'],
       'fab.elevation': ['default', 'lowered', 'flat'],

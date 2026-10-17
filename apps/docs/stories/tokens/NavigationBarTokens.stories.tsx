@@ -11,16 +11,16 @@ const DESTINATIONS = [
 
 /** A bar whose second item is current, so the first shows the resting colours. */
 function Sample({
-  iconPosition,
+  iconPlacement,
   className,
 }: {
-  iconPosition: 'top' | 'start';
+  iconPlacement: 'top' | 'start';
   className?: string;
 }) {
   return (
     <NavigationBar
-      aria-label={`Bar ${iconPosition}`}
-      iconPosition={iconPosition}
+      aria-label={`Bar ${iconPlacement}`}
+      iconPlacement={iconPlacement}
       className={className}
     >
       {DESTINATIONS.map(({ label, icon }, index) => (
@@ -45,14 +45,14 @@ export const Probe: StoryObj = {
     <TokenProbe
       instances={
         <>
-          <Sample iconPosition="top" />
-          <Sample iconPosition="start" />
+          <Sample iconPlacement="top" />
+          <Sample iconPlacement="start" />
         </>
       }
-      scoped={<Sample iconPosition="top" />}
+      scoped={<Sample iconPlacement="top" />}
       override={{
         token: '--md-comp-nav-bar-container-color',
-        children: <Sample iconPosition="top" className="bg-tertiary" />,
+        children: <Sample iconPlacement="top" className="bg-tertiary" />,
       }}
     />
   ),

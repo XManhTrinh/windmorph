@@ -13,7 +13,7 @@ import {
 /**
  * Vertical floating toolbars, for medium and larger windows, where they sit 24px from the
  * window's start or end edge. One is standard and one vibrant (`primary-container`); the
- * second carries a `ToolbarFab`, which sits below the toolbar (`fabPosition="bottom"`).
+ * second carries a `ToolbarFab`, which sits below the toolbar (`fabPlacement="bottom"`).
  * Tab, or the up and down arrow keys, move between the controls.
  */
 export function ToolbarVertical() {
@@ -28,7 +28,7 @@ export function ToolbarVertical() {
         aria-label="Photo actions"
         orientation="vertical"
         color="vibrant"
-        fabPosition="bottom"
+        fabPlacement="bottom"
         fab={<ToolbarFab icon={<EditIcon />} aria-label="Edit photo" />}
       >
         <IconButton icon={<ShareIcon />} aria-label="Share" />

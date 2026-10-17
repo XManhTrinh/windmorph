@@ -138,12 +138,12 @@ export const WithFab: Story = {
     <div className="flex items-start gap-8" data-testid="with-fab">
       <div className="flex flex-col items-start gap-6">
         {(['standard', 'vibrant'] as const).map((color) =>
-          (['end', 'start'] as const).map((fabPosition) => (
+          (['end', 'start'] as const).map((fabPlacement) => (
             <FloatingToolbar
-              key={`${color}-${fabPosition}`}
-              aria-label={`${color} ${fabPosition}`}
+              key={`${color}-${fabPlacement}`}
+              aria-label={`${color} ${fabPlacement}`}
               color={color}
-              fabPosition={fabPosition}
+              fabPlacement={fabPlacement}
               fab={<ToolbarFab icon={<AddIcon />} aria-label="New" />}
             >
               {formatting}
@@ -169,7 +169,7 @@ export const WithFab: Story = {
         aria-label="vertical top"
         orientation="vertical"
         color="vibrant"
-        fabPosition="top"
+        fabPlacement="top"
         fab={<ToolbarFab icon={<AddIcon />} aria-label="New" />}
       >
         {formatting}

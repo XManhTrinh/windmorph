@@ -13,14 +13,14 @@ const DESTINATIONS = [
 
 /**
  * The flexible bar for medium windows: the icon sits beside the label in a pill
- * (`iconPosition="start"`). These items keep their own width and are centred, with the
+ * (`iconPlacement="start"`). These items keep their own width and are centred, with the
  * extra space at the bar's ends.
  */
 export function BarInline() {
   const [current, setCurrent] = useState('home');
   return (
     <div className="w-full overflow-hidden rounded-corner-large border border-outline-variant">
-      <NavigationBar aria-label="Inline example" iconPosition="start">
+      <NavigationBar aria-label="Inline example" iconPlacement="start">
         {DESTINATIONS.map(({ id, label, icon }) => (
           <NavigationBarItem
             key={id}

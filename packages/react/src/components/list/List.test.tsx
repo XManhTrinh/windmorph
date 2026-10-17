@@ -384,7 +384,7 @@ describe('List (switch and checkbox items)', () => {
         <ListItem key="b" control="checkbox">
           Alice
         </ListItem>
-        <ListItem key="c" control="checkbox" controlPlacement="trailing">
+        <ListItem key="c" control="checkbox" controlPlacement="end">
           Bob
         </ListItem>
       </List>,
@@ -498,7 +498,7 @@ describe('List (radio lists)', () => {
         aria-label="Language"
         value="en"
         onValueChange={onValueChange}
-        controlPlacement="trailing"
+        controlPlacement="end"
         name="locale"
       >
         <ListItem key="en" value="en">

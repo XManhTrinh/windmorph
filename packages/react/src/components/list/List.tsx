@@ -125,7 +125,7 @@ export interface ListItemProps {
   defaultChecked?: boolean;
   /** Called when a switch or checkbox item is toggled. */
   onCheckedChange?: (checked: boolean) => void;
-  /** Where the switch, checkbox or radio button sits. @default "leading", or "trailing" for a switch */
+  /** Where the switch, checkbox or radio button sits, at the start or end of the row. @default "start", or "end" for a switch */
   controlPlacement?: ControlPlacement;
   /** A radio list item's value, or the value a switch or checkbox item posts with its form. */
   value?: string;
@@ -158,7 +158,7 @@ export interface ListItemProps {
 /** How many lines a text shows before it ends with "…"; the full text stays in the DOM. */
 export type LineLimit = 1 | 2 | 3;
 
-type ControlPlacement = 'leading' | 'trailing';
+type ControlPlacement = 'start' | 'end';
 
 /** A collection node as React Stately's collection builder reads it. */
 interface ListItemNode {
@@ -413,7 +413,7 @@ interface ListOwnProps {
   required?: boolean;
   /** Disables every item. @default false */
   disabled?: boolean;
-  /** Where a radio list's radio buttons sit. @default "leading" */
+  /** Where a radio list's radio buttons sit, at the start or end of each row. @default "start" */
   controlPlacement?: ControlPlacement;
   /**
    * M3's dividers between items: `full` width, or `inset` 16dp from each side. Standard
@@ -640,8 +640,8 @@ function ItemContent({
    */
   textHidden?: boolean;
 }) {
-  const leading = controlPlacement === 'leading' ? control : null;
-  const trailing = controlPlacement === 'trailing' ? control : end;
+  const leading = controlPlacement === 'start' ? control : null;
+  const trailing = controlPlacement === 'end' ? control : end;
   return (
     <>
       {(item.leading != null || leading != null) && (
@@ -1913,7 +1913,7 @@ function ToggleItem({ item, control, listDisabled, ...view }: ToggleItemProps) {
       isSelected={isSelected}
       isDisabled={isDisabled}
       isPressed={isPressed}
-      placement={item.controlPlacement ?? (control === 'switch' ? 'trailing' : 'leading')}
+      placement={item.controlPlacement ?? (control === 'switch' ? 'end' : 'start')}
     />
   );
 }
@@ -1930,7 +1930,7 @@ function RadioList({
   name,
   required,
   disabled,
-  controlPlacement = 'leading',
+  controlPlacement = 'start',
   entries,
   ...rest
 }: ListProps & { entries: ReactElement[] }) {

@@ -39,3 +39,5 @@ The arrow keys wrap at the ends of a `Menu` and of the `Select` and `Autocomplet
 `Tabs` takes `value`, `defaultValue` and `onChange`, as `Select` and `RadioGroup` do, instead of `selectedKey`, `defaultSelectedKey` and `onSelectionChange`. Disabled tabs stay focusable, so screen reader users find them, but can't be selected.
 
 Disabled items in an interactive `List` (actions, selection or nested items) take focus with the arrow keys, as the WAI-ARIA practices recommend, but can't be pressed, selected, expanded or followed.
+
+Placement props share one vocabulary: `NavigationBar` takes `iconPlacement` (was `iconPosition`, now matching `Tabs`), `FloatingToolbar` takes `fabPlacement` (was `fabPosition`), and `List` / `ListItem` `controlPlacement` takes `start` or `end` (was `leading` or `trailing`).

@@ -184,15 +184,15 @@ export const RailStates: Story = {
 };
 
 function BarDemo({
-  iconPosition,
+  iconPlacement,
   destinations = DESTINATIONS,
 }: {
-  iconPosition: 'top' | 'start';
+  iconPlacement: 'top' | 'start';
   destinations?: typeof DESTINATIONS;
 }) {
   const [current, setCurrent] = useState('home');
   return (
-    <NavigationBar aria-label={`Bar ${iconPosition}`} iconPosition={iconPosition}>
+    <NavigationBar aria-label={`Bar ${iconPlacement}`} iconPlacement={iconPlacement}>
       {destinations.map(({ id, label, icon }) => (
         <NavigationBarItem
           key={id}
@@ -220,11 +220,11 @@ export const Bar: Story = {
   render: () => (
     <div className="flex w-[600px] flex-col gap-6" data-testid="bars">
       <div className="w-[412px]">
-        <BarDemo iconPosition="top" />
+        <BarDemo iconPlacement="top" />
       </div>
-      <BarDemo iconPosition="start" />
+      <BarDemo iconPlacement="start" />
       <div className="w-[320px]">
-        <BarDemo iconPosition="top" destinations={LONG_LABELS} />
+        <BarDemo iconPlacement="top" destinations={LONG_LABELS} />
       </div>
     </div>
   ),

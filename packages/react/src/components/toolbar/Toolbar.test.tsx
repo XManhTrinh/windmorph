@@ -467,7 +467,7 @@ describe('FloatingToolbar', () => {
         aria-label="Actions"
         color="vibrant"
         expanded={false}
-        fabPosition="start"
+        fabPlacement="start"
         fab={<ToolbarFab icon={<Icon />} aria-label="New" />}
       >
         {button('Search')}
@@ -505,7 +505,7 @@ describe('FloatingToolbar', () => {
     const fab = <ToolbarFab icon={<Icon />} aria-label="New" />;
     const noFab = (
       // @ts-expect-error a FAB position needs a FAB
-      <FloatingToolbar aria-label="A" fabPosition="end">
+      <FloatingToolbar aria-label="A" fabPlacement="end">
         x
       </FloatingToolbar>
     );
@@ -516,7 +516,7 @@ describe('FloatingToolbar', () => {
       </FloatingToolbar>
     );
     const vertical = (
-      <FloatingToolbar aria-label="A" orientation="vertical" fab={fab} fabPosition="top">
+      <FloatingToolbar aria-label="A" orientation="vertical" fab={fab} fabPlacement="top">
         x
       </FloatingToolbar>
     );
