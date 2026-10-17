@@ -69,6 +69,7 @@ import { CheckboxBox } from '../checkbox/checkbox-box';
 import { RadioRing } from '../radio/radio-ring';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
 import { switchStyles } from '../switch/switch-styles';
+import { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useKeepPressedInPlace } from '../../utils/keep-pressed-in-place';
 import { useNearestReveal } from '../../utils/nearest-reveal';
@@ -1037,6 +1038,9 @@ function CollectionList({
     ...(ariaProps as unknown as AriaGridListProps<object>),
     disabledKeys: disabledKeys.size > 0 ? disabledKeys : rest.disabledKeys,
     disallowEmptySelection: !deselectable,
+    // Disabled items stay focusable (WAI-ARIA APG, "Focusability of disabled controls"); each row
+    // keeps only its focus handlers, so it can't be pressed, chosen, expanded or followed.
+    ...FOCUSABLE_DISABLED_OPTIONS,
     shouldFocusWrap: true,
   };
   const root: CollectionRootProps = {
@@ -1213,8 +1217,15 @@ function GridListRow({
 }) {
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
-  const { rowProps, gridCellProps, descriptionProps, isPressed, isSelected, isDisabled } =
-    useGridListItem({ node }, state, ref);
+  const {
+    rowProps: ownRowProps,
+    gridCellProps,
+    descriptionProps,
+    isPressed,
+    isSelected,
+  } = useGridListItem({ node }, state, ref);
+  const isDisabled = state.disabledKeys.has(node.key);
+  const rowProps = isDisabled ? focusOnly(ownRowProps) : ownRowProps;
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1230,6 +1241,7 @@ function GridListRow({
     <div
       {...mergeProps(rowProps, hoverProps, interactionProps)}
       {...dataAttributes}
+      aria-disabled={isDisabled || undefined}
       ref={ref}
       data-selected={isSelected || undefined}
       data-shape={shape}
@@ -1251,6 +1263,18 @@ function GridListRow({
 }
 
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A disabled item's props: its role, ARIA, id, tab index and focus handlers, but no press, key
+ * or pointer handlers, so it takes focus (APG) and does nothing else.
+ */
+function focusOnly<T extends object>(props: T): T {
+  return Object.fromEntries(
+    Object.entries(props).filter(
+      ([name]) => !/^on[A-Z]/.test(name) || name === 'onFocus' || name === 'onBlur',
+    ),
+  ) as T;
+}
 
 /** A list box of options: M3's single- and multi-select lists on the web. */
 function ListBoxList({
@@ -1360,11 +1384,15 @@ function OptionRow({
 }) {
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
-  const { optionProps, isPressed, isSelected, isDisabled } = useOption(
-    { key: node.key },
-    state,
-    ref,
-  );
+  const {
+    optionProps: ownOptionProps,
+    isPressed,
+    isSelected,
+  } = useOption({ key: node.key }, state, ref);
+  const isDisabled = state.disabledKeys.has(node.key);
+  const optionProps = isDisabled
+    ? { ...focusOnly(ownOptionProps), 'aria-disabled': true }
+    : ownOptionProps;
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1747,16 +1775,10 @@ function TreeRow({
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
   const siblingOrder = withSiblingOrder(state, node);
-  const {
-    rowProps,
-    gridCellProps,
-    descriptionProps,
-    expandButtonProps,
-    isPressed,
-    isSelected,
-    isDisabled,
-  } = useTreeItem({ node: siblingOrder.node, hasChildItems: node.hasChildNodes }, state, ref);
+  const { rowProps, gridCellProps, descriptionProps, expandButtonProps, isPressed, isSelected } =
+    useTreeItem({ node: siblingOrder.node, hasChildItems: node.hasChildNodes }, state, ref);
   siblingOrder.restore();
+  const isDisabled = state.disabledKeys.has(node.key);
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1786,8 +1808,9 @@ function TreeRow({
     ) : null;
   return (
     <div
-      {...mergeProps(rowProps, hoverProps, interactionProps)}
+      {...mergeProps(isDisabled ? focusOnly(rowProps) : rowProps, hoverProps, interactionProps)}
       {...dataAttributes}
+      aria-disabled={isDisabled || undefined}
       ref={ref}
       style={{ '--m3-list-level': node.level } as CSSProperties}
       data-selected={isSelected || undefined}

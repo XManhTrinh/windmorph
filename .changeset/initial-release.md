@@ -37,3 +37,5 @@ React Aria's own prop names no longer leak through: `Autocomplete` takes `allowC
 The arrow keys wrap at the ends of a `Menu` and of the `Select` and `Autocomplete` option lists, as they do in lists, tabs and toolbars.
 
 `Tabs` takes `value`, `defaultValue` and `onChange`, as `Select` and `RadioGroup` do, instead of `selectedKey`, `defaultSelectedKey` and `onSelectionChange`. Disabled tabs stay focusable, so screen reader users find them, but can't be selected.
+
+Disabled items in an interactive `List` (actions, selection or nested items) take focus with the arrow keys, as the WAI-ARIA practices recommend, but can't be pressed, selected, expanded or followed.

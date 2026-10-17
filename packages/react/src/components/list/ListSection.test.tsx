@@ -142,7 +142,13 @@ describe('ListSection (grid list)', () => {
     await userEvent.keyboard('{ArrowDown}{ArrowDown}');
     // From the last item of one section to the first of the next.
     expect(row('Brightness')).toHaveFocus();
-    // The disabled item is skipped.
+    // The disabled item takes focus (WAI-ARIA APG) but does nothing.
+    await userEvent.keyboard('{ArrowDown}');
+    const dark = screen.getByRole('row', { name: /Dark/ });
+    expect(dark).toHaveFocus();
+    expect(dark).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.keyboard('{Enter}');
+    expect(onAction).not.toHaveBeenCalled();
     await userEvent.keyboard('{ArrowDown}');
     expect(row('Font size')).toHaveFocus();
     await userEvent.keyboard('{ArrowDown}');
