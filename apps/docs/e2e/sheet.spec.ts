@@ -1258,6 +1258,53 @@ test.describe('Start-edge side sheet', () => {
     });
   }
 
+  for (const { name, globals, forced } of [
+    { name: 'forest', globals: { theme: 'forest' } },
+    { name: 'dark', globals: { mode: 'dark' } },
+    { name: 'forced-colors', globals: {}, forced: true },
+  ] as const) {
+    test(`start edge · ${name}`, async ({ page }) => {
+      await page.setViewportSize({ width: 800, height: 600 });
+      if (forced) await page.emulateMedia({ forcedColors: 'active' });
+      await openStory(page, 'components-sheet--side', globals, { edge: 'start' });
+      await page.getByRole('button', { name: 'Open filters' }).click();
+      await expect(page.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+      await settle(page);
+      await expect(page).toHaveScreenshot(`side-start-${name}.png`);
+    });
+  }
+
+  test.describe('mid-drag', () => {
+    test.use({ hasTouch: true });
+
+    test('a swipe toward the start edge moves the sheet with the finger', async ({ page }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await openStory(page, 'components-sheet--side-swipe', {}, { edge: 'start' });
+      await page.getByRole('button', { name: 'Open filters' }).click();
+      const sheet = page.getByRole('dialog', { name: 'Filters' });
+      await settle(page);
+      const box = await rect(sheet);
+      const cdp = await touchSession(page);
+      const at = (x: number) => ({ x, y: box.y + 300, radiusX: 6, radiusY: 6 });
+      const from = box.right - 40;
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [at(from)] });
+      for (let step = 1; step <= 8; step++) {
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [at(from - step * 10)],
+        });
+        await page.waitForTimeout(16);
+      }
+      // Held 80px toward the edge (short of half): the sheet follows, the scrim stays.
+      await expect(sheet).toHaveAttribute('data-dragging', 'true');
+      expect((await rect(sheet)).x).toBe(box.x - 80);
+      await expect(page).toHaveScreenshot('side-start-mid-drag.png');
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await settle(page);
+      expect((await rect(sheet)).x).toBe(box.x);
+    });
+  });
+
   test('a standard sheet on the start edge puts its divider on the content side', async ({
     page,
   }) => {
