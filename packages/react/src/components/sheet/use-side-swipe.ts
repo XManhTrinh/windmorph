@@ -10,17 +10,16 @@ import {
   type TransitionEvent,
 } from 'react';
 import { useThemeScope } from '../../theme/context';
-import { SPRINGS } from '../../tokens/motion';
-import { springWithVelocityToLinearEasing } from '../../tokens/spring-velocity';
+import { ownsGesture } from './sheet-gesture';
 import {
-  edgeSign,
-  ownsGesture,
+  EXIT_DISTANCE,
+  releaseMotion,
   releaseVelocity,
-  sideSwipeGesture,
+  settleTarget,
   type DragSample,
-  type SwipeGesture,
-} from './sheet-gesture';
-import { settleTarget } from './sheet-settle';
+  type ReleaseMotion,
+} from './sheet-settle';
+import { edgeSign, sideSwipeGesture, type SwipeGesture } from './side-swipe-gesture';
 
 interface SideSwipeOptions {
   /** Whether a swipe may close the sheet (`swipeable`, and `closedBy` isn't `none`). */
@@ -39,8 +38,6 @@ interface SideSwipeOptions {
 
 /** The share of the sheet's width a slow swipe must pass to close it (Compose's rail). */
 const POSITIONAL_SHARE = 0.5;
-/** The exit's distance, as a share of the moving layer's width (see `sheet-styles.ts`). */
-const EXIT_DISTANCE = 1.12;
 
 /**
  * Swipe to dismiss for a modal side sheet (touch and pen only; a mouse drag selects text).
@@ -71,9 +68,7 @@ export function useSideSwipe({
   const [dragging, setDragging] = useState(false);
   // A settle continues at the release speed: a spring with that velocity as a `linear()`
   // easing and duration, on the moving layer until its move ends (as the bottom sheet's).
-  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
-    null,
-  );
+  const [settleMotion, setSettleMotion] = useState<ReleaseMotion | null>(null);
   // A swipe asked to close; if the sheet is still open after that render, the app refused.
   const [closing, setClosing] = useState(false);
   const pointer = useRef({
@@ -119,19 +114,8 @@ export function useSideSwipe({
     const target = settleTarget([0, width], 0, current.offset, velocity, width * POSITIONAL_SHARE);
     const closes = width > 0 && target >= width - 0.5;
     const end = closes ? width * EXIT_DISTANCE : 0;
-    const distance = end - current.offset;
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     setDragging(false);
-    setSettleMotion(
-      reduced || Math.abs(distance) < 0.5
-        ? null
-        : springWithVelocityToLinearEasing(
-            SPRINGS[scheme].spatial[closes ? 'fast' : 'default'],
-            velocity / distance,
-          ),
-    );
+    setSettleMotion(releaseMotion(scheme, closes, velocity, end - current.offset));
     if (closes) {
       // The offset stays: the exit leaves from it (and, under reduced motion, fades there).
       setClosing(true);

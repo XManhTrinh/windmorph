@@ -33,20 +33,18 @@ import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useThemeScope } from '../../theme/context';
-import { SPRINGS } from '../../tokens/motion';
-import { springWithVelocityToLinearEasing } from '../../tokens/spring-velocity';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
+import { contentGesture, scrolledAbove, type ContentGesture } from './bottom-sheet-gesture';
+import { DRAG_SLOP, ownsGesture } from './sheet-gesture';
 import {
-  contentGesture,
-  DRAG_SLOP,
-  type ContentGesture,
-  type DragSample,
-  ownsGesture,
+  EXIT_DISTANCE,
+  releaseMotion,
   releaseVelocity,
-  scrolledAbove,
-} from './sheet-gesture';
-import { settleTarget } from './sheet-settle';
+  settleTarget,
+  type DragSample,
+  type ReleaseMotion,
+} from './sheet-settle';
 import { usePeekInert } from './use-peek-inert';
 import { SHEET_EXIT_PROPERTIES, bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
@@ -359,9 +357,7 @@ function BottomSheetPanel({
   // easing and duration set on the moving layer until its move ends (2026-10-17; it started
   // from rest). Under reduced motion settling stays instant.
   const { motion: motionScheme } = useThemeScope();
-  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
-    null,
-  );
+  const [settleMotion, setSettleMotion] = useState<ReleaseMotion | null>(null);
   // A drag let go to close: the offset stays where the pointer left it, so the exit leaves
   // from there (and, under reduced motion, fades there, as the side sheet does). If the
   // sheet is still open after that render, the app refused and the sheet springs back.
@@ -446,19 +442,8 @@ function BottomSheetPanel({
   const settle = (target: number, velocity: number) => {
     const closing = !standard && target >= height - 0.5;
     // A closing sheet leaves to 112% of its height on the fast spatial spring (its exit).
-    const end = closing ? height * 1.12 : target;
-    const distance = end - (drag ?? restingOffset);
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    setSettleMotion(
-      reduced || Math.abs(distance) < 0.5
-        ? null
-        : springWithVelocityToLinearEasing(
-            SPRINGS[motionScheme].spatial[closing ? 'fast' : 'default'],
-            velocity / distance,
-          ),
-    );
+    const end = closing ? height * EXIT_DISTANCE : target;
+    setSettleMotion(releaseMotion(motionScheme, closing, velocity, end - (drag ?? restingOffset)));
     if (closing) {
       setDragClosing(true);
       close();

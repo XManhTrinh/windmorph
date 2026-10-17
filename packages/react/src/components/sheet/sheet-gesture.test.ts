@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  contentGesture,
-  DRAG_SLOP,
-  edgeSign,
-  ownsGesture,
-  releaseVelocity,
-  scrolledAbove,
-  sideSwipeGesture,
-} from './sheet-gesture';
+import { contentGesture, scrolledAbove } from './bottom-sheet-gesture';
+import { DRAG_SLOP, ownsGesture } from './sheet-gesture';
+import { releaseVelocity } from './sheet-settle';
+import { edgeSign, sideSwipeGesture } from './side-swipe-gesture';
 
 describe('contentGesture', () => {
   it('stays undecided within the slop', () => {
