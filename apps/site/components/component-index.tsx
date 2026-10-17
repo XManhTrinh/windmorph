@@ -85,7 +85,7 @@ export function ComponentIndex() {
         <ChipSet
           aria-label="Show"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={[kind]}
           onSelectionChange={(keys: Set<Key>) => {
             const [next] = [...keys];

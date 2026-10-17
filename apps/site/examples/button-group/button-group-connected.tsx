@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 /**
  * A connected group with single selection is the M3 Expressive replacement for segmented
- * buttons. Toggle buttons with a `value` form one selection; `disallowEmptySelection`
+ * buttons. Toggle buttons with a `value` form one selection; `deselectable={false}`
  * keeps one always chosen. It renders as a `radiogroup` with arrow-key movement, and spans
  * its container with the buttons sharing the width.
  */
@@ -15,7 +15,7 @@ export function ButtonGroupConnected() {
     <ButtonGroup
       variant="connected"
       selectionMode="single"
-      disallowEmptySelection
+      deselectable={false}
       selectedKeys={view}
       onSelectionChange={setView}
       aria-label="Calendar view"

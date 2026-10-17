@@ -123,7 +123,7 @@ export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest 
             <ButtonGroup
               variant="connected"
               selectionMode="single"
-              disallowEmptySelection
+              deselectable={false}
               defaultSelectedKeys={['week']}
               aria-label="Calendar view"
               className="w-fit"

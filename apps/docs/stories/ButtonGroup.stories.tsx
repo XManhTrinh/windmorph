@@ -94,7 +94,7 @@ export const ConnectedSingleSelection: Story = {
         <ButtonGroup
           variant="connected"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={view}
           onSelectionChange={setView}
           aria-label="Calendar view"
@@ -309,7 +309,7 @@ export const Overflow: StoryObj<{ width: number }> = {
           variant="connected"
           overflow
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={view}
           onSelectionChange={setView}
           aria-label="Calendar view"

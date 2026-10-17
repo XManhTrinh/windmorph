@@ -16,7 +16,7 @@ export function ListSelection() {
         <List
           aria-label="Bowl size"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={size}
           onSelectionChange={setSize}
         >

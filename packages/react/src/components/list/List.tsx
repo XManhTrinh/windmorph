@@ -389,8 +389,11 @@ interface ListOwnProps {
   defaultSelectedKeys?: 'all' | Iterable<Key>;
   /** Called with the selected keys when the selection changes. */
   onSelectionChange?: (keys: Set<Key> | 'all') => void;
-  /** Keeps at least one item selected. @default false */
-  disallowEmptySelection?: boolean;
+  /**
+   * The last selected item can be deselected, leaving none. `false` keeps at least one item
+   * selected. @default true
+   */
+  deselectable?: boolean;
   /** The keys of items that can't be pressed or selected. */
   disabledKeys?: Iterable<Key>;
   /**
@@ -1005,6 +1008,7 @@ function CollectionList({
   expandable,
   variant,
   disabled,
+  deselectable = true,
   classNames,
   className,
   style,
@@ -1032,6 +1036,7 @@ function CollectionList({
   const options = {
     ...(ariaProps as unknown as AriaGridListProps<object>),
     disabledKeys: disabledKeys.size > 0 ? disabledKeys : rest.disabledKeys,
+    disallowEmptySelection: !deselectable,
     shouldFocusWrap: true,
   };
   const root: CollectionRootProps = {

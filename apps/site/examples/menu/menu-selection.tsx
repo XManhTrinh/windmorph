@@ -17,7 +17,7 @@ export function MenuSelection() {
         variant="vibrant"
         aria-label="Sort by"
         selectionMode="single"
-        disallowEmptySelection
+        deselectable={false}
         selectedKeys={sort}
         onSelectionChange={(keys) => setSort(new Set([...(keys as Set<string>)]))}
       >

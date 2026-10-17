@@ -56,7 +56,7 @@ export function HeroReel() {
       <ButtonGroup
         variant="connected"
         selectionMode="single"
-        disallowEmptySelection
+        deselectable={false}
         selectedKeys={[view]}
         aria-label="Calendar view"
         className="w-fit"

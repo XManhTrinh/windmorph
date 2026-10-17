@@ -49,7 +49,7 @@ function SegmentedChoice({
       variant="connected"
       size="xs"
       selectionMode="single"
-      disallowEmptySelection={selected !== undefined}
+      deselectable={selected === undefined}
       aria-labelledby={labelId}
       selectedKeys={selected ? [selected] : []}
       onSelectionChange={(keys: Set<Key>) => {

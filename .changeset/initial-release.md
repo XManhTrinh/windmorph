@@ -29,3 +29,5 @@ Props that show or hide an optional part are named after the part: `valueLabel` 
 `Slider`'s inset icons are `leadingIcon` and `trailingIcon`, the names every other icon slot uses, instead of `startIcon` and `endIcon`.
 
 `Dialog`, `BottomSheet`, `SideSheet` and `PickerDialog` take `closedBy` (`'any' | 'closerequest' | 'none'`, as HTML's `<dialog closedby>`) instead of `dismissable` and `keyboardDismissDisabled`; the defaults are unchanged (`'closerequest'` for an alert dialog, `'any'` otherwise). Escape closes a modal bottom sheet in one press, from any height, instead of first lowering a fully open sheet to half; `closedBy="none"` also keeps a drag down from closing it.
+
+`ButtonGroup`, `ChipSet`, `List` and `Menu` take `deselectable` (default `true`) instead of `disallowEmptySelection`: pass `deselectable={false}` to keep at least one item selected.

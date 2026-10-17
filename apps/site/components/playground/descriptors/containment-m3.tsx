@@ -315,6 +315,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'instant',
     ],
     adjust: adjustMenuInstant,
+    notControlled: {
+      deselectable:
+        "Applies only to a menu with `selectionMode`, which the preview's action menu doesn't have; the Selection example shows it.",
+    },
     enumOptions: {
       placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],
@@ -606,7 +610,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     defaultProps: {
       variant: 'standard',
       selectionMode: 'none',
-      disallowEmptySelection: false,
+      deselectable: true,
       disabledKeys: false,
       value: NONE,
       required: false,
@@ -621,7 +625,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     surfacedProps: [
       'variant',
       'selectionMode',
-      'disallowEmptySelection',
+      'deselectable',
       'disabledKeys',
       'value',
       'required',

@@ -75,7 +75,7 @@ export function InstallCommandSwitcher({
           aria-label="Package manager"
           className="w-fit"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={[manager]}
           onSelectionChange={(keys: Set<Key>) => {
             const [next] = [...keys];

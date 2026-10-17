@@ -222,8 +222,13 @@ export interface MenuClassNames {
 
 export interface MenuProps extends Omit<
   AriaMenuProps<object>,
-  'children' | 'items' | 'onClose' | 'autoFocus'
+  'children' | 'items' | 'onClose' | 'autoFocus' | 'disallowEmptySelection'
 > {
+  /**
+   * With `selectionMode`: the last selected item can be deselected, leaving none. `false` keeps
+   * at least one item selected. @default true
+   */
+  deselectable?: boolean;
   /** `MenuItem`s, `MenuGroup`s and `SubmenuTrigger`s. */
   children: ReactNode;
   /** `standard` (surface colours) or `vibrant` (tertiary container). @default "standard" */
@@ -652,6 +657,7 @@ function useHasScrolled(ref: RefObject<HTMLElement | null>, enabled: boolean) {
 }
 
 function MenuList({
+  deselectable = true,
   variant,
   layout: requestedLayout,
   density,
@@ -671,6 +677,7 @@ function MenuList({
   // M3: "Disabled menu items can receive focus but aren't selectable."
   const state = useTreeState({
     ...(props as AriaMenuProps<object>),
+    disallowEmptySelection: !deselectable,
     disabledBehavior: 'selection',
   });
   const ownRef = useRef<HTMLDivElement>(null);
