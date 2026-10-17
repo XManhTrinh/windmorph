@@ -63,7 +63,7 @@ export const Variants: Story = {
     <div className="flex w-[480px] flex-col gap-8" data-testid="variants">
       {VARIANTS.map((variant) => (
         <div key={variant} className="flex flex-col gap-4">
-          <Tabs aria-label={`${variant} text`} variant={variant} defaultSelectedKey="b">
+          <Tabs aria-label={`${variant} text`} variant={variant} defaultValue="b">
             <Tab key="a" title="Video" />
             <Tab key="b" title="Photos" />
             <Tab key="c" title="Audio" />

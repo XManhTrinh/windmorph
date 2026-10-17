@@ -245,7 +245,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'PrimaryTabRow / SecondaryTabRow',
         component: 'Tabs variant',
-        params: [{ compose: 'selectedTabIndex', windmorph: '`selectedKey` / `onSelectionChange`' }],
+        params: [{ compose: 'selectedTabIndex', windmorph: '`value` / `onChange`' }],
       },
       {
         composable: 'PrimaryScrollableTabRow / SecondaryScrollableTabRow',

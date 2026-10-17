@@ -39,12 +39,7 @@ import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicato
 import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
 import { useRevealEntering } from '../menu/use-reveal-entering';
 
-/**
- * Disabled options stay focusable but can't be chosen (M3 menus: "Disabled menu items can
- * receive focus but aren't selectable"). React Stately reads it from the state options,
- * though its types don't list it.
- */
-export const FOCUSABLE_DISABLED_OPTIONS = { disabledBehavior: 'selection' as const };
+export { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 
 /** Props of an option in a `Select` or `Autocomplete`; the React `key` identifies it. */
 export interface OptionItemProps {

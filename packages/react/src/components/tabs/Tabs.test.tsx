@@ -54,7 +54,7 @@ describe('Tabs', () => {
 
   it('selects with a press; arrows move focus and Space / Enter select (the M3 keyboard)', async () => {
     const onSelectionChange = vi.fn();
-    render(<Trip onSelectionChange={onSelectionChange} />);
+    render(<Trip onChange={onSelectionChange} />);
     await userEvent.click(screen.getByRole('tab', { name: 'Hotels' }));
     expect(onSelectionChange).toHaveBeenLastCalledWith('hotels');
     expect(screen.getByRole('tabpanel')).toHaveTextContent('Hotel details');
@@ -126,7 +126,7 @@ describe('Tabs', () => {
 
   it('changes tab with a horizontal swipe on a swipeable panel', () => {
     const onSelectionChange = vi.fn();
-    render(<Trip swipeable disabledKeys={['hotels']} onSelectionChange={onSelectionChange} />);
+    render(<Trip swipeable disabledKeys={['hotels']} onChange={onSelectionChange} />);
     const swipe = (dx: number, dy = 0, pointerType = 'touch') => {
       const panel = screen.getByRole('tabpanel');
       fireEvent.pointerDown(panel, { pointerId: 1, pointerType, clientX: 200, clientY: 100 });
@@ -165,11 +165,26 @@ describe('Tabs', () => {
   });
 
   it('can be controlled and disable tabs', async () => {
-    render(<Trip selectedKey="cars" disabledKeys={['hotels']} />);
+    render(<Trip value="cars" disabledKeys={['hotels']} />);
     expect(screen.getByRole('tab', { name: 'Cars' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: 'Hotels' })).toHaveAttribute('aria-disabled', 'true');
     await userEvent.click(screen.getByRole('tab', { name: 'Flights' }));
     expect(screen.getByRole('tab', { name: 'Cars' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('keeps a disabled tab focusable with the arrow keys, but never selects it', async () => {
+    const onChange = vi.fn();
+    render(<Trip disabledKeys={['hotels']} keyboardActivation="automatic" onChange={onChange} />);
+    const hotels = screen.getByRole('tab', { name: 'Hotels' });
+    await userEvent.tab();
+    expect(screen.getByRole('tab', { name: 'Flights' })).toHaveFocus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(hotels).toHaveFocus();
+    expect(hotels).toHaveAttribute('aria-disabled', 'true');
+    expect(hotels).toHaveAttribute('aria-selected', 'false');
+    await userEvent.click(hotels);
+    expect(hotels).toHaveAttribute('aria-selected', 'false');
+    expect(onChange).not.toHaveBeenCalledWith('hotels');
   });
 
   it('warns once in development about mixed icons and unnamed icon-only tabs', () => {
@@ -269,7 +284,7 @@ describe('Tabs', () => {
     ) {
       return this.getAttribute('role') === 'tab' ? 100 : 300;
     });
-    const { container } = render(<Trip variant="secondary" defaultSelectedKey="hotels" />);
+    const { container } = render(<Trip variant="secondary" defaultValue="hotels" />);
     const indicator = container.querySelector<HTMLElement>('[data-ready]');
     expect(indicator?.style.translate).toBe('100px 0');
     expect(indicator?.style.width).toBe('100px');
@@ -297,7 +312,7 @@ describe('Tabs', () => {
       return this.getAttribute('role') === 'tab' ? 100 : 300;
     });
     const Row = ({ keys }: { keys: string[] }) => (
-      <Tabs aria-label="Trip" variant="secondary" defaultSelectedKey="all">
+      <Tabs aria-label="Trip" variant="secondary" defaultValue="all">
         {keys.map((key) => (
           <Tab key={key} title={key} />
         ))}

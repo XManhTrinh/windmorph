@@ -28,6 +28,7 @@ import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { densityAttribute, type Density } from '../../tokens/density';
+import { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
@@ -83,10 +84,22 @@ export interface TabsClassNames {
 
 export interface TabsProps extends Omit<
   AriaTabListProps<object>,
-  'children' | 'orientation' | 'items' | 'isDisabled'
+  | 'children'
+  | 'orientation'
+  | 'items'
+  | 'isDisabled'
+  | 'selectedKey'
+  | 'defaultSelectedKey'
+  | 'onSelectionChange'
 > {
   /** `Tab` elements. */
   children: ReactNode;
+  /** The selected tab's `key` (controlled). */
+  value?: Key | null;
+  /** The tab selected at first, when uncontrolled. @default the first enabled tab */
+  defaultValue?: Key;
+  /** Called with the newly selected tab's `key`. */
+  onChange?: (key: Key) => void;
   /** Disables every tab (`disabledKeys` disables some). @default false */
   disabled?: boolean;
   /**
@@ -179,6 +192,9 @@ export function Tabs(props: TabsProps) {
   );
 }
 
+/** No disabled keys, for the tab list's arrow keys (disabled tabs stay focusable). */
+const NO_KEYS: Set<Key> = new Set();
+
 function TabsInner({
   rtl,
   ...props
@@ -194,16 +210,22 @@ function TabsInner({
   } = props;
   // A Tab's children are its panel content, which can be server-rendered: check only the Tabs.
   assertCollectionChildren(props.children, 'Tabs', 'Tab elements', { nested: false });
-  const { disabled, ...rest } = props;
+  const { disabled, value, defaultValue, onChange, ...rest } = props;
   const ariaProps = {
     ...rest,
+    ...(value !== undefined && { selectedKey: value }),
+    ...(defaultValue !== undefined && { defaultSelectedKey: defaultValue }),
+    ...(onChange && { onSelectionChange: onChange }),
     isDisabled: disabled,
     keyboardActivation: props.keyboardActivation ?? 'manual',
   } as AriaTabListProps<object>;
-  const state = useTabListState(ariaProps);
+  // Disabled tabs stay focusable but can't be selected (WAI-ARIA APG, "Focusability of disabled
+  // controls"), so screen reader users find them: React Stately's `selection` behaviour, and
+  // arrow keys that don't skip them (the tab list's keyboard sees no disabled keys).
+  const state = useTabListState({ ...ariaProps, ...FOCUSABLE_DISABLED_OPTIONS });
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const { tabListProps } = useTabList(ariaProps, state, listRef);
+  const { tabListProps } = useTabList(ariaProps, { ...state, disabledKeys: NO_KEYS }, listRef);
   const items = [...state.collection];
   const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
   const hasText = items.some((item) => (item.props as TabProps).title != null);
@@ -490,6 +512,7 @@ function TabButton({
       {...mergeProps(ownProps, interactionProps)}
       {...dataAttributes}
       aria-controls={hasPanels ? controls : undefined}
+      aria-disabled={state.isDisabled || state.disabledKeys.has(item.key) || undefined}
       aria-describedby={badge != null ? badgeId : undefined}
       data-key={String(item.key)}
       // Each tab resolves its own tokens, so its selection picks its colours.

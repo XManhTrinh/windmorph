@@ -10,12 +10,7 @@ import { Tab, Tabs } from '@windmorph/react';
 export function TabsSecondary() {
   return (
     <div className="w-full max-w-[480px]">
-      <Tabs
-        aria-label="Media"
-        variant="secondary"
-        defaultSelectedKey="photos"
-        disabledKeys={['audio']}
-      >
+      <Tabs aria-label="Media" variant="secondary" defaultValue="photos" disabledKeys={['audio']}>
         <Tab key="video" title="Video" />
         <Tab key="photos" title="Photos" />
         <Tab key="audio" title="Audio" />

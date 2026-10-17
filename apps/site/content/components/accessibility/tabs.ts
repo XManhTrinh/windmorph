@@ -15,7 +15,7 @@ export const tabs: ComponentAccessibility = {
     { keys: ['Enter', 'Space'], action: 'Selects the focused tab and shows its panel.' },
   ],
   keyboardNotes: [
-    'The arrow keys wrap from the last tab to the first, skip disabled tabs (`disabledKeys`), and are mirrored right to left, following the direction the row is laid out in.',
+    "The arrow keys wrap from the last tab to the first, stop on disabled tabs (`disabledKeys`) so screen reader users find them, though Enter, Space and a press don't select them, and are mirrored right to left, following the direction the row is laid out in.",
   ],
   screenReader: {
     role: "A `tablist` of `tab`s, with the selected tab's content in a `tabpanel`.",
