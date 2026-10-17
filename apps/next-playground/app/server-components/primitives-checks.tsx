@@ -138,6 +138,10 @@ export const primitivesChecks = {
     kind: 'value',
     run: () => Primitives.morphToPath(new Primitives.Morph(circle, star), 0.5),
   },
+  pickWidgetAria: {
+    kind: 'value',
+    run: () => Primitives.pickWidgetAria({ 'aria-expanded': true, title: 'Sample' }),
+  },
   pill: { kind: 'value', run: () => Primitives.polygonToPath(Primitives.pill()) },
   pillStar: { kind: 'value', run: () => Primitives.polygonToPath(Primitives.pillStar()) },
   polygonToPath: { kind: 'value', run: () => Primitives.polygonToPath(star, { scale: 48 }) },
