@@ -1013,13 +1013,15 @@ async function touchSession(page: Page) {
 
 /**
  * A one-finger touch swipe through CDP (a 12px finger), with the browser's own gesture
- * handling: `steps` moves `every` ms apart, then `hold` ms still before lifting.
+ * handling: `steps` moves `every` ms apart, then `hold` ms still before lifting. With
+ * `stamp`, the events carry timestamps `stamp` ms apart instead of the time CDP delivers
+ * them, so a fling's speed doesn't depend on how busy the machine is.
  */
 async function fingerSwipe(
   page: Page,
   from: { x: number; y: number },
   to: { x: number; y: number },
-  { steps = 12, every = 16, hold = 0 } = {},
+  { steps = 12, every = 16, hold = 0, stamp = 0 } = {},
 ) {
   const cdp = await touchSession(page);
   const point = (t: number) => ({
@@ -1028,22 +1030,27 @@ async function fingerSwipe(
     radiusX: 6,
     radiusY: 6,
   });
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
-  for (let step = 1; step <= steps; step++) {
-    await cdp.send('Input.dispatchTouchEvent', {
-      type: 'touchMove',
-      touchPoints: [point(step / steps)],
+  const start = Date.now() / 1000;
+  let sent = 0;
+  const touch = (type: string, touchPoints: ReturnType<typeof point>[]) =>
+    cdp.send('Input.dispatchTouchEvent', {
+      type: type as 'touchStart',
+      touchPoints,
+      ...(stamp && { timestamp: start + (sent++ * stamp) / 1000 }),
     });
+  await touch('touchStart', [point(0)]);
+  for (let step = 1; step <= steps; step++) {
+    await touch('touchMove', [point(step / steps)]);
     await page.waitForTimeout(every);
   }
   if (hold) {
     // Still moving events at the same place, as a finger resting before it lifts.
     for (let t = 0; t < hold; t += 40) {
-      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point(1)] });
+      await touch('touchMove', [point(1)]);
       await page.waitForTimeout(40);
     }
   }
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await touch('touchEnd', []);
 }
 
 test.describe('Side sheet swipe to dismiss (touch)', () => {
@@ -1105,7 +1112,7 @@ test.describe('Side sheet swipe to dismiss (touch)', () => {
           page,
           again,
           { x: again.x + sign * 60, y: again.y },
-          { steps: 3, every: 0 },
+          { steps: 3, every: 0, stamp: 16 },
         );
         await expect(sheet).toBeHidden();
       });
