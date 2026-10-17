@@ -403,6 +403,10 @@ export const chipSetStyles = tv({
   defaultVariants: { layout: 'wrap' },
 });
 
+/**
+ * The variants of {@link chipStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type ChipStyleProps = VariantProps<typeof chipStyles>;
 export type ChipOutline = NonNullable<ChipStyleProps['outline']>;
 export type ChipSetLayout = NonNullable<VariantProps<typeof chipSetStyles>['layout']>;

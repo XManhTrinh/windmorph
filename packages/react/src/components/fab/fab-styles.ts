@@ -145,7 +145,15 @@ export const extendedFabStyles = tv({
   defaultVariants: { color: 'primary-container', elevation: 'default', size: 'sm', hasIcon: true },
 });
 
+/**
+ * The variants of {@link fabStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type FabStyleProps = VariantProps<typeof fabStyles>;
+/**
+ * The variants of {@link extendedFabStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type ExtendedFabStyleProps = VariantProps<typeof extendedFabStyles>;
 export type FabColor = NonNullable<FabStyleProps['color']>;
 export type FabSize = NonNullable<FabStyleProps['size']>;

@@ -226,6 +226,10 @@ export const buttonStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link buttonStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type ButtonStyleProps = VariantProps<typeof buttonStyles>;
 export type ButtonVariant = NonNullable<ButtonStyleProps['variant']>;
 export type ButtonSize = NonNullable<ButtonStyleProps['size']>;

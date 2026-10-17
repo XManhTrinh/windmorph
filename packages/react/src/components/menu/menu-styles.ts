@@ -315,6 +315,10 @@ export const menuStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link menuStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type MenuStyleProps = VariantProps<typeof menuStyles>;
 export type MenuVariant = NonNullable<MenuStyleProps['variant']>;
 export type MenuLayout = NonNullable<MenuStyleProps['layout']>;

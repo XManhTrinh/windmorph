@@ -229,4 +229,8 @@ export const dockedDatePickerStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link datePickerStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type DatePickerStyleProps = VariantProps<typeof datePickerStyles>;

@@ -78,5 +78,9 @@ export const cardStyles = tv({
   defaultVariants: { variant: 'filled', interactive: false },
 });
 
+/**
+ * The variants of {@link cardStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type CardStyleProps = VariantProps<typeof cardStyles>;
 export type CardVariant = NonNullable<CardStyleProps['variant']>;

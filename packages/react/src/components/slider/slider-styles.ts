@@ -151,6 +151,10 @@ export const sliderStyles = tv({
   defaultVariants: { orientation: 'horizontal', size: 'xs' },
 });
 
+/**
+ * The variants of {@link sliderStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SliderStyleProps = VariantProps<typeof sliderStyles>;
 export type SliderSize = NonNullable<SliderStyleProps['size']>;
 export type SliderOrientation = NonNullable<SliderStyleProps['orientation']>;

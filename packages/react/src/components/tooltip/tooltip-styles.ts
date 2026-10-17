@@ -116,4 +116,8 @@ export const richTooltipStyles = tv({
   defaultVariants: { subhead: false, action: false },
 });
 
+/**
+ * The variants of {@link richTooltipStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type RichTooltipStyleProps = VariantProps<typeof richTooltipStyles>;

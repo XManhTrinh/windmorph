@@ -71,5 +71,13 @@ export const radioGroupStyles = tv({
   defaultVariants: { orientation: 'vertical', disabled: false },
 });
 
+/**
+ * The variants of {@link radioStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type RadioStyleProps = VariantProps<typeof radioStyles>;
+/**
+ * The variants of {@link radioGroupStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type RadioGroupStyleProps = VariantProps<typeof radioGroupStyles>;

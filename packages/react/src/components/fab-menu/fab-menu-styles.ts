@@ -141,6 +141,10 @@ export const fabMenuStyles = tv({
   defaultVariants: { color: 'primary', elevation: 'default', size: 'default' },
 });
 
+/**
+ * The variants of {@link fabMenuStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type FabMenuStyleProps = VariantProps<typeof fabMenuStyles>;
 export type FabMenuColor = NonNullable<FabMenuStyleProps['color']>;
 export type FabMenuSize = NonNullable<FabMenuStyleProps['size']>;

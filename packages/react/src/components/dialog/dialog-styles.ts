@@ -498,4 +498,8 @@ export const dialogStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link dialogStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type DialogStyleProps = VariantProps<typeof dialogStyles>;

@@ -188,5 +188,9 @@ export const navigationBarStyles = tv({
   defaultVariants: { arrangement: 'equal', iconPlacement: 'top', hideOnScroll: false },
 });
 
+/**
+ * The variants of {@link navigationBarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type NavigationBarStyleProps = VariantProps<typeof navigationBarStyles>;
 export type NavigationBarArrangement = NonNullable<NavigationBarStyleProps['arrangement']>;

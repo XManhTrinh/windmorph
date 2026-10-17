@@ -129,6 +129,10 @@ export const bottomSheetStyles = tv({
   defaultVariants: { variant: 'modal' },
 });
 
+/**
+ * The variants of {@link bottomSheetStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type BottomSheetStyleProps = VariantProps<typeof bottomSheetStyles>;
 
 /** Variant definitions for {@link SideSheet}. */
@@ -239,4 +243,8 @@ export const sideSheetStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link sideSheetStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SideSheetStyleProps = VariantProps<typeof sideSheetStyles>;

@@ -263,6 +263,10 @@ export const listStyles = tv({
   defaultVariants: { variant: 'standard', interactive: false, lines: 1, dividers: 'none' },
 });
 
+/**
+ * The variants of {@link listStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type ListStyleProps = VariantProps<typeof listStyles>;
 export type ListVariant = NonNullable<ListStyleProps['variant']>;
 export type ListDividers = Exclude<NonNullable<ListStyleProps['dividers']>, 'none'>;

@@ -89,4 +89,8 @@ export const switchStyles = tv({
   defaultVariants: { kind: 'track' },
 });
 
+/**
+ * The variants of {@link switchStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SwitchStyleProps = VariantProps<typeof switchStyles>;

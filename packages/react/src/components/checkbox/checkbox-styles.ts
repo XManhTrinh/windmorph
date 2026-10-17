@@ -78,4 +78,8 @@ export const checkboxStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link checkboxStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type CheckboxStyleProps = VariantProps<typeof checkboxStyles>;

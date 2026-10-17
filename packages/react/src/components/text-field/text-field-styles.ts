@@ -293,5 +293,9 @@ export const textFieldStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link textFieldStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type TextFieldStyleProps = VariantProps<typeof textFieldStyles>;
 export type TextFieldVariant = NonNullable<TextFieldStyleProps['variant']>;

@@ -160,5 +160,9 @@ export const tabsStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link tabsStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type TabsStyleProps = VariantProps<typeof tabsStyles>;
 export type TabsVariant = NonNullable<TabsStyleProps['variant']>;
