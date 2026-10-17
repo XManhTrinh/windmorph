@@ -280,6 +280,8 @@ export const coreChecks = {
         <Core.NavigationBarItem icon={icon} selected>
           Home
         </Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon}>Search</Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon}>Starred</Core.NavigationBarItem>
       </Core.NavigationBar>
     ),
   },
@@ -287,8 +289,14 @@ export const coreChecks = {
     kind: 'component',
     render: () => (
       <Core.NavigationBar aria-label="Sections">
+        <Core.NavigationBarItem icon={icon} href="#home">
+          Home
+        </Core.NavigationBarItem>
         <Core.NavigationBarItem icon={icon} href="#search">
           Search
+        </Core.NavigationBarItem>
+        <Core.NavigationBarItem icon={icon} href="#starred">
+          Starred
         </Core.NavigationBarItem>
       </Core.NavigationBar>
     ),

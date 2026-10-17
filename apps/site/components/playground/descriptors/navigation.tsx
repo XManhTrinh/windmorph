@@ -386,9 +386,11 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     importMembers: ['NavigationBarItem'],
     codeSlots: { 'aria-label': '"Mail"' },
     codeState: { current: "useState('home')" },
+    // Three destinations, a navigation bar's minimum (M3: three to five).
     codeChildren: [
       ['home', 'Home', 'HomeIcon'],
       ['search', 'Search', 'SearchIcon'],
+      ['starred', 'Starred', 'StarIcon'],
     ]
       .map(
         ([id, label, icon]) =>
