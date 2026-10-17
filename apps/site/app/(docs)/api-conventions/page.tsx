@@ -214,6 +214,50 @@ export default function ApiConventionsPage() {
           </Rule>
         </ul>
       </section>
+
+      <section className={SECTION}>
+        <h2 id="pro" className={HEADING}>
+          In Windmorph Pro
+        </h2>
+        <p className={TEXT}>
+          Pro&apos;s components follow the same rules, and the same kind of test reads their props:
+        </p>
+        <ul className={LIST}>
+          <Rule>
+            A colour is <InlineCode>color</InlineCode> on <InlineCode>Avatar</InlineCode>,{' '}
+            <InlineCode>Tag</InlineCode>, <InlineCode>Link</InlineCode>,{' '}
+            <InlineCode>Skeleton</InlineCode>, <InlineCode>ShapedIcon</InlineCode> and{' '}
+            <InlineCode>EmptyState</InlineCode>. An <InlineCode>Alert</InlineCode> names its kind
+            with <InlineCode>severity</InlineCode> (<InlineCode>info</InlineCode> by default;{' '}
+            <InlineCode>error</InlineCode> is read at once), since it decides the live region as
+            well as the colours.
+          </Rule>
+          <Rule>
+            Work in flight is <InlineCode>pending</InlineCode>, as on the core&apos;s{' '}
+            <InlineCode>Button</InlineCode>: <InlineCode>MessageField</InlineCode> while sending,{' '}
+            <InlineCode>ImageCropDialog</InlineCode> while saving.
+          </Rule>
+          <Rule>
+            The end of a motion is <InlineCode>onClosed</InlineCode> (<InlineCode>Alert</InlineCode>
+            , <InlineCode>Collapse</InlineCode>), focus on mount is{' '}
+            <InlineCode>autoFocus</InlineCode>, and a tile of a grid is activated with{' '}
+            <InlineCode>onAction</InlineCode> (<InlineCode>MediaGrid</InlineCode>).
+          </Rule>
+          <Rule>
+            Sizes are on the same scale (<InlineCode>PinInput</InlineCode> and{' '}
+            <InlineCode>Link</InlineCode> take <InlineCode>sm</InlineCode>,{' '}
+            <InlineCode>md</InlineCode>, <InlineCode>lg</InlineCode>), and a shape is a value: a
+            constant such as <InlineCode>cookie12SidedShape</InlineCode> from{' '}
+            <InlineCode>@windmorph/react/primitives</InlineCode>, so an app bundles only the
+            outlines it uses.
+          </Rule>
+          <Rule>
+            Optional parts are named after the part (<InlineCode>counter</InlineCode>,{' '}
+            <InlineCode>lineNumbers</InlineCode>, <InlineCode>idleIcon</InlineCode>), and root props
+            reach the root on every component.
+          </Rule>
+        </ul>
+      </section>
     </article>
   );
 }
