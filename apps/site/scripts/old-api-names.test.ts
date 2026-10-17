@@ -40,6 +40,19 @@ const REPLACED: Record<string, string> = {
   selectedKey: 'value',
   defaultSelectedKey: 'defaultValue',
   unselectedIcon: 'uncheckedIcon',
+  // Windmorph Pro's replaced names (its own API naming round, 2026-10-17).
+  tone: 'color (severity on Alert)',
+  focusOnMount: 'autoFocus',
+  onExited: 'onClosed',
+  onItemPress: 'onAction',
+  maxIcons: 'max',
+  showIdleIcon: 'idleIcon',
+  showLineNumbers: 'lineNumbers',
+  showCounter: 'counter',
+  canSend: 'sendable',
+  sendingLabel: 'labels.sending',
+  overflowLabel: 'labels.overflow',
+  copyButton: 'classNames.copy',
 };
 
 /** Patterns for old values and props that are also everyday words. */
@@ -51,6 +64,25 @@ const OLD_PATTERNS: [RegExp, string][] = [
   [/<ListItemVideo\b[^>]*\bsize=["'](?:small|large)["']/, "size 'sm' / 'lg'"],
   [/<Slider\b[^>]*\b(?:startIcon|endIcon)=/, 'leadingIcon / trailingIcon'],
   [/<Switch\b[^>]*\bselectedIcon=/, 'checkedIcon'],
+  // Windmorph Pro. `submitting` and `busy` are also everyday words (and search keywords), so
+  // only a prop, an object key or a code span counts, and `aria-busy` never does.
+  [/(?<![-\w])(?:submitting|busy)(?:=|:\s)|`(?:submitting|busy)`|labels\.busy/, 'pending'],
+  [
+    /\b(?:avatarShapes|TAG_TONES|TagTone|AVATAR_TONE_SLOTS)\b/,
+    'the shape constants, TAG_COLORS, TagColor, AVATAR_COLOR_SLOTS',
+  ],
+  [/\bdata-tone\b/, 'data-color (data-severity on Alert)'],
+  [/<(?:PinInput|Link)\b[^>]*\bsize=["'](?:small|medium|large)["']/, "size 'sm' / 'md' / 'lg'"],
+  [/<Tag\b[^>]*\bshape=["'](?:full|rounded)["']/, "shape 'round' / 'square'"],
+  [/\bshape=["'][A-Z]\w*["']/, 'a shape constant (shape={cookie9SidedShape})'],
+  [/materialShapeMask\(\s*['"]/, 'a shape constant (materialShapeMask(cookie9SidedShape))'],
+  [/<AvatarGroup\b[^>]*(?<![-\w])label=/, 'aria-label'],
+  [/<(?:MessageField|RichMessageField|MessageFieldFrame)\b[^>]*\bdescription=/, 'supportingText'],
+  [/`supporting`|\bsupporting:\s/, 'classNames.supportingText'],
+  [
+    /--wm-avatar-(?:on-)?tone-|--wm-tag-rounded-corner|--wm-message-field-supporting(?!-text)/,
+    'the renamed tokens (--wm-avatar-color-N, --wm-tag-square-corner, --wm-message-field-supporting-text)',
+  ],
 ];
 
 /** A name used as code: a JSX attribute, an object key, a code span or a quoted string. */
