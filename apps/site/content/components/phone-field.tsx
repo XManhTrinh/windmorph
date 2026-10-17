@@ -117,7 +117,12 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
               <InlineCode>aria-labelledby</InlineCode>, <InlineCode>aria-describedby</InlineCode>,{' '}
               <InlineCode>aria-details</InlineCode>, <InlineCode>aria-errormessage</InlineCode>) go
               to the number&apos;s input, so a <InlineCode>&lt;label for&gt;</InlineCode> or an
-              error summary&apos;s link reaches it. The other <InlineCode>aria-*</InlineCode>{' '}
+              error summary&apos;s link reaches it, as do the attributes that describe it as a
+              widget (<InlineCode>aria-controls</InlineCode>, <InlineCode>aria-haspopup</InlineCode>
+              , <InlineCode>aria-autocomplete</InlineCode>,{' '}
+              <InlineCode>aria-activedescendant</InlineCode>, <InlineCode>aria-expanded</InlineCode>
+              , <InlineCode>aria-required</InlineCode>, <InlineCode>aria-invalid</InlineCode>,{' '}
+              <InlineCode>aria-readonly</InlineCode>). The other <InlineCode>aria-*</InlineCode>{' '}
               attributes, <InlineCode>data-*</InlineCode>, <InlineCode>title</InlineCode>,{' '}
               <InlineCode>lang</InlineCode> and pointer events go to the group, as on the
               core&apos;s fields.
