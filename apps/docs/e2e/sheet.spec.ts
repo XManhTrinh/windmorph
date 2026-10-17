@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type CDPSession, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite, OVERRIDES } from './layout-safety';
 import { MODES } from './shots';
 import { openStory } from './story';
@@ -646,6 +646,19 @@ test.describe('Side sheet', () => {
       },
     });
   });
+
+  test.describe('layout safety · start edge', () => {
+    layoutSafetySuite('components-sheet--layout-override-start', {
+      height: 300,
+      width: 256,
+      radius: '0px',
+      interactive: false,
+      async check(page, target) {
+        await target.getByRole('button', { name: 'Action' }).click();
+        await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+      },
+    });
+  });
 });
 
 test.describe('BottomSheet layout safety', () => {
@@ -778,31 +791,36 @@ test.describe('Sheets keep focus on the page after their own buttons', () => {
 });
 
 test.describe('Standard side sheet width motion', () => {
-  test('the panel stays on the layout’s end edge while it opens and closes', async ({ page }) => {
-    for (const dir of ['ltr', 'rtl'] as const) {
-      await openStory(page, 'components-sheet--side-standard', { dir });
-      await page.evaluate((dir) => {
-        const layout = document.querySelector('[data-testid="layout"]')!;
-        const panel = document.querySelector('[data-testid="sheet"] [data-slot="panel"]')!;
-        const gaps: number[] = [];
-        (window as unknown as { gaps: number[] }).gaps = gaps;
-        const sample = () => {
-          const l = layout.getBoundingClientRect();
-          const p = panel.getBoundingClientRect();
-          // The panel's end edge against the layout's inner end edge (1px border).
-          gaps.push(dir === 'rtl' ? p.left - (l.left + 1) : l.right - 1 - p.right);
+  test('the panel stays on the layout’s edge while it opens and closes, for both edges', async ({
+    page,
+  }) => {
+    for (const edge of ['end', 'start'] as const)
+      for (const dir of ['ltr', 'rtl'] as const) {
+        await openStory(page, 'components-sheet--side-standard', { dir }, { edge });
+        // The window's side of the layout: the right for end in LTR, the left for start in LTR.
+        const right = (edge === 'end') === (dir === 'ltr');
+        await page.evaluate((right) => {
+          const layout = document.querySelector('[data-testid="layout"]')!;
+          const panel = document.querySelector('[data-testid="sheet"] [data-slot="panel"]')!;
+          const gaps: number[] = [];
+          (window as unknown as { gaps: number[] }).gaps = gaps;
+          const sample = () => {
+            const l = layout.getBoundingClientRect();
+            const p = panel.getBoundingClientRect();
+            // The panel's outer edge against the layout's inner edge (1px border).
+            gaps.push(right ? l.right - 1 - p.right : p.left - (l.left + 1));
+            requestAnimationFrame(sample);
+          };
           requestAnimationFrame(sample);
-        };
-        requestAnimationFrame(sample);
-      }, dir);
-      await page.getByRole('button', { name: 'Hide details' }).click();
-      await page.waitForTimeout(700);
-      await page.getByRole('button', { name: 'Show details' }).click();
-      await page.waitForTimeout(700);
-      const gaps = await page.evaluate(() => (window as unknown as { gaps: number[] }).gaps);
-      expect(gaps.length).toBeGreaterThan(20);
-      expect(Math.max(...gaps.map(Math.abs)), dir).toBeLessThanOrEqual(0.5);
-    }
+        }, right);
+        await page.getByRole('button', { name: 'Hide details' }).click();
+        await page.waitForTimeout(700);
+        await page.getByRole('button', { name: 'Show details' }).click();
+        await page.waitForTimeout(700);
+        const gaps = await page.evaluate(() => (window as unknown as { gaps: number[] }).gaps);
+        expect(gaps.length).toBeGreaterThan(20);
+        expect(Math.max(...gaps.map(Math.abs)), `${edge} ${dir}`).toBeLessThanOrEqual(0.5);
+      }
   });
 
   // The spring overshot the measured 256px to 259.8px, opening a strip between the content and
@@ -931,5 +949,278 @@ test.describe('Moving down to a lower detent never overshoots it', () => {
     const rest = frames.at(-1)!;
     expect(rest).toBeGreaterThan(frames[0]!);
     expect(Math.max(...frames)).toBeLessThanOrEqual(rest + 0.5);
+  });
+});
+
+const sessions = new WeakMap<Page, CDPSession>();
+/**
+ * One CDP session per page for touch input: a session detached right after its `touchEnd`
+ * can drop it, and the next gesture then reads as a second finger.
+ */
+async function touchSession(page: Page) {
+  let session = sessions.get(page);
+  if (!session) {
+    session = await page.context().newCDPSession(page);
+    sessions.set(page, session);
+  }
+  return session;
+}
+
+/**
+ * A one-finger touch swipe through CDP (a 12px finger), with the browser's own gesture
+ * handling: `steps` moves `every` ms apart, then `hold` ms still before lifting.
+ */
+async function fingerSwipe(
+  page: Page,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  { steps = 12, every = 16, hold = 0 } = {},
+) {
+  const cdp = await touchSession(page);
+  const point = (t: number) => ({
+    x: from.x + (to.x - from.x) * t,
+    y: from.y + (to.y - from.y) * t,
+    radiusX: 6,
+    radiusY: 6,
+  });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(0)] });
+  for (let step = 1; step <= steps; step++) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [point(step / steps)],
+    });
+    await page.waitForTimeout(every);
+  }
+  if (hold) {
+    // Still moving events at the same place, as a finger resting before it lifts.
+    for (let t = 0; t < hold; t += 40) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point(1)] });
+      await page.waitForTimeout(40);
+    }
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+test.describe('Side sheet swipe to dismiss (touch)', () => {
+  test.use({ hasTouch: true });
+
+  const CASES = [
+    { edge: 'end', dir: 'ltr', sign: 1 },
+    { edge: 'end', dir: 'rtl', sign: -1 },
+    { edge: 'start', dir: 'ltr', sign: -1 },
+    { edge: 'start', dir: 'rtl', sign: 1 },
+  ] as const;
+
+  async function open(
+    page: Page,
+    edge: 'start' | 'end',
+    dir: 'ltr' | 'rtl',
+    args: Record<string, boolean> = {},
+  ) {
+    await openStory(page, 'components-sheet--side-swipe', { dir }, { edge, ...args });
+    await page.getByRole('button', { name: 'Open filters' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Filters' });
+    await settle(page);
+    const box = await rect(sheet);
+    return { sheet, box };
+  }
+
+  /** Where a swipe toward the edge starts (40px inside the free edge) and how far it may go. */
+  function from(box: Awaited<ReturnType<typeof rect>>, sign: 1 | -1) {
+    const free = sign > 0 ? box.x : box.right;
+    return { x: free + sign * 40, y: box.y + Math.round(box.height * 0.6) };
+  }
+
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1280, height: 800 },
+  ]) {
+    for (const { edge, dir, sign } of CASES) {
+      test(`${edge} edge · ${dir} · ${viewport.width}px: past half closes, a short swipe springs back, a fling closes`, async ({
+        page,
+      }) => {
+        await page.setViewportSize(viewport);
+        let { sheet, box } = await open(page, edge, dir);
+        // Anchored on its edge: the right for end in LTR, the left for start in LTR.
+        const onRight = sign > 0;
+        expect(onRight ? box.right : box.x).toBe(onRight ? viewport.width : 0);
+        const start = from(box, sign);
+        // A short, slow swipe that rests before lifting springs back.
+        await fingerSwipe(page, start, { x: start.x + sign * 60, y: start.y }, { hold: 160 });
+        await settle(page);
+        await expect(sheet).toBeVisible();
+        expect((await rect(sheet)).x).toBe(box.x);
+        // Past half its width (128px of 256): it closes.
+        await fingerSwipe(page, start, { x: start.x + sign * 180, y: start.y + 6 });
+        await expect(sheet).toBeHidden();
+        // A short fling closes it too.
+        ({ sheet, box } = await open(page, edge, dir));
+        const again = from(box, sign);
+        await fingerSwipe(
+          page,
+          again,
+          { x: again.x + sign * 60, y: again.y },
+          { steps: 3, every: 0 },
+        );
+        await expect(sheet).toBeHidden();
+      });
+    }
+  }
+
+  for (const { edge, dir, sign } of CASES) {
+    test(`${edge} edge · ${dir}: vertical swipes scroll the content; the scroller and slider keep their drags`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      const { sheet, box } = await open(page, edge, dir);
+      const content = page.getByTestId('long').locator('..');
+      const start = from(box, sign);
+      // Resting before lifting, so no momentum scroll runs into the next swipe.
+      await fingerSwipe(
+        page,
+        { x: start.x, y: 700 },
+        { x: start.x + sign * 10, y: 300 },
+        { hold: 200 },
+      );
+      await settle(page);
+      expect(await content.evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
+      expect((await rect(sheet)).x).toBe(box.x);
+      expect(await page.evaluate(() => scrollY)).toBe(0);
+      await content.evaluate((el) => el.scrollTo({ top: 0, behavior: 'instant' }));
+      // The row of filters, scrolled to its middle, can still scroll either way: it owns the
+      // swipe toward the edge.
+      const filters = page.getByTestId('filters');
+      const middle = await filters.evaluate((el) => {
+        const range = el.scrollWidth - el.clientWidth;
+        el.scrollLeft = getComputedStyle(el).direction === 'rtl' ? -range / 2 : range / 2;
+        return el.scrollLeft;
+      });
+      const row = await rect(filters);
+      const rowY = row.y + row.height / 2;
+      await fingerSwipe(page, { x: start.x, y: rowY }, { x: start.x + sign * 150, y: rowY });
+      await settle(page);
+      expect(await filters.evaluate((el) => el.scrollLeft)).not.toBe(middle);
+      await expect(sheet).toBeVisible();
+      expect((await rect(sheet)).x).toBe(box.x);
+      // The horizontal slider (`touch-action: pan-y`) keeps its drag.
+      const slider = page.getByRole('slider', { name: 'Distance' });
+      const before = await slider.inputValue();
+      const track = await rect(page.getByTestId('slider'));
+      const trackY = track.y + track.height / 2;
+      const x0 = track.x + track.width / 2;
+      await fingerSwipe(page, { x: x0, y: trackY }, { x: x0 + sign * 80, y: trackY });
+      await settle(page);
+      expect(await slider.inputValue()).not.toBe(before);
+      await expect(sheet).toBeVisible();
+      expect((await rect(sheet)).x).toBe(box.x);
+    });
+  }
+
+  test('a refused close springs back; swipeable={false} ignores the swipe', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    let { sheet, box } = await open(page, 'end', 'ltr', { veto: true });
+    const start = from(box, 1);
+    await fingerSwipe(page, start, { x: start.x + 180, y: start.y });
+    await expect(page.getByTestId('asked')).toHaveText('Close requests: 1');
+    await settle(page);
+    await expect(sheet).toBeVisible();
+    expect((await rect(sheet)).x).toBe(box.x);
+    ({ sheet, box } = await open(page, 'end', 'ltr', { swipeable: false }));
+    await fingerSwipe(page, start, { x: start.x + 180, y: start.y });
+    await settle(page);
+    await expect(sheet).toBeVisible();
+    expect((await rect(sheet)).x).toBe(box.x);
+  });
+
+  test('a mouse drag never moves it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const { sheet, box } = await open(page, 'end', 'ltr');
+    const start = from(box, 1);
+    await page.mouse.move(start.x, start.y);
+    await page.mouse.down();
+    await page.mouse.move(start.x + 180, start.y, { steps: 10 });
+    await page.mouse.up();
+    await settle(page);
+    await expect(sheet).toBeVisible();
+    expect((await rect(sheet)).x).toBe(box.x);
+  });
+
+  for (const { edge, dir, sign } of CASES) {
+    test(`under reduced motion it follows the finger, then fades where it was let go · ${edge} ${dir}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.setViewportSize({ width: 390, height: 844 });
+      const { box } = await open(page, edge, dir);
+      const start = from(box, sign);
+      await page.evaluate(() => {
+        const frames: { x: number; opacity: number }[] = [];
+        (window as unknown as { swipeFrames: typeof frames }).swipeFrames = frames;
+        const sample = () => {
+          const panel = document.querySelector('[role="dialog"]');
+          if (!panel) return;
+          frames.push({
+            x: panel.getBoundingClientRect().x,
+            opacity: Number(getComputedStyle(panel.parentElement!).opacity),
+          });
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+      await fingerSwipe(page, start, { x: start.x + sign * 180, y: start.y });
+      await expect(page.getByRole('dialog')).toBeHidden();
+      const frames = await page.evaluate(
+        () => (window as unknown as { swipeFrames: { x: number; opacity: number }[] }).swipeFrames,
+      );
+      // It moved with the finger…
+      const released = box.x + sign * 180;
+      expect(frames.some((f) => Math.abs(f.x - released) <= 1)).toBe(true);
+      // …and after the release only fades: every fading frame is where it was let go.
+      const fading = frames.filter((f) => f.opacity < 1);
+      expect(fading.length).toBeGreaterThan(0);
+      for (const frame of fading) expect(Math.abs(frame.x - released)).toBeLessThanOrEqual(1);
+    });
+  }
+});
+
+test.describe('Start-edge side sheet', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`slides in at the start edge, leaves for good, and keeps a free-edge border in forced colours · ${dir}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 800, height: 600 });
+      await openStory(page, 'components-sheet--side', { dir }, { edge: 'start' });
+      await page.getByRole('button', { name: 'Open filters' }).click();
+      const sheet = page.getByRole('dialog', { name: 'Filters' });
+      await settle(page);
+      const box = await rect(sheet);
+      expect(box).toMatchObject({ width: 256, height: 600, y: 0 });
+      expect(dir === 'ltr' ? box.x : box.right).toBe(dir === 'ltr' ? 0 : 800);
+      await expect(page).toHaveScreenshot(`side-start-${dir}.png`);
+      await page.emulateMedia({ forcedColors: 'active' });
+      const borders = await sheet.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { left: style.borderLeftWidth, right: style.borderRightWidth };
+      });
+      // The free edge faces the page: the right in LTR, the left in RTL.
+      expect(dir === 'ltr' ? borders.right : borders.left).toBe('1px');
+      expect(dir === 'ltr' ? borders.left : borders.right).toBe('0px');
+      await page.emulateMedia({ forcedColors: 'none' });
+      const frames = await exitFrames(page, dir === 'ltr' ? 'right' : 'left', () =>
+        sheet.getByRole('button', { name: 'Close' }).click(),
+      );
+      neverReturns(frames, (edge) => (dir === 'ltr' ? edge <= 0 : edge >= 800));
+    });
+  }
+
+  test('a standard sheet on the start edge puts its divider on the content side', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-sheet--side-standard', {}, { edge: 'start' });
+    const panel = page.getByTestId('sheet').locator('[data-slot="panel"]');
+    expect(await panel.evaluate((el) => getComputedStyle(el).borderRightWidth)).toBe('1px');
+    await expect(page.getByTestId('layout')).toHaveScreenshot('side-standard-start.png');
+    await page.getByRole('button', { name: 'Hide details' }).click();
+    await expect.poll(async () => (await rect(page.getByTestId('sheet'))).width).toBe(0);
   });
 });

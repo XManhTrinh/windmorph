@@ -303,6 +303,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['sheets/sheet-side-levels'],
       },
+      {
+        name: 'Side sheet on either edge (usually the right, mirrored in RTL)',
+        kind: 'configuration',
+        examples: ['sheets/sheet-side-edge', 'sheets/sheet-side'],
+      },
     ],
     differences: [
       {
@@ -314,6 +319,14 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       {
         item: 'Skip the half detent',
         note: "`skipPartiallyExpanded` opens a tall modal sheet fully, as Compose's sheet state can.",
+      },
+      {
+        item: 'Swipe to dismiss a modal side sheet',
+        note: "A touch or pen swipe toward the sheet's edge closes it past half its width or on a fling, as Material Components Android's modal side sheet can be dragged off the screen; the M3 web guidance doesn't describe it. `swipeable={false}` turns it off.",
+      },
+      {
+        item: 'Turn dragging off',
+        note: "`swipeable={false}` on either sheet, as Compose's `sheetGesturesEnabled = false`; a bottom sheet's handle stays a button.",
       },
     ],
     notBuilt: [
@@ -338,6 +351,12 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           },
           { compose: 'dragHandle', windmorph: 'dragHandle' },
           { compose: 'properties.shouldDismissOnClickOutside', windmorph: 'closedBy="any"' },
+          { compose: 'sheetGesturesEnabled', windmorph: 'swipeable' },
+          {
+            compose: 'SheetState(confirmValueChange)',
+            windmorph: 'open, onOpenChange',
+            note: 'A controlled `open` left `true` vetoes any close, and a swiped sheet springs back.',
+          },
         ],
       },
       {
@@ -361,7 +380,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: '(no Compose side sheet)',
         component: 'SideSheet',
-        note: 'Side sheets follow m3.material.io and Material Components Android: `variant`, `detached`, `title`, `onBack`, `actions` and `footer`.',
+        note: 'Side sheets follow m3.material.io and Material Components Android: `variant`, `edge` (its `start` / `end` sheet edge), `detached`, `title`, `onBack`, `actions`, `footer` and swipe to dismiss on the modal sheet (`swipeable`). The 400px maximum width is a class, so `classNames.panel` lifts it.',
       },
     ],
   },

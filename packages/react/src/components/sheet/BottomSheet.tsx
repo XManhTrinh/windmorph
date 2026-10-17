@@ -41,7 +41,9 @@ import {
   contentGesture,
   DRAG_SLOP,
   type ContentGesture,
+  type DragSample,
   ownsGesture,
+  releaseVelocity,
   scrolledAbove,
 } from './sheet-gesture';
 import { settleTarget } from './sheet-settle';
@@ -128,6 +130,13 @@ interface BottomSheetOwnProps {
   onOpenChange?: (open: boolean) => void;
   /** Show the drag handle. Without it, the top 48px of the sheet still drags. @default true */
   dragHandle?: boolean;
+  /**
+   * Whether dragging the handle, the top of the sheet or (touch and pen) its content moves
+   * the sheet. Without it the handle stays a button (a press, Enter or Space), and Escape,
+   * the scrim and the close button work as before.
+   * @default true
+   */
+  swipeable?: boolean;
   /**
    * Open fully instead of to half the window when the content is taller than half the
    * window (modal). @default false
@@ -307,6 +316,7 @@ function BottomSheetPanel({
   exitProps,
   panelProps: overlayPanelProps,
   dragHandle = true,
+  swipeable = true,
   skipPartiallyExpanded = false,
   peekHeight = 56,
   detent: detentProp,
@@ -328,7 +338,7 @@ function BottomSheetPanel({
   const standard = variant === 'standard';
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const motionRef = useRef<HTMLDivElement>(null);
-  const styles = bottomSheetStyles({ variant });
+  const styles = bottomSheetStyles({ variant, swipeable });
   const [height, setHeight] = useState(0);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   // The lower detent is half the window (modal) or the peek height (standard); `null` rests
@@ -355,7 +365,7 @@ function BottomSheetPanel({
     y: 0,
     offset: 0,
     id: 0,
-    samples: [] as { y: number; t: number }[],
+    samples: [] as DragSample[],
   });
 
   // The lower detent: a modal sheet taller than half the window opens to half (Compose's
@@ -469,7 +479,7 @@ function BottomSheetPanel({
       y: event.clientY,
       offset: restingOffset,
       id: event.pointerId,
-      samples: [{ y: event.clientY, t: event.timeStamp }],
+      samples: [{ position: event.clientY, time: event.timeStamp }],
     };
   };
   const movePointer = (event: PointerEvent<HTMLElement>) => {
@@ -489,9 +499,9 @@ function BottomSheetPanel({
         return;
       }
     }
-    start.samples = [...start.samples, { y: event.clientY, t: event.timeStamp }].filter(
-      (sample) => event.timeStamp - sample.t < 100,
-    );
+    // Without `swipeable` the handle is only a button: a move never drags it.
+    if (!swipeable) return;
+    start.samples = [...start.samples, { position: event.clientY, time: event.timeStamp }];
     if (drag === null && Math.abs(event.clientY - start.y) <= DRAG_SLOP) return;
     if (drag === null) event.currentTarget.setPointerCapture?.(start.id);
     const raw = start.offset + event.clientY - start.y;
@@ -509,9 +519,11 @@ function BottomSheetPanel({
       if (start.fromHandle) cycle();
       return;
     }
-    const first = start.samples[0]!;
-    const elapsed = (event.timeStamp - first.t) / 1000;
-    const velocity = elapsed > 0 ? (event.clientY - first.y) / elapsed : 0;
+    // From the last 100ms of moves, so a slow drag ending in a flick reads as a fling.
+    const velocity = releaseVelocity([
+      ...start.samples,
+      { position: event.clientY, time: event.timeStamp },
+    ]);
     settle(settleTarget(anchors, start.offset, drag, velocity), velocity);
   };
   const cancelPointer = () => {
@@ -522,6 +534,7 @@ function BottomSheetPanel({
 
   // Without a handle the top 48px of the sheet still drags it (m3.material.io).
   const onZonePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!swipeable) return;
     const top = event.currentTarget.getBoundingClientRect().top;
     if (event.clientY - top <= DRAG_ZONE) startPointer(event, false);
   };
@@ -532,7 +545,7 @@ function BottomSheetPanel({
     const content = contentRef.current;
     const target = event.target as Element;
     pointer.current.fromContent = false;
-    if (event.pointerType === 'mouse' || !content?.contains(target)) return;
+    if (!swipeable || event.pointerType === 'mouse' || !content?.contains(target)) return;
     if (ownsGesture(target, content)) return;
     startPointer(event, false, true);
   };

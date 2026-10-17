@@ -16,18 +16,22 @@ function closestAnchor(anchors: number[], position: number, searchUpwards: boole
 
 /**
  * Where a dragged sheet settles, ported from Compose's `AnchoredDraggableState`
- * (`computeTarget`). Offsets grow downwards (0 = fully open); `velocity` is in px per
- * second, positive downwards.
+ * (`computeTarget`). Offsets grow away from the open position (0 = fully open; downwards for
+ * a bottom sheet, toward its edge for a side sheet); `velocity` is in px per second, positive
+ * the same way.
  *
  * - A fling faster than 125px/s goes to the next anchor in its direction.
- * - Otherwise the sheet moves on once it has travelled 56px towards the neighbouring
- *   anchor, and returns to where it started if not.
+ * - Otherwise the sheet moves on once it has travelled `positionalThreshold` (56px, the
+ *   bottom sheet's; a side sheet passes half its width, as Compose's horizontal
+ *   `ModalWideNavigationRail` does) towards the neighbouring anchor, and returns to where it
+ *   started if not.
  */
 export function settleTarget(
   anchors: number[],
   origin: number,
   offset: number,
   velocity: number,
+  positionalThreshold: number = POSITIONAL_THRESHOLD,
 ): number {
   if (offset === origin) return origin;
   if (Math.abs(velocity) >= VELOCITY_THRESHOLD) {
@@ -35,7 +39,7 @@ export function settleTarget(
   }
   const neighbour = closestAnchor(anchors, offset, offset > origin);
   const travelled = Math.abs(origin - offset);
-  return travelled < Math.min(POSITIONAL_THRESHOLD, Math.abs(neighbour - origin))
+  return travelled < Math.min(positionalThreshold, Math.abs(neighbour - origin))
     ? origin
     : neighbour;
 }

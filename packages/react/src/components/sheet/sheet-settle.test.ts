@@ -26,3 +26,20 @@ describe('settleTarget (Compose AnchoredDraggableState)', () => {
     expect(settleTarget(anchors, 0, 0, 999)).toBe(0);
   });
 });
+
+describe('settleTarget with a positional threshold (side sheets: half the width)', () => {
+  // A 320px side sheet: open 0, closed 320; it closes past 160px.
+  const side = [0, 320];
+
+  it('closes past half its width, and springs back short of it', () => {
+    expect(settleTarget(side, 0, 161, 0, 160)).toBe(320);
+    expect(settleTarget(side, 0, 159, 0, 160)).toBe(0);
+    // The bottom sheet's 56px would have closed it at a fifth of the way.
+    expect(settleTarget(side, 0, 60, 0)).toBe(320);
+  });
+
+  it('closes on a fling over 125px/s toward the edge, and returns on one away', () => {
+    expect(settleTarget(side, 0, 30, 130, 160)).toBe(320);
+    expect(settleTarget(side, 0, 200, -130, 160)).toBe(0);
+  });
+});

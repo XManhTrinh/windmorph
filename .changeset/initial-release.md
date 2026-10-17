@@ -32,6 +32,8 @@ Props that show or hide an optional part are named after the part: `valueLabel` 
 
 `Dialog`, `BottomSheet`, `SideSheet` and `PickerDialog` take `closedBy` (`'any' | 'closerequest' | 'none'`, as HTML's `<dialog closedby>`) instead of `dismissable` and `keyboardDismissDisabled`; the defaults are unchanged (`'closerequest'` for an alert dialog, `'any'` otherwise). Escape closes a modal bottom sheet in one press, from any height, instead of first lowering a fully open sheet to half; `closedBy="none"` also keeps a drag down from closing it.
 
+`SideSheet` takes `edge` (`'start' | 'end'`, default `'end'`, logical so it mirrors in RTL), and a modal side sheet closes on a touch or pen swipe toward its edge (past half its width, or a fling; vertical scrolling and the content's own sideways drags keep working). `SideSheet` and `BottomSheet` take `swipeable` (default `true`) to turn dragging off; a controlled `open` left `true` keeps a swiped sheet open, and it springs back.
+
 `ButtonGroup`, `ChipSet`, `List` and `Menu` take `deselectable` (default `true`) instead of `disallowEmptySelection`: pass `deselectable={false}` to keep at least one item selected.
 
 React Aria's own prop names no longer leak through: `Autocomplete` takes `allowCustomValue` (was `allowsCustomValue`), `Select` takes `closeOnSelect` (was `shouldCloseOnSelect`), `Switch` takes `required` and `invalid`, and the deprecated `selectedKey` / `defaultSelectedKey` / `onSelectionChange` (on `Select` and `Autocomplete`, which take `value` / `defaultValue` / `onChange`), `validationState`, `excludeFromTabOrder`, `allowsEmptyCollection`, `shouldFocusWrap` and `escapeKeyBehavior` are gone.

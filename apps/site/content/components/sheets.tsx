@@ -12,6 +12,7 @@ const SheetBottomDetents = lazyExample('sheets/sheet-bottom-detents', 'SheetBott
 const SheetSide = lazyExample('sheets/sheet-side', 'SheetSide');
 const SheetStandard = lazyExample('sheets/sheet-standard', 'SheetStandard');
 const SheetSideLevels = lazyExample('sheets/sheet-side-levels', 'SheetSideLevels');
+const SheetSideEdge = lazyExample('sheets/sheet-side-edge', 'SheetSideEdge');
 
 /** Sheets page body: modal and standard bottom sheets, modal and standard side sheets. */
 export async function SheetsBody(): Promise<ComponentDoc> {
@@ -32,6 +33,8 @@ export async function SheetsBody(): Promise<ComponentDoc> {
   const sideLevelsHtml = await highlightSource(sideLevels);
   const bottomDetents = await readExampleSource('sheets/sheet-bottom-detents.tsx');
   const bottomDetentsHtml = await highlightSource(bottomDetents);
+  const sideEdge = await readExampleSource('sheets/sheet-side-edge.tsx');
+  const sideEdgeHtml = await highlightSource(sideEdge);
 
   return {
     tokens: [bottomSheetTokenSet, sideSheetTokenSet],
@@ -74,6 +77,14 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             <SheetSide />
           </ExampleViewer>
           <ExampleViewer
+            title="Start edge, and keeping it open"
+            code={sideEdge}
+            html={sideEdgeHtml}
+            fileName="sheet-side-edge.tsx"
+          >
+            <SheetSideEdge />
+          </ExampleViewer>
+          <ExampleViewer
             title="Side sheet with levels"
             code={sideLevels}
             html={sideLevelsHtml}
@@ -102,7 +113,9 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             Sheets hold supplementary content anchored to an edge of the window. A{' '}
             <InlineCode>BottomSheet</InlineCode> rises from the bottom for actions or content on a
             compact screen; a <InlineCode>SideSheet</InlineCode> sits at the end edge for filters or
-            details. For a focused task or a decision use a dialog instead.
+            details (<InlineCode>edge=&quot;start&quot;</InlineCode> for the other side; both are
+            logical, so they swap in right-to-left pages). For a focused task or a decision use a
+            dialog instead.
           </p>
           <p className="text-body-large text-on-surface-variant">
             Modal sheets open from a <InlineCode>SheetTrigger</InlineCode> and cover a scrim. Either
@@ -111,6 +124,33 @@ export async function SheetsBody(): Promise<ComponentDoc> {
             standard side sheet sits in the layout and opens and closes its width. Every sheet needs
             a name (<InlineCode>aria-label</InlineCode>, <InlineCode>aria-labelledby</InlineCode>,
             or a side sheet&apos;s <InlineCode>title</InlineCode>).
+          </p>
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 id="swipe-to-dismiss" className="text-headline-small text-on-surface">
+            Swipe to dismiss
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            On a touch screen, a swipe toward a modal side sheet&apos;s edge closes it once it
+            passes half the sheet&apos;s width, or on a fling; a shorter swipe springs back. A
+            vertical swipe still scrolls the content, and fields, sliders and horizontal scrollers
+            inside keep their own drags. A mouse drag never moves it. Bottom sheets drag from their
+            handle and, on touch, their content.{' '}
+            <InlineCode>swipeable=&#123;false&#125;</InlineCode> turns dragging off on either sheet
+            (a bottom sheet&apos;s handle stays a button), and{' '}
+            <InlineCode>closedBy=&quot;none&quot;</InlineCode> stops a swipe from closing it.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            To keep a sheet open after a swipe (unsaved changes), control{' '}
+            <InlineCode>open</InlineCode> and leave it <InlineCode>true</InlineCode> in{' '}
+            <InlineCode>onOpenChange</InlineCode>: the sheet springs back. The same check covers the
+            close button, Escape and the scrim. Tell people why it stayed open, since a swipe that
+            silently springs back feels broken.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            M3 caps side sheets at 400px. A wider sheet that must break the spec can lift the cap
+            with <InlineCode>classNames.panel</InlineCode> (
+            <InlineCode>&quot;w-[480px] max-w-[480px]&quot;</InlineCode>).
           </p>
         </section>
       </>
@@ -151,7 +191,13 @@ export async function SheetsBody(): Promise<ComponentDoc> {
               returns focus to where it came from; a 72px bottom action row from{' '}
               <InlineCode>footer</InlineCode>). Their content scrolls vertically only: anything
               wider than the sheet is clipped (m3.material.io: &ldquo;Side sheets cannot scroll
-              horizontally&rdquo;).
+              horizontally&rdquo;). <InlineCode>edge</InlineCode> follows Material Components
+              Android&apos;s <InlineCode>start</InlineCode> / <InlineCode>end</InlineCode> sheet
+              edge, and swiping a modal side sheet off its edge follows its modal side sheet; the
+              settle uses Compose&apos;s anchored-drag rules with half the width as the threshold,
+              as Compose&apos;s horizontal <InlineCode>ModalWideNavigationRail</InlineCode> does.
+              There is no <InlineCode>confirmValueChange</InlineCode>: a controlled{' '}
+              <InlineCode>open</InlineCode> is the veto for every way of closing.
             </li>
             <li>
               Not yet supported: predictive back, and detents beyond half / full (modal) or peek /

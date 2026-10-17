@@ -387,6 +387,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     componentSwitch: { control: 'sheet', components: { bottom: 'BottomSheet', side: 'SideSheet' } },
     controlDescriptions: {
       sheet: 'Which sheet the playground shows: a bottom sheet or a side sheet.',
+      swipeable:
+        'Whether dragging moves the sheet: a touch or pen swipe toward a modal side sheet’s edge closes it, and a bottom sheet’s handle and content drag it.',
     },
     notControlled: {
       detent:
@@ -416,6 +418,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     ) => {
       const side = sheet === 'side';
       const standard = props.variant === 'standard';
+      // A standard side sheet on the start edge comes first in its row.
+      const startFirst = side && standard && props.edge === 'start';
       const content = (
         <div
           key="content"
@@ -440,7 +444,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         {
           className: `relative h-[320px] w-full max-w-md overflow-hidden rounded-corner-large border border-outline-variant${side && standard ? ' flex' : ''}`,
         },
-        <div key="page" className="flex flex-1 flex-col items-start gap-3 p-6">
+        <div
+          key="page"
+          className={`flex flex-1 flex-col items-start gap-3 p-6${startFirst ? ' order-last' : ''}`}
+        >
           <p className="text-body-large text-on-surface">Midnight Drive · 12 songs</p>
           <Button variant="tonal" onPress={() => update('open', !(open === true))}>
             {side ? 'Show details' : 'Show player'}
@@ -499,13 +506,17 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       footer: false,
       footerDivider: false,
       divider: true,
+      edge: 'end',
+      swipeable: true,
     },
     surfacedProps: [
       'sheet',
       'variant',
       'open',
       'title',
+      'edge',
       'detached',
+      'swipeable',
       'dragHandle',
       'skipPartiallyExpanded',
       'peekHeight',
@@ -559,15 +570,21 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     importMembers: ['Button', 'SheetTrigger'],
     // A modal sheet opens from a button; a standard one sits in the layout, open to begin with.
     codeWrap: (values) =>
-      values.variant === 'standard'
+      values.variant === 'standard' && values.sheet === 'side' && values.edge === 'start'
         ? {
-            before: `<div className="flex">\n  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    ${values.sheet === 'side' ? 'Show details' : 'Show player'}\n  </Button>`,
-            after: '</div>',
+            before: '<div className="flex">',
+            after:
+              '  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    Show details\n  </Button>\n</div>',
           }
-        : {
-            before: `<SheetTrigger>\n  <Button variant="tonal">${values.sheet === 'side' ? 'Show details' : 'Show player'}</Button>`,
-            after: '</SheetTrigger>',
-          },
+        : values.variant === 'standard'
+          ? {
+              before: `<div className="flex">\n  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    ${values.sheet === 'side' ? 'Show details' : 'Show player'}\n  </Button>`,
+              after: '</div>',
+            }
+          : {
+              before: `<SheetTrigger>\n  <Button variant="tonal">${values.sheet === 'side' ? 'Show details' : 'Show player'}</Button>`,
+              after: '</SheetTrigger>',
+            },
     codeChildren: (values) =>
       values.sheet === 'side'
         ? '<p className="text-body-medium text-on-surface-variant">Track details and controls stay at hand while the page scrolls.</p>'
