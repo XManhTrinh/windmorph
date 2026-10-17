@@ -64,6 +64,8 @@ const REMOVED_ON: Record<string, Record<string, string>> = {
     selected: 'checked',
     defaultSelected: 'defaultChecked',
     onSelectedChange: 'onCheckedChange',
+    selectedIcon: 'checkedIcon',
+    unselectedIcon: 'uncheckedIcon',
   },
   Select: { onSelectionChange: 'onChange' },
   Autocomplete: { onSelectionChange: 'onChange' },

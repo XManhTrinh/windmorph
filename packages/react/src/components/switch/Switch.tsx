@@ -89,10 +89,10 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
    * @default 0
    */
   density?: Density;
-  /** Icon in the thumb while on (overrides the default check). */
-  selectedIcon?: ReactNode;
-  /** Icon in the thumb while off (overrides the default close). */
-  unselectedIcon?: ReactNode;
+  /** Icon in the thumb while checked (overrides the default check). */
+  checkedIcon?: ReactNode;
+  /** Icon in the thumb while unchecked (overrides the default close). */
+  uncheckedIcon?: ReactNode;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -135,8 +135,8 @@ export function Switch({
   required,
   invalid,
   icons = false,
-  selectedIcon,
-  unselectedIcon,
+  checkedIcon,
+  uncheckedIcon,
   density,
   className,
   classNames,
@@ -217,8 +217,8 @@ export function Switch({
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
   const icon = isSelected
-    ? (selectedIcon ?? (icons ? <CheckIcon /> : null))
-    : (unselectedIcon ?? (icons ? <CloseIcon /> : null));
+    ? (checkedIcon ?? (icons ? <CheckIcon /> : null))
+    : (uncheckedIcon ?? (icons ? <CloseIcon /> : null));
   // Browsers toggle a checkbox input on Space only; M3 also toggles a switch on Enter.
   // Enter presses like Space does: the thumb grows on key down and the switch toggles on
   // key up.
