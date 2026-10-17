@@ -162,6 +162,28 @@ describe('SearchBar', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  // Opened by an app's shortcut, the view hands focus back to what had it, not to the bar.
+  it('returns focus to what had it when an app opened the view', async () => {
+    function Shortcut() {
+      const [expanded, setExpanded] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setExpanded(true)}>
+            Open search
+          </button>
+          <SearchBar aria-label="Search mail" expanded={expanded} onExpandedChange={setExpanded} />
+        </>
+      );
+    }
+    render(<Shortcut />);
+    const opener = screen.getByRole('button', { name: 'Open search' });
+    await userEvent.click(opener);
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute('data-exiting', 'true');
+    expect(opener).toHaveFocus();
+  });
+
   it('opens a 56px docked field centred on a shorter bar', async () => {
     render(<SearchBar aria-label="Search" className="h-[48px]" data-testid="search" />);
     const bar = screen.getByTestId('search');
