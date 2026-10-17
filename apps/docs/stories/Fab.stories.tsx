@@ -24,7 +24,7 @@ const COLORS: FabColor[] = [
   'secondary',
   'tertiary',
 ];
-const SIZES: FabSize[] = ['default', 'medium', 'large'];
+const SIZES: FabSize[] = ['default', 'md', 'lg'];
 const EXTENDED_SIZES: ExtendedFabSize[] = ['sm', 'md', 'lg'];
 const ELEVATIONS: FabElevation[] = ['default', 'lowered', 'flat'];
 
@@ -155,7 +155,7 @@ export const Visibility: Story = {
           <Fab
             data-testid="fab"
             visible={visible}
-            size="medium"
+            size="md"
             icon={<EditIcon />}
             aria-label="Compose"
           />

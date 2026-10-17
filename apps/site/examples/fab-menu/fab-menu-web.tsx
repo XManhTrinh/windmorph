@@ -16,7 +16,7 @@ export function FabMenuWeb() {
       <p className="p-4 text-body-medium text-on-surface-variant">Last action: {last}</p>
       <FabMenu
         presentation="menu"
-        size="large"
+        size="lg"
         icon={<AddIcon />}
         openIcon={<CloseIcon />}
         aria-label="Create"

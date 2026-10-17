@@ -417,8 +417,8 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
           },
         ],
       },
-      { composable: 'MediumFloatingActionButton', component: 'Fab size="medium"' },
-      { composable: 'LargeFloatingActionButton', component: 'Fab size="large"' },
+      { composable: 'MediumFloatingActionButton', component: 'Fab size="md"' },
+      { composable: 'LargeFloatingActionButton', component: 'Fab size="lg"' },
       {
         composable: 'SmallFloatingActionButton',
         component: 'Fab',

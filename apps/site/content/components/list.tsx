@@ -185,8 +185,8 @@ export async function ListBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>ListItemVideo</InlineCode> is a video&apos;s thumbnail, 100 × 56dp (
-              <InlineCode>size=&quot;large&quot;</InlineCode>: 114 × 64dp), with a play badge and
-              its <InlineCode>duration</InlineCode>. Pressing it is pressing the item.
+              <InlineCode>size=&quot;lg&quot;</InlineCode>: 114 × 64dp), with a play badge and its{' '}
+              <InlineCode>duration</InlineCode>. Pressing it is pressing the item.
             </li>
             <li>
               Images and videos have 8dp corners (M3 Expressive). Change them with the list&apos;s{' '}

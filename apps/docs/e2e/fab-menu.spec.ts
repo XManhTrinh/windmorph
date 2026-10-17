@@ -41,7 +41,7 @@ test.describe('FabMenu behaviour', () => {
   test('opens from the button upwards and shrinks a large FAB to the close button', async ({
     page,
   }) => {
-    await openStory(page, 'components-fabmenu--playground', {}, { size: 'large', items: '3' });
+    await openStory(page, 'components-fabmenu--playground', {}, { size: 'lg', items: '3' });
     const button = page.getByRole('button', { name: 'Create' });
     expect(await width(button)).toBe(96);
     await expect(button).toHaveAttribute('aria-expanded', 'false');

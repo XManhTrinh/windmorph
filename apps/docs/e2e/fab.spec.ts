@@ -156,7 +156,7 @@ test.describe('FAB interaction', () => {
   });
 
   test('hover raises the elevation and focus shows the ring', async ({ page }) => {
-    await openStory(page, 'components-fab--playground', {}, { size: 'medium' });
+    await openStory(page, 'components-fab--playground', {}, { size: 'md' });
     const fab = page.getByRole('button', { name: 'Compose' });
     await fab.hover();
     await expect(fab).toHaveAttribute('data-hovered', 'true');

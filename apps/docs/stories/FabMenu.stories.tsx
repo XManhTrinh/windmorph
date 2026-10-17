@@ -26,7 +26,7 @@ import {
 import { TallPage } from './scroll-anchoring';
 
 const COLORS: FabMenuColor[] = ['primary', 'secondary', 'tertiary'];
-const SIZES: FabMenuSize[] = ['default', 'medium', 'large'];
+const SIZES: FabMenuSize[] = ['default', 'md', 'lg'];
 const PRESENTATIONS: FabMenuPresentation[] = ['list', 'menu'];
 
 const ACTIONS = [
@@ -204,7 +204,7 @@ export const MenuPresentation: Story = {
         </p>
         <FabMenu
           presentation="menu"
-          size="large"
+          size="lg"
           icon={<AddIcon />}
           openIcon={<CloseIcon />}
           aria-label="Create"

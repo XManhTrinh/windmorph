@@ -297,13 +297,13 @@ export const listMediaStyles = tv({
       },
     },
     size: {
-      small: {},
-      large: {},
+      sm: {},
+      lg: {},
     },
   },
   compoundVariants: [
-    { kind: 'video', size: 'small', class: { frame: 'h-[56px] w-[100px]' } },
-    { kind: 'video', size: 'large', class: { frame: 'h-[64px] w-[114px]' } },
+    { kind: 'video', size: 'sm', class: { frame: 'h-[56px] w-[100px]' } },
+    { kind: 'video', size: 'lg', class: { frame: 'h-[64px] w-[114px]' } },
   ],
-  defaultVariants: { kind: 'image', size: 'small' },
+  defaultVariants: { kind: 'image', size: 'sm' },
 });

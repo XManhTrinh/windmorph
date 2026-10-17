@@ -49,3 +49,5 @@ Placements are hyphenated, like every other multi-word value: `'bottom-start'`, 
 `DialogHeader` takes `labels.close` (default "Close") instead of the required `closeLabel`, and `SplitButton` takes `labels.menu` (default "More options") instead of the required `menuLabel`.
 
 `ButtonBase`, and every button built on it, takes `as` (`'button' | 'div'`) instead of `elementType` to pick its element.
+
+Sizes use one scale: `Fab` and `FabMenu` take `size="md"` and `size="lg"` (were `medium` and `large`), and `ListItemVideo` takes `sm` and `lg` (were `small` and `large`).

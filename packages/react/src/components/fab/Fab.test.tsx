@@ -31,8 +31,8 @@ describe('Fab', () => {
   });
 
   it.each([
-    ['medium', 'size-[80px]', 'size-[28px]'],
-    ['large', 'size-[96px]', 'size-[32px]'],
+    ['md', 'size-[80px]', 'size-[28px]'],
+    ['lg', 'size-[96px]', 'size-[32px]'],
   ] as const)('sizes the %s FAB to the spec tokens', (size, box, iconSize) => {
     render(<Fab size={size} icon={<Icon />} aria-label="Add" />);
     expect(screen.getByRole('button')).toHaveClass(box);

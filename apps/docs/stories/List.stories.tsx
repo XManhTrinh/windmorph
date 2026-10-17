@@ -365,12 +365,7 @@ export const Media: Story = {
           key="large"
           overline="Workshop"
           leading={
-            <ListItemVideo
-              src={picture('#a3b18a', 456, 256)}
-              alt=""
-              size="large"
-              duration="14:05"
-            />
+            <ListItemVideo src={picture('#a3b18a', 456, 256)} alt="" size="lg" duration="14:05" />
           }
           supportingText="A longer video with a three-line item, aligned to the top"
         >

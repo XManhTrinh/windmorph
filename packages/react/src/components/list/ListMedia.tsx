@@ -32,8 +32,8 @@ export type ListItemImageProps = MediaImageProps;
 export interface ListItemVideoProps extends MediaImageProps {
   /** The video's length, in its corner ("2:41"). */
   duration?: string;
-  /** M3's small (100 × 56dp) or large (114 × 64dp) thumbnail. @default "small" */
-  size?: 'small' | 'large';
+  /** M3's small (`sm`, 100 × 56dp) or large (`lg`, 114 × 64dp) thumbnail. @default "sm" */
+  size?: 'sm' | 'lg';
 }
 
 function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageProps) {
@@ -81,15 +81,10 @@ export function ListItemImage({ className, ...image }: ListItemImageProps) {
 
 /**
  * M3's leading video for a {@link ListItem}: the video's thumbnail (not a player) with 8dp
- * corners, 100 × 56dp or 114 × 64dp (`size="large"`), with a play badge and its `duration`
+ * corners, 100 × 56dp or 114 × 64dp (`size="lg"`), with a play badge and its `duration`
  * in the corner. Pressing it is pressing the item.
  */
-export function ListItemVideo({
-  className,
-  duration,
-  size = 'small',
-  ...image
-}: ListItemVideoProps) {
+export function ListItemVideo({ className, duration, size = 'sm', ...image }: ListItemVideoProps) {
   const media = useContext(ListMediaContext);
   const styles = listMediaStyles({ kind: 'video', size });
   return (

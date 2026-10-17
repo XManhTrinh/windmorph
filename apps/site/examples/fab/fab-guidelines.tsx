@@ -39,10 +39,10 @@ export function FabDontMany() {
 
 /** Do: a FAB for a constructive action, such as composing. */
 export function FabDoPositive() {
-  return <Fab size="medium" icon={<EditIcon />} aria-label="Compose" />;
+  return <Fab size="md" icon={<EditIcon />} aria-label="Compose" />;
 }
 
 /** Don't: a FAB for a destructive action. */
 export function FabDontDestructive() {
-  return <Fab size="medium" icon={<DeleteIcon />} aria-label="Delete" />;
+  return <Fab size="md" icon={<DeleteIcon />} aria-label="Delete" />;
 }

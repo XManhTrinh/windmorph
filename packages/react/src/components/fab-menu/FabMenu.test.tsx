@@ -293,8 +293,8 @@ describe('FabMenu', () => {
   });
 
   it.each([
-    ['medium', 'size-[80px]', 'rounded-corner-large-increased', 'size-[28px]'],
-    ['large', 'size-[96px]', 'rounded-corner-extra-large', 'size-[32px]'],
+    ['md', 'size-[80px]', 'rounded-corner-large-increased', 'size-[28px]'],
+    ['lg', 'size-[96px]', 'rounded-corner-extra-large', 'size-[32px]'],
   ] as const)('starts as a %s FAB', (size, box, corner, iconSize) => {
     render(<Menu size={size} />);
     expect(toggle()).toHaveClass(box, corner);
@@ -362,7 +362,7 @@ describe('FabMenu', () => {
   });
 
   it('scrolls its items behind the close button on short windows', () => {
-    render(<Menu defaultOpen size="large" />);
+    render(<Menu defaultOpen size="lg" />);
     const list = document.getElementById(toggle().getAttribute('aria-controls')!)!;
     // The list scrolls, and reaches under the 96px box that keeps the button above it.
     expect(list).toHaveClass(

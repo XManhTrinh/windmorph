@@ -9,7 +9,7 @@ import { fabMenuStyles } from './fab-menu-styles';
 
 function* outputs() {
   for (const color of ['primary', 'secondary', 'tertiary'] as const)
-    for (const size of ['default', 'medium', 'large'] as const) {
+    for (const size of ['default', 'md', 'lg'] as const) {
       const slots = fabMenuStyles({ color, size });
       for (const slot of Object.values(slots)) yield slot();
     }

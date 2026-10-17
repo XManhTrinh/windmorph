@@ -124,11 +124,11 @@ export async function FabBody(): Promise<ComponentDoc> {
             enabled and handle the empty case.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            M3 recommends the medium FAB (<InlineCode>size=&quot;medium&quot;</InlineCode>, 80px)
-            for most layouts. The default size stays the 56px FAB, as in Compose, so set{' '}
-            <InlineCode>medium</InlineCode> unless the screen is dense. Don&apos;t put an extended
-            FAB beside a floating toolbar; pair the toolbar with a FAB (a development warning flags
-            an extended one).
+            M3 recommends the medium FAB (<InlineCode>size=&quot;md&quot;</InlineCode>, 80px) for
+            most layouts. The default size stays the 56px FAB, as in Compose, so set{' '}
+            <InlineCode>md</InlineCode> unless the screen is dense. Don&apos;t put an extended FAB
+            beside a floating toolbar; pair the toolbar with a FAB (a development warning flags an
+            extended one).
           </p>
           <p className="text-body-large text-on-surface-variant">
             In compact and medium windows, place the FAB at the bottom trailing corner with 16px
@@ -148,9 +148,9 @@ export async function FabBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>Fab</InlineCode> sizes are default / medium / large (56 / 80 / 96px); the
-              small FAB is deprecated. <InlineCode>ExtendedFab</InlineCode> sizes are sm / md / lg
-              (56 / 80 / 96px tall).
+              <InlineCode>Fab</InlineCode> sizes are default / md / lg (56 / 80 / 96px); the small
+              FAB is deprecated. <InlineCode>ExtendedFab</InlineCode> sizes are sm / md / lg (56 /
+              80 / 96px tall).
             </li>
             <li>
               Corners are large (16px) / large-increased (20px) / extra-large (28px); icons follow

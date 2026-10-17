@@ -109,7 +109,7 @@ describe('ListItemVideo', () => {
 
     rerender(
       <List aria-label="Videos">
-        <ListItem key="a" leading={<ListItemVideo src="/t.jpg" alt="" size="large" />}>
+        <ListItem key="a" leading={<ListItemVideo src="/t.jpg" alt="" size="lg" />}>
           How to make pancakes
         </ListItem>
       </List>,
