@@ -30,7 +30,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * Bar: `surface-container`, at least 64px (it grows when labels wrap), no elevation.
  * Stacked items share the width equally, or, when centred, sit within side padding of
  * (100% − 10% × (items + 3)) / 2 (up to 6 items). Items beside their icons
- * (`iconPosition="start"`) are centred by default and sized to their content, so the extra
+ * (`iconPlacement="start"`) are centred by default and sized to their content, so the extra
  * space goes to the bar's ends (M3: "Horizontal navigation items have a fixed width").
  * With `scrollBehavior="hide-on-scroll"` the bar is sticky at the bottom and its offset
  * (`--m3-nav-bar-offset`, 0 down to minus its height) follows the page scroll.
@@ -166,7 +166,7 @@ export const navigationBarStyles = tv({
       equal: { item: 'flex-1 basis-0' },
       centered: { root: 'justify-center', item: 'flex-1 basis-0' },
     },
-    iconPosition: { top: {}, start: {} },
+    iconPlacement: { top: {}, start: {} },
     hideOnScroll: {
       // Settling after a scroll ends (`data-settling`), the offset eases to shown or hidden on
       // the default effects spring; while scrolling it follows the scroll directly.
@@ -183,10 +183,14 @@ export const navigationBarStyles = tv({
   },
   compoundVariants: [
     // Items beside their icons keep their own width; the extra space goes to the ends.
-    { arrangement: 'centered', iconPosition: 'start', class: { item: 'flex-initial basis-auto' } },
+    { arrangement: 'centered', iconPlacement: 'start', class: { item: 'flex-initial basis-auto' } },
   ],
-  defaultVariants: { arrangement: 'equal', iconPosition: 'top', hideOnScroll: false },
+  defaultVariants: { arrangement: 'equal', iconPlacement: 'top', hideOnScroll: false },
 });
 
+/**
+ * The variants of {@link navigationBarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type NavigationBarStyleProps = VariantProps<typeof navigationBarStyles>;
 export type NavigationBarArrangement = NonNullable<NavigationBarStyleProps['arrangement']>;

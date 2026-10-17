@@ -166,6 +166,14 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     keywords: ['--md-comp', 'component tokens', 'data-variant', 'Material Web'],
   },
   {
+    title: 'API conventions',
+    summary:
+      'How every prop is named: booleans, controlled state, events, labels, placement, sizes, styling and data attributes.',
+    href: '/api-conventions',
+    kind: 'guide',
+    keywords: ['naming', 'props', 'conventions', 'controlled', 'uncontrolled', 'labels', 'onPress'],
+  },
+  {
     title: 'Accessibility',
     summary: 'WCAG 2.2 AA, required names, keyboard behaviour and right-to-left.',
     href: '/accessibility',

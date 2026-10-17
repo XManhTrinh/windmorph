@@ -21,7 +21,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * dialog slides back 50px and its container shrinks to 35% over 150ms (slow at first, so
  * it is still moving and shrinking until it is gone), the container fades out from 100ms to
  * 150ms, and the scrim fades out over 150ms. Reduced motion keeps only the
- * fades of the dialog and the scrim; `quick` turns all of it off.
+ * fades of the dialog and the scrim; `instant` turns all of it off.
  * The positioner keeps 24px from the window's edges on compact windows and the spec's 56px
  * on wider ones, and `placement` aligns the dialog in it.
  *
@@ -295,7 +295,7 @@ export const dialogStyles = tv({
      */
     transition: { reveal: {}, scale: {} },
     /** No enter or exit motion: the dialog, its parts and the scrim appear and go at once. */
-    quick: {
+    instant: {
       true: {
         scrim: '[transition-property:none]!',
         motion: '[transition-property:none]!',
@@ -488,7 +488,7 @@ export const dialogStyles = tv({
   defaultVariants: {
     dividers: false,
     origin: false,
-    quick: false,
+    instant: false,
     transition: 'reveal',
     hasIcon: false,
     fullScreen: 'never',
@@ -498,4 +498,8 @@ export const dialogStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link dialogStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type DialogStyleProps = VariantProps<typeof dialogStyles>;

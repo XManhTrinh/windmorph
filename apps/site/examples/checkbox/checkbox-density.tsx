@@ -14,7 +14,7 @@ export function CheckboxDensity() {
       {DENSITIES.map((density) => (
         <ThemeScope key={density} density={density} className="flex flex-col items-start gap-2">
           <p className="text-title-small">{`Density ${density}`}</p>
-          <Checkbox defaultSelected>Email</Checkbox>
+          <Checkbox defaultChecked>Email</Checkbox>
           <Checkbox>Text message</Checkbox>
         </ThemeScope>
       ))}

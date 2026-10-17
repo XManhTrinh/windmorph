@@ -84,7 +84,7 @@ describe('BottomSheet', () => {
     expect(screen.queryByRole('dialog')).toBe(null);
   });
 
-  it('opens a tall sheet halfway; the handle expands it and Escape returns it to half', async () => {
+  it('opens a tall sheet halfway; the handle expands it and one Escape closes it', async () => {
     vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(700);
     vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
     const onOpenChange = vi.fn();
@@ -100,10 +100,27 @@ describe('BottomSheet', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
     expect(dialog).toHaveAttribute('data-detent', 'expanded');
     expect(dialog.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
-    fireEvent.keyDown(dialog, { key: 'Escape' });
-    expect(dialog).toHaveAttribute('data-detent', 'partial');
+    // Escape is a close request: a fully open modal sheet closes in one press (APG modal dialog).
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('with closedBy="none", Escape and a drag down leave a modal sheet open', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" closedBy="none" defaultOpen onOpenChange={onOpenChange}>
+        Short content
+      </BottomSheet>,
+    );
+    const dialog = screen.getByRole('dialog');
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    const handle = screen.getByRole('button', { name: 'Close sheet' });
+    fireEvent.pointerDown(handle, { button: 0, pointerId: 1, clientY: 500 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 780 });
+    fireEvent.pointerUp(handle, { pointerId: 1, clientY: 780 });
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('closes when dragged down past the threshold', () => {
@@ -121,6 +138,68 @@ describe('BottomSheet', () => {
     expect(handle).toHaveAttribute('data-dragging', 'true');
     fireEvent.pointerMove(handle, { clientY: 600, pointerId: 1 });
     fireEvent.pointerUp(handle, { clientY: 600, pointerId: 1 });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('leaves from where a drag let it go, and springs back when the app keeps it open', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const motionOf = () => screen.getByRole('dialog').parentElement!;
+    const dragClosed = () => {
+      const handle = screen.getByRole('button', { name: 'Close sheet' });
+      fireEvent.pointerDown(handle, { button: 0, clientY: 500, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientY: 540, pointerId: 1 });
+      fireEvent.pointerMove(handle, { clientY: 620, pointerId: 1 });
+      fireEvent.pointerUp(handle, { clientY: 620, pointerId: 1 });
+    };
+    // Closed: the exit keeps the release offset (under reduced motion it fades there) and
+    // is no longer a drag, so its transition runs.
+    const { unmount } = render(
+      <BottomSheet aria-label="Details" defaultOpen>
+        Content
+      </BottomSheet>,
+    );
+    dragClosed();
+    expect(motionOf()).toHaveAttribute('data-exiting');
+    expect(motionOf()).not.toHaveAttribute('data-dragging');
+    expect(motionOf().style.getPropertyValue('--m3-sheet-offset')).toBe('120px');
+    unmount();
+    // Refused: a controlled `open` left `true` returns the sheet to rest.
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" open onOpenChange={onOpenChange}>
+        Content
+      </BottomSheet>,
+    );
+    dragClosed();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(motionOf()).not.toHaveAttribute('data-exiting');
+    expect(motionOf()).not.toHaveAttribute('data-dragging');
+    expect(motionOf().style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+  });
+
+  it('with swipeable={false}, dragging does nothing and the handle stays a button', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" swipeable={false} defaultOpen onOpenChange={onOpenChange}>
+        <p>Content</p>
+      </BottomSheet>,
+    );
+    const handle = screen.getByRole('button', { name: 'Close sheet' });
+    expect(handle).not.toHaveClass('touch-none');
+    fireEvent.pointerDown(handle, { button: 0, clientY: 500, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientY: 600, pointerId: 1 });
+    expect(handle).not.toHaveAttribute('data-dragging');
+    const content = screen.getByText('Content');
+    fireEvent.pointerDown(content, { button: 0, pointerType: 'touch', clientY: 500, pointerId: 2 });
+    fireEvent.pointerMove(content, { pointerType: 'touch', clientY: 700, pointerId: 2 });
+    fireEvent.pointerUp(content, { pointerType: 'touch', clientY: 700, pointerId: 2 });
+    expect(onOpenChange).not.toHaveBeenCalled();
+    // A press on the handle still works (it closes a fully open modal sheet).
+    fireEvent.pointerDown(handle, { button: 0, clientY: 500, pointerId: 3 });
+    fireEvent.pointerUp(handle, { clientY: 500, pointerId: 3 });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
@@ -532,8 +611,8 @@ describe('SideSheet', () => {
           onBack={() => undefined}
           footer={<Button>Save</Button>}
           classNames={{
-            backButton: 'back-x',
-            closeButton: 'close-x',
+            back: 'back-x',
+            close: 'close-x',
             headerActions: 'actions-x',
             footer: 'footer-x',
             panel: 'panel-x',
@@ -659,5 +738,216 @@ describe('SideSheet', () => {
       </SideSheet>,
     );
     expect(screen.getByRole('dialog', { name: 'Details' })).toHaveClass('container-y', 'h-full');
+  });
+
+  describe('edge and swipe to dismiss', () => {
+    /** A touch swipe on `target` through `xs` (clientX), at a steady y. */
+    function swipe(target: Element, xs: number[], pointerType = 'touch') {
+      const init = { pointerId: 7, pointerType, button: 0, clientY: 300 };
+      fireEvent.pointerDown(target, { ...init, clientX: xs[0] });
+      for (const x of xs.slice(1, -1)) fireEvent.pointerMove(target, { ...init, clientX: x });
+      fireEvent.pointerUp(target, { ...init, clientX: xs.at(-1) });
+    }
+    const offset = (dialog: HTMLElement) =>
+      dialog.parentElement!.style.getPropertyValue('--m3-side-sheet-offset');
+
+    it('puts a start-edge sheet on the start edge, corners and border on its free edge', async () => {
+      const { baseElement, unmount } = render(
+        <SideSheet title="Filters" edge="start" defaultOpen>
+          Options
+        </SideSheet>,
+      );
+      const dialog = screen.getByRole('dialog', { name: 'Filters' });
+      expect(dialog).toHaveAttribute('data-edge', 'start');
+      expect(dialog).toHaveClass(
+        'rounded-e-[var(--_md-comp-sheet-side-container-shape)]',
+        'after:end-full',
+        'forced-colors:border-e',
+      );
+      expect(dialog).not.toHaveClass('rounded-s-[var(--_md-comp-sheet-side-container-shape)]');
+      const container = dialog.parentElement!.parentElement!;
+      expect(container).toHaveClass('start-0');
+      expect(container).not.toHaveClass('end-0');
+      expect(dialog.parentElement!.className).toContain('motion-safe:starting:-translate-x-full');
+      expect(dialog.parentElement!.className).toContain(
+        'motion-safe:rtl:data-exiting:translate-x-[112%]',
+      );
+      expect(await axeViolations(baseElement)).toEqual([]);
+      unmount();
+      render(
+        <SideSheet title="Info" edge="start" detached defaultOpen>
+          Info
+        </SideSheet>,
+      );
+      expect(screen.getByRole('dialog').parentElement).toHaveClass('ps-[16px]');
+    });
+
+    it('puts a standard sheet’s divider on its content side for each edge', () => {
+      const { rerender } = render(
+        <SideSheet variant="standard" aria-label="Details" edge="start" swipeable>
+          Body
+        </SideSheet>,
+      );
+      const root = screen.getByRole('dialog');
+      expect(root).toHaveAttribute('data-edge', 'start');
+      const panel = () => screen.getByText('Body').closest('[data-slot="panel"]')!;
+      expect(panel()).toHaveClass('border-e');
+      expect(panel().parentElement!.parentElement).toHaveClass('justify-start');
+      // A standard sheet sits in the layout: no swipe, no touch-action of its own.
+      expect(panel().className).not.toContain('touch-action');
+      rerender(
+        <SideSheet variant="standard" aria-label="Details">
+          Body
+        </SideSheet>,
+      );
+      expect(panel()).toHaveClass('border-s');
+      expect(screen.getByRole('dialog')).toHaveAttribute('data-edge', 'end');
+    });
+
+    it('closes on a touch swipe past half its width toward its edge, in both edges and directions', () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(256);
+      const cases = [
+        ['end', 'ltr', 1],
+        ['end', 'rtl', -1],
+        ['start', 'ltr', -1],
+        ['start', 'rtl', 1],
+      ] as const;
+      for (const [edge, dir, sign] of cases) {
+        const onOpenChange = vi.fn();
+        const { unmount } = render(
+          <div dir={dir}>
+            <SideSheet title="Filters" edge={edge} defaultOpen onOpenChange={onOpenChange}>
+              <p>Options</p>
+            </SideSheet>
+          </div>,
+        );
+        const dialog = screen.getByRole('dialog');
+        vi.spyOn(window, 'getComputedStyle').mockImplementation(
+          (el) =>
+            ({
+              direction: dir,
+              touchAction: el === dialog ? 'pan-y pinch-zoom' : 'auto',
+            }) as CSSStyleDeclaration,
+        );
+        const text = screen.getByText('Options');
+        const start = 200;
+        fireEvent.pointerDown(text, {
+          pointerId: 7,
+          pointerType: 'touch',
+          button: 0,
+          clientX: start,
+          clientY: 300,
+        });
+        fireEvent.pointerMove(text, {
+          pointerId: 7,
+          pointerType: 'touch',
+          clientX: start + sign * 60,
+          clientY: 302,
+        });
+        expect(dialog).toHaveAttribute('data-dragging', 'true');
+        expect(offset(dialog)).toBe(`${sign * 60}px`);
+        fireEvent.pointerMove(dialog, {
+          pointerId: 7,
+          pointerType: 'touch',
+          clientX: start + sign * 180,
+          clientY: 302,
+        });
+        fireEvent.pointerUp(dialog, {
+          pointerId: 7,
+          pointerType: 'touch',
+          clientX: start + sign * 180,
+          clientY: 302,
+        });
+        expect(onOpenChange, `${edge} ${dir}`).toHaveBeenCalledWith(false);
+        vi.mocked(window.getComputedStyle).mockRestore();
+        unmount();
+      }
+    });
+
+    it('springs back after a short swipe, and when a controlled sheet stays open', () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(256);
+      const onOpenChange = vi.fn();
+      render(
+        <SideSheet title="Edit details" open onOpenChange={onOpenChange}>
+          <p>Fields</p>
+        </SideSheet>,
+      );
+      const dialog = screen.getByRole('dialog');
+      const text = screen.getByText('Fields');
+      // Out 100px and back past where it started: it returns.
+      swipe(text, [100, 200, 90]);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(dialog).not.toHaveAttribute('data-dragging');
+      expect(offset(dialog)).toBe('0px');
+      // Past half: it asks to close, the app keeps `open`, and the sheet returns.
+      swipe(text, [100, 200, 300]);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(dialog).not.toHaveAttribute('data-exiting');
+      expect(offset(dialog)).toBe('0px');
+    });
+
+    it('ignores mouse drags, vertical moves, moves away from the edge, and swipeable={false} or closedBy="none"', () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(256);
+      const onOpenChange = vi.fn();
+      const { rerender } = render(
+        <SideSheet title="Filters" defaultOpen onOpenChange={onOpenChange}>
+          <p>Options</p>
+        </SideSheet>,
+      );
+      const text = screen.getByText('Options');
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveClass('[touch-action:pan-y_pinch-zoom]');
+      swipe(text, [100, 200, 300], 'mouse');
+      swipe(text, [300, 200, 100]);
+      fireEvent.pointerDown(text, {
+        pointerId: 8,
+        pointerType: 'touch',
+        button: 0,
+        clientX: 100,
+        clientY: 100,
+      });
+      fireEvent.pointerMove(text, {
+        pointerId: 8,
+        pointerType: 'touch',
+        clientX: 104,
+        clientY: 160,
+      });
+      fireEvent.pointerMove(text, {
+        pointerId: 8,
+        pointerType: 'touch',
+        clientX: 300,
+        clientY: 170,
+      });
+      fireEvent.pointerUp(text, { pointerId: 8, pointerType: 'touch', clientX: 300, clientY: 170 });
+      expect(onOpenChange).not.toHaveBeenCalled();
+      for (const props of [{ swipeable: false }, { closedBy: 'none' as const }]) {
+        rerender(
+          <SideSheet title="Filters" defaultOpen onOpenChange={onOpenChange} {...props}>
+            <p>Options</p>
+          </SideSheet>,
+        );
+        expect(screen.getByRole('dialog')).not.toHaveClass('[touch-action:pan-y_pinch-zoom]');
+        swipe(screen.getByText('Options'), [100, 200, 300]);
+        expect(onOpenChange).not.toHaveBeenCalled();
+      }
+    });
+
+    it('a swipe that starts on a button never presses it, and leaves fields alone', async () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(256);
+      const onPress = vi.fn();
+      const onOpenChange = vi.fn();
+      const { baseElement } = render(
+        <SideSheet title="Filters" defaultOpen onOpenChange={onOpenChange}>
+          <Button onPress={onPress}>Reset</Button>
+          <input aria-label="Name" />
+        </SideSheet>,
+      );
+      swipe(screen.getByRole('textbox', { name: 'Name' }), [100, 200, 300]);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      swipe(screen.getByRole('button', { name: 'Reset' }), [100, 200, 300]);
+      expect(onPress).not.toHaveBeenCalled();
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(await axeViolations(baseElement)).toEqual([]);
+    });
   });
 });

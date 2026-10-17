@@ -13,7 +13,7 @@ import {
  * `transition="scale"` swaps the M3 dialog motion for the library's original pop: the dialog
  * fades in while it scales up from 90%, and fades out while it scales to 95%, with no clip,
  * slide or staggered parts. It scales from the centre, or from the edge a `placement` puts it
- * against. Reduced motion keeps only the fades, and `quick` turns the motion off either way.
+ * against. Reduced motion keeps only the fades, and `instant` turns the motion off either way.
  */
 export function DialogScale() {
   return (

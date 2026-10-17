@@ -46,7 +46,6 @@ export function DialogDiscard() {
         <Button variant="tonal">New event</Button>
         <Dialog fullScreen="compact">
           <DialogHeader
-            closeLabel="Close"
             action={
               <Button variant="text" onPress={save}>
                 Save

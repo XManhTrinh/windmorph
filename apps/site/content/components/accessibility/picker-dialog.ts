@@ -23,7 +23,7 @@ export const pickerDialog: ComponentAccessibility = {
     states: 'None of its own; the picker inside announces its value.',
     notes: [
       'The scrim is decorative (`aria-hidden`).',
-      'The actions read in order: `modeToggleButton` at the start, then `dismissButton` and `confirmButton` at the end. Full screen, a close (x) button named `strings.close` ("Close") comes first and the Save button (`strings.save`) last.',
+      'The actions read in order: `modeToggleButton` at the start, then `dismissButton` and `confirmButton` at the end. Full screen, a close (x) button named `labels.close` ("Close") comes first and the Save button (`labels.save`) last.',
     ],
   },
   focus: [
@@ -32,7 +32,7 @@ export const pickerDialog: ComponentAccessibility = {
   ],
   touchTarget: [
     'The actions are your buttons; text and icon buttons have 48 × 48px targets. The full-screen close (x) button is an icon button with a 48 × 48px target.',
-    'A press outside the panel closes the dialog while `dismissable` (the default), so the scrim is one large target.',
+    'A press outside the panel closes the dialog while `closedBy` is `"any"` (the default), so the scrim is one large target.',
   ],
   motion: [
     "Under reduced motion both transitions (`reveal` and `scale`) keep only their fades: the dialog doesn't slide, grow or scale.",
@@ -40,6 +40,6 @@ export const pickerDialog: ComponentAccessibility = {
   consumer: [
     'Name the dialog for what it picks (`aria-label="Select date"`), or point `aria-labelledby` at a visible title.',
     'Pass a dismiss button as well as the confirm button, so leaving without saving is one obvious action and not only Escape or a press outside.',
-    'Use text buttons for the actions, as M3 does, and translate `strings` for the full-screen close and Save buttons.',
+    'Use text buttons for the actions, as M3 does, and translate `labels` for the full-screen close and Save buttons.',
   ],
 };

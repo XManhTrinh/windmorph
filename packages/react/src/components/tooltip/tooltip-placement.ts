@@ -4,7 +4,7 @@ import { createContext } from 'react';
 
 /**
  * Where a tooltip sits against its anchor. `start` / `end` follow the text direction; a
- * second word aligns the tooltip with that edge of the anchor (`bottom start` sits below,
+ * second part aligns the tooltip with that edge of the anchor (`bottom-start` sits below,
  * extending towards the end). Tooltips flip when there's no room.
  */
 export type TooltipPlacement =
@@ -14,10 +14,10 @@ export type TooltipPlacement =
   | 'right'
   | 'start'
   | 'end'
-  | 'top start'
-  | 'top end'
-  | 'bottom start'
-  | 'bottom end';
+  | 'top-start'
+  | 'top-end'
+  | 'bottom-start'
+  | 'bottom-end';
 
 /**
  * The default placement of the plain tooltips inside, where a container calls for one other

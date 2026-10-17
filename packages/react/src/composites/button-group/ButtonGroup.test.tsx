@@ -405,7 +405,7 @@ describe('ButtonGroup selection', () => {
       <ViewGroup
         selectedKeys={['day']}
         onSelectionChange={onSelectionChange}
-        disallowEmptySelection
+        deselectable={false}
       />,
     );
     await userEvent.click(screen.getByRole('radio', { name: 'Day' }));

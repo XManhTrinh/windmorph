@@ -183,8 +183,9 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
   labels?: Partial<SnackbarLabels>;
   /**
    * The key combination that moves focus to a snackbar with actions, as the spec asks for on
-   * the web. Document it where your app lists its shortcuts. `false` turns it off.
-   * @default "Alt+G"
+   * the web. F6 by default, the browsers' key for moving between a page's regions and React
+   * Aria's for its toasts. Document it where your app lists its shortcuts. `false` turns it off.
+   * @default "F6"
    */
   focusShortcut?: string | false;
 }
@@ -200,7 +201,7 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
  *   someone reads it. Snackbars with an action stay until acted on or dismissed.
  * - The live region is rendered empty first: a snackbar shown before the host mounts (one
  *   at launch) appears once the region has been registered, so it's announced.
- * - `focusShortcut` (Alt+G) moves focus to a snackbar with actions; Escape dismisses it.
+ * - `focusShortcut` (F6) moves focus to a snackbar with actions; Escape dismisses it.
  *   When it leaves, focus returns to where it was before it entered the snackbar; if that
  *   element is gone (an undone row was removed, say), to the control that followed it in
  *   the Tab order, or else the one before it.
@@ -214,7 +215,7 @@ export function SnackbarHost({
   state,
   snackbar,
   labels,
-  focusShortcut = 'Alt+G',
+  focusShortcut = 'F6',
   className,
   ref,
   ...rest

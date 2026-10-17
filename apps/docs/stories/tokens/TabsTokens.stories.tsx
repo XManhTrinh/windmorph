@@ -11,7 +11,7 @@ function Sample({ variant, className }: { variant: TabsVariant; className?: stri
     <Tabs
       aria-label={`${variant} tabs`}
       variant={variant}
-      defaultSelectedKey="search"
+      defaultValue="search"
       classNames={className ? { list: className } : undefined}
     >
       <Tab key="home" title="Home" icon={<HomeIcon />} />

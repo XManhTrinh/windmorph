@@ -13,7 +13,7 @@ export function SplitButtonIcon() {
       variant="tonal"
       leadingIcon={<AddIcon />}
       leadingLabel="New document"
-      menuLabel="More ways to create"
+      labels={{ menu: 'More ways to create' }}
       menu={
         <Menu>
           <MenuItem key="template">From a template</MenuItem>

@@ -5,7 +5,7 @@ export const primitives: ComponentAccessibility = {
     {
       keys: ['Enter', 'Space'],
       action:
-        'Presses a `ButtonBase` button, including the `div` form (`elementType="div"`, `role="button"`), or switches a toggle.',
+        'Presses a `ButtonBase` button, including the `div` form (`as="div"`, `role="button"`), or switches a toggle.',
       where: '`ButtonBase`',
     },
     {

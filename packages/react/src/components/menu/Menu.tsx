@@ -17,6 +17,7 @@ import {
   type Key,
   type ReactElement,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react';
 import {
@@ -27,6 +28,7 @@ import {
   useMenu,
   useMenuItem,
   useMenuSection,
+  useObjectRef,
   usePopover,
   useButton,
   useSubmenuTrigger,
@@ -52,6 +54,7 @@ import { TriggerContext } from '../../primitives/TriggerContext';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { densityAttribute, type Density } from '../../tokens/density';
+import { toAriaPlacement } from '../../utils/placement';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
@@ -70,6 +73,7 @@ export {
   type MenuTriggerProps,
 } from './menu-trigger';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 
 const CheckIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor">
@@ -220,10 +224,25 @@ export interface MenuClassNames {
   divider?: string;
 }
 
-export interface MenuProps extends Omit<
-  AriaMenuProps<object>,
-  'children' | 'items' | 'onClose' | 'autoFocus'
-> {
+export interface MenuProps
+  extends
+    Omit<
+      AriaMenuProps<object>,
+      | 'children'
+      | 'items'
+      | 'onClose'
+      | 'autoFocus'
+      | 'disallowEmptySelection'
+      // The arrow keys always wrap and Escape always closes the menu, as M3's menus do.
+      | 'shouldFocusWrap'
+      | 'escapeKeyBehavior'
+    >,
+    Omit<RootDOMProps, keyof AriaMenuProps<object>> {
+  /**
+   * With `selectionMode`: the last selected item can be deselected, leaving none. `false` keeps
+   * at least one item selected. @default true
+   */
+  deselectable?: boolean;
   /** `MenuItem`s, `MenuGroup`s and `SubmenuTrigger`s. */
   children: ReactNode;
   /** `standard` (surface colours) or `vibrant` (tertiary container). @default "standard" */
@@ -245,8 +264,12 @@ export interface MenuProps extends Omit<
    * @default 0
    */
   density?: Density;
-  /** Placement relative to the trigger (a submenu always opens beside its item). @default "bottom start" */
-  placement?: Placement;
+  /**
+   * Placement relative to the trigger: a side, then optionally the edge to align with
+   * (`start` / `end` follow the text direction). A submenu always opens beside its item.
+   * @default "bottom-start"
+   */
+  placement?: MenuPlacement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
   /**
@@ -285,7 +308,24 @@ export interface MenuProps extends Omit<
   classNames?: MenuClassNames;
   /** Goes on the menu's outermost element, with `className`. */
   style?: CSSProperties;
+  /** Ref to the menu's list, the `role="menu"` element, in a popover or a sheet. */
+  ref?: Ref<HTMLDivElement>;
 }
+
+/** Where a {@link Menu} sits against its trigger: a side, then optionally the edge it aligns with. */
+export type MenuPlacement =
+  | 'top'
+  | 'bottom'
+  | 'start'
+  | 'end'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'start-top'
+  | 'start-bottom'
+  | 'end-top'
+  | 'end-bottom';
 
 /** Where a {@link Menu} opens. */
 export type MenuPresentation = 'popover' | 'sheet' | 'auto';
@@ -452,11 +492,8 @@ const subscribeToNothing = () => () => {};
  * RTL region without an `I18nProvider` would align the menu to the wrong edge. Resolve
  * them to physical sides from the trigger's computed direction instead.
  */
-function toPhysicalPlacement(placement: Placement, direction: string): Placement {
-  const rtl = direction === 'rtl';
-  return placement
-    .replace('start', rtl ? 'right' : 'left')
-    .replace('end', rtl ? 'left' : 'right') as Placement;
+function toPhysicalPlacement(placement: MenuPlacement, direction: string): Placement {
+  return toAriaPlacement(placement, direction === 'rtl');
 }
 
 type ExitProps = ReturnType<typeof usePresence>['exitProps'];
@@ -466,7 +503,7 @@ function MenuPopover({
   instant,
   isExiting,
   exitProps,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = 0,
   containerPadding = 12,
   layout = 'divider',
@@ -652,6 +689,7 @@ function useHasScrolled(ref: RefObject<HTMLElement | null>, enabled: boolean) {
 }
 
 function MenuList({
+  deselectable = true,
   variant,
   layout: requestedLayout,
   density,
@@ -659,8 +697,11 @@ function MenuList({
   classNames,
   listRef,
   embedded = false,
-  ...props
+  ref: forwardedRef,
+  ...allProps
 }: MenuListProps) {
+  // The menu list is the menu's root (its `ref` and `id` land there): its DOM attributes too.
+  const { root, rest: props } = splitRootProps(allProps);
   // MenuItem / MenuGroup are React Stately Item / Section, so children are a collection.
   assertCollectionChildren(
     props.children,
@@ -671,14 +712,17 @@ function MenuList({
   // M3: "Disabled menu items can receive focus but aren't selectable."
   const state = useTreeState({
     ...(props as AriaMenuProps<object>),
+    disallowEmptySelection: !deselectable,
     disabledBehavior: 'selection',
   });
-  const ownRef = useRef<HTMLDivElement>(null);
+  const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
   // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
   const keyboardDelegate = useTypeaheadDelegate(state, ref);
   const { menuProps } = useMenu(
-    { ...(props as AriaMenuOptions<object>), keyboardDelegate },
+    // The arrow keys wrap from the last item to the first and back, as M3's menus and the rest
+    // of the library's collections do (APG makes it optional).
+    { ...(props as AriaMenuOptions<object>), keyboardDelegate, shouldFocusWrap: true },
     state,
     ref,
   );
@@ -693,7 +737,7 @@ function MenuList({
 
   return (
     <div
-      {...mergeProps(menuProps, {
+      {...mergeProps(root, menuProps, {
         // Focus events bubble through portals: count only focus inside this menu's element.
         onFocus: (event: FocusEvent<HTMLDivElement>) => {
           if (event.currentTarget.contains(event.target)) setActive?.(level);
@@ -701,7 +745,7 @@ function MenuList({
       })}
       ref={ref}
       {...densityAttribute(density)}
-      data-tokens={mergeDataTokens('md-comp-menus', menuProps)}
+      data-tokens={mergeDataTokens('md-comp-menus', root)}
       data-variant={variant}
       data-layout={layout}
       data-shape={shape}

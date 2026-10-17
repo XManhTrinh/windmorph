@@ -66,7 +66,7 @@ export function ThemeSwitcherDemo() {
           aria-label="Colour mode"
           className="w-fit"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={[mode]}
           onSelectionChange={(keys) => {
             const [value] = [...keys];
@@ -94,7 +94,7 @@ export function ThemeSwitcherDemo() {
           </Menu>
         </MenuTrigger>
 
-        <Switch selected={expressive} onSelectedChange={setExpressive}>
+        <Switch checked={expressive} onCheckedChange={setExpressive}>
           Expressive motion
         </Switch>
       </div>

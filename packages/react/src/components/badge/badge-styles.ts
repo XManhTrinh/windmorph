@@ -75,4 +75,8 @@ export const badgedBoxStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link badgeStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type BadgeStyleProps = VariantProps<typeof badgeStyles>;

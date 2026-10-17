@@ -20,7 +20,7 @@ export function MenuContainerPadding() {
       {PADDINGS.map(({ padding, label }) => (
         <MenuTrigger key={padding}>
           <IconButton variant="tonal" icon={<MoreVertIcon />} aria-label={label} />
-          <Menu placement="bottom end" containerPadding={padding}>
+          <Menu placement="bottom-end" containerPadding={padding}>
             <MenuItem key="rename">Rename</MenuItem>
             <MenuItem key="duplicate">Duplicate</MenuItem>
             <MenuItem key="move">Move to another folder</MenuItem>

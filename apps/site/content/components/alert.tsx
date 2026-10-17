@@ -9,18 +9,18 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const AlertDismissible = lazyExample('alert/alert-dismissible', 'AlertDismissible');
 const AlertFormError = lazyExample('alert/alert-form-error', 'AlertFormError');
-const AlertTones = lazyExample('alert/alert-tones', 'AlertTones');
+const AlertSeverities = lazyExample('alert/alert-severities', 'AlertSeverities');
 
 /** Alert page body: when to use it, examples and tokens. */
 export async function AlertBody(): Promise<ComponentDoc> {
-  const [formError, tones, dismissible] = await Promise.all([
+  const [formError, severities, dismissible] = await Promise.all([
     readExampleSource('alert/alert-form-error.tsx'),
-    readExampleSource('alert/alert-tones.tsx'),
+    readExampleSource('alert/alert-severities.tsx'),
     readExampleSource('alert/alert-dismissible.tsx'),
   ]);
-  const [formErrorHtml, tonesHtml, dismissibleHtml] = await Promise.all([
+  const [formErrorHtml, severitiesHtml, dismissibleHtml] = await Promise.all([
     highlightSource(formError),
-    highlightSource(tones),
+    highlightSource(severities),
     highlightSource(dismissible),
   ]);
 
@@ -40,12 +40,12 @@ export async function AlertBody(): Promise<ComponentDoc> {
             <AlertFormError />
           </ExampleViewer>
           <ExampleViewer
-            title="Tones and variants"
-            code={tones}
-            html={tonesHtml}
-            fileName="alert-tones.tsx"
+            title="Severities and variants"
+            code={severities}
+            html={severitiesHtml}
+            fileName="alert-severities.tsx"
           >
-            <AlertTones />
+            <AlertSeverities />
           </ExampleViewer>
           <ExampleViewer
             title="Dismissible, leaving with its exit motion"
@@ -89,26 +89,26 @@ export async function AlertBody(): Promise<ComponentDoc> {
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
               It is a live region (<InlineCode>alert</InlineCode> for the{' '}
-              <InlineCode>error</InlineCode> tone, <InlineCode>status</InlineCode> for the others)
-              that goes into the page first and shows its content a moment later, so screen readers
-              announce it even when it mounts with its message. One in the server&apos;s HTML shows
-              at once.
+              <InlineCode>error</InlineCode> severity, <InlineCode>status</InlineCode> for the
+              others; the default is <InlineCode>info</InlineCode>) that goes into the page first
+              and shows its content a moment later, so screen readers announce it even when it
+              mounts with its message. One in the server&apos;s HTML shows at once.
             </li>
             <li>It fades in on the default effects spring, under reduced motion too.</li>
             <li>
               To let it leave, set <InlineCode>{'open={false}'}</InlineCode> instead of unmounting
               it: it fades out as its height folds (on the effects easing, so it never bounces),
-              then unmounts its content and calls <InlineCode>onExited</InlineCode>. Under reduced
+              then unmounts its content and calls <InlineCode>onClosed</InlineCode>. Under reduced
               motion it only fades, keeping its height until it has gone.
             </li>
             <li>
               <InlineCode>onClose</InlineCode> adds a close button. Before{' '}
               <InlineCode>onClose</InlineCode> runs, focus moves back to where it was before{' '}
-              <InlineCode>focusOnMount</InlineCode>, or on to the next control, so hiding the alert
+              <InlineCode>autoFocus</InlineCode>, or on to the next control, so hiding the alert
               never drops focus to the page.
             </li>
             <li>
-              <InlineCode>focusOnMount</InlineCode> moves focus to the alert as it appears, for an
+              <InlineCode>autoFocus</InlineCode> moves focus to the alert as it appears, for an
               error that blocks a form, and scrolls it into view no further than needed. A keyboard
               user sees the M3 focus indicator on it.
             </li>
@@ -128,12 +128,12 @@ export async function AlertBody(): Promise<ComponentDoc> {
             Theming &amp; tokens
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            Tonal alerts use the tone&apos;s container and on-container roles; outlined ones have no
-            fill and <InlineCode>on-surface</InlineCode> text, with the border and icon in the
-            tone&apos;s colour. A test keeps the text at 4.5:1 in every theme, mode and contrast
-            level. Set the tokens below on an alert or an ancestor (the root carries{' '}
+            Tonal alerts use the severity&apos;s container and on-container roles; outlined ones
+            have no fill and <InlineCode>on-surface</InlineCode> text, with the border and icon in
+            the severity&apos;s colour. A test keeps the text at 4.5:1 in every theme, mode and
+            contrast level. Set the tokens below on an alert or an ancestor (the root carries{' '}
             <InlineCode>data-tokens=&quot;wm-alert&quot;</InlineCode>, with{' '}
-            <InlineCode>data-tone</InlineCode> and <InlineCode>data-variant</InlineCode> picking
+            <InlineCode>data-severity</InlineCode> and <InlineCode>data-variant</InlineCode> picking
             each one&apos;s default), and style the parts with <InlineCode>classNames</InlineCode> (
             <InlineCode>root</InlineCode>, <InlineCode>icon</InlineCode>,{' '}
             <InlineCode>title</InlineCode>, <InlineCode>message</InlineCode>,{' '}

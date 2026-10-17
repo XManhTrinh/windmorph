@@ -47,8 +47,8 @@ function Inputs() {
     <div className="flex flex-col gap-6">
       <TextField label="Full name" className="max-w-sm" />
       <div className="flex flex-wrap items-center gap-6">
-        <Checkbox defaultSelected>Subscribe</Checkbox>
-        <Switch defaultSelected icons>
+        <Checkbox defaultChecked>Subscribe</Checkbox>
+        <Switch defaultChecked icons>
           Wi-Fi
         </Switch>
       </div>

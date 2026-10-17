@@ -33,6 +33,8 @@ export interface LayoutSafetyExpectations {
    * (a centred modal's trigger) can run in one. @default ['ltr', 'rtl']
    */
   directions?: readonly ('ltr' | 'rtl')[];
+  /** More story args for every combination, such as a state to run the matrix in. */
+  args?: Record<string, string | boolean>;
 }
 
 /**
@@ -48,7 +50,12 @@ export function layoutSafetySuite(storyId: string, expected: LayoutSafetyExpecta
       for (const dir of expected.directions ?? (['ltr', 'rtl'] as const)) {
         const name = `${override}${transformedAncestor ? ' · transformed ancestor' : ''} · ${dir}`;
         test(name, async ({ page }) => {
-          await openStory(page, storyId, { dir }, { override, transformedAncestor });
+          await openStory(
+            page,
+            storyId,
+            { dir },
+            { ...expected.args, override, transformedAncestor },
+          );
           const target = page.getByTestId('target');
           // Layout size, not the on-screen box (which a rotate transform enlarges).
           const layout = await target.evaluate((el) => {

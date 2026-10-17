@@ -93,7 +93,7 @@ export async function LinkBody(): Promise<ComponentDoc> {
             For text inside a sentence that does something rather than going somewhere (&quot;and 3
             others&quot; opening a list, &quot;See translation&quot;), give{' '}
             <InlineCode>onPress</InlineCode> instead of <InlineCode>href</InlineCode>: it renders a{' '}
-            <InlineCode>&lt;button&gt;</InlineCode> with the same variants, tone and tokens.
+            <InlineCode>&lt;button&gt;</InlineCode> with the same variants, colour and tokens.
           </p>
         </section>
       </>
@@ -106,7 +106,7 @@ export async function LinkBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             The colour is <InlineCode>primary</InlineCode>; with{' '}
-            <InlineCode>tone=&quot;inherit&quot;</InlineCode> it defaults to the surrounding
+            <InlineCode>color=&quot;inherit&quot;</InlineCode> it defaults to the surrounding
             text&apos;s (<InlineCode>currentColor</InlineCode>), for links on a coloured container.
             Set the tokens below on a link or an ancestor. Each link carries{' '}
             <InlineCode>data-tokens=&quot;wm-link&quot;</InlineCode>, so a value set on an outer

@@ -7,8 +7,10 @@ import {
   useState,
   type ReactElement,
   type ReactNode,
+  type CSSProperties,
+  type Ref,
 } from 'react';
-import { mergeProps, useDialog, useModalOverlay } from 'react-aria';
+import { mergeProps, useDialog, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
@@ -21,6 +23,9 @@ import { PickerDialogContext } from './picker-dialog-context';
 import { pickerDialogStyles } from './picker-dialog-styles';
 import { CloseIcon } from './picker-icons';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 
 type Naming =
   | {
@@ -48,14 +53,15 @@ export interface PickerDialogClassNames {
 }
 
 /** Words of a {@link PickerDialog}, for localisation. */
-export interface PickerDialogStrings {
+export interface PickerDialogLabels {
   /** The full-screen close (x) button. @default "Close" */
-  close?: string;
+  close: string;
   /** The full-screen confirm button. @default "Save" */
-  save?: string;
+  save: string;
 }
 
-interface PickerDialogOwnProps {
+/** The panel (the `dialog` element, where `ref` and `id` land) takes the DOM attributes. */
+interface PickerDialogOwnProps extends Omit<RootDOMProps, 'title'> {
   /** Whether the dialog is open (controlled). */
   open?: boolean;
   /** Whether the dialog starts open when uncontrolled. @default false */
@@ -98,10 +104,14 @@ interface PickerDialogOwnProps {
    * @default "reveal"
    */
   transition?: DialogTransition;
-  /** Pressing outside closes the dialog. @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close the dialog, as HTML's `<dialog closedby>`: `any` (Escape or a
+   * press outside), `closerequest` (Escape only) or `none` (only its actions or the app).
+   * @default "any"
+   */
+  closedBy?: ClosedBy;
   /** Words the full-screen form shows and announces, with English defaults. */
-  strings?: PickerDialogStrings;
+  labels?: Partial<PickerDialogLabels>;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);
   /**
@@ -110,6 +120,12 @@ interface PickerDialogOwnProps {
    * the dialog. Style the surface with `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element, with `className`. */
+  style?: CSSProperties;
+  /** The dialog's id (on the panel, the `dialog` element). */
+  id?: string;
+  /** Ref to the panel, the `dialog` element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: PickerDialogClassNames;
 }
@@ -152,11 +168,13 @@ function PickerDialogModal({
   modeToggleButton,
   fullScreen = 'never',
   closeIcon,
-  dismissable = true,
+  closedBy = 'any',
   transition = 'reveal',
-  strings = {},
+  labels = {},
   children,
   className,
+  style,
+  ref,
   classNames,
   ...labelling
 }: Omit<PickerDialogProps, 'open' | 'defaultOpen' | 'onOpenChange'> & {
@@ -164,13 +182,14 @@ function PickerDialogModal({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useObjectRef(ref);
   const { modalProps, underlayProps } = useModalOverlay(
-    { isDismissable: dismissable && !isExiting },
+    closedByOverlayOptions(closedBy, isExiting),
     state,
     panelRef,
   );
-  const { dialogProps, titleProps } = useDialog(labelling, panelRef);
+  const { root, rest: naming } = splitRootProps(labelling);
+  const { dialogProps, titleProps } = useDialog(naming, panelRef);
   const compact = useMediaQuery(COMPACT_WINDOW);
   const full = fullScreen === 'always' || (fullScreen === 'compact' && compact);
   const shell = dialogStyles({ fullScreen: full ? 'always' : 'never', transition });
@@ -202,7 +221,7 @@ function PickerDialogModal({
         data-exiting={exiting}
         className={shell.scrim({ class: classNames?.scrim })}
       />
-      <div style={DIALOG_ROOT_STYLE} className={shell.root({ class: className })}>
+      <div style={{ ...style, ...DIALOG_ROOT_STYLE }} className={shell.root({ class: className })}>
         <div {...underlayProps} className={shell.positioner()}>
           <div
             {...exitProps}
@@ -210,12 +229,15 @@ function PickerDialogModal({
             className={shell.motion({ class: styles.motion() })}
           >
             <div
-              {...mergeProps(modalProps, dialogProps)}
+              {...mergeProps(root, modalProps, dialogProps)}
               ref={panelRef}
               data-exiting={exiting}
               // The picker's component tokens (date-picker-tokens.ts, time-picker-tokens.ts)
               // paint the panel; `data-variant` is also a public styling hook.
-              data-tokens={variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal'}
+              data-tokens={mergeDataTokens(
+                variant === 'time' ? 'md-comp-time-picker' : 'md-comp-date-picker-modal',
+                root,
+              )}
               data-variant={variant}
               data-full-screen={full || undefined}
               className={styles.panel({
@@ -229,7 +251,7 @@ function PickerDialogModal({
                       variant="standard"
                       density={0}
                       icon={closeIcon ?? <CloseIcon />}
-                      aria-label={strings.close ?? 'Close'}
+                      aria-label={labels.close ?? 'Close'}
                       onPress={state.close}
                       className={styles.close({ class: classNames?.close })}
                     />
@@ -237,7 +259,7 @@ function PickerDialogModal({
                       {modeToggleButton}
                       {onConfirm ? (
                         <Button variant="text" onPress={requestConfirm}>
-                          {strings.save ?? 'Save'}
+                          {labels.save ?? 'Save'}
                         </Button>
                       ) : (
                         confirmButton

@@ -11,7 +11,7 @@ const COLORS: FabColor[] = [
   'secondary',
   'tertiary',
 ];
-const SIZES: FabSize[] = ['default', 'medium', 'large'];
+const SIZES: FabSize[] = ['default', 'md', 'lg'];
 
 /** The FAB's component tokens, probed by e2e/component-tokens.spec.ts. */
 const meta = {

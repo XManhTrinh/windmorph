@@ -676,7 +676,7 @@ describe('NavigationBar', () => {
   });
 
   it('puts icons beside labels in 40px pills, centred and sized to their content', () => {
-    render(<Bar iconPosition="start" />);
+    render(<Bar iconPlacement="start" />);
     const label = screen.getByText('Search');
     expect(label).toHaveClass('text-label-medium');
     expect(label.parentElement).toHaveClass('gap-[4px]', 'ps-[16px]');
@@ -703,13 +703,13 @@ describe('NavigationBar', () => {
     ) {
       return this.hasAttribute('data-nav-label') ? 60 : 0;
     });
-    const { rerender } = render(<Bar iconPosition="start" />);
+    const { rerender } = render(<Bar iconPlacement="start" />);
     const nav = screen.getByRole('navigation');
     expect(nav).toHaveAttribute('data-stacked', 'true');
     expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute('data-layout', 'bar-top');
     expect(screen.getByRole('link', { name: 'Search' })).toHaveClass('flex-1');
     barWidth = 600;
-    rerender(<Bar iconPosition="start" key="wide" />);
+    rerender(<Bar iconPlacement="start" key="wide" />);
     expect(screen.getByRole('navigation')).not.toHaveAttribute('data-stacked');
     expect(screen.getByRole('link', { name: 'Search' })).toHaveAttribute(
       'data-layout',
@@ -723,7 +723,7 @@ describe('NavigationBar', () => {
     const home = () => screen.getByRole('link', { name: 'Home' });
     expect(home()).toHaveClass('self-stretch', 'content-start');
     expect(home()).not.toHaveClass('h-full');
-    rerender(<Bar iconPosition="start" />);
+    rerender(<Bar iconPlacement="start" />);
     expect(home()).toHaveClass('self-stretch', 'content-center');
     expect(home()).not.toHaveClass('h-full');
   });
@@ -749,7 +749,7 @@ describe('NavigationBar', () => {
   });
 
   it('can still share the width equally with icons beside labels', () => {
-    render(<Bar iconPosition="start" arrangement="equal" />);
+    render(<Bar iconPlacement="start" arrangement="equal" />);
     expect(screen.getByRole('link', { name: 'Search' })).toHaveClass('flex-1');
   });
 
@@ -933,7 +933,7 @@ describe('Navigation component tokens', () => {
   it("marks each item with its bar's or rail's tokens and its layout", () => {
     render(
       <>
-        <NavigationBar aria-label="Bar" iconPosition="start">
+        <NavigationBar aria-label="Bar" iconPlacement="start">
           <NavigationBarItem icon={<svg />} selected>
             Home
           </NavigationBarItem>

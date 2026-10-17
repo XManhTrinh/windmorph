@@ -1,3 +1,4 @@
+import { cookie9SidedShape } from '@windmorph/react/primitives';
 import { EmptyState } from '@windmorph/react-pro';
 import { SearchOffIcon } from '../../components/icons';
 
@@ -10,8 +11,8 @@ export function EmptyStateSearch() {
     <EmptyState
       announce
       size="lg"
-      tone="tertiary"
-      shape="Cookie9Sided"
+      color="tertiary"
+      shape={cookie9SidedShape}
       icon={<SearchOffIcon />}
       title="No results for “pasta”"
       description="Try another word, or check the spelling."

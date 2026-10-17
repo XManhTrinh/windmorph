@@ -278,6 +278,10 @@ export const iconButtonStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link iconButtonStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type IconButtonStyleProps = VariantProps<typeof iconButtonStyles>;
 export type IconButtonVariant = NonNullable<IconButtonStyleProps['variant']>;
 export type IconButtonWidth = NonNullable<IconButtonStyleProps['width']>;

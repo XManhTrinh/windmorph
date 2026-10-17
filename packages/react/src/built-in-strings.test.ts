@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 /**
  * Every word a component shows or announces can be overridden: built-in English comes from a
- * `labels` or `strings` prop's defaults (or another prop), never from a literal in the markup.
+ * `labels` prop's defaults (or another prop), never from a literal in the markup.
  * This test reads the components' sources and fails on a literal accessible name, visible
  * text or announcement. A literal that is genuinely not language (a symbol, a separator) goes
  * in the allowlist with its reason.

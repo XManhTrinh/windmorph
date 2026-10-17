@@ -9,7 +9,7 @@ export const dialog: ComponentAccessibility = {
     },
     {
       keys: ['Escape'],
-      action: 'Closes the dialog, unless `keyboardDismissDisabled` is set.',
+      action: 'Closes the dialog, unless `closedBy="none"`.',
     },
     {
       keys: ['Arrow Up', 'Arrow Down', 'Page Up', 'Page Down'],
@@ -39,13 +39,13 @@ export const dialog: ComponentAccessibility = {
     none: 'The dialog has no target of its own. Its actions are {@link Button}s and the full-screen close button is a 48 × 48px {@link IconButton}, each with its own touch target.',
   },
   motion: [
-    'Under reduced motion the dialog only fades: the slide, the container\'s growth, the scale of `transition="scale"` and the full-screen container transform from its `origin` are dropped. `quick` turns every motion off, including the fades.',
+    'Under reduced motion the dialog only fades: the slide, the container\'s growth, the scale of `transition="scale"` and the full-screen container transform from its `origin` are dropped. `instant` turns every motion off, including the fades.',
   ],
   consumer: [
     'Name every dialog with a `DialogTitle` (or `DialogHeader`), or with `aria-label` when there is no visible title.',
     'Put the supporting text in `DialogContent`, so an alert dialog is described by it.',
-    'Give `DialogHeader` a `closeLabel`; it names the full-screen close button.',
-    'Keep the default alert dialog for decisions that must be made, and pass `role="dialog"` or `dismissable` when pressing outside may close it.',
+    'Translate `DialogHeader`\'s `labels.close` ("Close"), which names the full-screen close button.',
+    'Keep the default alert dialog for decisions that must be made, and pass `role="dialog"` or `closedBy="any"` when pressing outside may close it.',
     'Use at most two actions, with the confirming action last. In development `DialogActions` warns once when it holds more.',
   ],
 };

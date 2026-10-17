@@ -16,7 +16,7 @@ export const radioTokenSet = defineComponentTokens({
       value: color('primary'),
       description: 'The ring and dot of a selected radio button.',
       compose: 'RadioButtonTokens.SelectedIconColor',
-      paints: { property: 'border-top-color', slot: 'ring', state: 'selected' },
+      paints: { property: 'border-top-color', slot: 'ring', state: 'checked' },
     },
     'unselected-icon-color': {
       value: color('on-surface-variant'),

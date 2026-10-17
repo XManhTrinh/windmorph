@@ -74,11 +74,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: 'Dismissal options',
-        note: '`dismissable` lets a press outside close an alert dialog, and `keyboardDismissDisabled` keeps Escape from closing one.',
+        note: "`closedBy` (HTML's `<dialog closedby>`) picks what closes it: `any` (Escape or a press outside), `closerequest` (Escape only, an alert dialog's default) or `none`.",
       },
       {
         item: 'Motion callbacks and no motion',
-        note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `quick` turns the motion off.",
+        note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `instant` turns the motion off.",
       },
       {
         item: 'Scale transition',
@@ -99,11 +99,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'title', windmorph: 'DialogTitle' },
           { compose: 'text', windmorph: 'DialogContent' },
           { compose: 'confirmButton, dismissButton', windmorph: 'DialogActions' },
-          { compose: 'properties.dismissOnClickOutside', windmorph: 'dismissable' },
+          { compose: 'properties.dismissOnClickOutside', windmorph: 'closedBy="any"' },
           {
             compose: 'properties.dismissOnBackPress',
-            windmorph: 'keyboardDismissDisabled',
-            note: 'inverted: Escape is the web back gesture',
+            windmorph: 'closedBy',
+            note: '`none` keeps Escape, the web back gesture, from closing it',
           },
         ],
       },
@@ -303,11 +303,30 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['sheets/sheet-side-levels'],
       },
+      {
+        name: 'Side sheet on either edge (usually the right, mirrored in RTL)',
+        kind: 'configuration',
+        examples: ['sheets/sheet-side-edge', 'sheets/sheet-side'],
+      },
+    ],
+    differences: [
+      {
+        item: 'Escape on a modal bottom sheet',
+        note: "Escape closes a modal sheet in one press, as a close request closes a modal dialog on the web (WAI-ARIA APG), where Compose's back press first returns a fully open sheet to half. Drags and the handle still stop at half.",
+      },
     ],
     extensions: [
       {
         item: 'Skip the half detent',
         note: "`skipPartiallyExpanded` opens a tall modal sheet fully, as Compose's sheet state can.",
+      },
+      {
+        item: 'Swipe to dismiss a modal side sheet',
+        note: "A touch or pen swipe toward the sheet's edge closes it past half its width or on a fling, as Material Components Android's modal side sheet can be dragged off the screen; the M3 web guidance doesn't describe it. `swipeable={false}` turns it off.",
+      },
+      {
+        item: 'Turn dragging off',
+        note: "`swipeable={false}` on either sheet, as Compose's `sheetGesturesEnabled = false`; a bottom sheet's handle stays a button.",
       },
     ],
     notBuilt: [
@@ -331,7 +350,13 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
             windmorph: 'skipPartiallyExpanded',
           },
           { compose: 'dragHandle', windmorph: 'dragHandle' },
-          { compose: 'properties.shouldDismissOnClickOutside', windmorph: 'dismissable' },
+          { compose: 'properties.shouldDismissOnClickOutside', windmorph: 'closedBy="any"' },
+          { compose: 'sheetGesturesEnabled', windmorph: 'swipeable' },
+          {
+            compose: 'SheetState(confirmValueChange)',
+            windmorph: 'open, onOpenChange',
+            note: 'A controlled `open` left `true` vetoes any close, and a swiped sheet springs back.',
+          },
         ],
       },
       {
@@ -355,7 +380,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: '(no Compose side sheet)',
         component: 'SideSheet',
-        note: 'Side sheets follow m3.material.io and Material Components Android: `variant`, `detached`, `title`, `onBack`, `actions` and `footer`.',
+        note: 'Side sheets follow m3.material.io and Material Components Android: `variant`, `edge` (its `start` / `end` sheet edge), `detached`, `title`, `onBack`, `actions`, `footer` and swipe to dismiss on the modal sheet (`swipeable`). The 400px maximum width is a class, so `classNames.panel` lifts it.',
       },
     ],
   },

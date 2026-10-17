@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, type ReactElement, type ReactNode } from 'react';
+import { useContext, type ReactElement, type ReactNode, type Ref } from 'react';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -18,6 +18,7 @@ import {
 } from './button-styles';
 import { ButtonContext } from './ButtonContext';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { pendingClasses, useButtonPending, type ButtonLabels } from './button-pending';
 
 export interface ButtonClassNames {
   /** The button element itself; merged with `className`. */
@@ -28,6 +29,34 @@ export interface ButtonClassNames {
   label?: string;
   /** The leading icon. */
   icon?: string;
+  /** The slot holding the loading indicator while `pending`, centred over the hidden content. */
+  pendingIndicator?: string;
+}
+
+interface PendingProps {
+  /**
+   * Shows a loading indicator in place of the content while an action runs, and blocks
+   * presses. The button keeps its width, its colours and keyboard focus; its accessible name
+   * gains `labels.pending`, and a focused button announces it. The indicator appears after
+   * 200ms, so a quick action doesn't flash. Use it for actions that take a moment, not for
+   * every button in a list. A submit button doesn't submit again while pending.
+   * @default false
+   */
+  pending?: boolean;
+  /**
+   * Replaces the loading indicator shown while `pending`, e.g. a `CircularProgressIndicator`
+   * for a wait that may pass five seconds. It's centred over the content and takes the content
+   * colour; a progress indicator also loses its track, as M3 asks inside a button.
+   */
+  pendingIndicator?: ReactElement;
+}
+
+/** A toggle's state is its selection: it has no pending state. */
+interface NoPendingProps {
+  /** Toggle buttons have no pending state. */
+  pending?: never;
+  /** Toggle buttons have no pending state. */
+  pendingIndicator?: never;
 }
 
 interface ButtonOwnProps {
@@ -47,16 +76,27 @@ interface ButtonOwnProps {
   children: Exclude<ReactNode, null | undefined | boolean>;
   /** Classes for each part. `classNames.root` is merged with `className`. */
   classNames?: ButtonClassNames;
+  /** Words the button announces. */
+  labels?: Partial<ButtonLabels>;
 }
 
 export interface ButtonActionProps
-  extends ButtonOwnProps, Omit<ButtonBaseActionProps, keyof ButtonOwnProps> {}
+  extends
+    ButtonOwnProps,
+    PendingProps,
+    Omit<ButtonBaseActionProps, keyof ButtonOwnProps | keyof PendingProps> {}
 
 export interface ButtonLinkProps
-  extends ButtonOwnProps, Omit<ButtonBaseLinkProps, keyof ButtonOwnProps> {}
+  extends
+    ButtonOwnProps,
+    PendingProps,
+    Omit<ButtonBaseLinkProps, keyof ButtonOwnProps | keyof PendingProps> {}
 
 export interface ButtonToggleProps
-  extends Omit<ButtonOwnProps, 'variant'>, Omit<ButtonBaseToggleProps, keyof ButtonOwnProps> {
+  extends
+    Omit<ButtonOwnProps, 'variant'>,
+    NoPendingProps,
+    Omit<ButtonBaseToggleProps, keyof ButtonOwnProps | keyof NoPendingProps> {
   /** Text buttons have no toggle form. @default "filled" */
   variant?: Exclude<ButtonVariant, 'text'>;
   /**
@@ -81,6 +121,7 @@ export type ButtonProps = ButtonActionProps | ButtonLinkProps | ButtonToggleProp
  * <Button toggle leadingIcon={<StarIcon />} selectedLeadingIcon={<StarFilledIcon />}
  *   selected={starred} onSelectedChange={setStarred}>Starred</Button>
  * <Button href="/docs" variant="text">Docs</Button>
+ * <Button type="submit" pending={isPending}>Save</Button>
  */
 export function Button({
   variant: variantProp,
@@ -88,6 +129,8 @@ export function Button({
   shape: shapeProp,
   disabled: disabledProp,
   leadingIcon,
+  pendingIndicator,
+  labels,
   classNames,
   className,
   children,
@@ -123,9 +166,20 @@ export function Button({
     'data-variant': variant,
     'data-size': size,
   };
+  const pending = useButtonPending<HTMLElement>({
+    pending: base.pending,
+    pendingIndicator,
+    labels,
+    size,
+    ariaLabel: base['aria-label'],
+    ariaLabelledby: base['aria-labelledby'],
+    ref: base.ref as Ref<HTMLElement> | undefined,
+    indicatorClassName: cn(pendingClasses.indicator, classNames?.pendingIndicator),
+  });
   const baseProps = {
     ...base,
     ...tokenAttributes,
+    ...pending.rootProps,
     disabled: disabledProp ?? context.disabled ?? false,
     className: styles.root({ class: cn(classNames?.root, className) }),
   } as ButtonBaseProps;
@@ -134,15 +188,31 @@ export function Button({
     <ButtonBase {...baseProps}>
       {({ isSelected }) => {
         const icon = isSelected && selectedLeadingIcon ? selectedLeadingIcon : leadingIcon;
-        return (
-          <span className={styles.content({ class: classNames?.content })}>
-            {(size === 'xs' || size === 'sm') && <TouchTarget />}
+        const faces = (
+          <>
             {icon && (
               <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
                 {icon}
               </span>
             )}
             <span className={styles.label({ class: classNames?.label })}>{children}</span>
+          </>
+        );
+        return (
+          <span
+            {...pending.contentProps}
+            className={styles.content({
+              class: cn(pending.takesPending && pendingClasses.content, classNames?.content),
+            })}
+          >
+            {(size === 'xs' || size === 'sm') && <TouchTarget />}
+            {pending.takesPending ? (
+              <span className={cn(pendingClasses.faces, pendingClasses.replaced)}>{faces}</span>
+            ) : (
+              faces
+            )}
+            {pending.indicator}
+            {pending.hiddenName}
           </span>
         );
       }}

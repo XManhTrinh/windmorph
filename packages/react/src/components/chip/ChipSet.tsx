@@ -49,8 +49,11 @@ interface ChipSetOwnProps {
   defaultSelectedKeys?: Iterable<Key>;
   /** Called with the selected chips' values when the selection changes. */
   onSelectionChange?: (keys: Set<Key>) => void;
-  /** Keeps at least one chip selected. @default false */
-  disallowEmptySelection?: boolean;
+  /**
+   * The last selected chip can be deselected, leaving none. `false` keeps at least one chip
+   * selected. @default true
+   */
+  deselectable?: boolean;
   /** Disables every chip that takes part in the selection. @default false */
   disabled?: boolean;
   /**
@@ -223,7 +226,7 @@ export function ChipSet({
   selectedKeys,
   defaultSelectedKeys,
   onSelectionChange,
-  disallowEmptySelection,
+  deselectable = true,
   disabled,
   layout,
   density,
@@ -240,7 +243,7 @@ export function ChipSet({
     selectedKeys,
     defaultSelectedKeys,
     onSelectionChange,
-    disallowEmptySelection,
+    disallowEmptySelection: !deselectable,
     isDisabled: disabled,
   });
   const keyboard = useChipSetKeyboard(selectionMode === 'single');

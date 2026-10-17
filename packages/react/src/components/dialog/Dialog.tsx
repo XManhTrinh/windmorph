@@ -34,6 +34,7 @@ import {
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { useWarnOnce } from '../../utils/warn-once';
@@ -258,10 +259,12 @@ export interface DialogProps
    * @default "alertdialog", or "dialog" when fullScreen isn't "never"
    */
   role?: 'dialog' | 'alertdialog';
-  /** Closes when pressing outside the dialog. @default true, or false for an alertdialog */
-  dismissable?: boolean;
-  /** Prevents Escape from closing the dialog. @default false */
-  keyboardDismissDisabled?: boolean;
+  /**
+   * How the user can close the dialog, as HTML's `<dialog closedby>`: `any` (Escape or a
+   * press outside), `closerequest` (Escape only) or `none` (only its own buttons or the app).
+   * @default "closerequest" for an alertdialog, "any" otherwise
+   */
+  closedBy?: ClosedBy;
   /** Icon above the title (which is then centred). Decorative. Not shown in full screen. */
   icon?: ReactNode;
   /**
@@ -305,7 +308,7 @@ export interface DialogProps
    * headline and content, then its actions, fade in. `scale` is the library's original pop,
    * an extension beyond the M3 motion: the dialog fades in while it scales up from 90%, and
    * fades out while it scales to 95%, from the centre (`placement="center"`) or from the edge
-   * it sits against. Either way reduced motion keeps only the fades and `quick` turns the
+   * it sits against. Either way reduced motion keeps only the fades and `instant` turns the
    * motion off. A full-screen dialog keeps its own motion and ignores it.
    * @default "reveal"
    */
@@ -315,16 +318,16 @@ export interface DialogProps
    * once, and the dialog leaves the document as soon as it closes. Reduced motion already
    * keeps only the fades. @default false
    */
-  quick?: boolean;
+  instant?: boolean;
   /**
    * Called when the dialog has finished opening: once its enter motion (the slide, the
    * container's growth and every part's fade) has ended, or right after it opens with
-   * `quick`. Not called when it closes before then.
+   * `instant`. Not called when it closes before then.
    */
   onOpened?: () => void;
   /**
    * Called when the dialog has finished closing: once its exit motion has ended and it has
-   * left the document, or right after it closes with `quick`.
+   * left the document, or right after it closes with `instant`.
    */
   onClosed?: () => void;
 }
@@ -341,7 +344,7 @@ export interface DialogProps
  * then its actions; it leaves by fading its parts, sliding back and shrinking, then fading.
  * Any children take part: the actions phase is for `DialogActions` (or any child with
  * `data-slot="actions"`), and every other child fades in with the content. `onOpened` and
- * `onClosed` report the end of each motion; `quick` turns it off.
+ * `onClosed` report the end of each motion; `instant` turns it off.
  *
  * `className` and `style` go on the outermost element, a full-window layer around the
  * positioner whose inline placement they can't move, so a layout class (`static`,
@@ -373,7 +376,7 @@ export function Dialog({
   const trigger = useContext(DialogTriggerContext);
   const ownState = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const state = trigger?.state ?? ownState;
-  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'opacity', !props.quick);
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'opacity', !props.instant);
   const onClosedRef = useRef(onClosed);
   useLayoutEffect(() => {
     onClosedRef.current = onClosed;
@@ -419,12 +422,11 @@ function DialogModal({
   triggerOverlayProps,
   originBox,
   role: roleProp,
-  dismissable,
-  keyboardDismissDisabled,
+  closedBy,
   icon,
   fullScreen = 'never',
   placement = 'center',
-  quick = false,
+  instant = false,
   transition = 'reveal',
   onOpened,
   children,
@@ -448,10 +450,10 @@ function DialogModal({
   const [hasContent, setHasContent] = useState(false);
   const [headerAction, setHeaderAction] = useState(false);
   const { modalProps, underlayProps } = useModalOverlay(
-    {
-      isDismissable: (dismissable ?? role !== 'alertdialog') && !isExiting,
-      isKeyboardDismissDisabled: keyboardDismissDisabled,
-    },
+    closedByOverlayOptions(
+      closedBy ?? (role === 'alertdialog' ? 'closerequest' : 'any'),
+      isExiting,
+    ),
     state,
     panelRef,
   );
@@ -475,7 +477,7 @@ function DialogModal({
     placement,
     bottomBar,
     origin,
-    quick,
+    instant,
     transition,
   });
   const exiting = isExiting || undefined;
@@ -581,11 +583,19 @@ export interface DialogHeaderClassNames {
   title?: string;
 }
 
+/** Words a {@link DialogHeader} announces. */
+export interface DialogHeaderLabels {
+  /** The full-screen close button's name. @default "Close" */
+  close: string;
+}
+
+const DEFAULT_HEADER_LABELS: DialogHeaderLabels = { close: 'Close' };
+
 export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** The headline; it names the dialog. */
   children: ReactNode;
-  /** Accessible name of the close button. */
-  closeLabel: string;
+  /** Words the header announces, with English defaults. */
+  labels?: Partial<DialogHeaderLabels>;
   /**
    * The confirming action, usually a text `Button` ("Save"). Shown in full screen only;
    * without it, a full-screen dialog shows its `DialogActions` as a bottom bar.
@@ -604,7 +614,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
  *
  * @example
  * <Dialog fullScreen="compact">
- *   <DialogHeader closeLabel="Close" action={<Button variant="text" onPress={save}>Save</Button>}>
+ *   <DialogHeader action={<Button variant="text" onPress={save}>Save</Button>}>
  *     Edit name
  *   </DialogHeader>
  *   <DialogContent>…</DialogContent>
@@ -613,7 +623,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
  */
 export function DialogHeader({
   children,
-  closeLabel,
+  labels,
   action,
   divider = false,
   className,
@@ -635,7 +645,7 @@ export function DialogHeader({
           variant="standard"
           density={0}
           icon={<CloseIcon />}
-          aria-label={closeLabel}
+          aria-label={labels?.close ?? DEFAULT_HEADER_LABELS.close}
           onPress={close}
           className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}
         />

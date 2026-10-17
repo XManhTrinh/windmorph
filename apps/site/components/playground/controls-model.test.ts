@@ -42,12 +42,12 @@ describe('inferControls', () => {
   it('takes the kind of a prop missing from the JSON from its default', () => {
     const controls = inferControls(
       props,
-      ['allowsCustomValue', 'maxRows', 'selectionMode'],
+      ['allowCustomValue', 'maxRows', 'selectionMode'],
       { selectionMode: ['single', 'multiple'] },
-      { allowsCustomValue: false, maxRows: 4, selectionMode: 'single' },
+      { allowCustomValue: false, maxRows: 4, selectionMode: 'single' },
     );
     expect(controls.map((control) => [control.name, control.kind])).toEqual([
-      ['allowsCustomValue', 'boolean'],
+      ['allowCustomValue', 'boolean'],
       ['maxRows', 'number'],
       ['selectionMode', 'enum'],
     ]);
@@ -153,7 +153,7 @@ describe('groupOf', () => {
   it('puts forced states, replays and names for assistive tech in Advanced', () => {
     expect(groupOf('dragged', 'boolean')).toBe('advanced');
     expect(groupOf('appear', 'boolean')).toBe('advanced');
-    expect(groupOf('menuLabel', 'string')).toBe('advanced');
+    expect(groupOf('prefixLabel', 'string')).toBe('advanced');
     expect(groupOf('fab.dragged', 'boolean')).toBe('advanced');
     expect(groupOf('titleAs', 'enum')).toBe('advanced');
   });
@@ -192,6 +192,6 @@ describe('isSegmented', () => {
     expect(isSegmented(['auto', 'top', 'bottom'])).toBe(false);
     expect(isSegmented(['none', 'single', 'multiple'])).toBe(false);
     expect(isSegmented(['xs', 'sm', 'md', 'lg'])).toBe(false);
-    expect(isSegmented(['bottom start', 'bottom end', 'top'])).toBe(false);
+    expect(isSegmented(['bottom-start', 'bottom-end', 'top'])).toBe(false);
   });
 });

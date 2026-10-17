@@ -117,8 +117,11 @@ export interface ButtonGroupProps extends Omit<
   defaultSelectedKeys?: Iterable<string>;
   /** Called with the selected toggle buttons' `value`s when the selection changes. */
   onSelectionChange?: (keys: Set<string>) => void;
-  /** Prevents deselecting the last selected button. @default false */
-  disallowEmptySelection?: boolean;
+  /**
+   * The last selected button can be deselected, leaving none. `false` keeps at least one
+   * selected. @default true
+   */
+  deselectable?: boolean;
   /**
    * How much a pressed button grows, as a fraction of its width; its neighbours shrink by the
    * same amount and the group keeps its width. `0` turns it off. Standard groups default to
@@ -227,7 +230,7 @@ function ButtonGroupRoot({
   selectedKeys,
   defaultSelectedKeys,
   onSelectionChange,
-  disallowEmptySelection,
+  deselectable = true,
   expandedRatio,
   overflow = false,
   labels,
@@ -243,7 +246,7 @@ function ButtonGroupRoot({
   const hasSelection = selectionMode !== 'none';
 
   // React Stately reports a change even when the selection is unchanged (e.g. clicking
-  // the only selected button with disallowEmptySelection); only real changes reach callers.
+  // the only selected button of a group that isn't `deselectable`); only real changes reach callers.
   const currentKeys = useRef<ReadonlySet<Key>>(new Set());
   const handleSelectionChange = (keys: Set<Key>) => {
     const previous = currentKeys.current;
@@ -256,7 +259,7 @@ function ButtonGroupRoot({
     selectedKeys,
     defaultSelectedKeys,
     onSelectionChange: handleSelectionChange,
-    disallowEmptySelection,
+    disallowEmptySelection: !deselectable,
     isDisabled: disabled,
   });
   const { groupProps } = useToggleButtonGroup(

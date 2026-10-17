@@ -294,9 +294,17 @@ export const toolbarFabStyles = tv({
   defaultVariants: { color: 'standard', elevation: 'default' },
 });
 
+/**
+ * The variants of {@link dockedToolbarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type DockedToolbarStyleProps = VariantProps<typeof dockedToolbarStyles>;
 export type DockedToolbarArrangement = NonNullable<DockedToolbarStyleProps['arrangement']>;
 export type DockedToolbarColor = NonNullable<DockedToolbarStyleProps['color']>;
+/**
+ * The variants of {@link floatingToolbarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type FloatingToolbarStyleProps = VariantProps<typeof floatingToolbarStyles>;
 export type FloatingToolbarColor = NonNullable<FloatingToolbarStyleProps['color']>;
 export type ToolbarOrientation = NonNullable<FloatingToolbarStyleProps['orientation']>;

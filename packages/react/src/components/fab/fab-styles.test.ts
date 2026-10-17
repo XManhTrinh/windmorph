@@ -19,7 +19,7 @@ const COLORS = [
 function* outputs() {
   for (const color of COLORS)
     for (const elevation of ['default', 'lowered', 'flat'] as const) {
-      for (const size of ['default', 'medium', 'large'] as const) {
+      for (const size of ['default', 'md', 'lg'] as const) {
         const slots = fabStyles({ color, elevation, size });
         yield* [slots.root(), slots.icon()];
       }

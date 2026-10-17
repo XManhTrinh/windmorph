@@ -75,7 +75,7 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
             </li>
             <li>Images load lazily and fill their square tiles.</li>
             <li>
-              <InlineCode>onItemPress</InlineCode> gets the pressed tile&apos;s index and the tile
+              <InlineCode>onAction</InlineCode> gets the pressed tile&apos;s index and the tile
               itself: pass the tile to <InlineCode>MediaViewer</InlineCode>&apos;s{' '}
               <InlineCode>origin</InlineCode> for the M3 container transform.
             </li>

@@ -14,7 +14,7 @@ export function ButtonGroupPressBump() {
       expandedRatio={0.15}
       selectionMode="single"
       defaultSelectedKeys={['normal']}
-      disallowEmptySelection
+      deselectable={false}
       aria-label="Playback speed"
       className="max-w-md"
     >

@@ -85,8 +85,8 @@ export const fabTokenSet = defineComponentTokens({
     color: colorScopes('fab', 'icon'),
     size: {
       default: shapeScope('md-comp-fab', 'large', 'FabBaselineTokens'),
-      medium: shapeScope('md-comp-fab-medium', 'large-increased', 'FabMediumTokens'),
-      large: shapeScope('md-comp-fab-large', 'extra-large', 'FabLargeTokens'),
+      md: shapeScope('md-comp-fab-medium', 'large-increased', 'FabMediumTokens'),
+      lg: shapeScope('md-comp-fab-large', 'extra-large', 'FabLargeTokens'),
     } satisfies Record<FabSize, ComponentTokenScope>,
   },
 });

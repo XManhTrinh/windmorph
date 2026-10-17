@@ -15,7 +15,7 @@ export const mediaGrid: ComponentAccessibility = {
     {
       keys: ['Enter', 'Space'],
       action:
-        'Presses the tile: `onItemPress` gets its index and the tile, usually to open {@link MediaViewer} there, growing out of the tile (`origin`).',
+        'Presses the tile: `onAction` gets its index and the tile, usually to open {@link MediaViewer} there, growing out of the tile (`origin`).',
       where: 'On a tile',
     },
   ],
@@ -37,7 +37,7 @@ export const mediaGrid: ComponentAccessibility = {
   ],
   consumer: [
     "Name the list with `aria-label`, and give every photo an `alt` that says what it shows: it is the tile's only name.",
-    'Open something useful from `onItemPress`, such as {@link MediaViewer} on that photo, so pressing a tile always does something.',
+    'Open something useful from `onAction`, such as {@link MediaViewer} on that photo, so pressing a tile always does something.',
     'When `max` hides photos, offer a way to reach the rest, such as a "See all photos" link.',
   ],
 };

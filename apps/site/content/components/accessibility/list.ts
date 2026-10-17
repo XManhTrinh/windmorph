@@ -9,7 +9,8 @@ export const list: ComponentAccessibility = {
     },
     {
       keys: ['Arrow Down', 'Arrow Up'],
-      action: 'Moves focus to the next or previous item, wrapping at the ends.',
+      action:
+        'Moves focus to the next or previous item, wrapping at the ends. In an interactive list a disabled item takes focus too, so screen reader users find it, but Enter, Space and a press do nothing on it.',
       where: 'Interactive lists and plain lists of links',
     },
     {

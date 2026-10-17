@@ -176,14 +176,14 @@ export const Async: Story = {
   },
 };
 
-/** Free text with `allowsCustomValue`, and labels the app passes in. */
+/** Free text with `allowCustomValue`, and labels the app passes in. */
 export const CustomLabels: Story = {
   render: () => (
     <div className="bg-surface p-4" data-testid="custom-labels">
       <Autocomplete
         label="City"
         defaultItems={CITIES}
-        allowsCustomValue
+        allowCustomValue
         labels={{
           noResults: 'Nothing found',
           loading: 'Loading',

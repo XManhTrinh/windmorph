@@ -45,7 +45,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: '`focusShortcut`',
-        note: 'Alt+G (configurable, or `false`) moves focus to a snackbar with a control, the keyboard path the spec asks for on the web.',
+        note: 'F6 (configurable, or `false`) moves focus to a snackbar with a control, the keyboard path the spec asks for on the web.',
       },
     ],
     compose: [
@@ -402,10 +402,10 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'yearRange', windmorph: 'yearRange' },
           {
             compose: 'selectableDates',
-            windmorph: 'minValue, maxValue, isDateUnavailable',
+            windmorph: 'min, max, isDateUnavailable',
           },
-          { compose: 'showModeToggle', windmorph: 'showModeToggle' },
-          { compose: 'title, headline', windmorph: 'showHeader, strings' },
+          { compose: 'showModeToggle', windmorph: 'modeToggle' },
+          { compose: 'title, headline', windmorph: 'header, labels' },
         ],
       },
       {
@@ -514,7 +514,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'TimePickerDialogDefaults.DisplayModeToggle',
         component: 'TimePickerModeToggle',
-        note: 'Its names come from `strings.inputMode` and `strings.dialMode`, the same object as the time picker’s `strings`.',
+        note: 'Its names come from `labels.inputMode` and `labels.dialMode`, the same object as the time picker’s `labels`.',
       },
     ],
   },
@@ -567,7 +567,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'dismissButton', windmorph: 'dismissButton' },
           {
             compose: 'properties (DialogProperties)',
-            windmorph: 'dismissable, fullScreen',
+            windmorph: 'closedBy, fullScreen',
             note: 'Compose has no full-screen date picker; the spec recommends one on compact windows.',
           },
         ],
@@ -582,15 +582,19 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
   alert: {
     covers: [
       {
-        name: 'Tone: error, info, success, warning, neutral',
+        name: 'Severity: info (default), error, success, warning, neutral',
         kind: 'variant',
-        examples: ['alert/alert-tones', 'alert/alert-form-error'],
+        examples: ['alert/alert-severities', 'alert/alert-form-error'],
       },
-      { name: 'Variant: tonal and outlined', kind: 'variant', examples: ['alert/alert-tones'] },
+      {
+        name: 'Variant: tonal and outlined',
+        kind: 'variant',
+        examples: ['alert/alert-severities'],
+      },
       {
         name: 'With a title',
         kind: 'configuration',
-        examples: ['alert/alert-tones', 'alert/alert-dismissible'],
+        examples: ['alert/alert-severities', 'alert/alert-dismissible'],
       },
       { name: 'With actions', kind: 'configuration', examples: ['alert/alert-form-error'] },
       { name: 'Dismissible', kind: 'configuration', examples: ['alert/alert-dismissible'] },
@@ -644,7 +648,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['skeleton/skeleton-animations'],
       },
       {
-        name: 'Tone: highest and high',
+        name: 'Colour: surface-container-highest and surface-container-high',
         kind: 'configuration',
         examples: ['skeleton/skeleton-variants'],
       },
@@ -677,7 +681,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         ],
       },
       {
-        name: 'Tone and an M3 Expressive shape',
+        name: 'Colour and an M3 Expressive shape (a shape constant)',
         kind: 'configuration',
         examples: ['empty-state/empty-state-search', 'empty-state/empty-state-retry'],
       },

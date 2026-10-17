@@ -38,7 +38,7 @@ export function FabVisibility() {
         ))}
       </div>
       <div className="flex items-center gap-6">
-        <Fab visible={visible} size="medium" icon={<EditIcon />} aria-label="Compose" />
+        <Fab visible={visible} size="md" icon={<EditIcon />} aria-label="Compose" />
         <Fab key={tab} appear icon={<EditIcon />} aria-label={`New in ${TABS[tab]}`} />
       </div>
     </div>

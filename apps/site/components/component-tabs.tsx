@@ -53,8 +53,8 @@ export function ComponentTabs({
       aria-label={`${title} documentation`}
       scrollable
       swipeable
-      selectedKey={selected}
-      onSelectionChange={(key: Key) => {
+      value={selected}
+      onChange={(key: Key) => {
         const tab = String(key) as ComponentTab;
         if (tab === selected) return;
         // Keep the place on the page, unless the tabs have scrolled away: then bring them

@@ -242,7 +242,8 @@ test.describe('Date picker motion', () => {
     // Several heights in between, not one jump.
     const between = heights.filter((h) => h < calendarHeight - 4 && h > inputHeight + 4);
     expect(new Set(between).size).toBeGreaterThan(3);
-    expect(await picker.evaluate((el) => el.style.height)).toBe('');
+    // Its inline height goes once the spring ends (a slow runner may still be moving at 700ms).
+    await expect.poll(() => picker.evaluate((el) => el.style.height)).toBe('');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const reduced = sampleHeights();

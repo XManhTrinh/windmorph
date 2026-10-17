@@ -3,6 +3,7 @@
 import {
   useId,
   useLayoutEffect,
+  type AriaAttributes,
   type CSSProperties,
   type MouseEvent,
   type PointerEvent,
@@ -29,7 +30,7 @@ import {
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
 
 export interface TextFieldClassNames {
@@ -92,9 +93,20 @@ type RenamedAriaProps =
   | 'inputElementType'
   | 'value'
   | 'defaultValue'
-  | 'onChange';
+  | 'onChange'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
-interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps> {
+interface TextFieldOwnProps
+  extends
+    Omit<AriaTextFieldProps<HTMLInputElement>, RenamedAriaProps>,
+    Omit<WrapperRootDOMProps, keyof AriaTextFieldProps<HTMLInputElement>>,
+    // The attributes that describe the input go to it, with React Aria's `aria-controls`,
+    // `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant`: a field that opens its
+    // own suggestions can say so.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**
@@ -176,7 +188,7 @@ interface TextFieldOwnProps extends Omit<AriaTextFieldProps<HTMLInputElement>, R
   /** With `autoGrow`: lines after which the field scrolls instead of growing. */
   maxRows?: number;
   /** Shows `count/maxLength` below the field. Defaults to `true` when `maxLength` is set. */
-  showCharacterCount?: boolean;
+  counter?: boolean;
   /** Words the field announces, for other languages. */
   labels?: Partial<TextFieldLabels>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -250,7 +262,7 @@ export function TextField(props: TextFieldProps) {
     autoGrow = false,
     rows = autoGrow ? 1 : 4,
     maxRows,
-    showCharacterCount,
+    counter,
     labels: labelsProp,
     className,
     classNames,
@@ -260,9 +272,10 @@ export function TextField(props: TextFieldProps) {
     ...otherProps
   } = props;
 
-  // `data-*` attributes describe the component, so they go on the root with `className`;
-  // everything else (ARIA, input attributes, events) goes to the input via React Aria.
-  const { data: rootData, rest: ariaProps } = splitDataAttributes(otherProps);
+  // `data-*` attributes and the root's DOM attributes describe the component, so they go on the
+  // root with `className`; everything else (the input's ARIA, attributes and events) goes to
+  // the input via React Aria.
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const prefixId = useId();
   const suffixId = useId();
@@ -331,7 +344,7 @@ export function TextField(props: TextFieldProps) {
       : (errorMessage ?? validationErrors.join(' '));
   const showError = isInvalid && Boolean(resolvedError);
   const maxLength = ariaProps.maxLength;
-  const showCounter = maxLength !== undefined && showCharacterCount !== false;
+  const showCounter = maxLength !== undefined && counter !== false;
   const showErrorIcon = isInvalid && !trailingIcon && errorIcon !== false;
 
   const styles = textFieldStyles({
@@ -445,7 +458,7 @@ export function TextField(props: TextFieldProps) {
             </span>
           )}
           <Input
-            {...(mergeProps(inputProps, focusProps) as object)}
+            {...(mergeProps(inputProps, pickWidgetAria(ariaProps), focusProps) as object)}
             aria-describedby={describedBy}
             ref={domInputRef as Ref<never>}
             data-slot="input"

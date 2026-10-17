@@ -3,7 +3,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { useState } from 'react';
 import { Button } from '../button/Button';
-import type { DateFieldClassNames, DateFieldStrings } from './DateField';
+import type { DateFieldClassNames, DateFieldLabels } from './DateField';
 import { DatePicker } from './DatePicker';
 import { PickerDialog } from './PickerDialog';
 
@@ -13,11 +13,11 @@ export interface CompactDateDialogProps {
   onOpenChange: (open: boolean) => void;
   value: CalendarDate | null;
   onCommit: (date: CalendarDate | null) => void;
-  minValue: DateValue | undefined;
-  maxValue: DateValue | undefined;
+  min: DateValue | undefined;
+  max: DateValue | undefined;
   isDateUnavailable: ((date: DateValue) => boolean) | undefined;
   yearRange: [number, number];
-  strings: DateFieldStrings;
+  labels: Partial<DateFieldLabels>;
   /** The field's calendar parts: `calendar` styles the dialog's surface here. */
   classNames: Pick<DateFieldClassNames, 'calendar' | 'menuButton' | 'weekday' | 'day' | 'item'>;
 }
@@ -34,11 +34,11 @@ export function CompactDateDialog({
   onOpenChange,
   value,
   onCommit,
-  minValue,
-  maxValue,
+  min,
+  max,
   isDateUnavailable,
   yearRange,
-  strings,
+  labels,
   classNames,
 }: CompactDateDialogProps) {
   const [draft, setDraft] = useState(value);
@@ -54,7 +54,7 @@ export function CompactDateDialog({
   };
   return (
     <PickerDialog
-      aria-label={strings.calendar ?? 'Choose a date'}
+      aria-label={labels.calendar ?? 'Choose a date'}
       open={open}
       onOpenChange={onOpenChange}
       onConfirm={confirm}
@@ -62,23 +62,23 @@ export function CompactDateDialog({
       {...(classNames.calendar && { classNames: { panel: classNames.calendar } })}
       dismissButton={
         <Button variant="text" onPress={() => onOpenChange(false)}>
-          {strings.cancel ?? 'Cancel'}
+          {labels.cancel ?? 'Cancel'}
         </Button>
       }
       confirmButton={
         <Button variant="text" onPress={confirm}>
-          {strings.ok ?? 'OK'}
+          {labels.ok ?? 'OK'}
         </Button>
       }
     >
       <DatePicker
         value={draft}
         onChange={setDraft}
-        minValue={minValue}
-        maxValue={maxValue}
+        min={min}
+        max={max}
         isDateUnavailable={isDateUnavailable}
         yearRange={yearRange}
-        strings={strings}
+        labels={labels}
         classNames={{
           day: classNames.day,
           weekday: classNames.weekday,

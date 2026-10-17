@@ -14,7 +14,7 @@ export function PinInputGroups() {
       <PinInput
         label="Voucher code"
         length={8}
-        size="small"
+        size="sm"
         type="alphanumeric"
         groups={[4, 4]}
         defaultValue="SAVE"

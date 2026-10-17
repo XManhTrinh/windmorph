@@ -16,13 +16,13 @@ export const checkboxTokenSet = defineComponentTokens({
       value: color('primary'),
       description: 'The box, checked or indeterminate.',
       compose: 'CheckboxTokens.SelectedContainerColor',
-      paints: { property: 'background-color', slot: 'box', state: 'selected' },
+      paints: { property: 'background-color', slot: 'box', state: 'checked' },
     },
     'selected-icon-color': {
       value: color('on-primary'),
       description: 'The check mark and the dash.',
       compose: 'CheckboxTokens.SelectedIconColor',
-      paints: { property: 'color', slot: 'box', state: 'selected' },
+      paints: { property: 'color', slot: 'box', state: 'checked' },
     },
     'unselected-outline-color': {
       value: color('on-surface-variant'),

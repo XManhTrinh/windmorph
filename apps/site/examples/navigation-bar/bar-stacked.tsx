@@ -13,7 +13,7 @@ const DESTINATIONS = [
 
 /**
  * The compact navigation bar: 3–5 destinations with the icon stacked above the label
- * (`iconPosition="top"`, the default). It is normally fixed to the bottom of the window;
+ * (`iconPlacement="top"`, the default). It is normally fixed to the bottom of the window;
  * here it sits in a bounded 412px frame. Each item marks the current destination with
  * `selected`, and a `badge` on Search shows a count on its icon, described to assistive
  * tech by `badgeLabel`.

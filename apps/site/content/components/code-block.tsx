@@ -128,7 +128,7 @@ export async function CodeBlockBody(): Promise<ComponentDoc> {
               the block (with <InlineCode>className</InlineCode>) to change a colour.
             </li>
             <li>
-              <InlineCode>showLineNumbers</InlineCode> counts the highlighter&apos;s{' '}
+              <InlineCode>lineNumbers</InlineCode> counts the highlighter&apos;s{' '}
               <InlineCode>.line</InlineCode> spans, so it needs <InlineCode>html</InlineCode>.
             </li>
           </ul>

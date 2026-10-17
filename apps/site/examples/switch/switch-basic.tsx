@@ -7,7 +7,7 @@ import { Switch } from '@windmorph/react';
 export function SwitchBasic() {
   return (
     <div className="flex flex-col gap-3">
-      <Switch defaultSelected>Wi-Fi</Switch>
+      <Switch defaultChecked>Wi-Fi</Switch>
       <Switch>Bluetooth</Switch>
     </div>
   );

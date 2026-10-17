@@ -81,6 +81,19 @@
   }
 }
 
+/*
+ * `control-checked:` styles a selection control's drawing (a checkbox's box, a radio's ring, a
+ * switch's track and thumb) while its `group/control` ancestor is checked or indeterminate
+ * (`data-checked`, `data-indeterminate`). A custom variant sorts after the `group-data-*` ones,
+ * so the checked colours win over hovered, focused, pressed and invalid ones at equal
+ * specificity, and a state that must beat them is stacked with it (`group-data-disabled/control:control-checked:`).
+ */
+@custom-variant control-checked {
+  &:is(:where(.group\/control):is([data-checked], [data-indeterminate]) *) {
+    @slot;
+  }
+}
+
 /* `motion-standard:` applies under the standard motion scheme or reduced motion. */
 @custom-variant motion-standard {
   &:where([data-motion='standard'], [data-motion='standard'] *) {

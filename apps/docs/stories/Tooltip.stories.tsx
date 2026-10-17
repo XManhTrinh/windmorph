@@ -43,10 +43,10 @@ const meta = {
         'right',
         'start',
         'end',
-        'top start',
-        'top end',
-        'bottom start',
-        'bottom end',
+        'top-start',
+        'top-end',
+        'bottom-start',
+        'bottom-end',
       ],
     },
   },
@@ -163,7 +163,7 @@ export const RichKeyboard: Story = {
 
 /** A transient rich tooltip (the default): hover, focus or long-press; below and to the end. */
 export const RichTransient: Story = {
-  args: { placement: 'bottom start' },
+  args: { placement: 'bottom-start' },
   render: ({ placement, caret }) => (
     <div className="flex p-48" data-testid="rich-transient">
       <RichTooltipTrigger placement={placement}>

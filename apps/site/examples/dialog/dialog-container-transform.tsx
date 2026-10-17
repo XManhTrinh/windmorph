@@ -27,7 +27,6 @@ export function DialogContainerTransform() {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save

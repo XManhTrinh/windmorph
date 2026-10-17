@@ -194,6 +194,10 @@ export const splitButtonStyles = tv({
   defaultVariants: { variant: 'filled', size: 'sm' },
 });
 
+/**
+ * The variants of {@link splitButtonStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SplitButtonStyleProps = VariantProps<typeof splitButtonStyles>;
 export type SplitButtonVariant = NonNullable<SplitButtonStyleProps['variant']>;
 export type SplitButtonSize = NonNullable<SplitButtonStyleProps['size']>;

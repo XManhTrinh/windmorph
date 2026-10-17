@@ -90,7 +90,7 @@ export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest 
           preview={
             <SplitButton
               leadingIcon={<AddIcon />}
-              menuLabel="More share options"
+              labels={{ menu: 'More share options' }}
               menu={
                 <Menu>
                   <MenuItem key="link">Copy link</MenuItem>
@@ -123,7 +123,7 @@ export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest 
             <ButtonGroup
               variant="connected"
               selectionMode="single"
-              disallowEmptySelection
+              deselectable={false}
               defaultSelectedKeys={['week']}
               aria-label="Calendar view"
               className="w-fit"

@@ -129,4 +129,8 @@ export const carouselStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link carouselStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type CarouselStyleProps = VariantProps<typeof carouselStyles>;

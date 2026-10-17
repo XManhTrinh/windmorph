@@ -69,13 +69,14 @@ import { CheckboxBox } from '../checkbox/checkbox-box';
 import { RadioRing } from '../radio/radio-ring';
 import { CheckIcon, CloseIcon, SwitchThumb, thumbGeometry } from '../switch/switch-thumb';
 import { switchStyles } from '../switch/switch-styles';
+import { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useKeepPressedInPlace } from '../../utils/keep-pressed-in-place';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
@@ -124,7 +125,7 @@ export interface ListItemProps {
   defaultChecked?: boolean;
   /** Called when a switch or checkbox item is toggled. */
   onCheckedChange?: (checked: boolean) => void;
-  /** Where the switch, checkbox or radio button sits. @default "leading", or "trailing" for a switch */
+  /** Where the switch, checkbox or radio button sits, at the start or end of the row. @default "start", or "end" for a switch */
   controlPlacement?: ControlPlacement;
   /** A radio list item's value, or the value a switch or checkbox item posts with its form. */
   value?: string;
@@ -157,7 +158,7 @@ export interface ListItemProps {
 /** How many lines a text shows before it ends with "…"; the full text stays in the DOM. */
 export type LineLimit = 1 | 2 | 3;
 
-type ControlPlacement = 'leading' | 'trailing';
+type ControlPlacement = 'start' | 'end';
 
 /** A collection node as React Stately's collection builder reads it. */
 interface ListItemNode {
@@ -349,7 +350,7 @@ export interface ListClassNames {
   /** Each item's headline. */
   headline?: string;
   /** Each item's supporting text. */
-  supporting?: string;
+  supportingText?: string;
   /** Each item's trailing content. */
   trailing?: string;
   /** The drawn switch, checkbox or radio button of an item that is one. */
@@ -374,7 +375,9 @@ type Naming =
 
 type ListChild = ReactElement<ListItemProps> | ReactElement<ListSectionProps>;
 
-interface ListOwnProps {
+interface ListOwnProps extends RootDOMProps {
+  /** The root element's id. */
+  id?: string;
   /** Flush items, or separate items 2px apart with rounded group corners. @default "standard" */
   variant?: ListVariant;
   /** `ListItem` elements, or `ListSection`s of them. */
@@ -389,8 +392,11 @@ interface ListOwnProps {
   defaultSelectedKeys?: 'all' | Iterable<Key>;
   /** Called with the selected keys when the selection changes. */
   onSelectionChange?: (keys: Set<Key> | 'all') => void;
-  /** Keeps at least one item selected. @default false */
-  disallowEmptySelection?: boolean;
+  /**
+   * The last selected item can be deselected, leaving none. `false` keeps at least one item
+   * selected. @default true
+   */
+  deselectable?: boolean;
   /** The keys of items that can't be pressed or selected. */
   disabledKeys?: Iterable<Key>;
   /**
@@ -409,7 +415,7 @@ interface ListOwnProps {
   required?: boolean;
   /** Disables every item. @default false */
   disabled?: boolean;
-  /** Where a radio list's radio buttons sit. @default "leading" */
+  /** Where a radio list's radio buttons sit, at the start or end of each row. @default "start" */
   controlPlacement?: ControlPlacement;
   /**
    * M3's dividers between items: `full` width, or `inset` 16dp from each side. Standard
@@ -636,8 +642,8 @@ function ItemContent({
    */
   textHidden?: boolean;
 }) {
-  const leading = controlPlacement === 'leading' ? control : null;
-  const trailing = controlPlacement === 'trailing' ? control : end;
+  const leading = controlPlacement === 'start' ? control : null;
+  const trailing = controlPlacement === 'end' ? control : end;
   return (
     <>
       {(item.leading != null || leading != null) && (
@@ -674,7 +680,7 @@ function ItemContent({
           <span
             id={ids?.supporting}
             data-slot="supporting"
-            className={styles.supporting({ class: classNames?.supporting })}
+            className={styles.supporting({ class: classNames?.supportingText })}
           >
             {item.supportingText}
           </span>
@@ -770,7 +776,7 @@ function StaticList({
   entries,
   ...rest
 }: ListProps & { entries: ReactElement[] }) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest);
   const rootTokens = tokenAttributes(variant, data);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
@@ -802,6 +808,7 @@ function StaticList({
     <ul
       {...data}
       {...rootTokens}
+      id={rest.id}
       ref={ref as Ref<HTMLUListElement>}
       style={style}
       aria-label={label}
@@ -1005,6 +1012,7 @@ function CollectionList({
   expandable,
   variant,
   disabled,
+  deselectable = true,
   classNames,
   className,
   style,
@@ -1012,7 +1020,7 @@ function CollectionList({
   directionRef,
   ...rest
 }: ListProps & { expandable: boolean; directionRef: (element: HTMLElement | null) => void }) {
-  const { data, rest: ariaProps } = splitDataAttributes(rest);
+  const { root: data, rest: ariaProps } = splitRootProps(rest);
   assertCollectionChildren(rest.children, 'List', 'ListItem elements');
   const scan = useCollectionScan(rest.children);
   if (scan.items.some((item) => item.control != null)) throw new Error(CONTROL_ERROR);
@@ -1032,6 +1040,10 @@ function CollectionList({
   const options = {
     ...(ariaProps as unknown as AriaGridListProps<object>),
     disabledKeys: disabledKeys.size > 0 ? disabledKeys : rest.disabledKeys,
+    disallowEmptySelection: !deselectable,
+    // Disabled items stay focusable (WAI-ARIA APG, "Focusability of disabled controls"); each row
+    // keeps only its focus handlers, so it can't be pressed, chosen, expanded or followed.
+    ...FOCUSABLE_DISABLED_OPTIONS,
     shouldFocusWrap: true,
   };
   const root: CollectionRootProps = {
@@ -1208,8 +1220,15 @@ function GridListRow({
 }) {
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
-  const { rowProps, gridCellProps, descriptionProps, isPressed, isSelected, isDisabled } =
-    useGridListItem({ node }, state, ref);
+  const {
+    rowProps: ownRowProps,
+    gridCellProps,
+    descriptionProps,
+    isPressed,
+    isSelected,
+  } = useGridListItem({ node }, state, ref);
+  const isDisabled = state.disabledKeys.has(node.key);
+  const rowProps = isDisabled ? focusOnly(ownRowProps) : ownRowProps;
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1225,6 +1244,7 @@ function GridListRow({
     <div
       {...mergeProps(rowProps, hoverProps, interactionProps)}
       {...dataAttributes}
+      aria-disabled={isDisabled || undefined}
       ref={ref}
       data-selected={isSelected || undefined}
       data-shape={shape}
@@ -1246,6 +1266,18 @@ function GridListRow({
 }
 
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * A disabled item's props: its role, ARIA, id, tab index and focus handlers, but no press, key
+ * or pointer handlers, so it takes focus (APG) and does nothing else.
+ */
+function focusOnly<T extends object>(props: T): T {
+  return Object.fromEntries(
+    Object.entries(props).filter(
+      ([name]) => !/^on[A-Z]/.test(name) || name === 'onFocus' || name === 'onBlur',
+    ),
+  ) as T;
+}
 
 /** A list box of options: M3's single- and multi-select lists on the web. */
 function ListBoxList({
@@ -1355,11 +1387,15 @@ function OptionRow({
 }) {
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
-  const { optionProps, isPressed, isSelected, isDisabled } = useOption(
-    { key: node.key },
-    state,
-    ref,
-  );
+  const {
+    optionProps: ownOptionProps,
+    isPressed,
+    isSelected,
+  } = useOption({ key: node.key }, state, ref);
+  const isDisabled = state.disabledKeys.has(node.key);
+  const optionProps = isDisabled
+    ? { ...focusOnly(ownOptionProps), 'aria-disabled': true }
+    : ownOptionProps;
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1742,16 +1778,10 @@ function TreeRow({
   const item = node.props as ListItemProps;
   const ref = useRef<HTMLDivElement>(null);
   const siblingOrder = withSiblingOrder(state, node);
-  const {
-    rowProps,
-    gridCellProps,
-    descriptionProps,
-    expandButtonProps,
-    isPressed,
-    isSelected,
-    isDisabled,
-  } = useTreeItem({ node: siblingOrder.node, hasChildItems: node.hasChildNodes }, state, ref);
+  const { rowProps, gridCellProps, descriptionProps, expandButtonProps, isPressed, isSelected } =
+    useTreeItem({ node: siblingOrder.node, hasChildItems: node.hasChildNodes }, state, ref);
   siblingOrder.restore();
+  const isDisabled = state.disabledKeys.has(node.key);
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const { interactionProps, dataAttributes } = useM3Interaction({ isDisabled, isPressed }, ref);
   const isFocusVisible = dataAttributes['data-focus-visible'] != null;
@@ -1781,8 +1811,9 @@ function TreeRow({
     ) : null;
   return (
     <div
-      {...mergeProps(rowProps, hoverProps, interactionProps)}
+      {...mergeProps(isDisabled ? focusOnly(rowProps) : rowProps, hoverProps, interactionProps)}
       {...dataAttributes}
+      aria-disabled={isDisabled || undefined}
       ref={ref}
       style={{ '--m3-list-level': node.level } as CSSProperties}
       data-selected={isSelected || undefined}
@@ -1885,7 +1916,7 @@ function ToggleItem({ item, control, listDisabled, ...view }: ToggleItemProps) {
       isSelected={isSelected}
       isDisabled={isDisabled}
       isPressed={isPressed}
-      placement={item.controlPlacement ?? (control === 'switch' ? 'trailing' : 'leading')}
+      placement={item.controlPlacement ?? (control === 'switch' ? 'end' : 'start')}
     />
   );
 }
@@ -1902,16 +1933,17 @@ function RadioList({
   name,
   required,
   disabled,
-  controlPlacement = 'leading',
+  controlPlacement = 'start',
   entries,
   ...rest
 }: ListProps & { entries: ReactElement[] }) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = rest as {
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
   const options: AriaRadioGroupProps = {
+    id: rest.id,
     'aria-label': label,
     'aria-labelledby': labelledBy,
     value,
@@ -2073,8 +2105,7 @@ function ControlItem({
   const options = useContext(ListOptionsContext);
   const styles = itemStyles(item, variant, true, options);
   const controlState = {
-    'data-selected': isSelected || undefined,
-    'data-checked': (kind === 'checkbox' && isSelected) || undefined,
+    'data-checked': isSelected || undefined,
     'data-disabled': isDisabled || undefined,
   };
   return (

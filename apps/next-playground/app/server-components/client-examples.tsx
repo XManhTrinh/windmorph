@@ -140,7 +140,7 @@ const EXAMPLES: Record<string, () => ReactNode> = {
   Tabs: () => tabs,
   Tab: () => tabs,
   SplitButton: () => (
-    <SplitButton menuLabel="More send options" menu={menu}>
+    <SplitButton labels={{ menu: 'More send options' }} menu={menu}>
       Send
     </SplitButton>
   ),

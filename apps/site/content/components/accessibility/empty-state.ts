@@ -23,7 +23,7 @@ export const emptyState: ComponentAccessibility = {
     'It fades in on the default effects spring as it appears, under reduced motion too: a fade is not movement.',
   ],
   consumer: [
-    'Write a title that says what is missing ("No results"), and a description that says why or what to do; the icon and tone colour are not read.',
+    'Write a title that says what is missing ("No results"), and a description that says why or what to do; the icon and its colour are not read.',
     "Use `titleAs` for a heading when the empty state is a section's only content, so the page outline stays whole.",
     'Set `announce` when the empty state replaces content after a search or filter, so screen-reader users hear the result.',
     'In forced-colours mode the icon keeps the text colour.',

@@ -30,7 +30,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
@@ -102,13 +102,20 @@ type RenamedProps =
   | 'isOpen'
   | 'label'
   | 'description'
-  | 'validationState';
+  | 'validationState'
+  // React Stately's deprecated single-selection API; `value` / `defaultValue` / `onChange` replace it.
+  | 'selectedKey'
+  | 'defaultSelectedKey'
+  | 'onSelectionChange'
+  | 'shouldCloseOnSelect'
+  | 'allowsEmptyCollection';
 
 export type SelectProps<T extends object, M extends SelectionMode = 'single'> = Omit<
   StatelySelectProps<T, M>,
   RenamedProps
 > &
-  Pick<AriaSelectOptions<T, M>, 'name' | 'autoComplete' | 'form'> & {
+  Pick<AriaSelectOptions<T, M>, 'id' | 'name' | 'autoComplete' | 'form'> &
+  Omit<WrapperRootDOMProps, keyof StatelySelectProps<T, M>> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**
@@ -154,6 +161,11 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     errorIcon?: ReactNode | false;
     /** Whether the menu is open (controlled); with `defaultOpen` and `onOpenChange`. */
     open?: boolean;
+    /**
+     * Whether choosing an option closes the menu.
+     * @default true for a single choice, false with `selectionMode="multiple"`
+     */
+    closeOnSelect?: boolean;
     /**
      * With `selectionMode="multiple"`, the most options that can be chosen; the rest show as
      * disabled until one is removed.
@@ -278,13 +290,14 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     autoComplete,
     form,
     errorMessage,
+    closeOnSelect,
     ...otherProps
   } = props;
   // Items given as elements (not `items` with a render function) must come from a client.
   if (typeof props.children !== 'function') {
     assertCollectionChildren(props.children, 'Select', 'SelectItem and SelectSection elements');
   }
-  const { data: rootData, rest } = splitDataAttributes(otherProps);
+  const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const stately = rest as Omit<StatelySelectProps<T, M>, RenamedProps>;
   const cap = useSelectionCap({
@@ -313,6 +326,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     isInvalid: invalid,
     isRequired: required,
     isDisabled: disabled,
+    ...(closeOnSelect !== undefined && { shouldCloseOnSelect: closeOnSelect }),
     ...FOCUSABLE_DISABLED_OPTIONS,
     ...(readOnly
       ? { isOpen: false, keyboardDelegate: READ_ONLY_DELEGATE }

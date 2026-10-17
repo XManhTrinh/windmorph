@@ -101,9 +101,8 @@ export const bottomSheetStyles = tv({
       'forced-colors:border-x forced-colors:border-t forced-colors:border-solid forced-colors:border-[CanvasText]',
     ],
     handle: [
-      'flex w-full shrink-0 cursor-grab touch-none justify-center pt-[22px] pb-[22px] outline-none',
+      'flex w-full shrink-0 justify-center pt-[22px] pb-[22px] outline-none',
       'focus-ring-inset rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
-      'data-dragging:cursor-grabbing',
     ],
     handleBar: [
       'h-[4px] w-[32px] rounded-corner-extra-large',
@@ -111,13 +110,7 @@ export const bottomSheetStyles = tv({
       'forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none',
     ],
     closeRow: 'flex shrink-0 justify-end ps-[4px] pe-[4px]',
-    // At its top, the content leaves downward touch moves to the sheet's drag (BottomSheet),
-    // and upward ones too while the sheet rests below its top detent (`data-can-rise`), so an
-    // upward swipe raises the sheet before the content scrolls.
-    content: [
-      'min-h-0 flex-1 overflow-y-auto overscroll-contain data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
-      'data-at-top:data-can-rise:[touch-action:pan-x_pinch-zoom]',
-    ],
+    content: 'min-h-0 flex-1 overflow-y-auto overscroll-contain',
   },
   variants: {
     variant: {
@@ -125,31 +118,43 @@ export const bottomSheetStyles = tv({
       // Over the page without a scrim, below every overlay; the page stays usable around it.
       standard: { container: 'z-(--md-sys-z-sticky)' },
     },
+    /** Dragging moves the sheet (`swipeable`); without it the handle is only a button. */
+    swipeable: {
+      true: {
+        handle: 'cursor-grab touch-none data-dragging:cursor-grabbing',
+        // At its top, the content leaves downward touch moves to the sheet's drag
+        // (BottomSheet), and upward ones too while the sheet rests below its top detent
+        // (`data-can-rise`), so an upward swipe raises the sheet before the content scrolls.
+        content: [
+          'data-at-top:[touch-action:pan-x_pan-down_pinch-zoom]',
+          'data-at-top:data-can-rise:[touch-action:pan-x_pinch-zoom]',
+        ],
+      },
+      false: { handle: 'cursor-pointer' },
+    },
   },
-  defaultVariants: { variant: 'modal' },
+  defaultVariants: { variant: 'modal', swipeable: true },
 });
 
+/**
+ * The variants of {@link bottomSheetStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type BottomSheetStyleProps = VariantProps<typeof bottomSheetStyles>;
 
 /** Variant definitions for {@link SideSheet}. */
 export const sideSheetStyles = tv({
   slots: {
     scrim,
-    // A modal sheet's outermost element, which places it and takes the consumer's
-    // `className` and `style`.
-    // It clips past its end edge only, where a docked panel's bleed hangs (see `compoundVariants`).
-    container: [
-      'fixed inset-y-0 end-0 z-(--md-sys-z-sheet) flex max-w-full',
-      '[clip-path:inset(-100vh_0_-100vh_-100vw)] rtl:[clip-path:inset(-100vh_-100vw_-100vh_0)]',
-    ],
+    // A modal sheet's outermost element, which places it on its `edge` and takes the
+    // consumer's `className` and `style`. It clips past that edge only, where a docked
+    // panel's bleed hangs (see `compoundVariants`).
+    container: 'fixed inset-y-0 z-(--md-sys-z-sheet) flex max-w-full',
     // Library-owned layer that moves a modal sheet, inside the container (architecture §10
-    // rule 4); it holds a detached sheet's 16px margins, so the exit clears them.
-    motion: [
-      'flex min-w-0',
-      'translate-x-0 motion-safe:starting:translate-x-full motion-safe:data-exiting:translate-x-[112%]',
-      'motion-safe:rtl:starting:-translate-x-full motion-safe:rtl:data-exiting:-translate-x-[112%]',
-      ...sheetMotion,
-    ],
+    // rule 4); it holds a detached sheet's 16px margins, so the exit clears them. A swipe
+    // moves it by `--m3-side-sheet-offset` (physical px, set by SideSheet while dragging and
+    // settling); it enters from and leaves past the sheet's edge (`edge`).
+    motion: ['flex min-w-0', 'translate-x-(--m3-side-sheet-offset)', ...sheetMotion],
     // 256px by default; a consumer width can't pass the spec's 400px maximum. A fixed
     // maximum (not a percentage) also caps the wrapper's shrink-to-fit width, and `min-w-0`
     // lets the panel shrink with the wrapper in a narrow window.
@@ -179,7 +184,8 @@ export const sideSheetStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',
     ],
-    standardClip: 'flex w-full min-w-0 justify-end overflow-hidden',
+    // The panel stays on the window's side of the root as its width moves (`edge`).
+    standardClip: 'flex w-full min-w-0 overflow-hidden',
     standardFrame: 'flex h-full shrink-0',
   },
   variants: {
@@ -187,9 +193,46 @@ export const sideSheetStyles = tv({
       modal: {},
       standard: { panel: 'h-full shrink-0' },
     },
+    /** The window edge the sheet sits on; `end` is the right in LTR and the left in RTL. */
+    edge: {
+      end: {
+        container: [
+          'end-0',
+          '[clip-path:inset(-100vh_0_-100vh_-100vw)] rtl:[clip-path:inset(-100vh_-100vw_-100vh_0)]',
+        ],
+        motion: [
+          'motion-safe:starting:translate-x-full motion-safe:data-exiting:translate-x-[112%]',
+          'motion-safe:rtl:starting:-translate-x-full motion-safe:rtl:data-exiting:-translate-x-[112%]',
+        ],
+        standardClip: 'justify-end',
+      },
+      start: {
+        container: [
+          'start-0',
+          '[clip-path:inset(-100vh_-100vw_-100vh_0)] rtl:[clip-path:inset(-100vh_0_-100vh_-100vw)]',
+        ],
+        motion: [
+          'motion-safe:starting:-translate-x-full motion-safe:data-exiting:-translate-x-[112%]',
+          'motion-safe:rtl:starting:translate-x-full motion-safe:rtl:data-exiting:translate-x-[112%]',
+        ],
+        standardClip: 'justify-start',
+      },
+    },
+    /**
+     * A touch or pen swipe can close the modal sheet: the browser keeps vertical scrolling
+     * and pinch zoom but never takes a horizontal pan from it (the content too, a scroller,
+     * which would give its descendants panning back).
+     */
+    swipeable: {
+      true: {
+        panel: '[touch-action:pan-y_pinch-zoom]',
+        content: '[touch-action:pan-y_pinch-zoom]',
+      },
+      false: {},
+    },
     detached: {
       true: {
-        motion: 'pt-[16px] pb-[16px] pe-[16px]',
+        motion: 'pt-[16px] pb-[16px]',
         standardFrame: 'pt-[16px] pb-[16px] ps-[16px] pe-[16px]',
         panel: 'rounded-[var(--_md-comp-sheet-side-container-shape)]',
       },
@@ -203,17 +246,41 @@ export const sideSheetStyles = tv({
     footerDivider: { true: { footer: 'border-t border-outline-variant' }, false: {} },
   },
   compoundVariants: [
+    { detached: true, edge: 'end', class: { motion: 'pe-[16px]' } },
+    { detached: true, edge: 'start', class: { motion: 'ps-[16px]' } },
     {
       variant: 'modal',
       detached: false,
       class: {
         panel: [
-          'rounded-s-[var(--_md-comp-sheet-side-container-shape)]',
-          // A bleed past the end edge fills the gap when the spring overshoots (see the
+          // A bleed past the anchored edge fills the gap when the spring overshoots (see the
           // bottom sheet's panel).
-          "relative after:pointer-events-none after:absolute after:inset-y-0 after:start-full after:w-[32px] after:[background-color:inherit] after:content-['']",
+          "relative after:pointer-events-none after:absolute after:inset-y-0 after:w-[32px] after:[background-color:inherit] after:content-['']",
           // Forced colours drop the container and the shadow: a border on the free edge.
-          'forced-colors:border-s forced-colors:border-solid forced-colors:border-[CanvasText]',
+          'forced-colors:border-solid forced-colors:border-[CanvasText]',
+        ],
+      },
+    },
+    // The corners and the forced-colours border are on the free edge, the bleed on the other.
+    {
+      variant: 'modal',
+      detached: false,
+      edge: 'end',
+      class: {
+        panel: [
+          'rounded-s-[var(--_md-comp-sheet-side-container-shape)] after:start-full',
+          'forced-colors:border-s',
+        ],
+      },
+    },
+    {
+      variant: 'modal',
+      detached: false,
+      edge: 'start',
+      class: {
+        panel: [
+          'rounded-e-[var(--_md-comp-sheet-side-container-shape)] after:end-full',
+          'forced-colors:border-e',
         ],
       },
     },
@@ -223,15 +290,26 @@ export const sideSheetStyles = tv({
         panel: 'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
       },
     },
+    // The divider is on the content edge, the side away from the window's.
     {
       variant: 'standard',
       detached: false,
       divider: true,
+      edge: 'end',
       class: { panel: 'border-s border-outline-variant' },
+    },
+    {
+      variant: 'standard',
+      detached: false,
+      divider: true,
+      edge: 'start',
+      class: { panel: 'border-e border-outline-variant' },
     },
   ],
   defaultVariants: {
     variant: 'modal',
+    edge: 'end',
+    swipeable: false,
     detached: false,
     hasBack: false,
     divider: true,
@@ -239,4 +317,8 @@ export const sideSheetStyles = tv({
   },
 });
 
+/**
+ * The variants of {@link sideSheetStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SideSheetStyleProps = VariantProps<typeof sideSheetStyles>;

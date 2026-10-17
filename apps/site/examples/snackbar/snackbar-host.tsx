@@ -8,7 +8,7 @@ import { useState } from 'react';
  * button queues a snackbar with `showSnackbar`; the host shows them one at a time in a
  * polite live region, positioned here at the bottom of a bounded container. `showSnackbar`
  * resolves `'action-performed'` or `'dismissed'`, so the "With action" button can react to
- * Undo. A snackbar with an action stays until it is acted on or dismissed; Alt+G moves
+ * Undo. A snackbar with an action stays until it is acted on or dismissed; F6 moves
  * focus to it and Escape dismisses it. A plain one leaves after four seconds, pausing while
  * the pointer or focus is on it. "Replace" swaps the snackbar on screen for an updated one.
  */

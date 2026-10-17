@@ -12,8 +12,8 @@ import { DeleteIcon } from '../../components/icons';
 
 /**
  * A basic dialog is an alert dialog (`role="alertdialog"`, the default) for a decision the
- * user must make: it is not dismissed by pressing outside (Escape still closes it unless
- * `keyboardDismissDisabled`). An `icon` centres the title.
+ * user must make: it is not dismissed by pressing outside (its `closedBy` is `"closerequest"`,
+ * so Escape still closes it). An `icon` centres the title.
  */
 export function DialogAlert() {
   return (

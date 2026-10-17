@@ -66,9 +66,9 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             The flexible navigation bar holds 3–5 top-level destinations along the bottom of compact
-            and medium windows. With <InlineCode>iconPosition=&quot;top&quot;</InlineCode> (the
+            and medium windows. With <InlineCode>iconPlacement=&quot;top&quot;</InlineCode> (the
             default) items stack the icon above the label; with{' '}
-            <InlineCode>iconPosition=&quot;start&quot;</InlineCode> the icon sits beside the label
+            <InlineCode>iconPlacement=&quot;start&quot;</InlineCode> the icon sits beside the label
             in a pill, for the flexible bar in medium windows. For larger windows use a{' '}
             <InlineCode>NavigationRail</InlineCode> instead.
           </p>

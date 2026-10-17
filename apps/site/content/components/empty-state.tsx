@@ -92,8 +92,8 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
     api: (
       <>
         <section className="flex flex-col gap-3">
-          <h2 id="variants-sizes-and-tones" className="text-headline-small text-on-surface">
-            Variants, sizes and tones
+          <h2 id="variants-sizes-and-colours" className="text-headline-small text-on-surface">
+            Variants, sizes and colours
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
@@ -108,12 +108,15 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
               Each uses its own type roles, icon size and spacing.
             </li>
             <li>
-              <InlineCode>tone</InlineCode> colours the icon container with a container role:
+              <InlineCode>color</InlineCode> colours the icon container with a container role:
               secondary (the default), primary, tertiary, neutral, or error for &quot;couldn&apos;t
               load&quot;.
             </li>
             <li>
-              <InlineCode>shape</InlineCode> is a circle or any of the 35 M3 Expressive shapes.
+              <InlineCode>shape</InlineCode> is a circle or a shape outline (
+              <InlineCode>{'shape={cookie9SidedShape}'}</InlineCode>, any of the 35 constants from{' '}
+              <InlineCode>@windmorph/react/primitives</InlineCode>, or your own{' '}
+              <InlineCode>MaterialShapePath</InlineCode>).
             </li>
             <li>
               Give at most one filled or tonal action, and a text action second, so the empty state
@@ -128,7 +131,7 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              Only colour roles: the tone&apos;s container and content roles for the icon,{' '}
+              Only colour roles: the colour&apos;s container and content roles for the icon,{' '}
               <InlineCode>on-surface</InlineCode> for the title and{' '}
               <InlineCode>on-surface-variant</InlineCode> for the description, so it follows every
               theme, mode and contrast level.

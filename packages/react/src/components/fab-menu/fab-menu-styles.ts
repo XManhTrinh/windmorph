@@ -124,13 +124,13 @@ export const fabMenuStyles = tv({
         button: 'size-[56px] rounded-corner-large',
         icon: 'size-[24px]',
       },
-      medium: {
+      md: {
         anchor: 'size-[80px]',
         list: '-mb-[88px] pb-[88px]',
         button: 'size-[80px] rounded-corner-large-increased',
         icon: 'size-[28px]',
       },
-      large: {
+      lg: {
         anchor: 'size-[96px]',
         list: '-mb-[104px] pb-[104px]',
         button: 'size-[96px] rounded-corner-extra-large',
@@ -141,6 +141,10 @@ export const fabMenuStyles = tv({
   defaultVariants: { color: 'primary', elevation: 'default', size: 'default' },
 });
 
+/**
+ * The variants of {@link fabMenuStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type FabMenuStyleProps = VariantProps<typeof fabMenuStyles>;
 export type FabMenuColor = NonNullable<FabMenuStyleProps['color']>;
 export type FabMenuSize = NonNullable<FabMenuStyleProps['size']>;

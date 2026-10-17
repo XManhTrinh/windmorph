@@ -110,7 +110,7 @@ describe('Dialog', () => {
     await gone('Delete file?');
   });
 
-  it('stays when pressing outside, unless it is a plain dialog or dismissable', async () => {
+  it('stays when pressing outside, unless it is a plain dialog or closedBy="any"', async () => {
     const { unmount } = render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
@@ -123,9 +123,24 @@ describe('Dialog', () => {
     await gone('Delete file?', 'dialog');
     unmountPlain();
 
-    render(<DeleteDialog dismissable />);
+    render(<DeleteDialog closedBy="any" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
+    await gone('Delete file?');
+  });
+
+  it('closes on Escape unless closedBy is "none"', async () => {
+    const { unmount } = render(<DeleteDialog closedBy="none" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('alertdialog', { name: 'Delete file?' })).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
+    expect(screen.getByRole('alertdialog', { name: 'Delete file?' })).toBeInTheDocument();
+    unmount();
+
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.keyboard('{Escape}');
     await gone('Delete file?');
   });
 
@@ -409,7 +424,7 @@ describe('Dialog initial focus on the least destructive action', () => {
   });
 });
 
-describe('Dialog motion callbacks and quick', () => {
+describe('Dialog motion callbacks and instant', () => {
   it('reports when it has finished opening and closing', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -430,10 +445,12 @@ describe('Dialog motion callbacks and quick', () => {
     vi.useRealTimers();
   });
 
-  it('quick: no motion, and it leaves the document as soon as it closes', async () => {
+  it('instant: no motion, and it leaves the document as soon as it closes', async () => {
     const onOpened = vi.fn();
     const onClosed = vi.fn();
-    const { baseElement } = render(<DeleteDialog quick onOpened={onOpened} onClosed={onClosed} />);
+    const { baseElement } = render(
+      <DeleteDialog instant onOpened={onOpened} onClosed={onClosed} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const panel = screen.getByTestId('panel');
     expect(panel.parentElement).toHaveClass('[transition-property:none]!');
@@ -450,7 +467,7 @@ describe('Dialog motion callbacks and quick', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus());
   });
 
-  it('quick closes a controlled dialog at once', async () => {
+  it('instant closes a controlled dialog at once', async () => {
     function Controlled() {
       const [open, setOpen] = useState(true);
       return (
@@ -458,7 +475,7 @@ describe('Dialog motion callbacks and quick', () => {
           <button type="button" onClick={() => setOpen((value) => !value)}>
             Toggle
           </button>
-          <Dialog quick open={open} onOpenChange={setOpen} aria-label="Settings">
+          <Dialog instant open={open} onOpenChange={setOpen} aria-label="Settings">
             <DialogContent>Body</DialogContent>
           </Dialog>
         </>
@@ -504,13 +521,13 @@ describe('Dialog transition', () => {
     expect(screen.getByTestId('panel').parentElement).toHaveClass(origin);
   });
 
-  it('is ignored in full screen, and quick turns it off', async () => {
+  it('is ignored in full screen, and instant turns it off', async () => {
     const { unmount } = render(<DeleteDialog transition="scale" fullScreen="always" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByTestId('panel').parentElement).not.toHaveClass('starting:scale-90');
     unmount();
 
-    render(<DeleteDialog transition="scale" quick />);
+    render(<DeleteDialog transition="scale" instant />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByTestId('panel').parentElement).toHaveClass('[transition-property:none]!');
     await userEvent.keyboard('{Escape}');
@@ -585,7 +602,6 @@ describe('Dialog full screen', () => {
           {({ close }) => (
             <>
               <DialogHeader
-                closeLabel="Close"
                 action={
                   <Button variant="text" onPress={onSave}>
                     Save
@@ -682,9 +698,7 @@ describe('Dialog full screen', () => {
   it('shows the actions as a 56px bottom bar without a header action, and a divider', async () => {
     render(
       <Dialog defaultOpen fullScreen="always">
-        <DialogHeader closeLabel="Close" divider>
-          Filters
-        </DialogHeader>
+        <DialogHeader divider>Filters</DialogHeader>
         <DialogContent>Options</DialogContent>
         <DialogActions data-testid="actions">
           <Button variant="text">Apply</Button>
@@ -722,7 +736,7 @@ describe('Dialog container transform', () => {
       <DialogTrigger>
         <Button>New event</Button>
         <Dialog fullScreen={fullScreen} origin={origin} data-testid="panel">
-          <DialogHeader closeLabel="Close">New event</DialogHeader>
+          <DialogHeader>New event</DialogHeader>
           <DialogContent>Title field</DialogContent>
         </Dialog>
       </DialogTrigger>
@@ -805,7 +819,7 @@ describe('Dialog container transform', () => {
   it('opens without a transform when "trigger" has no trigger', async () => {
     render(
       <Dialog defaultOpen fullScreen="always" origin="trigger" data-testid="panel">
-        <DialogHeader closeLabel="Close">New event</DialogHeader>
+        <DialogHeader>New event</DialogHeader>
       </Dialog>,
     );
     expect(await screen.findByTestId('panel')).not.toHaveAttribute('data-origin');

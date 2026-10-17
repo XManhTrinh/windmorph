@@ -228,5 +228,13 @@ export const searchAppBarStyles = tv({
   defaultVariants: { scrolling: false },
 });
 
+/**
+ * The variants of {@link searchBarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SearchBarStyleProps = VariantProps<typeof searchBarStyles>;
+/**
+ * The variants of {@link searchAppBarStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type SearchAppBarStyleProps = VariantProps<typeof searchAppBarStyles>;

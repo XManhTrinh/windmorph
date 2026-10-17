@@ -24,12 +24,12 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       { name: 'Standalone', kind: 'variant', examples: ['link/link-standalone'] },
       { name: 'Plain, around a logo or photo', kind: 'variant', examples: ['link/link-plain'] },
       {
-        name: 'Tone: primary or inherit (on colour)',
+        name: 'Colour: primary or inherit (on colour)',
         kind: 'configuration',
         examples: ['link/link-standalone'],
       },
       {
-        name: 'Size: inherit, small, medium, large',
+        name: 'Size: inherit, sm, md, lg',
         kind: 'configuration',
         examples: ['link/link-standalone'],
       },
@@ -205,7 +205,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         composable: 'ShortNavigationBarItem',
         component: 'NavigationBarItem',
         params: [
-          { compose: 'iconPosition', windmorph: 'the bar’s `iconPosition`' },
+          { compose: 'iconPosition', windmorph: 'the bar’s `iconPlacement`' },
           { compose: 'selected', windmorph: '`selected`' },
           { compose: 'onClick', windmorph: '`onPress` or `href`' },
           { compose: 'icon', windmorph: '`icon` / `selectedIcon`' },
@@ -245,7 +245,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
       {
         composable: 'PrimaryTabRow / SecondaryTabRow',
         component: 'Tabs variant',
-        params: [{ compose: 'selectedTabIndex', windmorph: '`selectedKey` / `onSelectionChange`' }],
+        params: [{ compose: 'selectedTabIndex', windmorph: '`value` / `onChange`' }],
       },
       {
         composable: 'PrimaryScrollableTabRow / SecondaryScrollableTabRow',
@@ -505,7 +505,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
           },
           { compose: 'content', windmorph: '`children`' },
           { compose: 'floatingActionButton', windmorph: '`fab` (a `ToolbarFab`)' },
-          { compose: 'floatingActionButtonPosition', windmorph: '`fabPosition`' },
+          { compose: 'floatingActionButtonPosition', windmorph: '`fabPlacement`' },
           {
             compose: 'colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors()',
             windmorph: '`color="vibrant"`',

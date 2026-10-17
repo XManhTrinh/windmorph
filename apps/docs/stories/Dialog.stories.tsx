@@ -120,7 +120,7 @@ export const Plain: Story = {
         {({ close }) => (
           <>
             <DialogTitle>Keyboard shortcuts</DialogTitle>
-            <DialogContent>Press Alt+G to reach a snackbar's actions.</DialogContent>
+            <DialogContent>Press F6 to reach a snackbar's actions.</DialogContent>
             <DialogActions>
               <Button variant="text" onPress={close}>
                 Close
@@ -191,7 +191,6 @@ export const FullScreenCompact: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -227,7 +226,6 @@ export const FullScreen: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -254,9 +252,7 @@ export const FullScreenBottomBar: Story = {
       <Dialog fullScreen="always" data-testid="dialog">
         {({ close }) => (
           <>
-            <DialogHeader closeLabel="Close" divider>
-              Filters
-            </DialogHeader>
+            <DialogHeader divider>Filters</DialogHeader>
             <DialogContent>
               <TextField label="Keyword" className="w-full" />
             </DialogContent>
@@ -429,12 +425,12 @@ export const TransitionScale: Story = {
   ),
 };
 
-/** `quick`: no enter or exit motion. */
-export const Quick: Story = {
+/** `instant`: no enter or exit motion. */
+export const Instant: Story = {
   render: () => (
     <DialogTrigger>
       <Button variant="tonal">Open dialog</Button>
-      <Dialog quick data-testid="dialog">
+      <Dialog instant data-testid="dialog">
         {({ close }) => (
           <>
             <DialogTitle>Discard draft?</DialogTitle>
@@ -612,7 +608,6 @@ export const ContainerTransform: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -664,7 +659,6 @@ function EventEditor() {
         <Button variant="tonal">New event</Button>
         <Dialog fullScreen="always" data-testid="dialog">
           <DialogHeader
-            closeLabel="Close"
             action={
               <Button variant="text" onPress={save}>
                 Save

@@ -10,14 +10,14 @@ export function TagShortForms() {
     <div className="flex flex-col gap-3">
       <p className="flex items-center gap-2 text-body-large text-on-surface">
         Button group
-        <Tag size="sm" tone="tertiary" fullLabel="Expressive">
+        <Tag size="sm" color="tertiary" fullLabel="Expressive">
           M3E
         </Tag>
-        <Tag size="sm" tone="primary" fullLabel="Pro: Windmorph Pro, not part of Material 3">
+        <Tag size="sm" color="primary" fullLabel="Pro: Windmorph Pro, not part of Material 3">
           Pro
         </Tag>
       </p>
-      <Tag variant="outlined" shape="rounded" maxWidth="12rem">
+      <Tag variant="outlined" shape="square" maxWidth="12rem">
         Fresh herbs, spices and imported groceries
       </Tag>
     </div>

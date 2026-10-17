@@ -8,18 +8,18 @@ import { TextField, type TextFieldClassNames } from '../text-field/TextField';
 import { dateFormat, parseDate } from './date-format';
 
 /** Words of a typed date field, for localisation. */
-export interface DateInputStrings {
+export interface DateInputLabels {
   /**
    * The format hint shown below the field and as its placeholder.
    * @default the locale's format, such as "MM/DD/YYYY" in en-US
    */
-  dateFormatHint?: string;
+  dateFormatHint: string;
   /** Error when the text isn't a date. @default "Enter a date as {hint}" */
-  invalidDate?: string;
-  /** Error for a date before `minValue` or after `maxValue`. @default "Date out of range" */
-  dateOutOfRange?: string;
+  invalidDate: string;
+  /** Error for a date before `min` or after `max`. @default "Date out of range" */
+  dateOutOfRange: string;
   /** Error for a date `isDateUnavailable` turns away. @default "Date not available" */
-  dateUnavailable?: string;
+  dateUnavailable: string;
 }
 
 export interface DateInputProps {
@@ -29,10 +29,10 @@ export interface DateInputProps {
   onCommit: (value: CalendarDate | null) => void;
   /** Enter was pressed and the text is a valid date (or empty). */
   onEnter?: (value: CalendarDate | null) => void;
-  minValue?: DateValue | undefined;
-  maxValue?: DateValue | undefined;
+  min?: DateValue | undefined;
+  max?: DateValue | undefined;
   isDateUnavailable?: ((date: DateValue) => boolean) | undefined;
-  strings?: DateInputStrings | undefined;
+  labels?: Partial<DateInputLabels> | undefined;
   /** Replaces the format hint below the field. */
   supportingText?: ReactNode;
   trailingIcon?: ReactNode;
@@ -40,6 +40,7 @@ export interface DateInputProps {
   disabled?: boolean | undefined;
   readOnly?: boolean | undefined;
   name?: string | undefined;
+  id?: string | undefined;
   autoFocus?: boolean | undefined;
   invalid?: boolean | undefined;
   errorMessage?: ReactNode;
@@ -65,16 +66,17 @@ export function DateInput({
   value,
   onCommit,
   onEnter,
-  minValue,
-  maxValue,
+  min: minValue,
+  max: maxValue,
   isDateUnavailable,
-  strings = {},
+  labels = {},
   supportingText,
   trailingIcon,
   required,
   disabled,
   readOnly,
   name,
+  id,
   autoFocus,
   invalid,
   errorMessage,
@@ -88,7 +90,7 @@ export function DateInput({
 }: DateInputProps) {
   const { locale } = useLocale();
   const format = dateFormat(locale);
-  const hint = strings.dateFormatHint ?? format.hint;
+  const hint = labels.dateFormatHint ?? format.hint;
   const show = (date: CalendarDate | null) => (date ? format.format(date) : '');
   const [text, setText] = useState(() => show(value));
   const [error, setError] = useState<string | null>(null);
@@ -104,9 +106,9 @@ export function DateInput({
     const min = minValue && toCalendarDate(minValue);
     const max = maxValue && toCalendarDate(maxValue);
     if ((min && date.compare(min) < 0) || (max && date.compare(max) > 0)) {
-      return strings.dateOutOfRange ?? 'Date out of range';
+      return labels.dateOutOfRange ?? 'Date out of range';
     }
-    if (isDateUnavailable?.(date)) return strings.dateUnavailable ?? 'Date not available';
+    if (isDateUnavailable?.(date)) return labels.dateUnavailable ?? 'Date not available';
     return null;
   };
 
@@ -119,7 +121,7 @@ export function DateInput({
     }
     const date = parseDate(text, format.order);
     if (!date) {
-      setError(strings.invalidDate ?? `Enter a date as ${hint}`);
+      setError(labels.invalidDate ?? `Enter a date as ${hint}`);
       return undefined;
     }
     const reason = problem(date);
@@ -136,6 +138,7 @@ export function DateInput({
   return (
     <TextField
       {...data}
+      {...(id !== undefined && { id })}
       ref={ref}
       style={style}
       inputRef={inputRef as Ref<HTMLInputElement | HTMLTextAreaElement>}

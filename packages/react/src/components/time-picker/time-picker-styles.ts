@@ -170,4 +170,8 @@ export const timePickerStyles = tv({
   defaultVariants: { hourCycle: 12, mode: 'dial', layout: 'vertical' },
 });
 
+/**
+ * The variants of {@link timePickerStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type TimePickerStyleProps = VariantProps<typeof timePickerStyles>;

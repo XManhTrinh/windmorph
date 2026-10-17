@@ -12,7 +12,7 @@ const PHOTOS = [...SAMPLE_PHOTOS, ...SAMPLE_PHOTOS].map((photo, index) => ({
 
 /**
  * A profile's photos: pressing one opens the viewer there, growing out of the pressed tile
- * (`onItemPress` passes it, for the viewer's `origin`), with an action in its top bar.
+ * (`onAction` passes it, for the viewer's `origin`), with an action in its top bar.
  */
 export function MediaGridViewer() {
   const [open, setOpen] = useState<number | null>(null);
@@ -22,7 +22,7 @@ export function MediaGridViewer() {
       <MediaGrid
         items={PHOTOS}
         max={6}
-        onItemPress={(index, tile) => {
+        onAction={(index, tile) => {
           setOrigin(tile);
           setOpen(index);
         }}

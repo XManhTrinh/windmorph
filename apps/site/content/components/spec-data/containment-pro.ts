@@ -106,14 +106,14 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['shaped-icon/shaped-icon-sizes'],
       },
       {
-        name: 'A circle or an M3 Expressive shape',
+        name: 'A circle or an M3 Expressive shape (a shape constant)',
         kind: 'variant',
         examples: ['shaped-icon/shaped-icon-sizes', 'shaped-icon/shaped-icon-steps'],
       },
       {
-        name: 'Tones: primary, secondary, tertiary, neutral, error',
+        name: 'Colours: primary, secondary, tertiary, neutral, error',
         kind: 'variant',
-        examples: ['shaped-icon/shaped-icon-tones'],
+        examples: ['shaped-icon/shaped-icon-colors'],
       },
       {
         name: 'Leading icons for steps or features',
@@ -228,7 +228,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['collapse/collapse-replies'],
       },
       {
-        name: 'Open from the start, with no opening motion (`appear={false}`)',
+        name: 'Open from the start, with no opening motion (the default; `appear` opens it with motion)',
         kind: 'configuration',
         examples: ['collapse/collapse-shown-first'],
       },
@@ -289,14 +289,14 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['avatar/avatar-fallbacks', 'avatar/avatar-photos'],
       },
       {
-        name: 'Circle, rounded and the 35 M3 Expressive shapes',
+        name: 'Circle, rounded and the 35 M3 Expressive shapes (shape constants)',
         kind: 'configuration',
         examples: ['avatar/avatar-shapes'],
       },
       {
-        name: 'Tones: `auto` per name, or a fixed role',
+        name: 'Colours: `auto` per name, or a fixed role',
         kind: 'configuration',
-        examples: ['avatar/avatar-tones'],
+        examples: ['avatar/avatar-colors'],
       },
       {
         name: 'Presence and badges',
@@ -328,12 +328,12 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['tag/tag-variants'],
       },
       {
-        name: 'Tones: M3 roles plus success and warning',
+        name: 'Colours: M3 roles plus success and warning',
         kind: 'variant',
         examples: ['tag/tag-variants', 'tag/tag-statuses'],
       },
       {
-        name: 'Sizes and shapes: `sm`, `md`, `lg`, full or rounded',
+        name: 'Sizes and shapes: `sm`, `md`, `lg`, round or square',
         kind: 'configuration',
         examples: ['tag/tag-sizes'],
       },
@@ -362,7 +362,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['code-block/code-block-highlighted'],
       },
       {
-        name: 'Line numbers (`showLineNumbers`)',
+        name: 'Line numbers (`lineNumbers`)',
         kind: 'configuration',
         examples: ['code-block/code-block-line-numbers'],
       },

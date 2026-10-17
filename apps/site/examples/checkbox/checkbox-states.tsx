@@ -7,7 +7,7 @@ import { Checkbox } from '@windmorph/react';
 export function CheckboxStates() {
   return (
     <div className="flex flex-col gap-2">
-      <Checkbox defaultSelected disabled>
+      <Checkbox defaultChecked disabled>
         Disabled, checked
       </Checkbox>
       <Checkbox disabled>Disabled, unchecked</Checkbox>

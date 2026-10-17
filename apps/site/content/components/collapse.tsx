@@ -111,7 +111,7 @@ export async function CollapseBody(): Promise<ComponentDoc> {
             <li>
               Folding keeps it in the page, showing what it last showed even if the app has moved
               on, and <InlineCode>inert</InlineCode> so focus can&apos;t land in it;{' '}
-              <InlineCode>onExited</InlineCode> runs when it has folded.
+              <InlineCode>onClosed</InlineCode> runs when it has folded.
             </li>
             <li>
               Folded, its content goes, unless <InlineCode>keepMounted</InlineCode>: then it stays
@@ -123,8 +123,9 @@ export async function CollapseBody(): Promise<ComponentDoc> {
               doesn&apos;t run.
             </li>
             <li>
-              It opens as it mounts open; <InlineCode>{'appear={false}'}</InlineCode> makes it
-              simply there, for content shown from the start.
+              Mounted open, it&apos;s simply there, for content shown from the start (
+              <InlineCode>appear</InlineCode> is off by default); <InlineCode>appear</InlineCode>{' '}
+              opens it with its motion as it mounts.
             </li>
             <li>
               Two switching on the same render (one folding as the other opens) move together on the
@@ -140,7 +141,7 @@ export async function CollapseBody(): Promise<ComponentDoc> {
               Under reduced motion the height no longer animates: an opening collapse appears at
               full height and fades in, and a folding one fades out where it is, over{' '}
               <InlineCode>--wm-collapse-fade-duration</InlineCode>, then goes (
-              <InlineCode>onExited</InlineCode> runs when the fade ends). One that folds as another
+              <InlineCode>onClosed</InlineCode> runs when the fade ends). One that folds as another
               opens goes at once, so what&apos;s below shifts once.
             </li>
           </ul>

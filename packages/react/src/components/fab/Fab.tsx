@@ -96,7 +96,7 @@ export interface FabClassNames {
 
 interface FabOwnProps extends FabCommonProps {
   /**
-   * Container size: default (56px), medium (80px) or large (96px). The small FAB is
+   * Container size: `default` (56px), `md` (medium, 80px) or `lg` (large, 96px). The small FAB is
    * deprecated in M3 Expressive. @default "default"
    */
   size?: FabSize;

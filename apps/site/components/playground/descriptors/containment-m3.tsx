@@ -102,7 +102,8 @@ const lineLimit = (value: unknown) => (value === NONE || value == null ? null : 
 
 /**
  * `required` only applies to a radio list (one with a `value`): turning it on picks the first
- * contact, and going back to a plain list turns it off.
+ * contact, and going back to a plain list turns it off. Dividers and the segmented variant
+ * exclude each other.
  */
 export function adjustListRadio(
   values: Record<string, unknown>,
@@ -112,6 +113,14 @@ export function adjustListRadio(
     return { ...values, value: CONTACTS[0]!.key };
   }
   if (changed === 'value' && values.value === NONE) return { ...values, required: false };
+  // Dividers are for standard lists (segmented items are already apart, and the list throws
+  // for the pair): turning dividers on picks the standard list, and segmented clears them.
+  if (changed === 'dividers' && values.dividers !== NONE && values.variant === 'segmented') {
+    return { ...values, variant: 'standard' };
+  }
+  if (changed === 'variant' && values.variant === 'segmented' && values.dividers !== NONE) {
+    return { ...values, dividers: NONE };
+  }
   return values;
 }
 
@@ -182,7 +191,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
           {...(icon === true && { icon: <DeleteIcon /> })}
           {...(origin === true && { origin: 'trigger' })}
         >
-          <DialogHeader closeLabel="Close">Delete draft?</DialogHeader>
+          <DialogHeader>Delete draft?</DialogHeader>
           <DialogContent>
             The draft and its attachments will be removed from this device.
           </DialogContent>
@@ -203,10 +212,9 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       icon: false,
       fullScreen: 'never',
       placement: 'center',
-      dismissable: false,
-      keyboardDismissDisabled: false,
+      closedBy: 'closerequest',
       origin: false,
-      quick: false,
+      instant: false,
       transition: 'reveal',
     },
     surfacedProps: [
@@ -216,19 +224,23 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'fullScreen',
       'origin',
       'placement',
-      'dismissable',
-      'keyboardDismissDisabled',
-      'quick',
+      'closedBy',
+      'instant',
       'transition',
     ],
     enumOptions: { role: ['alertdialog', 'dialog'], transition: ['reveal', 'scale'] },
-    // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role
-    // change resets it to the new default, and the snippet writes it only when it differs.
-    codeDefaults: (values) => ({ dismissable: values.role !== 'alertdialog' }),
+    // `closedBy` defaults by role: Escape only for an alert dialog, Escape or a press outside for
+    // a plain one. A role change resets it to the new default, and the snippet writes it only
+    // when it differs.
+    codeDefaults: (values) => ({
+      closedBy: values.role === 'alertdialog' ? 'closerequest' : 'any',
+    }),
     // `origin` grows only a full-screen dialog out of the trigger, so turning it on makes a
     // basic dialog full screen.
     adjust: (values, changed) => {
-      if (changed === 'role') return { ...values, dismissable: values.role !== 'alertdialog' };
+      if (changed === 'role') {
+        return { ...values, closedBy: values.role === 'alertdialog' ? 'closerequest' : 'any' };
+      }
       if (changed === 'origin' && values.origin === true && values.fullScreen === 'never') {
         return { ...values, fullScreen: 'always' };
       }
@@ -244,7 +256,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     // The trigger opens and closes the dialog, so the snippet leaves `open` to it.
     codeSlots: { open: () => null },
     codeChildren:
-      '<DialogHeader closeLabel="Close">Delete draft?</DialogHeader>\n  <DialogContent>The draft and its attachments will be removed from this device.</DialogContent>\n  <DialogActions>\n    <Button variant="text">Cancel</Button>\n    <Button variant="text">Delete</Button>\n  </DialogActions>',
+      '<DialogHeader>Delete draft?</DialogHeader>\n  <DialogContent>The draft and its attachments will be removed from this device.</DialogContent>\n  <DialogActions>\n    <Button variant="text">Cancel</Button>\n    <Button variant="text">Delete</Button>\n  </DialogActions>',
   },
   menu: {
     component: 'Menu',
@@ -295,7 +307,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       variant: 'standard',
       layout: 'divider',
       density: 0,
-      placement: 'bottom start',
+      placement: 'bottom-start',
       offset: 0,
       containerPadding: 12,
       presentation: 'popover',
@@ -312,8 +324,12 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'instant',
     ],
     adjust: adjustMenuInstant,
+    notControlled: {
+      deselectable:
+        "Applies only to a menu with `selectionMode`, which the preview's action menu doesn't have; the Selection example shows it.",
+    },
     enumOptions: {
-      placement: ['bottom start', 'bottom end', 'top start', 'top end', 'start', 'end'],
+      placement: ['bottom-start', 'bottom-end', 'top-start', 'top-end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],
       presentation: ['popover', 'sheet', 'auto'],
     },
@@ -371,6 +387,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     componentSwitch: { control: 'sheet', components: { bottom: 'BottomSheet', side: 'SideSheet' } },
     controlDescriptions: {
       sheet: 'Which sheet the playground shows: a bottom sheet or a side sheet.',
+      swipeable:
+        'Whether dragging moves the sheet: a touch or pen swipe toward a modal side sheet’s edge closes it, and a bottom sheet’s handle and content drag it.',
     },
     notControlled: {
       detent:
@@ -400,6 +418,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     ) => {
       const side = sheet === 'side';
       const standard = props.variant === 'standard';
+      // A standard side sheet on the start edge comes first in its row.
+      const startFirst = side && standard && props.edge === 'start';
       const content = (
         <div
           key="content"
@@ -424,7 +444,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         {
           className: `relative h-[320px] w-full max-w-md overflow-hidden rounded-corner-large border border-outline-variant${side && standard ? ' flex' : ''}`,
         },
-        <div key="page" className="flex flex-1 flex-col items-start gap-3 p-6">
+        <div
+          key="page"
+          className={`flex flex-1 flex-col items-start gap-3 p-6${startFirst ? ' order-last' : ''}`}
+        >
           <p className="text-body-large text-on-surface">Midnight Drive · 12 songs</p>
           <Button variant="tonal" onPress={() => update('open', !(open === true))}>
             {side ? 'Show details' : 'Show player'}
@@ -472,7 +495,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       skipPartiallyExpanded: false,
       peekHeight: 56,
       defaultDetent: 'collapsed',
-      dismissable: true,
+      closedBy: 'any',
       closeButton: true,
       closeIcon: false,
       collapseIcon: false,
@@ -483,18 +506,22 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       footer: false,
       footerDivider: false,
       divider: true,
+      edge: 'end',
+      swipeable: true,
     },
     surfacedProps: [
       'sheet',
       'variant',
       'open',
       'title',
+      'edge',
       'detached',
+      'swipeable',
       'dragHandle',
       'skipPartiallyExpanded',
       'peekHeight',
       'defaultDetent',
-      'dismissable',
+      'closedBy',
       'closeButton',
       'onBack',
       'actions',
@@ -543,15 +570,21 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     importMembers: ['Button', 'SheetTrigger'],
     // A modal sheet opens from a button; a standard one sits in the layout, open to begin with.
     codeWrap: (values) =>
-      values.variant === 'standard'
+      values.variant === 'standard' && values.sheet === 'side' && values.edge === 'start'
         ? {
-            before: `<div className="flex">\n  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    ${values.sheet === 'side' ? 'Show details' : 'Show player'}\n  </Button>`,
-            after: '</div>',
+            before: '<div className="flex">',
+            after:
+              '  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    Show details\n  </Button>\n</div>',
           }
-        : {
-            before: `<SheetTrigger>\n  <Button variant="tonal">${values.sheet === 'side' ? 'Show details' : 'Show player'}</Button>`,
-            after: '</SheetTrigger>',
-          },
+        : values.variant === 'standard'
+          ? {
+              before: `<div className="flex">\n  <Button variant="tonal" onPress={() => setOpen(!open)}>\n    ${values.sheet === 'side' ? 'Show details' : 'Show player'}\n  </Button>`,
+              after: '</div>',
+            }
+          : {
+              before: `<SheetTrigger>\n  <Button variant="tonal">${values.sheet === 'side' ? 'Show details' : 'Show player'}</Button>`,
+              after: '</SheetTrigger>',
+            },
     codeChildren: (values) =>
       values.sheet === 'side'
         ? '<p className="text-body-medium text-on-surface-variant">Track details and controls stay at hand while the page scrolls.</p>'
@@ -603,12 +636,12 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     defaultProps: {
       variant: 'standard',
       selectionMode: 'none',
-      disallowEmptySelection: false,
+      deselectable: true,
       disabledKeys: false,
       value: NONE,
       required: false,
       disabled: false,
-      controlPlacement: 'leading',
+      controlPlacement: 'start',
       dividers: NONE,
       selectionIndicator: true,
       headlineLines: NONE,
@@ -618,7 +651,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     surfacedProps: [
       'variant',
       'selectionMode',
-      'disallowEmptySelection',
+      'deselectable',
       'disabledKeys',
       'value',
       'required',

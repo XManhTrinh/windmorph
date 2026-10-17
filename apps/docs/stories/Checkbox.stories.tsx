@@ -28,7 +28,7 @@ export const States: Story = {
           <Checkbox invalid={kind === 'invalid'} disabled={kind === 'disabled'}>
             Unchecked
           </Checkbox>
-          <Checkbox defaultSelected invalid={kind === 'invalid'} disabled={kind === 'disabled'}>
+          <Checkbox defaultChecked invalid={kind === 'invalid'} disabled={kind === 'disabled'}>
             Checked
           </Checkbox>
           <Checkbox indeterminate invalid={kind === 'invalid'} disabled={kind === 'disabled'}>
@@ -49,9 +49,9 @@ export const SelectAll: Story = {
     return (
       <div className="flex flex-col">
         <Checkbox
-          selected={all}
+          checked={all}
           indeterminate={checked.length > 0 && !all}
-          onSelectedChange={(value) => setChecked(value ? items : [])}
+          onCheckedChange={(value) => setChecked(value ? items : [])}
         >
           All fruit
         </Checkbox>
@@ -59,8 +59,8 @@ export const SelectAll: Story = {
           {items.map((item) => (
             <Checkbox
               key={item}
-              selected={checked.includes(item)}
-              onSelectedChange={(value) =>
+              checked={checked.includes(item)}
+              onCheckedChange={(value) =>
                 setChecked((list) => (value ? [...list, item] : list.filter((i) => i !== item)))
               }
             >
@@ -98,7 +98,7 @@ export const Density: Story = {
           <Checkbox density={density} data-testid={`${density}-unchecked`}>
             Email updates
           </Checkbox>
-          <Checkbox density={density} defaultSelected data-testid={`${density}-checked`}>
+          <Checkbox density={density} defaultChecked data-testid={`${density}-checked`}>
             Text messages
           </Checkbox>
           <Checkbox density={density} indeterminate data-testid={`${density}-indeterminate`}>
@@ -107,7 +107,7 @@ export const Density: Story = {
           <Checkbox density={density} invalid data-testid={`${density}-invalid`}>
             I accept the terms
           </Checkbox>
-          <Checkbox density={density} disabled defaultSelected data-testid={`${density}-disabled`}>
+          <Checkbox density={density} disabled defaultChecked data-testid={`${density}-disabled`}>
             Push notifications
           </Checkbox>
           <Checkbox

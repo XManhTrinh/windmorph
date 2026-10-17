@@ -12,14 +12,14 @@ const SIZES: SliderSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
 interface Args {
   size: SliderSize;
-  showValueLabel: boolean;
+  valueLabel: boolean;
   /** Discrete, in steps of 10 with a stop indicator at each. */
   ticks: boolean;
 }
 
 const meta = {
   title: 'Components/Slider',
-  args: { size: 'xs', showValueLabel: true, ticks: false },
+  args: { size: 'xs', valueLabel: true, ticks: false },
   argTypes: { size: { control: 'inline-radio', options: SIZES } },
 } satisfies Meta<Args>;
 
@@ -27,7 +27,7 @@ export default meta;
 type Story = StoryObj<Args>;
 
 export const Playground: Story = {
-  render: ({ size, showValueLabel, ticks }) => {
+  render: ({ size, valueLabel, ticks }) => {
     function Demo() {
       const [value, setValue] = useState(40);
       return (
@@ -38,7 +38,7 @@ export const Playground: Story = {
             size={size}
             value={value}
             onChange={setValue}
-            showValueLabel={showValueLabel}
+            valueLabel={valueLabel}
             {...(ticks && { step: 10, ticks: true })}
           />
           <p className="text-body-medium" data-testid="value">
@@ -64,16 +64,16 @@ export const Sizes: Story = {
           aria-label={`Volume ${size}`}
           size={size}
           defaultValue={40}
-          startIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeDownIcon />}
-          endIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeUpIcon />}
+          leadingIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeDownIcon />}
+          trailingIcon={size === 'xs' || size === 'sm' ? undefined : <VolumeUpIcon />}
         />
       ))}
       <Slider
         aria-label="Volume low"
         size="md"
         defaultValue={3}
-        startIcon={<VolumeDownIcon />}
-        endIcon={<VolumeUpIcon />}
+        leadingIcon={<VolumeDownIcon />}
+        trailingIcon={<VolumeUpIcon />}
         data-testid="moved-icon"
       />
     </div>
@@ -85,14 +85,14 @@ export const Variants: Story = {
   render: () => (
     <div className="flex w-[360px] flex-col gap-6" data-testid="variants">
       <Slider aria-label="Discrete" step={10} ticks defaultValue={30} />
-      <Slider aria-label="Centred" centered minValue={-50} maxValue={50} defaultValue={20} />
+      <Slider aria-label="Centred" centered min={-50} max={50} defaultValue={20} />
       <Slider
         aria-label="Centred discrete"
         centered
         ticks
         step={10}
-        minValue={-50}
-        maxValue={50}
+        min={-50}
+        max={50}
         defaultValue={-20}
       />
       <RangeSlider aria-label="Range" defaultValue={[20, 70]} />
@@ -118,7 +118,7 @@ export const Vertical: Story = {
         orientation="vertical"
         size="md"
         defaultValue={30}
-        startIcon={<VolumeDownIcon />}
+        leadingIcon={<VolumeDownIcon />}
       />
       <Slider
         aria-label="Vertical discrete"

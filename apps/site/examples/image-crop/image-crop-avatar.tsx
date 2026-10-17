@@ -7,7 +7,7 @@ import { SAMPLE_PHOTO } from './sample-photo';
 
 /**
  * A profile photo: pick a file (or the sample), frame it with the round-avatar guide, and
- * "upload" it. The dialog stays open with a progress bar while `busy`; the app sends the
+ * "upload" it. The dialog stays open with a progress bar while `pending`; the app sends the
  * original file and the crop rectangle, and the server crops it.
  */
 export function ImageCropAvatar() {
@@ -68,7 +68,7 @@ export function ImageCropAvatar() {
           onOpenChange={(open) => !open && setSrc(null)}
           src={src}
           guide="circle"
-          busy={progress !== null}
+          pending={progress !== null}
           progress={progress ?? undefined}
           onConfirm={upload}
         />

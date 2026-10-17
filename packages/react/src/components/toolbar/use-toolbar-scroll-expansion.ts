@@ -67,7 +67,7 @@ export interface ToolbarScrollExpansionOptions {
   /** For content whose start is at the bottom (e.g. a chat), which reverses the direction. */
   reverse?: boolean;
   /** @default true */
-  initialExpanded?: boolean;
+  defaultExpanded?: boolean;
 }
 
 /**
@@ -85,14 +85,14 @@ export function useToolbarScrollExpansion({
   expandThreshold = 40,
   collapseThreshold = 40,
   reverse = false,
-  initialExpanded = true,
+  defaultExpanded = true,
 }: ToolbarScrollExpansionOptions = {}): boolean {
   return useScrollToggle({
     scrollRef,
     onThreshold: expandThreshold,
     offThreshold: collapseThreshold,
     reverse,
-    initial: initialExpanded,
+    initial: defaultExpanded,
   });
 }
 
@@ -106,7 +106,7 @@ export interface ToolbarScrollExitOptions {
   /** For content whose start is at the bottom (e.g. a chat), which reverses the direction. */
   reverse?: boolean;
   /** @default true */
-  initialVisible?: boolean;
+  defaultVisible?: boolean;
 }
 
 /**
@@ -124,13 +124,13 @@ export function useToolbarScrollExit({
   showThreshold = 40,
   hideThreshold = 40,
   reverse = false,
-  initialVisible = true,
+  defaultVisible = true,
 }: ToolbarScrollExitOptions = {}): boolean {
   return useScrollToggle({
     scrollRef,
     onThreshold: showThreshold,
     offThreshold: hideThreshold,
     reverse,
-    initial: initialVisible,
+    initial: defaultVisible,
   });
 }

@@ -1,8 +1,19 @@
 import * as Primitives from '@windmorph/react/primitives';
-import { hook, read, type ExportChecks } from './check';
+import { hook, read, type ExportCheck, type ExportChecks } from './check';
 
 const circle = Primitives.circle();
 const star = Primitives.star(5, { innerRadius: 0.5 });
+
+/** `Cookie12Sided` → `cookie12SidedShape`, the name of a precomputed outline's constant. */
+type ShapeConstant = `${Uncapitalize<Primitives.MaterialShapeName>}Shape`;
+
+/** Each precomputed outline, read on the server. */
+const shapeChecks = Object.fromEntries(
+  Primitives.materialShapeNames.map((name) => [
+    `${name[0]!.toLowerCase()}${name.slice(1)}Shape`,
+    read(Primitives.materialShapePaths[name]),
+  ]),
+) as Record<ShapeConstant, ExportCheck>;
 
 /** Every value export of `@windmorph/react/primitives`, checked from a server component. */
 export const primitivesChecks = {
@@ -95,6 +106,8 @@ export const primitivesChecks = {
   },
   MaterialShapes: read(Primitives.MaterialShapes),
   materialShapeNames: read(Primitives.materialShapeNames),
+  materialShapePaths: read(Primitives.materialShapePaths),
+  ...shapeChecks,
   circle: { kind: 'value', run: () => Primitives.polygonToPath(circle) },
   cubicsToPath: { kind: 'value', run: () => Primitives.cubicsToPath(star.cubics) },
   generateSchemeColors: {
@@ -112,7 +125,10 @@ export const primitivesChecks = {
   },
   getMorph: { kind: 'value', run: () => Primitives.getMorph(circle, star) },
   localeWithDirection: { kind: 'value', run: () => Primitives.localeWithDirection('en-GB', 'rtl') },
-  materialShapeMask: { kind: 'value', run: () => Primitives.materialShapeMask('Cookie9Sided') },
+  materialShapeMask: {
+    kind: 'value',
+    run: () => Primitives.materialShapeMask(Primitives.cookie9SidedShape),
+  },
   mergeDataTokens: {
     kind: 'value',
     run: () => Primitives.mergeDataTokens('md-comp-assist-chip', { 'data-tokens': 'app-chip' }),
@@ -121,6 +137,10 @@ export const primitivesChecks = {
   morphToPath: {
     kind: 'value',
     run: () => Primitives.morphToPath(new Primitives.Morph(circle, star), 0.5),
+  },
+  pickWidgetAria: {
+    kind: 'value',
+    run: () => Primitives.pickWidgetAria({ 'aria-expanded': true, title: 'Sample' }),
   },
   pill: { kind: 'value', run: () => Primitives.polygonToPath(Primitives.pill()) },
   pillStar: { kind: 'value', run: () => Primitives.polygonToPath(Primitives.pillStar()) },
@@ -131,6 +151,10 @@ export const primitivesChecks = {
   splitDataAttributes: {
     kind: 'value',
     run: () => Primitives.splitDataAttributes({ 'data-state': 'on', title: 'Sample' }),
+  },
+  splitRootProps: {
+    kind: 'value',
+    run: () => Primitives.splitRootProps({ 'aria-busy': true, title: 'Sample', isDisabled: true }),
   },
   surfaceStyles: { kind: 'value', run: () => Primitives.surfaceStyles() },
   useKeepPressedInPlace: hook,

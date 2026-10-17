@@ -1,3 +1,8 @@
+import {
+  materialShapeNames,
+  materialShapePaths,
+  type MaterialShapeName,
+} from '@windmorph/react/primitives';
 import type { ComponentType, ReactElement } from 'react';
 import type { ControlGroup, ControlKind, NumberRange } from '../controls-model';
 
@@ -29,7 +34,8 @@ export interface PlaygroundDescriptor {
   notControlled?: Record<string, string>;
   /**
    * Defaults that depend on other values, for the snippet: a prop equal to one is left out
-   * (Dialog's `dismissable` defaults to true for `role="dialog"`, false for `alertdialog`).
+   * (Dialog's `closedBy` defaults to `"any"` for `role="dialog"`, `"closerequest"` for
+   * `alertdialog`).
    */
   codeDefaults?: (values: Record<string, unknown>) => Record<string, unknown>;
   /**
@@ -164,14 +170,50 @@ export function adjustToggleForm(
   if (toggleOnly.includes(changed) && next[changed] === true) next.toggle = true;
   if (changed === 'toggle' && next.toggle === false) off();
   if (changed === 'href' && typeof next.href === 'string' && next.href !== '') off();
+  // A toggle's state is its selection: it has no pending state (the types say so).
+  if (changed === 'pending' && next.pending === true) off();
   if (changed === 'variant' && noToggleVariant !== undefined && next.variant === noToggleVariant) {
     off();
   }
   if (next.toggle === true) {
     next.href = undefined;
+    if ('pending' in next) next.pending = false;
     if (noToggleVariant !== undefined && next.variant === noToggleVariant) {
       next.variant = fallbackVariant;
     }
   }
   return next;
 }
+
+/** The constant an M3 Expressive shape's outline is exported as (`Cookie12Sided` → `cookie12SidedShape`). */
+const shapeConstant = (name: MaterialShapeName) => `${name[0]!.toLowerCase()}${name.slice(1)}Shape`;
+
+const isShapeName = (value: unknown): value is MaterialShapeName =>
+  typeof value === 'string' && Object.hasOwn(materialShapePaths, value);
+
+/**
+ * A `shape` control's choices: the component's own values (`circle`, `rounded`), then the 35
+ * M3 Expressive shapes by name. The control holds the name; {@link shapeValue} turns it into the
+ * outline the component takes and {@link shapeSlot} into the snippet's constant.
+ */
+export const shapeOptions = (plain: string[]) => [...plain, ...materialShapeNames];
+
+/** The `shape` prop a control value stands for: a plain value as is, a shape's name as its outline. */
+export const shapeValue = (value: unknown) =>
+  isShapeName(value) ? materialShapePaths[value] : value;
+
+/**
+ * The snippet's `shape` prop (a `codeSlots` entry): nothing at the default, a plain value as a
+ * string, and a shape as its constant (`shape={cookie12SidedShape}`), imported by
+ * {@link SHAPE_IMPORT}.
+ */
+export const shapeSlot =
+  (defaultValue: string) =>
+  (values: Record<string, unknown>): string | null => {
+    const value = values.shape;
+    if (value == null || value === defaultValue) return null;
+    return isShapeName(value) ? shapeConstant(value) : `"${String(value)}"`;
+  };
+
+/** The snippet's import of the shape constants; `emitSnippet` keeps only the one it uses. */
+export const SHAPE_IMPORT = `import { ${materialShapeNames.map(shapeConstant).join(', ')} } from '@windmorph/react/primitives';`;

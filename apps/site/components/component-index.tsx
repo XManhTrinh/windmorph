@@ -85,7 +85,7 @@ export function ComponentIndex() {
         <ChipSet
           aria-label="Show"
           selectionMode="single"
-          disallowEmptySelection
+          deselectable={false}
           selectedKeys={[kind]}
           onSelectionChange={(keys: Set<Key>) => {
             const [next] = [...keys];
@@ -115,7 +115,7 @@ export function ComponentIndex() {
         <ComponentGallery groupHeadingTag="h2" filter={filter} />
       ) : (
         <EmptyState
-          tone="tertiary"
+          color="tertiary"
           icon={<SearchOffIcon />}
           title="No components match"
           description="Try another word, or show all components."

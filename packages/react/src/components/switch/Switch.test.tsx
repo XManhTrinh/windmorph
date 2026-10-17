@@ -25,14 +25,14 @@ describe('Switch', () => {
   });
 
   it('switches on and moves the thumb to the end at 24px', async () => {
-    const onSelectedChange = vi.fn();
-    render(<Switch onSelectedChange={onSelectedChange}>Wi-Fi</Switch>);
+    const onCheckedChange = vi.fn();
+    render(<Switch onCheckedChange={onCheckedChange}>Wi-Fi</Switch>);
     await userEvent.click(screen.getByText('Wi-Fi'));
     const input = screen.getByRole('switch');
     expect(input).toBeChecked();
-    expect(onSelectedChange).toHaveBeenCalledWith(true);
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
     expect(thumbVars(input)).toEqual({ size: '24px', center: '36px' });
-    expect(input.closest('label')).toHaveAttribute('data-selected');
+    expect(input.closest('label')).toHaveAttribute('data-checked');
   });
 
   it('grows the thumb to 28px while pressed', async () => {
@@ -49,15 +49,15 @@ describe('Switch', () => {
 
   it('toggles on Enter, growing the thumb while the key is down', async () => {
     const user = userEvent.setup();
-    const onSelectedChange = vi.fn();
-    render(<Switch onSelectedChange={onSelectedChange}>Wi-Fi</Switch>);
+    const onCheckedChange = vi.fn();
+    render(<Switch onCheckedChange={onCheckedChange}>Wi-Fi</Switch>);
     const input = screen.getByRole('switch');
     await user.keyboard('{Tab}');
     await user.keyboard('[Enter>]');
     expect(thumbVars(input).size).toBe('28px');
     await user.keyboard('[/Enter]');
     expect(input).toBeChecked();
-    expect(onSelectedChange).toHaveBeenCalledWith(true);
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
     await user.keyboard('{Enter}');
     expect(input).not.toBeChecked();
   });
@@ -106,7 +106,7 @@ describe('Switch', () => {
   });
 
   it('shows only a selected icon when given one', async () => {
-    render(<Switch selectedIcon={<svg data-testid="on" />}>Sync</Switch>);
+    render(<Switch checkedIcon={<svg data-testid="on" />}>Sync</Switch>);
     const input = screen.getByRole('switch');
     expect(screen.queryByTestId('on')).not.toBeInTheDocument();
     expect(thumbVars(input).size).toBe('16px');
@@ -115,20 +115,20 @@ describe('Switch', () => {
   });
 
   it('is disabled and read-only', async () => {
-    const onSelectedChange = vi.fn();
+    const onCheckedChange = vi.fn();
     render(
       <>
-        <Switch disabled onSelectedChange={onSelectedChange}>
+        <Switch disabled onCheckedChange={onCheckedChange}>
           Disabled
         </Switch>
-        <Switch readOnly onSelectedChange={onSelectedChange}>
+        <Switch readOnly onCheckedChange={onCheckedChange}>
           Read only
         </Switch>
       </>,
     );
     await userEvent.click(screen.getByText('Disabled'));
     await userEvent.click(screen.getByText('Read only'));
-    expect(onSelectedChange).not.toHaveBeenCalled();
+    expect(onCheckedChange).not.toHaveBeenCalled();
     expect(screen.getByRole('switch', { name: 'Disabled' })).toBeDisabled();
   });
 
@@ -168,7 +168,7 @@ describe('Switch', () => {
     expect(thumb).toHaveClass(
       'bg-[var(--_md-comp-switch-unselected-handle-color)]',
       'text-[color:var(--_md-comp-switch-unselected-icon-color)]',
-      'group-data-selected/control:bg-[var(--_md-comp-switch-selected-handle-color)]',
+      'control-checked:bg-[var(--_md-comp-switch-selected-handle-color)]',
     );
   });
 
@@ -192,7 +192,7 @@ describe('Switch', () => {
     const { container } = render(
       <div>
         <Switch>Off</Switch>
-        <Switch defaultSelected icons>
+        <Switch defaultChecked icons>
           On
         </Switch>
         <Switch disabled>Disabled</Switch>

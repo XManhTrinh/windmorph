@@ -33,14 +33,19 @@ export function useSizeTransform<E extends HTMLElement>(key: unknown) {
     const reset = () => {
       for (const property of RESET) element.style.removeProperty(property);
     };
-    if (parseFloat(getComputedStyle(element).transitionDuration) === 0) return reset();
+    const duration = parseFloat(getComputedStyle(element).transitionDuration) * 1000;
+    if (!(duration > 0)) return reset();
     element.style.height = `${end}px`;
     const onEnd = (event: TransitionEvent) => {
       if (event.target === element && event.propertyName === 'height') reset();
     };
     element.addEventListener('transitionend', onEnd);
     element.addEventListener('transitioncancel', onEnd);
+    // A browser can skip both events (a background tab, a frame dropped under load), which
+    // would leave the height fixed, so the inline styles also go once the spring has had time.
+    const fallback = window.setTimeout(reset, duration + 100);
     return () => {
+      window.clearTimeout(fallback);
       element.removeEventListener('transitionend', onEnd);
       element.removeEventListener('transitioncancel', onEnd);
     };

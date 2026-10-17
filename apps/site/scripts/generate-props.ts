@@ -119,7 +119,7 @@ export interface ComponentPropsFile {
 }
 
 /** The object props whose keys the tables list one by one. */
-export const OBJECT_KEY_PROPS = ['strings', 'labels', 'classNames'] as const;
+export const OBJECT_KEY_PROPS = ['labels', 'classNames'] as const;
 
 /** Where a prop is declared: by the package, by React Aria, by React's DOM types, or elsewhere. */
 export type PropOrigin = 'own' | 'react-aria' | 'dom' | 'other';

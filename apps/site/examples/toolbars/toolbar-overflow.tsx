@@ -24,7 +24,7 @@ export function ToolbarOverflow() {
       trailing={
         <MenuTrigger>
           <IconButton icon={<MoreVertIcon />} aria-label="More actions" />
-          <Menu aria-label="More actions" placement="top end">
+          <Menu aria-label="More actions" placement="top-end">
             <MenuItem key="copy" leadingIcon={<ContentCopyIcon />}>
               Copy
             </MenuItem>

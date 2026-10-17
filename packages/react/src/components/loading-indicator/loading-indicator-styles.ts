@@ -30,5 +30,9 @@ export const loadingIndicatorStyles = tv({
   defaultVariants: { variant: 'default' },
 });
 
+/**
+ * The variants of {@link loadingIndicatorStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type LoadingIndicatorStyleProps = VariantProps<typeof loadingIndicatorStyles>;
 export type LoadingIndicatorVariant = NonNullable<LoadingIndicatorStyleProps['variant']>;

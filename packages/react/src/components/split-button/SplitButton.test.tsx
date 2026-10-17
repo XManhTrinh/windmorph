@@ -13,7 +13,7 @@ function Send(props: Partial<SplitButtonProps> & { onAction?: (key: React.Key) =
   return (
     <SplitButton
       leadingIcon={<Icon />}
-      menuLabel="More send options"
+      labels={{ menu: 'More send options' }}
       menu={
         <Menu aria-label="Send options" onAction={onAction}>
           <MenuItem key="later">Send later</MenuItem>
@@ -296,7 +296,7 @@ describe('SplitButton', () => {
       <SplitButton
         leadingIcon={<Icon />}
         leadingLabel="Send"
-        menuLabel="More send options"
+        labels={{ menu: 'More send options' }}
         menu={
           <Menu aria-label="Send options">
             <MenuItem key="later">Send later</MenuItem>
@@ -312,7 +312,7 @@ describe('SplitButton', () => {
   it('opens another overlay through an enclosing trigger', async () => {
     render(
       <DialogTrigger>
-        <SplitButton menuLabel="More send options">Send</SplitButton>
+        <SplitButton labels={{ menu: 'More send options' }}>Send</SplitButton>
         <Dialog role="dialog" aria-label="Schedule send">
           <DialogContent>Pick a time.</DialogContent>
         </Dialog>
@@ -328,7 +328,7 @@ describe('SplitButton', () => {
     const onOpenChange = vi.fn();
     render(
       <SplitButton
-        menuLabel="More send options"
+        labels={{ menu: 'More send options' }}
         onTrailingPress={onTrailingPress}
         onOpenChange={onOpenChange}
       >

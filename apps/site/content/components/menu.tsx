@@ -210,7 +210,7 @@ export async function MenuBody(): Promise<ComponentDoc> {
               <InlineCode>0fr → 1fr</InlineCode>) when selected, as in Compose.
             </li>
             <li>
-              <InlineCode>placement</InlineCode> defaults to <InlineCode>bottom start</InlineCode>{' '}
+              <InlineCode>placement</InlineCode> defaults to <InlineCode>bottom-start</InlineCode>{' '}
               with no offset; because React Aria resolves start / end from its locale, the menu
               converts them to physical sides from the trigger&apos;s computed direction.
             </li>

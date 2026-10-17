@@ -106,6 +106,15 @@ describe('control combinations', () => {
     expect(adjustListRadio({ value: 'none', required: true }, 'value')).toMatchObject({
       required: false,
     });
+    // Dividers and the segmented list never meet: the list throws for the pair.
+    expect(adjustListRadio({ variant: 'segmented', dividers: 'full' }, 'dividers')).toMatchObject({
+      variant: 'standard',
+      dividers: 'full',
+    });
+    expect(adjustListRadio({ variant: 'segmented', dividers: 'inset' }, 'variant')).toMatchObject({
+      variant: 'segmented',
+      dividers: 'none',
+    });
   });
 
   it("a filter chip's trailing icon and remove button rule each other out", () => {
@@ -168,6 +177,18 @@ describe('playground snippets match their previews', () => {
     expect(snippet('sheets', { sheet: 'side', detached: true })).toMatch(
       /<SideSheet[\s\S]*detached/,
     );
+    expect(controlNames('sheets', { sheet: 'side' })).toEqual(
+      expect.arrayContaining(['variant', 'edge', 'swipeable']),
+    );
+    expect(controlNames('sheets')).toContain('swipeable');
+    expect(controlNames('sheets')).not.toContain('edge');
+    expect(snippet('sheets', { sheet: 'side', edge: 'start' })).toMatch(
+      /<SideSheet[\s\S]*edge="start"/,
+    );
+    expect(snippet('sheets', { sheet: 'side', swipeable: false })).toContain('swipeable={false}');
+    // A standard sheet on the start edge comes before the page's content in the snippet.
+    const start = snippet('sheets', { sheet: 'side', variant: 'standard', edge: 'start' });
+    expect(start.indexOf('<SideSheet')).toBeLessThan(start.indexOf('Show details'));
   });
 
   it('the list writes line limits only when set, and item values only in a radio list', () => {

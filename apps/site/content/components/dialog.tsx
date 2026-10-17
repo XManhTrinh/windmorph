@@ -126,7 +126,7 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <DialogCustomPosition />
           </ExampleViewer>
           <ExampleViewer
-            title="Motion, onOpened and onClosed, and quick"
+            title="Motion, onOpened and onClosed, and instant"
             code={motion}
             html={motionHtml}
             fileName="dialog-motion.tsx"
@@ -187,8 +187,8 @@ export async function DialogBody(): Promise<ComponentDoc> {
             decision. A basic dialog is an alert dialog on the web, as the spec says: it needs a
             decision and isn&apos;t dismissed by pressing outside. Set{' '}
             <InlineCode>role=&quot;dialog&quot;</InlineCode> (or{' '}
-            <InlineCode>dismissable</InlineCode>) for one a press outside may close. For
-            non-blocking supplementary content prefer a sheet, and for a brief message prefer a
+            <InlineCode>closedBy=&quot;any&quot;</InlineCode>) for one a press outside may close.
+            For non-blocking supplementary content prefer a sheet, and for a brief message prefer a
             snackbar.
           </p>
           <p className="text-body-large text-on-surface-variant">
@@ -301,7 +301,7 @@ export async function DialogBody(): Promise<ComponentDoc> {
               back while its container shrinks to 35%, then the container fades. The container is a
               clip on a library-owned wrapper, so it grows from 0 as the spec says (Material Web
               starts at 35% because its container doesn&apos;t clip the text). Reduced motion keeps
-              only the fades of the dialog and the scrim, and <InlineCode>quick</InlineCode> turns
+              only the fades of the dialog and the scrim, and <InlineCode>instant</InlineCode> turns
               the motion off. <InlineCode>onOpened</InlineCode> and{' '}
               <InlineCode>onClosed</InlineCode> fire when each motion has finished, like Material
               Web&apos;s <InlineCode>opened</InlineCode> and <InlineCode>closed</InlineCode> events.{' '}

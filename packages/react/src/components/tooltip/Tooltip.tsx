@@ -11,11 +11,13 @@ import {
   type FocusEvent,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react';
 import {
   mergeProps,
   useInteractOutside,
+  useObjectRef,
   useOverlayPosition,
   useOverlayTrigger,
   usePopover,
@@ -35,6 +37,7 @@ import {
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { toAriaPlacement } from '../../utils/placement';
 import { tabbables } from '../../utils/focus';
 import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
 import { TooltipPlacementContext, type TooltipPlacement } from './tooltip-placement';
@@ -51,6 +54,7 @@ import {
   type TooltipTriggerProps,
 } from './tooltip-trigger';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import type { RootDOMProps } from '../../utils/root-props';
 
 export {
   TooltipPlacementContext,
@@ -81,10 +85,7 @@ function usePhysicalPlacement(
     () => (triggerRef.current ? getComputedStyle(triggerRef.current).direction : 'ltr'),
     () => 'ltr',
   );
-  const rtl = direction === 'rtl';
-  return placement
-    .replace('start', rtl ? 'right' : 'left')
-    .replace('end', rtl ? 'left' : 'right') as Placement;
+  return toAriaPlacement(placement, direction === 'rtl');
 }
 
 /**
@@ -125,7 +126,15 @@ export interface TooltipClassNames {
   caret?: string;
 }
 
-export interface TooltipProps {
+/**
+ * The outermost element's DOM attributes (`data-*`, `aria-*`, `title`, pointer events). A
+ * `data-tokens` value joins the surface's token set instead, where the tokens resolve.
+ */
+type PopupDOMProps = RootDOMProps & {
+  [data: `data-${string}`]: string | number | boolean | undefined;
+};
+
+export interface TooltipProps extends PopupDOMProps {
   /** The label: a few words, with no links or buttons (use a rich tooltip for those). */
   children: ReactNode;
   /** Draw a 16×8px caret pointing at the anchor. @default false */
@@ -136,6 +145,10 @@ export interface TooltipProps {
    * `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element; React Aria's position wins over them. */
+  style?: CSSProperties;
+  /** Ref to the outermost element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: TooltipClassNames;
 }
@@ -157,16 +170,19 @@ function TooltipPopup({
   children,
   caret = false,
   className,
+  style,
+  ref,
   classNames,
   context,
   isExiting,
   exitProps,
+  ...rest
 }: TooltipProps & {
   context: TooltipContextValue;
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useObjectRef(ref);
   const { tooltipProps } = useTooltip(context.tooltipProps, context.state);
   const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { overlayProps, arrowProps, placement } = useOverlayPosition({
@@ -183,9 +199,11 @@ function TooltipPopup({
   });
   const side = revealSide(placement, requested);
   const styles = tooltipStyles();
+  const { 'data-tokens': appTokens, ...dom } = rest;
   return (
     <div
-      {...overlayProps}
+      {...mergeProps(dom, overlayProps)}
+      style={{ ...style, ...overlayProps.style }}
       ref={overlayRef}
       // Only React Aria's insets apply (styles/utilities.css).
       data-overlay-placement=""
@@ -194,7 +212,9 @@ function TooltipPopup({
       <div
         {...mergeProps(tooltipProps, exitProps)}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens={mergeDataTokens('md-comp-plain-tooltip', tooltipProps)}
+        data-tokens={mergeDataTokens('md-comp-plain-tooltip', {
+          'data-tokens': appTokens ?? (tooltipProps as { 'data-tokens'?: unknown })['data-tokens'],
+        })}
         data-placement={side}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}
@@ -228,7 +248,7 @@ export interface RichTooltipTriggerProps {
    * @default false
    */
   persistent?: boolean;
-  /** Bottom right of the anchor in left-to-right layouts (the spec). @default "bottom start" */
+  /** Bottom right of the anchor in left-to-right layouts (the spec). @default "bottom-start" */
   placement?: TooltipPlacement;
   /** Distance from the anchor in px. @default 4 */
   offset?: number;
@@ -262,7 +282,7 @@ export function RichTooltipTrigger({ persistent = false, ...props }: RichTooltip
 
 function PersistentRichTrigger({
   children,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = DEFAULT_OFFSET,
   disabled = false,
   open,
@@ -287,7 +307,7 @@ function PersistentRichTrigger({
 
 function TransientRichTrigger({
   children,
-  placement = 'bottom start',
+  placement = 'bottom-start',
   offset = DEFAULT_OFFSET,
   delay = 0,
   closeDelay = CLOSE_DELAY,
@@ -338,7 +358,7 @@ export interface RichTooltipClassNames {
   caret?: string;
 }
 
-export interface RichTooltipProps {
+export interface RichTooltipProps extends Omit<PopupDOMProps, 'title'> {
   /** Supporting text. */
   children: ReactNode;
   /** Subhead; it also names a persistent tooltip. */
@@ -355,6 +375,10 @@ export interface RichTooltipProps {
    * `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element; React Aria's position wins over them. */
+  style?: CSSProperties;
+  /** Ref to the outermost element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: RichTooltipClassNames;
 }
@@ -402,7 +426,7 @@ function PersistentRichPopup({
   exitProps,
   ...props
 }: PopupProps<Extract<RichContextValue, { persistent: true }>>) {
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useObjectRef(props.ref);
   const titleId = useId();
   const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { state, triggerRef } = context;
@@ -444,7 +468,7 @@ function PersistentRichPopup({
   return (
     <RichBody
       {...props}
-      ref={popoverRef}
+      popupRef={popoverRef}
       titleId={titleId}
       positionProps={popoverProps}
       domProps={mergeProps(dialogProps, context.overlayProps, exitProps)}
@@ -514,7 +538,7 @@ function TransientRichPopup({
   exitProps,
   ...props
 }: PopupProps<Extract<RichContextValue, { persistent: false }>>) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useObjectRef(props.ref);
   const titleId = useId();
   const { state } = context;
   const { tooltipProps } = useTooltip(context.tooltipProps, state);
@@ -539,7 +563,7 @@ function TransientRichPopup({
   return (
     <RichBody
       {...props}
-      ref={overlayRef}
+      popupRef={overlayRef}
       titleId={titleId}
       positionProps={overlayProps}
       domProps={mergeProps(tooltipProps, focusProps, exitProps)}
@@ -556,16 +580,18 @@ function RichBody({
   action,
   caret = false,
   className,
+  style,
   classNames,
-  ref,
+  popupRef,
   titleId,
   positionProps,
   domProps,
   placement,
   arrowProps,
   isExiting,
+  ...rest
 }: RichTooltipProps & {
-  ref: RefObject<HTMLDivElement | null>;
+  popupRef: RefObject<HTMLDivElement | null>;
   titleId: string;
   /** React Aria's placement, for the outermost element. */
   positionProps: HTMLAttributes<HTMLElement>;
@@ -576,17 +602,22 @@ function RichBody({
   isExiting: boolean;
 }) {
   const styles = richTooltipStyles({ subhead: title != null, action: action != null });
+  // The ref already reached `popupRef`, and `aria-label` names the dialog through `domProps`.
+  const { 'data-tokens': appTokens, 'aria-label': _label, ref: _ref, ...dom } = rest;
   return (
     <div
-      {...positionProps}
-      ref={ref}
+      {...mergeProps(dom, positionProps)}
+      style={{ ...style, ...positionProps.style }}
+      ref={popupRef}
       data-overlay-placement=""
       className={styles.positioner({ class: className })}
     >
       <div
         {...domProps}
         // The component tokens' hook (tooltip-tokens.ts).
-        data-tokens={mergeDataTokens('md-comp-rich-tooltip', domProps)}
+        data-tokens={mergeDataTokens('md-comp-rich-tooltip', {
+          'data-tokens': appTokens ?? (domProps as { 'data-tokens'?: unknown })['data-tokens'],
+        })}
         data-placement={placement}
         data-exiting={isExiting || undefined}
         className={styles.panel({ class: classNames?.panel })}

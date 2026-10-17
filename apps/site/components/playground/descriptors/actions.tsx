@@ -45,10 +45,16 @@ const CLOSE = '<CloseIcon />';
 /** The button group's buttons: a calendar's views. */
 const VIEWS = ['Day', 'Week', 'Month'];
 
-/** Why `elementType` and `preventFocusOnPress` have no control. */
+/** Why `as` and `preventFocusOnPress` have no control. */
 const NO_VISIBLE_EFFECT = {
-  elementType: 'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
+  as: 'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
   preventFocusOnPress: 'Only keeps focus where it was on press; nothing the preview shows.',
+};
+
+/** Why a pending button's own indicator has no control. */
+const PENDING_INDICATOR = {
+  pendingIndicator:
+    'Takes an element (another indicator, such as a CircularProgressIndicator); the Pending example shows one.',
 };
 
 /** A button's `value`, besides {@link NO_VISIBLE_EFFECT}. */
@@ -108,6 +114,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       toggle: false,
       selected: false,
       selectedLeadingIcon: false,
+      pending: false,
     },
     surfacedProps: [
       'variant',
@@ -117,6 +124,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'toggle',
       'selected',
       'selectedLeadingIcon',
+      'pending',
       'disabled',
       'dragged',
       'href',
@@ -127,7 +135,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       adjustToggleForm(values, changed, { noToggleVariant: 'text', fallbackVariant: 'filled' }),
     controlKinds: { leadingIcon: 'boolean', selectedLeadingIcon: 'boolean' },
     toggledSlots: { leadingIcon: STAR_OUTLINE, selectedLeadingIcon: STAR },
-    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE, ...PENDING_INDICATOR },
     codeChildren: 'Favourite',
   },
   'icon-button': {
@@ -156,6 +164,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       selected: false,
       selectedIcon: false,
       iconTransition: 'swap',
+      pending: false,
       disabled: false,
       dragged: false,
     },
@@ -170,6 +179,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'selectedIcon',
       'iconTransition',
       'tooltip',
+      'pending',
       'disabled',
       'dragged',
       'href',
@@ -183,6 +193,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         next.selectedIcon = true;
         next.toggle = true;
         next.href = undefined;
+        next.pending = false;
       }
       if (next.toggle !== true || next.selectedIcon !== true) next.iconTransition = 'swap';
       return next;
@@ -190,7 +201,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     enumOptions: DENSITY_OPTIONS,
     controlKinds: { selectedIcon: 'boolean', density: 'number' },
     toggledSlots: { selectedIcon: STAR },
-    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE },
+    notControlled: { ...NO_VISIBLE_EFFECT, ...SELECTION_VALUE, ...PENDING_INDICATOR },
     codeSlots: { icon: STAR_OUTLINE, 'aria-label': '"Favourite"' },
   },
   'button-group': {
@@ -223,7 +234,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       shape: 'round',
       buttonVariant: 'filled',
       selectionMode: 'none',
-      disallowEmptySelection: false,
+      deselectable: true,
       overflow: false,
       disabled: false,
     },
@@ -233,7 +244,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'shape',
       'buttonVariant',
       'selectionMode',
-      'disallowEmptySelection',
+      'deselectable',
       'expandedRatio',
       'overflow',
       'disabled',
@@ -270,6 +281,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         SplitButtonAny,
         {
           ...props,
+          labels: { menu: 'More send options' },
           ...(leadingIcon === true && { leadingIcon: <SendIcon /> }),
           open: Boolean(open),
           onOpenChange: (next: boolean) => update('open', next),
@@ -292,17 +304,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       open: false,
       disabled: false,
     },
-    surfacedProps: [
-      'variant',
-      'size',
-      'leadingIcon',
-      'menuLabel',
-      'menu',
-      'open',
-      'disabled',
-      'href',
-    ],
-    initialState: { leadingIcon: true, menu: true, menuLabel: 'More send options' },
+    surfacedProps: ['variant', 'size', 'leadingIcon', 'menu', 'open', 'disabled', 'href'],
+    initialState: { leadingIcon: true, menu: true },
     controlKinds: { leadingIcon: 'boolean', menu: 'boolean' },
     toggledSlots: {
       leadingIcon: SEND,
@@ -312,6 +315,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       leadingLabel:
         'Names an icon-only leading button, which has no label children; the Icon only example shows it.',
     },
+    codeSlots: { labels: "{ menu: 'More send options' }" },
     importMembers: ['Menu', 'MenuItem'],
     codeChildren: 'Send',
   },
@@ -450,19 +454,11 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       size: 'md',
       variant: 'text',
-      showIdleIcon: true,
+      idleIcon: true,
       open: false,
       disabled: false,
     },
-    surfacedProps: [
-      'variant',
-      'size',
-      'value',
-      'defaultOption',
-      'showIdleIcon',
-      'open',
-      'disabled',
-    ],
+    surfacedProps: ['variant', 'size', 'value', 'defaultOption', 'idleIcon', 'open', 'disabled'],
     enumOptions: {
       size: ['sm', 'md'],
       variant: ['text', 'tonal'],
@@ -480,10 +476,10 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         items: SUMMARY_ITEMS,
         total: typeof total === 'number' ? total : 0,
       }),
-    defaultProps: { variant: 'stacked', size: 'md', maxIcons: 3 },
-    surfacedProps: ['variant', 'size', 'total', 'maxIcons'],
+    defaultProps: { variant: 'stacked', size: 'md', max: 3 },
+    surfacedProps: ['variant', 'size', 'total', 'max'],
     initialState: { total: 128 },
-    numberRanges: { total: { min: 0, max: 2000 }, maxIcons: { min: 1, max: 4 } },
+    numberRanges: { total: { min: 0, max: 2000 }, max: { min: 1, max: 4 } },
     enumOptions: { variant: ['stacked', 'chip'], size: ['sm', 'md'] },
     codeSlots: { items: SUMMARY_ITEMS_CODE },
   },

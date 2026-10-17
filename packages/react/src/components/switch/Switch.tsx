@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type AriaAttributes,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
@@ -25,7 +26,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { switchStyles } from './switch-styles';
 import { restartRipple, useRippleHold } from '../../primitives/use-m3-interaction';
 import {
@@ -47,19 +48,42 @@ export interface SwitchClassNames extends SelectionControlClassNames {
 }
 
 type RenamedAriaProps =
-  'isSelected' | 'defaultSelected' | 'onChange' | 'isDisabled' | 'isReadOnly' | 'children';
+  | 'isSelected'
+  | 'defaultSelected'
+  | 'onChange'
+  | 'isDisabled'
+  | 'isReadOnly'
+  | 'isRequired'
+  | 'isInvalid'
+  | 'children'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
-interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
-  /** Controlled on state. */
-  selected?: boolean;
+interface SwitchOwnProps
+  extends
+    Omit<AriaSwitchProps, RenamedAriaProps>,
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaSwitchProps>,
+    // The input's own state attributes go to it, with React Aria's `aria-controls`.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
+  /** Controlled on state (`checked`, as an HTML checkbox). */
+  checked?: boolean;
   /** Initial on state when uncontrolled. */
-  defaultSelected?: boolean;
+  defaultChecked?: boolean;
   /** Called when the user switches it on or off. */
-  onSelectedChange?: (selected: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
   /** Turns the switch off: it can't be changed or focused. @default false */
   disabled?: boolean;
   /** The switch can be focused but not changed. @default false */
   readOnly?: boolean;
+  /**
+   * The switch must be on (`aria-required`; with `validationBehavior="native"`, the form can't
+   * submit until it is). @default false
+   */
+  required?: boolean;
+  /** Marks the switch invalid for assistive tech (`aria-invalid`). @default false */
+  invalid?: boolean;
   /** Shows the default check / close icons in the thumb. @default false */
   icons?: boolean;
   /**
@@ -71,10 +95,10 @@ interface SwitchOwnProps extends Omit<AriaSwitchProps, RenamedAriaProps> {
    * @default 0
    */
   density?: Density;
-  /** Icon in the thumb while on (overrides the default check). */
-  selectedIcon?: ReactNode;
-  /** Icon in the thumb while off (overrides the default close). */
-  unselectedIcon?: ReactNode;
+  /** Icon in the thumb while checked (overrides the default check). */
+  checkedIcon?: ReactNode;
+  /** Icon in the thumb while unchecked (overrides the default close). */
+  uncheckedIcon?: ReactNode;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -106,17 +130,19 @@ const isOnAt = (center: number) => center > (THUMB_ON_CENTER + THUMB_OFF_CENTER)
  * forms and assistive tech working.
  *
  * @example
- * <Switch defaultSelected icons>Wi-Fi</Switch>
+ * <Switch defaultChecked icons>Wi-Fi</Switch>
  */
 export function Switch({
-  selected,
-  defaultSelected,
-  onSelectedChange,
+  checked,
+  defaultChecked,
+  onCheckedChange,
   disabled = false,
   readOnly,
+  required,
+  invalid,
   icons = false,
-  selectedIcon,
-  unselectedIcon,
+  checkedIcon,
+  uncheckedIcon,
   density,
   className,
   classNames,
@@ -126,16 +152,19 @@ export function Switch({
   children,
   ...otherProps
 }: SwitchProps) {
-  const { data, rest } = splitDataAttributes(otherProps);
+  // DOM attributes for the whole control go on the root; the rest goes to the input.
+  const { root: data, rest } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const options: AriaSwitchProps = {
     ...rest,
     children,
-    isSelected: selected,
-    defaultSelected,
-    onChange: onSelectedChange,
+    isSelected: checked,
+    defaultSelected: defaultChecked,
+    onChange: onCheckedChange,
     isDisabled: disabled,
     isReadOnly: readOnly,
+    isRequired: required,
+    isInvalid: invalid,
   };
   const toggleState = useToggleState(options);
   // Dragging the thumb (M3: "Touch: Tap, Drag"). The thumb follows the pointer between its
@@ -195,8 +224,8 @@ export function Switch({
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
   const icon = isSelected
-    ? (selectedIcon ?? (icons ? <CheckIcon /> : null))
-    : (unselectedIcon ?? (icons ? <CloseIcon /> : null));
+    ? (checkedIcon ?? (icons ? <CheckIcon /> : null))
+    : (uncheckedIcon ?? (icons ? <CloseIcon /> : null));
   // Browsers toggle a checkbox input on Space only; M3 also toggles a switch on Enter.
   // Enter presses like Space does: the thumb grows on key down and the switch toggles on
   // key up.
@@ -224,7 +253,7 @@ export function Switch({
   const { size } = geometry;
   const center = dragCenter ?? geometry.center;
   const stateAttributes = {
-    'data-selected': isSelected || undefined,
+    'data-checked': isSelected || undefined,
     'data-disabled': disabled || undefined,
     'data-hovered': (isHovered && !disabled) || undefined,
     'data-pressed': pressed || undefined,
@@ -241,7 +270,7 @@ export function Switch({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps, enterProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps, enterProps)}
       inputRef={domInputRef}
       rootData={{
         ...data,

@@ -14,14 +14,15 @@ const PEOPLE = [
 
 /**
  * Avatars overlap with a surface ring, and `max` turns the rest into "+N". The group is
- * named once by `label`; here "+N" is a button that would open the full list.
+ * named once by `aria-label`; here "+N" is a button that would open the full list, named by
+ * `labels.overflow` ("3 more" by default).
  */
 export function AvatarGroupExample() {
   const [opened, setOpened] = useState(0);
   return (
     <div className="flex flex-col items-start gap-3">
       <AvatarGroup
-        label="Nora Lindqvist, Omar Haddad and 4 others"
+        aria-label="Nora Lindqvist, Omar Haddad and 4 others"
         max={3}
         onOverflowPress={() => setOpened((count) => count + 1)}
       >

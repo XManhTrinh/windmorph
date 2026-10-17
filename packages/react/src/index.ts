@@ -56,6 +56,7 @@ export {
   type ButtonProps,
   type ButtonToggleProps,
 } from './components/button/Button';
+export { type ButtonLabels } from './components/button/button-pending';
 export {
   ButtonContext,
   ToggleGroupStateContext,
@@ -236,6 +237,7 @@ export {
 export {
   SplitButton,
   type SplitButtonClassNames,
+  type SplitButtonLabels,
   type SplitButtonProps,
 } from './components/split-button/SplitButton';
 export {
@@ -367,6 +369,7 @@ export {
   type DialogPlacement,
   type DialogTransition,
   type DialogHeaderClassNames,
+  type DialogHeaderLabels,
   type DialogHeaderProps,
   type DialogProps,
   type DialogRenderProps,
@@ -374,6 +377,7 @@ export {
   type DialogTriggerProps,
 } from './components/dialog/Dialog';
 export { dialogStyles, type DialogStyleProps } from './components/dialog/dialog-styles';
+export type { ClosedBy } from './utils/closed-by';
 export { dialogTokenSet } from './components/dialog/dialog-tokens';
 export {
   ContextMenuTrigger,
@@ -388,6 +392,7 @@ export {
   type MenuItemProps,
   type MenuKey,
   type MenuLabels,
+  type MenuPlacement,
   type MenuPresentation,
   type MenuProps,
   type MenuTriggerProps,
@@ -572,7 +577,7 @@ export {
   DateRangePicker,
   type DatePickerClassNames,
   type DatePickerProps,
-  type DatePickerStrings,
+  type DatePickerLabels,
   type DateRange,
   type DateRangePickerClassNames,
   type DateRangePickerProps,
@@ -587,14 +592,14 @@ export {
   DateField,
   type DateFieldClassNames,
   type DateFieldProps,
-  type DateFieldStrings,
+  type DateFieldLabels,
 } from './components/date-picker/DateField';
-export type { DateInputStrings } from './components/date-picker/DateInput';
+export type { DateInputLabels } from './components/date-picker/DateInput';
 export {
   PickerDialog,
   type PickerDialogClassNames,
   type PickerDialogProps,
-  type PickerDialogStrings,
+  type PickerDialogLabels,
 } from './components/date-picker/PickerDialog';
 export { pickerDialogStyles } from './components/date-picker/picker-dialog-styles';
 export {
@@ -605,7 +610,7 @@ export {
   type TimePickerMode,
   type TimePickerModeToggleProps,
   type TimePickerProps,
-  type TimePickerStrings,
+  type TimePickerLabels,
 } from './components/time-picker/TimePicker';
 export {
   timePickerStyles,

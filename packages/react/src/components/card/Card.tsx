@@ -44,7 +44,7 @@ export interface CardStaticProps extends CardOwnProps, ComponentPropsWithRef<'di
  * shows no text. It must not contain other buttons or links.
  */
 export interface CardActionProps
-  extends CardOwnProps, Omit<ButtonBaseDivActionProps, 'elementType' | 'onPress' | NotForCards> {
+  extends CardOwnProps, Omit<ButtonBaseDivActionProps, 'as' | 'onPress' | NotForCards> {
   onPress: NonNullable<ButtonBaseDivActionProps['onPress']>;
 }
 
@@ -114,7 +114,7 @@ export function Card(props: CardProps) {
   const baseProps = {
     ...rest,
     ...tokenAttributes,
-    ...(isAction ? { elementType: 'div' as const } : {}),
+    ...(isAction ? { as: 'div' as const } : {}),
     dragged,
     ref: domRef,
     className: classes,

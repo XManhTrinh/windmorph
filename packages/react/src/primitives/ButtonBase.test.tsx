@@ -7,7 +7,7 @@ describe('ButtonBase', () => {
     render(
       <>
         <ButtonBase dragged>Button</ButtonBase>
-        <ButtonBase dragged elementType="div">
+        <ButtonBase dragged as="div">
           Div
         </ButtonBase>
         <ButtonBase dragged href="/trips">

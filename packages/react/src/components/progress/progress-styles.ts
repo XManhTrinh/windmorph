@@ -63,5 +63,13 @@ export const circularProgressStyles = tv({
   defaultVariants: { wavy: false },
 });
 
+/**
+ * The variants of {@link linearProgressStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type LinearProgressStyleProps = VariantProps<typeof linearProgressStyles>;
+/**
+ * The variants of {@link circularProgressStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type CircularProgressStyleProps = VariantProps<typeof circularProgressStyles>;

@@ -5,7 +5,6 @@ import {
   Accordion,
   AccordionItem,
   Avatar,
-  avatarShapes,
   Collapse,
   CommentRow,
   ExpandableText,
@@ -34,6 +33,10 @@ import {
   asDensity,
   loose,
   noop,
+  SHAPE_IMPORT,
+  shapeOptions,
+  shapeSlot,
+  shapeValue,
 } from './shared';
 
 const AccordionAny = loose(Accordion);
@@ -233,7 +236,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         createElement(MediaGridAny, {
           ...props,
           items: GRID_PHOTOS,
-          onItemPress: noop,
+          onAction: noop,
           'aria-label': 'Photos',
         }),
       ),
@@ -244,7 +247,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     codeImports: ["import { photos } from './photos';"],
     codeSlots: {
       items: 'photos',
-      onItemPress: "(index) => console.log('Open photo', index)",
+      onAction: "(index) => console.log('Open photo', index)",
       'aria-label': '"Photos"',
     },
   },
@@ -327,18 +330,19 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
   'shaped-icon': {
     component: 'ShapedIcon',
     importFrom: '@windmorph/react-pro',
-    render: (props) => createElement(ShapedIconAny, props, createElement(StarIcon)),
-    defaultProps: { shape: 'circle', size: 'md', tone: 'secondary' },
-    surfacedProps: ['shape', 'size', 'tone'],
-    initialState: { shape: 'Cookie9Sided', size: 'lg', tone: 'primary' },
+    render: ({ shape, ...props }) =>
+      createElement(ShapedIconAny, { ...props, shape: shapeValue(shape) }, createElement(StarIcon)),
+    defaultProps: { shape: 'circle', size: 'md', color: 'secondary' },
+    surfacedProps: ['shape', 'size', 'color'],
+    initialState: { shape: 'Cookie9Sided', size: 'lg', color: 'primary' },
     enumOptions: {
-      shape: [
-        'circle',
-        ...avatarShapes.filter((shape) => shape !== 'circle' && shape !== 'rounded'),
-      ],
+      shape: shapeOptions(['circle']),
       size: ['sm', 'md', 'lg', 'xl'],
-      tone: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
     },
+    // A shape is written as its constant, imported from `@windmorph/react/primitives`.
+    codeSlots: { shape: shapeSlot('circle') },
+    codeImports: [SHAPE_IMPORT],
     codeChildren: '<StarIcon />',
   },
   'comment-row': {
@@ -491,7 +495,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
           </p>,
         ),
       ),
-    defaultProps: { appear: true, keepMounted: false },
+    defaultProps: { appear: false, keepMounted: false },
     surfacedProps: ['open', 'appear', 'keepMounted'],
     initialState: { open: true },
     codeChildren:
@@ -530,9 +534,10 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       AvatarGroup: 'Stacks several avatars with an overflow count; the page examples show it.',
     },
     importFrom: '@windmorph/react-pro',
-    render: ({ presence, badge, badgeLabel, src, icon, alt, decorative, href, ...props }) =>
+    render: ({ presence, badge, badgeLabel, src, icon, alt, decorative, href, shape, ...props }) =>
       createElement(AvatarAny, {
         ...props,
+        shape: shapeValue(shape),
         ...(decorative === true ? { decorative: true } : { alt: String(alt || props.name || '') }),
         ...(src === true && { src: SAMPLE_PHOTO }),
         ...(icon === true && { icon: <PersonIcon /> }),
@@ -547,7 +552,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       icon: false,
       size: 'md',
       shape: 'circle',
-      tone: 'auto',
+      color: 'auto',
       presence: 'none',
       presencePlacement: 'bottom-end',
       badge: '',
@@ -565,7 +570,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       'icon',
       'size',
       'shape',
-      'tone',
+      'color',
       'presence',
       'presencePlacement',
       'badge',
@@ -587,8 +592,8 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     enumOptions: {
       size: ['xs', 'sm', 'md', 'lg', 'xl', '2xl'],
-      shape: [...avatarShapes],
-      tone: ['auto', 'primary', 'secondary', 'tertiary', 'neutral'],
+      shape: shapeOptions(['circle', 'rounded']),
+      color: ['auto', 'primary', 'secondary', 'tertiary', 'neutral'],
       presence: ['none', 'online', 'away', 'offline'],
       presencePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
       badgePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
@@ -601,6 +606,9 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       return values;
     },
     toggledSlots: { src: '"/avatars/nora.jpg"', icon: '<PersonIcon />' },
+    // A shape is written as its constant, imported from `@windmorph/react/primitives`.
+    codeSlots: { shape: shapeSlot('circle') },
+    codeImports: [SHAPE_IMPORT],
     notControlled: {
       srcSet:
         'Responsive sources for `src`: the preview has one sample photo, so it would look the same.',
@@ -630,15 +638,15 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       ),
     defaultProps: {
       variant: 'tonal',
-      tone: 'neutral',
+      color: 'neutral',
       size: 'md',
-      shape: 'full',
+      shape: 'round',
       dot: false,
       icon: false,
       fullLabel: '',
     },
-    surfacedProps: ['variant', 'tone', 'size', 'shape', 'dot', 'icon', 'fullLabel', 'maxWidth'],
-    initialState: { tone: 'success', dot: true },
+    surfacedProps: ['variant', 'color', 'size', 'shape', 'dot', 'icon', 'fullLabel', 'maxWidth'],
+    initialState: { color: 'success', dot: true },
     // A tag shows a status dot or a leading icon, not both (the types say so).
     adjust: (values, changed) => {
       if (changed === 'dot' && values.dot === true) return { ...values, icon: false };
@@ -647,9 +655,9 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     enumOptions: {
       variant: ['tonal', 'filled', 'outlined'],
-      tone: ['neutral', 'primary', 'secondary', 'tertiary', 'error', 'success', 'warning'],
+      color: ['neutral', 'primary', 'secondary', 'tertiary', 'error', 'success', 'warning'],
       size: ['sm', 'md', 'lg'],
-      shape: ['full', 'rounded'],
+      shape: ['round', 'square'],
     },
     controlKinds: { icon: 'boolean', maxWidth: 'number' },
     toggledSlots: { icon: '<ScheduleIcon />' },

@@ -22,9 +22,9 @@ function* outputs() {
           for (const slot of Object.values(slots)) yield slot();
         }
   for (const arrangement of ['equal', 'centered'] as const)
-    for (const iconPosition of ['top', 'start'] as const)
+    for (const iconPlacement of ['top', 'start'] as const)
       for (const hideOnScroll of [false, true]) {
-        const slots = navigationBarStyles({ arrangement, iconPosition, hideOnScroll });
+        const slots = navigationBarStyles({ arrangement, iconPlacement, hideOnScroll });
         for (const slot of Object.values(slots)) yield slot();
       }
 }

@@ -164,7 +164,7 @@ test.describe('Slider geometry and interaction', () => {
   });
 
   test('track, gap and handle follow Compose', async ({ page }) => {
-    await openStory(page, 'components-slider--playground', {}, { showValueLabel: false });
+    await openStory(page, 'components-slider--playground', {}, { valueLabel: false });
     const slider = page.getByTestId('slider');
     const box = await rect(slider);
     expect(box.height).toBe(44);

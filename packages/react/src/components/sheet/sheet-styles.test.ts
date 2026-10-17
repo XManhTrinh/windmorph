@@ -7,6 +7,7 @@ import {
 } from '../../../test/tailwind-classes';
 import { MOTION_SCHEMES, SPRINGS, springPosition } from '../../tokens/motion';
 import { bottomSheetStyles, sideSheetStyles } from './sheet-styles';
+import { EXIT_DISTANCE } from './sheet-settle';
 
 function* outputs() {
   for (const slot of Object.values(bottomSheetStyles())) yield slot();
@@ -37,7 +38,7 @@ describe('sheet styles', () => {
   });
 
   it('exits far enough that the fast spatial spring overshoots out of view', () => {
-    const exit = 1.12;
+    const exit = EXIT_DISTANCE;
     for (const scheme of MOTION_SCHEMES) {
       const spring = SPRINGS[scheme].spatial.fast;
       let peak = 0;

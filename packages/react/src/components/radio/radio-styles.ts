@@ -28,10 +28,10 @@ export const radioStyles = tv({
       'group-data-hovered/control:border-on-surface',
       'group-data-focus-visible/control:border-on-surface',
       'group-data-pressed/control:border-on-surface',
-      'group-data-selected/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+      'control-checked:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
       'group-data-disabled/control:border-on-surface/38 group-data-disabled/control:text-on-surface/38',
       // Stacked so disabled also wins over the selected colour (equal specificity otherwise).
-      'group-data-disabled/control:group-data-selected/control:border-on-surface/38',
+      'group-data-disabled/control:control-checked:border-on-surface/38',
       'group-data-disabled/control:[transition-duration:0s]',
       // Forced colours: the ring and its dot (`bg-current`, a background forced colours would
       // drop) in system colours, `GrayText` when disabled.
@@ -43,7 +43,7 @@ export const radioStyles = tv({
       '[transition-property:scale]',
       '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
-      'group-data-selected/control:scale-100',
+      'control-checked:scale-100',
     ],
   },
 });
@@ -71,5 +71,13 @@ export const radioGroupStyles = tv({
   defaultVariants: { orientation: 'vertical', disabled: false },
 });
 
+/**
+ * The variants of {@link radioStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type RadioStyleProps = VariantProps<typeof radioStyles>;
+/**
+ * The variants of {@link radioGroupStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type RadioGroupStyleProps = VariantProps<typeof radioGroupStyles>;

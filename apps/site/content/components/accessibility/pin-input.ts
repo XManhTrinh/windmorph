@@ -43,7 +43,7 @@ export const pinInput: ComponentAccessibility = {
     'A tap or click on a box puts the caret in that box.',
   ],
   touchTarget: [
-    'The input covers the whole row of boxes, so any tap on the row lands on it. Boxes are at least 48, 56 or 64px tall (`small`, `medium`, `large`), 4px less a density step (44px at -3 at `medium`), and grow with larger text.',
+    'The input covers the whole row of boxes, so any tap on the row lands on it. Boxes are at least 48, 56 or 64px tall (`sm`, `md`, `lg`), 4px less a density step (44px at -3 at `md`), and grow with larger text.',
     'On narrow screens the boxes shrink to fit, down to 32px wide each.',
   ],
   motion: [

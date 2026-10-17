@@ -31,7 +31,12 @@ import {
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import {
+  pickWidgetAria,
+  splitRootProps,
+  type RootDOMProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { radioGroupStyles, radioStyles } from './radio-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { RadioRing } from './radio-ring';
@@ -52,9 +57,20 @@ export interface RadioGroupClassNames {
 }
 
 type RenamedGroupProps =
-  'isDisabled' | 'isReadOnly' | 'isRequired' | 'isInvalid' | 'description' | 'label' | 'onChange';
+  | 'isDisabled'
+  | 'isReadOnly'
+  | 'isRequired'
+  | 'isInvalid'
+  | 'description'
+  | 'label'
+  | 'onChange'
+  // The deprecated `validationState` is left out: `invalid` replaces it.
+  | 'validationState';
 
-interface RadioGroupOwnProps extends Omit<AriaRadioGroupProps, RenamedGroupProps> {
+interface RadioGroupOwnProps
+  extends
+    Omit<AriaRadioGroupProps, RenamedGroupProps>,
+    Omit<RootDOMProps, keyof AriaRadioGroupProps> {
   /** Visible group label. */
   label?: ReactNode;
   /** Helper text below the options. */
@@ -147,7 +163,8 @@ function RadioGroupRoot({
   directionRef,
   ...otherProps
 }: RadioGroupProps & { directionRef: RefCallback<HTMLElement> }) {
-  const { data, rest } = splitDataAttributes(otherProps);
+  // The root is the radio group itself: its DOM attributes join the hook's.
+  const { root: data, rest } = splitRootProps(otherProps);
   const rootRef = useMemo(
     () => mergeRefs<HTMLDivElement>(ref, directionRef as RefCallback<HTMLDivElement>),
     [ref, directionRef],
@@ -183,8 +200,7 @@ function RadioGroupRoot({
 
   return (
     <div
-      {...data}
-      {...mergeProps(radioGroupProps, { onKeyDown: keepArrowKeys })}
+      {...mergeProps(data, radioGroupProps, { onKeyDown: keepArrowKeys })}
       ref={rootRef}
       style={style}
       data-orientation={orientation}
@@ -228,7 +244,10 @@ export interface RadioClassNames extends SelectionControlClassNames {
   dot?: string;
 }
 
-interface RadioOwnProps extends Omit<AriaRadioProps, 'isDisabled' | 'children'> {
+interface RadioOwnProps
+  extends
+    Omit<AriaRadioProps, 'isDisabled' | 'children'>,
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaRadioProps> {
   /** The value this option selects. */
   value: string;
   /** Turns this option off: it can't be selected or focused. @default false */
@@ -276,7 +295,7 @@ export function Radio({
 }: RadioProps) {
   const state = useContext(RadioGroupContext);
   if (!state) throw new Error('[@windmorph/react] <Radio> must be used inside <RadioGroup>.');
-  const { data, rest } = splitDataAttributes(otherProps);
+  const { root: data, rest } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const { inputProps, labelProps, isSelected, isDisabled, isPressed } = useRadio(
     { ...rest, children, isDisabled: disabled },
@@ -292,7 +311,7 @@ export function Radio({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps)}
       inputRef={domInputRef}
       // The ring resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
@@ -302,7 +321,7 @@ export function Radio({
         'data-tokens': mergeDataTokens('md-comp-radio-button', data),
       }}
       state={{
-        'data-selected': isSelected || undefined,
+        'data-checked': isSelected || undefined,
         'data-disabled': isDisabled || undefined,
         'data-hovered': (isHovered && !isDisabled) || undefined,
         'data-pressed': (isPressed && !isDisabled) || undefined,

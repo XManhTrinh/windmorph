@@ -7,9 +7,9 @@ import { Tag } from '@windmorph/react-pro';
 export function TagTokens() {
   return (
     <div className="flex flex-wrap gap-2 [--wm-tag-corner:var(--md-sys-shape-corner-extra-small)] [--wm-tag-height:28px]">
-      <Tag tone="primary">Full-time</Tag>
-      <Tag tone="primary">On site</Tag>
-      <Tag tone="secondary">£12–14 an hour</Tag>
+      <Tag color="primary">Full-time</Tag>
+      <Tag color="primary">On site</Tag>
+      <Tag color="secondary">£12–14 an hour</Tag>
     </div>
   );
 }

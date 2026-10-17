@@ -7,11 +7,15 @@
  * - `check` (CI): fails when a component is over its budget in `bundle-size.json` by more
  *   than the tolerance, has no budget, or a budget names a module that's gone.
  * - `check --update`: rewrites the budgets to the current sizes, for a deliberate change.
+ *
+ * `check` also runs the shape probes (`scripts/lib/shape-probes.ts`): what a static M3 shape
+ * costs an app once its bundler tree-shakes the precomputed outlines, with fixed budgets.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { argv, exit } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { budgetsFor, checkBudgets, measure, type SizeBudgets } from './lib/bundle-size';
+import { checkShapeProbes, runShapeProbes } from './lib/shape-probes';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = `${root}dist`;
@@ -38,14 +42,26 @@ if (command === 'report') {
     const budget = budgets.budgets[entry];
     console.log(`${entry.padEnd(48)} ${kB(gzip).padStart(9)}${budget ? ` / ${kB(budget)}` : ''}`);
   }
+  const probes = await runShapeProbes(distDir);
+  console.log('\nShape probes (tree-shaken, minified):');
+  for (const { name, gzip, measured, budget, over } of probes) {
+    const counted = over ? `+${measured} B over ${over}` : `${gzip} B`;
+    console.log(`${name.padEnd(48)} ${counted} / ${budget} B`);
+  }
   const problems = checkBudgets(report, budgets);
+  const probeProblems = checkShapeProbes(probes);
   if (problems.length > 0) {
     console.error(
       `\nBundle-size check failed:\n  ${problems.map(({ entry, message }) => `${entry}: ${message}`).join('\n  ')}\n\nIf the growth is intended, run \`pnpm --filter @windmorph/react size:update\` and commit bundle-size.json.`,
     );
-    exit(1);
   }
-  console.log(`\nAll ${Object.keys(report).length} component modules are within budget.`);
+  if (probeProblems.length > 0) {
+    console.error(`\nShape probe check failed:\n  ${probeProblems.join('\n  ')}`);
+  }
+  if (problems.length > 0 || probeProblems.length > 0) exit(1);
+  console.log(
+    `\nAll ${Object.keys(report).length} component modules and ${probes.length} shape probes are within budget.`,
+  );
 } else {
   console.error('Usage: bundle-size.ts report | check [--update]');
   exit(1);

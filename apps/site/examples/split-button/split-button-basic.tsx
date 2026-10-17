@@ -6,7 +6,7 @@ import { SendIcon } from '../../components/icons';
 
 /**
  * A split button pairs a leading action with a trailing button that opens a menu of
- * related actions. `menuLabel` names that trailing button; `onPress` runs the main action.
+ * related actions. `labels.menu` names that trailing button; `onPress` runs the main action.
  */
 export function SplitButtonBasic() {
   const [last, setLast] = useState('none');
@@ -14,7 +14,7 @@ export function SplitButtonBasic() {
     <div className="flex flex-col items-start gap-3">
       <SplitButton
         leadingIcon={<SendIcon />}
-        menuLabel="More send options"
+        labels={{ menu: 'More send options' }}
         onPress={() => setLast('send')}
         menu={
           <Menu onAction={(key) => setLast(String(key))}>

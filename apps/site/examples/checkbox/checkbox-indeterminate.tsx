@@ -19,20 +19,20 @@ export function CheckboxIndeterminate() {
   return (
     <div className="flex flex-col gap-2">
       <Checkbox
-        selected={allChecked}
+        checked={allChecked}
         indeterminate={someChecked && !allChecked}
-        onSelectedChange={(value) => setItems([value, value, value])}
+        onCheckedChange={(value) => setItems([value, value, value])}
       >
         Select all
       </Checkbox>
       <div className="flex flex-col gap-2 ps-6">
-        <Checkbox selected={items[0]} onSelectedChange={(v) => setAt(0, v)}>
+        <Checkbox checked={items[0]} onCheckedChange={(v) => setAt(0, v)}>
           Email
         </Checkbox>
-        <Checkbox selected={items[1]} onSelectedChange={(v) => setAt(1, v)}>
+        <Checkbox checked={items[1]} onCheckedChange={(v) => setAt(1, v)}>
           SMS
         </Checkbox>
-        <Checkbox selected={items[2]} onSelectedChange={(v) => setAt(2, v)}>
+        <Checkbox checked={items[2]} onCheckedChange={(v) => setAt(2, v)}>
           Push
         </Checkbox>
       </div>

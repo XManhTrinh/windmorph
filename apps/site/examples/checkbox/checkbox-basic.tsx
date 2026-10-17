@@ -7,7 +7,7 @@ import { Checkbox } from '@windmorph/react';
 export function CheckboxBasic() {
   return (
     <div className="flex flex-col gap-2">
-      <Checkbox defaultSelected name="terms">
+      <Checkbox defaultChecked name="terms">
         I accept the terms
       </Checkbox>
       <Checkbox name="newsletter">Email me product updates</Checkbox>

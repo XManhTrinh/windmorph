@@ -34,7 +34,7 @@ describe('RadioGroup', () => {
     expect(screen.getByRole('radio', { name: 'Standard' })).not.toBeChecked();
     expect(onChange).toHaveBeenCalledWith('express');
     const root = screen.getByRole('radio', { name: 'Express' }).closest('label')!;
-    expect(root).toHaveAttribute('data-selected');
+    expect(root).toHaveAttribute('data-checked');
   });
 
   it('moves the selection with the arrow keys and skips disabled options', async () => {
@@ -133,7 +133,7 @@ describe('RadioGroup', () => {
     expect(ring).toHaveClass(
       'border-[color:var(--_md-comp-radio-button-unselected-icon-color)]',
       'text-[color:var(--_md-comp-radio-button-selected-icon-color)]',
-      'group-data-selected/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+      'control-checked:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
     );
   });
 

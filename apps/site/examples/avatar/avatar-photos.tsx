@@ -1,3 +1,4 @@
+import { cookie9SidedShape } from '@windmorph/react/primitives';
 import { Avatar } from '@windmorph/react-pro';
 import { SAMPLE_PHOTO } from '../image-crop/sample-photo';
 
@@ -15,7 +16,7 @@ export function AvatarPhotos() {
         alt="Nora Lindqvist"
         src={SAMPLE_PHOTO}
         size="xl"
-        shape="Cookie9Sided"
+        shape={cookie9SidedShape}
       />
       <Avatar
         name="Sam Taylor"

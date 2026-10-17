@@ -122,12 +122,12 @@ export async function SliderBody(): Promise<ComponentDoc> {
               38%).
             </li>
             <li>
-              Inset icons follow MDC — a <InlineCode>startIcon</InlineCode> 10px inside the active
-              track&apos;s start and an <InlineCode>endIcon</InlineCode> 10px inside the inactive
-              end (replacing the stop) on sizes md and up. When the active track is too short for
-              the start icon, it moves to the start of the inactive track (M3). Centred sliders and
-              XS / S sliders ignore inset icons (with a development warning), as M3 advises. The
-              value indicator pill is not in Compose&apos;s default slider.
+              Inset icons follow MDC — a <InlineCode>leadingIcon</InlineCode> 10px inside the active
+              track&apos;s start and an <InlineCode>trailingIcon</InlineCode> 10px inside the
+              inactive end (replacing the stop) on sizes md and up. When the active track is too
+              short for the start icon, it moves to the start of the inactive track (M3). Centred
+              sliders and XS / S sliders ignore inset icons (with a development warning), as M3
+              advises. The value indicator pill is not in Compose&apos;s default slider.
             </li>
             <li>
               On touch screens it behaves like Compose&apos;s draggable slider: a swipe across the

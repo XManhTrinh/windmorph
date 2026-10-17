@@ -9,7 +9,7 @@ export const GREETING_PROPS: PropsTableRow[] = [
     description: 'Who to greet.',
   },
   {
-    name: 'tone',
+    name: 'color',
     type: '"neutral" | "primary"',
     defaultValue: '"neutral"',
     description: 'The colour of the greeting.',

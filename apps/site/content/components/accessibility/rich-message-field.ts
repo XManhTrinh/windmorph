@@ -68,7 +68,7 @@ export const richMessageField: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The editor is a `textbox` with `aria-multiline`. The tools and the formatting buttons are two `toolbar`s of icon buttons; the formatting buttons and the Aa tool are toggle buttons. A `separator` divides the formatting groups. The mention list is a `listbox` of `option`s. Link asks in a `dialog` (pressing outside it cancels).',
-    name: 'The editor is named by `label`, `aria-label` or `aria-labelledby` (required), and described by the description, error and counter as {@link MessageField} is. The formatting toolbar and the Aa tool are named `labels.formatting` ("Formatting"), each format by its label ("Bold", "Bulleted list"), and the mention list `labels.mentionSuggestions` ("People to mention").',
+    name: 'The editor is named by `label`, `aria-label` or `aria-labelledby` (required), and described by the supporting text, error and counter as {@link MessageField} is. The formatting toolbar and the Aa tool are named `labels.formatting` ("Formatting"), each format by its label ("Bold", "Bulleted list"), and the mention list `labels.mentionSuggestions` ("People to mention").',
     states:
       'The formatting buttons are pressed where their format is on (`aria-pressed`). The editor has `aria-invalid`, `aria-required`, `aria-disabled` and `aria-readonly` as they apply. With `mentions` it has `aria-autocomplete="list"`; while the list is open it points at it (`aria-controls`) and at the active person (`aria-activedescendant`), who is `aria-selected`.',
     notes: [

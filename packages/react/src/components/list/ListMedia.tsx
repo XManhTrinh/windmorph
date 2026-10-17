@@ -1,13 +1,26 @@
 'use client';
 
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { cn } from '../../utils/cn';
+import type { RootDOMProps } from '../../utils/root-props';
 import { listMediaStyles } from './list-styles';
 
 /** What a {@link List} passes to the media in its items: `classNames.media`. */
 export const ListMediaContext = createContext<string | undefined>(undefined);
 
-interface MediaImageProps {
+/** The frame (`<span>`) takes the DOM attributes, as it takes `className`, `style` and `ref`. */
+type FrameDOMProps = RootDOMProps<HTMLSpanElement> & {
+  [data: `data-${string}`]: string | number | boolean | undefined;
+};
+
+interface MediaImageProps extends FrameDOMProps {
   /** The image. Without it, or when it fails to load, `fallback` shows. */
   src?: string | undefined;
   /** What the image shows; `""` when the headline already says it. */
@@ -25,6 +38,12 @@ interface MediaImageProps {
   fallback?: ReactNode;
   /** Classes for the frame, merged after `classNames.media`; consumer classes win. */
   className?: string;
+  /** The frame's inline styles. */
+  style?: CSSProperties | undefined;
+  /** The frame's id. */
+  id?: string | undefined;
+  /** Ref to the frame (`<span>`). */
+  ref?: Ref<HTMLSpanElement> | undefined;
 }
 
 export type ListItemImageProps = MediaImageProps;
@@ -32,11 +51,20 @@ export type ListItemImageProps = MediaImageProps;
 export interface ListItemVideoProps extends MediaImageProps {
   /** The video's length, in its corner ("2:41"). */
   duration?: string;
-  /** M3's small (100 × 56dp) or large (114 × 64dp) thumbnail. @default "small" */
-  size?: 'small' | 'large';
+  /** M3's small (`sm`, 100 × 56dp) or large (`lg`, 114 × 64dp) thumbnail. @default "sm" */
+  size?: 'sm' | 'lg';
 }
 
-function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageProps) {
+interface ImageSource {
+  src?: string | undefined;
+  alt: string;
+  srcSet?: string | undefined;
+  sizes?: string | undefined;
+  children?: ReactNode;
+  fallback?: ReactNode;
+}
+
+function MediaImage({ src, alt, srcSet, sizes, children, fallback }: ImageSource) {
   const [failed, setFailed] = useState<string | null>(null);
   if (children != null) return children;
   if (src == null || failed === src) return fallback ?? null;
@@ -70,10 +98,29 @@ function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageP
  *   Dinner at our place
  * </ListItem>
  */
-export function ListItemImage({ className, ...image }: ListItemImageProps) {
+export function ListItemImage({
+  className,
+  style,
+  id,
+  ref,
+  src,
+  alt,
+  srcSet,
+  sizes,
+  children,
+  fallback,
+  ...dom
+}: ListItemImageProps) {
   const media = useContext(ListMediaContext);
+  const image = { src, alt, srcSet, sizes, children, fallback };
   return (
-    <span className={listMediaStyles({ kind: 'image' }).frame({ class: cn(media, className) })}>
+    <span
+      {...dom}
+      style={style}
+      id={id}
+      ref={ref}
+      className={listMediaStyles({ kind: 'image' }).frame({ class: cn(media, className) })}
+    >
       <MediaImage {...image} />
     </span>
   );
@@ -81,19 +128,35 @@ export function ListItemImage({ className, ...image }: ListItemImageProps) {
 
 /**
  * M3's leading video for a {@link ListItem}: the video's thumbnail (not a player) with 8dp
- * corners, 100 × 56dp or 114 × 64dp (`size="large"`), with a play badge and its `duration`
+ * corners, 100 × 56dp or 114 × 64dp (`size="lg"`), with a play badge and its `duration`
  * in the corner. Pressing it is pressing the item.
  */
 export function ListItemVideo({
   className,
+  style,
+  id,
+  ref,
   duration,
-  size = 'small',
-  ...image
+  size = 'sm',
+  src,
+  alt,
+  srcSet,
+  sizes,
+  children,
+  fallback,
+  ...dom
 }: ListItemVideoProps) {
   const media = useContext(ListMediaContext);
   const styles = listMediaStyles({ kind: 'video', size });
+  const image = { src, alt, srcSet, sizes, children, fallback };
   return (
-    <span className={styles.frame({ class: cn(media, className) })}>
+    <span
+      {...dom}
+      style={style}
+      id={id}
+      ref={ref}
+      className={styles.frame({ class: cn(media, className) })}
+    >
       <MediaImage {...image} />
       <span aria-hidden="true" className={styles.badge()}>
         <svg viewBox="0 -960 960 960">
@@ -105,7 +168,7 @@ export function ListItemVideo({
   );
 }
 
-export interface ListItemAvatarProps {
+export interface ListItemAvatarProps extends FrameDOMProps {
   /** The person's photo. Without it, or when it fails to load, `children` show. */
   src?: string | undefined;
   /** What the photo shows; `""` (the default) when the headline names the person. */
@@ -118,6 +181,12 @@ export interface ListItemAvatarProps {
   children?: ReactNode;
   /** Classes for the avatar's circle; consumer classes win. */
   className?: string;
+  /** The frame's inline styles. */
+  style?: CSSProperties | undefined;
+  /** The frame's id. */
+  id?: string | undefined;
+  /** Ref to the frame (`<span>`). */
+  ref?: Ref<HTMLSpanElement> | undefined;
 }
 
 /**
@@ -129,10 +198,28 @@ export interface ListItemAvatarProps {
  *   Alex Lee
  * </ListItem>
  */
-export function ListItemAvatar({ className, alt = '', children, ...image }: ListItemAvatarProps) {
+export function ListItemAvatar({
+  className,
+  style,
+  id,
+  ref,
+  alt = '',
+  children,
+  src,
+  srcSet,
+  sizes,
+  ...dom
+}: ListItemAvatarProps) {
   const media = useContext(ListMediaContext);
+  const image = { src, srcSet, sizes };
   return (
-    <span className={listMediaStyles({ kind: 'avatar' }).frame({ class: cn(media, className) })}>
+    <span
+      {...dom}
+      style={style}
+      id={id}
+      ref={ref}
+      className={listMediaStyles({ kind: 'avatar' }).frame({ class: cn(media, className) })}
+    >
       <MediaImage
         {...image}
         alt={alt}

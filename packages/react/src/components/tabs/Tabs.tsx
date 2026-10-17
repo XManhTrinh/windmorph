@@ -4,6 +4,7 @@ import { animate, useReducedMotion } from 'motion/react';
 import {
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -28,12 +29,13 @@ import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { densityAttribute, type Density } from '../../tokens/density';
+import { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 
@@ -81,12 +83,27 @@ export interface TabsClassNames {
   panel?: string;
 }
 
-export interface TabsProps extends Omit<
-  AriaTabListProps<object>,
-  'children' | 'orientation' | 'items' | 'isDisabled'
-> {
+export interface TabsProps
+  extends
+    Omit<
+      AriaTabListProps<object>,
+      | 'children'
+      | 'orientation'
+      | 'items'
+      | 'isDisabled'
+      | 'selectedKey'
+      | 'defaultSelectedKey'
+      | 'onSelectionChange'
+    >,
+    Omit<WrapperRootDOMProps, keyof AriaTabListProps<object>> {
   /** `Tab` elements. */
   children: ReactNode;
+  /** The selected tab's `key` (controlled). */
+  value?: Key | null;
+  /** The tab selected at first, when uncontrolled. @default the first enabled tab */
+  defaultValue?: Key;
+  /** Called with the newly selected tab's `key`. */
+  onChange?: (key: Key) => void;
   /** Disables every tab (`disabledKeys` disables some). @default false */
   disabled?: boolean;
   /**
@@ -147,7 +164,8 @@ export interface TabsProps extends Omit<
  */
 export function Tabs(props: TabsProps) {
   const { className, style, classNames, ref, ...rest } = props;
-  const { data, rest: ariaProps } = splitDataAttributes(rest);
+  // The root's DOM attributes; the naming and the rest go to the tab list.
+  const { root: data, rest: ariaProps } = splitRootProps(rest, { wrapper: true });
   const rootRef = useObjectRef(ref);
   // React Aria takes arrow-key direction from its locale, not the DOM `dir`; follow the
   // direction the tabs are actually laid out in.
@@ -179,6 +197,9 @@ export function Tabs(props: TabsProps) {
   );
 }
 
+/** No disabled keys, for the tab list's arrow keys (disabled tabs stay focusable). */
+const NO_KEYS: Set<Key> = new Set();
+
 function TabsInner({
   rtl,
   ...props
@@ -194,16 +215,26 @@ function TabsInner({
   } = props;
   // A Tab's children are its panel content, which can be server-rendered: check only the Tabs.
   assertCollectionChildren(props.children, 'Tabs', 'Tab elements', { nested: false });
-  const { disabled, ...rest } = props;
+  const { disabled, value, defaultValue, onChange, ...rest } = props;
   const ariaProps = {
     ...rest,
+    ...(value !== undefined && { selectedKey: value }),
+    ...(defaultValue !== undefined && { defaultSelectedKey: defaultValue }),
+    ...(onChange && { onSelectionChange: onChange }),
     isDisabled: disabled,
     keyboardActivation: props.keyboardActivation ?? 'manual',
   } as AriaTabListProps<object>;
-  const state = useTabListState(ariaProps);
+  // Disabled tabs stay focusable but can't be selected (WAI-ARIA APG, "Focusability of disabled
+  // controls"), so screen reader users find them: React Stately's `selection` behaviour, and
+  // arrow keys that don't skip them (the tab list's keyboard sees no disabled keys).
+  const state = useTabListState({ ...ariaProps, ...FOCUSABLE_DISABLED_OPTIONS });
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const { tabListProps } = useTabList(ariaProps, state, listRef);
+  // React Aria keys the tabs' ids to the state object the tab list gets, so the tabs and the
+  // panel get that same object: given another, their ids would be `undefined-tab-…`, the same
+  // in every Tabs on the page.
+  const listState = useMemo(() => ({ ...state, disabledKeys: NO_KEYS }), [state]);
+  const { tabListProps } = useTabList(ariaProps, listState, listRef);
   const items = [...state.collection];
   const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
   const hasText = items.some((item) => (item.props as TabProps).title != null);
@@ -276,6 +307,7 @@ function TabsInner({
               item={item}
               index={index}
               state={state}
+              listState={listState}
               hasPanels={hasPanels}
               layout={layout}
               variant={variant ?? 'primary'}
@@ -303,6 +335,7 @@ function TabsInner({
         <TabPanel
           key={state.selectedKey}
           state={state}
+          listState={listState}
           swipeable={swipeable}
           rtl={rtl}
           className={styles.panel({ class: classNames?.panel })}
@@ -439,6 +472,8 @@ interface TabButtonProps {
   item: Node<object>;
   index: number;
   state: TabListState<object>;
+  /** The state the tab list was given, which React Aria keys the tabs' ids to. */
+  listState: TabListState<object>;
   hasPanels: boolean;
   layout: 'text' | 'icon-top' | 'icon-start' | 'icon-only';
   variant: TabsVariant;
@@ -452,6 +487,7 @@ function TabButton({
   item,
   index,
   state,
+  listState,
   hasPanels,
   layout,
   variant,
@@ -461,7 +497,7 @@ function TabButton({
   labelClassName,
 }: TabButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
+  const { tabProps, isPressed } = useTab({ key: item.key }, listState, ref);
   const { interactionProps, dataAttributes } = useM3Interaction(
     {
       isDisabled: state.disabledKeys.has(item.key),
@@ -490,6 +526,7 @@ function TabButton({
       {...mergeProps(ownProps, interactionProps)}
       {...dataAttributes}
       aria-controls={hasPanels ? controls : undefined}
+      aria-disabled={state.isDisabled || state.disabledKeys.has(item.key) || undefined}
       aria-describedby={badge != null ? badgeId : undefined}
       data-key={String(item.key)}
       // Each tab resolves its own tokens, so its selection picks its colours.
@@ -575,17 +612,20 @@ function useSwipeToSelect(
 
 function TabPanel({
   state,
+  listState,
   swipeable,
   rtl,
   className,
 }: {
   state: TabListState<object>;
+  /** The state the tab list was given, which React Aria keys the panel's ids to. */
+  listState: TabListState<object>;
   swipeable: boolean;
   rtl: boolean;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { tabPanelProps } = useTabPanel({}, state, ref);
+  const { tabPanelProps } = useTabPanel({}, listState, ref);
   const swipeProps = useSwipeToSelect(state, rtl, swipeable);
   return (
     <div {...mergeProps(tabPanelProps, swipeProps)} ref={ref} className={className}>

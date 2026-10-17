@@ -318,7 +318,7 @@ test.describe('Tooltip behaviour', () => {
       page,
       'components-tooltip--rich',
       { dir: 'rtl' },
-      { placement: 'bottom start' },
+      { placement: 'bottom-start' },
     );
     const frames = await recordEntry(page, '[role="dialog"]');
     await page.getByRole('button', { name: 'What are grouped tabs?' }).click();

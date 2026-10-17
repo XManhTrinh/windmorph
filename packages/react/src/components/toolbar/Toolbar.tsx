@@ -241,7 +241,7 @@ type FloatingToolbarContent =
       /** Controls after the main content, hidden while collapsed. */
       trailing?: ReactNode;
       fab?: undefined;
-      fabPosition?: undefined;
+      fabPlacement?: undefined;
     }
   | {
       leading?: undefined;
@@ -255,7 +255,7 @@ type FloatingToolbarContent =
        * Side of the toolbar the FAB sits on. `top` is the same as `start` and `bottom` as
        * `end`, so the value can stay put when the orientation changes. @default "end"
        */
-      fabPosition?: 'start' | 'end' | 'top' | 'bottom';
+      fabPlacement?: 'start' | 'end' | 'top' | 'bottom';
     };
 
 type FloatingToolbarOwnProps = FloatingToolbarBaseProps & FloatingToolbarContent;
@@ -263,7 +263,7 @@ type FloatingToolbarOwnProps = FloatingToolbarBaseProps & FloatingToolbarContent
 export type FloatingToolbarProps = FloatingToolbarOwnProps &
   Naming &
   DivProps<
-    FloatingToolbarBaseProps & Record<'leading' | 'trailing' | 'fab' | 'fabPosition', unknown>
+    FloatingToolbarBaseProps & Record<'leading' | 'trailing' | 'fab' | 'fabPlacement', unknown>
   >;
 
 /**
@@ -301,7 +301,7 @@ function FloatingToolbarRoot({
   leading,
   trailing,
   fab,
-  fabPosition,
+  fabPlacement,
   children,
   classNames,
   className,
@@ -326,7 +326,7 @@ function FloatingToolbarRoot({
     },
   };
   const hasFab = fab != null;
-  const fabAt = fabPosition === 'start' || fabPosition === 'top' ? 'start' : 'end';
+  const fabAt = fabPlacement === 'start' || fabPlacement === 'top' ? 'start' : 'end';
   const styles = floatingToolbarStyles({
     orientation,
     color,

@@ -64,10 +64,10 @@ describe('playground snippets', () => {
   });
 
   it('flags a controlled prop written without its handler', () => {
-    expect(stuckProps('<Checkbox selected>Terms</Checkbox>')).toEqual([
-      '<Checkbox selected> without onSelectedChange',
+    expect(stuckProps('<Checkbox checked>Terms</Checkbox>')).toEqual([
+      '<Checkbox checked> without onCheckedChange',
     ]);
-    expect(stuckProps('<Checkbox defaultSelected>Terms</Checkbox>')).toEqual([]);
+    expect(stuckProps('<Checkbox defaultChecked>Terms</Checkbox>')).toEqual([]);
     expect(stuckProps('<TextField label="Name" value="Alex" />')).toEqual([
       '<TextField value> without onChange',
     ]);

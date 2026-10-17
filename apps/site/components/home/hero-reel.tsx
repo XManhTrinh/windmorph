@@ -56,7 +56,7 @@ export function HeroReel() {
       <ButtonGroup
         variant="connected"
         selectionMode="single"
-        disallowEmptySelection
+        deselectable={false}
         selectedKeys={[view]}
         aria-label="Calendar view"
         className="w-fit"
@@ -78,7 +78,7 @@ export function HeroReel() {
         className="w-full max-w-64"
       />
       <div className="flex items-center gap-6">
-        <Switch data-press-hero selected={on} icons aria-label="Notifications" />
+        <Switch data-press-hero checked={on} icons aria-label="Notifications" />
         <IconButton
           data-press-hero
           toggle

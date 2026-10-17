@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, ReactNode, Ref } from 'react';
+import type { AriaAttributes, CSSProperties, ReactNode, Ref } from 'react';
 import {
   mergeProps,
   useCheckbox,
@@ -16,7 +16,7 @@ import {
 } from '../../primitives/SelectionControl';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { checkboxStyles } from './checkbox-styles';
 import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { CheckboxBox } from './checkbox-box';
@@ -38,15 +38,24 @@ type RenamedAriaProps =
   | 'isReadOnly'
   | 'isRequired'
   | 'isInvalid'
-  | 'children';
+  | 'children'
+  // Left out: the deprecated `validationState` (`invalid` replaces it) and React Aria's
+  // `excludeFromTabOrder` (`tabIndex={-1}` covers the rare case).
+  | 'validationState'
+  | 'excludeFromTabOrder';
 
-interface CheckboxOwnProps extends Omit<AriaCheckboxProps, RenamedAriaProps> {
+interface CheckboxOwnProps
+  extends
+    Omit<AriaCheckboxProps, RenamedAriaProps>,
+    Omit<WrapperRootDOMProps<HTMLLabelElement>, keyof AriaCheckboxProps>,
+    // The input's own state attributes go to it, with React Aria's `aria-controls`.
+    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
   /** Controlled checked state. */
-  selected?: boolean;
+  checked?: boolean;
   /** Initial checked state when uncontrolled. */
-  defaultSelected?: boolean;
+  defaultChecked?: boolean;
   /** Called when the user checks or unchecks the checkbox. */
-  onSelectedChange?: (selected: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
   /**
    * Shows a dash, announced as mixed: some, but not all, of a group is checked. The checked
    * state underneath doesn't change. @default false
@@ -97,12 +106,12 @@ export type CheckboxProps = CheckboxOwnProps & CheckboxLabel;
  * checkbox (React Aria `useCheckbox`) keeps forms, labels and assistive tech working.
  *
  * @example
- * <Checkbox defaultSelected name="terms" required>I accept the terms</Checkbox>
+ * <Checkbox defaultChecked name="terms" required>I accept the terms</Checkbox>
  */
 export function Checkbox({
-  selected,
-  defaultSelected,
-  onSelectedChange,
+  checked,
+  defaultChecked,
+  onCheckedChange,
   indeterminate = false,
   disabled = false,
   readOnly,
@@ -117,15 +126,15 @@ export function Checkbox({
   children,
   ...otherProps
 }: CheckboxProps) {
-  // `data-*` attributes go on the root; everything else goes to the input via React Aria.
-  const { data: rootData, rest: ariaProps } = splitDataAttributes(otherProps);
+  // DOM attributes for the whole control go on the root; the rest goes to the input via React Aria.
+  const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const options: AriaCheckboxProps = {
     ...ariaProps,
     children,
-    isSelected: selected,
-    defaultSelected,
-    onChange: onSelectedChange,
+    isSelected: checked,
+    defaultSelected: defaultChecked,
+    onChange: onCheckedChange,
     isIndeterminate: indeterminate,
     isDisabled: disabled,
     isReadOnly: readOnly,
@@ -141,7 +150,6 @@ export function Checkbox({
   const { focusProps, isFocusVisible } = useFocusRing();
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
-  const filled = isSelected || indeterminate;
   const rippling = useRippleHold(isPressed && !disabled);
   const styles = checkboxStyles();
 
@@ -149,7 +157,7 @@ export function Checkbox({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, focusProps)}
+      inputProps={mergeProps(inputProps, pickWidgetAria(ariaProps), focusProps)}
       inputRef={domInputRef}
       // The box resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
@@ -159,7 +167,6 @@ export function Checkbox({
         'data-tokens': mergeDataTokens('md-comp-checkbox', rootData),
       }}
       state={{
-        'data-selected': filled || undefined,
         'data-checked': (isSelected && !indeterminate) || undefined,
         'data-indeterminate': indeterminate || undefined,
         'data-invalid': isInvalid || undefined,

@@ -28,22 +28,23 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { useThemeScope } from '../../theme/context';
-import { SPRINGS } from '../../tokens/motion';
-import { springWithVelocityToLinearEasing } from '../../tokens/spring-velocity';
 import { IconButton } from '../icon-button/IconButton';
 import { CloseIcon, CollapseIcon } from './sheet-icons';
+import { contentGesture, scrolledAbove, type ContentGesture } from './bottom-sheet-gesture';
+import { DRAG_SLOP, ownsGesture } from './sheet-gesture';
 import {
-  contentGesture,
-  DRAG_SLOP,
-  type ContentGesture,
-  ownsGesture,
-  scrolledAbove,
-} from './sheet-gesture';
-import { settleTarget } from './sheet-settle';
+  EXIT_DISTANCE,
+  releaseMotion,
+  releaseVelocity,
+  settleTarget,
+  type DragSample,
+  type ReleaseMotion,
+} from './sheet-settle';
 import { usePeekInert } from './use-peek-inert';
 import { SHEET_EXIT_PROPERTIES, bottomSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
@@ -65,7 +66,7 @@ export interface BottomSheetClassNames {
   /** The row holding the close (modal) or collapse (standard) button. */
   closeRow?: string;
   /** The close or collapse icon button. */
-  closeButton?: string;
+  close?: string;
   /** The scrollable content area. */
   content?: string;
 }
@@ -128,6 +129,13 @@ interface BottomSheetOwnProps {
   /** Show the drag handle. Without it, the top 48px of the sheet still drags. @default true */
   dragHandle?: boolean;
   /**
+   * Whether dragging the handle, the top of the sheet or (touch and pen) its content moves
+   * the sheet. Without it the handle stays a button (a press, Enter or Space), and Escape,
+   * the scrim and the close button work as before.
+   * @default true
+   */
+  swipeable?: boolean;
+  /**
    * Open fully instead of to half the window when the content is taller than half the
    * window (modal). @default false
    */
@@ -156,8 +164,12 @@ interface BottomSheetOwnProps {
    * Space, or a drag), Escape or its collapse button. Not called for a modal sheet.
    */
   onDetentChange?: (detent: BottomSheetDetent) => void;
-  /** Pressing the scrim closes the sheet (modal). @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close a modal sheet, as HTML's `<dialog closedby>`: `any` (Escape, a
+   * press on the scrim or a drag down), `closerequest` (Escape or a drag down) or `none`
+   * (only its buttons or the app). @default "any"
+   */
+  closedBy?: ClosedBy;
   /**
    * While the sheet fills the window height, show a close button (modal) or a collapse
    * button (standard) at its top end. @default true
@@ -188,7 +200,7 @@ export type BottomSheetProps = BottomSheetOwnProps &
 /**
  * M3 bottom sheet. A `modal` sheet slides up over a scrim, opening to half the window when
  * its content is taller (drag the handle up, or press it, to expand), and closes on a drag
- * down, a press on the scrim or Escape (which first returns a fully open sheet to half). A
+ * down, a press on the scrim or Escape, in one press from any height. A
  * `standard` sheet sits over the page without a scrim, collapsed to `peekHeight` until it
  * is expanded, or opening expanded with `defaultDetent="expanded"`; `detent` and
  * `onDetentChange` control it.
@@ -242,7 +254,7 @@ function ModalBottomSheet({
   state,
   isExiting,
   triggerOverlayProps,
-  dismissable = true,
+  closedBy = 'any',
   classNames,
   ref,
   ...props
@@ -250,8 +262,8 @@ function ModalBottomSheet({
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const { modalProps, underlayProps } = useModalOverlay(
     {
-      isDismissable: dismissable && !isExiting,
-      // Escape first returns a fully open sheet to half (Compose's settleToDismiss).
+      ...closedByOverlayOptions(closedBy, isExiting),
+      // The panel handles Escape itself (below), so a nested control's Escape stays its own.
       isKeyboardDismissDisabled: true,
     },
     state,
@@ -273,6 +285,7 @@ function ModalBottomSheet({
         <BottomSheetPanel
           {...props}
           variant="modal"
+          closedBy={closedBy}
           state={state}
           isExiting={isExiting}
           classNames={classNames}
@@ -301,12 +314,13 @@ function BottomSheetPanel({
   exitProps,
   panelProps: overlayPanelProps,
   dragHandle = true,
+  swipeable = true,
   skipPartiallyExpanded = false,
   peekHeight = 56,
   detent: detentProp,
   defaultDetent = 'collapsed',
   onDetentChange,
-  dismissable: _dismissable,
+  closedBy = 'any',
   closeButton = true,
   closeIcon,
   collapseIcon,
@@ -322,7 +336,7 @@ function BottomSheetPanel({
   const standard = variant === 'standard';
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const motionRef = useRef<HTMLDivElement>(null);
-  const styles = bottomSheetStyles({ variant });
+  const styles = bottomSheetStyles({ variant, swipeable });
   const [height, setHeight] = useState(0);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   // The lower detent is half the window (modal) or the peek height (standard); `null` rests
@@ -338,6 +352,21 @@ function BottomSheetPanel({
       : undefined;
   const detent = controlledDetent ?? ownDetent;
   const [drag, setDrag] = useState<number | null>(null);
+  // A drag's settle continues at the speed the pointer let go with, as Compose's
+  // `animateTo(target, velocity)` does: the spring starts with that velocity, as a `linear()`
+  // easing and duration set on the moving layer until its move ends (2026-10-17; it started
+  // from rest). Under reduced motion settling stays instant.
+  const { motion: motionScheme } = useThemeScope();
+  const [settleMotion, setSettleMotion] = useState<ReleaseMotion | null>(null);
+  // A drag let go to close: the offset stays where the pointer left it, so the exit leaves
+  // from there (and, under reduced motion, fades there, as the side sheet does). If the
+  // sheet is still open after that render, the app refused and the sheet springs back.
+  const [dragClosing, setDragClosing] = useState(false);
+  if (dragClosing && state.isOpen) {
+    setDragClosing(false);
+    setDrag(null);
+    setSettleMotion(null);
+  }
   const contentRef = useRef<HTMLDivElement>(null);
   const pointer = useRef({
     pending: false,
@@ -349,7 +378,7 @@ function BottomSheetPanel({
     y: 0,
     offset: 0,
     id: 0,
-    samples: [] as { y: number; t: number }[],
+    samples: [] as DragSample[],
   });
 
   // The lower detent: a modal sheet taller than half the window opens to half (Compose's
@@ -362,15 +391,6 @@ function BottomSheetPanel({
   const offset = drag ?? restingOffset;
   const maxOffset = standard ? Math.max(0, lowerOffset) : height;
   const detentName = current === 'expanded' ? 'expanded' : standard ? 'collapsed' : 'partial';
-
-  // A drag's settle continues at the speed the pointer let go with, as Compose's
-  // `animateTo(target, velocity)` does: the spring starts with that velocity, as a `linear()`
-  // easing and duration set on the moving layer until its move ends (2026-10-17; it started
-  // from rest). Under reduced motion settling stays instant.
-  const { motion: motionScheme } = useThemeScope();
-  const [settleMotion, setSettleMotion] = useState<{ easing: string; duration: number } | null>(
-    null,
-  );
 
   // Moving down to a lower detent while staying open (Escape, the handle or the collapse
   // button on a full sheet, or the app lowering it) runs on the fast effects spring, which
@@ -415,33 +435,22 @@ function BottomSheetPanel({
 
   const close = state.close;
 
-  const anchors = standard
-    ? hasLower
-      ? [0, lowerOffset]
-      : [0]
-    : hasLower
-      ? [0, lowerOffset, height]
-      : [0, height];
+  // A modal sheet's last anchor is closed, unless the user may not close it (`closedBy="none"`).
+  const closable = !standard && closedBy !== 'none';
+  const anchors = [0, ...(hasLower ? [lowerOffset] : []), ...(closable ? [height] : [])];
 
   const settle = (target: number, velocity: number) => {
-    setDrag(null);
     const closing = !standard && target >= height - 0.5;
     // A closing sheet leaves to 112% of its height on the fast spatial spring (its exit).
-    const end = closing ? height * 1.12 : target;
-    const distance = end - (drag ?? restingOffset);
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    setSettleMotion(
-      reduced || Math.abs(distance) < 0.5
-        ? null
-        : springWithVelocityToLinearEasing(
-            SPRINGS[motionScheme].spatial[closing ? 'fast' : 'default'],
-            velocity / distance,
-          ),
-    );
-    if (!standard && target >= height - 0.5) close();
-    else setDetent(target === 0 ? 'expanded' : 'lower', true);
+    const end = closing ? height * EXIT_DISTANCE : target;
+    setSettleMotion(releaseMotion(motionScheme, closing, velocity, end - (drag ?? restingOffset)));
+    if (closing) {
+      setDragClosing(true);
+      close();
+    } else {
+      setDrag(null);
+      setDetent(target === 0 ? 'expanded' : 'lower', true);
+    }
   };
 
   /** The handle's action: expand a lower sheet, collapse a standard one, close a modal one. */
@@ -456,7 +465,8 @@ function BottomSheetPanel({
     fromHandle: boolean,
     fromContent = false,
   ) => {
-    if (event.button !== 0) return;
+    // A leaving sheet takes no new drag.
+    if (event.button !== 0 || isExiting) return;
     setSettleMotion(null);
     pointer.current = {
       pending: true,
@@ -467,7 +477,7 @@ function BottomSheetPanel({
       y: event.clientY,
       offset: restingOffset,
       id: event.pointerId,
-      samples: [{ y: event.clientY, t: event.timeStamp }],
+      samples: [{ position: event.clientY, time: event.timeStamp }],
     };
   };
   const movePointer = (event: PointerEvent<HTMLElement>) => {
@@ -487,9 +497,9 @@ function BottomSheetPanel({
         return;
       }
     }
-    start.samples = [...start.samples, { y: event.clientY, t: event.timeStamp }].filter(
-      (sample) => event.timeStamp - sample.t < 100,
-    );
+    // Without `swipeable` the handle is only a button: a move never drags it.
+    if (!swipeable) return;
+    start.samples = [...start.samples, { position: event.clientY, time: event.timeStamp }];
     if (drag === null && Math.abs(event.clientY - start.y) <= DRAG_SLOP) return;
     if (drag === null) event.currentTarget.setPointerCapture?.(start.id);
     const raw = start.offset + event.clientY - start.y;
@@ -507,9 +517,11 @@ function BottomSheetPanel({
       if (start.fromHandle) cycle();
       return;
     }
-    const first = start.samples[0]!;
-    const elapsed = (event.timeStamp - first.t) / 1000;
-    const velocity = elapsed > 0 ? (event.clientY - first.y) / elapsed : 0;
+    // From the last 100ms of moves, so a slow drag ending in a flick reads as a fling.
+    const velocity = releaseVelocity([
+      ...start.samples,
+      { position: event.clientY, time: event.timeStamp },
+    ]);
     settle(settleTarget(anchors, start.offset, drag, velocity), velocity);
   };
   const cancelPointer = () => {
@@ -520,6 +532,7 @@ function BottomSheetPanel({
 
   // Without a handle the top 48px of the sheet still drags it (m3.material.io).
   const onZonePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!swipeable) return;
     const top = event.currentTarget.getBoundingClientRect().top;
     if (event.clientY - top <= DRAG_ZONE) startPointer(event, false);
   };
@@ -530,7 +543,7 @@ function BottomSheetPanel({
     const content = contentRef.current;
     const target = event.target as Element;
     pointer.current.fromContent = false;
-    if (event.pointerType === 'mouse' || !content?.contains(target)) return;
+    if (!swipeable || event.pointerType === 'mouse' || !content?.contains(target)) return;
     if (ownsGesture(target, content)) return;
     startPointer(event, false, true);
   };
@@ -565,9 +578,11 @@ function BottomSheetPanel({
       setDetent('lower');
       return;
     }
+    // Escape is a close request: it closes a modal sheet in one press, from any detent (WAI-ARIA
+    // APG modal dialog; HTML's close request), unless the user may not close it.
+    if (closedBy === 'none') return;
     event.stopPropagation();
-    if (current === 'expanded' && hasLower) setDetent('lower');
-    else close();
+    close();
   };
 
   const handleRef = useRef<HTMLDivElement>(null);
@@ -588,7 +603,7 @@ function BottomSheetPanel({
 
   const { focusProps: handleFocusProps, isFocusVisible: handleFocusVisible } = useFocusRing();
   const exiting = isExiting || undefined;
-  const dragging = drag !== null || undefined;
+  const dragging = (drag !== null && !dragClosing) || undefined;
   const handleLabel =
     current === 'lower' ? labels.expand : standard ? labels.collapse : labels.dismiss;
   // The sheet fills the window up to its top margin: 72px, or 56px above 640px wide.
@@ -715,7 +730,7 @@ function BottomSheetPanel({
                   }
                   aria-label={standard ? labels.collapse : labels.close}
                   onPress={standard ? collapseFromButton : close}
-                  className={classNames?.closeButton}
+                  className={classNames?.close}
                 />
               </div>
             )}

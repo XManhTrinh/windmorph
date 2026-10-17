@@ -55,6 +55,10 @@ export const labeledDividerStyles = tv({
   defaultVariants: { inset: 'none' },
 });
 
+/**
+ * The variants of {@link dividerStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type DividerStyleProps = VariantProps<typeof dividerStyles>;
 export type DividerOrientation = NonNullable<DividerStyleProps['orientation']>;
 export type DividerInset = NonNullable<DividerStyleProps['inset']>;

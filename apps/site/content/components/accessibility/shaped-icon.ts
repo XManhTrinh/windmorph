@@ -13,7 +13,7 @@ export const shapedIcon: ComponentAccessibility = {
   consumer: [
     'Leave it decorative when the text beside it says what it means, as in a step or an empty state.',
     'When the icon means something on its own, give it an `aria-label`: it becomes an image with that name.',
-    "Each tone draws the icon in its container's paired content role (`on-secondary-container` on `secondary-container`, and so on), which M3 keeps at 3:1 contrast or more in every scheme and contrast level. Keep any colour override to such a pair.",
+    "Each colour draws the icon in its container's paired content role (`on-secondary-container` on `secondary-container`, and so on), which M3 keeps at 3:1 contrast or more in every scheme and contrast level. Keep any colour override to such a pair.",
     'In forced-colours mode the icon takes the system text colour (`CanvasText`); keep `classNames` overrides from removing it.',
   ],
 };

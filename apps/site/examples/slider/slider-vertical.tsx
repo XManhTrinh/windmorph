@@ -14,14 +14,14 @@ export function SliderVertical() {
         aria-label="Level"
         orientation="vertical"
         size="lg"
-        minValue={0}
-        maxValue={10}
+        min={0}
+        max={10}
         step={1}
         ticks
         defaultValue={7}
       />
       <div className="w-60">
-        <RangeSlider aria-label="Opening hours" minValue={6} maxValue={23} defaultValue={[9, 17]} />
+        <RangeSlider aria-label="Opening hours" min={6} max={23} defaultValue={[9, 17]} />
       </div>
     </div>
   );

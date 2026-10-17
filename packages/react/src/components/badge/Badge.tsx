@@ -9,7 +9,7 @@ import { mergeDataTokens } from '../../utils/merge-data-tokens';
 /** Words a {@link Badge} announces. */
 export interface BadgeLabels {
   /** What a small badge (a dot) announces. @default "New notification" */
-  newNotification?: string;
+  newNotification: string;
 }
 
 export interface BadgeClassNames {
@@ -34,7 +34,7 @@ export interface BadgeProps extends Omit<ComponentPropsWithRef<'span'>, 'childre
    */
   label?: string;
   /** Words the badge announces, with English defaults. */
-  labels?: BadgeLabels;
+  labels?: Partial<BadgeLabels>;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: BadgeClassNames;
 }

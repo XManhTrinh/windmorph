@@ -42,7 +42,7 @@ import { useSizeTransform } from './use-size-transform';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -50,7 +50,7 @@ import { TooltipTrigger } from '../tooltip/tooltip-trigger';
 import { CalendarGrid } from './CalendarGrid';
 import { ChoiceButton, ShortcutIconButton, useMonthSwipe, usePickerKeys } from './calendar-parts';
 import type { Density } from '../../tokens/density';
-import { DateInput, type DateInputStrings } from './DateInput';
+import { DateInput, type DateInputLabels } from './DateInput';
 import { datePickerStyles } from './date-picker-styles';
 import { PickerDialogContext } from './picker-dialog-context';
 import {
@@ -62,45 +62,45 @@ import {
 } from './picker-icons';
 
 /** The picker's labels, for localisation. */
-export interface DatePickerStrings extends DateInputStrings {
+export interface DatePickerLabels extends DateInputLabels {
   /** The header's title in calendar mode. @default "Select date", or "Select dates" for a range */
-  title?: string;
+  title: string;
   /**
    * The title in text input mode (the M3 modal date input's "Enter date").
    * @default "Enter date", or "Enter dates" for a range
    */
-  inputTitle?: string;
+  inputTitle: string;
   /** Headline when nothing is selected. @default "Selected date" / "Start date – End date" */
-  noSelection?: string;
+  noSelection: string;
   /** The previous month button. @default "Previous month" */
-  previousMonth?: string;
+  previousMonth: string;
   /** The next month button. @default "Next month" */
-  nextMonth?: string;
+  nextMonth: string;
   /** Tooltip of the previous-month button, naming its shortcut. @default "Previous month (Page Up)" */
-  previousMonthTooltip?: string;
+  previousMonthTooltip: string;
   /** Tooltip of the next-month button, naming its shortcut. @default "Next month (Page Down)" */
-  nextMonthTooltip?: string;
+  nextMonthTooltip: string;
   /** The month and year button while the days show. @default "Switch to selecting a year" */
-  showYears?: string;
+  showYears: string;
   /** The month and year button while the years show. @default "Switch to selecting a day" */
-  showDays?: string;
+  showDays: string;
   /** Tooltip of the month and year button, naming its shortcut. @default "Choose a year (Shift+Y)" */
-  yearsTooltip?: string;
+  yearsTooltip: string;
   /** Name of the year list. @default "Year" */
-  yearList?: string;
+  yearList: string;
   /** The mode toggle in calendar mode. @default "Switch to text input mode" */
-  inputMode?: string;
+  inputMode: string;
   /** The mode toggle in text input mode. @default "Switch to calendar input mode" */
-  calendarMode?: string;
+  calendarMode: string;
   /** Label of the input mode's field. @default "Date" */
-  dateLabel?: string;
+  dateLabel: string;
   /** Label of a range's start field in input mode. @default "Start date" */
-  startDateLabel?: string;
+  startDateLabel: string;
   /**
    * Label of a range's end field in input mode, and the headline's end while a range is
    * being picked ("Mar 20 – End date"). @default "End date"
    */
-  endDateLabel?: string;
+  endDateLabel: string;
 }
 
 export interface DatePickerClassNames {
@@ -134,26 +134,26 @@ export interface DateRangePickerClassNames extends DatePickerClassNames {
   rangeBand?: string;
 }
 
-interface DatePickerCommonProps {
+interface DatePickerCommonProps extends WrapperRootDOMProps {
   /** Earliest date allowed; earlier days are disabled. */
-  minValue?: DateValue;
+  min?: DateValue;
   /** Latest date allowed; later days are disabled. */
-  maxValue?: DateValue;
+  max?: DateValue;
   /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** Show the header (title, headline and mode toggle). @default true */
-  showHeader?: boolean;
+  header?: boolean;
   /** Show the calendar ↔ text input toggle. @default true */
-  showModeToggle?: boolean;
+  modeToggle?: boolean;
   /** Start in calendar or text input mode. @default "calendar" */
   defaultMode?: 'calendar' | 'input';
   /**
    * First and last years of the year list (and of a range's month list). Years outside
-   * `minValue` / `maxValue` are shown disabled. @default [1900, 2100]
+   * `min` / `max` are shown disabled. @default [1900, 2100]
    */
   yearRange?: [number, number];
   /** Words the picker shows and announces, with English defaults. */
-  strings?: DatePickerStrings;
+  labels?: Partial<DatePickerLabels>;
   /**
    * Web density of the input mode's text fields, `0` to `-3`: each step takes 4px off them
    * (56px at 0, 44px at -3). The calendar keeps its size: M3 doesn't make date pickers denser,
@@ -162,6 +162,8 @@ interface DatePickerCommonProps {
    * @default 0
    */
   density?: Density;
+  /** The root `<div>`'s id. */
+  id?: string;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -250,17 +252,17 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
   const state = useCalendarState({
     value,
     onChange: (date) => setValue(date as CalendarDate),
-    minValue: props.minValue,
-    maxValue: props.maxValue,
+    minValue: props.min,
+    maxValue: props.max,
     isDateUnavailable: props.isDateUnavailable,
     locale,
     createCalendar,
   });
   const formatter = useDateFormatter({ dateStyle: 'medium' });
-  const strings = props.strings ?? {};
+  const labels = props.labels ?? {};
   const headline = value
     ? formatter.format(value.toDate(getLocalTimeZone()))
-    : (strings.noSelection ?? 'Selected date');
+    : (labels.noSelection ?? 'Selected date');
   return (
     <PickerFrame
       {...props}
@@ -269,14 +271,14 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
       headline={headline}
       input={
         <DateInput
-          label={strings.dateLabel ?? 'Date'}
+          label={labels.dateLabel ?? 'Date'}
           value={value}
           onCommit={(date) => date && setValue(date)}
           onEnter={(date) => date && confirm?.requestConfirm()}
-          minValue={props.minValue}
-          maxValue={props.maxValue}
+          min={props.min}
+          max={props.max}
           isDateUnavailable={props.isDateUnavailable}
-          strings={strings}
+          labels={labels}
           density={props.density}
           className="w-full"
         />
@@ -302,38 +304,38 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
   const scroll = monthLayout === 'scroll';
   const listStart = maxDate(
     new CalendarDate(firstYear, 1, 1),
-    props.minValue ? toCalendarDate(props.minValue) : null,
+    props.min ? toCalendarDate(props.min) : null,
   )!;
   const listEnd = minDate(
     new CalendarDate(lastYear, 12, 31),
-    props.maxValue ? toCalendarDate(props.maxValue) : null,
+    props.max ? toCalendarDate(props.max) : null,
   )!;
   const state = useRangeCalendarState({
     value,
     onChange: (range) => setValue(range as DateRange),
-    minValue: scroll ? listStart : props.minValue,
-    maxValue: scroll ? listEnd : props.maxValue,
+    minValue: scroll ? listStart : props.min,
+    maxValue: scroll ? listEnd : props.max,
     isDateUnavailable: props.isDateUnavailable,
     visibleDuration: scroll ? { months: monthsBetween(listStart, listEnd) + 1 } : undefined,
     locale,
     createCalendar,
   });
   const formatter = useDateFormatter({ month: 'short', day: 'numeric' });
-  const strings = props.strings ?? {};
+  const labels = props.labels ?? {};
   const format = (date: CalendarDate) => formatter.format(date.toDate(getLocalTimeZone()));
   // While a new range is being picked, its first day is the start and the end is still open
   // (Compose's headline: "Mar 20 – End date"), not the range it replaces.
   const anchor = state.anchorDate;
   const headline = anchor
-    ? `${format(anchor)} – ${strings.endDateLabel ?? 'End date'}`
+    ? `${format(anchor)} – ${labels.endDateLabel ?? 'End date'}`
     : value
       ? `${format(value.start)} – ${format(value.end)}`
-      : (strings.noSelection ?? 'Start date – End date');
+      : (labels.noSelection ?? 'Start date – End date');
   const common = {
-    minValue: props.minValue,
-    maxValue: props.maxValue,
+    min: props.min,
+    max: props.max,
     isDateUnavailable: props.isDateUnavailable,
-    strings,
+    labels,
     density: props.density,
     className: 'w-full',
   };
@@ -348,7 +350,7 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
         <>
           <DateInput
             {...common}
-            label={strings.startDateLabel ?? 'Start date'}
+            label={labels.startDateLabel ?? 'Start date'}
             value={value?.start ?? null}
             onCommit={(start) =>
               start && setValue({ start, end: value && value.end >= start ? value.end : start })
@@ -356,7 +358,7 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
           />
           <DateInput
             {...common}
-            label={strings.endDateLabel ?? 'End date'}
+            label={labels.endDateLabel ?? 'End date'}
             value={value?.end ?? null}
             onCommit={(end) =>
               end && setValue({ start: value && value.start <= end ? value.start : end, end })
@@ -375,11 +377,12 @@ function PickerFrame({
   state,
   headline,
   input,
-  showHeader = true,
-  showModeToggle = true,
+  header = true,
+  modeToggle = true,
   defaultMode = 'calendar',
   yearRange = [1900, 2100],
-  strings = {},
+  labels = {},
+  id,
   ref,
   className,
   style,
@@ -397,7 +400,7 @@ function PickerFrame({
   defaultValue?: unknown;
   onChange?: unknown;
 }) {
-  const { data } = splitDataAttributes(rest);
+  const { root: data } = splitRootProps(rest, { wrapper: true });
   const [mode, setMode] = useState(defaultMode);
   // Set once the mode has been switched, so only a switch animates (not the first render).
   const [switched, setSwitched] = useState(false);
@@ -408,20 +411,21 @@ function PickerFrame({
   const styles = datePickerStyles({ range });
   const title =
     mode === 'input'
-      ? (strings.inputTitle ?? (range ? 'Enter dates' : 'Enter date'))
-      : (strings.title ?? (range ? 'Select dates' : 'Select date'));
+      ? (labels.inputTitle ?? (range ? 'Enter dates' : 'Enter date'))
+      : (labels.title ?? (range ? 'Select dates' : 'Select date'));
   const bodyProps = {
     styles,
     years,
     setYears,
     yearRange,
-    strings,
+    labels,
     className: classNames?.body,
     classNames,
   };
   return (
     <div
       {...data}
+      id={id}
       ref={(element) => {
         attachSize(element);
         directionRef(element);
@@ -435,7 +439,7 @@ function PickerFrame({
       data-mode={mode}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
-      {showHeader && (
+      {header && (
         <div className={styles.header({ class: classNames?.header })}>
           <div className={styles.title({ class: classNames?.title })}>{title}</div>
           <div className={styles.headlineRow()}>
@@ -446,7 +450,7 @@ function PickerFrame({
             >
               {headline}
             </div>
-            {showModeToggle && (
+            {modeToggle && (
               <IconButton
                 variant="standard"
                 // The picker's surface isn't dense, only its input mode's fields.
@@ -454,8 +458,8 @@ function PickerFrame({
                 icon={mode === 'calendar' ? <EditIcon /> : <CalendarIcon />}
                 aria-label={
                   mode === 'calendar'
-                    ? (strings.inputMode ?? 'Switch to text input mode')
-                    : (strings.calendarMode ?? 'Switch to calendar input mode')
+                    ? (labels.inputMode ?? 'Switch to text input mode')
+                    : (labels.calendarMode ?? 'Switch to calendar input mode')
                 }
                 onPress={() => {
                   captureSize();
@@ -487,7 +491,7 @@ interface BodyProps {
   years: boolean;
   setYears: (open: boolean) => void;
   yearRange: [number, number];
-  strings: DatePickerStrings;
+  labels: Partial<DatePickerLabels>;
   className?: string | undefined;
   classNames?: DateRangePickerClassNames | undefined;
 }
@@ -529,7 +533,7 @@ function CalendarBody({
   years,
   setYears,
   yearRange,
-  strings,
+  labels,
   className,
   classNames,
   bodyRef,
@@ -570,7 +574,7 @@ function CalendarBody({
             ref={menuRef}
             variant="text"
             className={cn('text-on-surface-variant', classNames?.yearButton)}
-            aria-label={`${monthLabel}, ${years ? (strings.showDays ?? 'Switch to selecting a day') : (strings.showYears ?? 'Switch to selecting a year')}`}
+            aria-label={`${monthLabel}, ${years ? (labels.showDays ?? 'Switch to selecting a day') : (labels.showYears ?? 'Switch to selecting a year')}`}
             onPress={() => {
               setFocusYears(false);
               setYears(!years);
@@ -589,21 +593,21 @@ function CalendarBody({
               </span>
             </span>
           </Button>
-          <LazyTooltip>{strings.yearsTooltip ?? 'Choose a year (Shift+Y)'}</LazyTooltip>
+          <LazyTooltip>{labels.yearsTooltip ?? 'Choose a year (Shift+Y)'}</LazyTooltip>
         </TooltipTrigger>
         {!years && (
           <div className={styles.navButtons()}>
             <ShortcutIconButton
               icon={<ChevronLeftIcon />}
-              label={strings.previousMonth ?? 'Previous month'}
-              tooltip={strings.previousMonthTooltip ?? 'Previous month (Page Up)'}
+              label={labels.previousMonth ?? 'Previous month'}
+              tooltip={labels.previousMonthTooltip ?? 'Previous month (Page Up)'}
               onPress={prevButtonProps.onPress as () => void}
               disabled={prevButtonProps.isDisabled}
             />
             <ShortcutIconButton
               icon={<ChevronRightIcon />}
-              label={strings.nextMonth ?? 'Next month'}
-              tooltip={strings.nextMonthTooltip ?? 'Next month (Page Down)'}
+              label={labels.nextMonth ?? 'Next month'}
+              tooltip={labels.nextMonthTooltip ?? 'Next month (Page Down)'}
               onPress={nextButtonProps.onPress as () => void}
               disabled={nextButtonProps.isDisabled}
             />
@@ -624,7 +628,7 @@ function CalendarBody({
           styles={styles}
           yearRange={yearRange}
           className={classNames?.year}
-          label={strings.yearList ?? 'Year'}
+          label={labels.yearList ?? 'Year'}
           autoFocus={focusYears}
           exiting={yearsPresence.isExiting}
           exitProps={yearsPresence.exitProps}

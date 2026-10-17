@@ -22,7 +22,7 @@ function* outputs() {
     yield slots.supporting();
   }
   for (const kind of ['image', 'video', 'avatar'] as const)
-    for (const size of ['small', 'large'] as const) {
+    for (const size of ['sm', 'lg'] as const) {
       const slots = listMediaStyles({ kind, size });
       for (const slot of Object.values(slots)) yield slot();
     }

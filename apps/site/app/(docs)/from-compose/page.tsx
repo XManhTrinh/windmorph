@@ -37,8 +37,8 @@ const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [
   },
   {
     compose: '`checked`, `onCheckedChange`',
-    windmorph: '`selected`, `onSelectedChange`',
-    note: 'Every value is controlled or uncontrolled: `defaultSelected`, `defaultValue` and `defaultOpen` start one without state.',
+    windmorph: '`checked`, `onCheckedChange`',
+    note: 'The same names on `Checkbox` and `Switch`; toggle buttons, chips and navigation items say `selected` / `onSelectedChange`, as Compose does. Every value is controlled or uncontrolled: `defaultChecked`, `defaultValue` and `defaultOpen` start one without state.',
   },
   {
     compose: '`contentDescription`',
@@ -68,7 +68,7 @@ const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [
   {
     compose: '`MaterialShapes`, `Morph`',
     windmorph: '`MaterialShapes`, `Morph`, `useM3Morph`',
-    note: 'A port of `androidx.graphics.shapes`, from `@windmorph/react/primitives`.',
+    note: 'A port of `androidx.graphics.shapes`, from `@windmorph/react/primitives`. Static shapes also come precomputed, one constant each (`cookie12SidedShape`), drawn with `materialShapeMask`.',
   },
 ];
 

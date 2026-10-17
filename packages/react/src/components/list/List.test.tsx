@@ -260,6 +260,28 @@ describe('List (interactive)', () => {
     expect(oldest).toHaveFocus();
   });
 
+  it('keeps a disabled option focusable, but never selects it (APG)', async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <List aria-label="Sort" selectionMode="single" onSelectionChange={onSelectionChange}>
+        <ListItem key="new">Newest</ListItem>
+        <ListItem key="price" disabled>
+          Price
+        </ListItem>
+        <ListItem key="old">Oldest</ListItem>
+      </List>,
+    );
+    screen.getByRole('option', { name: 'Newest' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    const price = screen.getByRole('option', { name: 'Price' });
+    expect(price).toHaveFocus();
+    expect(price).toHaveAttribute('aria-disabled', 'true');
+    await userEvent.keyboard(' ');
+    await userEvent.click(price);
+    expect(price).toHaveAttribute('aria-selected', 'false');
+    expect(onSelectionChange).not.toHaveBeenCalled();
+  });
+
   it('lets ← / → reach a trailing control and disables items', async () => {
     render(
       <List aria-label="Settings" onAction={() => {}} disabledKeys={['b']}>
@@ -362,7 +384,7 @@ describe('List (switch and checkbox items)', () => {
         <ListItem key="b" control="checkbox">
           Alice
         </ListItem>
-        <ListItem key="c" control="checkbox" controlPlacement="trailing">
+        <ListItem key="c" control="checkbox" controlPlacement="end">
           Bob
         </ListItem>
       </List>,
@@ -476,7 +498,7 @@ describe('List (radio lists)', () => {
         aria-label="Language"
         value="en"
         onValueChange={onValueChange}
-        controlPlacement="trailing"
+        controlPlacement="end"
         name="locale"
       >
         <ListItem key="en" value="en">

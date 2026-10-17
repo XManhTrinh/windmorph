@@ -137,7 +137,7 @@ export const SingleSelect: Story = {
         aria-label="Sort by"
         selectionMode="single"
         defaultSelectedKeys={['relevance']}
-        disallowEmptySelection
+        deselectable={false}
         layout="scroll"
         data-testid="single"
       >

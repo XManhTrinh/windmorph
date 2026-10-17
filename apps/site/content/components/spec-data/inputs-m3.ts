@@ -218,7 +218,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         note: '`selectionMode="multiple"` shows the choices as `InputChip`s in the field, with `maxSelections`.',
       },
       {
-        item: '`allowsCustomValue` and `loading`',
+        item: '`allowCustomValue` and `loading`',
         note: 'Keeps text that matches no option, and shows a loading indicator in the list.',
       },
     ],
@@ -281,7 +281,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         composable: 'Checkbox',
         component: 'Checkbox',
         params: [
-          { compose: 'checked, onCheckedChange', windmorph: '`selected`, `onSelectedChange`' },
+          { compose: 'checked, onCheckedChange', windmorph: '`checked`, `onCheckedChange`' },
           { compose: 'enabled', windmorph: '`disabled`' },
         ],
         note: 'The label is the `children`, so the whole row is the target.',
@@ -376,8 +376,8 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         composable: 'Switch',
         component: 'Switch',
         params: [
-          { compose: 'checked, onCheckedChange', windmorph: '`selected`, `onSelectedChange`' },
-          { compose: 'thumbContent', windmorph: '`icons`, `selectedIcon`, `unselectedIcon`' },
+          { compose: 'checked, onCheckedChange', windmorph: '`checked`, `onCheckedChange`' },
+          { compose: 'thumbContent', windmorph: '`icons`, `checkedIcon`, `uncheckedIcon`' },
           { compose: 'enabled', windmorph: '`disabled`' },
         ],
       },
@@ -412,7 +412,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
     ],
     extensions: [
       {
-        item: '`endIcon`',
+        item: '`trailingIcon`',
         note: "A second inset icon at the inactive track's end (from Material Components Android); the spec shows one inset icon.",
       },
       {
@@ -426,7 +426,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'Slider',
         params: [
           { compose: 'value, onValueChange', windmorph: '`value`, `onChange`' },
-          { compose: 'valueRange', windmorph: '`minValue`, `maxValue`' },
+          { compose: 'valueRange', windmorph: '`min`, `max`' },
           {
             compose: 'steps',
             windmorph: '`step`, `ticks`',

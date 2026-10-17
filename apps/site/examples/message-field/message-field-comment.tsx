@@ -61,7 +61,7 @@ export function MessageFieldComment() {
         tools={<EmojiTool />}
         sendVariant="standard"
         maxLength={500}
-        submitting={sending}
+        pending={sending}
         clearOnSubmit
         onSubmit={post}
       />

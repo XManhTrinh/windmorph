@@ -263,6 +263,10 @@ export const listStyles = tv({
   defaultVariants: { variant: 'standard', interactive: false, lines: 1, dividers: 'none' },
 });
 
+/**
+ * The variants of {@link listStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
 export type ListStyleProps = VariantProps<typeof listStyles>;
 export type ListVariant = NonNullable<ListStyleProps['variant']>;
 export type ListDividers = Exclude<NonNullable<ListStyleProps['dividers']>, 'none'>;
@@ -297,13 +301,13 @@ export const listMediaStyles = tv({
       },
     },
     size: {
-      small: {},
-      large: {},
+      sm: {},
+      lg: {},
     },
   },
   compoundVariants: [
-    { kind: 'video', size: 'small', class: { frame: 'h-[56px] w-[100px]' } },
-    { kind: 'video', size: 'large', class: { frame: 'h-[64px] w-[114px]' } },
+    { kind: 'video', size: 'sm', class: { frame: 'h-[56px] w-[100px]' } },
+    { kind: 'video', size: 'lg', class: { frame: 'h-[64px] w-[114px]' } },
   ],
-  defaultVariants: { kind: 'image', size: 'small' },
+  defaultVariants: { kind: 'image', size: 'sm' },
 });

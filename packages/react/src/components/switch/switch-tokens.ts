@@ -15,19 +15,19 @@ export const switchTokenSet = defineComponentTokens({
       value: color('primary'),
       description: 'The track of a switch that is on, and its edge.',
       compose: 'SwitchTokens.SelectedTrackColor',
-      paints: { property: 'background-color', slot: 'track', state: 'selected' },
+      paints: { property: 'background-color', slot: 'track', state: 'checked' },
     },
     'selected-handle-color': {
       value: color('on-primary'),
       description: 'The handle of a switch that is on.',
       compose: 'SwitchTokens.SelectedHandleColor',
-      paints: { property: 'background-color', slot: 'thumb', state: 'selected' },
+      paints: { property: 'background-color', slot: 'thumb', state: 'checked' },
     },
     'selected-icon-color': {
       value: color('on-primary-container'),
       description: 'The icon in the handle of a switch that is on.',
       compose: 'SwitchTokens.SelectedIconColor',
-      paints: { property: 'color', slot: 'thumb', state: 'selected' },
+      paints: { property: 'color', slot: 'thumb', state: 'checked' },
     },
     'unselected-track-color': {
       value: color('surface-container-highest'),

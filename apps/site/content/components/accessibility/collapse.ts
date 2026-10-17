@@ -23,7 +23,7 @@ export const collapse: ComponentAccessibility = {
   },
   motion: [
     "It opens on the default spatial spring and folds over the same time on the default effects spring's easing, which never overshoots, so a folding height never bounces back open (`--wm-collapse-spring-duration`, `-spring-easing`, `-fold-easing`). Its content fades on the default effects spring (`-fade-duration`, `-fade-easing`).",
-    "Under reduced motion the height no longer animates: an opening collapse appears at full height and fades in, and a folding one fades out where it is, over `--wm-collapse-fade-duration`, then goes (`onExited` runs when the fade ends). One that folds as another opens goes at once, so what's below shifts once. Content shown from the start (`appear={false}`) does not animate.",
+    "Under reduced motion the height no longer animates: an opening collapse appears at full height and fades in, and a folding one fades out where it is, over `--wm-collapse-fade-duration`, then goes (`onClosed` runs when the fade ends). One that folds as another opens goes at once, so what's below shifts once. Content shown from the start does not animate, unless `appear` is set.",
   ],
   consumer: [
     'What opens it is yours. For a disclosure, make it a button with `aria-expanded` and `aria-controls` pointing at the content.',

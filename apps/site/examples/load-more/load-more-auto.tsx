@@ -7,7 +7,7 @@ const DISHES = ['Phở', 'Bánh mì', 'Bún chả', 'Gỏi cuốn', 'Crème brû
 const PAGE = 2;
 
 /**
- * With `auto` (the default) the next page loads by itself as the end of the list scrolls
+ * With `auto` the next page loads by itself as the end of the list scrolls
  * near (`rootMargin` ahead of the viewport): here as soon as it's on screen. `loading`
  * shows a skeleton of one item while a page loads, and `end` a line once everything is in.
  * Load more stays as the keyboard and screen reader fallback.
@@ -38,6 +38,7 @@ export function LoadMoreAuto() {
       <LoadMore
         status={status}
         onLoadMore={load}
+        auto
         rootMargin="0px"
         loading={
           <SkeletonGroup label="Loading more dishes">

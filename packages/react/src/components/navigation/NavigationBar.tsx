@@ -22,7 +22,7 @@ import { onItemArrowKeys } from './use-item-arrow-keys';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 interface BarContextValue {
-  iconPosition: 'top' | 'start';
+  iconPlacement: 'top' | 'start';
   itemClassName: string;
 }
 
@@ -52,11 +52,11 @@ interface NavigationBarOwnProps {
    * labels don't fit on one line side by side (a narrow bar or large text), so no label is
    * cut off; the bar then carries `data-stacked`. @default "top"
    */
-  iconPosition?: 'top' | 'start';
+  iconPlacement?: 'top' | 'start';
   /**
    * Share the width equally, or centre the items. Stacked items centre within side
    * padding; items beside their icons keep their own width, with the extra space at the
-   * ends. @default "equal", or "centered" when iconPosition is "start"
+   * ends. @default "equal", or "centered" when iconPlacement is "start"
    */
   arrangement?: NavigationBarArrangement;
   /**
@@ -84,7 +84,7 @@ export type NavigationBarProps = NavigationBarOwnProps &
 
 /**
  * M3 Expressive flexible navigation bar: 3–5 destinations along the bottom of compact and
- * medium windows. Items stack the icon above the label, or (`iconPosition="start"`) place
+ * medium windows. Items stack the icon above the label, or (`iconPlacement="start"`) place
  * it beside the label in a 40px pill. Labels wrap rather than truncate, and the bar grows
  * to fit them. Tab or the arrow keys move between items.
  *
@@ -94,8 +94,8 @@ export type NavigationBarProps = NavigationBarOwnProps &
  * </NavigationBar>
  */
 export function NavigationBar({
-  iconPosition = 'top',
-  arrangement = iconPosition === 'start' ? 'centered' : 'equal',
+  iconPlacement = 'top',
+  arrangement = iconPlacement === 'start' ? 'centered' : 'equal',
   scrollBehavior = 'pinned',
   scrollRef,
   children,
@@ -109,12 +109,12 @@ export function NavigationBar({
   const navRef = useObjectRef(ref);
   const hideOnScroll = scrollBehavior === 'hide-on-scroll';
   useHideOnScroll(hideOnScroll, navRef, scrollRef);
-  const stacked = useStackWhenCrowded(navRef, iconPosition === 'start');
+  const stacked = useStackWhenCrowded(navRef, iconPlacement === 'start');
   // Inline items that don't fit on one line become stacked items sharing the width equally.
-  const layout = stacked ? 'top' : iconPosition;
+  const layout = stacked ? 'top' : iconPlacement;
   const styles = navigationBarStyles({
     arrangement: stacked ? 'equal' : arrangement,
-    iconPosition: layout,
+    iconPlacement: layout,
     hideOnScroll,
   });
   const count = Children.toArray(children).filter(isValidElement).length;
@@ -125,7 +125,7 @@ export function NavigationBar({
   );
   // Compose: centred stacked items sit within (100% − 10% × (n + 3)) / 2 each side, up to 6.
   const padding =
-    arrangement === 'centered' && iconPosition === 'top' && count <= 6
+    arrangement === 'centered' && iconPlacement === 'top' && count <= 6
       ? `${(100 - 10 * (count + 3)) / 2}%`
       : undefined;
   const arrowKeys = onItemArrowKeys('horizontal');
@@ -143,7 +143,7 @@ export function NavigationBar({
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <BarContext
-        value={{ iconPosition: layout, itemClassName: styles.item({ class: classNames?.item }) }}
+        value={{ iconPlacement: layout, itemClassName: styles.item({ class: classNames?.item }) }}
       >
         {children}
       </BarContext>
@@ -213,7 +213,7 @@ export function NavigationBarItem({ className, ...props }: NavigationBarItemProp
     <NavItem
       {...(props as NavItemProps)}
       className={cn(bar.itemClassName, className)}
-      layout={bar.iconPosition === 'start' ? 'bar-start' : 'bar-top'}
+      layout={bar.iconPlacement === 'start' ? 'bar-start' : 'bar-top'}
     />
   );
 }

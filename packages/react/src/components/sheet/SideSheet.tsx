@@ -25,6 +25,7 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
@@ -32,12 +33,13 @@ import { IconButton } from '../icon-button/IconButton';
 import { BackIcon, CloseIcon } from './sheet-icons';
 import { SHEET_EXIT_PROPERTIES, sideSheetStyles } from './sheet-styles';
 import { SheetTriggerContext } from './SheetTrigger';
+import { useSideSwipe } from './use-side-swipe';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
 export interface SideSheetClassNames {
   /**
    * The outermost element, which places the sheet (where `className` and `style` go too):
-   * a modal sheet's box `fixed` to the window's end edge, or a standard sheet's layout box.
+   * a modal sheet's box `fixed` to the window's `edge`, or a standard sheet's layout box.
    */
   container?: string;
   /** The dimmed layer behind a modal sheet. */
@@ -47,13 +49,13 @@ export interface SideSheetClassNames {
   /** The header row: back button, title, actions and close button. */
   header?: string;
   /** The back button. */
-  backButton?: string;
+  back?: string;
   /** The headline. */
   title?: string;
   /** The end of the header: `actions` and the close button. */
   headerActions?: string;
   /** The close button. */
-  closeButton?: string;
+  close?: string;
   /** The scrollable content area. */
   content?: string;
   /** The bottom row of action buttons. */
@@ -83,6 +85,23 @@ interface SideSheetOwnProps {
   variant?: 'modal' | 'standard';
   /** Float 16px from the edges with corners all round. @default false */
   detached?: boolean;
+  /**
+   * The window edge the sheet is anchored to: `end` (the right in a left-to-right page, the
+   * left in RTL, as M3 asks) or `start`. A modal sheet slides in from it and swipes out toward
+   * it; a standard sheet faces it, with its divider on the other side. The root's `data-edge`
+   * says which.
+   * @default "end"
+   */
+  edge?: 'start' | 'end';
+  /**
+   * Whether a touch or pen swipe toward the sheet's edge closes a modal sheet (past half its
+   * width, or a fling). The close button, Escape and the scrim still close it either way, and
+   * a mouse drag never moves it. Off when `closedBy` is `"none"`; a standard sheet ignores
+   * it. To keep the sheet open after a swipe (unsaved changes), control `open` and leave it
+   * `true`: the sheet springs back.
+   * @default true
+   */
+  swipeable?: boolean;
   /** Whether the sheet is open (controlled). */
   open?: boolean;
   /** Whether the sheet starts open when uncontrolled. @default false, or true when standard */
@@ -101,8 +120,13 @@ interface SideSheetOwnProps {
   footerDivider?: boolean;
   /** A divider between a standard sheet and the content beside it. @default true */
   divider?: boolean;
-  /** Pressing the scrim closes a modal sheet. @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close a modal sheet, as HTML's `<dialog closedby>`: `any` (Escape, a
+   * press on the scrim or a swipe), `closerequest` (Escape or a swipe) or `none` (only its
+   * buttons or the app).
+   * @default "any"
+   */
+  closedBy?: ClosedBy;
   /** Replaces the close button's icon. */
   closeIcon?: ReactElement;
   /** Replaces the back button's icon. */
@@ -141,10 +165,10 @@ export type SideSheetProps = SideSheetOwnProps &
   Omit<ComponentPropsWithRef<'div'>, keyof SideSheetOwnProps | 'aria-label' | 'aria-labelledby'>;
 
 /**
- * M3 side sheet: supplementary content at the end edge of the window. A modal sheet slides
- * in over a scrim as a dialog (Escape or a press outside closes it); a standard sheet sits
- * in the layout as a non-modal dialog and opens and closes its width. Both always show a
- * close button, as M3 requires.
+ * M3 side sheet: supplementary content at the end edge of the window (`edge="start"` for the
+ * other). A modal sheet slides in over a scrim as a dialog (Escape, a press outside or a
+ * touch swipe toward its edge closes it); a standard sheet sits in the layout as a non-modal
+ * dialog and opens and closes its width. Both always show a close button, as M3 requires.
  *
  * @example
  * <SheetTrigger>
@@ -203,6 +227,7 @@ type BodyProps = Pick<
   titleId: string;
   close: () => void;
   styles: ReturnType<typeof sideSheetStyles>;
+  contentRef?: Ref<HTMLDivElement>;
 };
 
 function SheetBody({
@@ -218,6 +243,7 @@ function SheetBody({
   close,
   styles,
   classNames,
+  contentRef,
 }: BodyProps) {
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const renderProps = { close };
@@ -233,7 +259,7 @@ function SheetBody({
             icon={backIcon ?? <BackIcon />}
             aria-label={labels.back}
             onPress={onBack}
-            className={classNames?.backButton}
+            className={classNames?.back}
           />
         )}
         {title != null && (
@@ -249,11 +275,13 @@ function SheetBody({
             icon={closeIcon ?? <CloseIcon />}
             aria-label={labels.close}
             onPress={close}
-            className={classNames?.closeButton}
+            className={classNames?.close}
           />
         </div>
       </div>
-      <div className={styles.content({ class: classNames?.content })}>{render(children)}</div>
+      <div ref={contentRef} className={styles.content({ class: classNames?.content })}>
+        {render(children)}
+      </div>
       {footer != null && (
         <div className={styles.footer({ class: classNames?.footer })}>{render(footer)}</div>
       )}
@@ -282,7 +310,7 @@ function splitBodyProps<T extends Record<string, unknown>>(props: T) {
     delete rest[key];
   }
   return {
-    body: body as Omit<BodyProps, 'titleId' | 'close' | 'styles'>,
+    body: body as Omit<BodyProps, 'titleId' | 'close' | 'styles' | 'contentRef'>,
     rest: rest as Omit<T, (typeof BODY_KEYS)[number]>,
   };
 }
@@ -299,7 +327,9 @@ function ModalSideSheet({
   exitProps,
   triggerOverlayProps,
   detached = false,
-  dismissable = true,
+  edge = 'end',
+  swipeable = true,
+  closedBy = 'any',
   divider: _divider,
   footerDivider = false,
   className,
@@ -313,15 +343,30 @@ function ModalSideSheet({
 }) {
   const { body, rest } = splitBodyProps(props);
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  const motionRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // `closedBy="none"` leaves closing to the app, so a swipe doesn't close it either.
+  const canSwipe = swipeable && closedBy !== 'none';
   const styles = sideSheetStyles({
     variant: 'modal',
+    edge,
+    swipeable: canSwipe,
     detached,
     hasBack: body.onBack != null,
     footerDivider,
   });
+  const { panelHandlers, motionProps, dragging } = useSideSwipe({
+    enabled: canSwipe && !isExiting,
+    edge,
+    isOpen: state.isOpen,
+    close: state.close,
+    panelRef,
+    motionRef,
+    contentRef,
+  });
   const { modalProps, underlayProps } = useModalOverlay(
-    { isDismissable: dismissable && !isExiting },
+    closedByOverlayOptions(closedBy, isExiting),
     state,
     panelRef,
   );
@@ -347,19 +392,39 @@ function ModalSideSheet({
           style={style}
           className={styles.container({ class: cn(body.classNames?.container, className) })}
         >
-          <div {...exitProps} data-exiting={exiting} className={styles.motion()}>
+          <div
+            {...mergeProps(exitProps, motionProps)}
+            ref={motionRef}
+            data-exiting={exiting}
+            className={styles.motion()}
+          >
             <div
-              {...mergeProps(rest, triggerOverlayProps ?? {}, modalProps, dialogProps)}
+              {...mergeProps(
+                rest,
+                triggerOverlayProps ?? {},
+                modalProps,
+                dialogProps,
+                panelHandlers,
+              )}
               ref={panelRef}
-              // The component tokens' hooks (sheet-tokens.ts); `data-variant` is also public.
+              // The component tokens' hooks (sheet-tokens.ts); `data-variant` and `data-edge`
+              // are also public.
               data-tokens={mergeDataTokens('md-comp-sheet-side', rest)}
               data-variant="modal"
+              data-edge={edge}
               data-detached={detached || undefined}
+              data-dragging={dragging || undefined}
               data-exiting={exiting}
               className={styles.panel({ class: body.classNames?.panel })}
             >
               <TriggerContext value={null}>
-                <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
+                <SheetBody
+                  {...body}
+                  titleId={titleId}
+                  close={state.close}
+                  styles={styles}
+                  contentRef={contentRef}
+                />
               </TriggerContext>
             </div>
           </div>
@@ -372,9 +437,11 @@ function ModalSideSheet({
 function StandardSideSheet({
   state,
   detached = false,
+  edge = 'end',
+  swipeable: _swipeable,
   divider = true,
   footerDivider = false,
-  dismissable: _dismissable,
+  closedBy: _closedBy,
   className,
   style,
   ref,
@@ -384,6 +451,7 @@ function StandardSideSheet({
   const titleId = useId();
   const styles = sideSheetStyles({
     variant: 'standard',
+    edge,
     detached,
     divider,
     hasBack: body.onBack != null,
@@ -446,6 +514,7 @@ function StandardSideSheet({
       // The component tokens' hooks (sheet-tokens.ts), read by the panel inside.
       data-tokens={mergeDataTokens('md-comp-sheet-side', rest)}
       data-variant="standard"
+      data-edge={edge}
       data-detached={detached || undefined}
       data-closed={closed}
       inert={!state.isOpen}

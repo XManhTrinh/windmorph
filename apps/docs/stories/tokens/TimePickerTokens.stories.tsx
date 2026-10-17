@@ -28,7 +28,7 @@ function Instances() {
         variant="time"
         title="Select time"
         defaultOpen
-        dismissable={false}
+        closedBy="closerequest"
         confirmButton={<Button variant="text">OK</Button>}
       >
         <TimePicker defaultValue={TIME} hourCycle={12} layout="vertical" />

@@ -56,6 +56,17 @@ export interface SplitButtonClassNames {
   menuIcon?: string;
 }
 
+/** Words a {@link SplitButton} announces. */
+export interface SplitButtonLabels {
+  /**
+   * The trailing button's name; name it for what the menu holds ("More send options").
+   * @default "More options"
+   */
+  menu: string;
+}
+
+const DEFAULT_LABELS: SplitButtonLabels = { menu: 'More options' };
+
 interface SplitButtonOwnProps {
   /** The M3 style of both buttons: filled, tonal, outlined or elevated. @default "filled" */
   variant?: SplitButtonVariant;
@@ -63,8 +74,8 @@ interface SplitButtonOwnProps {
   size?: SplitButtonSize;
   /** Icon before the label, or on its own with `leadingLabel`. Hidden from assistive tech. */
   leadingIcon?: ReactElement;
-  /** Accessible name of the trailing button, e.g. "More send options". */
-  menuLabel: string;
+  /** Words the split button announces, with English defaults. */
+  labels?: Partial<SplitButtonLabels>;
   /**
    * The `<Menu>` the trailing button opens, 4px below it and aligned with its end edge
    * unless the menu sets its own `placement` or `offset`. Leave it out to open something
@@ -131,7 +142,7 @@ export type SplitButtonProps = SplitButtonOwnProps &
  * <SplitButton
  *   leadingIcon={<SendIcon />}
  *   onPress={send}
- *   menuLabel="More send options"
+ *   labels={{ menu: 'More send options' }}
  *   menu={<Menu onAction={schedule}><MenuItem key="later">Send later</MenuItem></Menu>}
  * >
  *   Send
@@ -144,7 +155,7 @@ export function SplitButton(props: SplitButtonProps) {
     children,
     leadingIcon,
     leadingLabel,
-    menuLabel,
+    labels,
     menu,
     onTrailingPress,
     trailingRef,
@@ -185,7 +196,7 @@ export function SplitButton(props: SplitButtonProps) {
 
   const trailingProps = {
     tokenAttributes: halfTokens,
-    label: menuLabel,
+    label: labels?.menu ?? DEFAULT_LABELS.menu,
     disabled,
     hasTouchTarget,
     buttonRef: trailingRef,
@@ -202,7 +213,7 @@ export function SplitButton(props: SplitButtonProps) {
           <TrailingButton {...trailingProps} open={isOpen} onPress={onTrailingPress} />
         </OpenOnMouseRelease>
         {cloneElement(menu, {
-          placement: menu.props.placement ?? 'bottom end',
+          placement: menu.props.placement ?? 'bottom-end',
           offset: menu.props.offset ?? 4,
           // Aligned with the trailing button even against the window's edge.
           containerPadding: menu.props.containerPadding ?? 0,

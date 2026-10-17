@@ -49,7 +49,7 @@ function SegmentedChoice({
       variant="connected"
       size="xs"
       selectionMode="single"
-      disallowEmptySelection={selected !== undefined}
+      deselectable={selected === undefined}
       aria-labelledby={labelId}
       selectedKeys={selected ? [selected] : []}
       onSelectionChange={(keys: Set<Key>) => {
@@ -116,8 +116,8 @@ function NumberSlider({
       <Slider
         // The slider names its own input from `aria-label` (it has no visible label of its own).
         aria-label={label}
-        minValue={min}
-        maxValue={max}
+        min={min}
+        max={max}
         step={step}
         // Unset, the slider rests on the prop's default (or the start) and the readout dims.
         value={value ?? rest ?? min}
@@ -148,7 +148,7 @@ function ControlInfo({ def, slug }: { def: ControlDef; slug: string }) {
       ? `${componentTabHref(slug, 'api')}#${propAnchor(def.docsComponent, def.docsProp)}`
       : undefined;
   return (
-    <RichTooltipTrigger persistent placement="bottom start">
+    <RichTooltipTrigger persistent placement="bottom-start">
       <IconButton
         variant="standard"
         size="xs"
@@ -205,8 +205,8 @@ function ControlInput({
     return (
       <Switch
         aria-labelledby={labelId}
-        selected={Boolean(value)}
-        onSelectedChange={(next) => onChange(next)}
+        checked={Boolean(value)}
+        onCheckedChange={(next) => onChange(next)}
       />
     );
   }
@@ -235,7 +235,7 @@ function ControlInput({
   );
 }
 
-/** A prop's name that may break before each capital or dot (`disallowEmpty·Selection`). */
+/** A prop's name that may break before each capital or dot (`allowCustom·Value`). */
 function BreakableName({ name }: { name: string }) {
   return name.split(/(?=[A-Z.])/).map((part, index) => (
     <Fragment key={index}>

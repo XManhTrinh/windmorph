@@ -23,7 +23,7 @@ import { useSliderState, type SliderState } from 'react-stately';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitDataAttributes } from '../../utils/split-data-attributes';
+import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { useTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
@@ -45,13 +45,13 @@ export interface SliderClassNames {
   inactiveTrack?: string;
   /** The stop indicators: at the track's ends, and at every step with `ticks`. */
   stop?: string;
-  /** The inset icons (`startIcon`, `endIcon`). */
+  /** The inset icons (`leadingIcon`, `trailingIcon`). */
   icon?: string;
   /** Each thumb, the pressable area around its handle. */
   thumb?: string;
   /** The handle bar drawn inside each thumb. */
   handle?: string;
-  /** The value indicator above a thumb (`showValueLabel`). */
+  /** The value indicator above a thumb (`valueLabel`). */
   label?: string;
 }
 
@@ -66,7 +66,7 @@ type Naming =
       'aria-labelledby': string;
     };
 
-interface SliderCommonProps {
+interface SliderCommonProps extends RootDOMProps {
   /** The track's thickness, from XS (a 16px track) to XL. @default "xs" */
   size?: SliderSize;
   /**
@@ -75,9 +75,9 @@ interface SliderCommonProps {
    */
   orientation?: SliderOrientation;
   /** The lowest value. @default 0 */
-  minValue?: number;
+  min?: number;
   /** The highest value. @default 100 */
-  maxValue?: number;
+  max?: number;
   /** The amount the value changes by in one step. @default 1 */
   step?: number;
   /** Discrete: show a stop indicator at every step (use a coarse `step`). @default false */
@@ -85,11 +85,13 @@ interface SliderCommonProps {
   /** Turns the slider off: it can't be moved or focused. @default false */
   disabled?: boolean;
   /** Show the value above the thumb while it is dragged or keyboard-focused. @default false */
-  showValueLabel?: boolean;
+  valueLabel?: boolean;
   /** Formats the value for the value indicator and assistive tech. */
   formatOptions?: Intl.NumberFormatOptions;
   /** Form field name (one hidden input per thumb). */
   name?: string;
+  /** The id of the slider's root, its `group` (an error summary can link to it). */
+  id?: string;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -98,7 +100,7 @@ interface SliderCommonProps {
   style?: CSSProperties;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: SliderClassNames;
-  /** `data-*` attributes go to the root. */
+  /** `data-*` attributes, like the other DOM attributes, go to the root. */
   [data: `data-${string}`]: string | number | boolean | undefined;
 }
 
@@ -106,7 +108,7 @@ export type SliderProps = SliderCommonProps &
   Naming & {
     /** The value (controlled). */
     value?: number;
-    /** The initial value when uncontrolled. @default minValue */
+    /** The initial value when uncontrolled. @default min */
     defaultValue?: number;
     /** Called as the value changes, while dragging too. */
     onChange?: (value: number) => void;
@@ -114,7 +116,7 @@ export type SliderProps = SliderCommonProps &
     onChangeEnd?: (value: number) => void;
     /**
      * Fill the track from its centre (for values around a midpoint). M3 doesn't use inset
-     * icons on centred sliders, so `startIcon` and `endIcon` are ignored. @default false
+     * icons on centred sliders, so `leadingIcon` and `trailingIcon` are ignored. @default false
      */
     centered?: boolean;
     /**
@@ -122,9 +124,9 @@ export type SliderProps = SliderCommonProps &
      * warning, on xs and sm). When the active track is too short for it, it moves to the
      * start of the inactive track.
      */
-    startIcon?: ReactNode;
+    leadingIcon?: ReactNode;
     /** An icon inside the inactive track at its end (sizes md and up; ignored on xs and sm). */
-    endIcon?: ReactNode;
+    trailingIcon?: ReactNode;
   };
 
 export interface RangeSliderLabels {
@@ -140,7 +142,7 @@ export type RangeSliderProps = SliderCommonProps &
   Naming & {
     /** The range, as `[start, end]` (controlled). */
     value?: [number, number];
-    /** The initial range when uncontrolled. @default [minValue, maxValue] */
+    /** The initial range when uncontrolled. @default [min, max] */
     defaultValue?: [number, number];
     /** Called as the range changes, while dragging too. */
     onChange?: (value: [number, number]) => void;
@@ -156,7 +158,7 @@ export type RangeSliderProps = SliderCommonProps &
  * Page Up / Down and Home / End adjust it (mirrored in RTL).
  *
  * @example
- * <Slider aria-label="Volume" size="md" startIcon={<VolumeIcon />} defaultValue={40} />
+ * <Slider aria-label="Volume" size="md" leadingIcon={<VolumeIcon />} defaultValue={40} />
  */
 export function Slider(props: SliderProps) {
   return (
@@ -190,14 +192,15 @@ function SliderRoot(props: RootProps) {
   const {
     size = 'xs',
     orientation = 'horizontal',
-    minValue = 0,
-    maxValue = 100,
+    min = 0,
+    max = 100,
     step = 1,
     ticks = false,
     disabled = false,
-    showValueLabel = false,
+    valueLabel = false,
     formatOptions,
     name,
+    id,
     ref,
     className,
     style,
@@ -210,14 +213,19 @@ function SliderRoot(props: RootProps) {
     onChangeEnd,
     ...rest
   } = props;
-  const { centered = false, startIcon: startIconProp, endIcon: endIconProp } = props as SliderProps;
+  const {
+    centered = false,
+    leadingIcon: startIconProp,
+    trailingIcon: endIconProp,
+  } = props as SliderProps;
   // M3: only M, L and XL standard sliders take inset icons ("Avoid adding inset icons to XS
   // or S"; none on centred sliders).
   const iconSize = size === 'md' || size === 'lg' || size === 'xl';
   const startIcon = iconSize && !centered ? startIconProp : undefined;
   const endIcon = iconSize && !centered ? endIconProp : undefined;
   const labels = { ...DEFAULT_LABELS, ...(props as RangeSliderProps).labels };
-  const { data, rest: labelling } = splitDataAttributes(rest);
+  // The root is the slider's group: its DOM attributes join the hook's.
+  const { root: data, rest: labelling } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
     'aria-label'?: string;
     'aria-labelledby'?: string;
@@ -229,15 +237,16 @@ function SliderRoot(props: RootProps) {
     v === undefined ? undefined : Array.isArray(v) ? v : [v];
   const unwrap = (v: number[]) => (range ? (v as [number, number]) : v[0]!);
   const ariaProps = {
-    minValue,
-    maxValue,
+    id,
+    minValue: min,
+    maxValue: max,
     step,
     orientation,
     isDisabled: disabled,
     'aria-label': label,
     'aria-labelledby': labelledBy,
     value: wrap(value),
-    defaultValue: wrap(defaultValue) ?? (range ? [minValue, maxValue] : [minValue]),
+    defaultValue: wrap(defaultValue) ?? (range ? [min, max] : [min]),
     onChange: onChange && ((v: number[]) => (onChange as (x: unknown) => void)(unwrap(v))),
     onChangeEnd: onChangeEnd && ((v: number[]) => (onChangeEnd as (x: unknown) => void)(unwrap(v))),
   };
@@ -246,7 +255,7 @@ function SliderRoot(props: RootProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
   const { direction } = useLocale();
-  const count = Math.round((maxValue - minValue) / step);
+  const count = Math.round((max - min) / step);
   const touchTrackProps = useTouchTrack(trackProps, {
     state,
     trackRef,
@@ -336,7 +345,7 @@ function SliderRoot(props: RootProps) {
             trackRef={trackRef}
             name={name}
             label={range ? (index === 0 ? labels.start : labels.end) : undefined}
-            showValueLabel={showValueLabel}
+            valueLabel={valueLabel}
             styles={styles}
             classNames={classNames}
           />
@@ -420,7 +429,7 @@ function Thumb({
   trackRef,
   name,
   label,
-  showValueLabel,
+  valueLabel,
   styles,
   classNames,
 }: {
@@ -430,7 +439,7 @@ function Thumb({
   trackRef: RefObject<HTMLDivElement | null>;
   name?: string;
   label?: string;
-  showValueLabel: boolean;
+  valueLabel: boolean;
   styles: ReturnType<typeof sliderStyles>;
   classNames?: SliderClassNames;
 }) {
@@ -486,7 +495,7 @@ function Thumb({
           <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>
       </div>
-      {showValueLabel && (isDragging || isFocusVisible) && (
+      {valueLabel && (isDragging || isFocusVisible) && (
         <span aria-hidden="true" style={{ marginInlineStart: at }} className={styles.labelAnchor()}>
           <span data-slot="value-indicator" className={styles.label({ class: classNames?.label })}>
             {state.getThumbValueLabel(index)}

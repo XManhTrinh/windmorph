@@ -44,7 +44,7 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
             <PhoneFieldSignup />
           </ExampleViewer>
           <ExampleViewer
-            title="Outlined or filled"
+            title="Filled (the default) or outlined"
             code={variants}
             html={variantsHtml}
             fileName="phone-field-variants.tsx"
@@ -113,6 +113,21 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
               the code people see.
             </li>
             <li>
+              <InlineCode>id</InlineCode> and the attributes that name or describe the number (
+              <InlineCode>aria-labelledby</InlineCode>, <InlineCode>aria-describedby</InlineCode>,{' '}
+              <InlineCode>aria-details</InlineCode>, <InlineCode>aria-errormessage</InlineCode>) go
+              to the number&apos;s input, so a <InlineCode>&lt;label for&gt;</InlineCode> or an
+              error summary&apos;s link reaches it, as do the attributes that describe it as a
+              widget (<InlineCode>aria-controls</InlineCode>, <InlineCode>aria-haspopup</InlineCode>
+              , <InlineCode>aria-autocomplete</InlineCode>,{' '}
+              <InlineCode>aria-activedescendant</InlineCode>, <InlineCode>aria-expanded</InlineCode>
+              , <InlineCode>aria-required</InlineCode>, <InlineCode>aria-invalid</InlineCode>,{' '}
+              <InlineCode>aria-readonly</InlineCode>). The other <InlineCode>aria-*</InlineCode>{' '}
+              attributes, <InlineCode>data-*</InlineCode>, <InlineCode>title</InlineCode>,{' '}
+              <InlineCode>lang</InlineCode> and pointer events go to the group, as on the
+              core&apos;s fields.
+            </li>
+            <li>
               <InlineCode>density</InlineCode> (or the theme&apos;s, through a provider or{' '}
               <InlineCode>ThemeScope</InlineCode>) takes 4px a step off both fields and the country
               list&apos;s rows, from 56px at 0 to 44px at -3, as the core&apos;s fields do.
@@ -146,9 +161,10 @@ export async function PhoneFieldBody(): Promise<ComponentDoc> {
               is marked <InlineCode>data-tokens=&quot;wm-phone-field&quot;</InlineCode>.
             </li>
             <li>
-              The country field is a Select, so it has the Text field&apos;s tokens in both
-              variants: the <InlineCode>outline</InlineCode> or filled container, 2px{' '}
-              <InlineCode>primary</InlineCode> when focused or open, and{' '}
+              Like the core&apos;s fields, it is <InlineCode>filled</InlineCode> by default, or{' '}
+              <InlineCode>outlined</InlineCode>. The country field is a Select, so it has the Text
+              field&apos;s tokens in both variants: the <InlineCode>outline</InlineCode> or filled
+              container, 2px <InlineCode>primary</InlineCode> when focused or open, and{' '}
               <InlineCode>error</InlineCode> when the number is invalid.
             </li>
             <li>

@@ -31,7 +31,7 @@ import { Tag } from '@windmorph/react-pro';
 export function App() {
   return (
     <ThemeProvider defaultTheme="baseline">
-      <Tag tone="success">Paid</Tag>
+      <Tag color="success">Paid</Tag>
     </ThemeProvider>
   );
 }`;

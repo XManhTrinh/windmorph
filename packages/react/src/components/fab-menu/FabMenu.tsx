@@ -371,7 +371,7 @@ export function FabMenu({
         <MenuTrigger open={isOpen} onOpenChange={setOpen}>
           {button}
           <Menu
-            placement="top end"
+            placement="top-end"
             offset={4}
             aria-label={ariaLabel}
             aria-labelledby={ariaLabelledBy}

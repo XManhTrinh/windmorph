@@ -8,10 +8,13 @@
  *   is not among their static imports. ButtonGroup loads its overflow menu the same way, so
  *   Menu is not among its static imports either. Components that show a tooltip of their own
  *   (icon buttons, FABs, the toolbar's FAB, the pickers) load the tooltip on hover or focus,
- *   and option lists load their loading indicator only while loading. DateField loads the
+ *   option lists load their loading indicator only while loading, and buttons only while
+ *   pending. DateField loads the
  *   modal date picker it opens on compact windows only there,
  * - `List` draws its checkboxes, radio buttons and switches from the small modules it shares
  *   with those controls, not from the controls' own modules,
+ * - the static shape outlines (`materialShapeMask` and the precomputed `<name>Shape`
+ *   constants) never import the shape engine, so drawing a static shape costs only its outline,
  * - both stylesheets carry the component tokens (`generated/components.css`).
  */
 import { readFile, readdir } from 'node:fs/promises';
@@ -84,6 +87,9 @@ const LAZY_IMPORTS: { component: string; lazy: string }[] = [
     'components/autocomplete/Autocomplete.js',
     'components/date-picker/DateField.js',
     'components/pull-to-refresh/PullToRefresh.js',
+    // Buttons show it only while `pending`.
+    'components/button/Button.js',
+    'components/icon-button/IconButton.js',
   ].map((component) => ({
     component,
     lazy: 'components/loading-indicator/LoadingIndicator.js',
@@ -102,6 +108,19 @@ for (const control of [
 ]) {
   if (moduleClosure(`${root}dist`, 'components/list/List.js').includes(control))
     errors.push(`components/list/List.js imports ${control}; import its drawn parts' module`);
+}
+
+/** Static outlines are precomputed: they never load the shape engine. */
+for (const outline of [
+  'shapes/mask.js',
+  'shapes/generated/material-shape-paths.js',
+  'shapes/generated/material-shape-path-record.js',
+]) {
+  const closure = moduleClosure(`${root}dist`, outline);
+  for (const engine of ['shapes/material-shapes.js', 'shapes/rounded-polygon.js']) {
+    if (closure.includes(engine))
+      errors.push(`${outline} imports ${engine}; static outlines must not load the shape engine`);
+  }
 }
 
 const tailwindEntry = await readFile(`${root}dist/styles/styles.css`, 'utf8');

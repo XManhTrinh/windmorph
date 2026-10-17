@@ -11,12 +11,12 @@ export function PageChips({ expressive, pro }: { expressive?: boolean; pro?: boo
   return (
     <span className="inline-flex shrink-0 items-center gap-1">
       {expressive ? (
-        <Tag size="sm" tone="tertiary" title="M3 Expressive">
+        <Tag size="sm" color="tertiary" title="M3 Expressive">
           Expressive
         </Tag>
       ) : null}
       {pro ? (
-        <Tag size="sm" tone="primary" title="Windmorph Pro, not part of Material 3">
+        <Tag size="sm" color="primary" title="Windmorph Pro, not part of Material 3">
           Pro
         </Tag>
       ) : null}

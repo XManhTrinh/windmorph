@@ -288,13 +288,13 @@ describe('TimePicker', () => {
     expect(screen.getByRole('group', { name: 'Clock' })).toBeInTheDocument();
   });
 
-  it('names the mode toggle from the strings it shares with the picker', () => {
-    const strings = { inputMode: 'Type the time', dialMode: 'Pick on the clock' };
+  it('names the mode toggle from the labels it shares with the picker', () => {
+    const labels = { inputMode: 'Type the time', dialMode: 'Pick on the clock' };
     const { rerender } = render(
-      <TimePickerModeToggle mode="dial" onModeChange={() => {}} strings={strings} />,
+      <TimePickerModeToggle mode="dial" onModeChange={() => {}} labels={labels} />,
     );
     expect(screen.getByRole('button', { name: 'Type the time' })).toBeInTheDocument();
-    rerender(<TimePickerModeToggle mode="input" onModeChange={() => {}} strings={strings} />);
+    rerender(<TimePickerModeToggle mode="input" onModeChange={() => {}} labels={labels} />);
     expect(screen.getByRole('button', { name: 'Pick on the clock' })).toBeInTheDocument();
   });
 });

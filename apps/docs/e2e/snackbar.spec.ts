@@ -37,7 +37,7 @@ test.describe('SnackbarHost behaviour', () => {
     await expect(host.getByText('Draft discarded')).toHaveCount(0);
   });
 
-  test('Alt+G reaches an actionable snackbar, Escape dismisses it and focus returns', async ({
+  test('F6 reaches an actionable snackbar, Escape dismisses it and focus returns', async ({
     page,
   }) => {
     await openStory(page, 'components-snackbar--host');
@@ -46,7 +46,7 @@ test.describe('SnackbarHost behaviour', () => {
     await page.keyboard.press('Enter');
     const host = page.getByTestId('host');
     await expect(host.getByText('Message archived')).toBeVisible();
-    await page.keyboard.press('Alt+KeyG');
+    await page.keyboard.press('F6');
     await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('result')).toHaveText('Result: dismissed');
@@ -69,7 +69,7 @@ test.describe('SnackbarHost behaviour', () => {
     await trigger.focus();
     await page.keyboard.press('Enter');
     await expect(host.getByText('Message archived')).toBeVisible();
-    await page.keyboard.press('Alt+KeyG');
+    await page.keyboard.press('F6');
     await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
     await page.evaluate(() => window.scrollTo(0, 1200));
     const before = await page.evaluate(() => window.scrollY);
