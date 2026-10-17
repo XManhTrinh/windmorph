@@ -102,7 +102,8 @@ const lineLimit = (value: unknown) => (value === NONE || value == null ? null : 
 
 /**
  * `required` only applies to a radio list (one with a `value`): turning it on picks the first
- * contact, and going back to a plain list turns it off.
+ * contact, and going back to a plain list turns it off. Dividers and the segmented variant
+ * exclude each other.
  */
 export function adjustListRadio(
   values: Record<string, unknown>,
@@ -112,6 +113,14 @@ export function adjustListRadio(
     return { ...values, value: CONTACTS[0]!.key };
   }
   if (changed === 'value' && values.value === NONE) return { ...values, required: false };
+  // Dividers are for standard lists (segmented items are already apart, and the list throws
+  // for the pair): turning dividers on picks the standard list, and segmented clears them.
+  if (changed === 'dividers' && values.dividers !== NONE && values.variant === 'segmented') {
+    return { ...values, variant: 'standard' };
+  }
+  if (changed === 'variant' && values.variant === 'segmented' && values.dividers !== NONE) {
+    return { ...values, dividers: NONE };
+  }
   return values;
 }
 

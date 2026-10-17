@@ -235,7 +235,7 @@ function ControlInput({
   );
 }
 
-/** A prop's name that may break before each capital or dot (`disallowEmpty·Selection`). */
+/** A prop's name that may break before each capital or dot (`allowCustom·Value`). */
 function BreakableName({ name }: { name: string }) {
   return name.split(/(?=[A-Z.])/).map((part, index) => (
     <Fragment key={index}>

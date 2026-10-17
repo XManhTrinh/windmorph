@@ -106,6 +106,15 @@ describe('control combinations', () => {
     expect(adjustListRadio({ value: 'none', required: true }, 'value')).toMatchObject({
       required: false,
     });
+    // Dividers and the segmented list never meet: the list throws for the pair.
+    expect(adjustListRadio({ variant: 'segmented', dividers: 'full' }, 'dividers')).toMatchObject({
+      variant: 'standard',
+      dividers: 'full',
+    });
+    expect(adjustListRadio({ variant: 'segmented', dividers: 'inset' }, 'variant')).toMatchObject({
+      variant: 'segmented',
+      dividers: 'none',
+    });
   });
 
   it("a filter chip's trailing icon and remove button rule each other out", () => {
