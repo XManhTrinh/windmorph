@@ -11,11 +11,13 @@ import {
   type FocusEvent,
   type HTMLAttributes,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react';
 import {
   mergeProps,
   useInteractOutside,
+  useObjectRef,
   useOverlayPosition,
   useOverlayTrigger,
   usePopover,
@@ -134,6 +136,10 @@ export interface TooltipProps {
    * `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element; React Aria's position wins over them. */
+  style?: CSSProperties;
+  /** Ref to the outermost element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: TooltipClassNames;
 }
@@ -155,6 +161,8 @@ function TooltipPopup({
   children,
   caret = false,
   className,
+  style,
+  ref,
   classNames,
   context,
   isExiting,
@@ -164,7 +172,7 @@ function TooltipPopup({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useObjectRef(ref);
   const { tooltipProps } = useTooltip(context.tooltipProps, context.state);
   const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { overlayProps, arrowProps, placement } = useOverlayPosition({
@@ -184,6 +192,7 @@ function TooltipPopup({
   return (
     <div
       {...overlayProps}
+      style={{ ...style, ...overlayProps.style }}
       ref={overlayRef}
       // Only React Aria's insets apply (styles/utilities.css).
       data-overlay-placement=""
@@ -353,6 +362,10 @@ export interface RichTooltipProps {
    * `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element; React Aria's position wins over them. */
+  style?: CSSProperties;
+  /** Ref to the outermost element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: RichTooltipClassNames;
 }
@@ -400,7 +413,7 @@ function PersistentRichPopup({
   exitProps,
   ...props
 }: PopupProps<Extract<RichContextValue, { persistent: true }>>) {
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useObjectRef(props.ref);
   const titleId = useId();
   const requested = usePhysicalPlacement(context.placement, context.triggerRef);
   const { state, triggerRef } = context;
@@ -442,7 +455,7 @@ function PersistentRichPopup({
   return (
     <RichBody
       {...props}
-      ref={popoverRef}
+      popupRef={popoverRef}
       titleId={titleId}
       positionProps={popoverProps}
       domProps={mergeProps(dialogProps, context.overlayProps, exitProps)}
@@ -512,7 +525,7 @@ function TransientRichPopup({
   exitProps,
   ...props
 }: PopupProps<Extract<RichContextValue, { persistent: false }>>) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useObjectRef(props.ref);
   const titleId = useId();
   const { state } = context;
   const { tooltipProps } = useTooltip(context.tooltipProps, state);
@@ -537,7 +550,7 @@ function TransientRichPopup({
   return (
     <RichBody
       {...props}
-      ref={overlayRef}
+      popupRef={overlayRef}
       titleId={titleId}
       positionProps={overlayProps}
       domProps={mergeProps(tooltipProps, focusProps, exitProps)}
@@ -554,8 +567,9 @@ function RichBody({
   action,
   caret = false,
   className,
+  style,
   classNames,
-  ref,
+  popupRef,
   titleId,
   positionProps,
   domProps,
@@ -563,7 +577,7 @@ function RichBody({
   arrowProps,
   isExiting,
 }: RichTooltipProps & {
-  ref: RefObject<HTMLDivElement | null>;
+  popupRef: RefObject<HTMLDivElement | null>;
   titleId: string;
   /** React Aria's placement, for the outermost element. */
   positionProps: HTMLAttributes<HTMLElement>;
@@ -577,7 +591,8 @@ function RichBody({
   return (
     <div
       {...positionProps}
-      ref={ref}
+      style={{ ...style, ...positionProps.style }}
+      ref={popupRef}
       data-overlay-placement=""
       className={styles.positioner({ class: className })}
     >

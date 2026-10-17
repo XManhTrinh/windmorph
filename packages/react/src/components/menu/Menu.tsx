@@ -17,6 +17,7 @@ import {
   type Key,
   type ReactElement,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from 'react';
 import {
@@ -27,6 +28,7 @@ import {
   useMenu,
   useMenuItem,
   useMenuSection,
+  useObjectRef,
   usePopover,
   useButton,
   useSubmenuTrigger,
@@ -302,6 +304,8 @@ export interface MenuProps extends Omit<
   classNames?: MenuClassNames;
   /** Goes on the menu's outermost element, with `className`. */
   style?: CSSProperties;
+  /** Ref to the menu's list, the `role="menu"` element, in a popover or a sheet. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 /** Where a {@link Menu} sits against its trigger: a side, then optionally the edge it aligns with. */
@@ -689,6 +693,7 @@ function MenuList({
   classNames,
   listRef,
   embedded = false,
+  ref: forwardedRef,
   ...props
 }: MenuListProps) {
   // MenuItem / MenuGroup are React Stately Item / Section, so children are a collection.
@@ -704,7 +709,7 @@ function MenuList({
     disallowEmptySelection: !deselectable,
     disabledBehavior: 'selection',
   });
-  const ownRef = useRef<HTMLDivElement>(null);
+  const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
   // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
   const keyboardDelegate = useTypeaheadDelegate(state, ref);

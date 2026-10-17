@@ -90,6 +90,8 @@ type Naming =
     };
 
 interface CarouselOwnProps {
+  /** The root element's id. */
+  id?: string;
   /**
    * `multi-browse` shows large, medium and small items; `uncontained` shows items of one
    * size that flow past the end edge, never masked or resized; `multi-aspect` is uncontained with items of their own widths
@@ -499,6 +501,7 @@ export function Carousel({
   return (
     <div
       {...data}
+      id={(labelling as { id?: string }).id}
       ref={rootRef}
       role="region"
       aria-roledescription={labels.carousel}

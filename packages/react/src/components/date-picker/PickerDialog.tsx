@@ -7,8 +7,10 @@ import {
   useState,
   type ReactElement,
   type ReactNode,
+  type CSSProperties,
+  type Ref,
 } from 'react';
-import { mergeProps, useDialog, useModalOverlay } from 'react-aria';
+import { mergeProps, useDialog, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
@@ -115,6 +117,12 @@ interface PickerDialogOwnProps {
    * the dialog. Style the surface with `classNames.panel`.
    */
   className?: string;
+  /** Inline styles for the outermost element, with `className`. */
+  style?: CSSProperties;
+  /** The dialog's id (on the panel, the `dialog` element). */
+  id?: string;
+  /** Ref to the panel, the `dialog` element. */
+  ref?: Ref<HTMLDivElement>;
   /** Classes for each part, by slot. */
   classNames?: PickerDialogClassNames;
 }
@@ -162,6 +170,8 @@ function PickerDialogModal({
   labels = {},
   children,
   className,
+  style,
+  ref,
   classNames,
   ...labelling
 }: Omit<PickerDialogProps, 'open' | 'defaultOpen' | 'onOpenChange'> & {
@@ -169,7 +179,7 @@ function PickerDialogModal({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useObjectRef(ref);
   const { modalProps, underlayProps } = useModalOverlay(
     closedByOverlayOptions(closedBy, isExiting),
     state,
@@ -207,7 +217,7 @@ function PickerDialogModal({
         data-exiting={exiting}
         className={shell.scrim({ class: classNames?.scrim })}
       />
-      <div style={DIALOG_ROOT_STYLE} className={shell.root({ class: className })}>
+      <div style={{ ...style, ...DIALOG_ROOT_STYLE }} className={shell.root({ class: className })}>
         <div {...underlayProps} className={shell.positioner()}>
           <div
             {...exitProps}

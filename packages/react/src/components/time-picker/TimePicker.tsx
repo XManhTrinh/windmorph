@@ -126,6 +126,8 @@ export interface TimePickerProps {
    * @default 0
    */
   density?: Density;
+  /** The root `<div>`'s id. */
+  id?: string;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -183,6 +185,7 @@ export function TimePicker({
   layout = 'auto',
   labels = {},
   density,
+  id,
   ref,
   className,
   style,
@@ -226,6 +229,7 @@ export function TimePicker({
   return (
     <div
       {...data}
+      id={id}
       ref={rootRef}
       style={style}
       // The time picker's component tokens (time-picker-tokens.ts).
@@ -319,6 +323,12 @@ export interface TimePickerModeToggleProps {
   clockIcon?: ReactElement;
   /** Classes for the icon button; consumer classes win. */
   className?: string;
+  /** Inline styles for the icon button. */
+  style?: CSSProperties;
+  /** The icon button's id. */
+  id?: string;
+  /** Ref to the icon button. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -339,9 +349,13 @@ export function TimePickerModeToggle({
   keyboardIcon,
   clockIcon,
   className,
+  style,
+  id,
+  ref,
 }: TimePickerModeToggleProps) {
   const room = useTimePickerRoom();
   if (room === 'none') return null;
+  const own = { className, style, id, ref };
   return mode === 'dial' ? (
     <IconButton
       variant="standard"
@@ -350,7 +364,7 @@ export function TimePickerModeToggle({
       icon={keyboardIcon ?? <KeyboardIcon />}
       aria-label={labels.inputMode ?? 'Toggle input picker'}
       onPress={() => onModeChange('input')}
-      className={className}
+      {...own}
     />
   ) : (
     <IconButton
@@ -359,7 +373,7 @@ export function TimePickerModeToggle({
       icon={clockIcon ?? <ScheduleIcon />}
       aria-label={labels.dialMode ?? 'Toggle dial picker'}
       onPress={() => onModeChange('dial')}
-      className={className}
+      {...own}
     />
   );
 }

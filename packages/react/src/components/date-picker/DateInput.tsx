@@ -40,6 +40,7 @@ export interface DateInputProps {
   disabled?: boolean | undefined;
   readOnly?: boolean | undefined;
   name?: string | undefined;
+  id?: string | undefined;
   autoFocus?: boolean | undefined;
   invalid?: boolean | undefined;
   errorMessage?: ReactNode;
@@ -75,6 +76,7 @@ export function DateInput({
   disabled,
   readOnly,
   name,
+  id,
   autoFocus,
   invalid,
   errorMessage,
@@ -136,6 +138,7 @@ export function DateInput({
   return (
     <TextField
       {...data}
+      {...(id !== undefined && { id })}
       ref={ref}
       style={style}
       inputRef={inputRef as Ref<HTMLInputElement | HTMLTextAreaElement>}

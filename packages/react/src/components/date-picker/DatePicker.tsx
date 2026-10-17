@@ -162,6 +162,8 @@ interface DatePickerCommonProps {
    * @default 0
    */
   density?: Density;
+  /** The root `<div>`'s id. */
+  id?: string;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -380,6 +382,7 @@ function PickerFrame({
   defaultMode = 'calendar',
   yearRange = [1900, 2100],
   labels = {},
+  id,
   ref,
   className,
   style,
@@ -422,6 +425,7 @@ function PickerFrame({
   return (
     <div
       {...data}
+      id={id}
       ref={(element) => {
         attachSize(element);
         directionRef(element);

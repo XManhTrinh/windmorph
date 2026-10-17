@@ -114,7 +114,7 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
   StatelySelectProps<T, M>,
   RenamedProps
 > &
-  Pick<AriaSelectOptions<T, M>, 'name' | 'autoComplete' | 'form'> & {
+  Pick<AriaSelectOptions<T, M>, 'id' | 'name' | 'autoComplete' | 'form'> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**

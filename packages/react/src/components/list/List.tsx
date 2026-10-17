@@ -376,6 +376,8 @@ type Naming =
 type ListChild = ReactElement<ListItemProps> | ReactElement<ListSectionProps>;
 
 interface ListOwnProps {
+  /** The root element's id. */
+  id?: string;
   /** Flush items, or separate items 2px apart with rounded group corners. @default "standard" */
   variant?: ListVariant;
   /** `ListItem` elements, or `ListSection`s of them. */
@@ -806,6 +808,7 @@ function StaticList({
     <ul
       {...data}
       {...rootTokens}
+      id={rest.id}
       ref={ref as Ref<HTMLUListElement>}
       style={style}
       aria-label={label}
@@ -1940,6 +1943,7 @@ function RadioList({
     'aria-labelledby'?: string;
   };
   const options: AriaRadioGroupProps = {
+    id: rest.id,
     'aria-label': label,
     'aria-labelledby': labelledBy,
     value,

@@ -90,6 +90,8 @@ interface SliderCommonProps {
   formatOptions?: Intl.NumberFormatOptions;
   /** Form field name (one hidden input per thumb). */
   name?: string;
+  /** The id of the slider's root, its `group` (an error summary can link to it). */
+  id?: string;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -198,6 +200,7 @@ function SliderRoot(props: RootProps) {
     valueLabel = false,
     formatOptions,
     name,
+    id,
     ref,
     className,
     style,
@@ -233,6 +236,7 @@ function SliderRoot(props: RootProps) {
     v === undefined ? undefined : Array.isArray(v) ? v : [v];
   const unwrap = (v: number[]) => (range ? (v as [number, number]) : v[0]!);
   const ariaProps = {
+    id,
     minValue: min,
     maxValue: max,
     step,

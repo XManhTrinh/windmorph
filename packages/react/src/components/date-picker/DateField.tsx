@@ -146,6 +146,8 @@ export interface DateFieldProps {
   readOnly?: boolean;
   /** Form field name; the input submits the typed text. */
   name?: string;
+  /** The `<input>`'s id, for a `<label for>` or an error summary's link. */
+  id?: string;
   /** Icon of the button that opens the calendar. */
   calendarIcon?: ReactElement;
   /**
@@ -220,6 +222,7 @@ function DateFieldInner({
   disabled,
   readOnly,
   name,
+  id,
   calendarIcon,
   density,
   labels = {},
@@ -269,6 +272,7 @@ function DateFieldInner({
         disabled={disabled}
         readOnly={readOnly}
         name={name}
+        id={id}
         style={style}
         data={data}
         className={cn(root, className)}

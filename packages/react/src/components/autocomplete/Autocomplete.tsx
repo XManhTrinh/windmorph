@@ -110,7 +110,7 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
   ComboBoxProps<T, M>,
   RenamedProps
 > &
-  Pick<AriaComboBoxOptions<T, M>, 'name' | 'form'> & {
+  Pick<AriaComboBoxOptions<T, M>, 'id' | 'name' | 'form'> & {
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**

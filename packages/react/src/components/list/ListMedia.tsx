@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { cn } from '../../utils/cn';
 import { listMediaStyles } from './list-styles';
 
@@ -25,6 +32,12 @@ interface MediaImageProps {
   fallback?: ReactNode;
   /** Classes for the frame, merged after `classNames.media`; consumer classes win. */
   className?: string;
+  /** The frame's inline styles. */
+  style?: CSSProperties | undefined;
+  /** The frame's id. */
+  id?: string | undefined;
+  /** Ref to the frame (`<span>`). */
+  ref?: Ref<HTMLSpanElement> | undefined;
 }
 
 export type ListItemImageProps = MediaImageProps;
@@ -70,10 +83,15 @@ function MediaImage({ src, alt, srcSet, sizes, children, fallback }: MediaImageP
  *   Dinner at our place
  * </ListItem>
  */
-export function ListItemImage({ className, ...image }: ListItemImageProps) {
+export function ListItemImage({ className, style, id, ref, ...image }: ListItemImageProps) {
   const media = useContext(ListMediaContext);
   return (
-    <span className={listMediaStyles({ kind: 'image' }).frame({ class: cn(media, className) })}>
+    <span
+      style={style}
+      id={id}
+      ref={ref}
+      className={listMediaStyles({ kind: 'image' }).frame({ class: cn(media, className) })}
+    >
       <MediaImage {...image} />
     </span>
   );
@@ -84,11 +102,19 @@ export function ListItemImage({ className, ...image }: ListItemImageProps) {
  * corners, 100 × 56dp or 114 × 64dp (`size="lg"`), with a play badge and its `duration`
  * in the corner. Pressing it is pressing the item.
  */
-export function ListItemVideo({ className, duration, size = 'sm', ...image }: ListItemVideoProps) {
+export function ListItemVideo({
+  className,
+  style,
+  id,
+  ref,
+  duration,
+  size = 'sm',
+  ...image
+}: ListItemVideoProps) {
   const media = useContext(ListMediaContext);
   const styles = listMediaStyles({ kind: 'video', size });
   return (
-    <span className={styles.frame({ class: cn(media, className) })}>
+    <span style={style} id={id} ref={ref} className={styles.frame({ class: cn(media, className) })}>
       <MediaImage {...image} />
       <span aria-hidden="true" className={styles.badge()}>
         <svg viewBox="0 -960 960 960">
@@ -113,6 +139,12 @@ export interface ListItemAvatarProps {
   children?: ReactNode;
   /** Classes for the avatar's circle; consumer classes win. */
   className?: string;
+  /** The frame's inline styles. */
+  style?: CSSProperties | undefined;
+  /** The frame's id. */
+  id?: string | undefined;
+  /** Ref to the frame (`<span>`). */
+  ref?: Ref<HTMLSpanElement> | undefined;
 }
 
 /**
@@ -124,10 +156,23 @@ export interface ListItemAvatarProps {
  *   Alex Lee
  * </ListItem>
  */
-export function ListItemAvatar({ className, alt = '', children, ...image }: ListItemAvatarProps) {
+export function ListItemAvatar({
+  className,
+  style,
+  id,
+  ref,
+  alt = '',
+  children,
+  ...image
+}: ListItemAvatarProps) {
   const media = useContext(ListMediaContext);
   return (
-    <span className={listMediaStyles({ kind: 'avatar' }).frame({ class: cn(media, className) })}>
+    <span
+      style={style}
+      id={id}
+      ref={ref}
+      className={listMediaStyles({ kind: 'avatar' }).frame({ class: cn(media, className) })}
+    >
       <MediaImage
         {...image}
         alt={alt}

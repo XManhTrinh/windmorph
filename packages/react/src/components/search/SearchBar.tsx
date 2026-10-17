@@ -113,6 +113,8 @@ export type SearchBarInputProps = Omit<
 };
 
 interface SearchBarOwnProps {
+  /** The root element's id. */
+  id?: string;
   /** Controlled query. */
   value?: string;
   /** Initial query when uncontrolled. @default "" */
@@ -310,7 +312,7 @@ export function SearchBar(props: SearchBarProps) {
     hasLeading: leading != null,
     hasTrailing: trailing != null,
   });
-  const { data } = splitDataAttributes(rest);
+  const { data, rest: own } = splitDataAttributes(rest);
   // In an app bar the collapsed field is `surface-container`; the expanded view's field
   // keeps the search view's own `surface-container-high`.
   const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';
@@ -373,6 +375,7 @@ export function SearchBar(props: SearchBarProps) {
   return (
     <div
       {...data}
+      id={(own as { id?: string }).id}
       ref={rootRef}
       style={style}
       data-expanded={state.isOpen || undefined}
