@@ -1,12 +1,13 @@
 import type { ComponentDoc } from './doc';
+import { materialShapeNames, materialShapePaths } from '@windmorph/react/primitives';
 import { CodeBlock } from '@windmorph/react-pro';
 import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 
 /*
- * This is a conceptual reference, not a live demo page. `@windmorph/react/primitives` is not in
- * the apps/site ESLint allowlist (only `@windmorph/react`, `/next` and `@windmorph/react-pro` are), so this page
- * must NOT import primitives — the usage below is shown with string snippets fed to
+ * This is a conceptual reference, not a live demo page. The apps/site ESLint allowlist lets
+ * the site import only the precomputed shape outlines from `@windmorph/react/primitives` (data
+ * for the shape table below), so the rest of the usage is shown with string snippets fed to
  * `CodeBlock`, and there are no `apps/site/examples/primitives/*` files. `generate-props`
  * does not scan primitives either, so the page is registered with `propsComponents: []`
  * and the template renders no props table. Sections (b) live examples and (c) props are
@@ -27,7 +28,9 @@ const importSnippet = `import {
   useKeepPressedInPlace,
   // Building your own component
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
-  materialShapeMask,
+  // Static shapes (precomputed outlines, no shape engine)
+  type MaterialShapePath, materialShapeMask, materialShapePaths,
+  circleShape, cookie12SidedShape, sunnyShape, /* … one <name>Shape per shape */
   // Morph & shapes
   useM3Morph, morphPathAt, getMorph,
   RoundedPolygon, CornerRounding, Cubic, Morph,
@@ -71,6 +74,21 @@ export const acmeBadgeTokens = defineComponentTokens({
 // At build time, write the variables into your stylesheet.
 const css = componentTokensCss(acmeBadgeTokens);`;
 
+const staticShapeSnippet = `import { cookie12SidedShape, materialShapeMask, materialShapePaths } from '@windmorph/react/primitives';
+
+// One constant per shape: a bundler keeps only the outlines you import (Cookie12Sided adds
+// about 0.4 kB gzipped), and none of them loads the shape engine.
+const mask = materialShapeMask(cookie12SidedShape);
+// Inline styles get no vendor prefix, and Chrome and Edge before 120 read only -webkit-mask-*.
+<div className="size-14 bg-primary-container [mask-size:100%_100%]"
+  style={{ maskImage: mask, WebkitMaskImage: mask }} />
+
+// Picking a shape by name (a gallery, a shape picker) costs all 35 outlines (about 10.5 kB).
+const shape = materialShapePaths[name];
+
+// Your own outline works too: a closed SVG path in the unit square.
+const notch = { name: 'Notch', path: 'M0 0H1V1L.5 .8 0 1Z' };`;
+
 const shapeSnippet = `// Pure geometry (src/shapes): no React, no tokens. useM3Morph returns a Motion value
 // of SVG path data; morphPathAt is the same as a plain function at a fixed progress.
 const d = morphPathAt(['Circle', 'Flower'], 0.5, { size: 48 });
@@ -78,15 +96,68 @@ const d = morphPathAt(['Circle', 'Flower'], 0.5, { size: 48 });
 // Render morphs with overflow visible: mid-morph control points can sit ~1% outside the box.
 <svg viewBox="0 0 48 48" overflow="visible"><path d={d} /></svg>`;
 
+/** The 35 precomputed outlines, read from the library so the table never drifts. */
+function ShapeTable() {
+  const caption = 'Precomputed shape outlines';
+  return (
+    <div
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+      className="overflow-x-auto rounded-corner-large border border-outline-variant outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+    >
+      <table className="w-full text-start text-body-medium text-on-surface">
+        <caption className="sr-only">{caption}</caption>
+        <thead className="bg-surface-container text-label-large text-on-surface-variant">
+          <tr>
+            <th scope="col" className="px-4 py-3 text-start">
+              Shape
+            </th>
+            <th scope="col" className="px-4 py-3 text-start">
+              Constant
+            </th>
+            <th scope="col" className="px-4 py-3 text-start">
+              <InlineCode>name</InlineCode>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {materialShapeNames.map((name) => (
+            <tr key={name} className="border-t border-outline-variant">
+              <td className="px-4 py-2">
+                <svg
+                  viewBox="0 0 1 1"
+                  aria-hidden="true"
+                  className="size-8 fill-primary forced-colors:fill-[CanvasText]"
+                >
+                  <path d={materialShapePaths[name].path} />
+                </svg>
+              </td>
+              <th scope="row" className="px-4 py-2 text-start font-plain">
+                <code>{`${name[0]!.toLowerCase()}${name.slice(1)}Shape`}</code>
+              </th>
+              <td className="px-4 py-2 text-on-surface-variant">
+                <code>{name}</code>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /** Primitives reference page body (prose + string CodeBlocks; no live primitives import). */
 export async function PrimitivesBody(): Promise<ComponentDoc> {
-  const [importHtml, interactionHtml, surfaceHtml, tokensHtml, shapeHtml] = await Promise.all([
-    highlightSource(importSnippet),
-    highlightSource(interactionSnippet),
-    highlightSource(surfaceSnippet),
-    highlightSource(tokensSnippet),
-    highlightSource(shapeSnippet),
-  ]);
+  const [importHtml, interactionHtml, surfaceHtml, tokensHtml, staticShapeHtml, shapeHtml] =
+    await Promise.all([
+      highlightSource(importSnippet),
+      highlightSource(interactionSnippet),
+      highlightSource(surfaceSnippet),
+      highlightSource(tokensSnippet),
+      highlightSource(staticShapeSnippet),
+      highlightSource(shapeSnippet),
+    ]);
 
   return {
     overview: (
@@ -110,11 +181,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
             primitives together correctly.
           </p>
           <p className="text-body-medium text-on-surface-variant">
-            Because the docs site is restricted to the public M3 entries, this page cannot import
-            primitives for live demos and has no generated props table. Sections{' '}
-            <em>Live examples</em> and <em>Props</em> are therefore not applicable here; the
-            snippets below are illustrative strings. The authoritative API lives in the source and
-            TSDoc under <InlineCode>packages/react/src/primitives.ts</InlineCode>.
+            Because the docs site is restricted to the public M3 entries (it imports only the
+            precomputed shape outlines from primitives, for the shape table), this page has no live
+            demos and no generated props table. Sections <em>Live examples</em> and <em>Props</em>{' '}
+            are therefore not applicable here; the snippets below are illustrative strings. The
+            authoritative API lives in the source and TSDoc under{' '}
+            <InlineCode>packages/react/src/primitives.ts</InlineCode>.
           </p>
         </section>
 
@@ -237,9 +309,18 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               they are given), <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
               <InlineCode>ThemeProvider</InlineCode> or <InlineCode>ThemeScope</InlineCode>, to
               provide one for a subtree), <InlineCode>generateSchemeColors</InlineCode> (every
-              colour role as a hex value, for checks such as contrast) and{' '}
-              <InlineCode>materialShapeMask</InlineCode> (an M3 shape as a CSS{' '}
-              <InlineCode>mask-image</InlineCode>).
+              colour role as a hex value, for checks such as contrast).
+            </li>
+            <li>
+              Static shapes: the 35 M3 Expressive shapes precomputed as outlines, one{' '}
+              <InlineCode>MaterialShapePath</InlineCode> constant each (
+              <InlineCode>circleShape</InlineCode> … <InlineCode>heartShape</InlineCode>: a{' '}
+              <InlineCode>name</InlineCode> and SVG <InlineCode>path</InlineCode> data in the unit
+              square, 3 decimals), <InlineCode>materialShapePaths</InlineCode> (all of them by name)
+              and <InlineCode>materialShapeMask(shape)</InlineCode> (an outline as a CSS{' '}
+              <InlineCode>mask-image</InlineCode>: an SVG <InlineCode>data:</InlineCode> URI in a 1
+              × 1 box, so with <InlineCode>mask-size: 100% 100%</InlineCode> one outline serves
+              every size). None of them loads the shape engine.
             </li>
           </ul>
         </section>
@@ -267,6 +348,24 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
             lang="tsx"
             title="Surface + ButtonBase"
           />
+          <h3 id="static-shapes" className="text-title-large text-on-surface">
+            Static shapes
+          </h3>
+          <p className="text-body-large text-on-surface-variant">
+            A shape that never moves (an avatar, an icon container) needs only its outline, so the
+            outlines are computed once at build time and exported as constants. Import the constant
+            for each shape you draw: a bundler drops the others, and no shape engine loads. Import{' '}
+            <InlineCode>materialShapePaths</InlineCode> only to pick a shape by name, since it holds
+            all 35. The outlines aren&apos;t mirrored in right-to-left layouts, as in Compose: the
+            shapes are glyph-like, not directional.
+          </p>
+          <CodeBlock
+            code={staticShapeSnippet}
+            html={staticShapeHtml}
+            lang="tsx"
+            title="Static shapes"
+          />
+          <ShapeTable />
           <p className="text-body-large text-on-surface-variant">
             Morphing shapes: the shape library is pure geometry ported from{' '}
             <InlineCode>androidx.graphics.shapes</InlineCode> and Compose&apos;s{' '}

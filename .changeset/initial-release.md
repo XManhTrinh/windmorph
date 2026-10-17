@@ -14,6 +14,8 @@ A selectable list's options are named by all their visible text (overline, headl
 
 Touch targets (`TouchTarget` and the M icon button's) are 48px in px, so they keep their size when a reader raises the browser's font size instead of growing with the text and overlapping their neighbours.
 
+The 35 M3 Expressive shapes come precomputed for static use, one constant each (`circleShape` … `heartShape`, each a `MaterialShapePath` with a `name` and an SVG `path` in the unit square), plus `materialShapePaths` (all of them by name), from `@windmorph/react/primitives`. `materialShapeMask` takes a `MaterialShapePath` instead of a shape name (`materialShapeMask(cookie12SidedShape)`, or `materialShapeMask(materialShapePaths[name])`) and no longer loads the shape engine, so a static shape costs an app only its outline. `materialShapeNames` and `MaterialShapeName` are unchanged.
+
 Menu items with a `description` are named by their label and supporting text instead of the label alone with the supporting text as a description, so the accessible name contains the visible label (WCAG 2.5.3); the `shortcut` and `badge` are still read as the description, once.
 
 `Tabs` takes `disabled`, `TooltipTrigger` and `RichTooltipTrigger` take `disabled` and `open`, like the rest of the library, instead of React Aria's `isDisabled` and `isOpen`; `onOpenChange` receives `open`. The `Overlay` primitive's `isExiting` is now `exiting`, and `OptionPopover`'s `isNonModal` is now `nonModal`.

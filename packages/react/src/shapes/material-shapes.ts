@@ -5,6 +5,9 @@ import { CornerRounding } from './corner-rounding';
 import { Point, type PointTransformer } from './point';
 import { RoundedPolygon } from './rounded-polygon';
 import { circle, rectangle, star } from './shapes';
+import type { MaterialShapeName } from './generated/material-shape-paths';
+
+export type { MaterialShapeName };
 
 const cornerRound15 = new CornerRounding(0.15);
 const cornerRound20 = new CornerRounding(0.2);
@@ -354,11 +357,12 @@ const builders = {
       1,
       { mirroring: true },
     ),
-} satisfies Record<string, () => RoundedPolygon>;
+} satisfies Record<MaterialShapeName, () => RoundedPolygon>;
 
-export type MaterialShapeName = keyof typeof builders;
-
-export const materialShapeNames = Object.keys(builders) as MaterialShapeName[];
+// The names tuple lives in the generated outlines module (`generated/material-shape-paths.ts`),
+// which `scripts/generate.ts` writes from these builders' keys, so static shapes can list the
+// names without loading the builders.
+const names = Object.keys(builders) as MaterialShapeName[];
 
 const cache = new Map<MaterialShapeName, RoundedPolygon>();
 
@@ -369,7 +373,7 @@ const cache = new Map<MaterialShapeName, RoundedPolygon>();
 export const MaterialShapes = Object.defineProperties(
   {} as Readonly<Record<MaterialShapeName, RoundedPolygon>>,
   Object.fromEntries(
-    materialShapeNames.map((name) => [
+    names.map((name) => [
       name,
       {
         enumerable: true,

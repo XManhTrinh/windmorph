@@ -146,6 +146,7 @@ export default tseslint.config(
               group: [
                 '@windmorph/react/*',
                 '!@windmorph/react/next',
+                '!@windmorph/react/primitives',
                 '!@windmorph/react/styles.css',
                 '@windmorph/react-pro/*',
                 '!@windmorph/react-pro/rich-text',
@@ -153,6 +154,15 @@ export default tseslint.config(
               ],
               message:
                 'apps/site may import UI only from @windmorph/react, @windmorph/react/next, @windmorph/react-pro or @windmorph/react-pro/rich-text.',
+            },
+            {
+              // The precomputed shape outlines are data an app passes to a shaped component
+              // (`shape={cookie12SidedShape}`), so examples and the shape tables may import them.
+              group: ['@windmorph/react/primitives'],
+              allowImportNamePattern:
+                '^(?:\\w+Shape|materialShapePaths|materialShapeNames|materialShapeMask|MaterialShapePath|MaterialShapeName)$',
+              message:
+                'apps/site may import only the precomputed shape outlines from @windmorph/react/primitives.',
             },
             {
               group: [

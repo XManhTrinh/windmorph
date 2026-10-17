@@ -9,9 +9,11 @@
         "src/**/*-tokens.ts",
         "src/theme/css.ts",
         "src/theme/scheme.ts",
+        "src/shapes/**",
+        "!src/shapes/generated/**",
         "scripts/**"
       ],
-      "outputs": ["src/styles/generated/*.css", "component-tokens.txt"]
+      "outputs": ["src/styles/generated/*.css", "src/shapes/generated/*.ts", "component-tokens.txt"]
     },
     "build": {
       "dependsOn": ["^build", "generate"],
