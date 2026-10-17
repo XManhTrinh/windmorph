@@ -69,7 +69,7 @@ test.describe('SnackbarHost behaviour', () => {
     await trigger.focus();
     await page.keyboard.press('Enter');
     await expect(host.getByText('Message archived')).toBeVisible();
-    await page.keyboard.press('Alt+KeyG');
+    await page.keyboard.press('F6');
     await expect(host.getByRole('button', { name: 'Undo' })).toBeFocused();
     await page.evaluate(() => window.scrollTo(0, 1200));
     const before = await page.evaluate(() => window.scrollY);

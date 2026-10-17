@@ -130,7 +130,7 @@ describe('Checkbox', () => {
     expect(box).toHaveClass(
       'border-[color:var(--_md-comp-checkbox-unselected-outline-color)]',
       'text-[color:var(--_md-comp-checkbox-selected-icon-color)]',
-      'group-data-checked/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
+      'control-checked:bg-[var(--_md-comp-checkbox-selected-container-color)]',
     );
   });
 

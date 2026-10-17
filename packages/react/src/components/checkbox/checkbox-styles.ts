@@ -36,26 +36,26 @@ export const checkboxStyles = tv({
       'group-data-pressed/control:border-on-surface',
       // Checked and indeterminate boxes have no outline (Selected*OutlineWidth = 0): the border turns
       // transparent and the fill shows through it, in every state, invalid included.
-      'group-data-checked/control:border-transparent group-data-indeterminate/control:border-transparent',
-      'group-data-checked/control:bg-[var(--_md-comp-checkbox-selected-container-color)] group-data-indeterminate/control:bg-[var(--_md-comp-checkbox-selected-container-color)]',
-      'group-data-checked/control:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] group-data-indeterminate/control:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
-      'group-data-checked/control:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)] group-data-indeterminate/control:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+      'control-checked:border-transparent',
+      'control-checked:bg-[var(--_md-comp-checkbox-selected-container-color)]',
+      'control-checked:[transition-duration:var(--md-sys-motion-spring-effects-default-duration)]',
+      'control-checked:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
       'group-data-invalid/control:border-error group-data-invalid/control:text-on-error',
-      'group-data-invalid/control:group-data-checked/control:bg-error group-data-invalid/control:group-data-indeterminate/control:bg-error',
+      'group-data-invalid/control:control-checked:bg-error',
       // Stacked so the error outline also wins over the pressed colour (equal specificity
       // otherwise), and a pressed selected box still has no outline.
       'group-data-invalid/control:group-data-pressed/control:border-error',
-      'group-data-invalid/control:group-data-pressed/control:group-data-checked/control:border-transparent group-data-invalid/control:group-data-pressed/control:group-data-indeterminate/control:border-transparent',
+      'group-data-invalid/control:group-data-pressed/control:control-checked:border-transparent',
       'group-data-disabled/control:border-on-surface/38 group-data-disabled/control:text-surface',
-      'group-data-disabled/control:group-data-checked/control:border-transparent group-data-disabled/control:group-data-indeterminate/control:border-transparent',
-      'group-data-disabled/control:group-data-checked/control:bg-on-surface/38 group-data-disabled/control:group-data-indeterminate/control:bg-on-surface/38',
+      'group-data-disabled/control:control-checked:border-transparent',
+      'group-data-disabled/control:control-checked:bg-on-surface/38',
       'group-data-disabled/control:[transition-duration:0s]',
       // Forced colours: the box in system colours, `GrayText` when disabled, so a disabled
       // box doesn't look like an enabled one (a selected box is filled, its mark `Canvas`).
       'forced-colors:forced-color-adjust-none forced-colors:border-[CanvasText]! forced-colors:text-[Canvas]!',
-      'forced-colors:group-data-checked/control:border-transparent! forced-colors:group-data-indeterminate/control:border-transparent! forced-colors:group-data-checked/control:bg-[CanvasText]! forced-colors:group-data-indeterminate/control:bg-[CanvasText]!',
+      'forced-colors:control-checked:border-transparent! forced-colors:control-checked:bg-[CanvasText]!',
       'forced-colors:group-data-disabled/control:border-[GrayText]!',
-      'forced-colors:group-data-disabled/control:group-data-checked/control:border-transparent! forced-colors:group-data-disabled/control:group-data-indeterminate/control:border-transparent! forced-colors:group-data-disabled/control:group-data-checked/control:bg-[GrayText]! forced-colors:group-data-disabled/control:group-data-indeterminate/control:bg-[GrayText]!',
+      'forced-colors:group-data-disabled/control:control-checked:border-transparent! forced-colors:group-data-disabled/control:control-checked:bg-[GrayText]!',
     ],
     // The box sits inside its 2px border, so the 18px drawing area is offset by it.
     icon: 'pointer-events-none absolute -inset-[2px] size-[18px] overflow-visible',

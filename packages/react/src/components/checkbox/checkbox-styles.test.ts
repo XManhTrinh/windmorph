@@ -56,16 +56,16 @@ describe('checkboxStyles', () => {
     const box = slots.box().split(' ');
     expect(box).toContain('forced-colors:group-data-disabled/control:border-[GrayText]!');
     expect(box).toContain(
-      'forced-colors:group-data-disabled/control:group-data-checked/control:bg-[GrayText]!',
+      'forced-colors:group-data-disabled/control:control-checked:bg-[GrayText]!',
     );
   });
 
   it('gives checked boxes no outline, invalid included', () => {
     const box = slots.box().split(' ');
-    expect(box).toContain('group-data-checked/control:border-transparent');
-    expect(box).not.toContain('group-data-checked/control:border-primary');
+    expect(box).toContain('control-checked:border-transparent');
+    expect(box).not.toContain('control-checked:border-primary');
     expect(box).toContain(
-      'group-data-invalid/control:group-data-pressed/control:group-data-checked/control:border-transparent',
+      'group-data-invalid/control:group-data-pressed/control:control-checked:border-transparent',
     );
   });
 });

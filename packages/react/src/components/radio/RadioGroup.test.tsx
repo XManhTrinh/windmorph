@@ -133,7 +133,7 @@ describe('RadioGroup', () => {
     expect(ring).toHaveClass(
       'border-[color:var(--_md-comp-radio-button-unselected-icon-color)]',
       'text-[color:var(--_md-comp-radio-button-selected-icon-color)]',
-      'group-data-checked/control:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
+      'control-checked:border-[color:var(--_md-comp-radio-button-selected-icon-color)]',
     );
   });
 

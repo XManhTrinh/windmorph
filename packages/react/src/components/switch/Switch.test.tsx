@@ -168,7 +168,7 @@ describe('Switch', () => {
     expect(thumb).toHaveClass(
       'bg-[var(--_md-comp-switch-unselected-handle-color)]',
       'text-[color:var(--_md-comp-switch-unselected-icon-color)]',
-      'group-data-checked/control:bg-[var(--_md-comp-switch-selected-handle-color)]',
+      'control-checked:bg-[var(--_md-comp-switch-selected-handle-color)]',
     );
   });
 
