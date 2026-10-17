@@ -87,10 +87,8 @@ test.describe('Bottom sheet', () => {
     expect((await rect(sheet)).y).toBe(72);
     // Filling the window, it shows a close button.
     await expect(sheet.getByRole('button', { name: 'Close', exact: true })).toBeVisible();
-    // Escape returns it to half, then closes it; focus returns to the trigger.
-    await page.keyboard.press('Escape');
-    await settle(page);
-    expect((await rect(sheet)).y).toBe(400);
+    // One Escape closes it from full height (a close request, WAI-ARIA APG modal dialog); focus
+    // returns to the trigger.
     await page.keyboard.press('Escape');
     await expect(sheet).toBeHidden();
     await expect(page.getByRole('button', { name: 'Open sheet' })).toBeFocused();
@@ -908,7 +906,7 @@ test.describe('Moving down to a lower detent never overshoots it', () => {
     return page.evaluate(() => (window as unknown as { tops: number[] }).tops);
   }
 
-  test('Escape from full to half on a modal sheet', async ({ page }) => {
+  test('Escape closing a fully open modal sheet in one move down', async ({ page }) => {
     await page.setViewportSize({ width: 412, height: 800 });
     await openStory(page, 'components-sheet--bottom-tall');
     await page.getByRole('button', { name: 'Open sheet' }).click();
@@ -916,8 +914,10 @@ test.describe('Moving down to a lower detent never overshoots it', () => {
     await page.getByRole('button', { name: 'Expand sheet' }).click();
     await settle(page);
     const frames = await tops(page, () => page.keyboard.press('Escape'));
-    expect(frames.at(-1)).toBe(400);
-    expect(Math.max(...frames)).toBeLessThanOrEqual(400.5);
+    // It leaves downwards without stopping at half: every frame is at or below the last.
+    for (let i = 1; i < frames.length; i++)
+      expect(frames[i]!).toBeGreaterThanOrEqual(frames[i - 1]! - 0.5);
+    await expect(page.getByRole('dialog')).toBeHidden();
   });
 
   test('the standard sheet’s handle collapsing it to the peek', async ({ page }) => {

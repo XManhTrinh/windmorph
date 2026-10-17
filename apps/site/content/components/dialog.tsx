@@ -187,8 +187,8 @@ export async function DialogBody(): Promise<ComponentDoc> {
             decision. A basic dialog is an alert dialog on the web, as the spec says: it needs a
             decision and isn&apos;t dismissed by pressing outside. Set{' '}
             <InlineCode>role=&quot;dialog&quot;</InlineCode> (or{' '}
-            <InlineCode>dismissable</InlineCode>) for one a press outside may close. For
-            non-blocking supplementary content prefer a sheet, and for a brief message prefer a
+            <InlineCode>closedBy=&quot;any&quot;</InlineCode>) for one a press outside may close.
+            For non-blocking supplementary content prefer a sheet, and for a brief message prefer a
             snackbar.
           </p>
           <p className="text-body-large text-on-surface-variant">

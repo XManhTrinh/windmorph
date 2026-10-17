@@ -34,6 +34,7 @@ import {
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { useWarnOnce } from '../../utils/warn-once';
@@ -258,10 +259,12 @@ export interface DialogProps
    * @default "alertdialog", or "dialog" when fullScreen isn't "never"
    */
   role?: 'dialog' | 'alertdialog';
-  /** Closes when pressing outside the dialog. @default true, or false for an alertdialog */
-  dismissable?: boolean;
-  /** Prevents Escape from closing the dialog. @default false */
-  keyboardDismissDisabled?: boolean;
+  /**
+   * How the user can close the dialog, as HTML's `<dialog closedby>`: `any` (Escape or a
+   * press outside), `closerequest` (Escape only) or `none` (only its own buttons or the app).
+   * @default "closerequest" for an alertdialog, "any" otherwise
+   */
+  closedBy?: ClosedBy;
   /** Icon above the title (which is then centred). Decorative. Not shown in full screen. */
   icon?: ReactNode;
   /**
@@ -419,8 +422,7 @@ function DialogModal({
   triggerOverlayProps,
   originBox,
   role: roleProp,
-  dismissable,
-  keyboardDismissDisabled,
+  closedBy,
   icon,
   fullScreen = 'never',
   placement = 'center',
@@ -448,10 +450,10 @@ function DialogModal({
   const [hasContent, setHasContent] = useState(false);
   const [headerAction, setHeaderAction] = useState(false);
   const { modalProps, underlayProps } = useModalOverlay(
-    {
-      isDismissable: (dismissable ?? role !== 'alertdialog') && !isExiting,
-      isKeyboardDismissDisabled: keyboardDismissDisabled,
-    },
+    closedByOverlayOptions(
+      closedBy ?? (role === 'alertdialog' ? 'closerequest' : 'any'),
+      isExiting,
+    ),
     state,
     panelRef,
   );

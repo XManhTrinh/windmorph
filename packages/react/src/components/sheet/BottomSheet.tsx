@@ -28,6 +28,7 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive } from '../../utils/focus';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -155,8 +156,12 @@ interface BottomSheetOwnProps {
    * Space, or a drag), Escape or its collapse button. Not called for a modal sheet.
    */
   onDetentChange?: (detent: BottomSheetDetent) => void;
-  /** Pressing the scrim closes the sheet (modal). @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close a modal sheet, as HTML's `<dialog closedby>`: `any` (Escape, a
+   * press on the scrim or a drag down), `closerequest` (Escape or a drag down) or `none`
+   * (only its buttons or the app). @default "any"
+   */
+  closedBy?: ClosedBy;
   /**
    * While the sheet fills the window height, show a close button (modal) or a collapse
    * button (standard) at its top end. @default true
@@ -187,7 +192,7 @@ export type BottomSheetProps = BottomSheetOwnProps &
 /**
  * M3 bottom sheet. A `modal` sheet slides up over a scrim, opening to half the window when
  * its content is taller (drag the handle up, or press it, to expand), and closes on a drag
- * down, a press on the scrim or Escape (which first returns a fully open sheet to half). A
+ * down, a press on the scrim or Escape, in one press from any height. A
  * `standard` sheet sits over the page without a scrim, collapsed to `peekHeight` until it
  * is expanded, or opening expanded with `defaultDetent="expanded"`; `detent` and
  * `onDetentChange` control it.
@@ -241,7 +246,7 @@ function ModalBottomSheet({
   state,
   isExiting,
   triggerOverlayProps,
-  dismissable = true,
+  closedBy = 'any',
   classNames,
   ref,
   ...props
@@ -249,8 +254,8 @@ function ModalBottomSheet({
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const { modalProps, underlayProps } = useModalOverlay(
     {
-      isDismissable: dismissable && !isExiting,
-      // Escape first returns a fully open sheet to half (Compose's settleToDismiss).
+      ...closedByOverlayOptions(closedBy, isExiting),
+      // The panel handles Escape itself (below), so a nested control's Escape stays its own.
       isKeyboardDismissDisabled: true,
     },
     state,
@@ -272,6 +277,7 @@ function ModalBottomSheet({
         <BottomSheetPanel
           {...props}
           variant="modal"
+          closedBy={closedBy}
           state={state}
           isExiting={isExiting}
           classNames={classNames}
@@ -305,7 +311,7 @@ function BottomSheetPanel({
   detent: detentProp,
   defaultDetent = 'collapsed',
   onDetentChange,
-  dismissable: _dismissable,
+  closedBy = 'any',
   closeButton = true,
   closeIcon,
   collapseIcon,
@@ -414,13 +420,9 @@ function BottomSheetPanel({
 
   const close = state.close;
 
-  const anchors = standard
-    ? hasLower
-      ? [0, lowerOffset]
-      : [0]
-    : hasLower
-      ? [0, lowerOffset, height]
-      : [0, height];
+  // A modal sheet's last anchor is closed, unless the user may not close it (`closedBy="none"`).
+  const closable = !standard && closedBy !== 'none';
+  const anchors = [0, ...(hasLower ? [lowerOffset] : []), ...(closable ? [height] : [])];
 
   const settle = (target: number, velocity: number) => {
     setDrag(null);
@@ -564,9 +566,11 @@ function BottomSheetPanel({
       setDetent('lower');
       return;
     }
+    // Escape is a close request: it closes a modal sheet in one press, from any detent (WAI-ARIA
+    // APG modal dialog; HTML's close request), unless the user may not close it.
+    if (closedBy === 'none') return;
     event.stopPropagation();
-    if (current === 'expanded' && hasLower) setDetent('lower');
-    else close();
+    close();
   };
 
   const handleRef = useRef<HTMLDivElement>(null);

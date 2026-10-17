@@ -25,6 +25,7 @@ import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately'
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
 import { focusFirstInteractive, tabbables } from '../../utils/focus';
 import { DensityZeroButtons } from '../button/DensityZeroButtons';
@@ -101,8 +102,12 @@ interface SideSheetOwnProps {
   footerDivider?: boolean;
   /** A divider between a standard sheet and the content beside it. @default true */
   divider?: boolean;
-  /** Pressing the scrim closes a modal sheet. @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close a modal sheet, as HTML's `<dialog closedby>`: `any` (Escape or a
+   * press on the scrim), `closerequest` (Escape only) or `none` (only its buttons or the app).
+   * @default "any"
+   */
+  closedBy?: ClosedBy;
   /** Replaces the close button's icon. */
   closeIcon?: ReactElement;
   /** Replaces the back button's icon. */
@@ -299,7 +304,7 @@ function ModalSideSheet({
   exitProps,
   triggerOverlayProps,
   detached = false,
-  dismissable = true,
+  closedBy = 'any',
   divider: _divider,
   footerDivider = false,
   className,
@@ -321,7 +326,7 @@ function ModalSideSheet({
     footerDivider,
   });
   const { modalProps, underlayProps } = useModalOverlay(
-    { isDismissable: dismissable && !isExiting },
+    closedByOverlayOptions(closedBy, isExiting),
     state,
     panelRef,
   );
@@ -374,7 +379,7 @@ function StandardSideSheet({
   detached = false,
   divider = true,
   footerDivider = false,
-  dismissable: _dismissable,
+  closedBy: _closedBy,
   className,
   style,
   ref,

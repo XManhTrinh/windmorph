@@ -16,7 +16,7 @@ export const sheets: ComponentAccessibility = {
     {
       keys: ['Escape'],
       action:
-        'Works like the back button: a fully open modal sheet with a half-open height returns to half, otherwise the modal sheet closes. A fully open standard sheet collapses to its peek height.',
+        'Closes a modal sheet in one press, from any height (a close request, as in a modal dialog), unless `closedBy="none"`. A fully open standard sheet collapses to its peek height.',
       where: 'Bottom sheet',
     },
     {

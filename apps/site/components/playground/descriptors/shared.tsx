@@ -29,7 +29,8 @@ export interface PlaygroundDescriptor {
   notControlled?: Record<string, string>;
   /**
    * Defaults that depend on other values, for the snippet: a prop equal to one is left out
-   * (Dialog's `dismissable` defaults to true for `role="dialog"`, false for `alertdialog`).
+   * (Dialog's `closedBy` defaults to `"any"` for `role="dialog"`, `"closerequest"` for
+   * `alertdialog`).
    */
   codeDefaults?: (values: Record<string, unknown>) => Record<string, unknown>;
   /**

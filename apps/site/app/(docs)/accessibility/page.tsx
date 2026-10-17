@@ -57,7 +57,7 @@ const KEYBOARD = [
   ],
   [
     'Dialog',
-    'Focus is contained while open and returns to the trigger on close; Esc dismisses unless keyboardDismissDisabled is set; an outside press dismisses too, except for an alertdialog (the default role) without dismissable.',
+    "Focus is contained while open and returns to the trigger on close; Esc closes it and an outside press closes it too, except for an alertdialog (the default role); closedBy, as the HTML dialog's closedby, changes which of them may close it.",
   ],
   ['Tooltip', 'Shows on hover or keyboard focus, stays while focused, and Esc hides it.'],
   ['Slider', 'Arrow keys adjust the value; Home / End jump to the ends.'],

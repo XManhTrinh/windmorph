@@ -162,15 +162,15 @@ const CONTENT_NAME =
 
 /** Props that only make sense for testing or wiring, or that only name things for assistive tech. */
 const ADVANCED_NAME =
-  /^(?:dragged|appear|autoFocus|focusOnMount|announce|keyboardDismissDisabled|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|elementType|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|menuLabel|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
+  /^(?:dragged|appear|autoFocus|focusOnMount|announce|swipeable|instant|clearOnSubmit|expandOnFocus|defaultOpen|rootMargin|stickyTop|listWidth|detailKey|offset|containerPadding|as|titleAs|listAs|elementType|preventFocusOnPress|decorative|supportingTextOnFocus|defaultSearchValue|resultsAnnouncement|menuLabel|prefixLabel|suffixLabel|badgeLabel|listLabel|detailLabel|leadingLabel|fullLabel)$/;
 
 /** Booleans and numbers that change only how it looks: Appearance. */
 const APPEARANCE_NAME =
-  /^(?:show[A-Z]\w*|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|quick|iconTransition|indicatorMotion)$/;
+  /^(?:show[A-Z]\w*|valueLabel|modeToggle|counter|lineNumbers|idleIcon|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|quick|iconTransition|indicatorMotion)$/;
 
 /** Choices that change how it works rather than how it looks: Behaviour. */
 const BEHAVIOUR_ENUM =
-  /^(?:selectionMode|value|defaultOption|submitOn|keyboardActivation|scrollBehavior|snap|mode|defaultMode|defaultDetent|hourCycle|type|capture|status|active|toolsWhenIdle|role|presentation|exitEdge)$/;
+  /^(?:selectionMode|value|defaultOption|submitOn|keyboardActivation|scrollBehavior|snap|mode|defaultMode|defaultDetent|closedBy|hourCycle|type|capture|status|active|toolsWhenIdle|role|presentation|exitEdge)$/;
 
 /**
  * The section a control sits in, from its name and kind, unless the descriptor's `groups`

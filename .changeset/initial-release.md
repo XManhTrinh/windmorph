@@ -27,3 +27,5 @@ The date and time pickers take their words in `labels`, like every other compone
 Props that show or hide an optional part are named after the part: `valueLabel` on `Slider` and `RangeSlider` (was `showValueLabel`), `header` and `modeToggle` on `DatePicker` and `DateRangePicker` (were `showHeader` and `showModeToggle`), and `counter` on `TextField` (was `showCharacterCount`).
 
 `Slider`'s inset icons are `leadingIcon` and `trailingIcon`, the names every other icon slot uses, instead of `startIcon` and `endIcon`.
+
+`Dialog`, `BottomSheet`, `SideSheet` and `PickerDialog` take `closedBy` (`'any' | 'closerequest' | 'none'`, as HTML's `<dialog closedby>`) instead of `dismissable` and `keyboardDismissDisabled`; the defaults are unchanged (`'closerequest'` for an alert dialog, `'any'` otherwise). Escape closes a modal bottom sheet in one press, from any height, instead of first lowering a fully open sheet to half; `closedBy="none"` also keeps a drag down from closing it.

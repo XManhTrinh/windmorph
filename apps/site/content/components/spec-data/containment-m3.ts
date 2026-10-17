@@ -74,7 +74,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: 'Dismissal options',
-        note: '`dismissable` lets a press outside close an alert dialog, and `keyboardDismissDisabled` keeps Escape from closing one.',
+        note: "`closedBy` (HTML's `<dialog closedby>`) picks what closes it: `any` (Escape or a press outside), `closerequest` (Escape only, an alert dialog's default) or `none`.",
       },
       {
         item: 'Motion callbacks and no motion',
@@ -99,11 +99,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'title', windmorph: 'DialogTitle' },
           { compose: 'text', windmorph: 'DialogContent' },
           { compose: 'confirmButton, dismissButton', windmorph: 'DialogActions' },
-          { compose: 'properties.dismissOnClickOutside', windmorph: 'dismissable' },
+          { compose: 'properties.dismissOnClickOutside', windmorph: 'closedBy="any"' },
           {
             compose: 'properties.dismissOnBackPress',
-            windmorph: 'keyboardDismissDisabled',
-            note: 'inverted: Escape is the web back gesture',
+            windmorph: 'closedBy',
+            note: '`none` keeps Escape, the web back gesture, from closing it',
           },
         ],
       },
@@ -304,6 +304,12 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
         examples: ['sheets/sheet-side-levels'],
       },
     ],
+    differences: [
+      {
+        item: 'Escape on a modal bottom sheet',
+        note: "Escape closes a modal sheet in one press, as a close request closes a modal dialog on the web (WAI-ARIA APG), where Compose's back press first returns a fully open sheet to half. Drags and the handle still stop at half.",
+      },
+    ],
     extensions: [
       {
         item: 'Skip the half detent',
@@ -331,7 +337,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
             windmorph: 'skipPartiallyExpanded',
           },
           { compose: 'dragHandle', windmorph: 'dragHandle' },
-          { compose: 'properties.shouldDismissOnClickOutside', windmorph: 'dismissable' },
+          { compose: 'properties.shouldDismissOnClickOutside', windmorph: 'closedBy="any"' },
         ],
       },
       {

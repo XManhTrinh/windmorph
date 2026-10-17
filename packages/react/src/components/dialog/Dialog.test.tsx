@@ -110,7 +110,7 @@ describe('Dialog', () => {
     await gone('Delete file?');
   });
 
-  it('stays when pressing outside, unless it is a plain dialog or dismissable', async () => {
+  it('stays when pressing outside, unless it is a plain dialog or closedBy="any"', async () => {
     const { unmount } = render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
@@ -123,9 +123,24 @@ describe('Dialog', () => {
     await gone('Delete file?', 'dialog');
     unmountPlain();
 
-    render(<DeleteDialog dismissable />);
+    render(<DeleteDialog closedBy="any" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
+    await gone('Delete file?');
+  });
+
+  it('closes on Escape unless closedBy is "none"', async () => {
+    const { unmount } = render(<DeleteDialog closedBy="none" />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('alertdialog', { name: 'Delete file?' })).toBeInTheDocument();
+    await userEvent.click(screen.getByTestId('panel').parentElement!.parentElement!);
+    expect(screen.getByRole('alertdialog', { name: 'Delete file?' })).toBeInTheDocument();
+    unmount();
+
+    render(<DeleteDialog />);
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
+    await userEvent.keyboard('{Escape}');
     await gone('Delete file?');
   });
 

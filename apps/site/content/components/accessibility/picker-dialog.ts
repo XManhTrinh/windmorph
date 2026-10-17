@@ -32,7 +32,7 @@ export const pickerDialog: ComponentAccessibility = {
   ],
   touchTarget: [
     'The actions are your buttons; text and icon buttons have 48 × 48px targets. The full-screen close (x) button is an icon button with a 48 × 48px target.',
-    'A press outside the panel closes the dialog while `dismissable` (the default), so the scrim is one large target.',
+    'A press outside the panel closes the dialog while `closedBy` is `"any"` (the default), so the scrim is one large target.',
   ],
   motion: [
     "Under reduced motion both transitions (`reveal` and `scale`) keep only their fades: the dialog doesn't slide, grow or scale.",

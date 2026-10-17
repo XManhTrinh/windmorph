@@ -21,6 +21,7 @@ import { PickerDialogContext } from './picker-dialog-context';
 import { pickerDialogStyles } from './picker-dialog-styles';
 import { CloseIcon } from './picker-icons';
 import { COMPACT_WINDOW, useMediaQuery } from './use-media-query';
+import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 
 type Naming =
   | {
@@ -98,8 +99,12 @@ interface PickerDialogOwnProps {
    * @default "reveal"
    */
   transition?: DialogTransition;
-  /** Pressing outside closes the dialog. @default true */
-  dismissable?: boolean;
+  /**
+   * How the user can close the dialog, as HTML's `<dialog closedby>`: `any` (Escape or a
+   * press outside), `closerequest` (Escape only) or `none` (only its actions or the app).
+   * @default "any"
+   */
+  closedBy?: ClosedBy;
   /** Words the full-screen form shows and announces, with English defaults. */
   labels?: Partial<PickerDialogLabels>;
   /** The picker. */
@@ -152,7 +157,7 @@ function PickerDialogModal({
   modeToggleButton,
   fullScreen = 'never',
   closeIcon,
-  dismissable = true,
+  closedBy = 'any',
   transition = 'reveal',
   labels = {},
   children,
@@ -166,7 +171,7 @@ function PickerDialogModal({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const { modalProps, underlayProps } = useModalOverlay(
-    { isDismissable: dismissable && !isExiting },
+    closedByOverlayOptions(closedBy, isExiting),
     state,
     panelRef,
   );

@@ -374,6 +374,7 @@ export {
   type DialogTriggerProps,
 } from './components/dialog/Dialog';
 export { dialogStyles, type DialogStyleProps } from './components/dialog/dialog-styles';
+export type { ClosedBy } from './utils/closed-by';
 export { dialogTokenSet } from './components/dialog/dialog-tokens';
 export {
   ContextMenuTrigger,

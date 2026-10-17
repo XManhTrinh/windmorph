@@ -21,7 +21,7 @@ function Instances() {
       <PickerDialog
         aria-label="Select date"
         defaultOpen
-        dismissable={false}
+        closedBy="closerequest"
         confirmButton={<Button variant="text">OK</Button>}
       >
         <DatePicker defaultValue={start} />

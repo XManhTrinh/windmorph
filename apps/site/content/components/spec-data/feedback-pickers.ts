@@ -567,7 +567,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'dismissButton', windmorph: 'dismissButton' },
           {
             compose: 'properties (DialogProperties)',
-            windmorph: 'dismissable, fullScreen',
+            windmorph: 'closedBy, fullScreen',
             note: 'Compose has no full-screen date picker; the spec recommends one on compact windows.',
           },
         ],

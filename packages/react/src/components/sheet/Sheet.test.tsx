@@ -84,7 +84,7 @@ describe('BottomSheet', () => {
     expect(screen.queryByRole('dialog')).toBe(null);
   });
 
-  it('opens a tall sheet halfway; the handle expands it and Escape returns it to half', async () => {
+  it('opens a tall sheet halfway; the handle expands it and one Escape closes it', async () => {
     vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(700);
     vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
     const onOpenChange = vi.fn();
@@ -100,10 +100,27 @@ describe('BottomSheet', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
     expect(dialog).toHaveAttribute('data-detent', 'expanded');
     expect(dialog.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
-    fireEvent.keyDown(dialog, { key: 'Escape' });
-    expect(dialog).toHaveAttribute('data-detent', 'partial');
+    // Escape is a close request: a fully open modal sheet closes in one press (APG modal dialog).
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('with closedBy="none", Escape and a drag down leave a modal sheet open', () => {
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onOpenChange = vi.fn();
+    render(
+      <BottomSheet aria-label="Details" closedBy="none" defaultOpen onOpenChange={onOpenChange}>
+        Short content
+      </BottomSheet>,
+    );
+    const dialog = screen.getByRole('dialog');
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    const handle = screen.getByRole('button', { name: 'Close sheet' });
+    fireEvent.pointerDown(handle, { button: 0, pointerId: 1, clientY: 500 });
+    fireEvent.pointerMove(handle, { pointerId: 1, clientY: 780 });
+    fireEvent.pointerUp(handle, { pointerId: 1, clientY: 780 });
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 
   it('closes when dragged down past the threshold', () => {

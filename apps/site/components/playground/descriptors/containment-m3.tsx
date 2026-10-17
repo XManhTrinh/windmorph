@@ -203,8 +203,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       icon: false,
       fullScreen: 'never',
       placement: 'center',
-      dismissable: false,
-      keyboardDismissDisabled: false,
+      closedBy: 'closerequest',
       origin: false,
       quick: false,
       transition: 'reveal',
@@ -216,19 +215,23 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'fullScreen',
       'origin',
       'placement',
-      'dismissable',
-      'keyboardDismissDisabled',
+      'closedBy',
       'quick',
       'transition',
     ],
     enumOptions: { role: ['alertdialog', 'dialog'], transition: ['reveal', 'scale'] },
-    // `dismissable` defaults by role: false for an alert dialog, true for a plain one. A role
-    // change resets it to the new default, and the snippet writes it only when it differs.
-    codeDefaults: (values) => ({ dismissable: values.role !== 'alertdialog' }),
+    // `closedBy` defaults by role: Escape only for an alert dialog, Escape or a press outside for
+    // a plain one. A role change resets it to the new default, and the snippet writes it only
+    // when it differs.
+    codeDefaults: (values) => ({
+      closedBy: values.role === 'alertdialog' ? 'closerequest' : 'any',
+    }),
     // `origin` grows only a full-screen dialog out of the trigger, so turning it on makes a
     // basic dialog full screen.
     adjust: (values, changed) => {
-      if (changed === 'role') return { ...values, dismissable: values.role !== 'alertdialog' };
+      if (changed === 'role') {
+        return { ...values, closedBy: values.role === 'alertdialog' ? 'closerequest' : 'any' };
+      }
       if (changed === 'origin' && values.origin === true && values.fullScreen === 'never') {
         return { ...values, fullScreen: 'always' };
       }
@@ -472,7 +475,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       skipPartiallyExpanded: false,
       peekHeight: 56,
       defaultDetent: 'collapsed',
-      dismissable: true,
+      closedBy: 'any',
       closeButton: true,
       closeIcon: false,
       collapseIcon: false,
@@ -494,7 +497,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'skipPartiallyExpanded',
       'peekHeight',
       'defaultDetent',
-      'dismissable',
+      'closedBy',
       'closeButton',
       'onBack',
       'actions',
