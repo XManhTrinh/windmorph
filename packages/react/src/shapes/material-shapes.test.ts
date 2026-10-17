@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MaterialShapes, materialShapeNames } from './material-shapes';
+import { materialShapeNames } from './generated/material-shape-paths';
+import { MaterialShapes } from './material-shapes';
 import { Morph } from './morph';
 import { morphToPath, polygonToPath } from './path';
 import { RoundedPolygon } from './rounded-polygon';

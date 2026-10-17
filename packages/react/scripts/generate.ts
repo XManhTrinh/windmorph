@@ -7,9 +7,11 @@ import {
   componentsCss,
   discoverComponentTokenSets,
 } from './lib/component-tokens';
+import { materialShapePathFiles } from './lib/material-shape-paths';
 import { generateTailwindThemeCss, generateTokensCss } from './lib/token-css';
 import { writeGenerated } from './lib/write';
 
+const packageDir = fileURLToPath(new URL('../', import.meta.url));
 const outDir = fileURLToPath(new URL('../src/styles/generated/', import.meta.url));
 const tokenNamesFile = new URL('../component-tokens.txt', import.meta.url);
 
@@ -25,8 +27,11 @@ await Promise.all([
   writeGenerated(`${outDir}theme.css`, generateTailwindThemeCss()),
   writeGenerated(`${outDir}components.css`, componentsCss(tokenSets)),
   writeFile(tokenNamesFile, `${componentTokenNames(tokenSets)}\n`),
+  ...Object.entries(materialShapePathFiles()).map(([file, source]) =>
+    writeFile(`${packageDir}${file}`, source),
+  ),
 ]);
 
 console.log(
-  `Generated tokens.css, themes.css, theme.css and components.css (${tokenSets.length} component token sets)`,
+  `Generated tokens.css, themes.css, theme.css, components.css (${tokenSets.length} component token sets) and the shape outlines`,
 );
