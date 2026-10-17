@@ -136,9 +136,9 @@ export interface DateRangePickerClassNames extends DatePickerClassNames {
 
 interface DatePickerCommonProps {
   /** Earliest date allowed; earlier days are disabled. */
-  minValue?: DateValue;
+  min?: DateValue;
   /** Latest date allowed; later days are disabled. */
-  maxValue?: DateValue;
+  max?: DateValue;
   /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** Show the header (title, headline and mode toggle). @default true */
@@ -149,7 +149,7 @@ interface DatePickerCommonProps {
   defaultMode?: 'calendar' | 'input';
   /**
    * First and last years of the year list (and of a range's month list). Years outside
-   * `minValue` / `maxValue` are shown disabled. @default [1900, 2100]
+   * `min` / `max` are shown disabled. @default [1900, 2100]
    */
   yearRange?: [number, number];
   /** Words the picker shows and announces, with English defaults. */
@@ -250,8 +250,8 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
   const state = useCalendarState({
     value,
     onChange: (date) => setValue(date as CalendarDate),
-    minValue: props.minValue,
-    maxValue: props.maxValue,
+    minValue: props.min,
+    maxValue: props.max,
     isDateUnavailable: props.isDateUnavailable,
     locale,
     createCalendar,
@@ -273,8 +273,8 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
           value={value}
           onCommit={(date) => date && setValue(date)}
           onEnter={(date) => date && confirm?.requestConfirm()}
-          minValue={props.minValue}
-          maxValue={props.maxValue}
+          min={props.min}
+          max={props.max}
           isDateUnavailable={props.isDateUnavailable}
           labels={labels}
           density={props.density}
@@ -302,17 +302,17 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
   const scroll = monthLayout === 'scroll';
   const listStart = maxDate(
     new CalendarDate(firstYear, 1, 1),
-    props.minValue ? toCalendarDate(props.minValue) : null,
+    props.min ? toCalendarDate(props.min) : null,
   )!;
   const listEnd = minDate(
     new CalendarDate(lastYear, 12, 31),
-    props.maxValue ? toCalendarDate(props.maxValue) : null,
+    props.max ? toCalendarDate(props.max) : null,
   )!;
   const state = useRangeCalendarState({
     value,
     onChange: (range) => setValue(range as DateRange),
-    minValue: scroll ? listStart : props.minValue,
-    maxValue: scroll ? listEnd : props.maxValue,
+    minValue: scroll ? listStart : props.min,
+    maxValue: scroll ? listEnd : props.max,
     isDateUnavailable: props.isDateUnavailable,
     visibleDuration: scroll ? { months: monthsBetween(listStart, listEnd) + 1 } : undefined,
     locale,
@@ -330,8 +330,8 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
       ? `${format(value.start)} – ${format(value.end)}`
       : (labels.noSelection ?? 'Start date – End date');
   const common = {
-    minValue: props.minValue,
-    maxValue: props.maxValue,
+    min: props.min,
+    max: props.max,
     isDateUnavailable: props.isDateUnavailable,
     labels,
     density: props.density,

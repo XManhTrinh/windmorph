@@ -21,3 +21,5 @@ Menu items with a `description` are named by their label and supporting text ins
 The date and time pickers take their words in `labels`, like every other component, instead of `strings`: `DateField`, `DatePicker`, `DateRangePicker`, `PickerDialog`, `TimePicker` and `TimePickerModeToggle`, with the types `DateFieldLabels`, `DateInputLabels`, `DatePickerLabels`, `PickerDialogLabels` and `TimePickerLabels`. Every labels type lists all its keys, and the `labels` prop takes any of them (`Partial<…Labels>`), `Badge`'s included.
 
 `Checkbox` and `Switch` take `checked`, `defaultChecked` and `onCheckedChange`, as HTML and Compose name them, instead of `selected`, `defaultSelected` and `onSelectedChange`; checkboxes, switches and radios mark their state with `data-checked` instead of `data-selected` (a checkbox's `data-indeterminate` is unchanged). Toggle buttons, chips and navigation items keep `selected`.
+
+`Slider`, `RangeSlider`, `DatePicker`, `DateRangePicker` and `DateField` take `min` and `max`, as HTML's range and date inputs do, instead of `minValue` and `maxValue`.

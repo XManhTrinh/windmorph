@@ -449,14 +449,14 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   },
   'date-picker': {
     component: 'DatePicker',
-    groups: { minValue: 'behaviour', maxValue: 'behaviour', yearRange: 'behaviour' },
+    groups: { min: 'behaviour', max: 'behaviour', yearRange: 'behaviour' },
     notRendered: {
       DateRangePicker:
         'Picks a start and an end date in the same calendar; the Range examples show it.',
       DateField:
         'A text field for typing a date, with a calendar menu; the Date field example shows it.',
     },
-    render: ({ minValue, maxValue, yearRange, defaultMode, density, ...props }) =>
+    render: ({ min, max, yearRange, defaultMode, density, ...props }) =>
       createElement(
         'div',
         { className: 'w-fit max-w-full rounded-corner-extra-large bg-surface-container-high' },
@@ -467,8 +467,8 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           defaultMode,
           density: asDensity(density),
           defaultValue: DATE,
-          ...(minValue === true && { minValue: MIN_DATE }),
-          ...(maxValue === true && { maxValue: MAX_DATE }),
+          ...(min === true && { min: MIN_DATE }),
+          ...(max === true && { max: MAX_DATE }),
           ...(yearRange === true && { yearRange: [2020, 2040] }),
         }),
       ),
@@ -477,8 +477,8 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       showModeToggle: true,
       defaultMode: 'calendar',
       density: 0,
-      minValue: false,
-      maxValue: false,
+      min: false,
+      max: false,
       yearRange: false,
     },
     surfacedProps: [
@@ -486,20 +486,20 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'showModeToggle',
       'defaultMode',
       'density',
-      'minValue',
-      'maxValue',
+      'min',
+      'max',
       'yearRange',
     ],
     enumOptions: { density: ['0', '-1', '-2', '-3'] },
     controlKinds: {
       density: 'number',
-      minValue: 'boolean',
-      maxValue: 'boolean',
+      min: 'boolean',
+      max: 'boolean',
       yearRange: 'boolean',
     },
     toggledSlots: {
-      minValue: 'new CalendarDate(2030, 3, 5)',
-      maxValue: 'new CalendarDate(2030, 3, 25)',
+      min: 'new CalendarDate(2030, 3, 5)',
+      max: 'new CalendarDate(2030, 3, 25)',
       yearRange: '[2020, 2040]',
     },
     notControlled: {

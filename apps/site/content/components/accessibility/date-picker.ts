@@ -59,7 +59,7 @@ export const datePicker: ComponentAccessibility = {
     {
       keys: ['Arrow Up', 'Arrow Down', 'Arrow Left', 'Arrow Right'],
       action:
-        "Moves between years (three to a row in the modal picker's list) or, in the docked calendar's lists, up and down between months or years. Options outside `minValue` / `maxValue` are skipped.",
+        "Moves between years (three to a row in the modal picker's list) or, in the docked calendar's lists, up and down between months or years. Options outside `min` / `max` are skipped.",
       where: 'In the year and month lists',
     },
     {
@@ -85,7 +85,7 @@ export const datePicker: ComponentAccessibility = {
     role: 'The month is a `grid` (React Aria `useCalendarGrid`) of day buttons under `columnheader` weekdays. The year and month lists are `radiogroup`s of `radio`s. The docked calendar is a `dialog`, opened from an icon button at the end of a text field.',
     name: 'Each day is named by its full date, and each weekday header by its full name (`abbr`, also shown on hover). The grid is named by the month it shows. The lists are named `labels.yearList` ("Year") and `labels.monthList` ("Month"), the docked calendar `labels.calendar` ("Choose a date"), and the field by its `label`.',
     states:
-      'Selected and unavailable days. Years and months are checked or not (`aria-checked`); those outside `minValue` / `maxValue` are disabled (`aria-disabled`) but stay focusable. The calendar button has `aria-haspopup="dialog"` and `aria-expanded`, and the month and year buttons have `aria-expanded`. A typed date that can\'t be used makes the field invalid, with the reason as its error text.',
+      'Selected and unavailable days. Years and months are checked or not (`aria-checked`); those outside `min` / `max` are disabled (`aria-disabled`) but stay focusable. The calendar button has `aria-haspopup="dialog"` and `aria-expanded`, and the month and year buttons have `aria-expanded`. A typed date that can\'t be used makes the field invalid, with the reason as its error text.',
     notes: [
       'The headline and the month label are `aria-live="polite"`, so a new selection and a new month are announced.',
       'The locale\'s format ("MM/DD/YYYY") is the field\'s placeholder and helper text.',

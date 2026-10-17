@@ -154,7 +154,7 @@ describe('DateField (docked date picker)', () => {
         defaultValue={march}
         defaultOpen
         yearRange={[2025, 2035]}
-        maxValue={new CalendarDate(2032, 6, 30)}
+        max={new CalendarDate(2032, 6, 30)}
       />,
     );
     const calendar = screen.getByRole('dialog');

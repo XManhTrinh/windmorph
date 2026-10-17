@@ -62,7 +62,7 @@ export const DateInput: Story = {
             value={value}
             onChange={setValue}
             defaultMode="input"
-            minValue={new CalendarDate(2020, 1, 1)}
+            min={new CalendarDate(2020, 1, 1)}
           />
         </div>
         <p className="text-body-medium" data-testid="value">
@@ -84,7 +84,7 @@ export const Docked: Story = {
           value={value}
           onChange={setValue}
           yearRange={[2020, 2040]}
-          maxValue={new CalendarDate(2035, 12, 31)}
+          max={new CalendarDate(2035, 12, 31)}
         />
         <p className="text-body-medium" data-testid="value">
           Value {value?.toString() ?? 'none'}

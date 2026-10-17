@@ -540,8 +540,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       size: 'xs',
       orientation: 'horizontal',
-      minValue: 0,
-      maxValue: 100,
+      min: 0,
+      max: 100,
       step: 1,
       ticks: false,
       centered: false,
@@ -554,8 +554,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'size',
       'orientation',
       'value',
-      'minValue',
-      'maxValue',
+      'min',
+      'max',
       'step',
       'ticks',
       'centered',
@@ -569,8 +569,8 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     toggledSlots: { startIcon: '<VolumeDownIcon />', endIcon: '<VolumeUpIcon />' },
     numberRanges: {
       value: { min: 0, max: 100 },
-      minValue: { min: 0, max: 50, step: 5 },
-      maxValue: { min: 50, max: 200, step: 10 },
+      min: { min: 0, max: 50, step: 5 },
+      max: { min: 50, max: 200, step: 10 },
       step: { min: 1, max: 25 },
     },
     notControlled: {

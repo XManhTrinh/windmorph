@@ -13,8 +13,8 @@ export interface CompactDateDialogProps {
   onOpenChange: (open: boolean) => void;
   value: CalendarDate | null;
   onCommit: (date: CalendarDate | null) => void;
-  minValue: DateValue | undefined;
-  maxValue: DateValue | undefined;
+  min: DateValue | undefined;
+  max: DateValue | undefined;
   isDateUnavailable: ((date: DateValue) => boolean) | undefined;
   yearRange: [number, number];
   labels: Partial<DateFieldLabels>;
@@ -34,8 +34,8 @@ export function CompactDateDialog({
   onOpenChange,
   value,
   onCommit,
-  minValue,
-  maxValue,
+  min,
+  max,
   isDateUnavailable,
   yearRange,
   labels,
@@ -74,8 +74,8 @@ export function CompactDateDialog({
       <DatePicker
         value={draft}
         onChange={setDraft}
-        minValue={minValue}
-        maxValue={maxValue}
+        min={min}
+        max={max}
         isDateUnavailable={isDateUnavailable}
         yearRange={yearRange}
         labels={labels}

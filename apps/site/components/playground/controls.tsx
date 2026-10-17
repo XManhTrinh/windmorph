@@ -116,8 +116,8 @@ function NumberSlider({
       <Slider
         // The slider names its own input from `aria-label` (it has no visible label of its own).
         aria-label={label}
-        minValue={min}
-        maxValue={max}
+        min={min}
+        max={max}
         step={step}
         // Unset, the slider rests on the prop's default (or the start) and the readout dims.
         value={value ?? rest ?? min}

@@ -119,9 +119,9 @@ export interface DateFieldProps {
   /** A date was typed and committed, or picked and confirmed; `null` when cleared. */
   onChange?: (value: CalendarDate | null) => void;
   /** Earliest date allowed; earlier days are disabled. */
-  minValue?: DateValue;
+  min?: DateValue;
   /** Latest date allowed; later days are disabled. */
-  maxValue?: DateValue;
+  max?: DateValue;
   /** Returns `true` for a day that can't be picked (it shows disabled). */
   isDateUnavailable?: (date: DateValue) => boolean;
   /** First and last years of the year menu; years outside min / max are disabled. @default [1900, 2100] */
@@ -206,8 +206,8 @@ function DateFieldInner({
   value: valueProp,
   defaultValue,
   onChange,
-  minValue,
-  maxValue,
+  min,
+  max,
   isDateUnavailable,
   yearRange = [1900, 2100],
   open,
@@ -258,8 +258,8 @@ function DateFieldInner({
         label={label}
         value={value}
         onCommit={setValue}
-        minValue={minValue}
-        maxValue={maxValue}
+        min={min}
+        max={max}
         isDateUnavailable={isDateUnavailable}
         labels={labels}
         supportingText={supportingText}
@@ -293,8 +293,8 @@ function DateFieldInner({
             onOpenChange={overlay.setOpen}
             value={value}
             onCommit={setValue}
-            minValue={minValue}
-            maxValue={maxValue}
+            min={min}
+            max={max}
             isDateUnavailable={isDateUnavailable}
             yearRange={yearRange}
             labels={labels}
@@ -310,8 +310,8 @@ function DateFieldInner({
               overlay.close();
             }}
             onCancel={overlay.close}
-            minValue={minValue}
-            maxValue={maxValue}
+            min={min}
+            max={max}
             isDateUnavailable={isDateUnavailable}
             yearRange={yearRange}
             labels={labels}
@@ -331,8 +331,8 @@ function DockedCalendar({
   value,
   onCommit,
   onCancel,
-  minValue,
-  maxValue,
+  min: minValue,
+  max: maxValue,
   isDateUnavailable,
   yearRange,
   labels,
@@ -342,8 +342,8 @@ function DockedCalendar({
   value: CalendarDate | null;
   onCommit: (date: CalendarDate | null) => void;
   onCancel: () => void;
-  minValue: DateValue | undefined;
-  maxValue: DateValue | undefined;
+  min: DateValue | undefined;
+  max: DateValue | undefined;
   isDateUnavailable: ((date: DateValue) => boolean) | undefined;
   yearRange: [number, number];
   labels: Partial<DateFieldLabels>;

@@ -402,7 +402,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'yearRange', windmorph: 'yearRange' },
           {
             compose: 'selectableDates',
-            windmorph: 'minValue, maxValue, isDateUnavailable',
+            windmorph: 'min, max, isDateUnavailable',
           },
           { compose: 'showModeToggle', windmorph: 'showModeToggle' },
           { compose: 'title, headline', windmorph: 'showHeader, labels' },

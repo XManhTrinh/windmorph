@@ -426,7 +426,7 @@ export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
         component: 'Slider',
         params: [
           { compose: 'value, onValueChange', windmorph: '`value`, `onChange`' },
-          { compose: 'valueRange', windmorph: '`minValue`, `maxValue`' },
+          { compose: 'valueRange', windmorph: '`min`, `max`' },
           {
             compose: 'steps',
             windmorph: '`step`, `ticks`',

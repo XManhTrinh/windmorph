@@ -16,7 +16,7 @@ export interface DateInputLabels {
   dateFormatHint: string;
   /** Error when the text isn't a date. @default "Enter a date as {hint}" */
   invalidDate: string;
-  /** Error for a date before `minValue` or after `maxValue`. @default "Date out of range" */
+  /** Error for a date before `min` or after `max`. @default "Date out of range" */
   dateOutOfRange: string;
   /** Error for a date `isDateUnavailable` turns away. @default "Date not available" */
   dateUnavailable: string;
@@ -29,8 +29,8 @@ export interface DateInputProps {
   onCommit: (value: CalendarDate | null) => void;
   /** Enter was pressed and the text is a valid date (or empty). */
   onEnter?: (value: CalendarDate | null) => void;
-  minValue?: DateValue | undefined;
-  maxValue?: DateValue | undefined;
+  min?: DateValue | undefined;
+  max?: DateValue | undefined;
   isDateUnavailable?: ((date: DateValue) => boolean) | undefined;
   labels?: Partial<DateInputLabels> | undefined;
   /** Replaces the format hint below the field. */
@@ -65,8 +65,8 @@ export function DateInput({
   value,
   onCommit,
   onEnter,
-  minValue,
-  maxValue,
+  min: minValue,
+  max: maxValue,
   isDateUnavailable,
   labels = {},
   supportingText,

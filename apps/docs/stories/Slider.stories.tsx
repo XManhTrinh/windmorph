@@ -85,14 +85,14 @@ export const Variants: Story = {
   render: () => (
     <div className="flex w-[360px] flex-col gap-6" data-testid="variants">
       <Slider aria-label="Discrete" step={10} ticks defaultValue={30} />
-      <Slider aria-label="Centred" centered minValue={-50} maxValue={50} defaultValue={20} />
+      <Slider aria-label="Centred" centered min={-50} max={50} defaultValue={20} />
       <Slider
         aria-label="Centred discrete"
         centered
         ticks
         step={10}
-        minValue={-50}
-        maxValue={50}
+        min={-50}
+        max={50}
         defaultValue={-20}
       />
       <RangeSlider aria-label="Range" defaultValue={[20, 70]} />

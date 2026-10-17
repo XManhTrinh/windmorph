@@ -104,8 +104,8 @@ describe('DatePicker', () => {
       <DatePicker
         defaultValue={march}
         yearRange={[2020, 2040]}
-        minValue={new CalendarDate(2025, 1, 1)}
-        maxValue={new CalendarDate(2035, 12, 31)}
+        min={new CalendarDate(2025, 1, 1)}
+        max={new CalendarDate(2035, 12, 31)}
         data-testid="picker"
       />,
     );
@@ -193,7 +193,7 @@ describe('DatePicker', () => {
   });
 
   it('says when a typed date is out of range', async () => {
-    render(<DatePicker defaultMode="input" maxValue={new CalendarDate(2030, 12, 31)} />);
+    render(<DatePicker defaultMode="input" max={new CalendarDate(2030, 12, 31)} />);
     const field = screen.getByRole('textbox', { name: 'Date' });
     await userEvent.type(field, '1 2 2031{Enter}');
     expect(screen.getByText('Date out of range')).toBeInTheDocument();
@@ -211,8 +211,8 @@ describe('DateRangePicker', () => {
         <DateRangePicker
           value={range}
           onChange={setRange}
-          minValue={new CalendarDate(2030, 3, 1)}
-          maxValue={new CalendarDate(2030, 5, 31)}
+          min={new CalendarDate(2030, 3, 1)}
+          max={new CalendarDate(2030, 5, 31)}
         />
       );
     }
@@ -464,8 +464,8 @@ describe('date picker classNames', () => {
   it("puts the range picker's weekday and month subhead slots on their parts", () => {
     render(
       <DateRangePicker
-        minValue={new CalendarDate(2030, 3, 1)}
-        maxValue={new CalendarDate(2030, 5, 31)}
+        min={new CalendarDate(2030, 3, 1)}
+        max={new CalendarDate(2030, 5, 31)}
         classNames={{ weekday: 'weekday-x', monthSubhead: 'subhead-x' }}
       />,
     );
@@ -494,8 +494,8 @@ describe('date picker classNames', () => {
   it("puts the range picker's rangeBand slot on the cells the band spans", () => {
     const { container } = render(
       <DateRangePicker
-        minValue={new CalendarDate(2030, 3, 1)}
-        maxValue={new CalendarDate(2030, 5, 31)}
+        min={new CalendarDate(2030, 3, 1)}
+        max={new CalendarDate(2030, 5, 31)}
         defaultValue={{ start: new CalendarDate(2030, 3, 3), end: new CalendarDate(2030, 3, 5) }}
         classNames={{ rangeBand: 'band-x' }}
       />,

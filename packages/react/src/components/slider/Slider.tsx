@@ -75,9 +75,9 @@ interface SliderCommonProps {
    */
   orientation?: SliderOrientation;
   /** The lowest value. @default 0 */
-  minValue?: number;
+  min?: number;
   /** The highest value. @default 100 */
-  maxValue?: number;
+  max?: number;
   /** The amount the value changes by in one step. @default 1 */
   step?: number;
   /** Discrete: show a stop indicator at every step (use a coarse `step`). @default false */
@@ -106,7 +106,7 @@ export type SliderProps = SliderCommonProps &
   Naming & {
     /** The value (controlled). */
     value?: number;
-    /** The initial value when uncontrolled. @default minValue */
+    /** The initial value when uncontrolled. @default min */
     defaultValue?: number;
     /** Called as the value changes, while dragging too. */
     onChange?: (value: number) => void;
@@ -140,7 +140,7 @@ export type RangeSliderProps = SliderCommonProps &
   Naming & {
     /** The range, as `[start, end]` (controlled). */
     value?: [number, number];
-    /** The initial range when uncontrolled. @default [minValue, maxValue] */
+    /** The initial range when uncontrolled. @default [min, max] */
     defaultValue?: [number, number];
     /** Called as the range changes, while dragging too. */
     onChange?: (value: [number, number]) => void;
@@ -190,8 +190,8 @@ function SliderRoot(props: RootProps) {
   const {
     size = 'xs',
     orientation = 'horizontal',
-    minValue = 0,
-    maxValue = 100,
+    min = 0,
+    max = 100,
     step = 1,
     ticks = false,
     disabled = false,
@@ -229,15 +229,15 @@ function SliderRoot(props: RootProps) {
     v === undefined ? undefined : Array.isArray(v) ? v : [v];
   const unwrap = (v: number[]) => (range ? (v as [number, number]) : v[0]!);
   const ariaProps = {
-    minValue,
-    maxValue,
+    minValue: min,
+    maxValue: max,
     step,
     orientation,
     isDisabled: disabled,
     'aria-label': label,
     'aria-labelledby': labelledBy,
     value: wrap(value),
-    defaultValue: wrap(defaultValue) ?? (range ? [minValue, maxValue] : [minValue]),
+    defaultValue: wrap(defaultValue) ?? (range ? [min, max] : [min]),
     onChange: onChange && ((v: number[]) => (onChange as (x: unknown) => void)(unwrap(v))),
     onChangeEnd: onChangeEnd && ((v: number[]) => (onChangeEnd as (x: unknown) => void)(unwrap(v))),
   };
@@ -246,7 +246,7 @@ function SliderRoot(props: RootProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
   const { direction } = useLocale();
-  const count = Math.round((maxValue - minValue) / step);
+  const count = Math.round((max - min) / step);
   const touchTrackProps = useTouchTrack(trackProps, {
     state,
     trackRef,
