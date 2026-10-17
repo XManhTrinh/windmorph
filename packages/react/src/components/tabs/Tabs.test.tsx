@@ -463,6 +463,36 @@ describe('Tabs', () => {
   });
 });
 
+describe('Tabs ids', () => {
+  it('gives each Tabs its own tab and panel ids, linked both ways, with no warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <>
+        <Tabs aria-label="Trip">
+          <Tab key="flights" title="Flights">
+            Flights panel
+          </Tab>
+        </Tabs>
+        <Tabs aria-label="Stay">
+          <Tab key="flights" title="Flights">
+            Hotels panel
+          </Tab>
+        </Tabs>
+      </>,
+    );
+    const tabs = screen.getAllByRole('tab');
+    const panels = screen.getAllByRole('tabpanel');
+    expect(tabs[0]!.id).not.toMatch(/^undefined-/);
+    expect(tabs[0]!.id).not.toBe(tabs[1]!.id);
+    for (const [index, tab] of tabs.entries()) {
+      expect(tab).toHaveAttribute('aria-controls', panels[index]!.id);
+      expect(panels[index]).toHaveAttribute('aria-labelledby', tab.id);
+    }
+    expect(error.mock.calls.filter(([message]) => /no tab id/.test(String(message)))).toEqual([]);
+    error.mockRestore();
+  });
+});
+
 describe('Tabs component tokens', () => {
   it('marks the root and each tab, and lets consumer classes replace the token classes', () => {
     render(

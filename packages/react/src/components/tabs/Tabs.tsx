@@ -4,6 +4,7 @@ import { animate, useReducedMotion } from 'motion/react';
 import {
   useId,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -229,7 +230,11 @@ function TabsInner({
   const state = useTabListState({ ...ariaProps, ...FOCUSABLE_DISABLED_OPTIONS });
   const listRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const { tabListProps } = useTabList(ariaProps, { ...state, disabledKeys: NO_KEYS }, listRef);
+  // React Aria keys the tabs' ids to the state object the tab list gets, so the tabs and the
+  // panel get that same object: given another, their ids would be `undefined-tab-…`, the same
+  // in every Tabs on the page.
+  const listState = useMemo(() => ({ ...state, disabledKeys: NO_KEYS }), [state]);
+  const { tabListProps } = useTabList(ariaProps, listState, listRef);
   const items = [...state.collection];
   const hasIcon = items.some((item) => (item.props as TabProps).icon != null);
   const hasText = items.some((item) => (item.props as TabProps).title != null);
@@ -302,6 +307,7 @@ function TabsInner({
               item={item}
               index={index}
               state={state}
+              listState={listState}
               hasPanels={hasPanels}
               layout={layout}
               variant={variant ?? 'primary'}
@@ -329,6 +335,7 @@ function TabsInner({
         <TabPanel
           key={state.selectedKey}
           state={state}
+          listState={listState}
           swipeable={swipeable}
           rtl={rtl}
           className={styles.panel({ class: classNames?.panel })}
@@ -465,6 +472,8 @@ interface TabButtonProps {
   item: Node<object>;
   index: number;
   state: TabListState<object>;
+  /** The state the tab list was given, which React Aria keys the tabs' ids to. */
+  listState: TabListState<object>;
   hasPanels: boolean;
   layout: 'text' | 'icon-top' | 'icon-start' | 'icon-only';
   variant: TabsVariant;
@@ -478,6 +487,7 @@ function TabButton({
   item,
   index,
   state,
+  listState,
   hasPanels,
   layout,
   variant,
@@ -487,7 +497,7 @@ function TabButton({
   labelClassName,
 }: TabButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const { tabProps, isPressed } = useTab({ key: item.key }, state, ref);
+  const { tabProps, isPressed } = useTab({ key: item.key }, listState, ref);
   const { interactionProps, dataAttributes } = useM3Interaction(
     {
       isDisabled: state.disabledKeys.has(item.key),
@@ -602,17 +612,20 @@ function useSwipeToSelect(
 
 function TabPanel({
   state,
+  listState,
   swipeable,
   rtl,
   className,
 }: {
   state: TabListState<object>;
+  /** The state the tab list was given, which React Aria keys the panel's ids to. */
+  listState: TabListState<object>;
   swipeable: boolean;
   rtl: boolean;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { tabPanelProps } = useTabPanel({}, state, ref);
+  const { tabPanelProps } = useTabPanel({}, listState, ref);
   const swipeProps = useSwipeToSelect(state, rtl, swipeable);
   return (
     <div {...mergeProps(tabPanelProps, swipeProps)} ref={ref} className={className}>
