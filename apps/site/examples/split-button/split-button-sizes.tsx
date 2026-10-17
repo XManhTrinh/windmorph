@@ -16,7 +16,7 @@ export function SplitButtonSizes() {
           key={size}
           size={size}
           variant="tonal"
-          menuLabel={`More save options (${size})`}
+          labels={{ menu: `More save options (${size})` }}
           menu={
             <Menu>
               <MenuItem key="copy">Save a copy</MenuItem>

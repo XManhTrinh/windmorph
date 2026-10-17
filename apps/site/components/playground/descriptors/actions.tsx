@@ -270,6 +270,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         SplitButtonAny,
         {
           ...props,
+          labels: { menu: 'More send options' },
           ...(leadingIcon === true && { leadingIcon: <SendIcon /> }),
           open: Boolean(open),
           onOpenChange: (next: boolean) => update('open', next),
@@ -292,17 +293,8 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       open: false,
       disabled: false,
     },
-    surfacedProps: [
-      'variant',
-      'size',
-      'leadingIcon',
-      'menuLabel',
-      'menu',
-      'open',
-      'disabled',
-      'href',
-    ],
-    initialState: { leadingIcon: true, menu: true, menuLabel: 'More send options' },
+    surfacedProps: ['variant', 'size', 'leadingIcon', 'menu', 'open', 'disabled', 'href'],
+    initialState: { leadingIcon: true, menu: true },
     controlKinds: { leadingIcon: 'boolean', menu: 'boolean' },
     toggledSlots: {
       leadingIcon: SEND,
@@ -312,6 +304,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       leadingLabel:
         'Names an icon-only leading button, which has no label children; the Icon only example shows it.',
     },
+    codeSlots: { labels: "{ menu: 'More send options' }" },
     importMembers: ['Menu', 'MenuItem'],
     codeChildren: 'Send',
   },

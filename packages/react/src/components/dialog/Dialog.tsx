@@ -583,11 +583,19 @@ export interface DialogHeaderClassNames {
   title?: string;
 }
 
+/** Words a {@link DialogHeader} announces. */
+export interface DialogHeaderLabels {
+  /** The full-screen close button's name. @default "Close" */
+  close: string;
+}
+
+const DEFAULT_HEADER_LABELS: DialogHeaderLabels = { close: 'Close' };
+
 export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** The headline; it names the dialog. */
   children: ReactNode;
-  /** Accessible name of the close button. */
-  closeLabel: string;
+  /** Words the header announces, with English defaults. */
+  labels?: Partial<DialogHeaderLabels>;
   /**
    * The confirming action, usually a text `Button` ("Save"). Shown in full screen only;
    * without it, a full-screen dialog shows its `DialogActions` as a bottom bar.
@@ -606,7 +614,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
  *
  * @example
  * <Dialog fullScreen="compact">
- *   <DialogHeader closeLabel="Close" action={<Button variant="text" onPress={save}>Save</Button>}>
+ *   <DialogHeader action={<Button variant="text" onPress={save}>Save</Button>}>
  *     Edit name
  *   </DialogHeader>
  *   <DialogContent>…</DialogContent>
@@ -615,7 +623,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
  */
 export function DialogHeader({
   children,
-  closeLabel,
+  labels,
   action,
   divider = false,
   className,
@@ -637,7 +645,7 @@ export function DialogHeader({
           variant="standard"
           density={0}
           icon={<CloseIcon />}
-          aria-label={closeLabel}
+          aria-label={labels?.close ?? DEFAULT_HEADER_LABELS.close}
           onPress={close}
           className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}
         />

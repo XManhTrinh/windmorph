@@ -335,7 +335,7 @@ export const ACTIONS_SPEC: Record<string, ComponentSpecData> = {
           {
             compose:
               'trailingButton = SplitButtonDefaults.TrailingButton(checked, onCheckedChange)',
-            windmorph: 'open, onOpenChange, menuLabel',
+            windmorph: 'open, onOpenChange, labels.menu',
           },
           { compose: 'DropdownMenu', windmorph: 'menu' },
           { compose: 'spacing', windmorph: '(fixed)', note: 'The halves are always 2px apart.' },

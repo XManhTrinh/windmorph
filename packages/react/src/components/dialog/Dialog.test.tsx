@@ -602,7 +602,6 @@ describe('Dialog full screen', () => {
           {({ close }) => (
             <>
               <DialogHeader
-                closeLabel="Close"
                 action={
                   <Button variant="text" onPress={onSave}>
                     Save
@@ -699,9 +698,7 @@ describe('Dialog full screen', () => {
   it('shows the actions as a 56px bottom bar without a header action, and a divider', async () => {
     render(
       <Dialog defaultOpen fullScreen="always">
-        <DialogHeader closeLabel="Close" divider>
-          Filters
-        </DialogHeader>
+        <DialogHeader divider>Filters</DialogHeader>
         <DialogContent>Options</DialogContent>
         <DialogActions data-testid="actions">
           <Button variant="text">Apply</Button>
@@ -739,7 +736,7 @@ describe('Dialog container transform', () => {
       <DialogTrigger>
         <Button>New event</Button>
         <Dialog fullScreen={fullScreen} origin={origin} data-testid="panel">
-          <DialogHeader closeLabel="Close">New event</DialogHeader>
+          <DialogHeader>New event</DialogHeader>
           <DialogContent>Title field</DialogContent>
         </Dialog>
       </DialogTrigger>
@@ -822,7 +819,7 @@ describe('Dialog container transform', () => {
   it('opens without a transform when "trigger" has no trigger', async () => {
     render(
       <Dialog defaultOpen fullScreen="always" origin="trigger" data-testid="panel">
-        <DialogHeader closeLabel="Close">New event</DialogHeader>
+        <DialogHeader>New event</DialogHeader>
       </Dialog>,
     );
     expect(await screen.findByTestId('panel')).not.toHaveAttribute('data-origin');

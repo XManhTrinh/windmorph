@@ -17,7 +17,7 @@ export function SplitButtonVariants() {
       <SplitButton
         variant="filled"
         leadingIcon={<EditIcon />}
-        menuLabel="More filled options"
+        labels={{ menu: 'More filled options' }}
         menu={editMenu}
       >
         Filled
@@ -25,7 +25,7 @@ export function SplitButtonVariants() {
       <SplitButton
         variant="tonal"
         leadingIcon={<EditIcon />}
-        menuLabel="More tonal options"
+        labels={{ menu: 'More tonal options' }}
         menu={editMenu}
       >
         Tonal
@@ -33,7 +33,7 @@ export function SplitButtonVariants() {
       <SplitButton
         variant="outlined"
         leadingIcon={<EditIcon />}
-        menuLabel="More outlined options"
+        labels={{ menu: 'More outlined options' }}
         menu={editMenu}
       >
         Outlined
@@ -41,7 +41,7 @@ export function SplitButtonVariants() {
       <SplitButton
         variant="elevated"
         leadingIcon={<EditIcon />}
-        menuLabel="More elevated options"
+        labels={{ menu: 'More elevated options' }}
         menu={editMenu}
       >
         Elevated

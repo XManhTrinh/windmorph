@@ -153,7 +153,7 @@ describe('groupOf', () => {
   it('puts forced states, replays and names for assistive tech in Advanced', () => {
     expect(groupOf('dragged', 'boolean')).toBe('advanced');
     expect(groupOf('appear', 'boolean')).toBe('advanced');
-    expect(groupOf('menuLabel', 'string')).toBe('advanced');
+    expect(groupOf('prefixLabel', 'string')).toBe('advanced');
     expect(groupOf('fab.dragged', 'boolean')).toBe('advanced');
     expect(groupOf('titleAs', 'enum')).toBe('advanced');
   });

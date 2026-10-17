@@ -182,7 +182,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
           {...(icon === true && { icon: <DeleteIcon /> })}
           {...(origin === true && { origin: 'trigger' })}
         >
-          <DialogHeader closeLabel="Close">Delete draft?</DialogHeader>
+          <DialogHeader>Delete draft?</DialogHeader>
           <DialogContent>
             The draft and its attachments will be removed from this device.
           </DialogContent>
@@ -247,7 +247,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     // The trigger opens and closes the dialog, so the snippet leaves `open` to it.
     codeSlots: { open: () => null },
     codeChildren:
-      '<DialogHeader closeLabel="Close">Delete draft?</DialogHeader>\n  <DialogContent>The draft and its attachments will be removed from this device.</DialogContent>\n  <DialogActions>\n    <Button variant="text">Cancel</Button>\n    <Button variant="text">Delete</Button>\n  </DialogActions>',
+      '<DialogHeader>Delete draft?</DialogHeader>\n  <DialogContent>The draft and its attachments will be removed from this device.</DialogContent>\n  <DialogActions>\n    <Button variant="text">Cancel</Button>\n    <Button variant="text">Delete</Button>\n  </DialogActions>',
   },
   menu: {
     component: 'Menu',

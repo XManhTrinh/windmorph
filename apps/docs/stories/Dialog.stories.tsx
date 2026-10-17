@@ -191,7 +191,6 @@ export const FullScreenCompact: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -227,7 +226,6 @@ export const FullScreen: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -254,9 +252,7 @@ export const FullScreenBottomBar: Story = {
       <Dialog fullScreen="always" data-testid="dialog">
         {({ close }) => (
           <>
-            <DialogHeader closeLabel="Close" divider>
-              Filters
-            </DialogHeader>
+            <DialogHeader divider>Filters</DialogHeader>
             <DialogContent>
               <TextField label="Keyword" className="w-full" />
             </DialogContent>
@@ -612,7 +608,6 @@ export const ContainerTransform: Story = {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save
@@ -664,7 +659,6 @@ function EventEditor() {
         <Button variant="tonal">New event</Button>
         <Dialog fullScreen="always" data-testid="dialog">
           <DialogHeader
-            closeLabel="Close"
             action={
               <Button variant="text" onPress={save}>
                 Save

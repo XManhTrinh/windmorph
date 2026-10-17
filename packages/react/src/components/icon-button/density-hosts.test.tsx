@@ -71,7 +71,7 @@ describe('icon buttons in parts that keep their size', () => {
         <DialogTrigger defaultOpen>
           {icon('Edit')}
           <Dialog fullScreen="always">
-            <DialogHeader closeLabel="Close dialog" action={icon('Save')}>
+            <DialogHeader labels={{ close: 'Close dialog' }} action={icon('Save')}>
               Edit name
             </DialogHeader>
             <DialogContent>Name</DialogContent>

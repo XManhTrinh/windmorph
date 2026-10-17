@@ -236,6 +236,7 @@ export {
 export {
   SplitButton,
   type SplitButtonClassNames,
+  type SplitButtonLabels,
   type SplitButtonProps,
 } from './components/split-button/SplitButton';
 export {
@@ -367,6 +368,7 @@ export {
   type DialogPlacement,
   type DialogTransition,
   type DialogHeaderClassNames,
+  type DialogHeaderLabels,
   type DialogHeaderProps,
   type DialogProps,
   type DialogRenderProps,

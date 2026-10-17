@@ -23,13 +23,13 @@ export const Probe: StoryObj = {
     <TokenProbe
       instances={SIZES.map((size) => (
         <div key={size}>
-          <SplitButton size={size} menuLabel="More send options" menu={menu}>
+          <SplitButton size={size} labels={{ menu: 'More send options' }} menu={menu}>
             {size}
           </SplitButton>
         </div>
       ))}
       scoped={
-        <SplitButton menuLabel="More send options" menu={menu}>
+        <SplitButton labels={{ menu: 'More send options' }} menu={menu}>
           Scoped
         </SplitButton>
       }
@@ -37,7 +37,7 @@ export const Probe: StoryObj = {
         token: '--md-comp-split-button-small-container-shape',
         children: (
           <SplitButton
-            menuLabel="More send options"
+            labels={{ menu: 'More send options' }}
             menu={menu}
             classNames={{ leading: 'rounded-s-corner-small' }}
           >

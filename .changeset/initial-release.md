@@ -45,3 +45,5 @@ Placement props share one vocabulary: `NavigationBar` takes `iconPlacement` (was
 Placements are hyphenated, like every other multi-word value: `'bottom-start'`, `'top-end'` and so on for `TooltipTrigger`, `RichTooltipTrigger` and `Menu` (whose placements are now the `MenuPlacement` type, logical sides only), instead of `'bottom start'`.
 
 `Dialog`'s `quick` is `instant`, the name `Menu` uses for the same thing.
+
+`DialogHeader` takes `labels.close` (default "Close") instead of the required `closeLabel`, and `SplitButton` takes `labels.menu` (default "More options") instead of the required `menuLabel`.

@@ -44,7 +44,7 @@ export const dialog: ComponentAccessibility = {
   consumer: [
     'Name every dialog with a `DialogTitle` (or `DialogHeader`), or with `aria-label` when there is no visible title.',
     'Put the supporting text in `DialogContent`, so an alert dialog is described by it.',
-    'Give `DialogHeader` a `closeLabel`; it names the full-screen close button.',
+    'Translate `DialogHeader`\'s `labels.close` ("Close"), which names the full-screen close button.',
     'Keep the default alert dialog for decisions that must be made, and pass `role="dialog"` or `closedBy="any"` when pressing outside may close it.',
     'Use at most two actions, with the confirming action last. In development `DialogActions` warns once when it holds more.',
   ],

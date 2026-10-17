@@ -434,7 +434,7 @@ export const coreChecks = {
   },
   DialogHeader: {
     kind: 'component',
-    render: () => <Core.DialogHeader closeLabel="Close">Edit profile</Core.DialogHeader>,
+    render: () => <Core.DialogHeader>Edit profile</Core.DialogHeader>,
   },
   DialogTitle: { kind: 'component', render: () => <Core.DialogTitle>Title</Core.DialogTitle> },
   DialogContent: {

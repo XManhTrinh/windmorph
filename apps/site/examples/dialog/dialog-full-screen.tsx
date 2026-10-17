@@ -24,7 +24,6 @@ export function DialogFullScreen() {
         {({ close }) => (
           <>
             <DialogHeader
-              closeLabel="Close"
               action={
                 <Button variant="text" onPress={close}>
                   Save

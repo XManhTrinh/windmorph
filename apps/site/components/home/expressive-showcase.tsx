@@ -90,7 +90,7 @@ export function ExpressiveShowcase({ bentoVideo }: { bentoVideo?: BentoManifest 
           preview={
             <SplitButton
               leadingIcon={<AddIcon />}
-              menuLabel="More share options"
+              labels={{ menu: 'More share options' }}
               menu={
                 <Menu>
                   <MenuItem key="link">Copy link</MenuItem>

@@ -30,7 +30,7 @@ const meta = {
   component: SplitButton,
   args: {
     children: 'Send',
-    menuLabel: 'More send options',
+    labels: { menu: 'More send options' },
     variant: 'filled',
     size: 'sm',
     disabled: false,
@@ -92,7 +92,7 @@ export const VariantsAndSizes: Story = {
               variant={variant}
               size={size}
               leadingIcon={<EditIcon />}
-              menuLabel={`${variant} ${size} options`}
+              labels={{ menu: `${variant} ${size} options` }}
               menu={sendMenu()}
             >
               Edit
@@ -115,7 +115,7 @@ export const IconOnly: Story = {
           variant="tonal"
           leadingIcon={<EditIcon />}
           leadingLabel="Edit"
-          menuLabel={`More ${size} edit options`}
+          labels={{ menu: `More ${size} edit options` }}
           menu={sendMenu()}
         />
       ))}
@@ -132,7 +132,7 @@ export const Disabled: Story = {
           key={variant}
           variant={variant}
           leadingIcon={<EditIcon />}
-          menuLabel={`${variant} disabled options`}
+          labels={{ menu: `${variant} disabled options` }}
           menu={sendMenu()}
           disabled
         >
@@ -160,7 +160,7 @@ export const LayoutOverride: StoryObj<{
           data-testid="target"
           className={LAYOUT_OVERRIDES[override]}
           leadingIcon={<SendIcon />}
-          menuLabel="More send options"
+          labels={{ menu: 'More send options' }}
           menu={sendMenu()}
           onPress={() => setCount((c) => c + 1)}
         >
