@@ -779,7 +779,17 @@ export const COMPONENT_META: ComponentMeta[] = [
       elevation: 'level1 · standard side sheet: level0',
     },
     related: ['dialog', 'menu'],
-    keywords: ['drawer', 'panel', 'peek', 'non-modal', 'filters', 'drag handle'],
+    keywords: [
+      'drawer',
+      'panel',
+      'peek',
+      'non-modal',
+      'filters',
+      'drag handle',
+      'swipe',
+      'swipe to dismiss',
+      'start edge',
+    ],
     whenNotToUse: 'For a focused decision that must block the screen use a Dialog.',
   },
   {

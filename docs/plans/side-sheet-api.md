@@ -1,6 +1,6 @@
 # Plan: SideSheet edge and swipe to dismiss (`@windmorph/react`)
 
-Status: **approved 2026-10-17**. Covers four side sheet gaps found in a review of the content components: `edge`, swipe to dismiss, a `confirmValueChange` callback / a gesture switch, and `sheetMaxWidth`.
+Status: **approved 2026-10-17; built 2026-10-17** (architecture §9 "Sheets"). Covers four side sheet gaps found in a review of the content components: `edge`, swipe to dismiss, a `confirmValueChange` callback / a gesture switch, and `sheetMaxWidth`.
 
 ## Goal
 
