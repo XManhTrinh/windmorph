@@ -308,7 +308,7 @@ export interface DialogProps
    * headline and content, then its actions, fade in. `scale` is the library's original pop,
    * an extension beyond the M3 motion: the dialog fades in while it scales up from 90%, and
    * fades out while it scales to 95%, from the centre (`placement="center"`) or from the edge
-   * it sits against. Either way reduced motion keeps only the fades and `quick` turns the
+   * it sits against. Either way reduced motion keeps only the fades and `instant` turns the
    * motion off. A full-screen dialog keeps its own motion and ignores it.
    * @default "reveal"
    */
@@ -318,16 +318,16 @@ export interface DialogProps
    * once, and the dialog leaves the document as soon as it closes. Reduced motion already
    * keeps only the fades. @default false
    */
-  quick?: boolean;
+  instant?: boolean;
   /**
    * Called when the dialog has finished opening: once its enter motion (the slide, the
    * container's growth and every part's fade) has ended, or right after it opens with
-   * `quick`. Not called when it closes before then.
+   * `instant`. Not called when it closes before then.
    */
   onOpened?: () => void;
   /**
    * Called when the dialog has finished closing: once its exit motion has ended and it has
-   * left the document, or right after it closes with `quick`.
+   * left the document, or right after it closes with `instant`.
    */
   onClosed?: () => void;
 }
@@ -344,7 +344,7 @@ export interface DialogProps
  * then its actions; it leaves by fading its parts, sliding back and shrinking, then fading.
  * Any children take part: the actions phase is for `DialogActions` (or any child with
  * `data-slot="actions"`), and every other child fades in with the content. `onOpened` and
- * `onClosed` report the end of each motion; `quick` turns it off.
+ * `onClosed` report the end of each motion; `instant` turns it off.
  *
  * `className` and `style` go on the outermost element, a full-window layer around the
  * positioner whose inline placement they can't move, so a layout class (`static`,
@@ -376,7 +376,7 @@ export function Dialog({
   const trigger = useContext(DialogTriggerContext);
   const ownState = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const state = trigger?.state ?? ownState;
-  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'opacity', !props.quick);
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen, 'opacity', !props.instant);
   const onClosedRef = useRef(onClosed);
   useLayoutEffect(() => {
     onClosedRef.current = onClosed;
@@ -426,7 +426,7 @@ function DialogModal({
   icon,
   fullScreen = 'never',
   placement = 'center',
-  quick = false,
+  instant = false,
   transition = 'reveal',
   onOpened,
   children,
@@ -477,7 +477,7 @@ function DialogModal({
     placement,
     bottomBar,
     origin,
-    quick,
+    instant,
     transition,
   });
   const exiting = isExiting || undefined;

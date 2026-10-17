@@ -484,10 +484,10 @@ test.describe('Dialog motion under reduced motion', () => {
   });
 });
 
-test.describe('Dialog quick and motion callbacks', () => {
-  test('quick: opens at rest on its first frame and leaves at once', async ({ page }) => {
+test.describe('Dialog instant and motion callbacks', () => {
+  test('instant: opens at rest on its first frame and leaves at once', async ({ page }) => {
     const target: Target = {
-      story: 'components-dialog--quick',
+      story: 'components-dialog--instant',
       role: 'alertdialog',
       ...basicParts('alertdialog'),
     };

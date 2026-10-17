@@ -166,7 +166,7 @@ const ADVANCED_NAME =
 
 /** Booleans and numbers that change only how it looks: Appearance. */
 const APPEARANCE_NAME =
-  /^(?:show[A-Z]\w*|valueLabel|modeToggle|counter|lineNumbers|idleIcon|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|quick|iconTransition|indicatorMotion)$/;
+  /^(?:show[A-Z]\w*|valueLabel|modeToggle|counter|lineNumbers|idleIcon|elevated|wavy|ticks|caret|track|stopIndicator|centered|divider|dividers|ring|dot|shapes|selectionIndicator|docked|multiline|autoGrow|thickness|trackThickness|size|expandedRatio|columns|rows|maxRows|minRows|headlineLines|supportingTextLines|peekHeight|preferredItemSize|itemSize|itemSpacing|minSmallItemSize|maxSmallItemSize|maxWidth|fullScreen|mask|iconTransition|indicatorMotion)$/;
 
 /** Choices that change how it works rather than how it looks: Behaviour. */
 const BEHAVIOUR_ENUM =

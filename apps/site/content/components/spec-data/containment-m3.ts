@@ -78,7 +78,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         item: 'Motion callbacks and no motion',
-        note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `quick` turns the motion off.",
+        note: "`onOpened` and `onClosed` fire once the enter and exit motion have finished (Material Web's `opened` and `closed` events), and `instant` turns the motion off.",
       },
       {
         item: 'Scale transition',

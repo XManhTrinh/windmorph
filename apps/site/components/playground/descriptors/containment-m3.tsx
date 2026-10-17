@@ -205,7 +205,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       placement: 'center',
       closedBy: 'closerequest',
       origin: false,
-      quick: false,
+      instant: false,
       transition: 'reveal',
     },
     surfacedProps: [
@@ -216,7 +216,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'origin',
       'placement',
       'closedBy',
-      'quick',
+      'instant',
       'transition',
     ],
     enumOptions: { role: ['alertdialog', 'dialog'], transition: ['reveal', 'scale'] },

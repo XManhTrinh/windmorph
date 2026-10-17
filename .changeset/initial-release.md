@@ -43,3 +43,5 @@ Disabled items in an interactive `List` (actions, selection or nested items) tak
 Placement props share one vocabulary: `NavigationBar` takes `iconPlacement` (was `iconPosition`, now matching `Tabs`), `FloatingToolbar` takes `fabPlacement` (was `fabPosition`), and `List` / `ListItem` `controlPlacement` takes `start` or `end` (was `leading` or `trailing`).
 
 Placements are hyphenated, like every other multi-word value: `'bottom-start'`, `'top-end'` and so on for `TooltipTrigger`, `RichTooltipTrigger` and `Menu` (whose placements are now the `MenuPlacement` type, logical sides only), instead of `'bottom start'`.
+
+`Dialog`'s `quick` is `instant`, the name `Menu` uses for the same thing.

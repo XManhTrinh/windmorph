@@ -16,20 +16,20 @@ import { useState } from 'react';
  * from its top edge, then the headline and supporting text fade in, then the actions. It
  * leaves by fading its parts, sliding back up and shrinking. `onOpened` and `onClosed` fire
  * once each motion has finished, for work that should wait for it (moving focus elsewhere,
- * loading content, logging). `quick` turns the motion off.
+ * loading content, logging). `instant` turns the motion off.
  */
 export function DialogMotion() {
-  const [quick, setQuick] = useState(false);
+  const [instant, setInstant] = useState(false);
   const [status, setStatus] = useState('Closed');
   return (
     <div className="flex flex-col items-start gap-4">
-      <Switch checked={quick} onCheckedChange={setQuick}>
-        Quick (no motion)
+      <Switch checked={instant} onCheckedChange={setInstant}>
+        Instant (no motion)
       </Switch>
       <DialogTrigger onOpenChange={(open) => setStatus(open ? 'Opening…' : 'Closing…')}>
         <Button variant="tonal">Open dialog</Button>
         <Dialog
-          quick={quick}
+          instant={instant}
           onOpened={() => setStatus('Opened')}
           onClosed={() => setStatus('Closed')}
         >

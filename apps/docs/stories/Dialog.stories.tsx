@@ -429,12 +429,12 @@ export const TransitionScale: Story = {
   ),
 };
 
-/** `quick`: no enter or exit motion. */
-export const Quick: Story = {
+/** `instant`: no enter or exit motion. */
+export const Instant: Story = {
   render: () => (
     <DialogTrigger>
       <Button variant="tonal">Open dialog</Button>
-      <Dialog quick data-testid="dialog">
+      <Dialog instant data-testid="dialog">
         {({ close }) => (
           <>
             <DialogTitle>Discard draft?</DialogTitle>

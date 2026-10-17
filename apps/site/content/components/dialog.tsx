@@ -126,7 +126,7 @@ export async function DialogBody(): Promise<ComponentDoc> {
             <DialogCustomPosition />
           </ExampleViewer>
           <ExampleViewer
-            title="Motion, onOpened and onClosed, and quick"
+            title="Motion, onOpened and onClosed, and instant"
             code={motion}
             html={motionHtml}
             fileName="dialog-motion.tsx"
@@ -301,7 +301,7 @@ export async function DialogBody(): Promise<ComponentDoc> {
               back while its container shrinks to 35%, then the container fades. The container is a
               clip on a library-owned wrapper, so it grows from 0 as the spec says (Material Web
               starts at 35% because its container doesn&apos;t clip the text). Reduced motion keeps
-              only the fades of the dialog and the scrim, and <InlineCode>quick</InlineCode> turns
+              only the fades of the dialog and the scrim, and <InlineCode>instant</InlineCode> turns
               the motion off. <InlineCode>onOpened</InlineCode> and{' '}
               <InlineCode>onClosed</InlineCode> fire when each motion has finished, like Material
               Web&apos;s <InlineCode>opened</InlineCode> and <InlineCode>closed</InlineCode> events.{' '}

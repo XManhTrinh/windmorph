@@ -424,7 +424,7 @@ describe('Dialog initial focus on the least destructive action', () => {
   });
 });
 
-describe('Dialog motion callbacks and quick', () => {
+describe('Dialog motion callbacks and instant', () => {
   it('reports when it has finished opening and closing', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
@@ -445,10 +445,12 @@ describe('Dialog motion callbacks and quick', () => {
     vi.useRealTimers();
   });
 
-  it('quick: no motion, and it leaves the document as soon as it closes', async () => {
+  it('instant: no motion, and it leaves the document as soon as it closes', async () => {
     const onOpened = vi.fn();
     const onClosed = vi.fn();
-    const { baseElement } = render(<DeleteDialog quick onOpened={onOpened} onClosed={onClosed} />);
+    const { baseElement } = render(
+      <DeleteDialog instant onOpened={onOpened} onClosed={onClosed} />,
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     const panel = screen.getByTestId('panel');
     expect(panel.parentElement).toHaveClass('[transition-property:none]!');
@@ -465,7 +467,7 @@ describe('Dialog motion callbacks and quick', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus());
   });
 
-  it('quick closes a controlled dialog at once', async () => {
+  it('instant closes a controlled dialog at once', async () => {
     function Controlled() {
       const [open, setOpen] = useState(true);
       return (
@@ -473,7 +475,7 @@ describe('Dialog motion callbacks and quick', () => {
           <button type="button" onClick={() => setOpen((value) => !value)}>
             Toggle
           </button>
-          <Dialog quick open={open} onOpenChange={setOpen} aria-label="Settings">
+          <Dialog instant open={open} onOpenChange={setOpen} aria-label="Settings">
             <DialogContent>Body</DialogContent>
           </Dialog>
         </>
@@ -519,13 +521,13 @@ describe('Dialog transition', () => {
     expect(screen.getByTestId('panel').parentElement).toHaveClass(origin);
   });
 
-  it('is ignored in full screen, and quick turns it off', async () => {
+  it('is ignored in full screen, and instant turns it off', async () => {
     const { unmount } = render(<DeleteDialog transition="scale" fullScreen="always" />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByTestId('panel').parentElement).not.toHaveClass('starting:scale-90');
     unmount();
 
-    render(<DeleteDialog transition="scale" quick />);
+    render(<DeleteDialog transition="scale" instant />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
     expect(screen.getByTestId('panel').parentElement).toHaveClass('[transition-property:none]!');
     await userEvent.keyboard('{Escape}');
