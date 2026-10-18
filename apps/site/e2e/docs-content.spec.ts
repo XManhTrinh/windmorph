@@ -155,7 +155,9 @@ test.describe('Import line', () => {
   });
 });
 
-test('the footer links the repository, npm, the licence and the Pro guide', async ({ page }) => {
+test('the footer links the repository, npm, the licence, Pro, sponsoring and privacy', async ({
+  page,
+}) => {
   await page.goto('/theming');
   const links = page.getByRole('contentinfo').getByRole('navigation', { name: 'Windmorph' });
   await expect(links.getByRole('link')).toHaveText([
@@ -163,7 +165,17 @@ test('the footer links the repository, npm, the licence and the Pro guide', asyn
     'npm',
     'MIT licence',
     'Windmorph Pro',
+    'Sponsor',
+    'Privacy',
   ]);
+  await expect(links.getByRole('link', { name: 'Sponsor' })).toHaveAttribute(
+    'href',
+    'https://github.com/sponsors/XManhTrinh',
+  );
+  await links.getByRole('link', { name: 'Privacy' }).click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
+  await page.goBack();
   await expect(links.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
     'href',
     'https://github.com/XManhTrinh/windmorph',
@@ -224,7 +236,9 @@ test.describe('Windmorph Pro guide', () => {
     await expect(question).toHaveAttribute('aria-expanded', 'false');
     await question.click();
     await expect(question).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByRole('region', { name: 'Do I need Tailwind CSS?' })).toBeVisible();
+    // Past six questions the panels aren't regions (a landmark each would crowd the page).
+    const panel = await question.getAttribute('aria-controls');
+    await expect(page.locator(`[id="${panel}"]`)).toContainText('styles.compiled.css');
   });
 
   test('passes axe in light and dark mode', async ({ page }) => {
@@ -233,6 +247,34 @@ test.describe('Windmorph Pro guide', () => {
     await goDark(page);
     await expectNoAxeViolations(page, '/pro (dark)');
   });
+
+  test('the header button goes to the register-interest form', async ({ page }) => {
+    await gotoReady(page, '/pro');
+    await page
+      .locator('main article > header')
+      .getByRole('link', { name: 'Register interest' })
+      .click();
+    await expect(page).toHaveURL(/\/pro#register$/);
+    await expect(page.getByRole('form', { name: 'Register interest' })).toBeVisible();
+  });
+
+  test('the form asks for an email before sending', async ({ page }) => {
+    await gotoReady(page, '/pro');
+    const form = page.getByRole('form', { name: 'Register interest' });
+    await form.getByRole('button', { name: 'Register interest' }).click();
+    const email = form.getByRole('textbox', { name: /Email/ });
+    await expect(email).toBeFocused();
+    await expect(email).toHaveAccessibleDescription(/Enter your email address/);
+    await expectNoAxeViolations(page, '/pro (form error)');
+  });
+});
+
+test('the privacy notice passes axe in light and dark mode', async ({ page }) => {
+  await page.goto('/privacy');
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy' })).toBeVisible();
+  await expectNoAxeViolations(page, '/privacy (light)');
+  await goDark(page);
+  await expectNoAxeViolations(page, '/privacy (dark)');
 });
 
 test('the components index opens filtered by its URL, and writes the filter back', async ({
@@ -255,6 +297,7 @@ test.describe('No sideways scrolling', () => {
       await page.setViewportSize({ width, height: 900 });
       for (const path of [
         '/pro',
+        '/privacy',
         '/components/button/accessibility',
         '/components/dialog/accessibility',
         '/components/button/guidelines',
