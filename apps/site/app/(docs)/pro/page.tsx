@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import { Button } from '@windmorph/react';
 import { Accordion, AccordionItem, CodeBlock, PropsTable } from '@windmorph/react-pro';
 import { InlineCode } from '../../../components/inline-code';
-import { InstallCommand } from '../../../components/install-command';
 import { PageChips } from '../../../components/page-chips';
+import { RegisterInterestForm } from '../../../components/register-interest-form';
 import { componentTabHref } from '../../../content/components/doc';
 import { highlightSource } from '../../../lib/highlight';
 import { PRO_COMPONENTS_HREF, proPagesByGroup, proSummary } from '../../../lib/pro-catalog';
@@ -15,9 +17,9 @@ const LINK =
 const TEXT = 'text-body-large text-on-surface-variant';
 const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 
-const NPMRC_SNIPPET = `# Example only: use the registry address that comes with your token.
-@windmorph:registry=https://registry.example.com/
-//registry.example.com/:_authToken=\${WINDMORPH_PRO_TOKEN}`;
+/** The core repository's discussions for component requests, where requests can be upvoted. */
+const COMPONENT_REQUESTS_HREF =
+  'https://github.com/XManhTrinh/windmorph/discussions/categories/component-requests';
 
 const CSS_SNIPPET = `@import 'tailwindcss';
 @import '@windmorph/react/styles.css';
@@ -68,12 +70,52 @@ const SAMPLE_ROWS = [
   },
 ];
 
-const FAQ = [
+const FAQ: { id: string; question: string; answer: ReactNode }[] = [
   {
     id: 'on-sale',
     question: 'Can I buy Pro today?',
+    answer: (
+      <>
+        Not yet.{' '}
+        <a href="#register" className={LINK}>
+          Register interest
+        </a>{' '}
+        and you&apos;ll hear first when it opens.
+      </>
+    ),
+  },
+  {
+    id: 'price',
+    question: 'How much will it cost?',
     answer:
-      "Not yet. Its components are documented here in full so you can see what's coming; pricing will be announced with the licence.",
+      "That isn't decided yet. People who register interest hear the price before anyone else.",
+  },
+  {
+    id: 'email',
+    question: 'What happens to my email?',
+    answer: (
+      <>
+        You get one email to confirm your address, then only news about Windmorph Pro and its
+        add-ons. Every email has a link to unsubscribe. The{' '}
+        <a href="/privacy" className={LINK}>
+          privacy notice
+        </a>{' '}
+        has the details.
+      </>
+    ),
+  },
+  {
+    id: 'requests',
+    question: 'Can I ask for a component?',
+    answer: (
+      <>
+        Yes: name it in the form&apos;s &ldquo;What component is missing?&rdquo; box, or{' '}
+        <a href={COMPONENT_REQUESTS_HREF} className={LINK}>
+          request it in GitHub Discussions
+        </a>
+        , where others can upvote it.
+      </>
+    ),
   },
   {
     id: 'tailwind',
@@ -111,13 +153,18 @@ function SectionHeading({ id, children }: { id: string; children: string }) {
 
 /**
  * The Windmorph Pro guide: what Pro is, the components it includes (from the catalog), the
- * planned licence and how a buyer installs it with a token.
+ * form to register interest while it isn't on sale (its choices are the same catalog list),
+ * how Pro sits beside the core, the docs components and the questions people ask.
  */
 export default async function ProPage() {
   const groups = proPagesByGroup();
   const count = groups.reduce((total, { pages }) => total + pages.length, 0);
-  const [npmrcHtml, cssHtml, useHtml, docsHtml] = await Promise.all([
-    highlightSource(NPMRC_SNIPPET, 'ini'),
+  const choices = groups.map(({ group, pages }) => ({
+    id: group.id,
+    label: group.fullName,
+    choices: pages.map((page) => page.title),
+  }));
+  const [cssHtml, useHtml, docsHtml] = await Promise.all([
     highlightSource(CSS_SNIPPET, 'css'),
     highlightSource(USE_SNIPPET, 'tsx'),
     highlightSource(DOCS_SNIPPET, 'tsx'),
@@ -128,13 +175,19 @@ export default async function ProPage() {
       <header className="flex flex-col gap-3">
         <h1 className="text-headline-large text-on-surface">Windmorph Pro</h1>
         <p className={TEXT}>
-          Windmorph Pro (<InlineCode>@windmorph/react-pro</InlineCode>) is a paid set of components
-          on top of the free core, <InlineCode>@windmorph/react</InlineCode>. It covers what
-          Material 3 doesn&apos;t: alerts, avatars, tags, skeletons, empty states, phone and PIN
-          fields, a message field with rich text, media viewers and uploads, and more. Its
-          components are built only on the core&apos;s public API, so they follow the same tokens,
-          themes, motion and accessibility rules, and the core stays complete and MIT without them.
+          Windmorph Pro (<InlineCode>@windmorph/react-pro</InlineCode>) will be a paid set of
+          components on top of the free core, <InlineCode>@windmorph/react</InlineCode>, and
+          isn&apos;t on sale yet. It covers what Material 3 doesn&apos;t: alerts, avatars, tags,
+          skeletons, empty states, phone and PIN fields, a message field with rich text, media
+          viewers and uploads, and more. Its components are built only on the core&apos;s public
+          API, so they follow the same tokens, themes, motion and accessibility rules, and the core
+          stays complete and MIT without them.
         </p>
+        <div>
+          <Button variant="filled" size="md" href="#register">
+            Register interest
+          </Button>
+        </div>
       </header>
 
       <section className="flex flex-col gap-4">
@@ -162,58 +215,41 @@ export default async function ProPage() {
             </ul>
           </div>
         ))}
-        <p className={TEXT}>Add-on kits are planned.</p>
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading id="licence">Licence</SectionHeading>
+        <SectionHeading id="register">Register interest</SectionHeading>
         <p className={TEXT}>
-          Pro isn&apos;t on sale yet. It will be sold under a commercial licence; the licence terms
-          and pricing will be announced before it goes on sale.
+          We&apos;ll email you when Pro opens. Your answers decide what we build and polish next.
         </p>
+        <RegisterInterestForm
+          interest="pro"
+          source="pro-page"
+          choicesLabel="Which Pro components would you use?"
+          groups={choices}
+        />
         <p className={TEXT}>
-          The core, <InlineCode>@windmorph/react</InlineCode>, stays free under the MIT licence.
-        </p>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading id="install">Install</SectionHeading>
-        <p className={TEXT}>
-          Pro comes from a private package registry, not the public npm registry. When you buy it,
-          you get an install token. Tell your package manager to fetch{' '}
-          <InlineCode>@windmorph</InlineCode> packages from the Pro registry with that token, in an{' '}
-          <InlineCode>.npmrc</InlineCode> file beside your <InlineCode>package.json</InlineCode>.
-          The registry&apos;s address comes with the token; the one below is a placeholder.
-        </p>
-        <CodeBlock code={NPMRC_SNIPPET} html={npmrcHtml} lang="ini" title=".npmrc" />
-        <p className={TEXT}>
-          Keep the token out of your repository: the file reads it from the{' '}
-          <InlineCode>WINDMORPH_PRO_TOKEN</InlineCode> environment variable, which you set on your
-          machine, in CI and on your host.
-        </p>
-        <p className={TEXT}>
-          Then install Pro beside the core, which it lists as a peer dependency, at the same minor
-          version:
-        </p>
-        <InstallCommand packages="@windmorph/react @windmorph/react-pro motion" />
-        <p className={TEXT}>
-          The rich text components (<InlineCode>@windmorph/react-pro/rich-text</InlineCode>) also
-          need the Tiptap packages Pro lists as optional peer dependencies.
+          Rather ask in public?{' '}
+          <a href={COMPONENT_REQUESTS_HREF} className={LINK}>
+            Request a component in GitHub Discussions
+          </a>
+          .
         </p>
       </section>
 
       <section className="flex flex-col gap-4">
-        <SectionHeading id="styles">Add the stylesheet</SectionHeading>
+        <SectionHeading id="using-pro">Using Pro</SectionHeading>
+        <p className={TEXT}>
+          Pro installs beside the core, which it lists as a peer dependency, at the same minor
+          version. Its rich text components (<InlineCode>@windmorph/react-pro/rich-text</InlineCode>
+          ) also need the Tiptap packages Pro lists as optional peer dependencies.
+        </p>
         <p className={TEXT}>
           Import Pro&apos;s stylesheet after the core&apos;s, and let Tailwind scan both packages.
           Without Tailwind, link <InlineCode>@windmorph/react-pro/styles.compiled.css</InlineCode>{' '}
           alone: it includes the core&apos;s.
         </p>
         <CodeBlock code={CSS_SNIPPET} html={cssHtml} lang="css" title="globals.css" />
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <SectionHeading id="use">Use it</SectionHeading>
         <p className={TEXT}>
           Pro components read the theme from the core&apos;s <InlineCode>ThemeProvider</InlineCode>,
           so they follow every theme, mode and contrast level with no setup of their own. Each
