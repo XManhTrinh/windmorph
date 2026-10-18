@@ -1,18 +1,23 @@
 const LINK =
   'rounded-sm underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
 
-/** The footer's links: where the code lives, the package, its licence and Pro. */
+/**
+ * The footer's links: where the code lives, the package, its licence, Pro, sponsoring the
+ * project and the privacy notice.
+ */
 const FOOTER_LINKS = [
   { href: 'https://github.com/XManhTrinh/windmorph', label: 'GitHub' },
   { href: 'https://www.npmjs.com/package/@windmorph/react', label: 'npm' },
   { href: 'https://github.com/XManhTrinh/windmorph/blob/main/LICENSE', label: 'MIT licence' },
   { href: '/pro', label: 'Windmorph Pro' },
+  { href: 'https://github.com/sponsors/XManhTrinh', label: 'Sponsor' },
+  { href: '/privacy', label: 'Privacy' },
 ] as const;
 
 /**
  * The site-wide footer, rendered once in the docs shell. A Server Component (no
  * interactivity): the Windmorph name with its links (the repository, the npm package, the
- * licence and the Pro guide), the stack it's built on, and its author. Centred and muted,
+ * licence, the Pro guide, sponsoring and privacy), the stack it's built on, and its author. Centred and muted,
  * with a top divider. The compact bottom navigation bar is fixed, so the footer carries extra
  * bottom padding on compact to clear it.
  */

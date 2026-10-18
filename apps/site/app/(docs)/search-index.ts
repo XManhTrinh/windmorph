@@ -215,7 +215,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   {
     title: 'Windmorph Pro',
     summary:
-      'The paid components on top of the free core: what Pro includes, its planned licence and installing it with a token.',
+      'The paid components on top of the free core: what Pro includes, registering interest before it opens and using it beside the core.',
     href: '/pro',
     kind: 'guide',
     keywords: [
@@ -227,9 +227,10 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
       'licence',
       'license',
       'pricing',
-      'install token',
-      'private registry',
-      '.npmrc',
+      'register interest',
+      'waiting list',
+      'early access',
+      'component request',
     ],
   },
   {
@@ -238,6 +239,14 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     href: '/whats-new',
     kind: 'guide',
     keywords: ['changelog', 'release notes', 'releases', 'version'],
+  },
+  {
+    title: 'Privacy',
+    summary:
+      'What the register-interest form collects, why, who processes it, how long it is kept and your rights.',
+    href: '/privacy',
+    kind: 'guide',
+    keywords: ['privacy notice', 'personal data', 'GDPR', 'unsubscribe', 'cookies'],
   },
 ];
 
