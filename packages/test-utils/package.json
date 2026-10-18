@@ -1,0 +1,57 @@
+{
+  "name": "@windmorph/test-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Test helpers shared by Windmorph's packages: axe checks, Tailwind class checks and the Vitest setup.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./dist/setup.js"
+  ],
+  "exports": {
+    "./axe": {
+      "types": "./dist/axe.d.ts",
+      "import": "./dist/axe.js"
+    },
+    "./setup": {
+      "types": "./dist/setup.d.ts",
+      "import": "./dist/setup.js"
+    },
+    "./tailwind-classes": {
+      "types": "./dist/tailwind-classes.d.ts",
+      "import": "./dist/tailwind-classes.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "prepare": "pnpm run build",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint --max-warnings 0 ."
+  },
+  "dependencies": {
+    "@tailwindcss/node": "^4.3.3",
+    "axe-core": "^4.14.0"
+  },
+  "peerDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^5.0.3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.3",
+    "tsdown": "^0.23.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vitest": "^5.0.3"
+  }
+}

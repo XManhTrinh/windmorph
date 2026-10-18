@@ -1,0 +1,283 @@
+/*
+ * Interaction utilities. State layers and ripples are painted as background layers
+ * on the element itself, so they follow its border-radius and never depend on the
+ * element's position, overflow or transform (architecture §10).
+ */
+
+@property --m3-state-opacity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --m3-ripple-opacity {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --m3-ripple-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* The ripple centre travels from the press point to the middle while it grows. */
+@property --m3-ripple-x {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --m3-ripple-y {
+  syntax: '<length-percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+
+/*
+ * The navigation rail's collapsed width. Its icons sit on the line through the middle of
+ * the collapsed rail in both states, so the rail derives every inset from it. Registered
+ * so it inherits and resolves to px wherever it's read.
+ */
+@property --m3-rail-collapsed-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 96px;
+}
+
+/*
+ * A carousel item's mask corner. Registered so a pressed item's corners animate (the mask
+ * is clipped with `clip-path`, which reads it). At rest it takes the component token
+ * `--md-comp-carousel-item-container-shape`, so the token must be a length; anything else
+ * falls back to the initial 28px.
+ */
+@property --m3-carousel-item-corner {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 28px;
+}
+
+/*
+ * A search view's expansion, 0 (the collapsed bar's bounds) to 1 (expanded). Registered so
+ * it animates as a number on the M3 springs; the view lerps its geometry from it, as Compose
+ * lerps the search bar's layout from its state's progress.
+ */
+@property --m3-search-progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+/* `dark:` follows `data-mode`, including `system`. */
+@custom-variant dark {
+  &:where([data-mode='dark'], [data-mode='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-mode='system'], [data-mode='system'] *) {
+      @slot;
+    }
+  }
+}
+
+/*
+ * `control-checked:` styles a selection control's drawing (a checkbox's box, a radio's ring, a
+ * switch's track and thumb) while its `group/control` ancestor is checked or indeterminate
+ * (`data-checked`, `data-indeterminate`). A custom variant sorts after the `group-data-*` ones,
+ * so the checked colours win over hovered, focused, pressed and invalid ones at equal
+ * specificity, and a state that must beat them is stacked with it (`group-data-disabled/control:control-checked:`).
+ */
+@custom-variant control-checked {
+  &:is(:where(.group\/control):is([data-checked], [data-indeterminate]) *) {
+    @slot;
+  }
+}
+
+/* `motion-standard:` applies under the standard motion scheme or reduced motion. */
+@custom-variant motion-standard {
+  &:where([data-motion='standard'], [data-motion='standard'] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+}
+
+/*
+ * M3 state layer + ripple. The layer colour defaults to the element's content colour
+ * (`currentColor`); override it with `--m3-state-layer-color`. Pair with
+ * `useM3Interaction`, which sets the `data-*` attributes and the ripple origin.
+ * `data-menu-open` (set by `MenuTrigger`) adds a persistent pressed layer.
+ *
+ * The ripple follows Compose's `RippleAnimation`: on press it fades in over 75ms while its
+ * radius grows from `--m3-ripple-start` (30% of the longer side) to `--m3-ripple-size` over
+ * 225ms (fast-out-slow-in) and its centre moves from the press point to the middle. It is
+ * driven by `data-rippling`, which outlasts a quick tap until the growth is done, so the
+ * ripple always reaches the edges; then it fades out over 150ms and resets unseen.
+ */
+@utility state-layer {
+  --m3-state-opacity: 0;
+  --m3-ripple-opacity: 0;
+  --m3-ripple-radius: var(--m3-ripple-start, 0px);
+  --m3-ripple-x: var(--m3-ripple-origin-x, 50%);
+  --m3-ripple-y: var(--m3-ripple-origin-y, 50%);
+  background-image:
+    radial-gradient(
+      circle at var(--m3-ripple-x) var(--m3-ripple-y),
+      color-mix(
+          in srgb,
+          var(--m3-state-layer-color, currentColor) calc(var(--m3-ripple-opacity) * 100%),
+          transparent
+        )
+        var(--m3-ripple-radius),
+      transparent var(--m3-ripple-radius)
+    ),
+    linear-gradient(
+      color-mix(
+        in srgb,
+        var(--m3-state-layer-color, currentColor)
+          calc((var(--m3-state-opacity) + var(--m3-open-opacity, 0)) * 100%),
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--m3-state-layer-color, currentColor)
+          calc((var(--m3-state-opacity) + var(--m3-open-opacity, 0)) * 100%),
+        transparent
+      )
+    );
+  /* After the ripple: fade it out, then reset its radius and centre once it is invisible. */
+  /* Components append their own transitions through the --m3-transition-* lists. */
+  transition-property:
+    --m3-state-opacity, --m3-ripple-opacity, --m3-ripple-radius, --m3-ripple-x, --m3-ripple-y,
+    var(--m3-transition-property, --m3-none);
+  transition-duration:
+    var(--md-sys-motion-spring-effects-fast-duration), 150ms, 0s, 0s, 0s,
+    var(--m3-transition-duration, 0s);
+  transition-delay: 0s, 0s, 150ms, 150ms, 150ms, var(--m3-transition-delay, 0s);
+  transition-timing-function:
+    var(--md-sys-motion-spring-effects-fast-easing), linear, linear, linear, linear,
+    var(--m3-transition-easing, linear);
+
+  &[data-hovered] {
+    --m3-state-opacity: var(--md-sys-state-hover-state-layer-opacity);
+  }
+  &[data-focus-visible] {
+    --m3-state-opacity: var(--md-sys-state-focus-state-layer-opacity);
+  }
+  &[data-dragged] {
+    --m3-state-opacity: var(--md-sys-state-dragged-state-layer-opacity);
+  }
+  /*
+   * M3: while its menu is open, a trigger (a button, or a menu item whose submenu is open)
+   * keeps a pressed layer, added to its hover or focus layer.
+   */
+  &[data-menu-open] {
+    --m3-open-opacity: var(--md-sys-state-pressed-state-layer-opacity);
+  }
+  &[data-rippling] {
+    --m3-ripple-opacity: var(--md-sys-state-pressed-state-layer-opacity);
+    --m3-ripple-radius: var(--m3-ripple-size, 0px);
+    --m3-ripple-x: var(--m3-ripple-center-x, 50%);
+    --m3-ripple-y: var(--m3-ripple-center-y, 50%);
+    transition-duration:
+      var(--md-sys-motion-spring-effects-fast-duration), 75ms, 225ms, 225ms, 225ms,
+      var(--m3-transition-duration, 0s);
+    transition-delay: 0s, 0s, 0s, 0s, 0s, var(--m3-transition-delay, 0s);
+    transition-timing-function:
+      var(--md-sys-motion-spring-effects-fast-easing), linear, cubic-bezier(0.4, 0, 0.2, 1), linear,
+      linear, var(--m3-transition-easing, linear);
+  }
+  &[data-disabled] {
+    --m3-state-opacity: 0;
+    --m3-open-opacity: 0;
+    --m3-ripple-opacity: 0;
+  }
+  /* Reduced motion: the ripple appears at full size where it ends, with no growth or travel. */
+  @media (prefers-reduced-motion: reduce) {
+    &[data-rippling] {
+      transition-duration:
+        var(--md-sys-motion-spring-effects-fast-duration), 75ms, 0s, 0s, 0s,
+        var(--m3-transition-duration, 0s);
+    }
+  }
+}
+
+/*
+ * Transitions for an interactive container: corner radius (the press / selection
+ * morph) plus colours, elevation, outline and flex-basis, appended to the state layer's own.
+ * Corners move on the fast spatial spring, which bounces in the expressive scheme: the
+ * spec drives "rounded corners" with spatial springs and all component motion with the
+ * fast speeds (2026-10-13). A press that starts while the last morph is still running
+ * (`data-rapid-press`, set by `useM3Interaction`) uses the fast effects spring instead,
+ * the web's modified curve that keeps rapid clicks from resonating. Under reduced motion the
+ * corners snap to their new shape.
+ *
+ * A component whose morph must not bounce (Compose's `DefaultEffects` "to prevent any
+ * bounce": icon buttons, non-toggle buttons, split buttons) sets `--m3-shape-spring-duration`
+ * and `--m3-shape-spring-easing` to another spring (2026-10-15); rapid presses and reduced
+ * motion still override it.
+ */
+@utility container-motion {
+  --m3-shape-duration: var(
+    --m3-shape-spring-duration,
+    var(--md-sys-motion-spring-spatial-fast-duration)
+  );
+  --m3-shape-easing: var(--m3-shape-spring-easing, var(--md-sys-motion-spring-spatial-fast-easing));
+  /* flex-basis animates a button group's press-to-expand on the fast spatial spring. */
+  --m3-transition-property:
+    border-radius, background-color, color, box-shadow, border-color, flex-basis;
+  --m3-transition-duration:
+    var(--m3-shape-duration), var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-effects-fast-duration),
+    var(--md-sys-motion-spring-spatial-fast-duration);
+  --m3-transition-easing:
+    var(--m3-shape-easing), var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing),
+    var(--md-sys-motion-spring-effects-fast-easing), var(--md-sys-motion-spring-spatial-fast-easing);
+  --m3-transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
+  &[data-rapid-press] {
+    --m3-shape-duration: var(--md-sys-motion-spring-effects-fast-duration);
+    --m3-shape-easing: var(--md-sys-motion-spring-effects-fast-easing);
+  }
+  /* Reduced motion: the corners snap; colours and elevation still fade (2026-10-13). */
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &[data-rapid-press] {
+      --m3-shape-duration: 0s;
+    }
+  }
+}
+
+/* M3 focus indicator: an outline, so clipping ancestors and `overflow-hidden` never hide it. */
+@utility focus-ring {
+  outline: none;
+  &[data-focus-visible] {
+    outline: var(--md-sys-focus-indicator-thickness) solid var(--md-sys-color-secondary);
+    outline-offset: var(--md-sys-focus-indicator-offset);
+  }
+}
+
+/* Same indicator drawn inside the element, for full-bleed items such as list rows. */
+@utility focus-ring-inset {
+  outline: none;
+  &[data-focus-visible] {
+    outline: var(--md-sys-focus-indicator-thickness) solid var(--md-sys-color-secondary);
+    outline-offset: calc(var(--md-sys-focus-indicator-thickness) * -1);
+  }
+}
+
+/*
+ * The outermost box of a menu or tooltip, which React Aria places with inline `position`
+ * and insets, and which takes the consumer's `className`. Unlayered, this rule beats any
+ * consumer inset utility (Tailwind's are layered), while React Aria's inline insets beat
+ * it: a consumer `bottom-4` can't combine with React Aria's `top` to stretch the box, or
+ * move the surface off its anchor (architecture §10).
+ */
+[data-overlay-placement] {
+  inset: auto;
+}

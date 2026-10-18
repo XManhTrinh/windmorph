@@ -1,0 +1,534 @@
+'use client';
+
+import {
+  Children,
+  createContext,
+  isValidElement,
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithRef,
+  type KeyboardEvent,
+  type ReactElement,
+  type ReactNode,
+  type TransitionEvent,
+} from 'react';
+import { useReducedMotion } from 'motion/react';
+import { mergeProps, useFocusWithin, useInteractOutside, useObjectRef } from 'react-aria';
+import { useControlledState } from 'react-stately/useControlledState';
+import {
+  ButtonBase,
+  type ButtonBaseActionProps,
+  type ButtonBaseLinkProps,
+} from '../../primitives/ButtonBase';
+import { IconFaces } from '../../primitives/IconFaces';
+import type { IconTransition } from '../../primitives/icon-faces-styles';
+import { TriggerContext } from '../../primitives/TriggerContext';
+import { usePresence } from '../../primitives/use-presence';
+import { cn } from '../../utils/cn';
+import { Menu, MenuItem, MenuTrigger, type MenuItemProps } from '../menu/Menu';
+import type { FabElevation } from '../fab/fab-styles';
+import { FabTooltip } from '../fab/FabTooltip';
+import { staggerSteps } from './fab-menu-stagger';
+import { fabMenuStyles, type FabMenuColor, type FabMenuSize } from './fab-menu-styles';
+import { mergeDataTokens } from '../../utils/merge-data-tokens';
+
+type Styles = ReturnType<typeof fabMenuStyles>;
+
+interface FabMenuContextValue {
+  styles: Styles;
+  /** Items at or below this index (counted from the top) are shown. */
+  firstVisible: number;
+  count: number;
+  close: () => void;
+  onLastExit: (event: TransitionEvent<HTMLElement>) => void;
+}
+
+export type { IconTransition };
+
+const FabMenuContext = createContext<FabMenuContextValue | null>(null);
+const ItemIndexContext = createContext(0);
+
+type AccessibleName =
+  | {
+      /** Accessible name for the button, also its tooltip. Required unless `aria-labelledby` is set. */
+      'aria-label': string;
+      /** The id of the element that names the button. */
+      'aria-labelledby'?: string;
+    }
+  | {
+      /** Accessible name for the button, also its tooltip. */
+      'aria-label'?: string;
+      /** The id of the element that names the button. Required unless `aria-label` is set. */
+      'aria-labelledby': string;
+    };
+
+export interface FabMenuClassNames {
+  /** The outer container, merged with `className`. */
+  root?: string;
+  /** The box that keeps the FAB's size while the button shrinks inside it. */
+  anchor?: string;
+  /** The FAB that opens and closes the menu. */
+  button?: string;
+  /** The button's icon. */
+  icon?: string;
+  /** The list of items (`presentation="list"`). */
+  list?: string;
+  /** The menu (`presentation="menu"`). */
+  menu?: string;
+  /** The built-in plain tooltip shown on the closed button (`tooltip`). */
+  tooltip?: string;
+}
+
+/**
+ * `list`: the expressive stack of pills that opens upwards from the button, for compact
+ * and medium windows. `menu`: the FAB opens a standard {@link Menu} 4px above it, as M3
+ * asks for on the web and in large windows.
+ */
+export type FabMenuPresentation = 'list' | 'menu';
+
+interface FabMenuOwnProps {
+  /** Whether the menu is open (controlled). */
+  open?: boolean;
+  /** Whether the menu starts open (uncontrolled). @default false */
+  defaultOpen?: boolean;
+  /** Called when the menu opens or closes. */
+  onOpenChange?: (open: boolean) => void;
+  /** The button's icon while closed, usually "add". Hidden from assistive tech. */
+  icon: ReactElement;
+  /** The button's icon while open, usually "close". Defaults to `icon`. */
+  openIcon?: ReactElement;
+  /**
+   * How the button hands over from `icon` to `openIcon`: `swap` halfway through the morph
+   * (the M3 spec and Compose), or `rotate`, where the outgoing icon turns 90° and fades
+   * out while the incoming one turns in and fades in. `rotate` goes beyond the M3 spec; it
+   * matches Google's Expressive showcase motion. It mirrors in RTL, and reduced motion keeps
+   * only the crossfade. Only used with `openIcon`. @default "swap"
+   */
+  iconTransition?: IconTransition;
+  /** The FAB size the button starts at; open, it is always the 56px close button. @default "default" */
+  size?: FabMenuSize;
+  /** The button's and items' colour scheme, from M3's FAB menu colour sets. @default "primary" */
+  color?: FabMenuColor;
+  /**
+   * The button's and items' elevation, as on `Fab`: level 3 by default (the spec), `lowered`
+   * level 1, or `flat` level 0. @default "default"
+   */
+  elevation?: FabElevation;
+  /**
+   * How the items show: `list`, the expressive stack of pills above the button, or `menu`,
+   * a standard menu 4px above it (M3's choice for the web and large windows).
+   * @default "list"
+   */
+  presentation?: FabMenuPresentation;
+  /**
+   * While closed, shows `aria-label` in a plain tooltip on hover and keyboard focus, as M3
+   * asks of FABs on the web. Open, the button is the close button and has no tooltip. It
+   * steps aside inside your own `TooltipTrigger`. @default true
+   */
+  tooltip?: boolean;
+  /**
+   * Shows the button. Hiding it closes the menu, shrinks the button towards its centre and
+   * fades it out; showing it expands it back (the FAB's appear / disappear motion). A
+   * hidden menu is `inert`. @default true
+   */
+  visible?: boolean;
+  /**
+   * Plays the appearing animation when the menu mounts. Change its `key` on a page or tab
+   * change to replay it. @default false
+   */
+  appear?: boolean;
+  /** Two to six `FabMenuItem` elements, top to bottom. */
+  children: ReactNode;
+  /** Classes for each part, by slot. */
+  classNames?: FabMenuClassNames;
+}
+
+export type FabMenuProps = FabMenuOwnProps &
+  AccessibleName &
+  Omit<
+    ComponentPropsWithRef<'div'>,
+    keyof FabMenuOwnProps | 'aria-label' | 'aria-labelledby' | 'color'
+  >;
+
+const ITEM_SELECTOR = '[data-fab-menu-item]:not([inert])';
+
+/**
+ * M3 Expressive FAB menu: a FAB that opens two to six related actions above it. The button
+ * shrinks into a 56px close button while the items (`FabMenuItem`) appear one after
+ * another from the button upwards, each springing out to its full width; on short windows
+ * they scroll behind the close button. Under reduced motion the button changes at once and
+ * the items fade in and out together. Position the menu on the window's trailing edge
+ * with `className` (`fixed end-4 bottom-4`, and `end-6 bottom-6` in large windows). Keep it
+ * out of normal flow: `fixed`, or at the bottom of a box. In flow, the open list pushes the
+ * button down and can scroll the page.
+ *
+ * The button is named by `aria-label`, which it shows in a tooltip while closed, and reports
+ * `aria-expanded`. Tab or ↓ moves from the button to the top item; ↑ / ↓ move between
+ * items and back to the button. Escape, an outside press, focus leaving the menu or
+ * choosing an item closes it. With `presentation="menu"` the
+ * button opens a standard `Menu` instead, with menu semantics and keyboard support.
+ *
+ * @example
+ * <FabMenu icon={<AddIcon />} openIcon={<CloseIcon />} aria-label="Create" className="fixed end-4 bottom-4">
+ *   <FabMenuItem icon={<ReplyIcon />} onPress={reply}>Reply</FabMenuItem>
+ *   <FabMenuItem icon={<ArchiveIcon />} onPress={archive}>Archive</FabMenuItem>
+ * </FabMenu>
+ */
+export function FabMenu({
+  open,
+  defaultOpen = false,
+  onOpenChange,
+  icon,
+  openIcon,
+  iconTransition,
+  size,
+  color,
+  elevation,
+  presentation = 'list',
+  tooltip = true,
+  visible = true,
+  appear = false,
+  children,
+  classNames,
+  className,
+  ref,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  ...rest
+}: FabMenuProps) {
+  const [isOpenState, setOpen] = useControlledState(open, defaultOpen, onOpenChange);
+  const isOpen = isOpenState && visible;
+  const items = Children.toArray(children).filter(isValidElement<FabMenuItemProps>);
+  const total = items.length;
+  if (process.env.NODE_ENV !== 'production' && (total < 2 || total > 6)) {
+    console.warn(
+      `[@windmorph/react] A FabMenu holds 2 to 6 items (M3); this one has ${total}. Use a FAB for a single action.`,
+    );
+  }
+  const isMenu = presentation === 'menu';
+  const styles = fabMenuStyles({ size, color, elevation });
+  const menuColor = color ?? 'primary';
+  const listId = useId();
+  const rootRef = useObjectRef(ref);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Hiding the button closes the menu.
+  useEffect(() => {
+    if (!visible && isOpenState) setOpen(false);
+  }, [visible, isOpenState, setOpen]);
+
+  // The visible item count steps through Compose's stagger spring (fab-menu-stagger.ts);
+  // under reduced motion every item shows and hides with the menu, in the same render.
+  const reducedMotion = useReducedMotion() ?? false;
+  const target = isOpen ? total : 0;
+  const [staggered, setStaggered] = useState(target);
+  const count = reducedMotion ? target : staggered;
+  const countRef = useRef(count);
+  useEffect(() => {
+    if (reducedMotion) {
+      countRef.current = target;
+      return;
+    }
+    const steps = staggerSteps(countRef.current, target);
+    const timers = steps.map(({ at, count: next }) =>
+      setTimeout(() => {
+        countRef.current = next;
+        setStaggered(next);
+      }, at),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [target, reducedMotion]);
+
+  // The list stays laid out until the last item has faded.
+  const { isPresent, exitProps } = usePresence(isOpen || count > 0);
+
+  const close = () => {
+    if (listRef.current?.contains(document.activeElement)) buttonRef.current?.focus();
+    setOpen(false);
+  };
+
+  useInteractOutside({ ref: rootRef, onInteractOutside: close, isDisabled: !isOpen || isMenu });
+
+  // Tabbing out of the open menu closes it, as an outside press does, so the open list never
+  // covers what takes focus next (M3: don't obscure the focus indicator; 2026-10-15). Focus
+  // leaving the window (no new target) keeps it open. Always tracked, so focus that came in
+  // while it was closed (the button, then Enter) closes it too as it leaves (2026-10-17).
+  const { focusWithinProps } = useFocusWithin({
+    onBlurWithin: (event) => {
+      if (!isOpen || isMenu) return;
+      const next = event.relatedTarget;
+      if (next instanceof Node && !rootRef.current?.contains(next)) setOpen(false);
+    },
+  });
+
+  // A list taller than the window scrolls; it opens showing the items nearest the button.
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (isOpen && list) list.scrollTop = list.scrollHeight;
+  }, [isOpen]);
+
+  const focusItem = (from: Element, step: 1 | -1) => {
+    const all = [...(listRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])];
+    const index = all.indexOf(from as HTMLElement);
+    const next = index === -1 ? all[0] : all[index + step];
+    (next ?? buttonRef.current)?.focus();
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!isOpen || isMenu) return;
+    const onButton = event.target === buttonRef.current;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      buttonRef.current?.focus();
+      setOpen(false);
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      focusItem(event.target as Element, 1);
+    } else if (event.key === 'ArrowUp' && !onButton) {
+      event.preventDefault();
+      focusItem(event.target as Element, -1);
+    }
+  };
+
+  const context: FabMenuContextValue = {
+    styles,
+    firstVisible: total - count,
+    count: total,
+    close,
+    onLastExit: exitProps.onTransitionEnd,
+  };
+
+  const toggle = (
+    <ButtonBase
+      ref={buttonRef}
+      aria-label={ariaLabel}
+      aria-labelledby={ariaLabelledBy}
+      {...(isMenu
+        ? {}
+        : {
+            'aria-expanded': isOpen,
+            'aria-controls': isPresent ? listId : undefined,
+            onPress: () => setOpen(!isOpen),
+          })}
+      data-open={(isOpen && !isMenu) || undefined}
+      data-slot="button"
+      // Closed, the button is a FAB of the menu's container colour, painted by its tokens.
+      data-tokens="md-comp-fab"
+      data-color={`${menuColor}-container`}
+      className={styles.button({ class: classNames?.button })}
+    >
+      <span aria-hidden="true" className={styles.icon({ class: classNames?.icon })}>
+        {openIcon ? (
+          <IconFaces
+            icon={icon}
+            alternateIcon={openIcon}
+            alternate={isOpen && !isMenu}
+            transition={iconTransition}
+          />
+        ) : (
+          icon
+        )}
+      </span>
+    </ButtonBase>
+  );
+
+  const button = (
+    <span
+      data-hidden={visible ? undefined : true}
+      data-appear={appear || undefined}
+      className={styles.anchor({ class: classNames?.anchor })}
+    >
+      {tooltip && ariaLabel ? (
+        <FabTooltip available={!isOpen} label={ariaLabel} className={classNames?.tooltip}>
+          {toggle}
+        </FabTooltip>
+      ) : (
+        toggle
+      )}
+    </span>
+  );
+
+  return (
+    <div
+      {...mergeProps(rest, focusWithinProps)}
+      ref={rootRef}
+      inert={!visible || undefined}
+      // The component tokens' hook (fab-menu-tokens.ts).
+      data-tokens={mergeDataTokens('md-comp-fab-menu', rest)}
+      data-color={menuColor}
+      data-item-color={`${menuColor}-container`}
+      data-open={isOpen || undefined}
+      data-presentation={presentation}
+      className={styles.root({ class: cn(classNames?.root, className) })}
+      onKeyDown={onKeyDown}
+    >
+      {isMenu ? (
+        <MenuTrigger open={isOpen} onOpenChange={setOpen}>
+          {button}
+          <Menu
+            placement="top-end"
+            offset={4}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            classNames={{ panel: styles.menu({ class: classNames?.menu }) }}
+          >
+            {items.map((item) => (
+              <MenuItem
+                key={item.key ?? undefined}
+                leadingIcon={item.props.icon}
+                {...menuItemAction(item.props)}
+                className={item.props.className}
+              >
+                {item.props.children}
+              </MenuItem>
+            ))}
+          </Menu>
+        </MenuTrigger>
+      ) : (
+        <>
+          {button}
+          <div
+            ref={listRef}
+            id={listId}
+            hidden={!isPresent}
+            className={styles.list({ class: classNames?.list })}
+          >
+            {/* An enclosing trigger (e.g. a TooltipTrigger) is for the button, not the items. */}
+            <TriggerContext value={null}>
+              <FabMenuContext value={context}>
+                {items.map((item, index) => (
+                  <ItemIndexContext key={item.key} value={index}>
+                    {item}
+                  </ItemIndexContext>
+                ))}
+              </FabMenuContext>
+            </TriggerContext>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A `FabMenuItem`'s action for a `MenuItem`. Menu items are React Stately collection items,
+ * which keep any prop; React Aria's `useMenuItem` runs an item's `onAction` and opens its
+ * `href` through the router.
+ */
+function menuItemAction({ onAction, href }: FabMenuItemProps): Partial<MenuItemProps> {
+  return { onAction, href } as Partial<MenuItemProps>;
+}
+
+export interface FabMenuItemClassNames {
+  /** The item's button, link or menu item, merged with `className`. */
+  root?: string;
+  /** The row holding the icon and the label. */
+  content?: string;
+  /** The icon. */
+  icon?: string;
+  /** The item's label text. */
+  label?: string;
+}
+
+interface FabMenuItemOwnProps {
+  /**
+   * The item's icon. Hidden from assistive tech; the label names the item. M3 asks for an
+   * icon on every item, since it tells the items apart; leave it out only if necessary.
+   */
+  icon?: ReactElement;
+  /** The label, which M3 always requires. */
+  children: ReactNode;
+  /**
+   * Runs when the item is chosen, in either presentation. (`onPress` works only in the
+   * list, since a menu item has no press event.)
+   */
+  onAction?: () => void;
+  /** Classes for each part, by slot. */
+  classNames?: FabMenuItemClassNames;
+}
+
+type OmitItem<T> = Omit<T, keyof FabMenuItemOwnProps | 'disabled' | 'toggle'>;
+
+export type FabMenuItemProps = FabMenuItemOwnProps &
+  (OmitItem<ButtonBaseActionProps> | OmitItem<ButtonBaseLinkProps>);
+
+/**
+ * An action in a {@link FabMenu}: a 56px pill with an icon and a label (or, with
+ * `presentation="menu"`, a menu item). Choosing it calls `onAction` (and, in the list,
+ * `onPress`), or follows `href`, and closes the menu.
+ */
+export function FabMenuItem({
+  icon,
+  children,
+  classNames,
+  className,
+  style,
+  onPress,
+  onAction,
+  ...rest
+}: FabMenuItemProps) {
+  const menu = useContext(FabMenuContext);
+  if (!menu) throw new Error('FabMenuItem must be rendered inside a FabMenu');
+  const index = useContext(ItemIndexContext);
+  const visible = index >= menu.firstVisible;
+  const isLast = index === menu.count - 1;
+  const { styles } = menu;
+
+  // The item's width springs between 0 and its content's natural width.
+  const contentRef = useRef<HTMLSpanElement>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const measure = () => setWidth(content.offsetWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
+  // The list is hidden while the menu is closed, where the content measures 0; measure it
+  // again as the item shows, before paint, so it never shows a frame at width 0.
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (visible && content) setWidth(content.offsetWidth);
+  }, [visible]);
+
+  const props = {
+    ...rest,
+    inert: !visible,
+    'data-visible': visible || undefined,
+    'data-fab-menu-item': '',
+    'data-slot': 'item',
+    style: { ...style, width: visible ? width : 0 },
+    className: styles.item({ class: cn(classNames?.root, className) }),
+    onPress: (event: Parameters<NonNullable<ButtonBaseActionProps['onPress']>>[0]) => {
+      onPress?.(event);
+      onAction?.();
+      menu.close();
+    },
+    onTransitionEnd: isLast ? menu.onLastExit : undefined,
+  };
+
+  return (
+    <ButtonBase {...(props as ButtonBaseActionProps)}>
+      <span ref={contentRef} className={styles.itemContent({ class: classNames?.content })}>
+        {icon && (
+          <span
+            aria-hidden="true"
+            data-slot="item-icon"
+            className={styles.itemIcon({ class: classNames?.icon })}
+          >
+            {icon}
+          </span>
+        )}
+        <span className={classNames?.label}>{children}</span>
+      </span>
+    </ButtonBase>
+  );
+}

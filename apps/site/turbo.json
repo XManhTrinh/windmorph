@@ -1,0 +1,17 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": ["scripts/**", "$TURBO_ROOT$/packages/react/src/**", "$TURBO_ROOT$/pnpm-lock.yaml"],
+      "outputs": [".generated/props/**"]
+    },
+    "build": {
+      "outputs": ["out/**", ".next/**", "!.next/cache/**"],
+      "inputs": ["$TURBO_DEFAULT$", "public/media/bento/**"],
+      "env": ["NEXT_PUBLIC_LOOPS_FORM_ID", "NEXT_PUBLIC_LOOPS_LIST_ID"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build", "generate", "build"]
+    }
+  }
+}

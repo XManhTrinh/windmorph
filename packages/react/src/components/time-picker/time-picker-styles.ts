@@ -1,0 +1,177 @@
+import { tv, type VariantProps } from '../../utils/tv';
+
+/*
+ * Values follow the M3 time picker spec, with sizes from Compose Material 3 (TimePicker.kt,
+ * TimePickerTokens, TimeInputTokens).
+ *
+ * Time selectors: 96 × 80px (114px wide for a 24-hour dial), 8px corners, `display-large`;
+ * selected `primary-container` / `on-primary-container`, unselected
+ * `surface-container-highest` / `on-surface`, a 24px `display-large` ":" between them.
+ * They take typed digits too. Period selector (12-hour): 52 × 80px beside the minutes
+ * (12px away) in the vertical layout, 216 × 38px below the time (16px away) in the
+ * horizontal one; a 1px `outline` border with 8px corners, `title-medium`; selected
+ * `tertiary-container` / `on-tertiary-container` (the token colours; Compose's
+ * `isUpdatedTimepickerToggleEnabled` flag switches to `primary-container`), unselected
+ * `on-surface-variant`. The 256px `surface-container-highest` dial sits 36px below the time
+ * (vertical) or 36px beside it (horizontal), with `body-large` `on-surface` numbers on a
+ * 101px ring (69px for the inner 24-hour ring), each a 48px target; a 48px `primary`
+ * handle with `on-primary` text, a 2px track and an 8px centre. The numbers are drawn again
+ * in `on-primary`, clipped to the handle, so any part of a number under it stays legible.
+ *
+ * Input mode: 96 × 72px fields (24 hours too, `TimeInputTokens.TimeFieldContainerWidth`)
+ * in `display-medium` with `body-small` labels 7px below; focused fields are
+ * `primary-container` with a 2px `primary` border. Web density (`--md-sys-density`) takes 4px
+ * per step off the input mode's fields, ":" and period selector (72 → 68 → 64 → 60px); the
+ * dial mode keeps its size, since M3 doesn't make time pickers denser.
+ *
+ * The dial, the selector handle, the time and period selectors' containers and the period
+ * selector's outline come from the time picker's component tokens (`time-picker-tokens.ts`,
+ * `--md-comp-time-picker-*`): the root carries `data-tokens="md-comp-time-picker"`, and the
+ * classes read one private variable per part. A consumer class still wins in `cn()`.
+ *
+ * Every class is written out in full so Tailwind can find it.
+ */
+
+/** Variant definitions for {@link TimePicker}. */
+/**
+ * Forced colours paint containers as Canvas, so the time fields lost their boxes and the
+ * picked hour, minute or period looked like the others: the fields draw a CanvasText
+ * boundary, and the picked one keeps a Highlight fill with HighlightText, opting out of the
+ * forced palette (2026-10-15). `!important` beats the token colours, as specific.
+ */
+const forcedSelection = [
+  'forced-colors:data-selected:bg-[Highlight]! forced-colors:data-selected:text-[HighlightText]!',
+  'forced-colors:data-selected:forced-color-adjust-none',
+];
+
+export const timePickerStyles = tv({
+  slots: {
+    root: 'inline-flex shrink-0 items-center text-on-surface',
+    display: 'flex',
+    time: 'flex items-start',
+    selector: [
+      'h-[80px] rounded-corner-small text-center text-display-large outline-none focus-ring',
+      'cursor-pointer caret-transparent tabular-nums',
+      'bg-[var(--_md-comp-time-picker-time-selector-unselected-container-color)] text-on-surface',
+      'data-selected:bg-[var(--_md-comp-time-picker-time-selector-selected-container-color)]',
+      'data-selected:text-on-primary-container',
+      // Hover, focus and pressed layers in the text colour (M3 states; Compose's clickable
+      // Surface). An input has no ripple, so pressing shows the pressed layer instead.
+      'state-layer data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]!',
+      'aria-invalid:outline-2 aria-invalid:outline-error',
+      'forced-colors:border forced-colors:border-solid forced-colors:border-[CanvasText]',
+      ...forcedSelection,
+    ],
+    separator: 'flex w-[24px] items-center justify-center text-display-large text-on-surface',
+    // The options round their own outer corners to the outline's inner edge (rather than the
+    // container clipping them), so their hit areas can reach past it: each option's is at
+    // least 48px tall (M3's touch target), extended outward, away from the other option.
+    period: [
+      'flex rounded-corner-small border',
+      'border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+    ],
+    periodOption: [
+      'relative flex flex-1 cursor-pointer items-center justify-center text-title-medium text-on-surface-variant outline-none',
+      "before:absolute before:inset-x-0 before:content-['']",
+      'state-layer focus-ring-inset',
+      'data-selected:bg-[var(--_md-comp-time-picker-period-selector-selected-container-color)]',
+      'data-selected:text-on-tertiary-container',
+      ...forcedSelection,
+    ],
+    // Forced colours don't reach an SVG's fills, so the dial kept the theme's light disc and
+    // purple handle on the forced canvas: it paints itself in system colours there, a Canvas
+    // disc with a CanvasText edge and numbers, and a Highlight handle and track with
+    // HighlightText numbers (2026-10-17).
+    dial: [
+      'size-[256px] shrink-0 touch-none rounded-full outline-none select-none',
+      'forced-colors:forced-color-adjust-none',
+    ],
+    dialFace: [
+      'fill-[var(--_md-comp-time-picker-clock-dial-color)]',
+      'forced-colors:fill-[Canvas] forced-colors:stroke-[CanvasText] forced-colors:[stroke-width:1px]',
+    ],
+    dialNumber: 'cursor-pointer outline-none',
+    dialNumberHit: 'fill-transparent',
+    dialNumberText: [
+      'fill-on-surface text-body-large data-selected:fill-on-primary',
+      'forced-colors:fill-[CanvasText] forced-colors:data-selected:fill-[HighlightText]',
+    ],
+    // The copy of the numbers clipped to the handle.
+    dialNumberOnHandle: 'fill-on-primary text-body-large forced-colors:fill-[HighlightText]',
+    // The hour and minute faces crossfade on the default effects spring (Compose).
+    dialFaceEntering: [
+      'transition-opacity starting:opacity-0',
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    ],
+    dialFaceLeaving: [
+      'pointer-events-none opacity-0 transition-opacity starting:opacity-100',
+      '[transition-duration:var(--md-sys-motion-spring-effects-default-duration)] [transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    ],
+    dialFocus: 'fill-none stroke-secondary forced-colors:stroke-[CanvasText]',
+    dialHandle: [
+      'fill-[var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+      'forced-colors:fill-[Highlight]',
+    ],
+    dialTrack: [
+      'stroke-[color:var(--_md-comp-time-picker-clock-dial-selector-handle-container-color)]',
+      'forced-colors:stroke-[Highlight]',
+    ],
+    field: [
+      'h-[calc(72px+var(--md-sys-density,0)*4px)] w-[96px] rounded-corner-small border-2 border-transparent bg-surface-container-highest',
+      'text-center text-display-medium text-on-surface caret-primary outline-none tabular-nums',
+      'focus:border-primary focus:bg-primary-container focus:text-on-primary-container',
+      'aria-invalid:border-error',
+      'forced-colors:border-[CanvasText] forced-colors:focus:border-[Highlight]',
+    ],
+    fieldLabel: 'pt-[7px] text-body-small text-on-surface-variant',
+    fieldColumn: 'flex flex-col',
+  },
+  variants: {
+    hourCycle: {
+      12: { selector: 'w-[96px]' },
+      24: { selector: 'w-[114px]' },
+    },
+    mode: {
+      dial: { separator: 'h-[80px]' },
+      input: { separator: 'h-[calc(72px+var(--md-sys-density,0)*4px)]' },
+    },
+    layout: {
+      vertical: {
+        root: 'flex-col',
+        display: 'flex-row items-start',
+        period: 'ms-[12px] w-[52px] flex-col',
+        periodOption: [
+          'not-last:border-b',
+          'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+          'first:rounded-t-[calc(var(--md-sys-shape-corner-small)-1px)] last:rounded-b-[calc(var(--md-sys-shape-corner-small)-1px)]',
+          'first:before:bottom-0 first:before:top-[min(0px,calc(100%_-_48px))]',
+          'last:before:top-0 last:before:bottom-[min(0px,calc(100%_-_48px))]',
+        ],
+        dial: 'mt-[36px]',
+      },
+      horizontal: {
+        root: 'flex-row',
+        display: 'flex-col items-center',
+        period: 'mt-[16px] min-h-[38px] w-[216px] flex-row',
+        periodOption: [
+          'not-last:border-e',
+          'not-last:border-[color:var(--_md-comp-time-picker-period-selector-outline-color)]',
+          'first:rounded-s-[calc(var(--md-sys-shape-corner-small)-1px)] last:rounded-e-[calc(var(--md-sys-shape-corner-small)-1px)]',
+          'before:inset-y-[min(0px,calc((100%_-_48px)/2))]',
+        ],
+        dial: 'ms-[36px]',
+      },
+    },
+  },
+  compoundVariants: [
+    { mode: 'dial', layout: 'vertical', class: { period: 'min-h-[80px]' } },
+    { mode: 'input', class: { period: 'min-h-[calc(72px+var(--md-sys-density,0)*4px)]' } },
+  ],
+  defaultVariants: { hourCycle: 12, mode: 'dial', layout: 'vertical' },
+});
+
+/**
+ * The variants of {@link timePickerStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
+ */
+export type TimePickerStyleProps = VariantProps<typeof timePickerStyles>;
