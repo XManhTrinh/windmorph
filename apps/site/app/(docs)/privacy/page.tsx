@@ -46,8 +46,8 @@ export default function PrivacyPage() {
 
       <Section id="who" title="Who is responsible">
         <p className={TEXT}>
-          {DATA_CONTROLLER.name} is responsible for your data. Write to {EMAIL_LINK} with any
-          question or request about it.
+          {DATA_CONTROLLER.name}, {DATA_CONTROLLER.description}, is responsible for your data. Write
+          to {EMAIL_LINK} with any question or request about it.
         </p>
       </Section>
 

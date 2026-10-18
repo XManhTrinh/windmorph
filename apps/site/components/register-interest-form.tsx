@@ -225,6 +225,7 @@ export function RegisterInterestForm({
             type="email"
             autoComplete="email"
             required
+            className="w-full max-w-md"
             value={email}
             onChange={(value) => {
               setEmail(value);
@@ -254,6 +255,7 @@ export function RegisterInterestForm({
           <TextField
             label="What component is missing?"
             name="missingComponent"
+            className="w-full"
             multiline
             autoGrow
             maxRows={8}

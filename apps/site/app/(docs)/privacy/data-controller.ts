@@ -4,6 +4,7 @@
  * settings, so it lives beside the page.)
  */
 export const DATA_CONTROLLER = {
-  name: 'Xuan Manh Trinh, an independent developer based in the United Kingdom',
+  name: 'Xuan Manh Trinh',
+  description: 'an independent developer based in the United Kingdom',
   email: 'hello@windmorph.dev',
 } as const;
