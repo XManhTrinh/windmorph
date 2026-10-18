@@ -240,6 +240,14 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     kind: 'guide',
     keywords: ['changelog', 'release notes', 'releases', 'version'],
   },
+  {
+    title: 'Privacy',
+    summary:
+      'What the register-interest form collects, why, who processes it, how long it is kept and your rights.',
+    href: '/privacy',
+    kind: 'guide',
+    keywords: ['privacy notice', 'personal data', 'GDPR', 'unsubscribe', 'cookies'],
+  },
 ];
 
 /** The pages the search suggests before anything is typed, and when nothing matches. */
