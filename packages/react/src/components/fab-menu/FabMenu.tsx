@@ -355,7 +355,7 @@ export function FabMenu({
 
   return (
     <div
-      {...mergeProps(rest, focusWithinProps, { onKeyDown })}
+      {...mergeProps(rest, focusWithinProps)}
       ref={rootRef}
       inert={!visible || undefined}
       // The component tokens' hook (fab-menu-tokens.ts).
@@ -365,6 +365,11 @@ export function FabMenu({
       data-open={isOpen || undefined}
       data-presentation={presentation}
       className={styles.root({ class: cn(classNames?.root, className) })}
+      // The app's own handler runs first, then the menu's keys.
+      onKeyDown={(event) => {
+        rest.onKeyDown?.(event);
+        onKeyDown(event);
+      }}
     >
       {isMenu ? (
         <MenuTrigger open={isOpen} onOpenChange={setOpen}>
