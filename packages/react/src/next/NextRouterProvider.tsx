@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+// With its extension: Next has no `exports` map, so plain Node ESM resolves only the file.
+import { useRouter } from 'next/navigation.js';
 import type { ReactNode } from 'react';
 import { RouterProvider } from 'react-aria';
 import { GuardProvider, useGuardRegistry } from './navigation-guard';
