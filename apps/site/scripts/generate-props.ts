@@ -15,7 +15,15 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Parser as DocgenParser, withCustomConfig } from 'react-docgen-typescript';
 import ts from 'typescript';
-import { compilerOptionsOf, documentHooks, objectFields, type HookDocFile } from './hook-docs';
+import { COMPONENT_META } from '../content/components/catalog';
+import {
+  compilerOptionsOf,
+  documentHooks,
+  documentTypesWith,
+  objectFields,
+  type HookDocFile,
+  type TypeDocFile,
+} from './hook-docs';
 
 /**
  * react-docgen-typescript caches a prop by its declaring file and name when that file is in
@@ -752,11 +760,25 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // The data types the component pages list (`MediaViewerItem`), from either package's entries.
+  const types: TypeDocFile[] = [];
+  try {
+    const wanted = COMPONENT_META.flatMap((meta) => meta.types ?? []);
+    for (const { tsconfigPath, entries } of hookEntries) {
+      types.push(...documentTypesWith(entries, compilerOptionsOf(tsconfigPath), wanted));
+    }
+    const missing = wanted.filter((name) => !types.some((doc) => doc.displayName === name));
+    if (missing.length > 0) throw new Error(`not exported: ${missing.join(', ')}`);
+  } catch (error) {
+    console.error(`[generate-props] cannot document the types: ${(error as Error).message}`);
+    process.exit(1);
+  }
+
   try {
     await rm(outDir, { recursive: true, force: true });
     await mkdir(outDir, { recursive: true });
     await Promise.all(
-      [...records, ...hooks].map((record) =>
+      [...records, ...hooks, ...types].map((record) =>
         writeFile(
           join(outDir, `${record.displayName}.json`),
           `${JSON.stringify(record, null, 2)}\n`,
@@ -769,7 +791,7 @@ async function main(): Promise<void> {
   }
 
   console.log(
-    `[generate-props] wrote ${records.length} components and ${hooks.length} hooks to ${outDir}`,
+    `[generate-props] wrote ${records.length} components, ${hooks.length} hooks and ${types.length} types to ${outDir}`,
   );
 }
 

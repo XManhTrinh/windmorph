@@ -95,6 +95,11 @@ export interface ComponentMeta {
    * primitives' helpers, types and shape constants). Searchable by name, like `hooks`.
    */
   exports?: string[];
+  /**
+   * Data types the page's props take, listed field by field after its props (the items a
+   * collection prop takes: `MediaViewerItem`).
+   */
+  types?: string[];
   /** Marks a component whose source/story flags it as preview. */
   stability?: 'preview';
   /**
@@ -508,6 +513,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The photos someone is adding: upload progress and errors, remove and retry, drag to reorder (mouse, touch or keyboard), an add tile and file drop. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaUploadGrid'],
+    types: ['MediaUploadItem'],
     playground: 'full',
     pro: true,
     specs: {
@@ -909,6 +915,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'Square photo tiles, a sideways row on compact windows and a grid from medium up; a press on a tile reports it (`onAction`), for the app to open the viewer. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaGrid'],
+    types: ['MediaGridItem'],
     playground: 'full',
     pro: true,
     related: ['media-viewer', 'media-upload-grid', 'carousel'],
@@ -924,6 +931,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A full-screen viewer for a set of photos: swipe between them, zoom, and read each caption and position. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaViewer'],
+    types: ['MediaViewerItem'],
     playground: 'full',
     pro: true,
     related: ['carousel', 'dialog', 'image-crop'],

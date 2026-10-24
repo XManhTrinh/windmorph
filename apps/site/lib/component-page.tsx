@@ -15,15 +15,18 @@ import { PropsReference } from '../components/props-list';
 import { SpecStatus } from '../components/spec-status';
 import { SpecsCard } from '../components/specs-card';
 import { TokenTable } from '../components/token-table';
+import { TypeTable } from '../components/type-table';
 import { ACCESSIBILITY } from '../content/components/accessibility';
 import { DO_DONT } from '../content/components/do-dont';
 import { SPEC_DATA } from '../content/components/spec-data';
 import {
   readComponentPropsSafe,
   readHookDocSafe,
+  readTypeDocSafe,
   type ComponentPropsFile,
   type HookDocFile,
   type PropsRecord,
+  type TypeDocFile,
 } from './component-props';
 import { componentSizes, formatKilobytes } from './bundle-size';
 
@@ -137,6 +140,9 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
   const hooks = (await Promise.all((page.hooks ?? []).map((name) => readHookDocSafe(name)))).filter(
     (hook): hook is HookDocFile => hook !== null,
   );
+  const types = (await Promise.all((page.types ?? []).map((name) => readTypeDocSafe(name)))).filter(
+    (type): type is TypeDocFile => type !== null,
+  );
   const specData = SPEC_DATA[page.slug];
   return (
     <>
@@ -150,6 +156,14 @@ async function ApiTab({ page, doc }: { page: ComponentPageMeta; doc: ComponentDo
               htmlAttributes: json?.htmlAttributes,
             }))}
           />
+        </section>
+      )}
+      {types.length > 0 && (
+        <section className="flex flex-col gap-6">
+          <SectionHeading id="types">Types</SectionHeading>
+          {types.map((type) => (
+            <TypeTable key={type.displayName} doc={type} />
+          ))}
         </section>
       )}
       {doc.tokens && doc.tokens.length > 0 && (
