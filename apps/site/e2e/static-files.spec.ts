@@ -38,6 +38,8 @@ test("a component page's twin has its examples' source and its props", () => {
   expect(button).toMatch(/\| `variant` \| `"text" \\\| "filled"/);
   expect(button).toContain('## Accessibility');
   expect(button).not.toContain('Show code');
+  // The line under each table, as the API tab shows it.
+  expect(button).toContain('Also accepts every `<a>` or `<button>` attribute.');
 });
 
 test('llms.txt links every guide and component twin', () => {

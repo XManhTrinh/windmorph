@@ -45,7 +45,7 @@ import {
   absoluteUrl,
   markdownPath,
 } from '../lib/site-metadata';
-import { propTypeMembers } from '../lib/prop-list-model';
+import { htmlAttributesNote, propTypeMembers } from '../lib/prop-list-model';
 import type { ComponentPropsFile, PropsRecord } from './generate-props';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -154,7 +154,8 @@ function readProps(name: string): ComponentPropsFile | null {
 function propsMarkdown(meta: ComponentMeta, level: number): string {
   const blocks: string[] = [];
   for (const name of meta.propsComponents) {
-    const props = readProps(name)?.props ?? [];
+    const file = readProps(name);
+    const props = file?.props ?? [];
     if (props.length === 0) continue;
     blocks.push(`${'#'.repeat(level)} ${name} props`);
     blocks.push(
@@ -171,6 +172,9 @@ function propsMarkdown(meta: ComponentMeta, level: number): string {
           }),
       ].join('\n'),
     );
+    // The closing line the page shows under the table: the root element's attributes.
+    const note = htmlAttributesNote(file?.htmlAttributes);
+    if (note) blocks.push(note);
   }
   return blocks.join('\n\n');
 }
