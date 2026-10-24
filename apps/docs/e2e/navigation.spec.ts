@@ -34,23 +34,23 @@ async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>
 }
 
 /**
- * The rail items' icon tops on every frame for `ms` (the frame's own time, its rAF timestamp,
- * so a late callback never shortens it) while `act` runs.
+ * The rail items' icon tops on every painted frame for `ms` of wall time while `act` runs. A
+ * test compares frames by their steps, never by their times, so a late callback can't
+ * misread one (and under a slowed playback rate the frames' own timestamps slow down too).
  */
 async function iconTops(page: Page, ms: number, act: () => Promise<void>) {
   const sampled = page.evaluate(
     (duration) =>
       new Promise<number[][]>((resolve) => {
         const out: number[][] = [];
-        let start: number | undefined;
-        const tick = (time: number) => {
-          start ??= time;
+        const start = performance.now();
+        const tick = () => {
           out.push(
             [...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
               (icon) => icon.getBoundingClientRect().top,
             ),
           );
-          if (time - start < duration) requestAnimationFrame(tick);
+          if (performance.now() - start < duration) requestAnimationFrame(tick);
           else resolve(out);
         };
         requestAnimationFrame(tick);
