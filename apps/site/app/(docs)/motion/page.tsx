@@ -210,11 +210,6 @@ export default async function MotionPage() {
           and opacity still fade on the effects springs.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          When one panel or row opens as another folds (an accordion, a list&apos;s nested rows),
-          the folding one goes at once and the opening one appears at full height and fades in, so
-          the content below shifts once, and not at all when the two are the same height.
-        </p>
-        <p className="text-body-large text-on-surface-variant">
           Essential motion keeps working: indeterminate progress and loading indicators, which show
           that something is happening, and anything that follows a finger, the pointer or the scroll
           position directly (a drag, a pull to refresh, an app bar collapsing with the page).
