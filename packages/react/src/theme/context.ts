@@ -11,10 +11,15 @@ export interface ThemeContextValue extends ThemeState {
   resolvedMode: ResolvedColorMode;
   /** Names of the themes available to `setTheme`. */
   themes: readonly string[];
+  /** Switches the colour theme; a name not in `themes` is ignored (with a warning in development). */
   setTheme: (theme: string) => void;
+  /** Switches the colour mode: `light`, `dark` or `system`. */
   setMode: (mode: ColorMode) => void;
+  /** Switches the contrast level: `standard`, `medium` or `high`. */
   setContrast: (contrast: ContrastLevel) => void;
+  /** Switches the motion scheme: `expressive` or `standard`. */
   setMotion: (motion: MotionScheme) => void;
+  /** Switches the web density, `0` to `-3`. */
   setDensity: (density: Density) => void;
 }
 

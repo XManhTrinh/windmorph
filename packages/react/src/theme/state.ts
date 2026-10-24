@@ -10,9 +10,13 @@ import { DEFAULT_MOTION_SCHEME, MOTION_SCHEMES, type MotionScheme } from '../tok
 
 /** The theme dimensions, mirrored as `data-*` attributes. */
 export interface ThemeState {
+  /** The colour theme's name: a built-in (`baseline`, `ocean` …) or one made with `createTheme`. */
   theme: string;
+  /** `light`, `dark` or `system` (follows `prefers-color-scheme`). */
   mode: ColorMode;
+  /** `standard`, `medium` or `high`. */
   contrast: ContrastLevel;
+  /** `expressive` (springs that overshoot) or `standard` (no visible overshoot). */
   motion: MotionScheme;
   /** Web density, `0` (default) to `-3` (densest); see `Density`. */
   density: Density;
