@@ -241,6 +241,21 @@ export function inLibraryWords(prop: PropsRecord): PropsRecord {
   };
 }
 
+/** One element's ref, as the checker expands React's `Ref<T>`: its callback, then its object. */
+const EXPANDED_REF =
+  /\(\(instance: (\w+) \| null\) => void \| \(\(\) => VoidOrUndefinedOnly\)\) \| RefObject<(?:\1 \| null|\.\.\.)>/g;
+
+/**
+ * Pure core: a `ref` type the checker printed expanded, as written: a union of React's `Ref<T>`
+ * for each element (a button or a link) comes out as each one's callback and object types and a
+ * trailing `null`, which `Ref<T>` already holds. Anything else is left as it is.
+ */
+export function collapsedRefType(type: string): string {
+  if (!type.endsWith(' | null')) return type;
+  const refs = type.slice(0, -' | null'.length).replace(EXPANDED_REF, 'Ref<$1>');
+  return /^Ref<\w+>(?: \| Ref<\w+>)*$/.test(refs) ? refs : type;
+}
+
 /**
  * Whether a prop gets a row: the package's own props, React Aria's (minus
  * {@link INHERITED_DENYLIST}, `UNSAFE_*` and `is*`), and from React's DOM types only `ref`,
@@ -659,7 +674,10 @@ export function refineWithChecker(
       if (keys.length > 0)
         prop.keys = keys.map((key) => ({ ...key, name: `${prop.name}.${key.name}` }));
     }
-    record.props = record.props.filter((prop) => !domOnly.has(prop.name)).map(inLibraryWords);
+    record.props = record.props
+      .filter((prop) => !domOnly.has(prop.name))
+      .map(inLibraryWords)
+      .map((prop) => (prop.name === 'ref' ? { ...prop, type: collapsedRefType(prop.type) } : prop));
     // A naming choice: every form requires one of these props, none requires them all.
     const naming = NAMING_PROPS.filter((name) => partlyRequired.has(name));
     if (

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  collapsedRefType,
   enumOptionsFromType,
   enumValuesFromType,
   htmlAttributeElements,
@@ -271,5 +272,22 @@ describe('refByForm', () => {
       'Ref to the root element: the `<a>`, or the `<button>`.',
     );
     expect(refByForm(['Ref to the root `<div>`.'])).toBeUndefined();
+  });
+});
+
+describe('collapsedRefType', () => {
+  it("writes a button-or-link ref as each element's Ref", () => {
+    expect(
+      collapsedRefType(
+        '((instance: HTMLButtonElement | null) => void | (() => VoidOrUndefinedOnly)) | RefObject<HTMLButtonElement | null> | ((instance: HTMLAnchorElement | null) => void | (() => VoidOrUndefinedOnly)) | RefObject<...> | null',
+      ),
+    ).toBe('Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>');
+  });
+
+  it('leaves any other type as it is', () => {
+    const type =
+      'React.RefObject<HTMLElement | null> | ((instance: HTMLElement | null) => void | (() => VoidOrUndefinedOnly))';
+    expect(collapsedRefType(type)).toBe(type);
+    expect(collapsedRefType('Ref<HTMLDivElement>')).toBe('Ref<HTMLDivElement>');
   });
 });
