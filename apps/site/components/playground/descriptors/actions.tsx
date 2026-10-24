@@ -475,15 +475,23 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'reaction-summary': {
     component: 'ReactionSummary',
     importFrom: '@windmorph/react-pro',
-    render: ({ total, ...props }) =>
+    // `onPress` makes the summary a button (an assist chip in the `chip` variant).
+    render: ({ total, onPress, ...props }) =>
       createElement(ReactionSummaryAny, {
         ...props,
         items: SUMMARY_ITEMS,
         total: typeof total === 'number' ? total : 0,
+        ...(onPress === true && { onPress: () => {} }),
       }),
-    defaultProps: { variant: 'stacked', size: 'md', max: 3 },
-    surfacedProps: ['variant', 'size', 'total', 'max'],
-    initialState: { total: 128 },
+    defaultProps: { variant: 'stacked', size: 'md', max: 3, onPress: false },
+    surfacedProps: ['variant', 'size', 'total', 'max', 'onPress'],
+    initialState: { total: 128, onPress: true },
+    controlKinds: { onPress: 'boolean' },
+    toggledSlots: { onPress: '() => {}' },
+    controlDescriptions: {
+      onPress:
+        'Makes the summary a button, for opening who reacted: a pressable stack, or an assist chip in the `chip` variant.',
+    },
     numberRanges: { total: { min: 0, max: 2000 }, max: { min: 1, max: 4 } },
     enumOptions: { variant: ['stacked', 'chip'], size: ['sm', 'md'] },
     codeSlots: { items: SUMMARY_ITEMS_CODE },
