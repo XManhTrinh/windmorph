@@ -79,12 +79,12 @@ describe('component catalog invariants', () => {
     }
   });
 
-  it("names a core component's specs sizes as its size prop's values", () => {
+  it("names a component's specs sizes as its size prop's values", () => {
     const propsDir = resolve(process.cwd(), '.generated/props');
     for (const meta of COMPONENT_META) {
       const component = meta.propsComponents[0];
       const file = component && resolve(propsDir, `${component}.json`);
-      if (meta.pro || !meta.specs?.sizes || !file || !existsSync(file)) continue;
+      if (!meta.specs?.sizes || !file || !existsSync(file)) continue;
       const { props } = JSON.parse(readFileSync(file, 'utf8')) as {
         props: { name: string; values?: string[] }[];
       };

@@ -571,7 +571,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     pro: true,
     specs: {
-      sizes: ['small', 'medium', 'large'],
+      sizes: ['sm', 'md', 'lg'],
       variants: ['outlined', 'filled'],
       shape: 'rounded-corner-extra-small',
     },
