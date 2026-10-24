@@ -270,7 +270,7 @@ export function Switch({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps, enterProps)}
+      inputProps={mergeProps(pickWidgetAria(rest), inputProps, focusProps, enterProps)}
       inputRef={domInputRef}
       rootData={{
         ...data,

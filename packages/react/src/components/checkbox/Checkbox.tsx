@@ -157,7 +157,7 @@ export function Checkbox({
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, pickWidgetAria(ariaProps), focusProps)}
+      inputProps={mergeProps(pickWidgetAria(ariaProps), inputProps, focusProps)}
       inputRef={domInputRef}
       // The box resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.
