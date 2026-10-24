@@ -168,8 +168,14 @@ test.describe('Docs shell', () => {
       .getByRole('button', { name: 'Display settings' })
       .click();
     const sheet = page.getByRole('dialog', { name: 'Display' });
+    // A preference cookie only once the reader picks a setting.
+    const themeCookie = async () =>
+      (await page.context().cookies()).find((cookie) => cookie.name === 'windmorph-theme');
+    await expect(sheet).toBeVisible();
+    expect(await themeCookie()).toBeUndefined();
     await sheet.getByRole('radio', { name: 'Dark' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-mode', 'dark');
+    await expect.poll(async () => (await themeCookie())?.value).toContain('dark');
     // Users press the switch's label (its input is visually hidden under the touch target).
     await sheet.getByText('Right to left').click();
     await expect(sheet.getByRole('switch', { name: 'Right to left' })).toBeChecked();

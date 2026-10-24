@@ -60,6 +60,37 @@ describe('ThemeProvider', () => {
     );
   });
 
+  it('stores nothing until the selection changes, then every change', async () => {
+    render(
+      <ThemeProvider>
+        <ThemeControls />
+      </ThemeProvider>,
+    );
+    expect(document.cookie).not.toContain('windmorph-theme');
+    await userEvent.click(screen.getByRole('button', { name: 'ocean' }));
+    expect(document.cookie).toContain('windmorph-theme');
+  });
+
+  it("doesn't rewrite a stored selection it only read", () => {
+    const stored = serializeThemeState({
+      theme: 'forest',
+      mode: 'light',
+      contrast: 'high',
+      motion: 'standard',
+      density: -3,
+    });
+    document.cookie = `windmorph-theme=${stored}; max-age=60; path=/`;
+    const write = vi.spyOn(document, 'cookie', 'set');
+    render(
+      <ThemeProvider>
+        <ThemeControls />
+      </ThemeProvider>,
+    );
+    expect(state()).toBe('forest light light high standard');
+    expect(write).not.toHaveBeenCalled();
+    write.mockRestore();
+  });
+
   it('restores the stored selection on mount', () => {
     document.cookie = `windmorph-theme=${serializeThemeState({ theme: 'forest', mode: 'light', contrast: 'high', motion: 'standard', density: -3 })}`;
     render(

@@ -265,7 +265,8 @@ export default async function ThemingPage() {
           <InlineCode>cookie</InlineCode> by default, or <InlineCode>local-storage</InlineCode>/
           <InlineCode>none</InlineCode>) under <InlineCode>storageKey</InlineCode> (default{' '}
           <InlineCode>windmorph-theme</InlineCode>), read with{' '}
-          <InlineCode>useSyncExternalStore</InlineCode> so there is no hydration mismatch.{' '}
+          <InlineCode>useSyncExternalStore</InlineCode> so there is no hydration mismatch, and
+          written only once the selection changes, so a visitor who picks nothing gets no cookie.{' '}
           <InlineCode>applyToDocument</InlineCode> (default true) writes the{' '}
           <InlineCode>data-*</InlineCode> attributes to <InlineCode>&lt;html&gt;</InlineCode>.
         </p>

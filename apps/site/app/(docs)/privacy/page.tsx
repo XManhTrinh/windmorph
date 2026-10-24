@@ -95,9 +95,10 @@ export default function PrivacyPage() {
         <p className={TEXT}>
           The site&apos;s hosting provider keeps access logs (such as IP addresses and the pages
           requested) to run and secure the site. The site has no analytics and no tracking cookies.
-          It remembers your display settings (theme, mode, text direction, package manager) and
-          recent searches in a cookie and your browser&apos;s storage, read only by the pages in
-          your browser. The form stores nothing in your browser.
+          It remembers the display settings you change (theme, mode, text direction, package
+          manager) and your recent searches, in a cookie and your browser&apos;s storage, read only
+          by the pages in your browser. Nothing is stored until you change a setting or search. The
+          form stores nothing in your browser.
         </p>
       </Section>
     </article>

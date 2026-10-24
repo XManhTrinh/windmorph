@@ -73,3 +73,5 @@ A `ThemeScope`, and the wrapper an overlay (menu, dialog, tooltip, sheet) is por
 A field's server-rendered `aria-describedby` names only the supporting text and error it renders, so assistive technology reading the page before hydration never follows it to a missing element.
 
 Switching a date picker between the calendar and the text input fades the outgoing view out as it slides away, as the incoming one comes in, instead of dropping it in the first frame.
+
+`ThemeProvider` stores the selection (in the `windmorph-theme` cookie by default) only once it changes from the one the page loaded with, so a visitor who never picks a setting gets no cookie, and a stored selection isn't rewritten on every visit.

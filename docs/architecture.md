@@ -200,7 +200,7 @@ Each: light + dark × 3 contrast levels, generated at **build time** into static
 
 - `<ThemeProvider defaultTheme defaultMode defaultContrast defaultMotion defaultDensity themes>` + `useTheme()` → `{ theme, setTheme, mode, setMode, resolvedMode, contrast, setContrast, motion, setMotion, density, setDensity, themes }`.
   - Each dimension can also be controlled: `theme` + `onThemeChange`, and likewise for the others.
-  - `storage`: `"cookie"` (default), `"local-storage"` or `"none"`. The key is `windmorph-theme` (`storageKey`) and the value is URL-encoded `theme=…&mode=…&contrast=…&motion=…&density=…`.
+  - `storage`: `"cookie"` (default), `"local-storage"` or `"none"`. The key is `windmorph-theme` (`storageKey`) and the value is URL-encoded `theme=…&mode=…&contrast=…&motion=…&density=…`. **Written only once the selection changes** (2026-10-24) from the one the page loaded with (the stored one, or the defaults), then on every change: a visit that sets nothing leaves no cookie, and a stored value isn't rewritten just by being read (privacy rules exempt a preference cookie only where the person asked for it).
   - The stored value is read with `useSyncExternalStore`, so there's no hydration mismatch or extra render.
   - `applyToDocument={false}` stops it from writing to `<html>`.
   - `createTheme()` results passed in `themes` are injected as hoisted React 19 `<style precedence>` tags.

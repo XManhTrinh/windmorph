@@ -5,6 +5,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -30,6 +31,7 @@ import {
   DEFAULT_STORAGE_KEY,
   DEFAULT_THEME_STATE,
   parseThemeState,
+  serializeThemeState,
   themeAttributes,
   type ThemeState,
   type ThemeStorage,
@@ -79,7 +81,9 @@ export interface ThemeProviderProps {
   onDensityChange?: (density: Density) => void;
   /**
    * Where the selection is remembered. Use `"cookie"` (default) with
-   * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering.
+   * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering. Nothing is written
+   * until the selection changes from the one the page loaded with, so a visitor who never
+   * picks a setting gets no cookie.
    * @default "cookie"
    */
   storage?: ThemeStorage;
@@ -237,8 +241,18 @@ export function ThemeProvider({
     }
   }, [isHydrated, applyToDocument, state]);
 
+  // Stored only once the selection changes from the one the page loaded with (the stored one,
+  // or the defaults): a preference is remembered when someone sets it, and a visit that sets
+  // nothing leaves no cookie behind.
+  const loaded = useRef<string | null>(null);
+  const changed = useRef(false);
   useEffect(() => {
-    if (isHydrated && storage !== 'none') writeStoredTheme(storage, storageKey, state);
+    if (!isHydrated || storage === 'none') return;
+    const serialized = serializeThemeState(state);
+    loaded.current ??= serialized;
+    if (!changed.current && serialized === loaded.current) return;
+    changed.current = true;
+    writeStoredTheme(storage, storageKey, state);
   }, [isHydrated, storage, storageKey, state]);
 
   const systemMode = useSyncExternalStore(
