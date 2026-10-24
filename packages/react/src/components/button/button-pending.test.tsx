@@ -140,7 +140,7 @@ describe('Button pending', () => {
     const label = screen.getByRole('button').querySelector('.label')!;
     // A box after the label (a grid item, `sr-only`) reads "Save , Loading" in browsers.
     expect(label.textContent).toBe('Save, Loading');
-    expect(label.lastElementChild).toHaveClass('text-[0px]');
+    expect(label.lastElementChild).toHaveStyle({ fontSize: '0px', letterSpacing: '0px' });
   });
 
   it('shows the loading indicator over the hidden content once it has loaded', async () => {
