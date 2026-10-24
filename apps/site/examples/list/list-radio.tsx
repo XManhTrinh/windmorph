@@ -16,7 +16,7 @@ function isTheme(value: string): value is Theme {
 }
 
 /**
- * A radio list: with `value` (or `defaultValue`) and `onValueChange` the list is a radio
+ * A radio list: with `value` (or `defaultValue`) and `onChange` the list is a radio
  * group, each item a radio button with a `value`. One Tab stop; ↑ / ↓ choose.
  */
 export function ListRadio() {
@@ -30,7 +30,7 @@ export function ListRadio() {
         aria-labelledby="theme-label"
         variant="segmented"
         value={theme}
-        onValueChange={(value) => {
+        onChange={(value) => {
           if (isTheme(value)) setTheme(value);
         }}
       >

@@ -449,7 +449,7 @@ describe('List (switch and checkbox items)', () => {
 
 describe('List (radio lists)', () => {
   it('is a radio group of items with one Tab stop, and arrow keys choose', async () => {
-    const onValueChange = vi.fn();
+    const onChange = vi.fn();
     const { container } = render(
       <>
         <button type="button">Before</button>
@@ -457,7 +457,7 @@ describe('List (radio lists)', () => {
           variant="segmented"
           aria-label="Theme"
           defaultValue="dark"
-          onValueChange={onValueChange}
+          onChange={onChange}
         >
           <ListItem key="light" value="light">
             Light
@@ -483,7 +483,7 @@ describe('List (radio lists)', () => {
     await userEvent.keyboard('{ArrowDown}');
     const system = screen.getByRole('radio', { name: 'Match my device' });
     expect(system).toBeChecked();
-    expect(onValueChange).toHaveBeenLastCalledWith('system');
+    expect(onChange).toHaveBeenLastCalledWith('system');
 
     await userEvent.click(screen.getByText('Light'));
     expect(screen.getByRole('radio', { name: 'Light' })).toBeChecked();
@@ -492,12 +492,12 @@ describe('List (radio lists)', () => {
   });
 
   it('is controlled, places radios at the end when asked, and disables items', async () => {
-    const onValueChange = vi.fn();
+    const onChange = vi.fn();
     render(
       <List
         aria-label="Language"
         value="en"
-        onValueChange={onValueChange}
+        onChange={onChange}
         controlPlacement="end"
         name="locale"
       >
@@ -514,7 +514,7 @@ describe('List (radio lists)', () => {
     );
     const de = screen.getByRole('radio', { name: 'Deutsch' });
     await userEvent.click(de);
-    expect(onValueChange).toHaveBeenCalledWith('de');
+    expect(onChange).toHaveBeenCalledWith('de');
     expect(screen.getByRole('radio', { name: 'English' })).toBeChecked();
     expect(de).toHaveAttribute('name', 'locale');
     expect(screen.getByRole('radio', { name: 'Français' })).toBeDisabled();

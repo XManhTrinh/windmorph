@@ -56,7 +56,7 @@ The first `List` (`3d5c5f2`) was built on React Aria's grid list: actions, links
 </List>
 
 // Radio list (Compose: ListItem(selected, onClick), Role.RadioButton)
-<List variant="segmented" aria-label="Theme" value={mode} onValueChange={setMode}>
+<List variant="segmented" aria-label="Theme" value={mode} onChange={setMode}>
   <ListItem value="light">Light</ListItem>
   <ListItem value="dark">Dark</ListItem>
   <ListItem value="system">Match my device</ListItem>
@@ -77,7 +77,7 @@ New `ListItem` props:
 | `verticalAlignment` | `'center' \| 'top'` | |
 | `switchIcons` | `boolean` | Passes through to the switch's thumb icons |
 
-New `List` props, for a radio list: `value`, `defaultValue`, `onValueChange(value: string)`, `name`, `disabled`, `required`, plus the existing `aria-label` / `aria-labelledby`. `controlPlacement` on the list sets it for every radio item.
+New `List` props, for a radio list: `value`, `defaultValue`, `onChange(value: string)` (named `onValueChange` until 2026-10-24, when it took the library's single-value name), `name`, `disabled`, `required`, plus the existing `aria-label` / `aria-labelledby`. `controlPlacement` on the list sets it for every radio item.
 
 Nothing existing changes. Static, action, link and `selectionMode` lists render and behave exactly as before.
 
@@ -109,4 +109,4 @@ A settings page's switches become toggle items, and its language and theme choic
 2026-10-10: build it the best-practice way, with these recommendations:
 
 1. Switch rows use `role="switch"` (the WAI-ARIA Switch pattern), so screen readers say on/off.
-2. Radio lists live in `List` (`value` / `onValueChange`): one list component covers every M3 list item kind.
+2. Radio lists live in `List` (`value` / `onChange`): one list component covers every M3 list item kind.

@@ -40,6 +40,7 @@ const REPLACED: Record<string, string> = {
   selectedKey: 'value',
   defaultSelectedKey: 'defaultValue',
   unselectedIcon: 'uncheckedIcon',
+  onValueChange: 'onChange',
   // Windmorph Pro's replaced names (its own API naming round, 2026-10-17).
   tone: 'color (severity on Alert)',
   focusOnMount: 'autoFocus',
