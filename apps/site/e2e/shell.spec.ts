@@ -95,6 +95,46 @@ test.describe('Docs shell', () => {
     await expect(skip).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(page.locator('#main-content')).toBeFocused();
+    // The page's title shows below the sticky top bar, not under it.
+    const top = await page
+      .getByRole('heading', { level: 1 })
+      .evaluate((heading) => heading.getBoundingClientRect().top);
+    expect(top).toBeGreaterThanOrEqual(64);
+  });
+
+  test('keyboard focus never lands under the top bar or the bottom navigation bar', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/pro');
+    // Every 4th stop forward from the top, then back up from the footer.
+    const obscured: string[] = [];
+    const check = async (direction: string) => {
+      const box = await page.evaluate(() => {
+        const element = document.activeElement;
+        if (
+          !element ||
+          element === document.body ||
+          element.closest('.sticky, nav[aria-label="Primary"]')
+        )
+          return null;
+        const { top, bottom } = element.getBoundingClientRect();
+        return { top, bottom, name: element.textContent?.trim().slice(0, 40) ?? '' };
+      });
+      if (box && (box.top < 64 || box.bottom > 844 - 64)) {
+        obscured.push(`${direction} ${box.name}: ${Math.round(box.top)}–${Math.round(box.bottom)}`);
+      }
+    };
+    for (let stop = 0; stop < 60; stop += 1) {
+      await page.keyboard.press('Tab');
+      if (stop % 4 === 3) await check('forward');
+    }
+    await page.getByRole('link', { name: 'Privacy' }).last().focus();
+    for (let stop = 0; stop < 60; stop += 1) {
+      await page.keyboard.press('Shift+Tab');
+      if (stop % 4 === 3) await check('back');
+    }
+    expect(obscured).toEqual([]);
   });
 
   test('the outline lists the sections and marks the one being read', async ({ page }) => {
