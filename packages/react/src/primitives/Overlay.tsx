@@ -6,8 +6,7 @@ import {
   DocumentThemeContext,
   InheritedThemeContext,
   useThemeScope,
-  useThemeScopeClassName,
-  useThemeScopeVariables,
+  useThemeScopeLayers,
 } from '../theme/context';
 import { themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
@@ -60,8 +59,7 @@ export function Overlay({
   // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
   // `:root` values for the system tokens reach the overlay too.
   const documentTheme = useContext(DocumentThemeContext);
-  const scopeClassName = useThemeScopeClassName();
-  const scopeVariables = useThemeScopeVariables();
+  const [outerLayer, ...innerLayers] = useThemeScopeLayers();
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -100,19 +98,31 @@ export function Overlay({
         <div
           ref={scopeRef}
           {...themeAttributesOver(themed, portalContainer ? null : documentTheme)}
-          className={scopeClassName || undefined}
+          className={outerLayer?.className || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
           style={{
-            ...scopeVariables,
+            ...outerLayer?.variables,
             display: 'contents',
             color: 'var(--md-sys-color-on-surface)',
           }}
         >
-          {/* An overlay opened from a toolbar isn't part of it. */}
-          <InheritedThemeContext value={themed}>
-            <ToolbarContext value={null}>{children}</ToolbarContext>
-          </InheritedThemeContext>
+          {/* Each inner scope's class and variables around the last, as on the page, so the
+              innermost scope's value wins whether a class or its style sets it. */}
+          {innerLayers.reduceRight<ReactNode>(
+            (content, layer) => (
+              <div
+                className={layer.className || undefined}
+                style={{ ...layer.variables, display: 'contents' }}
+              >
+                {content}
+              </div>
+            ),
+            // An overlay opened from a toolbar isn't part of it.
+            <InheritedThemeContext value={themed}>
+              <ToolbarContext value={null}>{children}</ToolbarContext>
+            </InheritedThemeContext>,
+          )}
         </div>
       </AriaOverlay>
     </>

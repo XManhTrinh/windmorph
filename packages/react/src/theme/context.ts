@@ -28,20 +28,20 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 /** The theme applied to the nearest `ThemeProvider` or `ThemeScope`. */
 export const ThemeScopeContext = createContext<ThemeState>(DEFAULT_THEME_STATE);
 
-/**
- * The classes of the `ThemeScope`s around this point, merged outermost first, so `Overlay`
- * can put them on its portalled wrapper: CSS variables an app sets through a scope's class
- * (component tokens such as `--md-comp-filled-card-container-color`) then reach overlays
- * opened inside it.
- */
-export const ThemeScopeClassNameContext = createContext<string>('');
+/** One `ThemeScope`'s class and the CSS variables (`--*` keys) of its `style`. */
+export interface ThemeScopeLayer {
+  className: string;
+  variables: Readonly<Record<string, string>>;
+}
 
 /**
- * The CSS variables (`--*` keys) set through the `style` of the `ThemeScope`s around this
- * point, the inner scope's winning, so `Overlay` can set them on its portalled wrapper too:
- * component tokens given as inline styles then reach overlays opened inside (2026-10-17).
+ * The classes and inline CSS variables of the `ThemeScope`s around this point, outermost first,
+ * one layer per scope that sets either, so `Overlay` can repeat them around its portalled
+ * content: component tokens an app sets through a scope's class or `style` then reach overlays
+ * opened inside it (2026-10-17). Kept per scope (2026-10-24), so an inner scope's value wins
+ * however each scope sets it, as on the page.
  */
-export const ThemeScopeVariablesContext = createContext<Readonly<Record<string, string>>>({});
+export const ThemeScopeLayersContext = createContext<readonly ThemeScopeLayer[]>([]);
 
 /**
  * The theme the DOM already carries at this point through `data-*` attributes: the nearest
@@ -66,14 +66,9 @@ export function useTheme(): ThemeContextValue {
   return value;
 }
 
-/** The merged classes of the `ThemeScope`s around this point (see `ThemeScopeClassNameContext`). */
-export function useThemeScopeClassName(): string {
-  return useContext(ThemeScopeClassNameContext);
-}
-
-/** The CSS variables of the `ThemeScope`s around this point (see `ThemeScopeVariablesContext`). */
-export function useThemeScopeVariables(): Readonly<Record<string, string>> {
-  return useContext(ThemeScopeVariablesContext);
+/** The classes and CSS variables of the `ThemeScope`s around this point (`ThemeScopeLayersContext`). */
+export function useThemeScopeLayers(): readonly ThemeScopeLayer[] {
+  return useContext(ThemeScopeLayersContext);
 }
 
 /** The theme state in effect at this point in the tree, including any `ThemeScope`. */
