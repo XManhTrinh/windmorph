@@ -76,7 +76,7 @@ export async function AlertBody(): Promise<ComponentDoc> {
             <li>A problem with one field: the field&apos;s error text.</li>
             <li>A region with no content, or that couldn&apos;t load: an Empty state.</li>
             <li>
-              A decision that blocks the page (what Apple and Android call an alert): a Dialog with{' '}
+              A decision that blocks the page (what some platforms call an alert): a Dialog with{' '}
               <InlineCode>role=&quot;alertdialog&quot;</InlineCode>.
             </li>
           </ul>

@@ -10,7 +10,7 @@ export const tag: ComponentAccessibility = {
     { keys: ['Escape'], action: 'Hides the tooltip.', where: 'On a focused tag' },
   ],
   screenReader: {
-    role: 'None: a tag is a plain `span` read as text. `TagGroup` is a list (`ul` with an `li` per tag).',
+    role: 'None: a tag is a plain `span` read as text. `TagGroup` is a list (`ul`): each child, a `Tag` or text, is one list item.',
     name: 'Its label, or `fullLabel` in its place when the label is short ("M3E" reads "Expressive"). A `TagGroup` is named by its `aria-label`.',
     states: 'None. In a `TagGroup`, screen readers say how many tags the list holds.',
     notes: [

@@ -15,7 +15,7 @@ export const imageCrop: ComponentAccessibility = {
     },
     {
       keys: ['+', '-'],
-      action: 'Zoom in or out by 10% (`=` and `_` work too).',
+      action: 'Zoom in by 10%, or back out by the same step (`=` and `_` work too).',
       where: 'On the photo area',
     },
     {
@@ -44,12 +44,13 @@ export const imageCrop: ComponentAccessibility = {
       'The photo itself is decorative (`alt=""`); the frame and the circle guide are hidden from assistive tech.',
       "A photo that can't be opened (HEIC in some browsers, or a file that isn't an image) shows `labels.error` in an `alert` region that goes into the page before the message, so it is announced, and Save stays disabled.",
       'The zoom buttons show their names as tooltips through the icon button, without reading them twice.',
-      "While `pending`, a progress bar named by `labels.pending` shows, Cancel and Save are disabled, and the dialog can't be dismissed.",
+      'While `pending`, a progress bar named by `labels.pending` shows, Save is pending (it keeps focus and its name adds `labels.pending`: "Save, Uploading"), Cancel is disabled, and the dialog can\'t be dismissed.',
     ],
   },
   focus: [
     "The photo area joins the Tab order once the photo has loaded, and shows M3's focus indicator on keyboard focus: a 3px `secondary` outline 2px outside it.",
     'When Zoom out or Zoom in reaches its limit and turns itself off, focus moves to the other zoom button (or the photo area) instead of dropping to the page.',
+    'Pressing Save keeps focus on it while the app saves.',
     'The dialog moves focus to its first interactive element when it opens, keeps focus inside, and returns it to what opened it when it closes, as any {@link Dialog} does.',
   ],
   touchTarget: [

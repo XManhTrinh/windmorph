@@ -907,7 +907,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'Square photo tiles, a sideways row on compact windows and a grid from medium up; a tile opens the viewer. Not an M3 component (@windmorph/react-pro).',
+      'Square photo tiles, a sideways row on compact windows and a grid from medium up; a press on a tile reports it (`onAction`), for the app to open the viewer. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaGrid'],
     playground: 'full',
     pro: true,
