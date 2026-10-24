@@ -113,9 +113,25 @@ type LeadingContent =
       leadingLabel: string;
     };
 
-type LeadingProps =
-  | Pick<ButtonBaseActionProps, 'onPress' | 'onPressStart' | 'onPressEnd' | 'type'>
-  | Pick<ButtonBaseLinkProps, 'href' | 'target' | 'rel' | 'onPress'>;
+/** The leading button's own attributes; the rest of the DOM props go to the wrapper. */
+interface LeadingActionProps extends Pick<
+  ButtonBaseActionProps,
+  'onPress' | 'onPressStart' | 'onPressEnd'
+> {
+  /** The leading button's `type`, e.g. `submit` to send the form it's in. @default "button" */
+  type?: ButtonBaseActionProps['type'];
+}
+
+interface LeadingLinkProps extends Pick<ButtonBaseLinkProps, 'onPress'> {
+  /** Makes the leading button a link (`<a>`) to this URL. */
+  href: string;
+  /** The leading link's `target`, e.g. `_blank`. */
+  target?: ButtonBaseLinkProps['target'];
+  /** The leading link's `rel`, e.g. `noopener`. */
+  rel?: ButtonBaseLinkProps['rel'];
+}
+
+type LeadingProps = LeadingActionProps | LeadingLinkProps;
 
 export type SplitButtonProps = SplitButtonOwnProps &
   LeadingContent &
