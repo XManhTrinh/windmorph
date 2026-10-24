@@ -163,7 +163,8 @@ function MappingTable({ rows, caption }: { rows: Row[]; caption: string }) {
           </tbody>
         </table>
       </div>
-      <ul aria-label={caption} className="flex flex-col gap-3 medium:hidden">
+      {/* The table's rows again as cards for phones: the Markdown twin keeps the table only. */}
+      <ul aria-label={caption} data-markdown="skip" className="flex flex-col gap-3 medium:hidden">
         {rows.map(({ slug, title, mapping }) => (
           <li key={`${slug}-${mapping.composable}`}>
             <Card variant="outlined" className="gap-2 p-4 text-body-medium text-on-surface-variant">
