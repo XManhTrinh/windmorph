@@ -36,6 +36,10 @@ const REPLACED: Record<string, string> = {
   shouldFocusWrap: 'nothing: the arrow keys always wrap',
   escapeKeyBehavior: 'nothing: Escape always closes',
   validationState: 'invalid',
+  // React Aria's field states, which its inherited descriptions name (`generate-props.ts`).
+  isInvalid: 'invalid',
+  isRequired: 'required',
+  isReadOnly: 'readOnly',
   excludeFromTabOrder: 'tabIndex={-1}',
   selectedKey: 'value',
   defaultSelectedKey: 'defaultValue',

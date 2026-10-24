@@ -115,6 +115,8 @@ interface TextFieldOwnProps
       | 'aria-multiline'
       | 'aria-placeholder'
     > {
+  /** The `<input>`'s (or `<textarea>`'s) id, for a `<label for>` or an error summary's link. */
+  id?: string;
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**

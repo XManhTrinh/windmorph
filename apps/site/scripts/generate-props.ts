@@ -181,6 +181,67 @@ const DOM_PROPS_KEPT: Readonly<Record<string, string>> = {
 };
 
 /**
+ * React Aria's prop names that its own descriptions mention, and the library's names for them:
+ * an inherited row ("For realtime validation, use the `isInvalid` prop instead") reads the prop
+ * the component takes (`invalid`).
+ */
+export const REACT_ARIA_RENAMES: Readonly<Record<string, string>> = {
+  isInvalid: 'invalid',
+  isDisabled: 'disabled',
+  isRequired: 'required',
+  isReadOnly: 'readOnly',
+  isOpen: 'open',
+  isSelected: 'selected',
+  isIndeterminate: 'indeterminate',
+  isPending: 'pending',
+  isExpanded: 'expanded',
+  allowsCustomValue: 'allowCustomValue',
+  shouldCloseOnSelect: 'closeOnSelect',
+  disallowEmptySelection: 'deselectable',
+  selectedKey: 'value',
+  defaultSelectedKey: 'defaultValue',
+};
+
+/**
+ * Inherited rows whose React Aria text says something the library doesn't do, in the
+ * library's words (2026-10-24). Disabled items, tabs and options stay focusable (M3: they "can
+ * receive focus"; WAI-ARIA APG), where React Aria's text says they can't be focused.
+ */
+const INHERITED_DESCRIPTIONS: Readonly<Record<string, string>> = {
+  disabledKeys:
+    "The keys of the items that can't be selected or pressed. They stay focusable, so keyboard and screen reader users still find them.",
+};
+
+/**
+ * Pure core: an inherited (React Aria) row in the library's words. A description listed in
+ * {@link INHERITED_DESCRIPTIONS} is replaced; otherwise React Aria's prop names become the
+ * library's ({@link REACT_ARIA_RENAMES}, in the description and the type, so `onOpenChange`
+ * reads `(open: boolean) => void`), its component names go (`the ComboBox input` → `the
+ * input`), and a quoted default takes the double quotes of every other row (`'input'` →
+ * `"input"`).
+ */
+export function inLibraryWords(prop: PropsRecord): PropsRecord {
+  if (!prop.inherited) return prop;
+  const rename = (text: string) =>
+    text.replace(/\b[a-z]\w*\b/g, (word) =>
+      Object.hasOwn(REACT_ARIA_RENAMES, word) ? REACT_ARIA_RENAMES[word]! : word,
+    );
+  const description = Object.hasOwn(INHERITED_DESCRIPTIONS, prop.name)
+    ? INHERITED_DESCRIPTIONS[prop.name]
+    : prop.description &&
+      rename(prop.description)
+        .replace(/\bComboBox /g, '')
+        .replace(/\bRadio Button\(s\)/g, 'radio buttons');
+  const defaultValue = prop.defaultValue?.replace(/^'([^'"]*)'$/, '"$1"');
+  return {
+    ...prop,
+    type: rename(prop.type),
+    ...(description !== undefined && { description }),
+    ...(defaultValue !== undefined && { defaultValue }),
+  };
+}
+
+/**
  * Whether a prop gets a row: the package's own props, React Aria's (minus
  * {@link INHERITED_DENYLIST}, `UNSAFE_*` and `is*`), and from React's DOM types only `ref`,
  * `className` and `style`. The rest of the DOM attributes are summed up in one line.
@@ -598,7 +659,7 @@ export function refineWithChecker(
       if (keys.length > 0)
         prop.keys = keys.map((key) => ({ ...key, name: `${prop.name}.${key.name}` }));
     }
-    record.props = record.props.filter((prop) => !domOnly.has(prop.name));
+    record.props = record.props.filter((prop) => !domOnly.has(prop.name)).map(inLibraryWords);
     // A naming choice: every form requires one of these props, none requires them all.
     const naming = NAMING_PROPS.filter((name) => partlyRequired.has(name));
     if (

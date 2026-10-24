@@ -4,6 +4,7 @@ import {
   enumOptionsFromType,
   enumValuesFromType,
   htmlAttributeElements,
+  inLibraryWords,
   keepProp,
   normalizeDefaultValue,
   propOrigin,
@@ -12,6 +13,7 @@ import {
   refByForm,
   stripDocTags,
   type ComponentPropsFile,
+  type PropsRecord,
 } from './generate-props';
 
 const ARIA = '/repo/node_modules/.pnpm/x/node_modules/@react-types/button/src/index.d.ts';
@@ -136,6 +138,54 @@ describe('quoteDefault', () => {
     expect(quoteDefault('"sm"', { type: 'enum', values: ['"sm"'] }, true)).toBe('"sm"');
     expect(quoteDefault('4', { type: 'number' }, false)).toBe('4');
     expect(quoteDefault('a generated id', { type: 'string' }, true)).toBe('a generated id');
+  });
+});
+
+describe('inLibraryWords', () => {
+  const row = (fields: Partial<PropsRecord>): PropsRecord => ({
+    name: 'validate',
+    type: 'string',
+    required: false,
+    inherited: true,
+    ...fields,
+  });
+
+  it("names the library's props where React Aria's text names its own", () => {
+    const fixed = inLibraryWords(
+      row({ description: 'For realtime validation, use the `isInvalid` prop instead.' }),
+    );
+    expect(fixed.description).toBe('For realtime validation, use the `invalid` prop instead.');
+    expect(
+      inLibraryWords(row({ name: 'onOpenChange', type: '(isOpen: boolean) => void' })).type,
+    ).toBe('(open: boolean) => void');
+  });
+
+  it('says disabled items stay focusable', () => {
+    const fixed = inLibraryWords(
+      row({
+        name: 'disabledKeys',
+        description: 'These items cannot be selected, focused, or otherwise interacted with.',
+      }),
+    );
+    expect(fixed.description).toMatch(/stay focusable/);
+    expect(fixed.description).not.toMatch(/cannot be .*focused/);
+  });
+
+  it("drops React Aria's component names and double-quotes its defaults", () => {
+    const fixed = inLibraryWords(
+      row({
+        name: 'menuTrigger',
+        description: 'The interaction required to display the ComboBox menu.',
+        defaultValue: "'input'",
+      }),
+    );
+    expect(fixed.description).toBe('The interaction required to display the menu.');
+    expect(fixed.defaultValue).toBe('"input"');
+  });
+
+  it("leaves the package's own rows as they are", () => {
+    const { inherited: _inherited, ...own } = row({ description: 'Uses `isInvalid`.' });
+    expect(inLibraryWords(own)).toBe(own);
   });
 });
 

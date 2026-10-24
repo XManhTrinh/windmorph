@@ -111,6 +111,11 @@ export interface TabsProps
   /** Disables every tab (`disabledKeys` disables some). @default false */
   disabled?: boolean;
   /**
+   * The keys of tabs that can't be selected. They stay focusable, so keyboard and screen reader
+   * users find them (WAI-ARIA APG).
+   */
+  disabledKeys?: Iterable<Key>;
+  /**
    * `primary` tabs sit below the top app bar and switch the page's main content;
    * `secondary` tabs switch content within one section. @default "primary"
    */

@@ -118,6 +118,8 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
 > &
   Pick<AriaComboBoxOptions<T, M>, 'id' | 'name' | 'form'> &
   Omit<WrapperRootDOMProps, keyof ComboBoxProps<T, M>> & {
+    /** The `<input>`'s id, for a `<label for>` or an error summary's link. */
+    id?: string;
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**

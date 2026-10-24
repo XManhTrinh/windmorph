@@ -122,6 +122,8 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
 > &
   Pick<AriaSelectOptions<T, M>, 'id' | 'name' | 'autoComplete' | 'form'> &
   Omit<WrapperRootDOMProps, keyof StatelySelectProps<T, M>> & {
+    /** The trigger button's id, for a `<label for>` or an error summary's link. */
+    id?: string;
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**
