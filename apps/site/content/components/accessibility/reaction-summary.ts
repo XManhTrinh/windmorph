@@ -34,6 +34,7 @@ export const reactionSummary: ComponentAccessibility = {
   consumer: [
     "When it opens the list of who reacted, say so in `labels.count`, since that is the button's whole name: `` (total, formatted) => `${formatted} reactions. See who reacted` ``.",
     "Translate `labels.count`, with your language's plural forms (choose them from `total`).",
+    'For a summary that opens who reacted in a dialog, pass `aria-haspopup="dialog"` (and `aria-expanded` / `aria-controls` while it is open).',
     'In forced-colours mode the chip keeps its border, and a pressable `stacked` summary draws a `CanvasText` border; keep `classNames` overrides from removing them.',
   ],
 };

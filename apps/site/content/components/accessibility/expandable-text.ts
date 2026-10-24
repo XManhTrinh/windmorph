@@ -24,8 +24,9 @@ export const expandableText: ComponentAccessibility = {
   },
   focus: [
     '"See more" shows only when the text is actually cut, and is in the Tab order after the text\'s own links. "See less" (with `collapsible`) follows the text.',
-    'Pressing "See more" removes it and moves focus to the start of the text (focusable by script only, `tabIndex={-1}`) without scrolling, so the reader carries on from there. Pressing "See less" returns focus to "See more", or to the text if "See more" is not back, also without scrolling; only if the text\'s start is then above the window is it brought back into view.',
+    'Pressing "See more" removes it and moves focus to the start of the text (focusable by script only, `tabIndex={-1}`) without scrolling, so the reader carries on from there. Pressing "See less" returns focus to "See more" (also on the first collapse of a text that started expanded), also without scrolling; only if the text\'s start is then above the window is it brought back into view.',
     "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the button or the text. Pointer presses show no ring.",
+    'A link or button in the cut part that takes focus by Tab expands the text, focus staying on it, so it is never hidden under the fade or scrolled out of the clamped box.',
   ],
   touchTarget: [
     'The buttons are one line of text tall, and each gets an invisible touch target 48px tall and at least 48px wide, growing down and sideways from its line, so it never covers the line above.',

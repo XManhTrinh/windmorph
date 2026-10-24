@@ -173,7 +173,8 @@ export async function ReactionPickerBody(): Promise<ComponentDoc> {
               Set the tokens below on <InlineCode>:root</InlineCode>, a theme wrapper, the button or{' '}
               <InlineCode>classNames.row</InlineCode>: the button and the portalled row both carry{' '}
               <InlineCode>data-tokens=&quot;wm-reaction-picker&quot;</InlineCode>, so the row&apos;s
-              tokens reach it from outside. Emoji take type-scale sizes.
+              tokens reach it from outside. Emoji take type-scale sizes in px, so 200% text keeps
+              them in their boxes.
             </li>
             <li>
               <InlineCode>classNames</InlineCode> styles the <InlineCode>button</InlineCode>,{' '}

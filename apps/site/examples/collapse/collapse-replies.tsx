@@ -2,7 +2,7 @@
 
 import { Button } from '@windmorph/react';
 import { Avatar, Collapse, MessageField } from '@windmorph/react-pro';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const comments = [
   { id: 'alex', name: 'Alex Morgan', text: 'Is the workshop open to beginners?' },
@@ -13,9 +13,16 @@ const comments = [
 /**
  * One reply field at a time: replying to another comment folds this one as the next opens,
  * so the thread doesn't jump. The list opts out of scroll anchoring, so the page stays put.
+ * Folding a field that holds focus (a reply sent, the banner closed) first hands focus back
+ * to that comment's Reply button, so it never drops to the page.
  */
 export function CollapseReplies() {
   const [replying, setReplying] = useState<string | null>(null);
+  const replyButtons = useRef(new Map<string, HTMLButtonElement>());
+  const fold = (id: string) => {
+    replyButtons.current.get(id)?.focus();
+    setReplying(null);
+  };
   return (
     <ul className="flex w-full max-w-md flex-col [overflow-anchor:none]">
       {comments.map((comment) => (
@@ -27,7 +34,15 @@ export function CollapseReplies() {
                 <span className="block text-label-large">{comment.name}</span>
                 {comment.text}
               </p>
-              <Button variant="text" size="xs" onPress={() => setReplying(comment.id)}>
+              <Button
+                ref={(element: HTMLButtonElement | null) => {
+                  if (element) replyButtons.current.set(comment.id, element);
+                  else replyButtons.current.delete(comment.id);
+                }}
+                variant="text"
+                size="xs"
+                onPress={() => setReplying(comment.id)}
+              >
                 Reply
               </Button>
             </div>
@@ -39,10 +54,10 @@ export function CollapseReplies() {
                 aria-label={`Reply to ${comment.name}`}
                 placeholder={`Reply to ${comment.name}…`}
                 banner={`Replying to ${comment.name}`}
-                onBannerClose={() => setReplying(null)}
+                onBannerClose={() => fold(comment.id)}
                 expandOnFocus
                 autoFocus
-                onSubmit={() => setReplying(null)}
+                onSubmit={() => fold(comment.id)}
               />
             </div>
           </Collapse>

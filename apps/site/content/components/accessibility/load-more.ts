@@ -25,7 +25,7 @@ export const loadMore: ComponentAccessibility = {
   },
   focus: [
     'Load more sits in the Tab order after the list, where the component is placed.',
-    'Focus never drops to the top of the page. While focus is inside it (after a press on Load more or Retry, or on Load more as it starts loading by itself), it holds focus on its root while the page loads (or once all is loaded), then moves it to the next Load more or Retry. It moves focus with `preventScroll`, and tabbing to Load more brings it into view.',
+    "Focus never drops to the top of the page. While focus is inside it (after a press on Load more or Retry, or on Load more as it starts loading by itself), it holds focus on its root while the page loads (or once all is loaded), then moves it to the next Load more or Retry. It moves focus without the browser's centring scroll; when the person is using the keyboard, a Load more or Retry that the new page pushed out of view (of the window or a scrolling list) is brought back into view with a nearest scroll, and tabbing to Load more brings it into view.",
     'The root shows the M3 focus indicator while it holds focus from the keyboard.',
     "Keyboard focus on the buttons shows M3's focus indicator: a 3px `secondary` outline 2px outside the button.",
   ],

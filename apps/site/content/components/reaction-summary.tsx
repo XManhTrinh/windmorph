@@ -93,7 +93,7 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
               The <InlineCode>chip</InlineCode> variant is an M3 chip: the core&apos;s{' '}
               <InlineCode>AssistChip</InlineCode> when pressable, and the assist chip&apos;s look
               when static (32px tall, 8px corners, an <InlineCode>outline-variant</InlineCode>{' '}
-              border). Emoji take type-scale sizes.
+              border). Emoji take type-scale sizes in px, so 200% text keeps them in their boxes.
             </li>
           </ul>
         </section>

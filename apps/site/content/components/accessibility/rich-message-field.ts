@@ -30,8 +30,14 @@ export const richMessageField: ComponentAccessibility = {
     },
     {
       keys: ['Escape'],
-      action: 'Closes the mention list when it is open; otherwise calls `onEscape` when given.',
+      action:
+        'Closes the mention list when it is open (typing on in the same @ shows it again); otherwise calls `onEscape` when given.',
       where: 'In the text',
+    },
+    {
+      keys: ['Escape'],
+      action: 'Closes the link dialog; focus returns to the text.',
+      where: 'In the link dialog',
     },
     {
       keys: ['Arrow Up', 'Arrow Down'],
@@ -79,9 +85,9 @@ export const richMessageField: ComponentAccessibility = {
   },
   focus: [
     "Focus stays in the text while the mention list is open: the list is pointed at, not focused, and pressing a person picks them without taking focus. The formatting buttons and the Aa tool don't take focus on a press either, so the selection stays.",
-    'The tools and the formatting toolbar are one Tab stop each. The link dialog focuses its address field, and closing it puts focus back in the text.',
+    'The tools and the formatting toolbar are one Tab stop each. The link dialog focuses its address field, and closing it puts focus back in the text. When the formatting toolbar sits below the text (compact windows, or `formattingPlacement="bottom"`), it follows the text in Tab order too.',
     "Keyboard focus in the text draws M3's focus indicator around the whole field. In the mention list, the person reached with the arrow keys shows the focus layer and an inset focus ring; the first suggestion and the one under the pointer show the hover layer. In forced-colours mode the active person is outlined in `Highlight`.",
-    "Putting the caret back in the text (a press on the field or a tool, `insertText`) never lets the editor scroll the page. The app's own `focus()` brings a field that is wholly off screen into view with a nearest, smooth scroll.",
+    "Putting the caret back in the text (a press on the field or a tool, a format, the link dialog closing, `insertText`) never lets the editor scroll the page. The app's own `focus()` brings a field that is wholly off screen into view with a nearest, smooth scroll.",
   ],
   touchTarget: [
     'The formatting buttons, the Aa tool and the other field buttons are icon buttons with 48 × 48px touch targets. They stay at density 0 in a dense theme, and on its own (`formatting="none"` with a `FormattingToolbar` elsewhere) the toolbar spaces its 40px buttons 8px apart, so the targets never overlap.',
