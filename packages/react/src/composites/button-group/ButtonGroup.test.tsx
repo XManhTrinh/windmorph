@@ -31,6 +31,8 @@ describe('ButtonGroup', () => {
       </ButtonGroup>,
     );
     const group = screen.getByRole('toolbar', { name: 'Actions' });
+    expect(group).toHaveAttribute('data-size', 'md');
+    expect(group).toHaveAttribute('data-variant', 'standard');
     // Medium standard groups space their buttons 8px apart.
     expect(group).toHaveClass(
       'inline-flex',
