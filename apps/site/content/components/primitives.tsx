@@ -84,7 +84,7 @@ const mask = materialShapeMask(cookie12SidedShape);
 <div className="size-14 bg-primary-container [mask-size:100%_100%]"
   style={{ maskImage: mask, WebkitMaskImage: mask }} />
 
-// Picking a shape by name (a gallery, a shape picker) costs all 35 outlines (about 10.5 kB).
+// Picking a shape by name (a gallery, a shape picker) costs all 35 outlines (about 11 kB gzipped).
 const shape = materialShapePaths[name];
 
 // Your own outline works too: a closed SVG path in the unit square.
