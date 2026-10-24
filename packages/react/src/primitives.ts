@@ -70,6 +70,7 @@ export {
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {
+  pickDescriptionAria,
   pickWidgetAria,
   splitRootProps,
   type DescriptionAria,

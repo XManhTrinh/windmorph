@@ -148,6 +148,10 @@ export const primitivesChecks = {
     kind: 'value',
     run: () => Primitives.morphToPath(new Primitives.Morph(circle, star), 0.5),
   },
+  pickDescriptionAria: {
+    kind: 'value',
+    run: () => Primitives.pickDescriptionAria({ 'aria-description': 'Sample', title: 'Sample' }),
+  },
   pickWidgetAria: {
     kind: 'value',
     run: () => Primitives.pickWidgetAria({ 'aria-expanded': true, title: 'Sample' }),

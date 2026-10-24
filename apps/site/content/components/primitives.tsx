@@ -27,7 +27,7 @@ const importSnippet = `import {
   // Scrolling
   useKeepPressedInPlace,
   // Building your own component
-  splitRootProps, pickWidgetAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
+  splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
   // Static shapes (precomputed outlines, no shape engine)
   type MaterialShapePath, materialShapeMask, materialShapePaths,
@@ -322,10 +322,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>aria-description</InlineCode>,{' '}
               <InlineCode>aria-roledescription</InlineCode> and the braille labels), and{' '}
               <InlineCode>pickWidgetAria</InlineCode> hands over the ones a React Aria hook
-              doesn&apos;t forward; the result&apos;s <InlineCode>rest</InlineCode> is typed by what
-              stays in it, for a wrapper or not), <InlineCode>splitDataAttributes</InlineCode> (only
-              the <InlineCode>data-*</InlineCode> props), <InlineCode>mergeDataTokens</InlineCode>{' '}
-              (adds your own token set after a component's, as the core components do with a{' '}
+              doesn&apos;t forward, <InlineCode>pickDescriptionAria</InlineCode> only the
+              description ones, for an element whose widget attributes you set yourself; the
+              result&apos;s <InlineCode>rest</InlineCode> is typed by what stays in it, for a
+              wrapper or not), <InlineCode>splitDataAttributes</InlineCode> (only the{' '}
+              <InlineCode>data-*</InlineCode> props), <InlineCode>mergeDataTokens</InlineCode> (adds
+              your own token set after a component's, as the core components do with a{' '}
               <InlineCode>data-tokens</InlineCode> they are given),{' '}
               <InlineCode>ThemeScopeContext</InlineCode> (the theme of the nearest{' '}
               <InlineCode>ThemeProvider</InlineCode> or <InlineCode>ThemeScope</InlineCode>, to
