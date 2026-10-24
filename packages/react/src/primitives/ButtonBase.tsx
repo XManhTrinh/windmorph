@@ -85,6 +85,12 @@ export interface ButtonBaseActionProps
   ref?: Ref<HTMLButtonElement>;
   /** The element rendered: a native `<button>`. @default "button" */
   as?: 'button';
+  /**
+   * The value a submit button sends with its form, under its `name`. On a toggle (`toggle`)
+   * it's a `string` naming the button in a selection group instead, required to take part in
+   * the group's selection.
+   */
+  value?: ComponentPropsWithoutRef<'button'>['value'];
   /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
   /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */
