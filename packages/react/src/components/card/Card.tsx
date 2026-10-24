@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, type ComponentPropsWithRef, type Ref, type RefObject } from 'react';
+import {
+  useEffect,
+  type ComponentPropsWithRef,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
 import { useObjectRef } from 'react-aria';
 import {
   ButtonBase,
@@ -22,13 +28,21 @@ interface CardOwnProps {
    * @default false
    */
   dragged?: boolean;
+  /** Classes for the card, merged with its own; consumer classes win. */
+  className?: string;
+  /** The card's content: its media, headline, text and actions. */
+  children?: ReactNode;
 }
 
-/** Button props that don't apply to a card: cards aren't toggles or menu triggers. */
-type NotForCards = 'toggle' | 'preventFocusOnPress';
+/**
+ * Button props that don't apply to a card (cards aren't toggles or menu triggers), and the
+ * ones a card describes itself.
+ */
+type NotForCards = 'toggle' | 'preventFocusOnPress' | 'className' | 'children';
 
 /** A container card. */
-export interface CardStaticProps extends CardOwnProps, ComponentPropsWithRef<'div'> {
+export interface CardStaticProps
+  extends CardOwnProps, Omit<ComponentPropsWithRef<'div'>, 'className' | 'children'> {
   /** Makes the card a link (`<a>`). It must not contain other buttons or links then. */
   href?: undefined;
   /** Makes the card pressable (`<div role="button">`). It must not contain other buttons or links then. */
