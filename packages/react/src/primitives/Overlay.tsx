@@ -1,9 +1,15 @@
 'use client';
 
-import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useContext, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
-import { useThemeScope, useThemeScopeClassName, useThemeScopeVariables } from '../theme/context';
-import { themeAttributes } from '../theme/state';
+import {
+  DocumentThemeContext,
+  InheritedThemeContext,
+  useThemeScope,
+  useThemeScopeClassName,
+  useThemeScopeVariables,
+} from '../theme/context';
+import { themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ToolbarContext } from './ToolbarContext';
 
@@ -50,6 +56,10 @@ export function Overlay({
   density,
 }: OverlayProps) {
   const scope = useThemeScope();
+  const themed = density === undefined ? scope : { ...scope, density };
+  // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
+  // `:root` values for the system tokens reach the overlay too.
+  const documentTheme = useContext(DocumentThemeContext);
   const scopeClassName = useThemeScopeClassName();
   const scopeVariables = useThemeScopeVariables();
   const scopeId = useId();
@@ -89,7 +99,7 @@ export function Overlay({
       >
         <div
           ref={scopeRef}
-          {...themeAttributes(density === undefined ? scope : { ...scope, density })}
+          {...themeAttributesOver(themed, portalContainer ? null : documentTheme)}
           className={scopeClassName || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
@@ -100,7 +110,9 @@ export function Overlay({
           }}
         >
           {/* An overlay opened from a toolbar isn't part of it. */}
-          <ToolbarContext value={null}>{children}</ToolbarContext>
+          <InheritedThemeContext value={themed}>
+            <ToolbarContext value={null}>{children}</ToolbarContext>
+          </InheritedThemeContext>
         </div>
       </AriaOverlay>
     </>

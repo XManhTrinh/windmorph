@@ -119,14 +119,26 @@ const CUSTOM_SWATCHES = [
   ['warning', 'bg-warning text-on-warning', 'bg-warning-container text-on-warning-container'],
 ] as const;
 
-const TOKENS_SNIPPET = `/* Every theme: on :root, after the library stylesheet. */
+const TOKENS_SNIPPET = `/* The page and its menus, dialogs and tooltips, after the library stylesheet. */
 :root {
   --md-sys-shape-corner-full: 12px;
   --md-ref-typeface-brand: 'Inter';
 }
+/* Colours and elevation in every theme, ThemeScopes that re-theme a subtree too. */
+:root,
+[data-theme] {
+  --md-sys-color-tertiary: #7d5260;
+}
 /* One theme, in every mode and contrast level. */
 [data-theme='ocean'] {
   --md-sys-color-primary: #0050c8;
+}
+/* Motion in every scheme and scope, leaving reduced motion's 0ms in place. */
+@media (prefers-reduced-motion: no-preference) {
+  :root,
+  [data-motion] {
+    --md-sys-motion-spring-spatial-fast-duration: 300ms;
+  }
 }`;
 
 const SCRIPT_SNIPPET = `// Static / exported sites: ThemeScript applies the stored theme before first paint.
@@ -177,7 +189,7 @@ export default async function ThemingPage() {
         <p className="text-body-large text-on-surface-variant">
           Every colour, mode, contrast level, motion scheme and density is driven by tokens. Pick
           one of six built-in themes, generate your own from a seed colour, and switch any of the
-          four dimensions at runtime or per subtree.
+          five dimensions at runtime or per subtree.
         </p>
       </header>
 
@@ -197,8 +209,8 @@ export default async function ThemingPage() {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 id="the-four-dimensions" className="text-headline-small text-on-surface">
-          The four dimensions
+        <h2 id="the-five-dimensions" className="text-headline-small text-on-surface">
+          The five dimensions
         </h2>
         <ul className="list-disc ps-6 text-body-large text-on-surface-variant">
           <li>
@@ -227,6 +239,14 @@ export default async function ThemingPage() {
             (the default) or <InlineCode>standard</InlineCode>. See the{' '}
             <a className="text-primary underline" href="/motion">
               Motion guide
+            </a>
+            .
+          </li>
+          <li>
+            <span className="text-on-surface">Density</span> — <InlineCode>0</InlineCode> (the
+            default) to <InlineCode>-3</InlineCode>, on the web only. See{' '}
+            <a className="text-primary underline" href="#density">
+              Density
             </a>
             .
           </li>
@@ -439,15 +459,27 @@ export default async function ThemingPage() {
           Overriding tokens
         </h2>
         <p className="text-body-large text-on-surface-variant">
-          The four attributes are <InlineCode>data-theme</InlineCode>,{' '}
-          <InlineCode>data-mode</InlineCode>, <InlineCode>data-contrast</InlineCode> and{' '}
-          <InlineCode>data-motion</InlineCode>. Override any token with a plain rule after the
-          library stylesheet: <InlineCode>:root</InlineCode> for every theme, or{' '}
-          <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one. The themes set{' '}
+          The five attributes are <InlineCode>data-theme</InlineCode>,{' '}
+          <InlineCode>data-mode</InlineCode>, <InlineCode>data-contrast</InlineCode>,{' '}
+          <InlineCode>data-motion</InlineCode> and <InlineCode>data-density</InlineCode>. Override
+          any token with a plain rule after the library stylesheet: <InlineCode>:root</InlineCode>{' '}
+          for the page and the menus, dialogs and tooltips opened from it, or{' '}
+          <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one theme. The themes set{' '}
           <InlineCode>--md-sys-color-*</InlineCode> on zero-specificity{' '}
           <InlineCode>:where()</InlineCode> selectors, so your rule always wins, in every mode and
           contrast level. A literal colour is the same in light and dark mode, so check its contrast
           in both, or generate a theme instead.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          A <InlineCode>ThemeScope</InlineCode>, and an overlay opened inside one, carries only the
+          attributes that differ from the page, so a <InlineCode>:root</InlineCode> value reaches
+          everything it doesn&apos;t change. One that changes the theme, mode or contrast sets that
+          theme&apos;s colours and elevation again on its own element, and one that changes the
+          motion scheme its springs: for a value that holds there too, write{' '}
+          <InlineCode>:root, [data-theme]</InlineCode> (colours and elevation) or{' '}
+          <InlineCode>:root, [data-motion]</InlineCode> (motion). Put motion values inside{' '}
+          <InlineCode>@media (prefers-reduced-motion: no-preference)</InlineCode>, or they replace
+          the 0ms spatial springs reduced motion sets.
         </p>
         <CodeBlock code={TOKENS_SNIPPET} html={tokensHtml} lang="css" title="globals.css" />
       </section>
@@ -471,7 +503,9 @@ export default async function ThemingPage() {
           <InlineCode>suppressHydrationWarning</InlineCode> on <InlineCode>&lt;html&gt;</InlineCode>
           . <InlineCode>ThemeScript</InlineCode> and <InlineCode>DEFAULT_THEME_STATE</InlineCode> (
           <InlineCode>
-            {'{ theme: "baseline", mode: "system", contrast: "standard", motion: "expressive" }'}
+            {
+              '{ theme: "baseline", mode: "system", contrast: "standard", motion: "expressive", density: 0 }'
+            }
           </InlineCode>
           ) come from <InlineCode>@windmorph/react</InlineCode>, not <InlineCode>/next</InlineCode>.
         </p>

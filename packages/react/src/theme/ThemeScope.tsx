@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, type ComponentPropsWithRef } from 'react';
+import { useContext, useMemo, type ComponentPropsWithRef } from 'react';
 import type { ColorMode, ContrastLevel } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
 import { cn } from '../utils/cn';
 import {
+  InheritedThemeContext,
   ThemeScopeClassNameContext,
   ThemeScopeContext,
   ThemeScopeVariablesContext,
@@ -13,7 +14,7 @@ import {
   useThemeScopeClassName,
   useThemeScopeVariables,
 } from './context';
-import { themeAttributes, type ThemeState } from './state';
+import { themeAttributesOver, type ThemeState } from './state';
 
 export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
   /** Colour theme for this subtree. Inherited when omitted. */
@@ -52,6 +53,7 @@ export function ThemeScope({
   ...props
 }: ThemeScopeProps) {
   const parent = useThemeScope();
+  const inherited = useContext(InheritedThemeContext);
   const parentClassName = useThemeScopeClassName();
   const parentVariables = useThemeScopeVariables();
   const variables = useMemo(() => {
@@ -79,14 +81,16 @@ export function ThemeScope({
   return (
     <div
       {...props}
-      {...themeAttributes(state)}
+      {...themeAttributesOver(state, inherited)}
       style={style}
       className={cn('text-on-surface', className)}
     >
       <ThemeScopeContext value={state}>
-        <ThemeScopeClassNameContext value={scopeClassName}>
-          <ThemeScopeVariablesContext value={variables}>{children}</ThemeScopeVariablesContext>
-        </ThemeScopeClassNameContext>
+        <InheritedThemeContext value={state}>
+          <ThemeScopeClassNameContext value={scopeClassName}>
+            <ThemeScopeVariablesContext value={variables}>{children}</ThemeScopeVariablesContext>
+          </ThemeScopeClassNameContext>
+        </InheritedThemeContext>
       </ThemeScopeContext>
     </div>
   );

@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { useLayoutEffect, useRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeScope } from '../theme/ThemeScope';
 import { Overlay } from './Overlay';
 
@@ -30,6 +31,36 @@ describe('Overlay', () => {
     expect(wrapper).toHaveAttribute('data-motion', 'standard');
     expect(wrapper).toHaveAttribute('data-density', '-2');
     expect(wrapper).toHaveStyle({ display: 'contents' });
+  });
+
+  it("carries only what differs from <html>, so an app's :root values reach it", () => {
+    render(
+      <ThemeProvider defaultTheme="ocean" defaultMotion="standard" storage="none">
+        <Overlay>
+          <div>Page menu</div>
+        </Overlay>
+        <ThemeScope density={-2}>
+          <Overlay>
+            <div>Dense menu</div>
+          </Overlay>
+        </ThemeScope>
+      </ThemeProvider>,
+    );
+    expect(document.documentElement).toHaveAttribute('data-theme', 'ocean');
+    const page = screen.getByText('Page menu').closest('[data-overlay-scope]')!;
+    for (const name of [
+      'data-theme',
+      'data-mode',
+      'data-contrast',
+      'data-motion',
+      'data-density',
+    ]) {
+      expect(page).not.toHaveAttribute(name);
+    }
+    const dense = screen.getByText('Dense menu').closest('[data-overlay-scope]')!;
+    expect(dense).toHaveAttribute('data-density', '-2');
+    expect(dense).not.toHaveAttribute('data-theme');
+    expect(dense).not.toHaveAttribute('data-motion');
   });
 
   it("takes its component's own density over the scope's", () => {

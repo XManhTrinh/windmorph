@@ -65,3 +65,7 @@ Every component with an element of its own takes `className`, `style`, `ref` and
 `SnackbarHost`'s `focusShortcut` defaults to `F6` (was `Alt+G`), the browsers' key for moving between a page's regions.
 
 `Button` and `IconButton` take `pending` for an action that takes a moment (a save, a form submit, a refresh): after 200ms a loading indicator in the content colour replaces the content, the button keeps its size, its colours and keyboard focus, presses are blocked and a submit button doesn't submit again. The accessible name gains `labels.pending` (default "Loading"), and a focused button announces it. `pendingIndicator` replaces the indicator (a `CircularProgressIndicator` for a longer wait), and `classNames.pendingIndicator` styles its slot. Toggle buttons have no pending state. `ButtonBase` takes `pending` too (`ButtonBasePendingProps`).
+
+A `ThemeScope`, and the wrapper an overlay (menu, dialog, tooltip, sheet) is portalled in, carries only the theme attributes that differ from the theme around it, so an app's own `:root` values for the system tokens reach the page's menus and dialogs, and the parts of a scope it doesn't re-theme. A scope that changes the theme, mode or contrast still sets that theme's colours on its own element: write `:root, [data-theme]` (and `:root, [data-motion]` for motion) for a value that holds there too.
+
+`springProgressWithVelocity` and `springWithVelocityToLinearEasing`, the springs that continue a gesture at its speed, are exported from `@windmorph/react/primitives` and no longer from the main entry.

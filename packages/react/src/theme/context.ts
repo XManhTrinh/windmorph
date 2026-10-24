@@ -39,6 +39,19 @@ export const ThemeScopeClassNameContext = createContext<string>('');
 export const ThemeScopeVariablesContext = createContext<Readonly<Record<string, string>>>({});
 
 /**
+ * The theme the DOM already carries at this point through `data-*` attributes: the nearest
+ * `ThemeScope`'s, or the `ThemeProvider`'s when it writes them on `<html>`; `null` when unknown.
+ * A `ThemeScope` puts only the attributes that differ from it on its element.
+ */
+export const InheritedThemeContext = createContext<ThemeState | null>(null);
+
+/**
+ * The theme `<html>` carries (the `ThemeProvider`'s, when it writes it there), for `Overlay`'s
+ * wrapper in `document.body`; `null` when unknown.
+ */
+export const DocumentThemeContext = createContext<ThemeState | null>(null);
+
+/**
  * Reads and changes the app theme set by `ThemeProvider`.
  * @throws if called outside a `ThemeProvider`.
  */

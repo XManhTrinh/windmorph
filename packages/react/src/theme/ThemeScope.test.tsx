@@ -10,7 +10,7 @@ function ScopeState() {
 }
 
 describe('ThemeScope', () => {
-  it('writes all five attributes, inheriting unset ones', () => {
+  it('writes the attributes that differ from the theme around it, inheriting unset ones', () => {
     render(
       <ThemeProvider defaultMode="light" defaultMotion="standard">
         <ThemeScope theme="forest" data-testid="outer">
@@ -26,8 +26,12 @@ describe('ThemeScope', () => {
     expect(inner).toHaveAttribute('data-theme', 'forest');
     expect(inner).toHaveAttribute('data-mode', 'dark');
     expect(inner).toHaveAttribute('data-contrast', 'high');
-    expect(inner).toHaveAttribute('data-motion', 'standard');
-    expect(inner).toHaveAttribute('data-density', '0');
+    // The motion scheme and density are the page's: `<html>` carries them, so the theme's rules
+    // don't declare them again here (an app's `:root` values for them still reach the scope).
+    for (const scope of [screen.getByTestId('outer'), inner]) {
+      expect(scope).not.toHaveAttribute('data-motion');
+      expect(scope).not.toHaveAttribute('data-density');
+    }
     expect(screen.getByText('forest dark high standard')).toBeInTheDocument();
   });
 
@@ -42,9 +46,11 @@ describe('ThemeScope', () => {
         </ThemeScope>
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('inherits')).toHaveAttribute('data-density', '-1');
+    // The page's density is on `<html>`; a nested scope inherits its parent's through the DOM.
+    expect(screen.getByTestId('inherits')).not.toHaveAttribute('data-density');
     expect(screen.getByTestId('dense')).toHaveAttribute('data-density', '-3');
-    expect(screen.getByTestId('nested')).toHaveAttribute('data-density', '-3');
+    expect(screen.getByTestId('nested')).not.toHaveAttribute('data-density');
+    expect(screen.getByTestId('nested')).toHaveAttribute('data-theme', 'ocean');
     expect(screen.getByTestId('reset')).toHaveAttribute('data-density', '0');
   });
 

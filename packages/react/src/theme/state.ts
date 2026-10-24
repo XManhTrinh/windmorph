@@ -89,6 +89,35 @@ export function themeAttributes(state: ThemeState) {
   } as const;
 }
 
+/**
+ * The `data-*` attributes an element needs to carry `state` inside an ancestor that already
+ * carries `inherited` (2026-10-24): only the dimensions that differ, so the theme's rules don't
+ * declare the same values again there and an app's own values for the system tokens (an
+ * `:root` rule) still reach it. The colour dimensions go together, since one rule reads the
+ * theme, mode and contrast of the same element. With no known `inherited` (a portal into an
+ * app's own container, a provider that leaves `<html>` alone), every attribute.
+ */
+export function themeAttributesOver(
+  state: ThemeState,
+  inherited: ThemeState | null,
+): Partial<ReturnType<typeof themeAttributes>> {
+  const all = themeAttributes(state);
+  if (!inherited) return all;
+  const colors =
+    state.theme !== inherited.theme ||
+    state.mode !== inherited.mode ||
+    state.contrast !== inherited.contrast;
+  return {
+    ...(colors && {
+      'data-theme': all['data-theme'],
+      'data-mode': all['data-mode'],
+      'data-contrast': all['data-contrast'],
+    }),
+    ...(state.motion !== inherited.motion && { 'data-motion': all['data-motion'] }),
+    ...(state.density !== inherited.density && { 'data-density': all['data-density'] }),
+  };
+}
+
 export function readCookie(cookieString: string, name: string): string | undefined {
   for (const part of cookieString.split(';')) {
     const [key, ...value] = part.trim().split('=');

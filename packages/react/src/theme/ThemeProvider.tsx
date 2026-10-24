@@ -18,7 +18,13 @@ import {
 } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
-import { ThemeContext, ThemeScopeContext, type ThemeContextValue } from './context';
+import {
+  DocumentThemeContext,
+  InheritedThemeContext,
+  ThemeContext,
+  ThemeScopeContext,
+  type ThemeContextValue,
+} from './context';
 import type { ThemeDefinition } from './create-theme';
 import {
   DEFAULT_STORAGE_KEY,
@@ -220,6 +226,9 @@ export function ThemeProvider({
     [theme, mode, contrast, motion, density],
   );
 
+  // What `<html>` carries, for scopes and overlays to put only what differs on their elements.
+  const documentTheme = applyToDocument ? state : null;
+
   useLayoutEffect(() => {
     if (!isHydrated || !applyToDocument) return;
     const root = document.documentElement;
@@ -271,16 +280,20 @@ export function ThemeProvider({
   return (
     <ThemeContext value={value}>
       <ThemeScopeContext value={state}>
-        {definitions.map((definition) => (
-          <style
-            key={definition.name}
-            href={`windmorph-theme-${definition.name}`}
-            precedence="windmorph"
-          >
-            {definition.css}
-          </style>
-        ))}
-        {children}
+        <DocumentThemeContext value={documentTheme}>
+          <InheritedThemeContext value={documentTheme}>
+            {definitions.map((definition) => (
+              <style
+                key={definition.name}
+                href={`windmorph-theme-${definition.name}`}
+                precedence="windmorph"
+              >
+                {definition.css}
+              </style>
+            ))}
+            {children}
+          </InheritedThemeContext>
+        </DocumentThemeContext>
       </ThemeScopeContext>
     </ThemeContext>
   );
