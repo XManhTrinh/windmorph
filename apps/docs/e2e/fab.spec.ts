@@ -227,6 +227,41 @@ test.describe('Extended FAB expand motion', () => {
     expect(series.at(-1)!).toBeCloseTo(expanded, 0);
   });
 
+  // Re-audit 2026-10-21: collapsed, the large FAB's content is 8px narrower than its 96px
+  // minimum, so its icon moved from 28 to 32px in the frame the minimum took over.
+  test('the large icon slides to the centre with the width, never jumping', async ({ page }) => {
+    await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });
+    const iconOffsets = (act: () => Promise<void>) => {
+      const sampled = page.evaluate(
+        () =>
+          new Promise<number[]>((resolve) => {
+            const fab = document.querySelector('[data-testid="extended-fab"]')!;
+            const icon = fab.querySelector('[aria-hidden="true"]')!;
+            const out: number[] = [];
+            const start = performance.now();
+            const tick = () => {
+              out.push(icon.getBoundingClientRect().left - fab.getBoundingClientRect().left);
+              if (performance.now() - start < 700) requestAnimationFrame(tick);
+              else resolve(out);
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      return act().then(() => sampled);
+    };
+    const steps = (series: number[]) =>
+      series.slice(1).map((value, i) => Math.abs(value - series[i]!));
+    const collapsing = await iconOffsets(() =>
+      page.getByRole('button', { name: 'Collapse' }).click(),
+    );
+    expect(collapsing[0]).toBeCloseTo(28, 0);
+    expect(collapsing.at(-1)!).toBeCloseTo(32, 0);
+    expect(Math.max(...steps(collapsing))).toBeLessThan(2);
+    const expanding = await iconOffsets(() => page.getByRole('button', { name: 'Expand' }).click());
+    expect(expanding.at(-1)!).toBeCloseTo(28, 0);
+    expect(Math.max(...steps(expanding))).toBeLessThan(2);
+  });
+
   test('under reduced motion it expands at once', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });
