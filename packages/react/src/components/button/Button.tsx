@@ -195,7 +195,10 @@ export function Button({
                 {icon}
               </span>
             )}
-            <span className={styles.label({ class: classNames?.label })}>{children}</span>
+            <span className={styles.label({ class: classNames?.label })}>
+              {children}
+              {pending.nameSuffix}
+            </span>
           </>
         );
         return (
