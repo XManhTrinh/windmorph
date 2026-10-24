@@ -186,13 +186,16 @@ export const RailStates: Story = {
 function BarDemo({
   iconPlacement,
   destinations = DESTINATIONS,
+  label = `Bar ${iconPlacement}`,
 }: {
   iconPlacement: 'top' | 'start';
   destinations?: typeof DESTINATIONS;
+  /** Each bar's landmark name, unique on the page. */
+  label?: string;
 }) {
   const [current, setCurrent] = useState('home');
   return (
-    <NavigationBar aria-label={`Bar ${iconPlacement}`} iconPlacement={iconPlacement}>
+    <NavigationBar aria-label={label} iconPlacement={iconPlacement}>
       {destinations.map(({ id, label, icon }) => (
         <NavigationBarItem
           key={id}
@@ -224,7 +227,7 @@ export const Bar: Story = {
       </div>
       <BarDemo iconPlacement="start" />
       <div className="w-[320px]">
-        <BarDemo iconPlacement="top" destinations={LONG_LABELS} />
+        <BarDemo iconPlacement="top" destinations={LONG_LABELS} label="Long labels" />
       </div>
     </div>
   ),
