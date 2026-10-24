@@ -460,6 +460,8 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         "The selected tab's `key`, which the preview's tabs set as you press them; the Secondary example starts on its second tab with `defaultValue`.",
       defaultValue:
         'The tab selected at first: the preview starts on its first tab, as tabs do by default.',
+      disabledKeys:
+        "An Iterable of tab keys; a disabled tab stays focusable but can't be selected, as the accessibility section says.",
     },
     enumOptions: DENSITY_OPTIONS,
     controlKinds: { density: 'number' },
