@@ -281,6 +281,7 @@ function ButtonGroupRoot({
 
   usePressExpansion(domRef, expandedRatio ?? (variant === 'standard' ? 0.15 : 0));
 
+  const groupSize = size ?? parent.size ?? 'sm';
   const iconButtonVariant = iconVariantOf(buttonVariant);
   const shared = useMemo<ButtonContextValue>(
     () => ({
@@ -330,9 +331,12 @@ function ButtonGroupRoot({
     <div
       {...mergeProps(props, groupAria)}
       ref={domRef}
+      // Public styling hooks for apps, as on Button: the group's variant and the size it spaces
+      // its buttons for (its own, an enclosing toolbar's, or `sm`).
       data-variant={variant}
+      data-size={groupSize}
       className={cn(
-        buttonGroupStyles({ variant, size: size ?? parent.size ?? 'sm', overflow }),
+        buttonGroupStyles({ variant, size: groupSize, overflow }),
         classNames?.root,
         className,
       )}

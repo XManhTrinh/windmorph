@@ -40,7 +40,7 @@ React Aria's own prop names no longer leak through: `Autocomplete` takes `allowC
 
 The arrow keys wrap at the ends of a `Menu` and of the `Select` and `Autocomplete` option lists, as they do in lists, tabs and toolbars.
 
-`Tabs` takes `value`, `defaultValue` and `onChange`, as `Select` and `RadioGroup` do, instead of `selectedKey`, `defaultSelectedKey` and `onSelectionChange`. Disabled tabs stay focusable, so screen reader users find them, but can't be selected.
+`Tabs` takes `value`, `defaultValue` and `onChange`, as `Select` and `RadioGroup` do, instead of `selectedKey`, `defaultSelectedKey` and `onSelectionChange`, and a radio `List` reports its choice with `onChange` instead of `onValueChange`. Disabled tabs stay focusable, so screen reader users find them, but can't be selected.
 
 Disabled items in an interactive `List` (actions, selection or nested items) take focus with the arrow keys, as the WAI-ARIA practices recommend, but can't be pressed, selected, expanded or followed.
 
@@ -50,7 +50,7 @@ Placements are hyphenated, like every other multi-word value: `'bottom-start'`, 
 
 `Dialog`'s `quick` is `instant`, the name `Menu` uses for the same thing.
 
-`DialogHeader` takes `labels.close` (default "Close") instead of the required `closeLabel`, and `SplitButton` takes `labels.menu` (default "More options") instead of the required `menuLabel`.
+`DialogHeader` takes `labels.close` (default "Close") instead of the required `closeLabel`, and `closeDisabled` to disable its full-screen close button while the confirming action runs, and `SplitButton` takes `labels.menu` (default "More options") instead of the required `menuLabel`.
 
 `ButtonBase`, and every button built on it, takes `as` (`'button' | 'div'`) instead of `elementType` to pick its element.
 
@@ -62,7 +62,7 @@ Sizes use one scale: `Fab` and `FabMenu` take `size="md"` and `size="lg"` (were 
 
 Every component with an element of its own takes `className`, `style`, `ref` and `id`: a field's `id` reaches its input or trigger (`Select`, `Autocomplete`, `DateField`), so a `<label for>` or an error summary can point at it, and `Slider`, `RangeSlider`, `DatePicker`, `DateRangePicker`, `TimePicker`, `List`, `Carousel` and `SearchBar` put it on their root. `Tooltip`, `RichTooltip`, `TimePickerModeToggle`, `PickerDialog`, `ListItemAvatar`, `ListItemImage`, `ListItemVideo` and `TouchTarget` take `style` and `ref`, and `Menu`'s `ref` reaches its menu list. Every component's root also takes its element's DOM attributes (`data-*`, `aria-*`, `title`, `lang`, pointer and mouse events…); where React Aria labels an inner element, such as a field's input, the naming attributes, the attributes that describe that element (`aria-controls`, `aria-expanded`, `aria-haspopup`, `aria-autocomplete`, `aria-activedescendant`, `aria-required`, `aria-invalid`, `aria-readonly`, `aria-multiline`, `aria-placeholder`, and `aria-description`, `aria-roledescription` and the braille labels) and the focus, key and input events go there instead, never on a wrapping `div` or `label`. `Select`, `Autocomplete` and `DateField` read a form library's `aria-invalid`, `aria-required` and `aria-readonly` as their `invalid`, `required` and `readOnly`, and `DateField` and `SearchBar` add an app's `aria-describedby` to their inputs. `splitRootProps` (with `{ wrapper: true }` for a root that wraps the labelled element), its `RootDOMProps`, `WrapperRootDOMProps` and `DescriptionAria` types and `pickWidgetAria` (from `@windmorph/react/primitives`) split the props the same way for a component of your own.
 
-`SnackbarHost`'s `focusShortcut` defaults to `F6` (was `Alt+G`), the browsers' key for moving between a page's regions.
+`SnackbarHost`'s `focusShortcut` defaults to `F6` (was `Alt+G`), the key React Aria's toasts take: while a snackbar with a control shows, F6 moves focus to it from anywhere on the page.
 
 `Button` and `IconButton` take `pending` for an action that takes a moment (a save, a form submit, a refresh): after 200ms a loading indicator in the content colour replaces the content, the button keeps its size, its colours and keyboard focus, presses are blocked and a submit button doesn't submit again. The accessible name gains `labels.pending` (default "Loading"), and a focused button announces it. `pendingIndicator` replaces the indicator (a `CircularProgressIndicator` for a longer wait), and `classNames.pendingIndicator` styles its slot. Toggle buttons have no pending state. `ButtonBase` takes `pending` too (`ButtonBasePendingProps`).
 

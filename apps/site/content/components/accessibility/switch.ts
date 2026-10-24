@@ -16,7 +16,7 @@ export const switchControl: ComponentAccessibility = {
     role: '`switch`: a visually hidden native `<input type="checkbox">` with `role="switch"` (React Aria `useSwitch`), so forms and assistive tech work natively.',
     name: 'Its label (`children`), or `aria-label` / `aria-labelledby` when there is no visible label. The types require one of the three.',
     states:
-      'On or off (`checked`), disabled, and read-only (`aria-readonly`) when `readOnly` is set.',
+      'On or off (`checked`), disabled, read-only (`aria-readonly`) when `readOnly` is set, required (`aria-required`) with `required`, and invalid (`aria-invalid`) with `invalid`.',
     notes: [
       'The thumb, its icons (`icons`, `checkedIcon`, `uncheckedIcon`) and the state layer are decorative and hidden from assistive tech (`aria-hidden`).',
     ],

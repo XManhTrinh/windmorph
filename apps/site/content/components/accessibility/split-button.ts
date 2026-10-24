@@ -29,7 +29,7 @@ export const splitButton: ComponentAccessibility = {
     },
   ],
   screenReader: {
-    role: 'Two `button`s side by side (the leading one is a `link` with `href`). The trailing button opens a `menu`.',
+    role: 'A `group` of two `button`s side by side (the leading one is a `link` with `href`). The trailing button opens a `menu`.',
     name: 'The leading button is named by its label, or by `leadingLabel` when it shows only an icon. The trailing button is named by `labels.menu` ("More options" by default; name it for its menu, as in "More send options"), and the menu is named after it.',
     states:
       'The trailing button reports `aria-haspopup` and `aria-expanded` with a menu, `aria-expanded` alone when it opens its own overlay, and both halves report disabled.',
@@ -53,6 +53,7 @@ export const splitButton: ComponentAccessibility = {
   consumer: [
     'Give `labels.menu` a name that ties the menu to the main action: "More send options" beside "Send", not "More".',
     'Pass `leadingLabel` when the leading button shows only an icon.',
+    'Name the group with `aria-label` only when its buttons need context they lack; it reads as a group of the two either way.',
     'Keep the menu to actions related to the leading one.',
   ],
 };

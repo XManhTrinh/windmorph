@@ -131,6 +131,22 @@ describe('Button pending', () => {
     expect(screen.getByRole('button', { name: 'Invoice' })).toBeInTheDocument();
   });
 
+  it('runs the suffix on from the label text, so browsers join it without a space', () => {
+    render(
+      <Button pending classNames={{ label: 'label' }}>
+        Save
+      </Button>,
+    );
+    const label = screen.getByRole('button').querySelector('.label')!;
+    // A box after the label (a grid item, `sr-only`) reads "Save , Loading" in browsers.
+    expect(label.textContent).toBe('Save, Loading');
+    expect(label.lastElementChild).toHaveStyle({
+      fontSize: '0px',
+      lineHeight: '0',
+      letterSpacing: '0px',
+    });
+  });
+
   it('shows the loading indicator over the hidden content once it has loaded', async () => {
     render(
       <Button pending classNames={{ pendingIndicator: 'custom-slot' }}>

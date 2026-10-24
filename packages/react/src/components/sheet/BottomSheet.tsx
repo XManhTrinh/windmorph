@@ -191,6 +191,10 @@ interface BottomSheetOwnProps {
    * other attributes go on the panel.
    */
   className?: string;
+  /** Goes on the outermost element, with `className`. */
+  style?: CSSProperties;
+  /** Ref to the panel, the sheet's surface (`role="dialog"`). */
+  ref?: Ref<HTMLDivElement>;
 }
 
 export type BottomSheetProps = BottomSheetOwnProps &

@@ -291,7 +291,9 @@ export const SideStandard: StoryObj<{ edge: 'start' | 'end' }> = {
  * its width or on a fling, while a vertical swipe scrolls the long content, and the row of
  * filters (a horizontal scroller) and the slider keep their own sideways drags. `veto` keeps
  * the sheet open (a controlled `open` left `true`), so a swipe springs back; `swipeable`
- * turns the gesture off.
+ * turns the gesture off. The sideways row is here only to test that the swipe gives way to a
+ * scroller: M3 says not to lay out a side sheet for horizontal scrolling, so an app's sheet
+ * wraps its filters instead (as the docs' example does).
  */
 export const SideSwipe: StoryObj<{
   edge: 'start' | 'end';

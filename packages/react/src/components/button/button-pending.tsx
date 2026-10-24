@@ -74,6 +74,14 @@ const indicatorColor = {
   '--md-comp-progress-indicator-track-color': 'transparent',
 } as CSSProperties;
 
+/** The name suffix's style: text that takes no room (see `nameSuffix`). */
+const HIDDEN_SUFFIX: CSSProperties = {
+  fontSize: 0,
+  lineHeight: 0,
+  letterSpacing: 0,
+  wordSpacing: 0,
+};
+
 interface PendingOptions<E extends HTMLElement> {
   pending: boolean | undefined;
   pendingIndicator: ReactElement | undefined;
@@ -111,7 +119,7 @@ function accessibleName(element: HTMLElement): string {
  * the root, the accessible-name suffix, and the indicator's slot.
  *
  * - The name gains `labels.pending` while pending, from the first frame: appended to an
- *   `aria-label`, an extra id on `aria-labelledby`, or a visually hidden suffix after the text.
+ *   `aria-label`, an extra id on `aria-labelledby`, or a visually hidden suffix at the end of the label.
  * - When it turns on while focus is in the button, the new name is announced politely, once.
  * - The indicator (the core's `LoadingIndicator`, loaded on demand, or `pendingIndicator`) is
  *   preloaded once the button takes a `pending` prop at all, when the browser is idle or the
@@ -168,6 +176,7 @@ export function useButtonPending<E extends HTMLElement>({
 
   let nameProps: { 'aria-label'?: string; 'aria-labelledby'?: string } = {};
   let hiddenName: ReactNode = null;
+  let nameSuffix: ReactNode = null;
   if (pending) {
     if (ariaLabelledby) {
       nameProps = { 'aria-labelledby': `${ariaLabelledby} ${hiddenId}` };
@@ -179,7 +188,12 @@ export function useButtonPending<E extends HTMLElement>({
     } else if (ariaLabel) {
       nameProps = { 'aria-label': `${ariaLabel}, ${labels.pending}` };
     } else {
-      hiddenName = <span className="sr-only">{`, ${labels.pending}`}</span>;
+      // Inline text at the label's end, sized to nothing: browsers join the text of a block,
+      // a grid item or an absolutely positioned box (`sr-only`) to the label with a space
+      // ("Save , Loading"), but run inline text on ("Save, Loading"). No tracking either (the
+      // label's is in rem, so it would still space each hidden letter out), nor line height
+      // (its half-leading, centred on the zero-size text, would grow the label's line).
+      nameSuffix = <span style={HIDDEN_SUFFIX}>{`, ${labels.pending}`}</span>;
     }
   }
 
@@ -203,7 +217,10 @@ export function useButtonPending<E extends HTMLElement>({
     takesPending,
     rootProps: { ref, ...nameProps, 'data-pending': pending || undefined },
     contentProps: { 'data-pending-shown': shown || undefined },
+    /** The element `aria-labelledby` adds while pending, anywhere in the button. */
     hiddenName,
+    /** The suffix of a name taken from the content, to put at the end of the label's text. */
+    nameSuffix,
     indicator,
   };
 }

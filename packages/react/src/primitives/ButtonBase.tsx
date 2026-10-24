@@ -71,7 +71,7 @@ export interface ButtonBasePendingProps {
    * in the Tab order, unlike `disabled`. Sets `aria-disabled="true"` and `data-pending`; a
    * submit button renders `type="button"` meanwhile, so the form isn't submitted again, and a
    * link keeps its `href` with its navigation prevented. `disabled` wins when both are set.
-   * A toggle or a `div` button ignores it.
+   * A toggle ignores it.
    * @default false
    */
   pending?: boolean;
@@ -85,6 +85,12 @@ export interface ButtonBaseActionProps
   ref?: Ref<HTMLButtonElement>;
   /** The element rendered: a native `<button>`. @default "button" */
   as?: 'button';
+  /**
+   * The value a submit button sends with its form, under its `name`. On a toggle (`toggle`)
+   * it's a `string` naming the button in a selection group instead, required to take part in
+   * the group's selection.
+   */
+  value?: ComponentPropsWithoutRef<'button'>['value'];
   /** Renders a link (`<a>`) instead of a button. */
   href?: undefined;
   /** Makes the button a toggle (`aria-pressed`) with `selected` and `onSelectedChange`. @default false */

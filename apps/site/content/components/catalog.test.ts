@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORY_COUNT,
@@ -61,6 +63,23 @@ describe('component catalog invariants', () => {
     for (const meta of COMPONENT_META) {
       if (meta.playground === 'full') {
         expect(meta.propsComponents.length, `${meta.slug} needs a component`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("names a core component's specs sizes as its size prop's values", () => {
+    const propsDir = resolve(process.cwd(), '.generated/props');
+    for (const meta of COMPONENT_META) {
+      const component = meta.propsComponents[0];
+      const file = component && resolve(propsDir, `${component}.json`);
+      if (meta.pro || !meta.specs?.sizes || !file || !existsSync(file)) continue;
+      const { props } = JSON.parse(readFileSync(file, 'utf8')) as {
+        props: { name: string; values?: string[] }[];
+      };
+      const values = props.find((prop) => prop.name === 'size')?.values;
+      if (!values) continue;
+      for (const size of meta.specs.sizes) {
+        expect(values, `${meta.slug} specs size "${size}"`).toContain(`"${size}"`);
       }
     }
   });

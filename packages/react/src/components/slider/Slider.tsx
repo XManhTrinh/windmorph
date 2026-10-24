@@ -226,9 +226,20 @@ function SliderRoot(props: RootProps) {
   const labels = { ...DEFAULT_LABELS, ...(props as RangeSliderProps).labels };
   // The root is the slider's group: its DOM attributes join the hook's.
   const { root: data, rest: labelling } = splitRootProps(rest);
-  const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
+  // The naming attributes: the name goes to the group and each thumb (React Aria), and the
+  // description, details and error message to each thumb's input, which takes focus.
+  const {
+    'aria-label': label,
+    'aria-labelledby': labelledBy,
+    'aria-describedby': describedBy,
+    'aria-details': details,
+    'aria-errormessage': errorMessage,
+  } = labelling as {
     'aria-label'?: string;
     'aria-labelledby'?: string;
+    'aria-describedby'?: string;
+    'aria-details'?: string;
+    'aria-errormessage'?: string;
   };
 
   const numberFormatter = useNumberFormatter(formatOptions);
@@ -245,6 +256,8 @@ function SliderRoot(props: RootProps) {
     isDisabled: disabled,
     'aria-label': label,
     'aria-labelledby': labelledBy,
+    'aria-describedby': describedBy,
+    'aria-details': details,
     value: wrap(value),
     defaultValue: wrap(defaultValue) ?? (range ? [min, max] : [min]),
     onChange: onChange && ((v: number[]) => (onChange as (x: unknown) => void)(unwrap(v))),
@@ -345,6 +358,7 @@ function SliderRoot(props: RootProps) {
             trackRef={trackRef}
             name={name}
             label={range ? (index === 0 ? labels.start : labels.end) : undefined}
+            errorMessage={errorMessage}
             valueLabel={valueLabel}
             styles={styles}
             classNames={classNames}
@@ -429,6 +443,7 @@ function Thumb({
   trackRef,
   name,
   label,
+  errorMessage,
   valueLabel,
   styles,
   classNames,
@@ -439,15 +454,22 @@ function Thumb({
   trackRef: RefObject<HTMLDivElement | null>;
   name?: string;
   label?: string;
+  errorMessage?: string;
   valueLabel: boolean;
   styles: ReturnType<typeof sliderStyles>;
   classNames?: SliderClassNames;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { thumbProps, inputProps, isDragging } = useSliderThumb(
-    { index, trackRef, inputRef, name, 'aria-label': label },
+    { index, trackRef, inputRef, name, 'aria-label': label, 'aria-errormessage': errorMessage },
     state,
   );
+  // React Aria joins the description's ids into an empty string when there are none.
+  const thumbInputProps = {
+    ...inputProps,
+    'aria-describedby': inputProps['aria-describedby'] || undefined,
+    'aria-details': inputProps['aria-details'] || undefined,
+  };
   const { focusProps, isFocusVisible } = useFocusRing();
   const { direction } = useLocale();
   // M3: "Space & Arrows — Increase and decrease the value by one interval", so arrows step
@@ -492,7 +514,7 @@ function Thumb({
           className={styles.handle({ class: classNames?.handle })}
         />
         <VisuallyHidden>
-          <input ref={inputRef} {...mergeProps(inputProps, focusProps, intervalKeys)} />
+          <input ref={inputRef} {...mergeProps(thumbInputProps, focusProps, intervalKeys)} />
         </VisuallyHidden>
       </div>
       {valueLabel && (isDragging || isFocusVisible) && (

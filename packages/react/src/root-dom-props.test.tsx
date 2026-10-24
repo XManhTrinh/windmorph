@@ -365,6 +365,30 @@ describe('root DOM attributes', () => {
     }
   });
 
+  it('lets a checkbox’s, switch’s and radio group’s own state win over the app’s attributes', () => {
+    const { getByRole } = render(
+      <>
+        <Checkbox invalid required aria-invalid={false} aria-required={false}>
+          Terms
+        </Checkbox>
+        <Switch invalid required aria-invalid={false} aria-required={false}>
+          Wi-Fi
+        </Switch>
+        <RadioGroup label="Delivery" invalid>
+          <Radio value="standard" {...({ 'aria-invalid': false } as object)}>
+            Standard
+          </Radio>
+        </RadioGroup>
+      </>,
+    );
+    for (const name of ['Terms', 'Wi-Fi']) {
+      const input = getByRole(name === 'Terms' ? 'checkbox' : 'switch', { name });
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+      expect(input).toHaveAttribute('aria-required', 'true');
+    }
+    expect(getByRole('radio', { name: 'Standard' })).not.toHaveAttribute('aria-invalid');
+  });
+
   it('covers every component that splits its props with splitRootProps', () => {
     const src = dirname(fileURLToPath(import.meta.url));
     const splitting = readdirSync(join(src, 'components'), { recursive: true, withFileTypes: true })

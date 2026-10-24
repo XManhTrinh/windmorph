@@ -44,6 +44,7 @@ const REPLACED: Record<string, string> = {
   selectedKey: 'value',
   defaultSelectedKey: 'defaultValue',
   unselectedIcon: 'uncheckedIcon',
+  onValueChange: 'onChange',
   // Windmorph Pro's replaced names (its own API naming round, 2026-10-17).
   tone: 'color (severity on Alert)',
   focusOnMount: 'autoFocus',
@@ -89,6 +90,17 @@ const OLD_PATTERNS: [RegExp, string][] = [
   ],
 ];
 
+/**
+ * Names replaced on some components only, checked in those components' pages and examples:
+ * checkboxes and switches are `checked` (2026-10-17), while toggles and chips keep `selected`.
+ */
+const SCOPED: [RegExp, Record<string, string>][] = [
+  [
+    /(?:^|\/)(?:checkbox|switch)(?:[-./]|$)/,
+    { selected: 'checked', defaultSelected: 'defaultChecked', onSelectedChange: 'onCheckedChange' },
+  ],
+];
+
 /** A name used as code: a JSX attribute, an object key, a code span or a quoted string. */
 const asCode = (name: string) => new RegExp(`(?:\\b${name}(?==|\\?*:\\s)|[\`'"]${name}[\`'".])`);
 
@@ -115,6 +127,12 @@ function findings(): string[] {
         }
         for (const [pattern, now] of OLD_PATTERNS) {
           if (pattern.test(line)) found.push(`${where} ${pattern.source} (now ${now})`);
+        }
+        for (const [scope, replaced] of SCOPED) {
+          if (!scope.test(relative(site, file))) continue;
+          for (const [name, now] of Object.entries(replaced)) {
+            if (asCode(name).test(line)) found.push(`${where} ${name} (now ${now})`);
+          }
         }
       });
     }

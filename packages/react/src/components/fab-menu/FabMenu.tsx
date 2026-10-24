@@ -365,7 +365,11 @@ export function FabMenu({
       data-open={isOpen || undefined}
       data-presentation={presentation}
       className={styles.root({ class: cn(classNames?.root, className) })}
-      onKeyDown={onKeyDown}
+      // The app's own handler runs first, then the menu's keys.
+      onKeyDown={(event) => {
+        rest.onKeyDown?.(event);
+        onKeyDown(event);
+      }}
     >
       {isMenu ? (
         <MenuTrigger open={isOpen} onOpenChange={setOpen}>

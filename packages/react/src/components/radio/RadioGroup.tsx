@@ -306,12 +306,16 @@ export function Radio({
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const rippling = useRippleHold(isPressed && !isDisabled);
   const styles = radioStyles();
+  // The group's own state wins, as a field's does: the radiogroup carries it.
+  const widgetAria = pickWidgetAria(rest);
+  if (state.isInvalid) delete widgetAria['aria-invalid'];
+  if (state.isRequired) delete widgetAria['aria-required'];
 
   return (
     <SelectionControl
       ref={ref}
       rootProps={mergeProps(labelProps, hoverProps)}
-      inputProps={mergeProps(inputProps, pickWidgetAria(rest), focusProps)}
+      inputProps={mergeProps(widgetAria, inputProps, focusProps)}
       inputRef={domInputRef}
       // The ring resolves the component tokens itself (list items draw it too); the root
       // is marked as well, so the tokens sit on the element that carries the state.

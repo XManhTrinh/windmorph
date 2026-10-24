@@ -184,7 +184,9 @@ export const sideSheetStyles = tv({
       '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-spatial-default-duration)]',
       '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),linear]',
     ],
-    // The panel stays on the window's side of the root as its width moves (`edge`).
+    // The panel rides the root's inner edge (the content's side, `edge`), so as the width
+    // moves the sheet slides in and out with its edge leading, as M3's reference moves it
+    // (2026-10-24); pinned to the window's side, its far side was wiped into view first.
     standardClip: 'flex w-full min-w-0 overflow-hidden',
     standardFrame: 'flex h-full shrink-0',
   },
@@ -204,7 +206,7 @@ export const sideSheetStyles = tv({
           'motion-safe:starting:translate-x-full motion-safe:data-exiting:translate-x-[112%]',
           'motion-safe:rtl:starting:-translate-x-full motion-safe:rtl:data-exiting:-translate-x-[112%]',
         ],
-        standardClip: 'justify-end',
+        standardClip: 'justify-start',
       },
       start: {
         container: [
@@ -215,7 +217,7 @@ export const sideSheetStyles = tv({
           'motion-safe:starting:-translate-x-full motion-safe:data-exiting:-translate-x-[112%]',
           'motion-safe:rtl:starting:translate-x-full motion-safe:rtl:data-exiting:translate-x-[112%]',
         ],
-        standardClip: 'justify-start',
+        standardClip: 'justify-end',
       },
     },
     /**
