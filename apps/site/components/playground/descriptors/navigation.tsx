@@ -746,6 +746,8 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     notControlled: {
       preventFocusOnPress:
         'It only stops the link taking focus when pressed (menu triggers set it): nothing the preview can show.',
+      value:
+        'Only the value a submit button sends with its form (the button form); nothing the preview shows.',
     },
     enumOptions: {
       variant: ['inline', 'standalone', 'plain'],
