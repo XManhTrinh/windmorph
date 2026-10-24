@@ -78,7 +78,7 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
               <InlineCode>max</InlineCode> (3) caps them, e.g. to 1 in a narrow row.
             </li>
             <li>
-              The count uses the locale&apos;s compact numbers (1.2K). A chip shows it only from 2,
+              The count uses the locale&apos;s compact numbers (1.3K). A chip shows it only from 2,
               as one icon already says one; nothing renders at 0.
             </li>
             <li>

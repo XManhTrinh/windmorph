@@ -18,7 +18,7 @@ export const reactionSummary: ComponentAccessibility = {
     name: '`labels.count(total, formatted)` ("1 reaction", "128 reactions", "1.3K reactions"): the button\'s name when pressable, or visually hidden text read in place of the icons and number. `formatted` is the compact number as shown; keep it in the words so the name contains the visible text.',
     states: 'None: it announces the count only.',
     notes: [
-      'The icons and the compact number ("1.2K") are hidden from assistive tech (`aria-hidden`).',
+      'The icons and the compact number ("1.3K") are hidden from assistive tech (`aria-hidden`).',
       'Nothing renders when `total` is 0.',
     ],
   },
