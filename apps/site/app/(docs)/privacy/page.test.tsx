@@ -38,7 +38,11 @@ describe('the privacy notice', () => {
     const text = renderPage().textContent ?? '';
     expect(text).toContain('Loops (loops.so)');
     expect(text).toContain('United States');
-    expect(text).toMatch(/until you unsubscribe, or one year after the last email/i);
+    expect(text).toMatch(/within 30 days of you unsubscribing or asking us to/i);
+    expect(text).toMatch(/never confirmed is deleted 30 days after/);
+    expect(text).toContain('IP address and browser details');
+    expect(text).toContain('standard contractual clauses');
+    expect(text).toMatch(/Last updated: \d{1,2} \w+ \d{4}/);
     for (const right of ['see the data', 'correct it', 'delete it', 'object to']) {
       expect(text).toContain(right);
     }
