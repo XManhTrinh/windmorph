@@ -208,7 +208,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     expressive: true,
     specs: {
-      sizes: ['default', 'medium', 'large'],
+      sizes: ['default', 'md', 'lg'],
       shape: 'rounded-corner-large',
       elevation: 'level3',
     },
