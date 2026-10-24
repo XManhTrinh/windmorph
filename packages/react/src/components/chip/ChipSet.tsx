@@ -99,6 +99,13 @@ function useChipSetKeyboard(single: boolean) {
   const lastFocused = useRef<HTMLElement | null>(null);
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const from = event.currentTarget.ownerDocument.activeElement;
+    moveFocus(event);
+    const to = event.currentTarget.ownerDocument.activeElement;
+    if (event.key !== 'Tab' && to !== from) revealInRow(event.currentTarget, to);
+  };
+
+  const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
     if (single && radioGroupKeyDown(event)) return;
     const root = event.currentTarget;
     const items = focusables(root);
@@ -152,6 +159,22 @@ function useChipSetKeyboard(single: boolean) {
   };
 
   return { onKeyDown, onFocus, onPointerDown };
+}
+
+/**
+ * Scrolls a sideways-scrolling set just far enough to show the chip the arrow keys moved to,
+ * focus ring included: `focus()` scrolls only a chip that is wholly hidden, so one partly past
+ * the row's edge stayed clipped. Only the row moves, never the page.
+ */
+function revealInRow(row: HTMLElement, chip: Element | null) {
+  if (!(chip instanceof HTMLElement) || row.scrollWidth <= row.clientWidth) return;
+  const edges = row.getBoundingClientRect();
+  const box = chip.getBoundingClientRect();
+  // The focus ring: a 3px outline 2px outside the chip.
+  const ring = 5;
+  const past =
+    Math.max(0, box.right + ring - edges.right) - Math.max(0, edges.left - box.left + ring);
+  if (past !== 0) row.scrollLeft += past;
 }
 
 /**

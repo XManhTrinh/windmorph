@@ -220,4 +220,27 @@ describe('ChipSet', () => {
       'custom',
     );
   });
+
+  it('scrolls a chip the arrow keys reach fully into its row, ring included', async () => {
+    render(
+      <ChipSet aria-label="Filters" layout="scroll" selectionMode="single">
+        <FilterChip value="open">Open now</FilterChip>
+        <FilterChip value="rating">Rating</FilterChip>
+      </ChipSet>,
+    );
+    const row = screen.getByRole('radiogroup', { name: 'Filters' });
+    const [open, rating] = screen.getAllByRole('radio');
+    const box = (left: number, right: number) => () =>
+      ({ left, right, top: 0, bottom: 32, width: right - left, height: 32 }) as DOMRect;
+    Object.defineProperty(row, 'scrollWidth', { value: 400 });
+    Object.defineProperty(row, 'clientWidth', { value: 304 });
+    row.getBoundingClientRect = box(0, 304);
+    open!.getBoundingClientRect = box(4, 222);
+    rating!.getBoundingClientRect = box(230, 321);
+    open!.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(rating).toHaveFocus();
+    expect(row.scrollLeft).toBe(22);
+  });
 });
+
