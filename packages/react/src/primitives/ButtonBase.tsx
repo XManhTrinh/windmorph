@@ -71,7 +71,7 @@ export interface ButtonBasePendingProps {
    * in the Tab order, unlike `disabled`. Sets `aria-disabled="true"` and `data-pending`; a
    * submit button renders `type="button"` meanwhile, so the form isn't submitted again, and a
    * link keeps its `href` with its navigation prevented. `disabled` wins when both are set.
-   * A toggle or a `div` button ignores it.
+   * A toggle ignores it.
    * @default false
    */
   pending?: boolean;
