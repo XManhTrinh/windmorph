@@ -71,3 +71,5 @@ A `ThemeScope`, and the wrapper an overlay (menu, dialog, tooltip, sheet) is por
 `springProgressWithVelocity` and `springWithVelocityToLinearEasing`, the springs that continue a gesture at its speed, are exported from `@windmorph/react/primitives` and no longer from the main entry.
 
 A field's server-rendered `aria-describedby` names only the supporting text and error it renders, so assistive technology reading the page before hydration never follows it to a missing element.
+
+Switching a date picker between the calendar and the text input fades the outgoing view out as it slides away, as the incoming one comes in, instead of dropping it in the first frame.

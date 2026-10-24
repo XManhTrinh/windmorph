@@ -39,6 +39,7 @@ import {
 import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { useSizeTransform } from './use-size-transform';
+import { useViewExit } from './use-view-exit';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -414,6 +415,13 @@ function PickerFrame({
   // The picker's height follows the view on the default spatial spring (Compose's
   // `SizeTransform` in its display mode animation), as the views swap.
   const { attach: attachSize, capture: captureSize } = useSizeTransform<HTMLDivElement>(mode);
+  // The outgoing view fades out as it slides away (Compose: up 48px as the input comes in,
+  // down by its whole height as the calendar comes back), clipped with the new one.
+  const {
+    attachView: attachExitView,
+    attachSlot: attachExitSlot,
+    capture: captureExit,
+  } = useViewExit(mode);
   const styles = datePickerStyles({ range });
   const title =
     mode === 'input'
@@ -469,6 +477,7 @@ function PickerFrame({
                 }
                 onPress={() => {
                   captureSize();
+                  captureExit(mode === 'calendar' ? '-48px' : '100%');
                   setSwitched(true);
                   setMode(mode === 'calendar' ? 'input' : 'calendar');
                 }}
@@ -477,16 +486,24 @@ function PickerFrame({
           </div>
         </div>
       )}
-      <div key={mode} data-enter={switched ? mode : undefined} className={styles.modeView()}>
-        {mode === 'input' ? (
-          <div className={styles.input({ class: classNames?.body })}>{input}</div>
-        ) : range && scroll ? (
-          <RangeMonthList state={state as RangeCalendarState} {...bodyProps} />
-        ) : range ? (
-          <RangeCalendarBody state={state as RangeCalendarState} {...bodyProps} />
-        ) : (
-          <SingleCalendarBody state={state as CalendarState} {...bodyProps} />
-        )}
+      <div className={styles.modeStack()}>
+        <div
+          key={mode}
+          ref={attachExitView}
+          data-enter={switched ? mode : undefined}
+          className={styles.modeView()}
+        >
+          {mode === 'input' ? (
+            <div className={styles.input({ class: classNames?.body })}>{input}</div>
+          ) : range && scroll ? (
+            <RangeMonthList state={state as RangeCalendarState} {...bodyProps} />
+          ) : range ? (
+            <RangeCalendarBody state={state as RangeCalendarState} {...bodyProps} />
+          ) : (
+            <SingleCalendarBody state={state as CalendarState} {...bodyProps} />
+          )}
+        </div>
+        <div ref={attachExitSlot} aria-hidden="true" inert className={styles.modeExit()} />
       </div>
     </div>
   );
