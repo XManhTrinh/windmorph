@@ -243,4 +243,3 @@ describe('ChipSet', () => {
     expect(row.scrollLeft).toBe(22);
   });
 });
-

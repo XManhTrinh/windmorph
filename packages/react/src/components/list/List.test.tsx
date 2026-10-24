@@ -453,12 +453,7 @@ describe('List (radio lists)', () => {
     const { container } = render(
       <>
         <button type="button">Before</button>
-        <List
-          variant="segmented"
-          aria-label="Theme"
-          defaultValue="dark"
-          onChange={onChange}
-        >
+        <List variant="segmented" aria-label="Theme" defaultValue="dark" onChange={onChange}>
           <ListItem key="light" value="light">
             Light
           </ListItem>

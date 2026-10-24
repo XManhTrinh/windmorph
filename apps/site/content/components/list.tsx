@@ -230,8 +230,7 @@ export async function ListBody(): Promise<ComponentDoc> {
             </li>
             <li>
               One choice out of a few, applied at once: a radio list (<InlineCode>value</InlineCode>{' '}
-              / <InlineCode>onChange</InlineCode>, each item with a{' '}
-              <InlineCode>value</InlineCode>
+              / <InlineCode>onChange</InlineCode>, each item with a <InlineCode>value</InlineCode>
               ).
             </li>
             <li>
