@@ -315,3 +315,19 @@ test.describe('No sideways scrolling', () => {
     });
   }
 });
+
+test("an example's stand-in link is pressed without going to a fragment that isn't there", async ({
+  page,
+}) => {
+  await gotoReady(page, '/components/link');
+  const url = page.url();
+  // A router link (the Pro Link) and a plain anchor (a mention in rich text).
+  await page.locator('[data-example] a[href="#demo-forgot"]').first().click();
+  await page.keyboard.press('Enter');
+  expect(page.url()).toBe(url);
+  await gotoReady(page, '/components/rich-message-field');
+  const mention = page.locator('[data-example] a[href^="#demo-person-"]').first();
+  const before = page.url();
+  await mention.click();
+  expect(page.url()).toBe(before);
+});
