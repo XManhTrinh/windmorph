@@ -8,7 +8,7 @@ import {
   useThemeScope,
   useThemeScopeLayers,
 } from '../theme/context';
-import { themeAttributesOver } from '../theme/state';
+import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ToolbarContext } from './ToolbarContext';
 
@@ -60,6 +60,18 @@ export function Overlay({
   // `:root` values for the system tokens reach the overlay too.
   const documentTheme = useContext(DocumentThemeContext);
   const [outerLayer, ...innerLayers] = useThemeScopeLayers();
+  // A scope's class or variables may set a colour role: each layer carries the colour
+  // attributes, so the values derived from the roles (elevation) resolve again with them.
+  const {
+    'data-theme': layerTheme,
+    'data-mode': layerMode,
+    'data-contrast': layerContrast,
+  } = themeAttributes(themed);
+  const colorAttributes = {
+    'data-theme': layerTheme,
+    'data-mode': layerMode,
+    'data-contrast': layerContrast,
+  };
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -97,7 +109,11 @@ export function Overlay({
       >
         <div
           ref={scopeRef}
-          {...themeAttributesOver(themed, portalContainer ? null : documentTheme)}
+          {...themeAttributesOver(
+            themed,
+            portalContainer ? null : documentTheme,
+            outerLayer !== undefined,
+          )}
           className={outerLayer?.className || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
@@ -112,6 +128,7 @@ export function Overlay({
           {innerLayers.reduceRight<ReactNode>(
             (content, layer) => (
               <div
+                {...colorAttributes}
                 className={layer.className || undefined}
                 style={{ ...layer.variables, display: 'contents' }}
               >

@@ -76,7 +76,7 @@ export function ThemeScope({
   return (
     <div
       {...props}
-      {...themeAttributesOver(state, inherited)}
+      {...themeAttributesOver(state, inherited, layers !== parentLayers)}
       style={style}
       className={cn('text-on-surface', className)}
     >

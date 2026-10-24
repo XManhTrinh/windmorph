@@ -473,9 +473,11 @@ export default async function ThemingPage() {
         <p className="text-body-large text-on-surface-variant">
           A <InlineCode>ThemeScope</InlineCode>, and an overlay opened inside one, carries only the
           attributes that differ from the page, so a <InlineCode>:root</InlineCode> value reaches
-          everything it doesn&apos;t change. One that changes the theme, mode or contrast sets that
-          theme&apos;s colours and elevation again on its own element, and one that changes the
-          motion scheme its springs: for a value that holds there too, write{' '}
+          everything it doesn&apos;t change. One that changes the theme, mode or contrast, or has a{' '}
+          <InlineCode>className</InlineCode> or <InlineCode>style</InlineCode> variables of its own
+          (which may set a colour role, so the shadows follow it), sets that theme&apos;s colours
+          and elevation again on its own element, and one that changes the motion scheme its
+          springs: for a value that holds there too, write{' '}
           <InlineCode>:root, [data-theme]</InlineCode> (colours and elevation) or{' '}
           <InlineCode>:root, [data-motion]</InlineCode> (motion). Put motion values inside{' '}
           <InlineCode>@media (prefers-reduced-motion: no-preference)</InlineCode>, or they replace

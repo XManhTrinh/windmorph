@@ -63,6 +63,25 @@ describe('Overlay', () => {
     expect(dense).not.toHaveAttribute('data-motion');
   });
 
+  it("re-resolves the theme on each scope layer that restyles it (a scope's shadow colour)", () => {
+    render(
+      <ThemeProvider storage="none">
+        <ThemeScope className="brand-shadow">
+          <Overlay>
+            <div>Dialog</div>
+          </Overlay>
+        </ThemeScope>
+        <ThemeScope data-testid="restyled" className="brand-shadow" />
+      </ThemeProvider>,
+    );
+    // A class may set a colour role, so the elevation, declared on [data-theme], resolves again.
+    expect(screen.getByTestId('restyled')).toHaveAttribute('data-theme', 'baseline');
+    const wrapper = screen.getByText('Dialog').closest('[data-overlay-scope]');
+    expect(wrapper).toHaveClass('brand-shadow');
+    expect(wrapper).toHaveAttribute('data-theme', 'baseline');
+    expect(wrapper).not.toHaveAttribute('data-motion');
+  });
+
   it("takes its component's own density over the scope's", () => {
     render(
       <ThemeScope density={-1}>
@@ -136,6 +155,7 @@ describe('Overlay', () => {
     expect(inner).not.toBe(wrapper);
     expect(wrapper).toContainElement(inner);
     expect(inner.style.getPropertyValue('--x')).toBe('');
+    expect(inner).toHaveAttribute('data-theme', wrapper.getAttribute('data-theme')!);
   });
 
   it('has no class outside a ThemeScope', () => {

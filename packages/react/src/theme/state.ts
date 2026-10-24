@@ -99,15 +99,20 @@ export function themeAttributes(state: ThemeState) {
  * declare the same values again there and an app's own values for the system tokens (an
  * `:root` rule) still reach it. The colour dimensions go together, since one rule reads the
  * theme, mode and contrast of the same element. With no known `inherited` (a portal into an
- * app's own container, a provider that leaves `<html>` alone), every attribute.
+ * app's own container, a provider that leaves `<html>` alone), every attribute. `restyled`
+ * (an element with an app's own class or CSS variables, which may set a colour role) keeps the
+ * colour dimensions too, so the values the theme derives from the roles on `[data-theme]` (the
+ * elevation shadows, component tokens an app declares there) resolve again with its own.
  */
 export function themeAttributesOver(
   state: ThemeState,
   inherited: ThemeState | null,
+  restyled = false,
 ): Partial<ReturnType<typeof themeAttributes>> {
   const all = themeAttributes(state);
   if (!inherited) return all;
   const colors =
+    restyled ||
     state.theme !== inherited.theme ||
     state.mode !== inherited.mode ||
     state.contrast !== inherited.contrast;
