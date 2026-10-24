@@ -31,6 +31,7 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { renderedDescription } from '../../utils/rendered-description';
 import {
   ariaFlag,
   pickDescriptionAria,
@@ -564,6 +565,10 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
         ) : null}
         <button
           {...fieldButtonProps}
+          aria-describedby={renderedDescription(fieldButtonProps['aria-describedby'], [
+            !supportingText && descriptionProps.id,
+            !(isInvalid && resolvedError) && errorMessageProps.id,
+          ])}
           onFocus={(event) => {
             fieldButtonProps.onFocus?.(event);
             if (!releaseFocusRef.current) return;

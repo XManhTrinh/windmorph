@@ -29,6 +29,7 @@ import {
 } from '../../primitives/Field';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { renderedDescription } from '../../utils/rendered-description';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
@@ -371,7 +372,10 @@ export function TextField(props: TextFieldProps) {
     [
       prefix ? prefixId : null,
       suffix ? suffixId : null,
-      inputProps['aria-describedby'],
+      renderedDescription(inputProps['aria-describedby'], [
+        !supportingText && descriptionProps.id,
+        !showError && errorMessageProps.id,
+      ]),
       showCounter ? counterId : null,
     ]
       .filter(Boolean)

@@ -29,6 +29,7 @@ import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { renderedDescription } from '../../utils/rendered-description';
 import { matchesSearch } from '../../utils/search';
 import {
   ariaFlag,
@@ -343,6 +344,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     inputProps,
     listBoxProps,
     labelProps,
+    valueProps,
     descriptionProps,
     errorMessageProps,
     isInvalid,
@@ -526,6 +528,12 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
           <input
             {...pickDescriptionAria(rest)}
             {...inputProps}
+            aria-describedby={renderedDescription(inputProps['aria-describedby'], [
+              !supportingText && descriptionProps.id,
+              !(isInvalid && resolvedError) && errorMessageProps.id,
+              // React Aria's element for the chosen values, which the chips show instead.
+              valueProps.id,
+            ])}
             onKeyDown={(event) => {
               onKeyDown(event);
               inputProps.onKeyDown?.(event);
