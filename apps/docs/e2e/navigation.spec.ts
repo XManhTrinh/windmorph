@@ -33,6 +33,34 @@ async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>
   return page.evaluate(() => (window as unknown as { __samples: Box[] }).__samples);
 }
 
+/**
+ * The rail items' icon tops on every frame for `ms` (the frame's own time, its rAF timestamp,
+ * so a late callback never shortens it) while `act` runs.
+ */
+async function iconTops(page: Page, ms: number, act: () => Promise<void>) {
+  const sampled = page.evaluate(
+    (duration) =>
+      new Promise<number[][]>((resolve) => {
+        const out: number[][] = [];
+        let start: number | undefined;
+        const tick = (time: number) => {
+          start ??= time;
+          out.push(
+            [...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
+              (icon) => icon.getBoundingClientRect().top,
+            ),
+          );
+          if (time - start < duration) requestAnimationFrame(tick);
+          else resolve(out);
+        };
+        requestAnimationFrame(tick);
+      }),
+    ms,
+  );
+  await act();
+  return sampled;
+}
+
 test.describe('Navigation visual regression', () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
@@ -295,21 +323,17 @@ test.describe('Navigation item ripple', () => {
 });
 
 test.describe('NavigationRail width motion', () => {
-  /**
-   * Every item's height and icon top, sampled each frame for `ms` after `act`, with the
-   * frame's time, so a frame the machine drops under load reads as one longer step.
-   */
+  /** Every item's height and icon top, sampled each frame for `ms` after `act`. */
   async function sampleItems(page: Page, scope: string, act: () => Promise<void>, ms = 900) {
     await page.evaluate(
       ({ scope, ms }) => {
-        const samples: { time: number; heights: number[]; icons: number[] }[] = [];
+        const samples: { heights: number[]; icons: number[] }[] = [];
         (window as unknown as { __items: typeof samples }).__items = samples;
         const start = performance.now();
         const tick = () => {
           const items = [...document.querySelectorAll<HTMLElement>(`${scope} [data-nav-item]`)];
           if (items.length)
             samples.push({
-              time: performance.now(),
               heights: items.map((item) => Math.round(item.getBoundingClientRect().height)),
               icons: items.map((item) =>
                 Math.round(item.querySelector('svg')!.getBoundingClientRect().top),
@@ -327,7 +351,7 @@ test.describe('NavigationRail width motion', () => {
       () =>
         (
           window as unknown as {
-            __items: { time: number; heights: number[]; icons: number[] }[];
+            __items: { heights: number[]; icons: number[] }[];
           }
         ).__items,
     );
@@ -343,17 +367,9 @@ test.describe('NavigationRail width motion', () => {
     const last = samples.at(-1)!;
     expect(samples.length).toBeGreaterThan(10);
     // Items spring from 64px to 56px (2026-10-17, as Compose); none grows taller than a
-    // collapsed item mid-transition, as a label wrapping letter by letter would make it.
+    // collapsed item mid-transition, as a label wrapping letter by letter would make it. That
+    // the icons get there without a jump is `rail items move continuously as it expands`.
     for (const sample of samples) expect(Math.max(...sample.heights)).toBeLessThanOrEqual(64.5);
-    // The icons move continuously to their places, never in a jump: at most 8px per 60Hz
-    // frame (16.7ms), as `rail items move continuously as it expands` measures it.
-    samples.slice(1).forEach((sample, index) => {
-      const previous = samples[index]!;
-      const frames = Math.max(1, (sample.time - previous.time) / (1000 / 60));
-      sample.icons.forEach((top, item) =>
-        expect(Math.abs(top - previous.icons[item]!) / frames).toBeLessThan(8),
-      );
-    });
     last.icons.forEach((top, index) =>
       expect(Math.abs(top - samples.at(-2)!.icons[index]!)).toBeLessThan(0.5),
     );
@@ -486,49 +502,43 @@ test.describe('Navigation motion edges and forced colours', () => {
 
   // Compose springs the items' height and spacing (64 → 48px, 4 → 0px) and lerps each icon
   // between its top and start places; the layout used to swap in one frame, the icons
-  // jumping 12–24px (2026-10-17).
-  for (const reduced of [false, true]) {
-    test(`rail items move continuously as it expands${reduced ? ' · reduced motion: at once' : ''}`, async ({
-      page,
-    }) => {
-      if (reduced) await page.emulateMedia({ reducedMotion: 'reduce' });
-      await openStory(page, 'components-navigation--rail');
-      const sampled = page.evaluate(
-        () =>
-          new Promise<number[][]>((resolve) => {
-            // Each sample starts with its time, so a dropped frame reads as one longer step.
-            const out: number[][] = [];
-            const start = performance.now();
-            const tick = () => {
-              out.push([
-                performance.now(),
-                ...[...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
-                  (icon) => icon.getBoundingClientRect().top,
-                ),
-              ]);
-              if (performance.now() - start < 800) requestAnimationFrame(tick);
-              else resolve(out);
-            };
-            requestAnimationFrame(tick);
-          }),
+  // jumping 12–24px (2026-10-17). A bound on the speed per frame was timing-fragile (the
+  // spring's own peak, 7px a frame for the fourth item under the expressive scheme and 9px
+  // under the standard one, grows with the items above an icon, and a loaded machine's late
+  // callbacks misread it; re-audit 2026-10-21), so the motion runs at a tenth of its speed:
+  // there the spring moves an icon under 1px a frame, while a swap is still one 12–36px step.
+  for (const motion of ['expressive', 'standard'] as const) {
+    test(`rail items move continuously as it expands · ${motion}`, async ({ page }) => {
+      await openStory(page, 'components-navigation--rail', { motion });
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Animation.enable');
+      await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.1 });
+      const tops = await iconTops(page, 7000, () =>
+        page.getByRole('button', { name: 'Expand navigation' }).click(),
       );
-      await page.getByRole('button', { name: 'Expand navigation' }).click();
-      const frames = await sampled;
-      // The largest move per 60Hz frame (16.7ms), so a frame the machine drops under load
-      // doesn't read as a jump.
-      const steps = frames.slice(1).map(([time, ...tops], index) => {
-        const [previousTime, ...previous] = frames[index]!;
-        const frame = Math.max(1, (time! - previousTime!) / (1000 / 60));
-        return Math.max(...tops.map((top, item) => Math.abs(top - previous[item]!))) / frame;
-      });
-      const moving = steps.filter((step) => step > 0.5);
-      if (reduced) expect(moving.length).toBeLessThanOrEqual(1);
-      else {
-        expect(moving.length).toBeGreaterThan(5);
-        expect(Math.max(...steps)).toBeLessThan(8);
-      }
+      const steps = tops
+        .slice(1)
+        .map((frame, index) =>
+          Math.max(...frame.map((top, item) => Math.abs(top - tops[index]![item]!))),
+        );
+      expect(steps.filter((step) => step > 0.1).length).toBeGreaterThan(20);
+      expect(Math.max(...steps)).toBeLessThan(2);
     });
   }
+
+  test('rail items move at once under reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-navigation--rail');
+    const tops = await iconTops(page, 800, () =>
+      page.getByRole('button', { name: 'Expand navigation' }).click(),
+    );
+    const moving = tops
+      .slice(1)
+      .filter((frame, index) =>
+        frame.some((top, item) => Math.abs(top - tops[index]![item]!) > 0.5),
+      );
+    expect(moving.length).toBeLessThanOrEqual(1);
+  });
 
   // A label inside the pill (inline bar items, the expanded rail) is HighlightText on the
   // Highlight pill, with no Canvas backplate behind it: it read white on white (2026-10-17).
