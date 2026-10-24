@@ -836,35 +836,48 @@ test.describe('Sheets keep focus on the page after their own buttons', () => {
 });
 
 test.describe('Standard side sheet width motion', () => {
-  test('the panel stays on the layout’s edge while it opens and closes, for both edges', async ({
+  // M3's reference slides a standard sheet in with its edge, the content beside it narrowing;
+  // the panel used to stay on the layout's edge and be wiped into view far side first
+  // (re-audit 2026-10-21).
+  test('the panel slides with the sheet’s inner edge while it opens and closes, for both edges', async ({
     page,
   }) => {
     for (const edge of ['end', 'start'] as const)
       for (const dir of ['ltr', 'rtl'] as const) {
         await openStory(page, 'components-sheet--side-standard', { dir }, { edge });
-        // The window's side of the layout: the right for end in LTR, the left for start in LTR.
-        const right = (edge === 'end') === (dir === 'ltr');
-        await page.evaluate((right) => {
-          const layout = document.querySelector('[data-testid="layout"]')!;
-          const panel = document.querySelector('[data-testid="sheet"] [data-slot="panel"]')!;
-          const gaps: number[] = [];
-          (window as unknown as { gaps: number[] }).gaps = gaps;
+        // The sheet's inner edge, beside the content: its left for end in LTR.
+        const left = (edge === 'end') === (dir === 'ltr');
+        await page.evaluate((left) => {
+          const sheet = document.querySelector('[data-testid="sheet"]')!;
+          const panel = sheet.querySelector('[data-slot="panel"]')!;
+          const frames: { gap: number; at: number }[] = [];
+          (window as unknown as { frames: typeof frames }).frames = frames;
           const sample = () => {
-            const l = layout.getBoundingClientRect();
+            const s = sheet.getBoundingClientRect();
             const p = panel.getBoundingClientRect();
-            // The panel's outer edge against the layout's inner edge (1px border).
-            gaps.push(right ? l.right - 1 - p.right : p.left - (l.left + 1));
+            frames.push({
+              gap: left ? p.left - s.left : s.right - p.right,
+              at: left ? p.left : p.right,
+            });
             requestAnimationFrame(sample);
           };
           requestAnimationFrame(sample);
-        }, right);
+        }, left);
         await page.getByRole('button', { name: 'Hide details' }).click();
         await page.waitForTimeout(700);
         await page.getByRole('button', { name: 'Show details' }).click();
         await page.waitForTimeout(700);
-        const gaps = await page.evaluate(() => (window as unknown as { gaps: number[] }).gaps);
-        expect(gaps.length).toBeGreaterThan(20);
-        expect(Math.max(...gaps.map(Math.abs)), `${edge} ${dir}`).toBeLessThanOrEqual(0.5);
+        const frames = await page.evaluate(
+          () => (window as unknown as { frames: { gap: number; at: number }[] }).frames,
+        );
+        expect(frames.length).toBeGreaterThan(20);
+        expect(
+          Math.max(...frames.map(({ gap }) => Math.abs(gap))),
+          `${edge} ${dir}`,
+        ).toBeLessThanOrEqual(0.5);
+        // The panel itself moves, by the whole width.
+        const at = frames.map((frame) => frame.at);
+        expect(Math.max(...at) - Math.min(...at), `${edge} ${dir}`).toBeGreaterThan(250);
       }
   });
 
