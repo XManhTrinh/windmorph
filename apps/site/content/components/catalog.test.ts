@@ -19,6 +19,18 @@ describe('component catalog invariants', () => {
     }
   });
 
+  it("names each export the search finds a page by on that page's content", () => {
+    for (const meta of COMPONENT_META) {
+      if (!meta.exports) continue;
+      const source = readFileSync(resolve(import.meta.dirname, `${meta.slug}.tsx`), 'utf8');
+      for (const name of meta.exports) {
+        expect(source, `${meta.slug} doesn't document ${name}`).toMatch(
+          new RegExp(`\\b${name}\\b`),
+        );
+      }
+    }
+  });
+
   it('every non-primitive rail group is non-empty', () => {
     for (const group of RAIL_GROUPS) {
       if (group.id === 'primitives') continue;

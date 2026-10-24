@@ -90,6 +90,11 @@ export interface ComponentMeta {
    * in `propsComponents`.
    */
   hooks?: string[];
+  /**
+   * Other exports this page documents with no props table or hook table of their own (the
+   * primitives' helpers, types and shape constants). Searchable by name, like `hooks`.
+   */
+  exports?: string[];
   /** Marks a component whose source/story flags it as preview. */
   stability?: 'preview';
   /**
@@ -953,6 +958,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     keywords: [
       'icon',
       'shape',
+      'shapes',
       'expressive',
       'cookie',
       'flower',
@@ -1521,7 +1527,56 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'primitives',
     summary:
       'The internal building blocks M3 components are made from, exported for custom controls.',
+    keywords: ['shapes', 'static shapes', 'shape morph', 'custom component'],
     propsComponents: [],
+    exports: [
+      'ButtonBase',
+      'Surface',
+      'surfaceStyles',
+      'TouchTarget',
+      'Overlay',
+      'FieldLabel',
+      'SupportingText',
+      'ErrorText',
+      'CharacterCounter',
+      'FieldErrorIcon',
+      'SelectionControl',
+      'selectionControlStyles',
+      'getM3Spring',
+      'springWithVelocityToLinearEasing',
+      'springProgressWithVelocity',
+      'TriggerContext',
+      'DomDirectionLocale',
+      'localeWithDirection',
+      'morphPathAt',
+      'getMorph',
+      'RoundedPolygon',
+      'CornerRounding',
+      'Cubic',
+      'Morph',
+      'MaterialShapes',
+      'materialShapeNames',
+      'polygonToPath',
+      'morphToPath',
+      'cubicsToPath',
+      'splitRootProps',
+      'RootDOMProps',
+      'WrapperRootDOMProps',
+      'DescriptionAria',
+      'pickWidgetAria',
+      'pickDescriptionAria',
+      'splitDataAttributes',
+      'mergeDataTokens',
+      'ThemeScopeContext',
+      'generateSchemeColors',
+      'MaterialShapePath',
+      'materialShapePaths',
+      'materialShapeMask',
+      'circleShape',
+      'cookie12SidedShape',
+      'defineComponentTokens',
+      'componentTokensCss',
+    ],
     hooks: [
       'useKeepPressedInPlace',
       'useM3Interaction',

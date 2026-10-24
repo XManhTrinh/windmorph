@@ -111,6 +111,21 @@ describe('searchPages', () => {
     }
   });
 
+  it('puts a page with the whole query as a keyword before titles that only start with it', () => {
+    expect(searchPages(index, 'pro')[0]?.href).toBe('/pro');
+    expect(searchPages(index, 'Pro')[0]?.href).toBe('/pro');
+    expect(searchPages(index, 'rtl')[0]?.href).toBe('/accessibility');
+    expect(searchPages(index, 'sponsor')[0]?.href).toBe('/pro');
+    const shapes = searchPages(index, 'shapes').map((result) => result.href);
+    expect(shapes.slice(0, 2)).toEqual(['/components/shaped-icon', '/components/primitives']);
+  });
+
+  it("finds the primitives' helpers, types and shapes on its API tab", () => {
+    for (const name of ['ButtonBase', 'splitRootProps', 'materialShapePaths', 'RootDOMProps']) {
+      expect(searchPages(index, name)[0]?.href, name).toBe('/components/primitives/api');
+    }
+  });
+
   it('ranks title matches before summary and keyword matches', () => {
     const results = searchPages(index, 'text field');
     expect(results[0]?.href).toBe('/components/text-field');
