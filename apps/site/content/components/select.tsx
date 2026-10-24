@@ -107,7 +107,7 @@ export async function SelectBody(): Promise<ComponentDoc> {
             Selection, items and forms
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            These props come from React Aria, so the table above doesn&apos;t list them.
+            Each of these props has its row on the API tab; here is how they work together.
           </p>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
