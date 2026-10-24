@@ -217,6 +217,15 @@ describe('FabMenu', () => {
     expect(toggle()).toHaveFocus();
   });
 
+  it('runs an app’s onKeyDown on the root as well as its own keys', () => {
+    const onKeyDown = vi.fn();
+    render(<Menu defaultOpen onKeyDown={onKeyDown} />);
+    toggle().focus();
+    fireEvent.keyDown(toggle(), { key: 'ArrowDown' });
+    expect(onKeyDown).toHaveBeenCalledTimes(1);
+    expect(item('Reply')).toHaveFocus();
+  });
+
   it('closes when focus moves out of it, not between its parts', () => {
     // Re-audit 2026-10-15: Tab past the last item left the list open over what got focus.
     render(
