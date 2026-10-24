@@ -216,7 +216,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   {
     title: 'Windmorph Pro',
     summary:
-      'The paid components on top of the free core: what Pro includes, registering interest before it opens and using it beside the core.',
+      'Paid components on the free core, not on sale yet: what Pro includes, registering interest and using it beside the core.',
     href: '/pro',
     kind: 'guide',
     keywords: [

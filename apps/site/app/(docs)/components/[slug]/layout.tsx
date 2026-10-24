@@ -40,14 +40,14 @@ export default async function ComponentLayout({
         <ImportLine names={importNames(page)} entry={importEntry(page)} />
         {page.pro && (
           <p className="text-body-medium text-on-surface-variant">
-            Part of Windmorph Pro, the paid components built on the free core. See{' '}
+            Part of Windmorph Pro, paid components on the free core, not on sale yet. See{' '}
             <a
               href="/pro"
               className="rounded-sm text-primary underline underline-offset-2 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
             >
               the Pro guide
             </a>{' '}
-            for what it includes and how to install it.
+            for what it includes and to register interest.
           </p>
         )}
       </header>

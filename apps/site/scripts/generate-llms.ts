@@ -210,7 +210,7 @@ function labels(meta: ComponentMeta): string {
 function importMarkdown(meta: ComponentMeta): string {
   const line = `Import: \`${importLine(meta)}\``;
   return meta.pro
-    ? `${line}\n\nPart of Windmorph Pro, the paid components built on the free core: see the [Pro guide](${absoluteUrl(markdownPath('/pro'))}).`
+    ? `${line}\n\nPart of Windmorph Pro, paid components on the free core, not on sale yet: see the [Pro guide](${absoluteUrl(markdownPath('/pro'))}) for what it includes and to register interest.`
     : line;
 }
 
