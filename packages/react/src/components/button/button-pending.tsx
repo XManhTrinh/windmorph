@@ -75,7 +75,12 @@ const indicatorColor = {
 } as CSSProperties;
 
 /** The name suffix's style: text that takes no room (see `nameSuffix`). */
-const HIDDEN_SUFFIX: CSSProperties = { fontSize: 0, letterSpacing: 0, wordSpacing: 0 };
+const HIDDEN_SUFFIX: CSSProperties = {
+  fontSize: 0,
+  lineHeight: 0,
+  letterSpacing: 0,
+  wordSpacing: 0,
+};
 
 interface PendingOptions<E extends HTMLElement> {
   pending: boolean | undefined;
@@ -185,8 +190,9 @@ export function useButtonPending<E extends HTMLElement>({
     } else {
       // Inline text at the label's end, sized to nothing: browsers join the text of a block,
       // a grid item or an absolutely positioned box (`sr-only`) to the label with a space
-      // ("Save , Loading"), but run inline text on ("Save, Loading"). No tracking either: the
-      // label's is in rem, so it would still space each hidden letter out.
+      // ("Save , Loading"), but run inline text on ("Save, Loading"). No tracking either (the
+      // label's is in rem, so it would still space each hidden letter out), nor line height
+      // (its half-leading, centred on the zero-size text, would grow the label's line).
       nameSuffix = <span style={HIDDEN_SUFFIX}>{`, ${labels.pending}`}</span>;
     }
   }
