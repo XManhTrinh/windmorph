@@ -706,6 +706,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
         'Only changes the rendered element for a custom wrapper; nothing the preview shows.',
       'fab.preventFocusOnPress':
         'Only keeps focus where it was on press; nothing the preview shows.',
+      'fab.value': 'Only the value a submit FAB sends with its form; nothing the preview shows.',
     },
     toggledSlots: {
       leading: '<IconButton icon={<EditIcon />} aria-label="Edit" />',
