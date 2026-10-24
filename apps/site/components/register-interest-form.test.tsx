@@ -90,13 +90,15 @@ describe('RegisterInterestForm', () => {
     expect(emailField()).toHaveFocus();
     expect(emailField()).toHaveAttribute('aria-invalid', 'true');
     expect(emailField()).toHaveAccessibleDescription(/Enter your email address\./);
-    expect(status()).toHaveTextContent('Enter your email address.');
+    // Focus moved to the field, which reads its error: the status region doesn't repeat it.
+    expect(status()).toBeEmptyDOMElement();
     expect(await axeViolations(document.body)).toEqual([]);
 
     await user.type(emailField(), 'not-an-address');
     expect(emailField()).not.toHaveAttribute('aria-invalid');
     await user.keyboard('{Enter}');
     expect(emailField()).toHaveAccessibleDescription(/like name@example\.com/);
+    expect(status()).toHaveTextContent(/like name@example\.com/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -105,7 +107,7 @@ describe('RegisterInterestForm', () => {
     const { user } = renderForm();
     await user.type(emailField(), ' ada@example.com ');
     await user.click(submit());
-    await screen.findByText(/Check your inbox/);
+    await screen.findByText(/Thanks for registering/);
     expect(sentFields()).toEqual({
       email: 'ada@example.com',
       interest: 'pro',
@@ -126,7 +128,7 @@ describe('RegisterInterestForm', () => {
     );
     await user.click(screen.getByRole('radio', { name: '2–10' }));
     await user.click(submit());
-    await screen.findByText(/Check your inbox/);
+    await screen.findByText(/Thanks for registering/);
     expect(sentFields()).toEqual({
       email: 'ada@example.com',
       interest: 'pro',
@@ -167,10 +169,14 @@ describe('RegisterInterestForm', () => {
     await act(async () => resolve(reply(200, { success: true })));
     expect(screen.queryByRole('form')).toBeNull();
     const message = within(status()).getByText(
-      /Check your inbox to confirm your address/,
+      /Thanks for registering your interest/,
     ).parentElement!;
     expect(message).toHaveFocus();
-    expect(status()).toHaveTextContent("We've sent a link to ada@example.com.");
+    // True for a new address (a confirmation is on its way) and a returning one (none is).
+    expect(status()).toHaveTextContent(
+      "If ada@example.com is new to the list, we've sent it a link to confirm the address",
+    );
+    expect(status()).toHaveTextContent("If it's already on the list, it stays on it.");
     expect(await axeViolations(document.body)).toEqual([]);
   });
 
@@ -181,9 +187,40 @@ describe('RegisterInterestForm', () => {
     await user.click(submit());
     await waitFor(() => expect(emailField()).toHaveFocus());
     expect(emailField()).toHaveAccessibleDescription(/can't be used/);
-    expect(status()).toHaveTextContent(/can't be used/);
+    // The focused field reads its error; the status region doesn't say it again.
+    expect(status()).toBeEmptyDOMElement();
     expect(emailField()).toHaveValue('ada@example.com');
     expect(await axeViolations(document.body)).toEqual([]);
+  });
+
+  it('says the error in the status region when focus is already on the field', async () => {
+    const { user } = renderForm();
+    await user.click(emailField());
+    await user.keyboard('{Enter}');
+    expect(emailField()).toHaveFocus();
+    expect(status()).toHaveTextContent('Enter your email address.');
+  });
+
+  it("treats a refusal that only mentions email as a failure, not the address's fault", async () => {
+    fetchMock.mockResolvedValue(
+      reply(500, { success: false, message: 'Email service unavailable' }),
+    );
+    const { user } = renderForm();
+    await user.type(emailField(), 'ada@example.com');
+    await user.click(submit());
+    await within(status()).findByText(/couldn't be sent/);
+    expect(emailField()).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  it('thanks an address the provider says is already on the list', async () => {
+    fetchMock.mockResolvedValue(
+      reply(409, { success: false, message: 'Email is already on list.' }),
+    );
+    const { user } = renderForm();
+    await user.type(emailField(), 'ada@example.com');
+    await user.click(submit());
+    await screen.findByText(/Thanks for registering/);
   });
 
   it('asks to wait when rate limited', async () => {
@@ -213,7 +250,7 @@ describe('RegisterInterestForm', () => {
     expect(await axeViolations(document.body)).toEqual([]);
 
     await user.click(screen.getByRole('button', { name: 'Try again' }));
-    await screen.findByText(/Check your inbox/);
+    await screen.findByText(/Thanks for registering/);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const body = new URLSearchParams(String(fetchMock.mock.calls[1]![1]?.body));
     expect(body.get('components')).toBe('Skeleton');
@@ -236,7 +273,7 @@ describe('RegisterInterestForm', () => {
     await user.type(trap, 'https://spam.example');
     await user.type(emailField(), 'bot@example.com');
     await user.click(submit());
-    await screen.findByText(/Check your inbox/);
+    await screen.findByText(/Thanks for registering/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -260,7 +297,7 @@ describe('RegisterInterestForm', () => {
     const { user } = renderForm();
     await user.type(emailField(), 'ada@example.com');
     await user.click(submit());
-    await screen.findByText(/Check your inbox/);
+    await screen.findByText(/Thanks for registering/);
     expect(localStorage.length).toBe(0);
     expect(sessionStorage.length).toBe(0);
     expect(document.cookie).toBe(cookies);

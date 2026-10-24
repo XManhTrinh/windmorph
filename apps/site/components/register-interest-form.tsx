@@ -43,7 +43,11 @@ export const MISSING_MAX_LENGTH = 500;
 type Outcome =
   | { kind: 'idle' }
   | { kind: 'sent'; email: string }
-  | { kind: 'email'; message: string }
+  /**
+   * `announce` when focus was already on the field, so moving it there reads nothing: the
+   * status region says the error instead. Otherwise the field, focused, reads it once.
+   */
+  | { kind: 'email'; message: string; announce?: boolean }
   | { kind: 'rate-limited' }
   | { kind: 'failed' }
   | { kind: 'unconfigured' };
@@ -55,9 +59,10 @@ const MESSAGES = {
   rateLimited: 'Too many tries. Wait a minute and try again.',
   failed: "Your answers couldn't be sent. Check your connection and try again.",
   unconfigured: "Nothing was sent: sign-up isn't set up in this build of the site.",
-  sentTitle: 'Check your inbox to confirm your address',
+  sentTitle: 'Thanks for registering your interest',
+  // The provider mails a confirmation to new addresses only, so this holds for a returning one.
   sent: (email: string) =>
-    `We've sent a link to ${email}. Your address is added to the list once you open it.`,
+    `If ${email} is new to the list, we've sent it a link to confirm the address, which is added once you open it. If it's already on the list, it stays on it.`,
 };
 
 /**
@@ -92,9 +97,18 @@ export function signUpBody(answers: {
 }
 
 /**
+ * A refusal that blames the address itself ("Invalid email"), not any reply that mentions
+ * email: a failure on the provider's side is one to retry, never the address's fault.
+ */
+const INVALID_ADDRESS = /\binvalid\b.*\bemail\b|\bemail\b.*\b(?:invalid|not valid)\b/i;
+
+/** A refusal for an address already on the list, which is a sign-up that already holds. */
+const ALREADY_LISTED = /\balready\b/i;
+
+/**
  * Sends the answers and reads the reply: `{ success, message? }`, or HTTP 429 when rate
- * limited. A refusal that names the email is the address's fault; anything else, a thrown
- * request included, is a failure to retry.
+ * limited. An address already on the list counts as sent; a refusal of the address is the
+ * address's fault; anything else, a thrown request included, is a failure to retry.
  */
 async function send(url: string, body: URLSearchParams, email: string): Promise<Outcome> {
   try {
@@ -109,9 +123,9 @@ async function send(url: string, body: URLSearchParams, email: string): Promise<
       message?: string;
     };
     if (response.ok && reply.success) return { kind: 'sent', email };
-    if (/email/i.test(reply.message ?? '')) {
-      return { kind: 'email', message: MESSAGES.emailRejected };
-    }
+    const refusal = reply.message ?? '';
+    if (ALREADY_LISTED.test(refusal)) return { kind: 'sent', email };
+    if (INVALID_ADDRESS.test(refusal)) return { kind: 'email', message: MESSAGES.emailRejected };
     return { kind: 'failed' };
   } catch {
     return { kind: 'failed' };
@@ -132,8 +146,8 @@ function focusQuietly(element: HTMLElement | null) {
  *
  * Every outcome is announced in a status region that mounts with the form (a region added
  * with its content isn't announced), and focus moves to it, or to the email field for an
- * address error, without scrolling the page. Success replaces the form with "check your
- * inbox"; an error keeps everything typed. A filled trap field, which people never see,
+ * address error, without scrolling the page. Success replaces the form with a thank-you that
+ * holds for a new address (sent a confirmation link) and a returning one alike; an error keeps everything typed. A filled trap field, which people never see,
  * shows success and sends nothing. A build without the provider's IDs says so and sends
  * nothing.
  */
@@ -159,7 +173,11 @@ export function RegisterInterestForm({
   }, [outcome, attempt]);
 
   const finish = (next: Outcome) => {
-    setOutcome(next);
+    setOutcome(
+      next.kind === 'email'
+        ? { ...next, announce: document.activeElement === emailRef.current }
+        : next,
+    );
     setAttempt((count) => count + 1);
   };
 
@@ -193,6 +211,7 @@ export function RegisterInterestForm({
   };
 
   const emailError = outcome.kind === 'email' ? outcome.message : undefined;
+  const announcedError = outcome.kind === 'email' && outcome.announce ? outcome.message : null;
   const message =
     outcome.kind === 'rate-limited'
       ? MESSAGES.rateLimited
@@ -309,9 +328,9 @@ export function RegisterInterestForm({
           >
             {message}
           </div>
-        ) : emailError ? (
+        ) : announcedError ? (
           <div key={attempt} className="sr-only">
-            {emailError}
+            {announcedError}
           </div>
         ) : null}
       </div>

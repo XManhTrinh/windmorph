@@ -37,8 +37,8 @@ One site component, `RegisterInterestForm`, takes the product (`interest`) and t
 - **Submit:** core `Button` "Register interest" with its `pending` state while sending; Enter in the email field submits.
 - **Sending:** `fetch` POST, `application/x-www-form-urlencoded`, to the email provider's public form endpoint, `https://app.loops.so/api/newsletter-form/<NEXT_PUBLIC_LOOPS_FORM_ID>`. Fields: `email`, `interest` (`pro`), `components` (the ticked names, comma-separated), `missingComponent`, `teamSize` (`1`, `2-10`, `11+`), `source` (`pro-page`) and `mailingLists` (`NEXT_PUBLIC_LOOPS_LIST_ID`). Both IDs are public and read at build time. A build without them (local, previews, CI) shows the form with a note that sign-up isn't set up in this build, and sends nothing.
 - **Outcomes,** each announced in a live region that mounts with the form, with focus moved to the message (`preventScroll`):
-  - success: the form is replaced by "Check your inbox to confirm your address" (double opt-in);
-  - an email the provider rejects: the email field's error text;
+  - success: the form is replaced by "Thanks for registering your interest", saying a new address gets a link to confirm it and one already on the list stays on it (2026-10-24: the provider mails a confirmation to new contacts only, and its form endpoint updates nothing but `userGroup` on an existing contact, so a returning person's new answers aren't stored; a refusal saying the address is already listed counts as success too);
+  - an email the provider rejects (a reply blaming the address, "Invalid email", not any that mentions email): the email field's error text, read by the field as focus moves to it, and said in the status region only when focus was already on the field;
   - HTTP 429: "Too many tries. Wait a minute and try again.";
   - a network or other error: an error message with Try again, keeping everything typed.
 - **Consent line** under the button: "We'll email you to confirm, then only about Windmorph Pro and its add-ons. Unsubscribe any time." with a Privacy link.
@@ -60,6 +60,7 @@ One site component, `RegisterInterestForm`, takes the product (`interest`) and t
 
 ## Before the form goes live (owner)
 
-1. Loops: account, sending domain `mail.windmorph.dev` (DNS at Cloudflare), double opt-in, the list "Windmorph paid products", text properties `interest`, `components`, `missingComponent`, `teamSize`; the form endpoint ID and list ID go into the host's environment.
+1. Loops: account, sending domain `mail.windmorph.dev` (DNS at Cloudflare), double opt-in, the list "Windmorph paid products" marked **Public** (a private list can't be subscribed through the form endpoint), text properties `interest`, `components`, `missingComponent`, `teamSize`; the form endpoint ID and list ID go into the host's environment.
 2. GitHub Sponsors enrolment, and GitHub Discussions on the core repo with a "Component requests" category.
 3. A DMARC record for `windmorph.dev` once Email Routing and Loops are both set up.
+4. A test submission, new and repeated, to check the provider's replies for an invalid and an already-listed address against the form's patterns (`INVALID_ADDRESS`, `ALREADY_LISTED` in `register-interest-form.tsx`).
