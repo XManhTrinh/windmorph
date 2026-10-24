@@ -182,7 +182,11 @@ export default async function MotionPage() {
           In JS, <InlineCode>useM3Spring(family, speed)</InlineCode> returns a Motion spring for the
           active scheme (read from <InlineCode>useThemeScope</InlineCode>);{' '}
           <InlineCode>getM3Spring(scheme, family, speed)</InlineCode> takes an explicit scheme.
-          Speed defaults to <InlineCode>default</InlineCode>.
+          Speed defaults to <InlineCode>default</InlineCode>. A transition that continues a gesture
+          (a sheet released mid-drag) starts with the gesture&apos;s speed:{' '}
+          <InlineCode>springWithVelocityToLinearEasing</InlineCode> from{' '}
+          <InlineCode>@windmorph/react/primitives</InlineCode> gives that spring as a CSS{' '}
+          <InlineCode>linear()</InlineCode> easing and its settle duration.
         </p>
         <CodeBlock code={HOOK_SNIPPET} html={hookHtml} lang="tsx" title="useM3Spring" />
         <p className="text-body-large text-on-surface-variant">

@@ -1,7 +1,8 @@
 /**
  * Springs that start with a velocity, for a transition that continues a gesture. Kept out of
  * `motion.ts`, which nearly every component imports, since only the bottom sheet's drag
- * release needs them (2026-10-17).
+ * release needs them (2026-10-17), and public from `@windmorph/react/primitives` only, for a
+ * component of your own that settles after a drag (2026-10-24).
  */
 import type { SpringToken } from './motion';
 

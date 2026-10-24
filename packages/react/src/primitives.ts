@@ -38,6 +38,10 @@ export {
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';
 export {
+  springProgressWithVelocity,
+  springWithVelocityToLinearEasing,
+} from './tokens/spring-velocity';
+export {
   SelectionControl,
   type SelectionControlClassNames,
   type SelectionControlProps,

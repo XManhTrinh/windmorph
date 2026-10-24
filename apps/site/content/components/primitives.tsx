@@ -21,7 +21,7 @@ const importSnippet = `import {
   FieldLabel, SupportingText, ErrorText, CharacterCounter, FieldErrorIcon,
   SelectionControl, selectionControlStyles,
   // Motion
-  useM3Spring, getM3Spring,
+  useM3Spring, getM3Spring, springWithVelocityToLinearEasing, springProgressWithVelocity,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
@@ -272,7 +272,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               spring, such as spatial fast, as Motion transition options:{' '}
               <InlineCode>useM3Spring</InlineCode> from the active motion scheme,{' '}
               <InlineCode>getM3Spring</InlineCode> from a scheme you name; both are also in the main
-              entry).
+              entry), and for a transition that continues a gesture (a panel released mid-drag keeps
+              its speed): <InlineCode>springWithVelocityToLinearEasing</InlineCode> (a spring token
+              and a starting velocity, in whole distances per second towards the target, as a CSS{' '}
+              <InlineCode>linear()</InlineCode> easing and its settle duration in ms) and{' '}
+              <InlineCode>springProgressWithVelocity</InlineCode> (that spring&apos;s progress, 0 to
+              1, at a time in seconds), as the bottom sheet settles after a drag.
             </li>
             <li>
               <InlineCode>TriggerContext</InlineCode> (an overlay trigger hands its press handler

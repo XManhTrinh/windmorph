@@ -1,6 +1,8 @@
 import * as Primitives from '@windmorph/react/primitives';
+import { SPRINGS } from '@windmorph/react';
 import { hook, read, type ExportCheck, type ExportChecks } from './check';
 
+const spring = SPRINGS.expressive.spatial.default;
 const circle = Primitives.circle();
 const star = Primitives.star(5, { innerRadius: 0.5 });
 
@@ -124,6 +126,14 @@ export const primitivesChecks = {
     run: () => Primitives.getM3Spring('standard', 'effects', 'slow'),
   },
   getMorph: { kind: 'value', run: () => Primitives.getMorph(circle, star) },
+  springProgressWithVelocity: {
+    kind: 'value',
+    run: () => Primitives.springProgressWithVelocity(spring, 2, 0.1),
+  },
+  springWithVelocityToLinearEasing: {
+    kind: 'value',
+    run: () => Primitives.springWithVelocityToLinearEasing(spring, 2),
+  },
   localeWithDirection: { kind: 'value', run: () => Primitives.localeWithDirection('en-GB', 'rtl') },
   materialShapeMask: {
     kind: 'value',

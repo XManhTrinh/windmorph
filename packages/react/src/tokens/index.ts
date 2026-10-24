@@ -3,7 +3,6 @@ export * from './color';
 export * from './density';
 export * from './elevation';
 export * from './motion';
-export * from './spring-velocity';
 export * from './shape';
 export * from './state';
 export * from './typography';
