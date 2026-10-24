@@ -226,6 +226,31 @@ describe('RangeSlider', () => {
     expect(start).toHaveAccessibleName('Lowest Price');
     expect(end).toHaveAccessibleName('Highest Price');
   });
+
+  it('links a description, details and an error message to every thumb', () => {
+    render(
+      <>
+        <p id="help">Applies to new orders.</p>
+        <p id="error">Pick a narrower range.</p>
+        <RangeSlider
+          aria-label="Price"
+          aria-describedby="help"
+          aria-details="help"
+          aria-errormessage="error"
+        />
+        <Slider aria-label="Volume" />
+      </>,
+    );
+    const [start, end, volume] = screen.getAllByRole('slider');
+    for (const thumb of [start!, end!]) {
+      expect(thumb).toHaveAccessibleDescription('Applies to new orders.');
+      expect(thumb).toHaveAttribute('aria-details', 'help');
+      expect(thumb).toHaveAttribute('aria-errormessage', 'error');
+    }
+    // No empty attributes without them.
+    expect(volume).not.toHaveAttribute('aria-describedby');
+    expect(volume).not.toHaveAttribute('aria-details');
+  });
 });
 
 describe('Slider classNames', () => {
