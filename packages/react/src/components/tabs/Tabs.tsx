@@ -35,7 +35,11 @@ import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 
@@ -294,6 +298,7 @@ function TabsInner({
         className={styles.scroller({ class: classNames?.scroller })}
       >
         <div
+          {...pickDescriptionAria(rest)}
           {...tabListProps}
           ref={listRef}
           data-slot="list"

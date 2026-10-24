@@ -10,6 +10,7 @@ import {
 import {
   useRef,
   useState,
+  type AriaAttributes,
   type CSSProperties,
   type ReactElement,
   type ReactNode,
@@ -20,7 +21,12 @@ import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  ariaFlag,
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import type { Density } from '../../tokens/density';
@@ -144,6 +150,19 @@ export interface DateFieldProps extends WrapperRootDOMProps {
   disabled?: boolean;
   /** The date can be read and focused but not changed. @default false */
   readOnly?: boolean;
+  /**
+   * More description for the `<input>`, after the supporting or error text: the ids of
+   * elements such as a hint that the date must come after another field's.
+   */
+  'aria-describedby'?: string;
+  /** The id of an element with more details about the `<input>`. */
+  'aria-details'?: string;
+  /** Read as `invalid` when that's left out, for a form library that sets the attribute. */
+  'aria-invalid'?: AriaAttributes['aria-invalid'];
+  /** Read as `required` when that's left out, for a form library that sets the attribute. */
+  'aria-required'?: AriaAttributes['aria-required'];
+  /** Read as `readOnly` when that's left out, for a form library that sets the attribute. */
+  'aria-readonly'?: AriaAttributes['aria-readonly'];
   /** Form field name; the input submits the typed text. */
   name?: string;
   /** The `<input>`'s id, for a `<label for>` or an error summary's link. */
@@ -216,11 +235,16 @@ function DateFieldInner({
   defaultOpen,
   onOpenChange,
   supportingText,
-  invalid,
+  invalid: invalidProp,
   errorMessage,
-  required,
+  required: requiredProp,
   disabled,
-  readOnly,
+  readOnly: readOnlyProp,
+  'aria-describedby': describedBy,
+  'aria-details': details,
+  'aria-invalid': ariaInvalid,
+  'aria-required': ariaRequired,
+  'aria-readonly': ariaReadonly,
   name,
   id,
   calendarIcon,
@@ -234,7 +258,17 @@ function DateFieldInner({
   directionRef,
   ...rest
 }: DateFieldProps & { directionRef: (element: HTMLElement | null) => void }) {
-  const { root: data } = splitRootProps(rest, { wrapper: true });
+  const { root, rest: aria } = splitRootProps(rest, { wrapper: true });
+  const invalid = invalidProp ?? ariaFlag(ariaInvalid);
+  const required = requiredProp ?? ariaFlag(ariaRequired);
+  const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly);
+  // The text field splits them again: the description reaches its `<input>`, after its own.
+  const data = {
+    ...root,
+    ...pickDescriptionAria(aria),
+    ...(describedBy !== undefined && { 'aria-describedby': describedBy }),
+    ...(details !== undefined && { 'aria-details': details }),
+  };
   const [value, setValue] = useControlledState(valueProp, defaultValue ?? null, onChange);
   const overlay = useOverlayTriggerState({ isOpen: open, defaultOpen, onOpenChange });
   const fieldRef = useRef<HTMLDivElement>(null);
@@ -247,7 +281,15 @@ function DateFieldInner({
   // then, and if not it opens as it arrives, taking focus as it would have.
   const [compactOpened, setCompactOpened] = useState(compact && overlay.isOpen);
   if (compact && overlay.isOpen && !compactOpened) setCompactOpened(true);
-  const { root, calendar, menuButton, weekday, day, item, ...fieldClassNames } = classNames ?? {};
+  const {
+    root: rootClassName,
+    calendar,
+    menuButton,
+    weekday,
+    day,
+    item,
+    ...fieldClassNames
+  } = classNames ?? {};
   return (
     <>
       <DateInput
@@ -275,7 +317,7 @@ function DateFieldInner({
         id={id}
         style={style}
         data={data}
-        className={cn(root, className)}
+        className={cn(rootClassName, className)}
         classNames={fieldClassNames}
         density={density}
         trailingIcon={

@@ -106,7 +106,15 @@ interface TextFieldOwnProps
     // The attributes that describe the input go to it, with React Aria's `aria-controls`,
     // `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant`: a field that opens its
     // own suggestions can say so.
-    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
+    Pick<
+      AriaAttributes,
+      | 'aria-expanded'
+      | 'aria-required'
+      | 'aria-invalid'
+      | 'aria-readonly'
+      | 'aria-multiline'
+      | 'aria-placeholder'
+    > {
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**

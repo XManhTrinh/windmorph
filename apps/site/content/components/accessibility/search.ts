@@ -42,7 +42,7 @@ export const search: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'The collapsed input is a `combobox` whose popup is a `dialog` (`aria-haspopup="dialog"`). The expanded view is a modal `dialog` with its own `searchbox` input. `SearchAppBar` is a `header`.',
-    name: "The input and the view are both named by the bar's `aria-label` or `aria-labelledby`, which the types require. The placeholder is not the name.",
+    name: "The input and the view are both named by the bar's `aria-label` or `aria-labelledby`, which the types require. The placeholder is not the name. The bar's `aria-describedby`, `aria-details` and `aria-description` describe both inputs (before an `inputProps['aria-describedby']`).",
     states: 'Expanded or collapsed (`aria-expanded` on the collapsed input).',
     notes: [
       'While the view is open, the collapsed input is `inert` and `aria-hidden`, so only one input is reachable.',

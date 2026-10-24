@@ -35,6 +35,7 @@ import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import {
   splitRootProps,
+  type DescriptionAria,
   type RootDOMProps,
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
@@ -98,7 +99,9 @@ export interface TimePickerClassNames {
 
 export type TimePickerMode = 'dial' | 'input';
 
-export interface TimePickerProps extends WrapperRootDOMProps {
+// No `aria-description` and the like: the picker's root is a plain container, and no single
+// element in it stands for the whole picker.
+export interface TimePickerProps extends Omit<WrapperRootDOMProps, DescriptionAria> {
   /** Controlled time (`@internationalized/date` `Time`). */
   value?: Time;
   /** Initial time when uncontrolled. @default 12:00 */

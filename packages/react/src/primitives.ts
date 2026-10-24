@@ -68,7 +68,9 @@ export { splitDataAttributes } from './utils/split-data-attributes';
 export {
   pickWidgetAria,
   splitRootProps,
+  type DescriptionAria,
   type RootDOMProps,
+  type SplitRootProps,
   type SplitRootPropsOptions,
   type WidgetAria,
   type WrapperRootDOMProps,

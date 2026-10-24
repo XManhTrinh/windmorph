@@ -4,6 +4,7 @@ import {
   useId,
   useRef,
   useSyncExternalStore,
+  type AriaAttributes,
   type CSSProperties,
   type HTMLAttributes,
   type ReactNode,
@@ -30,7 +31,12 @@ import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  ariaFlag,
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
@@ -144,6 +150,17 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
     invalid?: boolean;
     /** A choice is required: adds the `*` to the label and validates on submit. */
     required?: boolean;
+    /**
+     * Read as `invalid` when that's left out, for a form library that sets the attribute. The
+     * trigger is a button, which ARIA doesn't let carry `aria-invalid`, so the state reaches
+     * assistive technology as the field's error text, its description.
+     */
+    'aria-invalid'?: AriaAttributes['aria-invalid'];
+    /**
+     * Read as `required` when that's left out, for a form library that sets the attribute: the
+     * label's `*`, in the trigger's name (a button can't carry `aria-required`).
+     */
+    'aria-required'?: AriaAttributes['aria-required'];
     /** Disables the field: it can't be focused or opened. @default false */
     disabled?: boolean;
     /**
@@ -264,8 +281,10 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     label,
     placeholder,
     supportingText,
-    invalid,
-    required,
+    invalid: invalidProp,
+    required: requiredProp,
+    'aria-invalid': ariaInvalid,
+    'aria-required': ariaRequired,
     disabled = false,
     readOnly = false,
     leadingIcon,
@@ -298,6 +317,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     assertCollectionChildren(props.children, 'Select', 'SelectItem and SelectSection elements');
   }
   const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
+  const invalid = invalidProp ?? ariaFlag(ariaInvalid);
+  const required = requiredProp ?? ariaFlag(ariaRequired);
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const stately = rest as Omit<StatelySelectProps<T, M>, RenamedProps>;
   const cap = useSelectionCap({
@@ -419,7 +440,8 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
     triggerRef,
   );
   const { focusProps, isFocusVisible, isFocused } = useFocusRing();
-  const fieldButtonProps = mergeProps(buttonProps, focusProps);
+  // The trigger sets its own widget attributes; an app's description ones join them.
+  const fieldButtonProps = mergeProps(pickDescriptionAria(rest), buttonProps, focusProps);
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
   // In the list's order, not the order they were picked, so the field reads like the list.

@@ -42,7 +42,11 @@ import { useSizeTransform } from './use-size-transform';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  splitRootProps,
+  type DescriptionAria,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { LazyTooltip } from '../tooltip/lazy-tooltip';
@@ -134,7 +138,9 @@ export interface DateRangePickerClassNames extends DatePickerClassNames {
   rangeBand?: string;
 }
 
-interface DatePickerCommonProps extends WrapperRootDOMProps {
+// No `aria-description` and the like: the picker's root is a plain container, and no single
+// element in it stands for the whole picker.
+interface DatePickerCommonProps extends Omit<WrapperRootDOMProps, DescriptionAria> {
   /** Earliest date allowed; earlier days are disabled. */
   min?: DateValue;
   /** Latest date allowed; later days are disabled. */

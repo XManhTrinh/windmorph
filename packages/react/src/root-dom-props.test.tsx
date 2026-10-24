@@ -268,6 +268,103 @@ describe('root DOM attributes', () => {
     }
   });
 
+  /** The naming and description attributes React Aria's hooks don't forward (`DescriptionAria`). */
+  const DESCRIPTION = {
+    'aria-description': 'Shared with everyone',
+    'aria-roledescription': 'control',
+    'aria-braillelabel': 'Ctl',
+    'aria-brailleroledescription': 'ctl',
+  } as const;
+
+  /**
+   * The element React Aria labels, for each case whose root wraps it; every other case's root
+   * is that element. The pickers have none (their props leave the attributes out).
+   */
+  const LABELLED: Record<string, ((root: HTMLElement) => Element | null) | null> = {
+    Checkbox: (root) => root.querySelector('input'),
+    Switch: (root) => root.querySelector('input'),
+    Radio: (root) => root.querySelector('input'),
+    TextField: (root) => root.querySelector('input'),
+    Select: (root) => root.querySelector('button'),
+    Autocomplete: (root) => root.querySelector('input'),
+    DateField: (root) => root.querySelector('input'),
+    Tabs: (root) => root.querySelector('[role="tablist"]'),
+    SearchBar: (root) => root.querySelector('input'),
+    DatePicker: null,
+    DateRangePicker: null,
+    TimePicker: null,
+  };
+
+  for (const [name, renderCase] of Object.entries(CASES)) {
+    if (LABELLED[name] === null) continue;
+    it(`${name} puts the description attributes on the element React Aria labels`, () => {
+      const ref = createRef<HTMLElement>();
+      render(renderCase({ ...DESCRIPTION, onDoubleClick: () => {} } as Probe, ref));
+      const root = ref.current!;
+      const labelled = LABELLED[name]?.(root) ?? root;
+      for (const [key, value] of Object.entries(DESCRIPTION)) {
+        // Carousel's role description is its `labels.carousel`.
+        if (name === 'Carousel' && key === 'aria-roledescription') continue;
+        expect(labelled).toHaveAttribute(key, value);
+        if (labelled !== root) expect(root).not.toHaveAttribute(key);
+      }
+    });
+  }
+
+  it("puts a text box's own attributes on the input, not the wrapping root", () => {
+    const ref = createRef<HTMLDivElement>();
+    const { getByRole } = render(
+      <TextField ref={ref} label="Note" aria-multiline="false" aria-placeholder="A short note" />,
+    );
+    const input = getByRole('textbox', { name: 'Note' });
+    expect(input).toHaveAttribute('aria-multiline', 'false');
+    expect(input).toHaveAttribute('aria-placeholder', 'A short note');
+    expect(ref.current).not.toHaveAttribute('aria-placeholder');
+  });
+
+  it("reads a form library's aria-invalid and aria-required as the field's own state", () => {
+    const { getByRole } = render(
+      <>
+        <Select label="Sort by" aria-invalid="true" aria-required="true" errorMessage="Pick one">
+          <SelectItem key="new">Newest</SelectItem>
+        </Select>
+        <Autocomplete label="City" aria-invalid="true" aria-required="true" aria-readonly="true">
+          <AutocompleteItem key="paris">Paris</AutocompleteItem>
+        </Autocomplete>
+        <DateField label="Start" aria-invalid="true" aria-required="true" />
+      </>,
+    );
+    // A button can't carry the attributes: the asterisk names it, the error describes it.
+    const trigger = getByRole('button', { name: /Sort by/ });
+    expect(trigger).toHaveAccessibleName(/\*/);
+    expect(trigger).toHaveAccessibleDescription(/Pick one/);
+    expect(trigger).not.toHaveAttribute('aria-invalid');
+    const city = getByRole('combobox', { name: /City/ });
+    expect(city).toHaveAttribute('aria-invalid', 'true');
+    expect(city).toHaveAttribute('aria-required', 'true');
+    expect(city).toHaveAttribute('readonly');
+    const start = getByRole('textbox', { name: /Start/ });
+    expect(start).toHaveAttribute('aria-invalid', 'true');
+    expect(start).toHaveAttribute('aria-required', 'true');
+  });
+
+  it("adds an app's aria-describedby to the inputs of DateField and SearchBar", () => {
+    const { getByRole } = render(
+      <>
+        <span id="after-start">After the start date</span>
+        <DateField label="End" aria-describedby="after-start" aria-details="rules" />
+        <SearchBar aria-label="Search" aria-describedby="after-start" aria-details="rules" />
+      </>,
+    );
+    for (const input of [
+      getByRole('textbox', { name: /End/ }),
+      getByRole('combobox', { name: 'Search' }),
+    ]) {
+      expect(input.getAttribute('aria-describedby')?.split(' ')).toContain('after-start');
+      expect(input).toHaveAttribute('aria-details', 'rules');
+    }
+  });
+
   it('covers every component that splits its props with splitRootProps', () => {
     const src = dirname(fileURLToPath(import.meta.url));
     const splitting = readdirSync(join(src, 'components'), { recursive: true, withFileTypes: true })

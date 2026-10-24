@@ -27,7 +27,7 @@ export const textField: ComponentAccessibility = {
       'While invalid, and without a `trailingIcon`, the field shows an error icon with the `img` role, named "Error" (`labels.error`). `errorIcon` replaces it, and `false` removes it.',
       'Leading icons are hidden from assistive tech (`aria-hidden`). A `trailingIcon` is not, so an icon button there keeps its name.',
       'With `supportingTextOnFocus`, the supporting text only shows while the field has focus, but screen readers always get it.',
-      "The attributes that describe the input go to it, not to the field's container: `aria-controls`, `aria-expanded`, `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant` for a field that opens its own suggestions, and an `aria-invalid` or `aria-required` a form library sets.",
+      "The attributes that describe the input go to it, not to the field's container: `aria-controls`, `aria-expanded`, `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant` for a field that opens its own suggestions, an `aria-invalid` or `aria-required` a form library sets, `aria-multiline` and `aria-placeholder`, and the description attributes (`aria-description`, `aria-roledescription` and the braille labels).",
     ],
   },
   focus: [
