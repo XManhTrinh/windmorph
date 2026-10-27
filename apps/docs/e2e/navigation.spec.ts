@@ -34,20 +34,19 @@ async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>
 }
 
 /**
- * The rail items' icon tops on every painted frame for `ms` of wall time while `act` runs. A
- * test compares frames by their steps, never by their times, so a late callback can't
- * misread one (and under a slowed playback rate the frames' own timestamps slow down too).
+ * The rail items' icon tops on every painted frame for `ms` of wall time while `act` runs,
+ * each with its frame's timestamp: the time the frame's animations were sampled at, which a
+ * late callback's `performance.now()` overshoots (and which slows with the playback rate).
  */
-// Each frame's icon tops, with the wall-clock time it was read at.
 async function iconTops(page: Page, ms: number, act: () => Promise<void>) {
   const sampled = page.evaluate(
     (duration) =>
       new Promise<{ time: number; tops: number[] }[]>((resolve) => {
         const out: { time: number; tops: number[] }[] = [];
         const start = performance.now();
-        const tick = () => {
+        const tick = (time: number) => {
           out.push({
-            time: performance.now(),
+            time,
             tops: [...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
               (icon) => icon.getBoundingClientRect().top,
             ),
@@ -509,9 +508,10 @@ test.describe('Navigation motion edges and forced colours', () => {
   // under the standard one, grows with the items above an icon, and a loaded machine's late
   // callbacks misread it; re-audit 2026-10-21), so the motion runs at a tenth of its speed:
   // there the spring moves an icon under 1px a frame, while a swap is still one 12–36px step.
-  // Each step is read per 60Hz frame of the time it covers, since a loaded runner skips
-  // frames and a step over two or three of them is two or three frames of motion (CI moved
-  // 2.6px across skipped frames, 2026-10-27).
+  // Each step is read per frame of animation time it covers (by the frames' timestamps,
+  // against the usual frame), since a loaded runner skips frames: a step over a stall is
+  // several frames of motion, and a callback run late after one still reads the frame
+  // before it (CI read 2.6 and 5px steps that way, 2026-10-27).
   for (const motion of ['expressive', 'standard'] as const) {
     test(`rail items move continuously as it expands · ${motion}`, async ({ page }) => {
       await openStory(page, 'components-navigation--rail', { motion });
@@ -521,12 +521,14 @@ test.describe('Navigation motion edges and forced colours', () => {
       const frames = await iconTops(page, 7000, () =>
         page.getByRole('button', { name: 'Expand navigation' }).click(),
       );
+      const gaps = frames.slice(1).map((frame, index) => frame.time - frames[index]!.time);
+      const usual = gaps.toSorted((a, b) => a - b)[Math.floor(gaps.length / 2)]!;
       const steps = frames.slice(1).map((frame, index) => {
         const previous = frames[index]!;
         const moved = Math.max(
           ...frame.tops.map((top, item) => Math.abs(top - previous.tops[item]!)),
         );
-        return moved / Math.max(1, (frame.time - previous.time) / (1000 / 60));
+        return moved / Math.max(1, gaps[index]! / usual);
       });
       expect(steps.filter((step) => step > 0.1).length).toBeGreaterThan(20);
       expect(Math.max(...steps)).toBeLessThan(2);
