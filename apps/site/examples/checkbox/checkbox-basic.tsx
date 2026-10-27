@@ -1,8 +1,8 @@
 import { Checkbox } from '@windmorph/react';
 
 /**
- * A checkbox takes its accessible name from its label `children`. Use `defaultSelected`
- * (uncontrolled) or `selected` / `onSelectedChange` (controlled) for its checked state.
+ * A checkbox takes its accessible name from its label `children`. Use `defaultChecked`
+ * (uncontrolled) or `checked` / `onCheckedChange` (controlled) for its checked state.
  */
 export function CheckboxBasic() {
   return (

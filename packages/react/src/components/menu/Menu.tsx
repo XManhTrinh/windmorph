@@ -243,6 +243,11 @@ export interface MenuProps
    * at least one item selected. @default true
    */
   deselectable?: boolean;
+  /**
+   * The keys of items that can't be chosen. They stay focusable, as M3 asks ("Disabled menu
+   * items can receive focus but aren't selectable").
+   */
+  disabledKeys?: AriaMenuProps<object>['disabledKeys'];
   /** `MenuItem`s, `MenuGroup`s and `SubmenuTrigger`s. */
   children: ReactNode;
   /** `standard` (surface colours) or `vibrant` (tertiary container). @default "standard" */

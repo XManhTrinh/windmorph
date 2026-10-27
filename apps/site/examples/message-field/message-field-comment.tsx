@@ -1,8 +1,13 @@
 'use client';
 
 import { IconButton } from '@windmorph/react';
-import { Avatar, MessageField, useMessageField } from '@windmorph/react-pro';
-import { useState } from 'react';
+import {
+  Avatar,
+  MessageField,
+  useMessageField,
+  type MessageFieldHandle,
+} from '@windmorph/react-pro';
+import { useRef, useState } from 'react';
 
 /** Material Symbols `mood`. */
 const MOOD = (
@@ -31,13 +36,16 @@ function EmojiTool() {
 export function MessageFieldComment() {
   const [comments, setComments] = useState(['Count me in! I’ll bring spring rolls.']);
   const [sending, setSending] = useState(false);
+  const field = useRef<MessageFieldHandle>(null);
 
-  // Stands in for the app's request; the field clears itself once the comment is posted.
+  // Stands in for the app's request; the text is cleared only once the comment is posted, so
+  // a failed send keeps it.
   const post = (text: string) => {
     setSending(true);
     setTimeout(() => {
       setComments((current) => [...current, text]);
       setSending(false);
+      field.current?.clear();
     }, 600);
   };
 
@@ -62,7 +70,7 @@ export function MessageFieldComment() {
         sendVariant="standard"
         maxLength={500}
         pending={sending}
-        clearOnSubmit
+        handleRef={field}
         onSubmit={post}
       />
     </div>

@@ -58,9 +58,22 @@ main [data-filtered-out] {
   color: var(--md-sys-color-on-tertiary-container);
 }
 
-/* Section headings land below the sticky top bar when the outline (or a #link) jumps to them. */
+/* Whatever the browser scrolls into view (a control reached by Tab, the skip link's target, a
+   #link's heading) lands clear of the sticky 64px top bar and, on compact windows, of the fixed
+   64px navigation bar, with 8px to spare (WCAG 2.4.11, Focus Not Obscured). Elements that
+   scroll to their own start (headings, examples, the tabs) add only their spacing to it. */
+html {
+  scroll-padding-top: 72px;
+}
+@media (width < 600px) {
+  html {
+    scroll-padding-bottom: 72px;
+  }
+}
+
+/* Section headings land 16px below the top bar when the outline (or a #link) jumps to them. */
 main :where(h2[id], h3[id]) {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: 0.5rem;
 }
 
 /* Page transitions: M3's shared axis (Y). The page content leaves upward as it fades out and

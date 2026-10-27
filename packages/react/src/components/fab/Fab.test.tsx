@@ -233,6 +233,20 @@ describe('ExtendedFab', () => {
     expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
   });
 
+  it('pads a collapsing large FAB’s content to its minimum on the label’s spring', () => {
+    render(
+      <ExtendedFab icon={<Icon />} size="lg" expanded={false}>
+        Compose
+      </ExtendedFab>,
+    );
+    const content = screen.getByRole('button', { name: 'Compose' }).querySelector(':scope > span')!;
+    expect(content).toHaveClass(
+      '[[data-expanded=false]>&]:px-[4px]',
+      '[transition-property:padding-inline]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+    );
+  });
+
   it('collapses to the icon while keeping the label as its accessible name', () => {
     // The label's box animates a measured width in px, so the spring's overshoot shows
     // (2026-10-17; a 0fr ↔ 1fr track stopped at the label's width).

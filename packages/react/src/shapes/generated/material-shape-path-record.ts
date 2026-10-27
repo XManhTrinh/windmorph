@@ -41,7 +41,7 @@ import {
 
 /**
  * Every M3 Expressive shape's precomputed outline by name, for a shape gallery or picker.
- * Importing it costs all 35 outlines (about 10 KB gzipped); to draw one shape, import its
+ * Importing it costs all 35 outlines (about 11 kB gzipped once minified); to draw one shape, import its
  * constant (`cookie12SidedShape`) instead.
  */
 export const materialShapePaths: Readonly<Record<MaterialShapeName, MaterialShapePath>> = {

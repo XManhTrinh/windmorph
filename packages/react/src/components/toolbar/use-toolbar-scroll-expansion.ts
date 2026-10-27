@@ -64,9 +64,12 @@ export interface ToolbarScrollExpansionOptions {
   expandThreshold?: number;
   /** Scroll distance (px) down before the toolbar collapses. @default 40 */
   collapseThreshold?: number;
-  /** For content whose start is at the bottom (e.g. a chat), which reverses the direction. */
+  /**
+   * For content whose start is at the bottom (e.g. a conversation), which reverses the
+   * direction. @default false
+   */
   reverse?: boolean;
-  /** @default true */
+  /** Whether the toolbar starts expanded, before the content has scrolled. @default true */
   defaultExpanded?: boolean;
 }
 
@@ -103,9 +106,12 @@ export interface ToolbarScrollExitOptions {
   showThreshold?: number;
   /** Scroll distance (px) down before the toolbar leaves the screen. @default 40 */
   hideThreshold?: number;
-  /** For content whose start is at the bottom (e.g. a chat), which reverses the direction. */
+  /**
+   * For content whose start is at the bottom (e.g. a conversation), which reverses the
+   * direction. @default false
+   */
   reverse?: boolean;
-  /** @default true */
+  /** Whether the toolbar starts on screen, before the content has scrolled. @default true */
   defaultVisible?: boolean;
 }
 

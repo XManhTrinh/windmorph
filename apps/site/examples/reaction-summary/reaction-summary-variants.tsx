@@ -18,7 +18,7 @@ export function ReactionSummaryVariants() {
         items={TOP}
         total={1284}
         onPress={() => setOpened((count) => count + 1)}
-        labels={{ count: (total) => `${total} reactions. See who reacted` }}
+        labels={{ count: (_total, formatted) => `${formatted} reactions. See who reacted` }}
       />
       <p className="text-body-small text-on-surface-variant" aria-live="polite">
         {opened > 0 ? `Opened the list ${opened} time${opened === 1 ? '' : 's'}` : ''}

@@ -11,10 +11,11 @@ import { describe, expect, it } from 'vitest';
  */
 const root = fileURLToPath(new URL('../', import.meta.url));
 const SOURCE = /\.tsx?$/;
+// Zero sizes nothing (a pending button's hidden name suffix takes no room with it).
 const PX_TEXT = [
   /\b(?:text|leading|tracking)-\[-?[\d.]+px\]/,
-  /\bfont-?size\s*:\s*['"]?-?[\d.]+(?:px)?\b/i,
-  /\b(?:fontSize|lineHeight|letterSpacing)\s*[:=]\s*\{?\s*['"]?-?[\d.]+/,
+  /\bfont-?size\s*:\s*['"]?-?(?!0(?:px)?(?![\d.]))[\d.]+(?:px)?\b/i,
+  /\b(?:fontSize|lineHeight|letterSpacing)\s*[:=]\s*\{?\s*['"]?-?(?!0(?:px)?(?![\d.]))[\d.]+/,
   /\[(?:font-size|line-height|letter-spacing):-?[\d.]+px\]/,
 ];
 

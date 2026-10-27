@@ -350,8 +350,9 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     importFrom: '@windmorph/react-pro',
     render: ({ below, href, ...props }) =>
       createElement(
-        'div',
-        { className: 'w-full max-w-md' },
+        // A list item needs its list, so `as="li"` previews inside one.
+        props.as === 'li' ? 'ul' : 'div',
+        { className: 'w-full max-w-md', ...(props.as === 'li' && { role: 'list' }) },
         createElement(CommentRowAny, {
           ...props,
           ...(props.as === 'article' && { 'aria-label': 'Comment by Alex Morgan' }),

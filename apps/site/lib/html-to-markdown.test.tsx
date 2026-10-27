@@ -35,6 +35,21 @@ describe('htmlToMarkdown', () => {
     );
   });
 
+  it("keeps a list item's or a table cell's blocks apart on their one line", () => {
+    expect(
+      markdown(
+        '<ul><li><div><span>Extension</span><span class="sr-only">: </span><span>Links</span></div><p><code>href</code> renders a link</p></li></ul>',
+      ),
+    ).toBe('- Extension: Links. `href` renders a link');
+    expect(
+      markdown(
+        '<table><tr><th>Compose</th><th>Windmorph</th></tr><tr><td><code>Checkbox</code></td><td><div><span><code>Checkbox</code> · <a href="/components/checkbox">Checkbox</a></span><ul><li><code>checked</code> → <code>checked</code></li><li><code>enabled</code> → <code>disabled</code></li></ul><span>The label is the <code>children</code>.</span></div></td></tr></table>',
+      ),
+    ).toBe(
+      '| Compose | Windmorph |\n| --- | --- |\n| `Checkbox` | `Checkbox` · [Checkbox](https://example.com/components/checkbox). `checked` → `checked`; `enabled` → `disabled`. The label is the `children`. |',
+    );
+  });
+
   it('writes tables, escaping pipes', () => {
     expect(
       markdown(

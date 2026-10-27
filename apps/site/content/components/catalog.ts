@@ -90,6 +90,16 @@ export interface ComponentMeta {
    * in `propsComponents`.
    */
   hooks?: string[];
+  /**
+   * Other exports this page documents with no props table or hook table of their own (the
+   * primitives' helpers, types and shape constants). Searchable by name, like `hooks`.
+   */
+  exports?: string[];
+  /**
+   * Data types the page's props take, listed field by field after its props (the items a
+   * collection prop takes: `MediaViewerItem`).
+   */
+  types?: string[];
   /** Marks a component whose source/story flags it as preview. */
   stability?: 'preview';
   /**
@@ -208,7 +218,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     expressive: true,
     specs: {
-      sizes: ['default', 'medium', 'large'],
+      sizes: ['default', 'md', 'lg'],
       shape: 'rounded-corner-large',
       elevation: 'level3',
     },
@@ -503,6 +513,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'The photos someone is adding: upload progress and errors, remove and retry, drag to reorder (mouse, touch or keyboard), an add tile and file drop. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaUploadGrid'],
+    types: ['MediaUploadItem'],
     playground: 'full',
     pro: true,
     specs: {
@@ -566,7 +577,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     playground: 'full',
     pro: true,
     specs: {
-      sizes: ['small', 'medium', 'large'],
+      sizes: ['sm', 'md', 'lg'],
       variants: ['outlined', 'filled'],
       shape: 'rounded-corner-extra-small',
     },
@@ -902,8 +913,9 @@ export const COMPONENT_META: ComponentMeta[] = [
     group: 'Containment & overlays',
     railGroup: 'containment',
     summary:
-      'Square photo tiles, a sideways row on compact windows and a grid from medium up; a tile opens the viewer. Not an M3 component (@windmorph/react-pro).',
+      'Square photo tiles, a sideways row on compact windows and a grid from medium up; a press on a tile reports it (`onAction`), for the app to open the viewer. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaGrid'],
+    types: ['MediaGridItem'],
     playground: 'full',
     pro: true,
     related: ['media-viewer', 'media-upload-grid', 'carousel'],
@@ -919,6 +931,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     summary:
       'A full-screen viewer for a set of photos: swipe between them, zoom, and read each caption and position. Not an M3 component (@windmorph/react-pro).',
     propsComponents: ['MediaViewer'],
+    types: ['MediaViewerItem'],
     playground: 'full',
     pro: true,
     related: ['carousel', 'dialog', 'image-crop'],
@@ -953,6 +966,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     keywords: [
       'icon',
       'shape',
+      'shapes',
       'expressive',
       'cookie',
       'flower',
@@ -1521,7 +1535,56 @@ export const COMPONENT_META: ComponentMeta[] = [
     railGroup: 'primitives',
     summary:
       'The internal building blocks M3 components are made from, exported for custom controls.',
+    keywords: ['shapes', 'static shapes', 'shape morph', 'custom component'],
     propsComponents: [],
+    exports: [
+      'ButtonBase',
+      'Surface',
+      'surfaceStyles',
+      'TouchTarget',
+      'Overlay',
+      'FieldLabel',
+      'SupportingText',
+      'ErrorText',
+      'CharacterCounter',
+      'FieldErrorIcon',
+      'SelectionControl',
+      'selectionControlStyles',
+      'getM3Spring',
+      'springWithVelocityToLinearEasing',
+      'springProgressWithVelocity',
+      'TriggerContext',
+      'DomDirectionLocale',
+      'localeWithDirection',
+      'morphPathAt',
+      'getMorph',
+      'RoundedPolygon',
+      'CornerRounding',
+      'Cubic',
+      'Morph',
+      'MaterialShapes',
+      'materialShapeNames',
+      'polygonToPath',
+      'morphToPath',
+      'cubicsToPath',
+      'splitRootProps',
+      'RootDOMProps',
+      'WrapperRootDOMProps',
+      'DescriptionAria',
+      'pickWidgetAria',
+      'pickDescriptionAria',
+      'splitDataAttributes',
+      'mergeDataTokens',
+      'ThemeScopeContext',
+      'generateSchemeColors',
+      'MaterialShapePath',
+      'materialShapePaths',
+      'materialShapeMask',
+      'circleShape',
+      'cookie12SidedShape',
+      'defineComponentTokens',
+      'componentTokensCss',
+    ],
     hooks: [
       'useKeepPressedInPlace',
       'useM3Interaction',

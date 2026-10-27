@@ -95,7 +95,7 @@ const FAQ: { id: string; question: string; answer: ReactNode }[] = [
     question: 'What happens to my email?',
     answer: (
       <>
-        You get one email to confirm your address, then only news about Windmorph Pro and its
+        A new address gets one email to confirm it, then only news about Windmorph Pro and its
         add-ons. Every email has a link to unsubscribe. The{' '}
         <a href="/privacy" className={LINK}>
           privacy notice

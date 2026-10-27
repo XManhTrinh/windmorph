@@ -1,9 +1,11 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  collapsedRefType,
   enumOptionsFromType,
   enumValuesFromType,
   htmlAttributeElements,
+  inLibraryWords,
   keepProp,
   normalizeDefaultValue,
   propOrigin,
@@ -12,6 +14,7 @@ import {
   refByForm,
   stripDocTags,
   type ComponentPropsFile,
+  type PropsRecord,
 } from './generate-props';
 
 const ARIA = '/repo/node_modules/.pnpm/x/node_modules/@react-types/button/src/index.d.ts';
@@ -139,6 +142,54 @@ describe('quoteDefault', () => {
   });
 });
 
+describe('inLibraryWords', () => {
+  const row = (fields: Partial<PropsRecord>): PropsRecord => ({
+    name: 'validate',
+    type: 'string',
+    required: false,
+    inherited: true,
+    ...fields,
+  });
+
+  it("names the library's props where React Aria's text names its own", () => {
+    const fixed = inLibraryWords(
+      row({ description: 'For realtime validation, use the `isInvalid` prop instead.' }),
+    );
+    expect(fixed.description).toBe('For realtime validation, use the `invalid` prop instead.');
+    expect(
+      inLibraryWords(row({ name: 'onOpenChange', type: '(isOpen: boolean) => void' })).type,
+    ).toBe('(open: boolean) => void');
+  });
+
+  it('says disabled items stay focusable', () => {
+    const fixed = inLibraryWords(
+      row({
+        name: 'disabledKeys',
+        description: 'These items cannot be selected, focused, or otherwise interacted with.',
+      }),
+    );
+    expect(fixed.description).toMatch(/stay focusable/);
+    expect(fixed.description).not.toMatch(/cannot be .*focused/);
+  });
+
+  it("drops React Aria's component names and double-quotes its defaults", () => {
+    const fixed = inLibraryWords(
+      row({
+        name: 'menuTrigger',
+        description: 'The interaction required to display the ComboBox menu.',
+        defaultValue: "'input'",
+      }),
+    );
+    expect(fixed.description).toBe('The interaction required to display the menu.');
+    expect(fixed.defaultValue).toBe('"input"');
+  });
+
+  it("leaves the package's own rows as they are", () => {
+    const { inherited: _inherited, ...own } = row({ description: 'Uses `isInvalid`.' });
+    expect(inLibraryWords(own)).toBe(own);
+  });
+});
+
 describe('stripDocTags', () => {
   it("drops the raw @see line React's DOM docs carry", () => {
     expect(stripDocTags('Defines a string value.\n@see aria-labelledby.')).toBe(
@@ -221,5 +272,22 @@ describe('refByForm', () => {
       'Ref to the root element: the `<a>`, or the `<button>`.',
     );
     expect(refByForm(['Ref to the root `<div>`.'])).toBeUndefined();
+  });
+});
+
+describe('collapsedRefType', () => {
+  it("writes a button-or-link ref as each element's Ref", () => {
+    expect(
+      collapsedRefType(
+        '((instance: HTMLButtonElement | null) => void | (() => VoidOrUndefinedOnly)) | RefObject<HTMLButtonElement | null> | ((instance: HTMLAnchorElement | null) => void | (() => VoidOrUndefinedOnly)) | RefObject<...> | null',
+      ),
+    ).toBe('Ref<HTMLButtonElement> | Ref<HTMLAnchorElement>');
+  });
+
+  it('leaves any other type as it is', () => {
+    const type =
+      'React.RefObject<HTMLElement | null> | ((instance: HTMLElement | null) => void | (() => VoidOrUndefinedOnly))';
+    expect(collapsedRefType(type)).toBe(type);
+    expect(collapsedRefType('Ref<HTMLDivElement>')).toBe('Ref<HTMLDivElement>');
   });
 });

@@ -21,13 +21,13 @@ const importSnippet = `import {
   FieldLabel, SupportingText, ErrorText, CharacterCounter, FieldErrorIcon,
   SelectionControl, selectionControlStyles,
   // Motion
-  useM3Spring, getM3Spring,
+  useM3Spring, getM3Spring, springWithVelocityToLinearEasing, springProgressWithVelocity,
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
   useKeepPressedInPlace,
   // Building your own component
-  splitRootProps, pickWidgetAria, type RootDOMProps, type WrapperRootDOMProps,
+  splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
   // Static shapes (precomputed outlines, no shape engine)
   type MaterialShapePath, materialShapeMask, materialShapePaths,
@@ -84,7 +84,7 @@ const mask = materialShapeMask(cookie12SidedShape);
 <div className="size-14 bg-primary-container [mask-size:100%_100%]"
   style={{ maskImage: mask, WebkitMaskImage: mask }} />
 
-// Picking a shape by name (a gallery, a shape picker) costs all 35 outlines (about 10.5 kB).
+// Picking a shape by name (a gallery, a shape picker) costs all 35 outlines (about 11 kB gzipped).
 const shape = materialShapePaths[name];
 
 // Your own outline works too: a closed SVG path in the unit square.
@@ -272,7 +272,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               spring, such as spatial fast, as Motion transition options:{' '}
               <InlineCode>useM3Spring</InlineCode> from the active motion scheme,{' '}
               <InlineCode>getM3Spring</InlineCode> from a scheme you name; both are also in the main
-              entry).
+              entry), and for a transition that continues a gesture (a panel released mid-drag keeps
+              its speed): <InlineCode>springWithVelocityToLinearEasing</InlineCode> (a spring token
+              and a starting velocity, in whole distances per second towards the target, as a CSS{' '}
+              <InlineCode>linear()</InlineCode> easing and its settle duration in ms) and{' '}
+              <InlineCode>springProgressWithVelocity</InlineCode> (that spring&apos;s progress, 0 to
+              1, at a time in seconds), as the bottom sheet settles after a drag.
             </li>
             <li>
               <InlineCode>TriggerContext</InlineCode> (an overlay trigger hands its press handler
@@ -312,9 +317,15 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               element, the attributes that describe that element (
               <InlineCode>aria-controls</InlineCode>, <InlineCode>aria-expanded</InlineCode>,{' '}
               <InlineCode>aria-invalid</InlineCode> …) stay with it too, typed by{' '}
-              <InlineCode>WrapperRootDOMProps</InlineCode>, and{' '}
+              <InlineCode>WrapperRootDOMProps</InlineCode>, as do the description attributes React
+              Aria&apos;s hooks don&apos;t forward (<InlineCode>DescriptionAria</InlineCode>:{' '}
+              <InlineCode>aria-description</InlineCode>,{' '}
+              <InlineCode>aria-roledescription</InlineCode> and the braille labels), and{' '}
               <InlineCode>pickWidgetAria</InlineCode> hands over the ones a React Aria hook
-              doesn&apos;t forward), <InlineCode>splitDataAttributes</InlineCode> (only the{' '}
+              doesn&apos;t forward, <InlineCode>pickDescriptionAria</InlineCode> only the
+              description ones, for an element whose widget attributes you set yourself; the
+              result&apos;s <InlineCode>rest</InlineCode> is typed by what stays in it, for a
+              wrapper or not), <InlineCode>splitDataAttributes</InlineCode> (only the{' '}
               <InlineCode>data-*</InlineCode> props), <InlineCode>mergeDataTokens</InlineCode> (adds
               your own token set after a component's, as the core components do with a{' '}
               <InlineCode>data-tokens</InlineCode> they are given),{' '}

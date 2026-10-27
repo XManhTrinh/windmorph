@@ -6,7 +6,7 @@ import { NextRouterProvider } from './NextRouterProvider';
 import { useGuardedNavigate, useNavigationGuard, type NavigationAttempt } from './navigation-guard';
 
 const push = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation.js', () => ({ useRouter: () => ({ push }) }));
 
 afterEach(() => push.mockClear());
 

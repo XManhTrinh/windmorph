@@ -11,10 +11,15 @@ export interface ThemeContextValue extends ThemeState {
   resolvedMode: ResolvedColorMode;
   /** Names of the themes available to `setTheme`. */
   themes: readonly string[];
+  /** Switches the colour theme; a name not in `themes` is ignored (with a warning in development). */
   setTheme: (theme: string) => void;
+  /** Switches the colour mode: `light`, `dark` or `system`. */
   setMode: (mode: ColorMode) => void;
+  /** Switches the contrast level: `standard`, `medium` or `high`. */
   setContrast: (contrast: ContrastLevel) => void;
+  /** Switches the motion scheme: `expressive` or `standard`. */
   setMotion: (motion: MotionScheme) => void;
+  /** Switches the web density, `0` to `-3`. */
   setDensity: (density: Density) => void;
 }
 
@@ -23,20 +28,33 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 /** The theme applied to the nearest `ThemeProvider` or `ThemeScope`. */
 export const ThemeScopeContext = createContext<ThemeState>(DEFAULT_THEME_STATE);
 
-/**
- * The classes of the `ThemeScope`s around this point, merged outermost first, so `Overlay`
- * can put them on its portalled wrapper: CSS variables an app sets through a scope's class
- * (component tokens such as `--md-comp-filled-card-container-color`) then reach overlays
- * opened inside it.
- */
-export const ThemeScopeClassNameContext = createContext<string>('');
+/** One `ThemeScope`'s class and the CSS variables (`--*` keys) of its `style`. */
+export interface ThemeScopeLayer {
+  className: string;
+  variables: Readonly<Record<string, string>>;
+}
 
 /**
- * The CSS variables (`--*` keys) set through the `style` of the `ThemeScope`s around this
- * point, the inner scope's winning, so `Overlay` can set them on its portalled wrapper too:
- * component tokens given as inline styles then reach overlays opened inside (2026-10-17).
+ * The classes and inline CSS variables of the `ThemeScope`s around this point, outermost first,
+ * one layer per scope that sets either, so `Overlay` can repeat them around its portalled
+ * content: component tokens an app sets through a scope's class or `style` then reach overlays
+ * opened inside it (2026-10-17). Kept per scope (2026-10-24), so an inner scope's value wins
+ * however each scope sets it, as on the page.
  */
-export const ThemeScopeVariablesContext = createContext<Readonly<Record<string, string>>>({});
+export const ThemeScopeLayersContext = createContext<readonly ThemeScopeLayer[]>([]);
+
+/**
+ * The theme the DOM already carries at this point through `data-*` attributes: the nearest
+ * `ThemeScope`'s, or the `ThemeProvider`'s when it writes them on `<html>`; `null` when unknown.
+ * A `ThemeScope` puts only the attributes that differ from it on its element.
+ */
+export const InheritedThemeContext = createContext<ThemeState | null>(null);
+
+/**
+ * The theme `<html>` carries (the `ThemeProvider`'s, when it writes it there), for `Overlay`'s
+ * wrapper in `document.body`; `null` when unknown.
+ */
+export const DocumentThemeContext = createContext<ThemeState | null>(null);
 
 /**
  * Reads and changes the app theme set by `ThemeProvider`.
@@ -48,14 +66,9 @@ export function useTheme(): ThemeContextValue {
   return value;
 }
 
-/** The merged classes of the `ThemeScope`s around this point (see `ThemeScopeClassNameContext`). */
-export function useThemeScopeClassName(): string {
-  return useContext(ThemeScopeClassNameContext);
-}
-
-/** The CSS variables of the `ThemeScope`s around this point (see `ThemeScopeVariablesContext`). */
-export function useThemeScopeVariables(): Readonly<Record<string, string>> {
-  return useContext(ThemeScopeVariablesContext);
+/** The classes and CSS variables of the `ThemeScope`s around this point (`ThemeScopeLayersContext`). */
+export function useThemeScopeLayers(): readonly ThemeScopeLayer[] {
+  return useContext(ThemeScopeLayersContext);
 }
 
 /** The theme state in effect at this point in the tree, including any `ThemeScope`. */

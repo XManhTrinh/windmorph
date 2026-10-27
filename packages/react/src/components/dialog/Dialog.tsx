@@ -603,6 +603,12 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
   action?: ReactNode;
   /** A 1px `outline-variant` divider under the full-screen header. @default false */
   divider?: boolean;
+  /**
+   * Disables the full-screen close button, e.g. while the confirming action is saving, so the
+   * dialog can't be left halfway. Pair it with the `Dialog`'s `closedBy="none"` to keep Escape
+   * from closing it too. @default false
+   */
+  closeDisabled?: boolean;
   /** Classes for each part, by slot. */
   classNames?: DialogHeaderClassNames;
 }
@@ -626,6 +632,7 @@ export function DialogHeader({
   labels,
   action,
   divider = false,
+  closeDisabled = false,
   className,
   classNames,
   ...props
@@ -646,6 +653,7 @@ export function DialogHeader({
           density={0}
           icon={<CloseIcon />}
           aria-label={labels?.close ?? DEFAULT_HEADER_LABELS.close}
+          disabled={closeDisabled}
           onPress={close}
           className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}
         />

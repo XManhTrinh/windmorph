@@ -1,8 +1,17 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 const hasDom = typeof document !== 'undefined';
+
+/**
+ * `findBy*` and `waitFor` give up after 1s by default, far inside the 20s test timeout. CI
+ * runs every package's tests at once on two shared cores, where a lazily loaded part (a fresh
+ * module graph after `vi.resetModules`) can take longer than that to arrive, so a test that
+ * waits for one failed only under load. They wait up to 10s; a wait that passes returns as
+ * soon as it does, and a test that needs a shorter bound still passes its own `timeout`.
+ */
+configure({ asyncUtilTimeout: 10_000 });
 
 afterEach(() => {
   if (!hasDom) return;

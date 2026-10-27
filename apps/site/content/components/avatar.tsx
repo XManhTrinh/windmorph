@@ -138,8 +138,9 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             outline: one of the 35 M3 Expressive shapes as a constant (
             <InlineCode>{'shape={cookie12SidedShape}'}</InlineCode> from{' '}
             <InlineCode>@windmorph/react/primitives</InlineCode>) or your own{' '}
-            <InlineCode>MaterialShapePath</InlineCode>. <InlineCode>icon</InlineCode> sets the
-            fallback when there is no name.
+            <InlineCode>MaterialShapePath</InlineCode>. On a shape, the presence dot and the badge
+            sit on the outline, and a group&apos;s ring follows the shape.{' '}
+            <InlineCode>icon</InlineCode> sets the fallback when there is no name.
           </p>
           <p className="text-body-large text-on-surface-variant">
             Shapes and bundle size: circle and rounded avatars carry no shape data, and each outline
@@ -166,7 +167,10 @@ export async function AvatarBody(): Promise<ComponentDoc> {
               <InlineCode>--wm-avatar-color-1</InlineCode> …{' '}
               <InlineCode>--wm-avatar-color-12</InlineCode> and their{' '}
               <InlineCode>--wm-avatar-on-color-*</InlineCode> text colours (any colour: a theme
-              variable, hex, <InlineCode>oklch()</InlineCode>).
+              variable, hex, <InlineCode>oklch()</InlineCode>). <InlineCode>data-color</InlineCode>{' '}
+              is the <InlineCode>color</InlineCode> prop as given (<InlineCode>auto</InlineCode> by
+              default); with <InlineCode>auto</InlineCode>, <InlineCode>data-color-slot</InlineCode>{' '}
+              holds the slot (1–12) the name hashed into.
             </li>
             <li>
               Status colours default to M3 roles (online <InlineCode>success</InlineCode>, away{' '}

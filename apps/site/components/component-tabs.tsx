@@ -68,7 +68,7 @@ export function ComponentTabs({
           transitionTypes: [forward ? 'tab-forward' : 'tab-backward'],
         });
       }}
-      className="-mx-6 scroll-mt-16 medium:mx-0"
+      className="-mx-6 -scroll-mt-2 medium:mx-0"
       classNames={{ list: 'medium:ps-0', panel: 'px-6 pt-8 medium:px-0' }}
     >
       {tabs.map((tab) => (

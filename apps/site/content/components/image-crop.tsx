@@ -76,9 +76,9 @@ export async function ImageCropBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              A pointer drags the photo and two fingers pinch to zoom. Ctrl or ⌘ with the wheel (and
-              a trackpad pinch) zooms around the pointer; a plain wheel scrolls the page, as in
-              Media viewer.
+              A pointer drags the photo and two fingers pinch to zoom. Ctrl or ⌘ with the wheel (one
+              step a notch; a trackpad pinch follows smoothly) zooms around the pointer; a plain
+              wheel scrolls the page, as in Media viewer.
             </li>
             <li>
               Inline, a vertical swipe over the photo scrolls the page while the photo has nothing

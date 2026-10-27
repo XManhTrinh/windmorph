@@ -82,16 +82,16 @@ export async function MediaViewerBody(): Promise<ComponentDoc> {
               last photo the drag resists.
             </li>
             <li>
-              Double-tap or double-click to zoom to 2×; pinch, or use Ctrl or ⌘ with the wheel (a
-              trackpad pinch), for up to 4×. Dragging a zoomed photo pans it, and the wheel pans it
-              too.
+              Double-tap or double-click to zoom to 2×; pinch, or use Ctrl or ⌘ with the wheel (one
+              step a notch; a trackpad pinch follows smoothly), for up to 4×. Dragging a zoomed
+              photo pans it, and the wheel pans it too.
             </li>
             <li>Swipe down on touch to close.</li>
             <li>
-              The two photos on each side are loaded ahead. Give each photo its{' '}
-              <InlineCode>width</InlineCode> and <InlineCode>height</InlineCode>, so it&apos;s laid
-              out before it loads, and a <InlineCode>srcSet</InlineCode> for sharp zooming on large
-              screens.
+              The two photos on each side are loaded ahead. Each photo needs its{' '}
+              <InlineCode>width</InlineCode> and <InlineCode>height</InlineCode> (both required), so
+              it&apos;s laid out before it loads, and a <InlineCode>srcSet</InlineCode> for sharp
+              zooming on large screens.
             </li>
           </ul>
         </section>

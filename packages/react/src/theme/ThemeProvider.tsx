@@ -5,6 +5,7 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
@@ -18,12 +19,19 @@ import {
 } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
-import { ThemeContext, ThemeScopeContext, type ThemeContextValue } from './context';
+import {
+  DocumentThemeContext,
+  InheritedThemeContext,
+  ThemeContext,
+  ThemeScopeContext,
+  type ThemeContextValue,
+} from './context';
 import type { ThemeDefinition } from './create-theme';
 import {
   DEFAULT_STORAGE_KEY,
   DEFAULT_THEME_STATE,
   parseThemeState,
+  serializeThemeState,
   themeAttributes,
   type ThemeState,
   type ThemeStorage,
@@ -73,7 +81,9 @@ export interface ThemeProviderProps {
   onDensityChange?: (density: Density) => void;
   /**
    * Where the selection is remembered. Use `"cookie"` (default) with
-   * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering.
+   * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering. Nothing is written
+   * until the selection changes from the one the page loaded with, so a visitor who never
+   * picks a setting gets no cookie.
    * @default "cookie"
    */
   storage?: ThemeStorage;
@@ -220,6 +230,9 @@ export function ThemeProvider({
     [theme, mode, contrast, motion, density],
   );
 
+  // What `<html>` carries, for scopes and overlays to put only what differs on their elements.
+  const documentTheme = applyToDocument ? state : null;
+
   useLayoutEffect(() => {
     if (!isHydrated || !applyToDocument) return;
     const root = document.documentElement;
@@ -228,8 +241,18 @@ export function ThemeProvider({
     }
   }, [isHydrated, applyToDocument, state]);
 
+  // Stored only once the selection changes from the one the page loaded with (the stored one,
+  // or the defaults): a preference is remembered when someone sets it, and a visit that sets
+  // nothing leaves no cookie behind.
+  const loaded = useRef<string | null>(null);
+  const changed = useRef(false);
   useEffect(() => {
-    if (isHydrated && storage !== 'none') writeStoredTheme(storage, storageKey, state);
+    if (!isHydrated || storage === 'none') return;
+    const serialized = serializeThemeState(state);
+    loaded.current ??= serialized;
+    if (!changed.current && serialized === loaded.current) return;
+    changed.current = true;
+    writeStoredTheme(storage, storageKey, state);
   }, [isHydrated, storage, storageKey, state]);
 
   const systemMode = useSyncExternalStore(
@@ -271,16 +294,20 @@ export function ThemeProvider({
   return (
     <ThemeContext value={value}>
       <ThemeScopeContext value={state}>
-        {definitions.map((definition) => (
-          <style
-            key={definition.name}
-            href={`windmorph-theme-${definition.name}`}
-            precedence="windmorph"
-          >
-            {definition.css}
-          </style>
-        ))}
-        {children}
+        <DocumentThemeContext value={documentTheme}>
+          <InheritedThemeContext value={documentTheme}>
+            {definitions.map((definition) => (
+              <style
+                key={definition.name}
+                href={`windmorph-theme-${definition.name}`}
+                precedence="windmorph"
+              >
+                {definition.css}
+              </style>
+            ))}
+            {children}
+          </InheritedThemeContext>
+        </DocumentThemeContext>
       </ThemeScopeContext>
     </ThemeContext>
   );

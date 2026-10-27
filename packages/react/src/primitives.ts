@@ -38,6 +38,10 @@ export {
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';
 export {
+  springProgressWithVelocity,
+  springWithVelocityToLinearEasing,
+} from './tokens/spring-velocity';
+export {
   SelectionControl,
   type SelectionControlClassNames,
   type SelectionControlProps,
@@ -66,9 +70,12 @@ export {
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {
+  pickDescriptionAria,
   pickWidgetAria,
   splitRootProps,
+  type DescriptionAria,
   type RootDOMProps,
+  type SplitRootProps,
   type SplitRootPropsOptions,
   type WidgetAria,
   type WrapperRootDOMProps,

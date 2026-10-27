@@ -183,8 +183,10 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
   labels?: Partial<SnackbarLabels>;
   /**
    * The key combination that moves focus to a snackbar with actions, as the spec asks for on
-   * the web. F6 by default, the browsers' key for moving between a page's regions and React
-   * Aria's for its toasts. Document it where your app lists its shortcuts. `false` turns it off.
+   * the web. F6 by default, the key React Aria's toasts take (browsers use it to move between
+   * the window's panes): while a snackbar with a control shows, F6 goes to it from anywhere on
+   * the page, and pressed again there it stays. Document it where your app lists its
+   * shortcuts. `false` turns it off.
    * @default "F6"
    */
   focusShortcut?: string | false;

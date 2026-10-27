@@ -206,7 +206,7 @@ describe('SplitButton', () => {
     expect(screen.getByRole('link', { name: 'Send' })).toHaveAttribute('href', '/compose');
   });
 
-  it('puts className, style and data-* on the wrapper', () => {
+  it('puts className, style and data-* on the wrapper, a group', () => {
     render(
       <Send
         data-testid="split"
@@ -217,6 +217,7 @@ describe('SplitButton', () => {
     );
     const root = screen.getByTestId('split');
     expect(root).toHaveClass('fixed', 'bottom-4', 'inline-flex');
+    expect(root).toHaveAttribute('role', 'group');
     expect(root).toHaveStyle({ zIndex: '2' });
     expect(trailing()).toHaveClass('shadow-elevation-3');
   });

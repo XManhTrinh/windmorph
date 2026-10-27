@@ -1,9 +1,14 @@
 'use client';
 
-import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useContext, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
-import { useThemeScope, useThemeScopeClassName, useThemeScopeVariables } from '../theme/context';
-import { themeAttributes } from '../theme/state';
+import {
+  DocumentThemeContext,
+  InheritedThemeContext,
+  useThemeScope,
+  useThemeScopeLayers,
+} from '../theme/context';
+import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ToolbarContext } from './ToolbarContext';
 
@@ -50,8 +55,23 @@ export function Overlay({
   density,
 }: OverlayProps) {
   const scope = useThemeScope();
-  const scopeClassName = useThemeScopeClassName();
-  const scopeVariables = useThemeScopeVariables();
+  const themed = density === undefined ? scope : { ...scope, density };
+  // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
+  // `:root` values for the system tokens reach the overlay too.
+  const documentTheme = useContext(DocumentThemeContext);
+  const [outerLayer, ...innerLayers] = useThemeScopeLayers();
+  // A scope's class or variables may set a colour role: each layer carries the colour
+  // attributes, so the values derived from the roles (elevation) resolve again with them.
+  const {
+    'data-theme': layerTheme,
+    'data-mode': layerMode,
+    'data-contrast': layerContrast,
+  } = themeAttributes(themed);
+  const colorAttributes = {
+    'data-theme': layerTheme,
+    'data-mode': layerMode,
+    'data-contrast': layerContrast,
+  };
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -89,18 +109,37 @@ export function Overlay({
       >
         <div
           ref={scopeRef}
-          {...themeAttributes(density === undefined ? scope : { ...scope, density })}
-          className={scopeClassName || undefined}
+          {...themeAttributesOver(
+            themed,
+            portalContainer ? null : documentTheme,
+            outerLayer !== undefined,
+          )}
+          className={outerLayer?.className || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
           style={{
-            ...scopeVariables,
+            ...outerLayer?.variables,
             display: 'contents',
             color: 'var(--md-sys-color-on-surface)',
           }}
         >
-          {/* An overlay opened from a toolbar isn't part of it. */}
-          <ToolbarContext value={null}>{children}</ToolbarContext>
+          {/* Each inner scope's class and variables around the last, as on the page, so the
+              innermost scope's value wins whether a class or its style sets it. */}
+          {innerLayers.reduceRight<ReactNode>(
+            (content, layer) => (
+              <div
+                {...colorAttributes}
+                className={layer.className || undefined}
+                style={{ ...layer.variables, display: 'contents' }}
+              >
+                {content}
+              </div>
+            ),
+            // An overlay opened from a toolbar isn't part of it.
+            <InheritedThemeContext value={themed}>
+              <ToolbarContext value={null}>{children}</ToolbarContext>
+            </InheritedThemeContext>,
+          )}
         </div>
       </AriaOverlay>
     </>

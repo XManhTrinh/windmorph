@@ -52,15 +52,16 @@ export const messageField: ComponentAccessibility = {
     role: 'The text is a `textarea`. The tools are a `toolbar` of buttons; Send, the banner close and the slot buttons are icon buttons. `MessageFieldTrigger` is a `button`, or a `link` with `href`.',
     name: 'The text is named by the visible `label`, `aria-label` or `aria-labelledby`; the types require one, so the placeholder is never the only name. The tools toolbar is named `labels.tools` ("Tools"), Send `labels.send` ("Send", also its tooltip) and the banner close `labels.closeBanner` ("Close"). `MessageFieldTrigger` is named by its prompt, or its `aria-label`.',
     states:
-      'The text has `aria-invalid` (also while over `maxLength`) and `aria-required`, and `aria-describedby` links `supportingText` and `errorMessage`. Send is disabled while there is nothing to send. While sending it stays focusable with `aria-disabled`, and its loading indicator is a `progressbar` named `labels.sending` ("Sending").',
+      'The text has `aria-invalid` (also while over `maxLength`) and `aria-required`, and `aria-describedby` links `supportingText` and `errorMessage`. Send is disabled while there is nothing to send. While sending it stays focusable with `aria-disabled`, its name gains `labels.sending` ("Send, Sending"), and the field announces `labels.sending` politely when a send starts (the core IconButton\'s pending state; its loading indicator is hidden from assistive tech and shows after 200ms).',
     notes: [
       'The error is an `alert` region that goes into the page before its message, so screen readers announce the message when it arrives. While it shows, the supporting text is visually hidden but still read.',
       'A polite live region announces the limit once per change: `labels.nearLimit` from `counterThreshold`, then `labels.atLimit` and `labels.overLimit`. The visible counter is hidden from assistive tech.',
       "`MessageFieldTrigger`'s avatar, tools and trailing icon are decorative (`aria-hidden`).",
+      'A second polite live region announces `labels.sending` when a send starts while focus is in the text.',
     ],
   },
   focus: [
-    'The text, the tools (one Tab stop), the slot buttons and Send are in Tab order. Pressing the field anywhere outside its controls puts the caret in the text, and so do Send and the banner close.',
+    'The text, the tools (one Tab stop), the slot buttons and Send are in Tab order. With `toolbarPlacement` below the text, the toolbar row follows the text in Tab order. Pressing the field anywhere outside its controls puts the caret in the text, and so do Send and the banner close.',
     "Keyboard focus in the text draws M3's focus indicator around the whole field: a 3px `secondary` outline 2px outside; pointer focus draws only the thicker focus border.",
     "Putting the caret back in the text (after a press on the field, Send, the banner close or `insertText`) never scrolls the page. The app's own `focus()` brings a field that is wholly off screen into view with a nearest, smooth scroll (instant under reduced motion).",
   ],

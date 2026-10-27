@@ -77,8 +77,13 @@ export const datePickerStyles = tv({
     // Calendar ↔ text input (Compose's display mode animation, enter side): the input rises
     // from below its own height, the calendar comes down 48px, both fading in, inside a
     // clipping view. Reduced motion keeps the fade.
+    // The view and the outgoing view's copy share one clipping cell; the copy's slot has no
+    // height, so only the new view sizes the picker.
+    modeStack:
+      'grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] overflow-hidden',
+    modeExit: 'pointer-events-none h-0 [grid-area:1/1]',
     modeView: [
-      'flex min-h-0 flex-1 flex-col overflow-hidden',
+      'flex min-h-0 flex-1 flex-col overflow-hidden [grid-area:1/1]',
       '[&>*]:[transition-property:translate,opacity]',
       '[&>*]:[transition-duration:var(--md-sys-motion-spring-spatial-default-duration),var(--md-sys-motion-spring-effects-default-duration)]',
       '[&>*]:[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing),var(--md-sys-motion-spring-effects-default-easing)]',

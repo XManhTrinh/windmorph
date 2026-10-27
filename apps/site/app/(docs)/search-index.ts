@@ -178,6 +178,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     summary: 'WCAG 2.2 AA, required names, keyboard behaviour and right-to-left.',
     href: '/accessibility',
     kind: 'guide',
+    keywords: ['RTL', 'right to left', 'right-to-left', 'bidi', 'WCAG', 'a11y'],
   },
   {
     title: 'Next.js',
@@ -215,7 +216,7 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
   {
     title: 'Windmorph Pro',
     summary:
-      'The paid components on top of the free core: what Pro includes, registering interest before it opens and using it beside the core.',
+      'Paid components on the free core, not on sale yet: what Pro includes, registering interest and using it beside the core.',
     href: '/pro',
     kind: 'guide',
     keywords: [
@@ -231,6 +232,8 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
       'waiting list',
       'early access',
       'component request',
+      'sponsor',
+      'support the project',
     ],
   },
   {
@@ -260,8 +263,8 @@ export const SUGGESTED_HREFS = [
 ] as const;
 
 /**
- * A component page's search entry. Its code names (the components it documents and its
- * hooks) and its distinctive prop names find it too, opening its API tab; `tabs` are the
+ * A component page's search entry. Its code names (the components it documents, its hooks
+ * and its other exports) and its distinctive prop names find it too, opening its API tab; `tabs` are the
  * tabs the page has.
  */
 export function componentSearchEntry(
@@ -273,6 +276,7 @@ export function componentSearchEntry(
     keywords?: string[];
     propsComponents: string[];
     hooks?: string[];
+    exports?: string[];
   },
   tabs: readonly ComponentTab[] = ['overview', 'api', 'accessibility', 'guidelines'],
   propNames: readonly string[] = [],
@@ -287,7 +291,7 @@ export function componentSearchEntry(
     kind: 'component',
     group: page.railGroup,
     keywords: page.keywords,
-    codeNames: [...page.propsComponents, ...(page.hooks ?? [])],
+    codeNames: [...page.propsComponents, ...(page.hooks ?? []), ...(page.exports ?? [])],
     ...(propNames.length > 0 && { propNames: [...propNames] }),
     ...(Object.keys(scopes).length > 0 && { propScopes: scopes }),
     tabHrefs,
@@ -426,6 +430,13 @@ export function searchPages(index: SearchIndex, query: string, limit = 12): Sear
   const rest = () => index.entries.filter((item) => !found.has(item.entry));
 
   for (const result of tabMatches(index, q)) add(result);
+  // A page titled with the whole query comes first, then one with it as a keyword ("pro" finds
+  // Windmorph Pro before Props table and Progress indicators, whose titles only start with it).
+  for (const item of rest()) if (item.title === q) add(pageResult(item.entry, terms));
+  for (const item of rest()) {
+    const at = item.keywords.indexOf(q);
+    if (at >= 0) add(pageResult(item.entry, terms, item.entry.keywords?.[at]));
+  }
   // Titles and keywords rank an exact match, then one at the start, then the rest ("menu" puts
   // Menu before FAB menu and Split button).
   for (const { item } of ranked(rest(), (item) => [item.title], q)) {

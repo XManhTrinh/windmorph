@@ -623,6 +623,23 @@ describe('Dialog full screen', () => {
     );
   }
 
+  it('disables its close button with closeDisabled', async () => {
+    render(
+      <DialogTrigger>
+        <Button>Crop photo</Button>
+        <Dialog fullScreen="always" closedBy="none">
+          <DialogHeader closeDisabled>Crop photo</DialogHeader>
+          <DialogContent>Photo</DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Crop photo' }));
+    const close = screen.getByRole('button', { name: 'Close' });
+    expect(close).toBeDisabled();
+    await userEvent.click(close);
+    expect(screen.getByRole('dialog', { name: 'Crop photo' })).toBeInTheDocument();
+  });
+
   it('fills the window with a header of close, headline and action', async () => {
     const onSave = vi.fn();
     render(<EditDialog fullScreen="always" onSave={onSave} />);

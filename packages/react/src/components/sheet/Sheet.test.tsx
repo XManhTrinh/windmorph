@@ -792,7 +792,8 @@ describe('SideSheet', () => {
       expect(root).toHaveAttribute('data-edge', 'start');
       const panel = () => screen.getByText('Body').closest('[data-slot="panel"]')!;
       expect(panel()).toHaveClass('border-e');
-      expect(panel().parentElement!.parentElement).toHaveClass('justify-start');
+      // The panel rides the root's inner edge, so the sheet slides in with its edge leading.
+      expect(panel().parentElement!.parentElement).toHaveClass('justify-end');
       // A standard sheet sits in the layout: no swipe, no touch-action of its own.
       expect(panel().className).not.toContain('touch-action');
       rerender(
@@ -801,6 +802,7 @@ describe('SideSheet', () => {
         </SideSheet>,
       );
       expect(panel()).toHaveClass('border-s');
+      expect(panel().parentElement!.parentElement).toHaveClass('justify-start');
       expect(screen.getByRole('dialog')).toHaveAttribute('data-edge', 'end');
     });
 

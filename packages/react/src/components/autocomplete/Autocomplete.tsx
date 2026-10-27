@@ -3,6 +3,7 @@
 import {
   useMemo,
   useRef,
+  type AriaAttributes,
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
@@ -28,8 +29,14 @@ import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { renderedDescription } from '../../utils/rendered-description';
 import { matchesSearch } from '../../utils/search';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  ariaFlag,
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { InputChip } from '../chip/Chip';
 import {
@@ -112,6 +119,8 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
 > &
   Pick<AriaComboBoxOptions<T, M>, 'id' | 'name' | 'form'> &
   Omit<WrapperRootDOMProps, keyof ComboBoxProps<T, M>> & {
+    /** The `<input>`'s id, for a `<label for>` or an error summary's link. */
+    id?: string;
     /** The container style, as `TextField`'s: a filled surface or an outline. @default "filled" */
     variant?: TextFieldVariant;
     /**
@@ -146,6 +155,15 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
     disabled?: boolean;
     /** The value can be read and copied but not changed; the menu doesn't open. @default false */
     readOnly?: boolean;
+    /**
+     * Read as `invalid` when that's left out, for a form library that sets the attribute, so
+     * the field shows its error state as well as announcing it.
+     */
+    'aria-invalid'?: AriaAttributes['aria-invalid'];
+    /** Read as `required` when that's left out, for a form library that sets the attribute. */
+    'aria-required'?: AriaAttributes['aria-required'];
+    /** Read as `readOnly` when that's left out, for a form library that sets the attribute. */
+    'aria-readonly'?: AriaAttributes['aria-readonly'];
     /** Decorative icon at the start, in a 48px box. */
     leadingIcon?: ReactNode;
     /**
@@ -229,10 +247,13 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     label,
     placeholder,
     supportingText,
-    invalid,
-    required,
+    invalid: invalidProp,
+    required: requiredProp,
     disabled = false,
-    readOnly = false,
+    readOnly: readOnlyProp,
+    'aria-invalid': ariaInvalid,
+    'aria-required': ariaRequired,
+    'aria-readonly': ariaReadonly,
     leadingIcon,
     errorIcon,
     clearable = false,
@@ -258,6 +279,9 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     );
   }
   const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
+  const invalid = invalidProp ?? ariaFlag(ariaInvalid);
+  const required = requiredProp ?? ariaFlag(ariaRequired);
+  const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly) ?? false;
   const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const stately = rest as Omit<ComboBoxProps<T, M>, RenamedProps>;
   const multiple = stately.selectionMode === 'multiple';
@@ -320,6 +344,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
     inputProps,
     listBoxProps,
     labelProps,
+    valueProps,
     descriptionProps,
     errorMessageProps,
     isInvalid,
@@ -501,7 +526,14 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
             </InputChip>
           ))}
           <input
+            {...pickDescriptionAria(rest)}
             {...inputProps}
+            aria-describedby={renderedDescription(inputProps['aria-describedby'], [
+              !supportingText && descriptionProps.id,
+              !(isInvalid && resolvedError) && errorMessageProps.id,
+              // React Aria's element for the chosen values, which the chips show instead.
+              valueProps.id,
+            ])}
             onKeyDown={(event) => {
               onKeyDown(event);
               inputProps.onKeyDown?.(event);

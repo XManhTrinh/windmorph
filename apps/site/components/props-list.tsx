@@ -68,7 +68,7 @@ function PropEntry({ item }: { item: PropItem }) {
       data-type={item.typeText}
       data-default={item.defaultText}
       data-required={item.required || undefined}
-      className="flex scroll-mt-20 flex-col gap-1 py-3"
+      className="flex scroll-mt-2 flex-col gap-1 py-3"
     >
       {/* Wide lists read the first line as one run of text; narrower ones (under a 42rem list)
           give the name, Required and the anchor a line, and the type and default the next. */}
@@ -229,7 +229,7 @@ function ComponentProps({ name, props, htmlAttributes }: ComponentPropsEntry) {
       <h3
         id={componentPropsId(name)}
         data-outline-label={name}
-        className="flex flex-wrap items-baseline gap-x-3 scroll-mt-20"
+        className="flex flex-wrap items-baseline gap-x-3 scroll-mt-2"
       >
         <code dir="ltr" className={`${PLAIN_CODE} text-title-large text-on-surface`}>
           {name}

@@ -69,13 +69,14 @@ export const select: ComponentAccessibility = {
     role: 'The field is a `button` with `aria-haspopup` (`listbox`, or `dialog` when `searchable`) and `aria-expanded`. The options are a `listbox` of `option`s, in `group`s under their headings when there are sections. A `searchable` menu is a `dialog` holding a search `combobox` (`aria-activedescendant`) over the listbox.',
     name: 'The field is named by its `label` (with a `*` when `required`) and its value; without a label, by `aria-label`. The listbox, the search dialog and the bottom sheet are named after the field. The search input is named "Search" (`labels.search`).',
     states:
-      'Selected or not on each option (`aria-selected`), `aria-multiselectable` with multiple selection, disabled options (`aria-disabled`), and invalid and required on the field.',
+      "Selected or not on each option (`aria-selected`), `aria-multiselectable` with multiple selection and disabled options (`aria-disabled`). The field is a button, which ARIA doesn't let carry `aria-invalid` or `aria-required`, so a required field says so with the `*` in its name, and an invalid one with its error text, in its description and announced as an alert.",
     notes: [
       'Supporting text is the field\'s description. An error message replaces it visually and is announced as an alert, while the supporting text stays in the description. An invalid field shows an error icon (`img`) named "Error" (`labels.error`).',
       "With `renderValue` the field shows what you render (a code, a flag) hidden from assistive tech, while screen readers still hear the chosen options' text.",
       'With several options chosen the field reads the first two and a count, "+3" (`labels.more`).',
       'An empty list shows a `status` that is announced: "No options" (`labels.empty`), or "No results" (`labels.noResults`) when a search matches nothing. While `loading`, the list ends in a `progressbar` named "Loading options" (`labels.loading`).',
       'Option icons, the check on chosen options, trailing text and the dropdown arrow are hidden from assistive tech.',
+      "An `aria-invalid` or `aria-required` a form library sets is read as `invalid` or `required` when those are left out. `aria-description` and the braille labels reach the field's button; the field sets its own popup attributes (`aria-haspopup`, `aria-expanded`, `aria-controls`).",
     ],
   },
   focus: [

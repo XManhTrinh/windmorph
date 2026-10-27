@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORY_COUNT,
@@ -14,6 +16,18 @@ describe('component catalog invariants', () => {
   it('every page has a railGroup that exists in RAIL_GROUPS', () => {
     for (const meta of COMPONENT_META) {
       expect(validIds.has(meta.railGroup), `${meta.slug} has unknown railGroup`).toBe(true);
+    }
+  });
+
+  it("names each export the search finds a page by on that page's content", () => {
+    for (const meta of COMPONENT_META) {
+      if (!meta.exports) continue;
+      const source = readFileSync(resolve(import.meta.dirname, `${meta.slug}.tsx`), 'utf8');
+      for (const name of meta.exports) {
+        expect(source, `${meta.slug} doesn't document ${name}`).toMatch(
+          new RegExp(`\\b${name}\\b`),
+        );
+      }
     }
   });
 
@@ -61,6 +75,23 @@ describe('component catalog invariants', () => {
     for (const meta of COMPONENT_META) {
       if (meta.playground === 'full') {
         expect(meta.propsComponents.length, `${meta.slug} needs a component`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("names a component's specs sizes as its size prop's values", () => {
+    const propsDir = resolve(process.cwd(), '.generated/props');
+    for (const meta of COMPONENT_META) {
+      const component = meta.propsComponents[0];
+      const file = component && resolve(propsDir, `${component}.json`);
+      if (!meta.specs?.sizes || !file || !existsSync(file)) continue;
+      const { props } = JSON.parse(readFileSync(file, 'utf8')) as {
+        props: { name: string; values?: string[] }[];
+      };
+      const values = props.find((prop) => prop.name === 'size')?.values;
+      if (!values) continue;
+      for (const size of meta.specs.sizes) {
+        expect(values, `${meta.slug} specs size "${size}"`).toContain(`"${size}"`);
       }
     }
   });

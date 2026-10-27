@@ -16,6 +16,7 @@ import { DocsRail, currentDestination } from '../../components/nav/docs-rail';
 import { DrawerNav } from '../../components/nav/drawer-nav';
 import { Footer } from '../../components/footer';
 import { PageOutline } from '../../components/page-outline';
+import { usePlaceholderLinks } from '../../components/placeholder-links';
 import { DocsSearch } from './docs-search';
 import {
   ColorModeButton,
@@ -56,6 +57,7 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 export function DocsShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
+  usePlaceholderLinks();
   // On a guide or component page the panel is pinned in the layout, so the content column
   // is inset past BOTH the rail (96px) and the panel (272px); elsewhere just past the rail.
   const pinnedPanel = currentDestination(pathname) !== null;

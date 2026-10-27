@@ -102,8 +102,14 @@ export default async function CustomisationPage() {
         <ol className="list-decimal ps-6 text-body-large text-on-surface-variant">
           <li>
             <span className="text-on-surface">Tokens via CSS</span> — set{' '}
-            <InlineCode>--md-sys-*</InlineCode> tokens on <InlineCode>:root</InlineCode> for every
-            theme, or on <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one.
+            <InlineCode>--md-sys-*</InlineCode> tokens on <InlineCode>:root</InlineCode> for the
+            page and its overlays, on <InlineCode>:root, [data-theme]</InlineCode> for every theme
+            (subtrees a <InlineCode>ThemeScope</InlineCode> re-themes too), or on{' '}
+            <InlineCode>[data-theme=&quot;ocean&quot;]</InlineCode> for one (see{' '}
+            <a className="text-primary underline" href="/theming#overriding-tokens">
+              Overriding tokens
+            </a>
+            ).
           </li>
           <li>
             <span className="text-on-surface">Component tokens</span> — set M3&apos;s{' '}
@@ -172,8 +178,9 @@ export default async function CustomisationPage() {
             resolves where it&apos;s declared: on <InlineCode>:root</InlineCode> alone,{' '}
             <InlineCode>var(--md-sys-color-secondary-container)</InlineCode> would keep the root
             theme&apos;s colour inside a dark or differently themed{' '}
-            <InlineCode>ThemeScope</InlineCode>. ThemeScopes and overlays carry{' '}
-            <InlineCode>data-theme</InlineCode>, so the value resolves again in each.
+            <InlineCode>ThemeScope</InlineCode>. A ThemeScope or overlay that changes the theme,
+            mode or contrast carries <InlineCode>data-theme</InlineCode>, so the value resolves
+            again there.
           </li>
           <li>
             <span className="text-on-surface">A literal value</span> (

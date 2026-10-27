@@ -189,4 +189,14 @@ test.describe('From Compose', () => {
     );
     expect(overflow).toBeLessThanOrEqual(0);
   });
+
+  test('writes each mapped prop as one code span, never an empty one', async ({ page }) => {
+    await gotoReady(page, '/from-compose');
+    const empty = await page.evaluate(
+      () => [...document.querySelectorAll('main code')].filter((code) => !code.textContent).length,
+    );
+    expect(empty).toBe(0);
+    const row = page.getByRole('row').filter({ hasText: 'TriStateCheckbox' });
+    await expect(row.locator('code', { hasText: /^indeterminate$/ })).toHaveCount(1);
+  });
 });

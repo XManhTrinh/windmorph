@@ -29,6 +29,7 @@ import {
 } from '../../primitives/Field';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
+import { renderedDescription } from '../../utils/rendered-description';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { textFieldStyles, type TextFieldVariant } from './text-field-styles';
@@ -106,7 +107,17 @@ interface TextFieldOwnProps
     // The attributes that describe the input go to it, with React Aria's `aria-controls`,
     // `aria-haspopup`, `aria-autocomplete` and `aria-activedescendant`: a field that opens its
     // own suggestions can say so.
-    Pick<AriaAttributes, 'aria-expanded' | 'aria-required' | 'aria-invalid' | 'aria-readonly'> {
+    Pick<
+      AriaAttributes,
+      | 'aria-expanded'
+      | 'aria-required'
+      | 'aria-invalid'
+      | 'aria-readonly'
+      | 'aria-multiline'
+      | 'aria-placeholder'
+    > {
+  /** The `<input>`'s (or `<textarea>`'s) id, for a `<label for>` or an error summary's link. */
+  id?: string;
   /** The container style: a filled surface or an outline. @default "filled" */
   variant?: TextFieldVariant;
   /**
@@ -361,7 +372,10 @@ export function TextField(props: TextFieldProps) {
     [
       prefix ? prefixId : null,
       suffix ? suffixId : null,
-      inputProps['aria-describedby'],
+      renderedDescription(inputProps['aria-describedby'], [
+        !supportingText && descriptionProps.id,
+        !showError && errorMessageProps.id,
+      ]),
       showCounter ? counterId : null,
     ]
       .filter(Boolean)

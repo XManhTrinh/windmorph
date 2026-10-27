@@ -89,6 +89,7 @@ export const datePicker: ComponentAccessibility = {
     notes: [
       'The headline and the month label are `aria-live="polite"`, so a new selection and a new month are announced.',
       'The locale\'s format ("MM/DD/YYYY") is the field\'s placeholder and helper text.',
+      '`DateField`\'s `aria-describedby` and `aria-details` describe its input after the helper or error text, for a hint such as "After the start date". An `aria-invalid`, `aria-required` or `aria-readonly` a form library sets is read as `invalid`, `required` or `readOnly` when those are left out.',
       'The drop-down arrows are decorative (`aria-hidden`), and so are the empty cells around each month in the scrolling range picker.',
     ],
   },

@@ -182,7 +182,11 @@ export default async function MotionPage() {
           In JS, <InlineCode>useM3Spring(family, speed)</InlineCode> returns a Motion spring for the
           active scheme (read from <InlineCode>useThemeScope</InlineCode>);{' '}
           <InlineCode>getM3Spring(scheme, family, speed)</InlineCode> takes an explicit scheme.
-          Speed defaults to <InlineCode>default</InlineCode>.
+          Speed defaults to <InlineCode>default</InlineCode>. A transition that continues a gesture
+          (a sheet released mid-drag) starts with the gesture&apos;s speed:{' '}
+          <InlineCode>springWithVelocityToLinearEasing</InlineCode> from{' '}
+          <InlineCode>@windmorph/react/primitives</InlineCode> gives that spring as a CSS{' '}
+          <InlineCode>linear()</InlineCode> easing and its settle duration.
         </p>
         <CodeBlock code={HOOK_SNIPPET} html={hookHtml} lang="tsx" title="useM3Spring" />
         <p className="text-body-large text-on-surface-variant">
@@ -204,11 +208,6 @@ export default async function MotionPage() {
           Slides, size and shape changes, morphs, rotations and travelling indicators happen at
           once; a surface that enters or leaves fades instead. State changes stay visible: colours
           and opacity still fade on the effects springs.
-        </p>
-        <p className="text-body-large text-on-surface-variant">
-          When one panel or row opens as another folds (an accordion, a list&apos;s nested rows),
-          the folding one goes at once and the opening one appears at full height and fades in, so
-          the content below shifts once, and not at all when the two are the same height.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Essential motion keeps working: indeterminate progress and loading indicators, which show

@@ -40,6 +40,7 @@ export const autocomplete: ComponentAccessibility = {
       "When the menu opens or the matches change, the number of options is announced; on Apple devices the highlighted option and a new choice are announced too. These live-region messages are React Aria's own, in the app's locale.",
       'An empty list shows a `status` that is announced: "No results" (`labels.noResults`). While `loading`, the list ends in a `progressbar` named "Loading options" (`labels.loading`).',
       'While the menu is open, only the input and the menu are exposed to assistive tech; close it with Escape to reach the chips.',
+      'An `aria-invalid`, `aria-required` or `aria-readonly` a form library sets is read as `invalid`, `required` or `readOnly` when those are left out, so the field looks the way it is announced. `aria-description` and the braille labels reach the input.',
       'Supporting text is the field\'s description. An error message replaces it visually and is announced as an alert, and an invalid field shows an error icon (`img`) named "Error" (`labels.error`).',
     ],
   },

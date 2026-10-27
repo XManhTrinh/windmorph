@@ -20,6 +20,17 @@ export interface HookDocFile {
   returns: { type: string; description?: string; fields: PropsRecord[] };
 }
 
+/**
+ * A data type documented on a component's API tab (an item a collection prop takes:
+ * `MediaViewerItem`), field by field.
+ */
+export interface TypeDocFile {
+  displayName: string;
+  kind: 'type';
+  description: string;
+  fields: PropsRecord[];
+}
+
 /** The flags that print a type the way a reader writes it, without import paths. */
 const TYPE_FLAGS =
   ts.TypeFormatFlags.NoTruncation |
@@ -212,4 +223,48 @@ export function documentHooksWith(entries: string[], options: ts.CompilerOptions
     }
   }
   return hooks;
+}
+
+/**
+ * Documents those of the named types (interfaces or aliases of an object) the given entry
+ * files export, with each field's type, JSDoc and `@default`; the others are another
+ * package's. A name exported as something else, or with no fields, is an error.
+ */
+export function documentTypesWith(
+  entries: string[],
+  options: ts.CompilerOptions,
+  names: readonly string[],
+): TypeDocFile[] {
+  if (names.length === 0) return [];
+  const program = ts.createProgram({ rootNames: entries, options });
+  const checker = program.getTypeChecker();
+  const exported = new Map<string, ts.Symbol>();
+  for (const entry of entries) {
+    const source = program.getSourceFile(entry);
+    const moduleSymbol = source && checker.getSymbolAtLocation(source);
+    if (!moduleSymbol) throw new Error(`cannot read the exports of ${entry}`);
+    for (const symbol of checker.getExportsOfModule(moduleSymbol)) {
+      exported.set(
+        symbol.getName(),
+        symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol,
+      );
+    }
+  }
+  return names.flatMap((name) => {
+    const symbol = exported.get(name);
+    if (!symbol) return [];
+    if (!(symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.TypeAlias))) {
+      throw new Error(`${name} isn't an exported type`);
+    }
+    const fields = objectFields(checker.getDeclaredTypeOfSymbol(symbol), checker, '');
+    if (fields.length === 0) throw new Error(`${name} has no fields to document`);
+    return [
+      {
+        displayName: name,
+        kind: 'type' as const,
+        description: docText(symbol.getDocumentationComment(checker)),
+        fields,
+      },
+    ];
+  });
 }

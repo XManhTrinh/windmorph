@@ -327,6 +327,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     notControlled: {
       deselectable:
         "Applies only to a menu with `selectionMode`, which the preview's action menu doesn't have; the Selection example shows it.",
+      disabledKeys:
+        "An Iterable of item keys; the Basic example disables one, which stays focusable but can't be chosen.",
     },
     enumOptions: {
       placement: ['bottom-start', 'bottom-end', 'top-start', 'top-end', 'start', 'end'],

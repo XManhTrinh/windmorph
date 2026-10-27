@@ -227,6 +227,54 @@ test.describe('Extended FAB expand motion', () => {
     expect(series.at(-1)!).toBeCloseTo(expanded, 0);
   });
 
+  // Re-audit 2026-10-21: collapsed, the large FAB's content is 8px narrower than its 96px
+  // minimum, so its icon moved from 28 to 32px in the frame the minimum took over. Each step
+  // is read per usual frame of animation time it covers (by the frames' timestamps), since a
+  // loaded runner skips frames and a step over a stall is several frames of the spring (CI
+  // read 3.8px that way, 2026-10-27); a 4px jump in one frame still fails.
+  test('the large icon slides to the centre with the width, never jumping', async ({ page }) => {
+    await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });
+    const iconOffsets = (act: () => Promise<void>) => {
+      const sampled = page.evaluate(
+        () =>
+          new Promise<{ time: number; offset: number }[]>((resolve) => {
+            const fab = document.querySelector('[data-testid="extended-fab"]')!;
+            const icon = fab.querySelector('[aria-hidden="true"]')!;
+            const out: { time: number; offset: number }[] = [];
+            const start = performance.now();
+            const tick = (time: number) => {
+              out.push({
+                time,
+                offset: icon.getBoundingClientRect().left - fab.getBoundingClientRect().left,
+              });
+              if (performance.now() - start < 700) requestAnimationFrame(tick);
+              else resolve(out);
+            };
+            requestAnimationFrame(tick);
+          }),
+      );
+      return act().then(() => sampled);
+    };
+    const steps = (series: { time: number; offset: number }[]) => {
+      const gaps = series.slice(1).map((frame, i) => frame.time - series[i]!.time);
+      const usual = gaps.toSorted((a, b) => a - b)[Math.floor(gaps.length / 2)]!;
+      return series
+        .slice(1)
+        .map(
+          (frame, i) => Math.abs(frame.offset - series[i]!.offset) / Math.max(1, gaps[i]! / usual),
+        );
+    };
+    const collapsing = await iconOffsets(() =>
+      page.getByRole('button', { name: 'Collapse' }).click(),
+    );
+    expect(collapsing[0]!.offset).toBeCloseTo(28, 0);
+    expect(collapsing.at(-1)!.offset).toBeCloseTo(32, 0);
+    expect(Math.max(...steps(collapsing))).toBeLessThan(2);
+    const expanding = await iconOffsets(() => page.getByRole('button', { name: 'Expand' }).click());
+    expect(expanding.at(-1)!.offset).toBeCloseTo(28, 0);
+    expect(Math.max(...steps(expanding))).toBeLessThan(2);
+  });
+
   test('under reduced motion it expands at once', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-fab--extended-collapse', {}, { size: 'lg' });

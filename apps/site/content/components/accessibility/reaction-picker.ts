@@ -48,7 +48,7 @@ export const reactionPicker: ComponentAccessibility = {
     role: 'The button is a toggle `button`. The row is a `toolbar` of `button`s.',
     name: 'The button is named by the reaction it shows: the picked one, or the default option. Each option is named by its `label`; the row by `labels.reactions` ("Reactions").',
     states:
-      'The button is pressed or not pressed (`aria-pressed`), and describes how to open the row with `labels.openPicker` ("Press and hold for more reactions").',
+      'The button is pressed or not pressed (`aria-pressed`), expanded or collapsed (`aria-expanded`, with `aria-controls` pointing at the row while it shows), and describes how to open the row with `labels.openPicker` ("Press and hold, or press Alt + Arrow Down, for more reactions").',
     notes: [
       "The icons, and the name shown above the active option on the core's plain tooltip surface, are hidden from assistive tech (`aria-hidden`); the option's name already says it.",
       'In the row, the picked reaction is pressed (`aria-pressed="true"`) as well as filled with `secondary-container`.',

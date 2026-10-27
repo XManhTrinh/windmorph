@@ -67,7 +67,7 @@ export function controlledForm(
 
 /** Handlers React Aria names after something other than the prop (`value` → `onChange`). */
 const HANDLER_NAMES: Record<string, string[]> = {
-  value: ['onValueChange', 'onChange'],
+  value: ['onChange'],
   selectedKey: ['onSelectionChange'],
   selectedKeys: ['onSelectionChange'],
   inputValue: ['onInputChange'],
@@ -217,7 +217,7 @@ export function emitSnippet(input: EmitInput): string {
       const typeArgument = stateTypeArgument(input.component, name, value, input.propTypes?.[name]);
       state.push({ name, hook: `useState${typeArgument}(${literal(value)})` });
       const handler = changeHandlerOf(name, input.propNames ?? [])!;
-      // `onChange` hands over the new value as `onValueChange` does (React Aria's fields).
+      // `onChange` hands over the new value (React Aria's fields).
       attrs.push(`${name}={${name}}`, `${handler}={set${capitalize(name)}}`);
       continue;
     }

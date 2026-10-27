@@ -86,9 +86,16 @@ export default function ApiConventionsPage() {
           </Rule>
           <Rule>
             Overlays: <InlineCode>open</InlineCode> / <InlineCode>defaultOpen</InlineCode> /{' '}
-            <InlineCode>onOpenChange</InlineCode>. Several choices:{' '}
+            <InlineCode>onOpenChange</InlineCode>. Several choices in a group or collection (
+            <InlineCode>ButtonGroup</InlineCode>, <InlineCode>ChipSet</InlineCode>,{' '}
+            <InlineCode>List</InlineCode>, <InlineCode>Menu</InlineCode>):{' '}
             <InlineCode>selectedKeys</InlineCode> / <InlineCode>defaultSelectedKeys</InlineCode> /{' '}
-            <InlineCode>onSelectionChange</InlineCode>.
+            <InlineCode>onSelectionChange</InlineCode>. A field&apos;s choice is its{' '}
+            <InlineCode>value</InlineCode> / <InlineCode>defaultValue</InlineCode> /{' '}
+            <InlineCode>onChange</InlineCode>, several keys with{' '}
+            <InlineCode>selectionMode=&quot;multiple&quot;</InlineCode> (
+            <InlineCode>Select</InlineCode>, <InlineCode>Autocomplete</InlineCode>), as{' '}
+            <InlineCode>Tabs</InlineCode> and a radio <InlineCode>List</InlineCode> report theirs.
           </Rule>
           <Rule>
             Ranges are <InlineCode>min</InlineCode> and <InlineCode>max</InlineCode>, as on an HTML
@@ -112,8 +119,9 @@ export default function ApiConventionsPage() {
           </Rule>
           <Rule>
             An item of a collection is activated with <InlineCode>onAction(key)</InlineCode> (
-            <InlineCode>List</InlineCode>, <InlineCode>Menu</InlineCode>,{' '}
-            <InlineCode>Carousel</InlineCode>).
+            <InlineCode>List</InlineCode>, <InlineCode>Menu</InlineCode>); a{' '}
+            <InlineCode>Carousel</InlineCode>&apos;s items have no keys, so its{' '}
+            <InlineCode>onAction(index)</InlineCode> gets the item&apos;s index.
           </Rule>
           <Rule>
             The end of a motion is <InlineCode>onOpened</InlineCode> /{' '}
@@ -160,7 +168,10 @@ export default function ApiConventionsPage() {
             Sizes share one scale, <InlineCode>xs</InlineCode> to <InlineCode>xl</InlineCode> (a FAB
             adds <InlineCode>default</InlineCode>). M3&apos;s named variants, such as a top app
             bar&apos;s <InlineCode>small</InlineCode> or <InlineCode>large</InlineCode>, are{' '}
-            <InlineCode>variant</InlineCode>s, not sizes.
+            <InlineCode>variant</InlineCode>s, not sizes. The indicators M3 sizes freely,{' '}
+            <InlineCode>LoadingIndicator</InlineCode> and a circular{' '}
+            <InlineCode>ProgressIndicator</InlineCode>, take <InlineCode>size</InlineCode> as a
+            number of px.
           </Rule>
           <Rule>
             A colour choice is <InlineCode>color</InlineCode>, named after an M3 colour role.

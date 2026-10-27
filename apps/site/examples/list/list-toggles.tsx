@@ -18,7 +18,7 @@ export function ListToggles() {
           control="switch"
           checked={searchable}
           onCheckedChange={setSearchable}
-          supportingText="Search engines like Google can list your profile"
+          supportingText="Search engines can list your profile"
         >
           Show my profile in search engines
         </ListItem>

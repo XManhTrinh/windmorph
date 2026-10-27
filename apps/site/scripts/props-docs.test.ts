@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { ComponentPropsFile, PropsRecord } from './generate-props';
+import { REACT_ARIA_RENAMES, type ComponentPropsFile, type PropsRecord } from './generate-props';
 
 /**
  * Every public prop of every component, the core's and Pro's, is documented: the generated
@@ -134,6 +134,19 @@ function describePackage(
           allow.noEnumDefault,
         ),
       ).toEqual([]);
+    });
+
+    it("names the library's props, never React Aria's, in every row", () => {
+      const renamed = new RegExp(`\\b(?:${Object.keys(REACT_ARIA_RENAMES).join('|')})\\b`);
+      expect(
+        gaps((prop) => renamed.test(`${prop.description ?? ''} ${prop.type}`) && !prop.keys, {}),
+      ).toEqual([]);
+    });
+
+    it('never says disabled items cannot be focused', () => {
+      expect(gaps((prop) => /cannot be [^.]*\bfocused\b/.test(prop.description ?? ''), {})).toEqual(
+        [],
+      );
     });
 
     it('lists the keys of every labels and classNames prop', () => {

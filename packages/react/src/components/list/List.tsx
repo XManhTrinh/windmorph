@@ -401,14 +401,14 @@ interface ListOwnProps extends RootDOMProps {
   disabledKeys?: Iterable<Key>;
   /**
    * The selected item of a radio list (Compose's single-selection `ListItem`): with `value`,
-   * `defaultValue` or `onValueChange`, the list is a radio group whose items are radio
+   * `defaultValue` or `onChange`, the list is a radio group whose items are radio
    * buttons, each with a `value`.
    */
   value?: string | null;
   /** The radio list's initially selected item value (uncontrolled). */
   defaultValue?: string;
   /** Called with the chosen item's value when a radio list's selection changes. */
-  onValueChange?: (value: string) => void;
+  onChange?: (value: string) => void;
   /** The form field name of a radio list. */
   name?: string;
   /** A radio list needs a choice before its form submits. @default false */
@@ -514,7 +514,7 @@ export function List({ density, ...props }: ListProps) {
 
 const RADIO_ITEM_ERROR =
   '[@windmorph/react] List: every item of a radio list (one with value, defaultValue or ' +
-  'onValueChange) needs a value, and none can have a control or an href.';
+  'onChange) needs a value, and none can have a control or an href.';
 
 const CONTROL_ERROR =
   "[@windmorph/react] List: switch and checkbox items (control) can't be in a list with " +
@@ -536,7 +536,7 @@ function ListBody(props: ListProps) {
   if (
     props.value !== undefined ||
     props.defaultValue !== undefined ||
-    props.onValueChange !== undefined
+    props.onChange !== undefined
   ) {
     return <RadioList {...props} entries={entries} />;
   }
@@ -1929,7 +1929,7 @@ function RadioList({
   ref,
   value,
   defaultValue,
-  onValueChange,
+  onChange,
   name,
   required,
   disabled,
@@ -1948,7 +1948,7 @@ function RadioList({
     'aria-labelledby': labelledBy,
     value,
     defaultValue,
-    onChange: onValueChange,
+    onChange,
     name,
     isRequired: required,
     isDisabled: disabled,

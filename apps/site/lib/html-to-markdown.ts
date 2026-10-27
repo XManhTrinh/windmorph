@@ -167,8 +167,43 @@ class Converter {
         return alt && src ? `![${alt}](${this.url(src)})` : '';
       }
       default:
-        return children();
+        // A block written on one line (in a list item or a table cell) keeps its parts apart.
+        return BLOCK_TAGS.has(tag) || isBlock(node)
+          ? this.flow([...node.childNodes], tag)
+          : children();
     }
+  }
+
+  /**
+   * Nodes written on one line, as a list item's or a table cell's content must be: runs of
+   * inline content stay as they are, and each block becomes a sentence of its own, so a
+   * card's title, its list and its note don't run together. A list's items are joined with
+   * semicolons.
+   */
+  private flow(nodes: Node[], tag?: string): string {
+    const pieces: string[] = [];
+    let run = '';
+    const flush = () => {
+      const text = run.trim();
+      if (text) pieces.push(text);
+      run = '';
+    };
+    for (const node of nodes) {
+      if (isElement(node) && !isSkipped(node) && isBlock(node)) {
+        flush();
+        const text = this.inline(node).trim();
+        if (text) pieces.push(text);
+      } else {
+        run += this.inline(node);
+      }
+    }
+    flush();
+    if (tag === 'ul' || tag === 'ol') return pieces.join('; ');
+    return pieces
+      .map((piece, index) =>
+        index < pieces.length - 1 && !/[.!?:;,]$/.test(piece) ? `${piece}.` : piece,
+      )
+      .join(' ');
   }
 
   private heading(element: Element, level: number): string {
@@ -192,10 +227,7 @@ class Converter {
             text.push(child);
           }
         }
-        const line = text
-          .map((child) => this.inline(child))
-          .join('')
-          .trim();
+        const line = this.flow(text);
         return [`${indent}${marker}${line}`, ...nested].join('\n');
       })
       .join('\n');

@@ -2,7 +2,7 @@ import { Switch } from '@windmorph/react';
 
 /**
  * A switch toggles a single setting on or off. It takes its accessible name from its label
- * `children`; use `defaultSelected` (uncontrolled) or `selected` / `onSelectedChange`.
+ * `children`; use `defaultChecked` (uncontrolled) or `checked` / `onCheckedChange`.
  */
 export function SwitchBasic() {
   return (

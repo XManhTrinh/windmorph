@@ -72,6 +72,14 @@ const CONVENTIONS: { compose: string; windmorph: string; note: string }[] = [
   },
 ];
 
+/**
+ * A value written as code: whole when it is plain (`expanded`), as written when it marks its
+ * own code spans (`` `value`, `onChange` ``), which wrapping again would turn inside out.
+ */
+function asCode(value: string): string {
+  return value.includes('`') ? value : `\`${value}\``;
+}
+
 interface Row {
   slug: string;
   title: string;
@@ -95,7 +103,7 @@ function Params({ mapping }: { mapping: ComposeMapping }) {
     <ul className="flex flex-col gap-1">
       {mapping.params.map((param) => (
         <li key={param.compose}>
-          <CodeText text={`\`${param.compose}\``} /> → <CodeText text={`\`${param.windmorph}\``} />
+          <CodeText text={asCode(param.compose)} /> → <CodeText text={asCode(param.windmorph)} />
           {param.note && (
             <>
               {': '}
@@ -132,12 +140,12 @@ function MappingTable({ rows, caption }: { rows: Row[]; caption: string }) {
                 className="border-t border-outline-variant align-top"
               >
                 <th scope="row" className="px-4 py-3 text-start text-body-medium text-on-surface">
-                  <CodeText text={`\`${mapping.composable}\``} />
+                  <CodeText text={asCode(mapping.composable)} />
                 </th>
                 <td className="px-4 py-3 text-on-surface-variant">
                   <div className="flex flex-col gap-2">
                     <span>
-                      <CodeText text={`\`${mapping.component}\``} /> ·{' '}
+                      <CodeText text={asCode(mapping.component)} /> ·{' '}
                       <a href={componentTabHref(slug)} className={LINK}>
                         {title}
                       </a>
@@ -155,15 +163,16 @@ function MappingTable({ rows, caption }: { rows: Row[]; caption: string }) {
           </tbody>
         </table>
       </div>
-      <ul aria-label={caption} className="flex flex-col gap-3 medium:hidden">
+      {/* The table's rows again as cards for phones: the Markdown twin keeps the table only. */}
+      <ul aria-label={caption} data-markdown="skip" className="flex flex-col gap-3 medium:hidden">
         {rows.map(({ slug, title, mapping }) => (
           <li key={`${slug}-${mapping.composable}`}>
             <Card variant="outlined" className="gap-2 p-4 text-body-medium text-on-surface-variant">
               <p className="text-title-small text-on-surface">
-                <CodeText text={`\`${mapping.composable}\``} />
+                <CodeText text={asCode(mapping.composable)} />
               </p>
               <p>
-                → <CodeText text={`\`${mapping.component}\``} /> ·{' '}
+                → <CodeText text={asCode(mapping.component)} /> ·{' '}
                 <a href={componentTabHref(slug)} className={LINK}>
                   {title}
                 </a>
@@ -240,10 +249,10 @@ function ComposeTokenTable({ groups }: { groups: TokenGroup[] }) {
               {tokens.map(({ compose, name }) => (
                 <tr key={name} className="border-t border-outline-variant align-top">
                   <th scope="row" className="px-4 py-3 text-start text-body-medium text-on-surface">
-                    <CodeText text={`\`${compose}\``} />
+                    <CodeText text={asCode(compose)} />
                   </th>
                   <td className="px-4 py-3 text-on-surface-variant">
-                    <CodeText text={`\`${name}\``} />
+                    <CodeText text={asCode(name)} />
                   </td>
                 </tr>
               ))}

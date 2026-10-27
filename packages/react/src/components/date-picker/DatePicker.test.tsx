@@ -180,7 +180,7 @@ describe('DatePicker', () => {
   // M3: the modal date input reads "Enter date"; switching modes animates the new view in.
   it('titles the input mode "Enter date" and animates only a mode switch', async () => {
     const { container, rerender } = render(<DatePicker defaultValue={march} />);
-    const view = () => container.querySelector('[data-mode] > div:last-child')!;
+    const view = () => container.querySelector('[data-mode] > div:last-child > div:first-child')!;
     expect(view()).not.toHaveAttribute('data-enter');
     await userEvent.click(screen.getByRole('button', { name: 'Switch to text input mode' }));
     expect(screen.getByText('Enter date')).toHaveClass('text-label-large');
@@ -190,6 +190,33 @@ describe('DatePicker', () => {
     expect(view()).toHaveAttribute('data-enter', 'calendar');
     rerender(<DateRangePicker defaultMode="input" labels={{ inputTitle: 'Type the dates' }} />);
     expect(screen.getByText('Type the dates')).toBeInTheDocument();
+  });
+
+  it('fades and slides the outgoing view away, as a still copy no one can reach', async () => {
+    const computed = window.getComputedStyle;
+    // jsdom resolves no motion tokens: give the copy's transitions their durations.
+    const spy = vi.spyOn(window, 'getComputedStyle').mockImplementation((element, pseudo) =>
+      element instanceof HTMLElement && element.style.transition
+        ? ({
+            ...computed(element, pseudo),
+            transitionDuration: '0.2s, 0.15s',
+          } as CSSStyleDeclaration)
+        : computed(element, pseudo),
+    );
+    const { container } = render(<DatePicker defaultValue={march} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to text input mode' }));
+    const slot = container.querySelector('[data-mode] > div:last-child > div:last-child')!;
+    expect(slot).toHaveAttribute('aria-hidden', 'true');
+    expect(slot).toHaveAttribute('inert');
+    const copy = slot.firstElementChild as HTMLElement;
+    expect(copy.querySelector('[role="grid"]')).not.toBeNull();
+    expect(copy.querySelector('[id]')).toBeNull();
+    expect(copy.style.opacity).toBe('0');
+    expect(copy.style.translate).toBe('0 -48px');
+    // Only the new view is reachable.
+    expect(screen.queryByRole('grid')).toBeNull();
+    await waitFor(() => expect(slot).toBeEmptyDOMElement());
+    spy.mockRestore();
   });
 
   it('says when a typed date is out of range', async () => {

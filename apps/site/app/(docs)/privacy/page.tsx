@@ -21,6 +21,9 @@ function Section({ id, title, children }: { id: string; title: string; children:
   );
 }
 
+/** When this notice last changed, as shown at its top (ISO date). */
+const LAST_UPDATED = '2026-10-24';
+
 const EMAIL_LINK = (
   <a href={`mailto:${DATA_CONTROLLER.email}`} className={LINK}>
     {DATA_CONTROLLER.email}
@@ -42,6 +45,9 @@ export default function PrivacyPage() {
           register interest in Windmorph Pro. This page says what that form collects and what
           happens to it.
         </p>
+        <p className="text-body-medium text-on-surface-variant">
+          Last updated: <time dateTime={LAST_UPDATED}>24 October 2026</time>
+        </p>
       </header>
 
       <Section id="who" title="Who is responsible">
@@ -59,26 +65,35 @@ export default function PrivacyPage() {
             team size), to decide what to build next.
           </li>
           <li>Which product and page the form was on, to tell the answers apart.</li>
+          <li>
+            Your IP address and browser details (its user agent and the page you sent the form
+            from), which your browser sends to Loops with the form, to deliver it and to limit
+            abuse, such as too many sign-ups from one address.
+          </li>
         </ul>
         <p className={TEXT}>
-          You get one email to confirm your address; nothing else is sent until you do. Every email
+          A new address gets one email to confirm it; nothing else is sent until you do. Every email
           has a link to unsubscribe. We rely on your consent, which you can withdraw at any time.
         </p>
       </Section>
 
       <Section id="processor" title="Who processes it">
         <p className={TEXT}>
-          The form sends your answers straight to Loops (loops.so), the email service that keeps the
-          list and sends the emails. Loops is in the United States and processes the data for us
-          under its data-protection agreement. We don&apos;t sell or share your data with anyone
+          Your browser sends the form straight to Loops (loops.so), the email service that keeps the
+          list and sends the emails, and processes the data for us under its data-processing
+          agreement. Loops is in the United States, so your data is transferred there, under the
+          safeguards that agreement provides: the standard contractual clauses (with the UK&apos;s
+          addendum to them for data from the UK) or, while Loops is certified, the EU–US Data
+          Privacy Framework and its UK Extension. We don&apos;t sell or share your data with anyone
           else.
         </p>
       </Section>
 
       <Section id="retention" title="How long we keep it">
         <p className={TEXT}>
-          Until you unsubscribe, or one year after the last email about a product launch, whichever
-          comes first. Then your address and answers are deleted.
+          We delete your address and answers within 30 days of you unsubscribing or asking us to,
+          and one year after the last email about a product launch at the latest. An address that is
+          never confirmed is deleted 30 days after the form was sent.
         </p>
       </Section>
 
@@ -95,9 +110,10 @@ export default function PrivacyPage() {
         <p className={TEXT}>
           The site&apos;s hosting provider keeps access logs (such as IP addresses and the pages
           requested) to run and secure the site. The site has no analytics and no tracking cookies.
-          It remembers your display settings (theme, mode, text direction, package manager) and
-          recent searches in a cookie and your browser&apos;s storage, read only by the pages in
-          your browser. The form stores nothing in your browser.
+          It remembers the display settings you change (theme, mode, text direction, package
+          manager) and your recent searches, in a cookie and your browser&apos;s storage, read only
+          by the pages in your browser. Nothing is stored until you change a setting or search. The
+          form stores nothing in your browser.
         </p>
       </Section>
     </article>

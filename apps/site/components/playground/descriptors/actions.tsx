@@ -59,7 +59,8 @@ const PENDING_INDICATOR = {
 
 /** A button's `value`, besides {@link NO_VISIBLE_EFFECT}. */
 const SELECTION_VALUE = {
-  value: 'Only identifies the button in a selection group; nothing the preview shows.',
+  value:
+    "Only the value a submit button sends with its form, or a toggle's key in a selection group; nothing the preview shows.",
 };
 
 /** The reaction picker's options, live and as the snippet writes them. */
@@ -314,6 +315,9 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     notControlled: {
       leadingLabel:
         'Names an icon-only leading button, which has no label children; the Icon only example shows it.',
+      type: 'Only how the leading button acts in a form (`submit`, `reset`); nothing the preview shows.',
+      target: "Only where the leading link opens; the preview's link goes nowhere.",
+      rel: "Only the leading link's relationship to its page; nothing the preview shows.",
     },
     codeSlots: { labels: "{ menu: 'More send options' }" },
     importMembers: ['Menu', 'MenuItem'],
@@ -368,6 +372,7 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     initialState: { size: 'default', color: 'primary-container' },
     notControlled: {
       ...NO_VISIBLE_EFFECT,
+      value: 'Only the value a submit FAB sends with its form; nothing the preview shows.',
       icon: 'Optional on the extended FAB only, and M3 pairs its label with an icon, so the preview always shows one; a text-only extended FAB just leaves it out.',
     },
     codeSlots: {
@@ -470,15 +475,23 @@ export const ACTIONS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   'reaction-summary': {
     component: 'ReactionSummary',
     importFrom: '@windmorph/react-pro',
-    render: ({ total, ...props }) =>
+    // `onPress` makes the summary a button (an assist chip in the `chip` variant).
+    render: ({ total, onPress, ...props }) =>
       createElement(ReactionSummaryAny, {
         ...props,
         items: SUMMARY_ITEMS,
         total: typeof total === 'number' ? total : 0,
+        ...(onPress === true && { onPress: () => {} }),
       }),
-    defaultProps: { variant: 'stacked', size: 'md', max: 3 },
-    surfacedProps: ['variant', 'size', 'total', 'max'],
-    initialState: { total: 128 },
+    defaultProps: { variant: 'stacked', size: 'md', max: 3, onPress: false },
+    surfacedProps: ['variant', 'size', 'total', 'max', 'onPress'],
+    initialState: { total: 128, onPress: true },
+    controlKinds: { onPress: 'boolean' },
+    toggledSlots: { onPress: '() => {}' },
+    controlDescriptions: {
+      onPress:
+        'Makes the summary a button, for opening who reacted: a pressable stack, or an assist chip in the `chip` variant.',
+    },
     numberRanges: { total: { min: 0, max: 2000 }, max: { min: 1, max: 4 } },
     enumOptions: { variant: ['stacked', 'chip'], size: ['sm', 'md'] },
     codeSlots: { items: SUMMARY_ITEMS_CODE },

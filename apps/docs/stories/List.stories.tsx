@@ -303,7 +303,7 @@ export const RadioList: Story = {
         className="w-[360px] rounded-corner-extra-large bg-surface-container p-3"
         data-testid="radio-list"
       >
-        <List aria-label="Theme" variant={variant} value={theme} onValueChange={setTheme}>
+        <List aria-label="Theme" variant={variant} value={theme} onChange={setTheme}>
           <ListItem key="light" value="light">
             Light
           </ListItem>

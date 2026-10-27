@@ -143,6 +143,10 @@ interface SideSheetOwnProps {
    * sheet's are on its outer box).
    */
   className?: string;
+  /** Goes on the outermost element, with `className`. */
+  style?: CSSProperties;
+  /** Ref to the panel, the sheet's surface (`role="dialog"`); a standard sheet's outer box. */
+  ref?: Ref<HTMLDivElement>;
 }
 
 type Naming =

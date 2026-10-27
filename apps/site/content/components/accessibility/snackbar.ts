@@ -5,7 +5,7 @@ export const snackbar: ComponentAccessibility = {
     {
       keys: ['F6'],
       action:
-        'Moves focus to the shown snackbar when it has an action or a dismiss button, as the spec asks for on the web. Change it with `focusShortcut`, or turn it off with `false`.',
+        "Moves focus to the shown snackbar when it has an action or a dismiss button, as the spec asks for on the web. While such a snackbar shows, the page takes F6 over from the browser (which otherwise moves between the window's panes), and pressed again inside the snackbar focus stays there. Change it with `focusShortcut`, or turn it off with `false`.",
     },
     {
       keys: ['Tab', 'Shift + Tab'],

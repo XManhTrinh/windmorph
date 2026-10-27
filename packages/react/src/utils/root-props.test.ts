@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { pickWidgetAria, splitRootProps, type RootEvent, type WidgetAria } from './root-props';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import {
+  ariaFlag,
+  pickWidgetAria,
+  splitRootProps,
+  type DescriptionAria,
+  type RootEvent,
+  type WidgetAria,
+} from './root-props';
 
 /** Every root event, written out: the type checks the list, the test checks the run-time match. */
 const ROOT_EVENTS = [
@@ -104,6 +111,16 @@ describe('splitRootProps', () => {
     'aria-required': true,
     'aria-invalid': true,
     'aria-readonly': true,
+    'aria-multiline': false,
+    'aria-placeholder': 'MM/DD/YYYY',
+  };
+
+  /** Every description attribute, written out: the type checks the list. */
+  const DESCRIPTION: Record<DescriptionAria, string> = {
+    'aria-description': 'Shown to everyone you follow',
+    'aria-roledescription': 'slide',
+    'aria-braillelabel': 'Name',
+    'aria-brailleroledescription': 'sld',
   };
 
   it('sends the widget attributes to the root when the root is the widget', () => {
@@ -118,10 +135,55 @@ describe('splitRootProps', () => {
     expect(rest).toEqual(WIDGET);
   });
 
-  it('picks the widget attributes that are set', () => {
+  it('sends the description attributes to a root that is the labelled element', () => {
+    const { root, rest } = splitRootProps(DESCRIPTION);
+    expect(root).toEqual(DESCRIPTION);
+    expect(rest).toEqual({});
+  });
+
+  it('leaves the description attributes for the labelled element when the root wraps it', () => {
+    const { root, rest } = splitRootProps({ ...DESCRIPTION, 'aria-busy': true }, { wrapper: true });
+    expect(root).toEqual({ 'aria-busy': true });
+    expect(rest).toEqual(DESCRIPTION);
+  });
+
+  it('types `rest` as what stays in it, for a wrapper or not', () => {
+    type Props = {
+      'aria-label'?: string;
+      'aria-expanded'?: boolean;
+      'aria-description'?: string;
+      'aria-busy'?: boolean;
+      'data-probe'?: string;
+      name?: string;
+    };
+    const props: Props = {};
+    expectTypeOf(splitRootProps(props).rest).toEqualTypeOf<Pick<Props, 'aria-label' | 'name'>>();
+    expectTypeOf(splitRootProps(props, { wrapper: true }).rest).toEqualTypeOf<
+      Pick<Props, 'aria-label' | 'aria-expanded' | 'aria-description' | 'name'>
+    >();
+  });
+
+  it('picks the widget and description attributes that are set', () => {
     const { 'aria-expanded': _expanded, ...set } = WIDGET;
     expect(
-      pickWidgetAria({ ...set, 'aria-expanded': undefined, 'aria-label': 'Name', id: 'name' }),
-    ).toEqual(set);
+      pickWidgetAria({
+        ...set,
+        ...DESCRIPTION,
+        'aria-expanded': undefined,
+        'aria-label': 'Name',
+        id: 'name',
+      }),
+    ).toEqual({ ...set, ...DESCRIPTION });
+  });
+});
+
+describe('ariaFlag', () => {
+  it('reads an aria-invalid, aria-required or aria-readonly value as a boolean state', () => {
+    expect(ariaFlag(undefined)).toBeUndefined();
+    expect(ariaFlag(false)).toBe(false);
+    expect(ariaFlag('false')).toBe(false);
+    expect(ariaFlag(true)).toBe(true);
+    expect(ariaFlag('true')).toBe(true);
+    expect(ariaFlag('grammar')).toBe(true);
   });
 });

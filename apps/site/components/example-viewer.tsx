@@ -85,7 +85,7 @@ export function ExampleViewer({
 
   if (tabbed) {
     return (
-      <div id={anchor} className="flex scroll-mt-20 flex-col gap-3" {...markdownProps}>
+      <div id={anchor} className="flex scroll-mt-2 flex-col gap-3" {...markdownProps}>
         {title != null && <h3 className="text-title-medium text-on-surface">{title}</h3>}
         <Tabs aria-label={title ? `${title} example` : 'Example'} variant="secondary">
           <Tab key="preview" title="Preview">
@@ -109,7 +109,7 @@ export function ExampleViewer({
   };
 
   return (
-    <div id={anchor} className="flex scroll-mt-20 flex-col gap-2" {...markdownProps}>
+    <div id={anchor} className="flex scroll-mt-2 flex-col gap-2" {...markdownProps}>
       {title != null && <h3 className="text-title-medium text-on-surface">{title}</h3>}
       {preview}
       <div className="flex items-center justify-end gap-1">

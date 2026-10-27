@@ -113,9 +113,25 @@ type LeadingContent =
       leadingLabel: string;
     };
 
-type LeadingProps =
-  | Pick<ButtonBaseActionProps, 'onPress' | 'onPressStart' | 'onPressEnd' | 'type'>
-  | Pick<ButtonBaseLinkProps, 'href' | 'target' | 'rel' | 'onPress'>;
+/** The leading button's own attributes; the rest of the DOM props go to the wrapper. */
+interface LeadingActionProps extends Pick<
+  ButtonBaseActionProps,
+  'onPress' | 'onPressStart' | 'onPressEnd'
+> {
+  /** The leading button's `type`, e.g. `submit` to send the form it's in. @default "button" */
+  type?: ButtonBaseActionProps['type'];
+}
+
+interface LeadingLinkProps extends Pick<ButtonBaseLinkProps, 'onPress'> {
+  /** Makes the leading button a link (`<a>`) to this URL. */
+  href: string;
+  /** The leading link's `target`, e.g. `_blank`. */
+  target?: ButtonBaseLinkProps['target'];
+  /** The leading link's `rel`, e.g. `noopener`. */
+  rel?: ButtonBaseLinkProps['rel'];
+}
+
+type LeadingProps = LeadingActionProps | LeadingLinkProps;
 
 export type SplitButtonProps = SplitButtonOwnProps &
   LeadingContent &
@@ -135,8 +151,8 @@ export type SplitButtonProps = SplitButtonOwnProps &
  * M3 Expressive split button: a leading action and a trailing button that opens a menu
  * of related actions (or another overlay). Five sizes (`xs`–`xl`) in the filled, tonal,
  * outlined and elevated styles. While the menu is open the trailing button becomes round
- * and its chevron turns over. `className`, `style` and `data-*` go on the wrapper;
- * leading-button props (`onPress`, `href`, …) go to the leading button.
+ * and its chevron turns over. The wrapper is a `group`; `className`, `style`, `data-*` and
+ * `aria-*` go on it, and leading-button props (`onPress`, `href`, …) go to the leading button.
  *
  * @example
  * <SplitButton
@@ -245,6 +261,9 @@ export function SplitButton(props: SplitButtonProps) {
 
   return (
     <div
+      // A group of its two buttons, so assistive tech reads them together and an app may name
+      // it (`aria-label`, which ARIA prohibits on a generic `div`).
+      role="group"
       {...root}
       // The component tokens' hooks (split-button-tokens.ts); `data-variant` and `data-size`
       // are also public styling hooks for apps.

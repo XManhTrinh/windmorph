@@ -9,7 +9,7 @@ export const skeleton: ComponentAccessibility = {
     name: 'The group\'s `label` ("Loading businesses"), read once as status text instead of announcing every placeholder.',
     states: '`aria-busy` on the group, for as long as it is on the page.',
     notes: [
-      'With `as="ul"`, the label sits in its own visually hidden list item, so the list stays valid.',
+      'With `as="ul"`, the label sits just before the list, outside it; with `as="li"`, the group is one list item holding the label and a busy `div`, so the list stays valid.',
       "The label's `status` region goes into the page a moment (100ms) before its text, so it is announced even when the group appears after the page has loaded.",
     ],
   },

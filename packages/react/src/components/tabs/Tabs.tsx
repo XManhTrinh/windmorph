@@ -35,7 +35,11 @@ import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
 import { useWarnOnce } from '../../utils/warn-once';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { BadgedBox, type BadgeProps } from '../badge/Badge';
 import { tabsStyles, type TabsVariant } from './tabs-styles';
 
@@ -106,6 +110,11 @@ export interface TabsProps
   onChange?: (key: Key) => void;
   /** Disables every tab (`disabledKeys` disables some). @default false */
   disabled?: boolean;
+  /**
+   * The keys of tabs that can't be selected. They stay focusable, so keyboard and screen reader
+   * users find them (WAI-ARIA APG).
+   */
+  disabledKeys?: Iterable<Key>;
   /**
    * `primary` tabs sit below the top app bar and switch the page's main content;
    * `secondary` tabs switch content within one section. @default "primary"
@@ -294,6 +303,7 @@ function TabsInner({
         className={styles.scroller({ class: classNames?.scroller })}
       >
         <div
+          {...pickDescriptionAria(rest)}
           {...tabListProps}
           ref={listRef}
           data-slot="list"

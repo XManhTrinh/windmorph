@@ -12,7 +12,7 @@ and [Motion](https://motion.dev). Semantic and component design tokens, light an
 three contrast levels, full right-to-left support, and accessible components by default. Works
 with Vite and Next.js (App Router and Pages Router).
 
-**Docs and live examples: [windmorph.vercel.app](https://windmorph.vercel.app/)**
+**Docs and live examples: [windmorph.dev](https://windmorph.dev/)**
 
 ## What's inside
 
@@ -56,7 +56,7 @@ supported targets, with full testing coming next. Older browsers skip some entry
 
 Not using Tailwind? Import `@windmorph/react/styles.compiled.css` instead. See
 [`packages/react/README.md`](packages/react/README.md) for more, and the
-[docs site](https://windmorph.vercel.app/getting-started) for the full guide.
+[docs site](https://windmorph.dev/getting-started) for the full guide.
 
 ## Development
 

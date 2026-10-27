@@ -155,6 +155,8 @@ function Notes({ summary }: { summary: Summary }) {
           <li key={`${note.status}-${note.item}`} className="flex flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
               <SpecStatusTag status={note.status} />
+              {/* Keeps the status and the item apart, read aloud and in the Markdown twin. */}
+              <span className="sr-only">: </span>
               <span className="text-body-large text-on-surface">
                 <CodeText text={note.item} />
               </span>

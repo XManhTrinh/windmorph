@@ -10,9 +10,13 @@ import { DEFAULT_MOTION_SCHEME, MOTION_SCHEMES, type MotionScheme } from '../tok
 
 /** The theme dimensions, mirrored as `data-*` attributes. */
 export interface ThemeState {
+  /** The colour theme's name: a built-in (`baseline`, `ocean` …) or one made with `createTheme`. */
   theme: string;
+  /** `light`, `dark` or `system` (follows `prefers-color-scheme`). */
   mode: ColorMode;
+  /** `standard`, `medium` or `high`. */
   contrast: ContrastLevel;
+  /** `expressive` (springs that overshoot) or `standard` (no visible overshoot). */
   motion: MotionScheme;
   /** Web density, `0` (default) to `-3` (densest); see `Density`. */
   density: Density;
@@ -87,6 +91,40 @@ export function themeAttributes(state: ThemeState) {
     'data-motion': state.motion,
     'data-density': `${state.density}`,
   } as const;
+}
+
+/**
+ * The `data-*` attributes an element needs to carry `state` inside an ancestor that already
+ * carries `inherited` (2026-10-24): only the dimensions that differ, so the theme's rules don't
+ * declare the same values again there and an app's own values for the system tokens (an
+ * `:root` rule) still reach it. The colour dimensions go together, since one rule reads the
+ * theme, mode and contrast of the same element. With no known `inherited` (a portal into an
+ * app's own container, a provider that leaves `<html>` alone), every attribute. `restyled`
+ * (an element with an app's own class or CSS variables, which may set a colour role) keeps the
+ * colour dimensions too, so the values the theme derives from the roles on `[data-theme]` (the
+ * elevation shadows, component tokens an app declares there) resolve again with its own.
+ */
+export function themeAttributesOver(
+  state: ThemeState,
+  inherited: ThemeState | null,
+  restyled = false,
+): Partial<ReturnType<typeof themeAttributes>> {
+  const all = themeAttributes(state);
+  if (!inherited) return all;
+  const colors =
+    restyled ||
+    state.theme !== inherited.theme ||
+    state.mode !== inherited.mode ||
+    state.contrast !== inherited.contrast;
+  return {
+    ...(colors && {
+      'data-theme': all['data-theme'],
+      'data-mode': all['data-mode'],
+      'data-contrast': all['data-contrast'],
+    }),
+    ...(state.motion !== inherited.motion && { 'data-motion': all['data-motion'] }),
+    ...(state.density !== inherited.density && { 'data-density': all['data-density'] }),
+  };
 }
 
 export function readCookie(cookieString: string, name: string): string | undefined {

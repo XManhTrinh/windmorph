@@ -30,7 +30,11 @@ import { useControlledState } from 'react-stately/useControlledState';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import { cn } from '../../utils/cn';
-import { splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import {
+  pickDescriptionAria,
+  splitRootProps,
+  type WrapperRootDOMProps,
+} from '../../utils/root-props';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { searchBarStyles } from './search-styles';
@@ -115,6 +119,13 @@ export type SearchBarInputProps = Omit<
 interface SearchBarOwnProps extends WrapperRootDOMProps {
   /** The root element's id. */
   id?: string;
+  /**
+   * The ids of elements that describe the search, for both inputs (the bar's and the open
+   * view's), before any `inputProps['aria-describedby']`.
+   */
+  'aria-describedby'?: string;
+  /** The id of an element with more details about the search, for both inputs. */
+  'aria-details'?: string;
   /** Controlled query. */
   value?: string;
   /** Initial query when uncontrolled. @default "" */
@@ -326,6 +337,10 @@ export function SearchBar(props: SearchBarProps) {
     hasTrailing: trailing != null,
   });
   const { root: data, rest: own } = splitRootProps(rest, { wrapper: true });
+  // The naming attributes describe the inputs, as `aria-label` names them.
+  const { 'aria-describedby': describedBy, 'aria-details': details } = own;
+  const describedByInput =
+    [describedBy, consumerInputProps?.['aria-describedby']].filter(Boolean).join(' ') || undefined;
   // In an app bar the collapsed field is `surface-container`; the expanded view's field
   // keeps the search view's own `surface-container-high`.
   const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';
@@ -356,8 +371,15 @@ export function SearchBar(props: SearchBarProps) {
   // `mergeProps` chains event handlers (the consumer's first).
   const sharedInputProps = (handlers: ComponentProps<'input'>): ComponentProps<'input'> => ({
     ...mergeProps(
-      { enterKeyHint: 'search', autoComplete: 'off', spellCheck: false },
+      {
+        enterKeyHint: 'search',
+        autoComplete: 'off',
+        spellCheck: false,
+        'aria-details': details,
+        ...pickDescriptionAria(own),
+      },
       consumerInputProps,
+      { 'aria-describedby': describedByInput },
       handlers,
     ),
     id: undefined,

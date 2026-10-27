@@ -210,7 +210,7 @@ export function Playground({ slug, componentName, componentProps }: PlaygroundPr
           <div
             ref={previewRef}
             data-playground-preview=""
-            className="flex min-h-60 shrink-0 scroll-mt-20 flex-wrap items-center justify-center gap-4 rounded-corner-large bg-surface p-6 @min-[640px]/playground:min-h-72"
+            className="flex min-h-60 shrink-0 scroll-mt-2 flex-wrap items-center justify-center gap-4 rounded-corner-large bg-surface p-6 @min-[640px]/playground:min-h-72"
           >
             {descriptor.render(values, setFromPreview)}
           </div>

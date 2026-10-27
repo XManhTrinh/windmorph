@@ -132,6 +132,18 @@ export const extendedFabStyles = tv({
       },
       lg: {
         root: 'h-[96px] min-w-[96px] ps-[28px] pe-[28px] font-brand text-headline-small',
+        /*
+         * Collapsed, the icon and padding (28 + 32 + 28px) fall 8px short of the 96px minimum,
+         * so the icon is centred 4px further in. The content takes those 4px a side as padding
+         * on the label's spring, so the icon slides there with the width instead of jumping as
+         * the minimum takes over (2026-10-24).
+         */
+        content: [
+          '[[data-expanded=false]>&]:px-[4px]',
+          '[transition-property:padding-inline]',
+          '[transition-duration:var(--md-sys-motion-spring-spatial-fast-duration)]',
+          '[transition-timing-function:var(--md-sys-motion-spring-spatial-fast-easing)]',
+        ],
         icon: 'size-[32px]',
         text: 'ps-[20px]',
       },

@@ -7,10 +7,9 @@ import {
   springPosition,
   springSettleDuration,
   springToLinearEasing,
-  springProgressWithVelocity,
-  springWithVelocityToLinearEasing,
   toMotionSpring,
 } from '.';
+import { springProgressWithVelocity, springWithVelocityToLinearEasing } from './spring-velocity';
 
 /** Peak overshoot of a unit step spring, as a fraction of the travel. */
 function overshoot(token: { dampingRatio: number; stiffness: number }) {

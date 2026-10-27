@@ -1,19 +1,18 @@
 'use client';
 
-import { useMemo, type ComponentPropsWithRef } from 'react';
+import { useContext, useMemo, type ComponentPropsWithRef } from 'react';
 import type { ColorMode, ContrastLevel } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
 import { cn } from '../utils/cn';
 import {
-  ThemeScopeClassNameContext,
+  InheritedThemeContext,
   ThemeScopeContext,
-  ThemeScopeVariablesContext,
+  ThemeScopeLayersContext,
   useThemeScope,
-  useThemeScopeClassName,
-  useThemeScopeVariables,
+  useThemeScopeLayers,
 } from './context';
-import { themeAttributes, type ThemeState } from './state';
+import { themeAttributesOver, type ThemeState } from './state';
 
 export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
   /** Colour theme for this subtree. Inherited when omitted. */
@@ -52,19 +51,17 @@ export function ThemeScope({
   ...props
 }: ThemeScopeProps) {
   const parent = useThemeScope();
-  const parentClassName = useThemeScopeClassName();
-  const parentVariables = useThemeScopeVariables();
-  const variables = useMemo(() => {
-    const own = Object.entries(style ?? {}).filter(
-      ([name, value]) => name.startsWith('--') && value !== undefined && value !== null,
+  const inherited = useContext(InheritedThemeContext);
+  const parentLayers = useThemeScopeLayers();
+  const layers = useMemo(() => {
+    const variables = Object.fromEntries(
+      Object.entries(style ?? {})
+        .filter(([name, value]) => name.startsWith('--') && value !== undefined && value !== null)
+        .map(([name, value]) => [name, String(value)]),
     );
-    if (own.length === 0) return parentVariables;
-    return { ...parentVariables, ...Object.fromEntries(own.map(([n, v]) => [n, String(v)])) };
-  }, [parentVariables, style]);
-  const scopeClassName = useMemo(
-    () => cn(parentClassName, className),
-    [parentClassName, className],
-  );
+    if (!className && Object.keys(variables).length === 0) return parentLayers;
+    return [...parentLayers, { className: className ?? '', variables }];
+  }, [parentLayers, className, style]);
   const state = useMemo<ThemeState>(
     () => ({
       theme: theme ?? parent.theme,
@@ -79,14 +76,14 @@ export function ThemeScope({
   return (
     <div
       {...props}
-      {...themeAttributes(state)}
+      {...themeAttributesOver(state, inherited, layers !== parentLayers)}
       style={style}
       className={cn('text-on-surface', className)}
     >
       <ThemeScopeContext value={state}>
-        <ThemeScopeClassNameContext value={scopeClassName}>
-          <ThemeScopeVariablesContext value={variables}>{children}</ThemeScopeVariablesContext>
-        </ThemeScopeClassNameContext>
+        <InheritedThemeContext value={state}>
+          <ThemeScopeLayersContext value={layers}>{children}</ThemeScopeLayersContext>
+        </InheritedThemeContext>
       </ThemeScopeContext>
     </div>
   );
