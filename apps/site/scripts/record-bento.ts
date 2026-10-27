@@ -16,8 +16,10 @@
  * - `bento-{light,dark}.jpg`: the poster, the video's first frame;
  * - `bento.json`: the size, loop length and formats, which the site reads at build time.
  *
- * The media aren't committed: CI and the deploy run this after the build, then build again so
- * the pages pick the video up (docs/architecture.md, "Home page bento video").
+ * The media are committed, since the host builds the site without a browser or ffmpeg: run this
+ * on a machine with both after the bento changes and commit `public/media/bento/`. CI runs it
+ * after every build, then builds again, so a recording that breaks fails the pull request
+ * (docs/architecture.md, "Home page bento video").
  */
 import { spawn, spawnSync } from 'node:child_process';
 import {

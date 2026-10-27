@@ -12,3 +12,4 @@ CLAUDE.md
 **/.next-e2e
 apps/site/.generated
 apps/docs/e2e/__computed-styles__
+apps/site/public/media/bento
