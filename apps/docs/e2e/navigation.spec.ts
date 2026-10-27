@@ -38,18 +38,20 @@ async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>
  * test compares frames by their steps, never by their times, so a late callback can't
  * misread one (and under a slowed playback rate the frames' own timestamps slow down too).
  */
+// Each frame's icon tops, with the wall-clock time it was read at.
 async function iconTops(page: Page, ms: number, act: () => Promise<void>) {
   const sampled = page.evaluate(
     (duration) =>
-      new Promise<number[][]>((resolve) => {
-        const out: number[][] = [];
+      new Promise<{ time: number; tops: number[] }[]>((resolve) => {
+        const out: { time: number; tops: number[] }[] = [];
         const start = performance.now();
         const tick = () => {
-          out.push(
-            [...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
+          out.push({
+            time: performance.now(),
+            tops: [...document.querySelectorAll('[data-nav-item] [data-slot="icon"]')].map(
               (icon) => icon.getBoundingClientRect().top,
             ),
-          );
+          });
           if (performance.now() - start < duration) requestAnimationFrame(tick);
           else resolve(out);
         };
@@ -507,20 +509,25 @@ test.describe('Navigation motion edges and forced colours', () => {
   // under the standard one, grows with the items above an icon, and a loaded machine's late
   // callbacks misread it; re-audit 2026-10-21), so the motion runs at a tenth of its speed:
   // there the spring moves an icon under 1px a frame, while a swap is still one 12–36px step.
+  // Each step is read per 60Hz frame of the time it covers, since a loaded runner skips
+  // frames and a step over two or three of them is two or three frames of motion (CI moved
+  // 2.6px across skipped frames, 2026-10-27).
   for (const motion of ['expressive', 'standard'] as const) {
     test(`rail items move continuously as it expands · ${motion}`, async ({ page }) => {
       await openStory(page, 'components-navigation--rail', { motion });
       const cdp = await page.context().newCDPSession(page);
       await cdp.send('Animation.enable');
       await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.1 });
-      const tops = await iconTops(page, 7000, () =>
+      const frames = await iconTops(page, 7000, () =>
         page.getByRole('button', { name: 'Expand navigation' }).click(),
       );
-      const steps = tops
-        .slice(1)
-        .map((frame, index) =>
-          Math.max(...frame.map((top, item) => Math.abs(top - tops[index]![item]!))),
+      const steps = frames.slice(1).map((frame, index) => {
+        const previous = frames[index]!;
+        const moved = Math.max(
+          ...frame.tops.map((top, item) => Math.abs(top - previous.tops[item]!)),
         );
+        return moved / Math.max(1, (frame.time - previous.time) / (1000 / 60));
+      });
       expect(steps.filter((step) => step > 0.1).length).toBeGreaterThan(20);
       expect(Math.max(...steps)).toBeLessThan(2);
     });
@@ -529,13 +536,13 @@ test.describe('Navigation motion edges and forced colours', () => {
   test('rail items move at once under reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await openStory(page, 'components-navigation--rail');
-    const tops = await iconTops(page, 800, () =>
+    const frames = await iconTops(page, 800, () =>
       page.getByRole('button', { name: 'Expand navigation' }).click(),
     );
-    const moving = tops
+    const moving = frames
       .slice(1)
       .filter((frame, index) =>
-        frame.some((top, item) => Math.abs(top - tops[index]![item]!) > 0.5),
+        frame.tops.some((top, item) => Math.abs(top - frames[index]!.tops[item]!) > 0.5),
       );
     expect(moving.length).toBeLessThanOrEqual(1);
   });
