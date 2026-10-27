@@ -6,7 +6,7 @@ and [Motion](https://motion.dev). Semantic design tokens, component tokens, six 
 light and dark modes with three contrast levels, M3 Expressive springs, right-to-left support and
 accessible components by default. Works with Vite and Next.js (App Router and Pages Router).
 
-**Docs and live examples: [windmorph.vercel.app](https://windmorph.vercel.app/)**
+**Docs and live examples: [windmorph.dev](https://windmorph.dev/)**
 
 ## Install
 
@@ -76,7 +76,7 @@ them. The `@windmorph/react/next` entry adds:
   server with no flash (`ThemeScript` does the same for static pages and the Pages Router);
 - `useNavigationGuard` and `useGuardedNavigate`, to ask before leaving unsaved changes.
 
-See the [Next.js guide](https://windmorph.vercel.app/nextjs).
+See the [Next.js guide](https://windmorph.dev/nextjs).
 
 ## Custom themes
 
@@ -107,7 +107,7 @@ npx @windmorph/react theme --name brand --seed "#1877F2" --variant vibrant \
   --palette neutral=tonal-spot --palette neutral-variant=tonal-spot --out brand.css
 ```
 
-See the [Theming guide](https://windmorph.vercel.app/theming) for modes, contrast levels,
+See the [Theming guide](https://windmorph.dev/theming) for modes, contrast levels,
 `ThemeScope`, mixing palettes and flash-free server rendering.
 
 ## Entries
@@ -140,7 +140,7 @@ export default defineConfig({
 
 ## Documentation
 
-[windmorph.vercel.app](https://windmorph.vercel.app/) has the getting-started, theming, motion,
+[windmorph.dev](https://windmorph.dev/) has the getting-started, theming, motion,
 customisation, accessibility, Next.js and from-Compose guides, the spec status, the release
 notes, and a page per component with live examples and generated props tables.
 

@@ -8,7 +8,7 @@ export const SITE_NAME = 'Windmorph';
  * The site's public origin: canonical URLs, link previews, the sitemap, `robots.txt` and the
  * `llms.txt` files all build their absolute URLs from it.
  */
-export const SITE_URL = 'https://windmorph.vercel.app';
+export const SITE_URL = 'https://windmorph.dev';
 
 /** The site's one-line pitch, after its name. */
 export const SITE_TAGLINE = 'Material 3 Expressive for React';
