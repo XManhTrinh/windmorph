@@ -1,0 +1,25 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+storybook-static/
+.next/
+.next-e2e/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example
+apps/next-playground/next-env.d.ts
+apps/site/next-env.d.ts
+apps/docs/test-results/
+
+# Local git worktrees
+.worktrees/
+
+# Local tool files, never committed
+.agents/
+CLAUDE.md
+AGENTS.md
+.claude/

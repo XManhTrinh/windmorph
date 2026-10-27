@@ -1,0 +1,3 @@
+@import 'tailwindcss';
+@import '@windmorph/react/styles.css';
+@source '../node_modules/@windmorph/react';

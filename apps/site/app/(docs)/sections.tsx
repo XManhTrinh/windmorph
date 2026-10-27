@@ -1,0 +1,39 @@
+import type { ReactElement } from 'react';
+import {
+  AccessibilityIcon,
+  ChecklistIcon,
+  CodeIcon,
+  HomeIcon,
+  MenuBookIcon,
+  MotionIcon,
+  NewReleasesIcon,
+  PaletteIcon,
+  SwapHorizIcon,
+  TuneIcon,
+  WorkspacePremiumIcon,
+} from '../../components/icons';
+
+export interface DocsSection {
+  href: string;
+  label: string;
+  icon: ReactElement;
+}
+
+/**
+ * The guide sections, full-name labels, shared by the top bar and the modal drawer.
+ * The `/components` gallery is owned by the left rail (not a top-bar section); its route
+ * still exists and is reached from the rail, the compact bottom bar and the homepage.
+ */
+export const DOCS_SECTIONS: DocsSection[] = [
+  { href: '/getting-started', label: 'Getting Started', icon: <HomeIcon /> },
+  { href: '/theming', label: 'Theming', icon: <PaletteIcon /> },
+  { href: '/customisation', label: 'Customisation', icon: <TuneIcon /> },
+  { href: '/api-conventions', label: 'API conventions', icon: <MenuBookIcon /> },
+  { href: '/motion', label: 'Motion', icon: <MotionIcon /> },
+  { href: '/accessibility', label: 'Accessibility', icon: <AccessibilityIcon /> },
+  { href: '/nextjs', label: 'Next.js', icon: <CodeIcon /> },
+  { href: '/from-compose', label: 'From Compose', icon: <SwapHorizIcon /> },
+  { href: '/spec-status', label: 'Spec status', icon: <ChecklistIcon /> },
+  { href: '/pro', label: 'Windmorph Pro', icon: <WorkspacePremiumIcon /> },
+  { href: '/whats-new', label: "What's new", icon: <NewReleasesIcon /> },
+];

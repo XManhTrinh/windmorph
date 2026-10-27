@@ -1,0 +1,15 @@
+/*
+ * @windmorph/react — Tailwind CSS v4 entry.
+ *
+ *   @import "tailwindcss";
+ *   @import "@windmorph/react/styles.css";
+ */
+
+@import './generated/tokens.css';
+@import './generated/themes.css';
+@import './generated/theme.css';
+@import './generated/components.css';
+@import './utilities.css';
+
+/* Scan the library's compiled components for the classes they use. */
+@source '../';

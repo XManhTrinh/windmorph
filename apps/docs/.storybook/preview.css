@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import '@windmorph/react/styles.css';
+@source '../stories';
+
+:root {
+  --md-ref-typeface-brand: 'Roboto Flex Variable', system-ui, sans-serif;
+  --md-ref-typeface-plain: 'Roboto Flex Variable', system-ui, sans-serif;
+}
+
+/* The stories' page font (overlays portal out of the root and keep the document's). */
+#storybook-root {
+  font-family: var(--md-ref-typeface-plain);
+}

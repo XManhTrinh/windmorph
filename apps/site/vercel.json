@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "test -n \"$PRO_READ_TOKEN\" && git config --global url.\"https://x-access-token:$PRO_READ_TOKEN@github.com/XManhTrinh/windmorph-pro\".insteadOf https://github.com/XManhTrinh/windmorph-pro && pnpm i && test -d node_modules/@windmorph/react-pro",
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=site",
+  "outputDirectory": "out",
+  "cleanUrls": true,
+  "trailingSlash": false
+}

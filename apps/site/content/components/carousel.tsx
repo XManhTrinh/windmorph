@@ -1,0 +1,152 @@
+import { carouselTokenSet } from '@windmorph/react';
+import type { ComponentDoc } from './doc';
+import { ExampleViewer } from '../../components/example-viewer';
+import { readExampleSource } from '../../lib/example-source';
+import { highlightSource } from '../../lib/highlight';
+import { InlineCode } from '../../components/inline-code';
+import { lazyExample } from '../../lib/lazy-example';
+
+const CarouselActions = lazyExample('carousel/carousel-actions', 'CarouselActions');
+const CarouselLayouts = lazyExample('carousel/carousel-layouts', 'CarouselLayouts');
+const CarouselMultiBrowse = lazyExample('carousel/carousel-multibrowse', 'CarouselMultiBrowse');
+const CarouselVariants = lazyExample('carousel/carousel-variants', 'CarouselVariants');
+const CarouselHero = lazyExample('carousel/carousel-hero', 'CarouselHero');
+
+/** Carousel page body: multi-browse, uncontained, multi-aspect, hero and full-screen. */
+export async function CarouselBody(): Promise<ComponentDoc> {
+  const [multi, variants, layouts, actions] = await Promise.all([
+    readExampleSource('carousel/carousel-multibrowse.tsx'),
+    readExampleSource('carousel/carousel-variants.tsx'),
+    readExampleSource('carousel/carousel-layouts.tsx'),
+    readExampleSource('carousel/carousel-actions.tsx'),
+  ]);
+  const [multiHtml, variantsHtml, layoutsHtml, actionsHtml] = await Promise.all([
+    highlightSource(multi),
+    highlightSource(variants),
+    highlightSource(layouts),
+    highlightSource(actions),
+  ]);
+
+  const hero = await readExampleSource('carousel/carousel-hero.tsx');
+  const heroHtml = await highlightSource(hero);
+
+  return {
+    tokens: [carouselTokenSet],
+    overview: (
+      <>
+        <section className="flex flex-col gap-6">
+          <h2 id="examples" className="text-headline-small text-on-surface">
+            Examples
+          </h2>
+          <ExampleViewer
+            title="Multi-browse"
+            code={multi}
+            html={multiHtml}
+            fileName="carousel-multibrowse.tsx"
+          >
+            <CarouselMultiBrowse />
+          </ExampleViewer>
+          <ExampleViewer title="Hero" code={hero} html={heroHtml} fileName="carousel-hero.tsx">
+            <CarouselHero />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Uncontained and hero"
+            code={variants}
+            html={variantsHtml}
+            fileName="carousel-variants.tsx"
+          >
+            <CarouselVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Multi-aspect and full-screen"
+            code={layouts}
+            html={layoutsHtml}
+            fileName="carousel-layouts.tsx"
+          >
+            <CarouselLayouts />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Items that open something"
+            code={actions}
+            html={actionsHtml}
+            fileName="carousel-actions.tsx"
+          >
+            <CarouselActions />
+          </ExampleViewer>
+        </section>
+      </>
+    ),
+    guidelines: (
+      <>
+        <section className="flex flex-col gap-3">
+          <h2 id="purpose" className="text-headline-small text-on-surface">
+            Purpose
+          </h2>
+          <p className="text-body-large text-on-surface-variant">
+            A carousel is a scrollable row (or column) of items whose sizes change along
+            Compose&apos;s keylines as they scroll. Use it to browse a set of images or cards; for a
+            static grid of equal items use a layout utility instead.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            The <InlineCode>variant</InlineCode> is <InlineCode>multi-browse</InlineCode> (large,
+            medium and small items), <InlineCode>uncontained</InlineCode> (items of one size that
+            flow past the end edge), <InlineCode>multi-aspect</InlineCode> (uncontained, with items
+            of their own widths from 9:16 to 16:9), <InlineCode>hero</InlineCode> (one large item
+            with small ones beside it) or <InlineCode>full-screen</InlineCode> (one edge-to-edge
+            item at a time, vertical by default). Give the carousel its cross-axis size with{' '}
+            <InlineCode>className</InlineCode>.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            On a vertically scrolling page, put a &quot;Show all&quot; button (or an arrow icon
+            button beside the carousel&apos;s header) below the carousel, leading to a page of every
+            item, so all items can be seen without scrolling sideways. Don&apos;t put buttons inside
+            the carousel or over it.
+          </p>
+        </section>
+      </>
+    ),
+    api: (
+      <>
+        <section className="flex flex-col gap-3">
+          <h2 id="differences-from-compose" className="text-headline-small text-on-surface">
+            Differences from Compose
+          </h2>
+          <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              The keylines are a TypeScript port of Compose&apos;s <InlineCode>carousel</InlineCode>{' '}
+              package; with 360px, a 186px preferred size and 8px spacing that gives 186 · 118 · 40,
+              mirrored at the end, as Compose does. Uncontained items don&apos;t follow keylines: as
+              the spec says, they keep one size and flow past the edge, where Compose shrinks and
+              crops them.
+            </li>
+            <li>
+              Compose drives a pager; here the carousel scrolls natively and a library-owned mask
+              layer inside each item is translated and clipped on every scroll frame, so the root
+              and slots are never transformed and nothing re-renders while scrolling.
+            </li>
+            <li>
+              Hero and full-screen snap one item at a time; a multi-browse fling crosses several
+              items and then snaps; uncontained and multi-aspect scroll freely unless{' '}
+              <InlineCode>snap=&quot;item&quot;</InlineCode>.
+            </li>
+            <li>
+              Padding follows the spec: 16px before and after the items and 8px across them
+              (uncontained and multi-aspect: 16px before only; full-screen: none), set with{' '}
+              <InlineCode>contentPadding</InlineCode>. As in Compose, items scroll over the start
+              and end padding (the spec: items &quot;bleed over the padding on each side when
+              scrolling&quot;), so the 16px after the items shows only at the end of the scroll,
+              where the last item rests. Unlike Compose, only the large and medium items give up the
+              padding at the ends, so small items never drop below the spec&apos;s 40px minimum.
+            </li>
+            <li>
+              Items are masked with 28px (extra-large) corners, tightening to 20px while pressed
+              (full-screen items have none), on a <InlineCode>surface</InlineCode> fill, and spacing
+              defaults to 8px (16px full-screen). Deviations: no parallax helper, and before
+              hydration items render unmasked at the preferred size.
+            </li>
+          </ul>
+        </section>
+      </>
+    ),
+  };
+}

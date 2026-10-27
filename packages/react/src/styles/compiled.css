@@ -1,0 +1,3 @@
+/* Entry for the precompiled stylesheet shipped to projects without Tailwind. */
+@import 'tailwindcss';
+@import './styles.css';

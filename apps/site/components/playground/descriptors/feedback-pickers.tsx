@@ -1,0 +1,614 @@
+'use client';
+
+import { CalendarDate, Time } from '@internationalized/date';
+import {
+  Button,
+  CircularProgressIndicator,
+  DatePicker,
+  LinearProgressIndicator,
+  List,
+  ListItem,
+  LoadingIndicator,
+  PickerDialog,
+  PullToRefresh,
+  Snackbar,
+  TimePicker,
+  TimePickerModeToggle,
+} from '@windmorph/react';
+import { Alert, EmptyState, LoadMore, Skeleton, SkeletonGroup } from '@windmorph/react-pro';
+import { createElement, useState } from 'react';
+import { CloseIcon, DynamicFeedIcon, LockIcon } from '../../icons';
+import {
+  SHAPE_IMPORT,
+  asDensity,
+  loose,
+  noop,
+  shapeOptions,
+  shapeSlot,
+  shapeValue,
+  type PlaygroundDescriptor,
+  type PlaygroundUpdate,
+} from './shared';
+
+const ButtonAny = loose(Button);
+const LinearProgressIndicatorAny = loose(LinearProgressIndicator);
+const CircularProgressIndicatorAny = loose(CircularProgressIndicator);
+const LoadingIndicatorAny = loose(LoadingIndicator);
+const PullToRefreshAny = loose(PullToRefresh);
+const SkeletonAny = loose(Skeleton);
+const EmptyStateAny = loose(EmptyState);
+const AlertAny = loose(Alert);
+const SnackbarAny = loose(Snackbar);
+const LoadMoreAny = loose(LoadMore);
+const DatePickerAny = loose(DatePicker);
+const TimePickerAny = loose(TimePicker);
+const PickerDialogAny = loose(PickerDialog);
+
+const CLOSE = '<CloseIcon />';
+
+/** The shapes the loading indicator's `shapes` switch morphs through, live and as code. */
+const LOADING_SHAPES = ['Heart', 'Flower', 'Clover4Leaf', 'Burst'] as const;
+const LOADING_SHAPES_CODE = `[${LOADING_SHAPES.map((shape) => `'${shape}'`).join(', ')}]`;
+
+/** The date the date pickers start on, and the window the min / max switches allow. */
+const DATE = new CalendarDate(2030, 3, 14);
+const MIN_DATE = new CalendarDate(2030, 3, 5);
+const MAX_DATE = new CalendarDate(2030, 3, 25);
+/** The people in the pull to refresh playground's list. */
+const PULL_SENDERS = ['Alex', 'Sam', 'Priya', 'Zoë', 'Jonas', 'Mei', 'Omar', 'Lena'];
+
+const CALENDAR_DATE_IMPORT = "import { CalendarDate } from '@internationalized/date';";
+const BUTTON_IMPORT = "import { Button } from '@windmorph/react';";
+
+/**
+ * The picker dialog's preview: a trigger, and the dialog driven by the controls. It keeps the
+ * time picker's mode, so the mode toggle switches the dial and the input.
+ */
+function PickerDialogPreview({
+  values: { dismissButton, modeToggleButton, closeIcon, title, ...props },
+  update,
+}: {
+  values: Record<string, unknown>;
+  update: PlaygroundUpdate;
+}) {
+  const [mode, setMode] = useState<'dial' | 'input'>('dial');
+  const close = () => update('open', false);
+  const time = props.variant === 'time';
+  return createElement(
+    'div',
+    { className: 'flex flex-col items-start' },
+    createElement(ButtonAny, { onPress: () => update('open', true) }, 'Open the picker'),
+    createElement(
+      PickerDialogAny,
+      {
+        ...props,
+        'aria-label': time ? 'Select time' : 'Select date',
+        title: title === '' ? undefined : title,
+        onOpenChange: (open: boolean) => update('open', open),
+        onConfirm: close,
+        confirmButton: createElement(ButtonAny, { variant: 'text', onPress: close }, 'OK'),
+        ...(dismissButton === true && {
+          dismissButton: createElement(ButtonAny, { variant: 'text', onPress: close }, 'Cancel'),
+        }),
+        ...(modeToggleButton === true && {
+          modeToggleButton: createElement(TimePickerModeToggle, { mode, onModeChange: setMode }),
+        }),
+        ...(closeIcon === true && { closeIcon: createElement(CloseIcon) }),
+      },
+      time
+        ? createElement(TimePickerAny, {
+            defaultValue: new Time(7, 30),
+            hourCycle: 12,
+            mode,
+            onModeChange: setMode,
+          })
+        : createElement(DatePickerAny, { defaultValue: DATE, yearRange: [2020, 2040] }),
+    ),
+  );
+}
+
+/**
+ * The mode toggle belongs to a time dialog (a date picker has its own, in its header):
+ * turning it on makes the dialog a time dialog, and choosing the date variant turns it off.
+ */
+export function adjustPickerModeToggle(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'modeToggleButton' && values.modeToggleButton === true) {
+    return { ...values, variant: 'time' };
+  }
+  if (changed === 'variant' && values.variant !== 'time') {
+    return { ...values, modeToggleButton: false };
+  }
+  return values;
+}
+
+/** Playgrounds for Feedback and Pickers, by page slug. */
+export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
+  progress: {
+    component: 'LinearProgressIndicator',
+    componentSwitch: {
+      control: 'indicator',
+      components: { linear: 'LinearProgressIndicator', circular: 'CircularProgressIndicator' },
+    },
+    render: ({ indicator, ...props }) =>
+      indicator === 'circular'
+        ? createElement(CircularProgressIndicatorAny, { ...props, 'aria-label': 'Uploading' })
+        : createElement(LinearProgressIndicatorAny, {
+            ...props,
+            'aria-label': 'Uploading',
+            className: 'w-[280px]',
+          }),
+    defaultProps: { wavy: false, thickness: 4, track: true, stopIndicator: true },
+    surfacedProps: [
+      'indicator',
+      'value',
+      'wavy',
+      'thickness',
+      'trackThickness',
+      'track',
+      'stopIndicator',
+      'size',
+    ],
+    initialState: { value: 0.4 },
+    numberRanges: {
+      value: { min: 0, max: 1, step: 0.05 },
+      thickness: { min: 2, max: 16 },
+      trackThickness: { min: 2, max: 16 },
+      size: { min: 24, max: 240, step: 4 },
+    },
+    codeSlots: {
+      'aria-label': '"Uploading"',
+      className: (values) => (values.indicator === 'circular' ? null : '"w-full"'),
+    },
+  },
+  'loading-indicator': {
+    component: 'LoadingIndicator',
+    render: ({ shapes, ...props }) =>
+      createElement(LoadingIndicatorAny, {
+        ...props,
+        ...(shapes === true && { shapes: LOADING_SHAPES }),
+        'aria-label': 'Loading',
+      }),
+    defaultProps: { variant: 'default', size: 48, shapes: false },
+    surfacedProps: ['variant', 'size', 'value', 'shapes'],
+    controlKinds: { shapes: 'boolean' },
+    toggledSlots: { shapes: LOADING_SHAPES_CODE },
+    numberRanges: { size: { min: 24, max: 240, step: 4 }, value: { min: 0, max: 1, step: 0.05 } },
+    codeSlots: { 'aria-label': '"Loading"' },
+  },
+  'pull-to-refresh': {
+    component: 'PullToRefresh',
+    // A pull sets `refreshing`, and the "refresh" ends 1.5 seconds later, as a request would.
+    render: (props, update) =>
+      createElement(
+        PullToRefreshAny,
+        {
+          ...props,
+          onRefresh: () => {
+            update('refreshing', true);
+            setTimeout(() => update('refreshing', false), 1500);
+          },
+          role: 'region',
+          'aria-label': 'Messages',
+          tabIndex: 0,
+          className:
+            'h-[320px] w-[320px] max-w-full overflow-y-auto rounded-corner-large bg-surface-container-low outline-offset-2 focus-visible:outline-2 focus-visible:outline-secondary',
+        },
+        <List aria-label="Messages">
+          {PULL_SENDERS.map((name) => (
+            <ListItem key={name}>{name}</ListItem>
+          ))}
+        </List>,
+      ),
+    defaultProps: { refreshing: false, threshold: 80, disabled: false },
+    surfacedProps: ['refreshing', 'threshold', 'disabled'],
+    controlKinds: { threshold: 'number' },
+    numberRanges: { threshold: { min: 40, max: 200, step: 4 } },
+    importMembers: ['List', 'ListItem'],
+    codeSlots: {
+      onRefresh: '() => {}',
+      role: '"region"',
+      'aria-label': '"Messages"',
+      tabIndex: '0',
+      className: '"h-80 overflow-y-auto"',
+    },
+    codeChildren:
+      '<List aria-label="Messages">\n    <ListItem>Alex</ListItem>\n    <ListItem>Sam</ListItem>\n  </List>',
+  },
+  skeleton: {
+    component: 'Skeleton',
+    notRendered: {
+      SkeletonGroup:
+        'Announces several placeholders as one loading region; the page examples show it.',
+    },
+    importFrom: '@windmorph/react-pro',
+    render: ({ animation, corner, ...props }) =>
+      createElement(
+        SkeletonGroup,
+        {
+          label: 'Loading',
+          animation: animation as 'pulse' | 'shimmer' | 'none',
+          className: 'w-72',
+        },
+        createElement(SkeletonAny, {
+          ...props,
+          ...(corner !== 'default' && { corner }),
+          ...(props.variant === 'circle' && { className: 'size-16' }),
+        }),
+      ),
+    defaultProps: {
+      variant: 'rectangle',
+      corner: 'default',
+      color: 'surface-container-highest',
+      animation: 'pulse',
+      typescale: 'body-medium',
+      lines: 1,
+    },
+    surfacedProps: ['variant', 'animation', 'corner', 'color', 'typescale', 'lines'],
+    initialState: { variant: 'text', lines: 3, animation: 'pulse' },
+    numberRanges: { lines: { min: 1, max: 6 } },
+    // `lines` and `typescale` belong to the text variant (the types say so).
+    adjust: (values, changed) => {
+      if (changed === 'lines' || changed === 'typescale') return { ...values, variant: 'text' };
+      if (changed === 'variant' && values.variant !== 'text') {
+        return { ...values, lines: 1, typescale: 'body-medium' };
+      }
+      return values;
+    },
+    enumOptions: {
+      variant: ['rectangle', 'text', 'circle'],
+      animation: ['pulse', 'shimmer', 'none'],
+      corner: ['default', 'none', 'extra-small', 'small', 'medium', 'large', 'extra-large', 'full'],
+      color: ['surface-container-highest', 'surface-container-high'],
+    },
+  },
+  alert: {
+    component: 'Alert',
+    importFrom: '@windmorph/react-pro',
+    render: ({ icon, actions, autoFocus, open, ...props }, update) =>
+      createElement(
+        'div',
+        { className: 'flex w-full max-w-md flex-col items-start gap-3' },
+        createElement(
+          AlertAny,
+          {
+            ...props,
+            // `autoFocus` acts as the alert appears, so switching it shows the alert afresh.
+            key: String(autoFocus),
+            autoFocus,
+            // `open={false}` lets it leave with its exit motion; the button brings it back.
+            open: open !== false,
+            ...(icon === true && { icon: createElement(LockIcon) }),
+            ...(actions === true && {
+              actions: createElement(ButtonAny, { variant: 'text' }, 'Reset password'),
+            }),
+          },
+          "That email and password don't match.",
+        ),
+        open === false &&
+          createElement(
+            ButtonAny,
+            { key: 'show', variant: 'tonal', onPress: () => update('open', true) },
+            'Show the alert again',
+          ),
+      ),
+    defaultProps: {
+      open: true,
+      severity: 'info',
+      variant: 'tonal',
+      titleAs: 'p',
+      icon: false,
+      actions: false,
+      autoFocus: false,
+    },
+    // The preview shows a form error, so it starts at `error`; `info` is the default.
+    initialState: { severity: 'error' },
+    surfacedProps: [
+      'open',
+      'severity',
+      'variant',
+      'title',
+      'titleAs',
+      'icon',
+      'actions',
+      'autoFocus',
+    ],
+    enumOptions: {
+      severity: ['info', 'error', 'success', 'warning', 'neutral'],
+      variant: ['tonal', 'outlined'],
+    },
+    controlKinds: { title: 'string', icon: 'boolean', actions: 'boolean' },
+    toggledSlots: {
+      icon: '<LockIcon />',
+      actions: '<Button variant="text">Reset password</Button>',
+    },
+    codeImports: [BUTTON_IMPORT],
+    codeChildren: "That email and password don't match.",
+  },
+  'empty-state': {
+    component: 'EmptyState',
+    importFrom: '@windmorph/react-pro',
+    render: ({ actions, shape, ...props }) =>
+      createElement(EmptyStateAny, {
+        ...props,
+        shape: shapeValue(shape),
+        icon: createElement(DynamicFeedIcon),
+        className: 'w-full max-w-md',
+        ...(actions === true && {
+          actions: createElement(ButtonAny, { variant: 'tonal' }, 'Create a post'),
+        }),
+      }),
+    defaultProps: {
+      variant: 'plain',
+      size: 'md',
+      color: 'secondary',
+      shape: 'circle',
+      titleAs: 'p',
+      announce: false,
+      actions: false,
+    },
+    surfacedProps: [
+      'variant',
+      'size',
+      'color',
+      'shape',
+      'title',
+      'titleAs',
+      'description',
+      'actions',
+      'announce',
+    ],
+    initialState: {
+      variant: 'filled',
+      title: 'No posts yet',
+      description: 'Posts you share will appear here.',
+      actions: true,
+    },
+    enumOptions: {
+      variant: ['plain', 'filled', 'elevated', 'outlined'],
+      size: ['sm', 'md', 'lg'],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      shape: shapeOptions(['circle']),
+    },
+    controlKinds: { title: 'string', description: 'string', actions: 'boolean' },
+    toggledSlots: { actions: '<Button variant="tonal">Create a post</Button>' },
+    // A shape is written as its constant, imported from `@windmorph/react/primitives`.
+    codeImports: [BUTTON_IMPORT, SHAPE_IMPORT],
+    codeSlots: { icon: '<DynamicFeedIcon />', shape: shapeSlot('circle') },
+  },
+  'load-more': {
+    component: 'LoadMore',
+    importFrom: '@windmorph/react-pro',
+    render: ({ loading, end, ...props }) =>
+      createElement(
+        'div',
+        { className: 'flex w-full max-w-sm flex-col gap-2' },
+        ...['Phở', 'Bánh mì', 'Bún chả'].map((dish) =>
+          createElement(
+            'p',
+            {
+              key: dish,
+              className:
+                'rounded-corner-small bg-surface-container-high p-3 text-body-medium text-on-surface',
+            },
+            dish,
+          ),
+        ),
+        createElement(LoadMoreAny, {
+          key: 'more',
+          ...props,
+          onLoadMore: noop,
+          ...(loading === true && {
+            loading: createElement(
+              'p',
+              { className: 'text-body-medium text-on-surface-variant' },
+              'Loading more dishes…',
+            ),
+          }),
+          ...(end === true && {
+            end: createElement(
+              'p',
+              { className: 'text-body-small text-on-surface-variant' },
+              "That's everything",
+            ),
+          }),
+        }),
+      ),
+    // `status` is required, so it has no default and the snippet always writes it.
+    defaultProps: { auto: false, rootMargin: '800px 0px', loading: false, end: false },
+    surfacedProps: ['status', 'auto', 'rootMargin', 'loading', 'end'],
+    initialState: { status: 'idle' },
+    controlKinds: { loading: 'boolean', end: 'boolean' },
+    toggledSlots: {
+      loading: '<p className="text-body-medium text-on-surface-variant">Loading more dishes…</p>',
+      end: '<p className="text-body-small text-on-surface-variant">That&apos;s everything</p>',
+    },
+    codeSlots: { onLoadMore: '() => {}' },
+  },
+  snackbar: {
+    component: 'Snackbar',
+    notRendered: {
+      SnackbarHost:
+        'Queues the snackbars `useSnackbarHostState` shows; the preview shows one snackbar directly, and the Host example queues them.',
+    },
+    render: ({ onDismiss, ...props }) =>
+      createElement(
+        'div',
+        { className: 'w-full max-w-[480px]' },
+        createElement(
+          SnackbarAny,
+          { ...props, onAction: noop, ...(onDismiss === true && { onDismiss: noop }) },
+          'Message archived',
+        ),
+      ),
+    defaultProps: { actionOnNewLine: false, onDismiss: false },
+    surfacedProps: ['actionLabel', 'actionOnNewLine', 'onDismiss'],
+    initialState: { actionLabel: 'Undo', onDismiss: true },
+    controlKinds: { onDismiss: 'boolean' },
+    toggledSlots: { onDismiss: '() => {}' },
+    codeSlots: { onAction: '() => {}' },
+    codeChildren: 'Message archived',
+  },
+  'date-picker': {
+    component: 'DatePicker',
+    groups: { min: 'behaviour', max: 'behaviour', yearRange: 'behaviour' },
+    notRendered: {
+      DateRangePicker:
+        'Picks a start and an end date in the same calendar; the Range examples show it.',
+      DateField:
+        'A text field for typing a date, with a calendar menu; the Date field example shows it.',
+    },
+    render: ({ min, max, yearRange, defaultMode, density, ...props }) =>
+      createElement(
+        'div',
+        { className: 'w-fit max-w-full rounded-corner-extra-large bg-surface-container-high' },
+        createElement(DatePickerAny, {
+          ...props,
+          // The mode applies as the picker mounts, so a change starts it afresh.
+          key: String(defaultMode),
+          defaultMode,
+          density: asDensity(density),
+          defaultValue: DATE,
+          ...(min === true && { min: MIN_DATE }),
+          ...(max === true && { max: MAX_DATE }),
+          ...(yearRange === true && { yearRange: [2020, 2040] }),
+        }),
+      ),
+    defaultProps: {
+      header: true,
+      modeToggle: true,
+      defaultMode: 'calendar',
+      density: 0,
+      min: false,
+      max: false,
+      yearRange: false,
+    },
+    surfacedProps: ['header', 'modeToggle', 'defaultMode', 'density', 'min', 'max', 'yearRange'],
+    enumOptions: { density: ['0', '-1', '-2', '-3'] },
+    controlKinds: {
+      density: 'number',
+      min: 'boolean',
+      max: 'boolean',
+      yearRange: 'boolean',
+    },
+    toggledSlots: {
+      min: 'new CalendarDate(2030, 3, 5)',
+      max: 'new CalendarDate(2030, 3, 25)',
+      yearRange: '[2020, 2040]',
+    },
+    notControlled: {
+      value:
+        'A `CalendarDate` that the picker sets as you pick: the preview starts on `defaultValue` and is picked in place.',
+      defaultValue:
+        'A `CalendarDate` object: the preview starts on 14 March 2030, and the snippet writes it.',
+    },
+    codeImports: [CALENDAR_DATE_IMPORT],
+    codeSlots: { defaultValue: 'new CalendarDate(2030, 3, 14)' },
+  },
+  'time-picker': {
+    component: 'TimePicker',
+    notRendered: {
+      TimePickerModeToggle:
+        "Switches a modal time picker between the dial and the keyboard input; the Modal example shows it in the dialog's actions.",
+    },
+    render: ({ hourCycle, density, ...props }, update) =>
+      createElement(
+        'div',
+        {
+          className:
+            'w-fit max-w-full overflow-x-auto rounded-corner-extra-large bg-surface-container-high p-6',
+        },
+        createElement(TimePickerAny, {
+          ...props,
+          ...((hourCycle === 12 || hourCycle === 24) && { hourCycle }),
+          density: asDensity(density),
+          defaultValue: new Time(14, 35),
+          onModeChange: (mode: string) => update('mode', mode),
+        }),
+      ),
+    defaultProps: { layout: 'auto', mode: 'dial', density: 0 },
+    surfacedProps: ['hourCycle', 'mode', 'layout', 'density'],
+    initialState: { hourCycle: 12, layout: 'vertical' },
+    // 12 or 24, a number: a number field writes `hourCycle={12}`, as the type wants.
+    controlKinds: { hourCycle: 'number', density: 'number' },
+    enumOptions: { hourCycle: ['12', '24'], density: ['0', '-1', '-2', '-3'] },
+    notControlled: {
+      value:
+        'A `Time` that the picker sets as you pick: the preview starts on `defaultValue` and is picked in place.',
+      defaultValue: 'A `Time` object: the preview starts at 14:35, and the snippet writes it.',
+    },
+    codeImports: ["import { Time } from '@internationalized/date';"],
+    codeSlots: { defaultValue: 'new Time(14, 35)' },
+  },
+  'picker-dialog': {
+    component: 'PickerDialog',
+    render: (props, update) => createElement(PickerDialogPreview, { values: props, update }),
+    defaultProps: {
+      open: false,
+      variant: 'date',
+      fullScreen: 'never',
+      closedBy: 'any',
+      transition: 'reveal',
+      dismissButton: false,
+      modeToggleButton: false,
+      closeIcon: false,
+    },
+    surfacedProps: [
+      'open',
+      'variant',
+      'title',
+      'fullScreen',
+      'closedBy',
+      'transition',
+      'dismissButton',
+      'modeToggleButton',
+      'closeIcon',
+    ],
+    initialState: { dismissButton: true },
+    adjust: adjustPickerModeToggle,
+    controlDescriptions: {
+      modeToggleButton:
+        "The time picker's dial and keyboard switch, at the dialog's bottom start (time dialogs only; a date picker's switch is in its header). Turning it on makes the dialog a time dialog.",
+    },
+    controlKinds: {
+      title: 'string',
+      dismissButton: 'boolean',
+      modeToggleButton: 'boolean',
+      closeIcon: 'boolean',
+    },
+    toggledSlots: {
+      dismissButton: '<Button variant="text" onPress={() => setOpen(false)}>Cancel</Button>',
+      modeToggleButton: '<TimePickerModeToggle mode={mode} onModeChange={setMode} />',
+      closeIcon: CLOSE,
+    },
+    // The snippet opens the dialog from a button and keeps `open` in state, as the preview
+    // does; with the mode toggle, the time picker's mode too.
+    codeState: (values) => ({
+      open: `useState(${values.open === true})`,
+      ...(values.modeToggleButton === true && { mode: "useState<'dial' | 'input'>('dial')" }),
+    }),
+    codeWrap: (values) => ({
+      before: `<>\n  <Button variant="tonal" onPress={() => setOpen(true)}>\n    ${
+        values.variant === 'time' ? 'Pick a time' : 'Pick a date'
+      }\n  </Button>`,
+      after: '</>',
+    }),
+    importMembers: ['Button', 'DatePicker', 'TimePicker', 'TimePickerModeToggle'],
+    codeImports: [CALENDAR_DATE_IMPORT, "import { Time } from '@internationalized/date';"],
+    codeSlots: {
+      open: 'open',
+      onOpenChange: 'setOpen',
+      'aria-label': (values) => (values.variant === 'time' ? '"Select time"' : '"Select date"'),
+      confirmButton: '<Button variant="text" onPress={() => setOpen(false)}>OK</Button>',
+      onConfirm: "() => console.log('Saved')",
+    },
+    codeChildren: (values) =>
+      values.variant === 'time'
+        ? values.modeToggleButton === true
+          ? '<TimePicker defaultValue={new Time(14, 35)} mode={mode} onModeChange={setMode} />'
+          : '<TimePicker defaultValue={new Time(14, 35)} />'
+        : '<DatePicker defaultValue={new CalendarDate(2030, 3, 14)} />',
+  },
+};

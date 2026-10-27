@@ -1,0 +1,547 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { RouterProvider } from 'react-aria';
+import { describe, expect, it, vi } from 'vitest';
+import { axeViolations } from '../../../test/axe';
+import { Button } from './Button';
+import { ButtonContext } from './ButtonContext';
+
+const Icon = () => <svg data-testid="icon" viewBox="0 0 24 24" />;
+
+describe('Button', () => {
+  it('renders a filled, small, round button by default', () => {
+    render(<Button>Save</Button>);
+    const button = screen.getByRole('button', { name: 'Save' });
+    expect(button.tagName).toBe('BUTTON');
+    expect(button).toHaveAttribute('type', 'button');
+    expect(button).toHaveAttribute('data-tokens', 'md-comp-button');
+    expect(button).toHaveAttribute('data-variant', 'filled');
+    expect(button).toHaveAttribute('data-size', 'sm');
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
+      'h-fit',
+      'min-h-[40px]',
+      'text-label-large',
+    );
+    expect(button).toHaveClass('rounded-[var(--_md-comp-button-container-shape-round-capped)]');
+    expect(button).toHaveClass('data-pressed:rounded-corner-small', 'state-layer', 'focus-ring');
+  });
+
+  it('calls onPress and passes DOM props and handlers through', async () => {
+    const onPress = vi.fn();
+    const onClick = vi.fn();
+    render(
+      <Button
+        onPress={onPress}
+        onClick={onClick}
+        type="submit"
+        aria-describedby="hint"
+        data-testid="b"
+      >
+        Send
+      </Button>,
+    );
+    const button = screen.getByTestId('b');
+    await userEvent.click(button);
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(button).toHaveAttribute('type', 'submit');
+    expect(button).toHaveAttribute('aria-describedby', 'hint');
+  });
+
+  it('does not respond when disabled', async () => {
+    const onPress = vi.fn();
+    render(
+      <Button disabled onPress={onPress}>
+        Save
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    await userEvent.click(button);
+    expect(onPress).not.toHaveBeenCalled();
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('data-disabled');
+    expect(button).toHaveClass(
+      'data-disabled:bg-on-surface/10',
+      'data-disabled:text-on-surface-variant/38',
+    );
+  });
+
+  it.each([
+    ['elevated', ['data-hovered:not-data-pressed:shadow-elevation-2']],
+    ['tonal', ['data-hovered:not-data-pressed:shadow-elevation-1']],
+    ['outlined', ['border-solid', 'border-[color:var(--_md-comp-button-outline-color)]']],
+    // Small text buttons take the 16px padding of the other small buttons (M3 Expressive).
+    ['text', ['px-[calc(16px-var(--m3-button-border,0px))]']],
+  ] as const)('marks the %s variant for its component tokens', (variant, classes) => {
+    render(<Button variant={variant}>Go</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('data-variant', variant);
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      ...classes,
+    );
+  });
+
+  it('lets consumer colour, corner and shadow classes replace the token classes', () => {
+    render(
+      <Button
+        variant="outlined"
+        className="bg-tertiary text-on-tertiary rounded-corner-small shadow-elevation-3 border-primary"
+      >
+        Go
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'bg-tertiary',
+      'text-on-tertiary',
+      'rounded-corner-small',
+      'shadow-elevation-3',
+      'border-primary',
+    );
+    expect(button).not.toHaveClass(
+      'bg-[var(--_md-comp-button-container-color)]',
+      'text-[color:var(--_md-comp-button-label-text-color)]',
+      'rounded-[var(--_md-comp-button-container-shape-round-capped)]',
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
+      'border-[color:var(--_md-comp-button-outline-color)]',
+    );
+  });
+
+  it.each([
+    [
+      'xs',
+      ['h-fit', 'min-h-[32px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      'gap-[8px]',
+      'size-[20px]',
+    ],
+    [
+      'sm',
+      ['h-fit', 'min-h-[40px]', 'px-[calc(16px-var(--m3-button-border,0px))]', 'text-label-large'],
+      'gap-[8px]',
+      'size-[20px]',
+    ],
+    [
+      'md',
+      ['h-[56px]', 'px-[calc(24px-var(--m3-button-border,0px))]', 'text-title-medium'],
+      'gap-[8px]',
+      'size-[24px]',
+    ],
+    [
+      'lg',
+      [
+        'h-[96px]',
+        'px-[calc(48px-var(--m3-button-border,0px))]',
+        'text-headline-small',
+        'font-brand',
+      ],
+      'gap-[12px]',
+      'size-[32px]',
+    ],
+    [
+      'xl',
+      [
+        'h-[136px]',
+        'px-[calc(64px-var(--m3-button-border,0px))]',
+        'text-headline-large',
+        'font-brand',
+      ],
+      'gap-[16px]',
+      'size-[40px]',
+    ],
+  ] as const)('sizes %s to the M3 token measurements', (size, rootClasses, gap, iconSize) => {
+    render(
+      <Button size={size} leadingIcon={<Icon />}>
+        Go
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(...rootClasses);
+    expect(screen.getByText('Go').parentElement).toHaveClass(gap);
+    expect(screen.getByTestId('icon').parentElement).toHaveClass(iconSize);
+  });
+
+  it('morphs a plain button on the non-bouncing effects spring, a toggle on fast spatial', () => {
+    // Re-audit 2026-10-15: Compose's Button uses DefaultEffects, its ToggleButton FastSpatial.
+    render(
+      <>
+        <Button>Plain</Button>
+        <Button toggle>Toggle</Button>
+      </>,
+    );
+    const effects =
+      '[--m3-shape-spring-duration:var(--md-sys-motion-spring-effects-default-duration)]';
+    expect(screen.getByRole('button', { name: 'Plain' })).toHaveClass(effects);
+    expect(screen.getByRole('button', { name: 'Toggle' })).not.toHaveClass(effects);
+  });
+
+  it('gives a selected, disabled outlined toggle the on-surface 10% container', () => {
+    // Re-audit 2026-10-15: as the token and the outlined icon button.
+    render(
+      <Button toggle variant="outlined" defaultSelected disabled>
+        Selected
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Selected' });
+    expect(button).toHaveClass('data-disabled:data-selected:bg-on-surface/10');
+    expect(button).not.toHaveClass('data-disabled:bg-outline-variant/10');
+  });
+
+  it('uses square corners and size-specific press morphs', () => {
+    render(
+      <>
+        <Button shape="square" size="md">
+          Medium
+        </Button>
+        <Button shape="square" size="xl">
+          XL
+        </Button>
+      </>,
+    );
+    const medium = screen.getByRole('button', { name: 'Medium' });
+    expect(medium).toHaveAttribute('data-size', 'md');
+    expect(medium).toHaveClass(
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
+      'data-pressed:rounded-corner-medium',
+    );
+    const xl = screen.getByRole('button', { name: 'XL' });
+    expect(xl).toHaveAttribute('data-size', 'xl');
+    expect(xl).toHaveClass(
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
+      'data-pressed:rounded-corner-large',
+    );
+  });
+
+  it('widens the outline for large outlined buttons and takes it out of the padding', () => {
+    render(
+      <>
+        <Button variant="outlined">S</Button>
+        <Button variant="outlined" size="lg">
+          L
+        </Button>
+        <Button variant="outlined" size="xl">
+          XL
+        </Button>
+        <Button variant="filled">Filled</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'S' })).toHaveClass(
+      '[--m3-button-border:1px]',
+      'border-(length:--m3-button-border)',
+      'px-[calc(16px-var(--m3-button-border,0px))]',
+    );
+    expect(screen.getByRole('button', { name: 'L' })).toHaveClass('[--m3-button-border:2px]');
+    expect(screen.getByRole('button', { name: 'L' })).not.toHaveClass('[--m3-button-border:1px]');
+    expect(screen.getByRole('button', { name: 'XL' })).toHaveClass('[--m3-button-border:3px]');
+    // Only forced colours give a filled button a border (re-audit 2026-10-15).
+    expect(screen.getByRole('button', { name: 'Filled' }).className).not.toMatch(
+      /(^| )\[--m3-button-border:/,
+    );
+    expect(screen.getByRole('button', { name: 'Filled' })).toHaveClass(
+      'forced-colors:[--m3-button-border:1px]',
+      'forced-colors:border-[CanvasText]',
+    );
+  });
+
+  it('keeps the hover elevation off while pressed', () => {
+    render(
+      <>
+        <Button variant="elevated">Elevated</Button>
+        <Button variant="filled">Filled</Button>
+        <Button variant="tonal">Tonal</Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Elevated' })).toHaveClass(
+      'shadow-[shadow:var(--_md-comp-button-container-elevation)]',
+      'data-hovered:not-data-pressed:shadow-elevation-2',
+    );
+    for (const name of ['Filled', 'Tonal']) {
+      const button = screen.getByRole('button', { name });
+      expect(button).toHaveClass('data-hovered:not-data-pressed:shadow-elevation-1');
+      expect(button.className).not.toMatch(/(^| )data-hovered:shadow/);
+    }
+  });
+
+  it('swaps in selectedLeadingIcon while a toggle is selected', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <Button
+        toggle
+        leadingIcon={<svg data-testid="outline" />}
+        selectedLeadingIcon={<svg data-testid="filled" />}
+      >
+        Starred
+      </Button>,
+    );
+    expect(screen.getByTestId('outline')).toBeInTheDocument();
+    expect(screen.queryByTestId('filled')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Starred' }));
+    expect(screen.getByRole('button', { name: 'Starred' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('filled').parentElement).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.queryByTestId('outline')).toBeNull();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('adds a 48px touch target to XS and S buttons only', () => {
+    const { container } = render(
+      <>
+        <Button size="xs">A</Button>
+        <Button size="sm">B</Button>
+        <Button size="md">C</Button>
+      </>,
+    );
+    const targets = container.querySelectorAll('[data-touch-target]');
+    expect(targets).toHaveLength(2);
+    // The target sits in the library-owned inner wrapper, never on the root.
+    for (const target of targets) {
+      expect(target.parentElement).toHaveClass('relative');
+      expect(target.parentElement?.tagName).toBe('SPAN');
+    }
+  });
+
+  it('hides icons from assistive tech and names the button by its label', () => {
+    render(<Button leadingIcon={<Icon />}>Download</Button>);
+    expect(screen.getByRole('button')).toHaveAccessibleName('Download');
+    for (const icon of screen.getAllByTestId('icon')) {
+      expect(icon.parentElement).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+
+  it('puts className, style and ref on the root and lets consumer classes win', () => {
+    let element: HTMLButtonElement | null = null;
+    render(
+      <Button
+        ref={(node) => {
+          element = node;
+        }}
+        className="fixed bg-tertiary"
+        classNames={{ label: 'uppercase', content: 'gap-[2px]' }}
+        style={{ bottom: 16 }}
+      >
+        Fab-like
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    expect(element).toBe(button);
+    expect(button).toHaveClass('fixed', 'bg-tertiary');
+    expect(button).not.toHaveClass('bg-[var(--_md-comp-button-container-color)]');
+    expect(button).toHaveStyle({ bottom: '16px' });
+    expect(screen.getByText('Fab-like')).toHaveClass('uppercase');
+    expect(screen.getByText('Fab-like').parentElement).toHaveClass('gap-[2px]');
+    expect(screen.getByText('Fab-like').parentElement).not.toHaveClass('gap-[8px]');
+  });
+
+  it('takes variant, size, shape and disabled from context; its own props win', () => {
+    render(
+      <ButtonContext value={{ variant: 'tonal', size: 'lg', shape: 'square', disabled: true }}>
+        <Button>Inherited</Button>
+        <Button size="xs" disabled={false}>
+          Own
+        </Button>
+      </ButtonContext>,
+    );
+    const inherited = screen.getByRole('button', { name: 'Inherited' });
+    expect(inherited).toHaveAttribute('data-variant', 'tonal');
+    expect(inherited).toHaveAttribute('data-size', 'lg');
+    expect(inherited).toHaveClass(
+      'h-[96px]',
+      'rounded-[var(--_md-comp-button-container-shape-square)]',
+    );
+    expect(inherited).toBeDisabled();
+    const own = screen.getByRole('button', { name: 'Own' });
+    expect(own).toHaveClass('min-h-[32px]');
+    expect(own).toBeEnabled();
+  });
+
+  it('has no axe violations in any variant', async () => {
+    const { container } = render(
+      <div>
+        {(['filled', 'elevated', 'tonal', 'outlined', 'text'] as const).map((variant) => (
+          <Button key={variant} variant={variant} leadingIcon={<Icon />}>
+            {variant}
+          </Button>
+        ))}
+        <Button toggle>Toggle</Button>
+        <Button href="/home">Home</Button>
+        <Button disabled>Disabled</Button>
+      </div>,
+    );
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('Button toggle', () => {
+  it('dims a disabled outline and drops the outline of a selected outlined toggle', () => {
+    render(
+      <>
+        <Button variant="outlined" disabled>
+          Off
+        </Button>
+        <Button toggle variant="outlined" defaultSelected disabled>
+          Selected off
+        </Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Off' })).toHaveClass(
+      'data-disabled:not-data-selected:border-outline-variant/10',
+    );
+    const selected = screen.getByRole('button', { name: 'Selected off' });
+    expect(selected).toHaveAttribute('data-selected');
+    expect(selected).toHaveClass('data-selected:border-transparent');
+    expect(selected.className).not.toMatch(/not-data-disabled:border-transparent/);
+  });
+
+  it('toggles aria-pressed and the selected state', async () => {
+    const onSelectedChange = vi.fn();
+    render(
+      <Button toggle onSelectedChange={onSelectedChange}>
+        Bold
+      </Button>,
+    );
+    const button = screen.getByRole('button', { name: 'Bold' });
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(button).not.toHaveAttribute('data-selected');
+    expect(button).toHaveClass(
+      'bg-[var(--_md-comp-button-unselected-container-color)]',
+      'text-[color:var(--_md-comp-button-unselected-label-text-color)]',
+      'data-selected:not-data-disabled:bg-[var(--_md-comp-button-selected-container-color)]',
+      'data-selected:not-data-disabled:text-[color:var(--_md-comp-button-selected-label-text-color)]',
+    );
+    expect(button).not.toHaveClass('bg-[var(--_md-comp-button-container-color)]');
+
+    await userEvent.click(button);
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveAttribute('data-selected');
+    expect(onSelectedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('can be controlled', async () => {
+    const onSelectedChange = vi.fn();
+    render(
+      <Button toggle selected onSelectedChange={onSelectedChange}>
+        Bold
+      </Button>,
+    );
+    const button = screen.getByRole('button');
+    await userEvent.click(button);
+    expect(onSelectedChange).toHaveBeenCalledWith(false);
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('swaps shape when selected: round → square and square → round', () => {
+    render(
+      <>
+        <Button toggle defaultSelected size="md">
+          Round
+        </Button>
+        <Button toggle defaultSelected shape="square" size="md">
+          Square
+        </Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Round' })).toHaveClass(
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-square)]',
+    );
+    expect(screen.getByRole('button', { name: 'Square' })).toHaveClass(
+      'data-selected:not-data-pressed:not-data-disabled:rounded-[var(--_md-comp-button-container-shape-round-capped)]',
+    );
+  });
+
+  it('presses a toggle to the same 8px corner as other small buttons', () => {
+    render(<Button toggle>Bold</Button>);
+    expect(screen.getByRole('button')).toHaveClass(
+      'container-motion',
+      'data-pressed:rounded-corner-small',
+    );
+  });
+
+  it('has no trailing icon (M3 allows one icon, on the leading side)', () => {
+    // @ts-expect-error trailingIcon was removed
+    const button = <Button trailingIcon={<Icon />}>Next</Button>;
+    expect(button).toBeTruthy();
+  });
+
+  it('rejects a text toggle in its types', () => {
+    const textToggle = (
+      // @ts-expect-error text buttons have no toggle form
+      <Button toggle variant="text">
+        Bold
+      </Button>
+    );
+    expect(textToggle).toBeTruthy();
+  });
+
+  it('falls back to filled for a text variant from context', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    render(
+      <ButtonContext value={{ variant: 'text' }}>
+        <Button toggle>Bold</Button>
+      </ButtonContext>,
+    );
+    expect(screen.getByRole('button')).toHaveAttribute('data-variant', 'filled');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('no toggle form'));
+    warn.mockRestore();
+  });
+});
+
+describe('Button link', () => {
+  it('renders a link that navigates through the RouterProvider', async () => {
+    const navigate = vi.fn();
+    let element: HTMLAnchorElement | null = null;
+    render(
+      <RouterProvider navigate={navigate}>
+        <Button
+          href="/settings"
+          variant="text"
+          ref={(node) => {
+            element = node;
+          }}
+        >
+          Settings
+        </Button>
+      </RouterProvider>,
+    );
+    const link = screen.getByRole('link', { name: 'Settings' });
+    expect(element).toBe(link);
+    expect(link).toHaveAttribute('href', '/settings');
+    await userEvent.click(link);
+    expect(navigate).toHaveBeenCalledWith('/settings', undefined);
+  });
+
+  it('drops the href and is marked disabled when disabled', () => {
+    render(
+      <Button href="/settings" disabled>
+        Settings
+      </Button>,
+    );
+    const link = screen.getByText('Settings').closest('a')!;
+    expect(link).not.toHaveAttribute('href');
+    expect(link).toHaveAttribute('aria-disabled', 'true');
+    expect(link).toHaveAttribute('data-disabled');
+  });
+});
+
+describe('Button token sets', () => {
+  it("puts an app's token set after the button's own", () => {
+    render(
+      <>
+        <Button data-tokens="app-send">Send</Button>
+        <Button href="/inbox" data-tokens="app-send md-comp-button">
+          Inbox
+        </Button>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-button app-send',
+    );
+    expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute(
+      'data-tokens',
+      'md-comp-button app-send',
+    );
+  });
+});

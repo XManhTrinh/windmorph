@@ -1,0 +1,364 @@
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { iconTransitionSuite } from './icon-faces';
+import { layoutSafetySuite } from './layout-safety';
+import { MODES, THEMES } from './shots';
+import { openStory } from './story';
+
+const box = (locator: Locator) =>
+  locator.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      x: Math.round(rect.x),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  });
+
+test.describe('Toolbar visual regression', () => {
+  for (const theme of THEMES) {
+    for (const mode of MODES) {
+      test(`floating · ${theme} · ${mode}`, async ({ page }) => {
+        await openStory(page, 'components-toolbar--floating', { theme, mode });
+        await expect(page.getByTestId('floating')).toHaveScreenshot(
+          `floating-${theme}-${mode}.png`,
+        );
+      });
+    }
+  }
+
+  for (const mode of MODES) {
+    test(`with FAB · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--with-fab', { mode });
+      await expect(page.getByTestId('with-fab')).toHaveScreenshot(`with-fab-${mode}.png`);
+    });
+    test(`docked · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--docked', { mode });
+      await expect(page.getByTestId('docked')).toHaveScreenshot(`docked-${mode}.png`);
+    });
+  }
+
+  for (const mode of MODES) {
+    test(`button colours · ${mode}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--button-colors', { mode });
+      await expect(page.getByTestId('button-colors')).toHaveScreenshot(`button-colors-${mode}.png`);
+    });
+  }
+
+  test('with FAB · rtl', async ({ page }) => {
+    await openStory(page, 'components-toolbar--with-fab', { dir: 'rtl' });
+    await expect(page.getByTestId('with-fab')).toHaveScreenshot('with-fab-rtl.png');
+  });
+});
+
+test.describe('Toolbar geometry', () => {
+  test('floating toolbar spacing reproduces Compose for 40px icon buttons', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse');
+    const toolbar = page.getByTestId('toolbar');
+    // 8px padding + 4px each end of every group + 8px between items:
+    // leading 48 + main 3×40 + 2×8 + 8 + trailing 48 + 16 = 256.
+    expect(await box(toolbar)).toMatchObject({ width: 256, height: 64 });
+    const edit = await box(page.getByRole('button', { name: 'Edit' }));
+    const bold = await box(page.getByRole('button', { name: 'Bold' }));
+    const start = (await box(toolbar)).x;
+    expect(edit.x - start).toBe(12);
+    expect(bold.x - (edit.x + edit.width)).toBe(8);
+  });
+
+  test('collapsing clips leading and trailing content; focusing it expands the toolbar', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-toolbar--collapse');
+    const toolbar = page.getByTestId('toolbar');
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await box(toolbar)).width).toBe(160);
+    // Clipped to nothing once the track has closed, but still in the accessibility tree.
+    const clip = () =>
+      page
+        .getByRole('button', { name: 'Edit' })
+        .evaluate((el) => getComputedStyle(el.parentElement!.parentElement!).clipPath);
+    await expect.poll(clip).toBe('inset(50%)');
+
+    // Focus reaching the collapsed controls expands the toolbar.
+    await page.getByRole('button', { name: 'Expand' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeFocused();
+    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    await expect.poll(clip).not.toBe('inset(50%)');
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
+    // Tab moves on through the controls (M3), keeping it expanded, then out, collapsing it.
+    for (const name of ['Italic', 'Underline', 'Delete']) {
+      await page.keyboard.press('Tab');
+      await expect(page.getByRole('button', { name })).toBeFocused();
+      await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    }
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('button', { name: 'After' })).toBeFocused();
+    await expect(toolbar).toHaveAttribute('data-expanded', 'false');
+  });
+
+  test('vertical collapse shrinks the height', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse', {}, { vertical: true });
+    const toolbar = page.getByTestId('toolbar');
+    expect(await box(toolbar)).toMatchObject({ width: 64, height: 256 });
+    await page.getByRole('button', { name: 'Collapse' }).click();
+    await expect.poll(async () => (await box(toolbar)).height).toBe(160);
+  });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`with a FAB, collapsing keeps the size and grows the FAB · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--collapse', { dir }, { withFab: true });
+      const toolbar = page.getByTestId('toolbar');
+      const fab = page.getByTestId('fab');
+      // Toolbar 12 + 3×40 + 2×8 + 12 = 160, gap 8, FAB 56; 80px tall for the grown FAB.
+      // Polled: under load the story can still be laying out (the direction comes from a
+      // toolbar global) when it's first measured.
+      await expect.poll(() => box(toolbar)).toMatchObject({ width: 224, height: 80 });
+      await expect.poll(() => box(fab)).toMatchObject({ width: 56, height: 56 });
+      const expanded = await box(toolbar);
+
+      await page.getByRole('button', { name: 'Collapse' }).click();
+      // Polled until the springs settle: the FAB grows to 80px, the toolbar keeps its size, and
+      // the FAB stays at the end edge, growing towards the toolbar.
+      await expect
+        .poll(async () => {
+          const [toolbarBox, fabBox] = await Promise.all([box(toolbar), box(fab)]);
+          return {
+            toolbar: toolbarBox,
+            fab: { width: fabBox.width, height: fabBox.height },
+            fabEndEdge: dir === 'ltr' ? fabBox.x + fabBox.width : fabBox.x,
+          };
+        })
+        .toEqual({
+          toolbar: expanded,
+          fab: { width: 80, height: 80 },
+          fabEndEdge: dir === 'ltr' ? expanded.x + expanded.width : expanded.x,
+        });
+      // The toolbar has faded to nothing; its controls stay reachable by focus.
+      const surface = page.getByRole('button', { name: 'Bold' }).locator('../..');
+      await expect.poll(() => surface.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+      await page.getByRole('button', { name: 'Expand' }).focus();
+      await page.keyboard.press('Tab');
+      await expect(page.getByRole('button', { name: 'Bold' })).toBeFocused();
+      await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+    });
+  }
+
+  test('scrolling collapses and expands the toolbar', async ({ page }) => {
+    await openStory(page, 'components-toolbar--scroll-expansion');
+    const toolbar = page.getByTestId('toolbar');
+    const scroller = page.getByTestId('scroller');
+    await scroller.evaluate((el) => el.scrollTo(0, 200));
+    await expect(toolbar).toHaveAttribute('data-expanded', 'false');
+    await scroller.evaluate((el) => el.scrollTo(0, 100));
+    await expect(toolbar).toHaveAttribute('data-expanded', 'true');
+  });
+});
+
+test.describe('Toolbar keyboard (M3: Tab or arrows)', () => {
+  const focusedName = (page: Page) =>
+    page.evaluate(
+      () =>
+        document.activeElement?.getAttribute('aria-label') ??
+        document.activeElement?.textContent?.trim(),
+    );
+  async function tabs(page: Page, count: number, shift = false) {
+    const names: (string | undefined)[] = [];
+    for (let i = 0; i < count; i++) {
+      await page.keyboard.press(shift ? 'Shift+Tab' : 'Tab');
+      names.push(await focusedName(page));
+    }
+    return names;
+  }
+
+  for (const [label, args, controls] of [
+    ['floating', {}, ['Edit', 'Bold', 'Italic', 'Underline', 'Delete']],
+    ['vertical', { vertical: '!true' }, ['Edit', 'Bold', 'Italic', 'Underline', 'Delete']],
+    ['with a FAB', { withFab: '!true' }, ['Bold', 'Italic', 'Underline', 'New']],
+  ] as const) {
+    test(`Tab and Shift+Tab go through every control, then out · ${label}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--collapse', {}, args);
+      await page.getByRole('button', { name: 'Collapse' }).focus();
+      expect(await tabs(page, controls.length + 1)).toEqual([...controls, 'After']);
+      expect(await tabs(page, controls.length + 1, true)).toEqual([
+        ...[...controls].reverse(),
+        'Collapse',
+      ]);
+      await expect(page.getByRole('toolbar', { name: 'Formatting' })).toBeVisible();
+    });
+  }
+
+  // Re-audit 2026-10-15 (the spec: docked toolbar "Color: Standard or vibrant").
+  test('a vibrant docked toolbar is primary-container, its icons on-primary-container', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-toolbar--docked');
+    const vibrant = page.getByRole('toolbar', { name: 'vibrant' });
+    const roles = await vibrant.evaluate((el) => {
+      const role = (name: string) => {
+        const probe = document.createElement('div');
+        probe.style.color = `var(--md-sys-color-${name})`;
+        el.append(probe);
+        const value = getComputedStyle(probe).color;
+        probe.remove();
+        return value;
+      };
+      return { container: role('primary-container'), content: role('on-primary-container') };
+    });
+    await expect(vibrant).toHaveCSS('background-color', roles.container);
+    await expect(vibrant.getByRole('button', { name: 'Search' })).toHaveCSS('color', roles.content);
+  });
+
+  test('Tab goes through a docked toolbar and on to the next one', async ({ page }) => {
+    await openStory(page, 'components-toolbar--docked');
+    const first = ['Search', 'Starred', 'Sent', 'Compose'];
+    expect(await tabs(page, 5)).toEqual([...first, 'Search']);
+    expect(await tabs(page, 4, true)).toEqual(['Compose', 'Sent', 'Starred', 'Search']);
+  });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`arrows still move between controls · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-toolbar--docked', { dir });
+      // Polled: the focus moves in the key's handler, which can land after the press resolves.
+      await page.keyboard.press('Tab');
+      await expect.poll(() => focusedName(page)).toBe('Search');
+      // The next control is to the right in LTR and to the left in RTL.
+      await page.keyboard.press(dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight');
+      await expect.poll(() => focusedName(page)).toBe('Starred');
+      await page.keyboard.press(dir === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
+      await expect.poll(() => focusedName(page)).toBe('Search');
+    });
+  }
+
+  test('a vertical toolbar uses the up and down arrows', async ({ page }) => {
+    await openStory(page, 'components-toolbar--collapse', {}, { vertical: '!true' });
+    await page.getByRole('button', { name: 'Collapse' }).focus();
+    await page.keyboard.press('Tab');
+    expect(await focusedName(page)).toBe('Edit');
+    await page.keyboard.press('ArrowDown');
+    expect(await focusedName(page)).toBe('Bold');
+    await page.keyboard.press('ArrowUp');
+    expect(await focusedName(page)).toBe('Edit');
+  });
+});
+
+test.describe('ToolbarFab elevation', () => {
+  test('pressing keeps level 2, not the hover level 3', async ({ page }) => {
+    await openStory(page, 'components-toolbar--with-fab');
+    const fab = page.getByRole('button', { name: 'New' }).first();
+    const shadow = () => fab.evaluate((el) => getComputedStyle(el).boxShadow);
+    const rest = await shadow();
+    await fab.hover();
+    await expect(fab).toHaveAttribute('data-hovered', 'true');
+    await expect.poll(shadow).not.toBe(rest);
+    await page.mouse.down();
+    await expect(fab).toHaveAttribute('data-pressed', 'true');
+    await expect.poll(shadow).toBe(rest);
+    await page.mouse.up();
+  });
+});
+
+test.describe('ToolbarFab icon transition', () => {
+  iconTransitionSuite('components-toolbar--fab-icons', (page) => page.getByTestId('fab'));
+});
+
+test.describe('Toolbar scroll exit', () => {
+  test('scrolling slides both toolbars off the screen and back', async ({ page }) => {
+    await openStory(page, 'components-toolbar--scroll-exit');
+    const scroller = page.getByTestId('scroller');
+    const docked = page.getByTestId('docked');
+    const floating = page.getByTestId('floating');
+    const transform = (locator: Locator) =>
+      locator.evaluate((el) => getComputedStyle(el).transform);
+    expect(await transform(docked)).toBe('none');
+    // A floating toolbar is elevated by default.
+    expect(await floating.evaluate((el) => getComputedStyle(el).boxShadow)).not.toBe('none');
+
+    await scroller.evaluate((el) => el.scrollTo(0, 200));
+    await expect(docked).toHaveAttribute('data-hidden', 'true');
+    await expect(docked).toHaveAttribute('inert');
+    // Off the bottom edge (64px), and the vertical toolbar off the end edge.
+    await expect.poll(() => transform(docked)).toBe('matrix(1, 0, 0, 1, 0, 64)');
+    await expect
+      .poll(() => docked.evaluate((el) => getComputedStyle(el).visibility))
+      .toBe('hidden');
+    await expect.poll(() => transform(floating)).toBe('matrix(1, 0, 0, 1, 88, 0)');
+
+    await scroller.evaluate((el) => el.scrollTo(0, 100));
+    await expect(docked).not.toHaveAttribute('data-hidden');
+    await expect.poll(() => transform(docked)).toBe('none');
+    await expect.poll(() => transform(floating)).toBe('none');
+  });
+});
+
+test.describe('Toolbar expand motion', () => {
+  // Re-audit 2026-10-16: 0fr ↔ 1fr tracks and a shrinking surface hid the fast spatial
+  // spring's overshoot (Compose's expandHorizontally shows it).
+  for (const withFab of [false, true]) {
+    test(`expanding overshoots on the fast spatial spring · ${withFab ? 'FAB surface' : 'leading'}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-toolbar--collapse', {}, { withFab });
+      const box = page.locator('[data-toolbar-collapsible]').first();
+      const open = (await box.boundingBox())!.width;
+      await page.getByRole('button', { name: 'Collapse' }).click();
+      await expect.poll(async () => (await box.boundingBox())!.width).toBe(0);
+      // Sampled for 700ms from the press itself, which a loaded runner may deliver well after
+      // this evaluate starts.
+      const sampled = page.evaluate(
+        () =>
+          new Promise<number[]>((resolve) => {
+            const out: number[] = [];
+            let start = 0;
+            const tick = () => {
+              out.push(
+                document.querySelector('[data-toolbar-collapsible]')!.getBoundingClientRect().width,
+              );
+              if (performance.now() - start < 700) requestAnimationFrame(tick);
+              else resolve(out);
+            };
+            document.addEventListener(
+              'pointerdown',
+              () => {
+                start = performance.now();
+                requestAnimationFrame(tick);
+              },
+              { capture: true, once: true },
+            );
+          }),
+      );
+      const scrollY = await page.evaluate(() => window.scrollY);
+      await page.getByRole('button', { name: 'Expand' }).click();
+      const series = await sampled;
+      expect(Math.max(...series)).toBeGreaterThan(open + 2);
+      expect(series.at(-1)!).toBeCloseTo(open, 0);
+      expect(await page.evaluate(() => window.scrollY)).toBe(scrollY);
+    });
+  }
+});
+
+test.describe('Toolbar layout safety', () => {
+  layoutSafetySuite('components-toolbar--layout-override', {
+    height: 64,
+    width: 160,
+    radius: '9999px',
+    interactive: false,
+    async check(page, target) {
+      await target.getByRole('button', { name: 'Bold' }).click();
+      await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+    },
+  });
+});
+
+test.describe('DockedToolbar layout safety', () => {
+  layoutSafetySuite('components-toolbar--docked-layout-override', {
+    height: 64,
+    width: 360,
+    radius: '0px',
+    interactive: false,
+    async check(page, target) {
+      await target.getByRole('button', { name: 'Search' }).click();
+      await expect(page.getByTestId('count')).toHaveText('Pressed 1');
+    },
+  });
+});

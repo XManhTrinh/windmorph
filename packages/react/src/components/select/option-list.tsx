@@ -1,0 +1,494 @@
+'use client';
+
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type JSX,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+} from 'react';
+import { animate, useReducedMotion } from 'motion/react';
+import {
+  DismissButton,
+  mergeProps,
+  useHover,
+  useListBox,
+  useListBoxSection,
+  useOption,
+  usePopover,
+  type AriaListBoxOptions,
+} from 'react-aria';
+import {
+  Item,
+  Section,
+  type Key,
+  type ListState,
+  type Node,
+  type OverlayTriggerState,
+} from 'react-stately';
+import { useM3Spring } from '../../motion/use-m3-spring';
+import { Overlay } from '../../primitives/Overlay';
+import { usePresence } from '../../primitives/use-presence';
+import type { Density } from '../../tokens/density';
+import { cn } from '../../utils/cn';
+import { useTypeaheadDelegate } from '../../utils/typeahead';
+import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
+import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
+import { useRevealEntering } from '../menu/use-reveal-entering';
+
+export { FOCUSABLE_DISABLED_OPTIONS } from '../../utils/focusable-disabled';
+
+/** Props of an option in a `Select` or `Autocomplete`; the React `key` identifies it. */
+export interface OptionItemProps {
+  /** The label. */
+  children: ReactNode;
+  /** Plain-text label for typeahead, filtering and the field, when `children` isn't a string. */
+  textValue?: string;
+  /** Icon (or avatar, flag…) before the label. */
+  leadingIcon?: ReactNode;
+  /** Second line of text. */
+  description?: ReactNode;
+  /** Short text at the end, e.g. a dialling code or a count. */
+  trailing?: ReactNode;
+  /** Accessible name when the label isn't plain text. */
+  'aria-label'?: string;
+}
+
+/** A group of options with an optional heading. */
+export interface OptionSectionProps {
+  /** Heading shown above the options. */
+  title?: ReactNode;
+  /** Accessible name for the group when it has no `title`. */
+  'aria-label'?: string;
+  children: ReactElement<OptionItemProps> | ReactElement<OptionItemProps>[];
+}
+
+/** An option in a `Select` (a React Stately collection item: identify it with `key`). */
+export const SelectItem = Item as unknown as (props: OptionItemProps) => JSX.Element;
+/** A group of options in a `Select`, under an optional heading. */
+export const SelectSection = Section as unknown as (props: OptionSectionProps) => JSX.Element;
+/** An option in an `Autocomplete` (a React Stately collection item: identify it with `key`). */
+export const AutocompleteItem = Item as unknown as (props: OptionItemProps) => JSX.Element;
+/** A group of options in an `Autocomplete`, under an optional heading. */
+export const AutocompleteSection = Section as unknown as (props: OptionSectionProps) => JSX.Element;
+
+export interface OptionListClassNames {
+  /** The list's surface. */
+  list?: string;
+  /** Each option. */
+  item?: string;
+  /** Each option's leading icon, or the check shown on a chosen option. */
+  icon?: string;
+  /** Each option's `description` line. */
+  description?: string;
+  /** Each option's `trailing` text. */
+  trailing?: string;
+  /** Each section's heading. */
+  heading?: string;
+  /** The divider between sections. */
+  divider?: string;
+  /** The text shown when no option matches. */
+  empty?: string;
+}
+
+/** Material Symbols `check`, shown on chosen options (as M3 menus show selection). */
+const CheckIcon = () => (
+  <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
+    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
+  </svg>
+);
+
+/**
+ * The options of a `Select` or `Autocomplete`, drawn exactly as the library's M3 menu: its
+ * surface, 44px items (4px less per density step), `tertiary-container` for chosen options
+ * with a check, sections with headings and dividers, state layers and the inset focus ring.
+ */
+export function OptionList<T>({
+  listBoxProps,
+  state,
+  listBoxRef,
+  emptyLabel,
+  loading = false,
+  loadingLabel,
+  isBlocked,
+  embedded = false,
+  animateFiltering = false,
+  classNames,
+}: {
+  listBoxProps: AriaListBoxOptions<T>;
+  state: ListState<T>;
+  listBoxRef: RefObject<HTMLUListElement | null>;
+  /** Shown when there are no options (e.g. nothing matches the search). */
+  emptyLabel: ReactNode;
+  loading?: boolean;
+  /** The loading indicator's name; needed with `loading`. */
+  loadingLabel?: string;
+  /** Options that can't be chosen right now (`maxSelections` reached). */
+  isBlocked?: ((key: Key) => boolean) | undefined;
+  /** Inside a surface of its own (a sheet, or the search list's panel): no menu panel. */
+  embedded?: boolean;
+  /**
+   * The list filters as someone types: options that stay ease into their new places (M3:
+   * "Menu items ease into their new position as the menu is filtered").
+   */
+  animateFiltering?: boolean;
+  classNames?: OptionListClassNames | undefined;
+}) {
+  // M3: a letter moves focus to the next option starting with it.
+  const typeaheadDelegate = useTypeaheadDelegate(state, listBoxRef);
+  const { listBoxProps: props } = useListBox(
+    {
+      ...listBoxProps,
+      keyboardDelegate: listBoxProps.keyboardDelegate ?? typeaheadDelegate,
+      // The arrow keys wrap at the ends, as in menus and lists.
+      shouldFocusWrap: true,
+    },
+    state,
+    listBoxRef,
+  );
+  useFilterMotion(listBoxRef, state.collection, animateFiltering);
+  const menu = menuStyles({ variant: 'standard', groupPosition: 'only' });
+  const nodes = [...state.collection];
+  // Options, not sections: a section left with no matches doesn't count.
+  const isEmpty = ![...state.collection.getKeys()].some(
+    (key) => state.collection.getItem(key)?.type === 'item',
+  );
+  // As in Menu, an item touching the panel's 16px corner takes 12px (16 − the 4px padding):
+  // the first item, unless a heading sits above it, and the last, unless a loading or empty
+  // row sits below it.
+  const itemKeys = [...state.collection.getKeys()].filter(
+    (key) => state.collection.getItem(key)?.type === 'item',
+  );
+  const first = nodes[0];
+  const topKey = first?.type === 'section' && first.rendered ? null : itemKeys[0];
+  const bottomKey = loading ? null : itemKeys.at(-1);
+  const itemOptions = { state, isBlocked, topKey, bottomKey, classNames };
+
+  return (
+    <div
+      // The menu's component tokens (menu-tokens.ts), whose styles the list shares.
+      data-tokens="md-comp-menus"
+      data-variant="standard"
+      className={cn(
+        !embedded && menu.group(),
+        'flex max-h-[inherit] min-h-0 flex-col overflow-hidden',
+        classNames?.list,
+      )}
+    >
+      <ul
+        {...props}
+        ref={listBoxRef}
+        className={cn('min-h-0 flex-1 overflow-y-auto outline-none', persistentScrollbar)}
+      >
+        {nodes.map((node, index) =>
+          node.type === 'section' ? (
+            <OptionSection key={node.key} section={node} divided={index > 0} {...itemOptions} />
+          ) : (
+            <OptionItem key={node.key} item={node} {...itemOptions} />
+          ),
+        )}
+      </ul>
+      {loading && loadingLabel ? (
+        <div className="flex min-h-[calc(44px+var(--md-sys-density,0)*4px)] items-center justify-center">
+          <LazyLoadingIndicator aria-label={loadingLabel} className="size-[36px]" />
+        </div>
+      ) : isEmpty ? (
+        <p
+          role="status"
+          className={cn(
+            'px-[12px] py-[12px] text-label-large text-on-surface-variant',
+            classNames?.empty,
+          )}
+        >
+          {emptyLabel}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * FLIP for a filtered list: after the options change, each one still there starts where it
+ * was and springs to its new place (default spatial spring). Positions are read only when
+ * the collection changes; nothing moves under reduced motion.
+ */
+function useFilterMotion(
+  listRef: RefObject<HTMLUListElement | null>,
+  collection: unknown,
+  enabled: boolean,
+) {
+  const spring = useM3Spring('spatial', 'default');
+  const reducedMotion = useReducedMotion();
+  const positions = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!enabled || !list) return;
+    const previous = positions.current;
+    const next = new Map<string, number>();
+    for (const item of list.querySelectorAll<HTMLElement>('[role="option"][data-key]')) {
+      const key = item.dataset.key!;
+      // offsetTop ignores transforms, so a moving option reports where it lands.
+      const top = item.offsetTop;
+      next.set(key, top);
+      const from = previous.get(key);
+      if (from === undefined || from === top || reducedMotion) continue;
+      animate(item, { y: [from - top, 0] }, spring);
+    }
+    positions.current = next;
+  }, [collection, enabled, listRef, reducedMotion, spring]);
+}
+
+interface ItemOptions<T> {
+  state: ListState<T>;
+  isBlocked: ((key: Key) => boolean) | undefined;
+  /** The item at the panel's top edge, if any. */
+  topKey: Key | null | undefined;
+  /** The item at the panel's bottom edge, if any. */
+  bottomKey: Key | null | undefined;
+  classNames: OptionListClassNames | undefined;
+}
+
+function OptionSection<T>({
+  section,
+  divided,
+  ...itemOptions
+}: ItemOptions<T> & { section: Node<T>; divided: boolean }) {
+  const { state, classNames } = itemOptions;
+  const { itemProps, headingProps, groupProps } = useListBoxSection({
+    heading: section.rendered,
+    'aria-label': section['aria-label'],
+  });
+  const menu = menuStyles({ variant: 'standard' });
+  return (
+    <li {...itemProps}>
+      {divided ? (
+        <div
+          role="presentation"
+          className={cn(
+            'mx-[8px] my-[calc(4px+var(--md-sys-density,0)*1px)] h-px bg-outline-variant',
+            classNames?.divider,
+          )}
+        />
+      ) : null}
+      {section.rendered ? (
+        <span {...headingProps} className={menu.heading({ class: classNames?.heading })}>
+          {section.rendered}
+        </span>
+      ) : null}
+      <ul {...groupProps}>
+        {[...state.collection.getChildren!(section.key)].map((item) => (
+          <OptionItem key={item.key} item={item} {...itemOptions} />
+        ))}
+      </ul>
+    </li>
+  );
+}
+
+function OptionItem<T>({
+  item,
+  state,
+  isBlocked,
+  topKey,
+  bottomKey,
+  classNames,
+}: ItemOptions<T> & { item: Node<T> }) {
+  const ref = useRef<HTMLLIElement>(null);
+  // Disabled options keep focus (the state's `disabledBehavior: 'selection'`), so React Aria
+  // treats them as enabled; they're marked disabled here, and the state (`disabledKeys`) or
+  // the selection cap (blocked options) turns their choice away.
+  const { optionProps, isSelected, isFocusVisible } = useOption({ key: item.key }, state, ref);
+  const isDisabled =
+    state.selectionManager.disabledKeys.has(item.key) || (isBlocked?.(item.key) ?? false);
+  const { hoverProps, isHovered } = useHover({ isDisabled });
+  const { leadingIcon, description, trailing } = item.props as OptionItemProps;
+  const menu = menuStyles({
+    variant: 'standard',
+    hasDescription: Boolean(description),
+    itemTop: item.key === topKey ? 'nested' : 'plain',
+    itemBottom: item.key === bottomKey ? 'nested' : 'plain',
+  });
+
+  return (
+    <li
+      {...mergeProps(optionProps, hoverProps)}
+      ref={ref}
+      aria-disabled={isDisabled || undefined}
+      data-key={String(item.key)}
+      data-tokens="md-comp-menus"
+      data-variant="standard"
+      className={menu.item({ class: classNames?.item })}
+      data-selected={isSelected || undefined}
+      data-disabled={isDisabled || undefined}
+      data-hovered={(isHovered && !isDisabled) || undefined}
+      data-focus-visible={isFocusVisible || undefined}
+    >
+      {leadingIcon ? (
+        <span aria-hidden="true" className={menu.icon({ class: classNames?.icon })}>
+          {isSelected ? <CheckIcon /> : leadingIcon}
+        </span>
+      ) : (
+        <span aria-hidden="true" className={menu.selectedIcon()}>
+          <span className={menu.selectedIconInner()}>
+            <span className={menu.icon({ class: classNames?.icon })}>
+              <CheckIcon />
+            </span>
+          </span>
+        </span>
+      )}
+      <span className={menu.text()}>
+        <span className="truncate">{item.rendered}</span>
+        {description ? (
+          <span className={menu.description({ class: classNames?.description })}>
+            {description}
+          </span>
+        ) : null}
+      </span>
+      {trailing ? (
+        <span
+          aria-hidden="true"
+          className={menu.trailing({ class: cn('tabular-nums', classNames?.trailing) })}
+        >
+          {trailing}
+        </span>
+      ) : null}
+    </li>
+  );
+}
+
+/**
+ * The list's popover: anchored to the field, at least as wide as it (Compose's
+ * `exposedDropdownSize`), above it when there's no room below, with the menu's open and
+ * close motion: revealed from the field's edge as it fades in (M3 motion avoids scale). `nonModal` keeps an `Autocomplete`'s input usable while it's open.
+ */
+export function OptionPopover({
+  state,
+  triggerRef,
+  popoverRef,
+  nonModal = false,
+  onPressOutside,
+  minWidth = 0,
+  density,
+  children,
+}: {
+  /** The open state the popover follows (from React Stately's `useOverlayTriggerState`). */
+  state: OverlayTriggerState;
+  /** The field the popover is placed under and matches the width of. */
+  triggerRef: RefObject<HTMLElement | null>;
+  /** Ref to the popover's surface. */
+  popoverRef: RefObject<HTMLDivElement | null>;
+  /**
+   * Keeps the page interactive while open (no underlay, focus stays in the field), as an
+   * editable field's menu needs. @default false
+   */
+  nonModal?: boolean;
+  /** The least width, when the field is narrower (a searchable menu needs room to type). */
+  minWidth?: number;
+  /** A press outside the menu and the field closes it (modal menus only). */
+  onPressOutside?: (() => void) | undefined;
+  /** The field's own density, which its menu takes; left out, the theme's. */
+  density?: Density | undefined;
+  children: ReactNode;
+}) {
+  const { isPresent, isExiting, exitProps } = usePresence(state.isOpen);
+  if (!isPresent) return null;
+  return (
+    <Overlay exiting={isExiting} disableFocusManagement={nonModal} density={density}>
+      <PopoverBody
+        state={state}
+        triggerRef={triggerRef}
+        popoverRef={popoverRef}
+        isNonModal={nonModal}
+        isExiting={isExiting}
+        exitProps={exitProps}
+        onPressOutside={onPressOutside}
+        minWidth={minWidth}
+      >
+        {children}
+      </PopoverBody>
+    </Overlay>
+  );
+}
+
+function PopoverBody({
+  state,
+  triggerRef,
+  popoverRef,
+  isNonModal,
+  isExiting,
+  exitProps,
+  onPressOutside,
+  minWidth,
+  children,
+}: {
+  state: OverlayTriggerState;
+  triggerRef: RefObject<HTMLElement | null>;
+  popoverRef: RefObject<HTMLDivElement | null>;
+  isNonModal: boolean;
+  minWidth: number;
+  isExiting: boolean;
+  exitProps: ReturnType<typeof usePresence>['exitProps'];
+  onPressOutside: (() => void) | undefined;
+  children: ReactNode;
+}) {
+  const { popoverProps, underlayProps, placement } = usePopover(
+    { triggerRef, popoverRef, placement: 'bottom start', offset: 4, isNonModal },
+    state,
+  );
+  const revealRef = useRef<HTMLDivElement>(null);
+  const entering = useRevealEntering(placement, revealRef);
+  // As wide as the field (Compose's `exposedDropdownSize`), measured when it opens.
+  const [width, setWidth] = useState<number>();
+  useLayoutEffect(() => {
+    setWidth(triggerRef.current?.getBoundingClientRect().width);
+  }, [triggerRef]);
+  // React Aria makes the page around a modal popover inert, so a press outside lands on
+  // `<body>` whatever is under it; its position tells a press on the field from one away.
+  // Listened to in the capture phase: the popover stops the press once it has closed.
+  useEffect(() => {
+    if (isNonModal || !onPressOutside) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (popoverRef.current?.contains(event.target as globalThis.Node)) return;
+      const field = triggerRef.current?.getBoundingClientRect();
+      const onField =
+        field !== undefined &&
+        event.clientX >= field.left &&
+        event.clientX <= field.right &&
+        event.clientY >= field.top &&
+        event.clientY <= field.bottom;
+      if (!onField) onPressOutside();
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [isNonModal, onPressOutside, popoverRef, triggerRef]);
+  const menu = menuStyles();
+
+  return (
+    <>
+      {isNonModal ? null : <div {...underlayProps} className="fixed inset-0" />}
+      <div
+        {...popoverProps}
+        ref={popoverRef}
+        style={{ ...popoverProps.style, minWidth: Math.max(width ?? 0, minWidth) }}
+        className={cn(menu.popover(), 'flex max-w-[min(560px,calc(100vw-32px))] flex-col')}
+      >
+        {isNonModal ? null : <DismissButton onDismiss={state.close} />}
+        <div
+          {...exitProps}
+          ref={revealRef}
+          data-entering={entering || undefined}
+          data-exiting={isExiting || undefined}
+          data-placement={placement ?? undefined}
+          // The menu's reveal keeps its content's width (`w-max`); the option list fills the
+          // popover instead, which is at least as wide as the field.
+          className={cn(menu.reveal(), 'min-h-0 w-auto')}
+        >
+          {children}
+        </div>
+        <DismissButton onDismiss={state.close} />
+      </div>
+    </>
+  );
+}

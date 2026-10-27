@@ -1,0 +1,45 @@
+// @vitest-environment node
+import { describe, expect, it } from 'vitest';
+import {
+  collectClasses,
+  nonLiteralClasses,
+  uncompiledClasses,
+} from '../../../test/tailwind-classes';
+import { richTooltipStyles, tooltipStyles } from './tooltip-styles';
+
+function* outputs() {
+  for (const slot of Object.values(tooltipStyles())) yield slot();
+  for (const subhead of [false, true])
+    for (const action of [false, true])
+      for (const slot of Object.values(richTooltipStyles({ subhead, action }))) yield slot();
+}
+
+describe('tooltip styles', () => {
+  const classes = collectClasses(outputs());
+
+  it('writes every class literally so Tailwind can find it', async () => {
+    expect(
+      await nonLiteralClasses(new URL('./tooltip-styles.ts', import.meta.url), classes),
+    ).toEqual([]);
+  });
+
+  it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
+    expect(await uncompiledClasses(classes)).toEqual([]);
+  });
+});
+
+describe('the deprecated root slot', () => {
+  it('resolves to exactly the panel classes on a plain tooltip', () => {
+    const styles = tooltipStyles();
+    expect(styles.root()).toBe(styles.panel());
+    expect(styles.root({ class: 'extra' })).toBe(styles.panel({ class: 'extra' }));
+  });
+
+  it('resolves to exactly the panel classes on a rich tooltip, in every variant', () => {
+    for (const subhead of [false, true])
+      for (const action of [false, true]) {
+        const styles = richTooltipStyles({ subhead, action });
+        expect(styles.root()).toBe(styles.panel());
+      }
+  });
+});

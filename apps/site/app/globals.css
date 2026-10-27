@@ -1,0 +1,202 @@
+@import 'tailwindcss';
+@import '@windmorph/react/styles.css';
+@import '@windmorph/react-pro/styles.css';
+@source '../node_modules/@windmorph/react';
+@source '../node_modules/@windmorph/react-pro';
+
+/* Second-rail (drawer) inner content fade: re-runs on a keyed remount when the group
+   changes, cross-fading the heading + links. Gated by motion-safe so reduced motion snaps. */
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Code inside running text: a quiet chip (monospace, `surface-container-high`, 4px corners).
+   `InlineCode` sets the class; plain prose `<code>` outside a code block gets the same look.
+   In the base layer and under `:where()`, so a component's own code styles (CodeBlock)
+   and utility classes always win. Long tokens wrap at their hyphens (a normal
+   break opportunity), and only as a last resort mid-word, so nothing overflows a phone. */
+@layer base {
+  :where(.inline-code),
+  :where(main code:not(pre code)) {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    color: var(--md-sys-color-on-surface);
+    background-color: var(--md-sys-color-surface-container-high);
+    border-radius: var(--md-sys-shape-corner-extra-small);
+    padding-inline: 0.3em;
+    padding-block: 0.05em;
+    overflow-wrap: break-word;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+}
+
+/* The props-list item the URL points at (`#prop-Button-variant`): tinted with the primary
+   colour at the hover state layer's 8%, the tint reaching 8px past each side without moving
+   the text or widening the page. */
+main [data-prop]:target {
+  --prop-target: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+  background-color: var(--prop-target);
+  box-shadow:
+    -8px 0 0 0 var(--prop-target),
+    8px 0 0 0 var(--prop-target);
+}
+
+/* What the props filter hides, and how it marks its matches (`components/prop-list-controls.tsx`):
+   the tertiary container pair, which keeps text contrast in every theme, mode and contrast. */
+main [data-filtered-out] {
+  display: none !important;
+}
+
+::highlight(props-filter) {
+  background-color: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+/* Whatever the browser scrolls into view (a control reached by Tab, the skip link's target, a
+   #link's heading) lands clear of the sticky 64px top bar and, on compact windows, of the fixed
+   64px navigation bar, with 8px to spare (WCAG 2.4.11, Focus Not Obscured). Elements that
+   scroll to their own start (headings, examples, the tabs) add only their spacing to it. */
+html {
+  scroll-padding-top: 72px;
+}
+@media (width < 600px) {
+  html {
+    scroll-padding-bottom: 72px;
+  }
+}
+
+/* Section headings land 16px below the top bar when the outline (or a #link) jumps to them. */
+main :where(h2[id], h3[id]) {
+  scroll-margin-top: 0.5rem;
+}
+
+/* Page transitions: M3's shared axis (Y). The page content leaves upward as it fades out and
+   the next page rises in as it fades in, on the default spatial spring (movement) and the
+   default effects spring (fade); the rest of the window (rail, bars) stays still. Browsers
+   without view transitions simply swap the page. Off under reduced motion. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(.page-axis) {
+  animation-duration: var(--md-sys-motion-spring-spatial-default-duration);
+  animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
+}
+::view-transition-old(.page-axis) {
+  animation:
+    var(--md-sys-motion-spring-effects-fast-duration)
+      var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both page-rise-out;
+}
+::view-transition-new(.page-axis) {
+  animation:
+    var(--md-sys-motion-spring-effects-default-duration)
+      var(--md-sys-motion-spring-effects-default-easing)
+      var(--md-sys-motion-spring-effects-fast-duration) both page-fade-in,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
+}
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes page-rise-out {
+  to {
+    translate: 0 -30px;
+  }
+}
+@keyframes page-rise-in {
+  from {
+    translate: 0 30px;
+  }
+}
+/* Tab changes: M3's shared axis (X), on the panel alone (the page's header and tabs stay
+   still). Moving forward, the old panel leaves toward the start as it fades out and the new
+   one comes in from the end as it fades in; moving back, the other way. Mirrored in RTL. */
+:root {
+  --site-tab-axis-shift: 30px;
+}
+:root[dir='rtl'] {
+  --site-tab-axis-shift: -30px;
+}
+::view-transition-group(.tab-forward),
+::view-transition-group(.tab-backward) {
+  animation-duration: var(--md-sys-motion-spring-spatial-default-duration);
+  animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
+}
+::view-transition-old(.tab-forward),
+::view-transition-old(.tab-backward) {
+  animation:
+    var(--md-sys-motion-spring-effects-fast-duration)
+      var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both tab-slide-out;
+}
+::view-transition-new(.tab-forward),
+::view-transition-new(.tab-backward) {
+  animation:
+    var(--md-sys-motion-spring-effects-default-duration)
+      var(--md-sys-motion-spring-effects-default-easing)
+      var(--md-sys-motion-spring-effects-fast-duration) both page-fade-in,
+    var(--md-sys-motion-spring-spatial-default-duration)
+      var(--md-sys-motion-spring-spatial-default-easing) both tab-slide-in;
+}
+::view-transition-old(.tab-backward),
+::view-transition-new(.tab-backward) {
+  --site-tab-axis-direction: -1;
+}
+@keyframes tab-slide-out {
+  to {
+    translate: calc(var(--site-tab-axis-shift) * var(--site-tab-axis-direction, 1) * -1) 0;
+  }
+}
+@keyframes tab-slide-in {
+  from {
+    translate: calc(var(--site-tab-axis-shift) * var(--site-tab-axis-direction, 1)) 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/*
+ * The playground's code marks the lines a control just changed: a tint and a bar at the
+ * start that fade out on the slow effects spring. Under reduced motion the marker stays,
+ * still, until the next change. Only colours change, so nothing moves.
+ */
+.playground-code .line {
+  display: block;
+}
+.playground-code .line[data-changed] {
+  background-color: color-mix(in srgb, var(--md-sys-color-primary) 14%, transparent);
+  box-shadow: inset 3px 0 var(--md-sys-color-primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .playground-code .line[data-changed] {
+    animation: playground-line-changed 1.6s var(--md-sys-motion-spring-effects-slow-easing) 0.4s
+      forwards;
+  }
+}
+@keyframes playground-line-changed {
+  to {
+    background-color: transparent;
+    box-shadow: inset 3px 0 transparent;
+  }
+}
