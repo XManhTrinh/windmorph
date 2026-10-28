@@ -1,5 +1,11 @@
 # @windmorph/react
 
+## 0.1.1
+
+### Patch Changes
+
+- a0718c9: Published from GitHub Actions with npm provenance, so the package on npm links to the commit and build it came from. No code changes from 0.1.0.
+
 ## 0.1.0
 
 ### Minor Changes
