@@ -35,6 +35,7 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
 export const RELEASES: Release[] = [
   {
     version: '0.1.2',
+    date: '2026-11-07',
     summary: (
       <>
         Fixes from the first weeks in apps: server-rendered pages that stream keep their HTML on a
