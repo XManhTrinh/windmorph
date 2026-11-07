@@ -57,13 +57,14 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
             Purpose
           </h2>
           <p className="text-body-large text-on-surface-variant">
-            The list-detail layout shows a list of items and the one that&apos;s open. Below 840px
-            one pane shows at a time: the list, or the open item with a way back. From 840px the
-            list sits beside the open item, so people can move between items without losing their
-            place. It is <strong className="text-on-surface">not an M3 component</strong>: M3
-            defines list-detail as a canonical layout, and this one comes from{' '}
-            <InlineCode>@windmorph/react-pro</InlineCode>, built from M3&apos;s window size classes,
-            pane widths and spacer, colour roles, shapes and the shared axis transition.
+            The list-detail layout shows a list of items and the one that&apos;s open. When the
+            layout is narrower than 840px, one pane shows at a time: the list, or the open item with
+            a way back. From 840px wide the list sits beside the open item, so people can move
+            between items without losing their place. It is{' '}
+            <strong className="text-on-surface">not an M3 component</strong>: M3 defines list-detail
+            as a canonical layout, and this one comes from{' '}
+            <InlineCode>@windmorph/react-pro</InlineCode>, built from M3&apos;s window size class
+            thresholds, pane widths and spacer, colour roles, shapes and the shared axis transition.
           </p>
           <p className="text-body-large text-on-surface-variant">
             Use Tabs for a few peer views of the same thing, and a Dialog for a short task that
@@ -72,10 +73,17 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
         </section>
 
         <section className="flex flex-col gap-3">
-          <h2 id="panes-and-window-sizes" className="text-headline-small text-on-surface">
-            Panes and window sizes
+          <h2 id="panes-and-widths" className="text-headline-small text-on-surface">
+            Panes and widths
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
+            <li>
+              <strong className="text-on-surface">Its own width decides:</strong> the thresholds are
+              M3&apos;s window size classes, measured on the width the layout&apos;s wrapper gives
+              it (a CSS container query), not the window&apos;s. In a side panel, a dialog or a page
+              column narrower than 840px it shows one pane on any screen, and the server still
+              renders the right layout.
+            </li>
             <li>
               <strong className="text-on-surface">Compact and medium</strong> (below 840px): one
               pane, chosen by <InlineCode>active</InlineCode>. The <InlineCode>back</InlineCode>{' '}
@@ -96,7 +104,7 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               stays mounted between items.
             </li>
             <li>
-              Below 840px the panes switch with M3&apos;s shared axis transition both ways: the
+              With one pane, they switch with M3&apos;s shared axis transition both ways: the
               outgoing pane fades and slides out before it hides, and the incoming one fades and
               slides in. Focus moves to the new pane without scrolling the page.
             </li>
@@ -133,7 +141,8 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
             </li>
             <li>
               Override any part with <InlineCode>className</InlineCode> and{' '}
-              <InlineCode>classNames</InlineCode> (root, list, detail, back).
+              <InlineCode>classNames</InlineCode> (root, the size container; panes, the grid or row
+              holding them; list, detail, back).
             </li>
           </ul>
           <TokenTable set={listDetailLayoutTokenSet} caption="List-detail layout tokens" />
