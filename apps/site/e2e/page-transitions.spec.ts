@@ -183,7 +183,9 @@ test.describe('Docs layout', () => {
     const outline = page.getByRole('navigation', { name: 'On this page' });
     const column = page.locator('[data-docs-content]');
 
-    // Theming lists its sections; What's new has one release (one section), so it lists none.
+    // Theming lists its sections. A page with fewer than two sections lists none: every docs
+    // page has two or more now (What's new gained releases, 2026-11-07), so What's new is cut
+    // to one section here, and the outline follows the page's headings as they change.
     await page.goto('/theming');
     await expect(outline).toBeVisible();
     const withOutline = await column.boundingBox();
@@ -191,6 +193,10 @@ test.describe('Docs layout', () => {
 
     await page.goto('/whats-new');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(outline).toBeVisible();
+    await page.evaluate(() => {
+      for (const heading of [...document.querySelectorAll('main h2')].slice(1)) heading.remove();
+    });
     await expect(outline).toHaveCount(0);
     const withoutOutline = await column.boundingBox();
     const articleWithout = await page.locator('main article').first().boundingBox();
