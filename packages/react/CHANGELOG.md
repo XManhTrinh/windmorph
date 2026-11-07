@@ -1,5 +1,14 @@
 # @windmorph/react
 
+## 0.1.2
+
+### Patch Changes
+
+- 90d088c: Date pickers: a selected day that is also today now shows the selected day's on-primary text instead of today's primary text, which made it unreadable on the primary fill (modal and docked). The same holds for the current year when it's selected and for the ends of a range.
+- 625a38d: Bottom sheets stay above an on-screen keyboard: phone browsers lay the keyboard over the page without resizing it, so a sheet fixed to the window's bottom sat behind it. The sheet now follows the visible part of the window (the visual viewport), rising as the keyboard opens and capping its height to what's left. A searchable `Select`'s sheet takes that full height, so filtering changes the list inside and never resizes the sheet.
+- 5a8193f: `ThemeProvider` warns in development when it hydrates with the server's theme while streamed Suspense boundaries are still pending, then applies a different saved selection. That change makes React render those boundaries on the client and drop their server HTML. The warning names the values and the fix: with a streaming server, read the cookie with `getThemeFromCookies` and pass every value as a `default*` prop. The Next.js guide's App Router example now passes `defaultDensity` too.
+- a7bc179: `ThemeProvider` no longer makes React discard server-rendered HTML streamed behind a Suspense boundary. With `mode="system"` on a dark device, the provider's context value changed right after hydration, and React client-rendered every boundary still waiting for its streamed content (a Next.js `loading.tsx` page), which could show the page twice for a moment. `useTheme()` now resolves `resolvedMode` from `prefers-color-scheme` itself, so the provider's value stays as the server rendered it. The API is unchanged.
+
 ## 0.1.1
 
 ### Patch Changes
