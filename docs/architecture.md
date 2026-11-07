@@ -1,6 +1,6 @@
 # @windmorph/react — Architecture
 
-Status: **0.1.0 released** (on npm 2026-10-27; every component of §15 built) · Last updated: 2026-11-07 (the changelog's format, §12; bottom sheets stay above an on-screen keyboard; `useTheme` resolves the system mode, and a streaming server passes the whole saved selection, so streamed boundaries hydrate; 2026-10-28: the first release and the site at https://windmorph.dev, §14; 2026-10-26: the final re-audit's fixes; 2026-10-15: web density, reduced motion removes movement in every component, §6; 2026-10-14: component tokens, overlays' `className` on the outermost element, parts loaded on demand; 2026-10-13: type in rem, layout in px)
+Status: **0.1.2 released** (on npm 2026-11-07; 0.1.0 on 2026-10-27; every component of §15 built) · Last updated: 2026-11-07 (the changelog's format, §12; bottom sheets stay above an on-screen keyboard; `useTheme` resolves the system mode, and a streaming server passes the whole saved selection, so streamed boundaries hydrate; 2026-10-28: the first release and the site at https://windmorph.dev, §14; 2026-10-26: the final re-audit's fixes; 2026-10-15: web density, reduced motion removes movement in every component, §6; 2026-10-14: component tokens, overlays' `className` on the outermost element, parts loaded on demand; 2026-10-13: type in rem, layout in px)
 
 A production-ready React component library implementing the **latest Material Design 3 Expressive** specification, consumed by many React and Next.js projects. This is the free, MIT-licensed core: M3 Expressive components only.
 
