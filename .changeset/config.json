@@ -1,6 +1,11 @@
 {
   "$schema": "https://unpkg.com/@changesets/config/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": [
+    "./changelog.mjs",
+    {
+      "repo": "XManhTrinh/windmorph"
+    }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],

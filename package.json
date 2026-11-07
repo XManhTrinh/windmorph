@@ -17,11 +17,13 @@
     "format:check": "prettier --check .",
     "clean:cache": "node -e \"for (const path of ['.turbo', 'apps/site/.next']) require('node:fs').rmSync(path, { recursive: true, force: true })\"",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/format-changelog.mjs",
     "release": "turbo run build --filter=@windmorph/react && changeset publish",
     "test:e2e": "turbo run test:e2e",
     "test:e2e:linux": "node scripts/storybook-e2e-linux.mjs",
-    "check:traces": "node scripts/check-traces.mjs"
+    "check:traces": "node scripts/check-traces.mjs",
+    "check:changesets": "node scripts/check-changesets.mjs",
+    "test:scripts": "node --test scripts/*.test.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
