@@ -112,7 +112,10 @@ export const datePickerStyles = tv({
       'relative mx-auto flex size-[40px] cursor-pointer items-center justify-center rounded-corner-full',
       'before:absolute before:-inset-[4px] before:rounded-corner-full',
       'text-body-large text-on-surface outline-none state-layer focus-ring',
-      'data-today:border data-in-range:text-on-secondary-container',
+      // Today's outline and colour, and the range's text, give way to a selected day's fill
+      // and on-colour: as equal-specificity rules, the later one in the CSS used to win, so a
+      // selected today was primary on primary (2026-11-07).
+      'data-today:not-data-selected:border data-in-range:not-data-selected:text-on-secondary-container',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
       'data-outside:invisible',
       ...forcedSelection,
@@ -141,7 +144,7 @@ export const datePickerStyles = tv({
       'relative flex h-[36px] w-[72px] cursor-pointer items-center justify-center rounded-corner-full',
       'before:absolute before:-inset-y-[6px] before:inset-x-0',
       'text-body-large text-on-surface-variant outline-none state-layer focus-ring',
-      'data-current:border data-current:border-primary data-current:text-primary',
+      'data-current:not-data-selected:border data-current:not-data-selected:border-primary data-current:not-data-selected:text-primary',
       'data-selected:bg-primary data-selected:text-on-primary',
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
       ...forcedSelection,
@@ -172,15 +175,15 @@ export const datePickerStyles = tv({
       true: {
         body: 'ps-0 pe-0',
         day: [
-          'data-today:border-primary data-today:text-primary',
+          'data-today:not-data-selected:border-primary data-today:not-data-selected:text-primary',
           'data-selected:bg-primary data-selected:text-on-primary',
           'data-outside:visible data-outside:text-on-surface-variant',
         ],
       },
       false: {
         day: [
-          'data-today:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
-          'data-today:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
+          'data-today:not-data-selected:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
+          'data-today:not-data-selected:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
           'data-selected:bg-[var(--_md-comp-date-picker-modal-date-selected-container-color)]',
           'data-selected:text-[color:var(--_md-comp-date-picker-modal-date-selected-label-text-color)]',
         ],
