@@ -61,6 +61,13 @@ jobs:
       - name: Check for traces
         run: pnpm check:traces
 
+      # Each changeset starts with its kind, so the changelog can group it (docs/plans/changelog-format.md).
+      - name: Check changesets
+        run: pnpm check:changesets
+
+      - name: Test the release scripts
+        run: pnpm test:scripts
+
       # Builds `@windmorph/react` and `apps/site`, then typechecks, lints (--max-warnings 0) and runs
       # the library's Vitest suite across the whole monorepo.
       - name: Build, typecheck, lint & test
