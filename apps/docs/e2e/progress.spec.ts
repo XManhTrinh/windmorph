@@ -61,6 +61,11 @@ test.describe('Progress visual regression', () => {
 test.describe('Progress behaviour', () => {
   test('circular size: 24 to 240px, clamped, with 4px strokes at every size', async ({ page }) => {
     await openStory(page, 'components-progress--sizes');
+    // Measure the settled rings: on a slow machine one was read mid-way through its entrance,
+    // a stroke of 3.94px (2026-11-07).
+    await page.evaluate(() =>
+      Promise.allSettled(document.getAnimations().map((animation) => animation.finished)),
+    );
     const cases: [string, number][] = [
       ['Size 24', 24],
       ['Size 40', 40],
