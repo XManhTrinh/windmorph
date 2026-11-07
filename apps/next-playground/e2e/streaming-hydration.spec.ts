@@ -96,9 +96,26 @@ test.describe('Streaming with a system colour mode', () => {
     );
   });
 
-  test('a saved dark theme shows the streamed page once', async ({ page, context, baseURL }) => {
+  test('a saved selection the server reads keeps the server HTML', async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    // Every value differs from the defaults, so one the root layout didn't pass to
+    // ThemeProvider would change the theme after hydration.
+    const saved = {
+      theme: 'ocean',
+      mode: 'dark',
+      contrast: 'high',
+      motion: 'standard',
+      density: '-2',
+    };
     await context.addCookies([
-      { name: COOKIE, value: encodeURIComponent('mode=dark'), url: baseURL! },
+      {
+        name: COOKIE,
+        value: encodeURIComponent(new URLSearchParams(saved).toString()),
+        url: baseURL!,
+      },
     ]);
     await throttleCpu(page);
     await page.emulateMedia({ colorScheme: 'light' });
@@ -107,6 +124,7 @@ test.describe('Streaming with a system colour mode', () => {
     await expect(page.getByTestId('streaming-resolved-mode')).toHaveText(
       'Mode: dark (resolved: dark)',
     );
+    await expect(page.locator('html')).toHaveAttribute('data-density', '-2');
   });
 
   test('the resolved mode follows a change on the device', async ({ page }) => {

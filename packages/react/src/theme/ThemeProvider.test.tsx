@@ -7,7 +7,7 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { setMediaQueries } from '../../test/setup';
 import { ThemeContext, useTheme, type ThemeProviderValue } from './context';
 import { createTheme } from './create-theme';
-import { serializeThemeState } from './state';
+import { DEFAULT_THEME_STATE, serializeThemeState } from './state';
 import { ThemeProvider } from './ThemeProvider';
 
 function ThemeControls() {
@@ -194,6 +194,72 @@ describe('ThemeProvider', () => {
     act(() => setMediaQueries({ '(prefers-color-scheme: dark)': false }));
     expect(state()).toBe('baseline system light standard expressive');
     expect(values.size).toBe(1);
+  });
+
+  describe('when the saved selection differs from the server-rendered one', () => {
+    /** Server-renders the provider with its defaults, then hydrates it with a cookie saved. */
+    async function hydrateWithSavedMode({ pendingBoundary }: { pendingBoundary: boolean }) {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const app = (
+        <ThemeProvider>
+          <ThemeControls />
+        </ThemeProvider>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(app);
+      // React's marker for a Suspense boundary whose streamed HTML hasn't arrived yet.
+      const marker = document.createComment('$?');
+      if (pendingBoundary) document.body.append(marker);
+      document.body.append(container);
+      document.cookie = `windmorph-theme=${serializeThemeState({ ...DEFAULT_THEME_STATE, mode: 'dark' })}`;
+      const root = await act(async () => hydrateRoot(container, app));
+      onTestFinished(() => {
+        act(() => root.unmount());
+        container.remove();
+        marker.remove();
+        warn.mockRestore();
+      });
+      return warn;
+    }
+
+    it('warns while streamed boundaries are pending, naming what changed', async () => {
+      const warn = await hydrateWithSavedMode({ pendingBoundary: true });
+      expect(state()).toBe('baseline dark dark standard expressive');
+      expect(warn).toHaveBeenCalledOnce();
+      expect(warn.mock.calls[0]![0]).toContain(
+        'hydrated with the server\'s mode "system", then applied the saved mode "dark"',
+      );
+      expect(warn.mock.calls[0]![0]).toContain('getThemeFromCookies');
+    });
+
+    it('stays quiet when nothing is still streaming', async () => {
+      const warn = await hydrateWithSavedMode({ pendingBoundary: false });
+      expect(state()).toBe('baseline dark dark standard expressive');
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when the server rendered the saved selection', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      document.cookie = `windmorph-theme=${serializeThemeState({ ...DEFAULT_THEME_STATE, mode: 'dark' })}`;
+      const app = (
+        <ThemeProvider defaultMode="dark">
+          <ThemeControls />
+        </ThemeProvider>
+      );
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(app);
+      const marker = document.createComment('$?');
+      document.body.append(marker, container);
+      const root = await act(async () => hydrateRoot(container, app));
+      onTestFinished(() => {
+        act(() => root.unmount());
+        container.remove();
+        marker.remove();
+        warn.mockRestore();
+      });
+      expect(state()).toBe('baseline dark dark standard expressive');
+      expect(warn).not.toHaveBeenCalled();
+    });
   });
 
   it('can be controlled', async () => {

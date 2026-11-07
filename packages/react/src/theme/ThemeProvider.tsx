@@ -83,6 +83,12 @@ export interface ThemeProviderProps {
    * `getThemeFromCookies` or `ThemeScript` for flash-free server rendering. Nothing is written
    * until the selection changes from the one the page loaded with, so a visitor who never
    * picks a setting gets no cookie.
+   *
+   * The browser's saved selection is applied right after hydration. When it differs from
+   * what the server rendered, React renders any Suspense boundary still streaming (a Next.js
+   * `loading.tsx`) on the client, dropping its server HTML. A streaming server should read
+   * the cookie with `getThemeFromCookies` and pass every value as a `default*` prop; a
+   * development warning names the values when it doesn't.
    * @default "cookie"
    */
   storage?: ThemeStorage;
@@ -130,6 +136,52 @@ function useThemeValue<T extends string | number>(
   return [value, setValue] as const;
 }
 
+const THEME_STATE_KEYS = ['theme', 'mode', 'contrast', 'motion', 'density'] as const;
+
+/** Whether the page holds a Suspense boundary whose streamed HTML hasn't arrived or shown. */
+function hasPendingStreamedBoundary() {
+  const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_COMMENT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    // React's markers for a boundary still streaming (`$?`) or waiting to be revealed (`$~`).
+    const { data } = node as Comment;
+    if (data === '$?' || data === '$~') return true;
+  }
+  return false;
+}
+
+/**
+ * Development only: warns when the saved selection changes the theme right after hydration
+ * while streamed Suspense boundaries are still pending, since React then renders them on the
+ * client instead of hydrating them (2026-11-07).
+ */
+function useStreamedSelectionWarning(state: ThemeState, isHydrated: boolean) {
+  // The state hydration rendered (the server's), or null on a client-only mount.
+  const [hydratedWith] = useState(() => (isHydrated ? null : state));
+  const pendingAtHydration = useRef(false);
+  const checked = useRef(false);
+  useLayoutEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !hydratedWith) return;
+    pendingAtHydration.current = hasPendingStreamedBoundary();
+  }, [hydratedWith]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !isHydrated || !hydratedWith) return;
+    if (checked.current) return;
+    checked.current = true;
+    const changed = THEME_STATE_KEYS.filter((key) => state[key] !== hydratedWith[key]);
+    if (!pendingAtHydration.current || changed.length === 0) return;
+    const describe = (values: ThemeState) =>
+      changed.map((key) => `${key} "${values[key]}"`).join(', ');
+    console.warn(
+      `[@windmorph/react] ThemeProvider hydrated with the server's ${describe(hydratedWith)}, ` +
+        `then applied the saved ${describe(state)}. A theme change right after hydration makes ` +
+        'React render the Suspense boundaries still streaming on the client, dropping their ' +
+        'server HTML. Give the server the saved selection: storage="cookie" with ' +
+        'getThemeFromCookies from @windmorph/react/next, passing every value as a default* prop ' +
+        '(defaultTheme, defaultMode, defaultContrast, defaultMotion, defaultDensity).',
+    );
+  }, [isHydrated, hydratedWith, state]);
+}
+
 /**
  * Provides the colour theme, mode, contrast level, motion scheme and density to the app,
  * mirrors them as `data-*` attributes on `<html>` and remembers the selection.
@@ -171,6 +223,8 @@ export function ThemeProvider({
   // The stored selection is external data that only exists in the browser. Reading it
   // through useSyncExternalStore renders the server snapshot during hydration and then
   // the stored value, without a hydration mismatch. `isHydrated` flips in the same pass.
+  // When the stored value differs from the server's, that second render changes the theme
+  // after hydration (see `useStreamedSelectionWarning`), so a streaming server passes it in.
   const storedRaw = useSyncExternalStore(
     useCallback(
       (onChange: () => void) => subscribeToStorage(storage, storageKey, onChange),
@@ -217,6 +271,8 @@ export function ThemeProvider({
     () => ({ theme, mode, contrast, motion, density }),
     [theme, mode, contrast, motion, density],
   );
+
+  useStreamedSelectionWarning(state, isHydrated);
 
   // What `<html>` carries, for scopes and overlays to put only what differs on their elements.
   const documentTheme = applyToDocument ? state : null;

@@ -47,7 +47,10 @@ export function getThemeScriptSource({
 /**
  * Prevents a theme flash on static or exported sites. Render it in `<head>` and add
  * `suppressHydrationWarning` to `<html>`. With server rendering, prefer
- * `getThemeFromCookies` from `@windmorph/react/next` instead.
+ * `getThemeFromCookies` from `@windmorph/react/next` instead, passing every value to
+ * `ThemeProvider`: the script fixes the colours, but `ThemeProvider` still applies a saved
+ * selection only after hydration, which makes React render Suspense boundaries that are still
+ * streaming on the client.
  */
 export function ThemeScript({ nonce, ...options }: ThemeScriptProps) {
   return (

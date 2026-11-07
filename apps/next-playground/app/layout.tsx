@@ -29,6 +29,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             defaultMode={theme.mode}
             defaultContrast={theme.contrast}
             defaultMotion={theme.motion}
+            defaultDensity={theme.density}
           >
             {children}
           </ThemeProvider>
