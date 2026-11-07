@@ -30,6 +30,7 @@ export default async function RootLayout({ children }) {
             defaultMode={theme.mode}
             defaultContrast={theme.contrast}
             defaultMotion={theme.motion}
+            defaultDensity={theme.density}
           >
             {children}
           </ThemeProvider>
@@ -137,6 +138,14 @@ export default async function NextjsPage() {
           <InlineCode>getThemeFromCookies(await cookies())</InlineCode>, spreads{' '}
           <InlineCode>themeAttributes(theme)</InlineCode>, loads Roboto Flex, and wraps children in{' '}
           <InlineCode>NextRouterProvider</InlineCode> and <InlineCode>ThemeProvider</InlineCode>.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          Pass every value to <InlineCode>ThemeProvider</InlineCode> as its{' '}
+          <InlineCode>default*</InlineCode> prop, density included. A value the server leaves out is
+          applied right after hydration instead, and React renders any Suspense boundary still
+          streaming (a <InlineCode>loading.tsx</InlineCode> page) on the client, dropping its server
+          HTML. In development, <InlineCode>ThemeProvider</InlineCode> warns when that happens and
+          names the values.
         </p>
         <CodeBlock
           code={APP_ROUTER_SNIPPET}
