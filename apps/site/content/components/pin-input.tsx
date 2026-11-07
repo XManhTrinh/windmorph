@@ -9,6 +9,7 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const PinInputCorners = lazyExample('pin-input/pin-input-corners', 'PinInputCorners');
 const PinInputDensity = lazyExample('pin-input/pin-input-density', 'PinInputDensity');
+const PinInputFullWidth = lazyExample('pin-input/pin-input-full-width', 'PinInputFullWidth');
 const PinInputGroups = lazyExample('pin-input/pin-input-groups', 'PinInputGroups');
 const PinInputPin = lazyExample('pin-input/pin-input-pin', 'PinInputPin');
 const PinInputStates = lazyExample('pin-input/pin-input-states', 'PinInputStates');
@@ -20,16 +21,19 @@ const PinInputVerification = lazyExample(
 
 /** PIN input page body: purpose, examples and theming. */
 export async function PinInputBody(): Promise<ComponentDoc> {
-  const [verification, variants, groups, pin, corners, states, density] = await Promise.all([
-    readExampleSource('pin-input/pin-input-verification.tsx'),
-    readExampleSource('pin-input/pin-input-variants.tsx'),
-    readExampleSource('pin-input/pin-input-groups.tsx'),
-    readExampleSource('pin-input/pin-input-pin.tsx'),
-    readExampleSource('pin-input/pin-input-corners.tsx'),
-    readExampleSource('pin-input/pin-input-states.tsx'),
-    readExampleSource('pin-input/pin-input-density.tsx'),
-  ]);
+  const [verification, variants, groups, pin, corners, states, density, fullWidth] =
+    await Promise.all([
+      readExampleSource('pin-input/pin-input-verification.tsx'),
+      readExampleSource('pin-input/pin-input-variants.tsx'),
+      readExampleSource('pin-input/pin-input-groups.tsx'),
+      readExampleSource('pin-input/pin-input-pin.tsx'),
+      readExampleSource('pin-input/pin-input-corners.tsx'),
+      readExampleSource('pin-input/pin-input-states.tsx'),
+      readExampleSource('pin-input/pin-input-density.tsx'),
+      readExampleSource('pin-input/pin-input-full-width.tsx'),
+    ]);
   const densityHtml = await highlightSource(density);
+  const fullWidthHtml = await highlightSource(fullWidth);
   const [verificationHtml, variantsHtml, groupsHtml, pinHtml, cornersHtml, statesHtml] =
     await Promise.all([
       highlightSource(verification),
@@ -70,6 +74,14 @@ export async function PinInputBody(): Promise<ComponentDoc> {
             fileName="pin-input-groups.tsx"
           >
             <PinInputGroups />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Full width"
+            code={fullWidth}
+            html={fullWidthHtml}
+            fileName="pin-input-full-width.tsx"
+          >
+            <PinInputFullWidth />
           </ExampleViewer>
           <ExampleViewer
             title="A masked PIN"
