@@ -74,8 +74,10 @@ export const bottomSheetStyles = tv({
     // `style`. The sheet sits at its bottom (`items-end`), so a consumer inset that stretches
     // it (`top-24` with the library's `bottom-0`) never stretches the sheet.
     container: [
-      'fixed inset-x-0 bottom-0 z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px] items-end',
-      'max-h-[calc(100dvh-72px)] min-[641px]:max-h-[calc(100dvh-56px)]',
+      // Lifted above an on-screen keyboard and kept within what it leaves showing
+      // (`--m3-sheet-keyboard-inset`, from the visual viewport; 2026-11-07).
+      'fixed inset-x-0 bottom-[var(--m3-sheet-keyboard-inset,0px)] z-(--md-sys-z-sheet) mx-auto flex w-full max-w-[640px] items-end',
+      'max-h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))] min-[641px]:max-h-[calc(100dvh_-_56px_-_var(--m3-sheet-keyboard-inset,0px))]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
       // Clips below its bottom edge only, where the panel's bleed hangs (see `panel`).
       '[clip-path:inset(-100vh_-100vw_0_-100vw)]',
@@ -88,13 +90,13 @@ export const bottomSheetStyles = tv({
       ...sheetMotion,
     ],
     panel: [
-      'relative flex max-h-[calc(100dvh-72px)] w-full flex-col',
+      'relative flex max-h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))] w-full flex-col',
       // A bleed in the panel's colour below its bottom edge: when the spring overshoots, the
       // sheet lifts a few pixels off the window's edge and this fills the gap (Compose scales
       // the sheet up for the same reason). The container clips it at rest.
       "after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-[32px] after:[background-color:inherit] after:content-['']",
       'rounded-t-[var(--_md-comp-sheet-bottom-docked-container-shape)]',
-      'min-[641px]:max-h-[calc(100dvh-56px)]',
+      'min-[641px]:max-h-[calc(100dvh_-_56px_-_var(--m3-sheet-keyboard-inset,0px))]',
       'bg-[var(--_md-comp-sheet-bottom-docked-container-color)] text-on-surface outline-none',
       'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
       // Forced colours drop the container and the shadow: a border on the free edges.

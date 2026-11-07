@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Button } from '../button/Button';
 import { BottomSheet } from './BottomSheet';
@@ -24,6 +24,27 @@ function finishExit() {
   }
 }
 
+/** A visual viewport as a phone browser reports it, with `covered` px of keyboard. */
+function fakeKeyboard(covered: number) {
+  const listeners = new Set<() => void>();
+  const viewport = {
+    scale: 1,
+    offsetTop: 0,
+    height: window.innerHeight - covered,
+    addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+    removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+  };
+  Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true });
+  onTestFinished(() => {
+    Object.defineProperty(window, 'visualViewport', { value: undefined, configurable: true });
+  });
+  return (next: number) =>
+    act(() => {
+      viewport.height = window.innerHeight - next;
+      for (const listener of listeners) listener();
+    });
+}
+
 describe('BottomSheet', () => {
   it('opens from a trigger as a named modal dialog with a drag handle', async () => {
     const { baseElement } = render(
@@ -43,7 +64,12 @@ describe('BottomSheet', () => {
     const dialog = screen.getByRole('dialog', { name: 'Share options' });
     // `className` and `style` go on the outermost container, around the layer that moves.
     const container = dialog.parentElement!.parentElement!;
-    expect(container).toHaveClass('custom', 'fixed', 'bottom-0', 'items-end');
+    expect(container).toHaveClass(
+      'custom',
+      'fixed',
+      'bottom-[var(--m3-sheet-keyboard-inset,0px)]',
+      'items-end',
+    );
     expect(container).toHaveStyle({ outline: '1px solid' });
     expect(dialog.parentElement).not.toHaveClass('custom');
     expect(dialog.parentElement!.className).toContain('translate-y-(--m3-sheet-offset)');
@@ -57,15 +83,15 @@ describe('BottomSheet', () => {
     );
     expect(dialog).toHaveClass(
       'shadow-[shadow:var(--_md-comp-sheet-bottom-docked-container-elevation)]',
-      'max-h-[calc(100dvh-72px)]',
+      'max-h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))]',
     );
     expect(dialog).toHaveAttribute('data-tokens', 'md-comp-sheet-bottom-docked');
     expect(dialog).toHaveAttribute('data-variant', 'modal');
     expect(container).toHaveClass(
       'max-w-[640px]',
-      'bottom-0',
+      'bottom-[var(--m3-sheet-keyboard-inset,0px)]',
       'min-[641px]:max-w-[min(640px,calc(100%-112px))]',
-      'min-[641px]:max-h-[calc(100dvh-56px)]',
+      'min-[641px]:max-h-[calc(100dvh_-_56px_-_var(--m3-sheet-keyboard-inset,0px))]',
     );
     const handle = screen.getByRole('button', { name: 'Close sheet' });
     // Initial focus is the first interactive element (the handle), as in a Dialog.
@@ -103,6 +129,24 @@ describe('BottomSheet', () => {
     // Escape is a close request: a fully open modal sheet closes in one press (APG modal dialog).
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  // Phone browsers lay the keyboard over the page without resizing it, so a sheet fixed to the
+  // window's bottom sat behind it, its search results hidden (2026-11-07).
+  it('rises above an on-screen keyboard and follows it as it opens and closes', () => {
+    const keyboard = fakeKeyboard(0);
+    render(
+      <BottomSheet aria-label="Details" defaultOpen>
+        <input aria-label="Search" />
+      </BottomSheet>,
+    );
+    const container = screen.getByRole('dialog', { name: 'Details' }).parentElement!.parentElement!;
+    const inset = () => container.style.getPropertyValue('--m3-sheet-keyboard-inset');
+    expect(inset()).toBe('0px');
+    keyboard(320);
+    expect(inset()).toBe('320px');
+    keyboard(0);
+    expect(inset()).toBe('0px');
   });
 
   it('with closedBy="none", Escape and a drag down leave a modal sheet open', () => {
