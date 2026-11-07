@@ -200,6 +200,37 @@ test.describe('Date picker', () => {
   });
 });
 
+// Today's outline and primary text used to win over a selected day's on-primary text, so a
+// selected today read primary on primary (2026-11-07). The clock makes the story's selected
+// day, March 14, 2030, today.
+test.describe('A selected today', () => {
+  const selectedTodayColors = async (page: Page, day: Locator) => {
+    await settle(page);
+    const colors = await day.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { text: style.color, fill: style.backgroundColor };
+    });
+    return { ...colors, onPrimary: await roleColor(day, 'on-primary') };
+  };
+
+  for (const [name, story, open] of [
+    ['modal', 'components-pickers--date', false],
+    ['docked', 'components-pickers--docked', true],
+  ] as const) {
+    test(`keeps the selected day's on-primary text: ${name}`, async ({ page }) => {
+      await page.clock.setFixedTime(new Date(2030, 2, 14, 12));
+      await openStory(page, story);
+      if (open) await page.getByRole('button', { name: 'Open calendar' }).click();
+      const day = page.getByRole('button', { name: /March 14, 2030/ });
+      await expect(day).toHaveAttribute('data-today', 'true');
+      await expect(day).toHaveAttribute('data-selected', 'true');
+      const { text, fill, onPrimary } = await selectedTodayColors(page, day);
+      expect(text).toBe(onPrimary);
+      expect(text).not.toBe(fill);
+    });
+  }
+});
+
 test.describe('Date picker motion', () => {
   // Compose: the input rises from below and the calendar comes back down, fading in.
   test('switching to input and back animates the new view in', async ({ page }) => {

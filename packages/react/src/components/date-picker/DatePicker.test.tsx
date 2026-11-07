@@ -52,10 +52,13 @@ describe('DatePicker', () => {
     expect(day).toHaveAttribute('data-slot', 'day');
     expect(day).toHaveClass(
       'data-selected:text-[color:var(--_md-comp-date-picker-modal-date-selected-label-text-color)]',
-      'data-today:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
-      'data-today:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
+      'data-today:not-data-selected:border-[color:var(--_md-comp-date-picker-modal-date-today-container-outline-color)]',
+      'data-today:not-data-selected:text-[color:var(--_md-comp-date-picker-modal-date-today-label-text-color)]',
     );
-    expect(day).not.toHaveClass('data-selected:bg-primary', 'data-today:text-primary');
+    expect(day).not.toHaveClass(
+      'data-selected:bg-primary',
+      'data-today:not-data-selected:text-primary',
+    );
   });
 
   it('selects a day and moves between months, with the shortcut in the tooltip', async () => {
