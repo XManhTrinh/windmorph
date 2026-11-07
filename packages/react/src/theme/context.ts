@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo, useSyncExternalStore } from 'react';
 import type { ColorMode, ContrastLevel, ResolvedColorMode } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
@@ -23,7 +23,23 @@ export interface ThemeContextValue extends ThemeState {
   setDensity: (density: Density) => void;
 }
 
-export const ThemeContext = createContext<ThemeContextValue | null>(null);
+/** What `ThemeProvider` provides: everything `useTheme` returns but `resolvedMode`. */
+export type ThemeProviderValue = Omit<ThemeContextValue, 'resolvedMode'>;
+
+export const ThemeContext = createContext<ThemeProviderValue | null>(null);
+
+const DARK_QUERY = '(prefers-color-scheme: dark)';
+
+function subscribeToColorScheme(onChange: () => void) {
+  const query = window.matchMedia(DARK_QUERY);
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+
+const getSystemMode = (): ResolvedColorMode =>
+  window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light';
+
+const getServerSystemMode = (): ResolvedColorMode => 'light';
 
 /** The theme applied to the nearest `ThemeProvider` or `ThemeScope`. */
 export const ThemeScopeContext = createContext<ThemeState>(DEFAULT_THEME_STATE);
@@ -62,8 +78,18 @@ export const DocumentThemeContext = createContext<ThemeState | null>(null);
  */
 export function useTheme(): ThemeContextValue {
   const value = useContext(ThemeContext);
-  if (!value) throw new Error('[@windmorph/react] useTheme() must be used inside <ThemeProvider>.');
-  return value;
+  // Read here, in each component that asks, so the device's mode arriving after hydration
+  // re-renders only those components and never changes the provider's context value.
+  const systemMode = useSyncExternalStore(
+    subscribeToColorScheme,
+    getSystemMode,
+    getServerSystemMode,
+  );
+  const mode = value?.mode;
+  const resolvedMode = mode === undefined || mode === 'system' ? systemMode : mode;
+  const theme = useMemo(() => value && { ...value, resolvedMode }, [value, resolvedMode]);
+  if (!theme) throw new Error('[@windmorph/react] useTheme() must be used inside <ThemeProvider>.');
+  return theme;
 }
 
 /** The classes and CSS variables of the `ThemeScope`s around this point (`ThemeScopeLayersContext`). */

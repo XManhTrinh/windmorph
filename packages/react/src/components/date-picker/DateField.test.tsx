@@ -125,7 +125,7 @@ describe('DateField (docked date picker)', () => {
     expect(calendar).not.toHaveAttribute('data-tokens');
     expect(within(calendar).getByRole('button', { name: /March 10, 2030/ })).toHaveClass(
       'data-selected:bg-primary',
-      'data-today:border-primary',
+      'data-today:not-data-selected:border-primary',
     );
     expect(await axeViolations(baseElement)).toEqual([]);
     await userEvent.click(within(calendar).getByRole('button', { name: /March 21, 2030/ }));

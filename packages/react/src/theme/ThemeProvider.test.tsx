@@ -1,8 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { useContext } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
+import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { setMediaQueries } from '../../test/setup';
-import { useTheme } from './context';
+import { ThemeContext, useTheme, type ThemeProviderValue } from './context';
 import { createTheme } from './create-theme';
 import { serializeThemeState } from './state';
 import { ThemeProvider } from './ThemeProvider';
@@ -158,6 +161,39 @@ describe('ThemeProvider', () => {
     expect(state()).toBe('baseline system dark standard expressive');
     act(() => setMediaQueries({ '(prefers-color-scheme: dark)': false }));
     expect(state()).toBe('baseline system light standard expressive');
+  });
+
+  it("keeps its context value as the server rendered it when the device's mode differs", async () => {
+    setMediaQueries({ '(prefers-color-scheme: dark)': true });
+    // A change to the provider's value right after hydration would make React client-render
+    // every Suspense boundary still waiting for its streamed HTML.
+    const values = new Set<ThemeProviderValue | null>();
+    function ContextReader() {
+      values.add(useContext(ThemeContext));
+      return null;
+    }
+    const app = (
+      <ThemeProvider>
+        <ContextReader />
+        <ThemeControls />
+      </ThemeProvider>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.append(container);
+    expect(container.querySelector('output')).toHaveTextContent('baseline system light');
+    values.clear();
+
+    const root = await act(async () => hydrateRoot(container, app));
+    onTestFinished(() => {
+      act(() => root.unmount());
+      container.remove();
+    });
+    expect(state()).toBe('baseline system dark standard expressive');
+    expect(values.size).toBe(1);
+    act(() => setMediaQueries({ '(prefers-color-scheme: dark)': false }));
+    expect(state()).toBe('baseline system light standard expressive');
+    expect(values.size).toBe(1);
   });
 
   it('can be controlled', async () => {
