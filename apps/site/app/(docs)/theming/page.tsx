@@ -266,7 +266,11 @@ export default async function ThemingPage() {
           <InlineCode>none</InlineCode>) under <InlineCode>storageKey</InlineCode> (default{' '}
           <InlineCode>windmorph-theme</InlineCode>), read with{' '}
           <InlineCode>useSyncExternalStore</InlineCode> so there is no hydration mismatch, and
-          written only once the selection changes, so a visitor who picks nothing gets no cookie.{' '}
+          written only once the selection changes, so a visitor who picks nothing gets no cookie.
+          The browser&apos;s saved selection is applied right after hydration; with a streaming
+          server, read the cookie there and pass every value as a <InlineCode>default*</InlineCode>{' '}
+          prop (see No theme flash), since a theme change after hydration makes React render the
+          Suspense boundaries still streaming on the client.{' '}
           <InlineCode>applyToDocument</InlineCode> (default true) writes the{' '}
           <InlineCode>data-*</InlineCode> attributes to <InlineCode>&lt;html&gt;</InlineCode>.
         </p>
@@ -497,7 +501,8 @@ export default async function ThemingPage() {
           <InlineCode>
             &lt;html {'{'}...themeAttributes(theme){'}'}&gt;
           </InlineCode>{' '}
-          — see the{' '}
+          and pass every value to <InlineCode>ThemeProvider</InlineCode> as its{' '}
+          <InlineCode>default*</InlineCode> prop — see the{' '}
           <a className="text-primary underline" href="/nextjs">
             Next.js guide
           </a>
