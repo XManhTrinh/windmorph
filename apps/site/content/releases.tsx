@@ -34,6 +34,58 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.1.2',
+    summary: (
+      <>
+        Fixes from the first weeks in apps: server-rendered pages that stream keep their HTML on a
+        dark device, date pickers read a selected today, and bottom sheets stay above the phone
+        keyboard.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            <InlineCode>ThemeProvider</InlineCode> no longer makes React discard server HTML
+            streamed behind a Suspense boundary (a Next.js <InlineCode>loading.tsx</InlineCode>):
+            with <InlineCode>mode=&quot;system&quot;</InlineCode> on a dark device, the page could
+            show twice for a moment. <InlineCode>useTheme()</InlineCode> now resolves{' '}
+            <InlineCode>resolvedMode</InlineCode> itself; the API is unchanged.
+          </>,
+          <>
+            In development, <InlineCode>ThemeProvider</InlineCode> warns when a saved theme the
+            server didn&apos;t render changes the theme while streamed content is still arriving,
+            and names the fix: read the cookie with <InlineCode>getThemeFromCookies</InlineCode> and
+            pass every value as a <InlineCode>default*</InlineCode> prop. The Next.js guide&apos;s
+            example now passes <InlineCode>defaultDensity</InlineCode> too.
+          </>,
+          <>
+            Date pickers: a selected day that is also today shows the selected day&apos;s on-primary
+            text instead of today&apos;s primary text, which couldn&apos;t be read on the primary
+            fill (modal and docked); the same for the current year and the ends of a range.
+          </>,
+          <>
+            Bottom sheets stay above an on-screen keyboard and keep within what it leaves showing,
+            and a searchable <InlineCode>Select</InlineCode>&apos;s sheet keeps its full height as
+            the search filters, so its results are never hidden behind the keyboard.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.1.1',
+    date: '2026-10-28',
+    summary: (
+      <>
+        Published from GitHub Actions with npm provenance, so the package on npm links to the commit
+        and build it came from. No code changes from 0.1.0.
+      </>
+    ),
+    sections: [],
+  },
+  {
     version: '0.1.0',
     date: '2026-10-27',
     summary: (

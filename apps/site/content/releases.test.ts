@@ -16,9 +16,11 @@ describe('RELEASES', () => {
     expect(dates).toEqual([...dates].sort().reverse());
   });
 
-  it('dates a version once the core package is published at it', () => {
-    const published = RELEASES.find((release) => release.version === corePackage.version);
-    if (published)
-      expect(published.date, `set the ${published.version} release date`).toBeDefined();
+  it('has notes, dated, for the version the core package is at', () => {
+    // The Version packages PR moves the version: it must bring the release's notes and date,
+    // so What's new never falls behind npm (0.1.1 was missing from it, 2026-11-07).
+    const current = RELEASES.find((release) => release.version === corePackage.version);
+    expect(current, `add ${corePackage.version} to content/releases.tsx`).toBeDefined();
+    expect(current?.date, `set the ${corePackage.version} release date`).toBeDefined();
   });
 });
