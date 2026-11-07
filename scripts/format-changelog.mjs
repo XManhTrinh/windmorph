@@ -46,6 +46,9 @@ export function formatChangelog(text, date) {
   const regroup = body.some((line) => BUMP_HEADING.test(line));
   let section;
   if (regroup) {
+    // A note written above the groups (a migration step, say) stays above them.
+    const firstGroup = body.findIndex((line) => BUMP_HEADING.test(line));
+    const note = body.slice(0, firstGroup).join('\n').trim();
     const groups = new Map(KINDS.map((kind) => [kind, []]));
     for (const entry of entries(body.filter((line) => !BUMP_HEADING.test(line)))) {
       const text = entry[0].slice(2);
@@ -56,12 +59,15 @@ export function formatChangelog(text, date) {
       const first = prefix ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest;
       groups.get(kind).push([`- ${first}`, ...entry.slice(1)].join('\n'));
     }
-    section = KINDS.filter((kind) => groups.get(kind).length).flatMap((kind) => [
-      '',
-      `### ${kind}`,
-      '',
-      groups.get(kind).join('\n'),
-    ]);
+    section = note ? ['', note] : [];
+    section.push(
+      ...KINDS.filter((kind) => groups.get(kind).length).flatMap((kind) => [
+        '',
+        `### ${kind}`,
+        '',
+        groups.get(kind).join('\n'),
+      ]),
+    );
     section.push('');
   } else {
     section = body;

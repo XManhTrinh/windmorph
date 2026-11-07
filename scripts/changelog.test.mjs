@@ -58,6 +58,17 @@ describe('formatChangelog', () => {
   });
 });
 
+describe('formatChangelog with a note', () => {
+  it('keeps a note written above the groups, above the new groups', () => {
+    const text =
+      '# p\n\n## 0.2.0\n\nMove your gap classes to `classNames.panes`.\n\n### Patch Changes\n\n- Fixed: One.\n';
+    assert.equal(
+      formatChangelog(text, '2026-11-08'),
+      '# p\n\n## 0.2.0 — 2026-11-08\n\nMove your gap classes to `classNames.panes`.\n\n### Fixed\n\n- One.\n',
+    );
+  });
+});
+
 describe('formatEntry', () => {
   it('ends the entry with its pull request, after any continuation lines', () => {
     assert.equal(
