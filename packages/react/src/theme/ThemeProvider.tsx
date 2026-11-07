@@ -15,7 +15,6 @@ import {
   type BuiltInThemeName,
   type ColorMode,
   type ContrastLevel,
-  type ResolvedColorMode,
 } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
@@ -24,7 +23,7 @@ import {
   InheritedThemeContext,
   ThemeContext,
   ThemeScopeContext,
-  type ThemeContextValue,
+  type ThemeProviderValue,
 } from './context';
 import type { ThemeDefinition } from './create-theme';
 import {
@@ -96,17 +95,6 @@ export interface ThemeProviderProps {
    */
   applyToDocument?: boolean;
 }
-
-const DARK_QUERY = '(prefers-color-scheme: dark)';
-
-function subscribeToColorScheme(onChange: () => void) {
-  const query = window.matchMedia(DARK_QUERY);
-  query.addEventListener('change', onChange);
-  return () => query.removeEventListener('change', onChange);
-}
-
-const getSystemMode = (): ResolvedColorMode =>
-  window.matchMedia(DARK_QUERY).matches ? 'dark' : 'light';
 
 const subscribeToNothing = () => () => {};
 
@@ -255,13 +243,6 @@ export function ThemeProvider({
     writeStoredTheme(storage, storageKey, state);
   }, [isHydrated, storage, storageKey, state]);
 
-  const systemMode = useSyncExternalStore(
-    subscribeToColorScheme,
-    getSystemMode,
-    (): ResolvedColorMode => 'light',
-  );
-  const resolvedMode = mode === 'system' ? systemMode : mode;
-
   const setTheme = useCallback(
     (next: string) => {
       if (!themeNames.includes(next)) {
@@ -277,10 +258,13 @@ export function ThemeProvider({
     [themeNames, setThemeState],
   );
 
-  const value = useMemo<ThemeContextValue>(
+  // `mode="system"` is resolved to the device's mode in `useTheme`, not here: the device's mode
+  // is known only after hydration, and a context value that changes then reaches the Suspense
+  // boundaries still waiting for their streamed HTML, which React then renders on the client
+  // instead, showing the page twice for a moment (2026-11-07).
+  const value = useMemo<ThemeProviderValue>(
     () => ({
       ...state,
-      resolvedMode,
       themes: themeNames,
       setTheme,
       setMode,
@@ -288,7 +272,7 @@ export function ThemeProvider({
       setMotion,
       setDensity,
     }),
-    [state, resolvedMode, themeNames, setTheme, setMode, setContrast, setMotion, setDensity],
+    [state, themeNames, setTheme, setMode, setContrast, setMotion, setDensity],
   );
 
   return (
