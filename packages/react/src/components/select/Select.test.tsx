@@ -475,6 +475,23 @@ describe('Select searchable', () => {
     expect(await screen.findByRole('listbox')).toBeInTheDocument();
     expect(searchBox()).not.toHaveFocus();
   });
+
+  it('keeps its sheet at the full height as the search filters, above the keyboard', async () => {
+    render(<Countries presentation="sheet" classNames={{ sheet: 'bg-surface-container' }} />);
+    await userEvent.click(countryField());
+    const sheet = await screen.findByRole('dialog');
+    const height = 'h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))]';
+    expect(sheet).toHaveClass(height, 'bg-surface-container');
+    await userEvent.type(searchBox(), 'uni');
+    expect(sheet).toHaveClass(height);
+  });
+
+  it('leaves a sheet without a search at its own height', async () => {
+    render(<Sort presentation="sheet" />);
+    await userEvent.click(sortField());
+    const sheet = await screen.findByRole('dialog', { name: 'Sort by' });
+    expect(sheet).not.toHaveClass('h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))]');
+  });
 });
 
 describe('Select renderValue', () => {

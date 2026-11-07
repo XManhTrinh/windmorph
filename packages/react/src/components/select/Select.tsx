@@ -248,6 +248,14 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
 
 const COMPACT_WINDOW = '(max-width: 599.98px)';
 
+/**
+ * A searchable list's sheet takes the full height it may (above an on-screen keyboard too), so
+ * filtering changes the list inside, never the sheet: at its own height it shrank as the
+ * results did, and sank behind the keyboard (2026-11-07).
+ */
+const SEARCH_SHEET_HEIGHT =
+  'h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))] min-[641px]:h-[calc(100dvh_-_56px_-_var(--m3-sheet-keyboard-inset,0px))]';
+
 /** A read-only Select's keyboard finds no option, so arrows and typeahead change nothing. */
 const READ_ONLY_DELEGATE: NonNullable<AriaSelectOptions<object>['keyboardDelegate']> = {
   getFirstKey: () => null,
@@ -624,7 +632,11 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
           skipPartiallyExpanded
           open={state.isOpen}
           onOpenChange={(open) => (open ? state.open() : state.close())}
-          classNames={classNames?.sheet ? { panel: classNames.sheet } : undefined}
+          classNames={
+            searchable || classNames?.sheet
+              ? { panel: cn(searchable && SEARCH_SHEET_HEIGHT, classNames?.sheet) }
+              : undefined
+          }
           {...(typeof label === 'string'
             ? { 'aria-label': label }
             : { 'aria-label': (rest as { 'aria-label'?: string })['aria-label'] ?? '' })}

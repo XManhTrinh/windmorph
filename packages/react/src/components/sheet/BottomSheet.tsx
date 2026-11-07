@@ -47,6 +47,7 @@ import {
 } from './sheet-settle';
 import { usePeekInert } from './use-peek-inert';
 import { SHEET_EXIT_PROPERTIES, bottomSheetStyles } from './sheet-styles';
+import { useKeyboardInset } from './use-keyboard-inset';
 import { SheetTriggerContext } from './SheetTrigger';
 
 export interface BottomSheetClassNames {
@@ -622,10 +623,11 @@ function BottomSheetPanel({
     : (overlayPanelProps ?? {});
   const panelProps = mergeProps(rest, roleProps, { onKeyDown });
   const zone = !dragHandle;
+  const keyboardInset = useKeyboardInset();
 
   return (
     <div
-      style={style}
+      style={{ '--m3-sheet-keyboard-inset': `${keyboardInset}px`, ...style } as CSSProperties}
       className={styles.container({ class: cn(classNames?.container, className) })}
     >
       <div

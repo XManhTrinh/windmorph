@@ -245,6 +245,68 @@ test.describe('Select searchable', () => {
     await expect(page).toHaveScreenshot('searchable-no-results.png');
   });
 
+  // Phone browsers lay the keyboard over the page without resizing it: the visual viewport
+  // shrinks. The sheet sat behind the keyboard and shrank as the search filtered, hiding the
+  // results (2026-11-07). The page here gets a visual viewport that reports a keyboard.
+  test('phone sheet stays above the keyboard and keeps its height as the search filters', async ({
+    page,
+  }) => {
+    const KEYBOARD = 330;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      let covered = 0;
+      class FakeVisualViewport extends EventTarget {
+        scale = 1;
+        offsetTop = 0;
+        offsetLeft = 0;
+        get width() {
+          return window.innerWidth;
+        }
+        get height() {
+          return window.innerHeight - covered;
+        }
+      }
+      const viewport = new FakeVisualViewport();
+      Object.defineProperty(window, 'visualViewport', { get: () => viewport, configurable: true });
+      (window as unknown as { keyboard: (px: number) => void }).keyboard = (px) => {
+        covered = px;
+        viewport.dispatchEvent(new Event('resize'));
+      };
+    });
+    await openStory(page, 'components-select--searchable');
+    await page.getByRole('button', { name: /Country of residence/ }).click();
+    const sheet = page.getByRole('dialog');
+    const search = page.getByRole('searchbox', { name: 'Search' });
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.waitForTimeout(600);
+    await search.click();
+    await page.evaluate(
+      (px) => (window as unknown as { keyboard: (px: number) => void }).keyboard(px),
+      KEYBOARD,
+    );
+    await page.waitForTimeout(600);
+    const above = 844 - KEYBOARD;
+    const before = (await sheet.boundingBox())!;
+    expect(Math.round(before.y + before.height)).toBe(above);
+    expect(before.y).toBeGreaterThanOrEqual(0);
+    await page.keyboard.type('uni');
+    await expect(page.getByRole('option')).toHaveCount(2);
+    await page.waitForTimeout(600);
+    const after = (await sheet.boundingBox())!;
+    expect(after).toEqual(before);
+    for (const option of await page.getByRole('option').all()) {
+      const box = (await option.boundingBox())!;
+      expect(box.y + box.height).toBeLessThanOrEqual(above);
+    }
+    // The keyboard closes: the sheet returns to the window's bottom.
+    await page.evaluate(() =>
+      (window as unknown as { keyboard: (px: number) => void }).keyboard(0),
+    );
+    await page.waitForTimeout(600);
+    const closed = (await sheet.boundingBox())!;
+    expect(Math.round(closed.y + closed.height)).toBe(844);
+  });
+
   test('phone sheet shows the list first; a tap on the search focuses it', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await openStory(page, 'components-select--searchable');
