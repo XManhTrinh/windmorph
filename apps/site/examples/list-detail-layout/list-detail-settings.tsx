@@ -14,8 +14,8 @@ const SECTIONS = [
 
 /**
  * Settings. In an app the list items are links (`href`) and `active` comes from the route;
- * here state stands in for the router. Narrow the window below 840px to see one pane at a
- * time, with Back.
+ * here state stands in for the router. Where the layout is narrower than 840px it shows one
+ * pane at a time, with Back.
  */
 export function ListDetailSettings() {
   const [open, setOpen] = useState('profile');
