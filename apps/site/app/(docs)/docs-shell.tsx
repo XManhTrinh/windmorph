@@ -4,7 +4,6 @@ import {
   IconButton,
   NavigationBar,
   NavigationBarItem,
-  NavigationRail,
   SearchAppBar,
   TopAppBar,
 } from '@windmorph/react';
@@ -13,7 +12,6 @@ import { usePathname } from 'next/navigation';
 import { ViewTransition, useState, type ReactElement, type ReactNode } from 'react';
 import { HomeIcon, MenuBookIcon, MenuIcon, WidgetsIcon } from '../../components/icons';
 import { DocsRail, currentDestination } from '../../components/nav/docs-rail';
-import { DrawerNav } from '../../components/nav/drawer-nav';
 import { Footer } from '../../components/footer';
 import { PageOutline } from '../../components/page-outline';
 import { usePlaceholderLinks } from '../../components/placeholder-links';
@@ -70,22 +68,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
         <div className="min-h-dvh bg-surface text-on-surface">
           <SkipLink target="main-content">Skip to content</SkipLink>
 
-          {/* Medium and wider: the fixed left rail with group flyouts. */}
-          <DocsRail settings={<DisplaySettingsButton />} />
-
-          {/* Compact: a modal drawer opened from the search app bar's navigation icon. */}
-          <NavigationRail
-            aria-label="Documentation navigation"
-            modal
-            hideOnCollapse
-            expanded={navOpen}
-            onExpandedChange={setNavOpen}
-            // As wide as M3's modal drawer (360px), leaving 56px of the page in view, so names
-            // and their chips never truncate; the rail would size itself to the truncated rows.
-            classNames={{ sheet: 'w-[min(360px,calc(100vw-56px))]' }}
-          >
-            <DrawerNav pathname={pathname} onNavigate={() => setNavOpen(false)} />
-          </NavigationRail>
+          {/* The fixed rail from 600px wide, and the phone's modal drawer below it. */}
+          <DocsRail settings={<DisplaySettingsButton />} open={navOpen} onOpenChange={setNavOpen} />
 
           {/* The rail is fixed; the content column is inset past the rail (and the pinned panel),
           transitioning the inline-start margin as the pinned drawer pushes content. */}
