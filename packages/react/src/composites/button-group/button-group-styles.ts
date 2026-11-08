@@ -26,15 +26,18 @@ export const buttonGroupStyles = tv({
   variants: {
     variant: {
       standard: 'inline-flex',
-      connected: 'grid w-full grid-flow-col auto-cols-[1fr] gap-[2px] data-pinned:flex',
+      connected: 'grid grid-flow-col auto-cols-[1fr] gap-[2px] data-pinned:flex',
     },
     size: { xs: '', sm: '', md: '', lg: '', xl: '' },
+    fullWidth: { true: '', false: '' },
     overflow: {
       true: 'w-full min-w-0 *:data-overflow-hidden:hidden data-measuring:flex data-measuring:w-max data-measuring:*:grow-0',
       false: '',
     },
   },
   compoundVariants: [
+    { variant: 'connected', fullWidth: true, class: 'w-full' },
+    { variant: 'connected', fullWidth: false, overflow: false, class: 'inline-grid w-fit' },
     { variant: 'standard', overflow: true, class: 'flex' },
     // XS and S: the spec's 18 / 12px, growing as density shrinks the icon buttons (their
     // default widths: XS max(24px, 32px + 4px a step), S 40px + 4px a step), so neighbouring
