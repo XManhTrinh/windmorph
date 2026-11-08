@@ -27,6 +27,60 @@ function Cities(props: Partial<AutocompleteProps<City, 'single' | 'multiple'>>) 
 const input = () => screen.getByRole('combobox', { name: /City/ });
 
 describe('Autocomplete', () => {
+  it.each(['a press elsewhere', 'Tab'])(
+    'keeps a multiple selection when text is left in the input and %s leaves it',
+    async (how) => {
+      const onChange = vi.fn();
+      render(
+        <>
+          <Cities selectionMode="multiple" defaultValue={['zrh']} onChange={onChange} />
+          <button type="button">After</button>
+        </>,
+      );
+      await userEvent.click(input());
+      await userEvent.keyboard('Lon');
+      if (how === 'Tab') await userEvent.tab();
+      else await userEvent.click(screen.getByText('After'));
+      await waitFor(() => expect(input()).not.toHaveFocus());
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByText('Zürich')).toBeInTheDocument();
+    },
+  );
+
+  it('keeps a multiple selection made in the list when text is left in the input on blur', async () => {
+    const seen: unknown[] = [];
+    function Controlled() {
+      const [value, setValue] = useState<string[]>([]);
+      return (
+        <>
+          <Autocomplete<City, 'multiple'>
+            label="City"
+            defaultItems={CITIES}
+            selectionMode="multiple"
+            value={value}
+            onChange={(next) => {
+              seen.push(next);
+              setValue(next as string[]);
+            }}
+          >
+            {(city: City) => <AutocompleteItem key={city.id}>{city.name}</AutocompleteItem>}
+          </Autocomplete>
+          <button type="button">After</button>
+        </>
+      );
+    }
+    render(<Controlled />);
+    await userEvent.click(input());
+    await userEvent.keyboard('Lon');
+    await userEvent.click(await screen.findByRole('option', { name: 'London' }));
+    await userEvent.click(input());
+    await userEvent.keyboard('Kr');
+    await userEvent.click(screen.getByText('After'));
+    await waitFor(() => expect(input()).not.toHaveFocus());
+    expect(seen.at(-1)).toEqual(['ldn']);
+    expect(screen.getByText('London')).toBeInTheDocument();
+  });
+
   it('takes its own density into the field and its menu, over its scope', async () => {
     const { container } = render(
       <ThemeScope density={-1}>
