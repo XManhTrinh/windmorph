@@ -81,6 +81,9 @@ const DEFAULT_LABELS: TextFieldLabels = {
   characterCount: (count, max) => `Character count: ${count} of ${max}`,
 };
 
+/** Input types the browser draws its own format in when empty, which a resting label would cover. */
+const FORMAT_SHOWING_TYPES = new Set(['date', 'time', 'datetime-local', 'month', 'week']);
+
 type FieldState = 'disabled' | 'error-focus' | 'error-hover' | 'error' | 'focus' | 'hover' | 'rest';
 
 /** Props React Aria names with an `is` prefix; we use the HTML-style names instead. */
@@ -334,7 +337,8 @@ export function TextField(props: TextFieldProps) {
   }, [value, growing, maxRows, domInputRef]);
 
   const hasLabel = label !== undefined && label !== null;
-  const floated = hasLabel && (isFocused || value.length > 0);
+  const floated =
+    hasLabel && (isFocused || value.length > 0 || FORMAT_SHOWING_TYPES.has(ariaProps.type ?? ''));
   const state: FieldState = disabled
     ? 'disabled'
     : isInvalid
