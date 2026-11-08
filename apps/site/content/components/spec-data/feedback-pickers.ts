@@ -2,6 +2,47 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Feedback and Pickers groups, by page slug. */
 export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
+  calendar: {
+    covers: [
+      {
+        name: 'Month, week, day and agenda views',
+        kind: 'variant',
+        examples: ['calendar/calendar-views'],
+      },
+      {
+        name: 'Creating, moving and resizing events',
+        kind: 'configuration',
+        examples: ['calendar/calendar-editing'],
+      },
+      {
+        name: 'Resource schedule and timeline views (`resources`)',
+        kind: 'variant',
+        examples: ['calendar/calendar-resources'],
+      },
+    ],
+  },
+  'time-field': {
+    spec: 'time-pickers/specs',
+    compose: [
+      {
+        composable: 'TimeInput',
+        component: 'TimeField',
+        note: "Compose's `TimeInput` is the picker's two boxes. `TimeField` is one text field that reads what people type, with the picker a press away.",
+      },
+    ],
+    covers: [
+      {
+        name: 'Filled and outlined, on either clock (`variant`, `hourCycle`)',
+        kind: 'variant',
+        examples: ['time-field/time-field-formats'],
+      },
+      {
+        name: 'Limits and a schedule of times (`min`, `max`)',
+        kind: 'configuration',
+        examples: ['time-field/time-field-schedule'],
+      },
+    ],
+  },
   snackbar: {
     spec: 'snackbar/specs',
     covers: [

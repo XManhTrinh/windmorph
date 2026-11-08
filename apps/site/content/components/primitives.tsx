@@ -289,6 +289,11 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               of the DOM without changing the app&apos;s language).
             </li>
             <li>
+              <InlineCode>useRevealEntering</InlineCode>, <InlineCode>toAriaPlacement</InlineCode>{' '}
+              and <InlineCode>closedByOverlayOptions</InlineCode> (the pieces an anchored overlay
+              shares: its reveal, its side in right to left, and what closes it).
+            </li>
+            <li>
               <InlineCode>useKeepPressedInPlace</InlineCode> (keeps the item a person pressed still
               on screen while an open item above it folds, by scrolling its scroller as much as the
               fold on every frame, as the List&apos;s tree grid does; pair it with{' '}

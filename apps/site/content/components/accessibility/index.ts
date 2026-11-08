@@ -35,6 +35,14 @@ import { shapedIcon } from './shaped-icon';
 import { commentRow } from './comment-row';
 import { collapse } from './collapse';
 import { accordion } from './accordion';
+import { dataTable } from './data-table';
+import { dataGrid } from './data-grid';
+import { calendar } from './calendar';
+import { navigationRailGroup } from './navigation-rail-group';
+import { treeView } from './tree-view';
+import { copyField } from './copy-field';
+import { popover } from './popover';
+import { timeField } from './time-field';
 import { expandableText } from './expandable-text';
 import { avatar } from './avatar';
 import { badge } from './badge';
@@ -106,6 +114,14 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'comment-row': commentRow,
   collapse: collapse,
   accordion: accordion,
+  'data-table': dataTable,
+  'data-grid': dataGrid,
+  calendar: calendar,
+  'navigation-rail-group': navigationRailGroup,
+  'tree-view': treeView,
+  'copy-field': copyField,
+  popover: popover,
+  'time-field': timeField,
   'expandable-text': expandableText,
   avatar: avatar,
   badge: badge,

@@ -49,6 +49,8 @@ describe('spec data', () => {
           const file = `${id}.tsx`;
           expect(existsSync(resolve(siteRoot, 'examples', file)), `examples/${file}`).toBe(true);
           const base = id.split('/').pop()!;
+          // An entry of `exampleSection` is read and rendered by that helper.
+          if (content.includes(`file: '${id}'`)) continue;
           // The page reads the example's source and shows it in an example viewer.
           expect(content, `${meta.slug} doesn't read ${file}`).toContain(`'${file}'`);
           expect(content, `${meta.slug} doesn't render ${base}.tsx`).toContain(

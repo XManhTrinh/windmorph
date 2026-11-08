@@ -122,7 +122,12 @@ export interface PlaygroundDescriptor {
     | { before: string; after: string }
     | ((values: Record<string, unknown>) => { before: string; after: string } | undefined);
   /** The entry the component is imported from in the snippet. @default '@windmorph/react' */
-  importFrom?: '@windmorph/react' | '@windmorph/react-pro' | '@windmorph/react-pro/rich-text';
+  importFrom?:
+    | '@windmorph/react'
+    | '@windmorph/react-pro'
+    | '@windmorph/react-pro/rich-text'
+    | '@windmorph/react-pro/data-grid'
+    | '@windmorph/react-pro/calendar';
 }
 
 /** Casts a typed component to a loose one so arbitrary control values can be spread. */

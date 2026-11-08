@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
+    "@tanstack/react-virtual": "^3.14.26",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.4.5",
     "@tiptap/core": "3.31.4",
@@ -58,6 +59,6 @@
     "vitest": "^5.0.3"
   },
   "optionalDependencies": {
-    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#e99ee8c3a2673c86a520a77c13fd7dd8731f6d8f"
+    "@windmorph/react-pro": "github:XManhTrinh/windmorph-pro#f5c95b0764e1f568df9ce8297a8b9df9f06c6454"
   }
 }

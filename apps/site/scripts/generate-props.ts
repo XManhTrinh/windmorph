@@ -50,6 +50,8 @@ const entryPaths = [
   join(uiRoot, 'src/index.ts'),
   join(proRoot, 'dist/index.d.ts'),
   join(proRoot, 'dist/rich-text.d.ts'),
+  join(proRoot, 'dist/data-grid.d.ts'),
+  join(proRoot, 'dist/calendar.d.ts'),
 ];
 /** The entries whose `use*` exports are documented as hooks, per package. */
 const hookEntries = [
@@ -59,7 +61,12 @@ const hookEntries = [
   },
   {
     tsconfigPath: join(siteRoot, 'tsconfig.json'),
-    entries: [join(proRoot, 'dist/index.d.ts'), join(proRoot, 'dist/rich-text.d.ts')],
+    entries: [
+      join(proRoot, 'dist/index.d.ts'),
+      join(proRoot, 'dist/rich-text.d.ts'),
+      join(proRoot, 'dist/data-grid.d.ts'),
+      join(proRoot, 'dist/calendar.d.ts'),
+    ],
   },
 ];
 /** Each package's component files: the core's sources, and Pro's declarations. */
@@ -77,7 +84,12 @@ const packages = [
   },
   {
     source: 'pro' as const,
-    entries: [join(proRoot, 'dist/index.d.ts'), join(proRoot, 'dist/rich-text.d.ts')],
+    entries: [
+      join(proRoot, 'dist/index.d.ts'),
+      join(proRoot, 'dist/rich-text.d.ts'),
+      join(proRoot, 'dist/data-grid.d.ts'),
+      join(proRoot, 'dist/calendar.d.ts'),
+    ],
     tsconfigPath: join(siteRoot, 'tsconfig.json'),
     sourceRoots: [join(proRoot, 'dist/components'), join(proRoot, 'dist/rich-text')],
     extension: '.d.ts' as const,
@@ -357,7 +369,9 @@ async function collectSources(dirs: string[], extension: '.tsx' | '.d.ts'): Prom
     const entries = await readdir(dir, { recursive: true, withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(extension)) continue;
-      if (extension === '.d.ts' && !/^[A-Z]/.test(entry.name)) continue;
+      // A family's exported parts can share one lower-case file.
+      if (extension === '.d.ts' && !/^(?:[A-Z]|data-table-parts\.|views\.)/.test(entry.name))
+        continue;
       if (/\.test\.tsx$/.test(entry.name)) continue;
       if (/Context\.(?:tsx|d\.ts)$/.test(entry.name)) continue;
       files.push(join(entry.parentPath, entry.name));

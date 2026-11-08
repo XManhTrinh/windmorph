@@ -36,6 +36,7 @@ function valueExports(file: string): string[] {
  * where it's documented instead.
  */
 const NOT_COMPONENTS: Record<string, string> = {
+  Time: "A class from `@internationalized/date`, re-exported so a TimeField's value can be built without installing it: the time field's page names it.",
   ButtonContext:
     'A React context for building on top: the button group and the toolbars provide it.',
   ToggleGroupStateContext:

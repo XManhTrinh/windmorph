@@ -66,6 +66,9 @@ const NO_ENUM_DEFAULT: Record<string, string> = {
  * Pro's props with no `@default` on purpose, as {@link NO_ENUM_DEFAULT} for the core's.
  */
 const PRO_NO_ENUM_DEFAULT: Record<string, string> = {
+  'Calendar.view': 'Controlled; `defaultView` holds the uncontrolled default.',
+  'CalendarEvent.active': 'Set by the view while an operation is under way.',
+  'CopyField.density': "Left out, it follows the theme's, as the core's TextField.",
   'Accordion.density': "Left out, the accordion takes the nearest scope's density.",
   'PhoneField.density': "Left out, the field takes the provider's or scope's density.",
   'PinInput.density': "Left out, the boxes take the provider's or scope's density.",

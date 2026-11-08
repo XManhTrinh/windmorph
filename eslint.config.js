@@ -150,10 +150,12 @@ export default tseslint.config(
                 '!@windmorph/react/styles.css',
                 '@windmorph/react-pro/*',
                 '!@windmorph/react-pro/rich-text',
+                '!@windmorph/react-pro/data-grid',
+                '!@windmorph/react-pro/calendar',
                 '!@windmorph/react-pro/styles.css',
               ],
               message:
-                'apps/site may import UI only from @windmorph/react, @windmorph/react/next, @windmorph/react-pro or @windmorph/react-pro/rich-text.',
+                'apps/site may import UI only from @windmorph/react, @windmorph/react/next, @windmorph/react-pro or its rich-text, data-grid and calendar entries.',
             },
             {
               // The precomputed shape outlines are data an app passes to a shaped component

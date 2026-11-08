@@ -76,7 +76,7 @@ export interface TimeFieldProps extends WrapperRootDOMProps {
   min?: Time;
   /** Latest time allowed. */
   max?: Time;
-  /** 12- or 24-hour clock, for the field and the picker. Left out, the locale's. */
+  /** 12- or 24-hour clock, for the field and the picker. Left out, the locale's. @default the locale's */
   hourCycle?: 12 | 24;
   /** The field's style. @default "outlined" */
   variant?: 'outlined' | 'filled';
