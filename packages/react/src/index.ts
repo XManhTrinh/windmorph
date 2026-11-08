@@ -177,7 +177,9 @@ export { snackbarTokenSet } from './components/snackbar/snackbar-tokens';
 export {
   NavigationRail,
   NavigationRailItem,
+  useNavigationRail,
   type NavigationRailClassNames,
+  type NavigationRailState,
   type NavigationRailItemProps,
   type NavigationRailProps,
 } from './components/navigation/NavigationRail';

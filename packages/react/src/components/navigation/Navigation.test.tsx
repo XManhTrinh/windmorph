@@ -6,7 +6,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Badge } from '../badge/Badge';
 import { NavigationBar, NavigationBarItem } from './NavigationBar';
-import { NavigationRail, NavigationRailItem, type NavigationRailProps } from './NavigationRail';
+import {
+  NavigationRail,
+  NavigationRailItem,
+  useNavigationRail,
+  type NavigationRailProps,
+  type NavigationRailState,
+} from './NavigationRail';
 import { navigationRailStyles } from './navigation-styles';
 
 vi.mock('motion/react', async (importOriginal) => ({
@@ -324,6 +330,50 @@ describe('NavigationRail', () => {
     const body = screen.getByRole('navigation').firstElementChild!;
     expect(body).toHaveClass('pt-2');
     expect(body).not.toHaveClass('pt-[44px]');
+  });
+
+  it('keeps the collapsed rail in the page below a window size with hideOnCollapse="compact"', () => {
+    const { container } = render(<Rail modal hideOnCollapse="compact" />);
+    expect(container.querySelector('nav')).toHaveClass('max-medium:hidden');
+  });
+
+  it('is positioned, so a column placed against it escapes its scrolling, and a consumer position wins', () => {
+    const { container, rerender } = render(<Rail />);
+    expect(container.querySelector('nav')).toHaveClass('relative');
+    rerender(<Rail className="fixed" />);
+    expect(container.querySelector('nav')).toHaveClass('fixed');
+    expect(container.querySelector('nav')).not.toHaveClass('relative');
+  });
+
+  it('tells a custom destination about the rail around it', async () => {
+    const seen: NavigationRailState[] = [];
+    function Destination() {
+      seen.push(useNavigationRail());
+      return null;
+    }
+    const { rerender } = render(
+      <NavigationRail aria-label="Main">
+        <Destination />
+      </NavigationRail>,
+    );
+    expect(seen.at(-1)).toMatchObject({ expanded: false, modal: false });
+    seen.length = 0;
+    rerender(
+      <NavigationRail aria-label="Main" modal hideOnCollapse expanded>
+        <Destination />
+      </NavigationRail>,
+    );
+    await waitFor(() => expect(seen.at(-1)).toMatchObject({ expanded: true, modal: true }));
+  });
+
+  it('refuses useNavigationRail outside a rail', () => {
+    function Destination() {
+      useNavigationRail();
+      return null;
+    }
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    expect(() => render(<Destination />)).toThrow(/inside a NavigationRail/);
+    spy.mockRestore();
   });
 
   it('hides the collapsed rail with hideOnCollapse', () => {

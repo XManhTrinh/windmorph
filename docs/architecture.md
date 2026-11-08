@@ -671,6 +671,8 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 
 ### Navigation rail and flexible navigation bar (built, Tier 2)
 
+- **One rail for every window, and destinations of its own** (2026-11-08): `hideOnCollapse="compact"` hides the collapsed modal rail below 600px in CSS, so one rail is the rail on larger windows and the drawer on a phone, with the server's HTML right. `useNavigationRail()` tells a custom destination whether the rail is expanded or the modal sheet, and closes the sheet. The root is `position: relative`, so a secondary column placed against it escapes the body's scrolling; a consumer's `fixed` or `sticky` wins through `cn()`.
+
 - `NavigationRail` with `NavigationRailItem`, and `NavigationBar` with `NavigationBarItem`. Items are links (`href`) or buttons (`onPress`) with `icon`, optional `selectedIcon` and a label; `selected` marks the current destination with `aria-current="page"` (`data-current`, since `ButtonBase` owns `data-selected`). Each is a `nav` landmark that needs a name.
 - **Rail** (Compose `WideNavigationRail.kt`):
   - Props: `expanded` / `defaultExpanded` / `onExpandedChange`, `header` (a node, or a function of `{ expanded, toggle }` for the menu button), `modal`, `hideOnCollapse`, `itemAlignment` = `top | center` and `divider` (2026-10-13, from the M3 spec), and `indicatorMotion` = `expand | slide` (below). `center` centres the items with auto margins in the space below the header (which stays at the top), so an overflowing rail still scrolls to every item; `divider` is a 1px `outline-variant` line on the edge next to the content.

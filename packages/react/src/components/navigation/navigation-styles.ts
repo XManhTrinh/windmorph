@@ -64,7 +64,8 @@ const widthMotion = [
 export const navigationRailStyles = tv({
   slots: {
     root: [
-      'flex w-(--m3-rail-width) shrink-0 flex-col text-on-surface',
+      // Positioned, so a secondary column placed against it escapes the body's scrolling.
+      'relative flex w-(--m3-rail-width) shrink-0 flex-col text-on-surface',
       'bg-[var(--_md-comp-nav-rail-collapsed-container-color)] data-expanded:bg-[var(--_md-comp-nav-rail-expanded-container-color)]',
       itemInset,
       oneLineWhileResizing,
@@ -112,6 +113,11 @@ export const navigationRailStyles = tv({
     itemAlignment: {
       top: {},
       center: { items: 'my-auto' },
+    },
+    /** `hideOnCollapse="compact"`: the collapsed rail shows from 600px wide. */
+    hiddenOnCompact: {
+      true: { root: 'max-medium:hidden' },
+      false: {},
     },
     /** A divider on the edge next to the content. */
     divider: {
