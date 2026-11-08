@@ -3,6 +3,7 @@
   "framework": null,
   "installCommand": "test -n \"$PRO_READ_TOKEN\" && git config --global url.\"https://x-access-token:$PRO_READ_TOKEN@github.com/XManhTrinh/windmorph-pro\".insteadOf https://github.com/XManhTrinh/windmorph-pro && pnpm i && test -d node_modules/@windmorph/react-pro",
   "buildCommand": "cd ../.. && pnpm turbo run build --filter=site",
+  "ignoreCommand": "test \"$VERCEL_GIT_COMMIT_REF\" != \"main\"",
   "outputDirectory": "out",
   "cleanUrls": true,
   "trailingSlash": false
