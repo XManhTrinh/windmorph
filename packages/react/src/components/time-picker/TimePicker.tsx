@@ -42,6 +42,7 @@ import {
 import { KeyboardIcon, ScheduleIcon } from '../date-picker/picker-icons';
 import { useMediaQuery } from '../date-picker/use-media-query';
 import { IconButton } from '../icon-button/IconButton';
+import { localeHourCycle } from './hour-cycle';
 import { timePickerStyles } from './time-picker-styles';
 
 /** Compose's clock geometry (TimePicker.kt), in px on the 256px dial. */
@@ -160,11 +161,6 @@ export function useTimePickerRoom(): 'vertical' | 'horizontal' | 'none' {
   const short = useMediaQuery(SHORT_WINDOW);
   const noRoom = useMediaQuery(NO_ROOM_FOR_DIAL);
   return noRoom ? 'none' : short ? 'horizontal' : 'vertical';
-}
-
-function localeHourCycle(locale: string): 12 | 24 {
-  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
-  return cycle === 'h11' || cycle === 'h12' ? 12 : 24;
 }
 
 const defaultDialValue = (value: string, total: number, unit: 'hours' | 'minutes') =>

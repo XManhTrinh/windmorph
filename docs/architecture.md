@@ -423,6 +423,10 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
 - **Forced colours** (2026-10-15): forced colours drop the container colour and the shadow, so every card takes a 1px `CanvasText` border there (`GrayText` disabled); filled and elevated cards had no edge.
 - **Component tokens** (2026-10-14, `card-tokens.ts`): `--md-comp-{filled,elevated,outlined}-card-container-color` and `-container-shape`, `--md-comp-elevated-card-container-elevation` and `--md-comp-outlined-card-outline-color`. Hover, focus, dragged and disabled values stay classes.
 
+### TimeField (built 2026-11-08, `docs/plans/time-field.md`)
+
+- One compact field per time, for pages that hold many: the core `TextField` with no mask, reading `9`, `930`, `9:30`, `9.30`, `9h30`, `21:30`, `9pm` and `9:30 pm` (`time-picker/time-format.ts`). `9:3` is refused, since 9:03 and 9:30 are both likely. Unreadable text stays with an inline error and the value is unchanged. The clock button opens `TimePicker` in `PickerDialog`, typed first, loaded on demand so a form of many fields carries none of it. Focus returns to the text box, except after a touch, where that would raise the on-screen keyboard. `Time` and `parseTime` are exported so an app needs no date library.
+
 ### TextField (built)
 
 - **Types with a browser-drawn format float their label** (2026-11-08): `date`, `time`, `datetime-local`, `month` and `week` show their format even when empty, so a resting label would cover it. `FORMAT_SHOWING_TYPES` floats the label from the start, in both variants.

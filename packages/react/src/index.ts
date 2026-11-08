@@ -613,6 +613,14 @@ export {
   type TimePickerLabels,
 } from './components/time-picker/TimePicker';
 export {
+  TimeField,
+  type TimeFieldClassNames,
+  type TimeFieldLabels,
+  type TimeFieldProps,
+} from './components/time-picker/TimeField';
+/** The value of a `TimeField` or `TimePicker`, so an app needs no date library of its own. */
+export { Time, parseTime } from '@internationalized/date';
+export {
   timePickerStyles,
   type TimePickerStyleProps,
 } from './components/time-picker/time-picker-styles';
