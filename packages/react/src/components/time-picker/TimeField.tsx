@@ -327,11 +327,7 @@ function TimeFieldInner({
         disabled={disabled}
         readOnly={readOnly}
         name={name}
-        className={cn(
-          'w-[9.25rem] max-w-full',
-          rootClassName,
-          className,
-        )}
+        className={cn('w-[9.25rem] max-w-full', rootClassName, className)}
         classNames={fieldClassNames}
         trailingIcon={
           <IconButton

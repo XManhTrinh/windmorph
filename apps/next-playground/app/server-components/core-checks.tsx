@@ -255,6 +255,7 @@ export const coreChecks = {
       </Core.NavigationRail>
     ),
   },
+  useNavigationRail: hook,
   NavigationRailItem: {
     kind: 'component',
     render: () => (
@@ -685,6 +686,9 @@ export const coreChecks = {
   TimePicker: { kind: 'component', render: () => <Core.TimePicker aria-label="Time" /> },
   TimePickerModeToggle: { kind: 'client', reason: 'its onModeChange prop is a function' },
   useTimePickerRoom: hook,
+  TimeField: { kind: 'component', render: () => <Core.TimeField label="Start" /> },
+  Time: { kind: 'value', run: () => new Core.Time(9, 30).toString() },
+  parseTime: { kind: 'value', run: () => Core.parseTime('09:30').toString() },
   timePickerStyles: { kind: 'value', run: () => Core.timePickerStyles() },
   timePickerTokenSet: read(Core.timePickerTokenSet),
 } satisfies ExportChecks<typeof Core>;

@@ -429,14 +429,17 @@ describe('TextField token sets', () => {
     );
   });
 
-  describe.each(['date', 'time', 'datetime-local', 'month', 'week'] as const)('type="%s"', (type) => {
-    it.each(['filled', 'outlined'] as const)('floats the empty %s label', (variant) => {
-      const { container } = render(<TextField label="When" type={type} variant={variant} />);
-      expect(container.querySelector('[data-floated]')).toBeInTheDocument();
-    });
-  });
+  describe.each(['date', 'time', 'datetime-local', 'month', 'week'] as const)(
+    'type="%s"',
+    (type) => {
+      it.each(['filled', 'outlined'] as const)('floats the empty %s label', (variant) => {
+        const { container } = render(<TextField label="When" type={type} variant={variant} />);
+        expect(container.querySelector('[data-floated]')).toBeInTheDocument();
+      });
+    },
+  );
 
-  it('keeps an empty text field\'s label resting', () => {
+  it("keeps an empty text field's label resting", () => {
     const { container } = render(<TextField label="Name" />);
     expect(container.querySelector('[data-floated]')).not.toBeInTheDocument();
   });

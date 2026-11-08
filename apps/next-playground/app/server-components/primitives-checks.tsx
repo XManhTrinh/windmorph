@@ -161,6 +161,11 @@ export const primitivesChecks = {
   polygonToPath: { kind: 'value', run: () => Primitives.polygonToPath(star, { scale: 48 }) },
   rectangle: { kind: 'value', run: () => Primitives.polygonToPath(Primitives.rectangle()) },
   star: { kind: 'value', run: () => Primitives.polygonToPath(star) },
+  toAriaPlacement: { kind: 'value', run: () => Primitives.toAriaPlacement('bottom-start', false) },
+  closedByOverlayOptions: {
+    kind: 'value',
+    run: () => JSON.stringify(Primitives.closedByOverlayOptions('any', false)),
+  },
   selectionControlStyles: { kind: 'value', run: () => Primitives.selectionControlStyles() },
   splitDataAttributes: {
     kind: 'value',
@@ -175,6 +180,7 @@ export const primitivesChecks = {
   useM3Interaction: hook,
   useM3Morph: hook,
   useM3Spring: hook,
+  useRevealEntering: hook,
   usePresence: hook,
   useTriggerProps: hook,
 } satisfies ExportChecks<typeof Primitives>;
