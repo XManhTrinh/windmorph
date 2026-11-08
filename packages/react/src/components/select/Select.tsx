@@ -256,6 +256,9 @@ const COMPACT_WINDOW = '(max-width: 599.98px)';
 const SEARCH_SHEET_HEIGHT =
   'h-[calc(100dvh_-_72px_-_var(--m3-sheet-keyboard-inset,0px))] min-[641px]:h-[calc(100dvh_-_56px_-_var(--m3-sheet-keyboard-inset,0px))]';
 
+/** Options scrolled to by the keyboard stop below the sticky search (52px at most). */
+const SEARCH_SHEET_CONTENT = 'scroll-pt-[52px]';
+
 /** A read-only Select's keyboard finds no option, so arrows and typeahead change nothing. */
 const READ_ONLY_DELEGATE: NonNullable<AriaSelectOptions<object>['keyboardDelegate']> = {
   getFirstKey: () => null,
@@ -633,9 +636,14 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
           open={state.isOpen}
           onOpenChange={(open) => (open ? state.open() : state.close())}
           classNames={
-            searchable || classNames?.sheet
-              ? { panel: cn(searchable && SEARCH_SHEET_HEIGHT, classNames?.sheet) }
-              : undefined
+            searchable
+              ? {
+                  panel: cn(SEARCH_SHEET_HEIGHT, classNames?.sheet),
+                  content: SEARCH_SHEET_CONTENT,
+                }
+              : classNames?.sheet
+                ? { panel: classNames.sheet }
+                : undefined
           }
           {...(typeof label === 'string'
             ? { 'aria-label': label }
