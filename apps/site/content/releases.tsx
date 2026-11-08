@@ -34,6 +34,83 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.0',
+    summary: (
+      <>
+        <InlineCode>TimeField</InlineCode>, one navigation rail for every window size, and pieces
+        for building anchored overlays, beside Windmorph Pro&apos;s data, calendar and navigation
+        components.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>TimeField</InlineCode>, the time sibling of{' '}
+            <InlineCode>DateField</InlineCode>: it reads forgiving typing and paste and opens the{' '}
+            <InlineCode>TimePicker</InlineCode> in a dialog. <InlineCode>Time</InlineCode> and{' '}
+            <InlineCode>parseTime</InlineCode> are exported, so an app needs no date library for it.
+          </>,
+          <>
+            <InlineCode>NavigationRail</InlineCode> takes{' '}
+            <InlineCode>hideOnCollapse=&quot;compact&quot;</InlineCode>, so one rail is the rail on
+            larger windows and the drawer on a phone, and{' '}
+            <InlineCode>useNavigationRail()</InlineCode> serves custom destinations.
+          </>,
+          <>
+            <InlineCode>ButtonGroup</InlineCode> takes <InlineCode>fullWidth</InlineCode>: a
+            connected group still spans its container by default, and{' '}
+            <InlineCode>fullWidth=&#123;false&#125;</InlineCode> sizes it to its buttons.
+          </>,
+          <>
+            <InlineCode>useRevealEntering</InlineCode>, <InlineCode>toAriaPlacement</InlineCode> and{' '}
+            <InlineCode>closedByOverlayOptions</InlineCode> in{' '}
+            <InlineCode>@windmorph/react/primitives</InlineCode>, for anchored overlays that behave
+            as <InlineCode>Menu</InlineCode> does.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>DataTable</InlineCode>, <InlineCode>DataGrid</InlineCode>,{' '}
+            <InlineCode>Calendar</InlineCode>, <InlineCode>TreeView</InlineCode>,{' '}
+            <InlineCode>NavigationRailGroup</InlineCode>, <InlineCode>Popover</InlineCode> and{' '}
+            <InlineCode>CopyField</InlineCode>, each with its own page here.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>TextField</InlineCode> with <InlineCode>type</InlineCode>{' '}
+            <InlineCode>date</InlineCode>, <InlineCode>time</InlineCode>,{' '}
+            <InlineCode>datetime-local</InlineCode>, <InlineCode>month</InlineCode> or{' '}
+            <InlineCode>week</InlineCode> floats its label while empty, so it no longer covers the
+            format the browser draws.
+          </>,
+          <>
+            <InlineCode>DialogContent</InlineCode> no longer clips the floated label of an outlined
+            field placed first in a dialog.
+          </>,
+          <>
+            A searchable <InlineCode>Select</InlineCode>&apos;s sheet keeps its search at the top
+            while the options scroll under it.
+          </>,
+          <>
+            A selected <InlineCode>NavigationRailItem</InlineCode> or{' '}
+            <InlineCode>NavigationBarItem</InlineCode> keeps an explicit{' '}
+            <InlineCode>aria-current</InlineCode>, for a destination that shows as current without
+            being the page.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1.2',
     date: '2026-11-07',
     summary: (
