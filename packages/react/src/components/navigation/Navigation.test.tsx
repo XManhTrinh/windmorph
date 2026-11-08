@@ -345,6 +345,19 @@ describe('NavigationRail', () => {
     expect(container.querySelector('nav')).not.toHaveClass('relative');
   });
 
+  it('lets an explicit aria-current win over a selected item', () => {
+    render(
+      <NavigationRail aria-label="Main">
+        <NavigationRailItem href="/a" icon={<span />} selected aria-current="false">
+          A group
+        </NavigationRailItem>
+      </NavigationRail>,
+    );
+    const link = screen.getByRole('link', { name: 'A group' });
+    expect(link).toHaveAttribute('aria-current', 'false');
+    expect(link).toHaveAttribute('data-current');
+  });
+
   it('tells a custom destination about the rail around it', async () => {
     const seen: NavigationRailState[] = [];
     function Destination() {

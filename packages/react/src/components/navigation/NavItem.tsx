@@ -221,7 +221,8 @@ export function NavItem({
         }
       }}
       data-nav-item=""
-      aria-current={selected ? 'page' : undefined}
+      // An explicit value wins, for a destination that shows as current without being the page.
+      aria-current={action['aria-current'] ?? (selected ? 'page' : undefined)}
       aria-describedby={
         [action['aria-describedby'], badge && description != null ? descriptionId : undefined]
           .filter(Boolean)
