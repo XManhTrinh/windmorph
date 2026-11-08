@@ -103,6 +103,27 @@ main :where(h2[id], h3[id]) {
     var(--md-sys-motion-spring-spatial-default-duration)
       var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
 }
+/* The bars keep their own layers above the page's snapshots, or the page would paint over
+   them until the transition ended. Only the live new image shows, so they never cross-fade. */
+.site-top-bar {
+  view-transition-name: site-top-bar;
+}
+.site-bottom-bar {
+  view-transition-name: site-bottom-bar;
+}
+::view-transition-group(site-top-bar),
+::view-transition-group(site-bottom-bar) {
+  z-index: 1;
+  animation: none;
+}
+::view-transition-new(site-top-bar),
+::view-transition-new(site-bottom-bar) {
+  animation: none;
+}
+::view-transition-old(site-top-bar),
+::view-transition-old(site-bottom-bar) {
+  display: none;
+}
 @keyframes page-fade-out {
   to {
     opacity: 0;
