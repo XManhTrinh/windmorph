@@ -678,3 +678,31 @@ test.describe('Elevation in a ThemeScope', () => {
     expect(await shadow(dialog)).toContain(red);
   });
 });
+
+test.describe('Dialog first field', () => {
+  for (const name of [
+    'outlined text',
+    'filled text',
+    'outlined date',
+    'outlined time',
+    'outlined select',
+    'outlined autocomplete',
+    'date field',
+  ]) {
+    test(`${name}: the floated label shows whole above the scroll edge`, async ({ page }) => {
+      await openStory(page, 'components-dialog--first-field');
+      await page.getByRole('button', { name, exact: true }).click();
+      const content = page.getByTestId('content');
+      await expect(content).toBeVisible();
+      await settle(page);
+      const { contentTop, labelTop } = await content.evaluate((element) => {
+        const label = element.querySelector('label');
+        return {
+          contentTop: element.getBoundingClientRect().top,
+          labelTop: label?.getBoundingClientRect().top ?? -1,
+        };
+      });
+      expect(labelTop).toBeGreaterThanOrEqual(contentTop);
+    });
+  }
+});

@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  Autocomplete,
+  AutocompleteItem,
   Button,
+  DateField,
   Dialog,
   DialogActions,
   DialogContent,
@@ -10,6 +13,8 @@ import {
   Fab,
   Radio,
   RadioGroup,
+  Select,
+  SelectItem,
   TextField,
 } from '@windmorph/react';
 import { useState } from 'react';
@@ -757,4 +762,44 @@ export const LayoutOverride: StoryObj<{
       </div>
     );
   },
+};
+
+const FIRST_FIELDS = {
+  'outlined text': <TextField label="Name" variant="outlined" defaultValue="Alex" />,
+  'filled text': <TextField label="Name" variant="filled" defaultValue="Alex" />,
+  'outlined date': <TextField label="Start date" variant="outlined" type="date" />,
+  'outlined time': <TextField label="Start time" variant="outlined" type="time" />,
+  'outlined select': (
+    <Select label="Team" variant="outlined" defaultValue="design">
+      <SelectItem key="design">Design</SelectItem>
+    </Select>
+  ),
+  'outlined autocomplete': (
+    <Autocomplete label="City" variant="outlined" defaultInputValue="London">
+      <AutocompleteItem key="london">London</AutocompleteItem>
+    </Autocomplete>
+  ),
+  'date field': <DateField label="Due date" />,
+};
+
+/** One dialog per field type, each with that field first: its floated label must show whole. */
+export const FirstField: Story = {
+  render: () => (
+    <div className="flex flex-wrap gap-2">
+      {Object.entries(FIRST_FIELDS).map(([name, field]) => (
+        <DialogTrigger key={name}>
+          <Button>{name}</Button>
+          <Dialog role="dialog">
+            <DialogTitle>Details</DialogTitle>
+            <DialogContent data-testid="content">{field}</DialogContent>
+            <DialogActions>
+              <Button variant="text" slot="close">
+                Done
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </DialogTrigger>
+      ))}
+    </div>
+  ),
 };

@@ -129,7 +129,10 @@ export const dialogStyles = tv({
     headerButton: '',
     close: '[--md-comp-icon-button-icon-color:var(--md-sys-color-on-surface)]',
     content: [
-      'min-h-0 flex-1 overflow-y-auto pb-[24px] text-body-medium',
+      // 8px of room above the first field, for an outlined field's label, which sits across
+      // its top edge and would be clipped by this scroller. The margin takes the same 8px off
+      // the title's spacing, so nothing moves.
+      '-mt-[8px] min-h-0 flex-1 overflow-y-auto pt-[8px] pb-[24px] text-body-medium',
       'text-[color:var(--_md-comp-dialog-supporting-text-color)]',
       'focus-ring',
     ],
@@ -232,7 +235,7 @@ export const dialogStyles = tv({
         ],
         header: 'flex h-[56px] shrink-0 items-center gap-[4px] ps-[4px] pe-[12px]',
         title: 'min-w-0 flex-1 truncate ps-[4px] pb-0 text-start text-title-large',
-        content: 'px-[24px] pt-[24px]',
+        content: 'mt-0 px-[24px] pt-[24px]',
         actions: 'hidden',
       },
       compact: {
@@ -277,7 +280,7 @@ export const dialogStyles = tv({
           'max-medium:min-w-0 max-medium:flex-1 max-medium:truncate max-medium:ps-[4px]',
           'max-medium:pb-0 max-medium:text-start max-medium:text-title-large',
         ],
-        content: 'max-medium:px-[24px] max-medium:pt-[24px]',
+        content: 'max-medium:mt-0 max-medium:px-[24px] max-medium:pt-[24px]',
         actions: 'max-medium:hidden',
       },
     },
@@ -339,7 +342,7 @@ export const dialogStyles = tv({
       fullScreen: 'never',
       dividers: true,
       class: {
-        content: '-mx-[24px] mb-[24px] border-y border-outline-variant px-[24px] py-[8px]',
+        content: 'mt-0 -mx-[24px] mb-[24px] border-y border-outline-variant px-[24px] py-[8px]',
       },
     },
     {
@@ -347,7 +350,7 @@ export const dialogStyles = tv({
       dividers: true,
       class: {
         content: [
-          'medium:-mx-[24px] medium:mb-[24px] medium:border-y medium:border-outline-variant',
+          'medium:mt-0 medium:-mx-[24px] medium:mb-[24px] medium:border-y medium:border-outline-variant',
           'medium:px-[24px] medium:py-[8px]',
         ],
       },
