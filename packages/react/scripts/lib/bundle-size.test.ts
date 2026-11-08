@@ -1,5 +1,4 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -11,6 +10,13 @@ import {
   moduleClosure,
 } from './bundle-size';
 
+/** Scratch space inside the project: nothing here writes to the system's temp folder. */
+function scratchDir() {
+  const dir = join(process.cwd(), 'node_modules', '.cache', 'windmorph-scripts');
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 let dist: string;
 
 function write(file: string, code: string) {
@@ -19,7 +25,7 @@ function write(file: string, code: string) {
 }
 
 beforeAll(() => {
-  dist = mkdtempSync(join(tmpdir(), 'bundle-size-'));
+  dist = mkdtempSync(join(scratchDir(), 'bundle-size-'));
   write(
     'index.js',
     [

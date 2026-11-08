@@ -8,11 +8,17 @@
  * Each probe also lists the `dist` modules its bundle kept, so a probe fails if a static
  * outline pulls in the shape engine (`material-shapes.js`, `rounded-polygon.js`) again.
  */
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { build } from 'tsdown';
+
+/** Scratch space inside the project: nothing here writes to the system's temp folder. */
+function scratchDir() {
+  const dir = join(process.cwd(), 'node_modules', '.cache', 'windmorph-scripts');
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
 
 /** One probe: an entry's code and its budget in gzipped bytes. */
 export interface ShapeProbe {
@@ -100,7 +106,7 @@ export async function runShapeProbes(
   distDir: string,
   probes: ShapeProbe[] = SHAPE_PROBES,
 ): Promise<ShapeProbeResult[]> {
-  const dir = mkdtempSync(join(tmpdir(), 'windmorph-shape-probe-'));
+  const dir = mkdtempSync(join(scratchDir(), 'windmorph-shape-probe-'));
   try {
     const results: ShapeProbeResult[] = [];
     for (const [index, probe] of probes.entries()) {
