@@ -53,6 +53,9 @@ export {
   type TriggerContextValue,
 } from './primitives/TriggerContext';
 export { usePresence } from './primitives/use-presence';
+export { useRevealEntering } from './components/menu/use-reveal-entering';
+export { toAriaPlacement } from './utils/placement';
+export { closedByOverlayOptions } from './utils/closed-by';
 export { DomDirectionLocale, type DomDirectionLocaleProps } from './primitives/DomDirectionLocale';
 export { localeWithDirection } from './primitives/locale-with-direction';
 export {
