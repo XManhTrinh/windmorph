@@ -1647,7 +1647,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     pro: true,
     related: ['sheets', 'navigation-rail', 'navigation-rail-group'],
     whenNotToUse: 'For an app’s primary destinations, use a NavigationRail.',
-    keywords: ['side panel', 'secondary navigation', 'tools', 'hide', 'collapse', 'tab'],
+    keywords: ['side panel', 'secondary navigation', 'tools', 'hide', 'collapse'],
   },
   {
     slug: 'navigation-rail-group',

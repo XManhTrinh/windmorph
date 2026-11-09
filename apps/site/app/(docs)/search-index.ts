@@ -138,6 +138,21 @@ export const GUIDE_ENTRIES: SearchEntry[] = [
     kind: 'gallery',
   },
   {
+    title: 'Blocks',
+    summary: 'Larger layouts built from the components, as code you copy into your app and own.',
+    href: '/blocks',
+    kind: 'guide',
+    keywords: ['templates', 'layouts', 'patterns'],
+  },
+  {
+    title: 'App frame',
+    summary:
+      'A copyable app layout: a top bar, a rail with flyouts, a rounded pane and a side panel rail.',
+    href: '/blocks/app-frame',
+    kind: 'guide',
+    keywords: ['scaffold', 'layout', 'shell', 'template'],
+  },
+  {
     title: 'Getting started',
     summary: 'Install the library with or without Tailwind, load the font, add icons and routing.',
     href: '/getting-started',

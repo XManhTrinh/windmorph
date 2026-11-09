@@ -11,14 +11,14 @@ import {
   pagesInRailGroup,
   type RailGroupId,
 } from '../../content/components/catalog';
-import { MenuBookIcon } from '../icons';
+import { MenuBookIcon, WidgetsIcon } from '../icons';
 import { IntentLink } from '../intent-link';
 import { PageChips } from '../page-chips';
 import { DrawerNav } from './drawer-nav';
 import { GROUP_ICONS } from './group-icons';
 
 /** A rail destination's id: the guides, or a component group. */
-type DestinationId = 'guides' | RailGroupId;
+type DestinationId = 'guides' | 'blocks' | RailGroupId;
 
 /** A link in a destination's column, with the chips its page carries. */
 interface RailLink {
@@ -49,6 +49,17 @@ const DESTINATIONS: RailDestination[] = [
     fullName: 'Guides',
     href: DOCS_SECTIONS[0]!.href,
     links: DOCS_SECTIONS.map((section) => ({ href: section.href, title: section.label })),
+  },
+  {
+    id: 'blocks',
+    icon: <WidgetsIcon />,
+    railLabel: 'Blocks',
+    fullName: 'Blocks',
+    href: '/blocks',
+    links: [
+      { href: '/blocks', title: 'Overview' },
+      { href: '/blocks/app-frame', title: 'App frame' },
+    ],
   },
   ...RAIL_GROUPS.map((group) => {
     const pages = pagesInRailGroup(group.id);
@@ -85,6 +96,7 @@ const HEADING = 'px-4 pt-5 pb-3 text-label-small uppercase';
 /** The destination a page belongs to: a guide, or a component page's group. */
 export function currentDestination(pathname: string): DestinationId | null {
   if (DOCS_SECTIONS.some((section) => pathname === section.href)) return 'guides';
+  if (pathname === '/blocks' || pathname.startsWith('/blocks/')) return 'blocks';
   const match = pathname.match(/^\/components\/([^/]+)/);
   if (!match) return null;
   return COMPONENT_META_MAP[match[1]!]?.railGroup ?? null;
@@ -127,7 +139,9 @@ function DestinationGroup({
 
 /** The component groups, for the phone's sheet (which lists the guides as plain rows). */
 export function ComponentGroups({ pathname }: { pathname: string }) {
-  return DESTINATIONS.filter((destination) => destination.id !== 'guides').map((destination) => (
+  return DESTINATIONS.filter(
+    (destination) => destination.id !== 'guides' && destination.id !== 'blocks',
+  ).map((destination) => (
     <DestinationGroup key={destination.id} destination={destination} pathname={pathname} />
   ));
 }

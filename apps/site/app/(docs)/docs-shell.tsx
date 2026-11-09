@@ -60,7 +60,11 @@ export function DocsShell({ children }: { children: ReactNode }) {
   // is inset past BOTH the rail (96px) and the panel (272px); elsewhere just past the rail.
   const pinnedPanel = currentDestination(pathname) !== null;
   // Guides and component pages list their sections; the home page and the index don't.
-  const withOutline = pathname !== '/' && pathname !== '/components';
+  const withOutline =
+    pathname !== '/' && pathname !== '/components' && !pathname.startsWith('/blocks');
+
+  // A block's preview is the whole window, inside the iframe on its page.
+  if (pathname.startsWith('/blocks-preview')) return children;
 
   return (
     <DisplaySettingsProvider>

@@ -63,6 +63,15 @@ export function DrawerNav({ pathname, onNavigate }: { pathname: string; onNaviga
         </DrawerLink>
       ))}
 
+      <DrawerLink
+        href="/blocks"
+        icon={<WidgetsIcon />}
+        active={isActive(pathname, '/blocks')}
+        onNavigate={onNavigate}
+      >
+        Blocks
+      </DrawerLink>
+
       <p className="px-4 pb-1 pt-4 text-title-small text-on-surface-variant">Components</p>
       <DrawerLink
         href="/components"
