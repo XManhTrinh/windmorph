@@ -3,12 +3,14 @@ import { notFound } from 'next/navigation';
 import type { ComponentType } from 'react';
 import { AppFrameApp } from '../../../examples/blocks/app-frame-app';
 import { AppFrameFull } from '../../../examples/blocks/app-frame-full';
+import { AppFramePinned } from '../../../examples/blocks/app-frame-pinned';
 import { AppFramePublic } from '../../../examples/blocks/app-frame-public';
 
 const VARIATIONS: Record<string, ComponentType> = {
   'app-frame-public': AppFramePublic,
   'app-frame-app': AppFrameApp,
   'app-frame-full': AppFrameFull,
+  'app-frame-pinned': AppFramePinned,
 };
 
 /** A block alone in the window, for the iframe on its page. Never indexed. */

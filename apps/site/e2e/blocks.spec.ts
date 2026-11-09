@@ -44,9 +44,25 @@ test.describe('The app frame block', () => {
     await expect.poll(async () => (await pane.boundingBox())!.width).toBeLessThan(before - 300);
   });
 
+  test('pinned: the second nav sits beside the page, and goes when a page has none', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await page.goto('/blocks-preview/app-frame-pinned');
+    const pane = page.locator('main');
+    await expect(pane.getByRole('heading', { name: 'Team' })).toBeVisible();
+    await expect.poll(async () => (await pane.boundingBox())!.x).toBe(376);
+    await page.getByRole('link', { name: 'Overview', exact: true }).click();
+    await expect(pane.getByRole('heading', { name: 'Overview' })).toBeVisible();
+    await expect.poll(async () => (await pane.boundingBox())!.x).toBe(96);
+    const found = await metrics(page);
+    expect(found.pageScroll).toBe(0);
+    expect(found.sideways).toBe(0);
+  });
+
   test('the page previews each variation and offers its code', async ({ page }) => {
     await page.goto('/blocks/app-frame');
-    await expect(page.locator('iframe')).toHaveCount(3);
+    await expect(page.locator('iframe')).toHaveCount(4);
     const frame = page.locator('iframe').first();
     const box = (await frame.boundingBox())!;
     expect(box.width).toBeGreaterThan(500);

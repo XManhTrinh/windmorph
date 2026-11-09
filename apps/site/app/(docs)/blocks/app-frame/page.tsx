@@ -27,6 +27,13 @@ const VARIATIONS = [
     file: 'app-frame-full',
     summary: 'Adds a side panel rail, whose item opens a standard side sheet beside the pane.',
   },
+  {
+    id: 'pinned',
+    title: 'Pinned second nav',
+    file: 'app-frame-pinned',
+    summary:
+      'The current section’s links stay open beside the page. Click between pages with and without them.',
+  },
 ] as const;
 
 /** The app frame block: three variations of one layout, each live and copyable. */
