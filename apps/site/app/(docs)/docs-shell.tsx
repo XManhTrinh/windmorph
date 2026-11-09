@@ -44,6 +44,16 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 ];
 
 /**
+ * Moving the page's start edge when a pinned column goes away. Arriving at a pinned page it
+ * jumps: the column is usually already open from the hover, and the top bar, which paints above
+ * it during a page change, would slide across it.
+ */
+const SLIDE_MARGIN =
+  'transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none';
+const SLIDE_FRAME =
+  'transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none';
+
+/**
  * The documentation shell: a skip link, a left navigation rail with Guides and component-group
  * flyouts and a top app bar with the search (medium+); a compact `SearchAppBar` with a modal
  * drawer and a three-destination bottom `NavigationBar`. Both bars have a light / dark
@@ -78,8 +88,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
           {/* The rail is fixed; the content column is inset past the rail (and the pinned panel),
           transitioning the inline-start margin as the pinned drawer pushes content. */}
           <div
-            className={`flex min-h-dvh min-w-0 flex-col medium:pb-4 transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none ${
-              pinnedPanel ? 'medium:ms-[376px]' : 'medium:ms-24'
+            className={`flex min-h-dvh min-w-0 flex-col medium:pb-4 ${
+              pinnedPanel ? 'medium:ms-[376px]' : `medium:ms-24 ${SLIDE_MARGIN}`
             }`}
           >
             {/* Medium and wider: the search (guides and settings live in the rail). */}
@@ -160,8 +170,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 in a page transition, and a far larger shadow makes the browser drop frames. */}
             <div
               aria-hidden="true"
-              className={`site-pane-frame pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_16px_var(--md-sys-color-surface-container)] transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none medium:block ${
-                pinnedPanel ? 'medium:start-[376px]' : 'medium:start-24'
+              className={`pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_16px_var(--md-sys-color-surface-container)] medium:block ${
+                pinnedPanel ? 'medium:start-[376px]' : `medium:start-24 ${SLIDE_FRAME}`
               }`}
             />
           </div>

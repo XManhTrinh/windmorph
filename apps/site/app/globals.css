@@ -76,8 +76,8 @@ main :where(h2[id], h3[id]) {
   scroll-margin-top: 0.5rem;
 }
 
-/* Page transitions: M3's shared axis (Y). The page content leaves upward as it fades out and
-   the next page rises in as it fades in, on the default spatial spring (movement) and the
+/* Page transitions, after M3's shared axis (Y). The page content fades out and the next page
+   rises in as it fades in, on the default spatial spring (movement) and the
    default effects spring (fade); the rest of the window (rail, bars) stays still. Browsers
    without view transitions simply swap the page. Off under reduced motion. */
 ::view-transition-old(root),
@@ -89,11 +89,9 @@ main :where(h2[id], h3[id]) {
   animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
 }
 ::view-transition-old(.page-axis) {
-  animation:
-    var(--md-sys-motion-spring-effects-fast-duration)
-      var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out,
-    var(--md-sys-motion-spring-spatial-default-duration)
-      var(--md-sys-motion-spring-spatial-default-easing) both page-rise-out;
+  /* Only fades: moving up, it would be cut off by the top bar above it. */
+  animation: var(--md-sys-motion-spring-effects-fast-duration)
+    var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out;
 }
 ::view-transition-new(.page-axis) {
   animation:
@@ -104,24 +102,7 @@ main :where(h2[id], h3[id]) {
 }
 /* The bars keep their own layers above the page's snapshots, or the page would paint over
    them until the transition ended. Only the live new image shows, so they never cross-fade.
-   The rail and its column sit above the top bar, as they do outside a transition. The frame
-   around the page sits above the page's snapshots too, so the page stays inside it. */
-.site-rail {
-  view-transition-name: site-rail;
-}
-.site-pane-frame {
-  view-transition-name: site-pane-frame;
-}
-::view-transition-group(site-pane-frame) {
-  z-index: 1;
-  animation: none;
-}
-::view-transition-new(site-pane-frame) {
-  animation: none;
-}
-::view-transition-old(site-pane-frame) {
-  display: none;
-}
+   The rail stays out of them: a layer that large and that busy makes Chrome drop frames. */
 .site-top-bar {
   view-transition-name: site-top-bar;
 }
@@ -133,16 +114,10 @@ main :where(h2[id], h3[id]) {
   z-index: 1;
   animation: none;
 }
-::view-transition-group(site-rail) {
-  z-index: 2;
-  animation: none;
-}
-::view-transition-new(site-rail),
 ::view-transition-new(site-top-bar),
 ::view-transition-new(site-bottom-bar) {
   animation: none;
 }
-::view-transition-old(site-rail),
 ::view-transition-old(site-top-bar),
 ::view-transition-old(site-bottom-bar) {
   display: none;
@@ -155,11 +130,6 @@ main :where(h2[id], h3[id]) {
 @keyframes page-fade-in {
   from {
     opacity: 0;
-  }
-}
-@keyframes page-rise-out {
-  to {
-    translate: 0 -30px;
   }
 }
 @keyframes page-rise-in {

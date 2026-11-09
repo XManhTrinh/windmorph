@@ -227,11 +227,7 @@ export function DocsRail({
   };
 
   return (
-    <div
-      className="site-rail fixed top-0 start-0 z-30 h-dvh"
-      onPointerOver={prefetch}
-      onFocus={prefetch}
-    >
+    <div className="fixed top-0 start-0 z-30 h-dvh" onPointerOver={prefetch} onFocus={prefetch}>
       <NavigationRail
         aria-label="Components and settings"
         modal
