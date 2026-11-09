@@ -85,6 +85,12 @@ html {
   }
 }
 
+/* The footer's divider: a thin wave that repeats across its width. */
+.site-footer-wave {
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 8'%3E%3Cpath d='M0 4Q6 0 12 4T24 4' fill='none' stroke='black'/%3E%3C/svg%3E")
+    repeat-x left center / 24px 8px;
+}
+
 /* Section headings land 16px below the top bar when the outline (or a #link) jumps to them. */
 main :where(h2[id], h3[id]) {
   scroll-margin-top: 0.5rem;
@@ -101,16 +107,25 @@ main :where(h2[id], h3[id]) {
 ::view-transition-group(.page-axis) {
   animation-duration: var(--md-sys-motion-spring-spatial-default-duration);
   animation-timing-function: var(--md-sys-motion-spring-spatial-default-easing);
+  /* Drawn above the page, so it would otherwise paint square over the pane's rounded corners. */
+  overflow: clip;
+  border-radius: var(--md-sys-shape-corner-large);
 }
 ::view-transition-old(.page-axis) {
   /* Only fades: moving up, it would be cut off by the top bar above it. */
   animation: var(--md-sys-motion-spring-effects-fast-duration)
     var(--md-sys-motion-spring-effects-fast-easing) both page-fade-out;
 }
+/* Arriving where a column is pinned, the last page would sit over the open column until it
+   faded, so it goes at once. */
+html[data-column-opened]::view-transition-old(.page-axis) {
+  display: none;
+}
 ::view-transition-new(.page-axis) {
   animation:
     var(--md-sys-motion-spring-effects-default-duration)
-      var(--md-sys-motion-spring-effects-default-easing) both page-fade-in,
+      var(--md-sys-motion-spring-effects-default-easing)
+      calc(var(--md-sys-motion-spring-effects-fast-duration) * 0.5) both page-fade-in,
     var(--md-sys-motion-spring-spatial-default-duration)
       var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
 }

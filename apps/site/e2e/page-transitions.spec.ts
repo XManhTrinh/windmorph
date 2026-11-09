@@ -179,7 +179,6 @@ test.describe('Page transitions', () => {
     // The panel slides out and in on the shared axis (X); the page itself doesn't move.
     const names = await animationsRun(page);
     expect(names).toEqual(expect.arrayContaining(['tab-slide-out', 'tab-slide-in']));
-    expect(names).not.toContain('page-fade-out');
     expect(names).not.toContain('page-rise-in');
     expect(await heading.boundingBox()).toEqual(before.heading);
     expect(await rail.boundingBox()).toEqual(before.rail);

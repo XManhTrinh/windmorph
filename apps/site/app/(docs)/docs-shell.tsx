@@ -9,7 +9,14 @@ import {
 } from '@windmorph/react';
 import { SkipLink } from '@windmorph/react-pro';
 import { usePathname } from 'next/navigation';
-import { ViewTransition, useState, type ReactElement, type ReactNode } from 'react';
+import {
+  ViewTransition,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { HomeIcon, MenuBookIcon, MenuIcon, WidgetsIcon } from '../../components/icons';
 import { DocsRail, currentDestination } from '../../components/nav/docs-rail';
 import { Footer } from '../../components/footer';
@@ -46,12 +53,13 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 /**
  * Moving the page's start edge when a pinned column goes away. Arriving at a pinned page it
  * jumps: the column is usually already open from the hover, and the top bar, which paints above
- * it during a page change, would slide across it.
+ * it during a page change, would slide across it. Leaving, it eases without a spring's
+ * overshoot, which would carry the pane's corner under the rail.
  */
 const SLIDE_MARGIN =
-  'transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none';
+  'transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-fast-duration)] ease-[var(--md-sys-motion-spring-effects-default-easing)] motion-reduce:transition-none';
 const SLIDE_FRAME =
-  'transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none';
+  'transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-fast-duration)] ease-[var(--md-sys-motion-spring-effects-default-easing)] motion-reduce:transition-none';
 
 /**
  * The documentation shell: a skip link, a left navigation rail with Guides and component-group
@@ -72,6 +80,17 @@ export function DocsShell({ children }: { children: ReactNode }) {
   // Guides and component pages list their sections; the home page and the index don't.
   const withOutline =
     pathname !== '/' && pathname !== '/components' && !pathname.startsWith('/blocks');
+
+  // Arriving at a page with a pinned column, the last page would paint over the column, which
+  // is already open from the hover. A rule in globals.css drops it (see page transitions).
+  const wasPinned = useRef(pinnedPanel);
+  useLayoutEffect(() => {
+    document.documentElement.toggleAttribute(
+      'data-column-opened',
+      pinnedPanel && !wasPinned.current,
+    );
+    wasPinned.current = pinnedPanel;
+  }, [pathname, pinnedPanel]);
 
   // A block's preview is the whole window, inside the iframe on its page.
   if (pathname.startsWith('/blocks-preview')) return children;
