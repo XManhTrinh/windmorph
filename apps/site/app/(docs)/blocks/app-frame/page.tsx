@@ -44,10 +44,7 @@ export default async function AppFramePage() {
         <p className="text-body-large text-on-surface-variant">
           One layout with pieces left out. Copy the variation you need; the code is yours to change.
           The gap around the pane is <InlineCode>--app-frame-gap</InlineCode>, and on a phone the
-          page is flat and the rail becomes a drawer. The top bar runs across the window with the
-          rail below it, so a flyout opens under the bar. If your rail runs the full height instead,
-          set <InlineCode>--wm-navigation-rail-group-column-top-inset</InlineCode> to your bar’s
-          height.
+          page is flat and the rail becomes a drawer.
         </p>
       </header>
       {items.map((item) => (
