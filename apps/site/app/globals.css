@@ -76,11 +76,12 @@ html {
   html {
     overscroll-behavior-y: none;
   }
-  /* The search field takes the page's colour, which stands out from the top bar. Set here because
-     the field is drawn again in the overlay when it opens. Its dropdown keeps its own colour, so
-     the page-coloured rows inside it stand out. */
+  /* One step up from the search's default, which nearly matches the top bar here. The field and
+     its dropdown share it, as M3's do, and the field is drawn again in the overlay as it opens, so
+     it's set for both. The rows inside and their standard hover stay clear of it. */
   :root {
-    --md-comp-search-bar-container-color: var(--md-sys-color-surface);
+    --md-comp-search-bar-container-color: var(--md-sys-color-surface-container-highest);
+    --md-comp-search-view-container-color: var(--md-sys-color-surface-container-highest);
   }
 }
 

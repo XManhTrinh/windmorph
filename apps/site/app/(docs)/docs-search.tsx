@@ -494,9 +494,7 @@ function SearchResults({
 
   return (
     <div
-      // A row's fill plus M3's 8% hover layer lands on almost exactly the dropdown's own colour,
-      // so a hovered row would seem to vanish. A stronger layer keeps it visible.
-      className="flex flex-col gap-2 p-2 pb-4 [--md-sys-state-hover-state-layer-opacity:0.16]"
+      className="flex flex-col gap-2 p-2 pb-4"
       onKeyDownCapture={(event) => leaveAtTop(event, onLeaveTop)}
     >
       {noResults && (
