@@ -281,3 +281,11 @@
 [data-overlay-placement] {
   inset: auto;
 }
+
+/* While ThemeProvider changes the colours: a control's fade is for its hover and press. */
+[data-wm-theme-changing],
+[data-wm-theme-changing] *,
+[data-wm-theme-changing] *::before,
+[data-wm-theme-changing] *::after {
+  transition: none !important;
+}

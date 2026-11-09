@@ -182,6 +182,9 @@ function useStreamedSelectionWarning(state: ThemeState, isHydrated: boolean) {
   }, [isHydrated, hydratedWith, state]);
 }
 
+/** On `<html>` for the frames in which the colours change. */
+const THEME_CHANGING = 'data-wm-theme-changing';
+
 /**
  * Provides the colour theme, mode, contrast level, motion scheme and density to the app,
  * mirrors them as `data-*` attributes on `<html>` and remembers the selection.
@@ -277,12 +280,29 @@ export function ThemeProvider({
   // What `<html>` carries, for scopes and overlays to put only what differs on their elements.
   const documentTheme = applyToDocument ? state : null;
 
+  // A control's colour fade is for its hover and press. Off while the colours change, or each
+  // control would lag behind the page (a rule in utilities.css reads this attribute).
+  const appliedColors = useRef<string | null>(null);
   useLayoutEffect(() => {
     if (!isHydrated || !applyToDocument) return;
     const root = document.documentElement;
+    const colors = `${state.theme}/${state.mode}/${state.contrast}`;
+    const changing = appliedColors.current !== null && appliedColors.current !== colors;
+    appliedColors.current = colors;
+    if (changing) root.setAttribute(THEME_CHANGING, '');
     for (const [name, value] of Object.entries(themeAttributes(state))) {
       root.setAttribute(name, value);
     }
+    if (!changing) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => root.removeAttribute(THEME_CHANGING));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+      root.removeAttribute(THEME_CHANGING);
+    };
   }, [isHydrated, applyToDocument, state]);
 
   // Stored only once the selection changes from the one the page loaded with (the stored one,
