@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
@@ -622,6 +622,22 @@ describe('Dialog full screen', () => {
       </DialogTrigger>
     );
   }
+
+  it('replaces its close icon with closeIcon', async () => {
+    render(
+      <DialogTrigger>
+        <Button>Crop photo</Button>
+        <Dialog fullScreen="always">
+          <DialogHeader closeIcon={<svg data-testid="own-close" />}>Crop photo</DialogHeader>
+          <DialogContent>Photo</DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Crop photo' }));
+    expect(
+      within(screen.getByRole('button', { name: 'Close' })).getByTestId('own-close'),
+    ).toBeInTheDocument();
+  });
 
   it('disables its close button with closeDisabled', async () => {
     render(

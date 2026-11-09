@@ -14,6 +14,7 @@ import {
   type RefObject,
   type CSSProperties,
   type DOMAttributes,
+  type ReactElement,
   type ReactNode,
   type Ref,
 } from 'react';
@@ -609,6 +610,8 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
    * from closing it too. @default false
    */
   closeDisabled?: boolean;
+  /** Replaces the full-screen close button's icon. */
+  closeIcon?: ReactElement;
   /** Classes for each part, by slot. */
   classNames?: DialogHeaderClassNames;
 }
@@ -633,6 +636,7 @@ export function DialogHeader({
   action,
   divider = false,
   closeDisabled = false,
+  closeIcon,
   className,
   classNames,
   ...props
@@ -651,7 +655,7 @@ export function DialogHeader({
         <IconButton
           variant="standard"
           density={0}
-          icon={<CloseIcon />}
+          icon={closeIcon ?? <CloseIcon />}
           aria-label={labels?.close ?? DEFAULT_HEADER_LABELS.close}
           disabled={closeDisabled}
           onPress={close}
