@@ -109,8 +109,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                     view="docked"
                     // 48px (M3's minimum touch target) in the 64px bar; M3's 360px minimum
                     // width, narrowing only when the window leaves less room.
-                    // The page's colour, since the bar's own is close to the field's default.
-                    className="h-12 w-[360px] min-w-0 max-w-full shrink large:w-[480px] [--md-comp-search-bar-container-color:var(--md-sys-color-surface)]"
+                    className="h-12 w-[360px] min-w-0 max-w-full shrink large:w-[480px]"
                   />
                   <ColorModeButton />
                 </>

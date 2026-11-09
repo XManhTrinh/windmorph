@@ -76,6 +76,12 @@ html {
   html {
     overscroll-behavior-y: none;
   }
+  /* The search takes the page's colour, which stands out from the top bar. Set here because the
+     field is drawn again in the overlay when it opens, so both it and the dropdown must match. */
+  :root {
+    --md-comp-search-bar-container-color: var(--md-sys-color-surface);
+    --md-comp-search-view-container-color: var(--md-sys-color-surface);
+  }
 }
 
 /* Section headings land 16px below the top bar when the outline (or a #link) jumps to them. */
