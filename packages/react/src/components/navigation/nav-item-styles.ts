@@ -24,7 +24,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * (M3: "a ripple passes through the indicator"), as on every other M3 control. In every layout the current item's pill expands from
  * the centre of its icon and fades in on the default spatial spring (M3: "the active
  * indicator expands from the center of the icon"), and colours change on default effects.
- * The current label is bold (the emphasized label role). With a `selectedIcon`, the two
+ * The current label keeps its weight (M3 Expressive). With a `selectedIcon`, the two
  * icons cross-fade on default effects.
  *
  * `slide` (the expanded rail's `indicatorMotion="slide"`, an extension beyond the spec that
@@ -139,7 +139,7 @@ export const navItemStyles = tv({
         label: [
           'mt-[4px] max-w-full text-center text-label-medium',
           'text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
+          'group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
       },
       'rail-start': {
@@ -157,7 +157,7 @@ export const navItemStyles = tv({
           // colours paint behind text (white on white otherwise).
           'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
           'text-label-large text-[color:var(--_md-comp-nav-rail-item-inactive-label-text-color)]',
-          'group-data-current/nav:text-label-large-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
+          'group-data-current/nav:text-[color:var(--_md-comp-nav-rail-item-active-label-text-color)]',
         ],
       },
       // Bar items stretch to the bar's height (64px, or taller when a label wraps), so the
@@ -172,7 +172,7 @@ export const navItemStyles = tv({
         label: [
           'mt-[4px] max-w-full px-[4px] text-center text-label-medium',
           'text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
+          'group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],
       },
       'bar-start': {
@@ -202,7 +202,7 @@ export const navItemStyles = tv({
           // colours paint behind text (white on white otherwise).
           'forced-colors:group-data-current/nav:text-[HighlightText] forced-colors:group-data-current/nav:forced-color-adjust-none',
           'text-label-medium text-[color:var(--_md-comp-nav-bar-item-inactive-label-text-color)]',
-          'group-data-current/nav:text-label-medium-emphasized group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
+          'group-data-current/nav:text-[color:var(--_md-comp-nav-bar-item-active-label-text-color)]',
         ],
       },
     },

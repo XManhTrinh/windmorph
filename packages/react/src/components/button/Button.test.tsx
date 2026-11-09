@@ -522,6 +522,8 @@ describe('Button link', () => {
     expect(link).not.toHaveAttribute('href');
     expect(link).toHaveAttribute('aria-disabled', 'true');
     expect(link).toHaveAttribute('data-disabled');
+    // An `a` without `href` has no role, and a label on it isn't allowed.
+    expect(link).toHaveAttribute('role', 'link');
   });
 });
 

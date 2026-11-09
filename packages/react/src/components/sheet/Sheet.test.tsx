@@ -761,6 +761,23 @@ describe('SideSheet', () => {
     expect(dialog).not.toHaveStyle({ outline: '1px solid' });
   });
 
+  it('lets classNames.frame change a detached standard sheet’s margins', () => {
+    render(
+      <SideSheet
+        variant="standard"
+        detached
+        aria-label="Details"
+        classNames={{ frame: 'pe-0 frame-x' }}
+      >
+        Details
+      </SideSheet>,
+    );
+    const frame = document.querySelector('.frame-x')!;
+    expect(frame).toHaveClass('pe-0');
+    expect(frame).not.toHaveClass('pe-[16px]');
+    expect(frame).toHaveClass('ps-[16px]');
+  });
+
   it('puts classNames.container on the outermost element of both variants', () => {
     const { unmount } = render(
       <SideSheet title="Filters" defaultOpen classNames={{ container: 'container-x' }}>

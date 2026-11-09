@@ -162,6 +162,9 @@ export type IconButtonProps = IconButtonActionProps | IconButtonLinkProps | Icon
  * Shares `size`, `shape` and `disabled` with `ButtonContext`, so it fits in button groups,
  * and takes its default variant from it (`iconButtonVariant`).
  *
+ * To animate its size or position, put the transition on a wrapper: while pressed, the button's
+ * own motion replaces the timing of a transition added through `className`.
+ *
  * @example
  * <IconButton icon={<SearchIcon />} aria-label="Search" onPress={openSearch} />
  * <IconButton variant="standard" icon={<MoreIcon />} aria-label="More options" />

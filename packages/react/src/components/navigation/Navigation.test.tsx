@@ -394,7 +394,7 @@ describe('NavigationRail', () => {
     expect(screen.queryByRole('navigation')).toBeNull();
   });
 
-  it('wraps long labels between words, never breaks a word bare, and bolds the current one', () => {
+  it('wraps long labels between words, never breaks a word bare, and keeps the weight of the current one', () => {
     const { rerender } = render(<Rail />);
     const label = screen.getByText('Inbox');
     // Lines break between words or at a hyphenation point; a word still wider than the item
@@ -407,11 +407,9 @@ describe('NavigationRail', () => {
       'text-ellipsis',
     );
     expect(label.className).not.toMatch(/truncate|wrap-break-word|wrap-anywhere|break-all/);
-    expect(label).toHaveClass('group-data-current/nav:text-label-medium-emphasized');
+    expect(label.className).not.toContain('emphasized');
     rerender(<Rail expanded />);
-    expect(screen.getByText('Inbox')).toHaveClass(
-      'group-data-current/nav:text-label-large-emphasized',
-    );
+    expect(screen.getByText('Inbox').className).not.toContain('emphasized');
     // The expanded pill grows taller with a wrapped label.
     expect(screen.getByRole('link', { name: 'Inbox' }).firstElementChild).not.toHaveClass(
       'h-[56px]',
@@ -816,7 +814,7 @@ describe('NavigationBar', () => {
     expect(screen.getByRole('link', { name: 'Search' })).toHaveClass('flex-1');
   });
 
-  it('wraps labels and bolds the current one', () => {
+  it('wraps labels and keeps the weight of the current one', () => {
     render(<Bar />);
     const label = screen.getByText('Home');
     expect(label).toHaveClass(
@@ -825,8 +823,8 @@ describe('NavigationBar', () => {
       'wrap-normal',
       'overflow-hidden',
       'text-ellipsis',
-      'group-data-current/nav:text-label-medium-emphasized',
     );
+    expect(label.className).not.toContain('emphasized');
     expect(label.className).not.toMatch(/truncate|wrap-break-word|wrap-anywhere|break-all/);
     // An ellipsis is only painted: the text stays whole, so the name is the full label.
     expect(screen.getByRole('link', { name: 'Home' })).toContainElement(label);
