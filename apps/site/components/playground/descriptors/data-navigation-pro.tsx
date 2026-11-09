@@ -417,7 +417,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       defaultOpen: 'Read once, on mount; the arrow in the preview shows both states.',
       toggleIcon: 'A replacement icon.',
       hideBelow: 'The preview always shows the strip, whatever the window’s size.',
-      role: 'A landmark choice; the "Opening a standard side sheet" example shows `group`.',
+      role: 'A landmark choice, left at its default in the preview.',
     },
     render: (props) =>
       createElement(

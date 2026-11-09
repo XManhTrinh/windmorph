@@ -71,7 +71,10 @@ export function AppFrameFull() {
           actions={<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />}
         />
         <div className="flex min-h-0 flex-1">
-          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:grow medium:basis-0 medium:rounded-corner-large">
+          <main
+            tabIndex={0}
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:grow medium:basis-0 medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+          >
             <header className="sticky top-0 z-10 bg-surface px-6 py-4">
               <h1 className="m-0 text-title-large">Overview</h1>
             </header>
@@ -100,7 +103,7 @@ export function AppFrameFull() {
               Your notes appear here, beside the page.
             </p>
           </SideSheet>
-          <SidePanelRail aria-label="Tools" role="group">
+          <SidePanelRail aria-label="Tools">
             <SidePanelRailItem
               selected={sheetOpen}
               onPress={() => setSheetOpen((open) => !open)}

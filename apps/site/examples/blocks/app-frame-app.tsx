@@ -69,7 +69,10 @@ export function AppFrameApp() {
           }
           actions={<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />}
         />
-        <main className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large">
+        <main
+          tabIndex={0}
+          className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+        >
           {/* Sticky from the start, so nothing shifts when it begins to stick. */}
           <header className="sticky top-0 z-10 bg-surface px-6 py-4">
             <h1 className="m-0 text-title-large">Overview</h1>

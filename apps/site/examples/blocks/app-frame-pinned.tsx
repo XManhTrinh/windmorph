@@ -134,7 +134,10 @@ export function AppFramePinned() {
           }
           actions={<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />}
         />
-        <main className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large">
+        <main
+          tabIndex={0}
+          className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+        >
           <ViewTransition key={page} enter="page-axis" exit="page-axis" default="none">
             <div>
               <header className="sticky top-0 z-10 bg-surface px-6 py-4">

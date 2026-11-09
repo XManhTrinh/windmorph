@@ -44,7 +44,6 @@ export function SidePanelRailWithSheet() {
       </SideSheet>
       <SidePanelRail
         aria-label="Tools"
-        role="group"
         hideBelow={false}
         style={{ '--wm-side-panel-rail-items-padding-top': '16px' } as CSSProperties}
       >

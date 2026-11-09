@@ -8,7 +8,7 @@ export const sidePanelRail: ComponentAccessibility = {
   ],
   keyboardNotes: ['While hidden, the items are out of the tab order and only the toggle remains.'],
   screenReader: {
-    role: 'A `navigation` region holding links or buttons; pass `role="group"` when every item is a button.',
+    role: 'A `navigation` region holding links or buttons.',
     name: 'The region from `aria-label` or `aria-labelledby`, each item from its text, and the toggle from `labels.hide` or `labels.show`.',
     states:
       'The toggle reports `aria-expanded`. A selected link is `aria-current="page"`; a selected button is `aria-pressed`.',
