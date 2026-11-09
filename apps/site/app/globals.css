@@ -104,7 +104,11 @@ main :where(h2[id], h3[id]) {
       var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
 }
 /* The bars keep their own layers above the page's snapshots, or the page would paint over
-   them until the transition ended. Only the live new image shows, so they never cross-fade. */
+   them until the transition ended. Only the live new image shows, so they never cross-fade.
+   The rail and its column sit above the top bar, as they do outside a transition. */
+.site-rail {
+  view-transition-name: site-rail;
+}
 .site-top-bar {
   view-transition-name: site-top-bar;
 }
@@ -116,10 +120,16 @@ main :where(h2[id], h3[id]) {
   z-index: 1;
   animation: none;
 }
+::view-transition-group(site-rail) {
+  z-index: 2;
+  animation: none;
+}
+::view-transition-new(site-rail),
 ::view-transition-new(site-top-bar),
 ::view-transition-new(site-bottom-bar) {
   animation: none;
 }
+::view-transition-old(site-rail),
 ::view-transition-old(site-top-bar),
 ::view-transition-old(site-bottom-bar) {
   display: none;
