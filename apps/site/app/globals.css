@@ -98,8 +98,7 @@ main :where(h2[id], h3[id]) {
 ::view-transition-new(.page-axis) {
   animation:
     var(--md-sys-motion-spring-effects-default-duration)
-      var(--md-sys-motion-spring-effects-default-easing)
-      var(--md-sys-motion-spring-effects-fast-duration) both page-fade-in,
+      var(--md-sys-motion-spring-effects-default-easing) both page-fade-in,
     var(--md-sys-motion-spring-spatial-default-duration)
       var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
 }
