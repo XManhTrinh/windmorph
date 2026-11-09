@@ -6,12 +6,13 @@ import { useState, type CSSProperties } from 'react';
 import { HomeIcon, MenuIcon, PersonIcon, SearchIcon, SettingsIcon } from '../../components/icons';
 
 /**
- * A rail and top bar on one raised surface, and the page a rounded pane on it.
+ * A top bar across the window with the rail below it, on one raised surface, and the page a
+ * rounded pane on it.
  *
  * - `--app-frame-gap` is the gap below and beside the pane.
- * - The pane scrolls by itself, so its corners stay put. It needs an explicit height: as a flex
- *   child, `flex-1` alone would defeat the height of whatever it holds.
- * - The rail sits above the bar and the pane, so a flyout opens over them.
+ * - The pane scrolls by itself, so its corners stay put. It needs an explicit height.
+ * - A flyout fills the rail's height, so it opens under the bar and over the pane, and whatever
+ *   is at the start of the bar stays in view.
  * - On a phone the page is flat and the rail is a drawer.
  */
 export function AppFrameApp() {
@@ -19,48 +20,48 @@ export function AppFrameApp() {
   return (
     <div
       style={{ '--app-frame-gap': '16px' } as CSSProperties}
-      className="flex h-dvh overflow-hidden bg-surface text-on-surface medium:bg-surface-container"
+      className="flex h-dvh flex-col overflow-hidden bg-surface text-on-surface medium:bg-surface-container"
     >
-      <NavigationRail
-        aria-label="Main"
-        modal
-        hideOnCollapse="compact"
-        expanded={drawerOpen}
-        onExpandedChange={setDrawerOpen}
-        classNames={{ root: 'relative z-30 h-full bg-surface-container' }}
-      >
-        <NavigationRailItem href="#overview" icon={<HomeIcon />} selected>
-          Overview
-        </NavigationRailItem>
-        <NavigationRailGroup id="people" icon={<PersonIcon />} label="People">
-          <NavigationRailGroupItem href="#team">Team</NavigationRailGroupItem>
-          <NavigationRailGroupItem href="#invites">Invites</NavigationRailGroupItem>
-        </NavigationRailGroup>
-        <NavigationRailGroup id="settings" icon={<SettingsIcon />} label="Settings">
-          <NavigationRailGroupItem href="#general">General</NavigationRailGroupItem>
-          <NavigationRailGroupItem href="#security">Security</NavigationRailGroupItem>
-        </NavigationRailGroup>
-      </NavigationRail>
+      <TopAppBar
+        variant="small"
+        title="Workspace"
+        className="z-20 shrink-0 bg-surface [transition-property:none] medium:bg-surface-container"
+        // Lines the actions up with the pane's end edge.
+        classNames={{ actions: 'medium:pe-(--app-frame-gap)' }}
+        navigationIcon={
+          <IconButton
+            variant="standard"
+            className="medium:hidden"
+            icon={<MenuIcon />}
+            aria-label="Open navigation"
+            onPress={() => setDrawerOpen(true)}
+          />
+        }
+        actions={<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />}
+      />
+      <div className="flex min-h-0 flex-1">
+        <NavigationRail
+          aria-label="Main"
+          modal
+          hideOnCollapse="compact"
+          expanded={drawerOpen}
+          onExpandedChange={setDrawerOpen}
+          classNames={{ root: 'relative z-30 h-full bg-surface-container' }}
+        >
+          <NavigationRailItem href="#overview" icon={<HomeIcon />} selected>
+            Overview
+          </NavigationRailItem>
+          <NavigationRailGroup id="people" icon={<PersonIcon />} label="People">
+            <NavigationRailGroupItem href="#team">Team</NavigationRailGroupItem>
+            <NavigationRailGroupItem href="#invites">Invites</NavigationRailGroupItem>
+          </NavigationRailGroup>
+          <NavigationRailGroup id="settings" icon={<SettingsIcon />} label="Settings">
+            <NavigationRailGroupItem href="#general">General</NavigationRailGroupItem>
+            <NavigationRailGroupItem href="#security">Security</NavigationRailGroupItem>
+          </NavigationRailGroup>
+        </NavigationRail>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopAppBar
-          variant="small"
-          title="Workspace"
-          className="z-20 shrink-0 bg-surface [transition-property:none] medium:bg-surface-container"
-          // Lines the actions up with the pane's end edge.
-          classNames={{ actions: 'medium:pe-(--app-frame-gap)' }}
-          navigationIcon={
-            <IconButton
-              variant="standard"
-              className="medium:hidden"
-              icon={<MenuIcon />}
-              aria-label="Open navigation"
-              onPress={() => setDrawerOpen(true)}
-            />
-          }
-          actions={<IconButton variant="standard" icon={<SearchIcon />} aria-label="Search" />}
-        />
-        <main className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:rounded-corner-large">
           {/* Sticky from the start, so nothing shifts when it begins to stick. */}
           <header className="sticky top-0 z-10 bg-surface px-6 py-4">
             <h1 className="m-0 text-title-large">Overview</h1>
