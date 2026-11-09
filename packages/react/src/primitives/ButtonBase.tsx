@@ -290,8 +290,10 @@ function LinkBase({ ref, href, ...props }: ButtonBaseLinkProps & ButtonBasePendi
       {...dataAttributes}
       {...pendingAttributes(pending, domRest)}
       {...element}
-      // A pending link stays a link (role and tab stop); only a disabled one drops `href`.
+      // A pending link stays a link (role and tab stop); only a disabled one drops `href`, and
+      // keeps the role an `a` loses without one, so it can still be named.
       href={disabled ? undefined : href}
+      {...(disabled && dom.role === undefined && { role: 'link' })}
       ref={domRef}
     >
       {render(children, false)}
