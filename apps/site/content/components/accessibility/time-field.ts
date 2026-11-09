@@ -17,7 +17,10 @@ export const timeField: ComponentAccessibility = {
   focus: [
     'After a keyboard or mouse press on the clock, focus returns to the text box. After a touch it returns to the clock button, so the on-screen keyboard doesn’t rise.',
   ],
-  touchTarget: ['The field is 48px or taller at every density, and the clock has a 48px target.'],
+  touchTarget: [
+    'The field is 56px tall at density 0 and loses 4px a density step, as the core’s fields do.',
+    'The clock is an icon button, with the core’s touch target.',
+  ],
   motion: ['The picker follows the core’s dialog, which only fades under reduced motion.'],
   consumer: [
     'Give it a `label`.',

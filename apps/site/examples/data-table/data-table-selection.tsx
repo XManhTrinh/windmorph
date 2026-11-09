@@ -96,7 +96,9 @@ const COLUMNS: ColumnDef<Person>[] = [
 export function DataTableSelection() {
   const [message, setMessage] = useState('');
   const archive = (selection: TableState['selection']) =>
-    setMessage(`Archived ${selection.ids.length} people`);
+    setMessage(
+      `Archived ${selection.ids.length} ${selection.ids.length === 1 ? 'person' : 'people'}`,
+    );
   return (
     <div className="flex w-full flex-col gap-2">
       <DataTable<Person>

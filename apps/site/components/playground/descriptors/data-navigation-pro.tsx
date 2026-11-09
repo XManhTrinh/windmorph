@@ -13,7 +13,11 @@ import {
   type ColumnDef,
   type TreeViewNode,
 } from '@windmorph/react-pro';
-import { Calendar, type CalendarEventInput } from '@windmorph/react-pro/calendar';
+import {
+  Calendar,
+  type CalendarEventInput,
+  type CalendarResource,
+} from '@windmorph/react-pro/calendar';
 import { DataGrid, type DataGridColumn } from '@windmorph/react-pro/data-grid';
 import { createElement } from 'react';
 import { SettingsIcon } from '../../icons';
@@ -65,6 +69,10 @@ const SAMPLE_COLUMNS_CODE = `[
     { id: 'customer', header: 'Customer', accessor: (row) => row.customer, rowHeader: true },
     { id: 'total', header: 'Total', accessor: (row) => row.total, type: 'number' },
   ]`;
+const GRID_COLUMNS_CODE = `[
+    { id: 'customer', header: 'Customer', accessor: (row) => row.customer },
+    { id: 'total', header: 'Total', accessor: (row) => row.total, type: 'number' },
+  ]`;
 const SAMPLE_ROWS_CODE = `[
     { id: '1', customer: 'Alex Morgan', total: 120 },
     { id: '2', customer: 'Sam Rivera', total: 86 },
@@ -77,6 +85,7 @@ const CALENDAR_EVENTS: CalendarEventInput[] = [
     start: '2026-11-11T09:00:00Z',
     end: '2026-11-11T09:30:00Z',
     status: 'Confirmed',
+    resourceIds: ['room-a'],
   },
   {
     id: 'review',
@@ -84,10 +93,26 @@ const CALENDAR_EVENTS: CalendarEventInput[] = [
     start: '2026-11-12T13:00:00Z',
     end: '2026-11-12T14:30:00Z',
     color: 'tertiary',
+    resourceIds: ['room-b'],
   },
   { id: 'trip', title: 'Conference', allDay: true, start: '2026-11-16', end: '2026-11-18' },
 ];
 const CALENDAR_ZONE = { timeZone: 'UTC', now: '2026-11-11T08:00:00Z' };
+const CALENDAR_ROOMS: CalendarResource[] = [
+  { id: 'room-a', title: 'Room A' },
+  { id: 'room-b', title: 'Room B' },
+];
+/** Every view, so the view control works: left to its default, a narrow preview offers two. */
+const CALENDAR_VIEWS = [
+  'month',
+  'week',
+  'day',
+  'agenda',
+  'resource-schedule',
+  'resource-timeline',
+] as const;
+const isResourceView = (values: Record<string, unknown>) =>
+  String(values.view ?? '').startsWith('resource');
 
 interface Folder extends TreeViewNode {
   name: string;
@@ -209,7 +234,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     codeSlots: {
       'aria-label': '"Orders"',
-      columns: SAMPLE_COLUMNS_CODE,
+      columns: GRID_COLUMNS_CODE,
       rows: SAMPLE_ROWS_CODE,
       getRowId: '(row) => row.id',
     },
@@ -248,6 +273,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
           ...CALENDAR_ZONE,
           'aria-label': 'Bookings',
           events: CALENDAR_EVENTS,
+          resources: CALENDAR_ROOMS,
+          views: CALENDAR_VIEWS,
           firstDayOfWeek: firstDayOfWeek ?? undefined,
           density: asDensity(density),
         }),
@@ -284,8 +311,12 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     codeSlots: {
       'aria-label': '"Bookings"',
-      events:
-        "[{ id: 'standup', title: 'Standup', start: '2026-11-11T09:00:00Z', end: '2026-11-11T09:30:00Z' }]",
+      events: (values) =>
+        `[{ id: 'standup', title: 'Standup', start: '2026-11-11T09:00:00Z', end: '2026-11-11T09:30:00Z'${isResourceView(values) ? ", resourceIds: ['room-a']" : ''} }]`,
+      views: (values) =>
+        isResourceView(values) ? "['resource-schedule', 'resource-timeline']" : null,
+      resources: (values) =>
+        isResourceView(values) ? "[{ id: 'room-a', title: 'Room A' }]" : null,
     },
   },
   'navigation-rail-group': {
