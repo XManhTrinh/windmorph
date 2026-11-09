@@ -70,6 +70,13 @@ html {
     scroll-padding-bottom: 72px;
   }
 }
+/* No elastic bounce past the page's ends where the page is a pane in a fixed frame: the bounce
+   moves the pane's content and the frame's strip apart. */
+@media (width >= 600px) {
+  html {
+    overscroll-behavior-y: none;
+  }
+}
 
 /* Section headings land 16px below the top bar when the outline (or a #link) jumps to them. */
 main :where(h2[id], h3[id]) {
