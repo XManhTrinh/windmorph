@@ -87,6 +87,8 @@ function exampleSource(fileName: string): string {
 
 const documents = new Map<string, Document>();
 const MAX_DOCUMENTS = 8;
+// One window for every page: a window of its own costs each page about 14MB that's never freed.
+const parser = new new JSDOM('').window.DOMParser();
 
 /**
  * A page's parsed HTML, once per page. Scripts (the page's own RSC payload, most of its
@@ -96,14 +98,9 @@ function documentOf(path: string): Document {
   const cached = documents.get(path);
   if (cached) return cached;
   const html = readFileSync(htmlFile(path), 'utf8').replace(/<script\b[\s\S]*?<\/script>/g, '');
-  const document = new JSDOM(html).window.document;
+  const document = parser.parseFromString(html, 'text/html');
   documents.set(path, document);
-  // Keeping every page parsed runs past Node's heap limit on a full export.
-  if (documents.size > MAX_DOCUMENTS) {
-    const [oldest, stale] = documents.entries().next().value!;
-    stale.defaultView?.close();
-    documents.delete(oldest);
-  }
+  if (documents.size > MAX_DOCUMENTS) documents.delete(documents.keys().next().value!);
   return document;
 }
 
