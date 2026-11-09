@@ -91,6 +91,16 @@ const COLUMN_TOKENS = {
   '--wm-navigation-rail-group-accordion-inset': '0px',
 } as CSSProperties;
 
+/**
+ * On a page with a pinned column, every column sits beside the page on the rail's surface, with
+ * nothing under it to cast a shadow on. Elsewhere a column floats over the page.
+ */
+const FLAT_COLUMN_TOKENS = {
+  ...COLUMN_TOKENS,
+  '--wm-navigation-rail-group-elevation': '0 0 0 0 transparent',
+  '--wm-navigation-rail-group-elevation-rtl': '0 0 0 0 transparent',
+} as CSSProperties;
+
 const HEADING = 'px-4 pt-5 pb-3 text-label-small uppercase';
 
 /** The destination a page belongs to: a guide, or a component page's group. */
@@ -119,7 +129,7 @@ function DestinationGroup({
       href={destination.href}
       currentPath={pathname}
       pinned
-      style={COLUMN_TOKENS}
+      style={currentDestination(pathname) === null ? COLUMN_TOKENS : FLAT_COLUMN_TOKENS}
       classNames={{ heading: HEADING }}
     >
       {destination.links.map((link) => (

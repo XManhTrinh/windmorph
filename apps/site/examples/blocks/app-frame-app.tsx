@@ -46,7 +46,9 @@ export function AppFrameApp() {
         <TopAppBar
           variant="small"
           title="Workspace"
-          className="z-20 shrink-0 bg-surface medium:bg-surface-container"
+          className="z-20 shrink-0 bg-surface [transition-property:none] medium:bg-surface-container"
+          // Lines the actions up with the pane's end edge.
+          classNames={{ actions: 'medium:pe-(--app-frame-gap)' }}
           navigationIcon={
             <IconButton
               variant="standard"

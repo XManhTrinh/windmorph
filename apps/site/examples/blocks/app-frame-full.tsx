@@ -49,7 +49,7 @@ export function AppFrameFull() {
         <TopAppBar
           variant="small"
           title="Workspace"
-          className="z-20 shrink-0 bg-surface medium:bg-surface-container"
+          className="z-20 shrink-0 bg-surface [transition-property:none] medium:bg-surface-container"
           navigationIcon={
             <IconButton
               variant="standard"
