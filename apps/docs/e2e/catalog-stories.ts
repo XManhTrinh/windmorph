@@ -58,6 +58,7 @@ const TITLES: Record<string, string> = {
   'components-tooltip': 'tooltip',
   'components-topappbar': 'top-app-bar',
   'composites-buttongroup': 'button-group',
+  'components-timefield': 'time-field',
 };
 
 /** Titles whose stories show several catalog components, told apart by the story's name. */
