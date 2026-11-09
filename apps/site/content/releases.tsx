@@ -35,6 +35,7 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
 export const RELEASES: Release[] = [
   {
     version: '0.2.0',
+    date: '2026-11-09',
     summary: (
       <>
         <InlineCode>TimeField</InlineCode>, one navigation rail for every window size, and pieces
