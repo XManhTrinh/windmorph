@@ -443,6 +443,9 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     defaultProps: {},
     initialState: { 'aria-label': 'More links' },
     surfacedProps: ['aria-label'],
+    importMembers: ['SidePanelRailItem'],
+    codeChildren:
+      '<SidePanelRailItem href="/settings" icon={<SettingsIcon />}>Settings</SidePanelRailItem>',
   },
   'copy-field': {
     component: 'CopyField',

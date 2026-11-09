@@ -54,8 +54,8 @@ export function AppFramePinned() {
 
   // The demo has no routes, so a link only changes the page shown here.
   const navigate = (event: MouseEvent) => {
-    const link = (event.target as Element).closest?.('a[href^="#"]');
-    const next = link?.getAttribute('href')?.slice(1) as Page | undefined;
+    const link = (event.target as Element).closest?.('a[href^="#demo-"]');
+    const next = link?.getAttribute('href')?.replace('#demo-', '') as Page | undefined;
     if (!next || !(next in TITLES)) return;
     event.preventDefault();
     event.stopPropagation();
@@ -64,7 +64,7 @@ export function AppFramePinned() {
   };
 
   const item = (id: Page) => (
-    <NavigationRailGroupItem key={id} href={`#${id}`} current={page === id}>
+    <NavigationRailGroupItem key={id} href={`#demo-${id}`} current={page === id}>
       {TITLES[id]}
     </NavigationRailGroupItem>
   );
@@ -84,7 +84,7 @@ export function AppFramePinned() {
         classNames={{ root: 'relative z-30 h-full bg-surface-container', header: 'pb-6' }}
         header={
           <a
-            href="#overview"
+            href="#demo-overview"
             aria-label="Workspace home"
             className="-mt-9 flex size-12 items-center justify-center rounded-corner-large bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
@@ -92,7 +92,11 @@ export function AppFramePinned() {
           </a>
         }
       >
-        <NavigationRailItem href="#overview" icon={<HomeIcon />} selected={page === 'overview'}>
+        <NavigationRailItem
+          href="#demo-overview"
+          icon={<HomeIcon />}
+          selected={page === 'overview'}
+        >
           Overview
         </NavigationRailItem>
         <NavigationRailGroup

@@ -37,7 +37,7 @@ export function AppFrameFull() {
         classNames={{ root: 'relative z-30 h-full bg-surface-container', header: 'pb-6' }}
         header={
           <a
-            href="#overview"
+            href="#demo-overview"
             aria-label="Workspace home"
             className="-mt-9 flex size-12 items-center justify-center rounded-corner-large bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
           >
@@ -45,12 +45,12 @@ export function AppFrameFull() {
           </a>
         }
       >
-        <NavigationRailItem href="#overview" icon={<HomeIcon />} selected>
+        <NavigationRailItem href="#demo-overview" icon={<HomeIcon />} selected>
           Overview
         </NavigationRailItem>
         <NavigationRailGroup id="people" icon={<PersonIcon />} label="People">
-          <NavigationRailGroupItem href="#team">Team</NavigationRailGroupItem>
-          <NavigationRailGroupItem href="#invites">Invites</NavigationRailGroupItem>
+          <NavigationRailGroupItem href="#demo-team">Team</NavigationRailGroupItem>
+          <NavigationRailGroupItem href="#demo-invites">Invites</NavigationRailGroupItem>
         </NavigationRailGroup>
       </NavigationRail>
 
