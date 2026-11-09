@@ -111,7 +111,11 @@ export async function CalendarBody(): Promise<ComponentDoc> {
               Recurrence is the app&apos;s: pass each occurrence. Overlaps sit side by side, and{' '}
               <InlineCode>maxEventsPerDay</InlineCode> limits a month cell before “+N more”.
             </li>
-            <li>Below 600px of its own width the default offers the day and agenda views.</li>
+            <li>
+              <InlineCode>views</InlineCode> lists what&apos;s offered, and the resource views must
+              be listed to be used. Below 600px of its own width the default offers the day and
+              agenda views.
+            </li>
             <li>
               <InlineCode>useCalendarState</InlineCode> and the exported views and toolbar compose
               the same pieces differently.
