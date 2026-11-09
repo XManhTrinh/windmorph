@@ -322,6 +322,11 @@ export default async function CustomisationPage() {
             outermost element; <InlineCode>style</InlineCode> is merged, never replaced.
           </li>
           <li>
+            To animate a button’s size or position, put the transition on a wrapper: while pressed,
+            the button’s own motion replaces the timing of a transition added through{' '}
+            <InlineCode>className</InlineCode>.
+          </li>
+          <li>
             State layer and ripple are painted as background layers, so they follow{' '}
             <InlineCode>border-radius</InlineCode> and need neither{' '}
             <InlineCode>relative</InlineCode> nor <InlineCode>overflow-hidden</InlineCode>.

@@ -44,6 +44,8 @@ export interface SideSheetClassNames {
   container?: string;
   /** The dimmed layer behind a modal sheet. */
   scrim?: string;
+  /** The box around a standard sheet's surface, which holds a detached sheet's margins. */
+  frame?: string;
   /** The sheet's surface: its colour, corners, width and shadow. */
   panel?: string;
   /** The header row: back button, title, actions and close button. */
@@ -526,7 +528,7 @@ function StandardSideSheet({
       className={styles.standard({ class: cn(body.classNames?.container, className) })}
     >
       <div className={styles.standardClip()}>
-        <div ref={frameRef} className={styles.standardFrame()}>
+        <div ref={frameRef} className={styles.standardFrame({ class: body.classNames?.frame })}>
           <div data-slot="panel" className={styles.panel({ class: body.classNames?.panel })}>
             <SheetBody {...body} titleId={titleId} close={state.close} styles={styles} />
           </div>
