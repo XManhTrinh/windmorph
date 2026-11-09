@@ -327,7 +327,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     notControlled: {
       href: 'A link for the destination, which the preview leaves to its first item.',
-      currentPath: 'Sampled in the preview, so Sales is the current page.',
+      currentPath:
+        'The preview has no routes, so its first link is marked `current`; the snippet shows the prop.',
     },
     render: (props) =>
       createElement(
@@ -342,10 +343,13 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
               ...props,
               id: 'reports',
               icon: createElement(SettingsIcon),
-              currentPath: '/reports/sales',
             },
-            createElement(NavigationRailGroupItemAny, { href: '/reports/sales' }, 'Sales'),
-            createElement(NavigationRailGroupItemAny, { href: '/reports/costs' }, 'Costs'),
+            createElement(
+              NavigationRailGroupItemAny,
+              { href: '#demo-sales', current: true },
+              'Sales',
+            ),
+            createElement(NavigationRailGroupItemAny, { href: '#demo-costs' }, 'Costs'),
           ),
         ),
       ),
@@ -357,7 +361,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       closeDelay: { min: 0, max: 1000, step: 10 },
     },
     importMembers: ['NavigationRailGroupItem'],
-    codeSlots: { id: '"reports"', icon: '<SettingsIcon />' },
+    codeSlots: { id: '"reports"', icon: '<SettingsIcon />', currentPath: '"/reports/sales"' },
     codeChildren:
       '\n  <NavigationRailGroupItem href="/reports/sales">Sales</NavigationRailGroupItem>\n',
   },

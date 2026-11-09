@@ -19,17 +19,14 @@ export function NavigationRailGroupExpanded() {
           <IconButton variant="standard" icon={<MenuIcon />} aria-label="Menu" onPress={toggle} />
         )}
       >
-        <NavigationRailGroup
-          id="reports"
-          icon={<SettingsIcon />}
-          label="Reports"
-          currentPath="/reports/sales"
-        >
-          <NavigationRailGroupItem href="/reports/sales">Sales</NavigationRailGroupItem>
-          <NavigationRailGroupItem href="/reports/costs">Costs</NavigationRailGroupItem>
+        <NavigationRailGroup id="reports" icon={<SettingsIcon />} label="Reports">
+          <NavigationRailGroupItem href="#demo-reports-sales" current>
+            Sales
+          </NavigationRailGroupItem>
+          <NavigationRailGroupItem href="#demo-reports-costs">Costs</NavigationRailGroupItem>
         </NavigationRailGroup>
         <NavigationRailGroup id="people" icon={<PersonIcon />} label="People">
-          <NavigationRailGroupItem href="/people/team">Team</NavigationRailGroupItem>
+          <NavigationRailGroupItem href="#demo-people-team">Team</NavigationRailGroupItem>
         </NavigationRailGroup>
       </NavigationRail>
     </div>
