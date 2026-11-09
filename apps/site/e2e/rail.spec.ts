@@ -145,7 +145,7 @@ test.describe('Pinned second menu on component pages', () => {
         .locator('[data-tokens="wm-navigation-rail-group"][data-current]')
         .getByRole('link', { name: 'Actions', exact: true }),
     ).toBeVisible();
-    // Content is pushed right of the rail (96) + panel (272) = 368px.
+    // Content is pushed right of the rail (96) + panel (272) + the 16px gap = 384px.
     const main = page.locator('#main-content');
     const mainBox = await main.boundingBox();
     expect(mainBox!.x).toBeGreaterThanOrEqual(364);

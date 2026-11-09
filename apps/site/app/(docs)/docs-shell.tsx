@@ -75,7 +75,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
           transitioning the inline-start margin as the pinned drawer pushes content. */}
           <div
             className={`flex min-h-dvh min-w-0 flex-col medium:me-4 medium:pb-4 transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none ${
-              pinnedPanel ? 'medium:ms-[384px]' : 'medium:ms-28'
+              pinnedPanel ? 'medium:ms-[384px]' : 'medium:ms-24'
             }`}
           >
             {/* Medium and wider: the search (guides and settings live in the rail). */}
@@ -152,7 +152,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
             <div
               aria-hidden="true"
               className={`site-pane-frame pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_100vmax_var(--md-sys-color-surface-container)] transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none medium:block ${
-                pinnedPanel ? 'medium:start-[384px]' : 'medium:start-28'
+                pinnedPanel ? 'medium:start-[384px]' : 'medium:start-24'
               }`}
             />
           </div>
