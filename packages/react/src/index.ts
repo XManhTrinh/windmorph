@@ -177,7 +177,9 @@ export { snackbarTokenSet } from './components/snackbar/snackbar-tokens';
 export {
   NavigationRail,
   NavigationRailItem,
+  useNavigationRail,
   type NavigationRailClassNames,
+  type NavigationRailState,
   type NavigationRailItemProps,
   type NavigationRailProps,
 } from './components/navigation/NavigationRail';
@@ -612,6 +614,14 @@ export {
   type TimePickerProps,
   type TimePickerLabels,
 } from './components/time-picker/TimePicker';
+export {
+  TimeField,
+  type TimeFieldClassNames,
+  type TimeFieldLabels,
+  type TimeFieldProps,
+} from './components/time-picker/TimeField';
+/** The value of a `TimeField` or `TimePicker`, so an app needs no date library of its own. */
+export { Time, parseTime } from '@internationalized/date';
 export {
   timePickerStyles,
   type TimePickerStyleProps,

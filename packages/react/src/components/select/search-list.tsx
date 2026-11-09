@@ -142,8 +142,14 @@ export function SearchList<T>({
       )}
     >
       {/* 48px (4px less per density step), 4px above the list, like the panel's 4px padding
-          around it. */}
-      <div className="flex h-[calc(52px+var(--md-sys-density,0)*4px)] shrink-0 pb-[4px]">
+          around it. In a sheet the whole content scrolls (its swipe-to-dismiss reads that
+          scroller's position), so the search sticks to the top, over the options passing under. */}
+      <div
+        className={cn(
+          'flex h-[calc(52px+var(--md-sys-density,0)*4px)] shrink-0 pb-[4px]',
+          embedded && 'sticky top-0 z-[1] bg-[var(--_md-comp-sheet-bottom-docked-container-color)]',
+        )}
+      >
         <div
           {...focusProps}
           data-tokens="md-comp-search-bar"

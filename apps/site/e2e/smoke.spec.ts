@@ -155,6 +155,8 @@ for (const url of PAGES) {
   test.describe(url, () => {
     if (isTabPage(url)) {
       test('renders in light and dark mode', async ({ page, baseURL }) => {
+        // Two accessibility scans, and the largest API tabs hold nearly 3MB of props tables.
+        test.setTimeout(90_000);
         await assertPageHealthy(page, baseURL ?? DEFAULT_BASE_URL, url, { thenDark: true });
       });
     } else {

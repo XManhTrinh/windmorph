@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import * as windmorph from '@windmorph/react';
 import { isComponentTokenSet } from '@windmorph/react';
 import * as pro from '@windmorph/react-pro';
+import * as proCalendar from '@windmorph/react-pro/calendar';
+import * as proDataGrid from '@windmorph/react-pro/data-grid';
 import * as proRichText from '@windmorph/react-pro/rich-text';
 import { describe, expect, it } from 'vitest';
 
@@ -20,7 +22,12 @@ const exportedSets = Object.entries(windmorph)
   .filter(([, value]) => (value as { name: string }).name.startsWith('md-comp-'))
   .map(([name]) => name);
 
-const proSets = [...Object.entries(pro), ...Object.entries(proRichText)]
+const proSets = [
+  ...Object.entries(pro),
+  ...Object.entries(proRichText),
+  ...Object.entries(proDataGrid),
+  ...Object.entries(proCalendar),
+]
   .filter(([, value]) => isComponentTokenSet(value))
   .filter(([, value]) => (value as { name: string }).name.startsWith('wm-'))
   .map(([name]) => name);

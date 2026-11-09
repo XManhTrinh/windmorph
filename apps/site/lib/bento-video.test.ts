@@ -1,9 +1,15 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BENTO_MEDIA_DIR } from './bento-media';
 import { readBentoVideo } from './bento-video';
+
+/** Scratch space inside the project: nothing here writes to the system's temp folder. */
+function scratchDir() {
+  const dir = join(process.cwd(), 'node_modules', '.cache', 'windmorph-scripts');
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
 
 describe('readBentoVideo', () => {
   let site: string;
@@ -18,7 +24,7 @@ describe('readBentoVideo', () => {
   };
 
   beforeEach(() => {
-    site = mkdtempSync(join(tmpdir(), 'bento-'));
+    site = mkdtempSync(join(scratchDir(), 'bento-'));
     media = join(site, BENTO_MEDIA_DIR);
     mkdirSync(media, { recursive: true });
   });

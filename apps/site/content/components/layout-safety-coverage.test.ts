@@ -47,6 +47,7 @@ const COVERAGE: Record<string, readonly string[]> = {
   'pull-to-refresh': ['components-pulltorefresh--layout-override'],
   'date-picker': ['components-pickers--layout-override'],
   'time-picker': ['components-pickers--time-layout-override'],
+  'time-field': ['components-timefield--layout-override'],
   'picker-dialog': ['components-pickers--dialog-layout-override'],
 };
 

@@ -62,7 +62,8 @@ function valueExports(file: string): Map<string, string> {
   for (const [, typeOnly, list = '', specifier = ''] of code.matchAll(
     /export\s*(type\s*)?\{([^}]*)\}\s*from\s*'([^']+)'/g,
   )) {
-    if (typeOnly) continue;
+    // A package's own exports (`Time` from the date library) aren't this repo's modules.
+    if (typeOnly || !specifier.startsWith('.')) continue;
     const target = resolveModule(file, specifier);
     for (const [exported, original] of names(list)) exports.set(exported, origin(target, original));
   }

@@ -86,6 +86,13 @@ export interface ButtonGroupProps extends Omit<
    */
   variant?: ButtonGroupVariant;
   /**
+   * Whether a `connected` group spans its container (M3's guidance, and the default). `false`
+   * sizes the group to its buttons, for one beside other controls; the buttons stay equally
+   * wide. Has no effect on a `standard` group or one with `overflow`.
+   * @default true
+   */
+  fullWidth?: boolean;
+  /**
    * Size shared by every button and icon button in the group; it also sets the spacing.
    * Unset, the buttons keep their own (or an enclosing toolbar's) size.
    * @default "sm"
@@ -233,6 +240,7 @@ function ButtonGroupRoot({
   deselectable = true,
   expandedRatio,
   overflow = false,
+  fullWidth = true,
   labels,
   className,
   classNames,
@@ -336,7 +344,7 @@ function ButtonGroupRoot({
       data-variant={variant}
       data-size={groupSize}
       className={cn(
-        buttonGroupStyles({ variant, size: groupSize, overflow }),
+        buttonGroupStyles({ variant, size: groupSize, overflow, fullWidth }),
         classNames?.root,
         className,
       )}

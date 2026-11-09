@@ -17,7 +17,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
     await expect(trigger).toHaveAttribute('href', '/components/button');
     await trigger.hover();
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await expect(flyout).toBeVisible();
     await expect(
       flyout.getByRole('link', { name: 'Button Expressive', exact: true }),
@@ -26,7 +26,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
 
   test('links show Expressive and Pro chips, which are part of their names', async ({ page }) => {
     await page.getByRole('link', { name: 'Inputs', exact: true }).hover();
-    const flyout = page.getByRole('navigation', { name: 'Inputs & selection' });
+    const flyout = page.getByRole('group', { name: 'Inputs & selection' });
     await expect(flyout.getByRole('link', { name: 'Phone field Pro', exact: true })).toBeVisible();
     await expect(
       flyout.getByRole('link', { name: 'Slider Expressive', exact: true }),
@@ -44,7 +44,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
       'phone-field',
     ]) {
       await page.goto(`/components/${slug}`);
-      const names = page.locator('nav[data-pinned] li a > span:first-child');
+      const names = page.locator('[data-pinned] [data-slot="item-label"]');
       await expect(names.first()).toBeVisible();
       const cut = await names.evaluateAll((spans) =>
         spans.filter((span) => span.scrollWidth > span.clientWidth).map((span) => span.textContent),
@@ -57,7 +57,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
     const trigger = page.getByRole('link', { name: 'Actions', exact: true });
     await trigger.focus();
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByRole('navigation', { name: 'Actions' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Actions' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
     await expect(trigger).toBeFocused();
@@ -66,7 +66,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
   test('pointer leaving the rail and panel closes it', async ({ page }) => {
     const trigger = page.getByRole('link', { name: 'Actions', exact: true });
     await trigger.hover();
-    await expect(page.getByRole('navigation', { name: 'Actions' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Actions' })).toBeVisible();
     await page.mouse.move(1000, 800);
     await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
@@ -75,7 +75,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
     const rail = page.locator('nav[aria-label="Components and settings"]');
     const railBox = await rail.boundingBox();
     await page.getByRole('link', { name: 'Actions', exact: true }).hover();
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await expect(flyout).toBeVisible();
     // Let the slide-in transition settle before measuring the resting position.
     await page.waitForTimeout(350);
@@ -90,7 +90,7 @@ test.describe('Navigation rail flyout (overlay, non-detail page)', () => {
   }) => {
     const trigger = page.getByRole('link', { name: 'Actions', exact: true });
     await trigger.hover();
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await expect(flyout).toBeVisible();
     // Cross the rail→panel gap and land on a link; the close delay must bridge the gap.
     const fab = flyout.getByRole('link', { name: 'FAB Expressive', exact: true });
@@ -135,15 +135,16 @@ test.describe('Pinned second menu on component pages', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
     // Visible with NO hover.
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await expect(flyout).toBeVisible();
     // The current page's item is active; the rail group reads as current.
     const active = flyout.getByRole('link', { name: 'Button Expressive', exact: true });
     await expect(active).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('link', { name: 'Actions', exact: true })).toHaveAttribute(
-      'data-current',
-      'true',
-    );
+    await expect(
+      page
+        .locator('[data-tokens="wm-navigation-rail-group"][data-current]')
+        .getByRole('link', { name: 'Actions', exact: true }),
+    ).toBeVisible();
     // Content is pushed right of the rail (96) + panel (272) = 368px.
     const main = page.locator('#main-content');
     const mainBox = await main.boundingBox();
@@ -156,10 +157,10 @@ test.describe('Pinned second menu on component pages', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components/button');
     await page.getByRole('link', { name: 'Inputs', exact: true }).hover();
-    await expect(page.getByRole('navigation', { name: 'Inputs & selection' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Inputs & selection' })).toBeVisible();
     // Leave the rail entirely; it reverts to the pinned Actions panel.
     await page.mouse.move(1000, 800);
-    await expect(page.getByRole('navigation', { name: 'Actions' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Actions' })).toBeVisible();
   });
 
   test('clicking a child from the home overlay lands pinned with that child active', async ({
@@ -167,7 +168,7 @@ test.describe('Pinned second menu on component pages', () => {
   }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/');
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await page.getByRole('link', { name: 'Actions', exact: true }).hover();
     await expect(flyout).toBeVisible();
     await flyout.getByRole('link', { name: 'Icon button Expressive', exact: true }).click();
@@ -187,7 +188,7 @@ test.describe('Pinned second menu on component pages', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/components');
     // The panel stays mounted but closed (inert, zero-width) — not a pinned/visible pane.
-    await expect(page.getByRole('navigation', { name: 'Actions' })).toBeHidden();
+    await expect(page.getByRole('group', { name: 'Actions' })).toBeHidden();
     const main = page.locator('#main-content');
     const mainBox = await main.boundingBox();
     // Content is inset only past the rail (~96px), not the panel.
@@ -216,7 +217,7 @@ test.describe('Navigation rail under RTL', () => {
     expect(railBox!.x + railBox!.width).toBeGreaterThanOrEqual(viewport.width - 1);
 
     // The pinned Actions panel sits to the left of the rail (its right edge meets the rail).
-    const flyout = page.getByRole('navigation', { name: 'Actions' });
+    const flyout = page.getByRole('group', { name: 'Actions' });
     await expect(flyout).toBeVisible();
     const flyoutBox = await flyout.boundingBox();
     expect(Math.abs(flyoutBox!.x + flyoutBox!.width - railBox!.x)).toBeLessThanOrEqual(1);
@@ -229,9 +230,13 @@ test.describe('Guides in the rail', () => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/theming');
     const trigger = page.getByRole('link', { name: 'Guides', exact: true });
-    await expect(trigger).toHaveAttribute('data-current', 'true');
+    await expect(
+      page
+        .locator('[data-tokens="wm-navigation-rail-group"][data-current]')
+        .filter({ has: trigger }),
+    ).toHaveCount(1);
     await expect(trigger).toHaveAttribute('href', '/getting-started');
-    const flyout = page.getByRole('navigation', { name: 'Guides' });
+    const flyout = page.getByRole('group', { name: 'Guides' });
     await expect(flyout).toBeVisible();
     await expect(flyout.getByRole('link')).toHaveText([
       'Getting Started',

@@ -4,7 +4,6 @@ import {
   IconButton,
   NavigationBar,
   NavigationBarItem,
-  NavigationRail,
   SearchAppBar,
   TopAppBar,
 } from '@windmorph/react';
@@ -13,7 +12,6 @@ import { usePathname } from 'next/navigation';
 import { ViewTransition, useState, type ReactElement, type ReactNode } from 'react';
 import { HomeIcon, MenuBookIcon, MenuIcon, WidgetsIcon } from '../../components/icons';
 import { DocsRail, currentDestination } from '../../components/nav/docs-rail';
-import { DrawerNav } from '../../components/nav/drawer-nav';
 import { Footer } from '../../components/footer';
 import { PageOutline } from '../../components/page-outline';
 import { usePlaceholderLinks } from '../../components/placeholder-links';
@@ -70,22 +68,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
         <div className="min-h-dvh bg-surface text-on-surface">
           <SkipLink target="main-content">Skip to content</SkipLink>
 
-          {/* Medium and wider: the fixed left rail with group flyouts. */}
-          <DocsRail settings={<DisplaySettingsButton />} />
-
-          {/* Compact: a modal drawer opened from the search app bar's navigation icon. */}
-          <NavigationRail
-            aria-label="Documentation navigation"
-            modal
-            hideOnCollapse
-            expanded={navOpen}
-            onExpandedChange={setNavOpen}
-            // As wide as M3's modal drawer (360px), leaving 56px of the page in view, so names
-            // and their chips never truncate; the rail would size itself to the truncated rows.
-            classNames={{ sheet: 'w-[min(360px,calc(100vw-56px))]' }}
-          >
-            <DrawerNav pathname={pathname} onNavigate={() => setNavOpen(false)} />
-          </NavigationRail>
+          {/* The fixed rail from 600px wide, and the phone's modal drawer below it. */}
+          <DocsRail settings={<DisplaySettingsButton />} open={navOpen} onOpenChange={setNavOpen} />
 
           {/* The rail is fixed; the content column is inset past the rail (and the pinned panel),
           transitioning the inline-start margin as the pinned drawer pushes content. */}
@@ -100,7 +84,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               // M3: an opaque `surface` bar that turns `surface-container` once content scrolls
               // under it. (A translucent, blurred bar flashed as dark content passed beneath.)
               scrollBehavior="pinned"
-              className="sticky top-0 z-20 hidden medium:flex"
+              className="site-top-bar sticky top-0 z-20 hidden medium:flex"
               classNames={{ actions: 'min-w-0 pe-4' }}
               // The page names itself in its h1; the bar only anchors the search at the end.
               title={null}
@@ -119,7 +103,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
             {/* Compact: the search fills the bar between the drawer button and the settings. */}
             <SearchAppBar
               scrollBehavior="pinned"
-              className="sticky top-0 z-20 medium:hidden"
+              className="site-top-bar sticky top-0 z-20 medium:hidden"
               navigationIcon={
                 <IconButton
                   icon={<MenuIcon />}
@@ -167,7 +151,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
 
           <NavigationBar
             aria-label="Primary"
-            className="fixed inset-x-0 bottom-0 z-20 medium:hidden"
+            className="site-bottom-bar fixed inset-x-0 bottom-0 z-20 medium:hidden"
           >
             {BOTTOM_DESTINATIONS.map((destination) => (
               <NavigationBarItem

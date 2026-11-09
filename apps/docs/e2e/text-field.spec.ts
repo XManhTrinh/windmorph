@@ -322,3 +322,20 @@ test.describe('TextField layout safety', () => {
     }
   }
 });
+
+test.describe('TextField with a browser-drawn format', () => {
+  for (const type of ['date', 'time'] as const) {
+    test(`an empty ${type} field's label sits above its value`, async ({ page }) => {
+      await openStory(page, 'components-dialog--first-field');
+      await page.getByRole('button', { name: `outlined ${type}`, exact: true }).click();
+      const content = page.getByTestId('content');
+      await expect(content).toBeVisible();
+      await page.waitForTimeout(600);
+      const { labelBottom, inputTop } = await content.evaluate((element) => ({
+        labelBottom: element.querySelector('label')!.getBoundingClientRect().bottom,
+        inputTop: element.querySelector('input')!.getBoundingClientRect().top,
+      }));
+      expect(labelBottom).toBeLessThanOrEqual(inputTop + 8);
+    });
+  }
+});

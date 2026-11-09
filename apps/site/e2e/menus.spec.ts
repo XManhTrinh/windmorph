@@ -23,7 +23,10 @@ for (const slug of slugs) {
     });
     await page.setViewportSize({ width: 1280, height: 900 });
     await gotoReady(page, `/components/${slug}`);
-    const triggers = page.locator('main [aria-haspopup="true"], main [aria-haspopup="menu"]');
+    const triggers = page
+      .locator('main [aria-haspopup="true"], main [aria-haspopup="menu"]')
+      // A touch-only menu, or one in a layout the window's width hides, can't be pressed.
+      .filter({ visible: true });
     const count = await triggers.count();
     for (let index = 0; index < count; index++) {
       const trigger = triggers.nth(index);

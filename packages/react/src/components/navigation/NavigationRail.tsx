@@ -94,8 +94,13 @@ interface NavigationRailOwnProps {
    * @default false
    */
   modal?: boolean;
-  /** With `modal`, show nothing while collapsed (the expanded rail slides in). @default false */
-  hideOnCollapse?: boolean;
+  /**
+   * With `modal`, show nothing while collapsed (the expanded rail slides in). `compact` does so
+   * only below 600px wide, in CSS so the server's HTML is right: one rail then serves as the
+   * rail on larger windows and as the drawer on a phone.
+   * @default false
+   */
+  hideOnCollapse?: boolean | 'compact';
   /** Content above the items, e.g. a menu button and a FAB; a function receives the state. */
   header?: ReactNode | ((state: { expanded: boolean; toggle: () => void }) => ReactNode);
   /**
@@ -254,10 +259,11 @@ export function NavigationRail({
     itemAlignment,
     divider,
     slidingIndicator: slide && inlineExpanded,
+    hiddenOnCompact: modal && hideOnCollapse === 'compact',
   });
   const headerContent =
     typeof header === 'function' ? header({ expanded: isExpanded, toggle }) : header;
-  const showInline = !(modal && hideOnCollapse);
+  const showInline = !(modal && hideOnCollapse === true);
 
   return (
     <>
@@ -306,7 +312,7 @@ export function NavigationRail({
           onClose={() => setExpanded(false)}
           header={headerContent}
           naming={rest as Naming}
-          slide={hideOnCollapse}
+          slide={hideOnCollapse !== false}
           itemAlignment={itemAlignment}
           slidingIndicator={slide}
           railRef={rootRef}
@@ -479,6 +485,30 @@ function ModalSheet({
 }
 
 export type NavigationRailItemProps = NavItemProps;
+
+/** What {@link useNavigationRail} reports about the rail around a component. */
+export interface NavigationRailState {
+  /** Whether the rail shows its labels beside the icons (expanded, or the modal sheet). */
+  expanded: boolean;
+  /** Whether this is the rail's modal sheet. */
+  modal: boolean;
+  /** Collapses the modal sheet; does nothing in the rail itself. */
+  close: () => void;
+}
+
+/**
+ * The rail around a component, for a custom destination that sits in a {@link NavigationRail}
+ * beside its items and changes with it. Throws outside a rail.
+ */
+export function useNavigationRail(): NavigationRailState {
+  const rail = useContext(RailContext);
+  if (!rail) throw new Error('useNavigationRail must be used inside a NavigationRail');
+  return {
+    expanded: rail.layout === 'rail-start',
+    modal: rail.onNavigate !== undefined,
+    close: () => rail.onNavigate?.(),
+  };
+}
 
 /** A destination in a {@link NavigationRail}: a link (`href`) or a button. */
 export function NavigationRailItem({ onPress, ...props }: NavigationRailItemProps) {

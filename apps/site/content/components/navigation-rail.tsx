@@ -128,7 +128,10 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             label. <InlineCode>selected</InlineCode> marks the current destination. With{' '}
             <InlineCode>modal</InlineCode> the expanded rail opens over the page as a sheet with a
             scrim; <InlineCode>hideOnCollapse</InlineCode> hides the in-flow rail so only the sheet
-            shows.
+            shows. With <InlineCode>hideOnCollapse=&quot;compact&quot;</InlineCode> it hides only
+            below 600px wide, in CSS, so one rail is the rail on larger windows and the drawer on a
+            phone. <InlineCode>useNavigationRail</InlineCode> tells a custom destination whether
+            it&apos;s in an expanded rail or the sheet, and closes the sheet.
           </p>
         </section>
       </>

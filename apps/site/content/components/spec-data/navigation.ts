@@ -2,6 +2,20 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Navigation group, by page slug. */
 export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
+  'navigation-rail-group': {
+    covers: [
+      {
+        name: 'A column that opens on hover or focus, or stays pinned (`pinned`)',
+        kind: 'configuration',
+        examples: ['navigation-rail-group/navigation-rail-group-pinned'],
+      },
+      {
+        name: 'Folded as an accordion in an expanded rail',
+        kind: 'configuration',
+        examples: ['navigation-rail-group/navigation-rail-group-expanded'],
+      },
+    ],
+  },
   'skip-link': {
     covers: [
       {

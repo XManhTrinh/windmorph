@@ -872,4 +872,24 @@ describe('ButtonGroup overflow', () => {
     expect(onSelectionChange).toHaveBeenCalledWith(new Set(['year']));
     restore();
   });
+
+  it('spans its container when connected, unless fullWidth is false', () => {
+    const { rerender } = render(
+      <ButtonGroup data-testid="group" variant="connected" selectionMode="single">
+        <Button toggle id="a">
+          A
+        </Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByTestId('group')).toHaveClass('w-full');
+    rerender(
+      <ButtonGroup data-testid="group" variant="connected" selectionMode="single" fullWidth={false}>
+        <Button toggle id="a">
+          A
+        </Button>
+      </ButtonGroup>,
+    );
+    expect(screen.getByTestId('group')).toHaveClass('inline-grid', 'w-fit');
+    expect(screen.getByTestId('group')).not.toHaveClass('w-full');
+  });
 });

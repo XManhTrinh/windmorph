@@ -5,12 +5,16 @@ export type ImportEntry =
   | '@windmorph/react'
   | '@windmorph/react/primitives'
   | '@windmorph/react-pro'
-  | '@windmorph/react-pro/rich-text';
+  | '@windmorph/react-pro/rich-text'
+  | '@windmorph/react-pro/data-grid'
+  | '@windmorph/react-pro/calendar';
 
 /** Pages whose exports come from an entry other than their package's main one. */
 const ENTRY_BY_SLUG: Record<string, ImportEntry> = {
   primitives: '@windmorph/react/primitives',
   'rich-message-field': '@windmorph/react-pro/rich-text',
+  'data-grid': '@windmorph/react-pro/data-grid',
+  calendar: '@windmorph/react-pro/calendar',
 };
 
 /** The entry a component page's exports come from. */

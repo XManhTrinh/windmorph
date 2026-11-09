@@ -2,6 +2,78 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Windmorph Pro containment components, by page slug. */
 export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
+  'data-table': {
+    covers: [
+      {
+        name: 'Search, multi-column sort, filters and saved views',
+        kind: 'configuration',
+        examples: ['data-table/data-table-tools'],
+      },
+      {
+        name: 'Row selection, with bulk actions across pages (`selectionMode`, `bulkActions`)',
+        kind: 'configuration',
+        examples: ['data-table/data-table-selection'],
+      },
+      {
+        name: 'Server-side data (`mode="server"`, `totalRows`)',
+        kind: 'configuration',
+        examples: ['data-table/data-table-server'],
+      },
+      {
+        name: 'A plain, read-only table (`plain`)',
+        kind: 'variant',
+        examples: ['data-table/data-table-plain'],
+      },
+      { name: 'Pinned columns', kind: 'configuration', examples: ['data-table/data-table-pinned'] },
+    ],
+  },
+  'data-grid': {
+    covers: [
+      {
+        name: 'Typed editors, validation and copy and paste (`editable`, `validate`)',
+        kind: 'configuration',
+        examples: ['data-grid/data-grid-editing'],
+      },
+      {
+        name: 'Row headers, pinned columns and totals (`rowHeader`, `summaryRows`)',
+        kind: 'configuration',
+        examples: ['data-grid/data-grid-summary'],
+      },
+    ],
+  },
+  'tree-view': {
+    covers: [
+      {
+        name: 'Single and multiple selection (`selectionMode`)',
+        kind: 'configuration',
+        examples: ['tree-view/tree-view-selection'],
+      },
+      {
+        name: 'Controls in a row (`TreeViewItemContent`)',
+        kind: 'configuration',
+        examples: ['tree-view/tree-view-actions'],
+      },
+      {
+        name: 'Children that load, with a retry',
+        kind: 'use case',
+        examples: ['tree-view/tree-view-loading'],
+      },
+    ],
+  },
+  popover: {
+    covers: [
+      {
+        name: 'An anchored panel of any content',
+        kind: 'use case',
+        examples: ['popover/popover-account'],
+      },
+      {
+        name: 'A form that keeps what was typed (`closedBy="closerequest"`)',
+        kind: 'configuration',
+        examples: ['popover/popover-form'],
+      },
+    ],
+  },
   'list-detail-layout': {
     covers: [
       {

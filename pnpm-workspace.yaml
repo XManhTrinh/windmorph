@@ -31,3 +31,9 @@ allowBuilds:
   '@parcel/watcher': true
   # Postinstall only fetches a fallback binary; the prebuilt optional dependency is used.
   unrs-resolver: false
+
+# Security floors for packages other tools pin below a fixed version.
+overrides:
+  handlebars: 4.7.10
+  glob@>=9 <14.0.2: ^14.0.4
+  minimatch@>=7 <11.0.1: ^11.0.5

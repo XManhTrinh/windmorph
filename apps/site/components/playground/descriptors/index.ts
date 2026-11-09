@@ -1,4 +1,5 @@
 import { FEEDBACK_PICKERS_DESCRIPTORS } from './feedback-pickers';
+import { DATA_NAVIGATION_DESCRIPTORS } from './data-navigation-pro';
 import { NAVIGATION_DESCRIPTORS } from './navigation';
 import { CONTAINMENT_PRO_DESCRIPTORS } from './containment-pro';
 import { CONTAINMENT_M3_DESCRIPTORS } from './containment-m3';
@@ -20,5 +21,6 @@ export const PLAYGROUND_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
   ...CONTAINMENT_M3_DESCRIPTORS,
   ...CONTAINMENT_PRO_DESCRIPTORS,
   ...NAVIGATION_DESCRIPTORS,
+  ...DATA_NAVIGATION_DESCRIPTORS,
   ...FEEDBACK_PICKERS_DESCRIPTORS,
 };

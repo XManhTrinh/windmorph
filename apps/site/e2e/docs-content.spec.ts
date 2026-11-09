@@ -194,7 +194,7 @@ test.describe('Windmorph Pro guide', () => {
   test('is in the Guides navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto('/theming');
-    const guides = page.getByRole('navigation', { name: 'Guides' });
+    const guides = page.getByRole('group', { name: 'Guides' });
     await guides.getByRole('link', { name: 'Windmorph Pro' }).click();
     await expect(page).toHaveURL(/\/pro$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Windmorph Pro' })).toBeVisible();
@@ -284,7 +284,7 @@ test('the components index opens filtered by its URL, and writes the filter back
   await expect(page.getByRole('radio', { name: 'Pro' })).toBeChecked();
   await expect(page.getByRole('status')).toHaveText(/^\d+ of \d+ components$/);
   await expect(page.getByRole('link', { name: /Skeleton/ }).first()).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Button\b/ })).toHaveCount(0);
+  await expect(page.getByRole('main').getByRole('link', { name: /^Button\b/ })).toHaveCount(0);
   await page.getByRole('radio', { name: 'All' }).click();
   await expect(page).toHaveURL(/\/components$/);
   await page.getByRole('radio', { name: 'Expressive' }).click();

@@ -2,6 +2,20 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Windmorph Pro inputs, by page slug. */
 export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
+  'copy-field': {
+    covers: [
+      {
+        name: 'Filled and outlined (`variant`)',
+        kind: 'variant',
+        examples: ['copy-field/copy-field-variants'],
+      },
+      {
+        name: 'Copying something other than what shows (`copyValue`)',
+        kind: 'configuration',
+        examples: ['copy-field/copy-field-masked'],
+      },
+    ],
+  },
   'message-field': {
     covers: [
       {

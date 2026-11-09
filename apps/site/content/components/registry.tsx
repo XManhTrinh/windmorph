@@ -1,4 +1,12 @@
 import { AccordionBody } from './accordion';
+import { DataTableBody } from './data-table';
+import { DataGridBody } from './data-grid';
+import { CalendarBody } from './calendar';
+import { NavigationRailGroupBody } from './navigation-rail-group';
+import { TreeViewBody } from './tree-view';
+import { CopyFieldBody } from './copy-field';
+import { PopoverBody } from './popover';
+import { TimeFieldBody } from './time-field';
 import { AutocompleteBody } from './autocomplete';
 import { AvatarBody } from './avatar';
 import { BadgeBody } from './badge';
@@ -147,6 +155,14 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'shaped-icon': ShapedIconBody,
   collapse: CollapseBody,
   accordion: AccordionBody,
+  'data-table': DataTableBody,
+  'data-grid': DataGridBody,
+  calendar: CalendarBody,
+  'navigation-rail-group': NavigationRailGroupBody,
+  'tree-view': TreeViewBody,
+  'copy-field': CopyFieldBody,
+  popover: PopoverBody,
+  'time-field': TimeFieldBody,
   'comment-row': CommentRowBody,
   'load-more': LoadMoreBody,
   'media-grid': MediaGridBody,

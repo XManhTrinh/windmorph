@@ -52,6 +52,40 @@ const clearTransitions = (page: Page) =>
 const transitionLog = (page: Page) =>
   page.evaluate(() => (window as unknown as { transitionLog: TransitionLog }).transitionLog);
 
+/**
+ * How many pixels of two same-sized screenshots clearly differ. A snapshot's text is
+ * anti-aliased a shade differently from the live page's, so small differences don't count.
+ */
+const differentPixels = (page: Page, first: Buffer, second: Buffer) =>
+  page.evaluate(
+    async ([a, b]) => {
+      const read = async (base64: string) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${base64}`;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext('2d')!;
+        context.drawImage(image, 0, 0);
+        return context.getImageData(0, 0, image.width, image.height).data;
+      };
+      const [one, two] = await Promise.all([read(a!), read(b!)]);
+      let count = 0;
+      for (let index = 0; index < one.length; index += 4) {
+        if (
+          Math.abs(one[index]! - two[index]!) > 32 ||
+          Math.abs(one[index + 1]! - two[index + 1]!) > 32 ||
+          Math.abs(one[index + 2]! - two[index + 2]!) > 32
+        ) {
+          count += 1;
+        }
+      }
+      return count;
+    },
+    [first.toString('base64'), second.toString('base64')],
+  );
+
 /** Every animation name the page's view transitions have run so far. */
 const animationsRun = async (page: Page) => (await transitionLog(page)).transitions.flat();
 
@@ -178,6 +212,49 @@ test.describe('Page transitions', () => {
 });
 
 test.describe('Docs layout', () => {
+  test('the bottom bar stays above the page while it changes', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    // Holds each transition near its end, with the new page showing where the bar is.
+    await page.addInitScript(() => {
+      const start = document.startViewTransition?.bind(document);
+      if (!start) return;
+      document.startViewTransition = ((update: Parameters<typeof start>[0]) => {
+        const transition = start(update);
+        void transition.ready.then(() => {
+          for (const animation of document.getAnimations()) {
+            const effect = animation.effect as KeyframeEffect | null;
+            if (!effect?.pseudoElement?.startsWith('::view-transition')) continue;
+            animation.pause();
+            animation.currentTime = Number(effect.getComputedTiming().endTime) - 1;
+          }
+          (window as unknown as { held: boolean }).held = true;
+        });
+        return transition;
+      }) as typeof document.startViewTransition;
+    });
+    await gotoReady(page, '/components');
+    const bar = page.getByRole('navigation', { name: 'Primary' });
+    const clip = (await bar.boundingBox())!;
+
+    await bar.getByRole('link', { name: 'Home' }).click();
+    await page.waitForFunction(() => (window as unknown as { held?: boolean }).held);
+    // The selected item's own motion, which runs live inside the bar's layer.
+    await page.waitForTimeout(800);
+    const during = await page.screenshot({ clip });
+
+    await page.evaluate(() => {
+      for (const animation of document.getAnimations()) {
+        const effect = animation.effect as KeyframeEffect | null;
+        if (effect?.pseudoElement?.startsWith('::view-transition')) animation.finish();
+      }
+    });
+    await expect(page).toHaveURL(/\/$/);
+    await page.waitForTimeout(300);
+    const after = await page.screenshot({ clip });
+
+    expect(await differentPixels(page, during, after)).toBe(0);
+  });
+
   test('the content column is in the same place with or without an outline', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const outline = page.getByRole('navigation', { name: 'On this page' });

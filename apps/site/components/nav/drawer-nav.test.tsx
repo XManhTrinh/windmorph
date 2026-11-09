@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DrawerNav } from './drawer-nav';
+
+// The groups need the rail around them; `e2e/rail.spec.ts` and the smoke suite cover them.
+vi.mock('./docs-rail', () => ({ ComponentGroups: () => null }));
 
 describe('DrawerNav', () => {
   it('links to the Pro-filtered index on its own, never nesting a link in a row', () => {
@@ -11,15 +14,13 @@ describe('DrawerNav', () => {
       'href',
       '/components?filter=pro',
     );
-    // A Pro row's tag is text inside its link, which keeps one name and one tab stop.
-    expect(screen.getByRole('link', { name: /^Accordion\s*Pro$/ })).toBeInTheDocument();
     expect(container.querySelector('a a, a button, a [tabindex]')).toBeNull();
   });
 
-  it('gives every row a 48px target', () => {
+  it('gives every guide and index row a 48px target', () => {
     const { container } = render(<DrawerNav pathname="/components/button" onNavigate={() => {}} />);
-    const rows = container.querySelectorAll('a, button');
-    expect(rows.length).toBeGreaterThan(10);
+    const rows = container.querySelectorAll('a');
+    expect(rows.length).toBeGreaterThan(5);
     for (const row of rows) expect(row.className).toContain('min-h-12');
   });
 });

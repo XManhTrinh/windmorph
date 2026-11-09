@@ -323,6 +323,35 @@ test.describe('Select searchable', () => {
     await expect(page.getByTestId('value')).toHaveText('TH');
   });
 
+  test('phone sheet keeps its search at the top as the options scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 480 });
+    await openStory(page, 'components-select--searchable');
+    await page.getByRole('button', { name: /Country of residence/ }).click();
+    const search = page.getByRole('searchbox', { name: 'Search' });
+    const list = page.getByRole('listbox');
+    await expect(list).toBeVisible();
+    await page.waitForTimeout(600);
+    const before = (await search.boundingBox())!;
+
+    const listBox = (await list.boundingBox())!;
+    await page.mouse.move(listBox.x + listBox.width / 2, before.y + before.height + 100);
+    await page.mouse.wheel(0, 200);
+    await expect.poll(async () => (await list.boundingBox())!.y).toBeLessThan(listBox.y);
+    expect((await search.boundingBox())!.y).toBe(before.y);
+
+    // The keyboard's active option is never left under the search.
+    await search.click();
+    const count = await page.getByRole('option').count();
+    for (let press = 0; press < count; press += 1) await page.keyboard.press('ArrowDown');
+    for (let press = 0; press < count - 1; press += 1) await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(200);
+    const activeTop = await search.evaluate((input) => {
+      const id = input.getAttribute('aria-activedescendant');
+      return document.getElementById(id ?? '')?.getBoundingClientRect().top ?? -1;
+    });
+    expect(activeTop).toBeGreaterThanOrEqual(before.y + before.height);
+  });
+
   test('keyboard: type, move, choose; focus returns to the field', async ({ page }) => {
     await openStory(page, 'components-select--searchable');
     const field = page.getByRole('button', { name: /Country of residence/ });

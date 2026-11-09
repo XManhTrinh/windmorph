@@ -351,7 +351,11 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     initialState: { header: true },
     adjust: adjustRailModal,
     enumOptions: { itemAlignment: ['top', 'center'], indicatorMotion: ['expand', 'slide'] },
-    controlKinds: { header: 'boolean' },
+    controlKinds: {
+      // A switch here: `"compact"` is for a rail that's also the phone's drawer.
+      hideOnCollapse: 'boolean',
+      header: 'boolean',
+    },
     toggledSlots: {
       header:
         '({ expanded, toggle }) => (\n    <>\n      <IconButton\n        variant="standard"\n        icon={<MenuIcon />}\n        aria-label={expanded ? \'Collapse navigation\' : \'Expand navigation\'}\n        onPress={toggle}\n      />\n      <ExtendedFab icon={<EditIcon />} expanded={expanded} elevation="flat">\n        Compose\n      </ExtendedFab>\n    </>\n  )',
