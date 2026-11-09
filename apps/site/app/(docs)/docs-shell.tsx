@@ -69,7 +69,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
   return (
     <DisplaySettingsProvider>
       <SiteSnackbarProvider>
-        <div className="min-h-dvh bg-surface text-on-surface">
+        <div className="min-h-dvh bg-surface text-on-surface medium:bg-surface-container">
           <SkipLink target="main-content">Skip to content</SkipLink>
 
           {/* The fixed rail from 600px wide, and the phone's modal drawer below it. */}
@@ -126,7 +126,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               <DocsSearch view="full-screen" />
             </SearchAppBar>
             {/* The page keeps the gap at its end; the top bar runs to the window's edge. */}
-            <div className="flex min-w-0 flex-1 flex-col medium:me-4">
+            <div className="flex min-w-0 flex-1 flex-col bg-surface medium:me-4">
               <main id="main-content" className="isolate min-w-0 flex-1 p-6 pb-28 medium:pb-6">
                 {/*
                  * Moving to another page runs M3's shared-axis (Y) transition (see globals.css).
