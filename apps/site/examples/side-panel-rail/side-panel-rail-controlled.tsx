@@ -2,7 +2,7 @@
 
 import { Button } from '@windmorph/react';
 import { SidePanelRail, SidePanelRailItem } from '@windmorph/react-pro';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { MenuBookIcon, PersonIcon } from '../../components/icons';
 
 /** The app owns the state, and can remember it wherever it likes. */
@@ -15,7 +15,13 @@ export function SidePanelRailControlled() {
           {open ? 'Hide from the app' : 'Show from the app'}
         </Button>
       </div>
-      <SidePanelRail aria-label="More links" hideBelow={false} open={open} onOpenChange={setOpen}>
+      <SidePanelRail
+        aria-label="More links"
+        hideBelow={false}
+        open={open}
+        onOpenChange={setOpen}
+        style={{ '--wm-side-panel-rail-items-padding-top': '16px' } as CSSProperties}
+      >
         <SidePanelRailItem href="#demo-docs" icon={<MenuBookIcon />}>
           Docs
         </SidePanelRailItem>

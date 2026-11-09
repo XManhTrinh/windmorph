@@ -2,7 +2,7 @@
 
 import { SideSheet } from '@windmorph/react';
 import { SidePanelRail, SidePanelRailItem } from '@windmorph/react-pro';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { MenuBookIcon, TuneIcon } from '../../components/icons';
 
 type Tool = 'notes' | 'filters';
@@ -42,7 +42,12 @@ export function SidePanelRailWithSheet() {
           {TITLES[shown]} appear here, beside the page.
         </p>
       </SideSheet>
-      <SidePanelRail aria-label="Tools" role="group" hideBelow={false}>
+      <SidePanelRail
+        aria-label="Tools"
+        role="group"
+        hideBelow={false}
+        style={{ '--wm-side-panel-rail-items-padding-top': '16px' } as CSSProperties}
+      >
         <SidePanelRailItem
           selected={tool === 'notes'}
           onPress={() => toggle('notes')}

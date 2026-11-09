@@ -413,6 +413,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       SidePanelRailItem: 'The strip’s links and buttons, composed in the preview.',
     },
     notControlled: {
+      open: 'The arrow in the preview opens and closes it; the "Controlled by the app" example drives it.',
+      defaultOpen: 'Read once, on mount; the arrow in the preview shows both states.',
       toggleIcon: 'A replacement icon.',
       hideBelow: 'The preview always shows the strip, whatever the window’s size.',
       role: 'A landmark choice; the "Opening a standard side sheet" example shows `group`.',
@@ -426,7 +428,11 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         }),
         createElement(
           SidePanelRailAny,
-          { ...props, hideBelow: false },
+          {
+            ...props,
+            hideBelow: false,
+            style: { '--wm-side-panel-rail-items-padding-top': '16px' },
+          },
           createElement(
             SidePanelRailItemAny,
             { href: '#demo-settings', icon: createElement(SettingsIcon) },
@@ -434,9 +440,9 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
           ),
         ),
       ),
-    defaultProps: { open: true },
+    defaultProps: {},
     initialState: { 'aria-label': 'More links' },
-    surfacedProps: ['open', 'aria-label'],
+    surfacedProps: ['aria-label'],
   },
   'copy-field': {
     component: 'CopyField',
