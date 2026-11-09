@@ -103,6 +103,30 @@ main :where(h2[id], h3[id]) {
     var(--md-sys-motion-spring-spatial-default-duration)
       var(--md-sys-motion-spring-spatial-default-easing) both page-rise-in;
 }
+/* Where the wide top bar meets the rail, the page takes a rounded corner. The piece takes the
+   bar's own colour, so it follows the bar's scrolled fade and can't be seen at rest. */
+.site-top-bar-corner::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+  width: var(--md-sys-shape-corner-large);
+  height: var(--md-sys-shape-corner-large);
+  background-color: inherit;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    circle at 100% 100%,
+    transparent calc(var(--md-sys-shape-corner-large) - 0.5px),
+    black var(--md-sys-shape-corner-large)
+  );
+}
+[dir='rtl'] .site-top-bar-corner::after {
+  mask-image: radial-gradient(
+    circle at 0 100%,
+    transparent calc(var(--md-sys-shape-corner-large) - 0.5px),
+    black var(--md-sys-shape-corner-large)
+  );
+}
 /* The bars keep their own layers above the page's snapshots, or the page would paint over
    them until the transition ended. Only the live new image shows, so they never cross-fade.
    The rail and its column sit above the top bar, as they do outside a transition. */

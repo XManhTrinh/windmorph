@@ -84,7 +84,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
               // M3: an opaque `surface` bar that turns `surface-container` once content scrolls
               // under it. (A translucent, blurred bar flashed as dark content passed beneath.)
               scrollBehavior="pinned"
-              className="site-top-bar sticky top-0 z-20 hidden medium:flex"
+              className="site-top-bar site-top-bar-corner sticky top-0 z-20 hidden medium:flex"
               classNames={{ actions: 'min-w-0 pe-4' }}
               // The page names itself in its h1; the bar only anchors the search at the end.
               title={null}
