@@ -57,7 +57,10 @@ async function expectNoAxeViolations(page: Page, label: string): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 250));
     await settle();
   });
-  const results = await new AxeBuilder({ page }).analyze();
+  const results = await new AxeBuilder({ page })
+    // A block's preview is its own document, with its own scan.
+    .exclude('iframe')
+    .analyze();
   expect(
     results.violations,
     `axe violations on ${label}: ${results.violations.map((v) => v.id).join(', ')}`,

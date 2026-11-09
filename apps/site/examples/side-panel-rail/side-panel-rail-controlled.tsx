@@ -16,7 +16,7 @@ export function SidePanelRailControlled() {
         </Button>
       </div>
       <SidePanelRail
-        aria-label="More links"
+        aria-label="Resources"
         hideBelow={false}
         open={open}
         onOpenChange={setOpen}

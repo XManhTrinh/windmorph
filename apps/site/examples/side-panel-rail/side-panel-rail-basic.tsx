@@ -10,7 +10,7 @@ export function SidePanelRailBasic() {
     <div className="flex h-[360px] w-full overflow-hidden rounded-corner-large bg-surface-container">
       <div className="my-4 ms-4 min-w-0 flex-1 rounded-corner-large bg-surface" />
       <SidePanelRail
-        aria-label="More links"
+        aria-label="Shortcuts"
         hideBelow={false}
         style={{ '--wm-side-panel-rail-items-padding-top': '16px' } as CSSProperties}
       >
