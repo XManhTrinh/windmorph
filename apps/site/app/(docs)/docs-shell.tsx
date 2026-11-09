@@ -155,11 +155,12 @@ export function DocsShell({ children }: { children: ReactNode }) {
               </main>
               <Footer />
             </div>
-            {/* The page as a rounded pane on the rail's surface: everything outside this box takes
-                that colour, so the corners stay put while the window scrolls. */}
+            {/* The page as a rounded pane on the rail's surface, its corners staying put while the
+                window scrolls. The ring only has to reach the window's edges: this has its own layer
+                in a page transition, and a far larger shadow makes the browser drop frames. */}
             <div
               aria-hidden="true"
-              className={`site-pane-frame pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_100vmax_var(--md-sys-color-surface-container)] transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none medium:block ${
+              className={`site-pane-frame pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_16px_var(--md-sys-color-surface-container)] transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none medium:block ${
                 pinnedPanel ? 'medium:start-[376px]' : 'medium:start-24'
               }`}
             />
