@@ -3,6 +3,8 @@
 import { Button, NavigationRail, TimeField } from '@windmorph/react';
 import {
   CopyField,
+  SidePanelRail,
+  SidePanelRailItem,
   DataTable,
   NavigationRailGroup,
   NavigationRailGroupItem,
@@ -30,6 +32,8 @@ const CalendarAny = loose(Calendar);
 const NavigationRailGroupAny = loose(NavigationRailGroup);
 const TreeViewAny = loose(TreeView);
 const CopyFieldAny = loose(CopyField);
+const SidePanelRailAny = loose(SidePanelRail);
+const SidePanelRailItemAny = loose(SidePanelRailItem);
 const PopoverAny = loose(Popover);
 const TimeFieldAny = loose(TimeField);
 const NavigationRailAny = loose(NavigationRail);
@@ -401,6 +405,38 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     },
     importMembers: ['TreeViewItemContent'],
     codeChildren: '{(node) => <TreeViewItemContent title={node.name} />}',
+  },
+  'side-panel-rail': {
+    component: 'SidePanelRail',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      SidePanelRailItem: 'The strip’s links and buttons, composed in the preview.',
+    },
+    notControlled: {
+      toggleIcon: 'A replacement icon.',
+      hideBelow: 'The preview always shows the strip, whatever the window’s size.',
+      role: 'A landmark choice; the "Opening a standard side sheet" example shows `group`.',
+    },
+    render: (props) =>
+      createElement(
+        'div',
+        { className: 'flex h-[320px] w-full overflow-hidden bg-surface-container' },
+        createElement('div', {
+          className: 'my-4 ms-4 min-w-0 flex-1 rounded-corner-large bg-surface',
+        }),
+        createElement(
+          SidePanelRailAny,
+          { ...props, hideBelow: false },
+          createElement(
+            SidePanelRailItemAny,
+            { href: '#demo-settings', icon: createElement(SettingsIcon) },
+            'Settings',
+          ),
+        ),
+      ),
+    defaultProps: { open: true },
+    initialState: { 'aria-label': 'More links' },
+    surfacedProps: ['open', 'aria-label'],
   },
   'copy-field': {
     component: 'CopyField',

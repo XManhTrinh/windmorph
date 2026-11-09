@@ -1636,6 +1636,20 @@ export const COMPONENT_META: ComponentMeta[] = [
     keywords: ['clipboard', 'copy', 'invite link', 'read only', 'api key'],
   },
   {
+    slug: 'side-panel-rail',
+    title: 'Side panel rail',
+    group: 'Navigation',
+    railGroup: 'navigation',
+    summary:
+      'A strip of icon links or buttons at the end edge of the window that hides to a small tab. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['SidePanelRail', 'SidePanelRailItem'],
+    playground: 'full',
+    pro: true,
+    related: ['sheets', 'navigation-rail', 'navigation-rail-group'],
+    whenNotToUse: 'For an app’s primary destinations, use a NavigationRail.',
+    keywords: ['side panel', 'secondary navigation', 'tools', 'hide', 'collapse', 'tab'],
+  },
+  {
     slug: 'navigation-rail-group',
     title: 'Navigation rail group',
     group: 'Navigation',

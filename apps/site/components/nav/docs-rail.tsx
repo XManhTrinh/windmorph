@@ -76,6 +76,8 @@ const DESTINATIONS: RailDestination[] = [
 const COLUMN_TOKENS = {
   '--wm-navigation-rail-group-item-height': '40px',
   '--wm-navigation-rail-group-item-padding': '12px',
+  // The site's drawer insets its rows itself, so the groups line up with the guides.
+  '--wm-navigation-rail-group-accordion-inset': '0px',
 } as CSSProperties;
 
 const HEADING = 'px-4 pt-5 pb-3 text-label-small uppercase';

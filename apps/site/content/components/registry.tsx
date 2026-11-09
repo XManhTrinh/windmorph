@@ -5,6 +5,7 @@ import { CalendarBody } from './calendar';
 import { NavigationRailGroupBody } from './navigation-rail-group';
 import { TreeViewBody } from './tree-view';
 import { CopyFieldBody } from './copy-field';
+import { SidePanelRailBody } from './side-panel-rail';
 import { PopoverBody } from './popover';
 import { TimeFieldBody } from './time-field';
 import { AutocompleteBody } from './autocomplete';
@@ -161,6 +162,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'navigation-rail-group': NavigationRailGroupBody,
   'tree-view': TreeViewBody,
   'copy-field': CopyFieldBody,
+  'side-panel-rail': SidePanelRailBody,
   popover: PopoverBody,
   'time-field': TimeFieldBody,
   'comment-row': CommentRowBody,
