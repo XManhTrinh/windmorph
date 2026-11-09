@@ -1,16 +1,9 @@
 'use client';
 
-import { Fab, IconButton, NavigationRail, NavigationRailItem, TopAppBar } from '@windmorph/react';
+import { IconButton, NavigationRail, NavigationRailItem, TopAppBar } from '@windmorph/react';
 import { NavigationRailGroup, NavigationRailGroupItem } from '@windmorph/react-pro';
 import { useState, type CSSProperties } from 'react';
-import {
-  EditIcon,
-  HomeIcon,
-  MenuIcon,
-  PersonIcon,
-  SearchIcon,
-  SettingsIcon,
-} from '../../components/icons';
+import { HomeIcon, MenuIcon, PersonIcon, SearchIcon, SettingsIcon } from '../../components/icons';
 
 /**
  * A rail and top bar on one raised surface, and the page a rounded pane on it.
@@ -34,18 +27,15 @@ export function AppFrameApp() {
         hideOnCollapse="compact"
         expanded={drawerOpen}
         onExpandedChange={setDrawerOpen}
-        classNames={{ root: 'relative z-30 h-full bg-surface-container' }}
+        classNames={{ root: 'relative z-30 h-full bg-surface-container', header: 'pb-6' }}
         header={
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="#overview"
-              aria-label="Workspace home"
-              className="flex size-10 items-center justify-center rounded-corner-medium bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-            >
-              <span aria-hidden="true">W</span>
-            </a>
-            <Fab elevation="lowered" icon={<EditIcon />} aria-label="New item" />
-          </div>
+          <a
+            href="#overview"
+            aria-label="Workspace home"
+            className="-mt-9 flex size-12 items-center justify-center rounded-corner-large bg-primary-container text-title-medium text-on-primary-container no-underline outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <span aria-hidden="true">W</span>
+          </a>
         }
       >
         <NavigationRailItem href="#overview" icon={<HomeIcon />} selected>
