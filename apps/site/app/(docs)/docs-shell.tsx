@@ -9,7 +9,14 @@ import {
 } from '@windmorph/react';
 import { SkipLink } from '@windmorph/react-pro';
 import { usePathname } from 'next/navigation';
-import { ViewTransition, useState, type ReactElement, type ReactNode } from 'react';
+import {
+  ViewTransition,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { HomeIcon, MenuBookIcon, MenuIcon, WidgetsIcon } from '../../components/icons';
 import { DocsRail, currentDestination } from '../../components/nav/docs-rail';
 import { Footer } from '../../components/footer';
@@ -44,6 +51,17 @@ const BOTTOM_DESTINATIONS: { href: string; label: string; icon: ReactElement }[]
 ];
 
 /**
+ * Moving the page's start edge when a pinned column goes away. Arriving at a pinned page it
+ * jumps: the column is usually already open from the hover, and the top bar, which paints above
+ * it during a page change, would slide across it. Leaving, it eases without a spring's
+ * overshoot, which would carry the pane's corner under the rail.
+ */
+const SLIDE_MARGIN =
+  'transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-fast-duration)] ease-[var(--md-sys-motion-spring-effects-default-easing)] motion-reduce:transition-none';
+const SLIDE_FRAME =
+  'transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-fast-duration)] ease-[var(--md-sys-motion-spring-effects-default-easing)] motion-reduce:transition-none';
+
+/**
  * The documentation shell: a skip link, a left navigation rail with Guides and component-group
  * flyouts and a top app bar with the search (medium+); a compact `SearchAppBar` with a modal
  * drawer and a three-destination bottom `NavigationBar`. Both bars have a light / dark
@@ -60,12 +78,27 @@ export function DocsShell({ children }: { children: ReactNode }) {
   // is inset past BOTH the rail (96px) and the panel (272px); elsewhere just past the rail.
   const pinnedPanel = currentDestination(pathname) !== null;
   // Guides and component pages list their sections; the home page and the index don't.
-  const withOutline = pathname !== '/' && pathname !== '/components';
+  const withOutline =
+    pathname !== '/' && pathname !== '/components' && !pathname.startsWith('/blocks');
+
+  // Arriving at a page with a pinned column, the last page would paint over the column, which
+  // is already open from the hover. A rule in globals.css drops it (see page transitions).
+  const wasPinned = useRef(pinnedPanel);
+  useLayoutEffect(() => {
+    document.documentElement.toggleAttribute(
+      'data-column-opened',
+      pinnedPanel && !wasPinned.current,
+    );
+    wasPinned.current = pinnedPanel;
+  }, [pathname, pinnedPanel]);
+
+  // A block's preview is the whole window, inside the iframe on its page.
+  if (pathname.startsWith('/blocks-preview')) return children;
 
   return (
     <DisplaySettingsProvider>
       <SiteSnackbarProvider>
-        <div className="min-h-dvh bg-surface text-on-surface">
+        <div className="min-h-dvh bg-surface text-on-surface medium:bg-surface-container">
           <SkipLink target="main-content">Skip to content</SkipLink>
 
           {/* The fixed rail from 600px wide, and the phone's modal drawer below it. */}
@@ -74,8 +107,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
           {/* The rail is fixed; the content column is inset past the rail (and the pinned panel),
           transitioning the inline-start margin as the pinned drawer pushes content. */}
           <div
-            className={`flex min-h-dvh min-w-0 flex-col medium:me-4 medium:pb-4 transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none ${
-              pinnedPanel ? 'medium:ms-[384px]' : 'medium:ms-24'
+            className={`flex min-h-dvh min-w-0 flex-col medium:pb-4 ${
+              pinnedPanel ? 'medium:ms-[376px]' : `medium:ms-24 ${SLIDE_MARGIN}`
             }`}
           >
             {/* Medium and wider: the search (guides and settings live in the rail). */}
@@ -84,7 +117,8 @@ export function DocsShell({ children }: { children: ReactNode }) {
               // M3: an opaque `surface` bar that turns `surface-container` once content scrolls
               // under it. (A translucent, blurred bar flashed as dark content passed beneath.)
               scrollBehavior="pinned"
-              className="site-top-bar sticky top-0 z-20 hidden bg-surface-container medium:flex"
+              // One colour at every scroll position, so its fade would only lag behind a theme change.
+              className="site-top-bar sticky top-0 z-20 hidden bg-surface-container [transition-property:none] medium:flex"
               classNames={{ actions: 'min-w-0 pe-4' }}
               // The page names itself in its h1; the bar only anchors the search at the end.
               title={null}
@@ -120,39 +154,43 @@ export function DocsShell({ children }: { children: ReactNode }) {
             >
               <DocsSearch view="full-screen" />
             </SearchAppBar>
-            <main id="main-content" className="isolate min-w-0 flex-1 p-6 pb-28 medium:pb-6">
-              {/*
-               * Moving to another page runs M3's shared-axis (Y) transition (see globals.css).
-               * It is keyed on the page, not the URL, so a query change (the playground's
-               * state) or a component tab change never transitions the whole page.
-               */}
-              <ViewTransition
-                key={pageKey(pathname)}
-                enter="page-axis"
-                exit="page-axis"
-                default="none"
-              >
-                {withOutline ? (
-                  // The outline column is always reserved on large windows, so the content
-                  // column sits in the same place whether or not the page lists its sections.
-                  <div className="flex justify-center gap-8">
-                    <div data-docs-content className="min-w-0 flex-1">
-                      {children}
+            {/* The page keeps the gap at its end; the top bar runs to the window's edge. */}
+            <div className="flex min-w-0 flex-1 flex-col bg-surface medium:me-4">
+              <main id="main-content" className="isolate min-w-0 flex-1 p-6 pb-28 medium:pb-6">
+                {/*
+                 * Moving to another page runs M3's shared-axis (Y) transition (see globals.css).
+                 * It is keyed on the page, not the URL, so a query change (the playground's
+                 * state) or a component tab change never transitions the whole page.
+                 */}
+                <ViewTransition
+                  key={pageKey(pathname)}
+                  enter="page-axis"
+                  exit="page-axis"
+                  default="none"
+                >
+                  {withOutline ? (
+                    // The outline column is always reserved on large windows, so the content
+                    // column sits in the same place whether or not the page lists its sections.
+                    <div className="flex justify-center gap-8">
+                      <div data-docs-content className="min-w-0 flex-1">
+                        {children}
+                      </div>
+                      <PageOutline />
                     </div>
-                    <PageOutline />
-                  </div>
-                ) : (
-                  <div data-docs-content>{children}</div>
-                )}
-              </ViewTransition>
-            </main>
-            <Footer />
-            {/* The page as a rounded pane on the rail's surface: everything outside this box takes
-                that colour, so the corners stay put while the window scrolls. */}
+                  ) : (
+                    <div data-docs-content>{children}</div>
+                  )}
+                </ViewTransition>
+              </main>
+              <Footer />
+            </div>
+            {/* The page as a rounded pane on the rail's surface, its corners staying put while the
+                window scrolls. The ring only has to reach the window's edges: this has its own layer
+                in a page transition, and a far larger shadow makes the browser drop frames. */}
             <div
               aria-hidden="true"
-              className={`site-pane-frame pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_100vmax_var(--md-sys-color-surface-container)] transition-[inset-inline-start] duration-[var(--md-sys-motion-spring-spatial-default-duration)] ease-[var(--md-sys-motion-spring-spatial-default-easing)] motion-reduce:transition-none medium:block ${
-                pinnedPanel ? 'medium:start-[384px]' : 'medium:start-24'
+              className={`pointer-events-none fixed top-16 bottom-4 end-4 z-10 hidden rounded-corner-large shadow-[0_0_0_16px_var(--md-sys-color-surface-container)] medium:block ${
+                pinnedPanel ? 'medium:start-[376px]' : `medium:start-24 ${SLIDE_FRAME}`
               }`}
             />
           </div>

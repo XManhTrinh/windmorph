@@ -63,6 +63,62 @@ describe('ThemeProvider', () => {
     );
   });
 
+  describe('transitions during a colour change', () => {
+    const changing = 'data-wm-theme-changing';
+
+    function holdFrames() {
+      const frames: FrameRequestCallback[] = [];
+      vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+      onTestFinished(() => void vi.restoreAllMocks());
+      return () => frames.shift()?.(0);
+    }
+    const press = (name: string) => act(() => screen.getByRole('button', { name }).click());
+    const Sample = () => (
+      <ThemeProvider>
+        <ThemeControls />
+      </ThemeProvider>
+    );
+
+    it('stops them for two frames, then lets them run again', () => {
+      const nextFrame = holdFrames();
+      render(<Sample />);
+      expect(html).not.toHaveAttribute(changing);
+      press('dark');
+      expect(html).toHaveAttribute('data-mode', 'dark');
+      expect(html).toHaveAttribute(changing);
+      act(() => nextFrame());
+      expect(html).toHaveAttribute(changing);
+      act(() => nextFrame());
+      expect(html).not.toHaveAttribute(changing);
+    });
+
+    it('covers a change of theme too', () => {
+      holdFrames();
+      render(<Sample />);
+      press('ocean');
+      expect(html).toHaveAttribute(changing);
+    });
+
+    it('leaves them alone for a change that keeps the colours', () => {
+      holdFrames();
+      render(<Sample />);
+      press('dense');
+      expect(html).toHaveAttribute('data-density', '-2');
+      expect(html).not.toHaveAttribute(changing);
+    });
+
+    it('leaves nothing behind when it unmounts mid-change', () => {
+      holdFrames();
+      const { unmount } = render(<Sample />);
+      press('dark');
+      unmount();
+      expect(html).not.toHaveAttribute(changing);
+    });
+  });
+
   it('stores nothing until the selection changes, then every change', async () => {
     render(
       <ThemeProvider>

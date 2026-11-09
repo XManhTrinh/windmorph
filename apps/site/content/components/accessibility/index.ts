@@ -41,6 +41,7 @@ import { calendar } from './calendar';
 import { navigationRailGroup } from './navigation-rail-group';
 import { treeView } from './tree-view';
 import { copyField } from './copy-field';
+import { sidePanelRail } from './side-panel-rail';
 import { popover } from './popover';
 import { timeField } from './time-field';
 import { expandableText } from './expandable-text';
@@ -120,6 +121,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   'navigation-rail-group': navigationRailGroup,
   'tree-view': treeView,
   'copy-field': copyField,
+  'side-panel-rail': sidePanelRail,
   popover: popover,
   'time-field': timeField,
   'expandable-text': expandableText,

@@ -13,7 +13,8 @@ function read(path: string): string {
   return readFileSync(join(OUT_DIR, path), 'utf8');
 }
 
-const PAGES = exportedPages();
+// A block's preview exists only for the iframe on its page, so it's not listed or indexed.
+const PAGES = exportedPages().filter((path) => !path.startsWith('/blocks-preview/'));
 
 test('the export has pages to check', () => {
   expect(PAGES).toContain('/');

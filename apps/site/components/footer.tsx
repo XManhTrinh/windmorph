@@ -18,12 +18,17 @@ const FOOTER_LINKS = [
  * The site-wide footer, rendered once in the docs shell. A Server Component (no
  * interactivity): the Windmorph name with its links (the repository, the npm package, the
  * licence, the Pro guide, sponsoring and privacy), the stack it's built on, and its author. Centred and muted,
- * with a top divider. The compact bottom navigation bar is fixed, so the footer carries extra
+ * with a wavy top divider. The compact bottom navigation bar is fixed, so the footer carries extra
  * bottom padding on compact to clear it.
  */
 export function Footer() {
   return (
-    <footer className="flex flex-col items-center gap-2 border-t border-outline-variant bg-surface px-6 pb-28 pt-8 text-center text-on-surface-variant medium:pb-8">
+    <footer className="relative flex flex-col items-center gap-2 bg-surface px-6 pb-28 pt-8 text-center text-on-surface-variant medium:pb-8">
+      {/* A wavy divider: a colour fill shaped by a repeating wave (.site-footer-wave). */}
+      <span
+        aria-hidden="true"
+        className="site-footer-wave absolute inset-x-6 top-0 h-2 bg-outline-variant forced-colors:bg-[CanvasText] forced-colors:forced-color-adjust-none"
+      />
       <p className="text-title-medium text-on-surface">Windmorph</p>
       <nav aria-label="Windmorph">
         <ul className="flex flex-wrap justify-center gap-x-1 text-body-medium">

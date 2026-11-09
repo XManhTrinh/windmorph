@@ -2,6 +2,25 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Navigation group, by page slug. */
 export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
+  'side-panel-rail': {
+    covers: [
+      {
+        name: 'Links and buttons, hiding to a tab',
+        kind: 'configuration',
+        examples: ['side-panel-rail/side-panel-rail-basic'],
+      },
+      {
+        name: 'Opening a standard side sheet (`selected`)',
+        kind: 'use case',
+        examples: ['side-panel-rail/side-panel-rail-with-sheet'],
+      },
+      {
+        name: 'Controlled by the app (`open`, `onOpenChange`)',
+        kind: 'configuration',
+        examples: ['side-panel-rail/side-panel-rail-controlled'],
+      },
+    ],
+  },
   'navigation-rail-group': {
     covers: [
       {
