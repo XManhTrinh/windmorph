@@ -50,6 +50,21 @@ test.describe('Toolbar visual regression', () => {
   });
 });
 
+test.describe('Collapsed toolbars by the window edge', () => {
+  /** How far the page scrolls sideways: none. */
+  const overflow = (page: Page) =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+
+  test('collapsed content never scrolls the page sideways · rtl', async ({ page }) => {
+    // Right to left, the toolbars sit on the window's start edge, past which their collapsed
+    // leading content used to reach.
+    await openStory(page, 'components-toolbar--floating', { dir: 'rtl' });
+    expect(await overflow(page)).toBe(0);
+  });
+});
+
 test.describe('Toolbar geometry', () => {
   test('floating toolbar spacing reproduces Compose for 40px icon buttons', async ({ page }) => {
     await openStory(page, 'components-toolbar--collapse');
