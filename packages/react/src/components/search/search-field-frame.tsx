@@ -2,7 +2,6 @@
 
 import type { HTMLAttributes, ReactNode } from 'react';
 import { mergeProps, useFocusRing } from 'react-aria';
-import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { searchBarStyles } from './search-styles';
 
 /** What the pill draws around its input. Internal: the search bar, `SearchField` and `Select`. */
@@ -20,10 +19,11 @@ interface SearchFieldFrameProps extends Omit<HTMLAttributes<HTMLDivElement>, 'ch
 }
 
 /**
- * The M3 search bar's pill: the `md-comp-search-bar` tokens, the inset focus ring while its input
- * has keyboard focus, and standard icon buttons in its slots. `SearchBar` (collapsed and in its
- * views), `SearchField` and a searchable `Select` draw it, so they can't drift. Not exported
- * from the package.
+ * The M3 search bar's pill: the `md-comp-search-bar` tokens and the inset focus ring while its
+ * input has keyboard focus. `SearchBar` (collapsed and in its views), `SearchField` and a
+ * searchable `Select` draw it, so they can't drift; the first two wrap it in standard icon
+ * buttons (`standardIconButtons`), which `Select`'s search, with none, doesn't load. Not
+ * exported from the package.
  */
 export function SearchFieldFrame({
   tone = 'default',
@@ -43,12 +43,9 @@ export function SearchFieldFrame({
       data-focus-visible={isFocusVisible || undefined}
       className={searchBarStyles({ tone, disabled }).field({ class: className })}
     >
-      {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
-      <ButtonContext value={standardIconButtons}>
-        {leading}
-        {children}
-        {trailing}
-      </ButtonContext>
+      {leading}
+      {children}
+      {trailing}
     </div>
   );
 }

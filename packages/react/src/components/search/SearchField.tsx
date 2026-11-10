@@ -12,6 +12,7 @@ import { mergeProps, useObjectRef, useSearchField } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
 import { cn } from '../../utils/cn';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { IconButton } from '../icon-button/IconButton';
 import type { SearchBarInputProps } from './SearchBar';
 import { SearchFieldFrame } from './search-field-frame';
@@ -225,49 +226,55 @@ export function SearchField(props: SearchFieldProps) {
       data-disabled={disabled || undefined}
       className={searchFieldStyles().root({ class: cn(classNames?.root, className) })}
     >
-      <SearchFieldFrame
-        disabled={disabled}
-        onPointerDown={focusInput}
-        className={classNames?.field}
-        leading={
-          leadingIcon != null && (
-            <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
-              {leadingIcon}
-            </span>
-          )
-        }
-        trailing={
-          hasTrailing && (
-            <span data-slot="trailing" className={styles.trailing({ class: classNames?.trailing })}>
-              {showClear && (
-                <IconButton
-                  aria-label={labels.clear}
-                  icon={clearIcon ?? <ClearIcon />}
-                  data-slot="clear"
-                  // A pointer press keeps focus (and a phone's keyboard) in the input.
-                  preventFocusOnPress
-                  onPress={clear}
-                  className={classNames?.clear}
-                />
-              )}
-              {trailingIcon}
-            </span>
-          )
-        }
-      >
-        <input
-          {...mergeProps(
-            { enterKeyHint: 'search', autoComplete: 'off', spellCheck: false },
-            consumerInputProps,
-            inputProps,
-            pickWidgetAria(own),
-            { onKeyDown: submitOnEnter },
-          )}
-          ref={objectInputRef}
-          data-slot="input"
-          className={styles.input({ class: classNames?.input })}
-        />
-      </SearchFieldFrame>
+      {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
+      <ButtonContext value={standardIconButtons}>
+        <SearchFieldFrame
+          disabled={disabled}
+          onPointerDown={focusInput}
+          className={classNames?.field}
+          leading={
+            leadingIcon != null && (
+              <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
+                {leadingIcon}
+              </span>
+            )
+          }
+          trailing={
+            hasTrailing && (
+              <span
+                data-slot="trailing"
+                className={styles.trailing({ class: classNames?.trailing })}
+              >
+                {showClear && (
+                  <IconButton
+                    aria-label={labels.clear}
+                    icon={clearIcon ?? <ClearIcon />}
+                    data-slot="clear"
+                    // A pointer press keeps focus (and a phone's keyboard) in the input.
+                    preventFocusOnPress
+                    onPress={clear}
+                    className={classNames?.clear}
+                  />
+                )}
+                {trailingIcon}
+              </span>
+            )
+          }
+        >
+          <input
+            {...mergeProps(
+              { enterKeyHint: 'search', autoComplete: 'off', spellCheck: false },
+              consumerInputProps,
+              inputProps,
+              pickWidgetAria(own),
+              { onKeyDown: submitOnEnter },
+            )}
+            ref={objectInputRef}
+            data-slot="input"
+            className={styles.input({ class: classNames?.input })}
+          />
+        </SearchFieldFrame>
+      </ButtonContext>
     </div>
   );
 }

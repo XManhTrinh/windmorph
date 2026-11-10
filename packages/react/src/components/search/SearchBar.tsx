@@ -29,6 +29,7 @@ import {
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
+import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { SearchFieldFrame } from './search-field-frame';
 import { searchBarStyles } from './search-styles';
 
@@ -338,27 +339,30 @@ export function SearchBar(props: SearchBarProps) {
   // keeps the search view's own `surface-container-high`.
   const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';
 
+  // Icon buttons in a search bar are standard (M3), not the filled default.
   const field = (input: ReactNode, tone: 'default' | 'appBar' | 'scrolled') => (
-    <SearchFieldFrame
-      tone={tone}
-      className={classNames?.field}
-      leading={
-        leading != null && (
-          <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
-            {leading}
-          </span>
-        )
-      }
-      trailing={
-        trailing != null && (
-          <span data-slot="trailing" className={styles.trailing({ class: classNames?.trailing })}>
-            {trailing}
-          </span>
-        )
-      }
-    >
-      {input}
-    </SearchFieldFrame>
+    <ButtonContext value={standardIconButtons}>
+      <SearchFieldFrame
+        tone={tone}
+        className={classNames?.field}
+        leading={
+          leading != null && (
+            <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
+              {leading}
+            </span>
+          )
+        }
+        trailing={
+          trailing != null && (
+            <span data-slot="trailing" className={styles.trailing({ class: classNames?.trailing })}>
+              {trailing}
+            </span>
+          )
+        }
+      >
+        {input}
+      </SearchFieldFrame>
+    </ButtonContext>
   );
 
   // The consumer's attributes replace the defaults; the bar's own keys always win, and
