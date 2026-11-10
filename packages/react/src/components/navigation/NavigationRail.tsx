@@ -135,29 +135,80 @@ export type NavigationRailProps = NavigationRailOwnProps &
 
 /**
  * Expanded width: the widest label on one line plus the item chrome, 220–360px (Compose).
- * Past 360px labels wrap.
+ * Past 360px labels wrap. With `settle`, a width that comes from measuring rather than from
+ * expanding (the rail mounting expanded, its font arriving, the rail coming into sight) is
+ * taken at once: the rail never springs open from the 220px guess on a page's first paint.
  */
-function useExpandedWidth(ref: RefObject<HTMLElement | null>, active: boolean, content: ReactNode) {
+function useExpandedWidth(
+  ref: RefObject<HTMLElement | null>,
+  active: boolean,
+  content: ReactNode,
+  settle = false,
+) {
   const [width, setWidth] = useState(EXPANDED_MIN);
+  const mounted = useRef(false);
   useLayoutEffect(() => {
     const el = ref.current;
+    const first = !mounted.current;
+    mounted.current = true;
     if (!active || !el) return;
-    const labels = [...el.querySelectorAll<HTMLElement>('[data-nav-label]')];
-    // Labels wrap in a narrow rail; measure each on one line.
-    const widest = Math.max(
-      0,
-      ...labels.map((label) => {
-        label.style.whiteSpace = 'nowrap';
-        const natural = label.scrollWidth;
-        label.style.whiteSpace = '';
-        return natural;
-      }),
-    );
-    const header = el.querySelector<HTMLElement>('[data-rail-header]');
-    const headerWidth = header ? header.scrollWidth : 0;
-    const chrome = expandedChrome(el);
-    setWidth(Math.min(Math.max(widest + chrome, headerWidth, EXPANDED_MIN), EXPANDED_MAX));
-  }, [ref, active, content]);
+    const measure = (instant: boolean) => {
+      const labels = [...el.querySelectorAll<HTMLElement>('[data-nav-label]')];
+      // Labels wrap in a narrow rail; measure each one's text on one line, to the fraction of a
+      // pixel (`scrollWidth` rounds, and a label 145.3px wide wrapped in 145px), rounded up.
+      const range = el.ownerDocument.createRange();
+      const widest = Math.max(
+        0,
+        ...labels.map((label) => {
+          label.style.whiteSpace = 'nowrap';
+          range.selectNodeContents(label);
+          // A test environment's Range may have no layout (jsdom): `scrollWidth` alone there.
+          const text =
+            typeof range.getBoundingClientRect === 'function'
+              ? range.getBoundingClientRect().width
+              : 0;
+          const natural = Math.ceil(Math.max(text, label.scrollWidth));
+          label.style.whiteSpace = '';
+          return natural;
+        }),
+      );
+      const header = el.querySelector<HTMLElement>('[data-rail-header]');
+      const headerWidth = header ? header.scrollWidth : 0;
+      const chrome = expandedChrome(el);
+      const next = Math.min(Math.max(widest + chrome, headerWidth, EXPANDED_MIN), EXPANDED_MAX);
+      if (instant && settle) {
+        // Applied with no transition, then the spring is back for the next expand or collapse.
+        el.style.transitionProperty = 'none';
+        el.style.setProperty('--m3-rail-width', `${next}px`);
+        void el.offsetWidth;
+        el.style.transitionProperty = '';
+      }
+      setWidth(next);
+    };
+    // Measured again each time the page's fonts finish loading: the rail usually mounts before
+    // its font arrives, and the fallback font's labels are narrower, so they wrapped once it did.
+    const fonts = document.fonts as FontFaceSet | undefined;
+    const remeasure = () => {
+      if (el.getClientRects().length > 0) measure(true);
+    };
+    fonts?.addEventListener('loadingdone', remeasure);
+    // A rail out of sight (`display: none` above it, as a rail shown only on wider windows)
+    // lays nothing out, so it's measured once it shows.
+    if (el.getClientRects().length > 0 || typeof ResizeObserver === 'undefined') {
+      measure(first);
+      return () => fonts?.removeEventListener('loadingdone', remeasure);
+    }
+    const observer = new ResizeObserver(() => {
+      if (el.getClientRects().length === 0) return;
+      observer.disconnect();
+      measure(true);
+    });
+    observer.observe(el);
+    return () => {
+      fonts?.removeEventListener('loadingdone', remeasure);
+      observer.disconnect();
+    };
+  }, [ref, active, content, settle]);
   return width;
 }
 
@@ -241,7 +292,7 @@ export function NavigationRail({
   const rootRef = useRef<HTMLElement>(null);
   const lastIndicatorRef = useRef<HTMLElement>(null);
   const slide = indicatorMotion === 'slide';
-  const width = useExpandedWidth(rootRef, inlineExpanded, children);
+  const width = useExpandedWidth(rootRef, inlineExpanded, children, true);
   const widening = useWidening(rootRef, inlineExpanded);
   // Labels fade in at their new place once the rail has changed mode (not on first render).
   const [mode, setMode] = useState(inlineExpanded);

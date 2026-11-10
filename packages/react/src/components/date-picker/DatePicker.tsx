@@ -696,8 +696,17 @@ function RangeMonthList({
   useLayoutEffect(() => {
     const list = listRef.current;
     if (!list) return;
+    // A list out of sight (`display: none` above it) can't scroll, so it scrolls to the focused
+    // month once it shows; it used to open on the range's first month.
+    let opened = list.getClientRects().length > 0;
     list.scrollTop = initialTop.current;
-    const measure = () => setView({ top: list.scrollTop, height: list.clientHeight });
+    const measure = () => {
+      if (!opened && list.clientHeight > 0) {
+        opened = true;
+        list.scrollTop = initialTop.current;
+      }
+      setView({ top: list.scrollTop, height: list.clientHeight });
+    };
     measure();
     const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
     observer?.observe(list);

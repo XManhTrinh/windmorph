@@ -432,6 +432,26 @@ describe('NavigationRail', () => {
     vi.restoreAllMocks();
   });
 
+  it('renders expanded where a Range has no layout, as in some test environments', () => {
+    const measure = Range.prototype.getBoundingClientRect;
+    // @ts-expect-error -- removed, as jsdom leaves it out.
+    delete Range.prototype.getBoundingClientRect;
+    try {
+      expect(() => render(<Rail expanded />)).not.toThrow();
+    } finally {
+      Range.prototype.getBoundingClientRect = measure;
+    }
+  });
+
+  it('measures a label to the fraction of a pixel, rounding up', () => {
+    // 199.3px of text, which `scrollWidth` rounds down to 199.
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(199);
+    vi.spyOn(Range.prototype, 'getBoundingClientRect').mockReturnValue({ width: 199.3 } as DOMRect);
+    render(<Rail expanded />);
+    expect(screen.getByRole('navigation')).toHaveStyle({ '--m3-rail-width': '304px' });
+    vi.restoreAllMocks();
+  });
+
   it('centres its items with itemAlignment, keeping the header at the top', () => {
     render(<Rail itemAlignment="center" />);
     const items = screen.getByRole('link', { name: 'Inbox' }).parentElement!;

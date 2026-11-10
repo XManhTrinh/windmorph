@@ -329,11 +329,27 @@ export function TextField(props: TextFieldProps) {
   useLayoutEffect(() => {
     const element = domInputRef.current as HTMLTextAreaElement | null;
     if (!growing || !element) return;
-    element.style.height = 'auto';
-    const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight) || 24;
-    const max = maxRows ? lineHeight * maxRows : Number.POSITIVE_INFINITY;
-    element.style.height = `${Math.min(element.scrollHeight, max)}px`;
-    element.style.overflowY = element.scrollHeight > max ? 'auto' : 'hidden';
+    const fit = () => {
+      element.style.height = 'auto';
+      const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight) || 24;
+      const max = maxRows ? lineHeight * maxRows : Number.POSITIVE_INFINITY;
+      element.style.height = `${Math.min(element.scrollHeight, max)}px`;
+      element.style.overflowY = element.scrollHeight > max ? 'auto' : 'hidden';
+    };
+    if (element.getClientRects().length > 0 || typeof ResizeObserver === 'undefined') {
+      fit();
+      return;
+    }
+    // Out of sight (`display: none` above it: a closed tab or panel), it has no height to read,
+    // and set to its 0px it stayed invisible once shown. It keeps its rows until it shows.
+    element.style.height = '';
+    const observer = new ResizeObserver(() => {
+      if (element.getClientRects().length === 0) return;
+      observer.disconnect();
+      fit();
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, [value, growing, maxRows, domInputRef]);
 
   const hasLabel = label !== undefined && label !== null;

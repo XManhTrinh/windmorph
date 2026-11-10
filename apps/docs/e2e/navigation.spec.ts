@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
+import { openStoryOutOfSight } from './out-of-sight';
 import { openStory } from './story';
 
 const width = (locator: Locator) =>
@@ -133,6 +134,30 @@ test.describe('NavigationRail behaviour', () => {
     await page.keyboard.press('End');
     await expect(page.getByRole('button', { name: 'Sent mail' })).toBeFocused();
     await expect(page.getByTestId('page')).toContainText('Current: home');
+  });
+
+  test('an expanded rail first laid out of sight takes its labels’ width once it shows', async ({
+    page,
+  }) => {
+    const sized = async () => {
+      const rail = page.getByTestId('rail');
+      const label = rail.getByText('Recipes saved for later');
+      return {
+        width: Math.round((await rail.boundingBox())!.width),
+        lines: Math.round((await label.boundingBox())!.height / 20),
+      };
+    };
+    await openStory(page, 'components-navigation--rail-long-label');
+    const shown = await sized();
+    // At its width from the first paint: no spring open from the 220px guess.
+    expect(shown.lines).toBe(1);
+    expect(shown.width).toBeGreaterThan(220);
+    await openStoryOutOfSight(
+      page,
+      'components-navigation--rail-long-label',
+      '[data-testid="rail"]',
+    );
+    await expect.poll(sized).toEqual(shown);
   });
 
   test('the expanded pill expands from the centre of the icon', async ({ page }) => {

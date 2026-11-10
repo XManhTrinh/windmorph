@@ -78,17 +78,22 @@ test.describe('Progress behaviour', () => {
       const ring = page.getByRole('progressbar', { name, exact: true });
       const box = (await ring.boundingBox())!;
       expect([Math.round(box.width), Math.round(box.height)]).toEqual([expected, expected]);
-      // The rendered stroke: its width in the SVG's units times the SVG's scale.
-      const strokes = await ring.locator('path').evaluateAll((paths) =>
-        paths.map((path) => {
-          const element = path as SVGPathElement;
-          return (
-            Number(getComputedStyle(element).strokeWidth.replace('px', '')) *
-            element.getScreenCTM()!.a
-          );
-        }),
-      );
-      for (const stroke of strokes) expect(stroke).toBeCloseTo(4, 1);
+      // The rendered stroke: its width in the SVG's units times the SVG's scale. Polled: the
+      // entrance runs in script, which `getAnimations()` doesn't wait for, and a slow runner
+      // read a ring partway through it (3.94px on 2026-11-07, 3.93px on 2026-11-10).
+      const furthestFromFour = () =>
+        ring.locator('path').evaluateAll((paths) =>
+          Math.max(
+            ...paths.map((path) => {
+              const element = path as SVGPathElement;
+              const stroke =
+                Number(getComputedStyle(element).strokeWidth.replace('px', '')) *
+                element.getScreenCTM()!.a;
+              return Math.abs(stroke - 4);
+            }),
+          ),
+        );
+      await expect.poll(furthestFromFour).toBeLessThan(0.05);
     }
   });
 
