@@ -42,7 +42,9 @@ export const carouselStyles = tv({
       'data-dragging:cursor-grabbing data-dragging:[scroll-snap-type:none] data-dragging:select-none',
       '[&::-webkit-scrollbar]:hidden',
     ],
-    item: 'flex shrink-0 rounded-(--m3-carousel-corner)',
+    // The focus ring is drawn inside: items sit against the scroller's edges in every layout
+    // (Compose keeps the padding in the keylines), so a ring outside was cut where they meet.
+    item: 'flex shrink-0 rounded-(--m3-carousel-corner) focus-ring-inset',
     mask: [
       'grid size-full overflow-hidden bg-surface [&>*]:[grid-area:1/1] [&>*]:size-full',
       '[--m3-carousel-item-corner:var(--m3-carousel-corner)]',
@@ -94,13 +96,10 @@ export const carouselStyles = tv({
       false: {},
     },
     interactive: { true: { item: 'cursor-pointer data-disabled:cursor-default' }, false: {} },
-    /** Full-bleed items fill the window edge to edge: no corners, focus ring inside. */
+    /** Full-bleed items fill the window edge to edge: no corners. */
     fullBleed: {
-      true: {
-        root: '[--m3-carousel-corner:0px] [--m3-carousel-pressed-corner:0px]',
-        item: 'focus-ring-inset',
-      },
-      false: { item: 'focus-ring' },
+      true: { root: '[--m3-carousel-corner:0px] [--m3-carousel-pressed-corner:0px]' },
+      false: {},
     },
   },
   compoundVariants: [

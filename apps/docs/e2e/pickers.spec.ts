@@ -3,6 +3,7 @@ import { layoutSafetySuite, OVERRIDES } from './layout-safety';
 import { expectKeyboardFocusRing, expectStateLayer, panelLayout } from './overlay-safety';
 import { recordTransitions } from './motion';
 import { MODES, THEMES } from './shots';
+import { openStoryOutOfSight } from './out-of-sight';
 import { openStory } from './story';
 
 const rect = (locator: Locator) =>
@@ -62,6 +63,31 @@ test.describe('Pickers visual regression', () => {
       await expect(page.getByTestId('picker')).toHaveScreenshot(`date-range-${dir}.png`);
     });
   }
+
+  test('a range calendar laid out of sight opens on the range once it shows', async ({ page }) => {
+    const months = () =>
+      page
+        .getByTestId('picker')
+        .getByRole('grid')
+        .evaluateAll((grids) =>
+          grids
+            .filter((grid) => {
+              const box = grid.getBoundingClientRect();
+              let scroller = grid.parentElement;
+              while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) {
+                scroller = scroller.parentElement;
+              }
+              if (!scroller) return false;
+              const list = scroller.getBoundingClientRect();
+              return box.bottom > list.top && box.top < list.bottom;
+            })
+            .map((grid) => grid.getAttribute('aria-label')),
+        );
+    await openStory(page, 'components-pickers--date-range');
+    const shown = await months();
+    await openStoryOutOfSight(page, 'components-pickers--date-range', '[data-testid="picker"] > *');
+    await expect.poll(months).toEqual(shown);
+  });
 
   test('docked', async ({ page }) => {
     await openStory(page, 'components-pickers--docked');

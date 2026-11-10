@@ -164,7 +164,10 @@ export const floatingToolbarStyles = tv({
         items: 'flex-row gap-[8px] ps-[4px] pe-[4px]',
         // Collapsible content keeps its natural width while its box closes (it's measured).
         collapsibleItems: 'w-max shrink-0',
-        collapse: 'data-collapsed:w-0',
+        // Clipped on its axis while collapsed: the clip slot's `clip-path` hides the content
+        // but leaves it in the scrollable area, so a collapsed toolbar by the window's edge
+        // scrolled the page sideways (right to left, its leading content past the start edge).
+        collapse: 'data-collapsed:w-0 data-collapsed:overflow-x-clip',
         clip: 'w-full flex-row [clip-path:inset(-12px_-2px)]',
         toolbarSlot: 'h-[64px] w-(--m3-toolbar-size) flex-row',
         surface: 'h-[64px] w-(--m3-toolbar-size) shrink-0 data-collapsed:w-0',
@@ -175,7 +178,7 @@ export const floatingToolbarStyles = tv({
         root: 'min-w-[64px] flex-col',
         items: 'flex-col gap-[8px] pt-[4px] pb-[4px]',
         collapsibleItems: 'h-max shrink-0',
-        collapse: 'flex-col data-collapsed:h-0',
+        collapse: 'flex-col data-collapsed:h-0 data-collapsed:overflow-y-clip',
         clip: 'h-full flex-col [clip-path:inset(-2px_-12px)]',
         toolbarSlot: 'h-(--m3-toolbar-size) w-[64px] flex-col',
         surface: 'h-(--m3-toolbar-size) w-[64px] shrink-0 data-collapsed:h-0',

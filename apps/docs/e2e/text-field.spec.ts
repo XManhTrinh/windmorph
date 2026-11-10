@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { MODES, THEMES } from './shots';
+import { openStoryOutOfSight } from './out-of-sight';
 import { openStory } from './story';
 
 const box = async (locator: Locator) => (await locator.boundingBox())!;
@@ -262,6 +263,13 @@ test.describe('TextField behaviour', () => {
     await notes.fill('1\n2\n3\n4\n5\n6\n7\n8');
     expect((await box(notes)).height).toBeCloseTo(one * 5, 0);
     expect(await notes.evaluate((el) => getComputedStyle(el).overflowY)).toBe('auto');
+  });
+
+  test('a growing field laid out of sight keeps its height once it shows', async ({ page }) => {
+    await openStory(page, 'components-textfield--multiline');
+    const shown = (await box(page.getByLabel('Notes'))).height;
+    await openStoryOutOfSight(page, 'components-textfield--multiline', 'textarea');
+    await expect.poll(async () => (await box(page.getByLabel('Notes'))).height).toBe(shown);
   });
 
   test('live validation and character count', async ({ page }) => {
