@@ -34,6 +34,75 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.2',
+    date: '2026-11-10',
+    summary: (
+      <>
+        <InlineCode>SearchField</InlineCode>, a search box that filters what&apos;s on the screen,
+        and fixes for components first shown out of sight or set against the window&apos;s edge; in
+        Windmorph Pro, <InlineCode>DataTable</InlineCode> columns that fit their content.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>SearchField</InlineCode> filters a page, a list or a table in place, drawn
+            as the search bar&apos;s pill and filling its container. It never opens a search view:
+            Escape clears it, Enter submits, and a clear button shows while there&apos;s text. It
+            takes <InlineCode>density</InlineCode> like the other fields.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>DataTable</InlineCode> columns take{' '}
+            <InlineCode>width: &apos;fit&apos;</InlineCode>, sizing to the widest of their header
+            and values, so translated text isn&apos;t cut short. A person&apos;s resize still wins,
+            and a double-click on a resize handle (or R, then Enter) fits any column.
+          </>,
+          <>
+            A <InlineCode>DataTable</InlineCode> or <InlineCode>DataGrid</InlineCode>&apos;s last
+            row no longer draws a second line against the outline.
+          </>,
+          <>
+            A hidden <InlineCode>SidePanelRail</InlineCode> on the window&apos;s edge no longer
+            scrolls the page sideways, and the message fields&apos; tool rows no longer cut their
+            buttons&apos; focus rings.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            An expanded <InlineCode>NavigationRail</InlineCode> sizes itself to its labels exactly,
+            measures again once fonts load or a hidden rail shows, and no longer springs open as the
+            page loads.
+          </>,
+          <>
+            A growing <InlineCode>TextField</InlineCode> first rendered out of sight keeps its
+            height once shown, and a <InlineCode>DateRangePicker</InlineCode> opens on its
+            range&apos;s month.
+          </>,
+          <>
+            A switch <InlineCode>ListItem</InlineCode> that&apos;s on stays plain, as a settings
+            row, with only its switch showing the state; checkbox and radio items keep the fill, and{' '}
+            <InlineCode>selectedWhenChecked</InlineCode> picks either look.
+          </>,
+          <>
+            A carousel item&apos;s focus ring is drawn inside it, so the first and last items&apos;
+            rings are whole, and a collapsed toolbar by the window&apos;s edge no longer scrolls the
+            page sideways.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.1',
     date: '2026-11-10',
     summary: (
