@@ -25,6 +25,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['data-table/data-table-plain'],
       },
       { name: 'Pinned columns', kind: 'configuration', examples: ['data-table/data-table-pinned'] },
+      {
+        name: "Columns that fit their content (`width: 'fit'`), fixed and growing widths",
+        kind: 'configuration',
+        examples: ['data-table/data-table-widths'],
+      },
     ],
   },
   'data-grid': {
