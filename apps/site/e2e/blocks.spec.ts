@@ -14,6 +14,21 @@ const metrics = (page: Page) =>
   });
 
 test.describe('The app frame block', () => {
+  test('a preview hands the wheel to the page once its own scrolling ends', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await page.goto('/blocks/app-frame');
+    const preview = page.locator('iframe').first();
+    await preview.scrollIntoViewIfNeeded();
+    await expect(preview.contentFrame().locator('body')).toBeVisible();
+    const box = (await preview.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, Math.min(box.y + box.height / 2, 600));
+    await page.mouse.wheel(0, 6000);
+    await page.waitForTimeout(300);
+    const before = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 300);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(before);
+  });
+
   for (const variation of ['app', 'full']) {
     test(`${variation}: the pane scrolls by itself, with the gap below it`, async ({ page }) => {
       await page.setViewportSize({ width: 1100, height: 640 });

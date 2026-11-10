@@ -333,6 +333,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       href: 'A link for the destination, which the preview leaves to its first item.',
       currentPath:
         'The preview has no routes, so its first link is marked `current`; the snippet shows the prop.',
+      expandIcon: 'A replacement icon, shown only in an expanded rail.',
     },
     render: (props) =>
       createElement(
@@ -491,6 +492,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     notControlled: {
       defaultOpen: 'Pressing the preview’s button opens it.',
       open: 'Pressing the preview’s button opens it.',
+      closeIcon: 'A replacement icon, shown only in the full-screen form below 600px.',
     },
     render: (props) =>
       createElement(

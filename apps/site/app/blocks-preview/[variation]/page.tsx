@@ -26,5 +26,9 @@ export default async function BlockPreview({ params }: { params: Promise<{ varia
   const { variation } = await params;
   const Block = VARIATIONS[variation];
   if (!Block) notFound();
-  return <Block />;
+  return (
+    <div data-block-preview="" className="contents">
+      <Block />
+    </div>
+  );
 }

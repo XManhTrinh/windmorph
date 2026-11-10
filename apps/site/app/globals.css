@@ -76,6 +76,10 @@ html {
   html {
     overscroll-behavior-y: none;
   }
+  /* A preview is in an iframe, with the docs page around it: its wheel goes on to that page. */
+  html:has([data-block-preview]) {
+    overscroll-behavior-y: auto;
+  }
   /* One step up from the search's default, which nearly matches the top bar here. The field and
      its dropdown share it, as M3's do, and the field is drawn again in the overlay as it opens, so
      it's set for both. The rows inside and their standard hover stay clear of it. */
