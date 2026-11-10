@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import { formatEntry } from '../.changeset/changelog.mjs';
 import { changesetProblems } from './check-changesets.mjs';
 import { formatChangelog } from './format-changelog.mjs';
+import { parseRelease, releaseNotes } from './github-releases.mjs';
 
 const generated = `# @windmorph/react
 
@@ -93,5 +94,58 @@ describe('changesetProblems', () => {
     assert.equal(changesetProblems(changeset('Sheets stay above the keyboard.')).length, 1);
     assert.match(changesetProblems(changeset('Improved: Faster.'))[0], /"Improved:"/);
     assert.equal(changesetProblems(changeset('')).length, 1);
+  });
+});
+
+describe('releaseNotes', () => {
+  const changelog = `# @windmorph/react
+
+Intro.
+
+## 0.2.20 — 2026-12-01
+
+### Fixed
+
+- Not this one.
+
+## 0.2.2 — 2026-11-10
+
+### Added
+
+- \`SearchField\`.
+
+### Fixed
+
+- A carousel ring.
+
+## 0.2.1
+
+### Patch Changes
+
+- An undated section.
+`;
+
+  it("gives a dated version's section alone, without its heading or the file's intro", () => {
+    assert.equal(
+      releaseNotes(changelog, '0.2.2'),
+      '### Added\n\n- `SearchField`.\n\n### Fixed\n\n- A carousel ring.',
+    );
+  });
+
+  it('finds an undated heading too, and the last section runs to the end', () => {
+    assert.equal(releaseNotes(changelog, '0.2.1'), '### Patch Changes\n\n- An undated section.');
+  });
+
+  it('gives nothing for a version with no section', () => {
+    assert.equal(releaseNotes(changelog, '0.2.3'), undefined);
+    assert.equal(releaseNotes(changelog, '0.2'), undefined);
+  });
+
+  it('reads a scoped package@version tag', () => {
+    assert.deepEqual(parseRelease('@windmorph/react@0.2.2'), {
+      name: '@windmorph/react',
+      version: '0.2.2',
+    });
+    assert.throws(() => parseRelease('0.2.2'));
   });
 });
