@@ -12,6 +12,7 @@ import {
   useState,
   useSyncExternalStore,
   type CSSProperties,
+  type ElementType,
   type FocusEvent,
   type JSX,
   type Key,
@@ -81,6 +82,16 @@ const CheckIcon = () => (
   </svg>
 );
 
+/** Clears the link attributes `useMenuItem` copies from an item's props onto one that isn't a link. */
+const NOT_A_LINK = {
+  href: undefined,
+  target: undefined,
+  rel: undefined,
+  download: undefined,
+  ping: undefined,
+  referrerPolicy: undefined,
+};
+
 /** The default submenu arrow (Material Symbols `arrow_right`), mirrored in RTL. */
 const SubmenuIcon = () => (
   <svg viewBox="0 -960 960 960" fill="currentColor" className="rtl:-scale-x-100">
@@ -109,6 +120,19 @@ export interface MenuItemProps {
   shortcut?: string;
   /** Icon at the end (an item with a submenu shows an arrow by default). */
   trailingIcon?: ReactNode;
+  /**
+   * Makes the item a link: a real `<a>` with the item's look, role and keys, so the browser's
+   * link menu (open in a new tab, copy or save the link) and modified clicks work. A press,
+   * Enter or Space follows it, through a `RouterProvider` (such as `NextRouterProvider`) on a
+   * plain click, and closes the menu. A disabled item, or one that opens a submenu, isn't a link.
+   */
+  href?: string;
+  /** A link item's target; `_blank` adds `rel="noopener noreferrer"` unless `rel` is given. */
+  target?: string;
+  /** A link item's `rel`, e.g. `"nofollow"`. */
+  rel?: string;
+  /** Downloads the link item's file instead of opening it (optionally with a file name). */
+  download?: boolean | string;
   /** Accessible name when the label isn't plain text. */
   'aria-label'?: string;
   /** Classes for the item, merged after `classNames.item`; consumer classes win. */
@@ -1146,7 +1170,7 @@ function MenuItemView({
   itemRef,
   submenuOpen = false,
 }: MenuItemViewProps) {
-  const ownRef = useRef<HTMLDivElement>(null);
+  const ownRef = useRef<HTMLElement>(null);
   const ref = itemRef ?? ownRef;
   const props = node.props as SubmenuItemProps;
   const isDisabled = state.disabledKeys.has(node.key);
@@ -1178,6 +1202,15 @@ function MenuItemView({
     plainInSelectable && !props.submenu
       ? { ...ariaItemProps, role: 'menuitem', 'aria-checked': undefined }
       : ariaItemProps;
+  // A link item is a real `<a>`: `useMenuItem` gives it the link's attributes, routes a plain
+  // click and closes the menu. A disabled item, or one that opens a submenu, stays a plain
+  // element without them, so it can't be followed.
+  const link = props.href != null && !isDisabled && !props.submenu;
+  // Widened, so the item's ref (an element of either kind) fits both.
+  const Root = (link ? 'a' : 'div') as ElementType;
+  const linkAttributes = link
+    ? { rel: props.rel ?? (props.target === '_blank' ? 'noopener noreferrer' : undefined) }
+    : NOT_A_LINK;
   const { interactionProps, dataAttributes } = useM3Interaction(
     { isPressed, isDisabled, isSelected },
     ref,
@@ -1202,8 +1235,9 @@ function MenuItemView({
       .join(' ') || undefined;
 
   return (
-    <div
+    <Root
       {...mergeProps(menuItemProps, interactionProps)}
+      {...linkAttributes}
       {...dataAttributes}
       aria-labelledby={undefined}
       aria-describedby={describedBy}
@@ -1270,7 +1304,7 @@ function MenuItemView({
           {trailingIcon}
         </span>
       )}
-    </div>
+    </Root>
   );
 }
 

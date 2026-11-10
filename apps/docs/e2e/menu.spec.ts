@@ -192,6 +192,56 @@ test.describe('Menu behaviour', () => {
     await expect(page.getByTestId('last')).toHaveText('Last action: search');
   });
 
+  test('a link item follows its href on a press or Enter and closes the menu', async ({ page }) => {
+    await openStory(page, 'components-menu--links');
+    const help = page.getByRole('button', { name: 'Help' });
+    await help.click();
+    const guide = page.getByRole('menuitem', { name: 'Read the guide' });
+    await expect(guide).toHaveJSProperty('tagName', 'A');
+    await guide.click();
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#guide');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+
+    await help.focus();
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('menuitem', { name: 'Keyboard shortcuts' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#shortcuts');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+  });
+
+  test('a link item opens in a new tab on a modified click', async ({ page, context }) => {
+    await openStory(page, 'components-menu--links');
+    await page.getByRole('button', { name: 'Help' }).click();
+    const [tab] = await Promise.all([
+      context.waitForEvent('page'),
+      page
+        .getByRole('menuitem', { name: 'Read the guide' })
+        .click({ modifiers: ['ControlOrMeta'] }),
+    ]);
+    await expect(tab).toHaveURL(/#guide$/);
+    await tab.close();
+    // The page itself stays where it was.
+    expect(await page.evaluate(() => location.hash)).toBe('');
+  });
+
+  test.describe(() => {
+    // The browser starts the download and Playwright cancels it, so no file is written.
+    test.use({ acceptDownloads: false });
+
+    test('a download item downloads its file and closes the menu', async ({ page }) => {
+      await openStory(page, 'components-menu--links');
+      await page.getByRole('button', { name: 'Help' }).click();
+      const [download] = await Promise.all([
+        page.waitForEvent('download'),
+        page.getByRole('menuitem', { name: 'Download the release notes' }).click(),
+      ]);
+      expect(download.suggestedFilename()).toBe('release-notes.txt');
+      await expect(page.getByRole('menu')).toHaveCount(0);
+    });
+  });
+
   test('Tab closes the menu and its submenus; focus is never left on the body', async ({
     page,
   }) => {
