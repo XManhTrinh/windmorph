@@ -6,7 +6,9 @@ import { useState } from 'react';
 /**
  * Switch items, as in Android's Settings: the whole item is the switch, so pressing
  * anywhere on it toggles it, and it is one control named by its headline and described by
- * its supporting text. `control="checkbox"` makes checkbox items the same way.
+ * its supporting text. A switch item that's on stays plain, with only its switch showing the
+ * state. `control="checkbox"` makes checkbox items the same way; checked, they take the
+ * selected colours (`selectedWhenChecked` sets either look on any item).
  */
 export function ListToggles() {
   const [searchable, setSearchable] = useState(true);

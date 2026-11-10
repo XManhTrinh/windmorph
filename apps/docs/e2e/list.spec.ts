@@ -350,6 +350,26 @@ test.describe('List geometry and interaction', () => {
     await openStory(page, 'components-list--toggles');
     const search = page.getByRole('switch', { name: 'Show my profile in search engines' });
     await expect(search).toBeChecked();
+    // On, the row stays plain: the colours of a row that's off, and only the switch changes.
+    const colours = (name: string) =>
+      page
+        .locator('label')
+        .filter({ hasText: name })
+        .evaluate((el) => {
+          const headline = el.querySelector('[data-slot="headline"]')!;
+          return [getComputedStyle(el).backgroundColor, getComputedStyle(headline).color];
+        });
+    expect(await colours('Show my profile in search engines')).toEqual(
+      await colours("Show when I'm online"),
+    );
+    // Still the control: the pointer cursor and the hover layer.
+    const row = page.locator('label').filter({ hasText: 'Show my profile in search engines' });
+    await row.hover();
+    await expect(row).toHaveAttribute('data-hovered', 'true');
+    await expect(row).toHaveCSS('cursor', 'pointer');
+    // Checked checkboxes and a switch with `selectedWhenChecked` take the selected colours.
+    expect((await colours('Messages'))[0]).not.toBe((await colours('Offers'))[0]);
+    expect((await colours('Back up photos'))[0]).toBe((await colours('Messages'))[0]);
     await page.getByText('Search engines can list your profile').click();
     await expect(search).not.toBeChecked();
     await page.keyboard.press('Space');

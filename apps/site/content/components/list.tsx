@@ -224,9 +224,10 @@ export async function ListBody(): Promise<ComponentDoc> {
             </li>
             <li>
               An on/off setting that applies at once: a switch item (
-              <InlineCode>control=&quot;switch&quot;</InlineCode>). Choosing several items: checkbox
-              items (<InlineCode>control=&quot;checkbox&quot;</InlineCode>
-              ).
+              <InlineCode>control=&quot;switch&quot;</InlineCode>), which stays plain when it&apos;s
+              on. Choosing several items: checkbox items (
+              <InlineCode>control=&quot;checkbox&quot;</InlineCode>), which take the selected
+              colours when checked.
             </li>
             <li>
               One choice out of a few, applied at once: a radio list (<InlineCode>value</InlineCode>{' '}
@@ -265,7 +266,15 @@ export async function ListBody(): Promise<ComponentDoc> {
               Every <InlineCode>ListItem</InlineCode> and <InlineCode>SegmentedListItem</InlineCode>{' '}
               overload is covered: static items, clickable items (<InlineCode>onAction</InlineCode>,
               links), single selection (radio lists) and checkable items (switch and checkbox
-              items). Checked and selected items take the selected colours and shape, as in Compose.
+              items). Selected items, chosen radio items and checked checkbox items take the
+              selected colours and shape, as in Compose.
+            </li>
+            <li>
+              Deviation: a switch item that&apos;s on stays plain, as a settings row, with only its
+              switch showing the state; Compose fills it as it fills a checked item.{' '}
+              <InlineCode>selectedWhenChecked</InlineCode> gives it Compose&apos;s look, and{' '}
+              <InlineCode>selectedWhenChecked={'{false}'}</InlineCode> keeps a checkbox or radio
+              item plain. The <InlineCode>selected-*</InlineCode> tokens set the colours.
             </li>
             <li>
               Deviation: switch items have the switch role, so screen readers say on and off;

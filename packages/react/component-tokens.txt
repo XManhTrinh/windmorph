@@ -176,6 +176,11 @@
 --md-comp-list-list-item-overline-color
 --md-comp-list-list-item-segmented-container-color
 --md-comp-list-list-item-selected-container-color
+--md-comp-list-list-item-selected-label-text-color
+--md-comp-list-list-item-selected-leading-icon-color
+--md-comp-list-list-item-selected-overline-color
+--md-comp-list-list-item-selected-supporting-text-color
+--md-comp-list-list-item-selected-trailing-icon-color
 --md-comp-list-list-item-supporting-text-color
 --md-comp-list-list-item-trailing-icon-color
 --md-comp-loading-indicator-active-indicator-color
