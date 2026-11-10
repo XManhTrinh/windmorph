@@ -6,7 +6,7 @@
       "outputs": [".generated/props/**"]
     },
     "build": {
-      "outputs": ["out/**", ".next/**", "!.next/cache/**"],
+      "outputs": ["out/**", ".next/**", "!.next/cache/**", "!.next/dev/**"],
       "inputs": ["$TURBO_DEFAULT$", "public/media/bento/**"],
       "env": ["NEXT_PUBLIC_LOOPS_FORM_ID", "NEXT_PUBLIC_LOOPS_LIST_ID"]
     },
