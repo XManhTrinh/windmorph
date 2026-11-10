@@ -80,15 +80,17 @@ test.describe('Progress behaviour', () => {
       expect([Math.round(box.width), Math.round(box.height)]).toEqual([expected, expected]);
       // The rendered stroke: its width in the SVG's units times the SVG's scale. Polled: the
       // entrance runs in script, which `getAnimations()` doesn't wait for, and a slow runner
-      // read a ring partway through it (3.94px on 2026-11-07, 3.93px on 2026-11-10).
+      // read a ring partway through it (3.94px on 2026-11-07, 3.93px on 2026-11-10). The scale
+      // is the matrix's column length, not `a`: a wavy ring's wave keeps turning, and `a` is
+      // the scale times the cosine of the turn (strokes of 8.93px and 0.11px, 2026-11-10).
       const furthestFromFour = () =>
         ring.locator('path').evaluateAll((paths) =>
           Math.max(
             ...paths.map((path) => {
               const element = path as SVGPathElement;
+              const { a, b } = element.getScreenCTM()!;
               const stroke =
-                Number(getComputedStyle(element).strokeWidth.replace('px', '')) *
-                element.getScreenCTM()!.a;
+                Number(getComputedStyle(element).strokeWidth.replace('px', '')) * Math.hypot(a, b);
               return Math.abs(stroke - 4);
             }),
           ),
