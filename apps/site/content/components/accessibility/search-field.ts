@@ -43,7 +43,7 @@ export const searchField: ComponentAccessibility = {
     'With `autoFocus` the input takes focus as the field mounts.',
   ],
   touchTarget: [
-    'The field is 56px tall, and the leading and trailing slots are 48 × 48px.',
+    'The field is 56px tall (44px at density -3), and the leading and trailing slots are 48 × 48px, as tall as the field allows.',
     'The clear button and any trailing icon buttons are `standard` {@link IconButton}s with their own 48 × 48px touch targets, 8px apart so they meet without overlapping.',
   ],
   motion: { none: 'The field has no motion of its own; its icon buttons keep their state layers.' },

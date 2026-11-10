@@ -47,7 +47,7 @@ Reuse as they are:
 | 6 | ✅ States | As `SearchBar`'s pill: the inset focus ring for keyboard focus, and no hover or pressed state layer (the pill never had one; see **Built**). M3's disabled colours (content `on-surface` at 38%, container at 12%) |
 | 7 | ✅ Right to left | Logical slots and padding (start and end), as today |
 | 8 | ❓ → ✅ Default width | `w-full`, so it fills its container in a page or a list pane. `SearchBar` keeps its own 360–720px root |
-| 9 | ❓ → ✅ Density | None, matching `SearchBar` (M3 sizes the search bar at 56dp) |
+| 9 | ❓ → ✅ Density | First none, matching `SearchBar` (M3 sizes the search bar at 56dp); reversed on 2026-11-10 before the release: `density` like the other fields, 56 → 44px at -3, since it filters dense tables and lists, and a searchable `Select`'s pill already follows density |
 | 10 | ❓ → ✅ Clear button in `Select`'s search list | No change (Escape only, as before), so `Select`'s behaviour stays as audited |
 | 11 | ❓ → ✅ A drift test with `MessageField` | Yes, in Pro: `MessageField`'s `lg` `filled` still matches the search pill's container colour, shape and 56px height. A test, not shared code |
 

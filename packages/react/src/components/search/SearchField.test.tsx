@@ -45,7 +45,19 @@ describe('SearchField', () => {
       'rounded-[var(--_md-comp-search-bar-container-shape)]',
       'bg-[var(--_md-comp-search-bar-container-color)]',
     );
-    expect(screen.getByTestId('field')).toHaveClass('h-[56px]', 'w-full', 'min-w-0');
+    expect(screen.getByTestId('field')).toHaveClass(
+      'h-[calc(56px+var(--md-sys-density,0)*4px)]',
+      'w-full',
+      'min-w-0',
+    );
+  });
+
+  it('takes a density, or its scope’s when left out', () => {
+    const { rerender } = render(<Field />);
+    expect(screen.getByTestId('field')).not.toHaveAttribute('data-density');
+    rerender(<Field density={-2} />);
+    expect(screen.getByTestId('field')).toHaveAttribute('data-density', '-2');
+    expect(document.querySelector('[data-slot="leading"]')).toHaveClass('max-h-full');
   });
 
   it('can be named by another element', () => {

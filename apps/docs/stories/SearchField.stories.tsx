@@ -85,6 +85,25 @@ export const Variants: Story = {
   ),
 };
 
+/** Each density, 56px at 0 to 44px at -3; the icon buttons keep 48px touch targets. */
+export const Density: Story = {
+  render: () => (
+    <div className="flex w-[360px] flex-col gap-4" data-testid="density">
+      {([0, -1, -2, -3] as const).map((density) => (
+        <SearchField
+          key={density}
+          aria-label={`Search settings, density ${density}`}
+          defaultValue="Display"
+          density={density}
+          leadingIcon={<SearchIcon />}
+          trailingIcon={<IconButton icon={<MicIcon />} aria-label="Voice search" />}
+          data-testid={`density-${density}`}
+        />
+      ))}
+    </div>
+  ),
+};
+
 /** Beside the search bar, so both read the same search bar tokens. */
 export const BesideSearchBar: Story = {
   render: () => (

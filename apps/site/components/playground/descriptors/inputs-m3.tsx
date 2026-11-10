@@ -240,6 +240,7 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       <div className="w-full max-w-[360px]">
         {createElement(SearchFieldAny, {
           ...props,
+          density: asDensity(props.density),
           'aria-label': 'Search settings',
           value: typeof value === 'string' ? value : '',
           onChange: (next: string) => update('value', next),
@@ -253,13 +254,15 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     defaultProps: {
       value: '',
       placeholder: '',
+      density: 0,
       leadingIcon: false,
       trailingIcon: false,
       disabled: false,
     },
-    surfacedProps: ['value', 'placeholder', 'leadingIcon', 'trailingIcon', 'disabled'],
+    surfacedProps: ['value', 'placeholder', 'density', 'leadingIcon', 'trailingIcon', 'disabled'],
     initialState: { placeholder: 'Search settings', leadingIcon: true },
-    controlKinds: { leadingIcon: 'boolean', trailingIcon: 'boolean' },
+    enumOptions: DENSITY_OPTIONS,
+    controlKinds: { density: 'number', leadingIcon: 'boolean', trailingIcon: 'boolean' },
     notControlled: {
       clearIcon:
         "Replaces the clear button's icon with another; the preview shows the default once there's text.",

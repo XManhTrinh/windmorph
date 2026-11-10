@@ -89,8 +89,9 @@ export async function SearchFieldBody(): Promise<ComponentDoc> {
           </li>
           <li>
             It&apos;s 56px tall, as M3&apos;s search bar, and fills its container; a consumer{' '}
-            <InlineCode>w-*</InlineCode> or <InlineCode>h-*</InlineCode> class wins. It has no{' '}
-            <InlineCode>density</InlineCode>.
+            <InlineCode>w-*</InlineCode> or <InlineCode>h-*</InlineCode> class wins.{' '}
+            <InlineCode>density</InlineCode> (or the theme&apos;s) takes 4px off a step, down to
+            44px at -3, for a dense table or list; its icon buttons keep 48px touch targets.
           </li>
           <li>
             The trailing slot holds the clear button and <InlineCode>trailingIcon</InlineCode>: one

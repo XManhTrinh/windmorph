@@ -222,9 +222,11 @@ export const searchBarStyles = tv({
  */
 export const searchFieldStyles = tv({
   slots: {
-    // 56px, the search bar's height, filling its container: it filters a page, a list or a pane
-    // in place. A consumer `w-*` or `h-*` wins.
-    root: 'flex h-[56px] w-full min-w-0',
+    // 56px, the search bar's height, less 4px a density step (44px at -3), filling its
+    // container: it filters a page, a list or a pane in place. A consumer `w-*` or `h-*` wins.
+    root: 'flex h-[calc(56px+var(--md-sys-density,0)*4px)] w-full min-w-0',
+    // The 48px icon slots keep to a dense pill's height; their buttons keep 48px targets.
+    slot: 'max-h-full',
   },
   variants: {},
 });

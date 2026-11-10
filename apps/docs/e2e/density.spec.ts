@@ -336,6 +336,31 @@ test.describe('Density · Menu', () => {
   });
 });
 
+test.describe('Density · SearchField', () => {
+  const pill = (page: Page, level: number) =>
+    page.getByTestId(`density-${level}`).locator('[data-tokens="md-comp-search-bar"]');
+
+  test('takes 4px off the pill a step, its buttons keeping 48px targets', async ({ page }) => {
+    await openStory(page, 'components-searchfield--density');
+    for (const level of [0, -1, -2, -3]) {
+      expect((await box(pill(page, level))).height).toBeCloseTo(56 + level * 4, 0);
+    }
+    const clear = page.getByTestId('density--3').getByRole('button', { name: 'Clear search' });
+    const target = await clear.locator('[data-touch-target]').evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { width: rect.width, height: rect.height };
+    });
+    expect(target).toEqual({ width: 48, height: 48 });
+  });
+
+  test("takes its scope's density", async ({ page }) => {
+    await openStory(page, 'components-searchfield--variants', { density: '-2' });
+    expect(
+      (await box(page.getByTestId('empty').locator('[data-tokens="md-comp-search-bar"]'))).height,
+    ).toBeCloseTo(48, 0);
+  });
+});
+
 test.describe('Density · screenshots', () => {
   const stories: [string, string, Record<string, string>[]][] = [
     [
@@ -350,6 +375,7 @@ test.describe('Density · screenshots', () => {
       [{ variant: 'filled' }, { variant: 'outlined' }],
     ],
     ['pickers', 'components-pickers--density', [{}]],
+    ['searchfield', 'components-searchfield--density', [{}]],
   ];
   for (const [name, id, argSets] of stories) {
     for (const args of argSets) {

@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { mergeProps, useObjectRef, useSearchField } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
@@ -92,6 +93,14 @@ interface SearchFieldOwnProps extends WrapperRootDOMProps {
   trailingIcon?: ReactNode;
   /** Replaces the clear button's icon (Material Symbols `close`). */
   clearIcon?: ReactElement;
+  /**
+   * Web density, `0` to `-3`: each step takes 4px off the pill (56px at 0, 44px at -3), as on the
+   * other fields; icon buttons in it keep their 48px touch targets. Left out, the field takes the
+   * density of the nearest `ThemeProvider` or `ThemeScope`. M3 asks for density to be the
+   * reader's choice rather than a default, so prefer setting it there, from a setting.
+   * @default 0
+   */
+  density?: Density;
   /** Whether the field is disabled: it takes no input and shows no clear button. */
   disabled?: boolean;
   /** Focus the input when the field mounts. */
@@ -143,6 +152,7 @@ export function SearchField(props: SearchFieldProps) {
     leadingIcon,
     trailingIcon,
     clearIcon,
+    density,
     disabled = false,
     autoFocus,
     inputRef,
@@ -217,14 +227,16 @@ export function SearchField(props: SearchFieldProps) {
     hasTrailing,
     disabled,
   });
+  const rootStyles = searchFieldStyles();
 
   return (
     <div
       {...data}
       ref={ref}
       style={style}
+      {...densityAttribute(density)}
       data-disabled={disabled || undefined}
-      className={searchFieldStyles().root({ class: cn(classNames?.root, className) })}
+      className={rootStyles.root({ class: cn(classNames?.root, className) })}
     >
       {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
       <ButtonContext value={standardIconButtons}>
@@ -234,7 +246,10 @@ export function SearchField(props: SearchFieldProps) {
           className={classNames?.field}
           leading={
             leadingIcon != null && (
-              <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
+              <span
+                data-slot="leading"
+                className={styles.leading({ class: cn(rootStyles.slot(), classNames?.leading) })}
+              >
                 {leadingIcon}
               </span>
             )
@@ -243,7 +258,7 @@ export function SearchField(props: SearchFieldProps) {
             hasTrailing && (
               <span
                 data-slot="trailing"
-                className={styles.trailing({ class: classNames?.trailing })}
+                className={styles.trailing({ class: cn(rootStyles.slot(), classNames?.trailing) })}
               >
                 {showClear && (
                   <IconButton
