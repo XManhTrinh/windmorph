@@ -199,6 +199,33 @@ describe('Slider', () => {
     expect(screen.getByRole('slider')).toHaveAttribute('aria-orientation', 'vertical');
   });
 
+  it('names its thumb as its group, by aria-label or by a visible label', async () => {
+    const { container } = render(
+      <>
+        <span id="bloom-label">Scrub the bloom</span>
+        <Slider
+          aria-labelledby="bloom-label"
+          max={1}
+          step={0.01}
+          formatOptions={{ style: 'percent' }}
+        />
+        <span id="sound-label">Sound</span>
+        <span id="volume-label">Volume</span>
+        <Slider aria-labelledby="sound-label volume-label" />
+        <Slider aria-label="Brightness" />
+      </>,
+    );
+    // Not the value text ("0%"), which a name through the group's own aria-labelledby gave.
+    expect(screen.getByRole('group', { name: 'Scrub the bloom' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Scrub the bloom' })).toHaveAttribute(
+      'aria-valuetext',
+      '0%',
+    );
+    expect(screen.getByRole('slider', { name: 'Sound Volume' })).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Brightness' })).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
   it('requires a name in its types', () => {
     // @ts-expect-error aria-label or aria-labelledby is required
     const unnamed = <Slider />;
@@ -222,6 +249,19 @@ describe('RangeSlider', () => {
 
   it('names its thumbs from labels', () => {
     render(<RangeSlider aria-label="Price" labels={{ start: 'Lowest', end: 'Highest' }} />);
+    const [start, end] = screen.getAllByRole('slider');
+    expect(start).toHaveAccessibleName('Lowest Price');
+    expect(end).toHaveAccessibleName('Highest Price');
+  });
+
+  it('names each thumb with the visible label that names it', () => {
+    render(
+      <>
+        <span id="price-label">Price</span>
+        <RangeSlider aria-labelledby="price-label" labels={{ start: 'Lowest', end: 'Highest' }} />
+      </>,
+    );
+    // Not each other's names, which a name through the group's own aria-labelledby gave.
     const [start, end] = screen.getAllByRole('slider');
     expect(start).toHaveAccessibleName('Lowest Price');
     expect(end).toHaveAccessibleName('Highest Price');
