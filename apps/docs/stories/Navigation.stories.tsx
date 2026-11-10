@@ -144,6 +144,20 @@ export const CenteredRail: Story = {
   render: (args) => <RailDemo {...args} />,
 };
 
+/** An expanded rail sized to a long label (one line, within the 360px maximum). */
+export const RailLongLabel: Story = {
+  render: () => (
+    <div className="flex h-[300px]">
+      <NavigationRail aria-label="Library" expanded data-testid="rail">
+        <NavigationRailItem icon={<HomeIcon />} selected>
+          Home
+        </NavigationRailItem>
+        <NavigationRailItem icon={<StarIcon />}>Recipes saved for later</NavigationRailItem>
+      </NavigationRail>
+    </div>
+  ),
+};
+
 /**
  * Collapsed and expanded rails side by side, for visual regression: badges on the icon
  * collapsed and after the label expanded, a divider, and a label that wraps.

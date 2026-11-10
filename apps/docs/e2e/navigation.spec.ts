@@ -135,6 +135,37 @@ test.describe('NavigationRail behaviour', () => {
     await expect(page.getByTestId('page')).toContainText('Current: home');
   });
 
+  test('an expanded rail first laid out of sight takes its labels’ width once it shows', async ({
+    page,
+  }) => {
+    const sized = async () => {
+      const rail = page.getByTestId('rail');
+      const label = rail.getByText('Recipes saved for later');
+      return {
+        width: Math.round((await rail.boundingBox())!.width),
+        lines: Math.round((await label.boundingBox())!.height / 20),
+      };
+    };
+    await openStory(page, 'components-navigation--rail-long-label');
+    const shown = await sized();
+    // At its width from the first paint: no spring open from the 220px guess.
+    expect(shown.lines).toBe(1);
+    expect(shown.width).toBeGreaterThan(220);
+    // Hidden by a style sheet before it mounts, as a media query hides it, then shown with no
+    // render in between.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.id = 'hide-rail';
+        style.textContent = '[data-testid="rail"] { display: none !important; }';
+        document.head.append(style);
+      });
+    });
+    await openStory(page, 'components-navigation--rail-long-label');
+    await page.evaluate(() => document.getElementById('hide-rail')!.remove());
+    await expect.poll(sized).toEqual(shown);
+  });
+
   test('the expanded pill expands from the centre of the icon', async ({ page }) => {
     await openStory(page, 'components-navigation--rail', {}, { defaultExpanded: true });
     const starred = page.getByRole('button', { name: /^Starred/ });
