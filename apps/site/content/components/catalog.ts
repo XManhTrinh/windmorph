@@ -312,6 +312,28 @@ export const COMPONENT_META: ComponentMeta[] = [
       'For a yes/no choice use a Checkbox or Switch; for picking one of a few options use a Radio group.',
   },
   {
+    slug: 'search-field',
+    title: 'Search field',
+    group: 'Inputs & selection',
+    railGroup: 'inputs',
+    summary:
+      "The search bar's 56px pill as a search box that filters a page, a list or a table in place, with a clear button. It never opens a search view.",
+    propsComponents: ['SearchField'],
+    playground: 'full',
+    related: ['search', 'text-field', 'select'],
+    keywords: [
+      'filter',
+      'filter a list',
+      'search box',
+      'searchbox',
+      'in-page search',
+      'clear button',
+      'component tokens',
+    ],
+    whenNotToUse:
+      'For suggestions or results in a view of their own use a Search bar; for a search inside a form use a Text field.',
+  },
+  {
     slug: 'message-field',
     title: 'Message field',
     group: 'Inputs & selection',
@@ -1264,7 +1286,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     specs: {
       variants: ['auto', 'docked', 'full-screen'],
     },
-    related: ['top-app-bar', 'text-field'],
+    related: ['search-field', 'top-app-bar', 'text-field'],
     keywords: [
       'search view',
       'docked search',
@@ -1272,7 +1294,8 @@ export const COMPONENT_META: ComponentMeta[] = [
       'search results',
       'component tokens',
     ],
-    whenNotToUse: 'For a simple filter field inside a form use a Text field.',
+    whenNotToUse:
+      'To filter content in place use a Search field; for a search inside a form use a Text field.',
   },
   {
     slug: 'toolbars',

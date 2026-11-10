@@ -6,9 +6,11 @@ import {
   AutocompleteItem,
   Checkbox,
   FilterChip,
+  IconButton,
   InputChip,
   Radio,
   RadioGroup,
+  SearchField,
   Select,
   SelectItem,
   Slider,
@@ -26,6 +28,7 @@ import {
   HelpIcon,
   LightModeIcon,
   MailIcon,
+  MicIcon,
   SearchIcon,
   SortIcon,
   VolumeDownIcon,
@@ -42,6 +45,7 @@ import {
 } from './shared';
 
 const TextFieldAny = loose(TextField);
+const SearchFieldAny = loose(SearchField);
 const CheckboxAny = loose(Checkbox);
 const RadioGroupAny = loose(RadioGroup);
 const SwitchAny = loose(Switch);
@@ -229,6 +233,47 @@ export const INPUTS_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       rows: { min: 1, max: 8 },
       maxRows: { min: 1, max: 8 },
     },
+  },
+  'search-field': {
+    component: 'SearchField',
+    render: ({ leadingIcon, trailingIcon, value, ...props }, update) => (
+      <div className="w-full max-w-[360px]">
+        {createElement(SearchFieldAny, {
+          ...props,
+          'aria-label': 'Search settings',
+          value: typeof value === 'string' ? value : '',
+          onChange: (next: string) => update('value', next),
+          ...(leadingIcon === true && { leadingIcon: <SearchIcon /> }),
+          ...(trailingIcon === true && {
+            trailingIcon: <IconButton icon={<MicIcon />} aria-label="Voice search" />,
+          }),
+        })}
+      </div>
+    ),
+    defaultProps: {
+      value: '',
+      placeholder: '',
+      leadingIcon: false,
+      trailingIcon: false,
+      disabled: false,
+    },
+    surfacedProps: ['value', 'placeholder', 'leadingIcon', 'trailingIcon', 'disabled'],
+    initialState: { placeholder: 'Search settings', leadingIcon: true },
+    controlKinds: { leadingIcon: 'boolean', trailingIcon: 'boolean' },
+    notControlled: {
+      clearIcon:
+        "Replaces the clear button's icon with another; the preview shows the default once there's text.",
+      autoFocus:
+        'Focuses the input as the field mounts, which a preview control would only repeat.',
+      inputProps:
+        'Input attributes such as `enterKeyHint`, `autoComplete` or `inputMode`, which change the keyboard and form wiring, nothing the preview shows.',
+    },
+    toggledSlots: {
+      leadingIcon: SEARCH,
+      trailingIcon: '<IconButton icon={<MicIcon />} aria-label="Voice search" />',
+    },
+    importMembers: ['IconButton'],
+    codeSlots: { 'aria-label': '"Search settings"' },
   },
   select: {
     component: 'Select',

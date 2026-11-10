@@ -87,6 +87,11 @@ export async function SearchBody(): Promise<ComponentDoc> {
             <InlineCode>navigationIcon</InlineCode>, <InlineCode>actions</InlineCode> and{' '}
             <InlineCode>scrollBehavior</InlineCode>.
           </p>
+          <p className="text-body-large text-on-surface-variant">
+            To filter what&apos;s already on the screen, with no view to open, use a{' '}
+            <InlineCode>SearchField</InlineCode>: the same pill as a search box, filling its
+            container.
+          </p>
         </section>
       </>
     ),

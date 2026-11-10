@@ -58,6 +58,7 @@ import { ProgressBody } from './progress';
 import { PullToRefreshBody } from './pull-to-refresh';
 import { RadioGroupBody } from './radio-group';
 import { SearchBody } from './search';
+import { SearchFieldBody } from './search-field';
 import { SheetsBody } from './sheets';
 import { SkeletonBody } from './skeleton';
 import { TagBody } from './tag';
@@ -141,6 +142,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   tabs: TabsBody,
   'top-app-bar': TopAppBarBody,
   search: SearchBody,
+  'search-field': SearchFieldBody,
   toolbars: ToolbarsBody,
   snackbar: SnackbarBody,
   progress: ProgressBody,
