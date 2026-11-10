@@ -121,6 +121,37 @@ describe('useM3Interaction', () => {
     vi.unstubAllGlobals();
   });
 
+  it("restarts the ripple without taking anything out of the element's transitions", () => {
+    render(<Pressable />);
+    const target = screen.getByRole('button');
+    // An app's own transition, which a narrower list for the restart would cancel.
+    Object.assign(target.style, {
+      transitionProperty: 'width',
+      transitionDuration: '600ms',
+      transitionDelay: '50ms',
+    });
+    const written: string[] = [];
+    const style = target.style;
+    let owner: object | null = style;
+    while (owner && !Object.getOwnPropertyDescriptor(owner, 'transitionProperty')) {
+      owner = Object.getPrototypeOf(owner) as object | null;
+    }
+    const accessor = Object.getOwnPropertyDescriptor(owner!, 'transitionProperty')!;
+    Object.defineProperty(style, 'transitionProperty', {
+      configurable: true,
+      get: () => accessor.get!.call(style) as string,
+      set: (value: string) => {
+        written.push(value);
+        accessor.set!.call(style, value);
+      },
+    });
+    fireEvent.pointerDown(target, { clientX: 5, clientY: 5, pointerId: 1, button: 0 });
+    expect(written).toEqual([]);
+    expect(style.transitionProperty).toBe('width');
+    expect(style.transitionDuration).toBe('600ms');
+    expect(style.transitionDelay).toBe('50ms');
+  });
+
   it('ignores secondary-button presses for the ripple', () => {
     render(<Pressable />);
     const target = screen.getByRole('button');

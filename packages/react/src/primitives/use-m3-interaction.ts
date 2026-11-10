@@ -71,18 +71,22 @@ const RIPPLE_START = {
  * one is still growing or fading. The ripple's animated properties are pinned to their start
  * values with their transitions off and flushed to style, then released: they transition
  * from this press's start to whatever the state layer's rules say (growing if
- * `data-rippling` is on, or once it turns on). Only the ripple's transitions are switched
- * off: the component's own (`--m3-transition-property`, such as a running corner morph) keep
- * running, so a quick second press doesn't make the corners jump.
+ * `data-rippling` is on, or once it turns on). They're pinned with no duration or delay, not by
+ * leaving them out of `transition-property`: a running transition whose property drops out of
+ * the list is cancelled and jumps to its end, as did a corner morph on a quick second press
+ * and a width an app animates through `className` (2026-11-10). A running transition keeps its
+ * own timing when the durations change, so nothing else is touched.
  */
 export function restartRipple(element: HTMLElement) {
   const { style } = element;
-  const transitionProperty = style.transitionProperty;
-  style.transitionProperty = 'var(--m3-transition-property, --m3-none)';
+  const { transitionDuration, transitionDelay } = style;
+  style.transitionDuration = '0s';
+  style.transitionDelay = '0s';
   for (const [name, value] of Object.entries(RIPPLE_START)) style.setProperty(name, value);
   getComputedStyle(element).getPropertyValue('--m3-ripple-x');
   for (const name of Object.keys(RIPPLE_START)) style.removeProperty(name);
-  style.transitionProperty = transitionProperty;
+  style.transitionDuration = transitionDuration;
+  style.transitionDelay = transitionDelay;
 }
 
 /**

@@ -147,18 +147,30 @@
         transparent
       )
     );
-  /* After the ripple: fade it out, then reset its radius and centre once it is invisible. */
+  /*
+   * After the ripple: fade it out, then reset its radius and centre once it is invisible. The
+   * states below change only these variables, never the transition itself, so an app's own
+   * transition through `className` (one class, which wins over this one at rest) keeps its
+   * timing while the element is pressed too (2026-11-10).
+   */
+  --m3-ripple-fade-duration: 150ms;
+  --m3-ripple-grow-duration: 0s;
+  --m3-ripple-grow-delay: 150ms;
+  --m3-ripple-grow-easing: linear;
   /* Components append their own transitions through the --m3-transition-* lists. */
   transition-property:
     --m3-state-opacity, --m3-ripple-opacity, --m3-ripple-radius, --m3-ripple-x, --m3-ripple-y,
     var(--m3-transition-property, --m3-none);
   transition-duration:
-    var(--md-sys-motion-spring-effects-fast-duration), 150ms, 0s, 0s, 0s,
+    var(--md-sys-motion-spring-effects-fast-duration), var(--m3-ripple-fade-duration),
+    var(--m3-ripple-grow-duration), var(--m3-ripple-grow-duration), var(--m3-ripple-grow-duration),
     var(--m3-transition-duration, 0s);
-  transition-delay: 0s, 0s, 150ms, 150ms, 150ms, var(--m3-transition-delay, 0s);
+  transition-delay:
+    0s, 0s, var(--m3-ripple-grow-delay), var(--m3-ripple-grow-delay), var(--m3-ripple-grow-delay),
+    var(--m3-transition-delay, 0s);
   transition-timing-function:
-    var(--md-sys-motion-spring-effects-fast-easing), linear, linear, linear, linear,
-    var(--m3-transition-easing, linear);
+    var(--md-sys-motion-spring-effects-fast-easing), linear, var(--m3-ripple-grow-easing), linear,
+    linear, var(--m3-transition-easing, linear);
 
   &[data-hovered] {
     --m3-state-opacity: var(--md-sys-state-hover-state-layer-opacity);
@@ -181,13 +193,10 @@
     --m3-ripple-radius: var(--m3-ripple-size, 0px);
     --m3-ripple-x: var(--m3-ripple-center-x, 50%);
     --m3-ripple-y: var(--m3-ripple-center-y, 50%);
-    transition-duration:
-      var(--md-sys-motion-spring-effects-fast-duration), 75ms, 225ms, 225ms, 225ms,
-      var(--m3-transition-duration, 0s);
-    transition-delay: 0s, 0s, 0s, 0s, 0s, var(--m3-transition-delay, 0s);
-    transition-timing-function:
-      var(--md-sys-motion-spring-effects-fast-easing), linear, cubic-bezier(0.4, 0, 0.2, 1), linear,
-      linear, var(--m3-transition-easing, linear);
+    --m3-ripple-fade-duration: 75ms;
+    --m3-ripple-grow-duration: 225ms;
+    --m3-ripple-grow-delay: 0s;
+    --m3-ripple-grow-easing: cubic-bezier(0.4, 0, 0.2, 1);
   }
   &[data-disabled] {
     --m3-state-opacity: 0;
@@ -197,9 +206,7 @@
   /* Reduced motion: the ripple appears at full size where it ends, with no growth or travel. */
   @media (prefers-reduced-motion: reduce) {
     &[data-rippling] {
-      transition-duration:
-        var(--md-sys-motion-spring-effects-fast-duration), 75ms, 0s, 0s, 0s,
-        var(--m3-transition-duration, 0s);
+      --m3-ripple-grow-duration: 0s;
     }
   }
 }
