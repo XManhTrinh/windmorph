@@ -236,6 +236,23 @@ test.describe('NavigationRail behaviour', () => {
     );
   });
 
+  test('an image in the header keeps its size, collapsed and expanded', async ({ page }) => {
+    await openStory(page, 'components-navigation--rail-header-image');
+    for (const state of ['collapsed', 'expanded']) {
+      const logo = page.getByTestId(`logo-${state}`);
+      await expect
+        .poll(() =>
+          logo.evaluate((el) => {
+            const { width, height } = el.getBoundingClientRect();
+            return { width, height };
+          }),
+        )
+        .toEqual({ width: 56, height: 56 });
+    }
+    // A 512px logo never widens the collapsed rail.
+    expect(await width(page.getByTestId('rail-collapsed'))).toBe(96);
+  });
+
   test('centred items sit in the middle of the space below the header', async ({ page }) => {
     await openStory(page, 'components-navigation--centered-rail');
     const rail = await page.getByTestId('rail').boundingBox();

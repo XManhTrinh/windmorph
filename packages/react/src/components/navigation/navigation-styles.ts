@@ -73,9 +73,12 @@ export const navigationRailStyles = tv({
     ],
     // Library-owned wrapper: clips labels while the width animates.
     body: 'flex min-h-0 flex-1 flex-col overflow-x-clip overflow-y-auto pt-[44px]',
-    // Children keep their own width (a centred grid item would shrink to the 56px column).
-    header:
-      'grid grid-cols-[56px] justify-items-center-safe ps-(--m3-rail-item-inset) pb-[40px] [&>*]:min-w-max',
+    // A 56px column at the item inset: children up to 56px centre on the icon line, a wider
+    // one (an extended FAB) starts at its edge. No `min-width: max-content` on every child
+    // (2026-11-10): an extended FAB's label is `w-max`, so it never shrinks to the column, and
+    // the rule grew a box holding an image at its full size (an image avatar) to the image's
+    // natural width.
+    header: 'grid grid-cols-[56px] justify-items-center-safe ps-(--m3-rail-item-inset) pb-[40px]',
     // The gap between items springs 4 → 0px as the rail expands (default spatial, as
     // Compose's itemVerticalSpacedBy; 2026-10-17), instant under reduced motion.
     items: [
