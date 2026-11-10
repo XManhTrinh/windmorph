@@ -513,8 +513,13 @@ export const coreChecks = {
       </Core.SearchAppBar>
     ),
   },
+  SearchField: {
+    kind: 'component',
+    render: () => <Core.SearchField aria-label="Search settings" placeholder="Search settings" />,
+  },
   searchAppBarStyles: { kind: 'value', run: () => Core.searchAppBarStyles() },
   searchBarStyles: { kind: 'value', run: () => Core.searchBarStyles() },
+  searchFieldStyles: { kind: 'value', run: () => Core.searchFieldStyles() },
   searchBarTokenSet: read(Core.searchBarTokenSet),
   searchViewTokenSet: read(Core.searchViewTokenSet),
 

@@ -191,6 +191,20 @@ export const searchBarStyles = tv({
     },
     /** Centre the placeholder and the query while the bar is collapsed. */
     textAlign: { start: {}, center: { input: 'text-center' } },
+    /**
+     * A disabled `SearchField`: M3's disabled colours, the content `on-surface` at 38% and the
+     * container at 12%; forced colours draw it in `GrayText`.
+     */
+    disabled: {
+      true: {
+        field: 'bg-on-surface/12 forced-colors:border-[GrayText]',
+        leading: 'text-on-surface/38 forced-colors:text-[GrayText]',
+        trailing: 'text-on-surface/38 forced-colors:text-[GrayText]',
+        input:
+          'cursor-default text-on-surface/38 placeholder:text-on-surface/38 forced-colors:text-[GrayText]',
+      },
+      false: {},
+    },
   },
   defaultVariants: {
     inAppBar: false,
@@ -198,7 +212,23 @@ export const searchBarStyles = tv({
     hasTrailing: false,
     tone: 'default',
     textAlign: 'start',
+    disabled: false,
   },
+});
+
+/**
+ * Variant definitions for {@link SearchField}'s root. Its pill and the parts in it are the search
+ * bar's ({@link searchBarStyles}), so the two can't drift.
+ */
+export const searchFieldStyles = tv({
+  slots: {
+    // 56px, the search bar's height, less 4px a density step (44px at -3), filling its
+    // container: it filters a page, a list or a pane in place. A consumer `w-*` or `h-*` wins.
+    root: 'flex h-[calc(56px+var(--md-sys-density,0)*4px)] w-full min-w-0',
+    // The 48px icon slots keep to a dense pill's height; their buttons keep 48px targets.
+    slot: 'max-h-full',
+  },
+  variants: {},
 });
 
 /** Variant definitions for {@link SearchAppBar}. */
@@ -238,3 +268,8 @@ export type SearchBarStyleProps = VariantProps<typeof searchBarStyles>;
  * component props: their names (`hasIcon`, `isOpen`…) follow the classes and may change.
  */
 export type SearchAppBarStyleProps = VariantProps<typeof searchAppBarStyles>;
+/**
+ * The variants of {@link searchFieldStyles}, for building on its styles. They are the recipe's keys, not
+ * component props: their names follow the classes and may change.
+ */
+export type SearchFieldStyleProps = VariantProps<typeof searchFieldStyles>;

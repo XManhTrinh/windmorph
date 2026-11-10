@@ -37,6 +37,7 @@ const NAMES = [
   ['Slider, RangeSlider', 'aria-label or aria-labelledby'],
   ['NavigationRail, NavigationBar', 'aria-label or aria-labelledby'],
   ['SearchBar', 'aria-label or aria-labelledby'],
+  ['SearchField', 'aria-label or aria-labelledby'],
   ['BottomSheet', 'aria-label or aria-labelledby'],
   ['SideSheet', 'title, or aria-label / aria-labelledby'],
   ['Linear / Circular progress, LoadingIndicator', 'aria-label or aria-labelledby'],

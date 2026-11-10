@@ -29,6 +29,7 @@ import {
   RichTooltip,
   RichTooltipTrigger,
   SearchBar,
+  SearchField,
   Select,
   SelectItem,
   Slider,
@@ -119,6 +120,9 @@ const CASES: Record<string, (props: Probe, ref: RefObject<HTMLElement | null>) =
     </Carousel>
   ),
   SearchBar: (props, ref) => <SearchBar {...props} ref={ref as never} aria-label="Search" />,
+  SearchField: (props, ref) => (
+    <SearchField {...props} ref={ref as never} aria-label="Search settings" />
+  ),
   List: (props, ref) => (
     <List {...props} ref={ref as never} aria-label="Mail">
       <ListItem key="inbox">Inbox</ListItem>
@@ -238,6 +242,7 @@ describe('root DOM attributes', () => {
     'TimePicker',
     'Tabs',
     'SearchBar',
+    'SearchField',
   ];
 
   for (const name of WRAPPERS) {
@@ -294,6 +299,7 @@ describe('root DOM attributes', () => {
     TimeField: (root) => root.querySelector('input'),
     Tabs: (root) => root.querySelector('[role="tablist"]'),
     SearchBar: (root) => root.querySelector('input'),
+    SearchField: (root) => root.querySelector('input'),
     DatePicker: null,
     DateRangePicker: null,
     TimePicker: null,

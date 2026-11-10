@@ -8,6 +8,56 @@ const VIBRANT_NOT_BUILT = {
 
 /** Spec data for the M3 inputs and selection controls, by page slug. */
 export const INPUTS_M3_SPEC: Record<string, ComponentSpecData> = {
+  'search-field': {
+    spec: 'search/specs',
+    covers: [
+      { name: 'Search bar', kind: 'variant', examples: ['search-field/search-field-filter'] },
+      {
+        name: 'Leading and trailing icons',
+        kind: 'configuration',
+        examples: ['search-field/search-field-trailing'],
+      },
+      {
+        name: 'Filtering content in place',
+        kind: 'use case',
+        examples: ['search-field/search-field-filter', 'search-field/search-field-pane'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Clear button',
+        note: 'A standard icon button in the trailing slot while there is text; it clears and keeps focus in the input. Escape clears too.',
+      },
+      {
+        item: 'Disabled',
+        note: "M3's disabled colours, as other fields: the content `on-surface` at 38% and the container at 12%.",
+      },
+      {
+        item: 'Full width',
+        note: 'It fills its container, where the search bar is 360px wide by default, so it fits a page, a list pane or a table toolbar.',
+      },
+    ],
+    notBuilt: [
+      {
+        item: 'Search view',
+        note: 'It never opens one: use the Search bar for suggestions or results.',
+      },
+    ],
+    compose: [
+      {
+        composable: 'SearchBarDefaults.InputField',
+        component: 'SearchField',
+        params: [
+          { compose: 'query / onQueryChange', windmorph: '`value` / `onChange`' },
+          { compose: 'onSearch', windmorph: '`onSubmit`' },
+          { compose: 'enabled', windmorph: '`disabled`', note: 'The opposite sense.' },
+          { compose: 'placeholder', windmorph: '`placeholder`' },
+          { compose: 'leadingIcon / trailingIcon', windmorph: '`leadingIcon` / `trailingIcon`' },
+        ],
+        note: 'Compose passes `expanded` to its input field, which a search bar opens from; `SearchField` has no view to open.',
+      },
+    ],
+  },
   'text-field': {
     spec: 'text-fields/specs',
     covers: [

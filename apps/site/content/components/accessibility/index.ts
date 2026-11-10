@@ -58,6 +58,7 @@ import { navigationBar } from './navigation-bar';
 import { tabs } from './tabs';
 import { topAppBar } from './top-app-bar';
 import { search } from './search';
+import { searchField } from './search-field';
 import { toolbars } from './toolbars';
 import { alert } from './alert';
 import { snackbar } from './snackbar';
@@ -138,6 +139,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   tabs: tabs,
   'top-app-bar': topAppBar,
   search: search,
+  'search-field': searchField,
   toolbars: toolbars,
   alert: alert,
   snackbar: snackbar,

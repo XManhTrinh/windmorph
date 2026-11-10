@@ -37,6 +37,7 @@ const COVERAGE: Record<string, readonly string[]> = {
   tabs: ['components-tabs--layout-override'],
   'top-app-bar': ['components-topappbar--layout-override'],
   search: ['components-search--layout-override'],
+  'search-field': ['components-searchfield--layout-override'],
   toolbars: ['components-toolbar--layout-override', 'components-toolbar--docked-layout-override'],
   snackbar: ['components-snackbar--layout-override'],
   progress: [
