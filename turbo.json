@@ -17,7 +17,7 @@
     },
     "build": {
       "dependsOn": ["^build", "generate"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "storybook-static/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**", "storybook-static/**"]
     },
     "size": {
       "dependsOn": ["build"],
