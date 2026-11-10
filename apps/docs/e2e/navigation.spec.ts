@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
+import { openStoryOutOfSight } from './out-of-sight';
 import { openStory } from './story';
 
 const width = (locator: Locator) =>
@@ -151,18 +152,11 @@ test.describe('NavigationRail behaviour', () => {
     // At its width from the first paint: no spring open from the 220px guess.
     expect(shown.lines).toBe(1);
     expect(shown.width).toBeGreaterThan(220);
-    // Hidden by a style sheet before it mounts, as a media query hides it, then shown with no
-    // render in between.
-    await page.addInitScript(() => {
-      document.addEventListener('DOMContentLoaded', () => {
-        const style = document.createElement('style');
-        style.id = 'hide-rail';
-        style.textContent = '[data-testid="rail"] { display: none !important; }';
-        document.head.append(style);
-      });
-    });
-    await openStory(page, 'components-navigation--rail-long-label');
-    await page.evaluate(() => document.getElementById('hide-rail')!.remove());
+    await openStoryOutOfSight(
+      page,
+      'components-navigation--rail-long-label',
+      '[data-testid="rail"]',
+    );
     await expect.poll(sized).toEqual(shown);
   });
 

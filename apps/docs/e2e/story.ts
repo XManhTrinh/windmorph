@@ -9,9 +9,8 @@ export interface StoryGlobals {
   density?: '0' | '-1' | '-2' | '-3';
 }
 
-/** Opens a story in isolation with toolbar globals and args, and waits for fonts. */
-export async function openStory(
-  page: Page,
+/** A story's isolated page, with toolbar globals and args. */
+export function storyUrl(
   id: string,
   globals: StoryGlobals = {},
   args: Record<string, string | boolean> = {},
@@ -21,7 +20,17 @@ export async function openStory(
   const params = new URLSearchParams({ id, viewMode: 'story' });
   if (Object.keys(globals).length) params.set('globals', encode(Object.entries(globals)));
   if (Object.keys(args).length) params.set('args', encode(Object.entries(args)));
-  await page.goto(`/iframe.html?${params.toString().replace(/%3A/g, ':').replace(/%3B/g, ';')}`);
+  return `/iframe.html?${params.toString().replace(/%3A/g, ':').replace(/%3B/g, ';')}`;
+}
+
+/** Opens a story in isolation with toolbar globals and args, and waits for fonts. */
+export async function openStory(
+  page: Page,
+  id: string,
+  globals: StoryGlobals = {},
+  args: Record<string, string | boolean> = {},
+) {
+  await page.goto(storyUrl(id, globals, args));
   await page.locator('#storybook-root > *').first().waitFor();
   await page.evaluate(() => document.fonts.ready);
 }
