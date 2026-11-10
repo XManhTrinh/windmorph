@@ -432,6 +432,17 @@ describe('NavigationRail', () => {
     vi.restoreAllMocks();
   });
 
+  it('renders expanded where a Range has no layout, as in some test environments', () => {
+    const measure = Range.prototype.getBoundingClientRect;
+    // @ts-expect-error -- removed, as jsdom leaves it out.
+    delete Range.prototype.getBoundingClientRect;
+    try {
+      expect(() => render(<Rail expanded />)).not.toThrow();
+    } finally {
+      Range.prototype.getBoundingClientRect = measure;
+    }
+  });
+
   it('measures a label to the fraction of a pixel, rounding up', () => {
     // 199.3px of text, which `scrollWidth` rounds down to 199.
     vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(199);

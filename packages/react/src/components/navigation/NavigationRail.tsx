@@ -162,9 +162,12 @@ function useExpandedWidth(
         ...labels.map((label) => {
           label.style.whiteSpace = 'nowrap';
           range.selectNodeContents(label);
-          const natural = Math.ceil(
-            Math.max(range.getBoundingClientRect().width, label.scrollWidth),
-          );
+          // A test environment's Range may have no layout (jsdom): `scrollWidth` alone there.
+          const text =
+            typeof range.getBoundingClientRect === 'function'
+              ? range.getBoundingClientRect().width
+              : 0;
+          const natural = Math.ceil(Math.max(text, label.scrollWidth));
           label.style.whiteSpace = '';
           return natural;
         }),
