@@ -104,6 +104,36 @@ export const Density: Story = {
   ),
 };
 
+/**
+ * A hint or a query longer than a narrow field ends in an ellipsis (the query only while the
+ * field isn't focused; focused, it scrolls). The search bar shares the pill, so it does too.
+ */
+export const LongText: Story = {
+  render: () => (
+    <div className="flex w-[240px] flex-col gap-4" data-testid="long">
+      <SearchField
+        aria-label="Search pages"
+        placeholder="Search by name or page address"
+        leadingIcon={<SearchIcon />}
+        data-testid="hint"
+      />
+      <SearchField
+        aria-label="Search pages"
+        defaultValue="Accessibility and display settings"
+        leadingIcon={<SearchIcon />}
+        data-testid="query"
+      />
+      <SearchBar
+        aria-label="Search pages"
+        placeholder="Search by name or page address"
+        leadingIcon={<SearchIcon />}
+        view="docked"
+        data-testid="bar"
+      />
+    </div>
+  ),
+};
+
 /** Beside the search bar, so both read the same search bar tokens. */
 export const BesideSearchBar: Story = {
   render: () => (

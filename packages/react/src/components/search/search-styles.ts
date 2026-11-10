@@ -71,9 +71,11 @@ export const searchBarStyles = tv({
       'me-[4px] flex h-[48px] min-w-[48px] shrink-0 items-center justify-center gap-[8px] px-[4px] text-[color:var(--_md-comp-search-bar-trailing-icon-color)] [--md-comp-icon-button-icon-color:currentColor]',
       '[&>svg]:size-[24px] [&>img]:size-[30px] [&>img]:rounded-full',
     ],
+    // A hint or query longer than the field ends in an ellipsis, not mid-letter (as a text
+    // field's label); the query only while the field isn't focused, since focused it scrolls.
     input: [
-      'h-full min-w-0 flex-1 bg-transparent text-body-large text-[color:var(--_md-comp-search-bar-input-text-color)] caret-primary outline-none',
-      'placeholder:text-on-surface-variant',
+      'h-full min-w-0 flex-1 bg-transparent text-body-large text-[color:var(--_md-comp-search-bar-input-text-color)] caret-primary outline-none text-ellipsis',
+      'placeholder:text-on-surface-variant placeholder:text-ellipsis',
       '[&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none',
     ],
     scrim: [
