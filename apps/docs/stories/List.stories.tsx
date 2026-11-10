@@ -255,7 +255,11 @@ export const Links: Story = {
   ),
 };
 
-/** Switch and checkbox items: the whole item toggles; checked items take the selected colours. */
+/**
+ * Switch and checkbox items: the whole item toggles. A switch item that's on stays plain, as a
+ * settings row; a checked checkbox takes the selected colours, and `selectedWhenChecked` gives
+ * a switch item Compose's selected look.
+ */
 export const Toggles: Story = {
   render: function TogglesStory({ variant }) {
     const [searchable, setSearchable] = useState(true);
@@ -287,6 +291,11 @@ export const Toggles: Story = {
           </ListItem>
           <ListItem key="offers" control="checkbox" supportingText="Price drops and new offers">
             Offers
+          </ListItem>
+        </List>
+        <List aria-label="Backup" variant={variant}>
+          <ListItem key="photos" control="switch" defaultChecked selectedWhenChecked>
+            Back up photos
           </ListItem>
         </List>
       </div>

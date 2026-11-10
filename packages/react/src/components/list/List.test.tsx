@@ -206,7 +206,7 @@ describe('List (interactive)', () => {
       'data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
     );
     expect(within(work).getByText('Work')).toHaveClass(
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-label-text-color)]',
     );
     expect(work.querySelector('[data-selection-indicator]')).toHaveClass(
       'opacity-0',
@@ -347,14 +347,16 @@ describe('List (switch and checkbox items)', () => {
     // One control per item: the drawn switch is hidden from assistive tech.
     expect(screen.getAllByRole('switch')).toHaveLength(2);
 
+    // On, it stays plain (a settings row): only the drawn switch shows the state.
     const item = search.closest('label') as HTMLElement;
-    expect(item).toHaveAttribute('data-selected', 'true');
-    expect(item).toHaveAttribute('data-shape', 'active');
+    expect(item).toHaveAttribute('data-checked', 'true');
+    expect(item).not.toHaveAttribute('data-selected');
+    expect(item).toHaveAttribute('data-shape', 'rest');
     expect(item).toHaveAttribute('data-position', 'first');
     expect(item).toHaveAttribute('data-variant', 'segmented');
     expect(item).toHaveClass(
-      'data-selected:bg-[var(--_md-comp-list-list-item-selected-container-color)]',
       'state-layer',
+      'cursor-pointer',
       'bg-[var(--_md-comp-list-container-color)]',
     );
 
@@ -373,6 +375,56 @@ describe('List (switch and checkbox items)', () => {
     await userEvent.keyboard(' ');
     expect(search).toBeChecked();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('fills a checkbox or radio item that is on, and a switch item only when asked', async () => {
+    render(
+      <>
+        <List aria-label="Share with">
+          <ListItem key="alex" control="checkbox" defaultChecked>
+            Alex
+          </ListItem>
+          <ListItem key="sam" control="checkbox" defaultChecked selectedWhenChecked={false}>
+            Sam
+          </ListItem>
+          <ListItem key="wifi" control="switch" defaultChecked selectedWhenChecked>
+            Wi-Fi
+          </ListItem>
+        </List>
+        <List aria-label="Theme" defaultValue="dark">
+          <ListItem key="light" value="light">
+            Light
+          </ListItem>
+          <ListItem key="dark" value="dark">
+            Dark
+          </ListItem>
+        </List>
+      </>,
+    );
+    const row = (control: HTMLElement) => control.closest('label') as HTMLElement;
+    const alex = row(screen.getByRole('checkbox', { name: 'Alex' }));
+    expect(alex).toHaveAttribute('data-selected', 'true');
+    expect(alex).toHaveAttribute('data-shape', 'active');
+    expect(row(screen.getByRole('radio', { name: 'Dark' }))).toHaveAttribute(
+      'data-selected',
+      'true',
+    );
+
+    const sam = screen.getByRole('checkbox', { name: 'Sam' });
+    expect(row(sam)).toHaveAttribute('data-checked', 'true');
+    expect(row(sam)).not.toHaveAttribute('data-selected');
+    expect(row(sam)).toHaveAttribute('data-shape', 'rest');
+    // Plain, the whole row is still the control.
+    await userEvent.click(row(sam));
+    expect(sam).not.toBeChecked();
+
+    const wifi = screen.getByRole('switch', { name: 'Wi-Fi' });
+    expect(row(wifi)).toHaveAttribute('data-selected', 'true');
+    expect(row(wifi)).toHaveAttribute('data-shape', 'active');
+    await userEvent.click(within(row(wifi)).getByText('Wi-Fi'));
+    expect(wifi).not.toBeChecked();
+    expect(row(wifi)).not.toHaveAttribute('data-selected');
+    expect(row(wifi)).not.toHaveAttribute('data-checked');
   });
 
   it('places the switch at the end and checkboxes at the start, unless told otherwise', () => {

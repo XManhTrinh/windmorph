@@ -125,6 +125,15 @@ export interface ListItemProps {
   defaultChecked?: boolean;
   /** Called when a switch or checkbox item is toggled. */
   onCheckedChange?: (checked: boolean) => void;
+  /**
+   * Whether a switch, checkbox or radio item that's on takes the selected colours and shape
+   * (`secondary-container`, 16px corners), as Compose's toggleable and selectable `ListItem`s
+   * do. `false` keeps it plain, with only its control showing the state, as a settings row.
+   * Either way the whole item stays the control: a press anywhere changes it, with the state
+   * layer and a pointer cursor.
+   * @default false for a switch, true for a checkbox or a radio button
+   */
+  selectedWhenChecked?: boolean;
   /** Where the switch, checkbox or radio button sits, at the start or end of the row. @default "start", or "end" for a switch */
   controlPlacement?: ControlPlacement;
   /** A radio list item's value, or the value a switch or checkbox item posts with its form. */
@@ -2057,8 +2066,9 @@ function RadioItem({
 /**
  * An item that is a switch, checkbox or radio button (Compose's toggleable and selectable
  * `ListItem`s): the item is the input's `<label>`, so pressing anywhere on it changes it,
- * with the list item's state layer, shapes and selected colours. The drawn control only
- * shows the state.
+ * with the list item's state layer and shapes. The drawn control shows the state; an item
+ * that's on also takes the selected colours and shape unless it's a switch, or it sets
+ * `selectedWhenChecked`.
  */
 function ControlItem({
   item,
@@ -2091,13 +2101,15 @@ function ControlItem({
 }) {
   const ref = useRef<HTMLLabelElement>(null);
   const hiddenInputRef = useMemo(() => mergeRefs(inputRef, preventHiddenInputScroll), [inputRef]);
+  // A switch row that's on stays plain, as a settings row; Compose's look is an opt-in.
+  const looksSelected = isSelected && (item.selectedWhenChecked ?? kind !== 'switch');
   const { interactionProps, dataAttributes, state } = useM3Interaction(
-    { isDisabled, isPressed, isSelected, within: true },
+    { isDisabled, isPressed, isSelected: looksSelected, within: true },
     ref,
   );
   // Compose's shape precedence: pressed, then selected or focused (16px), then hovered (12px).
   const shape =
-    (isPressed && !isDisabled) || isSelected || state.isFocusVisible
+    (isPressed && !isDisabled) || looksSelected || state.isFocusVisible
       ? 'active'
       : state.isHovered && !isDisabled
         ? 'hovered'
@@ -2113,6 +2125,7 @@ function ControlItem({
       {...mergeProps(labelProps, interactionProps)}
       {...dataAttributes}
       ref={ref}
+      data-checked={isSelected || undefined}
       data-shape={shape}
       data-position={itemPosition}
       {...itemAttributes(variant)}

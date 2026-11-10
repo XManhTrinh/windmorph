@@ -7,7 +7,7 @@ import { color, defineComponentTokens } from '../../tokens/component';
  * The list's root and each item carry `data-tokens="md-comp-list"` and `data-variant`, so an
  * item's own state (`data-selected`) picks its colours. A standard item is see-through by
  * default (it takes its container's colour: a sheet, a card); a segmented item is `surface`.
- * Selected content, hover, focus, press, disabled and the item shapes stay classes.
+ * Hover, focus, press, disabled and the item shapes stay classes.
  */
 
 /** The tokens of {@link List}: `--md-comp-list-list-item-<part>`. */
@@ -49,6 +49,36 @@ export const listTokenSet = defineComponentTokens({
       description: 'A selected item.',
       compose: 'ListTokens.ItemSelectedContainerColor',
       paints: { property: 'background-color', state: 'selected' },
+    },
+    'list-item-selected-label-text-color': {
+      value: color('on-secondary-container'),
+      description: "A selected item's headline.",
+      compose: 'ListTokens.ItemSelectedLabelTextColor',
+      paints: { property: 'color', slot: 'headline', state: 'selected' },
+    },
+    'list-item-selected-supporting-text-color': {
+      value: color('on-secondary-container'),
+      description: "A selected item's supporting text.",
+      compose: 'ListTokens.ItemSelectedSupportingTextColor',
+      paints: { property: 'color', slot: 'supporting', state: 'selected' },
+    },
+    'list-item-selected-overline-color': {
+      value: color('on-secondary-container'),
+      description: "A selected item's overline.",
+      compose: 'ListTokens.ItemSelectedOverlineColor',
+      paints: { property: 'color', slot: 'overline', state: 'selected' },
+    },
+    'list-item-selected-leading-icon-color': {
+      value: color('on-secondary-container'),
+      description: "A selected item's leading content.",
+      compose: 'ListTokens.ItemSelectedLeadingIconColor',
+      paints: { property: 'color', slot: 'leading', state: 'selected' },
+    },
+    'list-item-selected-trailing-icon-color': {
+      value: color('on-secondary-container'),
+      description: "A selected item's trailing content and its check.",
+      compose: 'ListTokens.ItemSelectedTrailingIconColor',
+      paints: { property: 'color', slot: 'trailing', state: 'selected' },
     },
   },
   scopes: {

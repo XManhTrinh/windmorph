@@ -461,7 +461,11 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
             compose: 'selected, onClick',
             windmorph: 'List selectionMode, selectedKeys, onSelectionChange',
           },
-          { compose: 'checked, onCheckedChange', windmorph: 'control, checked, onCheckedChange' },
+          {
+            compose: 'checked, onCheckedChange',
+            windmorph: 'control, checked, onCheckedChange',
+            note: 'A switch item that is on stays plain; `selectedWhenChecked` fills it, as Compose does.',
+          },
         ],
       },
       { composable: 'SegmentedListItem', component: 'List variant="segmented"' },

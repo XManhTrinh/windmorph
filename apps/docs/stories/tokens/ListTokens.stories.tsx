@@ -25,7 +25,13 @@ function Sample({ variant, itemClassName }: { variant: ListVariant; itemClassNam
       >
         Alex
       </ListItem>
-      <ListItem key="sam" supportingText="Sent the slides" leading={<SendIcon />} trailing="8:02">
+      <ListItem
+        key="sam"
+        overline="Team"
+        supportingText="Sent the slides"
+        leading={<SendIcon />}
+        trailing="8:02"
+      >
         Sam
       </ListItem>
     </List>

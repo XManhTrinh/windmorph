@@ -12,8 +12,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * `body-large` `on-surface`; supporting text `body-medium`, overline `label-small`, leading
  * and trailing content `on-surface-variant` (trailing text `label-small`, 20px icons). Selected
  * items show a trailing check as a second cue besides colour. Selected items
- * are `secondary-container` with `on-secondary-container` content; disabled content is
- * `on-surface` 38%.
+ * are `secondary-container` with `on-secondary-container` content (the `selected-*` tokens);
+ * a switch item that's on stays plain unless it asks for them (`selectedWhenChecked`);
+ * disabled content is `on-surface` 38%.
  *
  * Shape (interactive items): 4px at rest, 12px hovered, 16px focused, selected or pressed,
  * morphing on the fast spatial spring; colours change on the default effects spring.
@@ -73,34 +74,34 @@ export const listStyles = tv({
     cell: 'grid w-full grid-cols-[auto_minmax(0,1fr)_auto]',
     leading: [
       'col-start-1 me-[12px] flex items-center gap-x-[12px] text-title-medium text-[color:var(--_md-comp-list-list-item-leading-icon-color)] [&>svg]:size-[20px]',
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-leading-icon-color)]',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     text: 'col-start-2 flex min-w-0 flex-col',
     overline: [
       'text-label-small text-[color:var(--_md-comp-list-list-item-overline-color)]',
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-overline-color)]',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     headline: [
       'text-body-large text-[color:var(--_md-comp-list-list-item-label-text-color)]',
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-label-text-color)]',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     supporting: [
       'text-body-medium text-[color:var(--_md-comp-list-list-item-supporting-text-color)]',
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-supporting-text-color)]',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     trailing: [
       'col-start-3 ms-[12px] flex items-center gap-x-[12px] text-label-small text-[color:var(--_md-comp-list-list-item-trailing-icon-color)] [&>svg]:size-[20px]',
-      'group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-trailing-icon-color)]',
       'group-data-disabled/list-item:text-on-surface/38',
     ],
     // The check a selected item shows besides its colour (M3: two cues for selection).
     selectionIndicator: [
       'inline-flex size-[20px] shrink-0 items-center justify-center opacity-0 [&>svg]:size-full',
-      'group-data-selected/list-item:opacity-100 group-data-selected/list-item:text-on-secondary-container',
+      'group-data-selected/list-item:opacity-100 group-data-selected/list-item:text-[color:var(--_md-comp-list-list-item-selected-trailing-icon-color)]',
       'transition-opacity duration-(--md-sys-motion-spring-effects-fast-duration) ease-(--md-sys-motion-spring-effects-fast-easing)',
     ],
     // An expandable item's chevron: a button (out of the Tab order) with a 48px target.
