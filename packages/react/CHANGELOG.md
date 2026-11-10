@@ -2,6 +2,20 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.2 — 2026-11-10
+
+### Added
+
+- `SearchField`, a search box that filters content in place (a settings page, a table, a list pane), drawn as the search bar's 56px pill and filling its container. It never opens a search view: Escape clears the query, Enter calls `onSubmit`, and a clear button (`labels.clear`, `clearIcon`) shows while there's text. It takes `density` like the other fields (56px down to 44px), and reads the search bar's tokens, so a theme or scoped override restyles both. `SearchBar` and a searchable `Select` now draw the same pill, with no visual change. ([#34](https://github.com/XManhTrinh/windmorph/pull/34))
+
+### Fixed
+
+- A carousel item's focus ring is drawn inside the item, as on a full-bleed carousel, so the first and last items' rings are no longer cut off by the carousel's edges. ([#35](https://github.com/XManhTrinh/windmorph/pull/35))
+- A switch `ListItem` that's on no longer fills with the selected colours: it stays plain, as a settings row, with only its switch showing the state, and the whole row is still the control. Checkbox and radio items keep the fill. `selectedWhenChecked` picks either look per item, and the selected item's text and icon colours are now tokens (`--md-comp-list-list-item-selected-*-color`). ([#37](https://github.com/XManhTrinh/windmorph/pull/37))
+- A growing `TextField` (`multiline` with `autoGrow`) first rendered out of sight, as in a closed tab or panel, keeps its height once it shows instead of collapsing to 0px, and a `DateRangePicker` rendered out of sight opens on the range's month once it shows instead of the first month of its year range. ([#35](https://github.com/XManhTrinh/windmorph/pull/35))
+- An expanded `NavigationRail` sizes itself to its labels exactly. A label that only just fit no longer wraps, the rail measures again once the page's fonts load and once a rail hidden by CSS (shown only on wider windows) comes into sight, and a rail that starts expanded is at its width from the first paint instead of springing open. ([#35](https://github.com/XManhTrinh/windmorph/pull/35))
+- A collapsed `FloatingToolbar` or `DockedToolbar` by the window's edge no longer scrolls the page sideways: its hidden leading or trailing content is clipped on the toolbar's axis instead of only hidden. ([#35](https://github.com/XManhTrinh/windmorph/pull/35))
+
 ## 0.2.1 — 2026-11-10
 
 ### Added
