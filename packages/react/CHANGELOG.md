@@ -2,6 +2,19 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.1 — 2026-11-10
+
+### Added
+
+- `closeIcon` on `DialogHeader`, to replace the full-screen close button's icon, as `SideSheet` and `BottomSheet` take. ([#31](https://github.com/XManhTrinh/windmorph/pull/31))
+- `classNames.frame` on a standard `SideSheet`, the box that holds a detached sheet's margins, so an app can change the gap on one side. ([#28](https://github.com/XManhTrinh/windmorph/pull/28))
+
+### Fixed
+
+- A disabled `Button` or `IconButton` link keeps `role="link"` once its `href` is gone, so assistive technology can still read its name. ([#28](https://github.com/XManhTrinh/windmorph/pull/28))
+- A current `NavigationRail` or `NavigationBar` label keeps its regular weight, as M3 Expressive specifies, and only its colour changes. ([#28](https://github.com/XManhTrinh/windmorph/pull/28))
+- Changing the theme, mode or contrast through `ThemeProvider` updates every control at once, where buttons and other controls used to fade behind the page. ([#30](https://github.com/XManhTrinh/windmorph/pull/30))
+
 ## 0.2.0 — 2026-11-09
 
 ### Added

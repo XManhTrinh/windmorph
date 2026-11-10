@@ -34,6 +34,73 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.1',
+    date: '2026-11-10',
+    summary: (
+      <>
+        Navigation labels and theme changes as M3 Expressive draws them, a close icon an app can
+        replace, and Windmorph Pro&apos;s <InlineCode>SidePanelRail</InlineCode>, with the Blocks
+        section&apos;s app frame to build from.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>DialogHeader</InlineCode> takes <InlineCode>closeIcon</InlineCode>, to
+            replace the full-screen close button&apos;s icon, as <InlineCode>SideSheet</InlineCode>{' '}
+            and <InlineCode>BottomSheet</InlineCode> do.
+          </>,
+          <>
+            A standard <InlineCode>SideSheet</InlineCode> takes{' '}
+            <InlineCode>classNames.frame</InlineCode>, the box holding a detached sheet&apos;s
+            margins, so an app can change the gap on one side.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>SidePanelRail</InlineCode>, a strip of icon links or buttons at the
+            window&apos;s end edge that hides to a small tab and can open a standard{' '}
+            <InlineCode>SideSheet</InlineCode> beside the page.
+          </>,
+          <>
+            <InlineCode>NavigationRailGroup</InlineCode> keeps one panel per rail, replacing its
+            content as the pointer moves between destinations, and folds without a bounce.
+          </>,
+          <>
+            <InlineCode>classNames</InlineCode> keys for every inner part of the data and navigation
+            components, replaceable close and expand icons, and tokens for their remaining fixed
+            widths and opacities.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A current <InlineCode>NavigationRail</InlineCode> or{' '}
+            <InlineCode>NavigationBar</InlineCode> label keeps its regular weight, as M3 Expressive
+            specifies; only its colour changes.
+          </>,
+          <>
+            Changing the theme, mode or contrast through <InlineCode>ThemeProvider</InlineCode>{' '}
+            updates every control at once, where buttons and other controls used to fade behind the
+            page.
+          </>,
+          <>
+            A disabled <InlineCode>Button</InlineCode> or <InlineCode>IconButton</InlineCode> link
+            keeps <InlineCode>role=&quot;link&quot;</InlineCode> once its{' '}
+            <InlineCode>href</InlineCode> is gone, so assistive technology still reads its name.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-11-09',
     summary: (
