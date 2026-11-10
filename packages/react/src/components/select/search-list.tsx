@@ -8,11 +8,12 @@ import {
   type HTMLAttributes,
   type RefObject,
 } from 'react';
-import { useAutocomplete, useFocusRing, useSearchField } from 'react-aria';
+import { useAutocomplete, useSearchField } from 'react-aria';
 import { useListState, type Node } from 'react-stately';
 import type { ListProps } from 'react-stately/useListState';
 import { cn } from '../../utils/cn';
 import { menuStyles } from '../menu/menu-styles';
+import { SearchFieldFrame } from '../search/search-field-frame';
 import { searchBarStyles } from '../search/search-styles';
 import { FOCUSABLE_DISABLED_OPTIONS, OptionList, type OptionListClassNames } from './option-list';
 
@@ -121,7 +122,6 @@ export function SearchList<T>({
     { value: search, setValue: onSearchChange },
     inputRef,
   );
-  const { focusProps, isFocusVisible } = useFocusRing({ within: true, isTextInput: true });
 
   useEffect(() => {
     if (autoFocusSearch) inputRef.current?.focus();
@@ -150,23 +150,23 @@ export function SearchList<T>({
           embedded && 'sticky top-0 z-[1] bg-[var(--_md-comp-sheet-bottom-docked-container-color)]',
         )}
       >
-        <div
-          {...focusProps}
-          data-tokens="md-comp-search-bar"
-          data-focus-visible={isFocusVisible || undefined}
+        {/* The search bar's pill, as `SearchField` draws it, at 48px. */}
+        <SearchFieldFrame
           // A press on the hit area around a dense field (below) puts the caret in the input.
           onPointerDown={(event) => {
             if (event.target !== event.currentTarget) return;
             event.preventDefault();
             inputRef.current?.focus();
           }}
-          className={field.field({ class: cn(denseSearchTarget, classNames?.search) })}
+          className={cn(denseSearchTarget, classNames?.search)}
+          leading={
+            <span data-slot="leading" className={field.leading({ class: 'h-full' })}>
+              <SearchIcon />
+            </span>
+          }
         >
-          <span data-slot="leading" className={field.leading({ class: 'h-full' })}>
-            <SearchIcon />
-          </span>
           <input {...inputProps} ref={inputRef} data-slot="input" className={field.input()} />
-        </div>
+        </SearchFieldFrame>
       </div>
       <OptionList
         embedded

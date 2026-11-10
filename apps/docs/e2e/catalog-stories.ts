@@ -46,6 +46,7 @@ const TITLES: Record<string, string> = {
   'components-pulltorefresh': 'pull-to-refresh',
   'components-radio': 'radio-group',
   'components-search': 'search',
+  'components-searchfield': 'search-field',
   'components-select': 'select',
   'components-sheet': 'sheets',
   'components-slider': 'slider',

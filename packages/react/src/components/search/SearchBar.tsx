@@ -17,14 +17,7 @@ import {
   type RefObject,
 } from 'react';
 import { useReducedMotion } from 'motion/react';
-import {
-  mergeProps,
-  mergeRefs,
-  useDialog,
-  useFocusRing,
-  useModalOverlay,
-  useObjectRef,
-} from 'react-aria';
+import { mergeProps, mergeRefs, useDialog, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { Overlay } from '../../primitives/Overlay';
@@ -35,8 +28,8 @@ import {
   splitRootProps,
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
-import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
+import { SearchFieldFrame } from './search-field-frame';
 import { searchBarStyles } from './search-styles';
 
 /** Set by `SearchAppBar` for the search bar inside it. */
@@ -346,8 +339,9 @@ export function SearchBar(props: SearchBarProps) {
   const collapsedTone = appBar ? (appBar.scrolled ? 'scrolled' : 'appBar') : 'default';
 
   const field = (input: ReactNode, tone: 'default' | 'appBar' | 'scrolled') => (
-    <SearchField
-      className={searchBarStyles({ tone }).field({ class: classNames?.field })}
+    <SearchFieldFrame
+      tone={tone}
+      className={classNames?.field}
       leading={
         leading != null && (
           <span data-slot="leading" className={styles.leading({ class: classNames?.leading })}>
@@ -364,7 +358,7 @@ export function SearchBar(props: SearchBarProps) {
       }
     >
       {input}
-    </SearchField>
+    </SearchFieldFrame>
   );
 
   // The consumer's attributes replace the defaults; the bar's own keys always win, and
@@ -501,36 +495,6 @@ export function SearchBar(props: SearchBarProps) {
           </SearchView>
         </Overlay>
       )}
-    </div>
-  );
-}
-
-function SearchField({
-  className,
-  leading,
-  trailing,
-  children,
-}: {
-  className: string;
-  leading: ReactNode;
-  trailing: ReactNode;
-  children: ReactNode;
-}) {
-  // The pill shows the inset focus ring while its input has keyboard focus.
-  const { isFocusVisible, focusProps } = useFocusRing({ within: true, isTextInput: true });
-  return (
-    <div
-      {...focusProps}
-      data-tokens="md-comp-search-bar"
-      data-focus-visible={isFocusVisible || undefined}
-      className={className}
-    >
-      {/* Icon buttons in a search bar are standard (M3), not the filled default. */}
-      <ButtonContext value={standardIconButtons}>
-        {leading}
-        {children}
-        {trailing}
-      </ButtonContext>
     </div>
   );
 }

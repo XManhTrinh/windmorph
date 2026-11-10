@@ -469,10 +469,19 @@ export {
   type SearchAppBarProps,
 } from './components/search/SearchAppBar';
 export {
+  SearchField,
+  type SearchFieldClassNames,
+  type SearchFieldInputProps,
+  type SearchFieldLabels,
+  type SearchFieldProps,
+} from './components/search/SearchField';
+export {
   searchAppBarStyles,
   searchBarStyles,
+  searchFieldStyles,
   type SearchAppBarStyleProps,
   type SearchBarStyleProps,
+  type SearchFieldStyleProps,
 } from './components/search/search-styles';
 export { searchBarTokenSet, searchViewTokenSet } from './components/search/search-tokens';
 export {
