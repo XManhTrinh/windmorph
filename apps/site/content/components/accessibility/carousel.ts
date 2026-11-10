@@ -39,7 +39,7 @@ export const carousel: ComponentAccessibility = {
     ],
   },
   focus: [
-    "Tab lands on the first item. Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the item, or drawn inside it in a full-screen carousel, whose items fill the window. Pointer presses show no ring.",
+    "Tab lands on the first item. Keyboard focus shows M3's focus indicator, a 3px `secondary` outline, drawn inside the item: items sit against the carousel's edges, where a ring outside would be cut off. Pointer presses show no ring.",
     'Items in `disabledIndexes` can still take focus, but a press, Enter or Space does nothing.',
   ],
   touchTarget: [
