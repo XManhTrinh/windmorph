@@ -181,7 +181,10 @@ interface BottomSheetOwnProps {
   closeIcon?: ReactElement;
   /** Replaces the collapse button's icon. */
   collapseIcon?: ReactElement;
-  /** Words the sheet announces, with English defaults. */
+  /**
+   * Words the sheet announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<BottomSheetLabels>;
   children?: ReactNode | ((props: { close: () => void }) => ReactNode);
   /** Classes for each part, by slot. */

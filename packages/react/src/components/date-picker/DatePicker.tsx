@@ -160,7 +160,10 @@ interface DatePickerCommonProps extends Omit<WrapperRootDOMProps, DescriptionAri
    * `min` / `max` are shown disabled. @default [1900, 2100]
    */
   yearRange?: [number, number];
-  /** Words the picker shows and announces, with English defaults. */
+  /**
+   * Words the picker shows and announces, with English defaults. A {@link LabelsProvider} sets them
+   * for the whole app.
+   */
   labels?: Partial<DatePickerLabels>;
   /**
    * Web density of the input mode's text fields, `0` to `-3`: each step takes 4px off them

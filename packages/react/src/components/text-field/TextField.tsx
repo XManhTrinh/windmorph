@@ -204,7 +204,10 @@ interface TextFieldOwnProps
   maxRows?: number;
   /** Shows `count/maxLength` below the field. Defaults to `true` when `maxLength` is set. */
   counter?: boolean;
-  /** Words the field announces, for other languages. */
+  /**
+   * Words the field announces, for other languages. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<TextFieldLabels>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;

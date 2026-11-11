@@ -150,8 +150,8 @@ export interface ButtonGroupProps extends Omit<
    */
   overflow?: boolean;
   /**
-   * Text for assistive tech, e.g. the overflow indicator's name.
-   * @default { more: "More options" }
+   * Text for assistive tech, e.g. the overflow indicator's name. @default { more: "More options" }
+   * A {@link LabelsProvider} sets them for the whole app.
    */
   labels?: Partial<ButtonGroupLabels>;
   /** Classes for each part. `classNames.root` is merged with `className`. */

@@ -43,33 +43,57 @@ import type { ButtonGroupLabels } from './composites/button-group/ButtonGroup';
  * ```
  */
 export interface WindmorphLabels {
+  /** `Autocomplete`'s words. @default each word's English default */
   Autocomplete?: Partial<AutocompleteLabels>;
+  /** `Badge`'s words. @default each word's English default */
   Badge?: Partial<BadgeLabels>;
+  /** `BottomSheet`'s words. @default each word's English default */
   BottomSheet?: Partial<BottomSheetLabels>;
-  /** `Button` and `IconButton`. */
+  /** `Button`'s and `IconButton`'s words. @default each word's English default */
   Button?: Partial<ButtonLabels>;
+  /** `ButtonGroup`'s words. @default each word's English default */
   ButtonGroup?: Partial<ButtonGroupLabels>;
+  /** `Carousel`'s words. @default each word's English default */
   Carousel?: Partial<CarouselLabels>;
-  /** `FilterChip` and `InputChip`. */
+  /** `FilterChip`'s and `InputChip`'s words. @default each word's English default */
   Chip?: Partial<ChipLabels>;
-  /** `DateField` reads `DatePicker`'s words first, then these. */
+  /**
+   * `DateField`'s words. It reads `DatePicker`'s first, then these.
+   * @default each word's English default
+   */
   DateField?: Partial<DateFieldLabels>;
-  /** `DatePicker` and `DateRangePicker`. */
+  /** `DatePicker`'s and `DateRangePicker`'s words. @default each word's English default */
   DatePicker?: Partial<DatePickerLabels>;
+  /** `DialogHeader`'s words. @default each word's English default */
   DialogHeader?: Partial<DialogHeaderLabels>;
+  /** `Menu`'s words. @default each word's English default */
   Menu?: Partial<MenuLabels>;
+  /** `PickerDialog`'s words. @default each word's English default */
   PickerDialog?: Partial<PickerDialogLabels>;
+  /** `PullToRefresh`'s words. @default each word's English default */
   PullToRefresh?: Partial<PullToRefreshLabels>;
+  /** `RangeSlider`'s words. @default each word's English default */
   RangeSlider?: Partial<RangeSliderLabels>;
+  /** `SearchField`'s words. @default each word's English default */
   SearchField?: Partial<SearchFieldLabels>;
+  /** `Select`'s words. @default each word's English default */
   Select?: Partial<SelectLabels>;
+  /** `SideSheet`'s words. @default each word's English default */
   SideSheet?: Partial<SideSheetLabels>;
-  /** `Snackbar` and `SnackbarHost`. */
+  /**
+   * `Snackbar`'s words, and those of the snackbars a `SnackbarHost` shows.
+   * @default each word's English default
+   */
   Snackbar?: Partial<SnackbarLabels>;
+  /** `SplitButton`'s words. @default each word's English default */
   SplitButton?: Partial<SplitButtonLabels>;
+  /** `TextField`'s words. @default each word's English default */
   TextField?: Partial<TextFieldLabels>;
-  /** `TimeField` reads `TimePicker`'s and `PickerDialog`'s words first, then these. */
+  /**
+   * `TimeField`'s words. It reads `TimePicker`'s and `PickerDialog`'s first, then these.
+   * @default each word's English default
+   */
   TimeField?: Partial<TimeFieldLabels>;
-  /** `TimePicker` and `TimePickerModeToggle`. */
+  /** `TimePicker`'s and `TimePickerModeToggle`'s words. @default each word's English default */
   TimePicker?: Partial<TimePickerLabels>;
 }

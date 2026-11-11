@@ -121,7 +121,10 @@ export interface TimeFieldProps extends WrapperRootDOMProps {
    * @default 0
    */
   density?: Density;
-  /** Words the field and its picker show and announce, with English defaults. */
+  /**
+   * Words the field and its picker show and announce, with English defaults. A {@link
+   * LabelsProvider} sets them for the whole app.
+   */
   labels?: Partial<TimeFieldLabels>;
   /** The text field's root. */
   ref?: Ref<HTMLDivElement>;

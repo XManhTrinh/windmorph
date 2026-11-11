@@ -138,7 +138,10 @@ interface CarouselOwnProps extends RootDOMProps {
   onAction?: (index: number) => void;
   /** Indexes of items that can't be activated. */
   disabledIndexes?: readonly number[];
-  /** Words the carousel announces, for localisation. */
+  /**
+   * Words the carousel announces, for localisation. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<CarouselLabels>;
   /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
   children: ReactNode;

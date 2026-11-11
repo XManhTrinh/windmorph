@@ -134,7 +134,10 @@ interface SideSheetOwnProps {
   closeIcon?: ReactElement;
   /** Replaces the back button's icon. */
   backIcon?: ReactElement;
-  /** Words the sheet announces, with English defaults. */
+  /**
+   * Words the sheet announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<SideSheetLabels>;
   children?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
   /** Classes for each part, by slot. */

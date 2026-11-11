@@ -125,7 +125,10 @@ export interface TimePickerProps extends Omit<WrapperRootDOMProps, DescriptionAr
    * time picker placement and adaptive design). @default "auto"
    */
   layout?: 'vertical' | 'horizontal' | 'auto';
-  /** Words the picker shows and announces, with English defaults. */
+  /**
+   * Words the picker shows and announces, with English defaults. A {@link LabelsProvider} sets them
+   * for the whole app.
+   */
   labels?: Partial<TimePickerLabels>;
   /**
    * Web density of the input mode, `0` to `-3`: each step takes 4px off the typed hour and
@@ -318,8 +321,9 @@ export interface TimePickerModeToggleProps extends RootDOMProps<HTMLButtonElemen
   /** Called with the other mode when the toggle is pressed. */
   onModeChange: (mode: TimePickerMode) => void;
   /**
-   * Words the toggle announces (`inputMode`, `dialMode`), with English defaults. Takes the
-   * same object as the time picker's `labels`, so one set of words covers both.
+   * Words the toggle announces (`inputMode`, `dialMode`), with English defaults. Takes the same
+   * object as the time picker's `labels`, so one set of words covers both. A {@link LabelsProvider}
+   * sets them for the whole app.
    */
   labels?: Partial<TimePickerLabels>;
   /** Shown in dial mode. Defaults to Material Symbols' keyboard. */

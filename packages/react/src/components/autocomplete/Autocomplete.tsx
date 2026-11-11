@@ -196,7 +196,10 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
      * ignoring case and accents ("zurich" finds "Zürich"). Not used with controlled `items`.
      */
     filter?: (textValue: string, inputValue: string) => boolean;
-    /** Words the Autocomplete shows or announces, for other languages. */
+    /**
+     * Words the Autocomplete shows or announces, for other languages. A {@link LabelsProvider} sets
+     * them for the whole app.
+     */
     labels?: Partial<AutocompleteLabels>;
     /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;

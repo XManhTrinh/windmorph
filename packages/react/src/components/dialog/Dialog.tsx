@@ -596,7 +596,10 @@ const DEFAULT_HEADER_LABELS: DialogHeaderLabels = { close: 'Close' };
 export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 'title'> {
   /** The headline; it names the dialog. */
   children: ReactNode;
-  /** Words the header announces, with English defaults. */
+  /**
+   * Words the header announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<DialogHeaderLabels>;
   /**
    * The confirming action, usually a text `Button` ("Save"). Shown in full screen only;

@@ -75,7 +75,10 @@ interface SplitButtonOwnProps {
   size?: SplitButtonSize;
   /** Icon before the label, or on its own with `leadingLabel`. Hidden from assistive tech. */
   leadingIcon?: ReactElement;
-  /** Words the split button announces, with English defaults. */
+  /**
+   * Words the split button announces, with English defaults. A {@link LabelsProvider} sets them for
+   * the whole app.
+   */
   labels?: Partial<SplitButtonLabels>;
   /**
    * The `<Menu>` the trailing button opens, 4px below it and aligned with its end edge

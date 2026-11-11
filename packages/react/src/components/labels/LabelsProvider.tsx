@@ -1,10 +1,8 @@
 'use client';
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { useContext, useMemo, type ReactNode } from 'react';
 import type { WindmorphLabels } from '../../windmorph-labels';
-
-/** The words of the providers above, already merged; `null` with no provider. */
-export const LabelsContext = createContext<WindmorphLabels | null>(null);
+import { defined, LabelsContext } from './use-labels';
 
 export interface LabelsProviderProps {
   /**
@@ -24,16 +22,6 @@ function mergeLabels(outer: WindmorphLabels | null, inner: WindmorphLabels): Win
     merged[component] = { ...merged[component], ...defined(words) };
   }
   return merged;
-}
-
-/** An object without its `undefined` values, so a word left `undefined` keeps the one below. */
-export function defined<T extends object>(words: T | undefined): Partial<T> {
-  if (!words) return {};
-  const kept: Partial<T> = {};
-  for (const key of Object.keys(words) as (keyof T)[]) {
-    if (words[key] !== undefined) kept[key] = words[key];
-  }
-  return kept;
 }
 
 /**

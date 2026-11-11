@@ -36,7 +36,10 @@ export interface BadgeProps extends Omit<ComponentPropsWithRef<'span'>, 'childre
    * Without it, a large badge reads its content and a small one `labels.newNotification`.
    */
   label?: string;
-  /** Words the badge announces, with English defaults. */
+  /**
+   * Words the badge announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<BadgeLabels>;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
   classNames?: BadgeClassNames;

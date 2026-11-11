@@ -111,7 +111,10 @@ interface PickerDialogOwnProps extends Omit<RootDOMProps, 'title'> {
    * @default "any"
    */
   closedBy?: ClosedBy;
-  /** Words the full-screen form shows and announces, with English defaults. */
+  /**
+   * Words the full-screen form shows and announces, with English defaults. A {@link LabelsProvider}
+   * sets them for the whole app.
+   */
   labels?: Partial<PickerDialogLabels>;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);

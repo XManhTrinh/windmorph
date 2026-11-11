@@ -114,7 +114,10 @@ interface SearchFieldOwnProps extends WrapperRootDOMProps {
    * its role, name, value and type always win.
    */
   inputProps?: SearchFieldInputProps;
-  /** Words the field shows or announces, in place of the English defaults. */
+  /**
+   * Words the field shows or announces, in place of the English defaults. A {@link LabelsProvider}
+   * sets them for the whole app.
+   */
   labels?: Partial<SearchFieldLabels>;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;

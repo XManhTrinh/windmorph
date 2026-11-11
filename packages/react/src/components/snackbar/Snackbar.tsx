@@ -70,7 +70,10 @@ interface SnackbarOwnProps {
    * button. @default onDismiss
    */
   onEscape?: () => void;
-  /** Words the snackbar announces, with English defaults. */
+  /**
+   * Words the snackbar announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<SnackbarLabels>;
   /** Put the actions under the message, for long action labels. @default false */
   actionOnNewLine?: boolean;
@@ -180,7 +183,10 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
   state: SnackbarHostState;
   /** Renders each snackbar; defaults to {@link Snackbar}. */
   snackbar?: (data: SnackbarData) => React.ReactNode;
-  /** Words each default snackbar announces, with English defaults. */
+  /**
+   * Words each default snackbar announces, with English defaults. A {@link LabelsProvider} sets
+   * them for the whole app.
+   */
   labels?: Partial<SnackbarLabels>;
   /**
    * The key combination that moves focus to a snackbar with actions, as the spec asks for on

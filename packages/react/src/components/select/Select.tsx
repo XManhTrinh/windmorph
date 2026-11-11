@@ -233,7 +233,10 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * leaving it out) on a field that loads options.
      */
     loading?: boolean;
-    /** Words the Select shows or announces, for other languages. */
+    /**
+     * Words the Select shows or announces, for other languages. A {@link LabelsProvider} sets them
+     * for the whole app.
+     */
     labels?: Partial<SelectLabels>;
     /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;

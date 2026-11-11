@@ -316,7 +316,10 @@ export interface MenuProps
    * @default "popover"
    */
   presentation?: MenuPresentation;
-  /** Words the menu shows in a sheet. Set them on the root menu. */
+  /**
+   * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
+   * for the whole app.
+   */
   labels?: Partial<MenuLabels>;
   /**
    * Open and close with no motion (M3: "In dense products, such as on desktop, menus can

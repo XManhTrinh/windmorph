@@ -89,7 +89,7 @@ interface PullToRefreshOwnProps {
   disabled?: boolean;
   /**
    * Words the pull to refresh announces, with English defaults; name them for what refreshes
-   * ("Refreshing messages").
+   * ("Refreshing messages"). A {@link LabelsProvider} sets them for the whole app.
    */
   labels?: Partial<PullToRefreshLabels>;
   /**
