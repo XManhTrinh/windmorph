@@ -81,4 +81,11 @@ describe('textFieldStyles', () => {
       'opacity-[var(--m3-field-label-room)]',
     );
   });
+
+  // A long hint or value was cut off mid-letter; the browser test checks the result.
+  it('ends a hint or value longer than the field in an ellipsis', () => {
+    expect(textFieldStyles().input().split(' ')).toEqual(
+      expect.arrayContaining(['text-ellipsis', 'placeholder:text-ellipsis']),
+    );
+  });
 });

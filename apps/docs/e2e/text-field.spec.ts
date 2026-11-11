@@ -347,3 +347,20 @@ test.describe('TextField with a browser-drawn format', () => {
     });
   }
 });
+
+// 2026-11-11: a hint or an unfocused value longer than the field was cut off mid-letter, where
+// the label (and Select's value, and the search fields) end in an ellipsis.
+test.describe('Long text', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a long hint and value end in an ellipsis · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-textfield--long-text', { dir });
+      for (const id of ['hint', 'value', 'autocomplete']) {
+        const input = page.getByTestId(id).locator('input');
+        expect(await input.evaluate((el) => getComputedStyle(el).textOverflow), id).toBe(
+          'ellipsis',
+        );
+      }
+      await expect(page.getByTestId('long')).toHaveScreenshot(`long-text-${dir}.png`);
+    });
+  }
+});
