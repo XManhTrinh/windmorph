@@ -236,6 +236,9 @@ test.describe('Menu behaviour', () => {
   test('a link item opens in a new tab on a modified click', async ({ page, context }) => {
     await openStory(page, 'components-menu--links');
     await page.getByRole('button', { name: 'Help' }).click();
+    // Once the menu has opened: a press while it's still opening could miss on a loaded runner,
+    // and no tab ever came (2026-11-11).
+    await settle(page);
     const [tab] = await Promise.all([
       context.waitForEvent('page'),
       page
@@ -255,6 +258,7 @@ test.describe('Menu behaviour', () => {
     test('a download item downloads its file and closes the menu', async ({ page }) => {
       await openStory(page, 'components-menu--links');
       await page.getByRole('button', { name: 'Help' }).click();
+      await settle(page);
       const [download] = await Promise.all([
         page.waitForEvent('download'),
         page.getByRole('menuitem', { name: 'Download the release notes' }).click(),
