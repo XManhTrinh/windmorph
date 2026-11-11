@@ -150,8 +150,8 @@ export type RangeSliderProps = SliderCommonProps &
     /** Called when the user stops dragging or releases a key. */
     onChangeEnd?: (value: [number, number]) => void;
     /**
-     * Words the range slider announces (its thumbs' names), with English defaults. A {@link
-     * LabelsProvider} sets them for the whole app.
+     * Words the range slider announces (its thumbs' names), with English defaults.
+     * A {@link LabelsProvider} sets them for the whole app.
      */
     labels?: Partial<RangeSliderLabels>;
   };

@@ -179,8 +179,8 @@ export interface DateFieldProps extends WrapperRootDOMProps {
    */
   density?: Density;
   /**
-   * Words the field and its calendar show and announce, with English defaults. A {@link
-   * LabelsProvider} sets them for the whole app.
+   * Words the field and its calendar show and announce, with English defaults.
+   * A {@link LabelsProvider} sets them for the whole app.
    */
   labels?: Partial<DateFieldLabels>;
   /** The text field's root. */
