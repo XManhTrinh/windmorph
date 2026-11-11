@@ -181,6 +181,8 @@ export const primitivesChecks = {
   useM3Morph: hook,
   useM3Spring: hook,
   useRevealEntering: hook,
+  useScrollKeys: hook,
+  useScrollRestoration: hook,
   usePresence: hook,
   useTriggerProps: hook,
 } satisfies ExportChecks<typeof Primitives>;

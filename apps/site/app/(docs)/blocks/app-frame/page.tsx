@@ -54,9 +54,15 @@ export default async function AppFramePage() {
           page is flat and the rail becomes a drawer.
         </p>
         <p className="text-body-large text-on-surface-variant">
-          Where the pane scrolls by itself, Page Down, End, Space and the arrows scroll it even with
-          nothing focused, as they scroll a page. It takes a Tab stop only on a page with no links
-          or controls of its own, so a text-only page can still be reached from the keyboard.
+          Where the pane scrolls by itself, two hooks from{' '}
+          <InlineCode>@windmorph/react/primitives</InlineCode> make it behave as a page does.{' '}
+          <InlineCode>useScrollKeys</InlineCode> sends Page Down, End, Space and the arrows to the
+          pane even with nothing focused, and makes it a Tab stop only on a page with no links or
+          controls of its own, so a text-only page can still be reached from the keyboard.{' '}
+          <InlineCode>useScrollRestoration</InlineCode> brings the pane&apos;s scroll position back
+          on back, forward and reload, which browsers do only for the window: pass it your
+          router&apos;s path and query as <InlineCode>pageKey</InlineCode> (in Next.js,{' '}
+          <InlineCode>usePathname()</InlineCode> and <InlineCode>useSearchParams()</InlineCode>).
         </p>
       </header>
       {items.map((item) => (

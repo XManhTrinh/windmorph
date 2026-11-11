@@ -1,11 +1,11 @@
 'use client';
 
 import { IconButton, NavigationRail, NavigationRailItem, TopAppBar } from '@windmorph/react';
+import { useScrollKeys, useScrollRestoration } from '@windmorph/react/primitives';
 import { NavigationRailGroup, NavigationRailGroupItem } from '@windmorph/react-pro';
 import {
   ViewTransition,
   startTransition,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -36,13 +36,6 @@ const FLAT = {
 const SLIDE =
   'transition-[margin-inline-start] duration-[var(--md-sys-motion-spring-spatial-fast-duration)] ease-[var(--md-sys-motion-spring-effects-default-easing)] motion-reduce:transition-none';
 
-/** The keys that scroll a page. */
-const SCROLL_KEYS = new Set(['PageDown', 'PageUp', 'Home', 'End', ' ', 'ArrowDown', 'ArrowUp']);
-
-/** What takes focus with Tab. */
-const TABBABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
 /**
  * A working demo: pages with and without a pinned second nav, and the change between them.
  *
@@ -54,31 +47,12 @@ export function AppFramePinned() {
   const [page, setPage] = useState<Page>('team');
   const hasColumn = page !== 'overview';
   const paneRef = useRef<HTMLElement>(null);
-  const [paneIsTabStop, setPaneIsTabStop] = useState(false);
-  useEffect(() => {
-    const pane = paneRef.current;
-    if (!pane) return;
-    // With nothing focused, the scroll keys go to the window, which has nothing to scroll here.
-    // The pane takes focus as such a key goes down, and the browser scrolls it with that same
-    // press.
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (document.activeElement !== document.body || !SCROLL_KEYS.has(event.key)) return;
-      if (event.altKey || event.ctrlKey || event.metaKey) return;
-      pane.focus({ preventScroll: true });
-    };
-    // A tab stop only while the page holds nothing that takes focus, as browsers do for a
-    // scrolling region: a text-only page can still be reached and scrolled from the keyboard,
-    // and every other page has no extra stop.
-    const update = () => setPaneIsTabStop(pane.querySelector(TABBABLE) === null);
-    update();
-    const observer = new MutationObserver(update);
-    observer.observe(pane, { childList: true, subtree: true });
-    document.addEventListener('keydown', onKeyDown, true);
-    return () => {
-      observer.disconnect();
-      document.removeEventListener('keydown', onKeyDown, true);
-    };
-  }, []);
+  // With nothing focused, the scroll keys reach the pane; it is a tab stop only on a page with
+  // nothing of its own that takes focus.
+  const { tabIndex: paneTabIndex } = useScrollKeys(paneRef);
+  // The pane's scroll position comes back on back, forward and reload. In an app,
+  // `pageKey` is your router's path and query; this demo's pages are its own state.
+  useScrollRestoration(paneRef, { pageKey: page });
 
   const hadColumn = useRef(hasColumn);
   useLayoutEffect(() => {
@@ -175,7 +149,7 @@ export function AppFramePinned() {
         <main
           ref={paneRef}
           // Always focusable, for the scroll keys and a skip link.
-          tabIndex={paneIsTabStop ? 0 : -1}
+          tabIndex={paneTabIndex}
           className="min-h-0 flex-1 overflow-y-auto bg-surface medium:me-(--app-frame-gap) medium:mb-(--app-frame-gap) medium:h-[calc(100dvh-64px-var(--app-frame-gap))] medium:flex-none medium:rounded-corner-large outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
         >
           <ViewTransition key={page} enter="page-axis" exit="page-axis" default="none">

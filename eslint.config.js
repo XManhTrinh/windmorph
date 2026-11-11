@@ -160,11 +160,13 @@ export default tseslint.config(
             {
               // The precomputed shape outlines are data an app passes to a shaped component
               // (`shape={cookie12SidedShape}`), so examples and the shape tables may import them.
+              // The scroll hooks are behaviour an app gives its own frame's pane, which the app
+              // frame blocks show (2026-11-11).
               group: ['@windmorph/react/primitives'],
               allowImportNamePattern:
-                '^(?:\\w+Shape|materialShapePaths|materialShapeNames|materialShapeMask|MaterialShapePath|MaterialShapeName)$',
+                '^(?:\\w+Shape|materialShapePaths|materialShapeNames|materialShapeMask|MaterialShapePath|MaterialShapeName|useScrollKeys|useScrollRestoration)$',
               message:
-                'apps/site may import only the precomputed shape outlines from @windmorph/react/primitives.',
+                'apps/site may import only the precomputed shape outlines and the scroll hooks from @windmorph/react/primitives.',
             },
             {
               group: [

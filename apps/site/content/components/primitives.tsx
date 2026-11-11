@@ -25,7 +25,7 @@ const importSnippet = `import {
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
-  useKeepPressedInPlace,
+  useKeepPressedInPlace, useScrollRestoration, useScrollKeys,
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
@@ -298,6 +298,17 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               on screen while an open item above it folds, by scrolling its scroller as much as the
               fold on every frame, as the List&apos;s tree grid does; pair it with{' '}
               <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
+            </li>
+            <li>
+              <InlineCode>useScrollRestoration</InlineCode> and{' '}
+              <InlineCode>useScrollKeys</InlineCode>, for a page that is a pane scrolling by itself,
+              as in the app frame block. Browsers restore only the window&apos;s scroll, so the
+              first keeps the pane&apos;s position for each page (<InlineCode>pageKey</InlineCode>,
+              your router&apos;s path and query) and brings it back on back, forward and reload,
+              holding it while content arrives. The second sends Page Down, End, Space and the
+              arrows to the pane while nothing has focus, and returns the{' '}
+              <InlineCode>tabIndex</InlineCode> for it: a tab stop only on a page with nothing of
+              its own that takes focus.
             </li>
             <li>
               The morph engine (<InlineCode>useM3Morph</InlineCode>,{' '}

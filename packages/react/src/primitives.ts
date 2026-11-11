@@ -70,6 +70,11 @@ export {
   useKeepPressedInPlace,
   type KeepPressedInPlaceResult,
 } from './utils/keep-pressed-in-place';
+export { useScrollKeys, type ScrollKeysResult } from './utils/use-scroll-keys';
+export {
+  useScrollRestoration,
+  type ScrollRestorationOptions,
+} from './utils/use-scroll-restoration';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {
