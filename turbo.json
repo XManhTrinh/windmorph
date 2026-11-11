@@ -44,7 +44,7 @@
     "test:e2e": {
       "dependsOn": ["build"],
       "cache": false,
-      "passThroughEnv": ["E2E_PORT", "E2E_DEV_PORT"]
+      "passThroughEnv": ["E2E_PORT", "E2E_DEV_PORT", "PLAYWRIGHT_BROWSERS_PATH"]
     },
     "link-check": {
       "dependsOn": ["build"],
