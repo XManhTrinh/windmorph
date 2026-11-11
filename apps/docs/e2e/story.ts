@@ -38,6 +38,9 @@ export async function openStory(
     // web font is in: its ResizeObserver and the render it causes land in the next frames, so
     // a reading straight after `fonts.ready` could still be the old size (2026-11-11: about 2px
     // wide, one run in six on a fast machine).
+    // Only on the real clock: a test that installed Playwright's (`pauseClock`) runs its frames
+    // itself, and a faked `requestAnimationFrame` never fires until it does.
+    if (!String(requestAnimationFrame).includes('[native code]')) return;
     for (let frame = 0; frame < 3; frame += 1) {
       await new Promise((resolve) => requestAnimationFrame(resolve));
     }
