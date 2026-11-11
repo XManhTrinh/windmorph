@@ -1,6 +1,6 @@
 # Scroll restoration for a pane that scrolls by itself
 
-Status: **plan, waiting for approval** (2026-11-11). Nothing is built.
+Status: **built** (2026-11-11), with `useScrollKeys` exported too (the open question below, answered yes).
 
 ## The problem
 
@@ -58,6 +58,12 @@ It returns nothing. The first argument is the scrolling element's ref.
 - The block spec: `pinned` keeps each page's position as its pages change.
 - Docs: the Primitives reference page lists the hook; a changeset (`Added:`).
 
-## Open question
+## As built
 
-The scroll keys' listener in the block (2026-11-11) could be a second export, `useScrollKeys(ref)`, so apps import it instead of copying about 25 lines per frame. Recommended: yes, in the same change, since both exist for the same pane.
+- **`useScrollKeys(ref)` is exported too**, from the same entry: the block's listener, so apps import it instead of copying it. It returns the `tabIndex` for the element: `0` while it holds nothing that takes focus, `-1` otherwise (always `-1` fails axe's `scrollable-region-focusable` on a text-only page).
+- **The docs site may import the two hooks from `/primitives`**: its lint rule let through only the shape outlines; the app frame blocks import these as an app would.
+- **A hold re-applies the position on every frame** it has moved, not only when the content's height changes, so a router's own scroll after the page change is undone too.
+- **Nothing kept for a page** (first seen through history): it starts at its top, with no hold.
+- **A held key that repeats** after back or forward has begun doesn't count as setting off anew.
+- **At most 200 pages** are kept; the oldest go first.
+- **The browser check** is the Next.js playground's `/scroll-pane/[page]` (App Router): back, forward and reload, a new page at its top, the hold letting go on a wheel. Without the hook it fails (Back leaves the pane where the other page was).
