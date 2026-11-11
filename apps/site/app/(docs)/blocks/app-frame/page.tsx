@@ -53,6 +53,11 @@ export default async function AppFramePage() {
           The gap around the pane is <InlineCode>--app-frame-gap</InlineCode>, and on a phone the
           page is flat and the rail becomes a drawer.
         </p>
+        <p className="text-body-large text-on-surface-variant">
+          Where the pane scrolls by itself, Page Down, End, Space and the arrows scroll it even with
+          nothing focused, as they scroll a page. It takes a Tab stop only on a page with no links
+          or controls of its own, so a text-only page can still be reached from the keyboard.
+        </p>
       </header>
       {items.map((item) => (
         <section key={item.id} className="flex flex-col gap-3">
