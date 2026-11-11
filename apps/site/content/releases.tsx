@@ -34,6 +34,70 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.3',
+    date: '2026-11-11',
+    summary: (
+      <>
+        <InlineCode>MenuItem</InlineCode> links, and fixes for sliders named by a visible label,
+        long text in fields, pressed buttons with an app&apos;s own animation and images in a
+        rail&apos;s header; in Windmorph Pro, avatars that keep their size.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            A <InlineCode>MenuItem</InlineCode> with <InlineCode>href</InlineCode> is a real link:
+            it opens in a new tab and its address can be copied, <InlineCode>download</InlineCode>{' '}
+            saves the file, and following it closes the menu.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            An <InlineCode>Avatar</InlineCode> showing a photo keeps its size wherever it&apos;s
+            placed, so a large logo in a rail&apos;s header no longer covers the rail.
+          </>,
+          <>
+            In an expanded or modal rail, a <InlineCode>NavigationRailGroup</InlineCode>&apos;s
+            label matches the rail&apos;s other labels instead of reading as a heading.
+          </>,
+          <>
+            A <InlineCode>DataTable</InlineCode>&apos;s compact rows break a long word, such as an
+            email address, before the row&apos;s actions.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>Slider</InlineCode> or <InlineCode>RangeSlider</InlineCode> named with{' '}
+            <InlineCode>aria-labelledby</InlineCode> names each thumb by that label, not by its
+            value.
+          </>,
+          <>
+            A hint or value longer than a <InlineCode>TextField</InlineCode>,{' '}
+            <InlineCode>Autocomplete</InlineCode>, <InlineCode>SearchField</InlineCode> or{' '}
+            <InlineCode>SearchBar</InlineCode> ends in an ellipsis instead of being cut off
+            mid-letter.
+          </>,
+          <>
+            Pressing a button no longer changes the timing of a transition an app adds through{' '}
+            <InlineCode>className</InlineCode>, or cuts it short.
+          </>,
+          <>
+            Content in a <InlineCode>NavigationRail</InlineCode>&apos;s header keeps its own size:
+            an image no longer grows to its natural width, and text stays on one line.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.2',
     date: '2026-11-10',
     summary: (
