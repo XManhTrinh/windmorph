@@ -87,8 +87,8 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
-    # is: its Chromium and system libraries are already there, so nothing comes from the
-    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # is: its Chromium and system libraries are already there, so nothing is installed from
+    # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
@@ -125,15 +125,25 @@ jobs:
 
       # Phones see the home page bento as a video recorded from the built site, so it always
       # matches the bento: the recorder plays it in the image's Chromium, and ffmpeg writes the
-      # H.264 MP4 (for Safari on iPhone) and the WebM. The image runs as root and takes
-      # packages from Ubuntu's own servers.
+      # H.264 MP4 (for Safari on iPhone) and the WebM. The image runs as root, so no `sudo`.
+      # ffmpeg is the one thing still installed here: when Ubuntu's package servers can't be
+      # reached (2026-11-11, for hours), the recording is skipped with a warning and the
+      # committed video stands in, as it does on the deployed site.
       - name: Install ffmpeg
+        id: ffmpeg
+        continue-on-error: true
         run: apt-get update && apt-get install -y --no-install-recommends ffmpeg
 
+      - name: Warn that the bento video wasn't recorded
+        if: ${{ steps.ffmpeg.outcome != 'success' }}
+        run: echo "::warning::ffmpeg couldn't be installed, so the bento video wasn't recorded. The committed video is used."
+
       - name: Record the bento video
+        if: ${{ steps.ffmpeg.outcome == 'success' }}
         run: pnpm --filter site record:bento
 
       - name: Upload the bento video
+        if: ${{ steps.ffmpeg.outcome == 'success' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bento-video
@@ -169,8 +179,8 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
-    # is: its Chromium and system libraries are already there, so nothing comes from the
-    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # is: its Chromium and system libraries are already there, so nothing is installed from
+    # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
@@ -284,8 +294,8 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
-    # is: its Chromium and system libraries are already there, so nothing comes from the
-    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # is: its Chromium and system libraries are already there, so nothing is installed from
+    # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
