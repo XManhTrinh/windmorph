@@ -313,12 +313,19 @@ test("a press while an app's transition runs never cuts it short", async ({ page
   const button = page.getByTestId('app-transition');
   const width = () => button.evaluate((el) => el.getBoundingClientRect().width);
   await button.click();
-  // A third of the way through the 600ms growth, press again.
-  await page.waitForTimeout(200);
-  const before = await width();
-  expect(before).toBeLessThan(140);
+  // Hold the growth a third of the way, so the check doesn't depend on the machine's speed (a
+  // fixed 200ms wait read 147px on a loaded runner, 2026-11-11).
+  const before = await button.evaluate((el) => {
+    const growth = el
+      .getAnimations()
+      .find((animation) => (animation as CSSTransition).transitionProperty === 'width')!;
+    growth.pause();
+    growth.currentTime = 200;
+    return el.getBoundingClientRect().width;
+  });
+  expect(before).toBeLessThan(120);
   await page.mouse.down();
-  // The growth carries on from where it was, instead of jumping to its end.
-  expect(await width()).toBeLessThan(before + 30);
+  // A press keeps the growth where it was; a cancelled one would jump to its end (160px).
+  expect(await width()).toBe(before);
   await page.mouse.up();
 });

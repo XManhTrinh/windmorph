@@ -132,10 +132,13 @@ export const textFieldStyles = tv({
       'group-data-[field-state=error-hover]/field:text-on-error-container',
     ],
     field: 'flex min-w-0 flex-1 items-center',
+    // A hint or value longer than the field ends in an ellipsis, as the label does, not
+    // mid-letter; the value only while the field isn't focused, since focused it scrolls
+    // (2026-11-11). A text area wraps instead, so it has no effect there.
     input: [
-      'min-w-0 flex-1 bg-transparent p-0 text-body-large outline-none',
+      'min-w-0 flex-1 bg-transparent p-0 text-body-large outline-none text-ellipsis',
       'text-[color:var(--_md-comp-text-field-input-text-color)] caret-[color:var(--_md-comp-text-field-caret-color)]',
-      'placeholder:text-on-surface-variant placeholder:opacity-100',
+      'placeholder:text-on-surface-variant placeholder:opacity-100 placeholder:text-ellipsis',
       'disabled:cursor-default group-data-[field-state=disabled]/field:text-on-surface/38',
       'group-data-invalid/field:caret-error',
       'resize-none',

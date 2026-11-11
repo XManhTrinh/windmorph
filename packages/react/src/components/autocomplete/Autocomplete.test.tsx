@@ -106,6 +106,12 @@ describe('Autocomplete', () => {
     );
   });
 
+  // A long hint or value was cut off mid-letter; the browser test checks the result.
+  it('ends a hint or value longer than the field in an ellipsis', () => {
+    render(<Cities />);
+    expect(input()).toHaveClass('text-ellipsis', 'placeholder:text-ellipsis');
+  });
+
   it('filters as you type, ignoring accents, and chooses with the keyboard', async () => {
     const onChange = vi.fn();
     render(<Cities onChange={onChange} />);

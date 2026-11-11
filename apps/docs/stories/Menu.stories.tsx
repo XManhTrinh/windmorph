@@ -169,11 +169,11 @@ export const SingleSelection: Story = {
  * saves the file. Inside a `RouterProvider`, a plain click goes through the app's router.
  */
 export const Links: Story = {
-  args: { variant: 'standard', layout: 'divider' },
-  render: ({ variant }) => (
+  args: { variant: 'standard', layout: 'divider', presentation: 'popover' },
+  render: ({ variant, presentation }) => (
     <MenuTrigger>
       <Button variant="tonal">Help</Button>
-      <Menu variant={variant} aria-label="Help">
+      <Menu variant={variant} presentation={presentation} aria-label="Help">
         <MenuItem key="guide" href="#guide">
           Read the guide
         </MenuItem>

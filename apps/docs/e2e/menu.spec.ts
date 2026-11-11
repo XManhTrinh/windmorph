@@ -211,6 +211,28 @@ test.describe('Menu behaviour', () => {
     await expect(page.getByRole('menu')).toHaveCount(0);
   });
 
+  test('Space follows a link item too, as it runs any item', async ({ page }) => {
+    await openStory(page, 'components-menu--links');
+    await page.getByRole('button', { name: 'Help' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('menuitem', { name: 'Read the guide' })).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#guide');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+  });
+
+  test('a link item in the bottom sheet follows its href and closes the sheet', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-menu--links', {}, { presentation: 'sheet' });
+    await page.getByRole('button', { name: 'Help' }).click();
+    const guide = page.getByRole('menuitem', { name: 'Read the guide' });
+    await expect(guide).toHaveJSProperty('tagName', 'A');
+    await guide.click();
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#guide');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
   test('a link item opens in a new tab on a modified click', async ({ page, context }) => {
     await openStory(page, 'components-menu--links');
     await page.getByRole('button', { name: 'Help' }).click();

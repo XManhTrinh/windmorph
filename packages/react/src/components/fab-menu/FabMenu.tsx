@@ -421,8 +421,8 @@ export function FabMenu({
 
 /**
  * A `FabMenuItem`'s action for a `MenuItem`. Menu items are React Stately collection items,
- * which keep any prop; React Aria's `useMenuItem` runs an item's `onAction` and opens its
- * `href` through the router.
+ * which keep any prop: React Aria's `useMenuItem` runs an item's `onAction`, and an `href`
+ * makes the `MenuItem` a real link, followed through the router.
  */
 function menuItemAction({ onAction, href }: FabMenuItemProps): Partial<MenuItemProps> {
   return { onAction, href } as Partial<MenuItemProps>;

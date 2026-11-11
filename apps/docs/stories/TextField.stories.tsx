@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import {
+  Autocomplete,
+  AutocompleteItem,
   DENSITIES,
   IconButton,
   TextField,
@@ -262,3 +264,31 @@ export const LayoutOverride: StoryObj<{ override: LayoutOverrideName; variant: T
       </div>
     ),
   };
+
+/**
+ * A hint or a value longer than a narrow field ends in an ellipsis (the value only while the
+ * field isn't focused; focused, it scrolls), as the label does. Autocomplete's input too.
+ */
+export const LongText: Story = {
+  render: () => (
+    <div className="flex w-[240px] flex-col gap-4" data-testid="long">
+      <TextField
+        aria-label="Search pages"
+        placeholder="Search by name or page address"
+        data-testid="hint"
+      />
+      <TextField
+        label="Address"
+        defaultValue="Wilhelmstraße 140, Berlin Kreuzberg"
+        data-testid="value"
+      />
+      <Autocomplete
+        label="City"
+        defaultInputValue="Saint-Rémy-de-Provence, Bouches-du-Rhône"
+        data-testid="autocomplete"
+      >
+        <AutocompleteItem key="paris">Paris</AutocompleteItem>
+      </Autocomplete>
+    </div>
+  ),
+};
