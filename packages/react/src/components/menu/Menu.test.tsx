@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
@@ -819,5 +820,84 @@ describe('Menu token sets', () => {
       'data-tokens',
       'md-comp-menus',
     );
+  });
+});
+
+describe('MenuItem links', () => {
+  function ExportMenu() {
+    return (
+      <MenuTrigger>
+        <Button>Export</Button>
+        <Menu aria-label="Export" disabledKeys={['archive']}>
+          <MenuItem key="guide" href="/docs/guide">
+            Read the guide
+          </MenuItem>
+          <MenuItem key="report" href="/files/report.pdf" download="report.pdf">
+            Download the report
+          </MenuItem>
+          <MenuItem key="status" href="https://status.example.com" target="_blank">
+            Service status
+          </MenuItem>
+          <MenuItem key="archive" href="/files/archive.zip">
+            Download the archive
+          </MenuItem>
+        </Menu>
+      </MenuTrigger>
+    );
+  }
+
+  it('renders a link item as a real link, keeping the menu item role', async () => {
+    const { baseElement } = render(<ExportMenu />);
+    await openMenu('Export');
+    const guide = screen.getByRole('menuitem', { name: 'Read the guide' });
+    expect(guide.tagName).toBe('A');
+    expect(guide).toHaveAttribute('href', '/docs/guide');
+    const report = screen.getByRole('menuitem', { name: 'Download the report' });
+    expect(report).toHaveAttribute('download', 'report.pdf');
+    const status = screen.getByRole('menuitem', { name: 'Service status' });
+    expect(status).toHaveAttribute('target', '_blank');
+    expect(status).toHaveAttribute('rel', 'noopener noreferrer');
+    // A disabled item isn't a link at all.
+    const archive = screen.getByRole('menuitem', { name: 'Download the archive' });
+    expect(archive.tagName).toBe('DIV');
+    expect(archive).not.toHaveAttribute('href');
+    expect(await axeViolations(baseElement)).toEqual([]);
+  });
+
+  it('follows a link through the router and closes the menu, by press or Enter', async () => {
+    const navigate = vi.fn();
+    render(
+      <RouterProvider navigate={navigate}>
+        <ExportMenu />
+      </RouterProvider>,
+    );
+    await openMenu('Export');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Read the guide' }));
+    expect(navigate).toHaveBeenLastCalledWith('/docs/guide', undefined);
+    await closed();
+    // Opened by the keyboard, the menu focuses its first item, the guide.
+    await openMenu('Export');
+    expect(screen.getByRole('menuitem', { name: 'Read the guide' })).toHaveFocus();
+    await userEvent.keyboard('{Enter}');
+    expect(navigate).toHaveBeenCalledTimes(2);
+    await closed();
+  });
+
+  it('leaves a download to the browser and closes the menu', async () => {
+    const navigate = vi.fn();
+    render(
+      <RouterProvider navigate={navigate}>
+        <ExportMenu />
+      </RouterProvider>,
+    );
+    await openMenu('Export');
+    // jsdom can't download: cancel the click's default action once React has handled it (a
+    // window listener runs after React's), where a browser would download the file.
+    const cancel = (event: MouseEvent) => event.preventDefault();
+    window.addEventListener('click', cancel);
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Download the report' }));
+    window.removeEventListener('click', cancel);
+    expect(navigate).not.toHaveBeenCalled();
+    await closed();
   });
 });

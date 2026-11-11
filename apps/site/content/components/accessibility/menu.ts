@@ -74,6 +74,7 @@ export const menu: ComponentAccessibility = {
       'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
     notes: [
       "An item's `badge` and `shortcut` (shown as a `<kbd>`) are read once, as its accessible description, after its name.",
+      "An item with `href` is a real `<a>` that keeps its menu item role, since a menu holds only menu items: Enter follows it as the browser follows a link, and the browser's link menu and modified clicks work on it.",
       'Leading, trailing and selected icons, and the submenu arrow, are decorative and hidden from assistive tech (`aria-hidden`).',
       'While the menu is open the rest of the page is hidden from assistive tech.',
     ],

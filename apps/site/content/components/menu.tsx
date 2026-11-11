@@ -15,6 +15,7 @@ const MenuSubmenu = lazyExample('menu/menu-submenu', 'MenuSubmenu');
 const MenuLayouts = lazyExample('menu/menu-layouts', 'MenuLayouts');
 const MenuContainerPadding = lazyExample('menu/menu-container-padding', 'MenuContainerPadding');
 const MenuDensityExample = lazyExample('menu/menu-density', 'MenuDensity');
+const MenuLinks = lazyExample('menu/menu-links', 'MenuLinks');
 
 /** Menu page body: grouped actions, single selection, submenus and a context menu. */
 export async function MenuBody(): Promise<ComponentDoc> {
@@ -43,6 +44,8 @@ export async function MenuBody(): Promise<ComponentDoc> {
 
   const densitySource = await readExampleSource('menu/menu-density.tsx');
   const densityHtml = await highlightSource(densitySource);
+  const links = await readExampleSource('menu/menu-links.tsx');
+  const linksHtml = await highlightSource(links);
   return {
     tokens: [menuTokenSet],
     overview: (
@@ -82,6 +85,14 @@ export async function MenuBody(): Promise<ComponentDoc> {
             fileName="menu-submenu.tsx"
           >
             <MenuSubmenu />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Links and downloads"
+            code={links}
+            html={linksHtml}
+            fileName="menu-links.tsx"
+          >
+            <MenuLinks />
           </ExampleViewer>
           <ExampleViewer
             title="Context menu"
@@ -146,6 +157,16 @@ export async function MenuBody(): Promise<ComponentDoc> {
             <InlineCode>key</InlineCode>. A <InlineCode>SubmenuTrigger</InlineCode> gives an item a
             submenu. The <InlineCode>variant</InlineCode> is <InlineCode>standard</InlineCode> or{' '}
             <InlineCode>vibrant</InlineCode>.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            An item that opens a page or a file takes <InlineCode>href</InlineCode> (with{' '}
+            <InlineCode>target</InlineCode>, <InlineCode>rel</InlineCode> and{' '}
+            <InlineCode>download</InlineCode>) instead of running it from{' '}
+            <InlineCode>onAction</InlineCode>: it becomes a real link with the item&apos;s look and
+            keys, so people can open it in a new tab or copy and save its address, and following it
+            closes the menu. Inside a <InlineCode>RouterProvider</InlineCode> (
+            <InlineCode>NextRouterProvider</InlineCode> in Next.js) a plain click goes through the
+            app&apos;s router. A disabled item, or one that opens a submenu, isn&apos;t a link.
           </p>
           <p className="text-body-large text-on-surface-variant">
             Groups are set apart by dividers on one surface (

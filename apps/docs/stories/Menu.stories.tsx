@@ -164,6 +164,35 @@ export const SingleSelection: Story = {
 };
 
 /**
+ * Items with `href` are real links with the item's look and keys: following one closes the
+ * menu, a modified click or the browser's link menu opens it in a new tab, and `download`
+ * saves the file. Inside a `RouterProvider`, a plain click goes through the app's router.
+ */
+export const Links: Story = {
+  args: { variant: 'standard', layout: 'divider' },
+  render: ({ variant }) => (
+    <MenuTrigger>
+      <Button variant="tonal">Help</Button>
+      <Menu variant={variant} aria-label="Help">
+        <MenuItem key="guide" href="#guide">
+          Read the guide
+        </MenuItem>
+        <MenuItem key="shortcuts" href="#shortcuts">
+          Keyboard shortcuts
+        </MenuItem>
+        <MenuItem
+          key="notes"
+          href="data:text/plain;charset=utf-8,Release%20notes"
+          download="release-notes.txt"
+        >
+          Download the release notes
+        </MenuItem>
+      </Menu>
+    </MenuTrigger>
+  ),
+};
+
+/**
  * Submenus open beside their item on hover, press or the arrow key. While one is open, the
  * item that opened it keeps a pressed layer and the menu holding focus has rounder corners.
  */
