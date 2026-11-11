@@ -79,6 +79,34 @@ describe('LabelsProvider and useLabels', () => {
     expect(screen.getByText('Stunde / Zu / Fertig / Ungültig')).toBeInTheDocument();
   });
 
+  it('returns the same object until the provider, the defaults or the labels change', () => {
+    const seen: object[] = [];
+    const own = { close: 'Done' };
+    function Probe({ labels }: { labels?: WindmorphLabels['SideSheet'] }) {
+      seen.push(useLabels('SideSheet', DEFAULTS, labels));
+      return null;
+    }
+    const words: WindmorphLabels = { SideSheet: { back: 'Retour' } };
+    const { rerender } = render(
+      <LabelsProvider labels={words}>
+        <Probe labels={own} />
+      </LabelsProvider>,
+    );
+    rerender(
+      <LabelsProvider labels={words}>
+        <Probe labels={own} />
+      </LabelsProvider>,
+    );
+    expect(seen[1]).toBe(seen[0]);
+    rerender(
+      <LabelsProvider labels={words}>
+        <Probe labels={{ close: 'Fertig' }} />
+      </LabelsProvider>,
+    );
+    expect(seen.at(-1)).not.toBe(seen[0]);
+    expect(seen.at(-1)).toEqual({ close: 'Fertig', back: 'Retour' });
+  });
+
   it('gives the components below the same words until the provider gets new ones', () => {
     const words: WindmorphLabels = { SideSheet: { close: 'Fermer' } };
     const { rerender } = render(

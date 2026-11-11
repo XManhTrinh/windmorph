@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { WindmorphLabels } from '../../windmorph-labels';
 
 /** A component's key in {@link WindmorphLabels}. */
@@ -25,8 +25,9 @@ export function defined<T extends object>(words: T | undefined): Partial<T> {
 /**
  * A component's words: its defaults, then the words a `LabelsProvider` above gives `key` (its
  * key in `WindmorphLabels`; one built from another passes that one's key first), then its own
- * `labels`. A word left `undefined` keeps the one below it. A component of your own adds its
- * key to `WindmorphLabels` by declaration merging.
+ * `labels`. A word left `undefined` keeps the one below it. The result is the same object
+ * until one of the three changes. A component of your own adds its key to `WindmorphLabels` by
+ * declaration merging.
  */
 export function useLabels<Key extends LabelsKey, Defaults extends Partial<LabelsOf<Key>>>(
   key: Key | readonly [...LabelsKey[], Key],
@@ -34,11 +35,14 @@ export function useLabels<Key extends LabelsKey, Defaults extends Partial<Labels
   own: WindmorphLabels[Key],
 ): Defaults & LabelsOf<Key> {
   const provided = useContext(LabelsContext);
-  const words: Record<string, unknown> = { ...defaults };
-  if (provided) {
-    for (const each of typeof key === 'string' ? [key] : key) {
-      Object.assign(words, defined(provided[each]));
+  const keys = typeof key === 'string' ? key : key.join(' ');
+  return useMemo(() => {
+    const words: Record<string, unknown> = { ...defaults };
+    if (provided) {
+      for (const each of keys.split(' ') as LabelsKey[]) {
+        Object.assign(words, defined(provided[each]));
+      }
     }
-  }
-  return Object.assign(words, defined(own)) as Defaults & LabelsOf<Key>;
+    return Object.assign(words, defined(own)) as Defaults & LabelsOf<Key>;
+  }, [provided, keys, defaults, own]);
 }
