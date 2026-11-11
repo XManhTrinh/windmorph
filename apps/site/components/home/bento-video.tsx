@@ -72,8 +72,10 @@ export function BentoVideo({ video, className }: BentoVideoProps) {
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
+    // A busy browser can deliver several entries at once, oldest first: the first notice (out
+    // of view) and a quick scroll's (in view) together. Go by the newest, or it never plays.
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry?.isIntersecting ?? false),
+      (entries) => setInView(entries.at(-1)?.isIntersecting ?? false),
       { threshold: 0.25 },
     );
     observer.observe(element);

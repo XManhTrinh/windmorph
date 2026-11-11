@@ -17,7 +17,8 @@ const VIDEO: BentoManifest = { width: 1152, height: 720, loopMs: 18000, formats:
 
 /** The media queries that match, as `window.matchMedia` reports them. */
 let matching = new Set<string>();
-let intersect: (isIntersecting: boolean) => void = () => {};
+/** Delivers one callback with an entry per state, oldest first, as a busy browser can. */
+let intersect: (...isIntersecting: boolean[]) => void = () => {};
 const play = vi.fn(() => Promise.resolve());
 const pause = vi.fn();
 const load = vi.fn();
@@ -42,10 +43,10 @@ beforeEach(() => {
     'IntersectionObserver',
     class {
       constructor(callback: IntersectionObserverCallback) {
-        intersect = (isIntersecting) =>
+        intersect = (...states) =>
           act(() =>
             callback(
-              [{ isIntersecting } as IntersectionObserverEntry],
+              states.map((isIntersecting) => ({ isIntersecting }) as IntersectionObserverEntry),
               this as unknown as IntersectionObserver,
             ),
           );
@@ -95,6 +96,19 @@ const sources = (video: HTMLVideoElement) =>
   ]);
 
 describe('BentoVideo', () => {
+  // 2026-11-11: it read the first entry of a callback, so when the first notice (out of view)
+  // and a quick scroll's (in view) came together, it never played, and nothing came after.
+  it('goes by the newest of the observer’s entries delivered together', () => {
+    const { video } = renderVideo();
+    intersect(false, true);
+    expect(sources(video)).toHaveLength(2);
+    expect(play).toHaveBeenCalled();
+    play.mockClear();
+    intersect(true, false);
+    expect(pause).toHaveBeenCalled();
+    expect(play).not.toHaveBeenCalled();
+  });
+
   it('loads nothing until in view, then offers the MP4 and the WebM and plays', () => {
     const { video } = renderVideo();
     expect(video).toHaveAttribute('preload', 'none');

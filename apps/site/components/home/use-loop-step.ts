@@ -29,9 +29,10 @@ export function useLoopStep(stepMs: number) {
     const element = ref.current;
     if (reduceMotion || !element) return;
     let timer: number | undefined;
-    const observer = new IntersectionObserver(([entry]) => {
+    // Several entries can arrive at once, oldest first: go by the newest (2026-11-11).
+    const observer = new IntersectionObserver((entries) => {
       window.clearInterval(timer);
-      timer = entry?.isIntersecting
+      timer = entries.at(-1)?.isIntersecting
         ? window.setInterval(() => setStep((current) => current + 1), stepMs)
         : undefined;
     });
