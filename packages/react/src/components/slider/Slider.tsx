@@ -357,6 +357,8 @@ function SliderRoot(props: RootProps) {
             state={state}
             trackRef={trackRef}
             name={name}
+            groupId={groupProps.id}
+            labelledBy={labelledBy}
             label={range ? (index === 0 ? labels.start : labels.end) : undefined}
             errorMessage={errorMessage}
             valueLabel={valueLabel}
@@ -442,6 +444,8 @@ function Thumb({
   state,
   trackRef,
   name,
+  groupId,
+  labelledBy,
   label,
   errorMessage,
   valueLabel,
@@ -453,6 +457,10 @@ function Thumb({
   state: SliderState;
   trackRef: RefObject<HTMLDivElement | null>;
   name?: string;
+  /** The id of the slider's group, which React Aria names every thumb by. */
+  groupId?: string;
+  /** The ids that name the group (`aria-labelledby`), when it's named by a visible label. */
+  labelledBy?: string;
   label?: string;
   errorMessage?: string;
   valueLabel: boolean;
@@ -464,9 +472,20 @@ function Thumb({
     { index, trackRef, inputRef, name, 'aria-label': label, 'aria-errormessage': errorMessage },
     state,
   );
+  // React Aria names each thumb by the group (`aria-labelledby` → the group's id). A name is
+  // never followed through a second `aria-labelledby`, so a group named by a visible label would
+  // name the thumb by its own content, the value text ("0%"): the thumb points at the label
+  // itself instead, as the group does. An `aria-label` on the group is read through it as is.
+  const thumbLabelledBy = labelledBy?.trim()
+    ? inputProps['aria-labelledby']
+        ?.split(' ')
+        .flatMap((id) => (id === groupId ? labelledBy.trim().split(/\s+/) : [id]))
+        .join(' ')
+    : inputProps['aria-labelledby'];
   // React Aria joins the description's ids into an empty string when there are none.
   const thumbInputProps = {
     ...inputProps,
+    'aria-labelledby': thumbLabelledBy,
     'aria-describedby': inputProps['aria-describedby'] || undefined,
     'aria-details': inputProps['aria-details'] || undefined,
   };

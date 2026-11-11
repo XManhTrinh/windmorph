@@ -197,6 +197,46 @@ export const RailStates: Story = {
   ),
 };
 
+/** A 512px logo, as an app might show in the header at 56px. */
+const LOGO = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="#6b5778"/><circle cx="256" cy="256" r="160" fill="#f2dcff"/></svg>',
+)}`;
+
+/**
+ * An image in the header keeps its own size, collapsed and expanded: here a 56px box showing a
+ * 512px logo through a nested box, each at its parent's full size (`size-full`), as an image
+ * avatar draws it.
+ */
+export const RailHeaderImage: Story = {
+  render: () => (
+    <div className="flex w-fit gap-6">
+      {(['collapsed', 'expanded'] as const).map((state) => (
+        <div key={state} className="h-[300px] border border-outline-variant">
+          <NavigationRail
+            aria-label={state === 'expanded' ? 'Expanded' : 'Collapsed'}
+            expanded={state === 'expanded'}
+            header={
+              <span data-testid={`logo-${state}`} className="inline-grid size-[56px]">
+                <span className="inline-grid size-full overflow-hidden rounded-corner-large">
+                  <img src={LOGO} alt="Acme" className="size-full object-cover" />
+                </span>
+              </span>
+            }
+            className="h-full"
+            data-testid={`rail-${state}`}
+          >
+            {DESTINATIONS.slice(0, 3).map(({ id, label, icon }, i) => (
+              <NavigationRailItem key={id} icon={icon} selected={i === 0}>
+                {label}
+              </NavigationRailItem>
+            ))}
+          </NavigationRail>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
 function BarDemo({
   iconPlacement,
   destinations = DESTINATIONS,

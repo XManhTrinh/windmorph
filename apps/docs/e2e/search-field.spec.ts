@@ -6,6 +6,7 @@ import { openStory } from './story';
 const VARIANTS = 'components-searchfield--variants';
 const PLAYGROUND = 'components-searchfield--playground';
 const PAIR = 'components-searchfield--beside-search-bar';
+const LONG = 'components-searchfield--long-text';
 
 /** A colour role resolved where `locator` is (inside its theme scope), as `rgb()`. */
 const roleColor = (locator: Locator, role: string) =>
@@ -49,6 +50,27 @@ test.describe('SearchField visual regression', () => {
     await openStory(page, VARIANTS);
     await expect(page.getByTestId('variants')).toHaveScreenshot('variants-forced-colors.png');
   });
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a long hint and query end in an ellipsis · ${dir}`, async ({ page }) => {
+      await openStory(page, LONG, { dir });
+      await expect(page.getByTestId('long')).toHaveScreenshot(`long-text-${dir}.png`);
+    });
+  }
+});
+
+test('a hint or query longer than the field ends in an ellipsis, not mid-letter', async ({
+  page,
+}) => {
+  await openStory(page, LONG);
+  // The hint's own rule (`::placeholder`) isn't reported by `getComputedStyle`; the screenshots
+  // above show its ellipsis.
+  for (const id of ['hint', 'query', 'bar']) {
+    const input = page.getByTestId(id).locator('input');
+    expect(await style(input, 'text-overflow'), id).toBe('ellipsis');
+  }
+  // The query really is longer than its field.
+  const query = page.getByTestId('query').locator('input');
+  expect(await query.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
 });
 
 test.describe('SearchField geometry and colours', () => {

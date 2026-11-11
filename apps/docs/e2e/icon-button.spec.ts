@@ -287,3 +287,38 @@ test.describe('IconButton pending', () => {
     });
   }
 });
+
+test("an app's own transition keeps its timing while the button is pressed", async ({ page }) => {
+  await openStory(page, 'components-iconbutton--app-transition');
+  const button = page.getByTestId('app-transition');
+  // The width transition the app's classes started, as the browser runs it.
+  const widthTransition = () =>
+    button.evaluate((el) => {
+      const transition = el
+        .getAnimations()
+        .find((animation) => (animation as CSSTransition).transitionProperty === 'width');
+      const timing = transition?.effect?.getTiming();
+      return timing ? { duration: timing.duration, easing: timing.easing } : null;
+    });
+  // The press toggles the width as it ends, while the ripple is still running.
+  await button.click();
+  expect(await widthTransition()).toEqual({ duration: 600, easing: 'linear' });
+  await expect(button).toHaveCSS('width', '160px');
+  await button.click();
+  expect(await widthTransition()).toEqual({ duration: 600, easing: 'linear' });
+});
+
+test("a press while an app's transition runs never cuts it short", async ({ page }) => {
+  await openStory(page, 'components-iconbutton--app-transition');
+  const button = page.getByTestId('app-transition');
+  const width = () => button.evaluate((el) => el.getBoundingClientRect().width);
+  await button.click();
+  // A third of the way through the 600ms growth, press again.
+  await page.waitForTimeout(200);
+  const before = await width();
+  expect(before).toBeLessThan(140);
+  await page.mouse.down();
+  // The growth carries on from where it was, instead of jumping to its end.
+  expect(await width()).toBeLessThan(before + 30);
+  await page.mouse.up();
+});

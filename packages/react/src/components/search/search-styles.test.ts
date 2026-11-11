@@ -61,4 +61,11 @@ describe('search styles', () => {
       expect.arrayContaining(['gap-[8px]', 'px-[4px]']),
     );
   });
+
+  // A long hint in a narrow field is cut mid-letter without it (the browser checks the result).
+  it('ends a hint or query longer than the field in an ellipsis', () => {
+    expect(searchBarStyles().input().split(' ')).toEqual(
+      expect.arrayContaining(['text-ellipsis', 'placeholder:text-ellipsis']),
+    );
+  });
 });

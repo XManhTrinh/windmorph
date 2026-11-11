@@ -221,6 +221,27 @@ export const Pending: StoryObj<{ pending: boolean }> = {
   ),
 };
 
+/**
+ * An app's own transition through `className`, here a width that grows on a press, keeps its
+ * timing while the button is pressed: the press's ripple and morph never replace it.
+ */
+export const AppTransition: Story = {
+  render: function AppTransitionStory() {
+    const [wide, setWide] = useState(false);
+    return (
+      <IconButton
+        aria-label="Expand"
+        icon={<AddIcon />}
+        variant="tonal"
+        onPress={() => setWide((value) => !value)}
+        data-wide={wide || undefined}
+        className="w-[48px] transition-[width] duration-[600ms] ease-linear data-wide:w-[160px]"
+        data-testid="app-transition"
+      />
+    );
+  },
+};
+
 /** Layout safety (architecture §10). */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;
