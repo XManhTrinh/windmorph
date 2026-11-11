@@ -86,6 +86,13 @@ jobs:
     name: Site build, bento video & link check
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    # In the official Playwright image for the repo's Playwright version, as the Storybook suite
+    # is: its Chromium and system libraries are already there, so nothing comes from the
+    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     env:
       CI: 'true'
     steps:
@@ -113,17 +120,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # The recorder plays the bento in Playwright's Chromium.
-      - name: Install Playwright browsers
-        run: pnpm --filter site exec playwright install --with-deps chromium
-
       - name: Build the site
         run: pnpm turbo run build --filter=site
 
       # Phones see the home page bento as a video recorded from the built site, so it always
-      # matches the bento. ffmpeg writes the H.264 MP4 (for Safari on iPhone) and the WebM.
+      # matches the bento: the recorder plays it in the image's Chromium, and ffmpeg writes the
+      # H.264 MP4 (for Safari on iPhone) and the WebM. The image runs as root and takes
+      # packages from Ubuntu's own servers.
       - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+        run: apt-get update && apt-get install -y --no-install-recommends ffmpeg
 
       - name: Record the bento video
         run: pnpm --filter site record:bento
@@ -163,6 +168,13 @@ jobs:
     needs: site-build
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    # In the official Playwright image for the repo's Playwright version, as the Storybook suite
+    # is: its Chromium and system libraries are already there, so nothing comes from the
+    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -192,9 +204,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm --filter site exec playwright install --with-deps chromium
 
       # What `next dev` needs: the built core and the generated props.
       - name: Build the core and generate the props
@@ -274,6 +283,13 @@ jobs:
     name: Playground Playwright suite
     timeout-minutes: 20
     runs-on: ubuntu-latest
+    # In the official Playwright image for the repo's Playwright version, as the Storybook suite
+    # is: its Chromium and system libraries are already there, so nothing comes from the
+    # runner's package mirror, whose outage failed this job for hours (2026-11-11).
+    # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --ipc=host
     env:
       CI: 'true'
     steps:
@@ -295,9 +311,6 @@ jobs:
       # The playground uses only the public core, so Windmorph Pro (optional) isn't needed.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm --filter next-playground exec playwright install --with-deps chromium
 
       # `test:e2e` depends on `next-playground#build`, which builds `@windmorph/react` first.
       - name: Playwright suite
