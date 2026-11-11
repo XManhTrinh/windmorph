@@ -9,8 +9,8 @@ import { color, corner, defineComponentTokens, elevation } from '../../tokens/co
  * styles) carry `data-tokens="md-comp-menus"` and `data-variant`, so an item's own state
  * (`data-selected`) picks its colours. The vibrant menu's colours have no public names yet
  * (fixed below). The container shape is the menu's outer corner at rest: the submenu morph's
- * active and inactive corners, hover, focus, press, disabled and the selected item's icon
- * colours stay classes.
+ * active and inactive corners, hover, focus, press and disabled colours stay classes; a
+ * selected item's tick, icons and description read its label's token.
  */
 
 /** The tokens of {@link Menu}: `--md-comp-menus-<part>` and `--md-comp-menus-standard-<part>`. */

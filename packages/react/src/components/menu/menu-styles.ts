@@ -164,17 +164,20 @@ export const menuStyles = tv({
   },
   variants: {
     variant: {
+      // A selected item's tick, icons and description follow its label's token, so an app
+      // that sets the selected colours gets every part in them (2026-11-11; they were a fixed
+      // role, 1.08:1 against another container in dark mode).
       standard: {
         heading: 'text-on-surface-variant',
         item: [
           'data-disabled:text-on-surface/38',
           'data-disabled:data-selected:bg-tertiary-container/38 data-disabled:data-selected:text-on-tertiary-container/38',
         ],
-        icon: 'group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
+        icon: 'group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)] group-data-disabled/item:text-on-surface/38',
         description:
-          'text-on-surface-variant group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
+          'text-on-surface-variant group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)] group-data-disabled/item:text-on-surface/38',
         trailing:
-          'group-data-selected/item:text-on-tertiary-container group-data-disabled/item:text-on-surface/38',
+          'group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)] group-data-disabled/item:text-on-surface/38',
       },
       vibrant: {
         heading: 'text-on-tertiary-container',
@@ -184,20 +187,20 @@ export const menuStyles = tv({
         ],
         icon: [
           'group-data-hovered/item:text-tertiary group-data-focus-visible/item:text-tertiary group-data-pressed/item:text-tertiary',
-          'group-data-selected/item:text-on-tertiary',
-          'group-data-selected/item:group-data-hovered/item:text-on-tertiary',
-          'group-data-selected/item:group-data-focus-visible/item:text-on-tertiary',
-          'group-data-selected/item:group-data-pressed/item:text-on-tertiary',
+          'group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-hovered/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-focus-visible/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-pressed/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
           'group-data-disabled/item:text-on-tertiary-container/38',
         ],
         description:
-          'text-on-tertiary-container group-data-selected/item:text-on-tertiary group-data-disabled/item:text-on-tertiary-container/38',
+          'text-on-tertiary-container group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)] group-data-disabled/item:text-on-tertiary-container/38',
         trailing: [
           'group-data-hovered/item:text-tertiary group-data-focus-visible/item:text-tertiary group-data-pressed/item:text-tertiary',
-          'group-data-selected/item:text-on-tertiary',
-          'group-data-selected/item:group-data-hovered/item:text-on-tertiary',
-          'group-data-selected/item:group-data-focus-visible/item:text-on-tertiary',
-          'group-data-selected/item:group-data-pressed/item:text-on-tertiary',
+          'group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-hovered/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-focus-visible/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
+          'group-data-selected/item:group-data-pressed/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]',
           'group-data-disabled/item:text-on-tertiary-container/38',
         ],
       },

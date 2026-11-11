@@ -344,6 +344,32 @@ test.describe('Menu behaviour', () => {
     await expect(page.getByTestId('last')).toHaveText('Last action: delete');
   });
 
+  // 2026-11-11: the tick, icons and description of a selected item were a fixed role, so an
+  // app that set the selected tokens got its label colour and a tick in the old one: 1.08:1
+  // on a secondary container in dark mode.
+  for (const variant of ['standard', 'vibrant'] as const) {
+    test(`a selected item's tick follows the selected label's colour · ${variant}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-menu--single-selection', { mode: 'dark' }, { variant });
+      await page.addStyleTag({
+        content: `:root, [data-theme] {
+          --md-comp-menus-standard-menu-item-selected-container-color: var(--md-sys-color-secondary-container);
+          --md-comp-menus-standard-menu-item-selected-label-text-color: var(--md-sys-color-on-secondary-container);
+        }`,
+      });
+      await page.getByRole('button', { name: /Sort by/ }).click();
+      await settle(page);
+      const name = page.getByRole('menuitemradio', { name: 'Name' });
+      const label = await name.evaluate((el) => getComputedStyle(el).color);
+      const tick = await name
+        .locator('svg')
+        .first()
+        .evaluate((el) => getComputedStyle(el).color);
+      expect(tick).toBe(label);
+    });
+  }
+
   test('a selected item takes the 12px selected shape and its check expands', async ({ page }) => {
     await openStory(page, 'components-menu--single-selection');
     await page.getByRole('button', { name: /Sort by/ }).click();

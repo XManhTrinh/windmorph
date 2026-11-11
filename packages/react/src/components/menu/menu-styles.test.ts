@@ -84,4 +84,18 @@ describe('menuStyles', () => {
     expect(styles.heading().split(' ')).toContain('ps-[16px]');
     expect(styles.item().split(' ')).toContain('px-[16px]');
   });
+
+  // An app that sets the selected colours gets every part of a selected item in them.
+  it("paints a selected item's tick, icons and description with its label's token", () => {
+    const token =
+      'group-data-selected/item:text-[color:var(--_md-comp-menus-menu-item-selected-label-text-color)]';
+    for (const variant of ['standard', 'vibrant'] as const) {
+      const styles = menuStyles({ variant });
+      for (const slot of [styles.icon(), styles.description(), styles.trailing()]) {
+        expect(slot.split(' '), variant).toContain(token);
+        // No fixed role is left for the selected state.
+        expect(slot, variant).not.toMatch(/group-data-selected\/item:(\S+:)?text-on-tertiary/);
+      }
+    }
+  });
 });
