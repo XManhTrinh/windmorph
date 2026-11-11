@@ -203,9 +203,9 @@ const LOGO = `data:image/svg+xml,${encodeURIComponent(
 )}`;
 
 /**
- * An image in the header keeps its own size, collapsed and expanded: here a 56px box showing a
- * 512px logo through a nested box, each at its parent's full size (`size-full`), as an image
- * avatar draws it.
+ * Header content keeps its own size, collapsed and expanded: a 56px box showing a 512px logo
+ * through a nested box, each at its parent's full size (`size-full`), as an image avatar draws
+ * it, stays 56px; the app's name beside it in the expanded rail stays on one line.
  */
 export const RailHeaderImage: Story = {
   render: () => (
@@ -216,11 +216,18 @@ export const RailHeaderImage: Story = {
             aria-label={state === 'expanded' ? 'Expanded' : 'Collapsed'}
             expanded={state === 'expanded'}
             header={
-              <span data-testid={`logo-${state}`} className="inline-grid size-[56px]">
-                <span className="inline-grid size-full overflow-hidden rounded-corner-large">
-                  <img src={LOGO} alt="Acme" className="size-full object-cover" />
+              <>
+                <span data-testid={`logo-${state}`} className="inline-grid size-[56px]">
+                  <span className="inline-grid size-full overflow-hidden rounded-corner-large">
+                    <img src={LOGO} alt="" className="size-full object-cover" />
+                  </span>
                 </span>
-              </span>
+                {state === 'expanded' && (
+                  <span data-testid="name" className="text-title-medium">
+                    Acme Studio
+                  </span>
+                )}
+              </>
             }
             className="h-full"
             data-testid={`rail-${state}`}

@@ -236,7 +236,7 @@ test.describe('NavigationRail behaviour', () => {
     );
   });
 
-  test('an image in the header keeps its size, collapsed and expanded', async ({ page }) => {
+  test('header content keeps its size: an image box and a line of text', async ({ page }) => {
     await openStory(page, 'components-navigation--rail-header-image');
     for (const state of ['collapsed', 'expanded']) {
       const logo = page.getByTestId(`logo-${state}`);
@@ -251,6 +251,14 @@ test.describe('NavigationRail behaviour', () => {
     }
     // A 512px logo never widens the collapsed rail.
     expect(await width(page.getByTestId('rail-collapsed'))).toBe(96);
+    // Text keeps its width too, on one line, starting at the column's edge as an extended
+    // FAB does: it wrapped in the 56px column once the header stopped giving every child
+    // `min-width: max-content` (2026-11-11).
+    const name = page.getByTestId('name');
+    const lineHeight = await name.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+    const box = (await name.boundingBox())!;
+    expect(box.height).toBe(lineHeight);
+    expect(box.width).toBeGreaterThan(56);
   });
 
   test('centred items sit in the middle of the space below the header', async ({ page }) => {
