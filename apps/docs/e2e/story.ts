@@ -32,5 +32,14 @@ export async function openStory(
 ) {
   await page.goto(storyUrl(id, globals, args));
   await page.locator('#storybook-root > *').first().waitFor();
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    // A part measured in the fallback font (an extended FAB's label) measures again once the
+    // web font is in: its ResizeObserver and the render it causes land in the next frames, so
+    // a reading straight after `fonts.ready` could still be the old size (2026-11-11: about 2px
+    // wide, one run in six on a fast machine).
+    for (let frame = 0; frame < 3; frame += 1) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+  });
 }
