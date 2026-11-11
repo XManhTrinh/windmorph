@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { mergeProps, useObjectRef, useSearchField } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
@@ -164,7 +165,7 @@ export function SearchField(props: SearchFieldProps) {
     classNames,
     ...rest
   } = props;
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('SearchField', DEFAULT_LABELS, labelsProp);
   const [query, setQuery] = useControlledState(value, defaultValue ?? '', onChange);
   const objectInputRef = useObjectRef(inputRef);
   const { root: data, rest: own } = splitRootProps(rest, { wrapper: true });

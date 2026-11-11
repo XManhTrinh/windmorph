@@ -15,6 +15,7 @@ import {
   type Ref,
 } from 'react';
 import { useNumberFormatter, useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -226,7 +227,7 @@ export function Carousel({
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Carousel', DEFAULT_LABELS, labelsProp);
   const numbers = useNumberFormatter();
   const items = Children.toArray(children).filter(isValidElement);
   const count = items.length;

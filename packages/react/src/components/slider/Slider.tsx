@@ -20,6 +20,7 @@ import {
   VisuallyHidden,
 } from 'react-aria';
 import { useSliderState, type SliderState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -223,7 +224,7 @@ function SliderRoot(props: RootProps) {
   const iconSize = size === 'md' || size === 'lg' || size === 'xl';
   const startIcon = iconSize && !centered ? startIconProp : undefined;
   const endIcon = iconSize && !centered ? endIconProp : undefined;
-  const labels = { ...DEFAULT_LABELS, ...(props as RangeSliderProps).labels };
+  const labels = useLabels('RangeSlider', DEFAULT_LABELS, (props as RangeSliderProps).labels);
   // The root is the slider's group: its DOM attributes join the hook's.
   const { root: data, rest: labelling } = splitRootProps(rest);
   // The naming attributes: the name goes to the group and each thumb (React Aria), and the

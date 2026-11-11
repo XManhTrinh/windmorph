@@ -25,6 +25,7 @@ import {
   type ComboBoxStateOptions,
   type SelectionMode,
 } from 'react-stately/useComboBoxState';
+import { useLabels } from '../labels/use-labels';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import type { Density } from '../../tokens/density';
@@ -282,7 +283,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
   const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly) ?? false;
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Autocomplete', DEFAULT_LABELS, labelsProp);
   const stately = rest as Omit<ComboBoxProps<T, M>, RenamedProps>;
   const multiple = stately.selectionMode === 'multiple';
   const cap = useSelectionCap({

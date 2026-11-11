@@ -75,6 +75,7 @@ export {
   useScrollRestoration,
   type ScrollRestorationOptions,
 } from './utils/use-scroll-restoration';
+export { useLabels, type LabelsKey, type LabelsOf } from './components/labels/use-labels';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {

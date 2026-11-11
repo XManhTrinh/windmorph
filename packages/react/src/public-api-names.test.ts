@@ -1,7 +1,6 @@
 // @vitest-environment node
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+import type ts from 'typescript';
+import { exportedComponents } from '../test/exported-components';
 
 /**
  * The public props follow the library's naming conventions (docs/architecture.md §9, "API
@@ -18,8 +17,6 @@ import ts from 'typescript';
  *   (`data-*`, `aria-*`, global attributes, events; 2026-10-17), checked through three that
  *   stand for the groups: `aria-hidden`, `title` and `onPointerEnter`.
  */
-const src = dirname(fileURLToPath(import.meta.url));
-const ENTRIES = ['index.ts', 'primitives.ts', 'next.ts'].map((file) => join(src, file));
 
 /** React Aria's naming, which the library's props don't use. */
 const ARIA_NAME = /^(?:is|allows|should|disallow)[A-Z]|^(?:validationState|excludeFromTabOrder)$/;
@@ -86,6 +83,7 @@ const NO_ROOT: Record<string, string> = {
   TooltipTrigger: 'Pairs a trigger with its tooltip; both take their own props.',
   DomDirectionLocale: 'A render prop that hands its child a ref; it renders no element.',
   NextRouterProvider: "Context only: wires links to Next's router.",
+  LabelsProvider: 'Context only: sets the words of the components below it.',
   ThemeProvider: 'Context only: themes the page through the document element.',
   ThemeScript: 'An inline script that applies the saved theme before paint.',
   Overlay: 'A primitive portal; what it holds takes the props.',
@@ -129,68 +127,13 @@ const DOM_PROBE_EXEMPT: Record<string, Partial<Record<string, string>>> = {
   ),
 };
 
-const program = ts.createProgram(ENTRIES, {
-  target: ts.ScriptTarget.ES2022,
-  module: ts.ModuleKind.ESNext,
-  moduleResolution: ts.ModuleResolutionKind.Bundler,
-  jsx: ts.JsxEmit.ReactJSX,
-  strict: true,
-  skipLibCheck: true,
-  noEmit: true,
-  types: [],
-});
-const checker = program.getTypeChecker();
-
-interface Component {
-  name: string;
-  props: Map<string, ts.Type>;
-}
-
-/** The exported components: functions named in PascalCase whose first parameter is props. */
-function components(): Component[] {
-  const found = new Map<string, Component>();
-  for (const entry of ENTRIES) {
-    const file = program.getSourceFile(entry);
-    const moduleSymbol = file && checker.getSymbolAtLocation(file);
-    if (!moduleSymbol) throw new Error(`No module for ${entry}`);
-    for (const exported of checker.getExportsOfModule(moduleSymbol)) {
-      const symbol =
-        exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported;
-      // Functions, and constants typed as components (the collection items, React Stately's
-      // `Item` and `Section` under the library's names).
-      const callable = symbol.flags & (ts.SymbolFlags.Function | ts.SymbolFlags.Variable);
-      if (!/^[A-Z]/.test(exported.name) || !callable || exported.name.endsWith('Context')) continue;
-      const declaration = symbol.valueDeclaration;
-      if (!declaration) continue;
-      const type = checker.getTypeOfSymbolAtLocation(symbol, declaration);
-      const signature = type.getCallSignatures()[0];
-      const param = signature?.getParameters()[0];
-      if (!param) continue;
-      const propsType = checker.getTypeOfSymbolAtLocation(param, declaration);
-      const members = propsType.isUnion() ? propsType.types : [propsType];
-      const props = new Map<string, ts.Type>();
-      for (const member of members) {
-        for (const prop of checker.getPropertiesOfType(checker.getApparentType(member))) {
-          props.set(prop.name, checker.getTypeOfSymbolAtLocation(prop, declaration));
-        }
-      }
-      if (props.size === 0) continue;
-      // A component renders JSX; a hook or helper with an options object doesn't count.
-      const returns = checker.typeToString(signature.getReturnType());
-      if (!/Element|ReactNode|JSX/.test(returns)) continue;
-      found.set(exported.name, { name: exported.name, props });
-    }
-  }
-  return [...found.values()].sort((a, b) => a.name.localeCompare(b.name));
-}
-
 /** The string literals a prop's type accepts. */
 function stringLiterals(type: ts.Type): string[] {
   const members = type.isUnion() ? type.types : [type];
   return members.filter((member) => member.isStringLiteral()).map((member) => member.value);
 }
 
-const all = components();
+const all = exportedComponents();
 
 describe('public API names', () => {
   it('finds the components', () => {

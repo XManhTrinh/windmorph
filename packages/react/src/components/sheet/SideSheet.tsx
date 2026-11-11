@@ -22,6 +22,7 @@ import {
   type AriaDialogProps,
 } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
@@ -251,7 +252,7 @@ function SheetBody({
   classNames,
   contentRef,
 }: BodyProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('SideSheet', DEFAULT_LABELS, labelsProp);
   const renderProps = { close };
   const render = (slot: SideSheetOwnProps['children']) =>
     typeof slot === 'function' ? slot(renderProps) : slot;

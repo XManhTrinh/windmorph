@@ -20,6 +20,7 @@ import {
   type AriaTextFieldProps,
 } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import {
   CharacterCounter,
   ErrorText,
@@ -290,7 +291,7 @@ export function TextField(props: TextFieldProps) {
   // root with `className`; everything else (the input's ARIA, attributes and events) goes to
   // the input via React Aria.
   const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('TextField', DEFAULT_LABELS, labelsProp);
   const prefixId = useId();
   const suffixId = useId();
   const counterId = useId();

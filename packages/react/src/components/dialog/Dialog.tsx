@@ -28,6 +28,7 @@ import {
   type AriaDialogProps,
 } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import {
   TriggerContext,
@@ -632,7 +633,7 @@ export interface DialogHeaderProps extends Omit<ComponentPropsWithRef<'div'>, 't
  */
 export function DialogHeader({
   children,
-  labels,
+  labels: labelsProp,
   action,
   divider = false,
   closeDisabled = false,
@@ -641,6 +642,7 @@ export function DialogHeader({
   classNames,
   ...props
 }: DialogHeaderProps) {
+  const labels = useLabels('DialogHeader', DEFAULT_HEADER_LABELS, labelsProp);
   const { titleProps, hasIcon, fullScreen, close, setHeaderAction } =
     useContext(DialogPartsContext);
   const hasAction = action !== undefined;
@@ -656,7 +658,7 @@ export function DialogHeader({
           variant="standard"
           density={0}
           icon={closeIcon ?? <CloseIcon />}
-          aria-label={labels?.close ?? DEFAULT_HEADER_LABELS.close}
+          aria-label={labels.close}
           disabled={closeDisabled}
           onPress={close}
           className={styles.headerButton({ class: cn(styles.close(), classNames?.close) })}

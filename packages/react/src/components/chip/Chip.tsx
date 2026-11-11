@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { VisuallyHidden } from 'react-aria';
 import { useToggleState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import {
   ButtonBase,
   ToggleGroupStateContext,
@@ -177,7 +178,7 @@ function RemoveButton({
   describedBy?: string;
 }) {
   const removeId = useId();
-  const { remove } = { ...DEFAULT_LABELS, ...labels };
+  const { remove } = useLabels('Chip', DEFAULT_LABELS, labels);
   return (
     <ButtonBase
       disabled={disabled}
@@ -568,7 +569,7 @@ export function InputChip({
   // Without an action there's no `aria-pressed` to carry the selection, so it's said in words
   // (WCAG 1.3.1): the remove button's description, or hidden text on a static chip.
   const announceSelected = Boolean(selected) && !onPress;
-  const selectedWord = { ...DEFAULT_LABELS, ...labels }.selected;
+  const selectedWord = useLabels('Chip', DEFAULT_LABELS, labels).selected;
   const styles = chipStyles({
     kind: 'input',
     split,

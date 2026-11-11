@@ -12,6 +12,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { usePresence } from '../../primitives/use-presence';
 import { announcePolite, LIVE_REGION_DELAY } from '../../utils/announce';
 import { cn } from '../../utils/cn';
@@ -108,7 +109,7 @@ export function Snackbar({
     newLine: actionOnNewLine && actionLabel !== undefined,
     dismissible: onDismiss !== undefined,
   });
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Snackbar', DEFAULT_LABELS, labelsProp);
   const hasActions = actionLabel !== undefined || onDismiss !== undefined;
   const inHost = useContext(InSnackbarHost);
   const messageRef = useRef<HTMLDivElement>(null);

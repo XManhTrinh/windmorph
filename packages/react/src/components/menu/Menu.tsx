@@ -49,6 +49,7 @@ import {
   type SubmenuTriggerState,
   type TreeState,
 } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
@@ -429,11 +430,12 @@ function MenuSheet({
   placement: _placement,
   offset: _offset,
   variant = 'standard',
-  labels,
+  labels: labelsProp,
   className,
   style,
   ...props
 }: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
+  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
   const menuProps = mergeProps(trigger.menuProps, props);
@@ -468,7 +470,7 @@ function MenuSheet({
               density: props.density,
               instant: false,
               sheet: true,
-              labels: { ...DEFAULT_LABELS, ...labels },
+              labels,
             }}
           >
             <MenuList
@@ -537,7 +539,7 @@ function MenuPopover({
   containerPadding = 12,
   layout = 'divider',
   variant = 'standard',
-  labels,
+  labels: labelsProp,
   className,
   style,
   ...props
@@ -547,6 +549,7 @@ function MenuPopover({
   isExiting: boolean;
   exitProps: ExitProps;
 }) {
+  const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const setPopover = useCallback((element: HTMLDivElement | null) => {
@@ -634,7 +637,7 @@ function MenuPopover({
                   density: props.density,
                   instant,
                   sheet: false,
-                  labels: { ...DEFAULT_LABELS, ...labels },
+                  labels,
                 }}
               >
                 <MenuList

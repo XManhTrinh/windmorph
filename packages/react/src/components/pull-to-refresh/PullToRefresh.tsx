@@ -17,6 +17,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { cn } from '../../utils/cn';
 import { usePreloadWhenIdle } from '../../utils/load-on-demand';
@@ -217,7 +218,7 @@ export function PullToRefresh({
   ref,
   ...rest
 }: PullToRefreshProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('PullToRefresh', DEFAULT_LABELS, labelsProp);
   const [pendingRefresh, setPendingRefresh] = useState(false);
   const refreshing = refreshingProp ?? pendingRefresh;
   const fraction = useMotionValue(refreshing ? 1 : 0);

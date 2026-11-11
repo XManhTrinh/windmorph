@@ -2,6 +2,7 @@
 
 import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
 import { useNumberFormatter, VisuallyHidden } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -11,6 +12,8 @@ export interface BadgeLabels {
   /** What a small badge (a dot) announces. @default "New notification" */
   newNotification: string;
 }
+
+const DEFAULT_LABELS: BadgeLabels = { newNotification: 'New notification' };
 
 export interface BadgeClassNames {
   /** The badge itself: the dot, or the large badge's container. */
@@ -53,11 +56,12 @@ export function Badge({
   children,
   max = 999,
   label,
-  labels,
+  labels: labelsProp,
   classNames,
   className,
   ...rest
 }: BadgeProps) {
+  const labels = useLabels('Badge', DEFAULT_LABELS, labelsProp);
   const format = useNumberFormatter();
   const size = children == null || children === false ? 'small' : 'large';
   // M3's limit is four characters, "+" included; only longer text is cut.
@@ -69,8 +73,7 @@ export function Badge({
         ? `${format.format(max)}+`
         : format.format(children)
       : children;
-  const announcement =
-    label ?? (size === 'small' ? (labels?.newNotification ?? 'New notification') : null);
+  const announcement = label ?? (size === 'small' ? labels.newNotification : null);
   return (
     <span
       {...rest}

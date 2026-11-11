@@ -27,6 +27,7 @@ import {
 } from 'react-stately/useSelectState';
 import { useControlledState } from 'react-stately/useControlledState';
 import type { Key } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
@@ -333,7 +334,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Select', DEFAULT_LABELS, labelsProp);
   const stately = rest as Omit<StatelySelectProps<T, M>, RenamedProps>;
   const cap = useSelectionCap({
     multiple: stately.selectionMode === 'multiple',

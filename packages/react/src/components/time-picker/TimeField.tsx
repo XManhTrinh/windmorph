@@ -13,6 +13,7 @@ import {
 import { useLocale, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
@@ -218,12 +219,12 @@ function TimeFieldInner({
   const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly);
   const { locale } = useLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
-  const hint = labelsProp?.timeFormatHint ?? (hourCycle === 24 ? 'HH:MM' : 'H:MM AM');
+  const words = useLabels(['TimePicker', 'PickerDialog', 'TimeField'], DEFAULT_LABELS, labelsProp);
+  const hint = words.timeFormatHint ?? (hourCycle === 24 ? 'HH:MM' : 'H:MM AM');
   const labels: TimeFieldLabels = {
-    ...DEFAULT_LABELS,
+    ...words,
     timeFormatHint: hint,
-    invalidTime: `Enter a time such as ${hint}`,
-    ...labelsProp,
+    invalidTime: words.invalidTime ?? `Enter a time such as ${hint}`,
   };
 
   const [value, setValue] = useControlledState(valueProp, defaultValue ?? null, onChange);
