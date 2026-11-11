@@ -2,6 +2,20 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.3.0 — 2026-11-11
+
+### Added
+
+- `href`, `target`, `rel` and `download` on `MenuItem`, which make the item a real link with the item's look, role and keys. A press, Enter or Space follows it and closes the menu, a modified click or the browser's link menu opens it in a new tab or copies its address, and inside a `RouterProvider` a plain click goes through the app's router. A disabled item, or one that opens a submenu, isn't a link. ([#41](https://github.com/XManhTrinh/windmorph/pull/41))
+
+### Fixed
+
+- Pressing an `IconButton`, `Button` or any other pressable component no longer upsets a transition the app adds through `className`, such as a width that grows. While the press's ripple ran, that transition took the ripple's 150ms spring instead of its own duration and easing, and a press while it was still running made it jump to its end. ([#40](https://github.com/XManhTrinh/windmorph/pull/40))
+- Content in a `NavigationRail`'s `header` keeps its own size. An image avatar, or any box showing an image at its full size, grew to the image's natural width (a 512px logo covered the whole rail), since the header gave every child `min-width: max-content`. An extended FAB, or an app's name, there still keeps its full width on one line. ([#40](https://github.com/XManhTrinh/windmorph/pull/40))
+- A `SearchField` or `SearchBar` hint longer than the field, or a query while the field isn't focused, ends in an ellipsis instead of being cut off mid-letter, as a text field's label does. A searchable `Select`'s search, which draws the same pill, does too. ([#40](https://github.com/XManhTrinh/windmorph/pull/40))
+- A `Slider` or `RangeSlider` named with `aria-labelledby` names each thumb by that label, as it names the slider. Its thumb used to be read as its value ("0%"), or a range's thumbs by each other's names, so a screen reader never said the label and `getByRole('slider', { name })` couldn't find it. ([#40](https://github.com/XManhTrinh/windmorph/pull/40))
+- A `TextField` or `Autocomplete` hint longer than the field, or a value while the field isn't focused, ends in an ellipsis instead of being cut off mid-letter, as the label, `Select`'s value and the search fields do. ([#44](https://github.com/XManhTrinh/windmorph/pull/44))
+
 ## 0.2.2 — 2026-11-10
 
 ### Added
