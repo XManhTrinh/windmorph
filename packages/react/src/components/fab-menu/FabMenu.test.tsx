@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { RouterProvider } from 'react-aria';
 import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -475,6 +476,29 @@ describe('FabMenu', () => {
     expect(await axeViolations(document.body)).toEqual([]);
     await userEvent.click(screen.getByRole('menuitem', { name: 'Reply' }));
     expect(onReply).toHaveBeenCalledOnce();
+  });
+
+  // A link item in the menu is a real link since MenuItem takes `href` (2026-11-11); before,
+  // the `href` landed on a `div`.
+  it('makes an href item a real link in the menu, followed through the router', async () => {
+    vi.useRealTimers();
+    const navigate = vi.fn();
+    render(
+      <RouterProvider navigate={navigate}>
+        <FabMenu icon={<Icon id="add" />} aria-label="Create" presentation="menu">
+          <FabMenuItem icon={<Icon id="reply" />} href="/compose">
+            Compose
+          </FabMenuItem>
+          <FabMenuItem icon={<Icon id="forward" />}>Forward</FabMenuItem>
+        </FabMenu>
+      </RouterProvider>,
+    );
+    await userEvent.click(toggle());
+    const compose = await screen.findByRole('menuitem', { name: 'Compose' });
+    expect(compose.tagName).toBe('A');
+    expect(compose).toHaveAttribute('href', '/compose');
+    await userEvent.click(compose);
+    expect(navigate).toHaveBeenCalledWith('/compose', undefined);
   });
 
   it('shows its label in a tooltip while closed, not while open, unless turned off', async () => {
