@@ -69,6 +69,12 @@ export interface ReducedMotionResult {
   frames: Record<string, Frame[]>;
   /** Every transition property that started inside the parts' trees. */
   transitions: string[];
+  /**
+   * Each part's own opacity transitions as they started: their duration and whether the part
+   * was visible then. A loaded machine can skip every frame of a short fade, so the frames
+   * alone can miss it (2026-11-11).
+   */
+  fades: Record<string, { duration: number; visible: boolean }[]>;
 }
 
 /**
@@ -102,12 +108,28 @@ export async function expectNoMovement(
   }
   await page.evaluate((watched) => {
     const store = window as unknown as {
-      reducedMotionRecording?: { stop: boolean; frames: Record<string, unknown[]>; runs: string[] };
+      reducedMotionRecording?: {
+        stop: boolean;
+        frames: Record<string, unknown[]>;
+        runs: string[];
+        fades: Record<string, unknown[]>;
+      };
     };
     const recording = {
       stop: false,
       frames: Object.fromEntries(Object.keys(watched).map((name) => [name, [] as unknown[]])),
       runs: [] as string[],
+      fades: Object.fromEntries(Object.keys(watched).map((name) => [name, [] as unknown[]])),
+    };
+    /** The duration, in ms, the element's `transition-*` lists give `opacity` (0 if none). */
+    const opacityDuration = (element: Element) => {
+      const style = getComputedStyle(element);
+      const properties = style.transitionProperty.split(',').map((value) => value.trim());
+      const durations = style.transitionDuration.split(',').map((value) => value.trim());
+      const index = properties.findIndex((value) => value === 'opacity' || value === 'all');
+      if (index === -1) return 0;
+      const value = durations[index % durations.length] ?? '0s';
+      return value.endsWith('ms') ? parseFloat(value) : parseFloat(value) * 1000;
     };
     store.reducedMotionRecording = recording;
     const roots = () =>
@@ -121,6 +143,14 @@ export async function expectNoMovement(
         if (!(target instanceof Element)) return;
         if (roots().some((root) => root === target || root.contains(target))) {
           recording.runs.push(event.propertyName);
+        }
+        if (event.propertyName !== 'opacity') return;
+        for (const [name, selector] of Object.entries(watched)) {
+          if (document.querySelector(selector) !== target) continue;
+          recording.fades[name]!.push({
+            duration: opacityDuration(target),
+            visible: getComputedStyle(target).visibility === 'visible',
+          });
         }
       },
       true,
@@ -155,12 +185,18 @@ export async function expectNoMovement(
   await page.waitForTimeout(duration);
   const result = await page.evaluate(() => {
     const store = window as unknown as {
-      reducedMotionRecording: { stop: boolean; frames: Record<string, Frame[]>; runs: string[] };
+      reducedMotionRecording: {
+        stop: boolean;
+        frames: Record<string, Frame[]>;
+        runs: string[];
+        fades: Record<string, { duration: number; visible: boolean }[]>;
+      };
     };
     store.reducedMotionRecording.stop = true;
     return {
       frames: store.reducedMotionRecording.frames,
       transitions: [...new Set(store.reducedMotionRecording.runs)],
+      fades: store.reducedMotionRecording.fades,
     };
   });
 
@@ -194,9 +230,15 @@ export function changed(result: ReducedMotionResult, part: string, key: keyof Ge
   return frames[0]![key] !== frames.at(-1)![key];
 }
 
-/** Whether a part faded: some frame showed it partly transparent. */
+/**
+ * Whether a part faded: some frame showed it partly transparent, or an opacity transition
+ * with a duration started on it (a loaded machine can skip every frame of a short fade).
+ */
 export function faded(result: ReducedMotionResult, part: string): boolean {
-  return result.frames[part]!.some((frame) => frame.opacity > 0.02 && frame.opacity < 0.98);
+  return (
+    result.frames[part]!.some((frame) => frame.opacity > 0.02 && frame.opacity < 0.98) ||
+    result.fades[part]!.some((fade) => fade.duration > 0)
+  );
 }
 
 /**
@@ -204,7 +246,9 @@ export function faded(result: ReducedMotionResult, part: string): boolean {
  * it was still `visibility: visible`. A fade under `visibility: hidden` never shows.
  */
 export function fadedVisibly(result: ReducedMotionResult, part: string): boolean {
-  return result.frames[part]!.some(
-    (frame) => frame.visibility === 'visible' && frame.opacity > 0.02 && frame.opacity < 0.98,
+  return (
+    result.frames[part]!.some(
+      (frame) => frame.visibility === 'visible' && frame.opacity > 0.02 && frame.opacity < 0.98,
+    ) || result.fades[part]!.some((fade) => fade.visible && fade.duration > 0)
   );
 }
