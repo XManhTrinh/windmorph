@@ -2,7 +2,7 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
-## 0.3.0 — 2026-11-11
+## 0.2.3 — 2026-11-11
 
 ### Added
 
