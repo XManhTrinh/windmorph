@@ -43,4 +43,5 @@ The docs site's What's new page stays as it is: curated notes in plain words, th
 - Built as plain Node scripts (`.mjs`), tested with Node's own runner (`pnpm test:scripts`, a CI step): the repository root has no TypeScript runner or test framework, and these needed none.
 - Unit tests for `format-changelog` (grouping, ordering, the date, only the new section touched, no change when re-run) and for the changelog function (link found, no token, no match).
 - `check-changesets` fails on a missing or unknown kind, and passes the existing changesets once updated.
+- **GitHub releases** (2026-11-10): Changesets' publish action takes a release's notes from the section under a heading that is exactly the version, so with dated headings it posted the whole changelog (0.2.0 to 0.2.2). The release workflow turns its releases off (`create-github-releases: false`) and `scripts/github-releases.mjs` creates each one from its version's section, dated or not, updating a release that already exists; its tests are in `scripts/changelog.test.mjs`.
 - A dry run of `changeset version` on a branch with a few test changesets produces the expected section; nothing is published.

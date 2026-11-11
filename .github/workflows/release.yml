@@ -5,7 +5,8 @@
 #   "Version packages" pull request (bumped version, CHANGELOG, changesets removed).
 # - `publish`: no pending changesets and the package's version isn't on npm yet (the release
 #   pull request was just merged), so `pack` runs the same checks as CI and packs the
-#   tarball, and `publish` publishes it with npm provenance and tags the release on GitHub.
+#   tarball, and `publish` publishes it with npm provenance, tags it and creates its GitHub
+#   release from the version's changelog section (scripts/github-releases.mjs).
 # - `none`: nothing to do.
 #
 # Only `@windmorph/react` publishes: every other workspace package is private, and Windmorph Pro
@@ -191,9 +192,22 @@ jobs:
         if: ${{ env.NPM_TOKEN != '' }}
         run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 
-      # Publishes the packed tarballs (`publishConfig` adds provenance), then pushes a git tag and
-      # a GitHub release per package.
+      # Publishes the packed tarballs (`publishConfig` adds provenance), then pushes a git tag per
+      # package. The action's own GitHub releases are off: it finds a version's notes only under a
+      # bare `## 0.2.2` heading, so with the changelog's dated headings it would post the whole
+      # file.
       - name: Publish
+        id: publish
         uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
+          create-github-releases: false
+
+      # A GitHub release per published package, its notes the version's own changelog section.
+      - name: Create the GitHub releases
+        if: ${{ steps.publish.outputs.published == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PUBLISHED: ${{ steps.publish.outputs.published-packages }}
+        run: node scripts/github-releases.mjs
