@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 const metrics = (page: Page) =>
@@ -47,6 +48,53 @@ test.describe('The app frame block', () => {
       expect((await metrics(page)).radius).toBe('0px');
       await page.getByRole('button', { name: 'Open navigation' }).click();
       await expect(page.getByRole('link', { name: 'Overview' })).toBeVisible();
+    });
+  }
+
+  // 2026-11-11: with nothing focused the scroll keys go to the window, which has nothing to
+  // scroll in the frame, so the page didn't move until a click in the pane or a Tab to it.
+  for (const variation of ['app', 'full', 'pinned']) {
+    test(`${variation}: with nothing focused, the scroll keys scroll the pane`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1100, height: 640 });
+      await page.goto(`/blocks-preview/app-frame-${variation}`);
+      const pane = page.locator('main');
+      const scroll = () => pane.evaluate((el) => el.scrollTop);
+      const end = await pane.evaluate((el) => el.scrollHeight - el.clientHeight);
+      expect(end).toBeGreaterThan(0);
+      expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+      await page.keyboard.press('End');
+      await expect.poll(scroll).toBe(end);
+      await page.keyboard.press('Home');
+      await expect.poll(scroll).toBe(0);
+    });
+
+    test(`${variation}: the pane is a tab stop only while it holds nothing that takes focus`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1100, height: 640 });
+      await page.goto(`/blocks-preview/app-frame-${variation}`);
+      const pane = page.locator('main');
+      const tabbable =
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      const holdsFocusable = await pane.evaluate(
+        (el, selector) => el.querySelector(selector) !== null,
+        tabbable,
+      );
+      await expect(pane).toHaveAttribute('tabindex', holdsFocusable ? '-1' : '0');
+      // A link arriving later (a new page in the pane) takes the stop away.
+      await pane.evaluate((el) => {
+        const link = document.createElement('a');
+        link.href = '#later';
+        link.textContent = 'Later';
+        el.append(link);
+      });
+      await expect(pane).toHaveAttribute('tabindex', '-1');
+      // Either way a keyboard user can reach and scroll it (WCAG 2.1.1).
+      await page.goto(`/blocks-preview/app-frame-${variation}`);
+      const results = await new AxeBuilder({ page }).include('main').analyze();
+      expect(results.violations.map((violation) => violation.id)).toEqual([]);
     });
   }
 
