@@ -64,9 +64,20 @@ test.describe('The app frame block', () => {
       const end = await pane.evaluate((el) => el.scrollHeight - el.clientHeight);
       expect(end).toBeGreaterThan(0);
       expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
-      await page.keyboard.press('End');
+      // Chromium on Linux animates a keyboard scroll and ignores a scroll key pressed in the
+      // animation's last frames (on a plain page with no script too), so each press waits for
+      // `scrollend`, not only for the position.
+      const pressAndSettle = async (key: string) => {
+        await pane.evaluate((el) => {
+          delete el.dataset.scrollEnded;
+          el.addEventListener('scrollend', () => (el.dataset.scrollEnded = ''), { once: true });
+        });
+        await page.keyboard.press(key);
+        await expect(pane).toHaveAttribute('data-scroll-ended', '');
+      };
+      await pressAndSettle('End');
       await expect.poll(scroll).toBe(end);
-      await page.keyboard.press('Home');
+      await pressAndSettle('Home');
       await expect.poll(scroll).toBe(0);
     });
 
