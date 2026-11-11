@@ -1809,6 +1809,8 @@ export const COMPONENT_META: ComponentMeta[] = [
     ],
     hooks: [
       'useKeepPressedInPlace',
+      'useScrollRestoration',
+      'useScrollKeys',
       'useRevealEntering',
       'useM3Interaction',
       'useM3Morph',
