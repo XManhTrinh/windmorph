@@ -1,6 +1,6 @@
 # Plan: one place for the locale
 
-Status: **plan, waiting for approval** (2026-11-12). Nothing is built.
+Status: **approved 2026-11-12, built** (a `LocaleProvider` component; without one, the browser's language as before). See "As built".
 
 ## The problem
 
@@ -42,3 +42,11 @@ import { LocaleProvider, ThemeProvider } from '@windmorph/react';
 
 1. **The form:** a `LocaleProvider` component (recommended: it can wrap a part of a page, and keeps `ThemeProvider` about the theme), a `locale` prop on `ThemeProvider` (one provider fewer, but the theme provider would then own the language and direction too), or both?
 2. **Without a provider:** keep the browser's language (recommended for now: no behaviour changes), or follow the page's `<html lang>`? Following the page would fix the mismatch with no code in the app, but the server can't read it, so a server-rendered field would change format after hydration unless the app also passes the locale.
+
+## As built (2026-11-12)
+
+- **`LocaleProvider`** (`components/locale`, main entry, a client component, context only) is React Aria's `I18nProvider` with a required `locale`. It sets no `lang` or `dir`; those stay on the page's elements.
+- **`useLocale`** returns `{ locale, direction }` (`LocaleContextValue`), for an app's own formatting.
+- **Found while testing:** a `DateField`'s text (and the date pickers' text input) kept the old locale's format when the locale changed, while its hint and its reading of the text moved to the new one. That includes the change every server-rendered page makes without a provider, from the server's `en-US` to the browser's language: 5 March, written 03/05/2030 on the server, was read as 3 May on the next blur in a day-first browser. The text is now written again for a new locale, as `TimeField`'s already was.
+- **Server rendering:** the playground's server page renders a `de-DE` provider around a `DateField`; its browser test reads the German format in the server's HTML and after hydration, in a browser set to American English, with no console message.
+- **Docs:** Getting started, the Next.js guide, the API conventions' "Words" section (with the API tables) and the date and time field pages.

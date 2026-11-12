@@ -7,7 +7,7 @@ import { InlineCode } from '../../../components/inline-code';
 export const metadata: Metadata = guideMetadata('/nextjs');
 
 const APP_ROUTER_SNIPPET = `// app/layout.tsx (App Router — cookie, no-flash path)
-import { ThemeProvider } from '@windmorph/react';
+import { LocaleProvider, ThemeProvider } from '@windmorph/react';
 import { NextRouterProvider, getThemeFromCookies, themeAttributes } from '@windmorph/react/next';
 import { Roboto_Flex } from 'next/font/google';
 import { cookies } from 'next/headers';
@@ -32,7 +32,7 @@ export default async function RootLayout({ children }) {
             defaultMotion={theme.motion}
             defaultDensity={theme.density}
           >
-            {children}
+            <LocaleProvider locale="en-US">{children}</LocaleProvider>
           </ThemeProvider>
         </NextRouterProvider>
       </body>
@@ -146,6 +146,13 @@ export default async function NextjsPage() {
           streaming (a <InlineCode>loading.tsx</InlineCode> page) on the client, dropping its server
           HTML. In development, <InlineCode>ThemeProvider</InlineCode> warns when that happens and
           names the values.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          <InlineCode>LocaleProvider</InlineCode> takes the language the page is written in. The
+          server has no browser to ask, so without it a date or time field is rendered in{' '}
+          <InlineCode>en-US</InlineCode> and changes to the browser&apos;s language after hydration.
+          With it the server and the browser write dates, times and numbers the same way, in the
+          page&apos;s language. On a site with several languages, pass the route&apos;s.
         </p>
         <CodeBlock
           code={APP_ROUTER_SNIPPET}

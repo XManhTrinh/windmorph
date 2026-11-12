@@ -88,7 +88,7 @@ export const datePicker: ComponentAccessibility = {
       'Selected and unavailable days. Years and months are checked or not (`aria-checked`); those outside `min` / `max` are disabled (`aria-disabled`) but stay focusable. The calendar button has `aria-haspopup="dialog"` and `aria-expanded`, and the month and year buttons have `aria-expanded`. A typed date that can\'t be used makes the field invalid, with the reason as its error text.',
     notes: [
       'The headline and the month label are `aria-live="polite"`, so a new selection and a new month are announced.',
-      'The locale\'s format ("MM/DD/YYYY") is the field\'s placeholder and helper text.',
+      "The locale's format (\"MM/DD/YYYY\") is the field's placeholder and helper text. The locale is the nearest {@link LocaleProvider}'s, or the browser's language without one.",
       '`DateField`\'s `aria-describedby` and `aria-details` describe its input after the helper or error text, for a hint such as "After the start date". An `aria-invalid`, `aria-required` or `aria-readonly` a form library sets is read as `invalid`, `required` or `readOnly` when those are left out.',
       'The drop-down arrows are decorative (`aria-hidden`), and so are the empty cells around each month in the scrolling range picker.',
     ],
