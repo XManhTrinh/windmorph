@@ -199,4 +199,39 @@ describe('useScrollRestoration', () => {
     rerender(<Pane pageKey="/a" />);
     expect(pane().scrollTop).toBe(300);
   });
+
+  describe('in a frame that leaves the element out on some pages', () => {
+    /** Stays mounted while its pane is left out (a page laid out without it) and comes back. */
+    function Frame({ pageKey, withPane = true }: { pageKey: string; withPane?: boolean }) {
+      const ref = useRef<HTMLElement>(null);
+      useScrollRestoration(ref, { pageKey });
+      // Keyed, so the pane that comes back is a new element, as in a frame with two layouts.
+      return withPane ? (
+        <main key="pane" ref={ref} data-testid="pane" />
+      ) : (
+        <main key="plain" data-testid="plain" />
+      );
+    }
+
+    it('restores a page on the way back from a page without the element', () => {
+      const { rerender } = render(<Frame pageKey="/a" />);
+      pane().scrollTop = 300;
+      fireEvent.pointerDown(document.body);
+      rerender(<Frame pageKey="/plain" withPane={false} />);
+      traverse();
+      rerender(<Frame pageKey="/a" />);
+      expect(pane().scrollTop).toBe(300);
+    });
+
+    it('starts a page followed to from a page without the element at its top', () => {
+      sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+      // The visit begins with a reload of the page without the element: the reload restores
+      // that page, not the one a link leads to next.
+      loadedBy('reload');
+      const { rerender } = render(<Frame pageKey="/plain" withPane={false} />);
+      fireEvent.pointerDown(document.body);
+      rerender(<Frame pageKey="/a" />);
+      expect(pane().scrollTop).toBe(0);
+    });
+  });
 });

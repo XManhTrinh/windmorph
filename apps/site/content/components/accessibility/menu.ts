@@ -86,7 +86,7 @@ export const menu: ComponentAccessibility = {
     "In a sheet, a submenu replaces its menu below a back button (named by `labels.back`), and going back returns focus to the submenu's item.",
   ],
   touchTarget: [
-    "Items fill the menu's width (112 to 280px) and are at least 44px tall, 4px under the 48px minimum; each `density` step takes 4px more off. They have no `TouchTarget`. The back button above a submenu in a sheet is 48px.",
+    "Items fill the menu's width (112 to 280px) and are at least 44px tall, M3 Expressive's own menu item height: 4px under the 48px minimum of other controls, and above WCAG 2.5.8's 24px. They are stacked with no gap, so they have no `TouchTarget`, which would reach into the items above and below. Each `density` step takes 4px more off. The back button above a submenu in a sheet is 48px.",
     'For touch, keep `density` at 0, or use `presentation="auto"`, which opens the menu in a bottom sheet on compact windows.',
   ],
   motion: [

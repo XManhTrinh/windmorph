@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
-const PAGES = ['one', 'two'];
+/** `plain` is the page the layout shows without its pane. */
+const PAGES = ['one', 'two', 'plain'];
 
 export const dynamicParams = false;
 
@@ -21,6 +22,11 @@ export default async function ScrollPanePage({ params }: { params: Promise<{ pag
           {index % 10 === 5 && (
             <Link href={`/scroll-pane/${other}`} className="text-primary underline">
               To page {other} from paragraph {index + 1}
+            </Link>
+          )}
+          {index % 10 === 8 && page !== 'plain' && (
+            <Link href="/scroll-pane/plain" className="text-primary underline">
+              To the plain page from paragraph {index + 1}
             </Link>
           )}
         </p>
