@@ -729,6 +729,13 @@ describe('NavigationRail indicatorMotion="slide"', () => {
 });
 
 describe('NavigationBar', () => {
+  // A test that fails part-way leaves the window scrolled and its mocks in place: the next
+  // one starts from the top either way.
+  afterEach(() => {
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true });
+    vi.restoreAllMocks();
+  });
+
   function Bar(props: Partial<React.ComponentProps<typeof NavigationBar>>) {
     return (
       <NavigationBar aria-label="Main" {...(props as object)}>
@@ -922,7 +929,15 @@ describe('NavigationBar', () => {
     scrollTo(180);
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('-44px');
     expect(nav).not.toHaveAttribute('inert');
-    // Keyboard focus on an item brings the bar back and keeps it there while scrolling.
+    // Keyboard focus on an item brings the bar back and keeps it there while scrolling. The
+    // test DOM guesses `:focus-visible` from the events it has seen, differently from one
+    // version to the next, so the focused element is said to show its focus outright.
+    const matches = Element.prototype.matches;
+    vi.spyOn(Element.prototype, 'matches').mockImplementation(function (this: Element, selector) {
+      return selector === ':focus-visible'
+        ? this === document.activeElement
+        : matches.call(this, selector);
+    });
     fireEvent.keyDown(document.body, { key: 'Tab' });
     act(() => screen.getByRole('link', { name: 'Home' }).focus());
     expect(nav.style.getPropertyValue('--m3-nav-bar-offset')).toBe('0px');

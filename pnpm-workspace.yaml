@@ -32,8 +32,16 @@ allowBuilds:
   # Postinstall only fetches a fallback binary; the prebuilt optional dependency is used.
   unrs-resolver: false
 
-# Security floors for packages other tools pin below a fixed version.
 overrides:
+  # Security floors for packages other tools pin below a fixed version.
   handlebars: 4.7.10
   glob@>=9 <14.0.2: ^14.0.4
   minimatch@>=7 <11.0.1: ^11.0.5
+  # Tailwind is held at 4.3.3: under 4.3.5, `next dev --webpack` (the site's dev server)
+  # crashes when two pages compile at once. See "Tailwind is held at 4.3.3" in
+  # docs/architecture.md; delete these five lines to move it.
+  tailwindcss: 4.3.3
+  '@tailwindcss/cli': 4.3.3
+  '@tailwindcss/node': 4.3.3
+  '@tailwindcss/postcss': 4.3.3
+  '@tailwindcss/vite': 4.3.3

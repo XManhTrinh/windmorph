@@ -115,7 +115,7 @@ describe('TimePicker', () => {
       await vi.waitFor(() => expect(minute).toHaveAttribute('data-selected', 'true'), {
         timeout: 3000,
       });
-      expect(within(dial).getByRole('button', { name: '5 minutes of 60' })).toHaveFocus();
+      expect(within(dial).getByRole('button', { name: '05 minutes of 60' })).toHaveFocus();
     } finally {
       vi.useRealTimers();
     }
@@ -134,6 +134,33 @@ describe('TimePicker', () => {
     expect(screen.getByRole('button', { name: '30 minutes of 60' })).toBeInTheDocument();
     fireEvent.keyDown(minute, { key: 'ArrowUp' });
     expect(onChange).toHaveBeenLastCalledWith(new Time(11, 31));
+  });
+
+  it('names every dial number with the text it shows', async () => {
+    // WCAG 2.5.3: a padded "05" is in its button's name, so someone who speaks to the page
+    // can ask for the number as it is written.
+    render(<TimePicker defaultValue={new Time(7, 5)} hourCycle={24} />);
+    const dial = screen.getByRole('group', { name: 'Clock' });
+    const numbers = () =>
+      within(dial)
+        .getAllByRole('button')
+        .map((number) => [
+          number.querySelector('text')?.textContent,
+          number.getAttribute('aria-label'),
+        ]);
+    expect(numbers()).toHaveLength(24);
+    for (const [shown, name] of numbers()) expect(name).toBe(`${shown} hours of 24`);
+    expect(within(dial).getByRole('button', { name: '07 hours of 24' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(screen.getByRole('textbox', { name: 'Minute' }));
+    expect(numbers()).toHaveLength(12);
+    for (const [shown, name] of numbers()) expect(name).toBe(`${shown} minutes of 60`);
+    expect(within(dial).getByRole('button', { name: '05 minutes of 60' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('uses two rings and wider selectors for a 24-hour dial, but 96px input fields', () => {
