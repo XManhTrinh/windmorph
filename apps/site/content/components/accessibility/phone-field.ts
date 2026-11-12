@@ -43,7 +43,7 @@ export const phoneField: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'A `group` of two fields side by side: the country field is a {@link Select} trigger (`button` with `aria-haspopup="dialog"`) and the number is a text field (`input type="tel"`).',
-    name: 'The group is named by `label` (or `aria-label`). The country field is named by the chosen country with its dialling code as shown, then `labels.country` ("United Kingdom, +44 Country"), so its name contains the visible code (WCAG 2.5.3). The number is named by `label`, or by `aria-label` without one.',
+    name: 'The group is named by `label`, or by `aria-label` or `aria-labelledby` without one, and its number takes the same name. The country field is named by the chosen country with its dialling code as shown, then `labels.country` ("United Kingdom, +44 Country"), so its name contains the visible code (WCAG 2.5.3).',
     states:
       'Both fields are marked invalid together. `disabled` disables both; `readOnly` makes the number read-only and keeps the country field enabled, showing its country without opening. `required` applies to the number. The supporting text and the error describe the number.',
     notes: [
@@ -65,7 +65,7 @@ export const phoneField: ComponentAccessibility = {
     "The country field's arrow turns as the list opens; under reduced motion it flips at once. The menu then only fades, and options don't slide as the search filters them.",
   ],
   consumer: [
-    'Give it a visible `label` ("Phone number"); use `aria-label` only where a visible label is impossible.',
+    'Give it a visible `label` ("Phone number"). Where the page already shows one, point `aria-labelledby` at it; use `aria-label` only where a visible label is impossible.',
     "Pass `labels` from your translations: the country field's name, the search, the group names, the empty message and the error.",
     "Pass `defaultCountry` (the visitor's, when known) and `priorityCountries`, so most people find their country at the top.",
     'When the server rejects a number, set `invalid` and an `errorMessage` that says how to fix it.',

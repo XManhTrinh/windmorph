@@ -196,6 +196,12 @@ export default async function ApiConventionsPage() {
             <InlineCode>PickerDialog</InlineCode>&apos;s, so the words they share are written once.
           </Rule>
           <Rule>
+            Windmorph Pro&apos;s components read the same provider. Importing one adds its key (
+            <InlineCode>Alert</InlineCode>, <InlineCode>DataTable</InlineCode>,{' '}
+            <InlineCode>MessageField</InlineCode>…) to the provider&apos;s{' '}
+            <InlineCode>labels</InlineCode>, so Pro&apos;s words sit beside the core&apos;s.
+          </Rule>
+          <Rule>
             Some words are functions (a character count), which a Server Component can&apos;t pass
             to a Client Component. Render the provider from a client file of your own, as above, and
             wrap the app in it.

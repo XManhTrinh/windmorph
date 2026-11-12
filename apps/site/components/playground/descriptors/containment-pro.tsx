@@ -338,7 +338,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     enumOptions: {
       shape: shapeOptions(['circle']),
       size: ['sm', 'md', 'lg', 'xl'],
-      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'success', 'warning', 'error'],
     },
     // A shape is written as its constant, imported from `@windmorph/react/primitives`.
     codeSlots: { shape: shapeSlot('circle') },

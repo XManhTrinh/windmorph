@@ -369,7 +369,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     enumOptions: {
       variant: ['plain', 'filled', 'elevated', 'outlined'],
       size: ['sm', 'md', 'lg'],
-      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'success', 'warning', 'error'],
       shape: shapeOptions(['circle']),
     },
     controlKinds: { title: 'string', description: 'string', actions: 'boolean' },

@@ -93,7 +93,10 @@ export async function ListDetailLayoutBody(): Promise<ComponentDoc> {
               <strong className="text-on-surface">Expanded and wider</strong> (840px and up): both
               panes, a fixed list (360px, 412px from 1200px, or <InlineCode>listWidth</InlineCode>)
               beside a flexible detail, with M3&apos;s 24px spacer. The list is sticky; set{' '}
-              <InlineCode>stickyTop</InlineCode> to stop it below a sticky top app bar.
+              <InlineCode>stickyTop</InlineCode> to stop it below a sticky top app bar. Inside a
+              container that scrolls by itself and is shorter than the window (an app frame&apos;s
+              pane, a dialog), set <InlineCode>--wm-list-detail-layout-available-height</InlineCode>{' '}
+              to the container&apos;s height, so the list ends at its edge.
             </li>
             <li>
               <strong className="text-on-surface">URL-driven:</strong> in an app, make the list

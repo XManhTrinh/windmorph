@@ -724,7 +724,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
       {
         name: 'Colour and an M3 Expressive shape (a shape constant)',
         kind: 'configuration',
-        examples: ['empty-state/empty-state-search', 'empty-state/empty-state-retry'],
+        examples: [
+          'empty-state/empty-state-search',
+          'empty-state/empty-state-retry',
+          'empty-state/empty-state-done',
+        ],
       },
       {
         name: 'Nothing here yet',
@@ -740,6 +744,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         name: 'Couldn’t load, with a retry',
         kind: 'use case',
         examples: ['empty-state/empty-state-retry'],
+      },
+      {
+        name: 'All caught up, at the end of a feed',
+        kind: 'use case',
+        examples: ['empty-state/empty-state-done'],
       },
     ],
   },
