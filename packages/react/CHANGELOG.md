@@ -2,6 +2,17 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.5 — 2026-11-12
+
+### Added
+
+- `LocaleProvider`, which sets the locale of every component below it once: how dates, times and numbers are written (the order of a date, the 12- or 24-hour clock, digits, the first day of the week) and the direction the arrow keys follow. Without it the components still use the browser's language (`en-US` on the server), so an English page in a British browser got 24-hour time fields and `DD/MM/YYYY`; an app whose pages have a language of their own had to import React Aria's `I18nProvider` itself. Pass the page's language, the same on the server and in the browser: `<LocaleProvider locale="en-US">`. A provider inside another sets it for its part of the page. `useLocale` returns the locale and its direction, for an app's own formatting. ([#64](https://github.com/XManhTrinh/windmorph/pull/64))
+
+### Fixed
+
+- A `DateField`, and the date pickers' text input, write their text again when the locale changes. Before, the text kept the old locale's format while the field read it in the new one's order. A server-rendered field with a value changes locale by itself without a `LocaleProvider`, from the server's `en-US` to the browser's language, so 5 March, shown as `03/05/2030`, became 3 May when the field lost focus in a day-first browser. ([#64](https://github.com/XManhTrinh/windmorph/pull/64))
+- `Dialog` no longer takes `isEntering`, an option React Aria 3.53 added to the type its props extend. The dialog runs its own entrance, so the prop did nothing; apps that install React Aria 3.53 saw it in the editor. ([#63](https://github.com/XManhTrinh/windmorph/pull/63))
+
 ## 0.2.4 — 2026-11-12
 
 ### Added
