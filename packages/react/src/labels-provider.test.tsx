@@ -1,5 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
@@ -52,6 +55,8 @@ import {
  * - every component with a `labels` prop is rendered below a provider that gives each of its
  *   key's words a marked value, and one of them has to show.
  */
+
+const SRC = dirname(fileURLToPath(import.meta.url));
 
 /** A provider word's value: `wm-word:TextField.error`. */
 const MARK = 'wm-word:';
@@ -302,6 +307,22 @@ describe('the words every component reads from a LabelsProvider', () => {
     expect([...Object.keys(CASES), ...Object.keys(PASSES_ON)].sort()).toEqual(
       labelled.map(({ name }) => name).sort(),
     );
+  });
+
+  it('gives useLabels defaults that are the same object on every render', () => {
+    // A new object written in the call would make the component's words new every render;
+    // one without defaults passes `NO_DEFAULT_LABELS`.
+    const inline = /useLabels\(\s*(?:'[^']+'|\[[^\]]*\])\s*,\s*\{/;
+    const found = ['components', 'composites']
+      .flatMap((dir) =>
+        readdirSync(join(SRC, dir), { recursive: true, withFileTypes: true })
+          .filter((entry) => entry.isFile() && /\.tsx?$/.test(entry.name))
+          .filter((entry) => !/\.(test|stories)\.tsx?$/.test(entry.name))
+          .map((entry) => join(entry.parentPath, entry.name)),
+      )
+      .filter((file) => inline.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(SRC, file));
+    expect(found).toEqual([]);
   });
 
   it("puts a component's own labels above the provider's", () => {
