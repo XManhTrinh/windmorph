@@ -174,6 +174,11 @@ export async function DatePickerBody(): Promise<ComponentDoc> {
               (below 600px) the calendar button opens the modal picker full screen instead, as M3
               recommends: the 360px panel doesn&apos;t fit a phone.
             </li>
+            <li>
+              Dates are written the locale&apos;s way (the order of the parts, the month and day
+              names, the first day of the week): the nearest <InlineCode>LocaleProvider</InlineCode>
+              &apos;s, or the browser&apos;s language without one, which may not be the page&apos;s.
+            </li>
           </ul>
         </section>
       </>

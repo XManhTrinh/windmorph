@@ -18,6 +18,10 @@ export {
 export { LabelsProvider, type LabelsProviderProps } from './components/labels/LabelsProvider';
 export type { WindmorphLabels } from './windmorph-labels';
 
+// Locale
+export { LocaleProvider, type LocaleProviderProps } from './components/locale/LocaleProvider';
+export { useLocale, type LocaleContextValue } from './components/locale/use-locale';
+
 // Motion
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';

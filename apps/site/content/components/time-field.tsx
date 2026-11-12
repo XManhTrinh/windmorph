@@ -50,6 +50,12 @@ export async function TimeFieldBody(): Promise<ComponentDoc> {
               locale&apos;s digits and day periods, and normalizes them on blur and Enter.
             </li>
             <li>
+              The 12- or 24-hour clock is the locale&apos;s: the nearest{' '}
+              <InlineCode>LocaleProvider</InlineCode>&apos;s, or the browser&apos;s language without
+              one, which may not be the page&apos;s. <InlineCode>hourCycle</InlineCode> sets it for
+              one field.
+            </li>
+            <li>
               Unreadable or out-of-range text stays as typed with an inline error, and the value is
               unchanged until it&apos;s put right. <InlineCode>9:3</InlineCode> is refused: it could
               mean 9:03 or 9:30.

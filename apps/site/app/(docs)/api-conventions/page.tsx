@@ -32,6 +32,21 @@ export function AppLabels({ children }: { children: ReactNode }) {
   return <LabelsProvider labels={words}>{children}</LabelsProvider>;
 }`;
 
+const LOCALE_SNIPPET = `// app/layout.tsx
+import { LocaleProvider, ThemeProvider } from '@windmorph/react';
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <ThemeProvider>
+          <LocaleProvider locale="en-US">{children}</LocaleProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}`;
+
 /** One rule: what the props are called, and an example from the library. */
 function Rule({ children }: { children: ReactNode }) {
   return <li>{children}</li>;
@@ -42,7 +57,10 @@ function Rule({ children }: { children: ReactNode }) {
  * `@windmorph/react-pro` follows, so a prop learnt on one component means the same on all.
  */
 export default async function ApiConventionsPage() {
-  const labelsHtml = await highlightSource(LABELS_SNIPPET, 'tsx');
+  const [labelsHtml, localeHtml] = await Promise.all([
+    highlightSource(LABELS_SNIPPET, 'tsx'),
+    highlightSource(LOCALE_SNIPPET, 'tsx'),
+  ]);
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-10">
       <header className="flex flex-col gap-3">
@@ -216,6 +234,40 @@ export default async function ApiConventionsPage() {
           The provider&apos;s table below lists every key; each component&apos;s API tab lists its
           words under <InlineCode>labels</InlineCode>, with their defaults.
         </p>
+        <h3 id="dates-times-and-numbers" className="text-title-large text-on-surface">
+          Dates, times and numbers
+        </h3>
+        <p className={TEXT}>
+          How a component writes a date, a time or a number (the order of a date, the 12- or 24-hour
+          clock, digits, the first day of the week) comes from its locale, not from{' '}
+          <InlineCode>labels</InlineCode>. Set it once with a{' '}
+          <InlineCode>LocaleProvider</InlineCode>, passing the language your page is written in.
+          Without one the components follow the browser&apos;s language (
+          <InlineCode>en-US</InlineCode> on the server), which may not be the page&apos;s: an
+          English page in a British browser gets 24-hour time fields beside 12-hour text.
+        </p>
+        <CodeBlock code={LOCALE_SNIPPET} html={localeHtml} lang="tsx" title="app/layout.tsx" />
+        <ul className={LIST}>
+          <Rule>
+            Pass the same locale on the server and in the browser, so the first render matches. It
+            is a string, so a Server Component can render the provider.
+          </Rule>
+          <Rule>
+            A provider inside another sets the locale for its part of the page. It sets no{' '}
+            <InlineCode>lang</InlineCode> or <InlineCode>dir</InlineCode>: set those on your own
+            elements, <InlineCode>dir=&quot;rtl&quot;</InlineCode> included for a right-to-left
+            language.
+          </Rule>
+          <Rule>
+            Windmorph Pro&apos;s components follow the same provider: a calendar&apos;s month names,
+            a data grid&apos;s decimal separator, a count written &quot;1.3K&quot;.
+          </Rule>
+          <Rule>
+            <InlineCode>useLocale</InlineCode> returns the locale and its direction, for your own
+            formatting, so your dates match the fields beside them:{' '}
+            <InlineCode>new Intl.DateTimeFormat(useLocale().locale)</InlineCode>.
+          </Rule>
+        </ul>
       </section>
 
       <section className={SECTION}>
