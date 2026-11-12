@@ -23,6 +23,7 @@
     "components/list/List": 32100,
     "components/list/ListMedia": 8150,
     "components/loading-indicator/LoadingIndicator": 24000,
+    "components/locale/LocaleProvider": 700,
     "components/menu/Menu": 29700,
     "components/menu/menu-trigger": 1850,
     "components/navigation/NavigationBar": 22950,

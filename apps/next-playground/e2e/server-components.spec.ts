@@ -58,6 +58,23 @@ test.describe('Server components', () => {
     expect(problems).toEqual([]);
   });
 
+  test("a LocaleProvider's formats are in the server's HTML and stay after hydration", async ({
+    page,
+  }) => {
+    const problems = collectConsoleProblems(page);
+    const response = await page.goto(PATH);
+    const html = (await response?.text()) ?? '';
+    // Server-rendered in the provider's locale, not the server's en-US: the date format hint.
+    expect(html).toContain('DD.MM.YYYY');
+    const field = page.getByTestId('localized-field');
+    await page.waitForLoadState('networkidle');
+    // Still German in a browser whose own language is American English.
+    expect(await page.evaluate(() => navigator.language)).toBe('en-US');
+    await expect(field.getByText('DD.MM.YYYY')).toBeVisible();
+    await expect(field.getByText('MM/DD/YYYY')).toHaveCount(0);
+    expect(problems).toEqual([]);
+  });
+
   test('hydrates without errors or warnings', async ({ page }) => {
     const problems = collectConsoleProblems(page);
     await page.goto(PATH);

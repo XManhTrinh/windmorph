@@ -84,6 +84,7 @@ const NO_ROOT: Record<string, string> = {
   DomDirectionLocale: 'A render prop that hands its child a ref; it renders no element.',
   NextRouterProvider: "Context only: wires links to Next's router.",
   LabelsProvider: 'Context only: sets the words of the components below it.',
+  LocaleProvider: 'Context only: sets the locale of the components below it.',
   ThemeProvider: 'Context only: themes the page through the document element.',
   ThemeScript: 'An inline script that applies the saved theme before paint.',
   Overlay: 'A primitive portal; what it holds takes the props.',

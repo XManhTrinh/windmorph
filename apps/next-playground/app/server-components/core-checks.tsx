@@ -46,6 +46,15 @@ export const coreChecks = {
     kind: 'client',
     reason: 'some of its words are functions, which a server component cannot pass to it',
   },
+  LocaleProvider: {
+    kind: 'component',
+    render: () => (
+      <Core.LocaleProvider locale="de-DE">
+        <Core.DateField label="Datum" data-testid="localized-field" />
+      </Core.LocaleProvider>
+    ),
+  },
+  useLocale: hook,
   getThemeScriptSource: { kind: 'value', run: () => Core.getThemeScriptSource() },
   useTheme: hook,
   useThemeScope: hook,
