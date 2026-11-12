@@ -310,7 +310,9 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               holding it while content arrives. The second sends Page Down, End, Space and the
               arrows to the pane while nothing has focus, and returns the{' '}
               <InlineCode>tabIndex</InlineCode> for it: a tab stop only on a page with nothing of
-              its own that takes focus.
+              its own that takes focus. Both follow the element behind the ref, so a frame can leave
+              its pane out on some pages, or put another in its place, while the component that
+              calls the hooks stays mounted.
             </li>
             <li>
               The morph engine (<InlineCode>useM3Morph</InlineCode>,{' '}

@@ -116,6 +116,9 @@ function hold(element: HTMLElement, top: number, duration: number): () => void {
  *   missing) restores the page's position and holds it for `holdFor` ms while content arrives;
  *   the hold ends the moment the person scrolls.
  * - A new page starts at its top.
+ * - The element can be left out on some pages (a frame that lays them out without its pane)
+ *   while the component that calls the hook stays mounted: those pages keep nothing, and the
+ *   pages around them are restored as usual.
  *
  * @example
  * const pane = useRef<HTMLElement>(null);
@@ -186,8 +189,6 @@ export function useScrollRestoration(
 
   // Before paint, so a restored page never shows at its top first.
   useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element) return;
     const previous = shown.current;
     // The same page again (a development double render) repeats its decision.
     const restored =
@@ -197,7 +198,11 @@ export function useScrollRestoration(
           ? loadRestores()
           : traversing.current;
     if (previous?.key !== pageKey) traversing.current = false;
+    // The page is noted even while the element is left out (a frame that lays some pages out
+    // without its pane), so the next page with it is decided against the page just left.
     shown.current = { key: pageKey, restored };
+    const element = ref.current;
+    if (!element) return;
     if (!restored) {
       // A new page starts at its top; the first page of a visit is left where the browser put it.
       if (previous !== null && previous.key !== pageKey) scrollTo(element, 0);

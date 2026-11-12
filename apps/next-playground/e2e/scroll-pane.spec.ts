@@ -52,4 +52,42 @@ test.describe('A pane that scrolls by itself', () => {
     // Its pages hold links, so it isn't a tab stop of its own.
     await expect(pane).toHaveAttribute('tabindex', '-1');
   });
+
+  test('the hooks follow the pane when a page is laid out without it', async ({ page }) => {
+    await page.goto('/scroll-pane/one');
+    const pane = page.getByTestId('pane');
+    const top = () => pane.evaluate((el) => Math.round(el.scrollTop));
+
+    // To the page laid out without the pane, and back by a link: the pane is a new element.
+    await pane.getByRole('link', { name: 'To the plain page from paragraph 39' }).click();
+    await expect(page.getByRole('heading', { name: 'Page plain' })).toBeVisible();
+    await expect(pane).toHaveCount(0);
+    await page.getByRole('link', { name: 'To page one from paragraph 6' }).click();
+    await expect(pane.getByRole('heading', { name: 'Page one' })).toBeVisible();
+    await expect.poll(top).toBe(0);
+
+    // The scroll keys reach the new pane with nothing focused.
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    await page.keyboard.press('PageDown');
+    await expect.poll(top).toBeGreaterThan(300);
+    const scrolled = await top();
+
+    // Back to the page without the pane, then back to page one: its position comes back.
+    await page.goBack();
+    await expect(page.getByRole('heading', { name: 'Page plain' })).toBeVisible();
+    await page.goBack();
+    await expect(pane.getByRole('heading', { name: 'Page one' })).toBeAttached();
+    await expect.poll(top).toBe(scrolled);
+  });
+
+  test('the scroll keys start once the pane arrives after a page without it', async ({ page }) => {
+    await page.goto('/scroll-pane/plain');
+    await page.getByRole('link', { name: 'To page one from paragraph 6' }).click();
+    const pane = page.getByTestId('pane');
+    await expect(pane.getByRole('heading', { name: 'Page one' })).toBeVisible();
+    const end = await pane.evaluate((el) => el.scrollHeight - el.clientHeight);
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    await page.keyboard.press('End');
+    await expect.poll(() => pane.evaluate((el) => el.scrollTop)).toBe(end);
+  });
 });
