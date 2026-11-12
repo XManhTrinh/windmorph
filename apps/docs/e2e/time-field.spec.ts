@@ -104,14 +104,19 @@ test.describe('TimeField, docked', () => {
       .getByRole('button')
       .click();
 
+  /** The list's reveal has ended: nothing on the page is still animating. */
+  const revealed = (page: Page) =>
+    page.waitForFunction(() =>
+      document.getAnimations().every((animation) => animation.playState !== 'running'),
+    );
+
   for (const mode of ['light', 'dark'] as const) {
     test(`the open list · ${mode}`, async ({ page }) => {
       await openStory(page, DOCKED, { mode });
       await open(page, 'Opens at');
       const list = page.getByRole('listbox', { name: 'Select time' });
       await expect(list.getByRole('option', { name: '09:30' })).toBeFocused();
-      // The menu's reveal has ended once the list stops moving.
-      await page.waitForTimeout(500);
+      await revealed(page);
       await expect(page).toHaveScreenshot(`docked-open-${mode}.png`);
     });
   }
@@ -125,7 +130,7 @@ test.describe('TimeField, docked', () => {
     const chosen = list.getByRole('option', { name: '09:30' });
     await expect(chosen).toBeFocused();
     await expect(chosen).toHaveAttribute('aria-selected', 'true');
-    await page.waitForTimeout(400);
+    await revealed(page);
     const field = (await page
       .getByRole('textbox', { name: 'Opens at', includeHidden: true })
       .locator('xpath=ancestor::*[@data-field-state][1]')
