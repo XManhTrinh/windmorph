@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { SCROLL_KEYS } from './use-scroll-keys';
 
 export interface ScrollRestorationOptions {
   /**
@@ -101,13 +102,14 @@ function moveTo(element: HTMLElement, top: number) {
  * page changes, and content still arriving makes the page tall enough to reach the position
  * only later. The ref is read on every frame, so an element that arrives during the hold, or
  * replaces the first one, is held too. It ends when the time is up or the moment the person
- * scrolls, and then calls `onEnd`. Returns what stops it early, without calling `onEnd`.
+ * scrolls, and then calls `onEnd`, with the event that ended it. Returns what stops it early,
+ * without calling `onEnd`.
  */
 function hold(
   ref: RefObject<HTMLElement | null>,
   top: number,
   duration: number,
-  onEnd: () => void,
+  onEnd: (releasedBy?: Event) => void,
 ): () => void {
   let frame = 0;
   const until = performance.now() + duration;
@@ -115,14 +117,18 @@ function hold(
     cancelAnimationFrame(frame);
     for (const type of RELEASE_EVENTS) window.removeEventListener(type, release, true);
   };
-  const end = () => {
+  const end = (releasedBy?: Event) => {
     stop();
-    onEnd();
+    onEnd(releasedBy);
   };
   const release = (event: Event) => {
-    // A key still down from the back or forward shortcut repeats: that isn't scrolling.
-    if (event instanceof KeyboardEvent && event.repeat) return;
-    end();
+    // A key still down from the back or forward shortcut repeats, and that isn't scrolling; a
+    // scroll key held down is.
+    if (event instanceof KeyboardEvent && event.repeat) {
+      const shortcut = event.altKey || event.ctrlKey || event.metaKey;
+      if (shortcut || !SCROLL_KEYS.has(event.key)) return;
+    }
+    end(event);
   };
   const apply = () => {
     const element = ref.current;
@@ -155,7 +161,9 @@ interface Shown {
  * - A position is kept for each `pageKey`, in `sessionStorage`, so a reload restores it too.
  * - A page's position is taken when the person sets off: a press, a key, or back and forward.
  *   Never from a scroll after the page changed, since a router can scroll the element to the
- *   new page's top first, and never while a restored position is still being held.
+ *   new page's top first; and never while a restored position is still being held, nor by the
+ *   press or key that ends the hold, since content still arriving can leave the page short of
+ *   it.
  * - Going back or forward (the Navigation API's `navigate` event, or `popstate` where it's
  *   missing) restores the page's position and holds it for `holdFor` ms while content arrives;
  *   the hold ends the moment the person scrolls.
@@ -179,13 +187,12 @@ export function useScrollRestoration(
 ): void {
   const shown = useRef<Shown | null>(null);
   const kept = useRef<Kept | null>(null);
-  /**
-   * The back and forward steps begun whose pages haven't shown yet: two can begin before the
-   * first page renders. Cleared when the person sets off anew.
-   */
-  const traversing = useRef(0);
+  /** Set by back and forward until the page changes; cleared when the person sets off anew. */
+  const traversing = useRef(false);
   /** The page whose restored position is being held, which the element may not have reached. */
   const holding = useRef<string | null>(null);
+  /** The press or key that ended the last hold, which takes no position either. */
+  const releasedBy = useRef<Event | null>(null);
 
   useEffect(() => {
     const keep = () => {
@@ -212,12 +219,14 @@ export function useScrollRestoration(
     const onSetOff = (event: Event) => {
       // A held key repeats after back or forward has begun: that isn't setting off anew.
       if (event instanceof KeyboardEvent && event.repeat) return;
-      traversing.current = 0;
-      keep();
+      traversing.current = false;
+      // The press or key that ended a hold reached this listener after the hold's own: the page
+      // may still be short of the position that was held, so what is kept for it stands.
+      if (event !== releasedBy.current) keep();
     };
     const onTraverse = () => {
       keep();
-      traversing.current += 1;
+      traversing.current = true;
     };
     const onNavigate = (event: Event) => {
       const { navigationType, hashChange } = event as Event & {
@@ -227,9 +236,11 @@ export function useScrollRestoration(
       if (navigationType === 'traverse' && !hashChange) onTraverse();
     };
     // `popstate` can't tell a step within the page (a fragment) from a step to another page; the
-    // `hashchange` that follows it can, and takes the step back.
-    const onHashChange = () => {
-      traversing.current = Math.max(0, traversing.current - 1);
+    // `hashchange` that follows it can, where only the fragment differs, and takes the step back.
+    const onHashChange = (event: HashChangeEvent) => {
+      if (withoutFragment(event.oldURL) === withoutFragment(event.newURL)) {
+        traversing.current = false;
+      }
     };
     // In browsers with the Navigation API, `popstate` can arrive after the restored page is on
     // screen; `navigate` comes before the page changes.
@@ -266,8 +277,8 @@ export function useScrollRestoration(
       ? previous.restored
       : previous === null
         ? loadRestores()
-        : traversing.current > 0;
-    if (!samePage) traversing.current = Math.max(0, traversing.current - 1);
+        : traversing.current;
+    if (!samePage) traversing.current = false;
     // The page is noted even while the element is left out (a frame that lays some pages out
     // without its pane), so the next page with it is decided against the page just left.
     const page: Shown = { key: pageKey, restored, settled: samePage && previous.settled };
@@ -285,8 +296,9 @@ export function useScrollRestoration(
     const release = () => {
       if (holding.current === pageKey) holding.current = null;
     };
-    const stop = hold(ref, top, holdFor, () => {
+    const stop = hold(ref, top, holdFor, (event) => {
       page.settled = true;
+      releasedBy.current = event ?? null;
       release();
     });
     return () => {

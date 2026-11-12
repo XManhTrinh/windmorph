@@ -156,9 +156,18 @@ describe('useScrollRestoration', () => {
   it('keeps holding through a key that repeats, as the back shortcut does when held', () => {
     restoredA();
     fireEvent.keyDown(window, { key: 'ArrowLeft', altKey: true, repeat: true });
+    fireEvent.keyDown(window, { key: 'Backspace', repeat: true });
     pane().scrollTop = 0;
     frame();
     expect(pane().scrollTop).toBe(300);
+  });
+
+  it('lets go for a scroll key held down since before the hold began', () => {
+    restoredA();
+    fireEvent.keyDown(window, { key: 'ArrowDown', repeat: true });
+    pane().scrollTop = 50;
+    frame();
+    expect(pane().scrollTop).toBe(50);
   });
 
   it('does not hold again once the hold has ended, when the same page runs its effect again', () => {
@@ -171,19 +180,18 @@ describe('useScrollRestoration', () => {
     expect(pane().scrollTop).toBe(50);
   });
 
-  it('stops holding when it unmounts', () => {
-    const { unmount } = render(<Pane pageKey="/a" />);
-    pane().scrollTop = 300;
-    fireEvent(window, new Event('pagehide'));
-    unmount();
+  it('stops holding when it unmounts: no frame left waiting, no listener left on the window', () => {
+    sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
     loadedBy('reload');
-    const reloaded = render(<Pane pageKey="/a" />);
-    const element = pane();
-    expect(element.scrollTop).toBe(300);
-    reloaded.unmount();
-    element.scrollTop = 0;
-    frame();
-    expect(element.scrollTop).toBe(0);
+    const { unmount } = render(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(300);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+    const removed = vi.spyOn(window, 'removeEventListener');
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+    for (const type of ['wheel', 'touchstart', 'pointerdown', 'keydown']) {
+      expect(removed).toHaveBeenCalledWith(type, expect.any(Function), true);
+    }
   });
 
   it('restores and holds under Strict Mode, whose effects run twice', () => {
@@ -211,20 +219,19 @@ describe('useScrollRestoration', () => {
     expect(stored()['/a']).toBe(300);
   });
 
-  it('restores each page when two steps back begin before the first page shows', () => {
-    const { rerender } = render(<Pane pageKey="/a" />);
-    pane().scrollTop = 300;
+  it.each([
+    ['a key', () => fireEvent.keyDown(document.body, { key: 'ArrowLeft', altKey: true })],
+    ['a press', () => fireEvent.pointerDown(document.body)],
+  ])('takes no position from %s that ends a hold on a page still short of it', (_, act) => {
+    restoredA();
+    // The back shortcut again, or a press on a link, while content is still arriving.
+    pane().scrollTop = 0;
+    act();
+    expect(stored()['/a']).toBe(300);
+    // The hold is over: the next press takes the position as usual.
+    pane().scrollTop = 40;
     fireEvent.pointerDown(document.body);
-    rerender(<Pane pageKey="/b" />);
-    pane().scrollTop = 120;
-    fireEvent.pointerDown(document.body);
-    rerender(<Pane pageKey="/c" />);
-    traverse();
-    traverse();
-    rerender(<Pane pageKey="/b" />);
-    expect(pane().scrollTop).toBe(120);
-    rerender(<Pane pageKey="/a" />);
-    expect(pane().scrollTop).toBe(300);
+    expect(stored()['/a']).toBe(40);
   });
 
   it('starts a page first seen through history, with nothing kept for it, at its top', () => {
@@ -348,10 +355,31 @@ describe('useScrollRestoration', () => {
     rerender(<Pane pageKey="/b" />);
     // Back to an earlier fragment of the same page: `popstate`, then `hashchange`.
     fireEvent.popState(window);
-    fireEvent(window, new Event('hashchange'));
+    fireEvent(
+      window,
+      new HashChangeEvent('hashchange', {
+        oldURL: 'https://example.test/b#later',
+        newURL: 'https://example.test/b#earlier',
+      }),
+    );
     // A page change with no press or key before it (a script's) is then a new page.
     rerender(<Pane pageKey="/a" />);
     expect(pane().scrollTop).toBe(0);
+
+    // A step to another page whose fragment differs too is still a step back.
+    pane().scrollTop = 300;
+    fireEvent.pointerDown(document.body);
+    rerender(<Pane pageKey="/b" />);
+    fireEvent.popState(window);
+    fireEvent(
+      window,
+      new HashChangeEvent('hashchange', {
+        oldURL: 'https://example.test/b#later',
+        newURL: 'https://example.test/a#top',
+      }),
+    );
+    rerender(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(300);
   });
 
   it('writes to storage only when the position changed', () => {

@@ -105,11 +105,18 @@ describe('useScrollKeys, with another scrolling element on the page', () => {
     );
   }
 
-  /** Gives an element a content height and a box height: jsdom lays nothing out. */
-  const size = (element: HTMLElement, scrollHeight: number, clientHeight: number) =>
+  /**
+   * Gives an element a content height, a box height and a place in the window (on screen
+   * unless `left` says otherwise): jsdom lays nothing out.
+   */
+  const size = (element: HTMLElement, scrollHeight: number, clientHeight: number, left = 700) =>
     Object.defineProperties(element, {
       scrollHeight: { configurable: true, value: scrollHeight },
       clientHeight: { configurable: true, value: clientHeight },
+      getBoundingClientRect: {
+        configurable: true,
+        value: () => new DOMRect(left, 0, 300, clientHeight),
+      },
     });
 
   it('leaves the keys with the scroller the person last pressed in', () => {
@@ -142,6 +149,31 @@ describe('useScrollKeys, with another scrolling element on the page', () => {
     rerender(<WithSide side={false} />);
     fireEvent.keyDown(document.body, { key: 'End' });
     expect(document.activeElement).toBe(pane());
+  });
+
+  it('takes the keys when that scroller is off screen, inert, or scrolls only sideways', () => {
+    render(<WithSide />);
+    const side = screen.getByTestId('side');
+    const press = () => {
+      pane().blur();
+      fireEvent.pointerDown(side.querySelector('p')!);
+      fireEvent.keyDown(document.body, { key: 'PageDown' });
+      return document.activeElement;
+    };
+    // A sheet slid out of the window, still mounted.
+    size(side, 900, 300, window.innerWidth + 20);
+    expect(press()).toBe(pane());
+    // On screen but inert.
+    size(side, 900, 300);
+    side.setAttribute('inert', '');
+    expect(press()).toBe(pane());
+    side.removeAttribute('inert');
+    // A sideways scroller computes `overflow-y: auto` too, with a rounding's worth of height.
+    size(side, 301, 300);
+    expect(press()).toBe(pane());
+    // And as it was: on screen, with something to scroll, it keeps the keys.
+    size(side, 900, 300);
+    expect(press()).toBe(document.body);
   });
 
   it('takes the keys after a press in the pane itself', () => {
@@ -183,6 +215,14 @@ describe('useScrollKeys, deciding the tab stop', () => {
       </Pane>,
     );
     await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
+    rerender(<Pane>Text again</Pane>);
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '0'));
+    rerender(
+      <Pane>
+        <iframe title="Embedded" />
+      </Pane>,
+    );
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
   });
 
   it('reads the stop again when an attribute shows or hides a control', async () => {
@@ -202,15 +242,14 @@ describe('useScrollKeys, deciding the tab stop', () => {
 
   it('ends its watch and its listeners when it unmounts', () => {
     const disconnect = vi.spyOn(MutationObserver.prototype, 'disconnect');
+    const removed = vi.spyOn(document, 'removeEventListener');
     const { unmount } = render(<Pane>Text</Pane>);
-    const element = pane();
     unmount();
     expect(disconnect).toHaveBeenCalled();
-    document.body.append(element);
-    fireEvent.keyDown(document.body, { key: 'PageDown' });
-    expect(document.activeElement).toBe(document.body);
-    element.remove();
+    expect(removed).toHaveBeenCalledWith('keydown', expect.any(Function), true);
+    expect(removed).toHaveBeenCalledWith('pointerdown', expect.any(Function), true);
     disconnect.mockRestore();
+    removed.mockRestore();
   });
 });
 

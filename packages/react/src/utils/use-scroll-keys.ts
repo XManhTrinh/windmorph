@@ -3,12 +3,22 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { hasTabbable } from './focus';
 
-/** The keys that scroll a page. */
-const SCROLL_KEYS = new Set(['PageDown', 'PageUp', 'Home', 'End', ' ', 'ArrowDown', 'ArrowUp']);
+/** The keys that scroll a page up and down. */
+export const SCROLL_KEYS: ReadonlySet<string> = new Set([
+  'PageDown',
+  'PageUp',
+  'Home',
+  'End',
+  ' ',
+  'ArrowDown',
+  'ArrowUp',
+]);
 
 /**
  * The attributes that change whether something inside takes focus with Tab: what makes an
- * element focusable or disabled, and what hides it (`class` and `style` for `display: none`).
+ * element focusable or disabled, and what hides it. `class` and `style` are left out: animated
+ * content writes them on every frame. Rendering that changes without one of these (a class, a
+ * media query) is read at the next change.
  */
 const TAB_STOP_ATTRIBUTES = [
   'href',
@@ -19,8 +29,6 @@ const TAB_STOP_ATTRIBUTES = [
   'hidden',
   'inert',
   'open',
-  'class',
-  'style',
 ];
 
 export interface ScrollKeysResult {
@@ -49,12 +57,26 @@ function watchTabStop(element: HTMLElement, onChange: (isTabStop: boolean) => vo
   return () => observer.disconnect();
 }
 
+/** Whether the element is on screen for the person: rendered, visible, not inert, in the window. */
+function isOnScreen(element: Element): boolean {
+  if (element.closest('[inert]')) return false;
+  // jsdom has no `checkVisibility`: every element counts as rendered there.
+  if ('checkVisibility' in element && !element.checkVisibility({ visibilityProperty: true })) {
+    return false;
+  }
+  const view = element.ownerDocument.defaultView;
+  if (!view) return false;
+  const { top, bottom, left, right } = element.getBoundingClientRect();
+  return bottom > 0 && right > 0 && top < view.innerHeight && left < view.innerWidth;
+}
+
 /**
  * The element a browser scrolls with the keys while nothing has focus: the nearest ancestor of
  * what the person last pressed that scrolls up and down. Null when that press was on something
- * that doesn't scroll (so the keys go to the window), has left the page, or never happened.
+ * that doesn't scroll (so the keys go to the window), is no longer on screen (a sheet since
+ * closed), or never happened.
  */
-function scrollerOf(pressed: Node | null): Element | null {
+function scrollerOf(pressed: Node | null | undefined): Element | null {
   let element = pressed instanceof Element ? pressed : (pressed?.parentElement ?? null);
   if (!element?.isConnected) return null;
   const { body, documentElement } = element.ownerDocument;
@@ -64,11 +86,12 @@ function scrollerOf(pressed: Node | null): Element | null {
     element = element.parentElement
   ) {
     const { overflowY } = getComputedStyle(element);
+    // More than a rounding's worth to scroll: a sideways scroller computes `auto` here too.
     if (
       (overflowY === 'auto' || overflowY === 'scroll') &&
-      element.scrollHeight > element.clientHeight
+      element.scrollHeight - element.clientHeight > 1
     ) {
-      return element;
+      return isOnScreen(element) ? element : null;
     }
   }
   return null;
@@ -102,8 +125,11 @@ export function useScrollKeys(ref: RefObject<HTMLElement | null>): ScrollKeysRes
   const [isTabStop, setIsTabStop] = useState(false);
   /** The element watched for its tab stop, and what ends the watch. */
   const watched = useRef<{ element: HTMLElement; stop: () => void } | null>(null);
-  /** What the person last pressed, which decides where a browser sends the scroll keys. */
-  const pressed = useRef<Node | null>(null);
+  /**
+   * What the person last pressed, which decides where a browser sends the scroll keys. Held
+   * weakly, so a part that has left the page isn't kept alive by it.
+   */
+  const pressed = useRef<WeakRef<Node> | null>(null);
 
   /** Moves the watch to the element now behind the ref, and returns that element. */
   const follow = useCallback(() => {
@@ -123,7 +149,7 @@ export function useScrollKeys(ref: RefObject<HTMLElement | null>): ScrollKeysRes
 
   useEffect(() => {
     const onPointerDown = (event: PointerEvent) => {
-      pressed.current = event.target instanceof Node ? event.target : null;
+      pressed.current = event.target instanceof Node ? new WeakRef(event.target) : null;
     };
     const onKeyDown = (event: KeyboardEvent) => {
       // Read as the key goes down, never kept from an earlier render: a kept element can have
@@ -133,7 +159,7 @@ export function useScrollKeys(ref: RefObject<HTMLElement | null>): ScrollKeysRes
       if (!element || document.activeElement !== document.body) return;
       if (!SCROLL_KEYS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
       // The browser already has somewhere to send the key: leave it there.
-      const scroller = scrollerOf(pressed.current);
+      const scroller = scrollerOf(pressed.current?.deref());
       if (scroller && scroller !== element) return;
       element.focus({ preventScroll: true });
     };

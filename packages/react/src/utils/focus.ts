@@ -43,8 +43,8 @@ function isTabbable(el: HTMLElement): boolean {
 }
 
 /**
- * Whether `root` holds anything Tab would reach (see {@link tabbables}). It stops at the first
- * one, for callers that ask on every change to a large subtree.
+ * Whether `root` holds anything Tab would reach (see {@link tabbables}). The checks stop at the
+ * first one found, for callers that ask on every change to a large subtree.
  */
 export function hasTabbable(root: Element): boolean {
   for (const el of root.querySelectorAll<HTMLElement>(TABBABLE)) {
