@@ -34,6 +34,70 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.5',
+    date: '2026-11-12',
+    summary: (
+      <>
+        <InlineCode>LocaleProvider</InlineCode>, one place to set the language dates, times and
+        numbers are written in; in Windmorph Pro, <InlineCode>ConfirmDialog</InlineCode>, one dialog
+        for &quot;are you sure?&quot;.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>LocaleProvider</InlineCode> sets the locale of every component below it: the
+            order of a date, the 12- or 24-hour clock, digits and the first day of the week. Without
+            it the components still follow the browser&apos;s language, which may not be the
+            page&apos;s: an English page in a British browser got 24-hour time fields. Pass the
+            page&apos;s language, the same on the server and in the browser.
+          </>,
+          <>
+            <InlineCode>useLocale</InlineCode> returns the locale and its direction, for your own
+            formatting, so your dates match the fields beside them.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>ConfirmDialog</InlineCode>, one dialog for &quot;are you sure?&quot;: a
+            question, what will happen, and two actions. Focus starts on Cancel, nothing closes it
+            while the action runs, and a failure stays inside it with focus on the action, so Enter
+            tries again. The action can return a promise, which sets the pending state by itself.
+          </>,
+          <>
+            <InlineCode>ConfirmDialogActions</InlineCode>, the same row of actions as a part, for a
+            form in a <InlineCode>Dialog</InlineCode>: Cancel, then one acting button that can
+            submit and shows that it&apos;s working.
+          </>,
+          <>
+            Pro&apos;s components follow <InlineCode>LocaleProvider</InlineCode> too.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>DateField</InlineCode>, and the date pickers&apos; text input, write their
+            text again when the locale changes. A server-rendered field moves from the server&apos;s{' '}
+            <InlineCode>en-US</InlineCode> to the browser&apos;s language by itself, and kept{' '}
+            <InlineCode>03/05/2030</InlineCode>, which a day-first browser then read as 3 May
+            instead of 5 March when the field lost focus.
+          </>,
+          <>
+            <InlineCode>Dialog</InlineCode> no longer takes <InlineCode>isEntering</InlineCode>, an
+            option React Aria 3.53 added to the type its props extend; it did nothing.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.4',
     date: '2026-11-12',
     summary: (
