@@ -247,7 +247,10 @@ export interface DialogRenderProps {
 }
 
 export interface DialogProps
-  extends Omit<ComponentPropsWithRef<'div'>, 'children' | 'role'>, Omit<AriaDialogProps, 'role'> {
+  extends
+    Omit<ComponentPropsWithRef<'div'>, 'children' | 'role'>,
+    // `isEntering` is React Aria's own (3.53): the dialog runs its entrance itself.
+    Omit<AriaDialogProps, 'role' | 'isEntering'> {
   /** Controlled open state, when not inside a `DialogTrigger`. */
   open?: boolean;
   /** Initial open state when uncontrolled, when not inside a `DialogTrigger`. @default false */
