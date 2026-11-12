@@ -317,10 +317,10 @@ export default async function ThemingPage() {
           The controls follow too, after Material Components Web&apos;s density: checkboxes and
           radio buttons shrink their state layer from 40px to 28px (a radio group puts 2px more
           between its rows a step), a switch its state layer from 40px to 32px, chips go from 32px
-          to 24px (a chip set adds 2px a step between rows), icon buttons lose 4px of height and
-          width at every size (a small one 40px to 28px), so button groups of them follow, tabs go
-          from 48px to 36px (64px to 52px with icons above), and list items lose 4px a step (one
-          line 56px to 44px), section subheaders too.
+          to 24px (a chip set keeps its rows 48px apart), icon buttons lose 4px of height and width
+          at every size (a small one 40px to 28px), so button groups of them follow, tabs go from
+          48px to 36px (64px to 52px with icons above), and list items lose 4px a step (one line
+          56px to 44px), section subheaders too.
         </p>
         <p className="text-body-large text-on-surface-variant">
           Icon buttons keep their size where the part around them keeps its own: in a text

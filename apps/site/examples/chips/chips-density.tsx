@@ -6,9 +6,9 @@ const OPTIONS = ['Vegetarian', 'Vegan', 'Spicy', 'Gluten-free', 'Nut-free'];
 
 /**
  * Web density, 0 to -3: each step takes 4px off the chips (32px at 0, 24px at -2 and -3),
- * which keep their 48px touch targets, as M3 asks of chips at any density; the set puts 2px
- * more between rows a step so those targets never reach the next row. Here each `ChipSet`
- * sets `density`; in an app, set it once on `ThemeProvider` from a setting.
+ * which keep their 48px touch targets, as M3 asks of chips at any density; the set keeps its
+ * rows 48px apart, so those targets never overlap. Here each `ChipSet` sets `density`; in an
+ * app, set it once on `ThemeProvider` from a setting.
  */
 export function ChipsDensity() {
   return (

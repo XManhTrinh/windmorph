@@ -7,7 +7,7 @@ import { AssistChip, FilterChip, InputChip } from './Chip';
 import { ChipSet } from './ChipSet';
 
 describe('ChipSet', () => {
-  it('is a labelled group, 8px apart, with arrow keys between chips and one Tab stop', async () => {
+  it('is a labelled group, 8px apart in rows 48px apart, with arrow keys and one Tab stop', async () => {
     const { container } = render(
       <>
         <button type="button">Before</button>
@@ -24,7 +24,7 @@ describe('ChipSet', () => {
       'flex',
       'flex-wrap',
       'gap-x-[8px]',
-      'gap-y-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+      'gap-y-[calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px)))]',
     );
     const [call, directions, share] = ['Call', 'Directions', 'Share'].map((name) =>
       screen.getByRole('button', { name }),

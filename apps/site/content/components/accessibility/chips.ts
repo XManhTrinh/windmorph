@@ -74,9 +74,10 @@ export const chips: ComponentAccessibility = {
   ],
   touchTarget: [
     'Chips are at least 32px tall. An invisible `TouchTarget` gives each chip a 48px-tall touch target without changing its layout.',
+    'A wrapping `ChipSet` keeps its rows 48px apart, top to top (16px between 32px chips), so the targets of two rows never overlap and every chip takes presses over its full 48px, as M3 asks of chips wherever they are placed. A smaller `gap-y-*` in `className` brings the rows closer, at the cost of the targets: where two overlap, the chip below takes the press.',
     'The remove button is 24px with its own 48 × 48px `TouchTarget`. A chip with a remove button is at least 88px wide, so that target never covers the label.',
     'A scrolling `ChipSet` (`layout="scroll"`) pads its row so the touch targets and focus rings stay inside the scroll area, and keeps a thin scrollbar (in `outline`), so a mouse user sees that more chips lie beyond the edge and can reach them. Where every chip must be seen at once, use the default wrapping layout.',
-    "With `density` (or the theme's), chips lose 4px a step, to 24px at -2 and -3, and keep their 48px targets, as M3 asks of chips at every density. A wrapping `ChipSet` puts 2px more between rows a step (12px at -2 and -3), and a scrolling one pads its row by as much, so a chip's target never reaches the chips above or below it.",
+    "With `density` (or the theme's), chips lose 4px a step, to 24px at -2 and -3, and keep their 48px targets, as M3 asks of chips at every density. A wrapping `ChipSet` puts as much more between rows (20px at -1, 24px at -2 and -3), so they stay 48px apart, and a scrolling one pads its row by half of that above and below, so its targets stay inside the scroll area.",
   ],
   motion: [
     "Under reduced motion a filter chip's check and its padding change appear at once instead of sliding open, and the check fades in. The press ripple appears at full size without growing. Colours and elevation still fade.",

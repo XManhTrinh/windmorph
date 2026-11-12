@@ -63,8 +63,9 @@ interface ChipSetOwnProps {
   layout?: ChipSetLayout;
   /**
    * Web density, `0` to `-3`, for the set and its chips: each step takes 4px off the chips
-   * (32px at 0, 24px at -2 and -3) and puts 2px more between rows, so each chip's 48px touch
-   * target stays clear of the rows above and below. Left out, the set takes the density of the
+   * (32px at 0, 24px at -2 and -3) and puts as much more between rows (16px at 0, 24px at -2
+   * and -3), so rows stay 48px apart and every chip keeps a 48px touch target of its own. Left
+   * out, the set takes the density of the
    * nearest `ThemeProvider` or `ThemeScope`; M3 asks for density to be the reader's choice, so
    * prefer setting it there.
    * @default 0
@@ -232,8 +233,9 @@ function useFocusAfterRemoval(rootRef: { current: HTMLDivElement | null }) {
 }
 
 /**
- * M3 chip set: a labelled group of chips, 8px apart, that wraps or scrolls sideways. It is
- * one Tab stop, and arrow keys move between its chips. With `selectionMode`, its filter
+ * M3 chip set: a labelled group of chips, 8px apart in a row, that wraps or scrolls sideways.
+ * Wrapped rows are 16px apart, so each chip's 48px touch target is its own. It is one Tab
+ * stop, and arrow keys move between its chips. With `selectionMode`, its filter
  * chips (each with a `value`) share one selection; a single selection is a radio group,
  * whose arrow keys select as they move.
  *
