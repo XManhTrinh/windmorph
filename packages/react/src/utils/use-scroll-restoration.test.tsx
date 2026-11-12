@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { useRef } from 'react';
+import { StrictMode, useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useScrollRestoration } from './use-scroll-restoration';
 
-function Pane({ pageKey }: { pageKey: string }) {
+function Pane({ pageKey, holdFor }: { pageKey: string; holdFor?: number }) {
   const ref = useRef<HTMLElement>(null);
-  useScrollRestoration(ref, { pageKey });
+  useScrollRestoration(ref, { pageKey, ...(holdFor !== undefined && { holdFor }) });
   return <main ref={ref} data-testid="pane" />;
 }
 
@@ -20,11 +20,29 @@ const traverse = (hashChange = false) =>
     Object.assign(new Event('navigate'), { navigationType: 'traverse', hashChange }),
   );
 
-/** How the document was loaded, as `performance` reports it. */
+/** How the document was loaded, and at which address, as `performance` reports it. */
 const loadedBy = (type: string) =>
   vi
     .spyOn(performance, 'getEntriesByType')
-    .mockReturnValue([{ type } as unknown as PerformanceEntry]);
+    .mockReturnValue([{ type, name: location.href } as unknown as PerformanceEntry]);
+
+/** What is kept in storage, by page. */
+const stored = (): Record<string, number> =>
+  JSON.parse(sessionStorage.getItem('windmorph-scroll') ?? '{}') as Record<string, number>;
+
+/** Page `/a` back through history at 300, its position held; returns `rerender`. */
+function restoredA(holdFor?: number) {
+  const { rerender } = render(<Pane pageKey="/a" holdFor={holdFor} />);
+  pane().scrollTop = 300;
+  fireEvent.pointerDown(document.body);
+  rerender(<Pane pageKey="/b" holdFor={holdFor} />);
+  traverse();
+  rerender(<Pane pageKey="/a" holdFor={holdFor} />);
+  expect(pane().scrollTop).toBe(300);
+  return rerender;
+}
+
+const address = location.href;
 
 /** One animation frame of the hold. */
 const frame = () => vi.advanceTimersByTime(20);
@@ -40,6 +58,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  history.replaceState(null, '', address);
 });
 
 describe('useScrollRestoration', () => {
@@ -97,10 +116,181 @@ describe('useScrollRestoration', () => {
     rerender(<Pane pageKey="/b" />);
     traverse();
     rerender(<Pane pageKey="/a" />);
-    vi.advanceTimersByTime(1600);
+    // Still held near the end of its 1.5 seconds, and let go after them.
+    vi.advanceTimersByTime(1400);
+    pane().scrollTop = 0;
+    frame();
+    expect(pane().scrollTop).toBe(300);
+    vi.advanceTimersByTime(200);
     pane().scrollTop = 0;
     frame();
     expect(pane().scrollTop).toBe(0);
+  });
+
+  it('holds for as long as holdFor says', () => {
+    restoredA(400);
+    vi.advanceTimersByTime(300);
+    pane().scrollTop = 0;
+    frame();
+    expect(pane().scrollTop).toBe(300);
+    vi.advanceTimersByTime(200);
+    pane().scrollTop = 0;
+    frame();
+    expect(pane().scrollTop).toBe(0);
+  });
+
+  it.each(['wheel', 'touchstart', 'pointerdown', 'keydown'])(
+    'lets go of the hold on a %s',
+    (type) => {
+      restoredA();
+      fireEvent(
+        window,
+        type === 'keydown' ? new KeyboardEvent(type, { key: 'ArrowDown' }) : new Event(type),
+      );
+      pane().scrollTop = 50;
+      frame();
+      expect(pane().scrollTop).toBe(50);
+    },
+  );
+
+  it('keeps holding through a key that repeats, as the back shortcut does when held', () => {
+    restoredA();
+    fireEvent.keyDown(window, { key: 'ArrowLeft', altKey: true, repeat: true });
+    pane().scrollTop = 0;
+    frame();
+    expect(pane().scrollTop).toBe(300);
+  });
+
+  it('does not hold again once the hold has ended, when the same page runs its effect again', () => {
+    const rerender = restoredA();
+    fireEvent.wheel(window);
+    pane().scrollTop = 50;
+    // An option changes: the page is the same, and the person has scrolled since.
+    rerender(<Pane pageKey="/a" holdFor={1000} />);
+    frame();
+    expect(pane().scrollTop).toBe(50);
+  });
+
+  it('stops holding when it unmounts', () => {
+    const { unmount } = render(<Pane pageKey="/a" />);
+    pane().scrollTop = 300;
+    fireEvent(window, new Event('pagehide'));
+    unmount();
+    loadedBy('reload');
+    const reloaded = render(<Pane pageKey="/a" />);
+    const element = pane();
+    expect(element.scrollTop).toBe(300);
+    reloaded.unmount();
+    element.scrollTop = 0;
+    frame();
+    expect(element.scrollTop).toBe(0);
+  });
+
+  it('restores and holds under Strict Mode, whose effects run twice', () => {
+    sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+    loadedBy('reload');
+    render(
+      <StrictMode>
+        <Pane pageKey="/a" />
+      </StrictMode>,
+    );
+    expect(pane().scrollTop).toBe(300);
+    pane().scrollTop = 0;
+    frame();
+    expect(pane().scrollTop).toBe(300);
+  });
+
+  it('keeps what it had for a page while its restored position is still being held', () => {
+    restoredA();
+    // Content still arriving leaves the element short of the position as the person goes back
+    // again: the page keeps its 300.
+    pane().scrollTop = 0;
+    traverse();
+    expect(stored()['/a']).toBe(300);
+    fireEvent(window, new Event('pagehide'));
+    expect(stored()['/a']).toBe(300);
+  });
+
+  it('restores each page when two steps back begin before the first page shows', () => {
+    const { rerender } = render(<Pane pageKey="/a" />);
+    pane().scrollTop = 300;
+    fireEvent.pointerDown(document.body);
+    rerender(<Pane pageKey="/b" />);
+    pane().scrollTop = 120;
+    fireEvent.pointerDown(document.body);
+    rerender(<Pane pageKey="/c" />);
+    traverse();
+    traverse();
+    rerender(<Pane pageKey="/b" />);
+    expect(pane().scrollTop).toBe(120);
+    rerender(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(300);
+  });
+
+  it('starts a page first seen through history, with nothing kept for it, at its top', () => {
+    const { rerender } = render(<Pane pageKey="/a" />);
+    rerender(<Pane pageKey="/b" />);
+    pane().scrollTop = 200;
+    traverse();
+    rerender(<Pane pageKey="/c" />);
+    expect(pane().scrollTop).toBe(0);
+  });
+
+  it('keeps at most 200 pages, dropping the oldest', () => {
+    const { rerender } = render(<Pane pageKey="/0" />);
+    for (let page = 0; page < 205; page++) {
+      rerender(<Pane pageKey={`/${page}`} />);
+      pane().scrollTop = page + 1;
+      fireEvent.pointerDown(document.body);
+    }
+    const kept = stored();
+    expect(Object.keys(kept)).toHaveLength(200);
+    expect(kept['/4']).toBeUndefined();
+    expect(kept['/5']).toBe(6);
+    expect(kept['/204']).toBe(205);
+  });
+
+  it('moves the element at once with scrollTo, where it has one', () => {
+    const scrollTo = vi.fn(function (this: HTMLElement, options: ScrollToOptions) {
+      this.scrollTop = options.top ?? 0;
+    });
+    const prototype = HTMLElement.prototype as { scrollTo?: unknown };
+    const original = Object.getOwnPropertyDescriptor(prototype, 'scrollTo');
+    Object.defineProperty(prototype, 'scrollTo', { configurable: true, value: scrollTo });
+    try {
+      restoredA();
+      expect(scrollTo).toHaveBeenLastCalledWith({ top: 300, behavior: 'instant' });
+    } finally {
+      if (original) Object.defineProperty(prototype, 'scrollTo', original);
+      else delete prototype.scrollTo;
+    }
+  });
+
+  it('restores on a reload only the page the document was loaded with', () => {
+    sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300, '/b': 250 }));
+    loadedBy('reload');
+    const first = render(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(300);
+    first.unmount();
+    // A link has been followed since, and the hook mounts again (a frame left and come back
+    // to): the page it shows isn't the reloaded one.
+    history.pushState(null, '', '/elsewhere');
+    render(<Pane pageKey="/b" />);
+    expect(pane().scrollTop).toBe(0);
+  });
+
+  it('tells the loaded page by its history entry where the Navigation API gives it', () => {
+    sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+    loadedBy('reload');
+    const entries = { activation: { entry: { key: 'loaded' } }, currentEntry: { key: 'later' } };
+    vi.stubGlobal('navigation', Object.assign(navigation, entries));
+    const later = render(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(0);
+    later.unmount();
+    entries.currentEntry.key = 'loaded';
+    Object.assign(navigation, entries);
+    render(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(300);
   });
 
   it('restores after a reload from sessionStorage, and leaves a fresh visit alone', () => {
@@ -148,6 +338,20 @@ describe('useScrollRestoration', () => {
     fireEvent.popState(window);
     rerender(<Pane pageKey="/a" />);
     expect(pane().scrollTop).toBe(300);
+  });
+
+  it('takes a step back within the page for what it is, where the Navigation API is missing', () => {
+    vi.stubGlobal('navigation', undefined);
+    const { rerender } = render(<Pane pageKey="/a" />);
+    pane().scrollTop = 300;
+    fireEvent.pointerDown(document.body);
+    rerender(<Pane pageKey="/b" />);
+    // Back to an earlier fragment of the same page: `popstate`, then `hashchange`.
+    fireEvent.popState(window);
+    fireEvent(window, new Event('hashchange'));
+    // A page change with no press or key before it (a script's) is then a new page.
+    rerender(<Pane pageKey="/a" />);
+    expect(pane().scrollTop).toBe(0);
   });
 
   it('writes to storage only when the position changed', () => {
@@ -221,6 +425,35 @@ describe('useScrollRestoration', () => {
       traverse();
       rerender(<Frame pageKey="/a" />);
       expect(pane().scrollTop).toBe(300);
+    });
+
+    it('restores on an element that arrives after the page has changed', () => {
+      sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+      loadedBy('reload');
+      const { rerender } = render(<Frame pageKey="/a" withPane={false} />);
+      rerender(<Frame pageKey="/a" />);
+      frame();
+      expect(pane().scrollTop).toBe(300);
+    });
+
+    it('holds the position on an element that replaces the first on the same page', () => {
+      function Rekeyed({ id }: { id: number }) {
+        const ref = useRef<HTMLElement>(null);
+        useScrollRestoration(ref, { pageKey: '/a' });
+        return <main key={id} ref={ref} data-testid="pane" />;
+      }
+      sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+      loadedBy('reload');
+      const { rerender } = render(<Rekeyed id={1} />);
+      const first = pane();
+      rerender(<Rekeyed id={2} />);
+      expect(pane()).not.toBe(first);
+      frame();
+      expect(pane().scrollTop).toBe(300);
+      // The element that left is no longer written.
+      first.scrollTop = 0;
+      frame();
+      expect(first.scrollTop).toBe(0);
     });
 
     it('starts a page followed to from a page without the element at its top', () => {
