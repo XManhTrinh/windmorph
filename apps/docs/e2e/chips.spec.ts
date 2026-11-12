@@ -62,8 +62,11 @@ test.describe('Chips behaviour', () => {
     expect(await holdsFocus()).toBe(false);
     expect(await scrollLeft()).toBe(0);
 
-    // And back from its first chip, with the row scrolled to its end.
-    await set.getByRole('button', { name: 'Rating' }).focus();
+    // And back from its first chip, with the row scrolled to its end: End moves to the last
+    // chip and brings it into the row.
+    await set.getByRole('button', { name: 'Open now' }).focus();
+    await page.keyboard.press('End');
+    await expect(set.getByRole('button', { name: 'Rating' })).toBeFocused();
     const atEnd = await scrollLeft();
     expect(atEnd).toBeGreaterThan(0);
     await page.keyboard.press('Shift+Tab');
