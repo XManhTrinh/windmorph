@@ -76,7 +76,8 @@ export interface TimePickerLabels {
   dialMode: string;
   /**
    * Name of a number on the dial (M3: "{Value} Hours or minutes of {Total}"), e.g.
-   * "7 hours of 12" or "35 minutes of 60".
+   * "7 hours of 12" or "35 minutes of 60". `value` is the number as the dial shows it
+   * ("05"), so the name holds the visible text (WCAG 2.5.3).
    * @default `${value} ${unit} of ${total}`
    */
   dialValue: (value: string, total: number, unit: 'hours' | 'minutes') => string;
@@ -306,7 +307,6 @@ export function TimePicker({
           label={labels.dial ?? 'Clock'}
           valueLabel={labels.dialValue ?? defaultDialValue}
           format={(n, minutes) => (minutes || hourCycle === 24 ? pad.format(n) : plain.format(n))}
-          plain={(n) => plain.format(n)}
           styles={styles}
           className={classNames?.dial}
         />
@@ -755,7 +755,6 @@ function Dial({
   label,
   valueLabel,
   format,
-  plain,
   styles,
   className,
 }: {
@@ -768,7 +767,6 @@ function Dial({
   valueLabel: (value: string, total: number, unit: 'hours' | 'minutes') => string;
   /** A number as shown on the hour face (`minutes` false) or the minute face. */
   format: (n: number, minutes: boolean) => string;
-  plain: (n: number) => string;
   styles: ReturnType<typeof timePickerStyles>;
   className?: string | undefined;
 }) {
@@ -998,7 +996,7 @@ function Dial({
               }}
               role="button"
               tabIndex={index === (focused ?? tabStop) ? 0 : -1}
-              aria-label={valueLabel(plain(value), total, unit)}
+              aria-label={valueLabel(format(value, minutes), total, unit)}
               aria-pressed={selected}
               data-selected={selected || undefined}
               onFocus={() => setFocused(index)}
