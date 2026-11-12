@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { LabelsProvider } from './LabelsProvider';
-import { useLabels } from './use-labels';
+import { NO_DEFAULT_LABELS, useLabels } from './use-labels';
 import type { WindmorphLabels } from '../../windmorph-labels';
 
 const DEFAULTS = { close: 'Close', back: 'Back' };
@@ -105,6 +105,17 @@ describe('LabelsProvider and useLabels', () => {
     );
     expect(seen.at(-1)).not.toBe(seen[0]);
     expect(seen.at(-1)).toEqual({ close: 'Fertig', back: 'Retour' });
+  });
+
+  it('keeps the words of a component with no defaults the same between renders', () => {
+    const seen: object[] = [];
+    function Probe() {
+      seen.push(useLabels('DatePicker', NO_DEFAULT_LABELS, undefined));
+      return null;
+    }
+    const { rerender } = render(<Probe />);
+    rerender(<Probe />);
+    expect(seen[1]).toBe(seen[0]);
   });
 
   it('gives the components below the same words until the provider gets new ones', () => {

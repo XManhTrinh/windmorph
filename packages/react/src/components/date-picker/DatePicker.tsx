@@ -37,7 +37,7 @@ import {
   type RangeCalendarState,
 } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
-import { useLabels } from '../labels/use-labels';
+import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { useSizeTransform } from './use-size-transform';
 import { useViewExit } from './use-view-exit';
@@ -270,7 +270,7 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
     createCalendar,
   });
   const formatter = useDateFormatter({ dateStyle: 'medium' });
-  const labels = useLabels('DatePicker', {}, props.labels);
+  const labels = useLabels('DatePicker', NO_DEFAULT_LABELS, props.labels);
   const headline = value
     ? formatter.format(value.toDate(getLocalTimeZone()))
     : (labels.noSelection ?? 'Selected date');
@@ -333,7 +333,7 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
     createCalendar,
   });
   const formatter = useDateFormatter({ month: 'short', day: 'numeric' });
-  const labels = useLabels('DatePicker', {}, props.labels);
+  const labels = useLabels('DatePicker', NO_DEFAULT_LABELS, props.labels);
   const format = (date: CalendarDate) => formatter.format(date.toDate(getLocalTimeZone()));
   // While a new range is being picked, its first day is the start and the end is still open
   // (Compose's headline: "Mar 20 – End date"), not the range it replaces.

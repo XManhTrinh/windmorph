@@ -12,7 +12,7 @@ import {
 } from 'react';
 import { mergeProps, useDialog, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
-import { useLabels } from '../labels/use-labels';
+import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
@@ -186,7 +186,7 @@ function PickerDialogModal({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
-  const labels = useLabels('PickerDialog', {}, labelsProp);
+  const labels = useLabels('PickerDialog', NO_DEFAULT_LABELS, labelsProp);
   const panelRef = useObjectRef(ref);
   const { modalProps, underlayProps } = useModalOverlay(
     closedByOverlayOptions(closedBy, isExiting),

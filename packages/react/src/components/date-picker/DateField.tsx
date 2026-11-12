@@ -19,7 +19,7 @@ import {
 import { useCalendar, useDateFormatter, useDialog, useLocale } from 'react-aria';
 import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
-import { useLabels } from '../labels/use-labels';
+import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import {
@@ -263,7 +263,7 @@ function DateFieldInner({
   ...rest
 }: DateFieldProps & { directionRef: (element: HTMLElement | null) => void }) {
   // The modal picker a compact window shows is a `DatePicker`, so its words apply here too.
-  const labels = useLabels(['DatePicker', 'DateField'], {}, labelsProp);
+  const labels = useLabels(['DatePicker', 'DateField'], NO_DEFAULT_LABELS, labelsProp);
   const { root, rest: aria } = splitRootProps(rest, { wrapper: true });
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
