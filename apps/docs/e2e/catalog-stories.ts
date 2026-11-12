@@ -58,7 +58,7 @@ const TITLES: Record<string, string> = {
   'components-toolbar': 'toolbars',
   'components-tooltip': 'tooltip',
   'components-topappbar': 'top-app-bar',
-  'composites-buttongroup': 'button-group',
+  'components-buttongroup': 'button-group',
   'components-timefield': 'time-field',
 };
 

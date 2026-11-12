@@ -1,3 +1,5 @@
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
 import boundaries from 'eslint-plugin-boundaries';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -9,7 +11,8 @@ import tseslint from 'typescript-eslint';
  * Library layers (architecture §3). Dependencies only point downward:
  * tokens → utils → theme / motion → primitives → components → composites.
  * `shapes` (the androidx.graphics.shapes port) is pure geometry and imports nothing.
- * Composites are built from public components only, never from primitives.
+ * Composites are built from public components only, never from primitives; there is none at
+ * present (ButtonGroup, which needs a primitive, is a component).
  */
 const layers = [
   { type: 'tokens', pattern: 'packages/react/src/tokens' },
@@ -101,6 +104,9 @@ export default tseslint.config(
     plugins: { boundaries },
     settings: {
       'boundaries/elements': layers,
+      // The layers' patterns start at the repository root, wherever ESLint is run from: each
+      // package lints from its own folder, where they matched nothing and the rule never fired.
+      'boundaries/root-path': dirname(fileURLToPath(import.meta.url)),
       'import/resolver': { typescript: { project: 'packages/react/tsconfig.json' } },
     },
     rules: {

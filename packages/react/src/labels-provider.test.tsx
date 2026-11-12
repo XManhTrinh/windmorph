@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
@@ -314,8 +314,11 @@ describe('the words every component reads from a LabelsProvider', () => {
     // one without defaults passes `NO_DEFAULT_LABELS`.
     const inline = /useLabels\(\s*(?:'[^']+'|\[[^\]]*\])\s*,\s*\{/;
     const found = ['components', 'composites']
+      .map((dir) => join(SRC, dir))
+      // The composites layer has no member at present, so its folder may not exist.
+      .filter(existsSync)
       .flatMap((dir) =>
-        readdirSync(join(SRC, dir), { recursive: true, withFileTypes: true })
+        readdirSync(dir, { recursive: true, withFileTypes: true })
           .filter((entry) => entry.isFile() && /\.tsx?$/.test(entry.name))
           .filter((entry) => !/\.(test|stories)\.tsx?$/.test(entry.name))
           .map((entry) => join(entry.parentPath, entry.name)),

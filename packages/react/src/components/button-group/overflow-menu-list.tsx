@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { CheckableMenuItem, Menu, type MenuProps } from '../../components/menu/Menu';
+import { CheckableMenuItem, Menu, type MenuProps } from '../menu/Menu';
 
 /** A folded button as a menu item. */
 export interface OverflowMenuItem {

@@ -21,7 +21,7 @@ async function load() {
     return importOriginal();
   });
   const [{ Button }, { ButtonGroup }, { preloadOverflowMenu }] = await Promise.all([
-    import('../../components/button/Button'),
+    import('../button/Button'),
     import('./ButtonGroup'),
     import('./lazy-overflow-menu'),
   ]);

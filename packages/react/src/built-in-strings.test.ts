@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -11,7 +11,8 @@ import ts from 'typescript';
  * in the allowlist with its reason.
  */
 const src = dirname(fileURLToPath(import.meta.url));
-const roots = ['components', 'composites'].map((dir) => join(src, dir));
+// The composites layer has no member at present, so its folder may not exist.
+const roots = ['components', 'composites'].map((dir) => join(src, dir)).filter(existsSync);
 
 /** The attributes whose value people read or hear. */
 const TEXT_ATTRIBUTES = new Set([

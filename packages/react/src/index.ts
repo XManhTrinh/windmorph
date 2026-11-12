@@ -92,7 +92,7 @@ export {
 export { iconButtonTokenSet } from './components/icon-button/icon-button-tokens';
 
 // Composites
-export { buttonGroupStyles } from './composites/button-group/button-group-styles';
+export { buttonGroupStyles } from './components/button-group/button-group-styles';
 export {
   ButtonGroup,
   type ButtonGroupClassNames,
@@ -100,7 +100,7 @@ export {
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,
   type ButtonGroupVariant,
-} from './composites/button-group/ButtonGroup';
+} from './components/button-group/ButtonGroup';
 export {
   ExtendedFab,
   Fab,
