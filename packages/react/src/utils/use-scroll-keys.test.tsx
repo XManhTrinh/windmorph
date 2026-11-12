@@ -85,6 +85,135 @@ function Frame({ pane: shown }: { pane: 'none' | 'first' | 'second' }) {
   );
 }
 
+describe('useScrollKeys, with another scrolling element on the page', () => {
+  /** A pane, a side panel that scrolls by itself and can't take focus, and a rail that doesn't. */
+  function WithSide({ side = true }: { side?: boolean }) {
+    const ref = useRef<HTMLElement>(null);
+    const { tabIndex } = useScrollKeys(ref);
+    return (
+      <>
+        <nav data-testid="rail">Rail</nav>
+        <main ref={ref} tabIndex={tabIndex} data-testid="pane">
+          Text
+        </main>
+        {side && (
+          <aside data-testid="side" style={{ overflowY: 'auto' }}>
+            <p>Side text</p>
+          </aside>
+        )}
+      </>
+    );
+  }
+
+  /** Gives an element a content height and a box height: jsdom lays nothing out. */
+  const size = (element: HTMLElement, scrollHeight: number, clientHeight: number) =>
+    Object.defineProperties(element, {
+      scrollHeight: { configurable: true, value: scrollHeight },
+      clientHeight: { configurable: true, value: clientHeight },
+    });
+
+  it('leaves the keys with the scroller the person last pressed in', () => {
+    render(<WithSide />);
+    const side = screen.getByTestId('side');
+    size(side, 900, 300);
+    // Browsers scroll the side panel with the keys after a press in it: the pane stays out.
+    fireEvent.pointerDown(side.querySelector('p')!);
+    fireEvent.keyDown(document.body, { key: 'PageDown' });
+    expect(document.activeElement).toBe(document.body);
+
+    // A press on something that doesn't scroll: the keys would go to the window, so the pane
+    // takes them.
+    fireEvent.pointerDown(screen.getByTestId('rail'));
+    fireEvent.keyDown(document.body, { key: 'PageDown' });
+    expect(document.activeElement).toBe(pane());
+  });
+
+  it('takes the keys when that scroller has nothing to scroll, or has left the page', () => {
+    const { rerender } = render(<WithSide />);
+    const side = screen.getByTestId('side');
+    size(side, 300, 300);
+    fireEvent.pointerDown(side.querySelector('p')!);
+    fireEvent.keyDown(document.body, { key: 'End' });
+    expect(document.activeElement).toBe(pane());
+
+    pane().blur();
+    size(side, 900, 300);
+    fireEvent.pointerDown(side.querySelector('p')!);
+    rerender(<WithSide side={false} />);
+    fireEvent.keyDown(document.body, { key: 'End' });
+    expect(document.activeElement).toBe(pane());
+  });
+
+  it('takes the keys after a press in the pane itself', () => {
+    render(<WithSide />);
+    size(pane(), 900, 300);
+    pane().style.overflowY = 'auto';
+    fireEvent.pointerDown(pane());
+    fireEvent.keyDown(document.body, { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(pane());
+  });
+});
+
+describe('useScrollKeys, deciding the tab stop', () => {
+  it('counts only what Tab would reach', async () => {
+    const { rerender } = render(
+      <Pane>
+        <input type="hidden" name="token" />
+        <div inert>
+          <a href="/inert">In an inert part</a>
+        </div>
+        <div hidden>
+          <button type="button">In a hidden part</button>
+        </div>
+        <fieldset disabled>
+          <button type="button">In a disabled group</button>
+        </fieldset>
+        <a href="/skipped" tabIndex={-1}>
+          Out of the tab order
+        </a>
+      </Pane>,
+    );
+    // Nothing above takes focus with Tab, so the pane is the stop.
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '0'));
+    rerender(
+      <Pane>
+        <details>
+          <summary>More</summary>
+        </details>
+      </Pane>,
+    );
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
+  });
+
+  it('reads the stop again when an attribute shows or hides a control', async () => {
+    render(
+      <Pane>
+        <div hidden data-testid="part">
+          <a href="/next">Next</a>
+        </div>
+      </Pane>,
+    );
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '0'));
+    screen.getByTestId('part').removeAttribute('hidden');
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
+    screen.getByTestId('part').setAttribute('inert', '');
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '0'));
+  });
+
+  it('ends its watch and its listeners when it unmounts', () => {
+    const disconnect = vi.spyOn(MutationObserver.prototype, 'disconnect');
+    const { unmount } = render(<Pane>Text</Pane>);
+    const element = pane();
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
+    document.body.append(element);
+    fireEvent.keyDown(document.body, { key: 'PageDown' });
+    expect(document.activeElement).toBe(document.body);
+    element.remove();
+    disconnect.mockRestore();
+  });
+});
+
 describe('useScrollKeys, as the element behind the ref changes', () => {
   it('follows an element that replaces the first one', async () => {
     const { rerender } = render(<Frame pane="first" />);
