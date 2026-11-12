@@ -128,8 +128,8 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               are <InlineCode>secondary-container</InlineCode> with no border.
             </li>
             <li>
-              The remove button has a 48px target, and a chip with one is at least 88px wide so the
-              target never covers the label.
+              The remove button has a 48px target, which reaches 7px over the end of the label, and
+              a chip with one is at least 88px wide, as M3 asks.
             </li>
             <li>
               A selected <InlineCode>InputChip</InlineCode> without <InlineCode>onPress</InlineCode>{' '}
