@@ -1,7 +1,7 @@
 import { Time } from '@internationalized/date';
 
 /** The shortest step a list of times takes, in minutes: a shorter one would list hundreds. */
-export const MIN_TIME_STEP = 5;
+const MIN_TIME_STEP = 5;
 
 const DAY = 24 * 60;
 
