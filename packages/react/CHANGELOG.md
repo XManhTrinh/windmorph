@@ -2,6 +2,18 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.4 — 2026-11-12
+
+### Added
+
+- `LabelsProvider`, one place for the words components show or announce by themselves ("Close", "Error", "Character count: 0 of 160"), so an app in another language writes them once instead of passing `labels` to every instance. Its `labels` are keyed by component (the `WindmorphLabels` type, such as `TextField`, `DialogHeader`, `Button`); a component uses its English default, then the provider's word, then its own `labels`, which still wins, and nested providers merge word by word. `useLabels` in `@windmorph/react/primitives` reads the provider from a component of your own. The `CarouselLabels` type is exported too. ([#55](https://github.com/XManhTrinh/windmorph/pull/55))
+- `useScrollRestoration` and `useScrollKeys` in `@windmorph/react/primitives`, for a page that is a pane scrolling by itself, as in the app frame block. `useScrollRestoration(ref, { pageKey })` brings the pane's scroll position back on back, forward and reload, which browsers do only for the window, and starts a new page at its top; it works with any router, which passes its path and query as `pageKey`. `useScrollKeys(ref)` sends Page Down, End, Space and the arrows to the pane while nothing has focus, and returns the `tabIndex` for it: a tab stop only on a page with nothing of its own that takes focus. ([#50](https://github.com/XManhTrinh/windmorph/pull/50))
+- `TimeField` takes `presentation="docked"`: on windows 600px wide or more, its clock opens a list of times under the field instead of the dialog, for forms with many times. The list holds every `step` minutes (a new prop, 30 by default) within `min` and `max`, opens on the field's time, and a press or Enter picks a time and closes it; any other time can still be typed, and narrower windows keep the dialog. `classNames.list` and `classNames.option` style it. The dialog stays the default. ([#57](https://github.com/XManhTrinh/windmorph/pull/57))
+
+### Fixed
+
+- A selected `Menu` item's tick, leading icon, description and trailing icon follow the selected label's token (`--md-comp-menus-standard-menu-item-selected-label-text-color`), in `Select`'s and `Autocomplete`'s option lists too. They were a fixed colour, so an app that set the selected tokens got its label colour and a tick in the old one, which could be invisible against the new container. ([#52](https://github.com/XManhTrinh/windmorph/pull/52))
+
 ## 0.2.3 — 2026-11-11
 
 ### Added

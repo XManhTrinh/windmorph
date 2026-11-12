@@ -34,6 +34,79 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.4',
+    date: '2026-11-12',
+    summary: (
+      <>
+        <InlineCode>LabelsProvider</InlineCode>, one place to translate the words components show or
+        announce by themselves, and a <InlineCode>TimeField</InlineCode> that can open a list of
+        times under the field; in Windmorph Pro, every component reads the same provider.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>LabelsProvider</InlineCode> sets the built-in words (&quot;Close&quot;,
+            &quot;Error&quot;, the character count) for every component below it, keyed by
+            component, so an app in another language writes them once. A component&apos;s own{' '}
+            <InlineCode>labels</InlineCode> still wins, and <InlineCode>useLabels</InlineCode> reads
+            the provider from a component of your own.
+          </>,
+          <>
+            <InlineCode>TimeField</InlineCode> takes{' '}
+            <InlineCode>presentation=&quot;docked&quot;</InlineCode>: on windows 600px wide or more
+            its clock opens a list of times under the field, every half hour or every{' '}
+            <InlineCode>step</InlineCode> minutes, for forms with many times. Narrower windows keep
+            the dialog, and any time can still be typed.
+          </>,
+          <>
+            <InlineCode>useScrollRestoration</InlineCode> and <InlineCode>useScrollKeys</InlineCode>
+            , for a page that is a pane scrolling by itself, as in the app frame block: the
+            pane&apos;s position comes back on back, forward and reload, and the scroll keys reach
+            it while nothing has focus.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            Every component with <InlineCode>labels</InlineCode> reads{' '}
+            <InlineCode>LabelsProvider</InlineCode> too, so Pro&apos;s words are translated in the
+            same place as the core&apos;s.
+          </>,
+          <>
+            <InlineCode>ShapedIcon</InlineCode> and <InlineCode>EmptyState</InlineCode> take{' '}
+            <InlineCode>color=&quot;success&quot;</InlineCode> and{' '}
+            <InlineCode>color=&quot;warning&quot;</InlineCode>, so an empty state that says
+            &quot;all done&quot; can be green.
+          </>,
+          <>
+            A <InlineCode>PhoneField</InlineCode> can be named by{' '}
+            <InlineCode>aria-labelledby</InlineCode> alone, as the core&apos;s fields can.
+          </>,
+          <>
+            A <InlineCode>ListDetailLayout</InlineCode> inside a pane that scrolls by itself can be
+            told the height it has, so its list stays in view as the detail scrolls.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A selected <InlineCode>Menu</InlineCode> item&apos;s tick, icons and description follow
+            the selected label&apos;s colour token, in <InlineCode>Select</InlineCode> and{' '}
+            <InlineCode>Autocomplete</InlineCode> lists too, so an app that sets the selected
+            colours no longer gets a tick in the old one.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.3',
     date: '2026-11-11',
     summary: (
