@@ -150,6 +150,40 @@ describe('useScrollRestoration', () => {
     expect(pane().scrollTop).toBe(300);
   });
 
+  it('writes to storage only when the position changed', () => {
+    render(<Pane pageKey="/a" />);
+    const write = vi.spyOn(Storage.prototype, 'setItem');
+    pane().scrollTop = 300;
+    fireEvent.keyDown(document.body, { key: 'a' });
+    expect(write).toHaveBeenCalledTimes(1);
+    // Typing on: nothing moved, so nothing is written.
+    fireEvent.keyDown(document.body, { key: 'b' });
+    fireEvent.pointerDown(document.body);
+    expect(write).toHaveBeenCalledTimes(1);
+    pane().scrollTop = 420;
+    fireEvent.keyDown(document.body, { key: 'c' });
+    expect(write).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(sessionStorage.getItem('windmorph-scroll')!)).toEqual({ '/a': 420 });
+  });
+
+  it('reads the positions again under another storage key', () => {
+    sessionStorage.setItem('other', JSON.stringify({ '/b': 250 }));
+    function Keyed({ pageKey, storageKey }: { pageKey: string; storageKey?: string }) {
+      const ref = useRef<HTMLElement>(null);
+      useScrollRestoration(ref, { pageKey, ...(storageKey && { storageKey }) });
+      return <main ref={ref} data-testid="pane" />;
+    }
+    const { rerender } = render(<Keyed pageKey="/a" />);
+    pane().scrollTop = 300;
+    fireEvent.pointerDown(document.body);
+    traverse();
+    rerender(<Keyed pageKey="/b" storageKey="other" />);
+    expect(pane().scrollTop).toBe(250);
+    // The first key's positions stay under the first key.
+    expect(JSON.parse(sessionStorage.getItem('windmorph-scroll')!)).toEqual({ '/a': 300 });
+    expect(JSON.parse(sessionStorage.getItem('other')!)).toEqual({ '/b': 250 });
+  });
+
   it('keeps positions in memory when storage is blocked', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');

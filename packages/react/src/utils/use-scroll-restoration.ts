@@ -50,6 +50,22 @@ function writePositions(storageKey: string, positions: Map<string, number>) {
   }
 }
 
+/** The positions kept under one storage key, read once. */
+interface Kept {
+  storageKey: string;
+  positions: Map<string, number>;
+  /** The last page and position written, so a press or key that moved nothing writes nothing. */
+  last: { key: string; top: number } | null;
+}
+
+/** The positions for `storageKey`: read from storage the first time, and again for another key. */
+function keptFor(cache: { current: Kept | null }, storageKey: string): Kept {
+  if (cache.current?.storageKey !== storageKey) {
+    cache.current = { storageKey, positions: readPositions(storageKey), last: null };
+  }
+  return cache.current;
+}
+
 /** Whether this page load is a reload or a return through history, where a position comes back. */
 function loadRestores(): boolean {
   const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
@@ -112,7 +128,7 @@ export function useScrollRestoration(
 ): void {
   /** The page the element shows, and whether its position was restored. */
   const shown = useRef<{ key: string; restored: boolean } | null>(null);
-  const positions = useRef<Map<string, number> | null>(null);
+  const kept = useRef<Kept | null>(null);
   /** Set by back and forward until the page changes; cleared when the person sets off anew. */
   const traversing = useRef(false);
 
@@ -120,12 +136,19 @@ export function useScrollRestoration(
     const keep = () => {
       const element = ref.current;
       if (!element || !shown.current) return;
-      const kept = (positions.current ??= readPositions(storageKey));
+      const store = keptFor(kept, storageKey);
+      const { key } = shown.current;
+      const top = element.scrollTop;
+      // Every press and key comes through here: most move nothing, and write nothing.
+      if (store.last?.key === key && store.last.top === top) return;
+      store.last = { key, top };
       // Deleted first, so the page moves to the newest end of the map.
-      kept.delete(shown.current.key);
-      kept.set(shown.current.key, element.scrollTop);
-      if (kept.size > MAX_PAGES) kept.delete(kept.keys().next().value as string);
-      writePositions(storageKey, kept);
+      store.positions.delete(key);
+      store.positions.set(key, top);
+      if (store.positions.size > MAX_PAGES) {
+        store.positions.delete(store.positions.keys().next().value as string);
+      }
+      writePositions(storageKey, store.positions);
     };
     const onSetOff = (event: Event) => {
       // A held key repeats after back or forward has begun: that isn't setting off anew.
@@ -180,7 +203,7 @@ export function useScrollRestoration(
       if (previous !== null && previous.key !== pageKey) scrollTo(element, 0);
       return;
     }
-    const top = (positions.current ??= readPositions(storageKey)).get(pageKey);
+    const top = keptFor(kept, storageKey).positions.get(pageKey);
     if (top === undefined) {
       // Nothing kept for it (a page first seen through history): its top, as a new page.
       if (previous !== null && previous.key !== pageKey) scrollTo(element, 0);
