@@ -69,6 +69,7 @@ const PRO_NO_ENUM_DEFAULT: Record<string, string> = {
   'Calendar.view': 'Controlled; `defaultView` holds the uncontrolled default.',
   'CalendarEvent.active': 'Set by the view while an operation is under way.',
   'CopyField.density': "Left out, it follows the theme's, as the core's TextField.",
+  'ConfirmDialogActions.autoFocus': 'Left out, neither action takes focus as the row mounts.',
   'Accordion.density': "Left out, the accordion takes the nearest scope's density.",
   'PhoneField.density': "Left out, the field takes the provider's or scope's density.",
   'PinInput.density': "Left out, the boxes take the provider's or scope's density.",

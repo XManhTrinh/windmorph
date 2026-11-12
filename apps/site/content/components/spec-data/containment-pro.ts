@@ -65,6 +65,40 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
       },
     ],
   },
+  'confirm-dialog': {
+    covers: [
+      {
+        name: "An action that can't be undone (`destructive`)",
+        kind: 'configuration',
+        examples: ['confirm-dialog/confirm-dialog-remove', 'confirm-dialog/confirm-dialog-content'],
+      },
+      {
+        name: 'Pending by promise, with a failure kept in the dialog (`error`)',
+        kind: 'configuration',
+        examples: ['confirm-dialog/confirm-dialog-remove'],
+      },
+      {
+        name: 'In a trigger, with no state',
+        kind: 'configuration',
+        examples: ['confirm-dialog/confirm-dialog-trigger'],
+      },
+      {
+        name: 'Content the decision needs (`initialFocus="content"`, `confirmDisabled`)',
+        kind: 'configuration',
+        examples: ['confirm-dialog/confirm-dialog-content'],
+      },
+      {
+        name: 'Leaving with unsaved changes',
+        kind: 'use case',
+        examples: ['confirm-dialog/confirm-dialog-unsaved'],
+      },
+      {
+        name: 'The actions as a part, in a form dialog (`ConfirmDialogActions`)',
+        kind: 'use case',
+        examples: ['confirm-dialog/confirm-dialog-form'],
+      },
+    ],
+  },
   popover: {
     covers: [
       {
