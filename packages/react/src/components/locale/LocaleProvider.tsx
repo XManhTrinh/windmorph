@@ -20,8 +20,8 @@ export interface LocaleProviderProps {
  *
  * Without one the components use the browser's language (`en-US` on the server), which may
  * not be the page's: an English page in a British browser would get 24-hour time fields.
- * It sets no `lang` or `dir`; those stay on the page's own elements. The words come from a
- * {@link LabelsProvider}.
+ * It sets no `lang` or `dir`: set those on the page's own elements, `dir="rtl"` included for
+ * a right-to-left language. The words come from a {@link LabelsProvider}.
  *
  * ```tsx
  * <ThemeProvider>

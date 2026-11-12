@@ -254,8 +254,13 @@ export default async function ApiConventionsPage() {
           </Rule>
           <Rule>
             A provider inside another sets the locale for its part of the page. It sets no{' '}
-            <InlineCode>lang</InlineCode> or <InlineCode>dir</InlineCode>: keep those on your own
-            elements.
+            <InlineCode>lang</InlineCode> or <InlineCode>dir</InlineCode>: set those on your own
+            elements, <InlineCode>dir=&quot;rtl&quot;</InlineCode> included for a right-to-left
+            language.
+          </Rule>
+          <Rule>
+            Windmorph Pro&apos;s components follow the same provider: a calendar&apos;s month names,
+            a data grid&apos;s decimal separator, a count written &quot;1.3K&quot;.
           </Rule>
           <Rule>
             <InlineCode>useLocale</InlineCode> returns the locale and its direction, for your own
