@@ -135,8 +135,10 @@ function useChipSetKeyboard(single: boolean) {
         break;
       case 'Tab':
         // Leave the set: move to its first or last stop, and let the browser go on from there.
+        // Without scrolling: that stop can be past the edge of a scrolling row, which would
+        // otherwise be left at its far end as focus goes on.
         lastFocused.current = items[current] ?? null;
-        (event.shiftKey ? items[0] : items.at(-1))?.focus();
+        (event.shiftKey ? items[0] : items.at(-1))?.focus({ preventScroll: true });
         return;
       default:
         return;

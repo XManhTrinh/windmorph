@@ -208,6 +208,45 @@ describe('ChipSet', () => {
     expect(radio('Small')).toHaveFocus();
   });
 
+  it("lets an app's class replace the space between rows, and classNames.root land on the set", () => {
+    const rowGap = 'gap-y-[calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px)))]';
+    const { rerender } = render(
+      <ChipSet aria-label="Filters" className="gap-y-[8px]" classNames={{ root: 'from-slot' }}>
+        <FilterChip>Open now</FilterChip>
+      </ChipSet>,
+    );
+    const set = screen.getByRole('group', { name: 'Filters' });
+    expect(set).toHaveClass('gap-y-[8px]', 'gap-x-[8px]', 'from-slot');
+    expect(set).not.toHaveClass(rowGap);
+    // A class for the other axis leaves the rows as they are.
+    rerender(
+      <ChipSet aria-label="Filters" className="gap-x-[16px]">
+        <FilterChip>Open now</FilterChip>
+      </ChipSet>,
+    );
+    expect(set).toHaveClass('gap-x-[16px]', rowGap);
+    expect(set).not.toHaveClass('gap-x-[8px]');
+  });
+
+  it('leaves the set with Tab without scrolling to its last chip', async () => {
+    render(
+      <>
+        <ChipSet aria-label="Filters" layout="scroll">
+          <FilterChip>Open now</FilterChip>
+          <FilterChip>Price</FilterChip>
+          <FilterChip>Rating</FilterChip>
+        </ChipSet>
+        <button type="button">After</button>
+      </>,
+    );
+    const last = screen.getByRole('button', { name: 'Rating' });
+    const focus = vi.spyOn(last, 'focus');
+    screen.getByRole('button', { name: 'Open now' }).focus();
+    await userEvent.tab();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+  });
+
   it('can scroll in one row', () => {
     render(
       <ChipSet aria-label="Filters" layout="scroll" className="custom">
