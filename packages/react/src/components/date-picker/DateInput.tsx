@@ -94,10 +94,14 @@ export function DateInput({
   const show = (date: CalendarDate | null) => (date ? format.format(date) : '');
   const [text, setText] = useState(() => show(value));
   const [error, setError] = useState<string | null>(null);
-  // A new value from outside (the calendar, a reset) replaces what is typed.
-  const [shown, setShown] = useState(value?.toString());
-  if (value?.toString() !== shown) {
-    setShown(value?.toString());
+  // A new value from outside (the calendar, a reset) replaces what is typed. So does a new
+  // locale (the browser's replacing the server's after hydration, or the app's changing),
+  // since the text is read in the locale's order: left as it was, 03/05 would turn from
+  // March into May on the next blur.
+  const key = `${value?.toString() ?? ''}|${locale}`;
+  const [shown, setShown] = useState(key);
+  if (key !== shown) {
+    setShown(key);
     setText(show(value));
     setError(null);
   }

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from './use-media-query';
+import { LocaleProvider } from '../locale/LocaleProvider';
 import { DateField } from './DateField';
 
 const march = new CalendarDate(2030, 3, 10);
@@ -134,6 +135,26 @@ describe('DateField (docked date picker)', () => {
     expect(onChange).toHaveBeenLastCalledWith(new CalendarDate(2030, 3, 21));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null));
     expect(screen.getByRole('textbox', { name: 'Date' })).toHaveValue('03/21/2030');
+  });
+
+  // The text is read in the locale's order. Kept from the old locale, 03/05/2030 (5 March in
+  // en-US) was read as 3 May once the browser's en-GB replaced the server's en-US, on a blur.
+  it('writes its text again for a new locale, so a blur keeps the date', async () => {
+    const onChange = vi.fn();
+    const field = (locale: string) => (
+      <LocaleProvider locale={locale}>
+        <DateField label="Date" defaultValue={new CalendarDate(2030, 3, 5)} onChange={onChange} />
+      </LocaleProvider>
+    );
+    const { rerender } = render(field('en-US'));
+    const input = screen.getByRole('textbox', { name: 'Date' });
+    expect(input).toHaveValue('03/05/2030');
+    rerender(field('en-GB'));
+    expect(input).toHaveValue('05/03/2030');
+    await userEvent.click(input);
+    await userEvent.tab();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('05/03/2030');
   });
 
   it('closes and saves on Enter', async () => {
