@@ -21,7 +21,8 @@ import {
   type ButtonBaseLinkProps,
 } from '../../primitives/ButtonBase';
 import { cn } from '../../utils/cn';
-import { BadgedBox, type BadgeProps } from '../badge/Badge';
+import { BadgedBox, DEFAULT_BADGE_LABELS, type BadgeProps } from '../badge/Badge';
+import { useLabels } from '../labels/use-labels';
 import { navItemStyles, type NavItemLayout } from './nav-item-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 
@@ -123,18 +124,20 @@ function useSlidingIndicator(
 
 /**
  * What a badge tells assistive tech about its item: its `label`, its text, or, for a small
- * badge (no children), "New notification" (`labels.newNotification`).
+ * badge (no children), `newNotification`: the badge's own word, a `LabelsProvider`'s, or
+ * "New notification".
  */
-function badgeDescription(badge: ReactElement<BadgeProps> | undefined): string | null {
+function badgeDescription(
+  badge: ReactElement<BadgeProps> | undefined,
+  newNotification: string,
+): string | null {
   // A badge can arrive as a lazy server reference without props yet (React's dev server
   // rendering), so read it only from a real element.
   if (!isValidElement<BadgeProps>(badge)) return null;
-  const { label, labels, children } = badge.props;
+  const { label, children } = badge.props;
   if (label != null) return label;
   if (typeof children === 'string' || typeof children === 'number') return String(children);
-  if (children == null || children === false) {
-    return labels?.newNotification ?? 'New notification';
-  }
+  if (children == null || children === false) return newNotification;
   return null;
 }
 
@@ -165,7 +168,13 @@ export function NavItem({
   const inline = layout === 'rail-start' || layout === 'bar-start';
   // M3: badges sit on the icon, except in the expanded rail, where they follow the label.
   const badgeAfterLabel = layout === 'rail-start';
-  const description = badgeLabel ?? badgeDescription(badge);
+  // The badge's words as the badge itself reads them, a `LabelsProvider`'s included.
+  const { newNotification } = useLabels(
+    'Badge',
+    DEFAULT_BADGE_LABELS,
+    isValidElement<BadgeProps>(badge) ? badge.props.labels : undefined,
+  );
+  const description = badgeLabel ?? badgeDescription(badge, newNotification);
   const label = (
     <span
       data-nav-label=""

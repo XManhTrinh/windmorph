@@ -13,7 +13,8 @@ export interface BadgeLabels {
   newNotification: string;
 }
 
-const DEFAULT_LABELS: BadgeLabels = { newNotification: 'New notification' };
+/** Shared with the navigation items, which read a badge's words for their own description. */
+export const DEFAULT_BADGE_LABELS: BadgeLabels = { newNotification: 'New notification' };
 
 export interface BadgeClassNames {
   /** The badge itself: the dot, or the large badge's container. */
@@ -64,7 +65,7 @@ export function Badge({
   className,
   ...rest
 }: BadgeProps) {
-  const labels = useLabels('Badge', DEFAULT_LABELS, labelsProp);
+  const labels = useLabels('Badge', DEFAULT_BADGE_LABELS, labelsProp);
   const format = useNumberFormatter();
   const size = children == null || children === false ? 'small' : 'large';
   // M3's limit is four characters, "+" included; only longer text is cut.

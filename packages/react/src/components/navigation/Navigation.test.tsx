@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Badge } from '../badge/Badge';
+import { LabelsProvider } from '../labels/LabelsProvider';
 import { NavigationBar, NavigationBarItem } from './NavigationBar';
 import {
   NavigationRail,
@@ -574,6 +575,32 @@ describe('NavigationRail', () => {
     expect(() =>
       render(<NavigationRailItem icon={<Icon id="x" />}>Lost</NavigationRailItem>),
     ).toThrow(/inside a NavigationRail/);
+  });
+});
+
+describe('Navigation items under a LabelsProvider', () => {
+  it("describes a small badge in the provider's words, and the badge's own above them", () => {
+    render(
+      <LabelsProvider labels={{ Badge: { newNotification: 'Neue Benachrichtigung' } }}>
+        <NavigationBar aria-label="Main">
+          <NavigationBarItem icon={<Icon id="chat" />} badge={<Badge />}>
+            Chat
+          </NavigationBarItem>
+          <NavigationBarItem
+            icon={<Icon id="posts" />}
+            badge={<Badge labels={{ newNotification: 'Neue Antwort' }} />}
+          >
+            Posts
+          </NavigationBarItem>
+        </NavigationBar>
+      </LabelsProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Chat' })).toHaveAccessibleDescription(
+      'Neue Benachrichtigung',
+    );
+    expect(screen.getByRole('button', { name: 'Posts' })).toHaveAccessibleDescription(
+      'Neue Antwort',
+    );
   });
 });
 
