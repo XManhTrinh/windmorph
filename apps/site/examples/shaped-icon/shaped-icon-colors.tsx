@@ -2,10 +2,18 @@ import { flowerShape } from '@windmorph/react/primitives';
 import { ShapedIcon } from '@windmorph/react-pro';
 import { StarIcon } from '../../components/icons';
 
-const COLORS = ['primary', 'secondary', 'tertiary', 'neutral', 'error'] as const;
+const COLORS = [
+  'primary',
+  'secondary',
+  'tertiary',
+  'neutral',
+  'success',
+  'warning',
+  'error',
+] as const;
 
 /**
- * The five colours, each a container role with its content colour. A shaped icon is
+ * The seven colours, each a container role with its content colour. A shaped icon is
  * decorative unless it has an `aria-label`, like the last one here.
  */
 export function ShapedIconColors() {

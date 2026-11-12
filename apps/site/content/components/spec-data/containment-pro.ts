@@ -188,7 +188,7 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['shaped-icon/shaped-icon-sizes', 'shaped-icon/shaped-icon-steps'],
       },
       {
-        name: 'Colours: primary, secondary, tertiary, neutral, error',
+        name: 'Colours: primary, secondary, tertiary, neutral, success, warning, error',
         kind: 'variant',
         examples: ['shaped-icon/shaped-icon-colors'],
       },

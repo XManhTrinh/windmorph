@@ -87,6 +87,7 @@ export async function ShapedIconBody(): Promise<ComponentDoc> {
             <InlineCode>color</InlineCode> picks the container roles (
             <InlineCode>primary</InlineCode>, <InlineCode>secondary</InlineCode>,{' '}
             <InlineCode>tertiary</InlineCode>, <InlineCode>neutral</InlineCode>,{' '}
+            <InlineCode>success</InlineCode>, <InlineCode>warning</InlineCode>,{' '}
             <InlineCode>error</InlineCode>); <InlineCode>size</InlineCode> sets the container and
             icon (40/24, 56/28, 64/32 and 96/48px); <InlineCode>shape</InlineCode> is{' '}
             <InlineCode>circle</InlineCode> or a shape outline (
