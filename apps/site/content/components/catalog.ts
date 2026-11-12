@@ -1659,6 +1659,29 @@ export const COMPONENT_META: ComponentMeta[] = [
     keywords: ['clipboard', 'copy', 'invite link', 'read only', 'api key'],
   },
   {
+    slug: 'confirm-dialog',
+    title: 'Confirm dialog',
+    group: 'Containment & overlays',
+    railGroup: 'containment',
+    summary:
+      'One dialog for "are you sure?": a question, what will happen, and two actions, locked while the action runs, with a failure kept inside it. Not an M3 component (@windmorph/react-pro).',
+    propsComponents: ['ConfirmDialog', 'ConfirmDialogActions'],
+    playground: 'full',
+    pro: true,
+    related: ['dialog', 'alert', 'snackbar'],
+    whenNotToUse:
+      "For anything that isn't a yes-or-no decision use a Dialog; for an action that can be undone, do it and offer Undo in a Snackbar.",
+    keywords: [
+      'alert dialog',
+      'are you sure',
+      'delete confirmation',
+      'confirmation',
+      'destructive',
+      'unsaved changes',
+      'discard',
+    ],
+  },
+  {
     slug: 'side-panel-rail',
     title: 'Side panel rail',
     group: 'Navigation',
