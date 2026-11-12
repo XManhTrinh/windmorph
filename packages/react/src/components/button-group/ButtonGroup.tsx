@@ -19,17 +19,17 @@ import {
 } from 'react';
 import { mergeProps, mergeRefs, useObjectRef, useToggleButtonGroup, useToolbar } from 'react-aria';
 import { useToggleGroupState } from 'react-stately';
-import { useLabels } from '../../components/labels/use-labels';
-import { Button } from '../../components/button/Button';
-import type { ButtonShape, ButtonSize, ButtonVariant } from '../../components/button/button-styles';
+import { useLabels } from '../labels/use-labels';
+import { Button } from '../button/Button';
+import type { ButtonShape, ButtonSize, ButtonVariant } from '../button/button-styles';
 import {
   ButtonContext,
   ToggleGroupStateContext,
   type ButtonContextValue,
-} from '../../components/button/ButtonContext';
-import { IconButton } from '../../components/icon-button/IconButton';
-import type { IconButtonVariant } from '../../components/icon-button/icon-button-styles';
-import { MenuTrigger } from '../../components/menu/menu-trigger';
+} from '../button/ButtonContext';
+import { IconButton } from '../icon-button/IconButton';
+import type { IconButtonVariant } from '../icon-button/icon-button-styles';
+import { MenuTrigger } from '../menu/menu-trigger';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import {

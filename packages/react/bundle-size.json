@@ -4,6 +4,7 @@
     "components/app-bar/TopAppBar": 14500,
     "components/autocomplete/Autocomplete": 38250,
     "components/badge/Badge": 7200,
+    "components/button-group/ButtonGroup": 37000,
     "components/button/Button": 19550,
     "components/card/Card": 11350,
     "components/carousel/Carousel": 20050,
@@ -48,7 +49,6 @@
     "components/time-picker/TimePicker": 37700,
     "components/toolbar/Toolbar": 21950,
     "components/tooltip/Tooltip": 16350,
-    "components/tooltip/tooltip-trigger": 2250,
-    "composites/button-group/ButtonGroup": 37000
+    "components/tooltip/tooltip-trigger": 2250
   }
 }

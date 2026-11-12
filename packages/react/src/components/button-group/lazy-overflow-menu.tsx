@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
-import { MenuTriggerContext } from '../../components/menu/menu-trigger';
+import { MenuTriggerContext } from '../menu/menu-trigger';
 import { onDemand } from '../../utils/load-on-demand';
 import type { OverflowMenuListProps } from './overflow-menu-list';
 

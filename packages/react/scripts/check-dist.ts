@@ -68,7 +68,7 @@ for (const file of distFiles) {
 const LAZY_IMPORTS: { component: string; lazy: string }[] = [
   { component: 'components/menu/Menu.js', lazy: 'components/sheet/BottomSheet.js' },
   { component: 'components/select/Select.js', lazy: 'components/sheet/BottomSheet.js' },
-  { component: 'composites/button-group/ButtonGroup.js', lazy: 'components/menu/Menu.js' },
+  { component: 'components/button-group/ButtonGroup.js', lazy: 'components/menu/Menu.js' },
   ...[
     'components/icon-button/IconButton.js',
     'components/fab/Fab.js',

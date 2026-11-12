@@ -200,8 +200,9 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
             <li>
               The library is built in layers, with dependencies pointing only downward (enforced by{' '}
               <InlineCode>eslint-plugin-boundaries</InlineCode>): tokens → utils → theme / motion →
-              primitives → components → composites. Composites are built only from public
-              components, so they may not import primitives directly.
+              primitives → components → composites. A composite is built only from public
+              components, so it may not import primitives directly; there is none at present.
+              ButtonGroup, which takes the page&apos;s direction from a primitive, is a component.
             </li>
             <li>
               <InlineCode>src/shapes</InlineCode> is pure geometry that imports nothing, so both
