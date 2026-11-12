@@ -76,7 +76,9 @@ interface ButtonOwnProps {
   children: Exclude<ReactNode, null | undefined | boolean>;
   /** Classes for each part. `classNames.root` is merged with `className`. */
   classNames?: ButtonClassNames;
-  /** Words the button announces. */
+  /**
+   * Words the button announces. A {@link LabelsProvider} sets them for the whole app.
+   */
   labels?: Partial<ButtonLabels>;
 }
 

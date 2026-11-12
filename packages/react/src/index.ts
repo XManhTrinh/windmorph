@@ -14,6 +14,10 @@ export {
   type ThemeStorage,
 } from './theme/state';
 
+// Words
+export { LabelsProvider, type LabelsProviderProps } from './components/labels/LabelsProvider';
+export type { WindmorphLabels } from './windmorph-labels';
+
 // Motion
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';
@@ -579,6 +583,7 @@ export { bottomSheetTokenSet, sideSheetTokenSet } from './components/sheet/sheet
 export {
   Carousel,
   type CarouselClassNames,
+  type CarouselLabels,
   type CarouselProps,
 } from './components/carousel/Carousel';
 export { carouselStyles, type CarouselStyleProps } from './components/carousel/carousel-styles';

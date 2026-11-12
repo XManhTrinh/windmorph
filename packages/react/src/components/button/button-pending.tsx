@@ -10,6 +10,7 @@ import {
   type Ref,
 } from 'react';
 import { useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { usePresence } from '../../primitives/use-presence';
 import { announcePolite, prepareAnnouncer } from '../../utils/announce';
 import { usePreloadOnIntent } from '../../utils/load-on-demand';
@@ -139,7 +140,7 @@ export function useButtonPending<E extends HTMLElement>({
   const takesPending = pendingProp !== undefined;
   const pending = pendingProp === true;
   const custom = pendingIndicator !== undefined;
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Button', DEFAULT_LABELS, labelsProp);
   const hiddenId = useId();
 
   // The element, for the announcement and the preload; it also forwards to the app's ref.

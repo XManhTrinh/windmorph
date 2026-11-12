@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { mergeProps, useObjectRef, useSearchField } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
@@ -113,7 +114,10 @@ interface SearchFieldOwnProps extends WrapperRootDOMProps {
    * its role, name, value and type always win.
    */
   inputProps?: SearchFieldInputProps;
-  /** Words the field shows or announces, in place of the English defaults. */
+  /**
+   * Words the field shows or announces, in place of the English defaults. A {@link LabelsProvider}
+   * sets them for the whole app.
+   */
   labels?: Partial<SearchFieldLabels>;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
@@ -164,7 +168,7 @@ export function SearchField(props: SearchFieldProps) {
     classNames,
     ...rest
   } = props;
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('SearchField', DEFAULT_LABELS, labelsProp);
   const [query, setQuery] = useControlledState(value, defaultValue ?? '', onChange);
   const objectInputRef = useObjectRef(inputRef);
   const { root: data, rest: own } = splitRootProps(rest, { wrapper: true });

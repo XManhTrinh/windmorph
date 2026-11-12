@@ -113,6 +113,11 @@ test.describe('Props list', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(keys).toBeHidden();
     await labels.getByRole('link', { name: 'Link to labels' }).focus();
+    // The description links to the provider that sets these words for a whole app.
+    await page.keyboard.press('Tab');
+    const provider = labels.getByRole('link', { name: 'LabelsProvider' });
+    await expect(provider).toBeFocused();
+    await expect(provider).toHaveAttribute('href', '/api-conventions#words');
     await page.keyboard.press('Tab');
     await expect(toggle).toBeFocused();
     await page.keyboard.press('Enter');

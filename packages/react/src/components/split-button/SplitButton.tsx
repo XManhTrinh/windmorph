@@ -11,6 +11,7 @@ import {
 } from 'react';
 import type { PressEvent } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import {
   ButtonBase,
   type ButtonBaseActionProps,
@@ -74,7 +75,10 @@ interface SplitButtonOwnProps {
   size?: SplitButtonSize;
   /** Icon before the label, or on its own with `leadingLabel`. Hidden from assistive tech. */
   leadingIcon?: ReactElement;
-  /** Words the split button announces, with English defaults. */
+  /**
+   * Words the split button announces, with English defaults. A {@link LabelsProvider} sets them for
+   * the whole app.
+   */
   labels?: Partial<SplitButtonLabels>;
   /**
    * The `<Menu>` the trailing button opens, 4px below it and aligned with its end edge
@@ -171,7 +175,7 @@ export function SplitButton(props: SplitButtonProps) {
     children,
     leadingIcon,
     leadingLabel,
-    labels,
+    labels: labelsProp,
     menu,
     onTrailingPress,
     trailingRef,
@@ -192,6 +196,7 @@ export function SplitButton(props: SplitButtonProps) {
     onPressStart?: ButtonBaseActionProps['onPressStart'];
     onPressEnd?: ButtonBaseActionProps['onPressEnd'];
   };
+  const labels = useLabels('SplitButton', DEFAULT_LABELS, labelsProp);
   const outerTrigger = useContext(TriggerContext);
   const [isOpen, setOpen] = useControlledState(open, defaultOpen ?? false, onOpenChange);
   const styles = splitButtonStyles({ variant, size });
@@ -212,7 +217,7 @@ export function SplitButton(props: SplitButtonProps) {
 
   const trailingProps = {
     tokenAttributes: halfTokens,
-    label: labels?.menu ?? DEFAULT_LABELS.menu,
+    label: labels.menu,
     disabled,
     hasTouchTarget,
     buttonRef: trailingRef,

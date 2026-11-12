@@ -19,6 +19,7 @@ import {
 import { useCalendar, useDateFormatter, useDialog, useLocale } from 'react-aria';
 import { useCalendarState, useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import {
@@ -177,7 +178,10 @@ export interface DateFieldProps extends WrapperRootDOMProps {
    * @default 0
    */
   density?: Density;
-  /** Words the field and its calendar show and announce, with English defaults. */
+  /**
+   * Words the field and its calendar show and announce, with English defaults.
+   * A {@link LabelsProvider} sets them for the whole app.
+   */
   labels?: Partial<DateFieldLabels>;
   /** The text field's root. */
   ref?: Ref<HTMLDivElement>;
@@ -249,7 +253,7 @@ function DateFieldInner({
   id,
   calendarIcon,
   density,
-  labels = {},
+  labels: labelsProp,
   ref,
   inputRef,
   className,
@@ -258,6 +262,8 @@ function DateFieldInner({
   directionRef,
   ...rest
 }: DateFieldProps & { directionRef: (element: HTMLElement | null) => void }) {
+  // The modal picker a compact window shows is a `DatePicker`, so its words apply here too.
+  const labels = useLabels(['DatePicker', 'DateField'], {}, labelsProp);
   const { root, rest: aria } = splitRootProps(rest, { wrapper: true });
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);

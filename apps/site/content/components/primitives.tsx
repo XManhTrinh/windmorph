@@ -29,6 +29,7 @@ const importSnippet = `import {
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
+  useLabels, type LabelsKey, type LabelsOf,
   // Static shapes (precomputed outlines, no shape engine)
   type MaterialShapePath, materialShapeMask, materialShapePaths,
   circleShape, cookie12SidedShape, sunnyShape, /* … one <name>Shape per shape */
@@ -322,6 +323,15 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>star</InlineCode>) and the path serialisers (
               <InlineCode>polygonToPath</InlineCode>, <InlineCode>morphToPath</InlineCode>,{' '}
               <InlineCode>cubicsToPath</InlineCode>).
+            </li>
+            <li>
+              <InlineCode>useLabels</InlineCode>, for a component of your own that shows words: it
+              gives the component&apos;s English defaults, then the words a{' '}
+              <InlineCode>LabelsProvider</InlineCode> above gives its key, then its own{' '}
+              <InlineCode>labels</InlineCode> prop. Add the key to{' '}
+              <InlineCode>WindmorphLabels</InlineCode> by declaration merging (
+              <InlineCode>LabelsKey</InlineCode> and <InlineCode>LabelsOf</InlineCode> are its key
+              and words types), as Windmorph Pro does for its components.
             </li>
             <li>
               For a component of your own: <InlineCode>splitRootProps</InlineCode> and its{' '}

@@ -94,7 +94,9 @@ interface IconButtonOwnProps {
   tooltip?: boolean;
   /** Classes for each part. `classNames.root` is merged with `className`. */
   classNames?: IconButtonClassNames;
-  /** Words the button announces. */
+  /**
+   * Words the button announces. A {@link LabelsProvider} sets them for the whole app.
+   */
   labels?: Partial<ButtonLabels>;
 }
 

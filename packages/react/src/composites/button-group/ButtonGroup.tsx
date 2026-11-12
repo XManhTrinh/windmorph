@@ -19,6 +19,7 @@ import {
 } from 'react';
 import { mergeProps, mergeRefs, useObjectRef, useToggleButtonGroup, useToolbar } from 'react-aria';
 import { useToggleGroupState } from 'react-stately';
+import { useLabels } from '../../components/labels/use-labels';
 import { Button } from '../../components/button/Button';
 import type { ButtonShape, ButtonSize, ButtonVariant } from '../../components/button/button-styles';
 import {
@@ -149,8 +150,8 @@ export interface ButtonGroupProps extends Omit<
    */
   overflow?: boolean;
   /**
-   * Text for assistive tech, e.g. the overflow indicator's name.
-   * @default { more: "More options" }
+   * Text for assistive tech, e.g. the overflow indicator's name. @default { more: "More options" }
+   * A {@link LabelsProvider} sets them for the whole app.
    */
   labels?: Partial<ButtonGroupLabels>;
   /** Classes for each part. `classNames.root` is merged with `className`. */
@@ -241,7 +242,7 @@ function ButtonGroupRoot({
   expandedRatio,
   overflow = false,
   fullWidth = true,
-  labels,
+  labels: labelsProp,
   className,
   classNames,
   children,
@@ -249,6 +250,7 @@ function ButtonGroupRoot({
   directionRef,
   ...props
 }: ButtonGroupProps & { directionRef: RefCallback<HTMLElement> }) {
+  const labels = useLabels('ButtonGroup', DEFAULT_LABELS, labelsProp);
   const domRef = useGroupRef(ref, directionRef);
   const parent = useContext(ButtonContext);
   const hasSelection = selectionMode !== 'none';
@@ -325,7 +327,7 @@ function ButtonGroupRoot({
           groupRef={domRef}
           hidden={items.slice(visible)}
           offset={visible}
-          label={labels?.more ?? DEFAULT_LABELS.more}
+          label={labels.more}
           selectionMode={selectionMode}
           selectedKeys={state.selectedKeys}
           disabled={Boolean(disabled ?? parent.disabled)}

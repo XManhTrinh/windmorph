@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { CodeBlock } from '@windmorph/react-pro';
 import { InlineCode } from '../../../components/inline-code';
+import { highlightSource } from '../../../lib/highlight';
 import { guideMetadata } from '../../../lib/site-metadata';
+import { GuideApiReference } from '../guide-api';
 
 export const metadata: Metadata = guideMetadata('/api-conventions');
 
@@ -9,6 +12,25 @@ const SECTION = 'flex flex-col gap-4';
 const HEADING = 'text-headline-small text-on-surface';
 const TEXT = 'text-body-large text-on-surface-variant';
 const LIST = 'flex list-disc flex-col gap-2 ps-6 text-body-large text-on-surface-variant';
+
+const LABELS_SNIPPET = `// app/app-labels.tsx
+'use client';
+
+import type { ReactNode } from 'react';
+import { LabelsProvider, type WindmorphLabels } from '@windmorph/react';
+
+const words: WindmorphLabels = {
+  TextField: {
+    error: 'Fehler',
+    characterCount: (count, max) => \`Zeichen: \${count} von \${max}\`,
+  },
+  DialogHeader: { close: 'Schließen' },
+  Button: { pending: 'Wird geladen' },
+};
+
+export function AppLabels({ children }: { children: ReactNode }) {
+  return <LabelsProvider labels={words}>{children}</LabelsProvider>;
+}`;
 
 /** One rule: what the props are called, and an example from the library. */
 function Rule({ children }: { children: ReactNode }) {
@@ -19,7 +41,8 @@ function Rule({ children }: { children: ReactNode }) {
  * The naming and API conventions every component of `@windmorph/react` and
  * `@windmorph/react-pro` follows, so a prop learnt on one component means the same on all.
  */
-export default function ApiConventionsPage() {
+export default async function ApiConventionsPage() {
+  const labelsHtml = await highlightSource(LABELS_SNIPPET, 'tsx');
   return (
     <article className="mx-auto flex max-w-3xl flex-col gap-10">
       <header className="flex flex-col gap-3">
@@ -141,6 +164,51 @@ export default function ApiConventionsPage() {
           with its default, and <InlineCode>labels</InlineCode> takes any of them (
           <InlineCode>{'labels={{ close: "Fermer" }}'}</InlineCode>). Names only your app knows,
           such as a list&apos;s <InlineCode>aria-label</InlineCode>, are required by the types.
+        </p>
+        <h3 id="translating-the-built-in-words" className="text-title-large text-on-surface">
+          Translating the built-in words
+        </h3>
+        <p className={TEXT}>
+          An app in another language gives its words once, to a{' '}
+          <InlineCode>LabelsProvider</InlineCode> near its root. Its <InlineCode>labels</InlineCode>{' '}
+          are keyed by component, and each key takes the words that component&apos;s own{' '}
+          <InlineCode>labels</InlineCode> prop takes, so the editor completes them. The provider
+          ships no translations: the words are your app&apos;s.
+        </p>
+        <CodeBlock code={LABELS_SNIPPET} html={labelsHtml} lang="tsx" title="app-labels.tsx" />
+        <ul className={LIST}>
+          <Rule>
+            A component uses its English default, then the provider&apos;s word, then its own{' '}
+            <InlineCode>labels</InlineCode>, which always wins. Providers nest and merge word by
+            word, so a part of the app can change one word and keep the rest.
+          </Rule>
+          <Rule>
+            A key is a labels type&apos;s name without <InlineCode>Labels</InlineCode>, so
+            components that share a type share a key: <InlineCode>Button</InlineCode> covers{' '}
+            <InlineCode>Button</InlineCode> and <InlineCode>IconButton</InlineCode>,{' '}
+            <InlineCode>Chip</InlineCode> the chips, <InlineCode>DatePicker</InlineCode> both date
+            pickers and <InlineCode>Snackbar</InlineCode> the snackbar and its host.
+          </Rule>
+          <Rule>
+            A component built from another reads that one&apos;s words too, then its own:{' '}
+            <InlineCode>DateField</InlineCode> reads <InlineCode>DatePicker</InlineCode>&apos;s, and{' '}
+            <InlineCode>TimeField</InlineCode> reads <InlineCode>TimePicker</InlineCode>&apos;s and{' '}
+            <InlineCode>PickerDialog</InlineCode>&apos;s, so the words they share are written once.
+          </Rule>
+          <Rule>
+            Some words are functions (a character count), which a Server Component can&apos;t pass
+            to a Client Component. Render the provider from a client file of your own, as above, and
+            wrap the app in it.
+          </Rule>
+          <Rule>
+            A component of your own reads the provider with <InlineCode>useLabels</InlineCode> from{' '}
+            <InlineCode>@windmorph/react/primitives</InlineCode>, after adding its key to{' '}
+            <InlineCode>WindmorphLabels</InlineCode> by declaration merging.
+          </Rule>
+        </ul>
+        <p className={TEXT}>
+          The provider&apos;s table below lists every key; each component&apos;s API tab lists its
+          words under <InlineCode>labels</InlineCode>, with their defaults.
         </p>
       </section>
 
@@ -277,6 +345,8 @@ export default function ApiConventionsPage() {
           </Rule>
         </ul>
       </section>
+
+      <GuideApiReference path="/api-conventions" />
     </article>
   );
 }

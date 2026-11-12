@@ -22,6 +22,7 @@ import {
   type AriaDialogProps,
 } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
@@ -133,7 +134,10 @@ interface SideSheetOwnProps {
   closeIcon?: ReactElement;
   /** Replaces the back button's icon. */
   backIcon?: ReactElement;
-  /** Words the sheet announces, with English defaults. */
+  /**
+   * Words the sheet announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<SideSheetLabels>;
   children?: ReactNode | ((props: SideSheetRenderProps) => ReactNode);
   /** Classes for each part, by slot. */
@@ -251,7 +255,7 @@ function SheetBody({
   classNames,
   contentRef,
 }: BodyProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('SideSheet', DEFAULT_LABELS, labelsProp);
   const renderProps = { close };
   const render = (slot: SideSheetOwnProps['children']) =>
     typeof slot === 'function' ? slot(renderProps) : slot;

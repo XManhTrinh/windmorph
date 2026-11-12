@@ -15,6 +15,7 @@ import {
   type Ref,
 } from 'react';
 import { useNumberFormatter, useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -137,7 +138,10 @@ interface CarouselOwnProps extends RootDOMProps {
   onAction?: (index: number) => void;
   /** Indexes of items that can't be activated. */
   disabledIndexes?: readonly number[];
-  /** Words the carousel announces, for localisation. */
+  /**
+   * Words the carousel announces, for localisation. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<CarouselLabels>;
   /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
   children: ReactNode;
@@ -226,7 +230,7 @@ export function Carousel({
     'aria-label'?: string;
     'aria-labelledby'?: string;
   };
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Carousel', DEFAULT_LABELS, labelsProp);
   const numbers = useNumberFormatter();
   const items = Children.toArray(children).filter(isValidElement);
   const count = items.length;

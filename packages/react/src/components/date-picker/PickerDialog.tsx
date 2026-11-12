@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { mergeProps, useDialog, useModalOverlay, useObjectRef } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
@@ -110,7 +111,10 @@ interface PickerDialogOwnProps extends Omit<RootDOMProps, 'title'> {
    * @default "any"
    */
   closedBy?: ClosedBy;
-  /** Words the full-screen form shows and announces, with English defaults. */
+  /**
+   * Words the full-screen form shows and announces, with English defaults. A {@link LabelsProvider}
+   * sets them for the whole app.
+   */
   labels?: Partial<PickerDialogLabels>;
   /** The picker. */
   children: ReactNode | ((props: { close: () => void }) => ReactNode);
@@ -170,7 +174,7 @@ function PickerDialogModal({
   closeIcon,
   closedBy = 'any',
   transition = 'reveal',
-  labels = {},
+  labels: labelsProp,
   children,
   className,
   style,
@@ -182,6 +186,7 @@ function PickerDialogModal({
   isExiting: boolean;
   exitProps: ReturnType<typeof usePresence>['exitProps'];
 }) {
+  const labels = useLabels('PickerDialog', {}, labelsProp);
   const panelRef = useObjectRef(ref);
   const { modalProps, underlayProps } = useModalOverlay(
     closedByOverlayOptions(closedBy, isExiting),

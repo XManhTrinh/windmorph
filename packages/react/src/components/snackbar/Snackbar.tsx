@@ -12,6 +12,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { useObjectRef } from 'react-aria';
+import { useLabels } from '../labels/use-labels';
 import { usePresence } from '../../primitives/use-presence';
 import { announcePolite, LIVE_REGION_DELAY } from '../../utils/announce';
 import { cn } from '../../utils/cn';
@@ -69,7 +70,10 @@ interface SnackbarOwnProps {
    * button. @default onDismiss
    */
   onEscape?: () => void;
-  /** Words the snackbar announces, with English defaults. */
+  /**
+   * Words the snackbar announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<SnackbarLabels>;
   /** Put the actions under the message, for long action labels. @default false */
   actionOnNewLine?: boolean;
@@ -108,7 +112,7 @@ export function Snackbar({
     newLine: actionOnNewLine && actionLabel !== undefined,
     dismissible: onDismiss !== undefined,
   });
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Snackbar', DEFAULT_LABELS, labelsProp);
   const hasActions = actionLabel !== undefined || onDismiss !== undefined;
   const inHost = useContext(InSnackbarHost);
   const messageRef = useRef<HTMLDivElement>(null);
@@ -179,7 +183,10 @@ export interface SnackbarHostProps extends Omit<ComponentPropsWithRef<'div'>, 'c
   state: SnackbarHostState;
   /** Renders each snackbar; defaults to {@link Snackbar}. */
   snackbar?: (data: SnackbarData) => React.ReactNode;
-  /** Words each default snackbar announces, with English defaults. */
+  /**
+   * Words each default snackbar announces, with English defaults. A {@link LabelsProvider} sets
+   * them for the whole app.
+   */
   labels?: Partial<SnackbarLabels>;
   /**
    * The key combination that moves focus to a snackbar with actions, as the spec asks for on

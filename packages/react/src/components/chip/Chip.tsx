@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { VisuallyHidden } from 'react-aria';
 import { useToggleState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import {
   ButtonBase,
   ToggleGroupStateContext,
@@ -177,7 +178,7 @@ function RemoveButton({
   describedBy?: string;
 }) {
   const removeId = useId();
-  const { remove } = { ...DEFAULT_LABELS, ...labels };
+  const { remove } = useLabels('Chip', DEFAULT_LABELS, labels);
   return (
     <ButtonBase
       disabled={disabled}
@@ -319,7 +320,10 @@ interface FilterChipOwnProps extends Omit<ChipCommonProps, 'classNames'> {
    * (M3: for medium and expanded windows). Backspace or Delete on the chip also calls it.
    */
   onRemove?: () => void;
-  /** Words the chip announces, with English defaults. */
+  /**
+   * Words the chip announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<ChipLabels>;
   /** `surface-container-low` at level 1 instead of an outline. @default false */
   elevated?: boolean;
@@ -507,7 +511,10 @@ interface InputChipOwnProps {
   onPress?: ButtonBaseActionProps['onPress'];
   /** Shows a remove button; also called on Backspace or Delete. */
   onRemove?: () => void;
-  /** Words the chip announces, with English defaults. */
+  /**
+   * Words the chip announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<ChipLabels>;
   /** The flat chip's border. @default "standard" */
   outline?: ChipOutline;
@@ -568,7 +575,7 @@ export function InputChip({
   // Without an action there's no `aria-pressed` to carry the selection, so it's said in words
   // (WCAG 1.3.1): the remove button's description, or hidden text on a static chip.
   const announceSelected = Boolean(selected) && !onPress;
-  const selectedWord = { ...DEFAULT_LABELS, ...labels }.selected;
+  const selectedWord = useLabels('Chip', DEFAULT_LABELS, labels).selected;
   const styles = chipStyles({
     kind: 'input',
     split,

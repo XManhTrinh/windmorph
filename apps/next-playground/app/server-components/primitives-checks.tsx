@@ -180,6 +180,7 @@ export const primitivesChecks = {
   useM3Interaction: hook,
   useM3Morph: hook,
   useM3Spring: hook,
+  useLabels: hook,
   useRevealEntering: hook,
   useScrollKeys: hook,
   useScrollRestoration: hook,

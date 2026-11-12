@@ -6,6 +6,7 @@ import {
   AutocompleteSection,
   Button,
   ContextMenuTrigger,
+  LabelsProvider,
   Menu,
   MenuGroup,
   MenuItem,
@@ -20,11 +21,21 @@ import {
   SubmenuTrigger,
   Tab,
   Tabs,
+  TextField,
   TimePickerModeToggle,
   useSnackbarHostState,
+  type WindmorphLabels,
 } from '@windmorph/react';
 import { DomDirectionLocale, SelectionControl } from '@windmorph/react/primitives';
 import { useRef, useState, type ReactNode } from 'react';
+
+/** An app's words, one of them a function: the reason the provider sits in a client file. */
+const WORDS: WindmorphLabels = {
+  TextField: {
+    error: 'Fehler',
+    characterCount: (count, max) => `Zeichen: ${count} von ${max}`,
+  },
+};
 
 function SnackbarHostExample() {
   const state = useSnackbarHostState();
@@ -131,6 +142,11 @@ const tabs = (
 
 /** The exports a server component can import but can't render with server-made props. */
 const EXAMPLES: Record<string, () => ReactNode> = {
+  LabelsProvider: () => (
+    <LabelsProvider labels={WORDS}>
+      <TextField label="Translated field" maxLength={20} invalid data-testid="translated-field" />
+    </LabelsProvider>
+  ),
   SnackbarHost: () => <SnackbarHostExample />,
   PullToRefresh: () => (
     <PullToRefresh onRefresh={() => undefined} className="h-24 overflow-y-auto">

@@ -20,6 +20,7 @@ import {
   type AriaTextFieldProps,
 } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
+import { useLabels } from '../labels/use-labels';
 import {
   CharacterCounter,
   ErrorText,
@@ -203,7 +204,10 @@ interface TextFieldOwnProps
   maxRows?: number;
   /** Shows `count/maxLength` below the field. Defaults to `true` when `maxLength` is set. */
   counter?: boolean;
-  /** Words the field announces, for other languages. */
+  /**
+   * Words the field announces, for other languages. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<TextFieldLabels>;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
   className?: string;
@@ -290,7 +294,7 @@ export function TextField(props: TextFieldProps) {
   // root with `className`; everything else (the input's ARIA, attributes and events) goes to
   // the input via React Aria.
   const { root: rootData, rest: ariaProps } = splitRootProps(otherProps, { wrapper: true });
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('TextField', DEFAULT_LABELS, labelsProp);
   const prefixId = useId();
   const suffixId = useId();
   const counterId = useId();

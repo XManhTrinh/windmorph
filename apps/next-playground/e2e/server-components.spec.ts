@@ -42,6 +42,22 @@ test.describe('Server components', () => {
     expect(clientValues).toEqual([]);
   });
 
+  test("a LabelsProvider's words are in the server's HTML and stay after hydration", async ({
+    page,
+  }) => {
+    const problems = collectConsoleProblems(page);
+    const response = await page.goto(PATH);
+    const html = (await response?.text()) ?? '';
+    // Server-rendered: the counter's announcement and the error icon's name, from the provider.
+    expect(html).toContain('Zeichen: 0 von 20');
+    expect(html).not.toContain('Character count: 0 of 20');
+    const field = page.getByTestId('translated-field');
+    await expect(field.getByRole('img', { name: 'Fehler' })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await expect(field.getByText('Zeichen: 0 von 20')).toBeAttached();
+    expect(problems).toEqual([]);
+  });
+
   test('hydrates without errors or warnings', async ({ page }) => {
     const problems = collectConsoleProblems(page);
     await page.goto(PATH);

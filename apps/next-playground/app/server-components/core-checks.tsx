@@ -42,6 +42,10 @@ export const coreChecks = {
     ),
   },
   ThemeScript: { kind: 'component', render: () => <Core.ThemeScript /> },
+  LabelsProvider: {
+    kind: 'client',
+    reason: 'some of its words are functions, which a server component cannot pass to it',
+  },
   getThemeScriptSource: { kind: 'value', run: () => Core.getThemeScriptSource() },
   useTheme: hook,
   useThemeScope: hook,

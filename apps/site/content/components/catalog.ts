@@ -1811,6 +1811,7 @@ export const COMPONENT_META: ComponentMeta[] = [
       'useKeepPressedInPlace',
       'useScrollRestoration',
       'useScrollKeys',
+      'useLabels',
       'useRevealEntering',
       'useM3Interaction',
       'useM3Morph',

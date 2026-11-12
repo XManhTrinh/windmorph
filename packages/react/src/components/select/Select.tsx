@@ -27,6 +27,7 @@ import {
 } from 'react-stately/useSelectState';
 import { useControlledState } from 'react-stately/useControlledState';
 import type { Key } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { densityAttribute, type Density } from '../../tokens/density';
@@ -232,7 +233,10 @@ export type SelectProps<T extends object, M extends SelectionMode = 'single'> = 
      * leaving it out) on a field that loads options.
      */
     loading?: boolean;
-    /** Words the Select shows or announces, for other languages. */
+    /**
+     * Words the Select shows or announces, for other languages. A {@link LabelsProvider} sets them
+     * for the whole app.
+     */
     labels?: Partial<SelectLabels>;
     /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;
@@ -333,7 +337,7 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   const { root: rootData, rest } = splitRootProps(otherProps, { wrapper: true });
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Select', DEFAULT_LABELS, labelsProp);
   const stately = rest as Omit<StatelySelectProps<T, M>, RenamedProps>;
   const cap = useSelectionCap({
     multiple: stately.selectionMode === 'multiple',

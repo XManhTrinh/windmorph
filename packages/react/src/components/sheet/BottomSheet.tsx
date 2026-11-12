@@ -25,6 +25,7 @@ import {
   type AriaDialogProps,
 } from 'react-aria';
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
@@ -180,7 +181,10 @@ interface BottomSheetOwnProps {
   closeIcon?: ReactElement;
   /** Replaces the collapse button's icon. */
   collapseIcon?: ReactElement;
-  /** Words the sheet announces, with English defaults. */
+  /**
+   * Words the sheet announces, with English defaults. A {@link LabelsProvider} sets them for the
+   * whole app.
+   */
   labels?: Partial<BottomSheetLabels>;
   children?: ReactNode | ((props: { close: () => void }) => ReactNode);
   /** Classes for each part, by slot. */
@@ -337,7 +341,7 @@ function BottomSheetPanel({
   ref,
   ...rest
 }: PanelProps) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('BottomSheet', DEFAULT_LABELS, labelsProp);
   const standard = variant === 'standard';
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
   const motionRef = useRef<HTMLDivElement>(null);

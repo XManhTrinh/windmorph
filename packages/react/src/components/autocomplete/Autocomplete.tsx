@@ -25,6 +25,7 @@ import {
   type ComboBoxStateOptions,
   type SelectionMode,
 } from 'react-stately/useComboBoxState';
+import { useLabels } from '../labels/use-labels';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import type { Density } from '../../tokens/density';
@@ -195,7 +196,10 @@ export type AutocompleteProps<T extends object, M extends SelectionMode = 'singl
      * ignoring case and accents ("zurich" finds "Zürich"). Not used with controlled `items`.
      */
     filter?: (textValue: string, inputValue: string) => boolean;
-    /** Words the Autocomplete shows or announces, for other languages. */
+    /**
+     * Words the Autocomplete shows or announces, for other languages. A {@link LabelsProvider} sets
+     * them for the whole app.
+     */
     labels?: Partial<AutocompleteLabels>;
     /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
     className?: string;
@@ -282,7 +286,7 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
   const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly) ?? false;
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = useLabels('Autocomplete', DEFAULT_LABELS, labelsProp);
   const stately = rest as Omit<ComboBoxProps<T, M>, RenamedProps>;
   const multiple = stately.selectionMode === 'multiple';
   const cap = useSelectionCap({
