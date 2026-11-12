@@ -1,12 +1,20 @@
 import { Time } from '@internationalized/date';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { renderToString } from 'react-dom/server';
 import { I18nProvider } from 'react-aria';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
-import { Time as ExportedTime, TimeField, parseTime, type TimeFieldProps } from '../../index';
+import { setMediaQueries } from '../../../test/setup';
+import {
+  LabelsProvider,
+  Time as ExportedTime,
+  TimeField,
+  parseTime,
+  type TimeFieldProps,
+} from '../../index';
+import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 
 const field = () => screen.getByRole('textbox', { name: /Opens at/ });
 const clock = () => screen.getByRole('button', { name: 'Open time picker' });
@@ -154,5 +162,150 @@ describe('TimeField', () => {
   it('has no axe violations, valid or not', async () => {
     const { container } = render(<Sample invalid errorMessage="Pick a time" />);
     expect(await axeViolations(container)).toEqual([]);
+  });
+});
+
+describe('TimeField, docked', () => {
+  const list = () => screen.findByRole('listbox', { name: 'Select time' });
+  const optionTexts = (listbox: HTMLElement) =>
+    within(listbox)
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('opens a list of times under the field, every step within min and max', async () => {
+    render(<Sample presentation="docked" step={60} min={new Time(9)} max={new Time(12)} />);
+    expect(clock()).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(clock()).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(clock());
+    const listbox = await list();
+    expect(optionTexts(listbox)).toEqual(['09:00', '10:00', '11:00', '12:00']);
+    // The page behind the open list is hidden from assistive tech, as behind a Select's.
+    const button = screen.getByRole('button', { name: 'Open time picker', hidden: true });
+    expect(button).toHaveAttribute('aria-expanded', 'true');
+    expect(button).toHaveAttribute('aria-controls', listbox.id);
+    expect(screen.queryByRole('dialog', { name: 'Select time' })).toBe(null);
+  });
+
+  it('writes the times on the field’s clock', async () => {
+    render(<Sample presentation="docked" step={60} hourCycle={12} max={new Time(2)} />);
+    await userEvent.click(clock());
+    expect(optionTexts(await list())).toEqual(['12:00 am', '1:00 am', '2:00 am']);
+  });
+
+  it('lists the field’s time selected, also between two steps, and focuses it', async () => {
+    render(<Sample presentation="docked" defaultValue={new Time(9, 40)} min={new Time(9)} />);
+    await userEvent.click(clock());
+    const listbox = await list();
+    expect(optionTexts(listbox).slice(0, 4)).toEqual(['09:00', '09:30', '09:40', '10:00']);
+    const chosen = within(listbox).getByRole('option', { name: '09:40' });
+    expect(chosen).toHaveAttribute('aria-selected', 'true');
+    await waitFor(() => expect(chosen).toHaveFocus());
+  });
+
+  it('with no time, focuses the one nearest now', async () => {
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date(2026, 10, 12, 14, 20) });
+    render(<Sample presentation="docked" />);
+    await userEvent.click(clock());
+    const listbox = await list();
+    await waitFor(() =>
+      expect(within(listbox).getByRole('option', { name: '14:30' })).toHaveFocus(),
+    );
+    expect(within(listbox).queryByRole('option', { selected: true })).toBe(null);
+  });
+
+  it('commits a pressed time, closes, and returns focus to the field', async () => {
+    const onChange = vi.fn();
+    render(<Sample presentation="docked" defaultValue={new Time(9, 30)} onChange={onChange} />);
+    await userEvent.click(clock());
+    await userEvent.click(within(await list()).getByRole('option', { name: '11:00' }));
+    expect(onChange.mock.calls[0]![0].toString()).toBe('11:00:00');
+    expect(field()).toHaveValue('11:00');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null));
+    await waitFor(() => expect(field()).toHaveFocus(), { timeout: 2000 });
+  });
+
+  it('picks with the keyboard, and closes on the time it already has', async () => {
+    const onChange = vi.fn();
+    render(<Sample presentation="docked" defaultValue={new Time(9, 30)} onChange={onChange} />);
+    await userEvent.click(clock());
+    const listbox = await list();
+    await waitFor(() =>
+      expect(within(listbox).getByRole('option', { name: '09:30' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onChange.mock.calls[0]![0].toString()).toBe('10:00:00');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null));
+
+    await userEvent.click(clock());
+    await waitFor(async () =>
+      expect(within(await list()).getByRole('option', { name: '10:00' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{Enter}');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null));
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('changes nothing on Escape', async () => {
+    const onChange = vi.fn();
+    render(<Sample presentation="docked" defaultValue={new Time(9, 30)} onChange={onChange} />);
+    await userEvent.click(clock());
+    const listbox = await list();
+    await waitFor(() =>
+      expect(within(listbox).getByRole('option', { name: '09:30' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown}{Escape}');
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(field()).toHaveValue('09:30');
+  });
+
+  it('still takes typed times, and follows them', async () => {
+    render(<Sample presentation="docked" />);
+    await userEvent.type(field(), '7h45');
+    await userEvent.tab();
+    expect(field()).toHaveValue('07:45');
+    await userEvent.click(clock());
+    const chosen = within(await list()).getByRole('option', { name: '07:45' });
+    expect(chosen).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('opens the dialog on a compact window', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    render(<Sample presentation="docked" defaultValue={new Time(9, 30)} />);
+    expect(clock()).toHaveAttribute('aria-haspopup', 'dialog');
+    await userEvent.click(clock());
+    expect(await screen.findByRole('dialog', { name: 'Select time' })).toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).toBe(null);
+  });
+
+  it('puts its classes on the list and its times', async () => {
+    render(
+      <Sample presentation="docked" classNames={{ list: 'own-list', option: 'own-option' }} />,
+    );
+    await userEvent.click(clock());
+    const listbox = await list();
+    expect(listbox.closest('.own-list')).not.toBe(null);
+    expect(within(listbox).getAllByRole('option')[0]).toHaveClass('own-option');
+  });
+
+  it('takes its name from the provider’s words', async () => {
+    render(
+      <LabelsProvider labels={{ TimeField: { title: 'Uhrzeit wählen' } }}>
+        <Sample presentation="docked" />
+      </LabelsProvider>,
+    );
+    await userEvent.click(clock());
+    expect(await screen.findByRole('listbox', { name: 'Uhrzeit wählen' })).toBeInTheDocument();
+  });
+
+  it('has no axe violations open', async () => {
+    const { baseElement } = render(<Sample presentation="docked" defaultValue={new Time(9)} />);
+    await userEvent.click(clock());
+    await list();
+    expect(await axeViolations(baseElement)).toEqual([]);
   });
 });

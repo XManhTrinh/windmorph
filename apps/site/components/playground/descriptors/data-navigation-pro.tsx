@@ -550,15 +550,18 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       name: 'For a form.',
       clockIcon: 'A replacement icon.',
     },
-    render: ({ density, hourCycle, ...props }) =>
+    render: ({ density, hourCycle, step, ...props }) =>
       createElement(TimeFieldAny, {
         ...props,
         className: 'w-full max-w-xs',
         hourCycle: hourCycle == null ? undefined : Number(hourCycle),
+        step: step == null ? undefined : Number(step),
         density: asDensity(density),
       }),
     defaultProps: {
       variant: 'outlined',
+      presentation: 'dialog',
+      step: 30,
       invalid: false,
       required: false,
       disabled: false,
@@ -571,6 +574,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       'supportingText',
       'errorMessage',
       'variant',
+      'presentation',
+      'step',
       'hourCycle',
       'invalid',
       'required',
@@ -578,7 +583,7 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       'readOnly',
       'density',
     ],
-    enumOptions: { ...DENSITY_OPTIONS, hourCycle: ['12', '24'] },
-    controlKinds: { density: 'number', hourCycle: 'number' },
+    enumOptions: { ...DENSITY_OPTIONS, hourCycle: ['12', '24'], step: ['15', '30', '60'] },
+    controlKinds: { density: 'number', hourCycle: 'number', step: 'number' },
   },
 };

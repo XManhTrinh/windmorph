@@ -88,6 +88,56 @@ export const InDialog: Story = {
   ),
 };
 
+/**
+ * A list of times under the field instead of the dialog, for forms with many times: every
+ * half hour, or every `step` minutes within `min` and `max`.
+ */
+export const Docked: Story = {
+  render: () => (
+    <div data-testid="docked" className="flex h-[440px] w-max items-start gap-4 bg-surface p-4">
+      <TimeField
+        label="Opens at"
+        presentation="docked"
+        defaultValue={new Time(9, 30)}
+        hourCycle={24}
+      />
+      <TimeField
+        label="Lunch"
+        presentation="docked"
+        step={15}
+        min={new Time(12)}
+        max={new Time(14)}
+        hourCycle={12}
+      />
+    </div>
+  ),
+};
+
+/** The docked list opened from inside a dialog. */
+export const DockedInDialog: Story = {
+  render: () => (
+    <DialogTrigger>
+      <Button>Edit hours</Button>
+      <Dialog role="dialog">
+        <DialogTitle>Opening hours</DialogTitle>
+        <DialogContent>
+          <TimeField
+            label="Opens at"
+            presentation="docked"
+            defaultValue={new Time(9, 30)}
+            hourCycle={24}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" slot="close">
+            Done
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </DialogTrigger>
+  ),
+};
+
 /** Layout safety. */
 export const LayoutOverride: StoryObj<{
   override: LayoutOverrideName;

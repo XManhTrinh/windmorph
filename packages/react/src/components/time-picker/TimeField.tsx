@@ -2,6 +2,7 @@
 
 import type { Time } from '@internationalized/date';
 import {
+  useId,
   useRef,
   useState,
   type AriaAttributes,
@@ -25,12 +26,14 @@ import {
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
 import { ScheduleIcon } from '../date-picker/picker-icons';
+import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import type { PickerDialogLabels } from '../date-picker/PickerDialog';
 import { IconButton } from '../icon-button/IconButton';
 import { TextField, type TextFieldClassNames } from '../text-field/TextField';
 import { localeHourCycle } from './hour-cycle';
 import { formatTime, parseTimeText } from './time-format';
 import type { TimeFieldDialogProps } from './TimeFieldDialog';
+import type { TimeFieldListProps } from './TimeFieldList';
 import type { TimePickerLabels } from './TimePicker';
 
 /** Words of a {@link TimeField} and its picker, for localisation. */
@@ -60,6 +63,10 @@ export interface TimeFieldClassNames extends Omit<
   root?: string;
   /** The clock icon button. */
   button?: string;
+  /** The docked list of times: its surface. */
+  list?: string;
+  /** Each time of the docked list. */
+  option?: string;
   /** The picker dialog's surface. */
   picker?: string;
 }
@@ -81,6 +88,20 @@ export interface TimeFieldProps extends WrapperRootDOMProps {
   hourCycle?: 12 | 24;
   /** The field's style. @default "outlined" */
   variant?: 'outlined' | 'filled';
+  /**
+   * Where the picker opens. `dialog` is the M3 time picker in a dialog. `docked` is a list of
+   * times under the field (every `step` minutes, within `min` and `max`) on windows 600px wide
+   * or more, for forms with many times; narrower windows still get the dialog. Not in the M3
+   * spec, which has no docked time picker.
+   * @default "dialog"
+   */
+  presentation?: 'dialog' | 'docked';
+  /**
+   * Minutes between the times a docked list offers, counted from midnight; 5 at least. It
+   * only shapes the list: any time can still be typed.
+   * @default 30
+   */
+  step?: number;
   /** Whether the picker is open (controlled). */
   open?: boolean;
   /** Whether the picker starts open when uncontrolled. @default false */
@@ -144,6 +165,10 @@ const pickerDialog = onDemand<TimeFieldDialogProps>(() =>
   import('./TimeFieldDialog').then((module) => module.TimeFieldDialog),
 );
 
+const dockedList = onDemand<TimeFieldListProps>(() =>
+  import('./TimeFieldList').then((module) => module.TimeFieldList),
+);
+
 const DEFAULT_LABELS: Omit<TimeFieldLabels, 'timeFormatHint' | 'invalidTime'> = {
   timeOutOfRange: 'Time out of range',
   openPicker: 'Open time picker',
@@ -167,7 +192,8 @@ const DEFAULT_LABELS: Omit<TimeFieldLabels, 'timeFormatHint' | 'invalidTime'> = 
  * A time in a form, for pages that hold many of them, such as a weekly schedule. One compact
  * field with no input mask that reads what people type or paste (`9`, `930`, `9:30`, `9h30`,
  * `21:30`, `9pm`) and shows it in the active format once they leave it; a clock button opens
- * the {@link TimePicker} in a dialog, typed first. The time sibling of `DateField`.
+ * the {@link TimePicker} in a dialog, typed first, or with `presentation="docked"` a list of
+ * times under the field. The time sibling of `DateField`.
  *
  * @example
  * <TimeField label="Opens at" value={time} onChange={setTime} />
@@ -189,6 +215,8 @@ function TimeFieldInner({
   max,
   hourCycle: hourCycleProp,
   variant = 'outlined',
+  presentation = 'dialog',
+  step = 30,
   open,
   defaultOpen,
   onOpenChange,
@@ -250,7 +278,11 @@ function TimeFieldInner({
   });
   const fieldRef = useRef<HTMLDivElement | null>(null);
   const domInputRef = useObjectRef(inputRef);
-  usePreloadOnIntent(fieldRef, pickerDialog.preload, true);
+  // A docked list needs room under the field; a compact window gets the dialog, full screen.
+  const compact = useMediaQuery(COMPACT_WINDOW);
+  const docked = presentation === 'docked' && !compact;
+  const listId = useId();
+  usePreloadOnIntent(fieldRef, docked ? dockedList.preload : pickerDialog.preload, true);
   const [opened, setOpened] = useState(overlay.isOpen);
   if (overlay.isOpen && !opened) setOpened(true);
 
@@ -287,7 +319,14 @@ function TimeFieldInner({
     accept(time);
   };
 
-  const { root: rootClassName, button, picker, ...fieldClassNames } = classNames ?? {};
+  const {
+    root: rootClassName,
+    button,
+    picker,
+    list,
+    option,
+    ...fieldClassNames
+  } = classNames ?? {};
   return (
     <>
       <TextField
@@ -338,12 +377,13 @@ function TimeFieldInner({
             variant="standard"
             icon={clockIcon ?? <ScheduleIcon />}
             aria-label={labels.openPicker}
-            aria-haspopup="dialog"
+            aria-haspopup={docked ? 'listbox' : 'dialog'}
             aria-expanded={overlay.isOpen}
+            {...(docked && overlay.isOpen && { 'aria-controls': listId })}
             disabled={disabled || readOnly}
             className={button}
             onPress={(event) => {
-              // Focus returns to where it was when the dialog opened: the text box, except
+              // Focus returns to where it was when the picker opened: the text box, except
               // after a touch, where focusing it would raise the on-screen keyboard.
               if (event.pointerType !== 'touch') {
                 domInputRef.current?.focus({ preventScroll: true });
@@ -353,7 +393,22 @@ function TimeFieldInner({
           />
         }
       />
-      {opened ? (
+      {!opened ? null : docked ? (
+        <dockedList.Component
+          state={overlay}
+          triggerRef={fieldRef}
+          id={listId}
+          value={value}
+          onCommit={accept}
+          min={min}
+          max={max}
+          step={step}
+          hourCycle={hourCycle}
+          label={labels.title}
+          density={density}
+          classNames={{ list, option }}
+        />
+      ) : (
         <pickerDialog.Component
           open={overlay.isOpen}
           onOpenChange={overlay.setOpen}
@@ -363,7 +418,7 @@ function TimeFieldInner({
           labels={labels}
           className={picker}
         />
-      ) : null}
+      )}
     </>
   );
 }

@@ -1746,7 +1746,16 @@ export const COMPONENT_META: ComponentMeta[] = [
     exports: ['Time', 'parseTime'],
     related: ['time-picker', 'date-picker', 'text-field'],
     whenNotToUse: 'For a single, deliberate choice, a TimePicker in a PickerDialog alone suits.',
-    keywords: ['time input', 'hours', 'clock', '24 hour', 'am pm'],
+    keywords: [
+      'time input',
+      'hours',
+      'clock',
+      '24 hour',
+      'am pm',
+      'docked',
+      'time list',
+      'dropdown',
+    ],
   },
   {
     slug: 'primitives',
