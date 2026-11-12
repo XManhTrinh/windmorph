@@ -90,12 +90,12 @@ export async function TimePickerBody(): Promise<ComponentDoc> {
             <InlineCode>Time</InlineCode>, controlled (<InlineCode>value</InlineCode> /{' '}
             <InlineCode>onChange</InlineCode>) or uncontrolled (
             <InlineCode>defaultValue</InlineCode>
-            ). The hour cycle defaults to the locale&apos;s; set <InlineCode>
-              hourCycle
-            </InlineCode>{' '}
-            to <InlineCode>12</InlineCode> or <InlineCode>24</InlineCode> to force one. The hour
-            shows two digits on both clocks (&quot;02&quot;), as Compose&apos;s does. Tapping an
-            hour on the dial turns the hand to it and shows it for a moment before the minutes.
+            ). The hour cycle defaults to the locale&apos;s (a{' '}
+            <InlineCode>LocaleProvider</InlineCode>&apos;s, or the browser&apos;s language without
+            one); set <InlineCode>hourCycle</InlineCode> to <InlineCode>12</InlineCode> or{' '}
+            <InlineCode>24</InlineCode> to force one. The hour shows two digits on both clocks
+            (&quot;02&quot;), as Compose&apos;s does. Tapping an hour on the dial turns the hand to
+            it and shows it for a moment before the minutes.
           </p>
         </section>
       </>

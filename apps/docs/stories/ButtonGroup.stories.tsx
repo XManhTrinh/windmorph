@@ -22,7 +22,7 @@ import {
 const SIZES: ButtonSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 
 const meta = {
-  title: 'Composites/ButtonGroup',
+  title: 'Components/ButtonGroup',
   component: ButtonGroup,
   args: { variant: 'standard', size: 'sm', 'aria-label': 'Actions' },
   argTypes: {

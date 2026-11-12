@@ -25,7 +25,7 @@ test.describe('ButtonGroup visual regression', () => {
   for (const theme of THEMES) {
     for (const mode of MODES) {
       test(`variants · ${theme} · ${mode}`, async ({ page }) => {
-        await openStory(page, 'composites-buttongroup--variants', { theme, mode });
+        await openStory(page, 'components-buttongroup--variants', { theme, mode });
         await expect(page.getByTestId('variants')).toHaveScreenshot(
           `variants-${theme}-${mode}.png`,
         );
@@ -34,12 +34,12 @@ test.describe('ButtonGroup visual regression', () => {
   }
 
   test('sizes', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--sizes');
+    await openStory(page, 'components-buttongroup--sizes');
     await expect(page.getByTestId('sizes')).toHaveScreenshot('sizes.png');
   });
 
   test('sizes · rtl', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--sizes', { dir: 'rtl' });
+    await openStory(page, 'components-buttongroup--sizes', { dir: 'rtl' });
     await expect(page.getByTestId('sizes')).toHaveScreenshot('sizes-rtl.png');
   });
 });
@@ -52,7 +52,7 @@ test.describe('ButtonGroup press expansion', () => {
     test(`a pressed ${label} button grows, its neighbours shrink and the group keeps its width`, async ({
       page,
     }) => {
-      await openStory(page, 'composites-buttongroup--standard');
+      await openStory(page, 'components-buttongroup--standard');
       const group = page.getByRole('toolbar', { name: 'Actions' });
       const pressed = group.getByRole('button', { name });
       const groupWidth = await width(group);
@@ -77,7 +77,7 @@ test.describe('ButtonGroup press expansion', () => {
 
 test.describe('ButtonGroup standard', () => {
   test('spaces its buttons by size: 18, 12, then 8px', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--sizes');
+    await openStory(page, 'components-buttongroup--sizes');
     const gaps = await Promise.all(
       ['xs', 'sm', 'md', 'lg', 'xl'].map((size) =>
         page
@@ -89,7 +89,7 @@ test.describe('ButtonGroup standard', () => {
   });
 
   test('arrow keys move between buttons without a selection mode', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--standard');
+    await openStory(page, 'components-buttongroup--standard');
     await page.keyboard.press('Tab');
     await expect(page.getByRole('button', { name: 'Create' })).toBeFocused();
     await page.keyboard.press('ArrowRight');
@@ -101,7 +101,7 @@ test.describe('ButtonGroup standard', () => {
 
 test.describe('ButtonGroup connected', () => {
   test('a pressed button changes shape only: no button changes width', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     const radios = page.getByRole('radio');
     const before = await Promise.all((await radios.all()).map(width));
     const day = page.getByRole('radio', { name: 'Day' });
@@ -115,9 +115,9 @@ test.describe('ButtonGroup connected', () => {
   });
 
   test('spans its container, and XS / S icon buttons stay 48px wide', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     expect(await width(page.getByRole('radiogroup'))).toBe(480);
-    await openStory(page, 'composites-buttongroup--connected-multiple-selection');
+    await openStory(page, 'components-buttongroup--connected-multiple-selection');
     for (const button of await page.getByTestId('format').getByRole('button').all()) {
       expect(await width(button)).toBeGreaterThanOrEqual(48);
     }
@@ -126,7 +126,7 @@ test.describe('ButtonGroup connected', () => {
   test('inner corners grow with size, and square groups square the outer corners', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--sizes');
+    await openStory(page, 'components-buttongroup--sizes');
     const inner = { xs: '4px', sm: '8px', md: '8px', lg: '16px', xl: '20px' };
     for (const [size, corner] of Object.entries(inner)) {
       const round = page.getByRole('toolbar', { name: `Connected round ${size}` });
@@ -146,7 +146,7 @@ test.describe('ButtonGroup connected', () => {
   test('inner corners are small, outer corners full, and selected buttons become full', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     const day = page.getByRole('radio', { name: 'Day' });
     const week = page.getByRole('radio', { name: 'Week' });
     const year = page.getByRole('radio', { name: 'Year' });
@@ -176,7 +176,7 @@ test.describe('ButtonGroup connected', () => {
   });
 
   test('outer corners follow the reading direction in RTL', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection', { dir: 'rtl' });
+    await openStory(page, 'components-buttongroup--connected-single-selection', { dir: 'rtl' });
     const day = page.getByRole('radio', { name: 'Day' });
     expect(await radii(day)).toMatchObject({ topRight: '20px', topLeft: '8px' });
   });
@@ -184,7 +184,7 @@ test.describe('ButtonGroup connected', () => {
   test('arrow keys move between options and select them, and the selection is announced', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     // Tab enters at the selected option; the arrows move and select (APG radio group).
     await page.keyboard.press('Tab');
     await expect(page.getByRole('radio', { name: 'Week' })).toBeFocused();
@@ -195,7 +195,7 @@ test.describe('ButtonGroup connected', () => {
   });
 
   test('multiple selection with icon buttons', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-multiple-selection');
+    await openStory(page, 'components-buttongroup--connected-multiple-selection');
     const italic = page.getByRole('button', { name: 'Italic' });
     await italic.click();
     await expect(italic).toHaveAttribute('aria-pressed', 'true');
@@ -226,7 +226,7 @@ test.describe('ButtonGroup layout safety', () => {
         test(`${override} · ${connected ? 'connected' : 'standard'} · ${dir}`, async ({ page }) => {
           await openStory(
             page,
-            'composites-buttongroup--layout-override',
+            'components-buttongroup--layout-override',
             { dir },
             { override, connected, transformedAncestor: override === 'transform' },
           );
@@ -248,14 +248,14 @@ test.describe('ButtonGroup layout safety', () => {
 
 test.describe('ButtonGroup spec fixes (2026-10-13)', () => {
   test('connected buttons share the width equally', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     const widths = await Promise.all((await page.getByRole('radio').all()).map(width));
     // 480px, 3 × 2px gaps, four buttons.
     for (const w of widths) expect(Math.abs(w - (480 - 6) / 4)).toBeLessThan(0.5);
   });
 
   test('an XS connected press tightens the inner corners to 2px', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--connected-multiple-selection');
+    await openStory(page, 'components-buttongroup--connected-multiple-selection');
     const italic = page.getByRole('button', { name: 'Italic' });
     expect((await radii(italic)).topLeft).toBe('4px');
     const box = (await italic.boundingBox())!;
@@ -273,7 +273,7 @@ test.describe('ButtonGroup spec fixes (2026-10-13)', () => {
 
   test('under reduced motion a press changes no widths', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await openStory(page, 'composites-buttongroup--standard');
+    await openStory(page, 'components-buttongroup--standard');
     const buttons = await page.getByRole('toolbar').getByRole('button').all();
     const before = await Promise.all(buttons.map(width));
     const box = (await buttons[1]!.boundingBox())!;
@@ -286,7 +286,7 @@ test.describe('ButtonGroup spec fixes (2026-10-13)', () => {
   });
 
   test('a group variant reaches its icon buttons', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--sizes');
+    await openStory(page, 'components-buttongroup--sizes');
     const group = page.getByRole('toolbar', { name: 'Standard sm' });
     const [copy, search] = await Promise.all([
       group
@@ -311,7 +311,7 @@ test.describe('ButtonGroup overflow', () => {
   test('folds the trailing buttons that do not fit, and brings them back with room', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '320' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '320' });
     const group = page.getByTestId('standard');
     expect(await shown(group)).toEqual(['Reply', 'Forward', 'More options']);
     // The indicator sits within the group, the gap after the last button.
@@ -320,7 +320,7 @@ test.describe('ButtonGroup overflow', () => {
     const moreBox = (await more.boundingBox())!;
     expect(moreBox.x + moreBox.width).toBeLessThanOrEqual(groupBox.x + groupBox.width + 0.5);
 
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '720' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '720' });
     expect(await shown(page.getByTestId('standard'))).toEqual([
       'Reply',
       'Forward',
@@ -330,7 +330,7 @@ test.describe('ButtonGroup overflow', () => {
     ]);
 
     // Resizing re-measures.
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '720' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '720' });
     await page.getByTestId('overflow').evaluate((el) => (el.style.width = '200px'));
     await expect.poll(() => shown(page.getByTestId('standard'))).toEqual(['Reply', 'More options']);
   });
@@ -338,7 +338,7 @@ test.describe('ButtonGroup overflow', () => {
   test('the menu holds the folded buttons: only toggles are checkable, actions stay plain', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '320' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '320' });
     const group = page.getByTestId('standard');
     await group.getByRole('button', { name: 'More options' }).click();
     const menu = page.getByRole('menu');
@@ -365,7 +365,7 @@ test.describe('ButtonGroup overflow', () => {
 
   // Re-audit 2026-10-15: after a mouse choice, focus dropped to <body> in both groups.
   test('a choice made with the mouse returns focus to the indicator', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '200' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '200' });
     for (const id of ['standard', 'connected']) {
       const more = page.getByTestId(id).getByRole('button', { name: 'More options' });
       await more.click();
@@ -380,7 +380,7 @@ test.describe('ButtonGroup overflow', () => {
   test('keyboard: arrows reach the indicator, Enter opens the menu, a choice selects', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--overflow', {}, { width: '200' });
+    await openStory(page, 'components-buttongroup--overflow', {}, { width: '200' });
     const connected = page.getByTestId('connected');
     expect((await shown(connected)).length).toBeLessThan(5);
     const more = connected.getByRole('button', { name: 'More options' });
@@ -397,7 +397,7 @@ test.describe('ButtonGroup overflow', () => {
   });
 
   test('mirrors in RTL: the indicator is at the trailing (left) end', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--overflow', { dir: 'rtl' }, { width: '320' });
+    await openStory(page, 'components-buttongroup--overflow', { dir: 'rtl' }, { width: '320' });
     const group = page.getByTestId('standard');
     const more = (await group.getByRole('button', { name: 'More options' }).boundingBox())!;
     const reply = (await group.getByRole('button', { name: 'Reply' }).boundingBox())!;
@@ -561,7 +561,7 @@ test.describe('ButtonGroup press expansion, frame by frame (2026-10-14)', () => 
   ] as const) {
     test(`${label}: widths only move between rest and the bump`, async ({ page }) => {
       const rtl = 'rtl' in layout;
-      await openStory(page, 'composites-buttongroup--standard', rtl ? { dir: 'rtl' } : {}, args);
+      await openStory(page, 'components-buttongroup--standard', rtl ? { dir: 'rtl' } : {}, args);
       await page.locator('#storybook-root').evaluate(
         (root, { fit, scale }) => {
           if (scale) root.style.scale = scale;
@@ -580,7 +580,7 @@ test.describe('ButtonGroup press expansion, frame by frame (2026-10-14)', () => 
     test(`standard ${size}: the compressed neighbour keeps its content centred`, async ({
       page,
     }) => {
-      await openStory(page, 'composites-buttongroup--sizes');
+      await openStory(page, 'components-buttongroup--sizes');
       await checkPress(page, page.getByRole('toolbar', { name: `Standard ${size}` }), 'One');
     });
   }
@@ -638,7 +638,7 @@ test.describe('ButtonGroup connected, sized by its content (2026-10-15)', () => 
       test(`${name} · ${dir}: every item takes the widest natural width, with full padding`, async ({
         page,
       }) => {
-        await openStory(page, 'composites-buttongroup--content-sized', { dir });
+        await openStory(page, 'components-buttongroup--content-sized', { dir });
         const items = await measureItems(page.locator(`[aria-label="${name}"]`));
         const widest = Math.max(...items.map((item) => item.natural));
         for (const item of items) {
@@ -659,7 +659,7 @@ test.describe('ButtonGroup connected, sized by its content (2026-10-15)', () => 
   }
 
   test('with too little room, no button shrinks below its natural width', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--content-sized');
+    await openStory(page, 'components-buttongroup--content-sized');
     const items = await measureItems(page.locator('[aria-label="Reply, too little room"]'));
     for (const item of items) {
       expect(item.width, item.name).toBeGreaterThanOrEqual(item.natural - 1);
@@ -668,7 +668,7 @@ test.describe('ButtonGroup connected, sized by its content (2026-10-15)', () => 
   });
 
   test('a group with a definite width still shares it equally', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--content-sized');
+    await openStory(page, 'components-buttongroup--content-sized');
     const items = await measureItems(page.getByRole('radiogroup', { name: 'Reply, fixed width' }));
     // 480px, 2 × 2px gaps, three buttons.
     for (const item of items) expect(Math.abs(item.width - (480 - 4) / 3)).toBeLessThan(0.5);

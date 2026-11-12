@@ -34,6 +34,143 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.5',
+    date: '2026-11-12',
+    summary: (
+      <>
+        <InlineCode>LocaleProvider</InlineCode>, one place to set the language dates, times and
+        numbers are written in; in Windmorph Pro, <InlineCode>ConfirmDialog</InlineCode>, one dialog
+        for &quot;are you sure?&quot;.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>LocaleProvider</InlineCode> sets the locale of every component below it: the
+            order of a date, the 12- or 24-hour clock, digits and the first day of the week. Without
+            it the components still follow the browser&apos;s language, which may not be the
+            page&apos;s: an English page in a British browser got 24-hour time fields. Pass the
+            page&apos;s language, the same on the server and in the browser.
+          </>,
+          <>
+            <InlineCode>useLocale</InlineCode> returns the locale and its direction, for your own
+            formatting, so your dates match the fields beside them.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>ConfirmDialog</InlineCode>, one dialog for &quot;are you sure?&quot;: a
+            question, what will happen, and two actions. Focus starts on Cancel, nothing closes it
+            while the action runs, and a failure stays inside it with focus on the action, so Enter
+            tries again. The action can return a promise, which sets the pending state by itself.
+          </>,
+          <>
+            <InlineCode>ConfirmDialogActions</InlineCode>, the same row of actions as a part, for a
+            form in a <InlineCode>Dialog</InlineCode>: Cancel, then one acting button that can
+            submit and shows that it&apos;s working.
+          </>,
+          <>
+            Pro&apos;s components follow <InlineCode>LocaleProvider</InlineCode> too.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>DateField</InlineCode>, and the date pickers&apos; text input, write their
+            text again when the locale changes. A server-rendered field moves from the server&apos;s{' '}
+            <InlineCode>en-US</InlineCode> to the browser&apos;s language by itself, and kept{' '}
+            <InlineCode>03/05/2030</InlineCode>, which a day-first browser then read as 3 May
+            instead of 5 March when the field lost focus.
+          </>,
+          <>
+            <InlineCode>Dialog</InlineCode> no longer takes <InlineCode>isEntering</InlineCode>, an
+            option React Aria 3.53 added to the type its props extend; it did nothing.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
+    version: '0.2.4',
+    date: '2026-11-12',
+    summary: (
+      <>
+        <InlineCode>LabelsProvider</InlineCode>, one place to translate the words components show or
+        announce by themselves, and a <InlineCode>TimeField</InlineCode> that can open a list of
+        times under the field; in Windmorph Pro, every component reads the same provider.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            <InlineCode>LabelsProvider</InlineCode> sets the built-in words (&quot;Close&quot;,
+            &quot;Error&quot;, the character count) for every component below it, keyed by
+            component, so an app in another language writes them once. A component&apos;s own{' '}
+            <InlineCode>labels</InlineCode> still wins, and <InlineCode>useLabels</InlineCode> reads
+            the provider from a component of your own.
+          </>,
+          <>
+            <InlineCode>TimeField</InlineCode> takes{' '}
+            <InlineCode>presentation=&quot;docked&quot;</InlineCode>: on windows 600px wide or more
+            its clock opens a list of times under the field, every half hour or every{' '}
+            <InlineCode>step</InlineCode> minutes, for forms with many times. Narrower windows keep
+            the dialog, and any time can still be typed.
+          </>,
+          <>
+            <InlineCode>useScrollRestoration</InlineCode> and <InlineCode>useScrollKeys</InlineCode>
+            , for a page that is a pane scrolling by itself, as in the app frame block: the
+            pane&apos;s position comes back on back, forward and reload, and the scroll keys reach
+            it while nothing has focus.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            Every component with <InlineCode>labels</InlineCode> reads{' '}
+            <InlineCode>LabelsProvider</InlineCode> too, so Pro&apos;s words are translated in the
+            same place as the core&apos;s.
+          </>,
+          <>
+            <InlineCode>ShapedIcon</InlineCode> and <InlineCode>EmptyState</InlineCode> take{' '}
+            <InlineCode>color=&quot;success&quot;</InlineCode> and{' '}
+            <InlineCode>color=&quot;warning&quot;</InlineCode>, so an empty state that says
+            &quot;all done&quot; can be green.
+          </>,
+          <>
+            A <InlineCode>PhoneField</InlineCode> can be named by{' '}
+            <InlineCode>aria-labelledby</InlineCode> alone, as the core&apos;s fields can.
+          </>,
+          <>
+            A <InlineCode>ListDetailLayout</InlineCode> inside a pane that scrolls by itself can be
+            told the height it has, so its list stays in view as the detail scrolls.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A selected <InlineCode>Menu</InlineCode> item&apos;s tick, icons and description follow
+            the selected label&apos;s colour token, in <InlineCode>Select</InlineCode> and{' '}
+            <InlineCode>Autocomplete</InlineCode> lists too, so an app that sets the selected
+            colours no longer gets a tick in the old one.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.3',
     date: '2026-11-11',
     summary: (

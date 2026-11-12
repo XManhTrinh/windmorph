@@ -136,7 +136,7 @@ test.describe('APG radio groups and toolbars', () => {
   test('a single-select button group selects on the arrow keys; Tab enters at the selection', async ({
     page,
   }) => {
-    await openStory(page, 'composites-buttongroup--connected-single-selection');
+    await openStory(page, 'components-buttongroup--connected-single-selection');
     await page.keyboard.press('Tab');
     await expect(page.getByRole('radio', { name: 'Week' })).toBeFocused();
     await page.keyboard.press('ArrowRight');

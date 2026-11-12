@@ -1,12 +1,13 @@
 'use client';
 
-import { Button, IconButton, List, ListItem } from '@windmorph/react';
+import { Button, DialogTrigger, IconButton, List, ListItem } from '@windmorph/react';
 import {
   Accordion,
   AccordionItem,
   Avatar,
   Collapse,
   CommentRow,
+  ConfirmDialog,
   ExpandableText,
   ListDetailLayout,
   MediaGrid,
@@ -20,6 +21,7 @@ import { SAMPLE_PHOTOS } from '../../../examples/media-viewer/sample-photos';
 import {
   ArrowBackIcon,
   ArrowForwardIcon,
+  DeleteIcon,
   PersonIcon,
   ScheduleIcon,
   StarIcon,
@@ -40,6 +42,9 @@ import {
 } from './shared';
 
 const AccordionAny = loose(Accordion);
+const ButtonAny = loose(Button);
+const ConfirmDialogAny = loose(ConfirmDialog);
+const DialogTriggerAny = loose(DialogTrigger);
 const AccordionItemAny = loose(AccordionItem);
 const AvatarAny = loose(Avatar);
 const TagAny = loose(Tag);
@@ -226,6 +231,71 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       detail: '<p className="p-4 text-body-large">Name, photos, bio and languages</p>',
     },
   },
+  'confirm-dialog': {
+    component: 'ConfirmDialog',
+    importFrom: '@windmorph/react-pro',
+    notRendered: {
+      ConfirmDialogActions:
+        'The row of actions as a part, for a form in a core Dialog; the "The actions as a part" example shows it.',
+    },
+    // The trigger's button opens the dialog; closing it in any way sets `open` back to false.
+    render: ({ open, icon, error, ...props }, update) =>
+      createElement(
+        DialogTriggerAny,
+        { open: Boolean(open), onOpenChange: (next: boolean) => update('open', next) },
+        createElement(ButtonAny, { variant: 'tonal' }, 'Remove Alex'),
+        createElement(ConfirmDialogAny, {
+          ...props,
+          ...(icon === true && { icon: createElement(DeleteIcon) }),
+          ...(error === true && { error: "That didn't work. Try again." }),
+        }),
+      ),
+    defaultProps: {
+      open: false,
+      destructive: false,
+      confirmDisabled: false,
+      pending: false,
+      error: false,
+      icon: false,
+      initialFocus: 'cancel',
+      placement: 'center',
+      transition: 'reveal',
+      instant: false,
+    },
+    initialState: {
+      title: 'Remove Alex from the team?',
+      description: 'They lose access straight away. You can invite them again.',
+      confirmLabel: 'Remove',
+      destructive: true,
+    },
+    surfacedProps: [
+      'open',
+      'title',
+      'description',
+      'confirmLabel',
+      'destructive',
+      'confirmDisabled',
+      'pending',
+      'error',
+      'icon',
+      'initialFocus',
+      'placement',
+      'transition',
+      'instant',
+    ],
+    enumOptions: {
+      initialFocus: ['cancel', 'confirm', 'content'],
+      transition: ['reveal', 'scale'],
+    },
+    controlKinds: {
+      title: 'string',
+      description: 'string',
+      confirmLabel: 'string',
+      error: 'boolean',
+      icon: 'boolean',
+    },
+    toggledSlots: { icon: '<DeleteIcon />', error: '"That didn\'t work. Try again."' },
+  },
   'media-grid': {
     component: 'MediaGrid',
     importFrom: '@windmorph/react-pro',
@@ -338,7 +408,7 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
     enumOptions: {
       shape: shapeOptions(['circle']),
       size: ['sm', 'md', 'lg', 'xl'],
-      color: ['primary', 'secondary', 'tertiary', 'neutral', 'error'],
+      color: ['primary', 'secondary', 'tertiary', 'neutral', 'success', 'warning', 'error'],
     },
     // A shape is written as its constant, imported from `@windmorph/react/primitives`.
     codeSlots: { shape: shapeSlot('circle') },

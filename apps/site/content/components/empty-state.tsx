@@ -5,6 +5,7 @@ import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 import { lazyExample } from '../../lib/lazy-example';
 
+const EmptyStateDone = lazyExample('empty-state/empty-state-done', 'EmptyStateDone');
 const EmptyStateNoPosts = lazyExample('empty-state/empty-state-no-posts', 'EmptyStateNoPosts');
 const EmptyStateRetry = lazyExample('empty-state/empty-state-retry', 'EmptyStateRetry');
 const EmptyStateSearch = lazyExample('empty-state/empty-state-search', 'EmptyStateSearch');
@@ -12,15 +13,17 @@ const EmptyStateVariants = lazyExample('empty-state/empty-state-variants', 'Empt
 
 /** Empty state page body: when to use it, examples and theming. */
 export async function EmptyStateBody(): Promise<ComponentDoc> {
-  const [noPosts, retry, search, emptyStateVariants] = await Promise.all([
+  const [noPosts, retry, done, search, emptyStateVariants] = await Promise.all([
     readExampleSource('empty-state/empty-state-no-posts.tsx'),
     readExampleSource('empty-state/empty-state-retry.tsx'),
+    readExampleSource('empty-state/empty-state-done.tsx'),
     readExampleSource('empty-state/empty-state-search.tsx'),
     readExampleSource('empty-state/empty-state-variants.tsx'),
   ]);
-  const [noPostsHtml, retryHtml, searchHtml, emptyStateVariantsHtml] = await Promise.all([
+  const [noPostsHtml, retryHtml, doneHtml, searchHtml, emptyStateVariantsHtml] = await Promise.all([
     highlightSource(noPosts),
     highlightSource(retry),
+    highlightSource(done),
     highlightSource(search),
     highlightSource(emptyStateVariants),
   ]);
@@ -47,6 +50,14 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
             fileName="empty-state-retry.tsx"
           >
             <EmptyStateRetry />
+          </ExampleViewer>
+          <ExampleViewer
+            title="All caught up, in the success colour"
+            code={done}
+            html={doneHtml}
+            fileName="empty-state-done.tsx"
+          >
+            <EmptyStateDone />
           </ExampleViewer>
           <ExampleViewer
             title="No results, in an Expressive shape"
@@ -109,8 +120,8 @@ export async function EmptyStateBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>color</InlineCode> colours the icon container with a container role:
-              secondary (the default), primary, tertiary, neutral, or error for &quot;couldn&apos;t
-              load&quot;.
+              secondary (the default), primary, tertiary, neutral, success for &quot;all done&quot;,
+              warning, or error for &quot;couldn&apos;t load&quot;.
             </li>
             <li>
               <InlineCode>shape</InlineCode> is a circle or a shape outline (

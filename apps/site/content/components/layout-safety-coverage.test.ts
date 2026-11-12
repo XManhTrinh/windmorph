@@ -11,7 +11,7 @@ import { COMPONENT_META } from './catalog';
 const COVERAGE: Record<string, readonly string[]> = {
   button: ['components-button--layout-override'],
   'icon-button': ['components-iconbutton--layout-override'],
-  'button-group': ['composites-buttongroup--layout-override'],
+  'button-group': ['components-buttongroup--layout-override'],
   'split-button': ['components-splitbutton--layout-override'],
   fab: ['components-fab--layout-override'],
   'fab-menu': ['components-fabmenu--layout-override'],

@@ -701,7 +701,7 @@ test.describe('Density · IconButton', () => {
 
 test.describe('Density · ButtonGroup', () => {
   test('groups of icon buttons follow; no target reaches a neighbour', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--density');
+    await openStory(page, 'components-buttongroup--density');
     for (const level of LEVELS) {
       for (const size of ['xs', 'sm', 'md'] as const) {
         const group = page.getByTestId(`${level}-standard-${size}`);
@@ -740,7 +740,7 @@ test.describe('Density · ButtonGroup · narrow icon buttons', () => {
   // Re-audit 2026-10-16: narrow icon buttons sat 44–46px apart, so neighbouring 48px targets
   // overlapped by up to 8px; the gap is now max(spec, 48px − the narrow width).
   test('no target reaches a neighbour, at every size and density', async ({ page }) => {
-    await openStory(page, 'composites-buttongroup--narrow-density');
+    await openStory(page, 'components-buttongroup--narrow-density');
     for (const level of LEVELS) {
       for (const size of ['xs', 'sm', 'md'] as const) {
         const centres = await page
@@ -863,8 +863,7 @@ test.describe('Density · control screenshots', () => {
   ]) {
     for (const mode of MODES) {
       test(`${name} · ${mode}`, async ({ page }) => {
-        const title = name === 'buttongroup' ? 'composites' : 'components';
-        await openStory(page, `${title}-${name}--density`, { mode });
+        await openStory(page, `components-${name}--density`, { mode });
         await settle(page);
         await expect(page.getByTestId('density')).toHaveScreenshot(`density-${name}-${mode}.png`);
       });

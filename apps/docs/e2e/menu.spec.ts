@@ -236,18 +236,29 @@ test.describe('Menu behaviour', () => {
   test('a link item opens in a new tab on a modified click', async ({ page, context }) => {
     await openStory(page, 'components-menu--links');
     await page.getByRole('button', { name: 'Help' }).click();
-    // Once the menu has opened: a press while it's still opening could miss on a loaded runner,
-    // and no tab ever came (2026-11-11).
+    // Once the menu has opened: a press while it's still opening could miss on a loaded runner.
     await settle(page);
-    const [tab] = await Promise.all([
-      context.waitForEvent('page'),
+    // The new tab is known by the document it asks for, not by the context's `page` event:
+    // twice in one CI run the tab opened and loaded the story while that event never came, and
+    // the test waited for it until it timed out (2026-11-12). Following the link in this page
+    // would ask for nothing, since `#guide` is in the same document, and this page is marked
+    // to show it didn't load again.
+    await page.evaluate(() => {
+      (window as { stayed?: boolean }).stayed = true;
+    });
+    await Promise.all([
+      context.waitForEvent(
+        'request',
+        (request) =>
+          request.isNavigationRequest() && request.url().includes('components-menu--links'),
+      ),
       page
         .getByRole('menuitem', { name: 'Read the guide' })
         .click({ modifiers: ['ControlOrMeta'] }),
     ]);
-    await expect(tab).toHaveURL(/#guide$/);
-    await tab.close();
-    // The page itself stays where it was.
+    // The menu closes, and the page itself stays where it was.
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    expect(await page.evaluate(() => (window as { stayed?: boolean }).stayed)).toBe(true);
     expect(await page.evaluate(() => location.hash)).toBe('');
   });
 

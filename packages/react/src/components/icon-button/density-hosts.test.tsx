@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { ThemeScope } from '../../theme/ThemeScope';
-import { ButtonGroup } from '../../composites/button-group/ButtonGroup';
+import { ButtonGroup } from '../button-group/ButtonGroup';
 import { TopAppBar } from '../app-bar/TopAppBar';
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '../dialog/Dialog';
 import { NavigationRail, NavigationRailItem } from '../navigation/NavigationRail';

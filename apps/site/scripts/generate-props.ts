@@ -8,6 +8,7 @@
  * Each prop is a {@link PropsRecord} (name, type, required, default, description, an enum's
  * members, an object prop's keys), which `components/props-list.tsx` renders as is.
  */
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { argv } from 'node:process';
@@ -366,6 +367,8 @@ async function resolveAllowlist(): Promise<Set<string>> {
 async function collectSources(dirs: string[], extension: '.tsx' | '.d.ts'): Promise<string[]> {
   const files: string[] = [];
   for (const dir of dirs) {
+    // A layer with no member at present (the core's composites) has no folder.
+    if (!existsSync(dir)) continue;
     const entries = await readdir(dir, { recursive: true, withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith(extension)) continue;

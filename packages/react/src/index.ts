@@ -18,6 +18,10 @@ export {
 export { LabelsProvider, type LabelsProviderProps } from './components/labels/LabelsProvider';
 export type { WindmorphLabels } from './windmorph-labels';
 
+// Locale
+export { LocaleProvider, type LocaleProviderProps } from './components/locale/LocaleProvider';
+export { useLocale, type LocaleContextValue } from './components/locale/use-locale';
+
 // Motion
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';
@@ -92,7 +96,7 @@ export {
 export { iconButtonTokenSet } from './components/icon-button/icon-button-tokens';
 
 // Composites
-export { buttonGroupStyles } from './composites/button-group/button-group-styles';
+export { buttonGroupStyles } from './components/button-group/button-group-styles';
 export {
   ButtonGroup,
   type ButtonGroupClassNames,
@@ -100,7 +104,7 @@ export {
   type ButtonGroupProps,
   type ButtonGroupSelectionMode,
   type ButtonGroupVariant,
-} from './composites/button-group/ButtonGroup';
+} from './components/button-group/ButtonGroup';
 export {
   ExtendedFab,
   Fab,

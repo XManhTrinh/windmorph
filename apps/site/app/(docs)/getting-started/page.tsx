@@ -14,10 +14,14 @@ const CSS_SNIPPET = `@import 'tailwindcss';
 const COMPILED_CSS_SNIPPET = `/* No Tailwind? Import the precompiled stylesheet instead. */
 import '@windmorph/react/styles.compiled.css';`;
 
-const PROVIDER_SNIPPET = `import { ThemeProvider } from '@windmorph/react';
+const PROVIDER_SNIPPET = `import { LocaleProvider, ThemeProvider } from '@windmorph/react';
 
 export function App({ children }) {
-  return <ThemeProvider defaultTheme="baseline">{children}</ThemeProvider>;
+  return (
+    <ThemeProvider defaultTheme="baseline">
+      <LocaleProvider locale="en-US">{children}</LocaleProvider>
+    </ThemeProvider>
+  );
 }`;
 
 const FONT_SNIPPET = `// app/layout.tsx
@@ -168,6 +172,16 @@ export default async function GettingStartedPage() {
         <p className="text-body-large text-on-surface-variant">
           Wrap the tree in <InlineCode>ThemeProvider</InlineCode>. It provides the colour theme,
           mode, contrast level and motion scheme, and remembers the selection between visits.
+        </p>
+        <p className="text-body-large text-on-surface-variant">
+          <InlineCode>LocaleProvider</InlineCode> takes the language your pages are written in, so
+          date and time fields write dates, times and numbers that way. Without it they follow the
+          browser&apos;s language, which may not be the page&apos;s. The words the components say
+          are set separately, with a{' '}
+          <a className="text-primary underline" href="/api-conventions#words">
+            LabelsProvider
+          </a>
+          .
         </p>
         <CodeBlock code={PROVIDER_SNIPPET} html={providerHtml} lang="tsx" title="App.tsx" />
       </section>

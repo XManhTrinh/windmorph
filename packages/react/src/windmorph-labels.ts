@@ -19,7 +19,7 @@ import type { SplitButtonLabels } from './components/split-button/SplitButton';
 import type { TextFieldLabels } from './components/text-field/TextField';
 import type { TimeFieldLabels } from './components/time-picker/TimeField';
 import type { TimePickerLabels } from './components/time-picker/TimePicker';
-import type { ButtonGroupLabels } from './composites/button-group/ButtonGroup';
+import type { ButtonGroupLabels } from './components/button-group/ButtonGroup';
 
 /**
  * The words components show or announce by themselves, keyed by component, for
