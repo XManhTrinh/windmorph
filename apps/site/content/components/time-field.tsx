@@ -20,6 +20,11 @@ export async function TimeFieldBody(): Promise<ComponentDoc> {
       file: 'time-field/time-field-schedule',
       name: 'TimeFieldSchedule',
     },
+    {
+      title: 'Docked: a list of times under the field',
+      file: 'time-field/time-field-docked',
+      name: 'TimeFieldDocked',
+    },
   ]);
   return {
     overview,
@@ -58,6 +63,14 @@ export async function TimeFieldBody(): Promise<ComponentDoc> {
               The picker opens from the clock, is full screen below 600px, and loads on demand, so a
               form of many fields carries none of it.
             </li>
+            <li>
+              With <InlineCode>presentation=&quot;docked&quot;</InlineCode> the clock opens a list
+              of times under the field instead, on windows 600px wide or more: every half hour, or
+              every <InlineCode>step</InlineCode> minutes, within <InlineCode>min</InlineCode> and{' '}
+              <InlineCode>max</InlineCode>. It opens on the field&apos;s time, a press picks a time
+              and closes it, and any other time can still be typed. Narrower windows keep the
+              dialog. M3 has no docked time picker; this is the library&apos;s own.
+            </li>
           </ul>
         </section>
       </>
@@ -69,7 +82,7 @@ export async function TimeFieldBody(): Promise<ComponentDoc> {
         </h2>
         <p className={TEXT}>
           It has no tokens of its own: M3 has no time field, so the field and button take the text
-          field&apos;s and icon button&apos;s tokens.
+          field&apos;s and icon button&apos;s tokens, and the docked list the menu&apos;s.
         </p>
       </section>
     ),

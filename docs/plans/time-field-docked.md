@@ -1,6 +1,6 @@
 # Plan: a docked list of times for `TimeField`
 
-Status: **plan, waiting for approval** (2026-11-11). Nothing is built.
+Status: **approved 2026-11-12, built** (a prop on `TimeField`, `dialog` by default, a 30-minute step). See "As built".
 
 ## The problem
 
@@ -8,7 +8,7 @@ Status: **plan, waiting for approval** (2026-11-11). Nothing is built.
 
 ## What exists elsewhere
 
-- M3's time picker has a dial and an input mode, both in a dialog. It defines no docked time picker, and no time field either: `TimeField` is already this library's own (`docs/plans/time-field.md`).
+- M3's time picker has two variants, dial and input, and both are "displayed in dialogs" (m3.material.io, read 2026-11-12). It defines no docked time picker, and no time field either: `TimeField` is already this library's own (`docs/plans/time-field.md`).
 - On wide windows, scheduling and booking forms commonly show a list of times at a fixed step under the field, and keep the text box for anything in between.
 - HTML's `<input type="time">` takes a `step` and a `<datalist>` of suggested times.
 
@@ -56,3 +56,12 @@ None of its own, as the field: the list is painted by the menu's tokens.
 1. **Where:** a prop on the core's `TimeField` (recommended: the field is already the library's own, and a second component would repeat it), or a separate component outside the core?
 2. **Default:** keep `dialog` (recommended: nothing changes for apps that use the field today), or dock on wide windows by default, as `DateField` does?
 3. **Step:** 30 minutes by default (recommended), or 15?
+
+## As built (2026-11-12)
+
+- **Answers:** a prop on the core's `TimeField`; `dialog` stays the default; the step is 30 minutes.
+- **The step** is at least 5 minutes (a shorter one would list hundreds of times) and counts from midnight. A range that holds no step lists its earliest time, so the list is never empty.
+- **Built from** `OptionPopover` and `OptionList`, as `Select`: the menu's surface, tokens, density, motion and typeahead, with the field's time checked. `TimeFieldList` loads on demand, as the dialog does.
+- **Opening:** the list scrolls itself (never the page) so the field's time sits in the middle; with no time, the time nearest now takes focus and nothing is selected.
+- **Escape** closes the list and keeps the time: the list never clears its selection.
+- **The page behind** the open list is hidden from assistive tech and can't be pressed, as behind a `Select`'s list.
