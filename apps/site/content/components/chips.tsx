@@ -89,11 +89,12 @@ export async function ChipsBody(): Promise<ComponentDoc> {
           </p>
           <p className="text-body-large text-on-surface-variant">
             Chips appear in a set: <InlineCode>ChipSet</InlineCode> lays them out 8px apart,
-            wrapping or in one row that scrolls, makes the set one Tab stop with arrow keys between
-            chips, and can share a single or multiple selection between filter chips. Flat chips
-            carry a 1px outline (<InlineCode>outline=&quot;strong&quot;</InlineCode> for 3:1
-            contrast); <InlineCode>elevated</InlineCode> swaps it for a tonal surface at level 1,
-            for chips over images.
+            wrapping (rows 16px apart, so each chip keeps its 48px touch target) or in one row that
+            scrolls, makes the set one Tab stop with arrow keys between chips, and can share a
+            single or multiple selection between filter chips. Flat chips carry a 1px outline (
+            <InlineCode>outline=&quot;strong&quot;</InlineCode> for 3:1 contrast);{' '}
+            <InlineCode>elevated</InlineCode> swaps it for a tonal surface at level 1, for chips
+            over images.
           </p>
         </section>
       </>

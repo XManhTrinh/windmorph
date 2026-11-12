@@ -375,18 +375,22 @@ export const chipStyles = tv({
 });
 
 /**
- * Variant definitions for {@link ChipSet}. Chips are 8px apart (M3: "Keep an 8dp minimum
- * space between chips"). With web density, rows come 2px further apart per step, half of what
- * each chip loses (8 → 10 → 12px; 12px at -3, where chips stay 24px), so a chip's 48px touch
- * target never reaches the chips in the rows above and below.
+ * Variant definitions for {@link ChipSet}. Chips in a row are 8px apart (M3: "Keep an 8dp
+ * minimum space between chips"). Rows are 48px apart, top to top: the space between them is
+ * what a chip's 48px touch target adds to its height (16px at density 0; 20 and 24px as web
+ * density takes the chips to 28 and 24px), so every chip keeps a 48px target of its own (M3:
+ * "a minimum 48dp target size, regardless of placement or density"), as Compose's chips, which
+ * take 48dp in a layout, and the Android views' (2026-11-12). At 8px between rows the targets
+ * of two rows shared that space and the row below took all of it, so a chip with another
+ * under it took presses over 40px.
  */
 export const chipSetStyles = tv({
   slots: {
-    root: 'flex max-w-full gap-x-[8px] gap-y-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+    root: 'flex max-w-full gap-x-[8px] gap-y-[calc(48px-max(24px,calc(32px+var(--md-sys-density,0)*4px)))]',
   },
   variants: {
     layout: {
-      // Rows wrap, 8px apart.
+      // Rows wrap, 48px apart top to top.
       wrap: { root: 'flex-wrap' },
       // One row that scrolls sideways. The padding keeps the chips' 48px targets and focus
       // rings inside the scroll area (more above and below as density makes chips shorter).

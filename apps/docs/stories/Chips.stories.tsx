@@ -199,9 +199,9 @@ export const LayoutOverride: StoryObj<{
 
 /**
  * Web density, 0 to -3: each step takes 4px off a chip (32 → 28 → 24px; -3 stays at 24px, as
- * Material Components Web's chips did) while the touch targets stay 48px. A wrapping set puts
- * 2px more between rows per step (8 → 12px), so a target never reaches the next row's chips;
- * a scrolling set adds the same above and below.
+ * Material Components Web's chips did) while the touch targets stay 48px. A wrapping set
+ * keeps its rows 48px apart (16 → 24px between them), so every chip's target is its own; a
+ * scrolling set pads its row above and below by half of that.
  */
 export const Density: Story = {
   render: () => (

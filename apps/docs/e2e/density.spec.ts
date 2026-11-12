@@ -573,9 +573,7 @@ test.describe('Density · Switch', () => {
 const chipsOf = (set: Locator) => set.locator(':scope > [data-tokens*="-chip"]');
 
 test.describe('Density · Chips', () => {
-  test('chips lose 4px a step to 24px; targets stay 48px and clear of other rows', async ({
-    page,
-  }) => {
+  test('chips lose 4px a step to 24px; each keeps a 48px target of its own', async ({ page }) => {
     await openStory(page, 'components-chips--density');
     for (const level of LEVELS) {
       const height = Math.max(24, 32 + level * 4);
@@ -586,31 +584,50 @@ test.describe('Density · Chips', () => {
       const boxes: Box[] = [];
       for (let index = 0; index < count; index++) boxes.push(await box(chips.nth(index)));
       expect(new Set(boxes.map((b) => Math.round(b.y))).size).toBeGreaterThan(1);
+      /** Each chip's touch targets: its own, and its remove button's. */
+      const targetsOf: Box[][] = [];
       for (let index = 0; index < count; index++) {
         const chip = chips.nth(index);
         expect(boxes[index]!.height).toBeCloseTo(height, 0);
         const targets = chip.locator('[data-touch-target]');
+        const own: Box[] = [];
         for (let t = 0; t < (await targets.count()); t++) {
           const target = await box(targets.nth(t));
           expect(target.height).toBeCloseTo(48, 0);
           expect(target.width).toBeGreaterThanOrEqual(48);
-          // A target never reaches into another chip's container.
+          own.push(target);
+        }
+        targetsOf.push(own);
+        await ownsItsBox(page, chip);
+        // The chip takes presses over its whole 48px, with other rows above and below it: 8px
+        // between rows left the space to the row below, and the chip above with 40px.
+        const { x, y } = center(boxes[index]!);
+        expect(await hits(page, chip, x, y - 23), `chip ${index}, above`).toBe(true);
+        expect(await hits(page, chip, x, y + 23), `chip ${index}, below`).toBe(true);
+      }
+      // A target never reaches into another chip's container, or over another chip's target.
+      const overlap = (a: Box, b: Box) =>
+        Math.min(
+          Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x),
+          Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y),
+        );
+      for (const [index, own] of targetsOf.entries()) {
+        for (const target of own) {
           for (const [other, b] of boxes.entries()) {
             if (other === index) continue;
-            const overlapX =
-              Math.min(target.x + target.width, b.x + b.width) - Math.max(target.x, b.x);
-            const overlapY =
-              Math.min(target.y + target.height, b.y + b.height) - Math.max(target.y, b.y);
-            expect(Math.min(overlapX, overlapY), `chip ${index} → ${other}`).toBeLessThanOrEqual(
-              0.5,
-            );
+            expect(overlap(target, b), `chip ${index} → chip ${other}`).toBeLessThanOrEqual(0.5);
+            for (const theirs of targetsOf[other]!) {
+              expect(overlap(target, theirs), `target ${index} → ${other}`).toBeLessThanOrEqual(
+                0.5,
+              );
+            }
           }
         }
-        await ownsItsBox(page, chip);
       }
-      // Rows 8px apart, 2px more a step (12px at -2 and -3).
+      // Rows are 48px apart, top to top: what the target adds to the chip sits between them
+      // (16px at 0, 24px at -2 and -3).
       const rows = [...new Set(boxes.map((b) => Math.round(b.y)))].sort((a, b) => a - b);
-      expect(rows[1]! - rows[0]! - height).toBeCloseTo(8 + Math.min(4, -2 * level), 0);
+      expect(rows[1]! - rows[0]!).toBeCloseTo(48, 0);
       // The avatar and the remove button fit inside a flat chip's border.
       const input = chips.nth(4);
       const avatar = await box(input.locator('[data-slot="leading"] > span'));
