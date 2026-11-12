@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { setMediaQueries } from '../../../test/setup';
+import { LabelsProvider } from '../labels/LabelsProvider';
 import { TimePicker, TimePickerModeToggle, type TimePickerMode } from './TimePicker';
 
 const SHORT = '(max-height: 567.98px)';
@@ -357,5 +358,30 @@ describe('TimePicker classNames', () => {
     );
     expect(screen.getByRole('textbox', { name: 'Minute' })).toHaveClass('field-x');
     expect(screen.getByText('Minute', { selector: 'span' })).toHaveClass('field-label-x');
+  });
+
+  it("names the dial's numbers with the app's words, given the number as shown", () => {
+    const dialValue = (value: string, total: number, unit: 'hours' | 'minutes') =>
+      `${unit === 'hours' ? 'Heure' : 'Minute'} ${value} sur ${total}`;
+    const { unmount } = render(
+      <TimePicker defaultValue={new Time(7, 5)} hourCycle={24} labels={{ dialValue }} />,
+    );
+    // The padded "07" of a 24-hour dial, not 7.
+    expect(screen.getByRole('button', { name: 'Heure 07 sur 24' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    unmount();
+
+    // The same words for every picker below a LabelsProvider; a 12-hour hour is shown unpadded.
+    render(
+      <LabelsProvider labels={{ TimePicker: { dialValue } }}>
+        <TimePicker defaultValue={new Time(7, 5)} hourCycle={12} />
+      </LabelsProvider>,
+    );
+    expect(screen.getByRole('button', { name: 'Heure 7 sur 12' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });
