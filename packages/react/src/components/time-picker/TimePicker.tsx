@@ -28,7 +28,7 @@ import {
   useNumberFormatter,
 } from 'react-aria';
 import { useControlledState } from 'react-stately/useControlledState';
-import { useLabels } from '../labels/use-labels';
+import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { densityAttribute, type Density } from '../../tokens/density';
@@ -199,7 +199,7 @@ export function TimePicker({
   classNames,
   ...rest
 }: TimePickerProps) {
-  const labels = useLabels('TimePicker', {}, labelsProp);
+  const labels = useLabels('TimePicker', NO_DEFAULT_LABELS, labelsProp);
   const { root: data } = splitRootProps(rest, { wrapper: true });
   const { locale } = useLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
@@ -363,7 +363,7 @@ export function TimePickerModeToggle({
   ref,
   ...dom
 }: TimePickerModeToggleProps) {
-  const labels = useLabels('TimePicker', {}, labelsProp);
+  const labels = useLabels('TimePicker', NO_DEFAULT_LABELS, labelsProp);
   const room = useTimePickerRoom();
   if (room === 'none') return null;
   // The icon button is the toggle's root: it takes the DOM attributes too.

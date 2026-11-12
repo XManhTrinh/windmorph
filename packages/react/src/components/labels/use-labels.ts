@@ -23,6 +23,12 @@ export function defined<T extends object>(words: T | undefined): Partial<T> {
 }
 
 /**
+ * The defaults of a component that works its own out where it uses them (a title that depends
+ * on a prop). One object for all of them, so the words stay the same between renders.
+ */
+export const NO_DEFAULT_LABELS = {};
+
+/**
  * A component's words: its defaults, then the words a `LabelsProvider` above gives `key` (its
  * key in `WindmorphLabels`; one built from another passes that one's key first), then its own
  * `labels`. A word left `undefined` keeps the one below it. The result is the same object
