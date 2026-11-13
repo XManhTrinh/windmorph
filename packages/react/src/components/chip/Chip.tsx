@@ -7,7 +7,6 @@ import {
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
-  type Ref,
 } from 'react';
 import { VisuallyHidden } from 'react-aria';
 import { useToggleState } from 'react-stately';
@@ -208,33 +207,47 @@ function useChipDisabled(disabled: boolean | undefined): boolean {
 }
 
 /**
- * The props of a chip made of two buttons, in three parts (2026-11-13):
- *
- * - `whole`: the attributes about the whole chip, for its container, which is its root:
- *   `data-*`, the global attributes (`title`, `lang`, `dir`, `hidden`, `inert`, `translate`) and
- *   the `aria-*` ones that don't name or describe a control (`aria-hidden`, `aria-busy` …).
- * - `control`: the `aria-*` attributes that name or describe a control (the naming, widget and
- *   description ones, which `splitRootProps` keeps off a wrapping root), for the chip's main
- *   button. On the container, which has no role, they would name and describe nothing.
- * - `own`: everything else, which stays on the element the chip's props are typed for (a filter
- *   chip's toggle, an input chip's container): the event handlers, `draggable` with its drag
- *   events, and that element's own attributes. The handlers never move to the container of a
- *   filter chip: React Aria stops a press inside a button from bubbling, so a handler there
- *   would miss the very presses it is for.
+ * The attributes about a whole chip rather than its button: `data-*` (styling and test hooks,
+ * which belong with `className`), and what hides the chip or sets its language and direction.
  */
-function splitChipProps(props: object) {
-  const { root, rest } = splitRootProps(props, { wrapper: true });
+const WHOLE_CHIP = /^(?:data-.+|hidden|inert|dir|lang|translate|aria-hidden)$/;
+
+/**
+ * A removable filter chip's props for its container, apart from the ones for its toggle
+ * (2026-11-13). The toggle stays the chip's button, as in a chip without a remove button:
+ * `ref`, `id`, the handlers and every attribute of a button, ARIA included, stay on it. The
+ * container takes `className` and `style`, and with them the attributes about the whole chip
+ * ({@link WHOLE_CHIP}). Those went to the toggle too, where a `data-*` attribute never met the
+ * class written for it, an app's `data-tokens` was not added to the chip's own, and `hidden` or
+ * `aria-hidden` left the remove button behind.
+ */
+function splitWholeChip(props: object) {
   const whole: Record<string, unknown> = {};
-  const control: Record<string, unknown> = {};
-  const own: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(root)) {
-    (key.startsWith('on') || key === 'draggable' ? own : whole)[key] = value;
+  const button: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(props)) {
+    (WHOLE_CHIP.test(key) ? whole : button)[key] = value;
   }
-  for (const [key, value] of Object.entries(rest)) {
-    (key.startsWith('aria-') ? control : own)[key] = value;
-  }
-  return { whole, control, own };
+  return { whole, button };
 }
+
+/**
+ * An input chip's props for its container, apart from the `aria-*` attributes that name or
+ * describe a control (the naming, widget and description ones, which `splitRootProps` keeps
+ * off a wrapping root), for its action's button.
+ */
+function splitControlAria(props: object) {
+  const { root, rest } = splitRootProps(props, { wrapper: true });
+  const container: Record<string, unknown> = { ...root };
+  const control: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    (key.startsWith('aria-') ? control : container)[key] = value;
+  }
+  return { container, control };
+}
+
+/** A consumer's `data-dragged` as a state, as `ButtonBase` reads it: `false` isn't dragged. */
+const isDraggedAttribute = (value: unknown) =>
+  value !== undefined && value !== false && value !== 'false';
 
 /* ------------------------------------------------------------------ Assist */
 
@@ -371,11 +384,6 @@ interface FilterChipOwnProps extends Omit<ChipCommonProps, 'classNames'> {
   elevated?: boolean;
   /** Classes for each part, by slot. */
   classNames?: FilterChipClassNames;
-  /**
-   * Ref to the chip's root: its `<button>`, or with `onRemove` the container that holds the
-   * toggle and the remove button.
-   */
-  ref?: Ref<HTMLElement>;
 }
 
 export type FilterChipProps = FilterChipOwnProps &
@@ -387,12 +395,11 @@ export type FilterChipProps = FilterChipOwnProps &
  * with `selected` / `onSelectedChange`, uncontrolled with `defaultSelected`, or through a
  * `ChipSet`'s selection with a `value`.
  *
- * With `onRemove` the chip is a container of two buttons, the toggle and the remove button.
- * The container is the chip's root: `className`, `style`, `ref`, `id`, `data-*` and the other
- * attributes about the whole chip (`title`, `lang`, `hidden`, `aria-hidden` …) go on it. The
- * `aria-*` attributes that name or describe a control (`aria-label`, `aria-describedby`,
- * `aria-expanded`, `aria-controls` …), every event handler and a button's own attributes stay
- * on the toggle.
+ * With `onRemove` the chip is a container holding the toggle and the remove button. The toggle
+ * is still the chip's button: `ref`, `id`, the handlers and every attribute of a button, ARIA
+ * included, go to it, as without `onRemove`. `className` and `style` go on the container, and
+ * with them the attributes about the whole chip: `data-*`, `hidden`, `inert`, `dir`, `lang`,
+ * `translate` and `aria-hidden`.
  *
  * @example
  * <FilterChip selected={vegan} onSelectedChange={setVegan}>Vegan</FilterChip>
@@ -430,7 +437,6 @@ function SimpleFilterChip({
   className,
   onRemove: _onRemove,
   labels: _labels,
-  ref,
   ...base
 }: FilterChipProps) {
   const styles = chipStyles({
@@ -445,7 +451,6 @@ function SimpleFilterChip({
     <ButtonBase
       {...base}
       {...tokenAttributes('filter', elevated, density, base)}
-      ref={ref as Ref<HTMLButtonElement>}
       disabled={disabled}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
@@ -473,8 +478,6 @@ function RemovableFilterChip({
   classNames,
   className,
   style,
-  ref,
-  id,
   onRemove,
   labels,
   selected,
@@ -482,6 +485,7 @@ function RemovableFilterChip({
   onSelectedChange,
   value,
   disabled: disabledProp,
+  dragged,
   onKeyDown,
   ...base
 }: FilterChipProps & { onRemove: () => void }) {
@@ -507,26 +511,25 @@ function RemovableFilterChip({
   const toggleProps = inGroup
     ? { value }
     : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
-  // The container is the chip's root, as a one-part chip's button is, so it takes the
-  // attributes about the whole chip; they went to the toggle, apart from `className` and
-  // `style`, so the same props landed on two elements.
-  const { whole, control, own } = splitChipProps(base);
+  const { whole, button } = splitWholeChip(base);
+  // Dragged by the prop or by the app's own attribute, on the container (whose classes read
+  // it) and the toggle alike.
+  const isDragged = dragged ?? isDraggedAttribute(whole['data-dragged']);
   return (
     <div
       {...whole}
       {...tokenAttributes('filter', elevated, density, whole)}
-      ref={ref as Ref<HTMLDivElement>}
-      id={id}
+      data-dragged={isDragged || undefined}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ButtonBase
-        {...own}
-        {...control}
+        {...button}
         {...toggleProps}
         toggle
+        dragged={isDragged}
         disabled={disabled}
         onKeyDown={(event) => {
           removeKeys(onRemove, isDisabled)(event);
@@ -620,7 +623,8 @@ export type InputChipProps = InputChipOwnProps &
  *
  * The container is the chip's root and takes its props. With `onPress`, the `aria-*` attributes
  * that name or describe a control (`aria-label`, `aria-describedby`, `aria-expanded`,
- * `aria-controls` …) go to the action's button instead.
+ * `aria-controls` …) go to the action's button instead, unless the container has a `role` of
+ * its own for them to name.
  *
  * @example
  * <InputChip avatar={<img src={photo} alt="" />} onRemove={() => remove(id)}>
@@ -674,9 +678,10 @@ export function InputChip({
     </ChipContent>
   );
   // With an action, the attributes that name or describe a control are its button's: on the
-  // container, which has no role, they named and described nothing (2026-11-13).
-  const { whole, control, own } = splitChipProps(rest);
-  const container = onPress ? { ...own, ...whole } : rest;
+  // container, which has no role, they named and described nothing (2026-11-13). A container
+  // the app gives a `role` keeps them, since they name and describe that role.
+  const { container, control } =
+    onPress && rest.role === undefined ? splitControlAria(rest) : { container: rest, control: {} };
 
   return (
     <div

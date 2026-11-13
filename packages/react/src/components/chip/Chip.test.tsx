@@ -364,56 +364,45 @@ describe('InputChip', () => {
 });
 
 describe("A two-part chip's props", () => {
-  it("puts a removable filter chip's root props on its container and the rest on its toggle", async () => {
-    const ref = createRef<HTMLElement>();
+  it("keeps a removable filter chip's ref, id, ARIA and handlers on its toggle", async () => {
+    const ref = createRef<HTMLButtonElement>();
     const onKeyDown = vi.fn();
-    const onFocus = vi.fn();
     const onClick = vi.fn((event: { currentTarget: Element }) => event.currentTarget);
     render(
       <FilterChip
         ref={ref}
         id="nearby"
-        data-testid="chip"
         title="Places near you"
-        className="app-class"
-        style={{ order: 2 }}
         aria-describedby="hint"
         aria-expanded={false}
         aria-controls="places"
-        aria-haspopup="listbox"
+        aria-current="true"
         onKeyDown={onKeyDown}
-        onFocus={onFocus}
         onClick={onClick}
         onRemove={() => {}}
       >
         Nearby
       </FilterChip>,
     );
+    // The toggle is the chip's button, with or without a remove button beside it.
     const toggle = screen.getByRole('button', { name: 'Nearby' });
-    const root = screen.getByTestId('chip');
-    // Everything about the whole chip is on one element, as on a chip without a remove button.
-    expect(root).toBe(toggle.parentElement);
-    expect(ref.current).toBe(root);
-    expect(root).toHaveAttribute('id', 'nearby');
-    expect(root).toHaveAttribute('title', 'Places near you');
-    expect(root).toHaveClass('app-class');
-    expect(root).toHaveStyle({ order: '2' });
-    for (const key of ['id', 'title', 'data-testid']) expect(toggle).not.toHaveAttribute(key);
-    // What names or describes a control is on the toggle, never on the role-less container.
-    const control = {
+    expect(ref.current).toBe(toggle);
+    expect(toggle).toHaveAttribute('id', 'nearby');
+    const own = {
+      title: 'Places near you',
       'aria-describedby': 'hint',
       'aria-expanded': 'false',
       'aria-controls': 'places',
-      'aria-haspopup': 'listbox',
+      'aria-current': 'true',
     };
-    for (const [key, value] of Object.entries(control)) {
+    for (const [key, value] of Object.entries(own)) {
       expect(toggle).toHaveAttribute(key, value);
-      expect(root).not.toHaveAttribute(key);
+      expect(toggle.parentElement).not.toHaveAttribute(key);
     }
-    // The handlers stay on the toggle: a press inside a button doesn't bubble to the container,
-    // where `onClick` would never hear the chip being pressed.
-    toggle.focus();
-    expect(onFocus).toHaveBeenCalledOnce();
+    expect(toggle.parentElement).not.toHaveAttribute('id');
+    // So an app's ref still focuses the chip.
+    ref.current!.focus();
+    expect(toggle).toHaveFocus();
     await userEvent.keyboard('a');
     expect(onKeyDown).toHaveBeenCalledOnce();
     await userEvent.click(toggle);
@@ -421,6 +410,66 @@ describe("A two-part chip's props", () => {
     expect(onClick).toHaveReturnedWith(toggle);
     await userEvent.click(screen.getByRole('button', { name: 'Remove Nearby' }));
     expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it('puts what is about the whole of a removable filter chip on its container, with its classes', () => {
+    render(
+      <>
+        <FilterChip
+          data-testid="chip"
+          data-state="new"
+          className="app-class"
+          style={{ order: 2 }}
+          lang="fr"
+          dir="rtl"
+          translate="no"
+          onRemove={() => {}}
+        >
+          Nearby
+        </FilterChip>
+        <FilterChip data-testid="hidden" aria-hidden="true" hidden onRemove={() => {}}>
+          Hidden
+        </FilterChip>
+        <FilterChip data-testid="still" data-dragged={false} onRemove={() => {}}>
+          Still
+        </FilterChip>
+        <FilterChip data-testid="lifted" data-dragged onRemove={() => {}}>
+          Lifted
+        </FilterChip>
+        <FilterChip data-testid="carried" dragged onRemove={() => {}}>
+          Carried
+        </FilterChip>
+      </>,
+    );
+    const root = screen.getByTestId('chip');
+    const toggle = screen.getByRole('button', { name: 'Nearby' });
+    expect(root).toBe(toggle.parentElement);
+    // A `data-*` attribute sits with the class written for it.
+    expect(root).toHaveClass('app-class');
+    expect(root).toHaveStyle({ order: '2' });
+    const whole = { 'data-state': 'new', lang: 'fr', dir: 'rtl', translate: 'no' };
+    for (const [key, value] of Object.entries(whole)) {
+      expect(root).toHaveAttribute(key, value);
+      expect(toggle).not.toHaveAttribute(key);
+    }
+    expect(toggle).not.toHaveAttribute('data-testid');
+    // Hiding the chip hides both of its buttons, not the toggle alone.
+    const hidden = screen.getByTestId('hidden');
+    expect(hidden).toHaveAttribute('hidden');
+    expect(hidden).toHaveAttribute('aria-hidden', 'true');
+    for (const button of hidden.querySelectorAll('button')) {
+      expect(button).not.toHaveAttribute('hidden');
+      expect(button).not.toHaveAttribute('aria-hidden');
+    }
+    // `data-dragged={false}` isn't dragged, as on a chip that is one button.
+    expect(screen.getByTestId('still')).not.toHaveAttribute('data-dragged');
+    for (const id of ['lifted', 'carried']) {
+      expect(screen.getByTestId(id)).toHaveAttribute('data-dragged', 'true');
+      expect(screen.getByTestId(id).querySelector('[data-chip-primary]')).toHaveAttribute(
+        'data-dragged',
+        'true',
+      );
+    }
   });
 
   it("puts an input chip's naming and widget attributes on its action, the rest on its container", async () => {
@@ -460,6 +509,16 @@ describe("A two-part chip's props", () => {
     // The remove button is still named after the label the chip shows.
     expect(screen.getByRole('button', { name: 'Remove Status is Active' })).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('leaves them on a container the app gives a role, which they name', () => {
+    render(
+      <InputChip role="group" aria-label="Status filter" onPress={() => {}} onRemove={() => {}}>
+        Status is Active
+      </InputChip>,
+    );
+    const group = screen.getByRole('group', { name: 'Status filter' });
+    expect(group).toBe(screen.getByRole('button', { name: 'Status is Active' }).parentElement);
   });
 
   it('leaves them on the container of an input chip without an action', () => {

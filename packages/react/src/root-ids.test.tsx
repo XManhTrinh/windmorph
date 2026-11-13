@@ -69,7 +69,7 @@ describe('component ids', () => {
     expect(document.getElementById('search')).toBeInTheDocument();
   });
 
-  it("puts a chip's id on its root, the container of a chip made of two buttons", () => {
+  it("puts a filter chip's id on its toggle, and an input chip's on its container", () => {
     render(
       <>
         <FilterChip id="vegan">Vegan</FilterChip>
@@ -81,13 +81,15 @@ describe('component ids', () => {
         </InputChip>
       </>,
     );
-    expect(document.getElementById('vegan')?.tagName).toBe('BUTTON');
-    for (const id of ['nearby', 'alex']) {
-      const root = document.getElementById(id)!;
-      expect(root.tagName).toBe('DIV');
-      expect(root).toHaveAttribute('data-tokens');
-      expect(root.querySelectorAll('button')).toHaveLength(2);
+    // A filter chip's id reaches its button, with or without a remove button beside it.
+    for (const id of ['vegan', 'nearby']) {
+      expect(document.getElementById(id)?.tagName).toBe('BUTTON');
+      expect(document.getElementById(id)).toHaveAttribute('aria-pressed');
     }
+    const alex = document.getElementById('alex')!;
+    expect(alex.tagName).toBe('DIV');
+    expect(alex).toHaveAttribute('data-tokens');
+    expect(alex.querySelectorAll('button')).toHaveLength(2);
   });
 
   it('forwards ref, id and style on the small parts', () => {

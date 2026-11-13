@@ -83,11 +83,6 @@ const CASES: Record<string, (props: Probe, ref: RefObject<HTMLElement | null>) =
       Vegan
     </FilterChip>
   ),
-  'FilterChip (removable)': (props, ref) => (
-    <FilterChip {...props} ref={ref as never} onRemove={() => {}}>
-      Nearby
-    </FilterChip>
-  ),
   InputChip: (props, ref) => (
     <InputChip {...props} ref={ref as never}>
       Alex
@@ -221,15 +216,6 @@ const CASES: Record<string, (props: Probe, ref: RefObject<HTMLElement | null>) =
 /** Components whose `title` prop has its own meaning (a headline, a subhead). */
 const OWN_TITLE = new Set(['PickerDialog', 'RichTooltip']);
 
-/**
- * A removable filter chip's handlers stay on its toggle, the button its props are typed for: a
- * press inside a button doesn't bubble to the container (React Aria stops it), so a handler
- * there would miss the presses it is for.
- */
-const HANDLERS_ON_CONTROL: Record<string, string> = {
-  'FilterChip (removable)': '[data-chip-primary]',
-};
-
 describe('root DOM attributes', () => {
   for (const [name, renderCase] of Object.entries(CASES)) {
     it(`${name} puts them on its root`, () => {
@@ -243,8 +229,7 @@ describe('root DOM attributes', () => {
       expect(root).toHaveAttribute('lang', 'fr');
       expect(root).toHaveAttribute('aria-busy', 'true');
       expect(root).toHaveAttribute('data-probe', 'yes');
-      const control = HANDLERS_ON_CONTROL[name];
-      fireEvent.doubleClick(control ? root.querySelector(control)! : root);
+      fireEvent.doubleClick(root);
       expect(props.onDoubleClick).toHaveBeenCalledTimes(1);
     });
   }
@@ -273,7 +258,6 @@ describe('root DOM attributes', () => {
 
   /** Components whose root wraps the element React Aria labels (ARIA forbids these there). */
   const WRAPPERS = [
-    'FilterChip (removable)',
     'InputChip (action)',
     'Checkbox',
     'Switch',
@@ -335,7 +319,6 @@ describe('root DOM attributes', () => {
    * is that element. The pickers have none (their props leave the attributes out).
    */
   const LABELLED: Record<string, ((root: HTMLElement) => Element | null) | null> = {
-    'FilterChip (removable)': (root) => root.querySelector('[data-chip-primary]'),
     'InputChip (action)': (root) => root.querySelector('[data-chip-primary]'),
     Checkbox: (root) => root.querySelector('input'),
     Switch: (root) => root.querySelector('input'),
