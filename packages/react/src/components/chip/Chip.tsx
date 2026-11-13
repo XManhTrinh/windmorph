@@ -24,6 +24,7 @@ import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps } from '../../utils/root-props';
+import { ChipSetDisabledContext } from './chip-set-context';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */
@@ -200,6 +201,12 @@ function RemoveButton({
   );
 }
 
+/** A chip is disabled by its own `disabled`, or by a disabled `ChipSet` around it. */
+function useChipDisabled(disabled: boolean | undefined): boolean {
+  const setDisabled = useContext(ChipSetDisabledContext);
+  return Boolean(disabled) || setDisabled;
+}
+
 /**
  * The props of a chip made of two buttons, in three parts (2026-11-13):
  *
@@ -264,10 +271,12 @@ export function AssistChip({
     outline,
     leading: leadingIcon ? 'icon' : 'none',
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...(base as ButtonBaseActionProps)}
       {...tokenAttributes('assist', elevated, density, base)}
+      disabled={disabled}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -314,10 +323,12 @@ export function SuggestionChip({
     outline,
     leading: leadingIcon ? 'icon' : 'none',
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...base}
       {...tokenAttributes('suggestion', elevated, density, base)}
+      disabled={disabled}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -429,11 +440,13 @@ function SimpleFilterChip({
     leading: leadingIcon ? 'icon' : 'none',
     trailing: Boolean(trailingIcon),
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...base}
       {...tokenAttributes('filter', elevated, density, base)}
       ref={ref as Ref<HTMLButtonElement>}
+      disabled={disabled}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -468,10 +481,11 @@ function RemovableFilterChip({
   defaultSelected,
   onSelectedChange,
   value,
-  disabled,
+  disabled: disabledProp,
   onKeyDown,
   ...base
 }: FilterChipProps & { onRemove: () => void }) {
+  const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const groupState = useContext(ToggleGroupStateContext);
   const inGroup = groupState != null && value !== undefined;
@@ -623,11 +637,12 @@ export function InputChip({
   labels,
   outline,
   density,
-  disabled,
+  disabled: disabledProp,
   classNames,
   className,
   ...rest
 }: InputChipProps) {
+  const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const selectedId = useId();
   const split = onRemove ? (onPress ? 'two' : 'removeOnly') : 'none';
