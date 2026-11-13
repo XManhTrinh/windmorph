@@ -19,6 +19,7 @@ import {
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
 import { TouchTarget } from '../../primitives/TouchTarget';
+import { TriggerContext } from '../../primitives/TriggerContext';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -182,21 +183,26 @@ function RemoveButton({
   const removeId = useId();
   const { remove } = useLabels('Chip', DEFAULT_LABELS, labels);
   return (
-    <ButtonBase
-      disabled={disabled}
-      onPress={onRemove}
-      onKeyDown={removeKeys(onRemove, disabled)}
-      aria-labelledby={`${removeId} ${labelId}`}
-      aria-describedby={describedBy}
-      data-chip-remove=""
-      className={styles.remove({ class: className })}
-    >
-      <TouchTarget className={styles.removeTarget()} />
-      <span id={removeId} hidden>
-        {remove}
-      </span>
-      <CloseIcon />
-    </ButtonBase>
+    // An overlay trigger around the chip (a menu, a tooltip) is for its main button. Without
+    // this the remove button took the trigger's props too: its id, `aria-haspopup` and
+    // `aria-expanded`, and its press, so Remove also opened the overlay (2026-11-13).
+    <TriggerContext value={null}>
+      <ButtonBase
+        disabled={disabled}
+        onPress={onRemove}
+        onKeyDown={removeKeys(onRemove, disabled)}
+        aria-labelledby={`${removeId} ${labelId}`}
+        aria-describedby={describedBy}
+        data-chip-remove=""
+        className={styles.remove({ class: className })}
+      >
+        <TouchTarget className={styles.removeTarget()} />
+        <span id={removeId} hidden>
+          {remove}
+        </span>
+        <CloseIcon />
+      </ButtonBase>
+    </TriggerContext>
   );
 }
 

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { TriggerContext } from '../../primitives/TriggerContext';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { AssistChip, FilterChip, InputChip, SuggestionChip } from './Chip';
 import { ChipSet } from './ChipSet';
@@ -531,6 +532,54 @@ describe("A two-part chip's props", () => {
     expect(screen.getByRole('button', { name: 'Remove Alex' })).not.toHaveAttribute(
       'aria-describedby',
     );
+  });
+});
+
+describe('A chip with a remove button inside an overlay trigger', () => {
+  it('makes its main button the trigger, never its remove button', async () => {
+    const open = vi.fn();
+    const onRemove = vi.fn();
+    render(
+      <TriggerContext
+        value={{ id: 'trigger', onPress: open, 'aria-haspopup': 'menu', 'aria-expanded': false }}
+      >
+        <FilterChip onRemove={onRemove}>Sort</FilterChip>
+      </TriggerContext>,
+    );
+    const toggle = screen.getByRole('button', { name: 'Sort' });
+    const remove = screen.getByRole('button', { name: 'Remove Sort' });
+    expect(toggle).toHaveAttribute('id', 'trigger');
+    expect(toggle).toHaveAttribute('aria-haspopup', 'menu');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    // Both buttons carried the trigger's id and state, and Remove opened the overlay too.
+    for (const key of ['aria-haspopup', 'aria-expanded']) expect(remove).not.toHaveAttribute(key);
+    expect(remove).not.toHaveAttribute('id', 'trigger');
+    await userEvent.click(remove);
+    expect(onRemove).toHaveBeenCalledOnce();
+    expect(open).not.toHaveBeenCalled();
+    await userEvent.click(toggle);
+    expect(open).toHaveBeenCalledOnce();
+  });
+
+  it("does the same for an input chip's action, and leaves a remove-only chip's button alone", async () => {
+    const open = vi.fn();
+    const onRemove = vi.fn();
+    render(
+      <TriggerContext value={{ onPress: open, 'aria-haspopup': 'dialog' }}>
+        <InputChip onPress={() => {}} onRemove={onRemove}>
+          Alex
+        </InputChip>
+        <InputChip onRemove={onRemove}>Sam</InputChip>
+      </TriggerContext>,
+    );
+    expect(screen.getByRole('button', { name: 'Alex' })).toHaveAttribute('aria-haspopup', 'dialog');
+    for (const name of ['Remove Alex', 'Remove Sam']) {
+      const remove = screen.getByRole('button', { name });
+      expect(remove).not.toHaveAttribute('aria-haspopup');
+      await userEvent.click(remove);
+    }
+    expect(onRemove).toHaveBeenCalledTimes(2);
+    expect(open).not.toHaveBeenCalled();
   });
 });
 
