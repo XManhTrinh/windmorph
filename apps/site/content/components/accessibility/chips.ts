@@ -58,7 +58,7 @@ export const chips: ComponentAccessibility = {
   ],
   screenReader: {
     role: '`AssistChip` and `SuggestionChip` are a `button` (an assist chip with `href` is a `link`). `FilterChip` is a toggle `button`, or a `radio` in a single-select `ChipSet`. `ChipSet` is a `group`, or a `radiogroup` with `selectionMode="single"`.',
-    name: 'The chip\'s label (`children`). The remove button is named from `labels.remove` plus the label ("Remove Alex"). A `ChipSet` takes `aria-label` or `aria-labelledby`, which its types require.',
+    name: 'The chip\'s label (`children`). The remove button is named from `labels.remove` plus the label ("Remove Alex"). A `ChipSet` takes `aria-label` or `aria-labelledby`, which its types require. On a chip made of two buttons, the `aria-*` attributes that name or describe a control (`aria-label`, `aria-describedby`, `aria-expanded`, `aria-controls`) go to its main button, the toggle or the action, and the attributes about the whole chip (`id`, `data-*`, `aria-hidden`) to its container.',
     states:
       'A filter chip announces pressed (`aria-pressed`), or checked (`aria-checked`) in a single-select set. An input chip with `onPress` and `selected` announces pressed; a selected input chip without `onPress` is described as "Selected" (`labels.selected`), on its remove button or as hidden text. Disabled on every chip; a disabled `ChipSet` sets `aria-disabled`.',
     notes: [

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { createRef, type CSSProperties } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -363,6 +363,118 @@ describe('InputChip', () => {
   });
 });
 
+describe("A two-part chip's props", () => {
+  it("puts a removable filter chip's root props on its container and the rest on its toggle", async () => {
+    const ref = createRef<HTMLElement>();
+    const onKeyDown = vi.fn();
+    const onFocus = vi.fn();
+    const onClick = vi.fn((event: { currentTarget: Element }) => event.currentTarget);
+    render(
+      <FilterChip
+        ref={ref}
+        id="nearby"
+        data-testid="chip"
+        title="Places near you"
+        className="app-class"
+        style={{ order: 2 }}
+        aria-describedby="hint"
+        aria-expanded={false}
+        aria-controls="places"
+        aria-haspopup="listbox"
+        onKeyDown={onKeyDown}
+        onFocus={onFocus}
+        onClick={onClick}
+        onRemove={() => {}}
+      >
+        Nearby
+      </FilterChip>,
+    );
+    const toggle = screen.getByRole('button', { name: 'Nearby' });
+    const root = screen.getByTestId('chip');
+    // Everything about the whole chip is on one element, as on a chip without a remove button.
+    expect(root).toBe(toggle.parentElement);
+    expect(ref.current).toBe(root);
+    expect(root).toHaveAttribute('id', 'nearby');
+    expect(root).toHaveAttribute('title', 'Places near you');
+    expect(root).toHaveClass('app-class');
+    expect(root).toHaveStyle({ order: '2' });
+    for (const key of ['id', 'title', 'data-testid']) expect(toggle).not.toHaveAttribute(key);
+    // What names or describes a control is on the toggle, never on the role-less container.
+    const control = {
+      'aria-describedby': 'hint',
+      'aria-expanded': 'false',
+      'aria-controls': 'places',
+      'aria-haspopup': 'listbox',
+    };
+    for (const [key, value] of Object.entries(control)) {
+      expect(toggle).toHaveAttribute(key, value);
+      expect(root).not.toHaveAttribute(key);
+    }
+    // The handlers stay on the toggle: a press inside a button doesn't bubble to the container,
+    // where `onClick` would never hear the chip being pressed.
+    toggle.focus();
+    expect(onFocus).toHaveBeenCalledOnce();
+    await userEvent.keyboard('a');
+    expect(onKeyDown).toHaveBeenCalledOnce();
+    await userEvent.click(toggle);
+    expect(onClick).toHaveBeenCalledOnce();
+    expect(onClick).toHaveReturnedWith(toggle);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove Nearby' }));
+    expect(onClick).toHaveBeenCalledOnce();
+  });
+
+  it("puts an input chip's naming and widget attributes on its action, the rest on its container", async () => {
+    const ref = createRef<HTMLDivElement>();
+    const { container } = render(
+      <InputChip
+        ref={ref}
+        id="status"
+        data-testid="chip"
+        aria-label="Edit filter: Status is Active"
+        aria-expanded={false}
+        aria-haspopup="dialog"
+        aria-description="Opens the filter"
+        aria-busy
+        onPress={() => {}}
+        onRemove={() => {}}
+      >
+        Status is Active
+      </InputChip>,
+    );
+    const root = screen.getByTestId('chip');
+    const action = screen.getByRole('button', { name: 'Edit filter: Status is Active' });
+    expect(action.parentElement).toBe(root);
+    expect(ref.current).toBe(root);
+    expect(root).toHaveAttribute('id', 'status');
+    expect(root).toHaveAttribute('aria-busy', 'true');
+    const control = {
+      'aria-label': 'Edit filter: Status is Active',
+      'aria-expanded': 'false',
+      'aria-haspopup': 'dialog',
+      'aria-description': 'Opens the filter',
+    };
+    for (const [key, value] of Object.entries(control)) {
+      expect(action).toHaveAttribute(key, value);
+      expect(root).not.toHaveAttribute(key);
+    }
+    // The remove button is still named after the label the chip shows.
+    expect(screen.getByRole('button', { name: 'Remove Status is Active' })).toBeInTheDocument();
+    expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('leaves them on the container of an input chip without an action', () => {
+    render(
+      <InputChip data-testid="chip" aria-describedby="hint" onRemove={() => {}}>
+        Alex
+      </InputChip>,
+    );
+    expect(screen.getByTestId('chip')).toHaveAttribute('aria-describedby', 'hint');
+    expect(screen.getByRole('button', { name: 'Remove Alex' })).not.toHaveAttribute(
+      'aria-describedby',
+    );
+  });
+});
+
 describe("The remove button's touch target", () => {
   it("stops at the label's end where the chip's main part takes presses too", () => {
     render(
@@ -474,6 +586,9 @@ describe('Chip token sets', () => {
         <AssistChip data-tokens="app-reaction">Assist</AssistChip>
         <SuggestionChip data-tokens="app-reaction">Suggestion</SuggestionChip>
         <FilterChip data-tokens="app-reaction">Filter</FilterChip>
+        <FilterChip data-tokens="app-reaction" onRemove={() => {}}>
+          Removable
+        </FilterChip>
         <InputChip data-tokens="app-reaction md-comp-input-chip" onPress={() => {}}>
           Input
         </InputChip>
@@ -487,6 +602,9 @@ describe('Chip token sets', () => {
       'md-comp-suggestion-chip app-reaction',
     );
     expect(root('Filter')).toHaveAttribute('data-tokens', 'md-comp-filter-chip app-reaction');
+    // On the container, which reads the filter chip's tokens, not on the toggle inside it.
+    expect(root('Removable')).toHaveAttribute('data-tokens', 'md-comp-filter-chip app-reaction');
+    expect(root('Removable')).not.toBe(screen.getByRole('button', { name: 'Removable' }));
     expect(root('Input')).toHaveAttribute('data-tokens', 'md-comp-input-chip app-reaction');
   });
 

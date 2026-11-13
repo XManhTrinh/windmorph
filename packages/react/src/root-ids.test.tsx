@@ -7,6 +7,8 @@ import {
   Carousel,
   DateField,
   DatePicker,
+  FilterChip,
+  InputChip,
   List,
   ListItem,
   ListItemAvatar,
@@ -65,6 +67,27 @@ describe('component ids', () => {
     expect(document.getElementById('mail')).toHaveAttribute('aria-label', 'Mail');
     expect(document.getElementById('photos')).toHaveAttribute('role', 'region');
     expect(document.getElementById('search')).toBeInTheDocument();
+  });
+
+  it("puts a chip's id on its root, the container of a chip made of two buttons", () => {
+    render(
+      <>
+        <FilterChip id="vegan">Vegan</FilterChip>
+        <FilterChip id="nearby" onRemove={() => {}}>
+          Nearby
+        </FilterChip>
+        <InputChip id="alex" onPress={() => {}} onRemove={() => {}}>
+          Alex
+        </InputChip>
+      </>,
+    );
+    expect(document.getElementById('vegan')?.tagName).toBe('BUTTON');
+    for (const id of ['nearby', 'alex']) {
+      const root = document.getElementById(id)!;
+      expect(root.tagName).toBe('DIV');
+      expect(root).toHaveAttribute('data-tokens');
+      expect(root.querySelectorAll('button')).toHaveLength(2);
+    }
   });
 
   it('forwards ref, id and style on the small parts', () => {
