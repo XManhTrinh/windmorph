@@ -82,6 +82,47 @@ test.describe('TextField label', () => {
     ).toBe('2px');
   });
 
+  // The cut-out is measured from the container's edge (Compose: the label's 16px less 4px),
+  // so the outline's border comes out of its padding. With 12px inside the border the label
+  // had 2px before it and 6px after in a focused field (3px and 5px in one at rest), and the
+  // notch moved 1px each time the field took focus.
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`outlined: the label has 4px on each side in its notch, focused or not · ${dir}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-textfield--playground', { dir }, { variant: 'outlined' });
+      const input = page.getByLabel('Label', { exact: true });
+      const field = fieldOf(page, 'Label');
+      /** The space in the notch before the label's text and after it, along the line. */
+      const gaps = () =>
+        field.evaluate((root, rtl) => {
+          const notch = root.querySelector('legend')!.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(root.querySelector('label')!);
+          const text = range.getBoundingClientRect();
+          const before = text.left - notch.left;
+          const after = notch.right - text.right;
+          return rtl ? { before: after, after: before } : { before, after };
+        }, dir === 'rtl');
+      await input.fill('Alex');
+      await settle(page);
+      const focused = await gaps();
+      expect(focused.before).toBeCloseTo(4, 1);
+      expect(focused.after).toBeCloseTo(4, 1);
+      const notchWhenFocused = await box(field.locator('legend'));
+      // At rest the border is 1px, and the notch is where it was.
+      await input.blur();
+      await settle(page);
+      expect(
+        await field.locator('fieldset').evaluate((el) => getComputedStyle(el).borderTopWidth),
+      ).toBe('1px');
+      const resting = await gaps();
+      expect(resting.before).toBeCloseTo(4, 1);
+      expect(resting.after).toBeCloseTo(4, 1);
+      expect((await box(field.locator('legend'))).x).toBeCloseTo(notchWhenFocused.x, 1);
+    });
+  }
+
   // Compose sizes the cut-out from the label as it moves; the notch opens on the label's
   // spring from its own width, so the two keep pace.
   test('outlined: the notch opens in step with the label', async ({ page }) => {
