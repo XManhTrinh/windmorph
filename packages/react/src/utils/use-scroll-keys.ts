@@ -42,11 +42,13 @@ export interface ScrollKeysResult {
 
 /**
  * Whether `root` holds anything Tab would reach, by the library's own rule (`tabbables` in
- * `utils/focus.ts`). It is asked on every change to a whole page, so it walks to the first one
- * and stops there. What is around `root` isn't counted: a modal overlay makes the rest of the
- * page `inert` while it is open, which says nothing about what `root` holds.
+ * `utils/focus.ts`). It is asked as a whole page changes, so it walks to the first one and
+ * stops there, and doesn't walk at all where nothing could be one. What is around `root` isn't
+ * counted: a modal overlay makes the rest of the page `inert` while it is open, which says
+ * nothing about what `root` holds.
  */
 function hasTabbable(root: Element): boolean {
+  if (!root.querySelector(TABBABLE)) return false;
   const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
   for (let node = walker.nextNode(); node; node = walker.nextNode()) {
     const el = node as HTMLElement;

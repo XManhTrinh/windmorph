@@ -284,6 +284,25 @@ describe('useScrollRestoration', () => {
     pane().scrollTop = 500;
     fireEvent.pointerDown(document.body);
     expect(stored()['/a']).toBe(500);
+    // From then on every position is, the one the page was short at included.
+    pane().scrollTop = 0;
+    fireEvent.pointerDown(document.body);
+    expect(stored()['/a']).toBe(0);
+  });
+
+  it('still keeps it when the effect runs again for the page after a short hold', () => {
+    const { rerender } = render(<Pane pageKey="/a" />);
+    pane().scrollTop = 300;
+    fireEvent.pointerDown(document.body);
+    rerender(<Pane pageKey="/b" />);
+    Object.defineProperty(pane(), 'scrollTop', { configurable: true, get: () => 0, set: () => {} });
+    traverse();
+    rerender(<Pane pageKey="/a" />);
+    vi.advanceTimersByTime(1600);
+    // An option changes: the same page, still short, and the person hasn't scrolled.
+    rerender(<Pane pageKey="/a" holdFor={1000} />);
+    fireEvent.pointerDown(document.body);
+    expect(stored()['/a']).toBe(300);
   });
 
   it('takes the position the person scrolled to with the scroll that ended the hold', () => {
@@ -509,6 +528,20 @@ describe('useScrollRestoration', () => {
       first.scrollTop = 0;
       frame();
       expect(first.scrollTop).toBe(0);
+    });
+
+    it('keeps what it had for a page whose element arrives only after the hold', () => {
+      sessionStorage.setItem('windmorph-scroll', JSON.stringify({ '/a': 300 }));
+      loadedBy('reload');
+      const { rerender } = render(<Frame pageKey="/a" withPane={false} />);
+      vi.advanceTimersByTime(1600);
+      // Too late to be restored: it is at its top, and that isn't the person's doing.
+      rerender(<Frame pageKey="/a" />);
+      fireEvent.pointerDown(document.body);
+      expect(stored()['/a']).toBe(300);
+      pane().scrollTop = 80;
+      fireEvent.pointerDown(document.body);
+      expect(stored()['/a']).toBe(80);
     });
 
     it('starts a page followed to from a page without the element at its top', () => {

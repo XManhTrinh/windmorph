@@ -174,6 +174,14 @@ describe('useScrollKeys, with another scrolling element on the page', () => {
     // And as it was: on screen, with something to scroll, it keeps the keys.
     size(side, 900, 300);
     expect(press()).toBe(document.body);
+    // A scroller the browser says isn't visible, asked under both names the option has had.
+    const checkVisibility = vi.fn(() => false);
+    Object.defineProperty(side, 'checkVisibility', { configurable: true, value: checkVisibility });
+    expect(press()).toBe(pane());
+    expect(checkVisibility).toHaveBeenCalledWith({
+      visibilityProperty: true,
+      checkVisibilityCSS: true,
+    });
   });
 
   it('takes the keys after a press in the pane itself', () => {
@@ -244,6 +252,24 @@ describe('useScrollKeys, deciding the tab stop', () => {
     }
     expect(pane()).toHaveAttribute('tabindex', '-1');
     container.removeAttribute('inert');
+  });
+
+  it('reads the stop once a frame however often the content changes, and not after it has gone', async () => {
+    const frames = vi.spyOn(window, 'requestAnimationFrame');
+    const cancelled = vi.spyOn(window, 'cancelAnimationFrame');
+    const { unmount } = render(<Pane>Text</Pane>);
+    frames.mockClear();
+    // Three changes, each seen by the observer on its own.
+    for (const word of ['one', 'two', 'three']) {
+      pane().append(document.createElement('span'), word);
+      await Promise.resolve();
+    }
+    expect(frames).toHaveBeenCalledTimes(1);
+    const pending = frames.mock.results[0]!.value as number;
+    unmount();
+    expect(cancelled).toHaveBeenCalledWith(pending);
+    frames.mockRestore();
+    cancelled.mockRestore();
   });
 
   it('reads the stop again when an attribute shows or hides a control', async () => {

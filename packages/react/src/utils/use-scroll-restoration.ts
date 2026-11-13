@@ -112,7 +112,9 @@ function hold(
   onEnd: (shortAt?: number) => void,
 ): () => void {
   let frame = 0;
-  let shortAt: number | undefined;
+  // Until a frame finds the element at `top`, the page is short of it: an element that only
+  // arrives after the hold is at 0.
+  let shortAt: number | undefined = 0;
   const until = performance.now() + duration;
   const stop = () => {
     cancelAnimationFrame(frame);
@@ -137,7 +139,7 @@ function hold(
       if (element.scrollTop !== top) moveTo(element, top);
       // Read back: a page still too short leaves the element where its content ends. Read here,
       // not as the hold ends: by then the scroll that ends it may have moved the element.
-      shortAt = Math.abs(element.scrollTop - top) < 1 ? undefined : element.scrollTop;
+      shortAt = element.scrollTop === top ? undefined : element.scrollTop;
     }
     if (performance.now() < until) frame = requestAnimationFrame(apply);
     else end();
@@ -279,7 +281,9 @@ export function useScrollRestoration(
     if (!samePage) traversing.current = false;
     // The page is noted even while the element is left out (a frame that lays some pages out
     // without its pane), so the next page with it is decided against the page just left.
-    const page: Shown = { key: pageKey, restored, settled: samePage && previous.settled };
+    const page: Shown = samePage
+      ? { ...previous, restored }
+      : { key: pageKey, restored, settled: false };
     shown.current = page;
     const top = restored ? keptFor(kept, storageKey).positions.get(pageKey) : undefined;
     if (top === undefined) {
