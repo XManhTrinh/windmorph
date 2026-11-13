@@ -2,6 +2,20 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.6 — 2026-11-13
+
+### Changed
+
+- A wrapping `ChipSet` puts 16px between its rows instead of 8px (20px and 24px as `density` makes the chips smaller), so rows are 48px apart and every chip takes presses over its full 48px touch target. At 8px the targets of two rows overlapped and the row below took the space between them, which left a chip with another under it 40px. Chips in a row stay 8px apart, and a scrolling set is unchanged. To keep rows closer, pass a `gap-y-*` class in `className`. ([#70](https://github.com/XManhTrinh/windmorph/pull/70))
+
+### Fixed
+
+- Leaving a scrolling `ChipSet` with Tab no longer scrolls its row to the far end. Tab goes on from the set's last chip (its first with Shift), which took focus on the way and was scrolled into view. ([#71](https://github.com/XManhTrinh/windmorph/pull/71))
+- TimePicker's dial numbers are named with the number as shown ("05 minutes of 60", "00 hours of 24"), so each name holds its visible text (WCAG 2.5.3). `labels.dialValue` now receives the number as the dial shows it. ([#61](https://github.com/XManhTrinh/windmorph/pull/61))
+- `useScrollKeys` and `useScrollRestoration` (`@windmorph/react/primitives`) follow the element behind their ref when it arrives after the first render, is left out on some pages or is replaced, while the component that calls them stays mounted (a frame that lays some pages out without its pane). `useScrollKeys` took the element once, so the scroll keys kept going to an element no longer on the page and the tab stop was watched on it; `useScrollRestoration` didn't note a page shown without the element, so going back from such a page left the pane at its top. ([#69](https://github.com/XManhTrinh/windmorph/pull/69))
+- `useScrollKeys` leaves the scroll keys with another scrolling element the person last pressed in, such as a side sheet's content beside the pane. Browsers scroll that element while nothing has focus, and the pane used to take the keys from it. The returned `tabIndex` now counts only what Tab would reach: a hidden input, or a control in an `inert`, `hidden` or disabled part, no longer takes the tab stop away from a page that is otherwise text. ([#71](https://github.com/XManhTrinh/windmorph/pull/71))
+- `useScrollRestoration` keeps a page's position through a slow return to it. Going back or forward again, or pressing a link, while the page was still too short to reach its position replaced what was kept with where the page had got to; a key that repeats after the back shortcut ended the hold; and a change of `holdFor` or `storageKey` after the person had scrolled pulled the page back. A reload now restores only the page the document was loaded with, not the first page of a hook that mounts later, and a restored position is held on an element that arrives after the page has changed. ([#71](https://github.com/XManhTrinh/windmorph/pull/71))
+
 ## 0.2.5 — 2026-11-12
 
 ### Added
