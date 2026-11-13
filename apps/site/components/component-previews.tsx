@@ -97,6 +97,16 @@ function Panel({
   );
 }
 
+/** A chevron, as a rotated corner: `down` for an open row, `forward` for a folded one. */
+function Chevron({ to }: { to: 'down' | 'up' | 'forward' }) {
+  const turn = { down: 'rotate-45', up: '-rotate-135', forward: '-rotate-45 rtl:rotate-135' }[to];
+  return (
+    <span
+      className={`block size-2 shrink-0 border-e-2 border-b-2 border-on-surface-variant ${turn}`}
+    />
+  );
+}
+
 const listRows = (count: number, lead?: ReactNode) => (
   <Col gap={3}>
     {Array.from({ length: count }, (_, index) => (
@@ -183,6 +193,41 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={20} h={20} tone="secondary" />
       <Text w={24} strong />
     </Row>
+  ),
+  'search-field': (
+    <Col gap={2}>
+      <span className="flex h-9 w-44 items-center gap-2 rounded-full bg-surface-container-high px-3">
+        <span className="size-3.5 shrink-0 rounded-full border-2 border-on-surface-variant" />
+        <Text w={56} strong />
+        <span className="ms-auto size-3.5 shrink-0 rounded-full bg-on-surface-variant" />
+      </span>
+      <span className="flex flex-col gap-1.5 ps-3">
+        <Text w={120} />
+        <Text w={92} />
+      </span>
+    </Col>
+  ),
+  'copy-field': (
+    <span className="flex h-10 w-48 items-center rounded-corner-extra-small border-2 border-outline ps-3 pe-1.5">
+      <Text w={104} strong />
+      <span className="ms-auto">
+        <Shape w={26} h={26} tone="secondary" />
+      </span>
+    </span>
+  ),
+  'time-field': (
+    <span className="flex h-10 w-40 items-center gap-1.5 rounded-corner-extra-small border-2 border-outline ps-3 pe-2">
+      <Text w={16} strong />
+      <span className="flex flex-col gap-1">
+        <span className="size-1 rounded-full bg-on-surface-variant" />
+        <span className="size-1 rounded-full bg-on-surface-variant" />
+      </span>
+      <Text w={16} strong />
+      <Text w={18} />
+      <span className="ms-auto grid size-6 shrink-0 place-items-center rounded-full border-2 border-on-surface-variant">
+        <span className="size-1 rounded-full bg-on-surface-variant" />
+      </span>
+    </span>
   ),
   'text-field': (
     <Col>
@@ -326,6 +371,29 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </Panel>
   ),
+  'confirm-dialog': (
+    <Panel w={170} h={104} round="xl" tone="high">
+      <span className="flex flex-col items-center gap-2">
+        <Shape w={18} h={18} tone="tertiary" />
+        <Text w={96} strong />
+        <Text w={128} />
+      </span>
+      <span className="mt-auto flex justify-end gap-3">
+        <Text w={28} strong />
+        <span className="block h-1.5 w-9 rounded-full bg-primary" />
+      </span>
+    </Panel>
+  ),
+  popover: (
+    <Col gap={1}>
+      <Shape w={72} h={26} tone="secondary" />
+      <Panel w={150} h={70} round="md" tone="surface">
+        <Text w={84} strong />
+        <Text w={118} />
+        <Shape w={52} h={16} tone="primary" />
+      </Panel>
+    </Col>
+  ),
   menu: (
     <Panel w={124} h={96} round="md" tone="surface">
       <Text w={80} strong />
@@ -420,6 +488,50 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </Panel>
     </Col>
   ),
+  accordion: (
+    <span className="flex w-44 flex-col divide-y divide-outline-variant">
+      <span className="flex items-center justify-between py-2.5">
+        <Text w={84} strong />
+        <Chevron to="down" />
+      </span>
+      <span className="flex flex-col gap-2 py-2.5">
+        <span className="flex items-center justify-between">
+          <Text w={64} strong />
+          <Chevron to="up" />
+        </span>
+        <Text w={150} />
+        <Text w={110} />
+      </span>
+      <span className="flex items-center justify-between py-2.5">
+        <Text w={96} strong />
+        <Chevron to="down" />
+      </span>
+    </span>
+  ),
+  'tree-view': (
+    <Col gap={2}>
+      <Row>
+        <Chevron to="down" />
+        <Text w={76} strong />
+      </Row>
+      <span className="ps-5">
+        <Row>
+          <Chevron to="forward" />
+          <Text w={64} />
+        </Row>
+      </span>
+      <span className="ps-5">
+        <Row>
+          <span className="size-2 shrink-0 rounded-full bg-secondary-container" />
+          <Text w={52} />
+        </Row>
+      </span>
+      <Row>
+        <Chevron to="forward" />
+        <Text w={88} strong />
+      </Row>
+    </Col>
+  ),
   'expandable-text': (
     <Col gap={1}>
       <Text w={150} />
@@ -490,6 +602,35 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </Col>
     </Panel>
   ),
+  'data-table': (
+    <span className="flex w-48 flex-col overflow-hidden rounded-corner-medium border border-outline-variant bg-surface">
+      {[0, 1, 2, 3].map((row) => (
+        <span
+          key={row}
+          className={`flex items-center gap-3 px-3 py-1.5 ${row > 0 ? 'border-t border-outline-variant' : 'bg-surface-container'} ${row === 2 ? 'bg-secondary-container' : ''}`}
+        >
+          <span
+            className={`size-2.5 shrink-0 rounded-corner-extra-small ${row === 2 ? 'bg-primary' : 'border border-on-surface-variant'}`}
+          />
+          <Text w={52} strong={row === 0} />
+          <Text w={32} strong={row === 0} />
+          <Text w={24} strong={row === 0} />
+        </span>
+      ))}
+    </span>
+  ),
+  'data-grid': (
+    <span className="grid w-48 grid-cols-4 overflow-hidden rounded-corner-small border border-outline-variant bg-surface">
+      {Array.from({ length: 16 }, (_, index) => (
+        <span
+          key={index}
+          className={`flex h-6 items-center border-outline-variant px-1.5 ${index % 4 ? 'border-s' : ''} ${index > 3 ? 'border-t' : 'bg-surface-container'} ${[9, 10, 13, 14].includes(index) ? 'bg-secondary-container' : ''} ${index === 5 ? 'outline-2 -outline-offset-2 outline-primary' : ''}`}
+        >
+          <Text w={index < 4 ? 20 : 26} strong={index < 4} />
+        </span>
+      ))}
+    </span>
+  ),
   divider: (
     <Col gap={3}>
       <Text w={150} />
@@ -518,6 +659,35 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={36} h={20} tone="secondary" />
       <Shape w={20} h={20} tone="variant" round="sm" />
       <Shape w={20} h={20} tone="variant" round="sm" />
+    </span>
+  ),
+  'navigation-rail-group': (
+    <span className="flex h-24 items-stretch gap-1">
+      <span className="flex w-14 flex-col items-center gap-2 rounded-corner-medium bg-surface-container py-2">
+        <Shape w={20} h={20} tone="variant" round="sm" />
+        <Shape w={36} h={20} tone="secondary" />
+        <Shape w={20} h={20} tone="variant" round="sm" />
+      </span>
+      <span className="flex w-28 flex-col gap-2.5 rounded-corner-medium bg-surface-container-low p-3 shadow-elevation-1">
+        <Text w={44} />
+        <Text w={72} strong />
+        <span className="block h-1.5 w-14 rounded-full bg-primary" />
+        <Text w={60} strong />
+      </span>
+    </span>
+  ),
+  'side-panel-rail': (
+    <span className="flex h-24 w-48 overflow-hidden rounded-corner-medium bg-surface-container-high">
+      <span className="flex flex-1 flex-col gap-2 p-3">
+        <Text w={88} strong />
+        <Text w={104} />
+        <Text w={72} />
+      </span>
+      <span className="flex w-10 shrink-0 flex-col items-center gap-2 bg-surface-container-low py-2">
+        <Shape w={24} h={24} tone="secondary" />
+        <Shape w={18} h={18} tone="variant" round="sm" />
+        <Shape w={18} h={18} tone="variant" round="sm" />
+      </span>
     </span>
   ),
   'navigation-bar': (
@@ -638,6 +808,22 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
         ))}
       </span>
     </Panel>
+  ),
+  calendar: (
+    <span className="grid w-48 grid-cols-5 gap-px overflow-hidden rounded-corner-medium border border-outline-variant bg-outline-variant">
+      {Array.from({ length: 15 }, (_, index) => (
+        <span key={index} className="flex h-8 flex-col gap-1 bg-surface p-1">
+          <span
+            className={`size-1.5 shrink-0 rounded-full ${index === 7 ? 'bg-primary' : 'bg-outline-variant'}`}
+          />
+          {[1, 7, 8, 12].includes(index) && (
+            <span
+              className={`block h-1.5 rounded-full ${index === 8 ? 'w-full bg-tertiary-container' : index === 7 ? 'w-full bg-primary' : 'w-4/5 bg-secondary-container'}`}
+            />
+          )}
+        </span>
+      ))}
+    </span>
   ),
   'time-picker': (
     <span className="relative grid size-24 place-items-center rounded-full bg-surface-container-highest">
