@@ -144,7 +144,9 @@ export async function TextFieldBody(): Promise<ComponentDoc> {
             <li>
               The outlined notch is a hidden <InlineCode>fieldset</InlineCode> /{' '}
               <InlineCode>legend</InlineCode> carrying the label text, so the gap matches the label
-              exactly. With a label the placeholder, prefix and suffix appear only once it floats.
+              exactly, with 4px on each side of it. The gap starts 12px from the field&apos;s edge
+              whatever the border&apos;s width, so it stays put when the border thickens on focus.
+              With a label the placeholder, prefix and suffix appear only once it floats.
             </li>
             <li>
               Below 52px (density −2 and −3) a filled field hides its label once it floats and

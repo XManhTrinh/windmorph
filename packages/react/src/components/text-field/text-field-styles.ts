@@ -6,6 +6,9 @@ import { tv, type VariantProps } from '../../utils/tv';
  * 56px minimum height, 16px horizontal padding (4px next to a 48px icon box), 8px
  * vertical padding with a label, 4px above supporting text, 2px around prefix/suffix,
  * a 4px gap around the outlined label notch, label float on the fast spatial spring.
+ * The notch is measured from the container's edge, as Compose's cut-out is (12px in, 4px
+ * before the label at 16px), so the outline's border comes out of its padding: 11px beside
+ * the 1px border, 10px beside the focused 2px one.
  *
  * Web density (`--md-sys-density`, 0 to -3; M3: "decreases the top and bottom padding"): each
  * step takes 4px off the container (56 → 52 → 48 → 44px), 2px from the padding above and below
@@ -58,7 +61,10 @@ export const textFieldStyles = tv({
       'bg-[var(--_md-comp-text-field-container-color)]',
     ],
     outline: [
-      'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[12px]',
+      // 12px from the container's edge to the notch, the border included (2026-11-13): with
+      // 12px of padding inside the border the notch began 13px in (14px focused), so the label
+      // had 3px before it and 5px after (2px and 6px), and the notch moved 1px on focus.
+      'pointer-events-none absolute inset-x-0 bottom-0 m-0 min-w-0 px-[11px]',
       'rounded-[var(--_md-comp-text-field-container-shape)] border border-solid',
       'border-[color:var(--_md-comp-text-field-outline-color)]',
       // Colour and width both on the fast effects spring. Compose animates the width on
@@ -66,14 +72,15 @@ export const textFieldStyles = tv({
       // overshoots 2px and settles back draws 2 → 1 → 2px. The effects spring never
       // overshoots, so the width only grows (and never dips below 1px on the way back).
       // The filled indicator keeps the spatial spring: its `height` draws fractions.
-      '[transition-property:border-color,border-width]',
+      // The padding follows the width on the same spring, so the two always add up to 12px.
+      '[transition-property:border-color,border-width,padding]',
       effectsTransition,
       'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
-      'group-data-[field-state=focus]/field:border-2',
+      'group-data-[field-state=focus]/field:border-2 group-data-[field-state=focus]/field:px-[10px]',
       'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',
       'group-data-[field-state=error]/field:border-error',
       'group-data-[field-state=error-hover]/field:border-on-error-container',
-      'group-data-[field-state=error-focus]/field:border-2 group-data-[field-state=error-focus]/field:border-error',
+      'group-data-[field-state=error-focus]/field:border-2 group-data-[field-state=error-focus]/field:px-[10px] group-data-[field-state=error-focus]/field:border-error',
       'group-data-[field-state=disabled]/field:border-on-surface/12',
     ],
     // Hidden text the width of the floated label: cuts the notch in the outline. It opens

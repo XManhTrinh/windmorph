@@ -56,11 +56,25 @@ describe('textFieldStyles', () => {
   // 2 → 1 → 2px as it settles. The outline's width must use a spring that never overshoots.
   it('grows the outline on the fast effects spring, which never overshoots', () => {
     const outline = textFieldStyles({ variant: 'outlined', hasLabel: true }).outline();
-    expect(outline).toContain('[transition-property:border-color,border-width]');
+    expect(outline).toContain('[transition-property:border-color,border-width,padding]');
     expect(outline).not.toContain('spatial');
     expect(outline).toContain(
       '[transition-timing-function:var(--md-sys-motion-spring-effects-fast-easing)]',
     );
+  });
+
+  // The notch starts 12px from the container's edge, 4px before the label at 16px, whatever
+  // the border's width: with 12px inside the border the label sat 2px off-centre in its notch
+  // (3px before it and 5px after), and the notch moved 1px each time the field took focus.
+  it("takes the outline's border out of its padding, so the notch stays 12px from the edge", () => {
+    const outline = textFieldStyles({ variant: 'outlined', hasLabel: true }).outline().split(' ');
+    expect(outline).toContain('border');
+    expect(outline).toContain('px-[11px]');
+    for (const state of ['focus', 'error-focus']) {
+      expect(outline).toContain(`group-data-[field-state=${state}]/field:border-2`);
+      expect(outline).toContain(`group-data-[field-state=${state}]/field:px-[10px]`);
+    }
+    expect(outline).not.toContain('px-[12px]');
   });
 
   // MDC hides a filled field's floating label below 52px (`$minimum-height-for-filled-label`):
