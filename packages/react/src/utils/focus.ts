@@ -1,4 +1,5 @@
-const TABBABLE = [
+/** What can take focus with Tab, before {@link isTabbable} looks at each one. */
+export const TABBABLE = [
   'a[href]',
   'area[href]',
   'button',
@@ -36,25 +37,10 @@ export function tabbables(root: Element, skip?: (el: HTMLElement) => boolean): H
  * Whether Tab would reach `el`, one of the `TABBABLE` candidates. With `within`, only an
  * `inert` or `hidden` part inside that element counts, not one around it.
  */
-function isTabbable(el: HTMLElement, within?: Element): boolean {
+export function isTabbable(el: HTMLElement, within?: Element): boolean {
   if (el.tabIndex < 0 || el.matches(':disabled') || !isRendered(el)) return false;
   const off = el.closest('[inert], [hidden]');
   return off === null || (within !== undefined && !(within !== off && within.contains(off)));
-}
-
-/**
- * Whether `root` holds anything Tab would reach (see {@link tabbables}), for callers that ask on
- * every change to a large subtree: it walks to the first one and stops there. What is around
- * `root` isn't counted: a modal overlay makes the rest of the page `inert` while it is open,
- * which says nothing about what `root` holds.
- */
-export function hasTabbable(root: Element): boolean {
-  const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const el = node as HTMLElement;
-    if (el.matches(TABBABLE) && isTabbable(el, root)) return true;
-  }
-  return false;
 }
 
 /** The first of {@link tabbables}, or null when there's none. */

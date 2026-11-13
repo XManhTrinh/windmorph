@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { hasTabbable } from './focus';
+import { isTabbable, TABBABLE } from './focus';
 
 /** The keys that scroll a page up and down. */
 export const SCROLL_KEYS: ReadonlySet<string> = new Set([
@@ -38,6 +38,21 @@ export interface ScrollKeysResult {
    * other page has no extra tab stop. Either way the element can take focus.
    */
   tabIndex: 0 | -1;
+}
+
+/**
+ * Whether `root` holds anything Tab would reach, by the library's own rule (`tabbables` in
+ * `utils/focus.ts`). It is asked on every change to a whole page, so it walks to the first one
+ * and stops there. What is around `root` isn't counted: a modal overlay makes the rest of the
+ * page `inert` while it is open, which says nothing about what `root` holds.
+ */
+function hasTabbable(root: Element): boolean {
+  const walker = root.ownerDocument.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node as HTMLElement;
+    if (el.matches(TABBABLE) && isTabbable(el, root)) return true;
+  }
+  return false;
 }
 
 /**
