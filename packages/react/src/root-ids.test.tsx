@@ -7,6 +7,8 @@ import {
   Carousel,
   DateField,
   DatePicker,
+  FilterChip,
+  InputChip,
   List,
   ListItem,
   ListItemAvatar,
@@ -65,6 +67,29 @@ describe('component ids', () => {
     expect(document.getElementById('mail')).toHaveAttribute('aria-label', 'Mail');
     expect(document.getElementById('photos')).toHaveAttribute('role', 'region');
     expect(document.getElementById('search')).toBeInTheDocument();
+  });
+
+  it("puts a filter chip's id on its toggle, and an input chip's on its container", () => {
+    render(
+      <>
+        <FilterChip id="vegan">Vegan</FilterChip>
+        <FilterChip id="nearby" onRemove={() => {}}>
+          Nearby
+        </FilterChip>
+        <InputChip id="alex" onPress={() => {}} onRemove={() => {}}>
+          Alex
+        </InputChip>
+      </>,
+    );
+    // A filter chip's id reaches its button, with or without a remove button beside it.
+    for (const id of ['vegan', 'nearby']) {
+      expect(document.getElementById(id)?.tagName).toBe('BUTTON');
+      expect(document.getElementById(id)).toHaveAttribute('aria-pressed');
+    }
+    const alex = document.getElementById('alex')!;
+    expect(alex.tagName).toBe('DIV');
+    expect(alex).toHaveAttribute('data-tokens');
+    expect(alex.querySelectorAll('button')).toHaveLength(2);
   });
 
   it('forwards ref, id and style on the small parts', () => {

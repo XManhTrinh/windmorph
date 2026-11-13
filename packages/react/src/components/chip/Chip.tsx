@@ -19,9 +19,12 @@ import {
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
 import { TouchTarget } from '../../primitives/TouchTarget';
+import { TriggerContext } from '../../primitives/TriggerContext';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { splitRootProps } from '../../utils/root-props';
+import { ChipSetDisabledContext } from './chip-set-context';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */
@@ -180,23 +183,77 @@ function RemoveButton({
   const removeId = useId();
   const { remove } = useLabels('Chip', DEFAULT_LABELS, labels);
   return (
-    <ButtonBase
-      disabled={disabled}
-      onPress={onRemove}
-      onKeyDown={removeKeys(onRemove, disabled)}
-      aria-labelledby={`${removeId} ${labelId}`}
-      aria-describedby={describedBy}
-      data-chip-remove=""
-      className={styles.remove({ class: className })}
-    >
-      <TouchTarget />
-      <span id={removeId} hidden>
-        {remove}
-      </span>
-      <CloseIcon />
-    </ButtonBase>
+    // An overlay trigger around the chip (a menu, a tooltip) is for its main button. Without
+    // this the remove button took the trigger's props too: its id, `aria-haspopup` and
+    // `aria-expanded`, and its press, so Remove also opened the overlay (2026-11-13).
+    <TriggerContext value={null}>
+      <ButtonBase
+        disabled={disabled}
+        onPress={onRemove}
+        onKeyDown={removeKeys(onRemove, disabled)}
+        aria-labelledby={`${removeId} ${labelId}`}
+        aria-describedby={describedBy}
+        data-chip-remove=""
+        className={styles.remove({ class: className })}
+      >
+        <TouchTarget className={styles.removeTarget()} />
+        <span id={removeId} hidden>
+          {remove}
+        </span>
+        <CloseIcon />
+      </ButtonBase>
+    </TriggerContext>
   );
 }
+
+/** A chip is disabled by its own `disabled`, or by a disabled `ChipSet` around it. */
+function useChipDisabled(disabled: boolean | undefined): boolean {
+  const setDisabled = useContext(ChipSetDisabledContext);
+  return Boolean(disabled) || setDisabled;
+}
+
+/**
+ * The attributes about a whole chip rather than its button: `data-*` (styling and test hooks,
+ * which belong with `className`), and what hides the chip or sets its language and direction.
+ */
+const WHOLE_CHIP = /^(?:data-.+|hidden|inert|dir|lang|translate|aria-hidden)$/;
+
+/**
+ * A removable filter chip's props for its container, apart from the ones for its toggle
+ * (2026-11-13). The toggle stays the chip's button, as in a chip without a remove button:
+ * `ref`, `id`, the handlers and every attribute of a button, ARIA included, stay on it. The
+ * container takes `className` and `style`, and with them the attributes about the whole chip
+ * ({@link WHOLE_CHIP}). Those went to the toggle too, where a `data-*` attribute never met the
+ * class written for it, an app's `data-tokens` was not added to the chip's own, and `hidden` or
+ * `aria-hidden` left the remove button behind.
+ */
+function splitWholeChip(props: object) {
+  const whole: Record<string, unknown> = {};
+  const button: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(props)) {
+    (WHOLE_CHIP.test(key) ? whole : button)[key] = value;
+  }
+  return { whole, button };
+}
+
+/**
+ * An input chip's props for its container, apart from the `aria-*` attributes that name or
+ * describe a control (the naming, widget and description ones, which `splitRootProps` keeps
+ * off a wrapping root), for its action's button.
+ */
+function splitControlAria(props: object) {
+  const { root, rest } = splitRootProps(props, { wrapper: true });
+  const container: Record<string, unknown> = { ...root };
+  const control: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    (key.startsWith('aria-') ? control : container)[key] = value;
+  }
+  return { container, control };
+}
+
+/** A consumer's `data-dragged` as a state, as `ButtonBase` reads it: `false` isn't dragged. */
+const isDraggedAttribute = (value: unknown) =>
+  value !== undefined && value !== false && value !== 'false';
 
 /* ------------------------------------------------------------------ Assist */
 
@@ -233,10 +290,12 @@ export function AssistChip({
     outline,
     leading: leadingIcon ? 'icon' : 'none',
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...(base as ButtonBaseActionProps)}
       {...tokenAttributes('assist', elevated, density, base)}
+      disabled={disabled}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -283,10 +342,12 @@ export function SuggestionChip({
     outline,
     leading: leadingIcon ? 'icon' : 'none',
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...base}
       {...tokenAttributes('suggestion', elevated, density, base)}
+      disabled={disabled}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ChipContent
@@ -340,6 +401,12 @@ export type FilterChipProps = FilterChipOwnProps &
  * with `selected` / `onSelectedChange`, uncontrolled with `defaultSelected`, or through a
  * `ChipSet`'s selection with a `value`.
  *
+ * With `onRemove` the chip is a container holding the toggle and the remove button. The toggle
+ * is still the chip's button: `ref`, `id`, the handlers and every attribute of a button, ARIA
+ * included, go to it, as without `onRemove`. `className` and `style` go on the container, and
+ * with them the attributes about the whole chip: `data-*`, `hidden`, `inert`, `dir`, `lang`,
+ * `translate` and `aria-hidden`.
+ *
  * @example
  * <FilterChip selected={vegan} onSelectedChange={setVegan}>Vegan</FilterChip>
  */
@@ -385,10 +452,12 @@ function SimpleFilterChip({
     leading: leadingIcon ? 'icon' : 'none',
     trailing: Boolean(trailingIcon),
   });
+  const disabled = useChipDisabled(base.disabled);
   return (
     <ButtonBase
       {...base}
       {...tokenAttributes('filter', elevated, density, base)}
+      disabled={disabled}
       toggle
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
@@ -421,10 +490,12 @@ function RemovableFilterChip({
   defaultSelected,
   onSelectedChange,
   value,
-  disabled,
+  disabled: disabledProp,
+  dragged,
   onKeyDown,
   ...base
 }: FilterChipProps & { onRemove: () => void }) {
+  const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const groupState = useContext(ToggleGroupStateContext);
   const inGroup = groupState != null && value !== undefined;
@@ -446,18 +517,25 @@ function RemovableFilterChip({
   const toggleProps = inGroup
     ? { value }
     : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
+  const { whole, button } = splitWholeChip(base);
+  // Dragged by the prop or by the app's own attribute, on the container (whose classes read
+  // it) and the toggle alike.
+  const isDragged = dragged ?? isDraggedAttribute(whole['data-dragged']);
   return (
     <div
-      {...tokenAttributes('filter', elevated, density)}
+      {...whole}
+      {...tokenAttributes('filter', elevated, density, whole)}
+      data-dragged={isDragged || undefined}
       data-selected={isSelected || undefined}
       data-disabled={isDisabled || undefined}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
       <ButtonBase
-        {...base}
+        {...button}
         {...toggleProps}
         toggle
+        dragged={isDragged}
         disabled={disabled}
         onKeyDown={(event) => {
           removeKeys(onRemove, isDisabled)(event);
@@ -546,8 +624,13 @@ export type InputChipProps = InputChipOwnProps &
  * With `onPress` and `onRemove`, the chip's action and its remove button are two focus
  * stops. With only `onRemove`, the chip is one focus stop (the remove button, named
  * "Remove" + the label), as M3 asks. Backspace or Delete on the chip removes it. A chip
- * with a remove button is at least 88px wide (M3); the button's 48px target reaches 7px
- * over the end of the label, M3's 8px between the two being less than the target needs.
+ * with a remove button is at least 88px wide (M3). The button's target is 48px, or 41px wide
+ * beside an action: it stops where the label ends, so a press on the label is the action's.
+ *
+ * The container is the chip's root and takes its props. With `onPress`, the `aria-*` attributes
+ * that name or describe a control (`aria-label`, `aria-describedby`, `aria-expanded`,
+ * `aria-controls` …) go to the action's button instead, unless the container has a `role` of
+ * its own for them to name.
  *
  * @example
  * <InputChip avatar={<img src={photo} alt="" />} onRemove={() => remove(id)}>
@@ -564,11 +647,12 @@ export function InputChip({
   labels,
   outline,
   density,
-  disabled,
+  disabled: disabledProp,
   classNames,
   className,
   ...rest
 }: InputChipProps) {
+  const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const selectedId = useId();
   const split = onRemove ? (onPress ? 'two' : 'removeOnly') : 'none';
@@ -599,10 +683,15 @@ export function InputChip({
       {children}
     </ChipContent>
   );
+  // With an action, the attributes that name or describe a control are its button's: on the
+  // container, which has no role, they named and described nothing (2026-11-13). A container
+  // the app gives a `role` keeps them, since they name and describe that role.
+  const { container, control } =
+    onPress && rest.role === undefined ? splitControlAria(rest) : { container: rest, control: {} };
 
   return (
     <div
-      {...rest}
+      {...container}
       {...tokenAttributes('input', undefined, density, rest)}
       data-selected={selected || undefined}
       data-disabled={disabled || undefined}
@@ -610,6 +699,7 @@ export function InputChip({
     >
       {onPress ? (
         <ButtonBase
+          {...control}
           disabled={disabled}
           onPress={onPress}
           onKeyDown={removeKeys(onRemove, disabled)}

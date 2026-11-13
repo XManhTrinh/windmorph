@@ -364,10 +364,11 @@ export default async function ThemingPage() {
             radio buttons, switches, chips and icon buttons keep 48 × 48px targets that reach past
             their containers (M3: chips &quot;must also have a minimum 48dp target size, regardless
             of placement or density&quot;), and the chip sets and radio groups that stack them add
-            space so a target never reaches a neighbour. Dense menu items (40, 36 and 32px), tabs
-            and list items are adjacent rows, so their targets can&apos;t reach 48px without
-            overlapping the next one; they stay above WCAG 2.5.8&apos;s 24px minimum, and density is
-            the reader&apos;s own choice.
+            space so a target never reaches a neighbour. The one narrower target is the remove
+            button beside a chip&apos;s toggle or action: 41px wide, so it never covers the
+            chip&apos;s label. Dense menu items (40, 36 and 32px), tabs and list items are adjacent
+            rows, so their targets can&apos;t reach 48px without overlapping the next one; they stay
+            above WCAG 2.5.8&apos;s 24px minimum, and density is the reader&apos;s own choice.
           </li>
         </ul>
       </section>

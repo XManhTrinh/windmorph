@@ -1,0 +1,5 @@
+---
+'@windmorph/react': patch
+---
+
+Fixed: a chip made of two parts puts its props on the right element. A `FilterChip` with `onRemove` sent every `data-*` attribute to its toggle while `className` and `style` went to its container, so a class written for a `data-*` attribute never matched, an app's `data-tokens` was not added to the chip's own, and `hidden`, `inert` or `aria-hidden` left the remove button behind. Those attributes, with `dir`, `lang` and `translate`, now go on the container; `ref`, `id`, the handlers and every other attribute stay on the toggle, which is still the chip's button. An `InputChip` with `onPress` puts the attributes that name or describe a control (`aria-label`, `aria-describedby`, `aria-expanded`, `aria-controls` …) on its action's button instead of its container, which has no role, so they did nothing there; a container given a `role` keeps them.

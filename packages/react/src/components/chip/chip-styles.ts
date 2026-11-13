@@ -19,7 +19,10 @@ import { tv, type VariantProps } from '../../utils/tv';
  *   `on-surface-variant` (unselected filter and input chips).
  * - Leading icons are `primary`; a selected filter chip's is `on-secondary-container`, a
  *   selected input chip's `primary`, an unselected input chip's `on-surface-variant`.
- * - The remove button has a 48px target, and a chip with one is at least 88px wide.
+ * - The remove button has a 48px target, and a chip with one is at least 88px wide. Where the
+ *   chip's main part takes presses too (a filter chip's toggle, an input chip's action), the
+ *   target is 41px wide: M3's 8px between the label and the icon leaves no room for 48px
+ *   without covering the label, and a press on the label belongs to the main part.
  * - Web density (`--md-sys-density`): each step takes 4px off the minimum height, 32 → 28 →
  *   24px, and -3 stays at 24px (Material Components Web's chip density: 32px, 24px at its
  *   densest, -2). `--m3-chip-height` holds it; the avatar and the remove button's state layer
@@ -93,6 +96,8 @@ export const chipStyles = tv({
       'state-layer [&>svg]:size-[18px]',
       'data-disabled:cursor-default',
     ],
+    // The remove button's touch target: the 48px `TouchTarget`, narrower in a two-part chip.
+    removeTarget: '',
     // A two-part chip's main part (its action, selection or label) fills the chip.
     primary:
       'inline-flex min-w-0 flex-1 cursor-pointer items-center self-stretch rounded-[inherit] focus-ring data-disabled:cursor-default',
@@ -146,7 +151,17 @@ export const chipStyles = tv({
      */
     split: {
       none: {},
-      two: { root: containerStates, remove: 'focus-ring' },
+      two: {
+        root: containerStates,
+        remove: 'focus-ring',
+        // Both parts take presses, so the remove target stops where the label ends instead of
+        // reaching 7px over it, where it took the label's presses (2026-11-13): it runs from
+        // there, 8px before the icon, to 7px past the chip's end, 41px wide and 48px tall.
+        // `inset-x-auto`, `w-auto` and `translate-x-0` take out the primitive's centred 48px
+        // box (`left-1/2`, its width and its shift), which the logical insets replace.
+        removeTarget:
+          'inset-x-auto start-[calc((var(--m3-chip-slot)-18px)/2-8px)] end-[calc((var(--m3-chip-slot)-48px)/2)] w-auto translate-x-0',
+      },
       removeOnly: {
         root: [
           ...containerStates,

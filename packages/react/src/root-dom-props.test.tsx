@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createRef, type ReactElement, type RefObject } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  AssistChip,
   Autocomplete,
   AutocompleteItem,
   Button,
@@ -14,6 +15,8 @@ import {
   TimeField,
   DatePicker,
   DateRangePicker,
+  FilterChip,
+  InputChip,
   List,
   ListItem,
   ListItemAvatar,
@@ -33,6 +36,7 @@ import {
   Select,
   SelectItem,
   Slider,
+  SuggestionChip,
   Switch,
   Tab,
   Tabs,
@@ -64,6 +68,31 @@ const probe = (): Probe => ({
 
 /** Each case renders the component with the probe attributes and the ref of its root. */
 const CASES: Record<string, (props: Probe, ref: RefObject<HTMLElement | null>) => ReactElement> = {
+  AssistChip: (props, ref) => (
+    <AssistChip {...props} ref={ref as never}>
+      Add to calendar
+    </AssistChip>
+  ),
+  SuggestionChip: (props, ref) => (
+    <SuggestionChip {...props} ref={ref as never}>
+      Sounds good
+    </SuggestionChip>
+  ),
+  FilterChip: (props, ref) => (
+    <FilterChip {...props} ref={ref as never}>
+      Vegan
+    </FilterChip>
+  ),
+  InputChip: (props, ref) => (
+    <InputChip {...props} ref={ref as never}>
+      Alex
+    </InputChip>
+  ),
+  'InputChip (action)': (props, ref) => (
+    <InputChip {...props} ref={ref as never} onPress={() => {}} onRemove={() => {}}>
+      Alex
+    </InputChip>
+  ),
   Checkbox: (props, ref) => (
     <Checkbox {...props} ref={ref as never}>
       Terms
@@ -229,6 +258,7 @@ describe('root DOM attributes', () => {
 
   /** Components whose root wraps the element React Aria labels (ARIA forbids these there). */
   const WRAPPERS = [
+    'InputChip (action)',
     'Checkbox',
     'Switch',
     'Radio',
@@ -289,6 +319,7 @@ describe('root DOM attributes', () => {
    * is that element. The pickers have none (their props leave the attributes out).
    */
   const LABELLED: Record<string, ((root: HTMLElement) => Element | null) | null> = {
+    'InputChip (action)': (root) => root.querySelector('[data-chip-primary]'),
     Checkbox: (root) => root.querySelector('input'),
     Switch: (root) => root.querySelector('input'),
     Radio: (root) => root.querySelector('input'),

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
-import { AssistChip, FilterChip, InputChip } from './Chip';
+import { AssistChip, FilterChip, InputChip, SuggestionChip } from './Chip';
 import { ChipSet } from './ChipSet';
 
 describe('ChipSet', () => {
@@ -166,6 +166,101 @@ describe('ChipSet', () => {
     expect(large).toHaveAttribute('aria-checked', 'true');
     expect(large.parentElement).toHaveAttribute('data-selected', 'true');
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('disables every chip in it when disabled, with no selection mode too', async () => {
+    const onPress = vi.fn();
+    const onRemove = vi.fn();
+    const { container, rerender } = render(
+      <ChipSet aria-label="Trip" disabled>
+        <AssistChip onPress={onPress}>Add to calendar</AssistChip>
+        <AssistChip href="/map">Open the map</AssistChip>
+        <SuggestionChip onPress={onPress}>Sounds good</SuggestionChip>
+        <FilterChip onSelectedChange={onPress}>Vegan</FilterChip>
+        <FilterChip onSelectedChange={onPress} onRemove={onRemove}>
+          Nearby
+        </FilterChip>
+        <InputChip onPress={onPress} onRemove={onRemove}>
+          Alex
+        </InputChip>
+        <InputChip onRemove={onRemove} data-testid="sam">
+          Sam
+        </InputChip>
+        <InputChip data-testid="static">Priya</InputChip>
+      </ChipSet>,
+    );
+    // The group said it was disabled while every chip still worked.
+    expect(screen.getByRole('group', { name: 'Trip' })).toHaveAttribute('aria-disabled', 'true');
+    const buttons = screen.getAllByRole('button');
+    expect(buttons.map((button) => button.textContent)).toEqual([
+      'Add to calendar',
+      'Sounds good',
+      'Vegan',
+      'Nearby',
+      'Remove',
+      'Alex',
+      'Remove',
+      'Remove',
+    ]);
+    for (const button of buttons) {
+      expect(button).toBeDisabled();
+      await userEvent.click(button);
+    }
+    const link = screen.getByRole('link', { name: 'Open the map' });
+    expect(link).not.toHaveAttribute('href');
+    expect(link).toHaveAttribute('data-disabled', 'true');
+    // The containers of the chips made of two parts show the disabled style too.
+    expect(screen.getByRole('button', { name: 'Nearby' }).parentElement).toHaveAttribute(
+      'data-disabled',
+      'true',
+    );
+    expect(screen.getByTestId('sam')).toHaveAttribute('data-disabled', 'true');
+    // A chip with nothing to press shows it as well.
+    expect(screen.getByTestId('static')).toHaveAttribute('data-disabled', 'true');
+    expect(onPress).not.toHaveBeenCalled();
+    expect(onRemove).not.toHaveBeenCalled();
+    expect(await axeViolations(container)).toEqual([]);
+
+    // With a selection, the chips outside it are disabled as well.
+    rerender(
+      <ChipSet aria-label="Trip" selectionMode="multiple" disabled>
+        <FilterChip value="vegan">Vegan</FilterChip>
+        <FilterChip>Spicy</FilterChip>
+        <AssistChip onPress={onPress}>Clear filters</AssistChip>
+      </ChipSet>,
+    );
+    for (const name of ['Vegan', 'Spicy', 'Clear filters']) {
+      expect(screen.getByRole('button', { name })).toBeDisabled();
+    }
+  });
+
+  it('keeps a set inside a disabled set disabled', () => {
+    render(
+      <ChipSet aria-label="Trip" disabled>
+        <ChipSet aria-label="Diet" selectionMode="multiple">
+          <FilterChip value="vegan">Vegan</FilterChip>
+          <AssistChip>Clear filters</AssistChip>
+        </ChipSet>
+      </ChipSet>,
+    );
+    expect(screen.getByRole('group', { name: 'Diet' })).toHaveAttribute('aria-disabled', 'true');
+    for (const name of ['Vegan', 'Clear filters']) {
+      expect(screen.getByRole('button', { name })).toBeDisabled();
+    }
+  });
+
+  it("leaves a chip's own disabled alone in a set that isn't", () => {
+    render(
+      <ChipSet aria-label="Trip">
+        <AssistChip disabled>Add to calendar</AssistChip>
+        <SuggestionChip>Sounds good</SuggestionChip>
+        <InputChip onRemove={() => {}}>Sam</InputChip>
+      </ChipSet>,
+    );
+    expect(screen.getByRole('group', { name: 'Trip' })).not.toHaveAttribute('aria-disabled');
+    expect(screen.getByRole('button', { name: 'Add to calendar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Sounds good' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Remove Sam' })).toBeEnabled();
   });
 
   it('selects with the arrow keys in single mode, wrapping, and Tab enters at the selection', async () => {

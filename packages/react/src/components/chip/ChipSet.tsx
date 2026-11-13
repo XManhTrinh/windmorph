@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  useContext,
   useEffect,
   useRef,
   type ComponentPropsWithRef,
@@ -18,6 +19,7 @@ import {
   notePointerDown,
   radioGroupKeyDown,
 } from '../../utils/radio-group-keys';
+import { ChipSetDisabledContext } from './chip-set-context';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {
@@ -54,7 +56,11 @@ interface ChipSetOwnProps {
    * selected. @default true
    */
   deselectable?: boolean;
-  /** Disables every chip that takes part in the selection. @default false */
+  /**
+   * Disables every chip in the set, whatever its kind and whether or not the set has a
+   * selection. A chip can't opt out, so keep one that must stay usable outside the set.
+   * @default false
+   */
   disabled?: boolean;
   /**
    * `wrap` onto new rows, or one row that `scroll`s sideways (M3 suggests scrolling past
@@ -239,7 +245,7 @@ function useFocusAfterRemoval(rootRef: { current: HTMLDivElement | null }) {
  * Wrapped rows are 16px apart, so each chip's 48px touch target is its own. It is one Tab
  * stop, and arrow keys move between its chips. With `selectionMode`, its filter
  * chips (each with a `value`) share one selection; a single selection is a radio group,
- * whose arrow keys select as they move.
+ * whose arrow keys select as they move. `disabled` disables every chip in it.
  *
  * @example
  * <ChipSet aria-label="Diet" selectionMode="multiple" defaultSelectedKeys={['vegan']}>
@@ -265,13 +271,15 @@ export function ChipSet({
   onPointerDown,
   ...rest
 }: ChipSetProps) {
+  // A set inside a disabled set is disabled too.
+  const isDisabled = useContext(ChipSetDisabledContext) || Boolean(disabled);
   const state = useToggleGroupState({
     selectionMode: selectionMode === 'single' ? 'single' : 'multiple',
     selectedKeys,
     defaultSelectedKeys,
     onSelectionChange,
     disallowEmptySelection: !deselectable,
-    isDisabled: disabled,
+    isDisabled,
   });
   const keyboard = useChipSetKeyboard(selectionMode === 'single');
   const rootRef = useObjectRef(ref);
@@ -285,7 +293,7 @@ export function ChipSet({
       ref={rootRef}
       data-layout={layout ?? 'wrap'}
       {...densityAttribute(density)}
-      aria-disabled={disabled || undefined}
+      aria-disabled={isDisabled || undefined}
       onKeyDown={(event) => {
         keyboard.onKeyDown(event);
         onKeyDown?.(event);
@@ -302,9 +310,11 @@ export function ChipSet({
       onPointerDownCapture={selectionMode === 'single' ? notePointerDown : undefined}
       className={chipSetStyles({ layout }).root({ class: cn(classNames?.root, className) })}
     >
-      <ToggleGroupStateContext value={selectionMode === 'none' ? null : state}>
-        {children}
-      </ToggleGroupStateContext>
+      <ChipSetDisabledContext value={isDisabled}>
+        <ToggleGroupStateContext value={selectionMode === 'none' ? null : state}>
+          {children}
+        </ToggleGroupStateContext>
+      </ChipSetDisabledContext>
     </div>
   );
 }

@@ -104,6 +104,59 @@ test.describe('Chips behaviour', () => {
     await expect(page.getByRole('button', { name: 'Remove Alex' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Remove Priya' })).toBeVisible();
   });
+
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a press on a two-part chip's label goes to its main part, never the remove button · ${dir}`, async ({
+      page,
+    }) => {
+      await openStory(page, 'components-chips--types', { dir });
+      for (const name of ['Removable', 'Editable']) {
+        const main = page.getByRole('button', { name, exact: true }).first();
+        const remove = page.getByRole('button', { name: `Remove ${name}` }).first();
+        const measured = await remove.evaluate((button, rtl) => {
+          const main = button.parentElement!.querySelector('[data-chip-primary]')!;
+          const label = document.getElementById(
+            button.getAttribute('aria-labelledby')!.split(' ')[1]!,
+          )!;
+          const rect = (element: Element) => element.getBoundingClientRect();
+          const target = rect(button.querySelector('[data-touch-target]')!);
+          const text = rect(label);
+          const chip = rect(button.parentElement!);
+          const y = text.top + text.height / 2;
+          // Along the row, towards the remove button: the label's end, then the chip's.
+          const labelEnd = rtl ? text.left : text.right;
+          const step = rtl ? -1 : 1;
+          const at = (x: number) => document.elementFromPoint(x, y);
+          return {
+            width: target.width,
+            height: target.height,
+            // How far the target's near edge is from the label's end, and its far edge from the
+            // chip's.
+            fromLabel: (rtl ? target.right : target.left) - labelEnd,
+            pastChip: rtl ? chip.left - target.left : target.right - chip.right,
+            labelEndIsMain: main.contains(at(labelEnd - step)),
+            gapIsRemove: button.contains(at(labelEnd + step)),
+            press: { x: labelEnd - 2 * step, y },
+          };
+        }, dir === 'rtl');
+        expect(measured.width).toBeCloseTo(41, 1);
+        expect(measured.height).toBe(48);
+        expect(measured.fromLabel).toBeCloseTo(0, 1);
+        expect(measured.pastChip).toBeCloseTo(7, 1);
+        expect(measured.labelEndIsMain).toBe(true);
+        expect(measured.gapIsRemove).toBe(true);
+        // The last pixels of the label toggle a filter chip, where they used to remove it.
+        if (name === 'Removable') {
+          await expect(main).toHaveAttribute('aria-pressed', 'true');
+          await page.mouse.click(measured.press.x, measured.press.y);
+          await expect(main).toHaveAttribute('aria-pressed', 'false');
+        }
+      }
+      // A remove-only chip's label takes no presses: its one target keeps the whole 48px.
+      const only = page.getByRole('button', { name: 'Remove Alex' }).first();
+      expect((await only.locator('[data-touch-target]').boundingBox())?.width).toBe(48);
+    });
+  }
 });
 
 const shadow = (locator: Locator) => locator.evaluate((el) => getComputedStyle(el).boxShadow);

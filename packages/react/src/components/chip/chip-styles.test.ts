@@ -42,6 +42,15 @@ describe('chipStyles', () => {
     );
   });
 
+  it("stops a two-part chip's remove target at the label, and leaves a remove-only chip's whole", () => {
+    expect(chipStyles({ kind: 'input', split: 'two', trailing: true }).removeTarget()).toBe(
+      'inset-x-auto start-[calc((var(--m3-chip-slot)-18px)/2-8px)] end-[calc((var(--m3-chip-slot)-48px)/2)] w-auto translate-x-0',
+    );
+    for (const split of ['none', 'removeOnly'] as const) {
+      expect(chipStyles({ kind: 'input', split, trailing: true }).removeTarget() ?? '').toBe('');
+    }
+  });
+
   it('only uses classes that Tailwind and the M3 stylesheet generate', async () => {
     expect(await uncompiledClasses(classes)).toEqual([]);
   });
