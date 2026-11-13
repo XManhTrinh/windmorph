@@ -34,6 +34,63 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.6',
+    date: '2026-11-13',
+    summary: (
+      <>
+        Touch targets, and a page that is a pane scrolling by itself: every chip in a wrapping set
+        keeps its 48px target, and the two scroll hooks hold up beside a side panel, on pages laid
+        out without the pane and on pages that arrive slowly.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            A wrapping <InlineCode>ChipSet</InlineCode> puts 16px between its rows instead of 8px
+            (20px and 24px as <InlineCode>density</InlineCode> makes the chips smaller), so every
+            chip takes presses over its full 48px touch target. At 8px the targets of two rows
+            overlapped, and a chip with another under it was left with 40px. Chips in a row stay 8px
+            apart, and a <InlineCode>gap-y-*</InlineCode> class brings the rows closer again.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            <InlineCode>useScrollKeys</InlineCode> and <InlineCode>useScrollRestoration</InlineCode>{' '}
+            follow the element behind their ref, so a frame can leave its pane out on some pages, or
+            put another in its place. Before, the scroll keys kept going to the pane that had left,
+            and going back from a page without the pane left it at its top.
+          </>,
+          <>
+            <InlineCode>useScrollKeys</InlineCode> leaves the scroll keys with another scrolling
+            element the person last pressed in, such as a side sheet&apos;s content, which is where
+            the browser sends them. The pane is a Tab stop by what Tab can really reach: a hidden
+            input, or a control in an inert part, no longer takes the stop from a page of text.
+          </>,
+          <>
+            <InlineCode>useScrollRestoration</InlineCode> keeps a page&apos;s position through a
+            slow return to it: going back again, or pressing a link, before the page was tall enough
+            to reach its position no longer replaces what was kept. A reload restores only the page
+            that was reloaded.
+          </>,
+          <>
+            Leaving a scrolling <InlineCode>ChipSet</InlineCode> with Tab no longer scrolls its row
+            to the far end.
+          </>,
+          <>
+            A <InlineCode>TimePicker</InlineCode>&apos;s dial numbers are named as they are shown
+            (&quot;05 minutes of 60&quot;), so someone who speaks to the page can ask for the number
+            as it is written.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.5',
     date: '2026-11-12',
     summary: (
