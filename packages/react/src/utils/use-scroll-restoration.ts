@@ -102,24 +102,25 @@ function moveTo(element: HTMLElement, top: number) {
  * page changes, and content still arriving makes the page tall enough to reach the position
  * only later. The ref is read on every frame, so an element that arrives during the hold, or
  * replaces the first one, is held too. It ends when the time is up or the moment the person
- * scrolls, and then calls `onEnd`, with the event that ended it. Returns what stops it early,
- * without calling `onEnd`.
+ * scrolls, and then calls `onEnd`: with where the element stayed, if the page was still too
+ * short to reach `top` on the last frame. Returns what stops it early, without calling `onEnd`.
  */
 function hold(
   ref: RefObject<HTMLElement | null>,
   top: number,
   duration: number,
-  onEnd: (releasedBy?: Event) => void,
+  onEnd: (shortAt?: number) => void,
 ): () => void {
   let frame = 0;
+  let shortAt: number | undefined;
   const until = performance.now() + duration;
   const stop = () => {
     cancelAnimationFrame(frame);
     for (const type of RELEASE_EVENTS) window.removeEventListener(type, release, true);
   };
-  const end = (releasedBy?: Event) => {
+  const end = () => {
     stop();
-    onEnd(releasedBy);
+    onEnd(shortAt);
   };
   const release = (event: Event) => {
     // A key still down from the back or forward shortcut repeats, and that isn't scrolling; a
@@ -128,11 +129,16 @@ function hold(
       const shortcut = event.altKey || event.ctrlKey || event.metaKey;
       if (shortcut || !SCROLL_KEYS.has(event.key)) return;
     }
-    end(event);
+    end();
   };
   const apply = () => {
     const element = ref.current;
-    if (element && element.scrollTop !== top) moveTo(element, top);
+    if (element) {
+      if (element.scrollTop !== top) moveTo(element, top);
+      // Read back: a page still too short leaves the element where its content ends. Read here,
+      // not as the hold ends: by then the scroll that ends it may have moved the element.
+      shortAt = Math.abs(element.scrollTop - top) < 1 ? undefined : element.scrollTop;
+    }
     if (performance.now() < until) frame = requestAnimationFrame(apply);
     else end();
   };
@@ -150,6 +156,11 @@ interface Shown {
   restored: boolean;
   /** Its position needs no more holding: the hold ended, or there was nothing to hold. */
   settled: boolean;
+  /**
+   * Where the element was when a hold ended short of its position (content still arriving).
+   * While it is still there the person hasn't scrolled, so what is kept for the page stands.
+   */
+  shortAt?: number;
 }
 
 /**
@@ -161,9 +172,9 @@ interface Shown {
  * - A position is kept for each `pageKey`, in `sessionStorage`, so a reload restores it too.
  * - A page's position is taken when the person sets off: a press, a key, or back and forward.
  *   Never from a scroll after the page changed, since a router can scroll the element to the
- *   new page's top first; and never while a restored position is still being held, nor by the
- *   press or key that ends the hold, since content still arriving can leave the page short of
- *   it.
+ *   new page's top first; and never while a restored position is still being held, nor after
+ *   a hold that ended short of it until the person scrolls, since content still arriving can
+ *   leave the page short of its position.
  * - Going back or forward (the Navigation API's `navigate` event, or `popstate` where it's
  *   missing) restores the page's position and holds it for `holdFor` ms while content arrives;
  *   the hold ends the moment the person scrolls.
@@ -191,19 +202,23 @@ export function useScrollRestoration(
   const traversing = useRef(false);
   /** The page whose restored position is being held, which the element may not have reached. */
   const holding = useRef<string | null>(null);
-  /** The press or key that ended the last hold, which takes no position either. */
-  const releasedBy = useRef<Event | null>(null);
 
   useEffect(() => {
     const keep = () => {
       const element = ref.current;
       if (!element || !shown.current) return;
-      const { key } = shown.current;
-      // Content still arriving can leave the element short of the position being held: what is
-      // kept for the page stands until the hold ends.
-      if (holding.current === key) return;
-      const store = keptFor(kept, storageKey);
+      const page = shown.current;
+      const { key } = page;
       const top = element.scrollTop;
+      // Content still arriving can leave the element short of the position being held: what is
+      // kept for the page stands while the hold runs, and after a hold that ended short of its
+      // position, until the element has moved from where the hold left it.
+      if (holding.current === key) return;
+      if (page.shortAt !== undefined) {
+        if (top === page.shortAt) return;
+        page.shortAt = undefined;
+      }
+      const store = keptFor(kept, storageKey);
       // Every press and key comes through here: most move nothing, and write nothing.
       if (store.last?.key === key && store.last.top === top) return;
       store.last = { key, top };
@@ -220,9 +235,7 @@ export function useScrollRestoration(
       // A held key repeats after back or forward has begun: that isn't setting off anew.
       if (event instanceof KeyboardEvent && event.repeat) return;
       traversing.current = false;
-      // The press or key that ended a hold reached this listener after the hold's own: the page
-      // may still be short of the position that was held, so what is kept for it stands.
-      if (event !== releasedBy.current) keep();
+      keep();
     };
     const onTraverse = () => {
       keep();
@@ -235,35 +248,20 @@ export function useScrollRestoration(
       };
       if (navigationType === 'traverse' && !hashChange) onTraverse();
     };
-    // `popstate` can't tell a step within the page (a fragment) from a step to another page; the
-    // `hashchange` that follows it can, where only the fragment differs, and takes the step back.
-    const onHashChange = (event: HashChangeEvent) => {
-      if (withoutFragment(event.oldURL) === withoutFragment(event.newURL)) {
-        traversing.current = false;
-      }
-    };
     // In browsers with the Navigation API, `popstate` can arrive after the restored page is on
     // screen; `navigate` comes before the page changes.
     const { navigation } = window as { navigation?: NavigationLike };
     document.addEventListener('pointerdown', onSetOff, true);
     document.addEventListener('keydown', onSetOff, true);
     window.addEventListener('pagehide', keep);
-    if (navigation) {
-      navigation.addEventListener('navigate', onNavigate);
-    } else {
-      window.addEventListener('popstate', onTraverse, true);
-      window.addEventListener('hashchange', onHashChange);
-    }
+    if (navigation) navigation.addEventListener('navigate', onNavigate);
+    else window.addEventListener('popstate', onTraverse, true);
     return () => {
       document.removeEventListener('pointerdown', onSetOff, true);
       document.removeEventListener('keydown', onSetOff, true);
       window.removeEventListener('pagehide', keep);
-      if (navigation) {
-        navigation.removeEventListener('navigate', onNavigate);
-      } else {
-        window.removeEventListener('popstate', onTraverse, true);
-        window.removeEventListener('hashchange', onHashChange);
-      }
+      if (navigation) navigation.removeEventListener('navigate', onNavigate);
+      else window.removeEventListener('popstate', onTraverse, true);
     };
   }, [ref, storageKey]);
 
@@ -296,9 +294,9 @@ export function useScrollRestoration(
     const release = () => {
       if (holding.current === pageKey) holding.current = null;
     };
-    const stop = hold(ref, top, holdFor, (event) => {
+    const stop = hold(ref, top, holdFor, (shortAt) => {
       page.settled = true;
-      releasedBy.current = event ?? null;
+      page.shortAt = shortAt;
       release();
     });
     return () => {

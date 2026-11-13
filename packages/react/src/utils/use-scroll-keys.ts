@@ -41,27 +41,41 @@ export interface ScrollKeysResult {
 }
 
 /**
- * Reports whether `element` holds nothing Tab would reach, now and as its content changes.
- * Returns what ends the watch.
+ * Reports whether `element` holds nothing Tab would reach, now and as its content changes: at
+ * most once a frame, however often the content changes. Returns what ends the watch.
  */
 function watchTabStop(element: HTMLElement, onChange: (isTabStop: boolean) => void): () => void {
-  const update = () => onChange(!hasTabbable(element));
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    onChange(!hasTabbable(element));
+  };
   update();
-  const observer = new MutationObserver(update);
+  const observer = new MutationObserver(() => {
+    frame ||= requestAnimationFrame(update);
+  });
   observer.observe(element, {
     childList: true,
     subtree: true,
     attributes: true,
     attributeFilter: TAB_STOP_ATTRIBUTES,
   });
-  return () => observer.disconnect();
+  return () => {
+    observer.disconnect();
+    cancelAnimationFrame(frame);
+  };
 }
 
 /** Whether the element is on screen for the person: rendered, visible, not inert, in the window. */
 function isOnScreen(element: Element): boolean {
   if (element.closest('[inert]')) return false;
-  // jsdom has no `checkVisibility`: every element counts as rendered there.
-  if ('checkVisibility' in element && !element.checkVisibility({ visibilityProperty: true })) {
+  // jsdom has no `checkVisibility`: every element counts as rendered there. `visibility` is
+  // asked for under both of the option's names (the earlier one, for the browsers that knew
+  // only it).
+  if (
+    'checkVisibility' in element &&
+    !element.checkVisibility({ visibilityProperty: true, checkVisibilityCSS: true })
+  ) {
     return false;
   }
   const view = element.ownerDocument.defaultView;

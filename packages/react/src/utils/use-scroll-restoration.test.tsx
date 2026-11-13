@@ -219,19 +219,81 @@ describe('useScrollRestoration', () => {
     expect(stored()['/a']).toBe(300);
   });
 
-  it.each([
-    ['a key', () => fireEvent.keyDown(document.body, { key: 'ArrowLeft', altKey: true })],
-    ['a press', () => fireEvent.pointerDown(document.body)],
-  ])('takes no position from %s that ends a hold on a page still short of it', (_, act) => {
-    restoredA();
-    // The back shortcut again, or a press on a link, while content is still arriving.
-    pane().scrollTop = 0;
-    act();
-    expect(stored()['/a']).toBe(300);
-    // The hold is over: the next press takes the position as usual.
-    pane().scrollTop = 40;
+  /**
+   * Page `/a`, kept at 300, back through history while still too short to scroll at all: the
+   * element stays at 0 however it is moved. Returns the page's content, to let it arrive.
+   */
+  function shortA() {
+    const { rerender } = render(<Pane pageKey="/a" />);
+    pane().scrollTop = 300;
     fireEvent.pointerDown(document.body);
-    expect(stored()['/a']).toBe(40);
+    rerender(<Pane pageKey="/b" />);
+    const content = { height: 0 };
+    let top = 0;
+    Object.defineProperty(pane(), 'scrollTop', {
+      configurable: true,
+      get: () => top,
+      set: (value: number) => {
+        top = Math.min(value, content.height);
+      },
+    });
+    traverse();
+    rerender(<Pane pageKey="/a" />);
+    frame();
+    expect(pane().scrollTop).toBe(0);
+    return content;
+  }
+
+  it.each([
+    [
+      'the back shortcut',
+      () => {
+        fireEvent.keyDown(document.body, { key: 'Alt' });
+        fireEvent.keyDown(document.body, { key: 'ArrowLeft', altKey: true });
+        traverse();
+      },
+    ],
+    [
+      'a press on a back button',
+      () => {
+        fireEvent.pointerDown(document.body);
+        traverse();
+      },
+    ],
+    [
+      'a swipe back',
+      () => {
+        fireEvent.wheel(window);
+        traverse();
+      },
+    ],
+    ['a press on a link', () => fireEvent.pointerDown(document.body)],
+    [
+      'time running out, then the toolbar',
+      () => {
+        vi.advanceTimersByTime(1600);
+        traverse();
+      },
+    ],
+  ])('keeps what it had for a page still short of its position, left by %s', (_, leave) => {
+    const content = shortA();
+    leave();
+    expect(stored()['/a']).toBe(300);
+    // Its content arrives and the person scrolls: that position is theirs.
+    content.height = 1000;
+    pane().scrollTop = 500;
+    fireEvent.pointerDown(document.body);
+    expect(stored()['/a']).toBe(500);
+  });
+
+  it('takes the position the person scrolled to with the scroll that ended the hold', () => {
+    restoredA();
+    // A wheel scrolls the element before its event is heard: the page had reached its 300, so
+    // where it is now is the person's doing.
+    pane().scrollTop = 900;
+    fireEvent.wheel(window);
+    fireEvent(window, new Event('pagehide'));
+    expect(stored()['/a']).toBe(900);
   });
 
   it('starts a page first seen through history, with nothing kept for it, at its top', () => {
@@ -343,41 +405,6 @@ describe('useScrollRestoration', () => {
     fireEvent.pointerDown(document.body);
     rerender(<Pane pageKey="/b" />);
     fireEvent.popState(window);
-    rerender(<Pane pageKey="/a" />);
-    expect(pane().scrollTop).toBe(300);
-  });
-
-  it('takes a step back within the page for what it is, where the Navigation API is missing', () => {
-    vi.stubGlobal('navigation', undefined);
-    const { rerender } = render(<Pane pageKey="/a" />);
-    pane().scrollTop = 300;
-    fireEvent.pointerDown(document.body);
-    rerender(<Pane pageKey="/b" />);
-    // Back to an earlier fragment of the same page: `popstate`, then `hashchange`.
-    fireEvent.popState(window);
-    fireEvent(
-      window,
-      new HashChangeEvent('hashchange', {
-        oldURL: 'https://example.test/b#later',
-        newURL: 'https://example.test/b#earlier',
-      }),
-    );
-    // A page change with no press or key before it (a script's) is then a new page.
-    rerender(<Pane pageKey="/a" />);
-    expect(pane().scrollTop).toBe(0);
-
-    // A step to another page whose fragment differs too is still a step back.
-    pane().scrollTop = 300;
-    fireEvent.pointerDown(document.body);
-    rerender(<Pane pageKey="/b" />);
-    fireEvent.popState(window);
-    fireEvent(
-      window,
-      new HashChangeEvent('hashchange', {
-        oldURL: 'https://example.test/b#later',
-        newURL: 'https://example.test/a#top',
-      }),
-    );
     rerender(<Pane pageKey="/a" />);
     expect(pane().scrollTop).toBe(300);
   });

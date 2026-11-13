@@ -225,6 +225,27 @@ describe('useScrollKeys, deciding the tab stop', () => {
     await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
   });
 
+  it('reads the stop from what the pane holds, whatever is inert around it', async () => {
+    const link = <a href="/next">Next</a>;
+    const { container, rerender } = render(<Pane>{link}</Pane>);
+    await waitFor(() => expect(pane()).toHaveAttribute('tabindex', '-1'));
+    // A modal overlay makes the rest of the page inert while it is open, and the pane's
+    // content changes meanwhile: its link still counts.
+    container.setAttribute('inert', '');
+    rerender(
+      <Pane>
+        {link}
+        <p>New text</p>
+      </Pane>,
+    );
+    await screen.findByText('New text');
+    for (let frames = 0; frames < 3; frames++) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    expect(pane()).toHaveAttribute('tabindex', '-1');
+    container.removeAttribute('inert');
+  });
+
   it('reads the stop again when an attribute shows or hides a control', async () => {
     render(
       <Pane>
