@@ -186,6 +186,7 @@ describe('ChipSet', () => {
         <InputChip onRemove={onRemove} data-testid="sam">
           Sam
         </InputChip>
+        <InputChip data-testid="static">Priya</InputChip>
       </ChipSet>,
     );
     // The group said it was disabled while every chip still worked.
@@ -214,6 +215,8 @@ describe('ChipSet', () => {
       'true',
     );
     expect(screen.getByTestId('sam')).toHaveAttribute('data-disabled', 'true');
+    // A chip with nothing to press shows it as well.
+    expect(screen.getByTestId('static')).toHaveAttribute('data-disabled', 'true');
     expect(onPress).not.toHaveBeenCalled();
     expect(onRemove).not.toHaveBeenCalled();
     expect(await axeViolations(container)).toEqual([]);
@@ -227,6 +230,21 @@ describe('ChipSet', () => {
       </ChipSet>,
     );
     for (const name of ['Vegan', 'Spicy', 'Clear filters']) {
+      expect(screen.getByRole('button', { name })).toBeDisabled();
+    }
+  });
+
+  it('keeps a set inside a disabled set disabled', () => {
+    render(
+      <ChipSet aria-label="Trip" disabled>
+        <ChipSet aria-label="Diet" selectionMode="multiple">
+          <FilterChip value="vegan">Vegan</FilterChip>
+          <AssistChip>Clear filters</AssistChip>
+        </ChipSet>
+      </ChipSet>,
+    );
+    expect(screen.getByRole('group', { name: 'Diet' })).toHaveAttribute('aria-disabled', 'true');
+    for (const name of ['Vegan', 'Clear filters']) {
       expect(screen.getByRole('button', { name })).toBeDisabled();
     }
   });

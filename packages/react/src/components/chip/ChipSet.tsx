@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  useContext,
   useEffect,
   useRef,
   type ComponentPropsWithRef,
@@ -57,7 +58,8 @@ interface ChipSetOwnProps {
   deselectable?: boolean;
   /**
    * Disables every chip in the set, whatever its kind and whether or not the set has a
-   * selection, as a disabled `fieldset` does its controls. @default false
+   * selection. A chip can't opt out, so keep one that must stay usable outside the set.
+   * @default false
    */
   disabled?: boolean;
   /**
@@ -269,13 +271,15 @@ export function ChipSet({
   onPointerDown,
   ...rest
 }: ChipSetProps) {
+  // A set inside a disabled set is disabled too.
+  const isDisabled = useContext(ChipSetDisabledContext) || Boolean(disabled);
   const state = useToggleGroupState({
     selectionMode: selectionMode === 'single' ? 'single' : 'multiple',
     selectedKeys,
     defaultSelectedKeys,
     onSelectionChange,
     disallowEmptySelection: !deselectable,
-    isDisabled: disabled,
+    isDisabled,
   });
   const keyboard = useChipSetKeyboard(selectionMode === 'single');
   const rootRef = useObjectRef(ref);
@@ -289,7 +293,7 @@ export function ChipSet({
       ref={rootRef}
       data-layout={layout ?? 'wrap'}
       {...densityAttribute(density)}
-      aria-disabled={disabled || undefined}
+      aria-disabled={isDisabled || undefined}
       onKeyDown={(event) => {
         keyboard.onKeyDown(event);
         onKeyDown?.(event);
@@ -306,7 +310,7 @@ export function ChipSet({
       onPointerDownCapture={selectionMode === 'single' ? notePointerDown : undefined}
       className={chipSetStyles({ layout }).root({ class: cn(classNames?.root, className) })}
     >
-      <ChipSetDisabledContext value={Boolean(disabled)}>
+      <ChipSetDisabledContext value={isDisabled}>
         <ToggleGroupStateContext value={selectionMode === 'none' ? null : state}>
           {children}
         </ToggleGroupStateContext>
