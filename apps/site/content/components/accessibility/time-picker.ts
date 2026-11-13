@@ -62,7 +62,7 @@ export const timePicker: ComponentAccessibility = {
     'In a {@link PickerDialog}, focus is contained in the dialog and returned to what opened it on close.',
   ],
   touchTarget: [
-    'Each number on the dial is a 48 × 48px circle. The hour and minute selectors are 96 × 80px (114px wide on a 24-hour clock), and the input fields 96 × 72px.',
+    "Each number on the dial is a 48 × 48px circle. On a 24-hour dial the inner ring's numbers sit about 36px apart, as in Compose, so their circles overlap: a press picks the hour by its angle and its distance from the centre, not by the circle it lands on. The hour and minute selectors are 96 × 80px (114px wide on a 24-hour clock), and the input fields 96 × 72px.",
     'The AM / PM options are drawn smaller than 48px tall (52 × 40px each in the vertical layout, 52 × 36px in the input mode, 108 × 38px in the horizontal one), but each takes 48px-tall presses: in the vertical layouts AM reaches up and PM down, away from each other, and in the horizontal one each reaches 5px above and below. Nothing in the picker sits in that space.',
     "`TimePickerModeToggle` is an icon button with a 48 × 48px target. It isn't rendered when the window has no room for the dial, where an `auto` picker shows only the typed input.",
   ],

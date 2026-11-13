@@ -1,4 +1,5 @@
-const TABBABLE = [
+/** What can take focus with Tab, before {@link isTabbable} looks at each one. */
+export const TABBABLE = [
   'a[href]',
   'area[href]',
   'button',
@@ -28,13 +29,18 @@ function isRendered(el: HTMLElement): boolean {
  */
 export function tabbables(root: Element, skip?: (el: HTMLElement) => boolean): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(TABBABLE)].filter(
-    (el) =>
-      el.tabIndex >= 0 &&
-      !el.matches(':disabled') &&
-      !el.closest('[inert], [hidden]') &&
-      isRendered(el) &&
-      !skip?.(el),
+    (el) => isTabbable(el) && !skip?.(el),
   );
+}
+
+/**
+ * Whether Tab would reach `el`, one of the `TABBABLE` candidates. With `within`, only an
+ * `inert` or `hidden` part inside that element counts, not one around it.
+ */
+export function isTabbable(el: HTMLElement, within?: Element): boolean {
+  if (el.tabIndex < 0 || el.matches(':disabled') || !isRendered(el)) return false;
+  const off = el.closest('[inert], [hidden]');
+  return off === null || (within !== undefined && !(within !== off && within.contains(off)));
 }
 
 /** The first of {@link tabbables}, or null when there's none. */

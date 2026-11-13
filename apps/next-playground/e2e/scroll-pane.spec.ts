@@ -70,7 +70,16 @@ test.describe('A pane that scrolls by itself', () => {
     expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
     await page.keyboard.press('PageDown');
     await expect.poll(top).toBeGreaterThan(300);
-    const scrolled = await top();
+    // The key's scroll is animated: read the position once it has come to rest.
+    let scrolled = -1;
+    await expect
+      .poll(async () => {
+        const now = await top();
+        const atRest = now === scrolled;
+        scrolled = now;
+        return atRest;
+      })
+      .toBe(true);
 
     // Back to the page without the pane, then back to page one: its position comes back.
     await page.goBack();
@@ -89,5 +98,19 @@ test.describe('A pane that scrolls by itself', () => {
     expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
     await page.keyboard.press('End');
     await expect.poll(() => pane.evaluate((el) => el.scrollTop)).toBe(end);
+  });
+
+  test('the scroll keys stay with another scroller the person pressed in', async ({ page }) => {
+    await page.goto('/scroll-pane/one');
+    const pane = page.getByTestId('pane');
+    const side = page.getByTestId('side');
+    // A press on text in the side panel, which can't take focus: the browser sends the keys
+    // there, and the pane doesn't take them.
+    await side.getByText('Side note 3', { exact: true }).click();
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
+    await page.keyboard.press('PageDown');
+    await expect.poll(() => side.evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
+    expect(await pane.evaluate((el) => el.scrollTop)).toBe(0);
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
   });
 });

@@ -25,15 +25,24 @@ export function ScrollPane({ children }: { children: ReactNode }) {
     );
   }
   return (
-    <div className="fixed inset-0 flex flex-col bg-surface">
+    <div className="fixed inset-0 flex bg-surface">
       <main
         ref={pane}
         tabIndex={tabIndex}
         data-testid="pane"
-        className="min-h-0 flex-1 overflow-y-auto outline-none"
+        className="min-w-0 flex-1 overflow-y-auto outline-none"
       >
         {children}
       </main>
+      {/* A side panel that scrolls by itself and takes no focus, as a side sheet's content: after
+          a press in it the browser sends it the scroll keys, and the pane leaves them there. */}
+      <aside data-testid="side" className="w-[240px] shrink-0 overflow-y-auto p-4">
+        {Array.from({ length: 80 }, (_, index) => (
+          <p key={index} className="m-0 text-body-medium">
+            Side note {index + 1}
+          </p>
+        ))}
+      </aside>
     </div>
   );
 }

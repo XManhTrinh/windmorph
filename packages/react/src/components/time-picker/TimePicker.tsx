@@ -217,7 +217,8 @@ export function TimePicker({
   const isPm = time.hour >= 12;
   const displayHour = hourCycle === 24 ? time.hour : time.hour % 12 || 12;
   // Two digits on both clocks, as Compose's selector and input show a 12-hour "02"
-  // (`hourForDisplay.toLocalString(minDigits = 2)`); the dial's numbers stay unpadded.
+  // (`hourForDisplay.toLocalString(minDigits = 2)`). On the dial only the 12-hour hours stay
+  // unpadded; its minutes and 24-hour hours are two digits, and each is named as shown.
   const formatHour = (n: number) => pad.format(n);
   const setPeriod = (pm: boolean) => {
     if (pm !== isPm) setTime(time.set({ hour: (time.hour + 12) % 24 }));

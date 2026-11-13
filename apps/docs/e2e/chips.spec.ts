@@ -45,6 +45,35 @@ test.describe('Chips behaviour', () => {
     await expect(page.getByRole('button', { name: 'Vegan' })).not.toBeFocused();
   });
 
+  test('leaving a scrolling set with Tab leaves its row where it was', async ({ page }) => {
+    await openStory(page, 'components-chips--density');
+    const set = page.getByTestId('0-scroll');
+    const scrollLeft = () => set.evaluate((el) => Math.round(el.scrollLeft));
+    const holdsFocus = () => set.evaluate((el) => el.contains(document.activeElement));
+    // Narrow enough that the last chip is wholly past the row's edge: focusing it would scroll.
+    await set.evaluate((el) => (el.style.width = '120px'));
+    const last = await set.getByRole('button', { name: 'Rating' }).boundingBox();
+    const row = await set.boundingBox();
+    expect(last!.x).toBeGreaterThan(row!.x + row!.width);
+
+    // Tab goes on from the set's last chip, which is past the row's edge: the row stays put.
+    await set.getByRole('button', { name: 'Open now' }).focus();
+    await page.keyboard.press('Tab');
+    expect(await holdsFocus()).toBe(false);
+    expect(await scrollLeft()).toBe(0);
+
+    // And back from its first chip, with the row scrolled to its end: End moves to the last
+    // chip and brings it into the row.
+    await set.getByRole('button', { name: 'Open now' }).focus();
+    await page.keyboard.press('End');
+    await expect(set.getByRole('button', { name: 'Rating' })).toBeFocused();
+    const atEnd = await scrollLeft();
+    expect(atEnd).toBeGreaterThan(0);
+    await page.keyboard.press('Shift+Tab');
+    expect(await holdsFocus()).toBe(false);
+    expect(await scrollLeft()).toBe(atEnd);
+  });
+
   test('a single-select chip set is a radio group', async ({ page }) => {
     await openStory(page, 'components-chips--single-select');
     await expect(page.getByRole('radiogroup', { name: 'Sort by' })).toBeVisible();

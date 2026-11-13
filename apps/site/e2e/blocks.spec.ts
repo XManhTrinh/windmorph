@@ -134,6 +134,22 @@ test.describe('The app frame block', () => {
     expect(found.sideways).toBe(0);
   });
 
+  // The pinned block passes its page as `pageKey`: a new page starts at its top, where the pane
+  // (the same element for every page) would otherwise stay where the last page left it.
+  test('pinned: a new page starts at its top', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 640 });
+    await page.goto('/blocks-preview/app-frame-pinned');
+    const pane = page.locator('main');
+    const top = () => pane.evaluate((el) => Math.round(el.scrollTop));
+    await pane.evaluate((el) => el.scrollTo(0, 300));
+    expect(await top()).toBe(300);
+    await page.getByRole('link', { name: 'Overview', exact: true }).click();
+    await expect(pane.getByRole('heading', { name: 'Overview' })).toBeVisible();
+    // The new page is long enough to have stayed at 300.
+    expect(await pane.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(300);
+    await expect.poll(top).toBe(0);
+  });
+
   test('the page previews each variation and offers its code', async ({ page }) => {
     await page.goto('/blocks/app-frame');
     await expect(page.locator('iframe')).toHaveCount(4);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { SCROLL_KEYS } from './use-scroll-keys';
 
 export interface ScrollRestorationOptions {
   /**
@@ -66,40 +67,102 @@ function keptFor(cache: { current: Kept | null }, storageKey: string): Kept {
   return cache.current;
 }
 
-/** Whether this page load is a reload or a return through history, where a position comes back. */
+/** The Navigation API, as far as it is read here. */
+interface NavigationLike extends EventTarget {
+  currentEntry?: { key: string } | null;
+  activation?: { entry?: { key: string } | null } | null;
+}
+
+/** The part of an address that names a page: everything but its fragment. */
+const withoutFragment = (address: string) => address.split('#')[0];
+
+/**
+ * Whether the page on screen is the one this document was loaded with, by a reload or a return
+ * through history: its position comes back. A page shown later in the same document isn't the
+ * load's, even to a hook that mounts only then (a frame left, and come back to by a link): the
+ * history entry is compared where the Navigation API tells it, the address elsewhere.
+ */
 function loadRestores(): boolean {
   const [entry] = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
-  return entry?.type === 'reload' || entry?.type === 'back_forward';
+  if (entry?.type !== 'reload' && entry?.type !== 'back_forward') return false;
+  const { navigation } = window as { navigation?: NavigationLike };
+  const loadedOn = navigation?.activation?.entry?.key;
+  if (loadedOn !== undefined) return navigation?.currentEntry?.key === loadedOn;
+  return withoutFragment(entry.name) === withoutFragment(location.href);
 }
 
 /** Moves the element there at once, whatever its `scroll-behavior`. */
-function scrollTo(element: HTMLElement, top: number) {
+function moveTo(element: HTMLElement, top: number) {
   if (typeof element.scrollTo === 'function') element.scrollTo({ top, behavior: 'instant' });
   else element.scrollTop = top;
 }
 
 /**
- * Keeps the element at `top` for `duration` ms: a router can scroll it after the page changes,
- * and content still arriving makes the page tall enough to reach the position only later. Ends
- * the moment the person scrolls. Returns what ends it early.
+ * Keeps the element behind `ref` at `top` for `duration` ms: a router can scroll it after the
+ * page changes, and content still arriving makes the page tall enough to reach the position
+ * only later. The ref is read on every frame, so an element that arrives during the hold, or
+ * replaces the first one, is held too. It ends when the time is up or the moment the person
+ * scrolls, and then calls `onEnd`: with where the element stayed, if the page was still too
+ * short to reach `top` on the last frame. Returns what stops it early, without calling `onEnd`.
  */
-function hold(element: HTMLElement, top: number, duration: number): () => void {
+function hold(
+  ref: RefObject<HTMLElement | null>,
+  top: number,
+  duration: number,
+  onEnd: (shortAt?: number) => void,
+): () => void {
   let frame = 0;
+  // Until a frame finds the element at `top`, the page is short of it: an element that only
+  // arrives after the hold is at 0.
+  let shortAt: number | undefined = 0;
   const until = performance.now() + duration;
   const stop = () => {
     cancelAnimationFrame(frame);
-    for (const type of RELEASE_EVENTS) window.removeEventListener(type, stop, true);
+    for (const type of RELEASE_EVENTS) window.removeEventListener(type, release, true);
+  };
+  const end = () => {
+    stop();
+    onEnd(shortAt);
+  };
+  const release = (event: Event) => {
+    // A key still down from the back or forward shortcut repeats, and that isn't scrolling; a
+    // scroll key held down is.
+    if (event instanceof KeyboardEvent && event.repeat) {
+      const shortcut = event.altKey || event.ctrlKey || event.metaKey;
+      if (shortcut || !SCROLL_KEYS.has(event.key)) return;
+    }
+    end();
   };
   const apply = () => {
-    if (element.scrollTop !== top) scrollTo(element, top);
+    const element = ref.current;
+    if (element) {
+      if (element.scrollTop !== top) moveTo(element, top);
+      // Read back: a page still too short leaves the element where its content ends. Read here,
+      // not as the hold ends: by then the scroll that ends it may have moved the element.
+      shortAt = element.scrollTop === top ? undefined : element.scrollTop;
+    }
     if (performance.now() < until) frame = requestAnimationFrame(apply);
-    else stop();
+    else end();
   };
   for (const type of RELEASE_EVENTS) {
-    window.addEventListener(type, stop, { capture: true, passive: true });
+    window.addEventListener(type, release, { capture: true, passive: true });
   }
   apply();
   return stop;
+}
+
+/** The page the element shows. */
+interface Shown {
+  key: string;
+  /** Whether its position was restored (a reload, back or forward) or it began at its top. */
+  restored: boolean;
+  /** Its position needs no more holding: the hold ended, or there was nothing to hold. */
+  settled: boolean;
+  /**
+   * Where the element was when a hold ended short of its position (content still arriving).
+   * While it is still there the person hasn't scrolled, so what is kept for the page stands.
+   */
+  shortAt?: number;
 }
 
 /**
@@ -111,14 +174,20 @@ function hold(element: HTMLElement, top: number, duration: number): () => void {
  * - A position is kept for each `pageKey`, in `sessionStorage`, so a reload restores it too.
  * - A page's position is taken when the person sets off: a press, a key, or back and forward.
  *   Never from a scroll after the page changed, since a router can scroll the element to the
- *   new page's top first.
+ *   new page's top first; and never while a restored position is still being held, nor after
+ *   a hold that ended short of it until the person scrolls, since content still arriving can
+ *   leave the page short of its position.
  * - Going back or forward (the Navigation API's `navigate` event, or `popstate` where it's
  *   missing) restores the page's position and holds it for `holdFor` ms while content arrives;
  *   the hold ends the moment the person scrolls.
- * - A new page starts at its top.
- * - The element can be left out on some pages (a frame that lays them out without its pane)
- *   while the component that calls the hook stays mounted: those pages keep nothing, and the
- *   pages around them are restored as usual.
+ * - A new page starts at its top: every other change of `pageKey`.
+ * - The element can be left out on some pages (a frame that lays them out without its pane),
+ *   arrive after the page has changed, or be replaced, while the component that calls the hook
+ *   stays mounted: pages without it keep nothing, and a restored position is held on whichever
+ *   element is behind the ref.
+ *
+ * Call it in a component that stays mounted as the pages change (a layout): back and forward
+ * are seen only while it is mounted.
  *
  * @example
  * const pane = useRef<HTMLElement>(null);
@@ -129,19 +198,29 @@ export function useScrollRestoration(
   ref: RefObject<HTMLElement | null>,
   { pageKey, storageKey = 'windmorph-scroll', holdFor = 1500 }: ScrollRestorationOptions,
 ): void {
-  /** The page the element shows, and whether its position was restored. */
-  const shown = useRef<{ key: string; restored: boolean } | null>(null);
+  const shown = useRef<Shown | null>(null);
   const kept = useRef<Kept | null>(null);
   /** Set by back and forward until the page changes; cleared when the person sets off anew. */
   const traversing = useRef(false);
+  /** The page whose restored position is being held, which the element may not have reached. */
+  const holding = useRef<string | null>(null);
 
   useEffect(() => {
     const keep = () => {
       const element = ref.current;
       if (!element || !shown.current) return;
-      const store = keptFor(kept, storageKey);
-      const { key } = shown.current;
+      const page = shown.current;
+      const { key } = page;
       const top = element.scrollTop;
+      // Content still arriving can leave the element short of the position being held: what is
+      // kept for the page stands while the hold runs, and after a hold that ended short of its
+      // position, until the element has moved from where the hold left it.
+      if (holding.current === key) return;
+      if (page.shortAt !== undefined) {
+        if (top === page.shortAt) return;
+        page.shortAt = undefined;
+      }
+      const store = keptFor(kept, storageKey);
       // Every press and key comes through here: most move nothing, and write nothing.
       if (store.last?.key === key && store.last.top === top) return;
       store.last = { key, top };
@@ -149,13 +228,14 @@ export function useScrollRestoration(
       store.positions.delete(key);
       store.positions.set(key, top);
       if (store.positions.size > MAX_PAGES) {
-        store.positions.delete(store.positions.keys().next().value as string);
+        const [oldest] = store.positions.keys();
+        if (oldest !== undefined) store.positions.delete(oldest);
       }
       writePositions(storageKey, store.positions);
     };
     const onSetOff = (event: Event) => {
       // A held key repeats after back or forward has begun: that isn't setting off anew.
-      if ((event as KeyboardEvent).repeat) return;
+      if (event instanceof KeyboardEvent && event.repeat) return;
       traversing.current = false;
       keep();
     };
@@ -172,7 +252,7 @@ export function useScrollRestoration(
     };
     // In browsers with the Navigation API, `popstate` can arrive after the restored page is on
     // screen; `navigate` comes before the page changes.
-    const navigation = (window as { navigation?: EventTarget }).navigation;
+    const { navigation } = window as { navigation?: NavigationLike };
     document.addEventListener('pointerdown', onSetOff, true);
     document.addEventListener('keydown', onSetOff, true);
     window.addEventListener('pagehide', keep);
@@ -190,30 +270,42 @@ export function useScrollRestoration(
   // Before paint, so a restored page never shows at its top first.
   useLayoutEffect(() => {
     const previous = shown.current;
-    // The same page again (a development double render) repeats its decision.
-    const restored =
-      previous?.key === pageKey
-        ? previous.restored
-        : previous === null
-          ? loadRestores()
-          : traversing.current;
-    if (previous?.key !== pageKey) traversing.current = false;
+    const samePage = previous?.key === pageKey;
+    // The same page again (effects run twice in development, an option changed) repeats its
+    // decision, and a hold that has ended isn't begun again.
+    const restored = samePage
+      ? previous.restored
+      : previous === null
+        ? loadRestores()
+        : traversing.current;
+    if (!samePage) traversing.current = false;
     // The page is noted even while the element is left out (a frame that lays some pages out
     // without its pane), so the next page with it is decided against the page just left.
-    shown.current = { key: pageKey, restored };
-    const element = ref.current;
-    if (!element) return;
-    if (!restored) {
-      // A new page starts at its top; the first page of a visit is left where the browser put it.
-      if (previous !== null && previous.key !== pageKey) scrollTo(element, 0);
-      return;
-    }
-    const top = keptFor(kept, storageKey).positions.get(pageKey);
+    const page: Shown = samePage
+      ? { ...previous, restored }
+      : { key: pageKey, restored, settled: false };
+    shown.current = page;
+    const top = restored ? keptFor(kept, storageKey).positions.get(pageKey) : undefined;
     if (top === undefined) {
-      // Nothing kept for it (a page first seen through history): its top, as a new page.
-      if (previous !== null && previous.key !== pageKey) scrollTo(element, 0);
+      // A new page, or one first seen through history with nothing kept for it, starts at its
+      // top; the first page of a visit is left where the browser put it.
+      if (previous !== null && !samePage && ref.current) moveTo(ref.current, 0);
+      page.settled = true;
       return;
     }
-    return hold(element, top, holdFor);
+    if (page.settled) return;
+    holding.current = pageKey;
+    const release = () => {
+      if (holding.current === pageKey) holding.current = null;
+    };
+    const stop = hold(ref, top, holdFor, (shortAt) => {
+      page.settled = true;
+      page.shortAt = shortAt;
+      release();
+    });
+    return () => {
+      stop();
+      release();
+    };
   }, [ref, pageKey, storageKey, holdFor]);
 }
