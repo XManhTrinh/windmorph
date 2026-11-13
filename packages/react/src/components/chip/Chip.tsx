@@ -189,7 +189,7 @@ function RemoveButton({
       data-chip-remove=""
       className={styles.remove({ class: className })}
     >
-      <TouchTarget />
+      <TouchTarget className={styles.removeTarget()} />
       <span id={removeId} hidden>
         {remove}
       </span>
@@ -546,8 +546,8 @@ export type InputChipProps = InputChipOwnProps &
  * With `onPress` and `onRemove`, the chip's action and its remove button are two focus
  * stops. With only `onRemove`, the chip is one focus stop (the remove button, named
  * "Remove" + the label), as M3 asks. Backspace or Delete on the chip removes it. A chip
- * with a remove button is at least 88px wide (M3); the button's 48px target reaches 7px
- * over the end of the label, M3's 8px between the two being less than the target needs.
+ * with a remove button is at least 88px wide (M3). The button's target is 48px, or 41px wide
+ * beside an action: it stops where the label ends, so a press on the label is the action's.
  *
  * @example
  * <InputChip avatar={<img src={photo} alt="" />} onRemove={() => remove(id)}>

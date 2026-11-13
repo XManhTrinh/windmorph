@@ -363,6 +363,38 @@ describe('InputChip', () => {
   });
 });
 
+describe("The remove button's touch target", () => {
+  it("stops at the label's end where the chip's main part takes presses too", () => {
+    render(
+      <>
+        <FilterChip onRemove={() => {}}>Nearby</FilterChip>
+        <InputChip onPress={() => {}} onRemove={() => {}}>
+          Alex
+        </InputChip>
+        <InputChip onRemove={() => {}}>Sam</InputChip>
+      </>,
+    );
+    const target = (name: string) =>
+      screen.getByRole('button', { name }).querySelector('[data-touch-target]')!;
+    for (const name of ['Remove Nearby', 'Remove Alex']) {
+      // From the label's end to 7px past the chip's: the primitive's centred 48px box is gone.
+      expect(target(name)).toHaveClass(
+        'absolute',
+        'h-[48px]',
+        'w-auto',
+        'start-[calc((var(--m3-chip-slot)-18px)/2-8px)]',
+        'end-[calc((var(--m3-chip-slot)-48px)/2)]',
+        'translate-x-0',
+      );
+      for (const centred of ['left-1/2', 'w-[max(100%,48px)]', '-translate-x-1/2']) {
+        expect(target(name)).not.toHaveClass(centred);
+      }
+    }
+    // A remove-only chip's label takes no presses, so its one target keeps the whole 48px.
+    expect(target('Remove Sam')).toHaveClass('left-1/2', 'w-[max(100%,48px)]', '-translate-x-1/2');
+  });
+});
+
 describe('Chip density', () => {
   it("takes the set's or the scope's density unless it sets its own", async () => {
     const { container } = render(

@@ -594,7 +594,19 @@ test.describe('Density · Chips', () => {
         for (let t = 0; t < (await targets.count()); t++) {
           const target = await box(targets.nth(t));
           expect(target.height).toBeCloseTo(48, 0);
-          expect(target.width).toBeGreaterThanOrEqual(48);
+          // A remove target beside a toggle stops at the chip's label, 41px wide at every
+          // density; every other target is 48px wide or more.
+          const besideToggle = await targets
+            .nth(t)
+            .evaluate((element) =>
+              Boolean(
+                element
+                  .closest('[data-chip-remove]')
+                  ?.parentElement?.querySelector('button[data-chip-primary]'),
+              ),
+            );
+          if (besideToggle) expect(target.width).toBeCloseTo(41, 0);
+          else expect(target.width).toBeGreaterThanOrEqual(48);
           own.push(target);
         }
         targetsOf.push(own);
