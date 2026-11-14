@@ -125,8 +125,10 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               <InlineCode>on-surface-variant</InlineCode> (filter, input).
             </li>
             <li>
-              Leading icons are <InlineCode>primary</InlineCode>. Selected filter and input chips
-              are <InlineCode>secondary-container</InlineCode> with no border.
+              Leading icons are <InlineCode>primary</InlineCode>, except a selected filter
+              chip&apos;s (<InlineCode>on-secondary-container</InlineCode>) and an input chip&apos;s
+              until it is selected (<InlineCode>on-surface-variant</InlineCode>). Selected filter
+              and input chips are <InlineCode>secondary-container</InlineCode> with no border.
             </li>
             <li>
               The remove button has a 48px target, and a chip with one is at least 88px wide, as M3
