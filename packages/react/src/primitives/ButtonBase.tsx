@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  createContext,
   useContext,
   useEffect,
   type RefObject,
@@ -21,14 +20,12 @@ import {
   type PressEvents,
 } from 'react-aria';
 import { useToggleState, type ToggleGroupState } from 'react-stately';
+import { isDraggedAttribute } from '../utils/dragged-attribute';
+import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { TriggerContext, type TriggerContextValue } from './TriggerContext';
 import { useM3Interaction } from './use-m3-interaction';
 
-/**
- * Selection state of an enclosing toggle group (e.g. a connected `ButtonGroup`). Toggle
- * buttons with a `value` inside it are selected through the group instead of on their own.
- */
-export const ToggleGroupStateContext = createContext<ToggleGroupState | null>(null);
+export { ToggleGroupStateContext };
 
 type PressHandlers = Pick<
   PressEvents,
@@ -171,9 +168,7 @@ function splitProps<T extends ButtonBaseCommonProps & { pending?: boolean }>(pro
     /** Presses, hover and the pressed state are off: disabled, or pending. */
     blocked: disabled || pending,
     // Our `data-*` attributes are spread last, so a consumer's `data-dragged` feeds the state.
-    isDragged:
-      dragged ??
-      (consumerDragged !== undefined && consumerDragged !== false && consumerDragged !== 'false'),
+    isDragged: dragged ?? isDraggedAttribute(consumerDragged),
     element: { className, style },
     children,
     // React Aria options, not DOM attributes: they go to the press hooks.

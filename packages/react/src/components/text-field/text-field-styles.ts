@@ -72,9 +72,13 @@ export const textFieldStyles = tv({
       // overshoots 2px and settles back draws 2 → 1 → 2px. The effects spring never
       // overshoots, so the width only grows (and never dips below 1px on the way back).
       // The filled indicator keeps the spatial spring: its `height` draws fractions.
-      // The padding follows the width on the same spring, so the two always add up to 12px.
+      // The padding follows the width on the same spring, so the two add up to 12px once
+      // settled. On the way they can differ by less than a device pixel, since the border is
+      // drawn in whole device pixels and the padding in fractions. Under reduced motion the
+      // width and the padding change at once, and only the colour fades.
       '[transition-property:border-color,border-width,padding]',
       effectsTransition,
+      'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),0s,0s]',
       'group-data-[field-state=hover]/field:border-[color:var(--_md-comp-text-field-hover-outline-color)]',
       'group-data-[field-state=focus]/field:border-2 group-data-[field-state=focus]/field:px-[10px]',
       'group-data-[field-state=focus]/field:border-[color:var(--_md-comp-text-field-focus-outline-color)]',

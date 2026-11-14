@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { AssistChip, FilterChip, InputChip, SuggestionChip } from './Chip';
+import { Overlay } from '../../primitives/Overlay';
 import { ChipSet } from './ChipSet';
 
 describe('ChipSet', () => {
@@ -232,6 +233,51 @@ describe('ChipSet', () => {
     for (const name of ['Vegan', 'Spicy', 'Clear filters']) {
       expect(screen.getByRole('button', { name })).toBeDisabled();
     }
+  });
+
+  it('leaves chips in an overlay opened from the set out of it', () => {
+    render(
+      <ChipSet aria-label="Diet" selectionMode="multiple" defaultSelectedKeys={['vegan']} disabled>
+        <FilterChip value="vegan">Vegan</FilterChip>
+        {/* A dialog or a menu opened from a chip of the set: its content is in the set's
+            React tree, and so in its contexts, though it is no part of the set. */}
+        <Overlay>
+          <FilterChip value="vegan">Vegan only</FilterChip>
+          <AssistChip>Open now</AssistChip>
+        </Overlay>
+      </ChipSet>,
+    );
+    expect(screen.getByRole('button', { name: 'Vegan' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Vegan' })).toHaveAttribute('aria-pressed', 'true');
+    // Neither disabled with the set, nor selected through it.
+    expect(screen.getByRole('button', { name: 'Open now' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Vegan only' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Vegan only' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+  });
+
+  it('reports a selection only when it changes', async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <ChipSet
+        aria-label="Size"
+        selectionMode="multiple"
+        defaultSelectedKeys={['m']}
+        deselectable={false}
+        onSelectionChange={onSelectionChange}
+      >
+        <FilterChip value="m">Medium</FilterChip>
+        <FilterChip value="l">Large</FilterChip>
+      </ChipSet>,
+    );
+    // The last selected chip of a set that keeps one selected: nothing changes.
+    await userEvent.click(screen.getByRole('button', { name: 'Medium' }));
+    expect(screen.getByRole('button', { name: 'Medium' })).toHaveAttribute('aria-pressed', 'true');
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Large' }));
+    expect(onSelectionChange).toHaveBeenCalledExactlyOnceWith(new Set(['m', 'l']));
   });
 
   it('keeps a set inside a disabled set disabled', () => {

@@ -69,7 +69,7 @@ export const chips: ComponentAccessibility = {
   focus: [
     'Each chip is a focus stop. A filter chip with `onRemove`, and an input chip with `onPress` and `onRemove`, are two stops: the chip and its remove button.',
     'An input chip with only `onRemove` is one stop, its remove button, and the focus ring circles the whole chip, as M3 asks.',
-    "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the chip (or around the remove button), and a flat chip's border darkens. Pointer presses show no ring.",
+    "Keyboard focus shows M3's focus indicator: a 3px `secondary` outline 2px outside the chip, round the whole chip for its main button, and inside the remove button for that one, and a flat chip's border darkens. Pointer presses show no ring.",
     'When the focused chip is removed, focus moves to the next stop in the `ChipSet`, or the previous one at the end, or the set itself once it is empty, so keyboard users keep their place.',
   ],
   touchTarget: [

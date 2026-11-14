@@ -123,6 +123,35 @@ test.describe('TextField label', () => {
     });
   }
 
+  test('outlined: under reduced motion the border and the notch change at once', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await openStory(page, 'components-textfield--playground', {}, { variant: 'outlined' });
+    const field = fieldOf(page, 'Label');
+    const durations = () =>
+      field.locator('fieldset').evaluate((el) => {
+        const style = getComputedStyle(el);
+        return Object.fromEntries(
+          style.transitionProperty
+            .split(', ')
+            .map((property, index) => [property, style.transitionDuration.split(', ')[index]]),
+        );
+      });
+    // Only the colour keeps a duration: the width and the padding that follows it have none.
+    const resting = await durations();
+    expect(resting['border-width']).toBe('0s');
+    expect(resting.padding).toBe('0s');
+    expect(resting['border-color']).not.toBe('0s');
+    // So the frame after focus already has the focused width, and the notch where it stays.
+    await page.getByLabel('Label', { exact: true }).focus();
+    const focused = await field.locator('fieldset').evaluate((el) => {
+      const style = getComputedStyle(el);
+      return [style.borderTopWidth, style.paddingLeft];
+    });
+    expect(focused).toEqual(['2px', '10px']);
+  });
+
   // Compose sizes the cut-out from the label as it moves; the notch opens on the label's
   // spring from its own width, so the two keep pace.
   test('outlined: the notch opens in step with the label', async ({ page }) => {
