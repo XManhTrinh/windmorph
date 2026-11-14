@@ -34,6 +34,108 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.7',
+    date: '2026-11-14',
+    summary: (
+      <>
+        Fixes from an audit of the chips, the overlays and the pickers: a date picker dialog saves
+        the day Enter is pressed on, a dialog opened from a group or a bar is no longer part of it,
+        and a chip with a remove button behaves as one chip. In Windmorph Pro,{' '}
+        <InlineCode>Avatar</InlineCode> takes a status ring.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            Enter on a day in a date picker dialog saves that day. The day was picked only when the
+            key was let go, after the dialog had saved, so a <InlineCode>PickerDialog</InlineCode>{' '}
+            around a <InlineCode>DatePicker</InlineCode> or a{' '}
+            <InlineCode>DateRangePicker</InlineCode>, and a <InlineCode>DateField</InlineCode>
+            &apos;s full-screen dialog, closed with the date picked before.
+          </>,
+          <>
+            A dialog, menu or sheet opened from a <InlineCode>ButtonGroup</InlineCode>, a{' '}
+            <InlineCode>ChipSet</InlineCode>, a toolbar, an app bar or a search bar is no longer
+            part of it. Its buttons took the group&apos;s size, corners and{' '}
+            <InlineCode>disabled</InlineCode>, its chips were selected and disabled with the set,
+            its tooltips opened below as in the bar, and Tab inside it was pulled back to the
+            group&apos;s selected button. One thing to check: an icon button in an overlay opened
+            from a toolbar, an app bar or a search bar is filled again, as anywhere else on the
+            page; pass <InlineCode>variant=&quot;standard&quot;</InlineCode> to keep it plain.
+          </>,
+          <>
+            A chip with a remove button behaves as one chip. A press on the end of its label no
+            longer removes it: the remove target stops where the label ends. What is about the whole
+            chip (<InlineCode>data-*</InlineCode>, <InlineCode>hidden</InlineCode>,{' '}
+            <InlineCode>inert</InlineCode>, dragging) goes on the chip, not on the button inside it;
+            the focus indicator is drawn round the chip, so an{' '}
+            <InlineCode>overflow-hidden</InlineCode> class can&apos;t cut it off; and a menu or
+            tooltip trigger around the chip wires up its main button only, never Remove.
+          </>,
+          <>
+            A <InlineCode>FilterChip</InlineCode> keeps its selection and keyboard focus when{' '}
+            <InlineCode>onRemove</InlineCode> is added or taken away, as an app does to show the
+            remove button only on wider windows.
+          </>,
+          <>
+            A <InlineCode>ChipSet</InlineCode> with <InlineCode>disabled</InlineCode> disables every
+            chip in it, whatever its kind; before, only the filter chips taking part in a selection
+            were. It calls <InlineCode>onSelectionChange</InlineCode> only when the selection
+            changes, and in a scrolling set the arrow keys bring the whole chip into view.
+          </>,
+          <>
+            An <InlineCode>InputChip</InlineCode> with only <InlineCode>onPress</InlineCode> shows
+            its hover, focus and pressed states; it showed none.
+          </>,
+          <>
+            An outlined field&apos;s floated label sits in the middle of its notch, with 4px on each
+            side, at both of the outline&apos;s widths. It applies to{' '}
+            <InlineCode>TextField</InlineCode>, <InlineCode>Select</InlineCode>,{' '}
+            <InlineCode>Autocomplete</InlineCode>, <InlineCode>DateField</InlineCode> and{' '}
+            <InlineCode>TimeField</InlineCode>. Under reduced motion the outline changes width at
+            once.
+          </>,
+          <>
+            Enter or Space held long enough to repeat acts once: on a time picker&apos;s dial the
+            repeat picked a minute after the hour, in a search bar it submitted the query as the
+            view opened, and on a bottom sheet&apos;s drag handle it went on to the next size.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>Avatar</InlineCode> takes a status ring:{' '}
+            <InlineCode>statusRing=&quot;active&quot;</InlineCode> for something to see about the
+            account (something new from it, a broadcast under way, the person speaking) and{' '}
+            <InlineCode>&quot;inactive&quot;</InlineCode>, thinner and quieter, for nothing new.{' '}
+            <InlineCode>statusRingLabel</InlineCode> says what it means in the avatar&apos;s
+            accessible name. The ring is drawn outside the avatar, which keeps its size, follows its
+            shape, and takes a colour or a gradient from its tokens.
+          </>,
+          <>
+            The ring can be cut into segments, one for each thing there is to see:{' '}
+            <InlineCode>statusRingSegments</InlineCode>, with{' '}
+            <InlineCode>statusRingInactiveSegments</InlineCode> for the ones already seen.
+          </>,
+          <>
+            <InlineCode>badgePlacement=&quot;bottom&quot;</InlineCode> puts the badge on the
+            avatar&apos;s bottom edge as a pill, for a short word such as &quot;LIVE&quot;.
+          </>,
+          <>
+            In an <InlineCode>AvatarGroup</InlineCode>, the avatar that holds keyboard focus is
+            drawn above the rest, so nothing covers its focus indicator; an avatar in a hover card
+            opened from the group is no longer part of it; and your own link around an avatar is
+            named by the avatar&apos;s <InlineCode>alt</InlineCode> in the server&apos;s HTML too.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.6',
     date: '2026-11-13',
     summary: (
