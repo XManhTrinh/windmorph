@@ -76,6 +76,7 @@ const PRO_NO_ENUM_DEFAULT: Record<string, string> = {
   'PhoneField.country': 'Controlled; `defaultCountry` holds the uncontrolled default.',
   'PhoneField.defaultCountry': 'Left out, the first priority country is used.',
   'Avatar.presence': 'Left out, the avatar has no presence dot.',
+  'Avatar.statusRing': 'Left out, the avatar has no status ring.',
   'FileTrigger.capture': 'Left out, the picker opens the files, not a camera.',
 };
 
