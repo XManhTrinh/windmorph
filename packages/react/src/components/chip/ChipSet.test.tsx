@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -421,5 +421,52 @@ describe('ChipSet', () => {
     await userEvent.keyboard('{ArrowRight}');
     expect(rating).toHaveFocus();
     expect(row.scrollLeft).toBe(22);
+  });
+
+  it('scrolls the whole of a chip that holds its buttons into the row, not only the one focused', async () => {
+    render(
+      <ChipSet aria-label="Filters" layout="scroll">
+        <FilterChip>Open now</FilterChip>
+        <FilterChip onRemove={() => {}}>Rating</FilterChip>
+      </ChipSet>,
+    );
+    const row = screen.getByRole('group', { name: 'Filters' });
+    const open = screen.getByRole('button', { name: 'Open now' });
+    const rating = screen.getByRole('button', { name: 'Rating' });
+    const box = (left: number, right: number) => () =>
+      ({ left, right, top: 0, bottom: 32, width: right - left, height: 32 }) as DOMRect;
+    Object.defineProperty(row, 'scrollWidth', { value: 400 });
+    Object.defineProperty(row, 'clientWidth', { value: 304 });
+    row.getBoundingClientRect = box(0, 304);
+    open.getBoundingClientRect = box(4, 222);
+    // The toggle is in the row; the chip, with its remove button, reaches past the row's edge.
+    rating.getBoundingClientRect = box(230, 290);
+    rating.parentElement!.getBoundingClientRect = box(230, 330);
+    open.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(rating).toHaveFocus();
+    // The focus indicator is drawn round the chip: its end and the ring's 5px come into view.
+    expect(row.scrollLeft).toBe(31);
+  });
+
+  it('leaves focus in an overlay opened from a single-select set where it is', () => {
+    render(
+      <ChipSet aria-label="Sort by" selectionMode="single" defaultSelectedKeys={['rating']}>
+        <FilterChip value="price">Price</FilterChip>
+        <FilterChip value="rating">Rating</FilterChip>
+        {/* A dialog opened from a chip of the set: its focus events reach the set through
+            React's tree, though it is no part of the set's own element. */}
+        <Overlay>
+          <ChipSet aria-label="Order" selectionMode="single" defaultSelectedKeys={['rising']}>
+            <FilterChip value="rising">Rising</FilterChip>
+            <FilterChip value="falling">Falling</FilterChip>
+          </ChipSet>
+        </Overlay>
+      </ChipSet>,
+    );
+    // Tab into the inner set lands on its own selected chip, and stays there: the outer set
+    // pulled focus back to its selected chip, behind the dialog.
+    act(() => screen.getByRole('radio', { name: 'Falling' }).focus());
+    expect(screen.getByRole('radio', { name: 'Rising' })).toHaveFocus();
   });
 });

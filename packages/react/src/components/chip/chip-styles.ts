@@ -54,13 +54,15 @@ const motion = [
  * a pressed layer while a menu opened from its main button is open, as a chip that is one
  * button does (`data-menu-open`).
  */
-const containerStates = [
-  'min-w-[88px] cursor-default',
+const containerStateLayers = [
   'has-data-hovered:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
   'has-data-focus-visible:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
   'has-data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
   'has-data-menu-open:[--m3-open-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
 ];
+
+/** With a remove button the chip is at least 88px wide (M3), and only its buttons are pressed. */
+const containerStates = ['min-w-[88px] cursor-default', ...containerStateLayers];
 
 /** Variant definitions for the chips; extend them to add variants. */
 export const chipStyles = tv({
@@ -156,12 +158,15 @@ export const chipStyles = tv({
       },
     },
     /**
-     * How the chip is built: one element (`none`); a container of two buttons, its main
-     * part and the remove button (`two`); or a remove-only input chip, whose one focus stop
-     * is the remove button, so its focus ring circles the whole chip (`removeOnly`).
+     * How the chip is built: one element (`none`); a container holding one button, an input
+     * chip's action (`action`); a container of two buttons, its main part and the remove
+     * button (`two`); or a remove-only input chip, whose one focus stop is the remove button,
+     * so its focus ring circles the whole chip (`removeOnly`).
      */
     split: {
       none: {},
+      // The container never gets the button's `data-*` states: it reads them from it.
+      action: { root: containerStateLayers },
       two: {
         root: containerStates,
         // Drawn inside the button, round its icon: outside it, the indicator reached past
@@ -315,7 +320,7 @@ export const chipStyles = tv({
     },
     {
       kind: ['filter', 'input'],
-      split: ['two', 'removeOnly'],
+      split: ['action', 'two', 'removeOnly'],
       elevated: false,
       class: { root: 'has-data-focus-visible:not-data-selected:border-on-surface-variant' },
     },
