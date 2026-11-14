@@ -13,29 +13,41 @@ const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExampl
 const AvatarGroupLinks = lazyExample('avatar/avatar-group-links', 'AvatarGroupLinks');
 const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
+const AvatarStatusRing = lazyExample('avatar/avatar-status-ring', 'AvatarStatusRing');
 const AvatarColors = lazyExample('avatar/avatar-colors', 'AvatarColors');
 
 /** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const [fallbacks, photos, colors, shapes, badges, group, groupLinks] = await Promise.all([
-    readExampleSource('avatar/avatar-fallbacks.tsx'),
-    readExampleSource('avatar/avatar-photos.tsx'),
-    readExampleSource('avatar/avatar-colors.tsx'),
-    readExampleSource('avatar/avatar-shapes.tsx'),
-    readExampleSource('avatar/avatar-badges.tsx'),
-    readExampleSource('avatar/avatar-group.tsx'),
-    readExampleSource('avatar/avatar-group-links.tsx'),
-  ]);
-  const [fallbacksHtml, photosHtml, colorsHtml, shapesHtml, badgesHtml, groupHtml, groupLinksHtml] =
+  const [fallbacks, photos, colors, shapes, badges, statusRing, group, groupLinks] =
     await Promise.all([
-      highlightSource(fallbacks),
-      highlightSource(photos),
-      highlightSource(colors),
-      highlightSource(shapes),
-      highlightSource(badges),
-      highlightSource(group),
-      highlightSource(groupLinks),
+      readExampleSource('avatar/avatar-fallbacks.tsx'),
+      readExampleSource('avatar/avatar-photos.tsx'),
+      readExampleSource('avatar/avatar-colors.tsx'),
+      readExampleSource('avatar/avatar-shapes.tsx'),
+      readExampleSource('avatar/avatar-badges.tsx'),
+      readExampleSource('avatar/avatar-status-ring.tsx'),
+      readExampleSource('avatar/avatar-group.tsx'),
+      readExampleSource('avatar/avatar-group-links.tsx'),
     ]);
+  const [
+    fallbacksHtml,
+    photosHtml,
+    colorsHtml,
+    shapesHtml,
+    badgesHtml,
+    statusRingHtml,
+    groupHtml,
+    groupLinksHtml,
+  ] = await Promise.all([
+    highlightSource(fallbacks),
+    highlightSource(photos),
+    highlightSource(colors),
+    highlightSource(shapes),
+    highlightSource(badges),
+    highlightSource(statusRing),
+    highlightSource(group),
+    highlightSource(groupLinks),
+  ]);
 
   return {
     overview: (
@@ -83,6 +95,14 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             fileName="avatar-badges.tsx"
           >
             <AvatarBadges />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A status ring, its segments and a pill at the bottom"
+            code={statusRing}
+            html={statusRingHtml}
+            fileName="avatar-status-ring.tsx"
+          >
+            <AvatarStatusRing />
           </ExampleViewer>
           <ExampleViewer title="Groups" code={group} html={groupHtml} fileName="avatar-group.tsx">
             <AvatarGroupExample />
@@ -143,6 +163,27 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             <InlineCode>icon</InlineCode> sets the fallback when there is no name.
           </p>
           <p className="text-body-large text-on-surface-variant">
+            <InlineCode>statusRing</InlineCode> draws a ring a small gap away from the avatar, for a
+            status an app shows on the avatar itself: <InlineCode>active</InlineCode> when there is
+            something to see (something new from the account, a broadcast under way, the person
+            speaking) and <InlineCode>inactive</InlineCode>, thinner and quieter, when there is
+            nothing new. <InlineCode>statusRingLabel</InlineCode>, required with it, says what the
+            ring means in the accessible name. The ring is drawn outside the avatar&apos;s box, so
+            the avatar keeps its size and nothing moves when a ring appears or goes: leave 4px round
+            it (5px from <InlineCode>lg</InlineCode>). <InlineCode>statusRingSegments</InlineCode>{' '}
+            cuts it into segments, one for each thing to see, and{' '}
+            <InlineCode>statusRingInactiveSegments</InlineCode> marks the ones already seen, from
+            the top going clockwise.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
+            <InlineCode>badgePlacement=&quot;bottom&quot;</InlineCode> puts the badge on the
+            avatar&apos;s bottom edge as a pill, for a short word such as &quot;LIVE&quot;: leave
+            8px below the avatar for it (10px from <InlineCode>lg</InlineCode>). In an{' '}
+            <InlineCode>AvatarGroup</InlineCode> an avatar with a ring is drawn above its
+            neighbours&apos; photos and takes no more room; give a spaced group whose avatars have
+            rings a wider gap.
+          </p>
+          <p className="text-body-large text-on-surface-variant">
             Shapes and bundle size: circle and rounded avatars carry no shape data, and each outline
             costs only its own path, about 0.4 kB gzipped for Cookie12Sided and up to 2.5 kB for
             SoftBoom, the largest. <InlineCode>materialShapePaths</InlineCode> holds all 35 (about
@@ -176,6 +217,18 @@ export async function AvatarBody(): Promise<ComponentDoc> {
               Status colours default to M3 roles (online <InlineCode>success</InlineCode>, away{' '}
               <InlineCode>warning</InlineCode>, offline an <InlineCode>outline</InlineCode> ring,
               badge <InlineCode>primary</InlineCode>), all in the token set below.
+            </li>
+            <li>
+              The status ring is painted with{' '}
+              <InlineCode>--wm-avatar-status-ring-active</InlineCode> (
+              <InlineCode>primary</InlineCode>) and{' '}
+              <InlineCode>--wm-avatar-status-ring-inactive</InlineCode> (
+              <InlineCode>outline</InlineCode>), which take a colour or a gradient; its width, its
+              gap from the avatar and the gap between segments (an angle, with its unit) are tokens
+              too. Paint it through the tokens: <InlineCode>classNames.statusRing</InlineCode>{' '}
+              reaches every layer of the ring. In forced colours it is{' '}
+              <InlineCode>Highlight</InlineCode> when active and <InlineCode>GrayText</InlineCode>{' '}
+              when inactive.
             </li>
             <li>
               Set the tokens on <InlineCode>:root</InlineCode>, a section or one avatar, in CSS or

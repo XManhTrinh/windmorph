@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { PropsRecord } from '../../lib/component-props';
 import { PLAYGROUND_DESCRIPTORS } from './descriptors';
 import { adjustMenuInstant, adjustListRadio } from './descriptors/containment-m3';
+import { adjustAvatar } from './descriptors/containment-pro';
 import { adjustPickerModeToggle } from './descriptors/feedback-pickers';
 import { adjustChipTrailing } from './descriptors/inputs-m3';
 import { adjustRailModal } from './descriptors/navigation';
@@ -97,6 +98,39 @@ describe('control combinations', () => {
       presentation: 'popover',
       instant: true,
     });
+  });
+
+  it("an avatar's status ring comes with its label, and goes with it and its segments", () => {
+    const none = {
+      statusRing: 'none',
+      statusRingLabel: '',
+      statusRingSegments: 1,
+      statusRingInactiveSegments: 0,
+    };
+    // Choosing a ring gives it the label the types require.
+    expect(adjustAvatar({ ...none, statusRing: 'active' }, 'statusRing')).toMatchObject({
+      statusRing: 'active',
+      statusRingLabel: 'new story',
+    });
+    // Segments or a label choose a ring.
+    expect(adjustAvatar({ ...none, statusRingSegments: 4 }, 'statusRingSegments')).toMatchObject({
+      statusRing: 'active',
+      statusRingLabel: 'new story',
+      statusRingSegments: 4,
+    });
+    expect(adjustAvatar({ ...none, statusRingLabel: 'live' }, 'statusRingLabel')).toMatchObject({
+      statusRing: 'active',
+      statusRingLabel: 'live',
+    });
+    // No ring, or no label, clears the rest.
+    const ringed = {
+      statusRing: 'active',
+      statusRingLabel: 'live',
+      statusRingSegments: 5,
+      statusRingInactiveSegments: 2,
+    };
+    expect(adjustAvatar({ ...ringed, statusRing: 'none' }, 'statusRing')).toMatchObject(none);
+    expect(adjustAvatar({ ...ringed, statusRingLabel: '' }, 'statusRingLabel')).toMatchObject(none);
   });
 
   it("a list's required needs a radio list", () => {

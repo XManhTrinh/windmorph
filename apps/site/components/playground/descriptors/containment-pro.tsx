@@ -41,6 +41,40 @@ import {
   shapeValue,
 } from './shared';
 
+/**
+ * A decorative avatar has no `alt` (the name is written beside it). A status ring's label and
+ * segments come with a ring and go with it: choosing a ring gives it a label, setting a label
+ * or segments chooses a ring, and no ring clears them.
+ */
+export function adjustAvatar(
+  values: Record<string, unknown>,
+  changed: string,
+): Record<string, unknown> {
+  if (changed === 'decorative' && values.decorative === true) return { ...values, alt: '' };
+  if (changed === 'alt' && values.alt) return { ...values, decorative: false };
+  if (changed === 'statusRing') {
+    return values.statusRing === 'none'
+      ? { ...values, statusRingLabel: '', statusRingSegments: 1, statusRingInactiveSegments: 0 }
+      : { ...values, statusRingLabel: values.statusRingLabel || 'new story' };
+  }
+  const ofTheRing =
+    (changed === 'statusRingLabel' && values.statusRingLabel !== '') ||
+    (changed === 'statusRingSegments' && values.statusRingSegments !== 1) ||
+    (changed === 'statusRingInactiveSegments' && values.statusRingInactiveSegments !== 0);
+  if (ofTheRing && values.statusRing === 'none') {
+    return {
+      ...values,
+      statusRing: 'active',
+      statusRingLabel: values.statusRingLabel || 'new story',
+    };
+  }
+  // A ring without its label is not an avatar the types take: clearing the label clears it.
+  if (changed === 'statusRingLabel' && values.statusRingLabel === '') {
+    return { ...values, statusRing: 'none', statusRingSegments: 1, statusRingInactiveSegments: 0 };
+  }
+  return values;
+}
+
 const AccordionAny = loose(Accordion);
 const ButtonAny = loose(Button);
 const ConfirmDialogAny = loose(ConfirmDialog);
@@ -605,7 +639,22 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       AvatarGroup: 'Stacks several avatars with an overflow count; the page examples show it.',
     },
     importFrom: '@windmorph/react-pro',
-    render: ({ presence, badge, badgeLabel, src, icon, alt, decorative, href, shape, ...props }) =>
+    render: ({
+      presence,
+      badge,
+      badgeLabel,
+      src,
+      icon,
+      alt,
+      decorative,
+      href,
+      shape,
+      statusRing,
+      statusRingLabel,
+      statusRingSegments,
+      statusRingInactiveSegments,
+      ...props
+    }) =>
       createElement(AvatarAny, {
         ...props,
         shape: shapeValue(shape),
@@ -615,6 +664,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         ...(href !== '' && href != null && { href }),
         ...(presence !== 'none' && { presence }),
         ...(badge !== '' && { badge, badgeLabel: String(badgeLabel || badge) }),
+        ...(statusRing !== 'none' && {
+          statusRing,
+          statusRingLabel: String(statusRingLabel || 'new story'),
+          statusRingSegments,
+          statusRingInactiveSegments,
+        }),
       }),
     defaultProps: {
       name: 'Nora Lindqvist',
@@ -629,6 +684,10 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       badge: '',
       badgeLabel: '',
       badgePlacement: 'top-end',
+      statusRing: 'none',
+      statusRingLabel: '',
+      statusRingSegments: 1,
+      statusRingInactiveSegments: 0,
       ring: false,
       href: '',
       alt: '',
@@ -647,6 +706,10 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       'badge',
       'badgeLabel',
       'badgePlacement',
+      'statusRing',
+      'statusRingLabel',
+      'statusRingSegments',
+      'statusRingInactiveSegments',
       'ring',
       'href',
       'alt',
@@ -667,15 +730,17 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       color: ['auto', 'primary', 'secondary', 'tertiary', 'neutral'],
       presence: ['none', 'online', 'away', 'offline'],
       presencePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
-      badgePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end'],
+      badgePlacement: ['top-start', 'top-end', 'bottom-start', 'bottom-end', 'bottom'],
+      statusRing: ['none', 'active', 'inactive'],
+    },
+    numberRanges: {
+      statusRingSegments: { min: 1, max: 20 },
+      statusRingInactiveSegments: { min: 0, max: 20 },
     },
     controlKinds: { src: 'boolean', icon: 'boolean' },
-    // A decorative avatar has no `alt` (the name is written beside it): the types say so.
-    adjust: (values, changed) => {
-      if (changed === 'decorative' && values.decorative === true) return { ...values, alt: '' };
-      if (changed === 'alt' && values.alt) return { ...values, decorative: false };
-      return values;
-    },
+    // A decorative avatar has no `alt` (the name is written beside it), and a status ring's
+    // label and segments come with a ring and go with it: the types say so.
+    adjust: adjustAvatar,
     toggledSlots: { src: '"/avatars/nora.jpg"', icon: '<PersonIcon />' },
     // A shape is written as its constant, imported from `@windmorph/react/primitives`.
     codeSlots: { shape: shapeSlot('circle') },
