@@ -177,6 +177,8 @@ export async function IconButtonBody(): Promise<ComponentDoc> {
               elevated or text. Filled is the default, as in the M3 Expressive specs (Compose&apos;s
               plain <InlineCode>IconButton</InlineCode> is standard). Toolbars and app bars make
               their icon buttons standard by default through <InlineCode>ButtonContext</InlineCode>.
+              A dialog, menu or sheet opened from one isn&apos;t part of it: its icon buttons are
+              filled again unless they say otherwise.
             </li>
             <li>
               <InlineCode>width</InlineCode> (narrow / default / wide) is the icon size plus leading

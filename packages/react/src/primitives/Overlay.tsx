@@ -10,9 +10,11 @@ import {
 } from '../theme/context';
 import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
+import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
 import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { ToolbarContext } from './ToolbarContext';
+import { TooltipPlacementContext } from './TooltipPlacementContext';
 
 export interface OverlayProps {
   children: ReactNode;
@@ -35,6 +37,9 @@ export interface OverlayProps {
    */
   density?: Density | undefined;
 }
+
+// What an overlay's buttons take from a container outside it: nothing.
+const NO_BUTTON_SETTINGS = {};
 
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
@@ -139,12 +144,18 @@ export function Overlay({
             ),
             // An overlay opened from a toolbar, a selection group or a chip set isn't part of
             // it: a chip in a dialog opened from a chip of a set kept the set's selection and
-            // its `disabled` (2026-11-14).
+            // its `disabled`, a button in one opened from a button group kept the group's
+            // size, variant, `disabled` and connected corners, and a tooltip in one opened
+            // from an app bar opened below its button, as in the bar (2026-11-14).
             <InheritedThemeContext value={themed}>
               <ToolbarContext value={null}>
-                <ToggleGroupStateContext value={null}>
-                  <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
-                </ToggleGroupStateContext>
+                <ContainerButtonContext value={NO_BUTTON_SETTINGS}>
+                  <TooltipPlacementContext value={null}>
+                    <ToggleGroupStateContext value={null}>
+                      <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
+                    </ToggleGroupStateContext>
+                  </TooltipPlacementContext>
+                </ContainerButtonContext>
               </ToolbarContext>
             </InheritedThemeContext>,
           )}

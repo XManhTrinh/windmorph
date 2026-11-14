@@ -399,6 +399,9 @@ export function SearchBar(props: SearchBarProps) {
   const submitOnEnter = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       event.preventDefault();
+      // Not the repeat of the Enter that opened the view, which lands here as the view's
+      // field takes focus and submitted the query as it stood.
+      if (event.repeat) return false;
       onSubmit?.(query);
       return true;
     }

@@ -151,6 +151,15 @@ export const SingleSelect: Story = {
   ),
 };
 
+/** An input chip whose only part is its action: the chip shows that button's states. */
+export const InputAction: Story = {
+  render: () => (
+    <InputChip avatar={<Avatar />} onPress={() => {}}>
+      Alex
+    </InputChip>
+  ),
+};
+
 /** Removable input chips, e.g. recipients: each is one focus stop, named "Remove …". */
 export const Recipients: Story = {
   render: function RecipientsStory() {

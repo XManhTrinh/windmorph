@@ -408,10 +408,10 @@ export type FilterChipProps = FilterChipOwnProps &
  * `ChipSet`'s selection with a `value`.
  *
  * With `onRemove` the chip is a container holding the toggle and the remove button. The toggle
- * is still the chip's button: `ref`, `id`, the handlers and every attribute of a button, ARIA
- * included, go to it, as without `onRemove`. `className` and `style` go on the container, and
- * with them the attributes about the whole chip: `data-*`, `hidden`, `inert`, `dir`, `lang`,
- * `translate` and `aria-hidden`.
+ * is still the chip's button: `ref`, `id`, the press, focus and key handlers and every
+ * attribute of a button, ARIA included, go to it, as without `onRemove`. `className` and
+ * `style` go on the container, and with them what is about the whole chip: `data-*`, `hidden`,
+ * `inert`, `dir`, `lang`, `translate`, `aria-hidden`, and `draggable` with the drag handlers.
  *
  * @example
  * <FilterChip selected={vegan} onSelectedChange={setVegan}>Vegan</FilterChip>
@@ -427,10 +427,16 @@ export function FilterChip(props: FilterChipProps) {
   const toggleRef = useObjectRef(ref);
   const focusWasInside = useRef(false);
   const removable = Boolean(onRemove);
+  const wasRemovable = useRef(removable);
   useLayoutEffect(() => {
-    if (!focusWasInside.current) return;
+    // Only as one form takes the other's place. A form also notes focus when its effects
+    // are torn down for another reason (hidden by an `Activity`, Strict Mode's second run),
+    // and that note must never move focus later, from wherever the person has gone since.
+    const swapped = wasRemovable.current !== removable;
+    wasRemovable.current = removable;
+    const refocus = swapped && focusWasInside.current;
     focusWasInside.current = false;
-    toggleRef.current?.focus({ preventScroll: true });
+    if (refocus) toggleRef.current?.focus({ preventScroll: true });
   }, [removable, toggleRef]);
   // In a selection group the group holds the selection, and `ButtonBase` warns about these.
   const selection = inGroup
@@ -707,7 +713,7 @@ export function InputChip({
   const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const selectedId = useId();
-  const split = onRemove ? (onPress ? 'two' : 'removeOnly') : 'none';
+  const split = onRemove ? (onPress ? 'two' : 'removeOnly') : onPress ? 'action' : 'none';
   // Without an action there's no `aria-pressed` to carry the selection, so it's said in words
   // (WCAG 1.3.1): the remove button's description, or hidden text on a static chip.
   const announceSelected = Boolean(selected) && !onPress;

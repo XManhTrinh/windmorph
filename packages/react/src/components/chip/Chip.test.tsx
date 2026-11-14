@@ -1,4 +1,4 @@
-import { createRef, type CSSProperties } from 'react';
+import { createRef, StrictMode, type CSSProperties } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -417,6 +417,71 @@ describe('A filter chip that gains or loses its remove button', () => {
     expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'true');
     rerender(chip(true, false));
     expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('never moves focus later, from a note left when no form took another’s place', () => {
+    // An inline callback ref runs the chip's effect on every render, and Strict Mode tears
+    // the new form's effects down once after a swap, with focus on its toggle: that note
+    // moved focus back to the toggle at the next render, from wherever it had gone.
+    const chip = (removable: boolean, label = 'Elsewhere') => (
+      <StrictMode>
+        <button type="button">{label}</button>
+        <FilterChip ref={() => {}} onRemove={removable ? () => {} : undefined}>
+          Nearby
+        </FilterChip>
+      </StrictMode>
+    );
+    const { rerender } = render(chip(false));
+    screen.getByRole('button', { name: 'Nearby' }).focus();
+    rerender(chip(true));
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveFocus();
+    screen.getByRole('button', { name: 'Elsewhere' }).focus();
+    rerender(chip(true, 'Somewhere'));
+    expect(screen.getByRole('button', { name: 'Somewhere' })).toHaveFocus();
+  });
+
+  it('warns about its own selection in a set, with a remove button or without', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    for (const onRemove of [undefined, () => {}]) {
+      warn.mockClear();
+      const { unmount } = render(
+        <ChipSet aria-label="Diet" selectionMode="multiple">
+          <FilterChip value="vegan" selected onRemove={onRemove}>
+            Vegan
+          </FilterChip>
+        </ChipSet>,
+      );
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('selectedKeys'));
+      unmount();
+    }
+    warn.mockRestore();
+  });
+});
+
+describe('An input chip whose only part is its action', () => {
+  it('shows the action’s states on the chip, which never gets them itself', async () => {
+    const onPress = vi.fn();
+    render(<InputChip onPress={onPress}>Alex</InputChip>);
+    const action = screen.getByRole('button', { name: 'Alex' });
+    const chip = action.parentElement!;
+    // The chip is a container, as with a remove button: hover, focus and press set their
+    // `data-*` on the button inside, and the chip reads them from there. Without these it
+    // showed no state at all, and no pressed layer while a menu opened from it was open.
+    expect(chip).toHaveClass(
+      'has-data-hovered:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
+      'has-data-focus-visible:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
+      'has-data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
+      'has-data-menu-open:[--m3-open-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
+      'has-data-focus-visible:not-data-selected:border-on-surface-variant',
+    );
+    // No remove button: none of its 88px minimum, and no border rule for a state it never has.
+    expect(chip).not.toHaveClass('min-w-[88px]');
+    expect(chip).not.toHaveClass('data-focus-visible:not-data-selected:border-on-surface-variant');
+    await userEvent.hover(action);
+    expect(action).toHaveAttribute('data-hovered', 'true');
+    expect(chip.matches(':has([data-hovered])')).toBe(true);
+    await userEvent.click(action);
+    expect(onPress).toHaveBeenCalledOnce();
   });
 });
 

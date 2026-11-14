@@ -90,6 +90,9 @@ export type ChipSetProps = ChipSetOwnProps &
 const FOCUSABLE =
   'button:not([disabled]):not([tabindex="-1"]), a[href]:not([tabindex="-1"]), [tabindex="0"]';
 
+/** A chip's root: every kind carries its own token set (`md-comp-<kind>-chip`). */
+const CHIP = '[data-tokens*="-chip"]';
+
 function focusables(root: HTMLElement): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
     (element) => !element.closest('[hidden], [inert]'),
@@ -156,6 +159,8 @@ function useChipSetKeyboard(single: boolean) {
   };
 
   const onFocus = (event: FocusEvent<HTMLDivElement>) => {
+    // Focus in an overlay opened from the set bubbles here through React's tree: not ours.
+    if (!event.currentTarget.contains(event.target)) return;
     const from = event.relatedTarget as Node | null;
     if (from && event.currentTarget.contains(from)) return;
     const target = lastFocused.current;
@@ -177,10 +182,13 @@ function useChipSetKeyboard(single: boolean) {
  * focus ring included: `focus()` scrolls only a chip that is wholly hidden, so one partly past
  * the row's edge stayed clipped. Only the row moves, never the page.
  */
-function revealInRow(row: HTMLElement, chip: Element | null) {
-  if (!(chip instanceof HTMLElement) || row.scrollWidth <= row.clientWidth) return;
+function revealInRow(row: HTMLElement, focused: Element | null) {
+  if (!(focused instanceof HTMLElement) || row.scrollWidth <= row.clientWidth) return;
+  // The whole chip, not only the button in it that took focus: a chip that holds its
+  // buttons draws the focus indicator round itself.
+  const chip = focused.closest(CHIP);
   const edges = row.getBoundingClientRect();
-  const box = chip.getBoundingClientRect();
+  const box = (chip && row.contains(chip) ? chip : focused).getBoundingClientRect();
   // The focus ring: a 3px outline 2px outside the chip.
   const ring = 5;
   const past =

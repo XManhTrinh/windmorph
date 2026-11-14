@@ -26,7 +26,13 @@ export const isSelectable = (state: CalendarState | RangeCalendarState, date: Ca
 /**
  * Keys the M3 date picker keyboard table adds to React Aria's grid: Enter closes and
  * saves (once a range has both ends), Shift+M moves to the month menu and Shift+Y to the
- * year menu. Runs in the capture phase, before the grid handles Enter.
+ * year menu. Runs in the capture phase, before the grid sees the key.
+ *
+ * The Enter that saves picks the focused day here, on key down, and goes no further (the
+ * one that starts a range is left to the grid). A day of the grid picks on key up (React
+ * Aria: "always select on press up"), which comes after the dialog has saved: Enter held as
+ * long as a person holds a key saved the day picked before, not the one it was pressed on
+ * (2026-11-14; a test's key is up within 2ms, so none saw it).
  */
 export function usePickerKeys(
   state: CalendarState | RangeCalendarState,
@@ -52,6 +58,9 @@ export function usePickerKeys(
     if (!isSelectable(state, state.focusedDate)) return;
     // A range is done when this Enter picks its second end.
     if ('anchorDate' in state && !state.anchorDate) return;
+    event.preventDefault();
+    event.stopPropagation();
+    state.selectFocusedDate();
     onConfirm();
   };
 }

@@ -126,6 +126,14 @@ describe('BottomSheet', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Expand sheet' }));
     expect(dialog).toHaveAttribute('data-detent', 'expanded');
     expect(dialog.parentElement!.style.getPropertyValue('--m3-sheet-offset')).toBe('0px');
+    // A key held on the handle acts once, as on a button: its repeat closed the sheet it
+    // had just opened fully.
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Close sheet' }), {
+      key: 'Enter',
+      repeat: true,
+    });
+    expect(dialog).toHaveAttribute('data-detent', 'expanded');
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
     // Escape is a close request: a fully open modal sheet closes in one press (APG modal dialog).
     fireEvent.keyDown(dialog, { key: 'Escape' });
     expect(onOpenChange).toHaveBeenCalledWith(false);

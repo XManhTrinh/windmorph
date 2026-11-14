@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { Overlay } from '../../primitives/Overlay';
 import { Button } from '../button/Button';
 import { Dialog, DialogActions, DialogTitle, DialogTrigger } from '../dialog/Dialog';
 import { IconButton } from '../icon-button/IconButton';
@@ -233,6 +234,22 @@ describe('Tooltip', () => {
     );
     expect(screen.getByText('Edit message')).toHaveAttribute('data-placement', 'bottom');
     expect(screen.getByText('Share message')).toHaveAttribute('data-placement', 'right');
+  });
+
+  it('opens above its button again in an overlay opened from an app bar', () => {
+    render(
+      <TooltipPlacementContext value="bottom">
+        {/* A dialog opened from an action of the bar: in the bar's React tree, and so in
+            its context, though it is not in the bar. */}
+        <Overlay>
+          <TooltipTrigger defaultOpen>
+            <IconButton icon={<Icon />} aria-label="Close" tooltip={false} />
+            <Tooltip>Close the dialog</Tooltip>
+          </TooltipTrigger>
+        </Overlay>
+      </TooltipPlacementContext>,
+    );
+    expect(screen.getByText('Close the dialog')).toHaveAttribute('data-placement', 'top');
   });
 
   it('requires a trigger', () => {

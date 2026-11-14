@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { CSSProperties } from 'react';
@@ -7,6 +7,7 @@ import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { setMediaQueries } from '../../../test/setup';
+import { Overlay } from '../../primitives/Overlay';
 import { ButtonGroup } from './ButtonGroup';
 import { fitCount } from './use-overflow';
 
@@ -497,6 +498,86 @@ describe('ButtonGroup selection', () => {
     await userEvent.keyboard('{Home}');
     expect(button('Bold')).toHaveFocus();
     expect(button('Bold')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  // A dialog opened from a button of the group: in the group's React tree, and so in its
+  // contexts and its event handlers, though it is no part of the group.
+  const WithDialog = ({ disabled }: { disabled?: boolean }) => (
+    <>
+      <Button>Alone</Button>
+      <ButtonGroup
+        variant="connected"
+        size="lg"
+        shape="square"
+        disabled={disabled}
+        selectionMode="single"
+        defaultSelectedKeys={['list']}
+        aria-label="View"
+      >
+        <Button toggle value="list">
+          List
+        </Button>
+        <Button toggle value="grid">
+          Grid
+        </Button>
+        <Overlay>
+          <Button>Done</Button>
+          <ButtonGroup selectionMode="single" defaultSelectedKeys={['cosy']} aria-label="Rows">
+            <Button toggle value="cosy">
+              Cosy
+            </Button>
+            <Button toggle value="compact">
+              Compact
+            </Button>
+          </ButtonGroup>
+        </Overlay>
+      </ButtonGroup>
+    </>
+  );
+
+  it('gives the buttons of an overlay opened from the group none of its settings', () => {
+    render(<WithDialog disabled />);
+    // A button in the dialog is as one outside any group: not the group's size, shape or
+    // connected corners, and not disabled with it.
+    const alone = screen.getByRole('button', { name: 'Alone' });
+    const done = screen.getByRole('button', { name: 'Done' });
+    expect(screen.getByRole('radio', { name: 'List' })).toHaveAttribute('data-size', 'lg');
+    expect(screen.getByRole('radio', { name: 'List' })).toBeDisabled();
+    expect(done).toBeEnabled();
+    expect(done.className).toBe(alone.className);
+    expect(done).toHaveAttribute('data-size', alone.getAttribute('data-size'));
+    expect(screen.getByRole('radio', { name: 'Compact' })).toBeEnabled();
+  });
+
+  it('leaves focus in an overlay opened from the group where it is', () => {
+    render(<WithDialog />);
+    // Tab into the dialog's own group lands on its checked button and stays there: the
+    // outer group took the focus event, which reaches it through React's tree, for its own
+    // and moved focus to its checked button, behind the dialog.
+    act(() => screen.getByRole('radio', { name: 'Compact' }).focus());
+    expect(screen.getByRole('radio', { name: 'Cosy' })).toHaveFocus();
+  });
+
+  it('leaves no listener on the document after a press', () => {
+    render(<WithDialog />);
+    const added = vi.spyOn(document, 'addEventListener');
+    const removed = vi.spyOn(document, 'removeEventListener');
+    // The group listens, in the capture phase, for the press to end either way.
+    const ends = (spy: typeof added) =>
+      spy.mock.calls.filter(
+        ([type, , options]) =>
+          (type === 'pointerup' || type === 'pointercancel') && options === true,
+      );
+    fireEvent.pointerDown(screen.getByRole('radio', { name: 'Grid' }));
+    expect(ends(added).map(([type]) => type)).toEqual(['pointerup', 'pointercancel']);
+    fireEvent.pointerUp(document.body);
+    // Both go with the first to fire: `once` took out only that one, so every press left
+    // the other on the document.
+    for (const [type, listener] of ends(added)) {
+      expect(removed).toHaveBeenCalledWith(type, listener, true);
+    }
+    added.mockRestore();
+    removed.mockRestore();
   });
 
   it('warns when a grouped toggle also sets its own selection', () => {

@@ -9,7 +9,7 @@ import { chipSetStyles, chipStyles } from './chip-styles';
 
 function* outputs() {
   for (const kind of ['assist', 'suggestion', 'filter', 'input'] as const)
-    for (const split of ['none', 'two', 'removeOnly'] as const)
+    for (const split of ['none', 'action', 'two', 'removeOnly'] as const)
       for (const elevated of [false, true])
         for (const outline of ['standard', 'strong'] as const)
           for (const leading of ['none', 'icon', 'avatar'] as const)

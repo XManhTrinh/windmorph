@@ -265,6 +265,46 @@ test.describe('Chips states', () => {
     await expect.poll(() => border(chip)).toBe(onSurfaceVariant);
   });
 
+  // An input chip with only `onPress` is a container round one button, which alone gets the
+  // `data-*` states: the chip showed no hover, focus or pressed layer, and no darker border.
+  test('an input chip that is only an action shows its states', async ({ page }) => {
+    await openStory(page, 'components-chips--input-action');
+    const action = page.getByRole('button', { name: 'Alex' });
+    const chip = action.locator('..');
+    // As numbers: the variables are written `.08` in one place and `0.08` in another.
+    const layer = () =>
+      chip.evaluate((el) => Number(getComputedStyle(el).getPropertyValue('--m3-state-opacity')));
+    const opacity = (state: string) =>
+      page.evaluate(
+        (name) =>
+          Number(
+            getComputedStyle(document.documentElement).getPropertyValue(
+              `--md-sys-state-${name}-state-layer-opacity`,
+            ),
+          ),
+        state,
+      );
+    expect(await layer()).toBe(0);
+    expect(await opacity('hover')).toBeGreaterThan(0);
+    await action.hover();
+    await expect.poll(layer).toBe(await opacity('hover'));
+    await page.mouse.down();
+    await expect.poll(layer).toBe(await opacity('pressed'));
+    await page.mouse.up();
+    await page.mouse.move(0, 0);
+    // By keyboard: the focus layer, the darker border, and the indicator round the chip.
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await page.keyboard.press('Tab');
+    await expect(action).toBeFocused();
+    await expect(action).toHaveAttribute('data-focus-visible', 'true');
+    await expect.poll(layer).toBe(await opacity('focus'));
+    const onSurfaceVariant = await role(page, 'on-surface-variant');
+    await expect
+      .poll(() => chip.evaluate((el) => getComputedStyle(el).borderTopColor))
+      .toBe(onSurfaceVariant);
+    expect(await chip.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  });
+
   // Layout safety: a consumer class on the chip never hides a focus indicator. The main
   // button's indicator was the button's own outline, inside the chip, and the remove
   // button's reached past the chip's edge, so `overflow-hidden` on the chip cut both.

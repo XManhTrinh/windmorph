@@ -864,7 +864,9 @@ function Dial({
   const onNumberKeyDown = (event: KeyboardEvent<SVGGElement>, index: number) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      activate(numbers[index]!.value);
+      // Once for a key held down: picking an hour moves focus to a minute, where the
+      // key's repeat picked that minute too, moving the time to the nearest five.
+      if (!event.repeat) activate(numbers[index]!.value);
       return;
     }
     const step = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[event.key];
