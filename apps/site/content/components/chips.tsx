@@ -112,9 +112,10 @@ export async function ChipsBody(): Promise<ComponentDoc> {
               icons, 24px avatars with 12px corners.
             </li>
             <li>
-              16px at an edge without an icon, 8px beside one (4px beside an avatar), 8px between
-              elements and between chips. Padding counts from the chip&apos;s edge: a flat
-              chip&apos;s 1px border takes none of it, so flat and elevated chips are the same size.
+              16px at an edge without an icon (12px on an input chip), 8px beside one (4px beside an
+              avatar), 8px between elements and between chips. Padding counts from the chip&apos;s
+              edge: a flat chip&apos;s 1px border takes none of it, so flat and elevated chips are
+              the same size.
             </li>
             <li>
               Elevation never shows a press: an elevated chip rises from level 1 to 2 on hover and a
