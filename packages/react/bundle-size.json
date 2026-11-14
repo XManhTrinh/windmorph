@@ -2,7 +2,7 @@
   "tolerance": 0.02,
   "budgets": {
     "components/app-bar/TopAppBar": 14500,
-    "components/autocomplete/Autocomplete": 39650,
+    "components/autocomplete/Autocomplete": 40600,
     "components/badge/Badge": 7200,
     "components/button-group/ButtonGroup": 37800,
     "components/button/Button": 19550,
@@ -27,7 +27,7 @@
     "components/menu/Menu": 29700,
     "components/menu/menu-trigger": 1850,
     "components/navigation/NavigationBar": 22950,
-    "components/navigation/NavigationRail": 25800,
+    "components/navigation/NavigationRail": 26400,
     "components/progress/ProgressIndicator": 28600,
     "components/pull-to-refresh/PullToRefresh": 15300,
     "components/radio/RadioGroup": 14400,

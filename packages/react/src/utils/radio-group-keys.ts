@@ -67,11 +67,15 @@ export function notePointerDown(event: PointerEvent<HTMLElement>) {
  * checked one. A pointer press keeps focus on the radio it lands on (the group's
  * `onPointerDownCapture` calls `notePointerDown`): moving it would select one radio while
  * focusing another, and scroll the page to the checked one (2026-10-15).
+ * Focus in a dialog or menu opened from the group reaches this handler too, through React's
+ * tree, though it is not in the group: it is left alone, or Tab inside such a dialog was
+ * pulled back to the group's checked radio (2026-11-14).
  * Returns whether the group has a checked radio (so the caller's own focus restoring
  * applies only when it hasn't).
  */
 export function focusCheckedRadio(event: FocusEvent<HTMLElement>): boolean {
   const root = event.currentTarget;
+  if (!root.contains(event.target)) return false;
   const from = event.relatedTarget as Node | null;
   if (from && root.contains(from)) return false;
   const checked = radios(root).find((radio) => radio.getAttribute('aria-checked') === 'true');

@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext } from 'react';
+import type { Context } from 'react';
+import { ContainerButtonContext } from '../../primitives/ButtonContext';
 import type { Density } from '../../tokens/density';
 import type { IconButtonVariant } from '../icon-button/icon-button-styles';
 import type { ButtonShape, ButtonSize, ButtonVariant } from './button-styles';
@@ -27,7 +28,10 @@ export interface ButtonContextValue {
   connected?: 'leading' | 'middle' | 'trailing';
 }
 
-export const ButtonContext = createContext<ButtonContextValue>({});
+// The context itself lives with the primitives, where `Overlay` can reach it to reset it, and
+// takes its value's shape here; the only value set below this layer is the empty one.
+/** What a container shares with the buttons inside it. Overlays reset it. */
+export const ButtonContext = ContainerButtonContext as Context<ButtonContextValue>;
 
 /** Selection state shared by toggle buttons in a selection group (see `ButtonGroup`). */
 export { ToggleGroupStateContext } from '../../primitives/ButtonBase';

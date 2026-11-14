@@ -7,6 +7,7 @@ import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
 import { ButtonContext, standardIconButtons } from '../button/ButtonContext';
 import { setMediaQueries } from '../../../test/setup';
+import { Overlay } from '../../primitives/Overlay';
 import { ButtonGroup } from './ButtonGroup';
 import { fitCount } from './use-overflow';
 
@@ -497,6 +498,56 @@ describe('ButtonGroup selection', () => {
     await userEvent.keyboard('{Home}');
     expect(button('Bold')).toHaveFocus();
     expect(button('Bold')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('leaves an overlay opened from the group out of it: its buttons and its focus', () => {
+    render(
+      <>
+        <Button>Alone</Button>
+        <ButtonGroup
+          variant="connected"
+          size="lg"
+          shape="square"
+          disabled
+          selectionMode="single"
+          defaultSelectedKeys={['list']}
+          aria-label="View"
+        >
+          <Button toggle value="list">
+            List
+          </Button>
+          <Button toggle value="grid">
+            Grid
+          </Button>
+          {/* A dialog opened from a button of the group: in the group's React tree, and so
+              in its contexts, though it is no part of the group. */}
+          <Overlay>
+            <Button>Done</Button>
+            <ButtonGroup selectionMode="single" defaultSelectedKeys={['cosy']} aria-label="Rows">
+              <Button toggle value="cosy">
+                Cosy
+              </Button>
+              <Button toggle value="compact">
+                Compact
+              </Button>
+            </ButtonGroup>
+          </Overlay>
+        </ButtonGroup>
+      </>,
+    );
+    // A button in the dialog is as one outside any group: not the group's size, shape or
+    // connected corners, and not disabled with it.
+    const alone = screen.getByRole('button', { name: 'Alone' });
+    const done = screen.getByRole('button', { name: 'Done' });
+    expect(screen.getByRole('radio', { name: 'List' })).toHaveAttribute('data-size', 'lg');
+    expect(done).toBeEnabled();
+    expect(done.className).toBe(alone.className);
+    expect(done).toHaveAttribute('data-size', alone.getAttribute('data-size'));
+    // Tab into the dialog's own group lands on its checked button and stays there: the
+    // outer group took the focus event, which reaches it through React's tree, for its own
+    // and moved focus to its checked button, behind the dialog.
+    act(() => screen.getByRole('radio', { name: 'Compact' }).focus());
+    expect(screen.getByRole('radio', { name: 'Cosy' })).toHaveFocus();
   });
 
   it('warns when a grouped toggle also sets its own selection', () => {
