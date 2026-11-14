@@ -3,12 +3,15 @@
 import {
   useContext,
   useId,
+  useLayoutEffect,
+  useRef,
   type CSSProperties,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
+  type RefObject,
 } from 'react';
-import { VisuallyHidden } from 'react-aria';
+import { useObjectRef, VisuallyHidden } from 'react-aria';
 import { useToggleState } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
 import {
@@ -18,13 +21,14 @@ import {
   type ButtonBaseLinkProps,
   type ButtonBaseToggleProps,
 } from '../../primitives/ButtonBase';
+import { ChipSetDisabledContext } from '../../primitives/ChipSetContext';
 import { TouchTarget } from '../../primitives/TouchTarget';
 import { TriggerContext } from '../../primitives/TriggerContext';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { isDraggedAttribute } from '../../utils/dragged-attribute';
 import { splitRootProps } from '../../utils/root-props';
-import { ChipSetDisabledContext } from './chip-set-context';
 import { chipStyles, type ChipOutline } from './chip-styles';
 
 /** Material Symbols "check" and "close" (Apache-2.0). */
@@ -161,7 +165,10 @@ const removeKeys =
     }
   };
 
-/** The remove button: named "Remove" + the chip's label, with a 48px target. */
+/**
+ * The remove button: named "Remove" + the chip's label, with a touch target of its own, 48px
+ * wide, or 41px beside a toggle or an action, where it stops at the label.
+ */
 function RemoveButton({
   styles,
   className,
@@ -214,9 +221,12 @@ function useChipDisabled(disabled: boolean | undefined): boolean {
 
 /**
  * The attributes about a whole chip rather than its button: `data-*` (styling and test hooks,
- * which belong with `className`), and what hides the chip or sets its language and direction.
+ * which belong with `className`), what hides the chip or sets its language and direction, and
+ * `draggable` with the drag events, so the chip is picked up whole, remove button included,
+ * and its handlers hear the drag that starts on it.
  */
-const WHOLE_CHIP = /^(?:data-.+|hidden|inert|dir|lang|translate|aria-hidden)$/;
+const WHOLE_CHIP =
+  /^(?:data-.+|hidden|inert|dir|lang|translate|aria-hidden|draggable|onDr(?:ag\w*|op)(?:Capture)?)$/;
 
 /**
  * A removable filter chip's props for its container, apart from the ones for its toggle
@@ -250,10 +260,6 @@ function splitControlAria(props: object) {
   }
   return { container, control };
 }
-
-/** A consumer's `data-dragged` as a state, as `ButtonBase` reads it: `false` isn't dragged. */
-const isDraggedAttribute = (value: unknown) =>
-  value !== undefined && value !== false && value !== 'false';
 
 /* ------------------------------------------------------------------ Assist */
 
@@ -411,11 +417,62 @@ export type FilterChipProps = FilterChipOwnProps &
  * <FilterChip selected={vegan} onSelectedChange={setVegan}>Vegan</FilterChip>
  */
 export function FilterChip(props: FilterChipProps) {
-  const { onRemove } = props;
+  const { onRemove, selected, defaultSelected, onSelectedChange, value, ref } = props;
+  const inGroup = useContext(ToggleGroupStateContext) != null && value !== undefined;
+  // The chip's own selection lives here, above its two forms. With `onRemove` the chip is a
+  // container of two buttons and without it one button, so React builds the toggle anew when
+  // an app adds or drops `onRemove` (a remove button shown from a breakpoint up). Kept in the
+  // form, an uncontrolled selection went with the old toggle, and so did keyboard focus.
+  const own = useToggleState({ isSelected: selected, defaultSelected, onChange: onSelectedChange });
+  const toggleRef = useObjectRef(ref);
+  const focusWasInside = useRef(false);
+  const removable = Boolean(onRemove);
+  useLayoutEffect(() => {
+    if (!focusWasInside.current) return;
+    focusWasInside.current = false;
+    toggleRef.current?.focus({ preventScroll: true });
+  }, [removable, toggleRef]);
+  // In a selection group the group holds the selection, and `ButtonBase` warns about these.
+  const selection = inGroup
+    ? {}
+    : { selected: own.isSelected, defaultSelected: undefined, onSelectedChange: own.setSelected };
   return onRemove ? (
-    <RemovableFilterChip {...props} onRemove={onRemove} />
+    <RemovableFilterChip
+      {...props}
+      {...selection}
+      ref={toggleRef}
+      onRemove={onRemove}
+      focusWasInside={focusWasInside}
+    />
   ) : (
-    <SimpleFilterChip {...props} />
+    <SimpleFilterChip {...props} {...selection} ref={toggleRef} focusWasInside={focusWasInside} />
+  );
+}
+
+/** What `FilterChip` gives each of its forms beside the chip's props. */
+interface FilterChipFormProps {
+  ref: RefObject<HTMLButtonElement | null>;
+  /** Set by a form as it goes, when focus was in it, for the form that takes its place. */
+  focusWasInside: RefObject<boolean>;
+}
+
+/**
+ * As a form of the chip goes (its cleanup runs before React removes its elements), notes
+ * whether keyboard focus was in it: on the toggle, or on the remove button beside it.
+ */
+function useNoteFocusInside(
+  { ref, focusWasInside }: FilterChipFormProps,
+  chipOf: (toggle: HTMLElement) => Element | null,
+) {
+  useLayoutEffect(
+    () => () => {
+      const toggle = ref.current;
+      const chip = toggle && chipOf(toggle);
+      focusWasInside.current = Boolean(chip?.contains(chip.ownerDocument.activeElement));
+    },
+    // Only as the form unmounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 }
 
@@ -443,8 +500,10 @@ function SimpleFilterChip({
   className,
   onRemove: _onRemove,
   labels: _labels,
+  focusWasInside,
   ...base
-}: FilterChipProps) {
+}: Omit<FilterChipProps, 'ref'> & FilterChipFormProps) {
+  useNoteFocusInside({ ref: base.ref, focusWasInside }, (toggle) => toggle);
   const styles = chipStyles({
     kind: 'filter',
     elevated,
@@ -487,24 +546,19 @@ function RemovableFilterChip({
   onRemove,
   labels,
   selected,
-  defaultSelected,
-  onSelectedChange,
   value,
   disabled: disabledProp,
   dragged,
   onKeyDown,
+  focusWasInside,
   ...base
-}: FilterChipProps & { onRemove: () => void }) {
+}: Omit<FilterChipProps, 'ref'> & FilterChipFormProps & { onRemove: () => void }) {
+  useNoteFocusInside({ ref: base.ref, focusWasInside }, (toggle) => toggle.parentElement);
   const disabled = useChipDisabled(disabledProp);
   const labelId = useId();
   const groupState = useContext(ToggleGroupStateContext);
   const inGroup = groupState != null && value !== undefined;
-  const ownState = useToggleState({
-    isSelected: selected,
-    defaultSelected,
-    onChange: onSelectedChange,
-  });
-  const isSelected = inGroup ? groupState.selectedKeys.has(value) : ownState.isSelected;
+  const isSelected = inGroup ? groupState.selectedKeys.has(value) : Boolean(selected);
   const isDisabled = Boolean(disabled || (inGroup && groupState.isDisabled));
   const styles = chipStyles({
     kind: 'filter',
@@ -514,9 +568,6 @@ function RemovableFilterChip({
     leading: leadingIcon ? 'icon' : 'none',
     trailing: true,
   });
-  const toggleProps = inGroup
-    ? { value }
-    : { value, selected: ownState.isSelected, onSelectedChange: ownState.setSelected };
   const { whole, button } = splitWholeChip(base);
   // Dragged by the prop or by the app's own attribute, on the container (whose classes read
   // it) and the toggle alike.
@@ -533,7 +584,8 @@ function RemovableFilterChip({
     >
       <ButtonBase
         {...button}
-        {...toggleProps}
+        value={value}
+        selected={selected}
         toggle
         dragged={isDragged}
         disabled={disabled}

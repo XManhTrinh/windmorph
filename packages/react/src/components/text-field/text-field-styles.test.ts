@@ -77,6 +77,14 @@ describe('textFieldStyles', () => {
     expect(outline).not.toContain('px-[12px]');
   });
 
+  // The reduced-motion table: "the border, indicator and notch change at once; colours fade".
+  it('changes the outline’s width and padding at once under reduced motion', () => {
+    const outline = textFieldStyles({ variant: 'outlined', hasLabel: true }).outline().split(' ');
+    expect(outline).toContain(
+      'motion-reduce:[transition-duration:var(--md-sys-motion-spring-effects-fast-duration),0s,0s]',
+    );
+  });
+
   // MDC hides a filled field's floating label below 52px (`$minimum-height-for-filled-label`):
   // at density -2 and -3 it touched the value. The switch is a clamped step of the density.
   it('hides the floated label of a filled field below 52px and centres the value', () => {

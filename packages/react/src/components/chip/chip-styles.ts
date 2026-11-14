@@ -49,12 +49,17 @@ const motion = [
   '[--m3-transition-delay:0s,0s,0s,0s,0s]',
 ];
 
-/** A container of buttons shows the state layer of whichever one is interacted with. */
+/**
+ * A container of buttons shows the state layer of whichever one is interacted with, and keeps
+ * a pressed layer while a menu opened from its main button is open, as a chip that is one
+ * button does (`data-menu-open`).
+ */
 const containerStates = [
   'min-w-[88px] cursor-default',
   'has-data-hovered:[--m3-state-opacity:var(--md-sys-state-hover-state-layer-opacity)]',
   'has-data-focus-visible:[--m3-state-opacity:var(--md-sys-state-focus-state-layer-opacity)]',
   'has-data-pressed:[--m3-state-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
+  'has-data-menu-open:[--m3-open-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
 ];
 
 /** Variant definitions for the chips; extend them to add variants. */
@@ -67,6 +72,11 @@ export const chipStyles = tv({
       '[--m3-chip-slot:min(24px,calc(var(--m3-chip-height)-2*var(--m3-chip-border)))]',
       'font-plain text-label-large whitespace-nowrap select-none',
       'state-layer focus-ring',
+      // A chip that holds its main button (a toggle or an action beside a remove button, an
+      // input chip's action) draws that button's focus indicator itself, round the whole
+      // chip: on the button inside, a consumer `overflow-hidden` on the chip clipped it.
+      'has-[[data-chip-primary][data-focus-visible]]:[outline:var(--md-sys-focus-indicator-thickness)_solid_var(--md-sys-color-secondary)]',
+      'has-[[data-chip-primary][data-focus-visible]]:[outline-offset:var(--md-sys-focus-indicator-offset)]',
       ...motion,
       'data-disabled:cursor-default data-disabled:text-on-surface/38',
     ],
@@ -98,9 +108,10 @@ export const chipStyles = tv({
     ],
     // The remove button's touch target: the 48px `TouchTarget`, narrower in a two-part chip.
     removeTarget: '',
-    // A two-part chip's main part (its action, selection or label) fills the chip.
+    // A two-part chip's main part (its action, selection or label) fills the chip. Its focus
+    // indicator is the chip's (see `root`).
     primary:
-      'inline-flex min-w-0 flex-1 cursor-pointer items-center self-stretch rounded-[inherit] focus-ring data-disabled:cursor-default',
+      'inline-flex min-w-0 flex-1 cursor-pointer items-center self-stretch rounded-[inherit] outline-none data-disabled:cursor-default',
   },
   variants: {
     kind: {
@@ -153,7 +164,9 @@ export const chipStyles = tv({
       none: {},
       two: {
         root: containerStates,
-        remove: 'focus-ring',
+        // Drawn inside the button, round its icon: outside it, the indicator reached past
+        // the chip's edge, where a consumer `overflow-hidden` on the chip cut it off.
+        remove: 'focus-ring-inset',
         // Both parts take presses, so the remove target stops where the label ends instead of
         // reaching 7px over it, where it took the label's presses (2026-11-13): it runs from
         // there, 8px before the icon, to 7px past the chip's end, 41px wide and 48px tall.

@@ -3,6 +3,7 @@
 import {
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   type ComponentPropsWithRef,
   type FocusEvent,
@@ -13,13 +14,14 @@ import { useObjectRef } from 'react-aria';
 import { useToggleGroupState, type Key } from 'react-stately';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { ToggleGroupStateContext } from '../../primitives/ButtonBase';
+import { ChipSetDisabledContext } from '../../primitives/ChipSetContext';
 import { cn } from '../../utils/cn';
+import { useSelectionChange } from '../../utils/use-selection-change';
 import {
   focusCheckedRadio,
   notePointerDown,
   radioGroupKeyDown,
 } from '../../utils/radio-group-keys';
-import { ChipSetDisabledContext } from './chip-set-context';
 import { chipSetStyles, type ChipSetLayout } from './chip-styles';
 
 export interface ChipSetClassNames {
@@ -273,13 +275,19 @@ export function ChipSet({
 }: ChipSetProps) {
   // A set inside a disabled set is disabled too.
   const isDisabled = useContext(ChipSetDisabledContext) || Boolean(disabled);
+  // Only real changes reach the app: a press on the last selected chip of a set that isn't
+  // `deselectable` used to call `onSelectionChange` with the selection it already had.
+  const selectionChange = useSelectionChange(onSelectionChange);
   const state = useToggleGroupState({
     selectionMode: selectionMode === 'single' ? 'single' : 'multiple',
     selectedKeys,
     defaultSelectedKeys,
-    onSelectionChange,
+    onSelectionChange: selectionChange.onChange,
     disallowEmptySelection: !deselectable,
     isDisabled,
+  });
+  useLayoutEffect(() => {
+    selectionChange.track(state.selectedKeys);
   });
   const keyboard = useChipSetKeyboard(selectionMode === 'single');
   const rootRef = useObjectRef(ref);

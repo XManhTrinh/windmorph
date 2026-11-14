@@ -265,6 +265,40 @@ test.describe('Chips states', () => {
     await expect.poll(() => border(chip)).toBe(onSurfaceVariant);
   });
 
+  // Layout safety: a consumer class on the chip never hides a focus indicator. The main
+  // button's indicator was the button's own outline, inside the chip, and the remove
+  // button's reached past the chip's edge, so `overflow-hidden` on the chip cut both.
+  test("overflow-hidden on a two-part chip hides neither button's focus indicator", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-chips--types');
+    const focusByKeyboard = async (locator: Locator) => {
+      await locator.focus();
+      await page.keyboard.press('Shift+Tab');
+      await page.keyboard.press('Tab');
+      await expect(locator).toHaveAttribute('data-focus-visible', 'true');
+    };
+    const outline = (locator: Locator) =>
+      locator.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return [style.outlineStyle, style.outlineWidth, style.outlineOffset];
+      });
+    for (const name of ['Removable', 'Editable']) {
+      const main = page.getByRole('button', { name, exact: true }).first();
+      const chip = main.locator('..');
+      await chip.evaluate((el) => el.classList.add('overflow-hidden'));
+      // The main button: the chip's own outline, which its own overflow can't clip.
+      await focusByKeyboard(main);
+      expect(await outline(chip)).toEqual(['solid', '3px', '2px']);
+      expect((await outline(main))[0]).toBe('none');
+      // The remove button: drawn inside the button, so inside the chip.
+      const remove = page.getByRole('button', { name: `Remove ${name}` }).first();
+      await focusByKeyboard(remove);
+      expect(await outline(remove)).toEqual(['solid', '3px', '-3px']);
+      expect((await outline(chip))[0]).toBe('none');
+    }
+  });
+
   test('padding counts from the edge: the 1px border takes none of it', async ({ page }) => {
     await openStory(page, 'components-chips--types');
     // 8px before a leading icon, 16px after the label.

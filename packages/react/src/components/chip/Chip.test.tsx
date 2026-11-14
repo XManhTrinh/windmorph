@@ -1,5 +1,5 @@
 import { createRef, type CSSProperties } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
@@ -286,7 +286,17 @@ describe('InputChip', () => {
     expect(chip).toHaveClass('ps-[calc(4px-var(--m3-chip-border))]');
     expect(root.querySelector('img')!.parentElement).toHaveClass('rounded-corner-medium');
     expect(root.querySelector('img')!.parentElement!.parentElement).toHaveClass('me-[8px]');
-    expect(remove).toHaveClass('size-[var(--m3-chip-slot)]', 'rounded-full', 'focus-ring');
+    expect(remove).toHaveClass('size-[var(--m3-chip-slot)]', 'rounded-full', 'focus-ring-inset');
+    expect(remove).not.toHaveClass('focus-ring');
+    // The action's focus indicator is the chip's own outline, which nothing on the chip clips.
+    expect(chip).toHaveClass('outline-none');
+    expect(chip).not.toHaveClass('focus-ring');
+    expect(root).toHaveClass(
+      'has-[[data-chip-primary][data-focus-visible]]:[outline:var(--md-sys-focus-indicator-thickness)_solid_var(--md-sys-color-secondary)]',
+      'has-[[data-chip-primary][data-focus-visible]]:[outline-offset:var(--md-sys-focus-indicator-offset)]',
+      // A menu opened from the action keeps a pressed layer on the chip.
+      'has-data-menu-open:[--m3-open-opacity:var(--md-sys-state-pressed-state-layer-opacity)]',
+    );
     // The close icon is decorative: the button's name says what it does.
     expect(remove.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     expect(remove.querySelector('[data-touch-target]')).not.toBeNull();
@@ -361,6 +371,52 @@ describe('InputChip', () => {
       'ps-[calc(12px-var(--m3-chip-border))]',
       'pe-[calc(12px-var(--m3-chip-border))]',
     );
+  });
+});
+
+describe('A filter chip that gains or loses its remove button', () => {
+  it('keeps its own selection and keyboard focus as its form changes', async () => {
+    const onSelectedChange = vi.fn();
+    const chip = (removable: boolean) => (
+      <FilterChip onSelectedChange={onSelectedChange} onRemove={removable ? () => {} : undefined}>
+        Nearby
+      </FilterChip>
+    );
+    const { rerender } = render(chip(false));
+    await userEvent.click(screen.getByRole('button', { name: 'Nearby' }));
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveFocus();
+    // A remove button shown from a breakpoint up: React builds the toggle anew inside a
+    // container. The selection was the old toggle's, and focus fell to the page.
+    rerender(chip(true));
+    const toggle = screen.getByRole('button', { name: 'Nearby' });
+    expect(toggle.parentElement).toHaveAttribute('data-selected', 'true');
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(toggle).toHaveFocus();
+    // And back, from the remove button: focus goes to the toggle, never to the page.
+    screen.getByRole('button', { name: 'Remove Nearby' }).focus();
+    rerender(chip(false));
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveFocus();
+    expect(onSelectedChange).toHaveBeenCalledOnce();
+  });
+
+  it('takes no focus it did not have, and stays controlled', () => {
+    const chip = (removable: boolean, selected: boolean) => (
+      <>
+        <button type="button">Elsewhere</button>
+        <FilterChip selected={selected} onRemove={removable ? () => {} : undefined}>
+          Nearby
+        </FilterChip>
+      </>
+    );
+    const { rerender } = render(chip(false, true));
+    screen.getByRole('button', { name: 'Elsewhere' }).focus();
+    rerender(chip(true, true));
+    expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'true');
+    rerender(chip(true, false));
+    expect(screen.getByRole('button', { name: 'Nearby' })).toHaveAttribute('aria-pressed', 'false');
   });
 });
 
@@ -462,6 +518,19 @@ describe("A two-part chip's props", () => {
       expect(button).not.toHaveAttribute('hidden');
       expect(button).not.toHaveAttribute('aria-hidden');
     }
+    // `draggable` and the drag handlers go with them: the chip is picked up whole, and a
+    // drag that starts on the container reaches its handler.
+    const onDragStart = vi.fn();
+    render(
+      <FilterChip data-testid="dragged" draggable onDragStart={onDragStart} onRemove={() => {}}>
+        Movable
+      </FilterChip>,
+    );
+    const movable = screen.getByTestId('dragged');
+    expect(movable).toHaveAttribute('draggable', 'true');
+    expect(screen.getByRole('button', { name: 'Movable' })).not.toHaveAttribute('draggable');
+    fireEvent.dragStart(movable);
+    expect(onDragStart).toHaveBeenCalledOnce();
     // `data-dragged={false}` isn't dragged, as on a chip that is one button.
     expect(screen.getByTestId('still')).not.toHaveAttribute('data-dragged');
     for (const id of ['lifted', 'carried']) {

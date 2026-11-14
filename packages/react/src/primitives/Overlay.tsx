@@ -10,6 +10,8 @@ import {
 } from '../theme/context';
 import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
+import { ChipSetDisabledContext } from './ChipSetContext';
+import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { ToolbarContext } from './ToolbarContext';
 
 export interface OverlayProps {
@@ -135,9 +137,15 @@ export function Overlay({
                 {content}
               </div>
             ),
-            // An overlay opened from a toolbar isn't part of it.
+            // An overlay opened from a toolbar, a selection group or a chip set isn't part of
+            // it: a chip in a dialog opened from a chip of a set kept the set's selection and
+            // its `disabled` (2026-11-14).
             <InheritedThemeContext value={themed}>
-              <ToolbarContext value={null}>{children}</ToolbarContext>
+              <ToolbarContext value={null}>
+                <ToggleGroupStateContext value={null}>
+                  <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
+                </ToggleGroupStateContext>
+              </ToolbarContext>
             </InheritedThemeContext>,
           )}
         </div>

@@ -38,6 +38,7 @@ import {
   radioGroupKeyDown,
 } from '../../utils/radio-group-keys';
 import { toolbarKeyDown } from '../../utils/toolbar-keys';
+import { useSelectionChange } from '../../utils/use-selection-change';
 import type { VariantProps } from '../../utils/tv';
 import { useWarnOnce } from '../../utils/warn-once';
 import { buttonGroupStyles } from './button-group-styles';
@@ -255,20 +256,16 @@ function ButtonGroupRoot({
   const parent = useContext(ButtonContext);
   const hasSelection = selectionMode !== 'none';
 
-  // React Stately reports a change even when the selection is unchanged (e.g. clicking
-  // the only selected button of a group that isn't `deselectable`); only real changes reach callers.
-  const currentKeys = useRef<ReadonlySet<Key>>(new Set());
-  const handleSelectionChange = (keys: Set<Key>) => {
-    const previous = currentKeys.current;
-    if (keys.size === previous.size && [...keys].every((key) => previous.has(key))) return;
-    onSelectionChange?.(keys as Set<string>);
-  };
+  // Only real changes of the selection reach callers.
+  const selectionChange = useSelectionChange(
+    onSelectionChange as ((keys: Set<Key>) => void) | undefined,
+  );
 
   const state = useToggleGroupState({
     selectionMode: hasSelection ? selectionMode : 'single',
     selectedKeys,
     defaultSelectedKeys,
-    onSelectionChange: handleSelectionChange,
+    onSelectionChange: selectionChange.onChange,
     disallowEmptySelection: !deselectable,
     isDisabled: disabled,
   });
@@ -286,7 +283,7 @@ function ButtonGroupRoot({
   );
 
   useLayoutEffect(() => {
-    currentKeys.current = state.selectedKeys;
+    selectionChange.track(state.selectedKeys);
   });
 
   usePressExpansion(domRef, expandedRatio ?? (variant === 'standard' ? 0.15 : 0));
