@@ -430,6 +430,68 @@ describe('PickerDialog', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null));
   });
 
+  it('saves the day Enter is pressed on while the key is still down', async () => {
+    const saved = vi.fn();
+    const savedRange = vi.fn();
+    function Demo() {
+      const [open, setOpen] = useState(true);
+      const [draft, setDraft] = useState<CalendarDate | null>(march);
+      return (
+        <PickerDialog
+          aria-label="Select date"
+          open={open}
+          onOpenChange={setOpen}
+          onConfirm={() => saved(draft)}
+          confirmButton={<Button variant="text">OK</Button>}
+        >
+          <DatePicker value={draft} onChange={setDraft} />
+        </PickerDialog>
+      );
+    }
+    function RangeDemo() {
+      const [open, setOpen] = useState(true);
+      const [draft, setDraft] = useState<DateRange | null>(null);
+      return (
+        <PickerDialog
+          aria-label="Select dates"
+          open={open}
+          onOpenChange={setOpen}
+          onConfirm={() => savedRange(draft)}
+          confirmButton={<Button variant="text">OK</Button>}
+        >
+          <DateRangePicker
+            value={draft}
+            onChange={setDraft}
+            min={new CalendarDate(2030, 3, 1)}
+            max={new CalendarDate(2030, 5, 31)}
+          />
+        </PickerDialog>
+      );
+    }
+    // The grid's day picks on key up, which a person's key reaches long after the dialog
+    // has saved: key down alone has to pick the day and save it.
+    const { unmount } = render(<Demo />);
+    screen.getByRole('button', { name: /March 10, 2030/ }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null));
+    expect(saved).toHaveBeenCalledExactlyOnceWith(new CalendarDate(2030, 3, 11));
+    unmount();
+
+    // A range: with its start picked, Enter on its other end picks that end and saves.
+    render(<RangeDemo />);
+    await userEvent.click(screen.getByRole('button', { name: /March 10, 2030/ }));
+    expect(savedRange).not.toHaveBeenCalled();
+    const end = screen.getByRole('button', { name: /March 13, 2030/ });
+    act(() => end.focus());
+    fireEvent.keyDown(end, { key: 'Enter' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null));
+    expect(savedRange).toHaveBeenCalledExactlyOnceWith({
+      start: new CalendarDate(2030, 3, 10),
+      end: new CalendarDate(2030, 3, 13),
+    });
+  });
+
   it('fills a compact window with close and Save at the top', async () => {
     act(() => setMediaQueries({ [COMPACT_WINDOW]: true }));
     const onConfirm = vi.fn();

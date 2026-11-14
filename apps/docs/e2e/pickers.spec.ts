@@ -155,9 +155,17 @@ test.describe('Date picker', () => {
     await page.getByRole('button', { name: 'Pick a date' }).click();
     await dialog.getByRole('button', { name: /March 20, 2030/ }).focus();
     await page.keyboard.press('ArrowRight');
-    await page.keyboard.press('Enter');
+    await expect(dialog.getByRole('button', { name: /March 21, 2030/ })).toBeFocused();
+    // The key stays down, as a person's does, until the dialog has closed and saved: the
+    // day used to be picked on key up, after the save, so the 20th was saved again. (A
+    // key pressed and let go within 2ms, as `press` does, hid it.)
+    await page.keyboard.down('Enter');
     await expect(dialog).toBeHidden();
     await expect(page.getByTestId('value')).toHaveText('Value 2030-03-21');
+    await page.keyboard.up('Enter');
+    // Letting go, with focus back on the button that opens the dialog, opens nothing.
+    await expect(page.getByRole('button', { name: 'Pick a date' })).toBeFocused();
+    await expect(dialog).toBeHidden();
   });
 
   test('the dialog fills a compact window', async ({ page }) => {
