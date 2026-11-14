@@ -28,10 +28,11 @@ export const isSelectable = (state: CalendarState | RangeCalendarState, date: Ca
  * saves (once a range has both ends), Shift+M moves to the month menu and Shift+Y to the
  * year menu. Runs in the capture phase, before the grid sees the key.
  *
- * Enter picks the focused day here, on key down, and goes no further. A day of the grid
- * picks on key up (React Aria: "always select on press up"), which comes after the dialog
- * has saved: Enter held as long as a person holds a key saved the day picked before, not
- * the one it was pressed on (2026-11-14; a test's key is up within 2ms, so none saw it).
+ * The Enter that saves picks the focused day here, on key down, and goes no further (the
+ * one that starts a range is left to the grid). A day of the grid picks on key up (React
+ * Aria: "always select on press up"), which comes after the dialog has saved: Enter held as
+ * long as a person holds a key saved the day picked before, not the one it was pressed on
+ * (2026-11-14; a test's key is up within 2ms, so none saw it).
  */
 export function usePickerKeys(
   state: CalendarState | RangeCalendarState,

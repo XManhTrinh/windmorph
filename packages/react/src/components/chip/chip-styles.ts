@@ -158,10 +158,10 @@ export const chipStyles = tv({
       },
     },
     /**
-     * How the chip is built: one element (`none`); a container holding one button, an input
-     * chip's action (`action`); a container of two buttons, its main part and the remove
-     * button (`two`); or a remove-only input chip, whose one focus stop is the remove button,
-     * so its focus ring circles the whole chip (`removeOnly`).
+     * How the chip is built: one button, or a static input chip (`none`); a container
+     * holding one button, an input chip's action (`action`); a container of two buttons, its
+     * main part and the remove button (`two`); or a remove-only input chip, whose one focus
+     * stop is the remove button, so its focus ring circles the whole chip (`removeOnly`).
      */
     split: {
       none: {},

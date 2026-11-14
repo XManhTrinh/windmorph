@@ -45,20 +45,24 @@ export function radioGroupKeyDown(event: KeyboardEvent<HTMLElement>) {
 /** Groups a pointer is pressing in: focus there comes from the press, not from Tab. */
 const pressed = new WeakSet<HTMLElement>();
 
+const PRESS_ENDS = ['pointerup', 'pointercancel'] as const;
+
 /**
  * For a radio group's `onPointerDownCapture`: marks the group as pressed until the pointer
  * lifts, so `focusCheckedRadio` leaves the focus the press gives where it lands.
  */
 export function notePointerDown(event: PointerEvent<HTMLElement>) {
   const root = event.currentTarget;
+  const page = root.ownerDocument;
   pressed.add(root);
   const release = () => {
+    // Both listeners go with the first to fire: `once` took out only that one, so every
+    // press left the other on the document, holding the group.
+    for (const type of PRESS_ENDS) page.removeEventListener(type, release, true);
     // After the press's own focus and click handlers.
     setTimeout(() => pressed.delete(root));
   };
-  for (const type of ['pointerup', 'pointercancel'] as const) {
-    root.ownerDocument.addEventListener(type, release, { once: true, capture: true });
-  }
+  for (const type of PRESS_ENDS) page.addEventListener(type, release, true);
 }
 
 /**
@@ -71,7 +75,8 @@ export function notePointerDown(event: PointerEvent<HTMLElement>) {
  * tree, though it is not in the group: it is left alone, or Tab inside such a dialog was
  * pulled back to the group's checked radio (2026-11-14).
  * Returns whether the group has a checked radio (so the caller's own focus restoring
- * applies only when it hasn't).
+ * applies only when it hasn't); `false` too for focus that isn't in the group, which a caller
+ * with focus restoring of its own must leave alone as well.
  */
 export function focusCheckedRadio(event: FocusEvent<HTMLElement>): boolean {
   const root = event.currentTarget;

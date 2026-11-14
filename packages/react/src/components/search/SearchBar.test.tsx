@@ -227,6 +227,9 @@ describe('SearchBar', () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(input).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('searchbox')).toHaveFocus();
+    // The key still down: its repeat lands on the view's field, and submits nothing.
+    fireEvent.keyDown(screen.getByRole('searchbox'), { key: 'Enter', repeat: true });
+    expect(onSubmit).not.toHaveBeenCalled();
     await userEvent.keyboard('{Enter}');
     expect(onSubmit).toHaveBeenCalledWith('');
   });

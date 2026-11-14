@@ -719,7 +719,9 @@ function BottomSheetPanel({
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    cycle();
+                    // Once for a key held down, as a button: its repeat went on to the next
+                    // size, and closed a modal sheet it had just opened fully.
+                    if (!event.repeat) cycle();
                   }
                 }}
                 className={styles.handle({ class: classNames?.handle })}

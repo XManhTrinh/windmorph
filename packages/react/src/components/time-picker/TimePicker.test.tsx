@@ -85,6 +85,10 @@ describe('TimePicker', () => {
       'true',
     );
     expect(within(dial).getByRole('button', { name: '30 minutes of 60' })).toHaveFocus();
+    // The key still down: its repeat lands on the minute that took focus, and picks nothing
+    // (it moved a time such as 10:07 to the nearest five).
+    fireEvent.keyDown(document.activeElement!, { key: 'Enter', repeat: true });
+    expect(onChange).toHaveBeenCalledOnce();
     await userEvent.keyboard('{ArrowLeft}{ }');
     expect(onChange).toHaveBeenLastCalledWith(new Time(10, 25));
     await userEvent.click(screen.getByRole('radio', { name: 'PM' }));

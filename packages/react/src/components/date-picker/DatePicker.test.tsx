@@ -478,10 +478,14 @@ describe('PickerDialog', () => {
     expect(saved).toHaveBeenCalledExactlyOnceWith(new CalendarDate(2030, 3, 11));
     unmount();
 
-    // A range: with its start picked, Enter on its other end picks that end and saves.
+    // A range: Enter on its first end starts it, saves nothing and leaves the dialog open;
+    // Enter on its other end picks that end and saves.
     render(<RangeDemo />);
-    await userEvent.click(screen.getByRole('button', { name: /March 10, 2030/ }));
+    act(() => screen.getByRole('button', { name: /March 10, 2030/ }).focus());
+    await userEvent.keyboard('{Enter}');
     expect(savedRange).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Mar 10 – End date')).toBeInTheDocument();
     const end = screen.getByRole('button', { name: /March 13, 2030/ });
     act(() => end.focus());
     fireEvent.keyDown(end, { key: 'Enter' });
