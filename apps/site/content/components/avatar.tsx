@@ -160,7 +160,12 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             Its sizes are in px (24 to 96px), so it keeps its M3 slot size at larger text sizes.
             With <InlineCode>href</InlineCode> it is a link and with{' '}
             <InlineCode>onPress</InlineCode> a button, with the core&apos;s state layer (hover,
-            focus and the pressed ripple) painted over the photo too.
+            focus and the pressed ripple) painted over the photo too. A link avatar takes{' '}
+            <InlineCode>target</InlineCode>, <InlineCode>rel</InlineCode> and{' '}
+            <InlineCode>download</InlineCode>, as an <InlineCode>&lt;a&gt;</InlineCode> does: with{' '}
+            <InlineCode>target=&quot;_blank&quot;</InlineCode> its <InlineCode>rel</InlineCode>{' '}
+            always holds <InlineCode>noopener noreferrer</InlineCode> and its name says it opens in
+            a new tab (<InlineCode>labels.newTab</InlineCode>).
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>AvatarGroup</InlineCode> shows several as one unit, named once by{' '}

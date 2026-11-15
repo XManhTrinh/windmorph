@@ -178,6 +178,16 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         kind: 'configuration',
         examples: ['media-grid/media-grid-columns'],
       },
+      {
+        name: 'Photos stored at several widths (`srcSet`, `sizes`)',
+        kind: 'configuration',
+        examples: ['media-grid/media-grid-sources'],
+      },
+      {
+        name: 'A photo that can’t be loaded (`fallbackIcon`)',
+        kind: 'use case',
+        examples: ['media-grid/media-grid-failed'],
+      },
     ],
   },
   'media-viewer': {

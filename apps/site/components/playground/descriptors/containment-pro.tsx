@@ -354,6 +354,12 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       onAction: "(index) => console.log('Open photo', index)",
       'aria-label': '"Photos"',
     },
+    notControlled: {
+      sizes:
+        'How wide a tile shows, for photos with a `srcSet` in widths: the preview\'s photos have one source each, so it would look the same. The "Photos stored at several widths" example shows it.',
+      fallbackIcon:
+        "The icon of a tile whose photo can't be loaded: the preview's photos all load. The \"A photo that can't be loaded\" example shows the state.",
+    },
   },
   'media-viewer': {
     component: 'MediaViewer',
@@ -753,6 +759,11 @@ export const CONTAINMENT_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         "An app's own image element (such as `next/image`) in place of `src`: the preview uses `src`.",
       locale:
         'Only changes how initials are cased in locales such as Turkish: the sample names look the same.',
+      target:
+        'Where a link avatar opens, as on `<a>`: nothing to see in the preview. With `_blank` the name says "opens in a new tab".',
+      rel: 'A link avatar\'s `rel`, as on `<a>`: nothing to see in the preview. With `target="_blank"` it always holds `noopener noreferrer`.',
+      download:
+        'Makes a link avatar download its address instead of opening it, as on `<a>`: nothing to see in the preview.',
     },
   },
   tag: {
