@@ -11,14 +11,16 @@ const AvatarBadges = lazyExample('avatar/avatar-badges', 'AvatarBadges');
 const AvatarFallbacks = lazyExample('avatar/avatar-fallbacks', 'AvatarFallbacks');
 const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExample');
 const AvatarGroupLinks = lazyExample('avatar/avatar-group-links', 'AvatarGroupLinks');
+const AvatarLive = lazyExample('avatar/avatar-live', 'AvatarLive');
 const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
 const AvatarStatusRing = lazyExample('avatar/avatar-status-ring', 'AvatarStatusRing');
+const AvatarStories = lazyExample('avatar/avatar-stories', 'AvatarStories');
 const AvatarColors = lazyExample('avatar/avatar-colors', 'AvatarColors');
 
 /** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const [fallbacks, photos, colors, shapes, badges, statusRing, group, groupLinks] =
+  const [fallbacks, photos, colors, shapes, badges, statusRing, stories, live, group, groupLinks] =
     await Promise.all([
       readExampleSource('avatar/avatar-fallbacks.tsx'),
       readExampleSource('avatar/avatar-photos.tsx'),
@@ -26,6 +28,8 @@ export async function AvatarBody(): Promise<ComponentDoc> {
       readExampleSource('avatar/avatar-shapes.tsx'),
       readExampleSource('avatar/avatar-badges.tsx'),
       readExampleSource('avatar/avatar-status-ring.tsx'),
+      readExampleSource('avatar/avatar-stories.tsx'),
+      readExampleSource('avatar/avatar-live.tsx'),
       readExampleSource('avatar/avatar-group.tsx'),
       readExampleSource('avatar/avatar-group-links.tsx'),
     ]);
@@ -36,6 +40,8 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     shapesHtml,
     badgesHtml,
     statusRingHtml,
+    storiesHtml,
+    liveHtml,
     groupHtml,
     groupLinksHtml,
   ] = await Promise.all([
@@ -45,6 +51,8 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     highlightSource(shapes),
     highlightSource(badges),
     highlightSource(statusRing),
+    highlightSource(stories),
+    highlightSource(live),
     highlightSource(group),
     highlightSource(groupLinks),
   ]);
@@ -97,12 +105,28 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             <AvatarBadges />
           </ExampleViewer>
           <ExampleViewer
-            title="A status ring, its segments and a pill at the bottom"
+            title="A status ring and its segments"
             code={statusRing}
             html={statusRingHtml}
             fileName="avatar-status-ring.tsx"
           >
             <AvatarStatusRing />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Stories: a gradient ring"
+            code={stories}
+            html={storiesHtml}
+            fileName="avatar-stories.tsx"
+          >
+            <AvatarStories />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Live now: a ring and a pill at the bottom"
+            code={live}
+            html={liveHtml}
+            fileName="avatar-live.tsx"
+          >
+            <AvatarLive />
           </ExampleViewer>
           <ExampleViewer title="Groups" code={group} html={groupHtml} fileName="avatar-group.tsx">
             <AvatarGroupExample />
