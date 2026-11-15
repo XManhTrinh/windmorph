@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useContext, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import {
+  useCallback,
+  useContext,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
 import {
   DocumentThemeContext,
@@ -117,6 +125,41 @@ export function Overlay({
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
+
+  // Where focus was as the overlay opened, read as it first renders, before its content takes
+  // focus (as React Aria's focus scope reads it).
+  const [focusedBefore] = useState(() =>
+    typeof document === 'undefined' ? null : document.activeElement,
+  );
+  const managesFocus = useRef(!disableFocusManagement);
+  useLayoutEffect(() => {
+    managesFocus.current = !disableFocusManagement;
+  });
+  // React Aria's focus scope gives focus back a frame after the overlay has left the document,
+  // so for that frame focus was on <body>, which a screen reader can announce as the page
+  // (2026-11-15). Focus still inside as the overlay unmounts goes back as soon as the commit
+  // that removes it ends, before the next frame, without a scroll, as React Aria's would; the
+  // scope then finds focus elsewhere and leaves it. Not during the commit: React reads no focus
+  // events while it commits, so the element would miss its own handlers (its focus ring, its
+  // tooltip). Where it was is gone, inside, or won't take focus: React Aria's, as before.
+  useLayoutEffect(() => {
+    const wrapper = scopeRef.current;
+    return () => {
+      const page = wrapper?.ownerDocument;
+      if (!managesFocus.current || !wrapper || !page?.activeElement) return;
+      if (!wrapper.contains(page.activeElement)) return;
+      const back = focusedBefore;
+      if (!(back instanceof HTMLElement || back instanceof SVGElement)) return;
+      if (back === page.body || wrapper.contains(back)) return;
+      queueMicrotask(() => {
+        // Still in the document: Strict Mode rehearsing an unmount, not the overlay leaving.
+        if (wrapper.isConnected || !back.isConnected) return;
+        // Focus moved on purpose meanwhile.
+        if (page.activeElement && page.activeElement !== page.body) return;
+        back.focus({ preventScroll: true });
+      });
+    };
+  }, [focusedBefore]);
 
   // `dir` is inherited through the DOM, which a portal leaves; copy the direction in
   // effect where the overlay is declared onto the portalled wrapper.
