@@ -34,6 +34,92 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.8',
+    date: '2026-11-15',
+    summary: (
+      <>
+        Two fixes to overlays inside overlays: a dialog or sheet placed inside one that a trigger
+        opened keeps its own open state, and Escape in a dialog opened from a bottom sheet no longer
+        closes the sheet behind it. In Windmorph Pro, <InlineCode>MediaGrid</InlineCode> picks the
+        right file for its tiles and keeps the tile of a photo that can&apos;t be loaded.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            A <InlineCode>Dialog</InlineCode> inside the content of a dialog that a{' '}
+            <InlineCode>DialogTrigger</InlineCode> opened keeps its own open state. It took the
+            trigger&apos;s, so it opened together with the outer dialog, each made the other inert,
+            and nothing in either could take focus or be pressed. A form&apos;s own dialog (an
+            &quot;Add a link&quot;, a &quot;Discard changes?&quot;) now stays closed until its{' '}
+            <InlineCode>open</InlineCode> says so, and closes alone. A modal{' '}
+            <InlineCode>BottomSheet</InlineCode> or <InlineCode>SideSheet</InlineCode> inside a
+            sheet that a <InlineCode>SheetTrigger</InlineCode> opened does the same, and so does a{' '}
+            <InlineCode>Menu</InlineCode> or <InlineCode>Select</InlineCode> shown as a sheet there.
+          </>,
+          <>
+            Escape pressed in a dialog or sheet opened from inside a{' '}
+            <InlineCode>BottomSheet</InlineCode> no longer closes the bottom sheet behind it. The
+            sheet took the key from an overlay inside it that doesn&apos;t close on Escape (
+            <InlineCode>closedBy=&quot;none&quot;</InlineCode>, a dialog while it saves). Escape
+            that cancels a text being composed is left to the input method too.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>MediaGrid</InlineCode> loads the smallest file that fills a tile when its
+            photos are stored at several widths (<InlineCode>srcSet</InlineCode>). The tile&apos;s
+            image had no <InlineCode>sizes</InlineCode>, so a browser took each tile to be as wide
+            as the window and loaded the largest file. The grid now says how wide a tile shows from
+            its own layout, and takes <InlineCode>sizes</InlineCode> for a grid narrower than the
+            window.
+          </>,
+          <>
+            A <InlineCode>MediaGrid</InlineCode> tile whose photo can&apos;t be loaded keeps its
+            square, in a container colour with an icon (<InlineCode>fallbackIcon</InlineCode>),
+            where the browser drew its broken-picture icon and the alt text. It is still a button
+            named by the photo&apos;s <InlineCode>alt</InlineCode> and still calls{' '}
+            <InlineCode>onAction</InlineCode>; a failure is noticed in the server&apos;s HTML too,
+            and a photo with no address shows the placeholder at once.
+          </>,
+          <>
+            A link <InlineCode>Avatar</InlineCode> takes <InlineCode>target</InlineCode>,{' '}
+            <InlineCode>rel</InlineCode> and <InlineCode>download</InlineCode>, as an{' '}
+            <InlineCode>&lt;a&gt;</InlineCode> does. With{' '}
+            <InlineCode>target=&quot;_blank&quot;</InlineCode> its <InlineCode>rel</InlineCode>{' '}
+            always holds <InlineCode>noopener noreferrer</InlineCode>, and its name says it opens in
+            a new tab.
+          </>,
+          <>
+            <InlineCode>ExpandableText</InlineCode> no longer shows &quot;See more&quot; on text
+            that isn&apos;t cut. One line holding a standalone <InlineCode>Link</InlineCode> showed
+            the button, and pressing it changed nothing: the link&apos;s 48px touch target was
+            counted as text. The text itself is now measured.
+          </>,
+          <>
+            A <InlineCode>stacked</InlineCode> <InlineCode>ReactionSummary</InlineCode> follows{' '}
+            <InlineCode>size</InlineCode> as <InlineCode>ReactionPicker</InlineCode> does: its
+            pressable button is the picker&apos;s height and padding (32px and 8px at{' '}
+            <InlineCode>sm</InlineCode>) and its count takes the picker&apos;s label type, so a
+            summary beside a picker neither stands taller nor moves the row as it appears.
+          </>,
+          <>
+            A <InlineCode>Popover</InlineCode> inside the content of a popover that a{' '}
+            <InlineCode>PopoverTrigger</InlineCode> opened keeps its own open state, as the
+            core&apos;s dialogs and sheets now do. With this core, a{' '}
+            <InlineCode>RichMessageField</InlineCode> works inside a dialog its trigger opened: its
+            own link dialog used to open with it.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.7',
     date: '2026-11-14',
     summary: (
