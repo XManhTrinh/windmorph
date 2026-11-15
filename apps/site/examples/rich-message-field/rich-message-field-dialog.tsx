@@ -11,7 +11,7 @@ import {
 } from '@windmorph/react';
 import { useMessageField } from '@windmorph/react-pro';
 import { RichMessageField } from '@windmorph/react-pro/rich-text';
-import { useState, type CSSProperties } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 
 /**
  * A dialog's corners are extra-large (28px), which is a grown field's default too. Inside
@@ -48,18 +48,24 @@ function EmojiTool() {
  * than the dialog's (`--wm-message-field-grown-corner`). It is a form, so the dialog is a
  * `dialog`, not an alert, and a press outside doesn't close it: only Cancel, Post or Escape
  * do. The draft is kept above the dialog, so it is still there after Cancel or Escape, and
- * posting clears it.
+ * posting clears it once the dialog has closed: cleared at once, Post would turn disabled
+ * under the focus while the dialog leaves.
  */
 export function RichMessageFieldDialog() {
   const [text, setText] = useState('');
+  const posted = useRef(false);
   const post = (close: () => void) => {
-    setText('');
+    posted.current = true;
     close();
+  };
+  const clearPosted = () => {
+    if (posted.current) setText('');
+    posted.current = false;
   };
   return (
     <DialogTrigger>
       <Button variant="tonal">New post</Button>
-      <Dialog role="dialog" closedBy="closerequest">
+      <Dialog role="dialog" closedBy="closerequest" onClosed={clearPosted}>
         {({ close }) => (
           <>
             <DialogTitle>New post</DialogTitle>
