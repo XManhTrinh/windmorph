@@ -176,9 +176,9 @@ describe('RadioGroup density', () => {
     const option = (name: string) => screen.getByText(name).closest('label')!;
     expect(option('Standard')).not.toHaveAttribute('data-density');
     expect(option('Express')).toHaveAttribute('data-density', '0');
-    // Rows 2px further apart per step, so a 48px target never reaches the next ring.
+    // Rows 48px apart, top to top, at every density, so two rows' 48px targets never overlap.
     expect(option('Standard').parentElement).toHaveClass(
-      'gap-y-[calc(0px-var(--md-sys-density,0)*2px)]',
+      'gap-y-[calc(8px-var(--md-sys-density,0)*4px)]',
     );
     expect(await axeViolations(container)).toEqual([]);
   });

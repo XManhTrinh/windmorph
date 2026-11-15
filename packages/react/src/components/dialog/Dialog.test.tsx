@@ -101,6 +101,25 @@ describe('Dialog', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus());
   });
 
+  it('gives focus back as it leaves, never to the page in between', async () => {
+    render(<DeleteDialog />);
+    const trigger = screen.getByRole('button', { name: 'Delete' });
+    await userEvent.click(trigger);
+    // What has focus each time the document changes: React Aria gave it back a frame after
+    // the dialog had left, so for that frame it was on <body>, which a screen reader can
+    // announce as the page.
+    const focused: string[] = [];
+    const observer = new MutationObserver(() =>
+      focused.push(document.activeElement === document.body ? 'body' : 'element'),
+    );
+    observer.observe(document.body, { childList: true, subtree: true });
+    await userEvent.keyboard('{Escape}');
+    await gone('Delete file?');
+    observer.disconnect();
+    expect(focused).not.toContain('body');
+    expect(trigger).toHaveFocus();
+  });
+
   it('closes from the render prop, and buttons inside are not triggers', async () => {
     render(<DeleteDialog />);
     await userEvent.click(screen.getByRole('button', { name: 'Delete' }));

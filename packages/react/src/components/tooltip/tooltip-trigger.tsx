@@ -10,28 +10,29 @@
 
 import {
   Children,
-  createContext,
   useContext,
   useEffect,
   useMemo,
   useRef,
   type DOMAttributes,
-  type HTMLAttributes,
   type ReactNode,
-  type RefObject,
 } from 'react';
 import { mergeProps, useLongPress, useTooltipTrigger } from 'react-aria';
-import {
-  useTooltipTriggerState,
-  type OverlayTriggerState,
-  type TooltipTriggerState,
-} from 'react-stately';
+import { useTooltipTriggerState } from 'react-stately';
+import { RichContext, TooltipContext } from '../../primitives/TooltipTriggerContext';
 import {
   TriggerContext,
   useTriggerProps,
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 import { TooltipPlacementContext, type TooltipPlacement } from './tooltip-placement';
+
+export {
+  RichContext,
+  TooltipContext,
+  type RichContextValue,
+  type TooltipContextValue,
+} from '../../primitives/TooltipTriggerContext';
 
 /**
  * The spec: 4px from an anchor with a visual boundary (a button), 8px from one without (text).
@@ -77,17 +78,6 @@ export function useTouchLongPress(
 }
 
 /* ------------------------------------------------------------------ Plain */
-
-/** What a `TooltipTrigger` gives its `Tooltip`. */
-export interface TooltipContextValue {
-  state: TooltipTriggerState;
-  triggerRef: RefObject<HTMLElement | null>;
-  tooltipProps: HTMLAttributes<HTMLElement>;
-  placement: TooltipPlacement;
-  offset: number;
-}
-
-export const TooltipContext = createContext<TooltipContextValue | null>(null);
 
 export interface TooltipTriggerProps {
   /** The trigger (a library button or anything reading `TriggerContext`), then a `<Tooltip>`. */
@@ -167,24 +157,13 @@ export function TooltipTrigger({
   );
 }
 
-/* ------------------------------------------------------------------- Rich */
-
-/** What a `RichTooltipTrigger` gives its `RichTooltip`. */
-export type RichContextValue = {
-  triggerRef: RefObject<HTMLElement | null>;
-  placement: TooltipPlacement;
-  offset: number;
-} & (
-  | { persistent: true; state: OverlayTriggerState; overlayProps: HTMLAttributes<HTMLElement> }
-  | { persistent: false; state: TooltipTriggerState; tooltipProps: HTMLAttributes<HTMLElement> }
-);
-
-export const RichContext = createContext<RichContextValue | null>(null);
+/* ------------------------------------------------------------------- Both */
 
 /**
  * Whether the caller is inside a `TooltipTrigger` or `RichTooltipTrigger`, so its trigger
  * already has a tooltip. Icon buttons, which show their label as a tooltip by default, use
- * it to step aside for a tooltip the app wrapped them in.
+ * it to step aside for a tooltip the app wrapped them in. Overlays reset both contexts, so
+ * the buttons of a dialog or sheet opened from inside a trigger keep their own tooltips.
  */
 export function useInTooltipTrigger(): boolean {
   const plain = useContext(TooltipContext);

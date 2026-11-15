@@ -821,6 +821,86 @@ describe('InputChip selection without an action', () => {
   });
 });
 
+describe('Chip classNames', () => {
+  /** Each key's class, named after the key. */
+  const every = <Key extends string>(...keys: Key[]) =>
+    Object.fromEntries(keys.map((key) => [key, `part-${key}`])) as Record<Key, string>;
+  /** The one element carrying a key's class. */
+  const part = (key: string) => {
+    const found = document.querySelectorAll(`.part-${key}`);
+    expect(found, key).toHaveLength(1);
+    return found[0]!;
+  };
+  /** The root, content row, label and leading slot every chip has. */
+  function expectCommonParts(root: Element, label: string, leading: string) {
+    expect(part('root')).toBe(root);
+    expect(part('label')).toHaveTextContent(label);
+    expect(part('content')).toBe(part('label').parentElement);
+    expect(part('leading')).toContainElement(screen.getByTestId(leading));
+  }
+
+  it.each([
+    ['AssistChip', AssistChip],
+    ['SuggestionChip', SuggestionChip],
+  ] as const)('puts each key of a %s on its part', (_, Chip) => {
+    render(
+      <Chip leadingIcon={<Icon />} classNames={every('root', 'content', 'leading', 'label')}>
+        Directions
+      </Chip>,
+    );
+    expectCommonParts(screen.getByRole('button'), 'Directions', 'icon');
+  });
+
+  it('puts each key of a filter chip on its part, with a trailing icon or a remove button', () => {
+    const { unmount } = render(
+      <FilterChip
+        leadingIcon={<Icon />}
+        trailingIcon={<Icon id="arrow" />}
+        classNames={every('root', 'content', 'leading', 'label', 'trailing')}
+      >
+        Sort
+      </FilterChip>,
+    );
+    expectCommonParts(screen.getByRole('button'), 'Sort', 'icon');
+    expect(part('trailing')).toContainElement(screen.getByTestId('arrow'));
+    unmount();
+
+    render(
+      <FilterChip
+        leadingIcon={<Icon />}
+        onRemove={() => undefined}
+        classNames={every('root', 'content', 'leading', 'label', 'primary', 'remove')}
+      >
+        Vegan
+      </FilterChip>,
+    );
+    expectCommonParts(
+      screen.getByRole('button', { name: 'Vegan' }).parentElement!,
+      'Vegan',
+      'icon',
+    );
+    expect(part('primary')).toBe(screen.getByRole('button', { name: 'Vegan' }));
+    expect(part('remove')).toBe(screen.getByRole('button', { name: 'Remove Vegan' }));
+  });
+
+  it('puts each key of an input chip on its part', () => {
+    render(
+      <InputChip
+        avatar={<img alt="" src="data:," data-testid="photo" />}
+        onPress={() => undefined}
+        onRemove={() => undefined}
+        classNames={every('root', 'content', 'leading', 'label', 'primary', 'avatar', 'remove')}
+      >
+        Alex
+      </InputChip>,
+    );
+    expectCommonParts(screen.getByRole('button', { name: 'Alex' }).parentElement!, 'Alex', 'photo');
+    expect(part('avatar')).toContainElement(screen.getByTestId('photo'));
+    expect(part('primary')).toBe(screen.getByRole('button', { name: 'Alex' }));
+    expect(part('remove')).toBe(screen.getByRole('button', { name: 'Remove Alex' }));
+  });
+});
+
 describe('Chip token sets', () => {
   it("puts an app's token set after each chip's own", () => {
     render(

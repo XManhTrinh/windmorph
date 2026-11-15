@@ -426,12 +426,17 @@ export const chipSetStyles = tv({
       // Rows wrap, 48px apart top to top.
       wrap: { root: 'flex-wrap' },
       // One row that scrolls sideways. The padding keeps the chips' 48px targets and focus
-      // rings inside the scroll area (more above and below as density makes chips shorter).
-      // The scrollbar stays, thin and in `outline` (2026-10-17): hidden, nothing showed a
-      // mouse user that more chips lay beyond the edge, or gave them a way to reach them.
+      // rings inside the scroll area (more above and below as density makes chips shorter):
+      // at each end, the whole ring, its thickness and offset (5px; 4px cut 1px off the first
+      // and last chips' rings, 2026-11-15), also as scroll padding, so a chip focus scrolls in
+      // keeps its ring in view. The scrollbar stays, thin and in `outline` (2026-10-17):
+      // hidden, nothing showed a mouse user that more chips lay beyond the edge, or gave them a
+      // way to reach them.
       scroll: {
         root: [
-          'flex-nowrap overflow-x-auto overscroll-x-contain ps-[4px] pe-[4px] pt-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] pb-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+          'flex-nowrap overflow-x-auto overscroll-x-contain pt-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))] pb-[calc(8px-max(-4px,var(--md-sys-density,0)*2px))]',
+          'ps-[calc(var(--md-sys-focus-indicator-thickness)+var(--md-sys-focus-indicator-offset))] pe-[calc(var(--md-sys-focus-indicator-thickness)+var(--md-sys-focus-indicator-offset))]',
+          'scroll-px-[calc(var(--md-sys-focus-indicator-thickness)+var(--md-sys-focus-indicator-offset))]',
           '[scrollbar-width:thin] [scrollbar-color:var(--md-sys-color-outline)_transparent]',
         ],
       },

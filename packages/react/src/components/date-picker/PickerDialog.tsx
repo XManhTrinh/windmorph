@@ -14,7 +14,6 @@ import { mergeProps, useDialog, useModalOverlay, useObjectRef } from 'react-aria
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
-import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { Button } from '../button/Button';
 import { DIALOG_ROOT_STYLE, dialogStyles } from '../dialog/dialog-styles';
@@ -249,52 +248,47 @@ function PickerDialogModal({
                 class: [transition === 'reveal' && shell.parts(), classNames?.panel],
               })}
             >
-              <TriggerContext value={null}>
-                {full && (
-                  <div className={styles.header({ class: classNames?.header })}>
-                    <IconButton
-                      variant="standard"
-                      density={0}
-                      icon={closeIcon ?? <CloseIcon />}
-                      aria-label={labels.close ?? 'Close'}
-                      onPress={state.close}
-                      className={styles.close({ class: classNames?.close })}
-                    />
-                    <div className={styles.buttons()}>
-                      {modeToggleButton}
-                      {onConfirm ? (
-                        <Button variant="text" onPress={requestConfirm}>
-                          {labels.save ?? 'Save'}
-                        </Button>
-                      ) : (
-                        confirmButton
-                      )}
-                    </div>
-                  </div>
-                )}
-                {variant === 'time' && title != null && (
-                  <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
-                    {title}
-                  </h2>
-                )}
-                <PickerDialogContext value={context}>
-                  <div className={styles.content()}>
-                    {typeof children === 'function' ? children({ close: state.close }) : children}
-                  </div>
-                </PickerDialogContext>
-                {!full && (
-                  <div
-                    data-slot="actions"
-                    className={styles.actions({ class: classNames?.actions })}
-                  >
+              {full && (
+                <div className={styles.header({ class: classNames?.header })}>
+                  <IconButton
+                    variant="standard"
+                    density={0}
+                    icon={closeIcon ?? <CloseIcon />}
+                    aria-label={labels.close ?? 'Close'}
+                    onPress={state.close}
+                    className={styles.close({ class: classNames?.close })}
+                  />
+                  <div className={styles.buttons()}>
                     {modeToggleButton}
-                    <div className={styles.buttons()}>
-                      {dismissButton}
-                      {confirmButton}
-                    </div>
+                    {onConfirm ? (
+                      <Button variant="text" onPress={requestConfirm}>
+                        {labels.save ?? 'Save'}
+                      </Button>
+                    ) : (
+                      confirmButton
+                    )}
                   </div>
-                )}
-              </TriggerContext>
+                </div>
+              )}
+              {variant === 'time' && title != null && (
+                <h2 {...titleProps} className={styles.title({ class: classNames?.title })}>
+                  {title}
+                </h2>
+              )}
+              <PickerDialogContext value={context}>
+                <div className={styles.content()}>
+                  {typeof children === 'function' ? children({ close: state.close }) : children}
+                </div>
+              </PickerDialogContext>
+              {!full && (
+                <div data-slot="actions" className={styles.actions({ class: classNames?.actions })}>
+                  {modeToggleButton}
+                  <div className={styles.buttons()}>
+                    {dismissButton}
+                    {confirmButton}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

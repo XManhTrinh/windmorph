@@ -112,7 +112,7 @@ const chips = (
     selectionMode="single"
     defaultSelectedKeys={['all']}
     layout="scroll"
-    className="px-[8px] pb-[8px]"
+    className="px-[8px]"
     data-testid="chips"
   >
     <FilterChip value="all">All</FilterChip>

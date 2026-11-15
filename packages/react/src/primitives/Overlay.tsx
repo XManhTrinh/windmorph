@@ -1,6 +1,14 @@
 'use client';
 
-import { useCallback, useContext, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import {
+  useCallback,
+  useContext,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Overlay as AriaOverlay } from 'react-aria';
 import {
   DocumentThemeContext,
@@ -12,9 +20,12 @@ import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
+import { DialogTriggerContext, SheetTriggerContext } from './OverlayTriggerContext';
 import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { ToolbarContext } from './ToolbarContext';
 import { TooltipPlacementContext } from './TooltipPlacementContext';
+import { RichContext, TooltipContext } from './TooltipTriggerContext';
+import { TriggerContext } from './TriggerContext';
 
 export interface OverlayProps {
   children: ReactNode;
@@ -40,6 +51,38 @@ export interface OverlayProps {
 
 // What an overlay's buttons take from a container outside it: nothing.
 const NO_BUTTON_SETTINGS = {};
+
+// An overlay isn't part of what it was opened from. A chip in a dialog opened from a chip of a
+// set kept the set's selection and its `disabled`; a button in one opened from a button group
+// kept the group's size, variant, `disabled` and connected corners; a tooltip in one opened
+// from an app bar opened below its button, as in the bar (2026-11-14). An icon button in one
+// opened from inside a tooltip trigger left its label tooltip to that trigger, so a full-screen
+// dialog's close button had none; the action of a rich tooltip whose trigger sits inside a
+// menu trigger took that trigger's props; and a dialog or modal sheet inside a dialog or sheet
+// a trigger opened took that trigger's open state (2026-11-15).
+function LeaveOpener({ children }: { children: ReactNode }) {
+  return (
+    <TriggerContext value={null}>
+      <TooltipContext value={null}>
+        <RichContext value={null}>
+          <DialogTriggerContext value={null}>
+            <SheetTriggerContext value={null}>
+              <ToolbarContext value={null}>
+                <ContainerButtonContext value={NO_BUTTON_SETTINGS}>
+                  <TooltipPlacementContext value={null}>
+                    <ToggleGroupStateContext value={null}>
+                      <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
+                    </ToggleGroupStateContext>
+                  </TooltipPlacementContext>
+                </ContainerButtonContext>
+              </ToolbarContext>
+            </SheetTriggerContext>
+          </DialogTriggerContext>
+        </RichContext>
+      </TooltipContext>
+    </TriggerContext>
+  );
+}
 
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
@@ -82,6 +125,41 @@ export function Overlay({
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
+
+  // Where focus was as the overlay opened, read as it first renders, before its content takes
+  // focus (as React Aria's focus scope reads it).
+  const [focusedBefore] = useState(() =>
+    typeof document === 'undefined' ? null : document.activeElement,
+  );
+  const managesFocus = useRef(!disableFocusManagement);
+  useLayoutEffect(() => {
+    managesFocus.current = !disableFocusManagement;
+  });
+  // React Aria's focus scope gives focus back a frame after the overlay has left the document,
+  // so for that frame focus was on <body>, which a screen reader can announce as the page
+  // (2026-11-15). Focus still inside as the overlay unmounts goes back as soon as the commit
+  // that removes it ends, before the next frame, without a scroll, as React Aria's would; the
+  // scope then finds focus elsewhere and leaves it. Not during the commit: React reads no focus
+  // events while it commits, so the element would miss its own handlers (its focus ring, its
+  // tooltip). Where it was is gone, inside, or won't take focus: React Aria's, as before.
+  useLayoutEffect(() => {
+    const wrapper = scopeRef.current;
+    return () => {
+      const page = wrapper?.ownerDocument;
+      if (!managesFocus.current || !wrapper || !page?.activeElement) return;
+      if (!wrapper.contains(page.activeElement)) return;
+      const back = focusedBefore;
+      if (!(back instanceof HTMLElement || back instanceof SVGElement)) return;
+      if (back === page.body || wrapper.contains(back)) return;
+      queueMicrotask(() => {
+        // Still in the document: Strict Mode rehearsing an unmount, not the overlay leaving.
+        if (wrapper.isConnected || !back.isConnected) return;
+        // Focus moved on purpose meanwhile.
+        if (page.activeElement && page.activeElement !== page.body) return;
+        back.focus({ preventScroll: true });
+      });
+    };
+  }, [focusedBefore]);
 
   // `dir` is inherited through the DOM, which a portal leaves; copy the direction in
   // effect where the overlay is declared onto the portalled wrapper.
@@ -142,21 +220,8 @@ export function Overlay({
                 {content}
               </div>
             ),
-            // An overlay opened from a toolbar, a selection group or a chip set isn't part of
-            // it: a chip in a dialog opened from a chip of a set kept the set's selection and
-            // its `disabled`, a button in one opened from a button group kept the group's
-            // size, variant, `disabled` and connected corners, and a tooltip in one opened
-            // from an app bar opened below its button, as in the bar (2026-11-14).
             <InheritedThemeContext value={themed}>
-              <ToolbarContext value={null}>
-                <ContainerButtonContext value={NO_BUTTON_SETTINGS}>
-                  <TooltipPlacementContext value={null}>
-                    <ToggleGroupStateContext value={null}>
-                      <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
-                    </ToggleGroupStateContext>
-                  </TooltipPlacementContext>
-                </ContainerButtonContext>
-              </ToolbarContext>
+              <LeaveOpener>{children}</LeaveOpener>
             </InheritedThemeContext>,
           )}
         </div>

@@ -6,7 +6,10 @@ import { SCROLL_KEYS } from './use-scroll-keys';
 export interface ScrollRestorationOptions {
   /**
    * Identifies the page shown: the router's path and query, so it works with any router. A
-   * position is kept for each key.
+   * position is kept for each key, and a new key starts at the top, so a change of the query
+   * alone (a filter, a sort, the next page of results) starts the pane at the top too, as
+   * following a link to a new address does. To keep the position while some of the query
+   * changes, leave those parts out of the key.
    */
   pageKey: string;
   /**
@@ -180,7 +183,7 @@ interface Shown {
  * - Going back or forward (the Navigation API's `navigate` event, or `popstate` where it's
  *   missing) restores the page's position and holds it for `holdFor` ms while content arrives;
  *   the hold ends the moment the person scrolls.
- * - A new page starts at its top: every other change of `pageKey`.
+ * - A new page starts at its top: every other change of `pageKey`, one of the query alone too.
  * - The element can be left out on some pages (a frame that lays them out without its pane),
  *   arrive after the page has changed, or be replaced, while the component that calls the hook
  *   stays mounted: pages without it keep nothing, and a restored position is held on whichever

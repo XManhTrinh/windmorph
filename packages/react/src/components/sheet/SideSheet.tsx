@@ -24,7 +24,6 @@ import {
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
-import { TriggerContext } from '../../primitives/TriggerContext';
 import { usePresence } from '../../primitives/use-presence';
 import { closedByOverlayOptions, type ClosedBy } from '../../utils/closed-by';
 import { cn } from '../../utils/cn';
@@ -427,19 +426,13 @@ function ModalSideSheet({
               data-exiting={exiting}
               className={styles.panel({ class: body.classNames?.panel })}
             >
-              <TriggerContext value={null}>
-                {/* What an app puts inside is not this trigger's sheet: a modal sheet there
-                    keeps its own open state (see Dialog). */}
-                <SheetTriggerContext value={null}>
-                  <SheetBody
-                    {...body}
-                    titleId={titleId}
-                    close={state.close}
-                    styles={styles}
-                    contentRef={contentRef}
-                  />
-                </SheetTriggerContext>
-              </TriggerContext>
+              <SheetBody
+                {...body}
+                titleId={titleId}
+                close={state.close}
+                styles={styles}
+                contentRef={contentRef}
+              />
             </div>
           </div>
         </div>

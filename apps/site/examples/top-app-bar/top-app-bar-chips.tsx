@@ -43,7 +43,7 @@ export function TopAppBarChips() {
             selectedKeys={[filter]}
             onSelectionChange={(keys) => setFilter(String([...keys][0] ?? 'all'))}
             layout="scroll"
-            className="px-[8px] pb-[8px]"
+            className="px-[8px]"
           >
             <FilterChip value="all">All</FilterChip>
             <FilterChip value="soup">Soup</FilterChip>

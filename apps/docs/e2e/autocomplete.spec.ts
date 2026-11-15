@@ -292,6 +292,36 @@ test.describe('Autocomplete height', () => {
       // In a 280px field the input keeps Zürich's row, then wraps below Zürich and London.
       expect([...outcomes].sort()).toEqual(['same row', 'wrapped']);
     });
+
+    // Rows of chips are 48px apart, top to top, so two rows' 48px targets never overlap.
+    test(`chip rows keep each chip's whole target · ${variant}`, async ({ page }) => {
+      await openStory(page, 'components-autocomplete--clearable', {}, { variant });
+      const field = fieldOf(page, 'Cities');
+      await field.locator('button[aria-label="Show options"]').click();
+      await waitForMenuReveal(page);
+      for (const city of ['Zürich', 'London', 'Sydney']) {
+        await page.getByRole('option', { name: new RegExp(city) }).click();
+        await expect(field.getByText(city, { exact: true })).toBeVisible();
+      }
+      await page.keyboard.press('Escape');
+      const chips = field.locator('[data-tokens~="md-comp-input-chip"]');
+      const tops = [
+        ...new Set(await chips.evaluateAll((all) => all.map((c) => c.getBoundingClientRect().top))),
+      ];
+      // Sydney goes on a second row in the 280px field, under Zürich.
+      expect(tops).toHaveLength(2);
+      expect(tops[1]! - tops[0]!).toBeCloseTo(48, 0);
+      const above = (await chips.first().boundingBox())!;
+      const below = (await chips.last().boundingBox())!;
+      const pressAt = (y: number) =>
+        page.evaluate(
+          ([x, py]) => document.elementFromPoint(x!, py!)?.closest('[data-tokens]')?.textContent,
+          [below.x + 12, y],
+        );
+      // 23px below the first row's middle is still its chip; 23px above the second row's, its.
+      expect(await pressAt(above.y + above.height / 2 + 23)).toContain('Zürich');
+      expect(await pressAt(below.y + below.height / 2 - 23)).toContain('Sydney');
+    });
   }
 });
 

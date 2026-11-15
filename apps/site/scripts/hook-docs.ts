@@ -103,10 +103,15 @@ export function objectFields(
     const declarations = member.declarations ?? [];
     return declarations.length === 0 || !declarations.every(fromLibrary);
   };
+  // A deprecated member is left out: the editor shows its note where it is still used, and the
+  // changelog says what replaces it.
+  const current = (member: ts.Symbol) =>
+    !member.getJsDocTags(checker).some((tag) => tag.name === 'deprecated');
   return checker
     .getPropertiesOfType(target)
     .filter(isPublic)
     .filter(ownMember)
+    .filter(current)
     .map((member) => {
       const optional = (member.flags & ts.SymbolFlags.Optional) !== 0;
       const memberType = checker.getTypeOfSymbol(member);

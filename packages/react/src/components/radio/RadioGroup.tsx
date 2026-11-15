@@ -87,8 +87,8 @@ interface RadioGroupOwnProps
   invalid?: boolean;
   /**
    * Web density, `0` to `-3`, for every option: each step takes 4px off their round state
-   * layers (40px at 0, 28px at -3) and puts 2px more between rows, so each option keeps a
-   * 48px touch target that never reaches the next one's ring. Left out, the group takes the
+   * layers (40px at 0, 28px at -3), while the rows stay 48px apart, so each option keeps a
+   * 48px touch target that never overlaps the next one's. Left out, the group takes the
    * density of the nearest `ThemeProvider` or `ThemeScope`; M3 asks for density to be the
    * reader's choice, so prefer setting it there.
    * @default 0

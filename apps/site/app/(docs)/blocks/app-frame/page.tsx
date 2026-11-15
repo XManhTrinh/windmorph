@@ -62,7 +62,9 @@ export default async function AppFramePage() {
           <InlineCode>useScrollRestoration</InlineCode> brings the pane&apos;s scroll position back
           on back, forward and reload, which browsers do only for the window: pass it your
           router&apos;s path and query as <InlineCode>pageKey</InlineCode> (in Next.js,{' '}
-          <InlineCode>usePathname()</InlineCode> and <InlineCode>useSearchParams()</InlineCode>).
+          <InlineCode>usePathname()</InlineCode> and <InlineCode>useSearchParams()</InlineCode>). A
+          new key starts the pane at the top, so a change of the query alone does too: leave out of
+          the key the parts that shouldn&apos;t, such as a filter.
         </p>
       </header>
       {items.map((item) => (

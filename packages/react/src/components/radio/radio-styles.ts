@@ -53,9 +53,12 @@ export const radioGroupStyles = tv({
   slots: {
     root: 'flex flex-col gap-[4px]',
     label: 'text-title-small text-on-surface',
-    // Rows are 2px further apart per density step (half of what each option loses), so an
-    // option's 48px touch target never reaches the next one's ring (0px at 0, 6px at -3).
-    options: 'flex gap-y-[calc(0px-var(--md-sys-density,0)*2px)]',
+    // Rows are 48px apart, top to top, at every density (8px between 40px controls, 20px
+    // between 28px ones), so the 48px touch targets of two rows never overlap, as in a
+    // wrapping `ChipSet` and as Compose's 48dp minimum interactive size spaces radio buttons
+    // (2026-11-15: rows touched, and a press on the bottom of one option's control chose the
+    // next one).
+    options: 'flex gap-y-[calc(8px-var(--md-sys-density,0)*4px)]',
     supporting: 'px-[4px]',
   },
   variants: {

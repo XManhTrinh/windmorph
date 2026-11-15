@@ -52,7 +52,6 @@ import {
 import { useLabels } from '../labels/use-labels';
 import { localeWithDirection } from '../../primitives/locale-with-direction';
 import { Overlay } from '../../primitives/Overlay';
-import { TriggerContext } from '../../primitives/TriggerContext';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
 import { densityAttribute, type Density } from '../../tokens/density';
@@ -461,32 +460,30 @@ function MenuSheet({
       classNames={props.classNames?.sheet ? { panel: props.classNames.sheet } : undefined}
     >
       <div ref={setContainer} className={menuStyles().sheetContent()}>
-        <TriggerContext value={null}>
-          <MenuTreeContext
-            value={{
-              rootState: trigger.state,
-              container,
-              activeLevel,
-              setActiveLevel,
-              layout: 'divider',
-              variant,
-              density: props.density,
-              instant: false,
-              sheet: true,
-              labels,
-            }}
-          >
-            <MenuList
-              {...menuProps}
-              layout="divider"
-              variant={variant}
-              level={0}
-              embedded
-              onClose={trigger.state.close}
-              autoFocus={trigger.state.focusStrategy ?? 'first'}
-            />
-          </MenuTreeContext>
-        </TriggerContext>
+        <MenuTreeContext
+          value={{
+            rootState: trigger.state,
+            container,
+            activeLevel,
+            setActiveLevel,
+            layout: 'divider',
+            variant,
+            density: props.density,
+            instant: false,
+            sheet: true,
+            labels,
+          }}
+        >
+          <MenuList
+            {...menuProps}
+            layout="divider"
+            variant={variant}
+            level={0}
+            embedded
+            onClose={trigger.state.close}
+            autoFocus={trigger.state.focusStrategy ?? 'first'}
+          />
+        </MenuTreeContext>
       </div>
     </LazyBottomSheet>
   );
@@ -627,33 +624,31 @@ function MenuPopover({
           data-placement={actualPlacement ?? undefined}
           className={menuStyles({ instant }).reveal()}
         >
-          <TriggerContext value={null}>
-            <I18nProvider locale={menuLocale}>
-              <MenuTreeContext
-                value={{
-                  rootState: trigger.state,
-                  container,
-                  activeLevel,
-                  setActiveLevel,
-                  layout,
-                  variant,
-                  density: props.density,
-                  instant,
-                  sheet: false,
-                  labels,
-                }}
-              >
-                <MenuList
-                  {...mergeProps(trigger.menuProps, props)}
-                  layout={layout}
-                  variant={variant}
-                  level={0}
-                  onClose={trigger.state.close}
-                  autoFocus={trigger.state.focusStrategy ?? 'first'}
-                />
-              </MenuTreeContext>
-            </I18nProvider>
-          </TriggerContext>
+          <I18nProvider locale={menuLocale}>
+            <MenuTreeContext
+              value={{
+                rootState: trigger.state,
+                container,
+                activeLevel,
+                setActiveLevel,
+                layout,
+                variant,
+                density: props.density,
+                instant,
+                sheet: false,
+                labels,
+              }}
+            >
+              <MenuList
+                {...mergeProps(trigger.menuProps, props)}
+                layout={layout}
+                variant={variant}
+                level={0}
+                onClose={trigger.state.close}
+                autoFocus={trigger.state.focusStrategy ?? 'first'}
+              />
+            </MenuTreeContext>
+          </I18nProvider>
         </div>
         <DismissButton onDismiss={trigger.state.close} />
       </div>

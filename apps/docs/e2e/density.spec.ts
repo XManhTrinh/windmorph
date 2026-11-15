@@ -497,7 +497,7 @@ test.describe('Density · Checkbox', () => {
 });
 
 test.describe('Density · Radio', () => {
-  test('rows come 2px closer a step; no target reaches the next ring', async ({ page }) => {
+  test("rows stay 48px apart, so two rows' targets never overlap", async ({ page }) => {
     await openStory(page, 'components-radio--density');
     for (const level of LEVELS) {
       const group = page.getByTestId(`${level}-vertical`);
@@ -514,11 +514,16 @@ test.describe('Density · Radio', () => {
         const ring = await box(control.locator('[aria-hidden="true"]').last());
         expect(ring.width).toBeCloseTo(20, 0);
         if (previous) {
-          // 2px more between rows per step (0 at density 0)…
-          expect(c.y - (previous.y + previous.height)).toBeCloseTo(-2 * level, 0);
-          // …so the row above's 48px target ends at or above this ring.
-          const target = await box(options.nth(index - 1).locator('[data-touch-target]'));
-          expect(target.y + target.height).toBeLessThanOrEqual(ring.y + 0.5);
+          // 48px apart, top to top, at every density (8px between rows at 0, 20px at -3)…
+          expect(c.y - previous.y).toBeCloseTo(48, 0);
+          // …so the row above's 48px target ends where this row's begins…
+          const above = await box(options.nth(index - 1).locator('[data-touch-target]'));
+          const own = await box(option.locator('[data-touch-target]'));
+          expect(above.y + above.height).toBeLessThanOrEqual(own.y + 0.5);
+          // …and each option takes presses over the whole of its target, both ways.
+          const { x } = center(c);
+          expect(await hits(page, option, x, center(c).y - 23)).toBe(true);
+          expect(await hits(page, options.nth(index - 1), x, center(previous).y + 23)).toBe(true);
         }
         previous = c;
       }

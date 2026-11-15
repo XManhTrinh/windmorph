@@ -1,21 +1,20 @@
 'use client';
 
-import { Children, createContext, useRef, type ReactNode } from 'react';
+import { Children, useRef, type ReactNode } from 'react';
 import { useOverlayTrigger } from 'react-aria';
-import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
+import { useOverlayTriggerState } from 'react-stately';
+import { SheetTriggerContext } from '../../primitives/OverlayTriggerContext';
 import {
   TriggerContext,
   useTriggerProps,
   type TriggerContextValue,
 } from '../../primitives/TriggerContext';
 
-export interface SheetTriggerContextValue {
-  state: OverlayTriggerState;
-  overlayProps: { id?: string };
-}
-
-/** Set by {@link SheetTrigger} for the modal sheet inside it. */
-export const SheetTriggerContext = createContext<SheetTriggerContextValue | null>(null);
+// Set by `SheetTrigger` for the modal sheet inside it; overlays reset it.
+export {
+  SheetTriggerContext,
+  type SheetTriggerContextValue,
+} from '../../primitives/OverlayTriggerContext';
 
 export interface SheetTriggerProps {
   /** The trigger (a library button) followed by a `BottomSheet` or modal `SideSheet`. */

@@ -3,8 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
+import { Autocomplete } from '../autocomplete/Autocomplete';
 import { Button } from '../button/Button';
 import { Dialog } from '../dialog/Dialog';
+import { AutocompleteItem } from '../select/option-list';
 import { BottomSheet } from './BottomSheet';
 import { SheetTrigger } from './SheetTrigger';
 import { SideSheet } from './SideSheet';
@@ -526,9 +528,9 @@ describe('A modal sheet inside a sheet a trigger opened', () => {
 });
 
 describe('Escape in an overlay opened from inside a modal bottom sheet', () => {
-  // The sheet handles Escape itself, and React hands it the keys of an overlay inside it
-  // through the portal. One that doesn't close on Escape (a dialog while it saves) let the
-  // key through, and the sheet behind it closed, taking the dialog with it.
+  // React hands the sheet the keys of an overlay inside it, through the portal. One that
+  // doesn't close on Escape (a dialog while it saves) let the key through, and the sheet
+  // behind it closed, taking the dialog with it.
   it('is that overlay’s own: the sheet stays open', async () => {
     const onSheetChange = vi.fn();
     const sheet = (saving: boolean) => (
@@ -546,6 +548,52 @@ describe('Escape in an overlay opened from inside a modal bottom sheet', () => {
     await userEvent.keyboard('{Escape}');
     expect(onSheetChange).not.toHaveBeenCalled();
     expect(screen.getByRole('dialog', { name: 'Saving' })).toBeInTheDocument();
+  });
+
+  it("leaves an open autocomplete's list Escape of its own, modal or standard", async () => {
+    // The combobox keeps focus in its input, so its Escape reaches the sheet as well. With
+    // the input empty, it closes the list and lets the key through, for a dialog to close.
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    const onOpenChange = vi.fn();
+    const onDetentChange = vi.fn();
+    const field = (
+      <Autocomplete label="City" defaultItems={[{ id: 'krk', name: 'Kraków' }]}>
+        {(city) => <AutocompleteItem key={city.id}>{city.name}</AutocompleteItem>}
+      </Autocomplete>
+    );
+    const { unmount } = render(
+      <BottomSheet open onOpenChange={onOpenChange} aria-label="Filters">
+        {field}
+      </BottomSheet>,
+    );
+    const city = () => screen.getByRole('combobox', { name: 'City' });
+    await userEvent.click(city());
+    expect(city()).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard('{Escape}');
+    expect(city()).toHaveAttribute('aria-expanded', 'false');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    // With the list closed, the next Escape is the sheet's.
+    await userEvent.keyboard('{Escape}');
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    unmount();
+
+    render(
+      <BottomSheet
+        variant="standard"
+        aria-label="Directions"
+        defaultDetent="expanded"
+        onDetentChange={onDetentChange}
+      >
+        {field}
+      </BottomSheet>,
+    );
+    await userEvent.click(city());
+    await userEvent.keyboard('{Escape}');
+    expect(city()).toHaveAttribute('aria-expanded', 'false');
+    expect(onDetentChange).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Escape}');
+    expect(onDetentChange).toHaveBeenCalledWith('collapsed');
   });
 
   it('still closes the sheet when pressed in the sheet itself', async () => {

@@ -57,7 +57,10 @@ export interface ChipClassNames {
   leading?: string;
   /** The label text. */
   label?: string;
-  /** The trailing icon slot. */
+  /**
+   * @deprecated Lands on nothing: an assist, suggestion or input chip has no trailing icon.
+   * A filter chip's `trailingIcon` takes `FilterChipClassNames.trailing`.
+   */
   trailing?: string;
 }
 
@@ -369,7 +372,9 @@ export function SuggestionChip({
 
 /* ------------------------------------------------------------------ Filter */
 
-export interface FilterChipClassNames extends ChipClassNames {
+export interface FilterChipClassNames extends Omit<ChipClassNames, 'trailing'> {
+  /** The trailing icon slot (`trailingIcon`). */
+  trailing?: string;
   /** The toggle of a chip with a remove button. */
   primary?: string;
   /** The remove button after the label. */
