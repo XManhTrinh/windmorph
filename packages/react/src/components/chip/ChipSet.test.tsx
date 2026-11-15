@@ -394,9 +394,15 @@ describe('ChipSet', () => {
         <FilterChip>Open now</FilterChip>
       </ChipSet>,
     );
+    const ring =
+      'calc(var(--md-sys-focus-indicator-thickness)+var(--md-sys-focus-indicator-offset))';
     expect(screen.getByRole('group', { name: 'Filters' })).toHaveClass(
       'flex-nowrap',
       'overflow-x-auto',
+      // The whole focus ring fits at each end, and a chip focus scrolls in keeps it in view.
+      `ps-[${ring}]`,
+      `pe-[${ring}]`,
+      `scroll-px-[${ring}]`,
       'custom',
     );
   });

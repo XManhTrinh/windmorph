@@ -74,6 +74,39 @@ test.describe('Chips behaviour', () => {
     expect(await scrollLeft()).toBe(atEnd);
   });
 
+  test("a scrolling set keeps the whole of its end chips' focus rings in the row", async ({
+    page,
+  }) => {
+    await openStory(page, 'components-chips--density');
+    const set = page.getByTestId('0-scroll');
+    await set.evaluate((el) => (el.style.width = '120px'));
+    // How far the focused chip's ring reaches past the row's visible box on each side, px.
+    const ringPast = () =>
+      set.evaluate((row) => {
+        let ringed = document.activeElement as HTMLElement | null;
+        while (ringed && getComputedStyle(ringed).outlineStyle === 'none') {
+          ringed = ringed.parentElement;
+        }
+        const style = getComputedStyle(ringed!);
+        const outside = parseFloat(style.outlineOffset) + parseFloat(style.outlineWidth);
+        const box = ringed!.getBoundingClientRect();
+        const edge = row.getBoundingClientRect().left + row.clientLeft;
+        return {
+          outside,
+          start: edge - (box.left - outside),
+          end: box.right + outside - (edge + row.clientWidth),
+        };
+      });
+    await set.getByRole('button', { name: 'Open now' }).focus();
+    await page.keyboard.press('Home');
+    const first = await ringPast();
+    expect(first.outside).toBe(5);
+    expect(first.start).toBeLessThanOrEqual(0);
+    await page.keyboard.press('End');
+    await expect(set.getByRole('button', { name: 'Rating' })).toBeFocused();
+    expect((await ringPast()).end).toBeLessThanOrEqual(0);
+  });
+
   test('a single-select chip set is a radio group', async ({ page }) => {
     await openStory(page, 'components-chips--single-select');
     await expect(page.getByRole('radiogroup', { name: 'Sort by' })).toBeVisible();
