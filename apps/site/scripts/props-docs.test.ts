@@ -221,6 +221,21 @@ describePackage('Pro props docs', 'pro', 30, {
   noStringDefault: PRO_NO_STRING_DEFAULT,
 });
 
+describe('deprecated props', () => {
+  it('leaves an old name kept as a deprecated alias out of the table, beside its replacement', () => {
+    const props = (name: string) =>
+      readComponents('core')
+        .find(({ displayName }) => displayName === name)
+        ?.props.map((prop) => prop.name);
+    expect(props('Carousel')).toContain('heroAlign');
+    expect(props('Carousel')).not.toContain('heroAlignment');
+    expect(props('NavigationBarItem')).toEqual(expect.arrayContaining(['current', 'currentIcon']));
+    expect(props('NavigationBarItem')).not.toContain('selected');
+    expect(props('Snackbar')).toContain('onClose');
+    expect(props('Snackbar')).not.toContain('onDismiss');
+  });
+});
+
 describe('deprecated keys', () => {
   it('leaves a deprecated key out of its table, and lists a live key of the same name', () => {
     const keys = (name: string) =>
