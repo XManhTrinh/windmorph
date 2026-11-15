@@ -307,14 +307,15 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               as in the app frame block. Browsers restore only the window&apos;s scroll, so the
               first keeps the pane&apos;s position for each page (<InlineCode>pageKey</InlineCode>,
               your router&apos;s path and query) and brings it back on back, forward and reload,
-              holding it while content arrives. The second sends Page Down, End, Space and the
-              arrows to the pane while nothing has focus (unless the person last pressed in another
-              scrolling element, which keeps them), and returns the{' '}
-              <InlineCode>tabIndex</InlineCode> for it: a tab stop only on a page with nothing of
-              its own that takes focus. Call both in a component that stays mounted as the pages
-              change, such as a layout. Both follow the element behind the ref, so a frame can leave
-              its pane out on some pages, or put another in its place, while the component that
-              calls the hooks stays mounted.
+              holding it while content arrives. A new key starts at the top, so a change of the
+              query alone (a filter, a sort) does too; leave out of the key what shouldn&apos;t. The
+              second sends Page Down, End, Space and the arrows to the pane while nothing has focus
+              (unless the person last pressed in another scrolling element, which keeps them), and
+              returns the <InlineCode>tabIndex</InlineCode> for it: a tab stop only on a page with
+              nothing of its own that takes focus. Call both in a component that stays mounted as
+              the pages change, such as a layout. Both follow the element behind the ref, so a frame
+              can leave its pane out on some pages, or put another in its place, while the component
+              that calls the hooks stays mounted.
             </li>
             <li>
               The morph engine (<InlineCode>useM3Morph</InlineCode>,{' '}
