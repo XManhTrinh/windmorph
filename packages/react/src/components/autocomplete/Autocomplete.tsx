@@ -505,9 +505,12 @@ export function Autocomplete<T extends object, M extends SelectionMode = 'single
       >
         <div
           className={cn(
-            'flex min-w-0 flex-1 flex-wrap items-center gap-[8px]',
+            // Chips 8px apart in a row; rows 48px apart, top to top, so the 48px touch targets
+            // of two rows never overlap, as in a wrapping `ChipSet` (2026-11-15: 8px apart, a
+            // chip took presses meant for the one above it).
+            'flex min-w-0 flex-1 flex-wrap items-center gap-x-[8px] gap-y-[16px]',
             // A row of 32px input chips fits the 56px container (12px above and below), so a
-            // first chip doesn't make the field taller and each further row adds 40px. A filled
+            // first chip doesn't make the field taller and each further row adds 48px. A filled
             // field's floated label takes the top 24px, so there the row stays below it.
             multiple &&
               chips.length > 0 &&
