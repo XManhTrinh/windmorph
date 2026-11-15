@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import { UNSAFE_PortalProvider } from 'react-aria';
 import { use, useLayoutEffect, useRef, type Context, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { ThemeProvider } from '../theme/ThemeProvider';
@@ -276,5 +277,75 @@ describe('Overlay', () => {
     for (const { context, value } of opener) expect(seen.get(context)).not.toBe(value);
     expect(seen.get(buttons.context)).toEqual({});
     expect(seen.get(chipSet.context)).toBe(false);
+  });
+
+  describe('in full screen', () => {
+    /** Puts `element` in full screen as the browser would, telling the page. */
+    function fullscreen(element: Element | null) {
+      Object.defineProperty(document, 'fullscreenElement', { value: element, configurable: true });
+      act(() => {
+        document.dispatchEvent(new Event('fullscreenchange'));
+      });
+    }
+
+    it('draws inside the element in full screen, and in body again after', () => {
+      const player = document.createElement('div');
+      document.body.append(player);
+      const { rerender } = render(
+        <Overlay>
+          <div>Speed</div>
+        </Overlay>,
+      );
+      const scope = () => screen.getByText('Speed').closest('[data-overlay-scope]');
+      expect(scope()?.parentElement).toBe(document.body);
+      fullscreen(player);
+      rerender(
+        <Overlay>
+          <div>Speed</div>
+        </Overlay>,
+      );
+      expect(player).toContainElement(screen.getByText('Speed'));
+      fullscreen(null);
+      expect(scope()?.parentElement).toBe(document.body);
+      player.remove();
+    });
+
+    it('stays in body for a video in full screen, which draws no children', () => {
+      const video = document.createElement('video');
+      document.body.append(video);
+      fullscreen(video);
+      render(
+        <Overlay>
+          <div>Captions</div>
+        </Overlay>,
+      );
+      expect(video).not.toContainElement(screen.getByText('Captions'));
+      fullscreen(null);
+      video.remove();
+    });
+
+    it("leaves the place to the caller's container and an app's portal provider first", () => {
+      const player = document.createElement('div');
+      const own = document.createElement('div');
+      const provided = document.createElement('div');
+      document.body.append(player, own, provided);
+      fullscreen(player);
+      render(
+        <UNSAFE_PortalProvider getContainer={() => provided}>
+          <Overlay portalContainer={own}>
+            <div>Own</div>
+          </Overlay>
+          <Overlay>
+            <div>Provided</div>
+          </Overlay>
+        </UNSAFE_PortalProvider>,
+      );
+      expect(own).toContainElement(screen.getByText('Own'));
+      expect(provided).toContainElement(screen.getByText('Provided'));
+      fullscreen(null);
+      player.remove();
+      own.remove();
+      provided.remove();
+    });
   });
 });
