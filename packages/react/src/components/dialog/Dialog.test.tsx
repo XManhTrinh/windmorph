@@ -258,6 +258,40 @@ describe('Dialog', () => {
     await gone('Settings');
   });
 
+  it('a dialog in its content keeps its own open state, not the trigger’s', async () => {
+    const onInnerChange = vi.fn();
+    // A form dialog that holds a dialog of its own: a field's "Add a link", a "Discard?".
+    function Nested({ inner }: { inner: boolean }) {
+      return (
+        <DialogTrigger>
+          <Button>Edit</Button>
+          <Dialog role="dialog">
+            <DialogTitle>Edit post</DialogTitle>
+            <DialogContent>
+              <Dialog role="dialog" open={inner} onOpenChange={onInnerChange} aria-label="Link">
+                <DialogContent>Address</DialogContent>
+              </Dialog>
+            </DialogContent>
+          </Dialog>
+        </DialogTrigger>
+      );
+    }
+    const { rerender } = render(<Nested inner={false} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    // Only the trigger's dialog opened. The one inside is closed, as its `open` says: opened
+    // with it, each would make the other inert, and nothing in either could take focus.
+    const outer = screen.getByRole('dialog', { name: 'Edit post' });
+    expect(screen.queryByText('Address')).not.toBeInTheDocument();
+    expect(outer).toContainElement(document.activeElement as HTMLElement);
+
+    // It opens by its own prop, and Escape asks it alone to close.
+    rerender(<Nested inner />);
+    expect(screen.getByRole('dialog', { name: 'Link' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(onInnerChange).toHaveBeenCalledWith(false);
+    expect(screen.getByText('Edit post')).toBeInTheDocument();
+  });
+
   it('opens from an icon button too', async () => {
     render(
       <DialogTrigger>

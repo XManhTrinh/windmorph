@@ -715,6 +715,58 @@ function EventEditor() {
  */
 export const DiscardConfirmation: Story = { render: () => <EventEditor /> };
 
+function PostEditor() {
+  const [linking, setLinking] = useState(false);
+  return (
+    <DialogTrigger>
+      <Button variant="tonal">New post</Button>
+      <Dialog role="dialog" data-testid="dialog">
+        {({ close }) => (
+          <>
+            <DialogTitle>New post</DialogTitle>
+            <DialogContent>
+              <div className="flex flex-col items-start gap-2">
+                <TextField label="Post" className="w-full" />
+                <Button variant="text" onPress={() => setLinking(true)}>
+                  Add a link
+                </Button>
+              </div>
+              <Dialog role="dialog" open={linking} onOpenChange={setLinking}>
+                <DialogTitle>Add a link</DialogTitle>
+                <DialogContent>
+                  <TextField label="Address" type="url" className="w-full" />
+                </DialogContent>
+                <DialogActions>
+                  <Button variant="text" onPress={() => setLinking(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="text" onPress={() => setLinking(false)}>
+                    Save
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </DialogContent>
+            <DialogActions>
+              <Button variant="text" onPress={close}>
+                Cancel
+              </Button>
+              <Button variant="text" onPress={close}>
+                Post
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </DialogTrigger>
+  );
+}
+
+/**
+ * A dialog inside the content of a dialog its trigger opened (a form's own "Add a link"):
+ * it keeps its own open state, so it stays closed until asked for and closes alone.
+ */
+export const DialogInside: Story = { render: () => <PostEditor /> };
+
 /**
  * Layout safety (architecture §10): a consumer layout class on the trigger (`part:
  * trigger`) or on the dialog (`className`, which goes on its outermost element; `part:

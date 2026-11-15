@@ -171,6 +171,31 @@ test.describe('Dialog behaviour', () => {
     await expect(page.getByRole('alertdialog', { name: 'Reset all settings?' })).toBeVisible();
   });
 
+  test('a dialog inside its content opens by its own state, never with it', async ({ page }) => {
+    await openStory(page, 'components-dialog--dialog-inside');
+    await page.getByRole('button', { name: 'New post' }).click();
+    const outer = page.getByRole('dialog', { name: 'New post' });
+    await expect(outer).toBeVisible();
+    // The one dialog its trigger opened. Taking the trigger's state, the dialog inside
+    // opened with it, each made the other inert, and nothing in either could take focus.
+    await expect(page.locator('[role="dialog"]')).toHaveCount(1);
+    const post = outer.getByRole('textbox', { name: 'Post' });
+    await expect(post).toBeFocused();
+    await page.keyboard.type('Hello');
+    await expect(post).toHaveValue('Hello');
+
+    // The one inside opens when asked, takes focus, and closes alone.
+    await outer.getByRole('button', { name: 'Add a link' }).click();
+    const inner = page.getByRole('dialog', { name: 'Add a link' });
+    await expect(inner).toBeVisible();
+    await expect(inner.getByRole('textbox', { name: 'Address' })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(inner).toBeHidden();
+    await expect(outer).toBeVisible();
+    await expect(outer.getByRole('button', { name: 'Add a link' })).toBeFocused();
+    await expect(post).toHaveValue('Hello');
+  });
+
   test('locks page scroll while open', async ({ page }) => {
     await openStory(page, 'components-dialog--basic');
     await page.getByRole('button', { name: 'Open dialog' }).click();

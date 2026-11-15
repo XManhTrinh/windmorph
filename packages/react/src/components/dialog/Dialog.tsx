@@ -551,7 +551,12 @@ function DialogModal({
                       {icon}
                     </span>
                   )}
-                  {typeof children === 'function' ? children({ close: state.close }) : children}
+                  {/* What an app puts inside is not this trigger's dialog: a dialog there keeps
+                      its own open state. Opened with this one, each would make the other inert,
+                      and nothing in either could take focus. */}
+                  <DialogTriggerContext value={null}>
+                    {typeof children === 'function' ? children({ close: state.close }) : children}
+                  </DialogTriggerContext>
                 </DialogPartsContext>
               </TriggerContext>
             </div>
