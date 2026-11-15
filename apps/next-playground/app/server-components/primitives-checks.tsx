@@ -183,6 +183,7 @@ export const primitivesChecks = {
   useLabels: hook,
   useRevealEntering: hook,
   useScrollKeys: hook,
+  useSliderTouchTrack: hook,
   useScrollRestoration: hook,
   usePresence: hook,
   useTriggerProps: hook,

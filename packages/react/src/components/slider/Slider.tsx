@@ -25,7 +25,7 @@ import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
-import { useTouchTrack } from './use-touch-track';
+import { useSliderTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
   movedStartIcon,
@@ -280,7 +280,7 @@ function SliderRoot(props: RootProps) {
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
   const { direction } = useLocale();
   const count = Math.round((max - min) / step);
-  const touchTrackProps = useTouchTrack(trackProps, {
+  const touchTrackProps = useSliderTouchTrack(trackProps, {
     state,
     trackRef,
     orientation,

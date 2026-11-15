@@ -79,6 +79,10 @@ export {
   type ScrollRestorationOptions,
 } from './utils/use-scroll-restoration';
 export { useLabels, type LabelsKey, type LabelsOf } from './components/labels/use-labels';
+export {
+  useSliderTouchTrack,
+  type SliderTouchTrackOptions,
+} from './components/slider/use-touch-track';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {

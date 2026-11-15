@@ -1841,6 +1841,7 @@ export const COMPONENT_META: ComponentMeta[] = [
     ],
     hooks: [
       'useKeepPressedInPlace',
+      'useSliderTouchTrack',
       'useScrollRestoration',
       'useScrollKeys',
       'useLabels',
