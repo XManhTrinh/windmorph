@@ -706,12 +706,10 @@ interface CarouselItemProps {
   children: ReactNode;
 }
 
-/**
- * An item that is a link: a real `<a>` inside the slide's group, holding its press area and
- * its mask, so a press on what shows follows the link as any link does (a `RouterProvider`'s
- * router, a modifier or the context menu for a new tab). The link takes focus and draws the
- * ring; its name is its content (a picture's `alt`, its words).
- */
+// An item that is a link: a real `<a>` inside the slide's group, holding its press area and
+// its mask, so a press on what shows follows the link as any link does (a `RouterProvider`'s
+// router, a modifier or the context menu for a new tab). The link takes focus and draws the
+// ring; its name is its content (a picture's `alt`, its words).
 function CarouselLinkItem({
   index,
   label,

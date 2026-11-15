@@ -113,7 +113,7 @@ test.describe('Carousel items that are links (2026-11-15)', () => {
   test('a press follows the link; a drag across the carousel does not', async ({ page }) => {
     await openStory(page, 'components-carousel--links');
     const carousel = page.getByTestId('carousel');
-    const first = carousel.getByRole('link', { name: 'Recipe 1' });
+    const first = carousel.getByRole('link', { name: 'Recipe 1', exact: true });
     await expect(first).toHaveAttribute('href', '#recipe-1');
     const box = (await first.boundingBox())!;
     // A mouse drag that scrolls the carousel ends on a link: it opens nothing.
