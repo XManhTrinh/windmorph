@@ -20,17 +20,23 @@ const RichMessageFieldPost = lazyExample(
   'rich-message-field/rich-message-field-post',
   'RichMessageFieldPost',
 );
+const RichMessageFieldDialog = lazyExample(
+  'rich-message-field/rich-message-field-dialog',
+  'RichMessageFieldDialog',
+);
 
 /** Rich message field page body: purpose, examples, behaviour, accessibility and tokens. */
 export async function RichMessageFieldBody(): Promise<ComponentDoc> {
-  const [comment, post, mentions] = await Promise.all([
+  const [comment, post, dialog, mentions] = await Promise.all([
     readExampleSource('rich-message-field/rich-message-field-comment.tsx'),
     readExampleSource('rich-message-field/rich-message-field-post.tsx'),
+    readExampleSource('rich-message-field/rich-message-field-dialog.tsx'),
     readExampleSource('rich-message-field/rich-message-field-mentions.tsx'),
   ]);
-  const [commentHtml, postHtml, mentionsHtml] = await Promise.all([
+  const [commentHtml, postHtml, dialogHtml, mentionsHtml] = await Promise.all([
     highlightSource(comment),
     highlightSource(post),
+    highlightSource(dialog),
     highlightSource(mentions),
   ]);
 
@@ -56,6 +62,14 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
             fileName="rich-message-field-post.tsx"
           >
             <RichMessageFieldPost />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A post’s composer in a dialog, with a smaller corner than the dialog’s"
+            code={dialog}
+            html={dialogHtml}
+            fileName="rich-message-field-dialog.tsx"
+          >
+            <RichMessageFieldDialog />
           </ExampleViewer>
           <ExampleViewer
             title="Mentions: @ suggests people, and posted mentions link to them"
@@ -209,12 +223,15 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
           </h2>
           <p className="text-body-large text-on-surface-variant">
             The field takes every <InlineCode>--wm-message-field-*</InlineCode> token (see Message
-            field). The formatted text, while writing and in <InlineCode>FormattedText</InlineCode>,
-            takes these, on the text or any ancestor: bold and mentions use the emphasized body
-            weight, inline code keeps the text&apos;s size and code blocks are{' '}
-            <InlineCode>body-medium</InlineCode>. <InlineCode>classNames</InlineCode> reaches the
-            field&apos;s parts and, through <InlineCode>formattingToolbar</InlineCode>, the
-            toolbar&apos;s <InlineCode>root</InlineCode>, <InlineCode>button</InlineCode> and{' '}
+            field); inside a dialog, a card or a sheet, give the grown field a smaller corner than
+            the container&apos;s (<InlineCode>--wm-message-field-grown-corner</InlineCode>), as the
+            dialog example does. The formatted text, while writing and in{' '}
+            <InlineCode>FormattedText</InlineCode>, takes these, on the text or any ancestor: bold
+            and mentions use the emphasized body weight, inline code keeps the text&apos;s size and
+            code blocks are <InlineCode>body-medium</InlineCode>.{' '}
+            <InlineCode>classNames</InlineCode> reaches the field&apos;s parts and, through{' '}
+            <InlineCode>formattingToolbar</InlineCode>, the toolbar&apos;s{' '}
+            <InlineCode>root</InlineCode>, <InlineCode>button</InlineCode> and{' '}
             <InlineCode>divider</InlineCode>; <InlineCode>formattingIcon</InlineCode> and{' '}
             <InlineCode>formattingToolbar.icons</InlineCode> replace the icons.
           </p>

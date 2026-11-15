@@ -104,8 +104,9 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
               <InlineCode>sizes</InlineCode>) from its own layout: the tile&apos;s laid-out width
               where the browser reads it (<InlineCode>auto</InlineCode>), else the row&apos;s 112px
               tile on compact windows and an equal share of the window from medium up. Pass your own{' '}
-              <InlineCode>sizes</InlineCode> when the tile&apos;s width or the columns are set in
-              CSS.
+              <InlineCode>sizes</InlineCode> when the grid is narrower than the window (in a column,
+              a card or a dialog), or when the tile&apos;s width or the columns are set in CSS, as
+              the example of photos at several widths does.
             </li>
             <li>
               A photo that can&apos;t be loaded keeps its tile: a square in a container colour with

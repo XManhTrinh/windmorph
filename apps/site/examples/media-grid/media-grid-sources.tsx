@@ -19,14 +19,20 @@ const PHOTOS = Array.from({ length: 6 }, (_, index) => ({
 /**
  * Photos stored at several widths: pass them as `srcSet` and each tile loads the smallest
  * file that fills it, here the one whose width it shows. The grid tells the browser how wide
- * a tile is (`sizes`) from its own layout; pass your own `sizes` when the tile's width or the
- * columns are set in CSS.
+ * a tile is (`sizes`) from its own layout, as a share of the window. This grid sits in a
+ * column narrower than the window, a width set in CSS, so it passes its own: the tile's
+ * laid-out width where the browser reads it (`auto`), else a third of the 576px column.
  */
 export function MediaGridSources() {
   const [pressed, setPressed] = useState<number | null>(null);
   return (
     <div className="flex w-full max-w-xl flex-col gap-3">
-      <MediaGrid items={PHOTOS} onAction={setPressed} aria-label="Photos at several widths" />
+      <MediaGrid
+        items={PHOTOS}
+        sizes="auto, (min-width: 600px) 190px, 112px"
+        onAction={setPressed}
+        aria-label="Photos at several widths"
+      />
       <p className="text-body-medium text-on-surface-variant" aria-live="polite">
         {pressed === null ? 'No photo pressed yet' : `Pressed photo ${pressed + 1}`}
       </p>
