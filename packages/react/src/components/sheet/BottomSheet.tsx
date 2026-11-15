@@ -105,6 +105,17 @@ export type BottomSheetDetent = 'collapsed' | 'expanded';
 /** The interactive strip at the top of a sheet without a drag handle (m3.material.io). */
 const DRAG_ZONE = 48;
 
+/**
+ * Whether the element is a control whose popup is open (WAI-ARIA: an expanded combobox, or a
+ * button with `aria-haspopup`), as it reads while its own key handler is closing the popup:
+ * React commits the change after the event. A disclosure (`aria-expanded` alone) has none.
+ */
+function hasOpenPopup(element: Element) {
+  if (element.getAttribute('aria-expanded') !== 'true') return false;
+  const popup = element.getAttribute('aria-haspopup');
+  return element.getAttribute('role') === 'combobox' || (popup !== null && popup !== 'false');
+}
+
 type Naming =
   | {
       /** Accessible name when there's no visible title. Required without `aria-labelledby`. */
@@ -269,12 +280,12 @@ function ModalBottomSheet({
   ...props
 }: Omit<PanelProps, 'variant' | 'panelProps'> & { triggerOverlayProps?: { id?: string } }) {
   const panelRef = useObjectRef(ref as Ref<HTMLDivElement>);
+  // Escape closes it through React Aria's overlay, in one press from any detent (WAI-ARIA APG
+  // modal dialog; HTML's close request), as `Dialog` and `SideSheet`: only the topmost overlay
+  // closes, so Escape in an overlay opened from inside the sheet (an autocomplete's list, a
+  // dialog while it saves) is that overlay's own, whether or not it closes on it.
   const { modalProps, underlayProps } = useModalOverlay(
-    {
-      ...closedByOverlayOptions(closedBy, isExiting),
-      // The panel handles Escape itself (below), so a nested control's Escape stays its own.
-      isKeyboardDismissDisabled: true,
-    },
+    closedByOverlayOptions(closedBy, isExiting),
     state,
     panelRef,
   );
@@ -579,23 +590,20 @@ function BottomSheetPanel({
     };
   }, []);
 
+  // A standard sheet isn't an overlay, so it lowers itself on Escape: a modal one closes
+  // through React Aria's overlay (`ModalBottomSheet`).
   const onKeyDown = (event: KeyboardEvent) => {
+    if (!standard || current !== 'expanded' || !hasLower) return;
     // Escape while a text is being composed cancels the composition, as in React Aria's overlays.
     if (event.key !== 'Escape' || isExiting || event.nativeEvent.isComposing) return;
     // React hands up the keys of an overlay opened from inside the sheet, through its portal.
     // Escape there is that overlay's own, whether or not it closes on it: never the sheet's.
-    if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return;
-    if (standard) {
-      if (current !== 'expanded' || !hasLower) return;
-      event.stopPropagation();
-      setDetent('lower');
-      return;
-    }
-    // Escape is a close request: it closes a modal sheet in one press, from any detent (WAI-ARIA
-    // APG modal dialog; HTML's close request), unless the user may not close it.
-    if (closedBy === 'none') return;
+    if (!(event.target instanceof Element) || !event.currentTarget.contains(event.target)) return;
+    // Escape in a control whose popup is open (an autocomplete's list, which leaves focus in
+    // its input) closes the popup, and lets the key through: the popup's alone.
+    if (hasOpenPopup(event.target)) return;
     event.stopPropagation();
-    close();
+    setDetent('lower');
   };
 
   const handleRef = useRef<HTMLDivElement>(null);
