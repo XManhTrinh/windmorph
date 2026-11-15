@@ -415,9 +415,19 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['avatar/avatar-badges'],
       },
       {
-        name: 'A status ring, its segments and a pill at the bottom (`statusRing`, `badgePlacement="bottom"`)',
+        name: 'A status ring and its segments (`statusRing`, `statusRingSegments`)',
         kind: 'configuration',
         examples: ['avatar/avatar-status-ring'],
+      },
+      {
+        name: 'Stories: a gradient ring (`--wm-avatar-status-ring-active`)',
+        kind: 'use case',
+        examples: ['avatar/avatar-stories'],
+      },
+      {
+        name: 'Live now: a ring and a pill at the bottom (`badgePlacement="bottom"`)',
+        kind: 'use case',
+        examples: ['avatar/avatar-live'],
       },
       {
         name: 'A link to a profile (`href`)',
