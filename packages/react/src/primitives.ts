@@ -46,7 +46,10 @@ export {
   type SelectionControlClassNames,
   type SelectionControlProps,
 } from './primitives/SelectionControl';
-export { selectionControlStyles } from './primitives/selection-control-styles';
+export {
+  selectionControlStyles,
+  type ControlPlacement,
+} from './primitives/selection-control-styles';
 export {
   TriggerContext,
   useTriggerProps,

@@ -1,6 +1,12 @@
 import { tv } from '../utils/tv';
 
 /**
+ * Where a control sits beside its label: `start` (before it, the default) or `end` (after it,
+ * as a settings row's switch). Logical sides, so right to left mirrors it.
+ */
+export type ControlPlacement = 'start' | 'end';
+
+/**
  * Shared anatomy of checkboxes, radio buttons and switches: a root `<label>`, the
  * control (focus ring, touch target; for `kind: 'circle'` also the 40px round state
  * layer, which web density shrinks) and the label text. State layers
@@ -17,7 +23,8 @@ export const selectionControlStyles = tv({
     ],
     // Library-owned inner wrapper holding the indicator, focus ring and touch target.
     control: 'relative inline-flex shrink-0 items-center justify-center focus-ring',
-    label: 'min-w-0 pe-[8px]',
+    // The label's spacing is on its far side from the control, mirrored with the placement.
+    label: 'min-w-0',
   },
   variants: {
     kind: {
@@ -41,8 +48,20 @@ export const selectionControlStyles = tv({
         ],
       },
       // Switches: the control is the track; the recipe adds a state layer that follows the thumb.
-      track: { control: 'rounded-full', label: 'ps-[12px]' },
+      track: { control: 'rounded-full' },
+    },
+    // `end`: the label comes first and grows, so a full-width row puts the control at its end
+    // (2026-11-15, a settings row's switch).
+    controlPlacement: {
+      start: {},
+      end: { label: 'flex-1' },
     },
   },
-  defaultVariants: { kind: 'circle' },
+  compoundVariants: [
+    { kind: 'circle', controlPlacement: 'start', class: { label: 'pe-[8px]' } },
+    { kind: 'circle', controlPlacement: 'end', class: { label: 'ps-[8px]' } },
+    { kind: 'track', controlPlacement: 'start', class: { label: 'ps-[12px] pe-[8px]' } },
+    { kind: 'track', controlPlacement: 'end', class: { label: 'ps-[8px] pe-[12px]' } },
+  ],
+  defaultVariants: { kind: 'circle', controlPlacement: 'start' },
 });

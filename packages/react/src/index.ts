@@ -362,6 +362,7 @@ export {
 } from './components/radio/radio-styles';
 export { radioTokenSet } from './components/radio/radio-tokens';
 export { Switch, type SwitchClassNames, type SwitchProps } from './components/switch/Switch';
+export type { ControlPlacement } from './primitives/selection-control-styles';
 export { switchStyles, type SwitchStyleProps } from './components/switch/switch-styles';
 export { switchTokenSet } from './components/switch/switch-tokens';
 export {

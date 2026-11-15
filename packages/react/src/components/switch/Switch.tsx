@@ -24,6 +24,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import type { ControlPlacement } from '../../primitives/selection-control-styles';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
@@ -95,6 +96,12 @@ interface SwitchOwnProps
    * @default 0
    */
   density?: Density;
+  /**
+   * Where the switch sits beside its label: `start` (before it) or `end` (after it, the label
+   * growing to fill the row, as a settings row's). As `ListItem`'s `controlPlacement`.
+   * @default "start"
+   */
+  controlPlacement?: ControlPlacement;
   /** Icon in the thumb while checked (overrides the default check). */
   checkedIcon?: ReactNode;
   /** Icon in the thumb while unchecked (overrides the default close). */
@@ -144,6 +151,7 @@ export function Switch({
   checkedIcon,
   uncheckedIcon,
   density,
+  controlPlacement = 'start',
   className,
   classNames,
   style,
@@ -262,7 +270,7 @@ export function Switch({
     'data-focus-visible': isFocusVisible || undefined,
     'data-has-icon': Boolean(icon) || undefined,
   };
-  const styles = switchStyles();
+  const styles = switchStyles({ controlPlacement });
   // The track is the control; the switch's tokens name it as a part.
   const trackProps = { ...dragProps, 'data-slot': 'track' };
 
@@ -279,6 +287,7 @@ export function Switch({
       }}
       state={stateAttributes}
       styles={styles}
+      controlPlacement={controlPlacement}
       className={className}
       classNames={classNames}
       style={style}

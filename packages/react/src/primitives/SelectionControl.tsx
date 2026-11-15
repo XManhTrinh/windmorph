@@ -14,7 +14,7 @@ import {
 import { mergeProps, mergeRefs, VisuallyHidden } from 'react-aria';
 import { cn } from '../utils/cn';
 import { preventHiddenInputScroll } from './hidden-input-focus';
-import { selectionControlStyles } from './selection-control-styles';
+import { selectionControlStyles, type ControlPlacement } from './selection-control-styles';
 import { TouchTarget } from './TouchTarget';
 import { restartRipple } from './use-m3-interaction';
 
@@ -57,6 +57,8 @@ export interface SelectionControlProps {
   controlStyle?: CSSProperties;
   /** Extra props for the control (e.g. a switch's drag handlers). */
   controlProps?: HTMLAttributes<HTMLSpanElement>;
+  /** The control before its label (`start`) or after it (`end`). @default "start" */
+  controlPlacement?: ControlPlacement;
 }
 
 /**
@@ -79,6 +81,7 @@ export function SelectionControl({
   style,
   controlStyle,
   controlProps,
+  controlPlacement = 'start',
 }: SelectionControlProps) {
   const hiddenInputRef = useMemo(() => mergeRefs(inputRef, preventHiddenInputScroll), [inputRef]);
   // Every press starts a fresh (centred) ripple on the control, as in Compose.
@@ -94,14 +97,20 @@ export function SelectionControl({
       if (event.key === ' ') restart(event.currentTarget);
     },
   };
+  const label = children !== undefined && children !== null && (
+    <span className={styles.label({ class: classNames?.label })}>{children}</span>
+  );
+  // In the page in the order it shows, so reading order follows what is seen.
   return (
     <label
       {...mergeProps(rootData, rootProps, rippleProps)}
       {...state}
       ref={ref}
+      data-control-placement={controlPlacement === 'end' ? 'end' : undefined}
       style={style}
       className={styles.root({ class: cn(classNames?.root, className) })}
     >
+      {controlPlacement === 'end' && label}
       <span
         {...controlProps}
         {...state}
@@ -115,9 +124,7 @@ export function SelectionControl({
         <TouchTarget />
         {indicator}
       </span>
-      {children !== undefined && children !== null && (
-        <span className={styles.label({ class: classNames?.label })}>{children}</span>
-      )}
+      {controlPlacement === 'start' && label}
     </label>
   );
 }

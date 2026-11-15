@@ -183,3 +183,20 @@ describe('RadioGroup density', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('RadioGroup controlPlacement', () => {
+  it("puts every option's radio after its label; an option's own placement wins", () => {
+    render(
+      <RadioGroup label="Delivery" controlPlacement="end">
+        <Radio value="standard">Standard</Radio>
+        <Radio value="express" controlPlacement="start">
+          Express
+        </Radio>
+      </RadioGroup>,
+    );
+    const first = (name: string) =>
+      screen.getByRole('radio', { name }).closest('label')!.firstElementChild as HTMLElement;
+    expect(first('Standard')).toHaveTextContent('Standard');
+    expect(first('Express')).toHaveAttribute('data-selection-control');
+  });
+});
