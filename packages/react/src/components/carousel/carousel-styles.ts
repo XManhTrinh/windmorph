@@ -57,6 +57,9 @@ export const carouselStyles = tv({
     ],
     stateLayer:
       'pointer-events-none state-layer [--m3-state-layer-color:var(--md-sys-color-on-surface)]',
+    // An item that is a link (`itemHref`): the link holds the press area and the mask, fills
+    // the slot and draws the focus ring the item draws otherwise.
+    link: 'flex size-full shrink-0 rounded-(--m3-carousel-corner) focus-ring-inset',
     // The item's press area, laid under the mask in the same place (a negative end margin,
     // so nothing is positioned).
     hitArea: 'h-full w-full shrink-0 -me-[100%]',

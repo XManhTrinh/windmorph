@@ -11,6 +11,7 @@ const CarouselLayouts = lazyExample('carousel/carousel-layouts', 'CarouselLayout
 const CarouselMultiBrowse = lazyExample('carousel/carousel-multibrowse', 'CarouselMultiBrowse');
 const CarouselVariants = lazyExample('carousel/carousel-variants', 'CarouselVariants');
 const CarouselHero = lazyExample('carousel/carousel-hero', 'CarouselHero');
+const CarouselLinks = lazyExample('carousel/carousel-links', 'CarouselLinks');
 
 /** Carousel page body: multi-browse, uncontained, multi-aspect, hero and full-screen. */
 export async function CarouselBody(): Promise<ComponentDoc> {
@@ -29,6 +30,8 @@ export async function CarouselBody(): Promise<ComponentDoc> {
 
   const hero = await readExampleSource('carousel/carousel-hero.tsx');
   const heroHtml = await highlightSource(hero);
+  const links = await readExampleSource('carousel/carousel-links.tsx');
+  const linksHtml = await highlightSource(links);
 
   return {
     tokens: [carouselTokenSet],
@@ -72,6 +75,14 @@ export async function CarouselBody(): Promise<ComponentDoc> {
             fileName="carousel-actions.tsx"
           >
             <CarouselActions />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Items that are links"
+            code={links}
+            html={linksHtml}
+            fileName="carousel-links.tsx"
+          >
+            <CarouselLinks />
           </ExampleViewer>
         </section>
       </>

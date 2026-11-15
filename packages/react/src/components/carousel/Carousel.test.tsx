@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { RouterProvider } from 'react-aria';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Carousel } from './Carousel';
@@ -344,5 +345,68 @@ describe('Carousel', () => {
   it('has no state layer when items are not actionable', () => {
     render(<Carousel aria-label="Photos">{slides(1)}</Carousel>);
     expect(mask(0).children).toHaveLength(1);
+  });
+});
+
+describe('Carousel items that are links', () => {
+  it('makes an item a real link named by its content, routed by a RouterProvider', async () => {
+    const navigate = vi.fn();
+    render(
+      <RouterProvider navigate={navigate}>
+        <Carousel
+          aria-label="Recipes"
+          itemHref={(index) => (index === 1 ? undefined : `/recipes/${index}`)}
+          itemTarget="_self"
+        >
+          {slides(3)}
+        </Carousel>
+      </RouterProvider>,
+    );
+    const link = screen.getByRole('link', { name: 'Slide 0' });
+    expect(link).toHaveAttribute('href', '/recipes/0');
+    expect(link).toHaveAttribute('target', '_self');
+    // The slide stays a group named by its place; the link, not the slide, takes focus.
+    const slide = link.closest('[data-slot="item"]')!;
+    expect(slide).toHaveAttribute('role', 'group');
+    expect(slide).not.toHaveAttribute('tabindex');
+    // An item without an address stays a plain slide.
+    expect(screen.queryByRole('link', { name: 'Slide 1' })).toBeNull();
+    await userEvent.click(screen.getByText('Slide 2'));
+    expect(navigate).toHaveBeenCalledWith('/recipes/2', undefined);
+  });
+});
+
+describe('Carousel item sizes', () => {
+  it('marks each item large, medium or small with its openness, and reports the focal item', async () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(412);
+    const onFocalChange = vi.fn();
+    render(
+      <Carousel aria-label="Photos" onFocalChange={onFocalChange}>
+        {slides(6)}
+      </Carousel>,
+    );
+    const items = screen.getAllByRole('group');
+    expect(items[0]).toHaveAttribute('data-size', 'large');
+    expect(items[0]!.style.getPropertyValue('--m3-carousel-item-openness')).toBe('1');
+    const last = items.at(-1)!;
+    expect(last).toHaveAttribute('data-size', 'small');
+    expect(last.style.getPropertyValue('--m3-carousel-item-openness')).toBe('0');
+    // Scrolled by two items, another item is large; once scrolling settles, it is reported.
+    const scroller = items[0]!.parentElement!;
+    Object.defineProperty(scroller, 'scrollLeft', { value: 372, configurable: true });
+    fireEvent.scroll(scroller);
+    await vi.waitFor(() => expect(onFocalChange).toHaveBeenCalledOnce());
+    const focal = onFocalChange.mock.calls[0]![0] as number;
+    expect(focal).toBeGreaterThan(0);
+    expect(items[focal]).toHaveAttribute('data-size', 'large');
+  });
+
+  it('keeps every item large under reduced motion', () => {
+    reducedMotion.value = true;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(412);
+    render(<Carousel aria-label="Photos">{slides(4)}</Carousel>);
+    for (const item of screen.getAllByRole('group')) {
+      expect(item).toHaveAttribute('data-size', 'large');
+    }
   });
 });

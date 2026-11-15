@@ -780,6 +780,10 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         'An object of start, end and cross padding, whose defaults change with the variant.',
       disabledIndexes:
         'A list of item indexes, which only matters with `onAction`; see Items that open something.',
+      itemTarget:
+        'Where the links of `itemHref` (a function) open; the preview has no links, see Items that are links.',
+      itemRel:
+        'The relationship of the links of `itemHref` (a function) to the page; see Items that are links.',
     },
     codeSlots: { 'aria-label': '"Gallery"', className: '"h-[200px]"' },
     codeChildren: PHOTOS.slice(0, 4)
