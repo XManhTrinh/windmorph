@@ -7,9 +7,10 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { Overlay as AriaOverlay } from 'react-aria';
+import { Overlay as AriaOverlay, useUNSAFE_PortalContext } from 'react-aria';
 import {
   DocumentThemeContext,
   InheritedThemeContext,
@@ -51,6 +52,23 @@ export interface OverlayProps {
 
 // What an overlay's buttons take from a container outside it: nothing.
 const NO_BUTTON_SETTINGS = {};
+
+// Elements that draw their own content and none of their children: an overlay put inside one
+// would never show.
+const REPLACED = new Set(['VIDEO', 'AUDIO', 'CANVAS', 'IMG', 'IFRAME', 'OBJECT', 'EMBED', 'SVG']);
+
+function subscribeFullscreen(onChange: () => void) {
+  document.addEventListener('fullscreenchange', onChange);
+  return () => document.removeEventListener('fullscreenchange', onChange);
+}
+
+// The element in full screen, when an overlay can be drawn inside it. A browser in full screen
+// draws only that element's own content, so an overlay portalled to `body` was in the document
+// but never seen (2026-11-15): a tooltip, a menu or a dialog opened in a full-screen player.
+const fullscreenContainer = () => {
+  const element = document.fullscreenElement;
+  return element && !REPLACED.has(element.nodeName.toUpperCase()) ? element : null;
+};
 
 // An overlay isn't part of what it was opened from. A chip in a dialog opened from a chip of a
 // set kept the set's selection and its `disabled`; a button in one opened from a button group
@@ -122,6 +140,11 @@ export function Overlay({
     'data-mode': layerMode,
     'data-contrast': layerContrast,
   };
+  // Where it goes: the caller's container, then an app's `PortalProvider` (React Aria's, for a
+  // subtree's overlays), then the element in full screen, then `body`.
+  const { getContainer } = useUNSAFE_PortalContext();
+  const fullscreen = useSyncExternalStore(subscribeFullscreen, fullscreenContainer, () => null);
+  const container = portalContainer ?? getContainer?.() ?? fullscreen ?? undefined;
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -188,7 +211,7 @@ export function Overlay({
     <>
       <span ref={attachMarker} hidden />
       <AriaOverlay
-        portalContainer={portalContainer}
+        portalContainer={container}
         disableFocusManagement={disableFocusManagement}
         isExiting={exiting}
       >
@@ -196,7 +219,7 @@ export function Overlay({
           ref={scopeRef}
           {...themeAttributesOver(
             themed,
-            portalContainer ? null : documentTheme,
+            container ? null : documentTheme,
             outerLayer !== undefined,
           )}
           className={outerLayer?.className || undefined}
