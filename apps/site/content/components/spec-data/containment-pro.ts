@@ -178,6 +178,16 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         kind: 'configuration',
         examples: ['media-grid/media-grid-columns'],
       },
+      {
+        name: 'Photos stored at several widths (`srcSet`, `sizes`)',
+        kind: 'configuration',
+        examples: ['media-grid/media-grid-sources'],
+      },
+      {
+        name: 'A photo that can’t be loaded (`fallbackIcon`)',
+        kind: 'use case',
+        examples: ['media-grid/media-grid-failed'],
+      },
     ],
   },
   'media-viewer': {
@@ -423,6 +433,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         name: 'Stories: a gradient ring (`--wm-avatar-status-ring-active`)',
         kind: 'use case',
         examples: ['avatar/avatar-stories'],
+      },
+      {
+        name: 'A gradient ring at every size',
+        kind: 'configuration',
+        examples: ['avatar/avatar-ring-sizes'],
       },
       {
         name: 'Live now: a ring and a pill at the bottom (`badgePlacement="bottom"`)',

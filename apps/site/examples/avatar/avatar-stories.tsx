@@ -2,6 +2,7 @@
 
 import { Avatar } from '@windmorph/react-pro';
 import { useState, type CSSProperties } from 'react';
+import { PORTRAITS } from './sample-portraits';
 
 /**
  * An app's own gradient for the ring: the paint token takes any `background`. Set on the row,
@@ -19,7 +20,12 @@ const AddIcon = () => (
   </svg>
 );
 
-const PEOPLE = ['Nora Lindqvist', 'Omar Haddad', 'Priya Shah', 'Mateo Alvarez'];
+const PEOPLE = [
+  { name: 'Nora Lindqvist', photo: PORTRAITS.nora },
+  { name: 'Omar Haddad', photo: PORTRAITS.omar },
+  { name: 'Priya Shah', photo: PORTRAITS.priya },
+  { name: 'Mateo Alvarez', photo: PORTRAITS.mateo },
+];
 
 const item = 'flex w-20 shrink-0 flex-col items-center gap-3';
 const caption = 'w-full truncate text-center text-label-medium text-on-surface';
@@ -41,6 +47,7 @@ export function AvatarStories() {
       <li className={item}>
         <Avatar
           name="Sam Taylor"
+          src={PORTRAITS.sam}
           alt="Your story"
           href="#demo-new-story"
           size="xl"
@@ -52,10 +59,11 @@ export function AvatarStories() {
           Your story
         </span>
       </li>
-      {PEOPLE.map((name) => (
+      {PEOPLE.map(({ name, photo }) => (
         <li key={name} className={item}>
           <Avatar
             name={name}
+            src={photo}
             alt={name}
             size="xl"
             statusRing={seen.includes(name) ? 'inactive' : 'active'}

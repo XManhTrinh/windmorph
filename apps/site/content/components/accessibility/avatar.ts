@@ -12,7 +12,7 @@ export const avatar: ComponentAccessibility = {
   ],
   screenReader: {
     role: 'A static avatar is an image (`role="img"`), or hidden (`aria-hidden`) when `decorative`. With `href` it is a `link`; with `onPress`, a `button`. `AvatarGroup` is a `group`.',
-    name: '`alt`, followed by the presence word, the `badgeLabel` and the `statusRingLabel` ("Sam, online, verified, new story"). A group is named once by its `aria-label` (or `aria-labelledby`).',
+    name: '`alt`, followed by the presence word, the `badgeLabel` and the `statusRingLabel` ("Sam, online, verified, new story"), and for a link with `target="_blank"`, "opens in a new tab" (`labels.newTab`). A group is named once by its `aria-label` (or `aria-labelledby`).',
     states:
       'None beyond the name: presence, the badge and the status ring are read as part of it, not as separate states.',
     notes: [

@@ -9,6 +9,8 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const MediaGridViewer = lazyExample('media-grid/media-grid-viewer', 'MediaGridViewer');
 const MediaGridColumns = lazyExample('media-grid/media-grid-columns', 'MediaGridColumns');
+const MediaGridSources = lazyExample('media-grid/media-grid-sources', 'MediaGridSources');
+const MediaGridFailed = lazyExample('media-grid/media-grid-failed', 'MediaGridFailed');
 
 /** MediaGrid page body: purpose, example, behaviour and tokens. */
 export async function MediaGridBody(): Promise<ComponentDoc> {
@@ -17,6 +19,12 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
 
   const columns = await readExampleSource('media-grid/media-grid-columns.tsx');
   const columnsHtml = await highlightSource(columns);
+
+  const sources = await readExampleSource('media-grid/media-grid-sources.tsx');
+  const sourcesHtml = await highlightSource(sources);
+
+  const failed = await readExampleSource('media-grid/media-grid-failed.tsx');
+  const failedHtml = await highlightSource(failed);
   return {
     overview: (
       <>
@@ -39,6 +47,22 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
             fileName="media-grid-columns.tsx"
           >
             <MediaGridColumns />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Photos stored at several widths"
+            code={sources}
+            html={sourcesHtml}
+            fileName="media-grid-sources.tsx"
+          >
+            <MediaGridSources />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A photo that can’t be loaded"
+            code={failed}
+            html={failedHtml}
+            fileName="media-grid-failed.tsx"
+          >
+            <MediaGridFailed />
           </ExampleViewer>
         </section>
       </>
@@ -75,6 +99,24 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
             </li>
             <li>Images load lazily and fill their square tiles.</li>
             <li>
+              An item&apos;s <InlineCode>srcSet</InlineCode> in widths lets each tile load the
+              smallest file that fills it. The grid says how wide a tile shows (
+              <InlineCode>sizes</InlineCode>) from its own layout: the tile&apos;s laid-out width
+              where the browser reads it (<InlineCode>auto</InlineCode>), else the row&apos;s 112px
+              tile on compact windows and an equal share of the window from medium up. Pass your own{' '}
+              <InlineCode>sizes</InlineCode> when the tile&apos;s width or the columns are set in
+              CSS.
+            </li>
+            <li>
+              A photo that can&apos;t be loaded keeps its tile: a square in a container colour with
+              an icon (<InlineCode>fallbackIcon</InlineCode>) in place of the photo, marked{' '}
+              <InlineCode>data-status=&quot;error&quot;</InlineCode>. It is still a button named by
+              the photo&apos;s <InlineCode>alt</InlineCode> and still calls{' '}
+              <InlineCode>onAction</InlineCode>. A failure is noticed in the server&apos;s HTML too,
+              where a photo can fail before the page hydrates, and a photo that loads later takes
+              the tile back.
+            </li>
+            <li>
               <InlineCode>onAction</InlineCode> gets the pressed tile&apos;s index and the tile
               itself: pass the tile to <InlineCode>MediaViewer</InlineCode>&apos;s{' '}
               <InlineCode>origin</InlineCode> for the M3 container transform.
@@ -97,7 +139,8 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
             Set the tokens below on a grid or any ancestor. Style the parts with{' '}
             <InlineCode>classNames</InlineCode> (<InlineCode>root</InlineCode>,{' '}
             <InlineCode>item</InlineCode>, <InlineCode>tile</InlineCode>,{' '}
-            <InlineCode>image</InlineCode>).
+            <InlineCode>image</InlineCode>, and <InlineCode>fallback</InlineCode> for the
+            placeholder of a photo that can&apos;t be loaded).
           </p>
           <TokenTable set={mediaGridTokenSet} caption="Media grid tokens" />
         </section>

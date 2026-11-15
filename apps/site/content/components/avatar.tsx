@@ -13,6 +13,7 @@ const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExampl
 const AvatarGroupLinks = lazyExample('avatar/avatar-group-links', 'AvatarGroupLinks');
 const AvatarLive = lazyExample('avatar/avatar-live', 'AvatarLive');
 const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
+const AvatarRingSizes = lazyExample('avatar/avatar-ring-sizes', 'AvatarRingSizes');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
 const AvatarStatusRing = lazyExample('avatar/avatar-status-ring', 'AvatarStatusRing');
 const AvatarStories = lazyExample('avatar/avatar-stories', 'AvatarStories');
@@ -20,19 +21,31 @@ const AvatarColors = lazyExample('avatar/avatar-colors', 'AvatarColors');
 
 /** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const [fallbacks, photos, colors, shapes, badges, statusRing, stories, live, group, groupLinks] =
-    await Promise.all([
-      readExampleSource('avatar/avatar-fallbacks.tsx'),
-      readExampleSource('avatar/avatar-photos.tsx'),
-      readExampleSource('avatar/avatar-colors.tsx'),
-      readExampleSource('avatar/avatar-shapes.tsx'),
-      readExampleSource('avatar/avatar-badges.tsx'),
-      readExampleSource('avatar/avatar-status-ring.tsx'),
-      readExampleSource('avatar/avatar-stories.tsx'),
-      readExampleSource('avatar/avatar-live.tsx'),
-      readExampleSource('avatar/avatar-group.tsx'),
-      readExampleSource('avatar/avatar-group-links.tsx'),
-    ]);
+  const [
+    fallbacks,
+    photos,
+    colors,
+    shapes,
+    badges,
+    statusRing,
+    stories,
+    ringSizes,
+    live,
+    group,
+    groupLinks,
+  ] = await Promise.all([
+    readExampleSource('avatar/avatar-fallbacks.tsx'),
+    readExampleSource('avatar/avatar-photos.tsx'),
+    readExampleSource('avatar/avatar-colors.tsx'),
+    readExampleSource('avatar/avatar-shapes.tsx'),
+    readExampleSource('avatar/avatar-badges.tsx'),
+    readExampleSource('avatar/avatar-status-ring.tsx'),
+    readExampleSource('avatar/avatar-stories.tsx'),
+    readExampleSource('avatar/avatar-ring-sizes.tsx'),
+    readExampleSource('avatar/avatar-live.tsx'),
+    readExampleSource('avatar/avatar-group.tsx'),
+    readExampleSource('avatar/avatar-group-links.tsx'),
+  ]);
   const [
     fallbacksHtml,
     photosHtml,
@@ -41,6 +54,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     badgesHtml,
     statusRingHtml,
     storiesHtml,
+    ringSizesHtml,
     liveHtml,
     groupHtml,
     groupLinksHtml,
@@ -52,6 +66,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     highlightSource(badges),
     highlightSource(statusRing),
     highlightSource(stories),
+    highlightSource(ringSizes),
     highlightSource(live),
     highlightSource(group),
     highlightSource(groupLinks),
@@ -121,6 +136,14 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             <AvatarStories />
           </ExampleViewer>
           <ExampleViewer
+            title="A gradient ring at every size"
+            code={ringSizes}
+            html={ringSizesHtml}
+            fileName="avatar-ring-sizes.tsx"
+          >
+            <AvatarRingSizes />
+          </ExampleViewer>
+          <ExampleViewer
             title="Live now: a ring and a pill at the bottom"
             code={live}
             html={liveHtml}
@@ -160,7 +183,12 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             Its sizes are in px (24 to 96px), so it keeps its M3 slot size at larger text sizes.
             With <InlineCode>href</InlineCode> it is a link and with{' '}
             <InlineCode>onPress</InlineCode> a button, with the core&apos;s state layer (hover,
-            focus and the pressed ripple) painted over the photo too.
+            focus and the pressed ripple) painted over the photo too. A link avatar takes{' '}
+            <InlineCode>target</InlineCode>, <InlineCode>rel</InlineCode> and{' '}
+            <InlineCode>download</InlineCode>, as an <InlineCode>&lt;a&gt;</InlineCode> does: with{' '}
+            <InlineCode>target=&quot;_blank&quot;</InlineCode> its <InlineCode>rel</InlineCode>{' '}
+            always holds <InlineCode>noopener noreferrer</InlineCode> and its name says it opens in
+            a new tab (<InlineCode>labels.newTab</InlineCode>).
           </p>
           <p className="text-body-large text-on-surface-variant">
             <InlineCode>AvatarGroup</InlineCode> shows several as one unit, named once by{' '}

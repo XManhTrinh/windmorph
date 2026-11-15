@@ -23,7 +23,10 @@ export const mediaGrid: ComponentAccessibility = {
     role: 'A `list` (`ul`) of list items, each holding a `button`.',
     name: 'The list is named by its required `aria-label` ("Photos"); each tile by its photo\'s `alt`.',
     states: 'None. Screen readers read the number of items from the list.',
-    notes: ['Only the first `max` photos are rendered, so the count is of the tiles shown.'],
+    notes: [
+      'Only the first `max` photos are rendered, so the count is of the tiles shown.',
+      "A tile whose photo can't be loaded is still a button named by its `alt`, and still calls `onAction`. Its placeholder icon is hidden from assistive tech, and the failure is not announced on the tile.",
+    ],
   },
   focus: [
     'While the compact row scrolls, the list itself is focusable (`tabIndex={0}`), so a keyboard can scroll it (WCAG 2.1.1). From medium windows up, where the grid does not scroll, it is not a Tab stop.',
@@ -39,5 +42,6 @@ export const mediaGrid: ComponentAccessibility = {
     "Name the list with `aria-label`, and give every photo an `alt` that says what it shows: it is the tile's only name.",
     'Open something useful from `onAction`, such as {@link MediaViewer} on that photo, so pressing a tile always does something.',
     'When `max` hides photos, offer a way to reach the rest, such as a "See all photos" link.',
+    "A failed photo's tile still calls `onAction`: open something that says the photo can't be shown, as {@link MediaViewer} does, or offer another try.",
   ],
 };
