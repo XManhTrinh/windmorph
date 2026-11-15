@@ -9,6 +9,8 @@ import { COMPACT_WINDOW } from '../date-picker/use-media-query';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
+import { BottomSheet } from '../sheet/BottomSheet';
+import { SheetTrigger } from '../sheet/SheetTrigger';
 import { ContextMenuTrigger, Menu, MenuGroup, MenuItem, MenuTrigger, SubmenuTrigger } from './Menu';
 
 /**
@@ -657,6 +659,37 @@ describe('Menu', () => {
       timeout: 1500,
     });
     await waitFor(() => expect(screen.getByRole('button', { name: 'File' })).toHaveFocus());
+  });
+
+  // The menu's own sheet read the state of a sheet trigger around it: inside a sheet that a
+  // SheetTrigger opened it stayed up after a choice, and closing it closed the outer sheet.
+  it('in a sheet a trigger opened, its own sheet closes alone', async () => {
+    const onAction = vi.fn();
+    render(
+      <SheetTrigger>
+        <Button>Filters</Button>
+        <BottomSheet aria-label="Filters">
+          <EditMenu presentation="sheet" onAction={onAction} />
+        </BottomSheet>
+      </SheetTrigger>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    await screen.findByRole('dialog', { name: 'Filters' });
+    await openMenu('Edit');
+    await screen.findByRole('dialog', { name: 'Edit' });
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus());
+    await userEvent.keyboard('{Enter}');
+    expect(onAction.mock.calls[0]?.[0]).toBe('cut');
+    await waitFor(
+      () => expect(screen.queryByRole('dialog', { name: 'Edit' })).not.toBeInTheDocument(),
+      { timeout: 1500 },
+    );
+    // The sheet around it is still open, and still its trigger's.
+    expect(screen.getByRole('dialog', { name: 'Filters' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filters', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
   });
 
   it('closes its sheet on Escape', async () => {

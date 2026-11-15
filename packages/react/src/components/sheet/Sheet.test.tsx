@@ -496,13 +496,15 @@ describe('A modal sheet inside a sheet a trigger opened', () => {
     ['bottom', BottomSheet],
     ['side', SideSheet],
   ] as const)('a %s sheet keeps its own open state', async (_, Sheet) => {
+    const onInnerChange = vi.fn();
+    const onOuterChange = vi.fn();
     function Nested({ inner }: { inner: boolean }) {
       return (
-        <SheetTrigger>
+        <SheetTrigger onOpenChange={onOuterChange}>
           <Button>Filters</Button>
           <Sheet aria-label="Filters">
             <p>Outer contents</p>
-            <Sheet open={inner} aria-label="Dates">
+            <Sheet open={inner} onOpenChange={onInnerChange} aria-label="Dates">
               <p>Inner contents</p>
             </Sheet>
           </Sheet>
@@ -513,9 +515,12 @@ describe('A modal sheet inside a sheet a trigger opened', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Filters' }));
     expect(screen.getByRole('dialog', { name: 'Filters' })).toBeInTheDocument();
     expect(screen.queryByText('Inner contents')).not.toBeInTheDocument();
-    // It opens by its own prop.
+    // It opens by its own prop, and Escape asks it alone to close.
     rerender(<Nested inner />);
     expect(screen.getByRole('dialog', { name: 'Dates' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(onInnerChange).toHaveBeenCalledWith(false);
+    expect(onOuterChange).not.toHaveBeenCalledWith(false);
   });
 });
 
