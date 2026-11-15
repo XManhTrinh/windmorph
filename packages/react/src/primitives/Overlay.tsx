@@ -12,9 +12,12 @@ import { themeAttributes, themeAttributesOver } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
+import { DialogTriggerContext, SheetTriggerContext } from './OverlayTriggerContext';
 import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { ToolbarContext } from './ToolbarContext';
 import { TooltipPlacementContext } from './TooltipPlacementContext';
+import { RichContext, TooltipContext } from './TooltipTriggerContext';
+import { TriggerContext } from './TriggerContext';
 
 export interface OverlayProps {
   children: ReactNode;
@@ -40,6 +43,38 @@ export interface OverlayProps {
 
 // What an overlay's buttons take from a container outside it: nothing.
 const NO_BUTTON_SETTINGS = {};
+
+// An overlay isn't part of what it was opened from. A chip in a dialog opened from a chip of a
+// set kept the set's selection and its `disabled`; a button in one opened from a button group
+// kept the group's size, variant, `disabled` and connected corners; a tooltip in one opened
+// from an app bar opened below its button, as in the bar (2026-11-14). An icon button in one
+// opened from inside a tooltip trigger left its label tooltip to that trigger, so a full-screen
+// dialog's close button had none; the action of a rich tooltip whose trigger sits inside a
+// menu trigger took that trigger's props; and a dialog or modal sheet inside a dialog or sheet
+// a trigger opened took that trigger's open state (2026-11-15).
+function LeaveOpener({ children }: { children: ReactNode }) {
+  return (
+    <TriggerContext value={null}>
+      <TooltipContext value={null}>
+        <RichContext value={null}>
+          <DialogTriggerContext value={null}>
+            <SheetTriggerContext value={null}>
+              <ToolbarContext value={null}>
+                <ContainerButtonContext value={NO_BUTTON_SETTINGS}>
+                  <TooltipPlacementContext value={null}>
+                    <ToggleGroupStateContext value={null}>
+                      <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
+                    </ToggleGroupStateContext>
+                  </TooltipPlacementContext>
+                </ContainerButtonContext>
+              </ToolbarContext>
+            </SheetTriggerContext>
+          </DialogTriggerContext>
+        </RichContext>
+      </TooltipContext>
+    </TriggerContext>
+  );
+}
 
 /**
  * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
@@ -142,21 +177,8 @@ export function Overlay({
                 {content}
               </div>
             ),
-            // An overlay opened from a toolbar, a selection group or a chip set isn't part of
-            // it: a chip in a dialog opened from a chip of a set kept the set's selection and
-            // its `disabled`, a button in one opened from a button group kept the group's
-            // size, variant, `disabled` and connected corners, and a tooltip in one opened
-            // from an app bar opened below its button, as in the bar (2026-11-14).
             <InheritedThemeContext value={themed}>
-              <ToolbarContext value={null}>
-                <ContainerButtonContext value={NO_BUTTON_SETTINGS}>
-                  <TooltipPlacementContext value={null}>
-                    <ToggleGroupStateContext value={null}>
-                      <ChipSetDisabledContext value={false}>{children}</ChipSetDisabledContext>
-                    </ToggleGroupStateContext>
-                  </TooltipPlacementContext>
-                </ContainerButtonContext>
-              </ToolbarContext>
+              <LeaveOpener>{children}</LeaveOpener>
             </InheritedThemeContext>,
           )}
         </div>

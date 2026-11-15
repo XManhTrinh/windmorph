@@ -30,6 +30,7 @@ import {
 import { useOverlayTriggerState, type OverlayTriggerState } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
 import { Overlay } from '../../primitives/Overlay';
+import { DialogTriggerContext } from '../../primitives/OverlayTriggerContext';
 import {
   TriggerContext,
   useTriggerProps,
@@ -75,14 +76,6 @@ export type DialogPlacement = 'center' | 'top' | 'bottom' | 'start' | 'end';
  */
 export type DialogOrigin = 'trigger' | Element | DOMRectReadOnly;
 
-interface DialogTriggerContextValue {
-  state: OverlayTriggerState;
-  /** Links the dialog to its trigger (`aria-controls`). */
-  overlayProps: { id?: string };
-  /** The trigger, for `origin="trigger"`. */
-  triggerRef: RefObject<HTMLElement | null>;
-}
-
 /** Where a container transform starts, measured from its origin. */
 interface OriginBox {
   /** The origin's box and corners as a `clip-path` of the window. */
@@ -116,8 +109,6 @@ function measureOrigin(origin: Element | DOMRectReadOnly): OriginBox {
     color: background === TRANSPARENT ? 'var(--md-sys-color-surface-container-high)' : background,
   };
 }
-
-const DialogTriggerContext = createContext<DialogTriggerContextValue | null>(null);
 
 /**
  * Calls `onOpened` once the enter motion has finished: every CSS transition running on the

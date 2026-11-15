@@ -1,9 +1,17 @@
 import { render, screen } from '@testing-library/react';
-import { useLayoutEffect, useRef } from 'react';
+import { use, useLayoutEffect, useRef, type Context, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { ThemeScope } from '../theme/ThemeScope';
+import { ContainerButtonContext } from './ButtonContext';
+import { ChipSetDisabledContext } from './ChipSetContext';
 import { Overlay } from './Overlay';
+import { DialogTriggerContext, SheetTriggerContext } from './OverlayTriggerContext';
+import { ToggleGroupStateContext } from './ToggleGroupStateContext';
+import { ToolbarContext } from './ToolbarContext';
+import { TooltipPlacementContext } from './TooltipPlacementContext';
+import { RichContext, TooltipContext } from './TooltipTriggerContext';
+import { TriggerContext } from './TriggerContext';
 
 describe('Overlay', () => {
   it('portals to body and keeps the theme of where it was rendered', () => {
@@ -226,5 +234,47 @@ describe('Overlay', () => {
       </Overlay>,
     );
     expect(wrapper()).toHaveAttribute('data-react-aria-top-layer');
+  });
+
+  it('leaves behind every context of what it was opened from', () => {
+    // Each context set where the overlay is rendered, to a value its own reset never is.
+    const outside = {} as never;
+    const set = <T,>(context: Context<T>, value: T) => ({
+      context: context as unknown as Context<unknown>,
+      value,
+    });
+    const buttons = set(ContainerButtonContext, outside);
+    const chipSet = set(ChipSetDisabledContext, true);
+    const opener = [
+      set(TriggerContext, outside),
+      set(TooltipContext, outside),
+      set(RichContext, outside),
+      set(DialogTriggerContext, outside),
+      set(SheetTriggerContext, outside),
+      set(ToolbarContext, outside),
+      buttons,
+      set(TooltipPlacementContext, 'bottom'),
+      set(ToggleGroupStateContext, outside),
+      chipSet,
+    ];
+    const seen = new Map<Context<unknown>, unknown>();
+    function Probe() {
+      for (const { context } of opener) seen.set(context, use(context));
+      return null;
+    }
+    render(
+      opener.reduceRight<ReactNode>(
+        (content, { context, value }) => (
+          <context.Provider value={value}>{content}</context.Provider>
+        ),
+        <Overlay>
+          <Probe />
+        </Overlay>,
+      ),
+    );
+    expect(seen.size).toBe(opener.length);
+    for (const { context, value } of opener) expect(seen.get(context)).not.toBe(value);
+    expect(seen.get(buttons.context)).toEqual({});
+    expect(seen.get(chipSet.context)).toBe(false);
   });
 });

@@ -1,10 +1,18 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Overlay } from '../../primitives/Overlay';
 import { Button } from '../button/Button';
-import { Dialog, DialogActions, DialogTitle, DialogTrigger } from '../dialog/Dialog';
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../dialog/Dialog';
 import { IconButton } from '../icon-button/IconButton';
 import { BottomSheet } from '../sheet/BottomSheet';
 import { SheetTrigger } from '../sheet/SheetTrigger';
@@ -251,6 +259,46 @@ describe('Tooltip', () => {
     );
     expect(screen.getByText('Close the dialog')).toHaveAttribute('data-placement', 'top');
   });
+
+  it.each([
+    [
+      'TooltipTrigger',
+      (trigger: ReactNode) => (
+        <TooltipTrigger>
+          {trigger}
+          <Tooltip>Crop and rotate</Tooltip>
+        </TooltipTrigger>
+      ),
+    ],
+    [
+      'RichTooltipTrigger',
+      (trigger: ReactNode) => (
+        <RichTooltipTrigger>
+          {trigger}
+          <RichTooltip title="Crop">Crop and rotate</RichTooltip>
+        </RichTooltipTrigger>
+      ),
+    ],
+  ])(
+    "leaves an overlay opened from inside a %s its icon buttons' own tooltips",
+    async (_, withTooltip) => {
+      // The dialog is in the tooltip trigger's React tree, though not in the trigger: its
+      // Close button took the trigger's tooltip for its own and showed none.
+      render(
+        withTooltip(
+          <DialogTrigger defaultOpen>
+            <IconButton icon={<Icon />} aria-label="Crop photo" />
+            <Dialog fullScreen="always">
+              <DialogHeader>Crop photo</DialogHeader>
+              <DialogContent>Photo</DialogContent>
+            </Dialog>
+          </DialogTrigger>,
+        ),
+      );
+      await hover(screen.getByRole('button', { name: 'Close' }));
+      expect(await screen.findByRole('tooltip')).toHaveTextContent('Close');
+    },
+  );
 
   it('requires a trigger', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
