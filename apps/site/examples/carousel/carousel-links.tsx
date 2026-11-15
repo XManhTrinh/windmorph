@@ -27,7 +27,7 @@ export function CarouselLinks() {
       <Carousel
         aria-label="Recipes"
         className="h-[200px]"
-        itemHref={(index) => `#recipe-${index + 1}`}
+        itemHref={(index) => `#demo-recipe-${index + 1}`}
         onFocalChange={setFocal}
       >
         {RECIPES.map((recipe, index) => (
