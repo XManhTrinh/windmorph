@@ -2,6 +2,13 @@
 
 All notable changes to `@windmorph/react`, newest first. Each version is grouped by kind (Added, Changed, Deprecated, Removed, Fixed, Security), and each entry links to its pull request. The [What's new](https://windmorph.dev/whats-new) page tells the same story in plain words.
 
+## 0.2.8 — 2026-11-15
+
+### Fixed
+
+- Escape pressed in a dialog or sheet opened from inside a `BottomSheet` no longer closes the bottom sheet behind it (or collapses an expanded standard one). The sheet handles Escape itself, and took the key from an overlay inside it that doesn't close on Escape (`closedBy="none"`, a dialog while it saves): the sheet closed, and the overlay with it. Escape that cancels a text being composed is left to the input method too. ([#84](https://github.com/XManhTrinh/windmorph/pull/84))
+- A `Dialog` inside the content of a dialog that a `DialogTrigger` opened keeps its own open state. It took the trigger's instead of its own `open`, so it opened together with the outer dialog; each then made the other inert, and nothing in either could take focus or be pressed. A form's own dialog (an "Add a link", a "Discard changes?") now stays closed until its `open` says so, and closes alone. A modal `BottomSheet` or `SideSheet` inside a sheet that a `SheetTrigger` opened does the same, and so does a `Menu` or `Select` shown as a sheet there: after its first opening it followed the outer sheet, stayed up after a choice, and closing it closed the outer sheet. The outer panel alone now carries the `id` its trigger's `aria-controls` names. ([#82](https://github.com/XManhTrinh/windmorph/pull/82))
+
 ## 0.2.7 — 2026-11-14
 
 ### Fixed
