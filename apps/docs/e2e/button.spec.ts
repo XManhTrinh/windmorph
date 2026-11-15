@@ -43,6 +43,24 @@ test.describe('Button visual regression', () => {
 });
 
 test.describe('Button interaction states', () => {
+  // On a Mac, React Aria counts Option as typing, so Option alone showed the ring of a button a
+  // click had focused (2026-11-15). Elsewhere Alt never counted; the test holds everywhere.
+  test('a modifier pressed alone never shows the ring of a clicked button', async ({ page }) => {
+    await openStory(page, 'components-button--playground', {}, { size: 'md' });
+    const button = page.getByRole('button', { name: 'Button' });
+    await button.click();
+    await expect(button).toBeFocused();
+    await expect(button).not.toHaveAttribute('data-focus-visible');
+    await page.keyboard.press('Alt');
+    await page.keyboard.press('CapsLock');
+    await page.keyboard.press('CapsLock');
+    await expect(button).not.toHaveAttribute('data-focus-visible');
+    expect(await button.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('none');
+    // A key that does something is keyboard use.
+    await page.keyboard.press('ArrowDown');
+    await expect(button).toHaveAttribute('data-focus-visible', 'true');
+  });
+
   test('hover, focus and press', async ({ page }) => {
     await openStory(page, 'components-button--playground', {}, { size: 'md' });
     const button = page.getByRole('button', { name: 'Button' });
