@@ -121,7 +121,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
     ],
     extensions: [
       {
-        item: '`itemAlignment="center"` with a top header',
+        item: '`itemAlign="center"` with a top header',
         note: 'Centres the items in the space below the header, which stays at the top, and an overflowing rail still scrolls to every item.',
       },
       {
@@ -158,7 +158,7 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
             windmorph: '`header`',
             note: 'Or a function of `{ expanded, toggle }`.',
           },
-          { compose: 'arrangement', windmorph: '`itemAlignment`' },
+          { compose: 'arrangement', windmorph: '`itemAlign`' },
         ],
       },
       {
@@ -170,9 +170,9 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         composable: 'WideNavigationRailItem',
         component: 'NavigationRailItem',
         params: [
-          { compose: 'selected', windmorph: '`selected`' },
+          { compose: 'selected', windmorph: '`current` (it is the current page: `aria-current`)' },
           { compose: 'onClick', windmorph: '`onPress` or `href`' },
-          { compose: 'icon', windmorph: '`icon` / `selectedIcon`' },
+          { compose: 'icon', windmorph: '`icon` / `currentIcon`' },
           { compose: 'label', windmorph: '`children`' },
           {
             compose: 'railExpanded',
@@ -239,9 +239,9 @@ export const NAVIGATION_SPEC: Record<string, ComponentSpecData> = {
         component: 'NavigationBarItem',
         params: [
           { compose: 'iconPosition', windmorph: 'the bar’s `iconPlacement`' },
-          { compose: 'selected', windmorph: '`selected`' },
+          { compose: 'selected', windmorph: '`current` (it is the current page: `aria-current`)' },
           { compose: 'onClick', windmorph: '`onPress` or `href`' },
-          { compose: 'icon', windmorph: '`icon` / `selectedIcon`' },
+          { compose: 'icon', windmorph: '`icon` / `currentIcon`' },
           { compose: 'label', windmorph: '`children`' },
         ],
       },

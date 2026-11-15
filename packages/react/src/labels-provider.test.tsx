@@ -256,7 +256,7 @@ const CASES: Record<string, Case> = {
       </SideSheet>
     ),
   },
-  Snackbar: { element: <Snackbar onDismiss={() => {}}>Saved</Snackbar> },
+  Snackbar: { element: <Snackbar onClose={() => {}}>Saved</Snackbar> },
   SplitButton: {
     element: (
       <SplitButton

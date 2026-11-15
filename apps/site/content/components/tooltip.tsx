@@ -90,7 +90,7 @@ export async function TooltipBody(): Promise<ComponentDoc> {
               with 12px above and 8px below the text when there is no subhead or action.
             </li>
             <li>
-              <InlineCode>delay</InlineCode> defaults to 0, because Compose shows at once;{' '}
+              <InlineCode>openDelay</InlineCode> defaults to 0, because Compose shows at once;{' '}
               <InlineCode>closeDelay</InlineCode> is the spec&apos;s 1.5s.
             </li>
             <li>

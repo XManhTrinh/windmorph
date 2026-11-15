@@ -131,7 +131,7 @@ function RailPreview({
           }),
         },
         DESTINATIONS.map(({ id, label, icon }) => (
-          <NavigationRailItem key={id} icon={icon} selected={id === 'home'}>
+          <NavigationRailItem key={id} icon={icon} current={id === 'home'}>
             {label}
           </NavigationRailItem>
         )),
@@ -168,7 +168,7 @@ function BarPreview(props: Record<string, unknown>) {
           NavigationBarAny,
           { ...unset(props, 'arrangement'), 'aria-label': 'Mail', scrollRef },
           DESTINATIONS.map(({ id, label, icon }) => (
-            <NavigationBarItem key={id} icon={icon} selected={id === 'home'}>
+            <NavigationBarItem key={id} icon={icon} current={id === 'home'}>
               {label}
             </NavigationBarItem>
           )),
@@ -335,7 +335,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       modal: false,
       hideOnCollapse: false,
       header: false,
-      itemAlignment: 'top',
+      itemAlign: 'top',
       divider: false,
       indicatorMotion: 'expand',
     },
@@ -344,13 +344,13 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'modal',
       'hideOnCollapse',
       'header',
-      'itemAlignment',
+      'itemAlign',
       'divider',
       'indicatorMotion',
     ],
     initialState: { header: true },
     adjust: adjustRailModal,
-    enumOptions: { itemAlignment: ['top', 'center'], indicatorMotion: ['expand', 'slide'] },
+    enumOptions: { itemAlign: ['top', 'center'], indicatorMotion: ['expand', 'slide'] },
     controlKinds: {
       // A switch here: `"compact"` is for a rail that's also the phone's drawer.
       hideOnCollapse: 'boolean',
@@ -369,7 +369,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     ]
       .map(
         ([id, label, icon]) =>
-          `<NavigationRailItem\n    icon={<${icon} />}\n    selected={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationRailItem>`,
+          `<NavigationRailItem\n    icon={<${icon} />}\n    current={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationRailItem>`,
       )
       .join('\n  '),
   },
@@ -398,7 +398,7 @@ export const NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     ]
       .map(
         ([id, label, icon]) =>
-          `<NavigationBarItem\n    icon={<${icon} />}\n    selected={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationBarItem>`,
+          `<NavigationBarItem\n    icon={<${icon} />}\n    current={current === '${id}'}\n    onPress={() => setCurrent('${id}')}\n  >\n    ${label}\n  </NavigationBarItem>`,
       )
       .join('\n  '),
   },

@@ -25,13 +25,13 @@ export const Layouts: Story = {
     <div className="flex w-[480px] flex-col gap-4" data-testid="layouts">
       <Snackbar>Photo saved</Snackbar>
       <Snackbar actionLabel="Undo">Message archived</Snackbar>
-      <Snackbar actionLabel="Retry" onDismiss={() => {}}>
+      <Snackbar actionLabel="Retry" onClose={() => {}}>
         Couldn’t send message
       </Snackbar>
-      <Snackbar onDismiss={() => {}}>
+      <Snackbar onClose={() => {}}>
         Your storage is almost full. Delete files to keep syncing across your devices.
       </Snackbar>
-      <Snackbar actionLabel="Open settings" actionOnNewLine onDismiss={() => {}}>
+      <Snackbar actionLabel="Open settings" actionOnNewLine onClose={() => {}}>
         Notifications are off for this app
       </Snackbar>
     </div>

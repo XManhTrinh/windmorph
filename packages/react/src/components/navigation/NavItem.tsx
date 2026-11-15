@@ -46,11 +46,21 @@ export interface NavItemClassNames {
 export interface NavItemOwnProps {
   /** The icon. Hidden from assistive tech; the label names the item. */
   icon: ReactElement;
-  /** Icon shown while selected, e.g. a filled variant. */
+  /** Icon shown while the item is the current destination, e.g. a filled variant. */
+  currentIcon?: ReactElement;
+  /** @deprecated Use `currentIcon`, its name since 0.2.9; this one goes in a later minor release. */
   selectedIcon?: ReactElement;
   /** The label. */
   children: ReactNode;
-  /** Marks the current destination (`aria-current="page"`). */
+  /**
+   * Marks the current destination (`aria-current="page"`): the page the app is on, which the
+   * item shows with its active indicator. @default false
+   */
+  current?: boolean;
+  /**
+   * @deprecated Use `current`, its name since 0.2.9 (the item marks the current page with
+   * `aria-current`, which isn't a selection); this one goes in a later minor release.
+   */
   selected?: boolean;
   /**
    * A `Badge` for dynamic information, such as a count. It overlaps the icon's top end, or
@@ -85,18 +95,18 @@ export type NavItemProps = NavItemOwnProps &
  * reduced motion it fades in place.
  */
 function useSlidingIndicator(
-  selected: boolean,
+  current: boolean,
   lastIndicatorRef: RefObject<HTMLElement | null> | undefined,
 ) {
   const indicatorRef = useRef<HTMLSpanElement>(null);
-  const wasSelected = useRef(selected);
+  const wasCurrent = useRef(current);
   const spring = useM3Spring('spatial', 'fast');
   const reducedMotion = useReducedMotion();
   useLayoutEffect(() => {
     const indicator = indicatorRef.current;
-    const changed = wasSelected.current !== selected;
-    wasSelected.current = selected;
-    if (!lastIndicatorRef || !selected || !indicator) return;
+    const changed = wasCurrent.current !== current;
+    wasCurrent.current = current;
+    if (!lastIndicatorRef || !current || !indicator) return;
     const previous = lastIndicatorRef.current;
     lastIndicatorRef.current = indicator;
     if (!changed || reducedMotion || !previous?.isConnected || previous === indicator) return;
@@ -118,7 +128,7 @@ function useSlidingIndicator(
     void animate(indicator, { y: [offset, 0], width: [from.width, to.width] }, spring).then(() => {
       indicator.style.width = '';
     });
-  }, [selected, lastIndicatorRef, reducedMotion, spring]);
+  }, [current, lastIndicatorRef, reducedMotion, spring]);
   return indicatorRef;
 }
 
@@ -147,8 +157,10 @@ export function NavItem({
   enterLabel,
   lastIndicatorRef,
   icon,
+  currentIcon: currentIconProp,
   selectedIcon,
   children,
+  current: currentProp,
   selected,
   badge,
   badgeLabel,
@@ -162,8 +174,10 @@ export function NavItem({
   /** The list's last current pill, so this item's pill slides from it when it becomes current. */
   lastIndicatorRef?: RefObject<HTMLElement | null>;
 }) {
+  const current = currentProp ?? selected ?? false;
+  const currentIcon = currentIconProp ?? selectedIcon;
   const styles = navItemStyles({ layout, enterLabel, slide: Boolean(lastIndicatorRef) });
-  const indicatorRef = useSlidingIndicator(Boolean(selected), lastIndicatorRef);
+  const indicatorRef = useSlidingIndicator(current, lastIndicatorRef);
   const descriptionId = useId();
   const inline = layout === 'rail-start' || layout === 'bar-start';
   // M3: badges sit on the icon, except in the expanded rail, where they follow the label.
@@ -184,13 +198,13 @@ export function NavItem({
       {children}
     </span>
   );
-  const iconFaces = selectedIcon ? (
+  const iconFaces = currentIcon ? (
     <>
-      <span data-shown={!selected || undefined} className={styles.iconFace()}>
+      <span data-shown={!current || undefined} className={styles.iconFace()}>
         {icon}
       </span>
-      <span data-shown={selected || undefined} className={styles.iconFace()}>
-        {selectedIcon}
+      <span data-shown={current || undefined} className={styles.iconFace()}>
+        {currentIcon}
       </span>
     </>
   ) : (
@@ -207,7 +221,7 @@ export function NavItem({
       {...action}
       onPress={(event) => {
         action.onPress?.(event);
-        if (selected) onReselect?.();
+        if (current) onReselect?.();
       }}
       onPressChange={(isPressed) => {
         action.onPressChange?.(isPressed);
@@ -231,13 +245,13 @@ export function NavItem({
       }}
       data-nav-item=""
       // An explicit value wins, for a destination that shows as current without being the page.
-      aria-current={action['aria-current'] ?? (selected ? 'page' : undefined)}
+      aria-current={action['aria-current'] ?? (current ? 'page' : undefined)}
       aria-describedby={
         [action['aria-describedby'], badge && description != null ? descriptionId : undefined]
           .filter(Boolean)
           .join(' ') || undefined
       }
-      data-current={selected || undefined}
+      data-current={current || undefined}
       // The bar's or rail's component tokens, resolved on the item for its state and layout.
       data-tokens={mergeDataTokens(
         layout.startsWith('rail') ? 'md-comp-nav-rail' : 'md-comp-nav-bar',

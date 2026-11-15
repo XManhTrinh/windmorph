@@ -63,11 +63,13 @@ interface SnackbarOwnProps {
   actionLabel?: string;
   /** Called when the action button is pressed. */
   onAction?: () => void;
-  /** Shows a dismiss (×) button that calls this. Escape calls it too. */
+  /** Shows a close (×) button that calls this. Escape calls it too. */
+  onClose?: () => void;
+  /** @deprecated Use `onClose`, its name since 0.2.9; this one goes in a later minor release. */
   onDismiss?: () => void;
   /**
    * Called on Escape while focus is inside, which dismisses a snackbar with or without the ×
-   * button. @default onDismiss
+   * button. @default onClose
    */
   onEscape?: () => void;
   /**
@@ -87,20 +89,21 @@ export type SnackbarProps = SnackbarOwnProps &
 /**
  * M3 snackbar: a brief message about an app process, with an optional action and dismiss
  * button. Usually shown through a {@link SnackbarHost}; render it directly for custom
- * placement. Escape dismisses it while focus is inside (`onEscape`, or `onDismiss`).
+ * placement. Escape dismisses it while focus is inside (`onEscape`, or `onClose`).
  *
  * Outside a host it announces its message politely itself, when it appears and when the
  * message changes, without moving focus (the host's live region does this inside one).
  *
  * @example
- * <Snackbar actionLabel="Undo" onAction={undo} onDismiss={close}>Message archived</Snackbar>
+ * <Snackbar actionLabel="Undo" onAction={undo} onClose={close}>Message archived</Snackbar>
  */
 export function Snackbar({
   children,
   actionLabel,
   onAction,
+  onClose: onCloseProp,
   onDismiss,
-  onEscape = onDismiss,
+  onEscape: onEscapeProp,
   labels: labelsProp,
   actionOnNewLine = false,
   classNames,
@@ -108,12 +111,14 @@ export function Snackbar({
   onKeyDown,
   ...rest
 }: SnackbarProps) {
+  const onClose = onCloseProp ?? onDismiss;
+  const onEscape = onEscapeProp ?? onClose;
   const styles = snackbarStyles({
     newLine: actionOnNewLine && actionLabel !== undefined,
-    dismissible: onDismiss !== undefined,
+    dismissible: onClose !== undefined,
   });
   const labels = useLabels('Snackbar', DEFAULT_LABELS, labelsProp);
-  const hasActions = actionLabel !== undefined || onDismiss !== undefined;
+  const hasActions = actionLabel !== undefined || onClose !== undefined;
   const inHost = useContext(InSnackbarHost);
   const messageRef = useRef<HTMLDivElement>(null);
   const announced = useRef('');
@@ -154,14 +159,14 @@ export function Snackbar({
               {actionLabel}
             </Button>
           )}
-          {onDismiss && (
+          {onClose && (
             <IconButton
               variant="standard"
               // The snackbar keeps its 48px height at every density, as a dialog header does.
               density={0}
               icon={<CloseIcon />}
               aria-label={labels.dismiss}
-              onPress={onDismiss}
+              onPress={onClose}
               data-slot="dismiss"
               className={styles.dismiss({ class: classNames?.dismiss })}
             />
@@ -290,7 +295,7 @@ export function SnackbarHost({
             <Snackbar
               actionLabel={data.visuals.actionLabel}
               onAction={data.performAction}
-              onDismiss={data.visuals.withDismissAction ? data.dismiss : undefined}
+              onClose={data.visuals.withDismissAction ? data.dismiss : undefined}
               onEscape={data.dismiss}
               labels={labels}
               actionOnNewLine={data.visuals.actionOnNewLine}

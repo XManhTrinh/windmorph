@@ -23,7 +23,7 @@ function slides(count: number) {
 /**
  * The `uncontained` and `hero` variants. Uncontained shows items of one size (`itemSize`)
  * that flow past the end edge, scrolling freely (`snap="item"` snaps it); hero shows one large item with small ones
- * beside it (`heroAlignment="center"` here centres it).
+ * beside it (`heroAlign="center"` here centres it).
  */
 export function CarouselVariants() {
   return (
@@ -36,7 +36,7 @@ export function CarouselVariants() {
       </div>
       <div className="flex flex-col gap-2">
         <p className="text-label-large text-on-surface-variant">Hero, centred</p>
-        <Carousel aria-label="Featured" variant="hero" heroAlignment="center" className="h-[200px]">
+        <Carousel aria-label="Featured" variant="hero" heroAlign="center" className="h-[200px]">
           {slides(6)}
         </Carousel>
       </div>

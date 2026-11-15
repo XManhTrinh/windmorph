@@ -36,7 +36,7 @@ function Rail(props: Partial<NavigationRailProps> & { onNavigate?: () => void })
       )}
       {...(rest as object)}
     >
-      <NavigationRailItem href="/inbox" icon={<Icon id="inbox" />} selected>
+      <NavigationRailItem href="/inbox" icon={<Icon id="inbox" />} current>
         Inbox
       </NavigationRailItem>
       <NavigationRailItem icon={<Icon id="sent" />} onPress={onNavigate}>
@@ -170,7 +170,7 @@ describe('NavigationRail', () => {
             <NavigationRailItem
               key={id}
               icon={<Icon id={id} />}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
             >
               {id}
@@ -228,7 +228,7 @@ describe('NavigationRail', () => {
             <NavigationRailItem
               key={id}
               icon={<Icon id={id} />}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
             >
               {id}
@@ -349,7 +349,7 @@ describe('NavigationRail', () => {
   it('lets an explicit aria-current win over a selected item', () => {
     render(
       <NavigationRail aria-label="Main">
-        <NavigationRailItem href="/a" icon={<span />} selected aria-current="false">
+        <NavigationRailItem href="/a" icon={<span />} current aria-current="false">
           A group
         </NavigationRailItem>
       </NavigationRail>,
@@ -453,8 +453,8 @@ describe('NavigationRail', () => {
     vi.restoreAllMocks();
   });
 
-  it('centres its items with itemAlignment, keeping the header at the top', () => {
-    render(<Rail itemAlignment="center" />);
+  it('centres its items with itemAlign, keeping the header at the top', () => {
+    render(<Rail itemAlign="center" />);
     const items = screen.getByRole('link', { name: 'Inbox' }).parentElement!;
     expect(items).toHaveAttribute('data-item-alignment', 'center');
     expect(items).toHaveClass('my-auto');
@@ -556,7 +556,7 @@ describe('NavigationRail', () => {
     const onReselect = vi.fn();
     render(
       <NavigationRail aria-label="Main">
-        <NavigationRailItem icon={<Icon id="inbox" />} selected onReselect={onReselect}>
+        <NavigationRailItem icon={<Icon id="inbox" />} current onReselect={onReselect}>
           Inbox
         </NavigationRailItem>
         <NavigationRailItem icon={<Icon id="sent" />} onReselect={onReselect}>
@@ -626,7 +626,7 @@ describe('NavigationRail indicatorMotion="slide"', () => {
           <NavigationRailItem
             key={name}
             icon={<Icon id={name} />}
-            selected={current === name}
+            current={current === name}
             onPress={() => setCurrent(name)}
           >
             {name}
@@ -742,8 +742,8 @@ describe('NavigationBar', () => {
         <NavigationBarItem
           href="/"
           icon={<Icon id="home" />}
-          selectedIcon={<Icon id="home-filled" />}
-          selected
+          currentIcon={<Icon id="home-filled" />}
+          current
         >
           Home
         </NavigationBarItem>
@@ -1057,7 +1057,7 @@ describe('Navigation component tokens', () => {
     render(
       <>
         <NavigationBar aria-label="Bar" iconPlacement="start">
-          <NavigationBarItem icon={<svg />} selected>
+          <NavigationBarItem icon={<svg />} current>
             Home
           </NavigationBarItem>
         </NavigationBar>

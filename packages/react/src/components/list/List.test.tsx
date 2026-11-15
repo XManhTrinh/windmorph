@@ -586,10 +586,10 @@ describe('List (item options)', () => {
   it('aligns content to the top or centre when asked', () => {
     render(
       <List aria-label="Messages">
-        <ListItem key="a" overline="Work" supportingText="Lunch?" verticalAlignment="center">
+        <ListItem key="a" overline="Work" supportingText="Lunch?" verticalAlign="center">
           Carol
         </ListItem>
-        <ListItem key="b" verticalAlignment="top">
+        <ListItem key="b" verticalAlign="top">
           Dan
         </ListItem>
       </List>,

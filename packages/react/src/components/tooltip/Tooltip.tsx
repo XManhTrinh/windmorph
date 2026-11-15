@@ -253,6 +253,8 @@ export interface RichTooltipTriggerProps {
   /** Distance from the anchor in px. @default 4 */
   offset?: number;
   /** Milliseconds of hover before a transient tooltip shows. @default 0 */
+  openDelay?: number;
+  /** @deprecated Use `openDelay`, its name since 0.2.9; this one goes in a later minor release. */
   delay?: number;
   /** Milliseconds before a transient tooltip hides after the pointer leaves. @default 1500 */
   closeDelay?: number;
@@ -309,7 +311,8 @@ function TransientRichTrigger({
   children,
   placement = 'bottom-start',
   offset = DEFAULT_OFFSET,
-  delay = 0,
+  openDelay,
+  delay,
   closeDelay = CLOSE_DELAY,
   disabled,
   open,
@@ -317,7 +320,7 @@ function TransientRichTrigger({
   onOpenChange,
 }: Omit<RichTooltipTriggerProps, 'persistent'>) {
   const options = {
-    delay,
+    delay: openDelay ?? delay ?? 0,
     closeDelay,
     isDisabled: disabled,
     isOpen: open,

@@ -95,7 +95,7 @@ export const Hero: Story = {
       <Carousel
         aria-label="Featured"
         variant="hero"
-        heroAlignment="center"
+        heroAlign="center"
         className="h-[221px]"
         data-testid="carousel"
       >

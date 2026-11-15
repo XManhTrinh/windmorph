@@ -83,6 +83,8 @@ export interface TooltipTriggerProps {
   /** The trigger (a library button or anything reading `TriggerContext`), then a `<Tooltip>`. */
   children: ReactNode;
   /** Milliseconds of hover before showing (Compose shows at once). @default 0 */
+  openDelay?: number;
+  /** @deprecated Use `openDelay`, its name since 0.2.9; this one goes in a later minor release. */
   delay?: number;
   /** Milliseconds before hiding after the pointer leaves or a touch lifts (the spec's 1.5s). @default 1500 */
   closeDelay?: number;
@@ -117,7 +119,8 @@ export interface TooltipTriggerProps {
  */
 export function TooltipTrigger({
   children,
-  delay = 0,
+  openDelay,
+  delay,
   closeDelay = CLOSE_DELAY,
   placement: placementProp,
   offset = DEFAULT_OFFSET,
@@ -129,7 +132,7 @@ export function TooltipTrigger({
   const contextPlacement = useContext(TooltipPlacementContext);
   const placement = placementProp ?? contextPlacement ?? 'top';
   const options = {
-    delay,
+    delay: openDelay ?? delay ?? 0,
     closeDelay,
     isDisabled: disabled,
     isOpen: open,

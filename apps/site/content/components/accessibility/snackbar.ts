@@ -15,7 +15,7 @@ export const snackbar: ComponentAccessibility = {
     {
       keys: ['Escape'],
       action:
-        'Dismisses the snackbar while focus is inside it, with or without a dismiss (×) button (`onEscape`, or `onDismiss`).',
+        'Dismisses the snackbar while focus is inside it, with or without a close (×) button (`onEscape`, or `onClose`).',
     },
   ],
   screenReader: {

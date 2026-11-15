@@ -33,9 +33,9 @@ export function RailStates() {
               <NavigationRailItem
                 key={id}
                 icon={icon}
-                selectedIcon={selectedIcon}
+                currentIcon={selectedIcon}
                 {...(id === 'search' && { badge: <Badge>3</Badge>, badgeLabel: '3 new results' })}
-                selected={index === 2}
+                current={index === 2}
                 disabled={index === 3}
               >
                 {label}

@@ -72,6 +72,23 @@ const REMOVED_ON: Record<string, Record<string, string>> = {
   Tabs: { onSelectionChange: 'onChange' },
 };
 
+/**
+ * Names replaced in 0.2.9 for the library's consistent ones (docs/architecture.md §9,
+ * "Consistent names"), kept as deprecated aliases until a later minor release: component →
+ * old name → new name. Each stays beside its replacement, marked `@deprecated`.
+ */
+const DEPRECATED_ON: Record<string, Record<string, string>> = {
+  Carousel: { heroAlignment: 'heroAlign' },
+  ListItem: { verticalAlignment: 'verticalAlign' },
+  NavigationRail: { itemAlignment: 'itemAlign' },
+  NavigationBarItem: { selected: 'current', selectedIcon: 'currentIcon' },
+  NavigationRailItem: { selected: 'current', selectedIcon: 'currentIcon' },
+  Snackbar: { onDismiss: 'onClose' },
+  TooltipTrigger: { delay: 'openDelay' },
+  RichTooltipTrigger: { delay: 'openDelay' },
+  SubmenuTrigger: { delay: 'openDelay' },
+};
+
 /** Components with no element of their own, so no `className`, `style`, `ref` or `id`. */
 const NO_ROOT: Record<string, string> = {
   ContextMenuTrigger:
@@ -160,6 +177,30 @@ describe('public API names', () => {
         .map((prop) => `${name}.${prop} (now ${REMOVED[prop] ?? REMOVED_ON[name]?.[prop] ?? '?'})`),
     );
     expect(found).toEqual([]);
+  });
+
+  it('keeps each replaced name as a deprecated alias beside its replacement', () => {
+    const byName = new Map(all.map((component) => [component.name, component]));
+    const wrong = Object.entries(DEPRECATED_ON).flatMap(([name, renames]) =>
+      Object.entries(renames).flatMap(([old, replacement]) => {
+        const component = byName.get(name);
+        if (!component) return [`${name}: not found`];
+        return [
+          ...(component.props.has(replacement) ? [] : [`${name}.${replacement} missing`]),
+          ...(component.deprecated.has(old) ? [] : [`${name}.${old} not marked @deprecated`]),
+        ];
+      }),
+    );
+    expect(wrong).toEqual([]);
+  });
+
+  it('deprecates no prop that the list of replaced names leaves out', () => {
+    const unlisted = all.flatMap(({ name, deprecated }) =>
+      [...deprecated]
+        .filter((prop) => DEPRECATED_ON[name]?.[prop] === undefined)
+        .map((prop) => `${name}.${prop}`),
+    );
+    expect(unlisted).toEqual([]);
   });
 
   it('hyphenates multi-word enum values', () => {

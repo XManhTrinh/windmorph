@@ -15,7 +15,7 @@ export const GREETING_PROPS: PropsTableRow[] = [
     description: 'The colour of the greeting.',
   },
   {
-    name: 'onDismiss',
+    name: 'onClose',
     type: '() => void',
     description: 'Called when the greeting is closed. Without it, there is no close button.',
   },

@@ -46,7 +46,7 @@ export function BarHideOnScroll() {
             <NavigationBarItem
               key={id}
               icon={icon}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
             >
               {label}

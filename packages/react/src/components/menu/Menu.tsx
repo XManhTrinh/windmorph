@@ -161,6 +161,8 @@ export interface SubmenuTriggerProps {
   /** The `MenuItem` that opens the submenu, then the submenu's `Menu`. */
   children: [ReactElement<MenuItemProps>, ReactElement<MenuProps>];
   /** How long (ms) the pointer rests on the item before the submenu opens. @default 200 */
+  openDelay?: number;
+  /** @deprecated Use `openDelay`, its name since 0.2.9; this one goes in a later minor release. */
   delay?: number;
 }
 
@@ -193,10 +195,12 @@ function SubmenuTriggerElement(): null {
 /** React Stately builds the item's node from this, with the submenu on its props. */
 SubmenuTriggerElement.getCollectionNode = function* getCollectionNode({
   children: [item, submenu],
+  openDelay,
   delay,
 }: SubmenuTriggerProps) {
+  const submenuDelay = openDelay ?? delay;
   // `cloneElement` keeps the item's own `key`.
-  yield { element: cloneElement(item, { submenu, submenuDelay: delay } as SubmenuItemProps) };
+  yield { element: cloneElement(item, { submenu, submenuDelay } as SubmenuItemProps) };
 };
 
 /**

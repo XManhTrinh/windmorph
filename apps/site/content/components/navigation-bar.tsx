@@ -75,8 +75,8 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             Items are links (<InlineCode>href</InlineCode>) or buttons (
             <InlineCode>onPress</InlineCode>) with an <InlineCode>icon</InlineCode>, an optional{' '}
-            <InlineCode>selectedIcon</InlineCode> and a label; <InlineCode>selected</InlineCode>{' '}
-            marks the current one, with a bold label. Stacked items share the width equally;{' '}
+            <InlineCode>currentIcon</InlineCode> and a label; <InlineCode>current</InlineCode> marks
+            the current one, with a bold label. Stacked items share the width equally;{' '}
             <InlineCode>arrangement=&quot;centered&quot;</InlineCode> groups them within side
             padding. Items beside their icons keep their own width and are centred by default, with
             the extra space at the bar&apos;s ends; when their labels don&apos;t fit on one line

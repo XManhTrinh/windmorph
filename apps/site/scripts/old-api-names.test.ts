@@ -45,6 +45,11 @@ const REPLACED: Record<string, string> = {
   defaultSelectedKey: 'defaultValue',
   unselectedIcon: 'uncheckedIcon',
   onValueChange: 'onChange',
+  // Replaced in 0.2.9 for the library's consistent names, kept as deprecated aliases.
+  heroAlignment: 'heroAlign',
+  verticalAlignment: 'verticalAlign',
+  itemAlignment: 'itemAlign',
+  onDismiss: 'onClose',
   // Windmorph Pro's replaced names (its own API naming round, 2026-10-17).
   tone: 'color (severity on Alert)',
   focusOnMount: 'autoFocus',
@@ -69,6 +74,9 @@ const OLD_PATTERNS: [RegExp, string][] = [
   [/<ListItemVideo\b[^>]*\bsize=["'](?:small|large)["']/, "size 'sm' / 'lg'"],
   [/<Slider\b[^>]*\b(?:startIcon|endIcon)=/, 'leadingIcon / trailingIcon'],
   [/<Switch\b[^>]*\bselectedIcon=/, 'checkedIcon'],
+  // 0.2.9: a navigation item marks the current page (`aria-current`), not a selection.
+  [/<Navigation(?:Bar|Rail)Item\b[^>]*\bselected(?:Icon)?[\s=/>]/, 'current / currentIcon'],
+  [/<(?:TooltipTrigger|RichTooltipTrigger|SubmenuTrigger)\b[^>]*\bdelay=/, 'openDelay'],
   // Windmorph Pro. `submitting` and `busy` are also everyday words (and search keywords), so
   // only a prop, an object key or a code span counts, and `aria-busy` never does.
   [/(?<![-\w])(?:submitting|busy)(?:=|:\s)|`(?:submitting|busy)`|labels\.busy/, 'pending'],

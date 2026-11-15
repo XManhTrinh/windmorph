@@ -28,7 +28,7 @@ export function BarStacked() {
             key={id}
             icon={icon}
             {...(id === 'search' && { badge: <Badge>3</Badge>, badgeLabel: '3 new results' })}
-            selected={current === id}
+            current={current === id}
             onPress={() => setCurrent(id)}
           >
             {label}

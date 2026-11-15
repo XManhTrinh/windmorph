@@ -656,10 +656,22 @@ export function refineWithChecker(
     const members = membersOf(propsType);
     const partlyRequired = new Set<string>();
     const domOnly = new Set<string>();
+    const deprecated = new Set<string>();
     for (const prop of record.props) {
       const declared = members
         .map((member) => checker.getPropertyOfType(member, prop.name))
         .filter((property): property is ts.Symbol => property !== undefined);
+      // A deprecated alias (the old name of a renamed prop) is left out, as deprecated keys are
+      // (`hook-docs.ts`): the editor shows its note where it is still used.
+      if (
+        declared.length > 0 &&
+        declared.every((property) =>
+          property.getJsDocTags(checker).some((tag) => tag.name === 'deprecated'),
+        )
+      ) {
+        deprecated.add(prop.name);
+        continue;
+      }
       if (declared.length > 0) {
         const requiredBy = members.filter((member) => requires(member, prop.name, checker));
         if (requiredBy.length < members.length) prop.required = false;
@@ -700,7 +712,7 @@ export function refineWithChecker(
         prop.keys = keys.map((key) => ({ ...key, name: `${prop.name}.${key.name}` }));
     }
     record.props = record.props
-      .filter((prop) => !domOnly.has(prop.name))
+      .filter((prop) => !domOnly.has(prop.name) && !deprecated.has(prop.name))
       .map(inLibraryWords)
       .map((prop) => (prop.name === 'ref' ? { ...prop, type: collapsedRefType(prop.type) } : prop));
     // A naming choice: every form requires one of these props, none requires them all.

@@ -15,15 +15,10 @@ export function SnackbarLayouts() {
       <Snackbar actionLabel="Undo" onAction={() => {}}>
         Message archived
       </Snackbar>
-      <Snackbar actionLabel="Retry" onAction={() => {}} onDismiss={() => {}}>
+      <Snackbar actionLabel="Retry" onAction={() => {}} onClose={() => {}}>
         Couldn’t send message
       </Snackbar>
-      <Snackbar
-        actionLabel="Open settings"
-        actionOnNewLine
-        onAction={() => {}}
-        onDismiss={() => {}}
-      >
+      <Snackbar actionLabel="Open settings" actionOnNewLine onAction={() => {}} onClose={() => {}}>
         Notifications are turned off for this app
       </Snackbar>
     </div>

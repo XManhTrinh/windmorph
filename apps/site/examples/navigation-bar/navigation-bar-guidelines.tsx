@@ -34,7 +34,7 @@ function Bar({ items, selected }: { items: Destination[]; selected: readonly str
     <div className="w-full max-w-96 overflow-hidden rounded-corner-large border border-outline-variant">
       <NavigationBar aria-label="Example">
         {items.map(({ label, icon }) => (
-          <NavigationBarItem key={label} icon={icon} selected={selected.includes(label)}>
+          <NavigationBarItem key={label} icon={icon} current={selected.includes(label)}>
             {label}
           </NavigationBarItem>
         ))}

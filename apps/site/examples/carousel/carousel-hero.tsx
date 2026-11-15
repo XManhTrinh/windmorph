@@ -12,7 +12,7 @@ const TONES = [
 /**
  * A `hero` carousel shows one large item at a time with a small one peeking at its end,
  * and swipes through one item at a time. It is start-aligned by default;
- * `heroAlignment="center"` puts a small item on each side.
+ * `heroAlign="center"` puts a small item on each side.
  */
 export function CarouselHero() {
   return (

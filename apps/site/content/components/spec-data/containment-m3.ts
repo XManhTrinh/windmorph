@@ -527,7 +527,7 @@ export const CONTAINMENT_M3_SPEC: Record<string, ComponentSpecData> = {
       },
       {
         composable: 'HorizontalCenteredHeroCarousel',
-        component: 'Carousel variant="hero" heroAlignment="center"',
+        component: 'Carousel variant="hero" heroAlign="center"',
       },
       {
         composable: 'Modifier.maskClip(shape)',

@@ -108,6 +108,8 @@ interface NavigationRailOwnProps {
    * (M3 recommends centre on tablets, within easier reach). The header stays at the top.
    * @default "top"
    */
+  itemAlign?: 'top' | 'center';
+  /** @deprecated Use `itemAlign`, its name since 0.2.9; this one goes in a later minor release. */
   itemAlignment?: 'top' | 'center';
   /** Draw a divider on the edge next to the content. @default false */
   divider?: boolean;
@@ -267,7 +269,7 @@ function useWidening(ref: RefObject<HTMLElement | null>, expanding: boolean) {
  *
  * @example
  * <NavigationRail aria-label="Main" header={({ toggle }) => <IconButton icon={<MenuIcon />} aria-label="Menu" onPress={toggle} />}>
- *   <NavigationRailItem href="/inbox" icon={<InboxIcon />} selected>Inbox</NavigationRailItem>
+ *   <NavigationRailItem href="/inbox" icon={<InboxIcon />} current>Inbox</NavigationRailItem>
  * </NavigationRail>
  */
 export function NavigationRail({
@@ -277,7 +279,8 @@ export function NavigationRail({
   modal = false,
   hideOnCollapse = false,
   header,
-  itemAlignment = 'top',
+  itemAlign: itemAlignProp,
+  itemAlignment,
   divider = false,
   indicatorMotion = 'expand',
   children,
@@ -286,6 +289,7 @@ export function NavigationRail({
   style,
   ...rest
 }: NavigationRailProps) {
+  const itemAlign = itemAlignProp ?? itemAlignment ?? 'top';
   const [isExpanded, setExpanded] = useControlledState(expanded, defaultExpanded, onExpandedChange);
   const toggle = () => setExpanded(!isExpanded);
   const inlineExpanded = isExpanded && !modal;
@@ -307,7 +311,7 @@ export function NavigationRail({
 
   const styles = navigationRailStyles({
     expanded: inlineExpanded,
-    itemAlignment,
+    itemAlignment: itemAlign,
     divider,
     slidingIndicator: slide && inlineExpanded,
     hiddenOnCompact: modal && hideOnCollapse === 'compact',
@@ -340,7 +344,9 @@ export function NavigationRail({
               </div>
             )}
             <div
-              data-item-alignment={itemAlignment}
+              data-item-align={itemAlign}
+              // The attribute's old name, kept as a styling hook until a later minor release.
+              data-item-alignment={itemAlign}
               onKeyDown={onItemArrowKeys('vertical')}
               className={styles.items({ class: classNames?.items })}
             >
@@ -364,7 +370,7 @@ export function NavigationRail({
           header={headerContent}
           naming={rest as Naming}
           slide={hideOnCollapse !== false}
-          itemAlignment={itemAlignment}
+          itemAlign={itemAlign}
           slidingIndicator={slide}
           railRef={rootRef}
           classNames={classNames}
@@ -385,7 +391,7 @@ function ModalRail({
   header,
   naming,
   slide,
-  itemAlignment,
+  itemAlign,
   slidingIndicator,
   railRef,
   classNames,
@@ -396,7 +402,7 @@ function ModalRail({
   header: ReactNode;
   naming: Naming;
   slide: boolean;
-  itemAlignment: 'top' | 'center';
+  itemAlign: 'top' | 'center';
   /** `indicatorMotion="slide"`: the pill slides between items. */
   slidingIndicator: boolean;
   railRef: RefObject<HTMLElement | null>;
@@ -423,7 +429,7 @@ function ModalRail({
         header={header}
         naming={naming}
         slide={slide}
-        itemAlignment={itemAlignment}
+        itemAlign={itemAlign}
         slidingIndicator={slidingIndicator}
         railRef={railRef}
         classNames={classNames}
@@ -441,7 +447,7 @@ function ModalSheet({
   header,
   naming,
   slide,
-  itemAlignment,
+  itemAlign,
   slidingIndicator,
   railRef,
   classNames,
@@ -453,7 +459,7 @@ function ModalSheet({
   header: ReactNode;
   naming: Naming;
   slide: boolean;
-  itemAlignment: 'top' | 'center';
+  itemAlign: 'top' | 'center';
   /** `indicatorMotion="slide"`: the pill slides between items. */
   slidingIndicator: boolean;
   railRef: RefObject<HTMLElement | null>;
@@ -485,7 +491,7 @@ function ModalSheet({
   const styles = navigationRailStyles({
     expanded: true,
     sheetEntry: slide ? 'slide' : 'grow',
-    itemAlignment,
+    itemAlignment: itemAlign,
     slidingIndicator,
   });
   const exiting = isExiting || undefined;
@@ -515,7 +521,9 @@ function ModalSheet({
         <nav
           aria-label={'aria-label' in naming ? naming['aria-label'] : undefined}
           aria-labelledby={'aria-labelledby' in naming ? naming['aria-labelledby'] : undefined}
-          data-item-alignment={itemAlignment}
+          data-item-align={itemAlign}
+          // The attribute's old name, kept as a styling hook until a later minor release.
+          data-item-alignment={itemAlign}
           onKeyDown={onItemArrowKeys('vertical')}
           className={styles.items({ class: classNames?.items })}
         >

@@ -90,7 +90,7 @@ export type NavigationBarProps = NavigationBarOwnProps &
  *
  * @example
  * <NavigationBar aria-label="Main" className="fixed inset-x-0 bottom-0">
- *   <NavigationBarItem href="/" icon={<HomeIcon />} selected>Home</NavigationBarItem>
+ *   <NavigationBarItem href="/" icon={<HomeIcon />} current>Home</NavigationBarItem>
  * </NavigationBar>
  */
 export function NavigationBar({
