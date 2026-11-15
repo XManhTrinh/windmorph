@@ -258,6 +258,71 @@ describe('Dialog', () => {
     await gone('Settings');
   });
 
+  it('a dialog in its content keeps its own open state, not the trigger’s', async () => {
+    const onInnerChange = vi.fn();
+    const onOuterChange = vi.fn();
+    // A form dialog that holds a dialog of its own: a field's "Add a link", a "Discard?".
+    function Nested({ inner }: { inner: boolean }) {
+      return (
+        <DialogTrigger onOpenChange={onOuterChange}>
+          <Button>Edit</Button>
+          <Dialog role="dialog">
+            <DialogTitle>Edit post</DialogTitle>
+            <DialogContent>
+              <Dialog role="dialog" open={inner} onOpenChange={onInnerChange} aria-label="Link">
+                <DialogContent>Address</DialogContent>
+              </Dialog>
+            </DialogContent>
+          </Dialog>
+        </DialogTrigger>
+      );
+    }
+    const { rerender } = render(<Nested inner={false} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    // Only the trigger's dialog opened. The one inside is closed, as its `open` says: opened
+    // with it, each would make the other inert, and nothing in either could take focus.
+    const outer = screen.getByRole('dialog', { name: 'Edit post' });
+    expect(screen.queryByText('Address')).not.toBeInTheDocument();
+    expect(outer).toContainElement(document.activeElement as HTMLElement);
+
+    // It opens by its own prop, and Escape asks it alone to close: the trigger's dialog is
+    // not asked to (a closing dialog stays in the document a while, so its state is read).
+    rerender(<Nested inner />);
+    expect(screen.getByRole('dialog', { name: 'Link' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+    expect(onInnerChange).toHaveBeenCalledWith(false);
+    expect(onOuterChange).not.toHaveBeenCalledWith(false);
+    expect(screen.getByRole('button', { name: 'Edit', hidden: true })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('a trigger in its content opens its own dialog', async () => {
+    render(
+      <DialogTrigger>
+        <Button>Edit</Button>
+        <Dialog role="dialog">
+          <DialogTitle>Edit post</DialogTitle>
+          <DialogContent>
+            <DialogTrigger>
+              <Button>Add a link</Button>
+              <Dialog role="dialog" aria-label="Link">
+                <DialogContent>Address</DialogContent>
+              </Dialog>
+            </DialogTrigger>
+          </DialogContent>
+        </Dialog>
+      </DialogTrigger>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(screen.queryByText('Address')).not.toBeInTheDocument();
+    const inner = screen.getByRole('button', { name: 'Add a link' });
+    expect(inner).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(inner);
+    expect(screen.getByRole('dialog', { name: 'Link' })).toBeInTheDocument();
+  });
+
   it('opens from an icon button too', async () => {
     render(
       <DialogTrigger>

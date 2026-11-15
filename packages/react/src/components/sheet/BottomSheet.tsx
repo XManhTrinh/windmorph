@@ -751,7 +751,11 @@ function BottomSheetPanel({
               data-can-rise={current === 'lower' || undefined}
               className={styles.content({ class: classNames?.content })}
             >
-              {typeof children === 'function' ? children({ close }) : children}
+              {/* What an app puts inside is not this trigger's sheet: a modal sheet there
+                  keeps its own open state (see Dialog). */}
+              <SheetTriggerContext value={null}>
+                {typeof children === 'function' ? children({ close }) : children}
+              </SheetTriggerContext>
             </div>
           </TriggerContext>
         </div>

@@ -428,13 +428,17 @@ function ModalSideSheet({
               className={styles.panel({ class: body.classNames?.panel })}
             >
               <TriggerContext value={null}>
-                <SheetBody
-                  {...body}
-                  titleId={titleId}
-                  close={state.close}
-                  styles={styles}
-                  contentRef={contentRef}
-                />
+                {/* What an app puts inside is not this trigger's sheet: a modal sheet there
+                    keeps its own open state (see Dialog). */}
+                <SheetTriggerContext value={null}>
+                  <SheetBody
+                    {...body}
+                    titleId={titleId}
+                    close={state.close}
+                    styles={styles}
+                    contentRef={contentRef}
+                  />
+                </SheetTriggerContext>
               </TriggerContext>
             </div>
           </div>
