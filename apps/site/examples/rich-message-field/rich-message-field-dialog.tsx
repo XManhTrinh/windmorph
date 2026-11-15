@@ -46,11 +46,16 @@ function EmojiTool() {
  * A post's composer in a dialog: the formatting toolbar above the text, a row of tools below
  * it, and the dialog's own actions in place of Send. The grown field's corner is set smaller
  * than the dialog's (`--wm-message-field-grown-corner`). It is a form, so the dialog is a
- * `dialog`, not an alert, and only Cancel, Post or Escape close it: a press outside would
- * throw the draft away.
+ * `dialog`, not an alert, and a press outside doesn't close it: only Cancel, Post or Escape
+ * do. The draft is kept above the dialog, so it is still there after Cancel or Escape, and
+ * posting clears it.
  */
 export function RichMessageFieldDialog() {
   const [text, setText] = useState('');
+  const post = (close: () => void) => {
+    setText('');
+    close();
+  };
   return (
     <DialogTrigger>
       <Button variant="tonal">New post</Button>
@@ -72,7 +77,7 @@ export function RichMessageFieldDialog() {
                 autoFocus
                 value={text}
                 onChange={setText}
-                onSubmit={close}
+                onSubmit={() => post(close)}
                 style={IN_A_DIALOG}
               />
             </DialogContent>
@@ -80,7 +85,7 @@ export function RichMessageFieldDialog() {
               <Button variant="text" onPress={close}>
                 Cancel
               </Button>
-              <Button variant="text" disabled={text.trim() === ''} onPress={close}>
+              <Button variant="text" disabled={text.trim() === ''} onPress={() => post(close)}>
                 Post
               </Button>
             </DialogActions>

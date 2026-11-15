@@ -52,7 +52,7 @@ export function AvatarStories() {
           href="#demo-new-story"
           size="xl"
           badge={<AddIcon />}
-          badgeLabel="add"
+          badgeLabel="add a story"
           badgePlacement="bottom-end"
         />
         <span aria-hidden="true" className={caption}>
