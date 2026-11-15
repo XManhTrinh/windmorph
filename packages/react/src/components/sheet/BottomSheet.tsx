@@ -581,6 +581,9 @@ function BottomSheetPanel({
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'Escape' || isExiting) return;
+    // React hands up the keys of an overlay opened from inside the sheet, through its portal.
+    // Escape there is that overlay's own, whether or not it closes on it: never the sheet's.
+    if (!(event.target instanceof Node) || !panelRef.current?.contains(event.target)) return;
     if (standard) {
       if (current !== 'expanded' || !hasLower) return;
       event.stopPropagation();

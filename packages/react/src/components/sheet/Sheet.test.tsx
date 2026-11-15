@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { Button } from '../button/Button';
+import { Dialog } from '../dialog/Dialog';
 import { BottomSheet } from './BottomSheet';
 import { SheetTrigger } from './SheetTrigger';
 import { SideSheet } from './SideSheet';
@@ -521,6 +522,42 @@ describe('A modal sheet inside a sheet a trigger opened', () => {
     await userEvent.keyboard('{Escape}');
     expect(onInnerChange).toHaveBeenCalledWith(false);
     expect(onOuterChange).not.toHaveBeenCalledWith(false);
+  });
+});
+
+describe('Escape in an overlay opened from inside a modal bottom sheet', () => {
+  // The sheet handles Escape itself, and React hands it the keys of an overlay inside it
+  // through the portal. One that doesn't close on Escape (a dialog while it saves) let the
+  // key through, and the sheet behind it closed, taking the dialog with it.
+  it('is that overlay’s own: the sheet stays open', async () => {
+    const onSheetChange = vi.fn();
+    const sheet = (saving: boolean) => (
+      <BottomSheet open onOpenChange={onSheetChange} aria-label="Filters">
+        <Button>Apply</Button>
+        <Dialog open={saving} closedBy="none" role="dialog" aria-label="Saving">
+          <Button>Wait</Button>
+        </Dialog>
+      </BottomSheet>
+    );
+    // The dialog opens from the open sheet, as it does in an app.
+    const { rerender } = render(sheet(false));
+    rerender(sheet(true));
+    screen.getByRole('button', { name: 'Wait' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onSheetChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Saving' })).toBeInTheDocument();
+  });
+
+  it('still closes the sheet when pressed in the sheet itself', async () => {
+    const onSheetChange = vi.fn();
+    render(
+      <BottomSheet open onOpenChange={onSheetChange} aria-label="Filters">
+        <Button>Apply</Button>
+      </BottomSheet>,
+    );
+    screen.getByRole('button', { name: 'Apply' }).focus();
+    await userEvent.keyboard('{Escape}');
+    expect(onSheetChange).toHaveBeenCalledWith(false);
   });
 });
 
