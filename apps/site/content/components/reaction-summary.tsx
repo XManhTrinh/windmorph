@@ -87,7 +87,14 @@ export async function ReactionSummaryBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>size</InlineCode>: <InlineCode>sm</InlineCode> for comments and messages,{' '}
-              <InlineCode>md</InlineCode> for posts.
+              <InlineCode>md</InlineCode> for posts. It sets the icons&apos; size, a{' '}
+              <InlineCode>stacked</InlineCode> count&apos;s type (
+              <InlineCode>label-large</InlineCode>, <InlineCode>label-medium</InlineCode> at{' '}
+              <InlineCode>sm</InlineCode>) and a pressable <InlineCode>stacked</InlineCode>{' '}
+              summary&apos;s height and padding (40px and 12px, 32px and 8px at{' '}
+              <InlineCode>sm</InlineCode>): <InlineCode>ReactionPicker</InlineCode>&apos;s at the
+              same size, so a summary beside a picker sits level with it and the row doesn&apos;t
+              move as the summary appears.
             </li>
             <li>
               The <InlineCode>chip</InlineCode> variant is an M3 chip: the core&apos;s{' '}
