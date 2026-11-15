@@ -28,6 +28,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import type { ControlPlacement } from '../../primitives/selection-control-styles';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -42,6 +43,8 @@ import { useRippleHold } from '../../primitives/use-m3-interaction';
 import { RadioRing } from './radio-ring';
 
 const RadioGroupContext = createContext<RadioGroupState | null>(null);
+/** The group's `controlPlacement`, for its options. */
+const RadioPlacementContext = createContext<ControlPlacement | undefined>(undefined);
 
 export interface RadioGroupClassNames {
   /** The group's outer element. */
@@ -94,6 +97,12 @@ interface RadioGroupOwnProps
    * @default 0
    */
   density?: Density;
+  /**
+   * Where each option's radio button sits beside its label: `start` (before it) or `end` (after
+   * it, the label growing to fill the row). An option's own `controlPlacement` wins.
+   * @default "start"
+   */
+  controlPlacement?: ControlPlacement;
   /** The options: `Radio` elements. */
   children?: ReactNode;
   /** Classes for the root element, merged with `classNames.root`; consumer classes win. */
@@ -154,6 +163,7 @@ function RadioGroupRoot({
   required,
   invalid,
   density,
+  controlPlacement,
   orientation = 'vertical',
   children,
   className,
@@ -215,7 +225,9 @@ function RadioGroupRoot({
         </span>
       )}
       <div className={styles.options({ class: classNames?.options })}>
-        <RadioGroupContext value={state}>{children}</RadioGroupContext>
+        <RadioGroupContext value={state}>
+          <RadioPlacementContext value={controlPlacement}>{children}</RadioPlacementContext>
+        </RadioGroupContext>
       </div>
       {supportingText && !(isInvalid && resolvedError) && (
         <SupportingText
@@ -259,6 +271,12 @@ interface RadioOwnProps
    * @default 0
    */
   density?: Density;
+  /**
+   * Where the radio button sits beside its label: `start` (before it) or `end` (after it, the
+   * label growing to fill the row). Left out, the group's applies.
+   * @default "start"
+   */
+  controlPlacement?: ControlPlacement;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -285,6 +303,7 @@ export type RadioProps = RadioOwnProps & RadioLabel;
 export function Radio({
   disabled = false,
   density,
+  controlPlacement: placementProp,
   className,
   classNames,
   style,
@@ -294,7 +313,9 @@ export function Radio({
   ...otherProps
 }: RadioProps) {
   const state = useContext(RadioGroupContext);
+  const groupPlacement = useContext(RadioPlacementContext);
   if (!state) throw new Error('[@windmorph/react] <Radio> must be used inside <RadioGroup>.');
+  const controlPlacement = placementProp ?? groupPlacement ?? 'start';
   const { root: data, rest } = splitRootProps(otherProps, { wrapper: true });
   const domInputRef = useObjectRef(inputRef);
   const { inputProps, labelProps, isSelected, isDisabled, isPressed } = useRadio(
@@ -305,7 +326,7 @@ export function Radio({
   const { focusProps, isFocusVisible } = useFocusRing();
   const { hoverProps, isHovered } = useHover({ isDisabled });
   const rippling = useRippleHold(isPressed && !isDisabled);
-  const styles = radioStyles();
+  const styles = radioStyles({ controlPlacement });
   // The group's own state wins, as a field's does: the radiogroup carries it.
   const widgetAria = pickWidgetAria(rest);
   if (state.isInvalid) delete widgetAria['aria-invalid'];
@@ -333,6 +354,7 @@ export function Radio({
         'data-focus-visible': isFocusVisible || undefined,
       }}
       styles={styles}
+      controlPlacement={controlPlacement}
       className={className}
       classNames={classNames}
       style={style}

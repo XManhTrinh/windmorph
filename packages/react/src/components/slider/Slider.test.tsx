@@ -325,3 +325,35 @@ describe('Slider classNames', () => {
     expect(slots('handle')[0]).toHaveClass('handle-x');
   });
 });
+
+describe('Slider valueText', () => {
+  const time = (seconds: number) =>
+    `${Math.floor(seconds / 60)} minutes ${seconds % 60} seconds of 10 minutes`;
+
+  it('reads the value in words to assistive technology, following the keyboard', async () => {
+    render(
+      <Slider
+        aria-label="Position"
+        max={600}
+        step={5}
+        defaultValue={85}
+        valueText={time}
+        valueLabel
+      />,
+    );
+    const thumb = screen.getByRole('slider', { name: 'Position' });
+    expect(thumb).toHaveAttribute('aria-valuetext', '1 minutes 25 seconds of 10 minutes');
+    thumb.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(thumb).toHaveAttribute('aria-valuetext', '1 minutes 30 seconds of 10 minutes');
+    // The value indicator keeps the number format: a sentence doesn't fit it.
+    expect(screen.getByText('90')).toBeInTheDocument();
+  });
+
+  it('gives each thumb of a range its own words', () => {
+    render(<RangeSlider aria-label="Clip" max={600} defaultValue={[60, 120]} valueText={time} />);
+    const [start, end] = screen.getAllByRole('slider');
+    expect(start).toHaveAttribute('aria-valuetext', '1 minutes 0 seconds of 10 minutes');
+    expect(end).toHaveAttribute('aria-valuetext', '2 minutes 0 seconds of 10 minutes');
+  });
+});

@@ -10,6 +10,7 @@ const SwitchBasic = lazyExample('switch/switch-basic', 'SwitchBasic');
 const SwitchIcons = lazyExample('switch/switch-icons', 'SwitchIcons');
 const SwitchStates = lazyExample('switch/switch-states', 'SwitchStates');
 const SwitchDensityExample = lazyExample('switch/switch-density', 'SwitchDensity');
+const SwitchSettingsRow = lazyExample('switch/switch-settings-row', 'SwitchSettingsRow');
 
 /** Switch page body. */
 export async function SwitchBody(): Promise<ComponentDoc> {
@@ -26,6 +27,8 @@ export async function SwitchBody(): Promise<ComponentDoc> {
 
   const densitySource = await readExampleSource('switch/switch-density.tsx');
   const densityHtml = await highlightSource(densitySource);
+  const rowSource = await readExampleSource('switch/switch-settings-row.tsx');
+  const rowHtml = await highlightSource(rowSource);
   return {
     tokens: [switchTokenSet],
     overview: (
@@ -44,6 +47,14 @@ export async function SwitchBody(): Promise<ComponentDoc> {
             fileName="switch-icons.tsx"
           >
             <SwitchIcons />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Settings row"
+            code={rowSource}
+            html={rowHtml}
+            fileName="switch-settings-row.tsx"
+          >
+            <SwitchSettingsRow />
           </ExampleViewer>
           <ExampleViewer
             title="Disabled"

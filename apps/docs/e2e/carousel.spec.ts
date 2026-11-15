@@ -109,6 +109,53 @@ test.describe('Carousel container, full-screen and uncontained', () => {
   });
 });
 
+test.describe('Carousel items that are links (2026-11-15)', () => {
+  test('a press follows the link; a drag across the carousel does not', async ({ page }) => {
+    await openStory(page, 'components-carousel--links');
+    const carousel = page.getByTestId('carousel');
+    const first = carousel.getByRole('link', { name: 'Recipe 1', exact: true });
+    await expect(first).toHaveAttribute('href', '#recipe-1');
+    const box = (await first.boundingBox())!;
+    // A mouse drag that scrolls the carousel ends on a link: it opens nothing.
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2, { steps: 6 });
+    await page.mouse.up();
+    expect(await page.evaluate(() => location.hash)).toBe('');
+    // A press opens it.
+    await carousel.getByRole('link', { name: 'Recipe 2' }).click();
+    await expect.poll(() => page.evaluate(() => location.hash)).toBe('#recipe-2');
+  });
+
+  test('each item says its size; the focal item is reported once scrolling settles', async ({
+    page,
+  }) => {
+    await openStory(page, 'components-carousel--links');
+    const items = page.getByTestId('carousel').getByRole('group');
+    await expect(items.first()).toHaveAttribute('data-size', 'large');
+    await expect(items.nth(9)).toHaveAttribute('data-size', 'small');
+    const openness = (index: number) =>
+      items
+        .nth(index)
+        .evaluate((el) =>
+          Number(getComputedStyle(el).getPropertyValue('--m3-carousel-item-openness')),
+        );
+    expect(await openness(0)).toBe(1);
+    expect(await openness(9)).toBe(0);
+    await page
+      .getByTestId('carousel')
+      .locator('[data-slot="item"]')
+      .first()
+      .evaluate((item) => {
+        item.parentElement!.scrollBy({ left: 600, behavior: 'instant' });
+      });
+    await expect(page.getByTestId('focal')).not.toHaveText('Recipe 1');
+    const focal =
+      Number((await page.getByTestId('focal').textContent())!.replace('Recipe ', '')) - 1;
+    await expect(items.nth(focal)).toHaveAttribute('data-size', 'large');
+  });
+});
+
 test.describe('Carousel keylines', () => {
   test('a 360px multi-browse carousel starts 16px in, shrinking 186 · 118 · 40 to fit', async ({
     page,

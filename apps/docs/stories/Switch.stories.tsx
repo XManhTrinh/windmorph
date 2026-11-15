@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Switch } from '@windmorph/react';
+import { Checkbox, Radio, RadioGroup, Switch } from '@windmorph/react';
 import { DensityColumns } from './density-columns';
 import {
   LAYOUT_OVERRIDES,
@@ -78,5 +78,33 @@ export const Density: Story = {
         </>
       )}
     </DensityColumns>
+  ),
+};
+
+/**
+ * A settings row: the words at the start and the control at the end, the whole row being the
+ * label (`controlPlacement="end"`), for a switch, a checkbox and a radio group.
+ */
+export const ControlAtTheEnd: Story = {
+  render: () => (
+    <div className="flex w-[360px] flex-col gap-2 bg-surface p-4" data-testid="control-at-the-end">
+      <Switch controlPlacement="end" defaultChecked className="w-full">
+        Wi-Fi
+      </Switch>
+      <Switch controlPlacement="end" className="w-full">
+        Bluetooth
+      </Switch>
+      <Checkbox controlPlacement="end" defaultChecked className="w-full">
+        Send me a copy
+      </Checkbox>
+      <RadioGroup label="Delivery" controlPlacement="end" defaultValue="standard">
+        <Radio value="standard" className="w-full">
+          Standard
+        </Radio>
+        <Radio value="express" className="w-full">
+          Express
+        </Radio>
+      </RadioGroup>
+    </div>
   ),
 };

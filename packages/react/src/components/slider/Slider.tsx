@@ -25,7 +25,7 @@ import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
-import { useTouchTrack } from './use-touch-track';
+import { useSliderTouchTrack } from './use-touch-track';
 import {
   iconSizeWhenFits,
   movedStartIcon,
@@ -89,6 +89,12 @@ interface SliderCommonProps extends RootDOMProps {
   valueLabel?: boolean;
   /** Formats the value for the value indicator and assistive tech. */
   formatOptions?: Intl.NumberFormatOptions;
+  /**
+   * The value in words for assistive technology, each thumb's `aria-valuetext`, where a number
+   * format can't say it (a time: `(seconds) => '1 minute 23 seconds of 10 minutes'`). Without
+   * it the value is read as `formatOptions` formats it; the value indicator keeps that format.
+   */
+  valueText?: (value: number) => string;
   /** Form field name (one hidden input per thumb). */
   name?: string;
   /** The id of the slider's root, its `group` (an error summary can link to it). */
@@ -203,6 +209,7 @@ function SliderRoot(props: RootProps) {
     disabled = false,
     valueLabel = false,
     formatOptions,
+    valueText,
     name,
     id,
     ref,
@@ -273,7 +280,7 @@ function SliderRoot(props: RootProps) {
   const { groupProps, trackProps } = useSlider(ariaProps, state, trackRef);
   const { direction } = useLocale();
   const count = Math.round((max - min) / step);
-  const touchTrackProps = useTouchTrack(trackProps, {
+  const touchTrackProps = useSliderTouchTrack(trackProps, {
     state,
     trackRef,
     orientation,
@@ -366,6 +373,7 @@ function SliderRoot(props: RootProps) {
             label={range ? (index === 0 ? labels.start : labels.end) : undefined}
             errorMessage={errorMessage}
             valueLabel={valueLabel}
+            valueText={valueText}
             styles={styles}
             classNames={classNames}
           />
@@ -453,6 +461,7 @@ function Thumb({
   label,
   errorMessage,
   valueLabel,
+  valueText,
   styles,
   classNames,
 }: {
@@ -468,6 +477,7 @@ function Thumb({
   label?: string;
   errorMessage?: string;
   valueLabel: boolean;
+  valueText: ((value: number) => string) | undefined;
   styles: ReturnType<typeof sliderStyles>;
   classNames?: SliderClassNames;
 }) {
@@ -492,6 +502,7 @@ function Thumb({
     'aria-labelledby': thumbLabelledBy,
     'aria-describedby': inputProps['aria-describedby'] || undefined,
     'aria-details': inputProps['aria-details'] || undefined,
+    'aria-valuetext': valueText ? valueText(state.values[index]!) : inputProps['aria-valuetext'],
   };
   const { focusProps, isFocusVisible } = useFocusRing();
   const { direction } = useLocale();

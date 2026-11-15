@@ -71,6 +71,42 @@ function ActionableDemo() {
  */
 export const Actionable: Story = { render: () => <ActionableDemo /> };
 
+function LinksDemo() {
+  const [focal, setFocal] = useState(0);
+  return (
+    <div className="flex w-[360px] flex-col gap-2" data-testid="frame">
+      <Carousel
+        aria-label="Recipes"
+        className="h-[221px]"
+        data-testid="carousel"
+        itemHref={(index) => `#recipe-${index + 1}`}
+        onFocalChange={setFocal}
+      >
+        {Array.from({ length: 10 }, (_, index) => (
+          <div
+            key={index}
+            data-testid={`slide-${index}`}
+            className={`flex items-end p-4 ${TONES[index % TONES.length]}`}
+          >
+            <span className="text-title-medium opacity-(--m3-carousel-item-openness)">
+              Recipe {index + 1}
+            </span>
+          </div>
+        ))}
+      </Carousel>
+      <p data-testid="focal" className="text-body-medium text-on-surface">
+        Recipe {focal + 1}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Items that are links (`itemHref`), with words that fade as an item shrinks (its openness)
+ * and the item in the large place named below once scrolling settles (`onFocalChange`).
+ */
+export const Links: Story = { render: () => <LinksDemo /> };
+
 /** Uncontained: items of one size that flow past the end edge, never cropped; no snapping. */
 export const Uncontained: Story = {
   render: () => (

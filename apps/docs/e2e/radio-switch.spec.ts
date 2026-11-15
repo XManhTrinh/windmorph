@@ -131,6 +131,26 @@ test.describe('Switch', () => {
     });
   }
 
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a settings row puts the control at the end · ${dir}`, async ({ page }) => {
+      await openStory(page, 'components-switch--control-at-the-end', { dir });
+      const rows = page.getByTestId('control-at-the-end');
+      await expect(rows).toHaveScreenshot(`control-at-the-end-${dir}.png`);
+      // The control sits at the row's end edge, the words at its start.
+      const wifi = rows.getByRole('switch', { name: 'Wi-Fi' }).locator('xpath=ancestor::label');
+      const row = await box(wifi);
+      const track = await box(wifi.locator('[data-selection-control]'));
+      const words = await box(wifi.getByText('Wi-Fi'));
+      if (dir === 'ltr') {
+        expect(track.x + track.width).toBeCloseTo(row.x + row.width, 0);
+        expect(words.x).toBeLessThan(track.x);
+      } else {
+        expect(track.x).toBeCloseTo(row.x, 0);
+        expect(words.x).toBeGreaterThan(track.x);
+      }
+    });
+  }
+
   test('Space and Enter toggle it', async ({ page }) => {
     await openStory(page, 'components-switch--playground');
     const input = page.getByRole('switch', { name: 'Wi-Fi' });

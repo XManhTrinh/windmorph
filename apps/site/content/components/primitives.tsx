@@ -25,7 +25,7 @@ const importSnippet = `import {
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
-  useKeepPressedInPlace, useScrollRestoration, useScrollKeys,
+  useKeepPressedInPlace, useScrollRestoration, useScrollKeys, useSliderTouchTrack,
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
@@ -300,6 +300,13 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               on screen while an open item above it folds, by scrolling its scroller as much as the
               fold on every frame, as the List&apos;s tree grid does; pair it with{' '}
               <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
+            </li>
+            <li>
+              <InlineCode>useSliderTouchTrack</InlineCode> (wraps React Aria&apos;s{' '}
+              <InlineCode>useSlider</InlineCode> track props so touch and pen take a slider of your
+              own as the Slider&apos;s do: a tap sets the value as the finger lifts, a drag starts
+              after 8px along the track, and a swipe across it scrolls the page instead of moving
+              the value).
             </li>
             <li>
               <InlineCode>useScrollRestoration</InlineCode> and{' '}

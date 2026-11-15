@@ -14,6 +14,7 @@ import {
   SelectionControl,
   type SelectionControlClassNames,
 } from '../../primitives/SelectionControl';
+import type { ControlPlacement } from '../../primitives/selection-control-styles';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { pickWidgetAria, splitRootProps, type WrapperRootDOMProps } from '../../utils/root-props';
@@ -80,6 +81,12 @@ interface CheckboxOwnProps
    * @default 0
    */
   density?: Density;
+  /**
+   * Where the box sits beside its label: `start` (before it) or `end` (after it, the label
+   * growing to fill the row, as a settings row's). As `ListItem`'s `controlPlacement`.
+   * @default "start"
+   */
+  controlPlacement?: ControlPlacement;
   /** Classes for the root `<label>`, merged with `classNames.root`; consumer classes win. */
   className?: string;
   /** Classes for each part, by slot. `classNames.root` is merged with `className`. */
@@ -118,6 +125,7 @@ export function Checkbox({
   required,
   invalid,
   density,
+  controlPlacement = 'start',
   className,
   classNames,
   style,
@@ -151,7 +159,7 @@ export function Checkbox({
   const { hoverProps, isHovered } = useHover({ isDisabled: disabled });
 
   const rippling = useRippleHold(isPressed && !disabled);
-  const styles = checkboxStyles();
+  const styles = checkboxStyles({ controlPlacement });
 
   return (
     <SelectionControl
@@ -177,6 +185,7 @@ export function Checkbox({
         'data-focus-visible': isFocusVisible || undefined,
       }}
       styles={styles}
+      controlPlacement={controlPlacement}
       className={className}
       classNames={classNames}
       style={style}

@@ -202,3 +202,17 @@ describe('Checkbox density', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Checkbox controlPlacement', () => {
+  it('puts the box after its label, which grows, and mirrors the spacing', async () => {
+    render(<Checkbox controlPlacement="end">Send me a copy</Checkbox>);
+    const input = screen.getByRole('checkbox', { name: 'Send me a copy' });
+    const [label, control] = [...rootOf(input).children] as [HTMLElement, HTMLElement];
+    expect(label).toHaveTextContent('Send me a copy');
+    expect(control).toHaveAttribute('data-selection-control');
+    expect(label).toHaveClass('flex-1', 'ps-[8px]');
+    expect(label).not.toHaveClass('pe-[8px]');
+    await userEvent.click(label);
+    expect(input).toBeChecked();
+  });
+});

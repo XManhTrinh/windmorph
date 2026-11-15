@@ -74,6 +74,7 @@ import { assertCollectionChildren } from '../../utils/assert-collection-children
 import { useKeepPressedInPlace } from '../../utils/keep-pressed-in-place';
 import { useNearestReveal } from '../../utils/nearest-reveal';
 import { cn } from '../../utils/cn';
+import type { ControlPlacement } from '../../primitives/selection-control-styles';
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
@@ -168,8 +169,6 @@ export interface ListItemProps {
 
 /** How many lines a text shows before it ends with "…"; the full text stays in the DOM. */
 export type LineLimit = 1 | 2 | 3;
-
-type ControlPlacement = 'start' | 'end';
 
 /** A collection node as React Stately's collection builder reads it. */
 interface ListItemNode {

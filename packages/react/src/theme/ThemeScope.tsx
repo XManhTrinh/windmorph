@@ -28,12 +28,19 @@ export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
    * when omitted.
    */
   density?: Density;
+  /**
+   * The element: a `div`, or a `span` for a scope inside inline content (a badge over a
+   * picture in a card that is a link), where a `div` isn't allowed. The ref receives it.
+   * @default "div"
+   */
+  as?: 'div' | 'span';
 }
 
 /**
  * Applies a different theme, mode, contrast level, motion scheme or density to a subtree.
  * Scopes nest; unset dimensions are inherited from the nearest provider or scope.
- * Renders a `div` with `text-on-surface` so text picks up the scope's colours.
+ * Renders a `div` (or a `span`, with `as`) with `text-on-surface` so text picks up the scope's
+ * colours.
  *
  * Overlays opened inside (menus, dialogs, tooltips) are portalled out of the `div`, so they
  * get its theme attributes, its `className` and the CSS variables of its `style` on their own
@@ -45,6 +52,7 @@ export function ThemeScope({
   contrast,
   motion,
   density,
+  as: Element = 'div',
   className,
   style,
   children,
@@ -74,7 +82,7 @@ export function ThemeScope({
   );
 
   return (
-    <div
+    <Element
       {...props}
       {...themeAttributesOver(state, inherited, layers !== parentLayers)}
       style={style}
@@ -85,6 +93,6 @@ export function ThemeScope({
           <ThemeScopeLayersContext value={layers}>{children}</ThemeScopeLayersContext>
         </InheritedThemeContext>
       </ThemeScopeContext>
-    </div>
+    </Element>
   );
 }

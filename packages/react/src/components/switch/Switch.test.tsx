@@ -236,3 +236,26 @@ describe('Switch density', () => {
     expect(await axeViolations(container)).toEqual([]);
   });
 });
+
+describe('Switch controlPlacement', () => {
+  it('puts the switch after its label, which grows, and mirrors the spacing', async () => {
+    const onCheckedChange = vi.fn();
+    const { container } = render(
+      <Switch controlPlacement="end" className="w-[360px]" onCheckedChange={onCheckedChange}>
+        Wi-Fi
+      </Switch>,
+    );
+    const root = screen.getByRole('switch', { name: 'Wi-Fi' }).closest('label')!;
+    const [label, control] = [...root.children] as [HTMLElement, HTMLElement];
+    // In the page in the order it shows: the words, then the switch.
+    expect(label).toHaveTextContent('Wi-Fi');
+    expect(control).toHaveAttribute('data-selection-control');
+    expect(root).toHaveAttribute('data-control-placement', 'end');
+    expect(label).toHaveClass('flex-1', 'ps-[8px]', 'pe-[12px]');
+    expect(label).not.toHaveClass('ps-[12px]');
+    // The whole row is the label: a press on the words toggles it.
+    await userEvent.click(label);
+    expect(onCheckedChange).toHaveBeenCalledWith(true);
+    expect(await axeViolations(container)).toEqual([]);
+  });
+});

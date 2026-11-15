@@ -6,7 +6,8 @@ import type { SliderState } from 'react-stately';
 /** How far a touch moves along the track before it drags the slider (Android's touch slop). */
 export const TOUCH_SLOP = 8;
 
-interface TouchTrackOptions {
+/** What {@link useSliderTouchTrack} needs: the slider's state, its track and its layout. */
+export interface SliderTouchTrackOptions {
   state: SliderState;
   trackRef: RefObject<HTMLElement | null>;
   orientation: 'horizontal' | 'vertical';
@@ -44,11 +45,13 @@ function closestThumb(state: SliderState, value: number): number {
  * on a drawn stop selects that stop: React Aria's linear mapping picked the next one near the
  * ends of a large slider, whose corners are wider than half a step (2026-10-17).
  *
- * Returns handlers that wrap React Aria's `trackProps`.
+ * Returns handlers that wrap React Aria's `trackProps`. Public (`@windmorph/react/primitives`)
+ * for any slider built on React Aria's `useSlider` outside the core, so its track takes
+ * touches as this one does.
  */
-export function useTouchTrack(
+export function useSliderTouchTrack(
   trackProps: HTMLAttributes<HTMLElement>,
-  { state, trackRef, orientation, direction, disabled, discrete = false }: TouchTrackOptions,
+  { state, trackRef, orientation, direction, disabled, discrete = false }: SliderTouchTrackOptions,
 ): HTMLAttributes<HTMLElement> {
   const vertical = orientation === 'vertical';
   const cleanup = useRef<(() => void) | null>(null);
