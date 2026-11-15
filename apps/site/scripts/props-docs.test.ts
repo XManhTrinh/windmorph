@@ -220,3 +220,17 @@ describePackage('Pro props docs', 'pro', 30, {
   ),
   noStringDefault: PRO_NO_STRING_DEFAULT,
 });
+
+describe('deprecated keys', () => {
+  it('leaves a deprecated key out of its table, and lists a live key of the same name', () => {
+    const keys = (name: string) =>
+      readComponents('core')
+        .find(({ displayName }) => displayName === name)
+        ?.props.find((prop) => prop.name === 'classNames')
+        ?.keys?.map((key) => key.name);
+    // An assist chip has no trailing icon; a filter chip's `trailingIcon` takes the key.
+    expect(keys('AssistChip')).toEqual(expect.arrayContaining(['classNames.label']));
+    expect(keys('AssistChip')).not.toContain('classNames.trailing');
+    expect(keys('FilterChip')).toContain('classNames.trailing');
+  });
+});
