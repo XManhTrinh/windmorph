@@ -515,41 +515,31 @@ function DialogModal({
                 class: [transition === 'reveal' && styles.parts(), classNames?.panel],
               })}
             >
-              <TriggerContext value={null}>
-                <DialogPartsContext
-                  value={{
-                    titleProps,
-                    contentProps,
-                    hasIcon,
-                    fullScreen,
-                    close: state.close,
-                    setHasContent,
-                    setHeaderAction,
-                    bottomBar,
-                  }}
-                >
-                  {hasIcon && (
-                    <span
-                      aria-hidden="true"
-                      data-slot="icon"
-                      className={styles.icon({
-                        class: cn(
-                          fullScreen === 'compact' && 'max-medium:hidden',
-                          classNames?.icon,
-                        ),
-                      })}
-                    >
-                      {icon}
-                    </span>
-                  )}
-                  {/* What an app puts inside is not this trigger's dialog: a dialog there keeps
-                      its own open state. Opened with this one, each would make the other inert,
-                      and nothing in either could take focus. */}
-                  <DialogTriggerContext value={null}>
-                    {typeof children === 'function' ? children({ close: state.close }) : children}
-                  </DialogTriggerContext>
-                </DialogPartsContext>
-              </TriggerContext>
+              <DialogPartsContext
+                value={{
+                  titleProps,
+                  contentProps,
+                  hasIcon,
+                  fullScreen,
+                  close: state.close,
+                  setHasContent,
+                  setHeaderAction,
+                  bottomBar,
+                }}
+              >
+                {hasIcon && (
+                  <span
+                    aria-hidden="true"
+                    data-slot="icon"
+                    className={styles.icon({
+                      class: cn(fullScreen === 'compact' && 'max-medium:hidden', classNames?.icon),
+                    })}
+                  >
+                    {icon}
+                  </span>
+                )}
+                {typeof children === 'function' ? children({ close: state.close }) : children}
+              </DialogPartsContext>
             </div>
           </div>
         </div>

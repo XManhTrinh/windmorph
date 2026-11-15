@@ -756,7 +756,8 @@ function BottomSheetPanel({
               className={styles.content({ class: classNames?.content })}
             >
               {/* What an app puts inside is not this trigger's sheet: a modal sheet there
-                  keeps its own open state (see Dialog). */}
+                  keeps its own open state. `Overlay` sees to it for a modal sheet; a standard
+                  one is in the page, so it resets the triggers' contexts itself. */}
               <SheetTriggerContext value={null}>
                 {typeof children === 'function' ? children({ close }) : children}
               </SheetTriggerContext>
