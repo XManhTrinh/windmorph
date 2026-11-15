@@ -1,6 +1,7 @@
 'use client';
 
 import { mergeProps, useFocusRing, useHover, usePress, type PressEvents } from 'react-aria';
+import { useModifierKeysGuard } from '../utils/modifier-keys';
 import {
   useEffect,
   useState,
@@ -204,6 +205,9 @@ export function useM3Interaction(
     isTextInput,
     autoFocus,
   });
+  // After React Aria's focus tracking is set up: a modifier pressed alone (Option on a Mac)
+  // never counts as keyboard use, so it never shows a ring.
+  useModifierKeysGuard();
 
   const isPressed = hasExternalPress ? Boolean(options.isPressed) : isOwnPressed;
   const isRippling = useRippleHold(isPressed && !isDisabled);
