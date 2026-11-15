@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { describe, expect, it } from 'vitest';
 import { useThemeScope } from './context';
 import { ThemeProvider } from './ThemeProvider';
 import { ThemeScope } from './ThemeScope';
+import { Overlay } from '../primitives/Overlay';
 
 function ScopeState() {
   const { theme, mode, contrast, motion } = useThemeScope();
@@ -64,5 +66,28 @@ describe('ThemeScope', () => {
     expect(scope).toHaveAttribute('data-theme', 'slate');
     expect(scope).toHaveClass('fixed', 'text-primary');
     expect(scope).not.toHaveClass('text-on-surface');
+  });
+
+  it('renders a span with as="span", inline content keeping every theme feature', () => {
+    const ref = createRef<HTMLDivElement>();
+    render(
+      <a href="#photo">
+        <ThemeScope as="span" ref={ref} mode="dark" className="scoped" data-testid="scope">
+          New
+          <Overlay>
+            <span>Overlay text</span>
+          </Overlay>
+        </ThemeScope>
+      </a>,
+    );
+    const scope = screen.getByTestId('scope');
+    expect(scope.tagName).toBe('SPAN');
+    expect(ref.current).toBe(scope);
+    expect(scope).toHaveAttribute('data-mode', 'dark');
+    expect(scope).toHaveClass('text-on-surface', 'scoped');
+    // An overlay opened inside still takes the scope's mode and class.
+    const wrapper = screen.getByText('Overlay text').closest('[data-overlay-scope]')!;
+    expect(wrapper).toHaveAttribute('data-mode', 'dark');
+    expect(wrapper).toHaveClass('scoped');
   });
 });
