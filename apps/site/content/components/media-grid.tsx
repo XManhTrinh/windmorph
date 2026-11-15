@@ -114,8 +114,9 @@ export async function MediaGridBody(): Promise<ComponentDoc> {
               <InlineCode>data-status=&quot;error&quot;</InlineCode>. It is still a button named by
               the photo&apos;s <InlineCode>alt</InlineCode> and still calls{' '}
               <InlineCode>onAction</InlineCode>. A failure is noticed in the server&apos;s HTML too,
-              where a photo can fail before the page hydrates, and a photo that loads later takes
-              the tile back.
+              where a photo can fail before the page hydrates; a photo with no address shows the
+              placeholder at once; and a new <InlineCode>src</InlineCode> or{' '}
+              <InlineCode>srcSet</InlineCode> is a new try.
             </li>
             <li>
               <InlineCode>onAction</InlineCode> gets the pressed tile&apos;s index and the tile
