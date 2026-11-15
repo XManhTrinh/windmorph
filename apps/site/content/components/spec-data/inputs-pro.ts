@@ -101,6 +101,11 @@ export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
         kind: 'use case',
         examples: ['rich-message-field/rich-message-field-post'],
       },
+      {
+        name: 'In a dialog, with a smaller corner than the dialog’s (`--wm-message-field-grown-corner`)',
+        kind: 'use case',
+        examples: ['rich-message-field/rich-message-field-dialog'],
+      },
     ],
     extensions: [
       {

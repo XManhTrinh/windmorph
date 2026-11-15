@@ -9,6 +9,15 @@ import {
   DialogTrigger,
 } from '@windmorph/react';
 import { Avatar, MessageField, MessageFieldTrigger } from '@windmorph/react-pro';
+import type { CSSProperties } from 'react';
+
+/**
+ * A dialog's corners are extra-large (28px), which is a grown field's default too. Inside
+ * the dialog the field takes a smaller corner than its container's.
+ */
+const IN_A_DIALOG = {
+  '--wm-message-field-grown-corner': 'var(--md-sys-shape-corner-large)',
+} as CSSProperties;
 
 /** Material Symbols `image`. */
 function PhotoIcon() {
@@ -30,7 +39,7 @@ export function MessageFieldTriggerExample() {
         >
           What&apos;s on your mind?
         </MessageFieldTrigger>
-        <Dialog aria-label="Create post">
+        <Dialog role="dialog" closedBy="closerequest" aria-label="Create post">
           {({ close }) => (
             <>
               <DialogTitle>Create post</DialogTitle>
@@ -42,13 +51,16 @@ export function MessageFieldTriggerExample() {
                   minRows={4}
                   send={false}
                   autoFocus
+                  style={IN_A_DIALOG}
                 />
               </DialogContent>
               <DialogActions>
                 <Button variant="text" onPress={close}>
                   Cancel
                 </Button>
-                <Button onPress={close}>Post</Button>
+                <Button variant="text" onPress={close}>
+                  Post
+                </Button>
               </DialogActions>
             </>
           )}

@@ -290,6 +290,17 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>lg</InlineCode> 56px (<InlineCode>body-large</InlineCode>).
             </li>
             <li>
+              A grown field&apos;s corner is extra-large (28px), close to the pill&apos;s own
+              radius, so the corners barely change as it grows. Inside a container with corners of
+              its own (a dialog, a card, a sheet), set a smaller one than the container&apos;s, for
+              example{' '}
+              <InlineCode>
+                --wm-message-field-grown-corner: var(--md-sys-shape-corner-large)
+              </InlineCode>
+              , so the field reads as a rounded rectangle in it and not a second bubble. The post
+              composer of the trigger example does.
+            </li>
+            <li>
               Every value the field paints is a token: set the variables below on the field (
               <InlineCode>className</InlineCode>) or on any ancestor, globally or per theme. Sizes
               and variants only change their defaults. The send button, the banner&apos;s close
