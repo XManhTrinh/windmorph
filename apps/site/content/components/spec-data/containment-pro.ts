@@ -435,6 +435,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['avatar/avatar-stories'],
       },
       {
+        name: 'A gradient ring at every size',
+        kind: 'configuration',
+        examples: ['avatar/avatar-ring-sizes'],
+      },
+      {
         name: 'Live now: a ring and a pill at the bottom (`badgePlacement="bottom"`)',
         kind: 'use case',
         examples: ['avatar/avatar-live'],

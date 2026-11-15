@@ -13,6 +13,7 @@ const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExampl
 const AvatarGroupLinks = lazyExample('avatar/avatar-group-links', 'AvatarGroupLinks');
 const AvatarLive = lazyExample('avatar/avatar-live', 'AvatarLive');
 const AvatarPhotos = lazyExample('avatar/avatar-photos', 'AvatarPhotos');
+const AvatarRingSizes = lazyExample('avatar/avatar-ring-sizes', 'AvatarRingSizes');
 const AvatarShapes = lazyExample('avatar/avatar-shapes', 'AvatarShapes');
 const AvatarStatusRing = lazyExample('avatar/avatar-status-ring', 'AvatarStatusRing');
 const AvatarStories = lazyExample('avatar/avatar-stories', 'AvatarStories');
@@ -20,19 +21,31 @@ const AvatarColors = lazyExample('avatar/avatar-colors', 'AvatarColors');
 
 /** Avatar page body: purpose, examples and theming. */
 export async function AvatarBody(): Promise<ComponentDoc> {
-  const [fallbacks, photos, colors, shapes, badges, statusRing, stories, live, group, groupLinks] =
-    await Promise.all([
-      readExampleSource('avatar/avatar-fallbacks.tsx'),
-      readExampleSource('avatar/avatar-photos.tsx'),
-      readExampleSource('avatar/avatar-colors.tsx'),
-      readExampleSource('avatar/avatar-shapes.tsx'),
-      readExampleSource('avatar/avatar-badges.tsx'),
-      readExampleSource('avatar/avatar-status-ring.tsx'),
-      readExampleSource('avatar/avatar-stories.tsx'),
-      readExampleSource('avatar/avatar-live.tsx'),
-      readExampleSource('avatar/avatar-group.tsx'),
-      readExampleSource('avatar/avatar-group-links.tsx'),
-    ]);
+  const [
+    fallbacks,
+    photos,
+    colors,
+    shapes,
+    badges,
+    statusRing,
+    stories,
+    ringSizes,
+    live,
+    group,
+    groupLinks,
+  ] = await Promise.all([
+    readExampleSource('avatar/avatar-fallbacks.tsx'),
+    readExampleSource('avatar/avatar-photos.tsx'),
+    readExampleSource('avatar/avatar-colors.tsx'),
+    readExampleSource('avatar/avatar-shapes.tsx'),
+    readExampleSource('avatar/avatar-badges.tsx'),
+    readExampleSource('avatar/avatar-status-ring.tsx'),
+    readExampleSource('avatar/avatar-stories.tsx'),
+    readExampleSource('avatar/avatar-ring-sizes.tsx'),
+    readExampleSource('avatar/avatar-live.tsx'),
+    readExampleSource('avatar/avatar-group.tsx'),
+    readExampleSource('avatar/avatar-group-links.tsx'),
+  ]);
   const [
     fallbacksHtml,
     photosHtml,
@@ -41,6 +54,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     badgesHtml,
     statusRingHtml,
     storiesHtml,
+    ringSizesHtml,
     liveHtml,
     groupHtml,
     groupLinksHtml,
@@ -52,6 +66,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     highlightSource(badges),
     highlightSource(statusRing),
     highlightSource(stories),
+    highlightSource(ringSizes),
     highlightSource(live),
     highlightSource(group),
     highlightSource(groupLinks),
@@ -119,6 +134,14 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             fileName="avatar-stories.tsx"
           >
             <AvatarStories />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A gradient ring at every size"
+            code={ringSizes}
+            html={ringSizesHtml}
+            fileName="avatar-ring-sizes.tsx"
+          >
+            <AvatarRingSizes />
           </ExampleViewer>
           <ExampleViewer
             title="Live now: a ring and a pill at the bottom"
