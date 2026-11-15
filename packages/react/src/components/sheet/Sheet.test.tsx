@@ -555,7 +555,11 @@ describe('Escape in an overlay opened from inside a modal bottom sheet', () => {
         <Button>Apply</Button>
       </BottomSheet>,
     );
-    screen.getByRole('button', { name: 'Apply' }).focus();
+    const apply = screen.getByRole('button', { name: 'Apply' });
+    apply.focus();
+    // Escape that cancels a text being composed is the input method's, not the sheet's.
+    fireEvent.keyDown(apply, { key: 'Escape', isComposing: true });
+    expect(onSheetChange).not.toHaveBeenCalled();
     await userEvent.keyboard('{Escape}');
     expect(onSheetChange).toHaveBeenCalledWith(false);
   });
