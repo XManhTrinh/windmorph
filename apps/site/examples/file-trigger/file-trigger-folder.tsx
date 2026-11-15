@@ -13,10 +13,10 @@ export function FileTriggerFolder() {
   return (
     <div className="flex flex-col items-start gap-4">
       <div className="flex flex-wrap gap-3">
-        <FileTrigger directory onSelect={setChosen}>
+        <FileTrigger directory onFileAccept={setChosen}>
           <Button variant="tonal">Upload a folder</Button>
         </FileTrigger>
-        <FileTrigger multiple accept={['.pdf', '.docx']} onSelect={setChosen}>
+        <FileTrigger multiple accept={['.pdf', '.docx']} onFileAccept={setChosen}>
           <Button variant="outlined">Choose documents</Button>
         </FileTrigger>
       </div>

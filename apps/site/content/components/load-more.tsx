@@ -81,8 +81,9 @@ export async function LoadMoreBody(): Promise<ComponentDoc> {
               a loop.
             </li>
             <li>
-              <InlineCode>loading</InlineCode> replaces the default loading indicator (e.g. a
-              skeleton of one item); <InlineCode>end</InlineCode> shows once everything is loaded.
+              <InlineCode>loadingIndicator</InlineCode> replaces the default loading indicator (e.g.
+              a skeleton of one item); <InlineCode>endMessage</InlineCode> shows once everything is
+              loaded.
             </li>
             <li>
               Focus never drops to the page: while focus is inside it (after a press on Load more or

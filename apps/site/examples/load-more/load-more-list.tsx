@@ -39,7 +39,7 @@ export function LoadMoreList() {
       <LoadMore
         status={status}
         onLoadMore={load}
-        end={<p className="text-body-small text-on-surface-variant">That's everything</p>}
+        endMessage={<p className="text-body-small text-on-surface-variant">That's everything</p>}
       />
     </div>
   );

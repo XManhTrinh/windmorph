@@ -36,7 +36,7 @@ export const alert: ComponentAccessibility = {
     "Write the message so it says what happened and what to do; the severity's colour and icon are not read.",
     'Use `autoFocus` for an error that blocks a form after a failed submit, and nowhere else.',
     'Hide it with `open={false}` rather than unmounting it, so it leaves with its motion and hands focus on first; if focus should go somewhere specific (the field to fix), move it in `onClose`.',
-    'Pass `labels.close` in your language, and `titleAs` a heading level when the alert heads a section.',
+    'Pass `labels.close` in your language, and `headingLevel` when the alert heads a section.',
     'In forced-colours mode every alert keeps a border; keep `classNames` overrides from removing it.',
   ],
 };

@@ -63,6 +63,9 @@ const REPLACED: Record<string, string> = {
   sendingLabel: 'labels.sending',
   overflowLabel: 'labels.overflow',
   copyButton: 'classNames.copy',
+  // Windmorph Pro's replaced names in 0.2.9, kept as deprecated aliases.
+  titleAs: 'headingLevel',
+  onFiles: 'onFileAccept',
 };
 
 /** Patterns for old values and props that are also everyday words. */
@@ -107,6 +110,20 @@ const SCOPED: [RegExp, Record<string, string>][] = [
     /(?:^|\/)(?:checkbox|switch)(?:[-./]|$)/,
     { selected: 'checked', defaultSelected: 'defaultChecked', onSelectedChange: 'onCheckedChange' },
   ],
+  // Windmorph Pro's 0.2.9 names, where the old one is also an everyday word.
+  [/(?:^|\/)file-trigger(?:[-./]|$)/, { onSelect: 'onFileAccept' }],
+  [/(?:^|\/)media-upload-grid(?:[-./]|$)/, { onAdd: 'onFileAccept' }],
+];
+
+/**
+ * Old props whose names are also a status value, a `labels` key or a `classNames` key that
+ * stayed (LoadMore's `'loading'` status and `labels.loading`, NavigationRailGroup's `heading`
+ * slot): only the JSX attribute counts, in those components' pages and examples.
+ */
+const SCOPED_PATTERNS: [RegExp, RegExp, string][] = [
+  [/(?:^|\/)load-more(?:[-./]|$)/, /\b(?:loading|end)=\{/, 'loadingIndicator / endMessage'],
+  [/(?:^|\/)popover(?:[-./]|$)/, /\bheadline=/, 'title'],
+  [/(?:^|\/)(?:navigation-rail-group|blocks)(?:[-./]|$)/, /\bheading=/, 'title'],
 ];
 
 /** A name used as code: a JSX attribute, an object key, a code span or a quoted string. */
@@ -135,6 +152,11 @@ function findings(): string[] {
         }
         for (const [pattern, now] of OLD_PATTERNS) {
           if (pattern.test(line)) found.push(`${where} ${pattern.source} (now ${now})`);
+        }
+        for (const [scope, pattern, now] of SCOPED_PATTERNS) {
+          if (scope.test(relative(site, file)) && pattern.test(line)) {
+            found.push(`${where} ${pattern.source} (now ${now})`);
+          }
         }
         for (const [scope, replaced] of SCOPED) {
           if (!scope.test(relative(site, file))) continue;

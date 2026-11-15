@@ -6,7 +6,7 @@ export const emptyState: ComponentAccessibility = {
   },
   screenReader: {
     role: 'A plain `div` (or a {@link Card} for the card variants); `status` with `announce`.',
-    name: 'None of its own: the title and description are read as its text. With `titleAs="h2"` (or `h3`, `h4`) the title is a heading.',
+    name: 'None of its own: the title and description are read as its text. With `headingLevel` (`2` to `6`) the title is a heading of that level.',
     states: 'None.',
     notes: [
       'The icon is decorative and hidden from assistive tech (`aria-hidden`).',
@@ -24,7 +24,7 @@ export const emptyState: ComponentAccessibility = {
   ],
   consumer: [
     'Write a title that says what is missing ("No results"), and a description that says why or what to do; the icon and its colour are not read.',
-    "Use `titleAs` for a heading when the empty state is a section's only content, so the page outline stays whole.",
+    "Use `headingLevel` for a heading when the empty state is a section's only content, so the page outline stays whole.",
     'Set `announce` when the empty state replaces content after a search or filter, so screen-reader users hear the result.',
     'In forced-colours mode the icon keeps the text colour.',
   ],

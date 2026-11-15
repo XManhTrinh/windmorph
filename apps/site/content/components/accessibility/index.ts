@@ -30,6 +30,7 @@ import { list } from './list';
 import { listDetailLayout } from './list-detail-layout';
 import { carousel } from './carousel';
 import { mediaGrid } from './media-grid';
+import { mediaTimeSlider } from './media-time-slider';
 import { mediaViewer } from './media-viewer';
 import { shapedIcon } from './shaped-icon';
 import { commentRow } from './comment-row';
@@ -113,6 +114,7 @@ export const ACCESSIBILITY: Record<string, ComponentAccessibility> = {
   carousel: carousel,
   'media-grid': mediaGrid,
   'media-viewer': mediaViewer,
+  'media-time-slider': mediaTimeSlider,
   'shaped-icon': shapedIcon,
   'comment-row': commentRow,
   collapse: collapse,

@@ -68,7 +68,7 @@ export function MediaUploadGridComposer() {
         items={items}
         accept={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
         maxItems={MAX_PHOTOS}
-        onAdd={(files) =>
+        onFileAccept={(files) =>
           setItems((current) => [
             ...current,
             ...files.map((file) => ({

@@ -5,6 +5,7 @@ import {
   Avatar,
   FileTrigger,
   ImageCropDialog,
+  MediaTimeSlider,
   MessageField,
   PinInput,
   type MediaUploadItem,
@@ -36,6 +37,13 @@ import {
 } from './shared';
 
 const PinInputAny = loose(PinInput);
+const MediaTimeSliderAny = loose(MediaTimeSlider);
+
+/** The loaded ranges the preview and its snippet show, in seconds. */
+const MEDIA_TIME_SLIDER_BUFFERED = [
+  [0, 150],
+  [300, 360],
+];
 const MessageFieldAny = loose(MessageField);
 const FileTriggerAny = loose(FileTrigger);
 const ImageCropDialogAny = loose(ImageCropDialog);
@@ -208,7 +216,7 @@ const messageFieldControls = (own: string[]) => [
 ];
 
 const MESSAGE_FIELD_NOT_CONTROLLED = {
-  accept: 'The file types `onFiles` takes from a paste or drop, which the preview ignores.',
+  accept: 'The file types `onFileAccept` takes from a paste or drop, which the preview ignores.',
 };
 
 const IMPORT_ICON_BUTTON = "import { IconButton } from '@windmorph/react';";
@@ -319,6 +327,41 @@ const CROP_PHOTOS: Record<string, string> = {
 
 /** Playgrounds for the Windmorph Pro inputs, by page slug. */
 export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
+  'media-time-slider': {
+    component: 'MediaTimeSlider',
+    importFrom: '@windmorph/react-pro',
+    // Room above the bar for the time bubble.
+    render: (props) =>
+      createElement(
+        'div',
+        { className: 'w-full max-w-md pt-10' },
+        createElement(MediaTimeSliderAny, {
+          ...props,
+          // A new length or start position starts the preview afresh.
+          key: mountKey(props, ['duration', 'defaultValue']),
+          'aria-label': 'Position',
+          buffered: MEDIA_TIME_SLIDER_BUFFERED,
+        }),
+      ),
+    defaultProps: { defaultValue: 0, step: 5, disabled: false },
+    initialState: { duration: 600, defaultValue: 83 },
+    surfacedProps: ['duration', 'defaultValue', 'step', 'disabled'],
+    numberRanges: {
+      duration: { min: 10, max: 7200, step: 10 },
+      defaultValue: { min: 0, max: 7200, step: 1 },
+      step: { min: 1, max: 30, step: 1 },
+    },
+    notControlled: {
+      value:
+        "The media's time as it plays, kept by the app; the preview starts at `defaultValue`, and the player example follows a playing media.",
+      buffered:
+        "Ranges of seconds (pairs, or a media element's `buffered`); the preview shows two, and the snippet writes them.",
+    },
+    codeSlots: {
+      'aria-label': '"Position"',
+      buffered: '[\n    [0, 150],\n    [300, 360],\n  ]',
+    },
+  },
   'message-field': {
     component: 'MessageField',
     notRendered: {

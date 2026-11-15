@@ -69,8 +69,10 @@ export async function SidePanelRailBody(): Promise<ComponentDoc> {
               the strip isn&apos;t shown, so put those destinations in the app&apos;s drawer.
             </li>
             <li>
-              <InlineCode>selected</InlineCode> marks the current page or the item whose sheet is
-              open.
+              <InlineCode>current</InlineCode> marks a link to the page that is showing (
+              <InlineCode>aria-current=&quot;page&quot;</InlineCode>);{' '}
+              <InlineCode>selected</InlineCode> marks a button whose sheet is open (
+              <InlineCode>aria-pressed</InlineCode>).
             </li>
           </ul>
         </section>

@@ -7,6 +7,7 @@ import { highlightSource } from '../../lib/highlight';
 import { InlineCode } from '../../components/inline-code';
 import { lazyExample } from '../../lib/lazy-example';
 
+const AvatarAnySize = lazyExample('avatar/avatar-any-size', 'AvatarAnySize');
 const AvatarBadges = lazyExample('avatar/avatar-badges', 'AvatarBadges');
 const AvatarFallbacks = lazyExample('avatar/avatar-fallbacks', 'AvatarFallbacks');
 const AvatarGroupExample = lazyExample('avatar/avatar-group', 'AvatarGroupExample');
@@ -33,6 +34,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     live,
     group,
     groupLinks,
+    anySize,
   ] = await Promise.all([
     readExampleSource('avatar/avatar-fallbacks.tsx'),
     readExampleSource('avatar/avatar-photos.tsx'),
@@ -45,6 +47,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     readExampleSource('avatar/avatar-live.tsx'),
     readExampleSource('avatar/avatar-group.tsx'),
     readExampleSource('avatar/avatar-group-links.tsx'),
+    readExampleSource('avatar/avatar-any-size.tsx'),
   ]);
   const [
     fallbacksHtml,
@@ -58,6 +61,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     liveHtml,
     groupHtml,
     groupLinksHtml,
+    anySizeHtml,
   ] = await Promise.all([
     highlightSource(fallbacks),
     highlightSource(photos),
@@ -70,6 +74,7 @@ export async function AvatarBody(): Promise<ComponentDoc> {
     highlightSource(live),
     highlightSource(group),
     highlightSource(groupLinks),
+    highlightSource(anySize),
   ]);
 
   return {
@@ -86,6 +91,14 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             fileName="avatar-fallbacks.tsx"
           >
             <AvatarFallbacks />
+          </ExampleViewer>
+          <ExampleViewer
+            title="Any size in px"
+            code={anySize}
+            html={anySizeHtml}
+            fileName="avatar-any-size.tsx"
+          >
+            <AvatarAnySize />
           </ExampleViewer>
           <ExampleViewer
             title="Photos and links"
@@ -180,8 +193,11 @@ export async function AvatarBody(): Promise<ComponentDoc> {
             list item.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            Its sizes are in px (24 to 96px), so it keeps its M3 slot size at larger text sizes.
-            With <InlineCode>href</InlineCode> it is a link and with{' '}
+            Its sizes are in px (24 to 96px), so it keeps its M3 slot size at larger text sizes. For
+            a slot they don&apos;t fit, <InlineCode>size</InlineCode> takes any number of px (
+            <InlineCode>size={'{48}'}</InlineCode>), whose corners, initials and rings follow the
+            nearest named size; <InlineCode>--wm-avatar-size</InlineCode> sets the box from a theme
+            or a class too. With <InlineCode>href</InlineCode> it is a link and with{' '}
             <InlineCode>onPress</InlineCode> a button, with the core&apos;s state layer (hover,
             focus and the pressed ripple) painted over the photo too. A link avatar takes{' '}
             <InlineCode>target</InlineCode>, <InlineCode>rel</InlineCode> and{' '}

@@ -80,7 +80,7 @@ export function MessageFieldChat() {
           ) : null
         }
         accept={['image/*']}
-        onFiles={(files) =>
+        onFileAccept={(files) =>
           setPhotos((current) => [
             ...current,
             ...files.map((file) =>
