@@ -40,7 +40,11 @@ function coreSlots(): { slots: Map<string, string[]> } {
     const slotType = checker.getNonNullableType(checker.getTypeOfSymbol(classNames));
     slots.set(
       name,
-      checker.getPropertiesOfType(slotType).map((slot) => slot.getName()),
+      checker
+        .getPropertiesOfType(slotType)
+        // A deprecated slot is left out of the props list, as the generator leaves it out.
+        .filter((slot) => !slot.getJsDocTags(checker).some((tag) => tag.name === 'deprecated'))
+        .map((slot) => slot.getName()),
     );
   }
   return { slots };
