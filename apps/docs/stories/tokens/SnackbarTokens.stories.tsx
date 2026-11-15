@@ -16,12 +16,12 @@ export const Probe: StoryObj = {
   render: () => (
     <TokenProbe
       instances={
-        <Snackbar actionLabel="Undo" onAction={noop} onDismiss={noop}>
+        <Snackbar actionLabel="Undo" onAction={noop} onClose={noop}>
           Message archived
         </Snackbar>
       }
       scoped={
-        <Snackbar actionLabel="Undo" onAction={noop} onDismiss={noop}>
+        <Snackbar actionLabel="Undo" onAction={noop} onClose={noop}>
           Scoped
         </Snackbar>
       }

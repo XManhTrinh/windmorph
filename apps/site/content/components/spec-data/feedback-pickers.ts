@@ -118,7 +118,7 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
           { compose: 'action', windmorph: 'actionLabel + onAction' },
           {
             compose: 'dismissAction',
-            windmorph: 'onDismiss',
+            windmorph: 'onClose',
             note: 'Shows the close button, named by `labels.dismiss`.',
           },
           { compose: 'actionOnNewLine', windmorph: 'actionOnNewLine' },

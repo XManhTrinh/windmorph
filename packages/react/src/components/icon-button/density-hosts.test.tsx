@@ -110,7 +110,7 @@ describe('icon buttons in parts that keep their size', () => {
   it("stay at density 0 in a snackbar's 48px row", () => {
     render(
       <ThemeScope density={-3}>
-        <Snackbar actionLabel="Undo" onDismiss={() => {}}>
+        <Snackbar actionLabel="Undo" onClose={() => {}}>
           Message archived
         </Snackbar>
       </ThemeScope>,

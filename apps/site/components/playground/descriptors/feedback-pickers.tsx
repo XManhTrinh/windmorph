@@ -433,21 +433,21 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       SnackbarHost:
         'Queues the snackbars `useSnackbarHostState` shows; the preview shows one snackbar directly, and the Host example queues them.',
     },
-    render: ({ onDismiss, ...props }) =>
+    render: ({ onClose, ...props }) =>
       createElement(
         'div',
         { className: 'w-full max-w-[480px]' },
         createElement(
           SnackbarAny,
-          { ...props, onAction: noop, ...(onDismiss === true && { onDismiss: noop }) },
+          { ...props, onAction: noop, ...(onClose === true && { onClose: noop }) },
           'Message archived',
         ),
       ),
-    defaultProps: { actionOnNewLine: false, onDismiss: false },
-    surfacedProps: ['actionLabel', 'actionOnNewLine', 'onDismiss'],
-    initialState: { actionLabel: 'Undo', onDismiss: true },
-    controlKinds: { onDismiss: 'boolean' },
-    toggledSlots: { onDismiss: '() => {}' },
+    defaultProps: { actionOnNewLine: false, onClose: false },
+    surfacedProps: ['actionLabel', 'actionOnNewLine', 'onClose'],
+    initialState: { actionLabel: 'Undo', onClose: true },
+    controlKinds: { onClose: 'boolean' },
+    toggledSlots: { onClose: '() => {}' },
     codeSlots: { onAction: '() => {}' },
     codeChildren: 'Message archived',
   },

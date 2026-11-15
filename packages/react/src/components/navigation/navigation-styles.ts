@@ -23,7 +23,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * centred on the icon line, and anything wider (an extended FAB) keeps its width and starts
  * at the column's edge.
  *
- * Items align as a group to the top (default) or, with `itemAlignment="center"`, to the
+ * Items align as a group to the top (default) or, with `itemAlign="center"`, to the
  * middle of the space below the header (M3: centre alignment on tablets); the header stays
  * at the top. An optional divider (`outline-variant`) marks the edge next to the content.
  *

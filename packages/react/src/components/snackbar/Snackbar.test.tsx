@@ -72,9 +72,9 @@ describe('Snackbar', () => {
 
   it('shows a message with an action and a dismiss button', async () => {
     const onAction = vi.fn();
-    const onDismiss = vi.fn();
+    const onClose = vi.fn();
     const { container } = render(
-      <Snackbar actionLabel="Undo" onAction={onAction} onDismiss={onDismiss} data-testid="bar">
+      <Snackbar actionLabel="Undo" onAction={onAction} onClose={onClose} data-testid="bar">
         Message archived
       </Snackbar>,
     );
@@ -100,18 +100,18 @@ describe('Snackbar', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(onAction).toHaveBeenCalledOnce();
     await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
-    expect(onDismiss).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalledOnce();
     screen.getByRole('button', { name: 'Undo' }).focus();
     await userEvent.keyboard('{Escape}');
-    expect(onDismiss).toHaveBeenCalledTimes(2);
+    expect(onClose).toHaveBeenCalledTimes(2);
     expect(await axeViolations(container)).toEqual([]);
   });
 
   it('names the dismiss button from labels', () => {
-    const { rerender } = render(<Snackbar onDismiss={() => {}}>Draft kept</Snackbar>);
+    const { rerender } = render(<Snackbar onClose={() => {}}>Draft kept</Snackbar>);
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
     rerender(
-      <Snackbar onDismiss={() => {}} labels={{ dismiss: 'Close message' }}>
+      <Snackbar onClose={() => {}} labels={{ dismiss: 'Close message' }}>
         Draft kept
       </Snackbar>,
     );

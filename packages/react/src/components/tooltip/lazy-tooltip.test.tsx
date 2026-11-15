@@ -43,7 +43,7 @@ describe('LazyTooltip', () => {
   it('starts loading on hover, before a delayed tooltip opens, which then shows after its delay', async () => {
     const { Button, LazyTooltip, TooltipTrigger } = await load();
     render(
-      <TooltipTrigger delay={300}>
+      <TooltipTrigger openDelay={300}>
         <Button>Save</Button>
         <LazyTooltip>Save the draft</LazyTooltip>
       </TooltipTrigger>,

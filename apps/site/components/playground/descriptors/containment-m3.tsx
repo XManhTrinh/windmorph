@@ -749,7 +749,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     defaultProps: {
       variant: 'multi-browse',
       orientation: 'horizontal',
-      heroAlignment: 'start',
+      heroAlign: 'start',
       snap: 'none',
       preferredItemSize: 186,
       itemSize: 240,
@@ -760,7 +760,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
     surfacedProps: [
       'variant',
       'orientation',
-      'heroAlignment',
+      'heroAlign',
       'snap',
       'preferredItemSize',
       'itemSize',

@@ -146,6 +146,8 @@ export interface ListItemProps {
    * Aligns the content; by default it is centred, and top-aligned in three-line items.
    * @default "center", or "top" in three-line items
    */
+  verticalAlign?: 'center' | 'top';
+  /** @deprecated Use `verticalAlign`, its name since 0.2.9; this one goes in a later minor release. */
   verticalAlignment?: 'center' | 'top';
   /** Shows ✓ and ✕ in a switch item's thumb. @default false */
   switchIcons?: boolean;
@@ -572,11 +574,12 @@ function itemStylesOptions(
 ) {
   const headlineLines = item.headlineLines ?? options.headlineLines;
   const supportingTextLines = item.supportingTextLines ?? options.supportingTextLines;
+  const align = item.verticalAlign ?? item.verticalAlignment;
   return {
     variant,
     interactive,
     lines: itemLines(item),
-    ...(item.verticalAlignment && { align: item.verticalAlignment }),
+    ...(align && { align }),
     ...(options.dividers && { dividers: options.dividers }),
     ...(headlineLines && { headlineLines }),
     ...(supportingTextLines && { supportingTextLines }),

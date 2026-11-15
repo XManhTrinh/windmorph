@@ -34,7 +34,7 @@ interface Args {
   modal: boolean;
   hideOnCollapse: boolean;
   defaultExpanded: boolean;
-  itemAlignment: 'top' | 'center';
+  itemAlign: 'top' | 'center';
   divider: boolean;
   indicatorMotion: 'expand' | 'slide';
 }
@@ -45,12 +45,12 @@ const meta = {
     modal: false,
     hideOnCollapse: false,
     defaultExpanded: false,
-    itemAlignment: 'top',
+    itemAlign: 'top',
     divider: false,
     indicatorMotion: 'expand',
   },
   argTypes: {
-    itemAlignment: { control: 'inline-radio', options: ['top', 'center'] },
+    itemAlign: { control: 'inline-radio', options: ['top', 'center'] },
     indicatorMotion: { control: 'inline-radio', options: ['expand', 'slide'] },
   },
 } satisfies Meta<Args>;
@@ -62,7 +62,7 @@ function RailDemo({
   modal,
   hideOnCollapse,
   defaultExpanded,
-  itemAlignment,
+  itemAlign,
   divider,
   indicatorMotion,
 }: Args) {
@@ -75,7 +75,7 @@ function RailDemo({
         data-testid="rail"
         modal={modal}
         hideOnCollapse={hideOnCollapse}
-        itemAlignment={itemAlignment}
+        itemAlign={itemAlign}
         divider={divider}
         indicatorMotion={indicatorMotion}
         expanded={expanded}
@@ -100,7 +100,7 @@ function RailDemo({
             key={id}
             icon={icon}
             {...BADGES[id]}
-            selected={current === id}
+            current={current === id}
             onPress={() => setCurrent(id)}
           >
             {label}
@@ -140,7 +140,7 @@ export const SlidingRail: Story = {
 
 /** Items centred as a group (M3's tablet layout), with a divider on the content edge. */
 export const CenteredRail: Story = {
-  args: { itemAlignment: 'center', divider: true },
+  args: { itemAlign: 'center', divider: true },
   render: (args) => <RailDemo {...args} />,
 };
 
@@ -149,7 +149,7 @@ export const RailLongLabel: Story = {
   render: () => (
     <div className="flex h-[300px]">
       <NavigationRail aria-label="Library" expanded data-testid="rail">
-        <NavigationRailItem icon={<HomeIcon />} selected>
+        <NavigationRailItem icon={<HomeIcon />} current>
           Home
         </NavigationRailItem>
         <NavigationRailItem icon={<StarIcon />}>Recipes saved for later</NavigationRailItem>
@@ -183,7 +183,7 @@ export const RailStates: Story = {
                 key={id}
                 icon={icon}
                 {...BADGES[id]}
-                selected={i === 0}
+                current={i === 0}
                 disabled={i === 3}
               >
                 {label}
@@ -233,7 +233,7 @@ export const RailHeaderImage: Story = {
             data-testid={`rail-${state}`}
           >
             {DESTINATIONS.slice(0, 3).map(({ id, label, icon }, i) => (
-              <NavigationRailItem key={id} icon={icon} selected={i === 0}>
+              <NavigationRailItem key={id} icon={icon} current={i === 0}>
                 {label}
               </NavigationRailItem>
             ))}
@@ -262,7 +262,7 @@ function BarDemo({
           key={id}
           icon={icon}
           {...BADGES[id]}
-          selected={current === id}
+          current={current === id}
           onPress={() => setCurrent(id)}
         >
           {label}
@@ -320,7 +320,7 @@ export const HideOnScroll: Story = {
             <NavigationBarItem
               key={id}
               icon={icon}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
               onReselect={() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
             >
@@ -355,7 +355,7 @@ export const LayoutOverride: StoryObj<{
             <NavigationBarItem
               key={id}
               icon={icon}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
             >
               {label}
@@ -391,7 +391,7 @@ export const RailLayoutOverride: StoryObj<{
             <NavigationRailItem
               key={id}
               icon={icon}
-              selected={current === id}
+              current={current === id}
               onPress={() => setCurrent(id)}
             >
               {label}

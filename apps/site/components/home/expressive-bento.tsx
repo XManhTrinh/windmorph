@@ -269,16 +269,16 @@ export function ExpressiveBento({ className }: { className?: string }) {
           <NavigationRailItem
             data-press="off"
             icon={<FavoriteIcon />}
-            selectedIcon={<FavoriteFilledIcon />}
-            selected={!active}
+            currentIcon={<FavoriteFilledIcon />}
+            current={!active}
           >
             Friends
           </NavigationRailItem>
           <NavigationRailItem
             data-press="on"
             icon={<ScheduleIcon />}
-            selectedIcon={<ScheduleFilledIcon />}
-            selected={active}
+            currentIcon={<ScheduleFilledIcon />}
+            current={active}
           >
             Alarms
           </NavigationRailItem>

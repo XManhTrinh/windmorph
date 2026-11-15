@@ -103,7 +103,7 @@ export function AppFramePinned() {
         <NavigationRailItem
           href="#demo-overview"
           icon={<HomeIcon />}
-          selected={page === 'overview'}
+          current={page === 'overview'}
         >
           Overview
         </NavigationRailItem>

@@ -24,7 +24,7 @@ function Sample({
       className={className}
     >
       {DESTINATIONS.map(({ label, icon }, index) => (
-        <NavigationBarItem key={label} icon={icon} selected={index === 1}>
+        <NavigationBarItem key={label} icon={icon} current={index === 1}>
           {label}
         </NavigationBarItem>
       ))}

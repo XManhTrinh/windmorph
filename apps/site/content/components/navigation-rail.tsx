@@ -103,16 +103,16 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
             spring, and its label turns bold. With{' '}
             <InlineCode>indicatorMotion=&quot;slide&quot;</InlineCode>, an extension beyond the
             spec, the expanded rail&apos;s pill slides from the previous destination instead. The
-            whole row is the target. An item&apos;s <InlineCode>selectedIcon</InlineCode>{' '}
-            cross-fades with its icon. A long label wraps between words and the item grows taller; a
-            single word too long for its item may break only where the browser hyphenates it for the
-            page&apos;s <InlineCode>lang</InlineCode>, never bare, and a line it still overflows
-            ends with an ellipsis. The accessible name is always the full label. While the rail
-            widens, labels stay on one line, clipped by the rail, so no icon moves. A press ripples
-            through the pill.
+            whole row is the target. An item&apos;s <InlineCode>currentIcon</InlineCode> cross-fades
+            with its icon. A long label wraps between words and the item grows taller; a single word
+            too long for its item may break only where the browser hyphenates it for the page&apos;s{' '}
+            <InlineCode>lang</InlineCode>, never bare, and a line it still overflows ends with an
+            ellipsis. The accessible name is always the full label. While the rail widens, labels
+            stay on one line, clipped by the rail, so no icon moves. A press ripples through the
+            pill.
           </p>
           <p className="text-body-large text-on-surface-variant">
-            <InlineCode>itemAlignment=&quot;center&quot;</InlineCode> centres the items in the space
+            <InlineCode>itemAlign=&quot;center&quot;</InlineCode> centres the items in the space
             below the header (M3 recommends it on tablets, where the middle is easier to reach); the
             header stays at the top. <InlineCode>divider</InlineCode> draws an{' '}
             <InlineCode>outline-variant</InlineCode> line on the edge next to the content. An
@@ -124,8 +124,8 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
           <p className="text-body-large text-on-surface-variant">
             Each <InlineCode>NavigationRailItem</InlineCode> is a link (
             <InlineCode>href</InlineCode>) or a button (<InlineCode>onPress</InlineCode>) with an{' '}
-            <InlineCode>icon</InlineCode>, an optional <InlineCode>selectedIcon</InlineCode> and a
-            label. <InlineCode>selected</InlineCode> marks the current destination. With{' '}
+            <InlineCode>icon</InlineCode>, an optional <InlineCode>currentIcon</InlineCode> and a
+            label. <InlineCode>current</InlineCode> marks the current destination. With{' '}
             <InlineCode>modal</InlineCode> the expanded rail opens over the page as a sheet with a
             scrim; <InlineCode>hideOnCollapse</InlineCode> hides the in-flow rail so only the sheet
             shows. With <InlineCode>hideOnCollapse=&quot;compact&quot;</InlineCode> it hides only
@@ -163,9 +163,10 @@ export async function NavigationRailBody(): Promise<ComponentDoc> {
               <InlineCode>classNames.sheet</InlineCode>.
             </li>
             <li>
-              Selection is <InlineCode>aria-current=&quot;page&quot;</InlineCode> via a{' '}
-              <InlineCode>data-current</InlineCode> attribute, because{' '}
-              <InlineCode>ButtonBase</InlineCode> owns <InlineCode>data-selected</InlineCode>.
+              The current destination is <InlineCode>aria-current=&quot;page&quot;</InlineCode>,
+              styled through <InlineCode>data-current</InlineCode>: it is the page the app is on,
+              not a selection, so the prop is <InlineCode>current</InlineCode> (
+              <InlineCode>selected</InlineCode>, its name before 0.2.9, still works).
             </li>
           </ul>
         </section>

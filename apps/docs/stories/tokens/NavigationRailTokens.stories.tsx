@@ -29,7 +29,7 @@ function Sample({
       className={cn('h-[280px]', className)}
     >
       {DESTINATIONS.map(({ label: name, icon }, index) => (
-        <NavigationRailItem key={name} icon={icon} selected={index === 1}>
+        <NavigationRailItem key={name} icon={icon} current={index === 1}>
           {name}
         </NavigationRailItem>
       ))}

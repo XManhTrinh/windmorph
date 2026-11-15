@@ -49,7 +49,7 @@ export function RailInline() {
           <NavigationRailItem
             key={id}
             icon={icon}
-            selected={current === id}
+            current={current === id}
             onPress={() => setCurrent(id)}
           >
             {label}

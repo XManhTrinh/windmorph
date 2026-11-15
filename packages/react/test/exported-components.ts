@@ -25,6 +25,8 @@ export const checker = program.getTypeChecker();
 export interface Component {
   name: string;
   props: Map<string, ts.Type>;
+  /** Its own props (declared in this package) marked `@deprecated`. */
+  deprecated: Set<string>;
 }
 
 /** The exported components: functions named in PascalCase whose first parameter is props. */
@@ -50,16 +52,23 @@ export function exportedComponents(): Component[] {
       const propsType = checker.getTypeOfSymbolAtLocation(param, declaration);
       const members = propsType.isUnion() ? propsType.types : [propsType];
       const props = new Map<string, ts.Type>();
+      const deprecated = new Set<string>();
       for (const member of members) {
         for (const prop of checker.getPropertiesOfType(checker.getApparentType(member))) {
           props.set(prop.name, checker.getTypeOfSymbolAtLocation(prop, declaration));
+          const own = (prop.declarations ?? []).some(
+            (node) => !node.getSourceFile().fileName.includes('/node_modules/'),
+          );
+          if (own && prop.getJsDocTags(checker).some((tag) => tag.name === 'deprecated')) {
+            deprecated.add(prop.name);
+          }
         }
       }
       if (props.size === 0) continue;
       // A component renders JSX; a hook or helper with an options object doesn't count.
       const returns = checker.typeToString(signature.getReturnType());
       if (!/Element|ReactNode|JSX/.test(returns)) continue;
-      found.set(exported.name, { name: exported.name, props });
+      found.set(exported.name, { name: exported.name, props, deprecated });
     }
   }
   return [...found.values()].sort((a, b) => a.name.localeCompare(b.name));

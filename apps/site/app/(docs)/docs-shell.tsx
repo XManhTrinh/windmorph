@@ -204,7 +204,7 @@ export function DocsShell({ children }: { children: ReactNode }) {
                 key={destination.href}
                 href={destination.href}
                 icon={destination.icon}
-                selected={
+                current={
                   destination.href === '/'
                     ? pathname === '/'
                     : destination.label === 'Guides'

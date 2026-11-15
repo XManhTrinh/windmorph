@@ -53,7 +53,7 @@ export function AppFrameFull() {
           </a>
         }
       >
-        <NavigationRailItem href="#demo-overview" icon={<HomeIcon />} selected>
+        <NavigationRailItem href="#demo-overview" icon={<HomeIcon />} current>
           Overview
         </NavigationRailItem>
         <NavigationRailGroup id="people" icon={<PersonIcon />} label="People">

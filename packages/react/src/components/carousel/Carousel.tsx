@@ -115,6 +115,8 @@ interface CarouselOwnProps extends RootDOMProps {
   /** Space between items, px. @default 8, or 16 when full-screen */
   itemSpacing?: number;
   /** Centre the large hero item between small ones. @default "start" */
+  heroAlign?: 'start' | 'center';
+  /** @deprecated Use `heroAlign`, its name since 0.2.9; this one goes in a later minor release. */
   heroAlignment?: 'start' | 'center';
   /** Minimum size of the small items. @default 40 */
   minSmallItemSize?: number;
@@ -210,7 +212,8 @@ export function Carousel({
   preferredItemSize,
   itemSize = 240,
   itemSpacing = variant === 'full-screen' ? 16 : 8,
-  heroAlignment = 'start',
+  heroAlign: heroAlignProp,
+  heroAlignment,
   minSmallItemSize,
   maxSmallItemSize,
   contentPadding,
@@ -225,6 +228,7 @@ export function Carousel({
   classNames,
   ...rest
 }: CarouselProps) {
+  const heroAlign = heroAlignProp ?? heroAlignment ?? 'start';
   const { root: data, rest: labelling } = splitRootProps(rest);
   const { 'aria-label': label, 'aria-labelledby': labelledBy } = labelling as {
     'aria-label'?: string;
@@ -258,7 +262,7 @@ export function Carousel({
             preferredItemSize,
             itemSpacing,
             count,
-            heroAlignment === 'center',
+            heroAlign === 'center',
             minSmallItemSize,
             maxSmallItemSize,
           )

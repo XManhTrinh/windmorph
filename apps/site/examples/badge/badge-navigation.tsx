@@ -45,7 +45,7 @@ export function BadgeNavigation() {
             icon={icon}
             badge={badge}
             badgeLabel={badgeLabel}
-            selected={current === id}
+            current={current === id}
             onPress={() => setCurrent(id)}
           >
             {label}
