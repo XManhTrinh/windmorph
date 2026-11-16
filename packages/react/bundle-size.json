@@ -1,7 +1,7 @@
 {
   "tolerance": 0.02,
   "budgets": {
-    "components/app-bar/TopAppBar": 14500,
+    "components/app-bar/TopAppBar": 10150,
     "components/autocomplete/Autocomplete": 42850,
     "components/badge/Badge": 7450,
     "components/button-group/ButtonGroup": 38600,
@@ -23,7 +23,7 @@
     "components/list/List": 33050,
     "components/list/ListMedia": 8150,
     "components/loading-indicator/LoadingIndicator": 24000,
-    "components/locale/LocaleProvider": 700,
+    "components/locale/LocaleProvider": 650,
     "components/menu/Menu": 31900,
     "components/menu/menu-trigger": 1850,
     "components/navigation/NavigationBar": 24300,
@@ -31,8 +31,8 @@
     "components/progress/ProgressIndicator": 28600,
     "components/pull-to-refresh/PullToRefresh": 15300,
     "components/radio/RadioGroup": 15150,
-    "components/search/SearchAppBar": 24350,
-    "components/search/SearchBar": 21450,
+    "components/search/SearchAppBar": 21850,
+    "components/search/SearchBar": 19050,
     "components/search/SearchField": 29750,
     "components/select/option-list": 20300,
     "components/select/Select": 35150,
