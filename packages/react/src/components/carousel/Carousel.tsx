@@ -580,8 +580,10 @@ export function Carousel({
   // the next press inside the carousel, so Enter on an item after a drag did nothing
   // (2026-11-16); a key press clears it too, for a browser whose Enter click has a `detail`.
   const endsDrag = (pointer: boolean) => pointer && dragged.current;
-  const onKeyDownCapture = () => {
-    dragged.current = false;
+  // A key ends a drag's hold on the next activation, but not a modifier alone, pressed
+  // mid-drag (a Command or Control click's start), whose click would then open the item.
+  const onKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!isModifierAlone(event.nativeEvent)) dragged.current = false;
   };
 
   // Brings a focused item into view: keylined carousels scroll it to its snap position

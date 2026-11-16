@@ -334,6 +334,8 @@ describe('Carousel', () => {
     ]);
     expect(scroller.scrollLeft).toBe(40);
     expect(scroller).toHaveAttribute('data-dragging');
+    // A modifier pressed mid-drag isn't the keyboard taking over: the drag still never acts.
+    fireEvent.keyDown(item, { key: 'Meta', metaKey: true });
     await user.pointer({
       keys: '[/MouseLeft]',
       target: item,
