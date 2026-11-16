@@ -68,7 +68,6 @@ export function controlledForm(
 /** Handlers React Aria names after something other than the prop (`value` → `onChange`). */
 const HANDLER_NAMES: Record<string, string[]> = {
   value: ['onChange'],
-  selectedKey: ['onSelectionChange'],
   selectedKeys: ['onSelectionChange'],
   inputValue: ['onInputChange'],
 };
