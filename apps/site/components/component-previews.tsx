@@ -342,6 +342,18 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <Shape w={60} h={16} tone="secondary" round="sm" />
     </Row>
   ),
+  'media-time-slider': (
+    <span className="flex w-40 flex-col items-center gap-2">
+      <span className="rounded-corner-extra-small bg-inverse-surface px-2 py-0.5 text-label-small text-inverse-on-surface">
+        1:23
+      </span>
+      <span className="flex h-2 w-full items-center rounded-full bg-surface-container-highest">
+        <span className="h-full w-14 rounded-s-full bg-primary" />
+        <span className="-ms-1 size-4 shrink-0 rounded-full bg-primary" />
+        <span className="h-full w-8 bg-outline-variant" />
+      </span>
+    </span>
+  ),
   chips: (
     <Row gap={1}>
       <Shape w={56} h={28} tone="secondary" round="sm" />

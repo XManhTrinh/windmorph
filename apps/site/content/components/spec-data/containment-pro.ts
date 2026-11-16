@@ -410,6 +410,11 @@ export const CONTAINMENT_PRO_SPEC: Record<string, ComponentSpecData> = {
         examples: ['avatar/avatar-fallbacks', 'avatar/avatar-photos'],
       },
       {
+        name: 'Any size in px (`size={48}`, `--wm-avatar-size`)',
+        kind: 'configuration',
+        examples: ['avatar/avatar-any-size'],
+      },
+      {
         name: 'Circle, rounded and the 35 M3 Expressive shapes (shape constants)',
         kind: 'configuration',
         examples: ['avatar/avatar-shapes'],

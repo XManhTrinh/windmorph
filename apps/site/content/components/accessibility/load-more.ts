@@ -20,7 +20,7 @@ export const loadMore: ComponentAccessibility = {
     states: 'None on the buttons.',
     notes: [
       "A failure's message (`labels.error`) is read politely through a visually hidden `status` region that is in the page from the start, so it is always announced; the visible copy beside Retry is hidden from screen readers so it is not read twice.",
-      'Once all is loaded it shows nothing, or the `end` you pass.',
+      'Once all is loaded it shows nothing, or the `endMessage` you pass.',
     ],
   },
   focus: [
@@ -37,7 +37,7 @@ export const loadMore: ComponentAccessibility = {
   ],
   consumer: [
     'Pass every word through `labels` (`loadMore`, `retry`, `error`, `loading`) so they come from your translations.',
-    "A custom `loading` (a skeleton of one item, say) needs its own accessible text, or a busy state on the list, since the default indicator's name is gone.",
+    "A custom `loadingIndicator` (a skeleton of one item, say) needs its own accessible text, or a busy state on the list, since the default indicator's name is gone.",
     'Focus stays on Load more for the next page; if your readers should go to the first new item instead, move focus there yourself once it has loaded.',
     'It opts out of scroll anchoring, so a new page goes in below what is on screen without moving the page; avoid turning `overflow-anchor` back on around it.',
     'Set `status` to `done` when there is nothing more, so the button goes.',

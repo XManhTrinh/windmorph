@@ -8,8 +8,9 @@ const PAGE = 2;
 
 /**
  * With `auto` the next page loads by itself as the end of the list scrolls
- * near (`rootMargin` ahead of the viewport): here as soon as it's on screen. `loading`
- * shows a skeleton of one item while a page loads, and `end` a line once everything is in.
+ * near (`rootMargin` ahead of the viewport): here as soon as it's on screen.
+ * `loadingIndicator` shows a skeleton of one item while a page loads, and `endMessage` a line
+ * once everything is in.
  * Load more stays as the keyboard and screen reader fallback.
  */
 export function LoadMoreAuto() {
@@ -40,12 +41,14 @@ export function LoadMoreAuto() {
         onLoadMore={load}
         auto
         rootMargin="0px"
-        loading={
+        loadingIndicator={
           <SkeletonGroup label="Loading more dishes">
             <Skeleton className="h-11" corner="small" />
           </SkeletonGroup>
         }
-        end={<p className="text-body-small text-on-surface-variant">That&apos;s every dish</p>}
+        endMessage={
+          <p className="text-body-small text-on-surface-variant">That&apos;s every dish</p>
+        }
       />
     </div>
   );

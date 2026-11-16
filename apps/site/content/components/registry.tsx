@@ -45,6 +45,7 @@ import { CollapseBody } from './collapse';
 import { CommentRowBody } from './comment-row';
 import { LoadMoreBody } from './load-more';
 import { MediaGridBody } from './media-grid';
+import { MediaTimeSliderBody } from './media-time-slider';
 import { ReactionSummaryBody } from './reaction-summary';
 import { ExpandableTextBody } from './expandable-text';
 import { ReactionPickerBody } from './reaction-picker';
@@ -172,6 +173,7 @@ const BODIES: Record<string, ComponentDocLoader> = {
   'comment-row': CommentRowBody,
   'load-more': LoadMoreBody,
   'media-grid': MediaGridBody,
+  'media-time-slider': MediaTimeSliderBody,
   'reaction-summary': ReactionSummaryBody,
   'expandable-text': ExpandableTextBody,
   alert: AlertBody,

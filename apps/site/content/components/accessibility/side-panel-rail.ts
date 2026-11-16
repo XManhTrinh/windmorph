@@ -11,7 +11,7 @@ export const sidePanelRail: ComponentAccessibility = {
     role: 'A `navigation` region holding links or buttons.',
     name: 'The region from `aria-label` or `aria-labelledby`, each item from its text, and the toggle from `labels.hide` or `labels.show`.',
     states:
-      'The toggle reports `aria-expanded`. A selected link is `aria-current="page"`; a selected button is `aria-pressed`.',
+      'The toggle reports `aria-expanded`. A link with `current` is `aria-current="page"`; a button with `selected` is `aria-pressed`.',
     notes: ['An item’s name shows in a tooltip, which only repeats it, so it isn’t a description.'],
   },
   focus: [

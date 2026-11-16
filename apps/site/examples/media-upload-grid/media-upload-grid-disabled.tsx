@@ -27,7 +27,7 @@ export function MediaUploadGridDisabled() {
         aria-label="Photos in your post"
         items={ITEMS}
         disabled={sending}
-        onAdd={() => undefined}
+        onFileAccept={() => undefined}
         onRemove={() => undefined}
         onReorder={() => undefined}
       />

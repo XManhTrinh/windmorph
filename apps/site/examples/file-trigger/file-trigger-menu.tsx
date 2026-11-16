@@ -10,7 +10,7 @@ export function FileTriggerMenu() {
   const [chosen, setChosen] = useState('');
   const picker = useFileTrigger({
     accept: ['image/*'],
-    onSelect: (files) => setChosen(files[0]?.name ?? ''),
+    onFileAccept: (files) => setChosen(files[0]?.name ?? ''),
   });
   return (
     <div className="flex items-center gap-3">

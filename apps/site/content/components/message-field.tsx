@@ -160,7 +160,7 @@ export async function MessageFieldBody(): Promise<ComponentDoc> {
               icon alone, in primary.
             </li>
             <li>
-              <InlineCode>onFiles</InlineCode> gets files pasted or dropped onto the field that
+              <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
               match <InlineCode>accept</InlineCode>; the field shows its drag-over state. Without
               it, files are ignored and text pastes as usual.
             </li>

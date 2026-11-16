@@ -148,8 +148,8 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>onSubmit</InlineCode> gets it trimmed. Everything else is the
               frame&apos;s: <InlineCode>tools</InlineCode> (after Aa),{' '}
               <InlineCode>banner</InlineCode>, <InlineCode>attachments</InlineCode>,{' '}
-              <InlineCode>onFiles</InlineCode>, <InlineCode>maxLength</InlineCode> (never cut; it
-              counts the stored marker text, so markers and mentions count:{' '}
+              <InlineCode>onFileAccept</InlineCode>, <InlineCode>maxLength</InlineCode> (never cut;
+              it counts the stored marker text, so markers and mentions count:{' '}
               <InlineCode>*bold*</InlineCode> is 6), <InlineCode>expandOnFocus</InlineCode>,{' '}
               <InlineCode>docked</InlineCode> and the rest. <InlineCode>handleRef</InlineCode> adds{' '}
               <InlineCode>format</InlineCode>, <InlineCode>setLink</InlineCode> and{' '}

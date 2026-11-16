@@ -86,7 +86,7 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
           </h2>
           <ul className="flex flex-col gap-2 ps-5 text-body-large text-on-surface-variant [&>li]:list-disc">
             <li>
-              <InlineCode>onSelect</InlineCode> gets the chosen files as an array, never empty.
+              <InlineCode>onFileAccept</InlineCode> gets the chosen files as an array, never empty.
               Choosing the same file again still calls it.
             </li>
             <li>

@@ -663,9 +663,37 @@ export const COMPONENT_META: ComponentMeta[] = [
     specs: {
       sizes: ['xs', 'sm', 'md', 'lg', 'xl'],
     },
-    related: ['text-field'],
+    related: ['text-field', 'media-time-slider'],
     whenNotToUse:
       'When a precise value matters, use a Text field; for a few discrete options use a Radio group.',
+  },
+  {
+    slug: 'media-time-slider',
+    title: 'Media time slider',
+    group: 'Inputs & selection',
+    railGroup: 'inputs',
+    summary:
+      "A media player's position bar: where playback is, what has loaded, and the time under the pointer, to seek by pointer, touch and keyboard. Not an M3 component (@windmorph/react-pro).",
+    propsComponents: ['MediaTimeSlider'],
+    types: ['MediaTimeRanges'],
+    playground: 'full',
+    pro: true,
+    related: ['slider', 'media-viewer', 'progress'],
+    whenNotToUse:
+      "For choosing a number, or a volume, use a Slider; for progress the person can't move, a Progress indicator.",
+    keywords: [
+      'seek bar',
+      'scrubber',
+      'progress bar',
+      'timeline',
+      'video',
+      'audio',
+      'player',
+      'playback',
+      'buffered',
+      'time slider',
+      'position',
+    ],
   },
   {
     slug: 'chips',

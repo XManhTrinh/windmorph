@@ -2,6 +2,36 @@ import type { ComponentSpecData } from './types';
 
 /** Spec data for the Windmorph Pro inputs, by page slug. */
 export const INPUTS_PRO_SPEC: Record<string, ComponentSpecData> = {
+  'media-time-slider': {
+    covers: [
+      {
+        name: 'The position, the loaded ranges and the time under the pointer',
+        kind: 'configuration',
+        examples: ['media-time-slider/media-time-slider-states'],
+      },
+      {
+        name: 'An hour-long media (`h:mm:ss`) and a length not known yet',
+        kind: 'configuration',
+        examples: ['media-time-slider/media-time-slider-states'],
+      },
+      {
+        name: 'A player that seeks on `onChangeEnd`',
+        kind: 'use case',
+        examples: ['media-time-slider/media-time-slider-player'],
+      },
+      {
+        name: 'Over a video, in a dark `ThemeScope`',
+        kind: 'use case',
+        examples: ['media-time-slider/media-time-slider-video'],
+      },
+    ],
+    extensions: [
+      {
+        item: 'Built to the M3 slider, for media',
+        note: 'M3 has no media components and its slider tracks start at 16px; this one is a 4px bar that grows to 8px with a handle while active, in the slider’s colour roles and springs, with a 48px target and the core slider’s touch handling.',
+      },
+    ],
+  },
   'copy-field': {
     covers: [
       {

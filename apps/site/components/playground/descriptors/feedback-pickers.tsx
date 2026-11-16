@@ -224,7 +224,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         'Announces several placeholders as one loading region; the page examples show it.',
     },
     importFrom: '@windmorph/react-pro',
-    render: ({ animation, corner, ...props }) =>
+    render: ({ animation, corner, ratio, ...props }) =>
       createElement(
         SkeletonGroup,
         {
@@ -235,6 +235,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         createElement(SkeletonAny, {
           ...props,
           ...(corner !== 'default' && { corner }),
+          ...(ratio !== 'none' && { ratio }),
           ...(props.variant === 'circle' && { className: 'size-16' }),
         }),
       ),
@@ -245,20 +246,32 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       animation: 'pulse',
       typescale: 'body-medium',
       lines: 1,
+      ratio: 'none',
     },
-    surfacedProps: ['variant', 'animation', 'corner', 'color', 'typescale', 'lines'],
+    surfacedProps: ['variant', 'ratio', 'animation', 'corner', 'color', 'typescale', 'lines'],
     initialState: { variant: 'text', lines: 3, animation: 'pulse' },
     numberRanges: { lines: { min: 1, max: 6 } },
-    // `lines` and `typescale` belong to the text variant (the types say so).
+    // `lines` and `typescale` belong to the text variant, `ratio` to the rectangle (the types
+    // say so).
     adjust: (values, changed) => {
-      if (changed === 'lines' || changed === 'typescale') return { ...values, variant: 'text' };
-      if (changed === 'variant' && values.variant !== 'text') {
-        return { ...values, lines: 1, typescale: 'body-medium' };
+      if (changed === 'lines' || changed === 'typescale') {
+        return { ...values, variant: 'text', ratio: 'none' };
+      }
+      if (changed === 'ratio' && values.ratio !== 'none') {
+        return { ...values, variant: 'rectangle', lines: 1, typescale: 'body-medium' };
+      }
+      if (changed === 'variant') {
+        return {
+          ...values,
+          ...(values.variant !== 'text' && { lines: 1, typescale: 'body-medium' }),
+          ...(values.variant !== 'rectangle' && { ratio: 'none' }),
+        };
       }
       return values;
     },
     enumOptions: {
       variant: ['rectangle', 'text', 'circle'],
+      ratio: ['none', '16/9', '4/3', '1/1'],
       animation: ['pulse', 'shimmer', 'none'],
       corner: ['default', 'none', 'extra-small', 'small', 'medium', 'large', 'extra-large', 'full'],
       color: ['surface-container-highest', 'surface-container-high'],
@@ -267,7 +280,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   alert: {
     component: 'Alert',
     importFrom: '@windmorph/react-pro',
-    render: ({ icon, actions, autoFocus, open, ...props }, update) =>
+    render: ({ icon, actions, autoFocus, open, headingLevel, ...props }, update) =>
       createElement(
         'div',
         { className: 'flex w-full max-w-md flex-col items-start gap-3' },
@@ -280,6 +293,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
             autoFocus,
             // `open={false}` lets it leave with its exit motion; the button brings it back.
             open: open !== false,
+            headingLevel: headingLevel == null ? undefined : Number(headingLevel),
             ...(icon === true && { icon: createElement(LockIcon) }),
             ...(actions === true && {
               actions: createElement(ButtonAny, { variant: 'text' }, 'Reset password'),
@@ -298,7 +312,6 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       open: true,
       severity: 'info',
       variant: 'tonal',
-      titleAs: 'p',
       icon: false,
       actions: false,
       autoFocus: false,
@@ -310,7 +323,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'severity',
       'variant',
       'title',
-      'titleAs',
+      'headingLevel',
       'icon',
       'actions',
       'autoFocus',
@@ -318,8 +331,10 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
     enumOptions: {
       severity: ['info', 'error', 'success', 'warning', 'neutral'],
       variant: ['tonal', 'outlined'],
+      headingLevel: ['2', '3', '4', '5', '6'],
     },
-    controlKinds: { title: 'string', icon: 'boolean', actions: 'boolean' },
+    // The heading level is a number, so the snippet writes it as one.
+    controlKinds: { title: 'string', icon: 'boolean', actions: 'boolean', headingLevel: 'number' },
     toggledSlots: {
       icon: '<LockIcon />',
       actions: '<Button variant="text">Reset password</Button>',
@@ -330,10 +345,11 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   'empty-state': {
     component: 'EmptyState',
     importFrom: '@windmorph/react-pro',
-    render: ({ actions, shape, ...props }) =>
+    render: ({ actions, shape, headingLevel, ...props }) =>
       createElement(EmptyStateAny, {
         ...props,
         shape: shapeValue(shape),
+        headingLevel: headingLevel == null ? undefined : Number(headingLevel),
         icon: createElement(DynamicFeedIcon),
         className: 'w-full max-w-md',
         ...(actions === true && {
@@ -345,7 +361,6 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       size: 'md',
       color: 'secondary',
       shape: 'circle',
-      titleAs: 'p',
       announce: false,
       actions: false,
     },
@@ -355,7 +370,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       'color',
       'shape',
       'title',
-      'titleAs',
+      'headingLevel',
       'description',
       'actions',
       'announce',
@@ -371,8 +386,15 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       size: ['sm', 'md', 'lg'],
       color: ['primary', 'secondary', 'tertiary', 'neutral', 'success', 'warning', 'error'],
       shape: shapeOptions(['circle']),
+      headingLevel: ['2', '3', '4', '5', '6'],
     },
-    controlKinds: { title: 'string', description: 'string', actions: 'boolean' },
+    // The heading level is a number, so the snippet writes it as one.
+    controlKinds: {
+      title: 'string',
+      description: 'string',
+      actions: 'boolean',
+      headingLevel: 'number',
+    },
     toggledSlots: { actions: '<Button variant="tonal">Create a post</Button>' },
     // A shape is written as its constant, imported from `@windmorph/react/primitives`.
     codeImports: [BUTTON_IMPORT, SHAPE_IMPORT],
@@ -381,7 +403,7 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
   'load-more': {
     component: 'LoadMore',
     importFrom: '@windmorph/react-pro',
-    render: ({ loading, end, ...props }) =>
+    render: ({ loadingIndicator, endMessage, ...props }) =>
       createElement(
         'div',
         { className: 'flex w-full max-w-sm flex-col gap-2' },
@@ -400,15 +422,15 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           key: 'more',
           ...props,
           onLoadMore: noop,
-          ...(loading === true && {
-            loading: createElement(
+          ...(loadingIndicator === true && {
+            loadingIndicator: createElement(
               'p',
               { className: 'text-body-medium text-on-surface-variant' },
               'Loading more dishes…',
             ),
           }),
-          ...(end === true && {
-            end: createElement(
+          ...(endMessage === true && {
+            endMessage: createElement(
               'p',
               { className: 'text-body-small text-on-surface-variant' },
               "That's everything",
@@ -417,13 +439,20 @@ export const FEEDBACK_PICKERS_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
         }),
       ),
     // `status` is required, so it has no default and the snippet always writes it.
-    defaultProps: { auto: false, rootMargin: '800px 0px', loading: false, end: false },
-    surfacedProps: ['status', 'auto', 'rootMargin', 'loading', 'end'],
+    defaultProps: {
+      auto: false,
+      rootMargin: '800px 0px',
+      loadingIndicator: false,
+      endMessage: false,
+    },
+    surfacedProps: ['status', 'auto', 'rootMargin', 'loadingIndicator', 'endMessage'],
     initialState: { status: 'idle' },
-    controlKinds: { loading: 'boolean', end: 'boolean' },
+    controlKinds: { loadingIndicator: 'boolean', endMessage: 'boolean' },
     toggledSlots: {
-      loading: '<p className="text-body-medium text-on-surface-variant">Loading more dishes…</p>',
-      end: '<p className="text-body-small text-on-surface-variant">That&apos;s everything</p>',
+      loadingIndicator:
+        '<p className="text-body-medium text-on-surface-variant">Loading more dishes…</p>',
+      endMessage:
+        '<p className="text-body-small text-on-surface-variant">That&apos;s everything</p>',
     },
     codeSlots: { onLoadMore: '() => {}' },
   },

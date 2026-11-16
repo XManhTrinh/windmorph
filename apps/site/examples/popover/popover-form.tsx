@@ -10,7 +10,7 @@ export function PopoverForm() {
   return (
     <PopoverTrigger open={open} onOpenChange={setOpen}>
       <Button variant="outlined">Rename</Button>
-      <Popover aria-label="Rename" headline="Rename" closedBy="closerequest" placement="bottom-end">
+      <Popover aria-label="Rename" title="Rename" closedBy="closerequest" placement="bottom-end">
         <form
           className="flex flex-col gap-3"
           onSubmit={(event) => {

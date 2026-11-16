@@ -9,19 +9,22 @@ import { lazyExample } from '../../lib/lazy-example';
 
 const SkeletonAnimations = lazyExample('skeleton/skeleton-animations', 'SkeletonAnimations');
 const SkeletonCards = lazyExample('skeleton/skeleton-cards', 'SkeletonCards');
+const SkeletonRatios = lazyExample('skeleton/skeleton-ratios', 'SkeletonRatios');
 const SkeletonVariants = lazyExample('skeleton/skeleton-variants', 'SkeletonVariants');
 
 /** Skeleton page body: when to use it, examples and theming. */
 export async function SkeletonBody(): Promise<ComponentDoc> {
-  const [cards, animations, skeletonVariants] = await Promise.all([
+  const [cards, animations, skeletonVariants, ratios] = await Promise.all([
     readExampleSource('skeleton/skeleton-cards.tsx'),
     readExampleSource('skeleton/skeleton-animations.tsx'),
     readExampleSource('skeleton/skeleton-variants.tsx'),
+    readExampleSource('skeleton/skeleton-ratios.tsx'),
   ]);
-  const [cardsHtml, animationsHtml, skeletonVariantsHtml] = await Promise.all([
+  const [cardsHtml, animationsHtml, skeletonVariantsHtml, ratiosHtml] = await Promise.all([
     highlightSource(cards),
     highlightSource(animations),
     highlightSource(skeletonVariants),
+    highlightSource(ratios),
   ]);
 
   return {
@@ -54,6 +57,14 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
             fileName="skeleton-variants.tsx"
           >
             <SkeletonVariants />
+          </ExampleViewer>
+          <ExampleViewer
+            title="A picture's shape before it loads"
+            code={ratios}
+            html={ratiosHtml}
+            fileName="skeleton-ratios.tsx"
+          >
+            <SkeletonRatios />
           </ExampleViewer>
         </section>
       </>
@@ -97,6 +108,13 @@ export async function SkeletonBody(): Promise<ComponentDoc> {
               <InlineCode>surface-container-high</InlineCode> with{' '}
               <InlineCode>color=&quot;surface-container-high&quot;</InlineCode>), so it follows
               every theme, mode and contrast level.
+            </li>
+            <li>
+              A rectangle is 96px tall unless its class sets a height;{' '}
+              <InlineCode>ratio</InlineCode> (<InlineCode>&quot;16/9&quot;</InlineCode>,{' '}
+              <InlineCode>&quot;4/3&quot;</InlineCode>, <InlineCode>1</InlineCode>) gives it the
+              shape of the picture or video it stands for at its width instead, so nothing moves
+              when that arrives.
             </li>
             <li>
               Corners come from the shape scale (<InlineCode>corner</InlineCode>); text lines take

@@ -12,14 +12,14 @@ export function FileTriggerPhoto() {
   return (
     <div className="flex flex-col items-start gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <FileTrigger accept={['image/jpeg', 'image/png', 'image/webp']} onSelect={show}>
+        <FileTrigger accept={['image/jpeg', 'image/png', 'image/webp']} onFileAccept={show}>
           <Button variant="filled">Upload photo</Button>
         </FileTrigger>
-        <FileTrigger accept={['image/*']} capture="environment" onSelect={show}>
+        <FileTrigger accept={['image/*']} capture="environment" onFileAccept={show}>
           <Button variant="outlined">Take photo</Button>
         </FileTrigger>
         <TooltipTrigger>
-          <FileTrigger accept={['image/*']} multiple onSelect={show}>
+          <FileTrigger accept={['image/*']} multiple onFileAccept={show}>
             <IconButton variant="tonal" icon={<EditIcon />} aria-label="Add photos" />
           </FileTrigger>
           <Tooltip>Add photos</Tooltip>

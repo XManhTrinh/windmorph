@@ -699,6 +699,11 @@ export const FEEDBACK_PICKERS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['skeleton/skeleton-variants', 'skeleton/skeleton-cards'],
       },
       {
+        name: "A picture's or video's shape (`ratio`)",
+        kind: 'configuration',
+        examples: ['skeleton/skeleton-ratios'],
+      },
+      {
         name: 'Placeholder for a list of cards',
         kind: 'use case',
         examples: ['skeleton/skeleton-cards'],

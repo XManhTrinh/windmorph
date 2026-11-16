@@ -22,7 +22,7 @@ export function MediaUploadGridRow() {
         items={items}
         accept={['image/*']}
         maxItems={4}
-        onAdd={(files) =>
+        onFileAccept={(files) =>
           setItems((current) => [
             ...current,
             ...files.map((file) => ({

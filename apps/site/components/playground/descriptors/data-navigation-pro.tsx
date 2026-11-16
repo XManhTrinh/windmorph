@@ -359,8 +359,8 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
         ),
       ),
     defaultProps: { pinned: false, open: false, openDelay: 60, closeDelay: 250 },
-    initialState: { label: 'Reports', heading: 'Reports' },
-    surfacedProps: ['label', 'heading', 'pinned', 'open', 'openDelay', 'closeDelay'],
+    initialState: { label: 'Reports', title: 'Reports' },
+    surfacedProps: ['label', 'title', 'pinned', 'open', 'openDelay', 'closeDelay'],
     numberRanges: {
       openDelay: { min: 0, max: 500, step: 10 },
       closeDelay: { min: 0, max: 1000, step: 10 },
@@ -516,9 +516,9 @@ export const DATA_NAVIGATION_DESCRIPTORS: Record<string, PlaygroundDescriptor> =
       closedBy: 'any',
       fullScreenOnCompact: true,
     },
-    initialState: { headline: 'Account' },
+    initialState: { title: 'Account' },
     surfacedProps: [
-      'headline',
+      'title',
       'placement',
       'offset',
       'crossOffset',
