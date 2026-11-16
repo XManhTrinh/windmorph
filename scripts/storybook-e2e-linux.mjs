@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
  * Runs the Storybook Playwright suite (`apps/docs/e2e`) on Linux, in the official Playwright
- * image for the installed `@playwright/test` version, so its screenshots match the
- * `*-chromium-linux.png` baselines CI compares against. Any argument is passed to
+ * image CI runs (its tag and digest, read from `.github/workflows/ci.yml`, whose tag must be the
+ * installed `@playwright/test` version), so its screenshots match the `*-chromium-linux.png`
+ * baselines CI compares against. Any argument is passed to
  * `playwright test`:
  *
  *   pnpm test:e2e:linux                                   # compare against the Linux baselines
@@ -32,7 +33,18 @@ const require = createRequire(join(docs, 'package.json'));
 const { version } = JSON.parse(
   readFileSync(require.resolve('@playwright/test/package.json'), 'utf8'),
 );
-const image = `mcr.microsoft.com/playwright:v${version}-noble`;
+// The image CI pins, by tag and digest: a tag can be pushed again, and its screenshots would
+// change with it (2026-11-16).
+const pinned = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8').match(
+  /mcr\.microsoft\.com\/playwright:v([\w.-]+?)-noble@sha256:[0-9a-f]{64}/,
+);
+if (!pinned || pinned[1] !== version) {
+  console.error(
+    `.github/workflows/ci.yml pins ${pinned ? `Playwright ${pinned[1]}'s image` : 'no Playwright image by digest'}, and @playwright/test is ${version}: pin \`mcr.microsoft.com/playwright:v${version}-noble@sha256:…\` there (\`docker buildx imagetools inspect\` gives the digest).`,
+  );
+  process.exit(1);
+}
+const image = pinned[0];
 
 if (!existsSync(join(docs, 'storybook-static', 'iframe.html'))) {
   console.error(
