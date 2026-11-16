@@ -35,26 +35,60 @@ const guarded = new WeakSet<Document>();
 // going down and coming up, in the document's capture phase; its listener runs first (it is set
 // up before this one), and in case it doesn't, the pointer's modality is put back again as the
 // event reaches the window.
+//
+// The pointer counts only while it was the last way focus moved, as React Aria decides it: a
+// focus with no key or pointer before it, or a click with no pointer, is a screen reader's or a
+// phone's form navigation (its virtual modality, which shows rings), and ends the pointer's
+// turn, so a modifier alone then leaves the rings showing (2026-11-16). React Aria's main entry
+// has no reader for its modality, so the guard follows the same events instead.
 function guard(page: Document) {
-  if (guarded.has(page)) return;
+  const view = page.defaultView;
+  if (!view || guarded.has(page)) return;
   guarded.add(page);
   let pointerLast = false;
+  // A key or pointer event since focus last moved, and a return to the window, which moves
+  // focus with no event before it but isn't a screen reader's.
+  let eventBeforeFocus = false;
+  let returning = false;
   const keepPointer = (event: KeyboardEvent) => {
     if (MODIFIERS.has(event.key) && pointerLast) setInteractionModality('pointer');
   };
-  page.addEventListener('pointerdown', () => (pointerLast = true), true);
-  page.addEventListener('mousedown', () => (pointerLast = true), true);
+  const onPointer = () => {
+    pointerLast = true;
+    eventBeforeFocus = true;
+  };
+  page.addEventListener('pointerdown', onPointer, true);
+  page.addEventListener('mousedown', onPointer, true);
   page.addEventListener(
     'keydown',
     (event) => {
+      eventBeforeFocus = true;
       if (!MODIFIERS.has(event.key) && !ignoredByReactAria(event)) pointerLast = false;
       keepPointer(event);
     },
     true,
   );
   page.addEventListener('keyup', keepPointer, true);
-  page.defaultView?.addEventListener('keydown', keepPointer);
-  page.defaultView?.addEventListener('keyup', keepPointer);
+  page.addEventListener(
+    'focus',
+    (event) => {
+      if (event.target === view || event.target === page) return;
+      if (!eventBeforeFocus && !returning) pointerLast = false;
+      eventBeforeFocus = false;
+      returning = false;
+    },
+    true,
+  );
+  page.addEventListener(
+    'click',
+    (event) => {
+      if (event.detail === 0 && !(event as PointerEvent).pointerType) pointerLast = false;
+    },
+    true,
+  );
+  view.addEventListener('blur', () => (returning = true));
+  view.addEventListener('keydown', keepPointer);
+  view.addEventListener('keyup', keepPointer);
 }
 
 // Installs, once per document, the guard that keeps a modifier key pressed alone from showing
