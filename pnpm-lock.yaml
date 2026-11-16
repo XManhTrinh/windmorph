@@ -445,10 +445,10 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       react-aria:
-        specifier: ^3.52.1
+        specifier: ^3.53.1
         version: 3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react-stately:
-        specifier: ^3.50.0
+        specifier: ^3.51.0
         version: 3.51.0(react@19.3.1)
       tailwind-merge:
         specifier: ^3.7.0
