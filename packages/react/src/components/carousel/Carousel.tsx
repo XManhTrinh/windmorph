@@ -25,6 +25,7 @@ import {
 } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { isModifierAlone } from '../../utils/modifier-keys';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { routedHref } from '../../utils/routed-href';
 import {
@@ -521,15 +522,24 @@ export function Carousel({
   // A press's focus, which never moves the carousel: it lasts until a key is pressed anywhere,
   // so focus that comes back by Tab after a press elsewhere reveals the item again (it stayed
   // set until a key inside the carousel), while focus that comes back with no key (the window
-  // regaining it, a dialog the pointer closed) leaves the carousel where the press left it.
+  // regaining it, a dialog the pointer closed) leaves the carousel where the press left it. A
+  // modifier alone isn't a key here (a window or tab switcher starts with one).
   const pointerFocus = useRef(false);
+  const stopListening = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopListening.current?.(), []);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!pointerFocus.current) {
-      event.currentTarget.ownerDocument.addEventListener(
-        'keydown',
-        () => (pointerFocus.current = false),
-        { capture: true, once: true },
-      );
+    if (!stopListening.current) {
+      const page = event.currentTarget.ownerDocument;
+      const onKey = (key: globalThis.KeyboardEvent) => {
+        if (isModifierAlone(key)) return;
+        pointerFocus.current = false;
+        stopListening.current?.();
+      };
+      page.addEventListener('keydown', onKey, true);
+      stopListening.current = () => {
+        page.removeEventListener('keydown', onKey, true);
+        stopListening.current = null;
+      };
     }
     pointerFocus.current = true;
     dragged.current = false;

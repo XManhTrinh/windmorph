@@ -632,6 +632,12 @@ describe('Carousel items that are links', () => {
     act(() => item.focus());
     expect(item).toHaveFocus();
     expect(scrollTo).not.toHaveBeenCalled();
+    // A window switcher by keyboard (Command or Alt with Tab) sends its modifier alone to the
+    // page first: still no key, so focus coming back leaves the carousel where it was.
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.keyboard('{Meta}{Alt}{Control}');
+    act(() => item.focus());
+    expect(scrollTo).not.toHaveBeenCalled();
   });
 
   // The drag flag stayed set until the next press, so Enter on a link after a mouse drag
