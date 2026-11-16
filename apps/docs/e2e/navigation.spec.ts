@@ -13,8 +13,8 @@ const indicator = (item: Locator) => item.locator(':scope > span > span').first(
 type Box = { x: number; y: number; width: number };
 
 /**
- * Records `target`'s box every frame from just before `act` until it has been still for a
- * while (or 1.5s), so a test can see where it was mid-transition.
+ * Records `target`'s box every frame for 1.5s from the press `act` makes, so a test can see
+ * where it was mid-transition.
  */
 async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>) {
   const handle = await target.elementHandle();

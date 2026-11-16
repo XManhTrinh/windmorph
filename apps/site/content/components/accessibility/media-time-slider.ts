@@ -12,7 +12,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'Right to left, Arrow Left moves forward and Arrow Right back, as the bar runs from the right.',
-    'Each key calls `onChange` and `onChangeEnd`, so a player seeks once per key press.',
+    'Each key calls `onChangeEnd` (and `onChange` when it moves the position), so a player seeks once per key press.',
   ],
   screenReader: {
     role: 'A `slider` (a native range input) inside a `group`.',

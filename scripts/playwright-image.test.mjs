@@ -24,7 +24,8 @@ describe("CI's Playwright image", () => {
     assert.equal(new Set(images).size, 1);
   });
 
-  for (const app of ['site', 'next-playground']) {
+  // The Storybook suite's `docs` too: scripts/storybook-e2e-linux.mjs runs it in this image.
+  for (const app of ['site', 'next-playground', 'docs']) {
     it(`is the version of ${app}'s @playwright/test`, () => {
       const require = createRequire(new URL(`../apps/${app}/package.json`, import.meta.url));
       const { version } = JSON.parse(
