@@ -401,7 +401,6 @@ export const COMPONENT_META: ComponentMeta[] = [
       'tag people',
       'autocomplete',
       'markdown',
-      'slack',
       'bold',
       'italic',
       'code block',
