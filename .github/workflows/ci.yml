@@ -94,7 +94,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     env:
       CI: 'true'
@@ -191,7 +191,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     strategy:
       fail-fast: false
@@ -311,7 +311,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     env:
       CI: 'true'

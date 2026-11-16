@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { MODES, THEMES, shotWithMargin } from './shots';
 import { openStory } from './story';
+import { tabTo } from './keyboard';
 
 const dashOffset = (path: Locator) =>
   path.evaluate((el) => Number.parseFloat(getComputedStyle(el).strokeDashoffset));
@@ -89,7 +90,7 @@ test.describe('Checkbox interaction', () => {
       await page.mouse.move(0, 0);
       await page.mouse.up();
       await expect(page.getByRole('checkbox')).not.toBeChecked();
-      await page.keyboard.press('Tab');
+      await tabTo(page, page.getByRole('checkbox'));
       await expect(control).toHaveAttribute('data-focus-visible', 'true');
       await expect(control).not.toHaveAttribute('data-hovered', 'true');
       await expect.poll(() => borderColor(box)).toBe(active);
