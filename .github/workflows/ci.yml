@@ -42,7 +42,9 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          # Off where Windmorph Pro is installed: the store would hold its private package, and a
+          # pull request from a fork can restore the default branch's caches.
+          package-manager-cache: false
 
       # Fetches Windmorph Pro from its private repo with the read token (see the note at the
       # top), which only this step sees: the address rewrite that carries it goes once the
@@ -53,9 +55,10 @@ jobs:
         run: |
           if [ -n "$PRO_READ_TOKEN" ]; then
             git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+            # Removed however the step ends, a failed install included.
+            trap 'git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true' EXIT
           fi
           pnpm install --frozen-lockfile
-          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       - name: Check formatting
         run: pnpm format:check
@@ -94,7 +97,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
       options: --ipc=host
     env:
       CI: 'true'
@@ -113,7 +116,9 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          # Off where Windmorph Pro is installed: the store would hold its private package, and a
+          # pull request from a fork can restore the default branch's caches.
+          package-manager-cache: false
 
       # Fetches Windmorph Pro from its private repo with the read token (see the note at the
       # top), which only this step sees: the address rewrite that carries it goes once the
@@ -124,9 +129,10 @@ jobs:
         run: |
           if [ -n "$PRO_READ_TOKEN" ]; then
             git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+            # Removed however the step ends, a failed install included.
+            trap 'git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true' EXIT
           fi
           pnpm install --frozen-lockfile
-          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       - name: Build the site
         run: pnpm turbo run build --filter=site
@@ -191,7 +197,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
       options: --ipc=host
     strategy:
       fail-fast: false
@@ -213,7 +219,9 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: pnpm
+          # Off where Windmorph Pro is installed: the store would hold its private package, and a
+          # pull request from a fork can restore the default branch's caches.
+          package-manager-cache: false
 
       # Fetches Windmorph Pro from its private repo with the read token (see the note at the
       # top), which only this step sees: the address rewrite that carries it goes once the
@@ -224,9 +232,10 @@ jobs:
         run: |
           if [ -n "$PRO_READ_TOKEN" ]; then
             git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+            # Removed however the step ends, a failed install included.
+            trap 'git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true' EXIT
           fi
           pnpm install --frozen-lockfile
-          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       # What `next dev` needs: the built core and the generated props.
       - name: Build the core and generate the props
@@ -311,7 +320,7 @@ jobs:
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
       options: --ipc=host
     env:
       CI: 'true'
