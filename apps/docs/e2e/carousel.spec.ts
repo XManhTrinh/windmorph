@@ -116,10 +116,17 @@ test.describe('Carousel items that are links (2026-11-15)', () => {
     const first = carousel.getByRole('link', { name: 'Recipe 1', exact: true });
     await expect(first).toHaveAttribute('href', '#recipe-1');
     const box = (await first.boundingBox())!;
+    const scroller = carousel.locator('[data-slot="item"]').first().locator('..');
+    const scrolled = () => scroller.evaluate((element) => element.scrollLeft);
+    expect(await scrolled()).toBe(0);
     // A mouse drag that scrolls the carousel ends on a link: it opens nothing.
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2, { steps: 6 });
+    // The drag scrolled the carousel: one that starts on a link isn't the link's own drag and
+    // drop, which would take the pointer away (2026-11-16). Read before the release, after
+    // which the carousel snaps back.
+    expect(await scrolled()).toBeGreaterThan(40);
     await page.mouse.up();
     expect(await page.evaluate(() => location.hash)).toBe('');
     // A press opens it.

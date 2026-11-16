@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEvent,
   type FocusEvent,
   type HTMLAttributeAnchorTarget,
   type KeyboardEvent,
@@ -16,9 +17,12 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { mergeProps, useLink, useNumberFormatter, useObjectRef } from 'react-aria';
+import { mergeProps, useLink, useNumberFormatter, useObjectRef, type PressEvent } from 'react-aria';
 import { useLabels } from '../labels/use-labels';
-import { useM3Interaction } from '../../primitives/use-m3-interaction';
+import {
+  useM3Interaction,
+  type M3InteractionDataAttributes,
+} from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
@@ -139,24 +143,31 @@ interface CarouselOwnProps extends RootDOMProps {
   snap?: 'none' | 'item';
   /**
    * Called when an item is pressed, or activated with Enter or Space. Items then show
-   * hover, focus and pressed states.
+   * hover, focus and pressed states. Not called for an item that is a link (`itemHref`).
    */
   onAction?: (index: number) => void;
   /**
    * Makes an item a link to the address it returns (`undefined` for one that isn't): a real
    * link, so a `RouterProvider` routes it, and a modifier or the context menu opens it in a new
-   * tab, as any link. The item's press area is the link.
+   * tab, as any link. The item's press area is the link, and the link is the item's tab stop:
+   * Enter follows it, and `onAction` isn't called for it. The item's content names the link,
+   * so an image needs a non-empty `alt` (or words beside it); a link item must not hold buttons
+   * or other links. A disabled item (`disabledIndexes`) keeps its name and tab stop but no
+   * address.
    */
   itemHref?: (index: number) => string | undefined;
   /** Where an item's link opens (`_blank` for a new tab), with `itemHref`. */
   itemTarget?: HTMLAttributeAnchorTarget;
-  /** An item's link's relationship to the page (`nofollow`, `noopener`), with `itemHref`. */
+  /**
+   * An item's link's relationship to the page (`nofollow`, `noopener`), with `itemHref`.
+   * @default "noopener noreferrer" with `itemTarget="_blank"`, else none
+   */
   itemRel?: string;
   /**
-   * Called when another item takes the focal (large) place, once scrolling has settled: the
-   * item an app's words or controls describe. Multi-browse and hero carousels. Each item also
-   * carries `data-size` (`large`, `medium` or `small`) and `--m3-carousel-item-openness`, from
-   * 0 at its smallest to 1 at its largest, so words over it can fade as it shrinks.
+   * Called when another item takes the focal (large) place, once scrolling has settled (150ms
+   * without a scroll): the item an app's words or controls describe. Multi-browse and hero
+   * carousels. The item that is focal when the carousel first lays out is the starting point,
+   * not a change, so it isn't reported. Each item's size is on the item itself (`children`).
    */
   onFocalChange?: (index: number) => void;
   /** Indexes of items that can't be activated. */
@@ -166,7 +177,12 @@ interface CarouselOwnProps extends RootDOMProps {
    * whole app.
    */
   labels?: Partial<CarouselLabels>;
-  /** The items, e.g. images; each fills its slot and is clipped to its keyline. */
+  /**
+   * The items, e.g. images; each fills its slot and is clipped to its keyline. In multi-browse
+   * and hero carousels each item (`data-slot="item"`) carries `data-size` (`large`, `medium`
+   * or `small`; every item `large` under reduced motion) and `--m3-carousel-item-openness`,
+   * from 0 at its smallest to 1 at its largest, so words over it can fade as it shrinks.
+   */
   children: ReactNode;
   /** Ref to the root `<div>` element. */
   ref?: Ref<HTMLDivElement>;
@@ -213,6 +229,19 @@ function tabbableOutside(container: HTMLElement, forward: boolean): HTMLElement 
   const isAfter = (element: HTMLElement) =>
     Boolean(container.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
   return forward ? candidates.find(isAfter) : candidates.filter((e) => !isAfter(e)).pop();
+}
+
+const OPENNESS = '--m3-carousel-item-openness';
+
+/**
+ * Writes an item's size state, only what changed: it's written on every scroll frame and
+ * render, and an attribute set to the value it has still notifies observers and restyles what
+ * reads it (2026-11-16).
+ */
+function writeItemSize(slot: HTMLElement, size: 'large' | 'medium' | 'small', openness: string) {
+  if (slot.dataset.size !== size) slot.dataset.size = size;
+  if (slot.style.getPropertyValue(OPENNESS) !== openness)
+    slot.style.setProperty(OPENNESS, openness);
 }
 
 /**
@@ -272,6 +301,8 @@ export function Carousel({
   const rootRef = useObjectRef(ref);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // Each item's one tab stop: its link for a link item, else its slot (2026-11-16).
+  const focusRefs = useRef<(HTMLElement | null)[]>([]);
   const maskRefs = useRef<(HTMLDivElement | null)[]>([]);
   const hitRefs = useRef<(HTMLElement | null)[]>([]);
   const [space, setSpace] = useState(0);
@@ -313,32 +344,43 @@ export function Carousel({
   }
 
   // The item in the focal (large) place, reported once scrolling has settled (no scroll for
-  // 150ms), and only when it changes: the first one found is the starting point.
+  // 150ms), and only when it changes: the first one found is the starting point. Only a scroll
+  // frame, or another item becoming focal, restarts the wait: every render used to, so a
+  // parent re-rendering faster than 150ms kept the change from ever being reported
+  // (2026-11-16).
   const onFocalChangeRef = useRef(onFocalChange);
   useLayoutEffect(() => {
     onFocalChangeRef.current = onFocalChange;
   });
-  const focal = useRef<{ reported: number | null; timer: number }>({ reported: null, timer: 0 });
+  const focal = useRef<{ reported: number | null; candidate: number | null; timer: number }>({
+    reported: null,
+    candidate: null,
+    timer: 0,
+  });
   useEffect(() => {
     const state = focal.current;
     return () => window.clearTimeout(state.timer);
   }, []);
-  const noteFocal = (index: number) => {
-    if (focal.current.reported === null) {
-      focal.current.reported = index;
+  const noteFocal = (index: number, scrolled: boolean) => {
+    const state = focal.current;
+    if (state.reported === null) {
+      state.reported = index;
+      state.candidate = index;
       return;
     }
-    window.clearTimeout(focal.current.timer);
-    focal.current.timer = window.setTimeout(() => {
-      if (focal.current.reported === index) return;
-      focal.current.reported = index;
+    if (!scrolled && index === state.candidate) return;
+    state.candidate = index;
+    window.clearTimeout(state.timer);
+    state.timer = window.setTimeout(() => {
+      if (state.reported === index) return;
+      state.reported = index;
       onFocalChangeRef.current?.(index);
     }, 150);
   };
 
   // Writes each item's mask and translation for the current scroll position, without
-  // re-rendering (Compose's `carouselItem` layer block).
-  const update = () => {
+  // re-rendering (Compose's `carouselItem` layer block). `scrolled`: called for a scroll frame.
+  const update = (scrolled: boolean) => {
     const scroller = scrollerRef.current;
     if (!scroller || !strategy || !masked) return;
     const rtl = !vertical && getComputedStyle(scroller).direction === 'rtl';
@@ -361,14 +403,14 @@ export function Carousel({
       if (!slot) return;
       const large = size >= largest - 0.5;
       if (large && focalIndex < 0) focalIndex = index;
-      slot.dataset.size = large ? 'large' : size <= smallest + 0.5 ? 'small' : 'medium';
       const openness = largest > smallest ? (size - smallest) / (largest - smallest) : 1;
-      slot.style.setProperty(
-        '--m3-carousel-item-openness',
+      writeItemSize(
+        slot,
+        large ? 'large' : size <= smallest + 0.5 ? 'small' : 'medium',
         String(round(Math.min(1, Math.max(0, openness)))),
       );
     });
-    if (focalIndex >= 0) noteFocal(focalIndex);
+    if (focalIndex >= 0) noteFocal(focalIndex, scrolled);
     // Each item's visible part, from the viewport's start edge (slots are `full` apart plus
     // the spacing; the mask is centred in its slot and moved by its translation).
     const spans = places.map(({ size, translation }, index) => ({
@@ -424,14 +466,14 @@ export function Carousel({
 
   // Unmasked (under reduced motion every item keeps the large size), the focal item is the
   // one nearest the start.
-  const nearestItem = () => {
+  const nearestItem = (scrolled: boolean) => {
     const scroller = scrollerRef.current;
     if (!scroller || !strategy) return;
     const scroll = Math.abs(vertical ? scroller.scrollTop : scroller.scrollLeft);
     const step = strategy.itemMainAxisSize + itemSpacing;
-    noteFocal(Math.min(count - 1, Math.max(0, Math.round(scroll / step))));
+    noteFocal(Math.min(count - 1, Math.max(0, Math.round(scroll / step))), scrolled);
   };
-  const track = () => (masked ? update() : nearestItem());
+  const track = (scrolled: boolean) => (masked ? update(scrolled) : nearestItem(scrolled));
 
   useLayoutEffect(() => {
     // Leaving the masked layout (reduced motion) clears what `update` wrote.
@@ -444,15 +486,14 @@ export function Carousel({
       slotRefs.current.forEach((slot) => {
         if (!slot) return;
         if (keylined) {
-          slot.dataset.size = 'large';
-          slot.style.setProperty('--m3-carousel-item-openness', '1');
+          writeItemSize(slot, 'large', '1');
         } else {
           delete slot.dataset.size;
-          slot.style.removeProperty('--m3-carousel-item-openness');
+          slot.style.removeProperty(OPENNESS);
         }
       });
     }
-    if (keylined) track();
+    if (keylined) track(false);
     const scroller = scrollerRef.current;
     if (!scroller || !keylined) return;
     let frame = 0;
@@ -460,7 +501,7 @@ export function Carousel({
       if (!frame)
         frame = requestAnimationFrame(() => {
           frame = 0;
-          track();
+          track(true);
         });
     };
     scroller.addEventListener('scroll', onScroll, { passive: true });
@@ -507,6 +548,21 @@ export function Carousel({
     drag.current = null;
     event.currentTarget.removeAttribute('data-dragging');
   };
+  // A mouse drag is the carousel's, wherever it starts: an item's picture (draggable on its
+  // own, inside a link item too, whose link isn't) or selected words would start the browser's
+  // drag and drop instead, which takes the pointer away and leaves the carousel where it was
+  // (2026-11-16).
+  const onDragStart = (event: DragEvent<HTMLDivElement>) => {
+    if (drag.current) event.preventDefault();
+  };
+  // Only a pointer's click can end a drag: a click from the keyboard or assistive technology
+  // (`detail` 0, or a press that isn't the mouse's) always activates. The flag stayed set until
+  // the next press inside the carousel, so Enter on an item after a drag did nothing
+  // (2026-11-16); a key press clears it too, for a browser whose Enter click has a `detail`.
+  const endsDrag = (pointer: boolean) => pointer && dragged.current;
+  const onKeyDownCapture = () => {
+    dragged.current = false;
+  };
 
   // Brings a focused item into view: keylined carousels scroll it to its snap position
   // (the focal keyline); the others just far enough to show it.
@@ -531,26 +587,31 @@ export function Carousel({
     }
   };
 
+  // An item's focus is its tab stop's (`focusRefs`): the slot's own, or its link's, which
+  // reaches the slot as it bubbles. The keys, the reveal and the moves below all go by it; they
+  // went by the slot, which a link item's never is, so the keys did nothing there, Tab never
+  // revealed one and an arrow left focus behind as the carousel scrolled away (2026-11-16).
   const onSlotFocus = (index: number, event: FocusEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return;
+    if (event.target !== focusRefs.current[index]) return;
     // A press focuses the item without moving the carousel.
     if (pointerFocus.current) return;
     reveal(index);
   };
 
   const focusSlot = (index: number) => {
-    const slot = slotRefs.current[Math.max(0, Math.min(count - 1, index))];
-    if (!slot) return;
+    const target = Math.max(0, Math.min(count - 1, index));
+    const element = focusRefs.current[target];
+    if (!element) return;
     pointerFocus.current = true;
-    slot.focus({ preventScroll: true });
+    element.focus({ preventScroll: true });
     pointerFocus.current = false;
-    reveal(Number(slot.dataset.index));
+    reveal(target);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     pointerFocus.current = false;
     const target = event.target as HTMLElement;
-    const index = slotRefs.current.indexOf(target as HTMLDivElement);
+    const index = focusRefs.current.indexOf(target);
     if (index < 0) return;
     const rtl = getComputedStyle(target).direction === 'rtl';
     const [prev, next, leaveBack, leaveForward] = vertical
@@ -583,7 +644,6 @@ export function Carousel({
     snapping,
     masked,
     aspect: variant === 'multi-aspect',
-    interactive: onAction !== undefined || itemHref !== undefined,
     fullBleed: variant === 'full-screen',
   });
   const fallbackSize = variant === 'uncontained' ? itemSize : (preferredItemSize ?? 186);
@@ -597,6 +657,9 @@ export function Carousel({
   const layoutPadding = masked ? { start: 0, end: 0 } : padding;
   const total = numbers.format(count);
   const disabled = new Set(disabledIndexes);
+  // A new tab opened by a link could reach back to the page through `window.opener` (as
+  // List's and Menu's link items guard against).
+  const rel = itemRel ?? (itemTarget === '_blank' ? 'noopener noreferrer' : undefined);
 
   return (
     <div
@@ -619,6 +682,8 @@ export function Carousel({
         onPointerMoveCapture={onPointerMove}
         onPointerUpCapture={endDrag}
         onPointerCancelCapture={endDrag}
+        onDragStartCapture={onDragStart}
+        onKeyDownCapture={onKeyDownCapture}
         onKeyDown={onKeyDown}
         style={
           {
@@ -640,20 +705,23 @@ export function Carousel({
             index={index}
             href={itemHref?.(index)}
             target={itemTarget}
-            rel={itemRel}
-            wasDragged={() => dragged.current}
+            rel={rel}
+            endsDrag={endsDrag}
             label={labels.slide(numbers.format(index + 1), total)}
             roleDescription={labels.item}
             disabled={disabled.has(index)}
             onAction={
               onAction &&
-              (() => {
-                if (!dragged.current) onAction(index);
+              ((event) => {
+                if (!endsDrag(event.pointerType === 'mouse')) onAction(index);
               })
             }
             onFocus={(event) => onSlotFocus(index, event)}
             slotRef={(element) => {
               slotRefs.current[index] = element;
+            }}
+            focusRef={(element) => {
+              focusRefs.current[index] = element;
             }}
             maskRef={(element) => {
               maskRefs.current[index] = element;
@@ -693,11 +761,16 @@ interface CarouselItemProps {
   href: string | undefined;
   target: HTMLAttributeAnchorTarget | undefined;
   rel: string | undefined;
-  /** Whether the press ended a mouse drag across the carousel, which isn't a press. */
-  wasDragged: () => boolean;
-  onAction?: () => void;
+  /**
+   * Whether a click or press ends a mouse drag across the carousel, which isn't a press;
+   * `pointer`: it came from a pointer, not the keyboard or assistive technology.
+   */
+  endsDrag: (pointer: boolean) => boolean;
+  onAction?: (event: PressEvent) => void;
   onFocus: (event: FocusEvent<HTMLDivElement>) => void;
   slotRef: (element: HTMLDivElement | null) => void;
+  /** The item's one tab stop: its link, or its slot. */
+  focusRef: (element: HTMLElement | null) => void;
   maskRef: (element: HTMLDivElement | null) => void;
   hitRef: (element: HTMLElement | null) => void;
   style: CSSProperties;
@@ -718,9 +791,10 @@ function CarouselLinkItem({
   href,
   target,
   rel,
-  wasDragged,
+  endsDrag,
   onFocus,
   slotRef,
+  focusRef,
   maskRef,
   hitRef,
   style,
@@ -728,7 +802,7 @@ function CarouselLinkItem({
   classNames,
   children,
 }: CarouselItemProps) {
-  const linkRef = useRef<HTMLAnchorElement>(null);
+  const linkRef = useRef<HTMLAnchorElement | null>(null);
   const { linkProps, isPressed } = useLink({ href, target, rel, isDisabled: disabled }, linkRef);
   const { interactionProps, dataAttributes } = useM3Interaction(
     { isDisabled: disabled, isPressed },
@@ -746,18 +820,28 @@ function CarouselLinkItem({
       data-disabled={disabled || undefined}
       onFocus={onFocus}
       style={style}
-      className={styles.item({ class: classNames?.item })}
+      className={styles.item({ interactive: true, class: classNames?.item })}
     >
       <a
         {...mergeProps(linkProps, interactionProps)}
-        ref={linkRef}
-        href={href}
+        ref={(element) => {
+          linkRef.current = element;
+          focusRef(element);
+        }}
+        // As ButtonBase's disabled link: no address, so a middle click or "Open in new tab"
+        // can't go there either, but still a link (an `a` without one loses the role), named
+        // and, as a disabled plain item, a tab stop (2026-11-16).
+        href={disabled ? undefined : href}
+        {...(disabled && { role: 'link', tabIndex: 0 })}
         target={target}
         rel={rel}
+        // A mouse drag that starts on the item scrolls the carousel, not the link's own drag
+        // and drop, which took the pointer away (2026-11-16).
+        draggable={false}
         data-focus-visible={focusVisible}
         onClick={(event) => {
           // The click that ends a drag across the carousel opens nothing.
-          if (wasDragged()) {
+          if (endsDrag(event.detail > 0)) {
             event.preventDefault();
             return;
           }
@@ -765,16 +849,16 @@ function CarouselLinkItem({
         }}
         className={styles.link({ class: classNames?.link })}
       >
-        <span aria-hidden="true" ref={hitRef} data-slot="hit-area" className={styles.hitArea()} />
-        <div ref={maskRef} {...states} className={styles.mask({ class: classNames?.mask })}>
+        <CarouselItemLayers
+          hitRef={hitRef}
+          maskRef={maskRef}
+          states={states}
+          focusVisible={focusVisible}
+          styles={styles}
+          classNames={classNames}
+        >
           {children}
-          <span
-            aria-hidden="true"
-            {...states}
-            data-focus-visible={focusVisible}
-            className={styles.stateLayer({ class: classNames?.stateLayer })}
-          />
-        </div>
+        </CarouselItemLayers>
       </a>
     </div>
   );
@@ -788,6 +872,7 @@ function CarouselActionItem({
   onAction,
   onFocus,
   slotRef,
+  focusRef,
   maskRef,
   hitRef,
   style,
@@ -808,6 +893,7 @@ function CarouselActionItem({
       ref={(element) => {
         ref.current = element;
         slotRef(element);
+        focusRef(element);
       }}
       role="group"
       aria-roledescription={roleDescription}
@@ -823,17 +909,51 @@ function CarouselActionItem({
         onFocus(event);
       }}
       style={style}
-      className={styles.item({ class: classNames?.item })}
+      className={styles.item({ interactive, class: classNames?.item })}
     >
-      {/* Where the item takes presses: under the mask, clipped to it or a little wider. */}
-      <span aria-hidden="true" ref={hitRef} data-slot="hit-area" className={styles.hitArea()} />
-      <div
-        ref={maskRef}
-        {...(interactive ? states : {})}
-        className={styles.mask({ class: classNames?.mask })}
+      <CarouselItemLayers
+        hitRef={hitRef}
+        maskRef={maskRef}
+        states={interactive ? states : undefined}
+        focusVisible={focusVisible}
+        styles={styles}
+        classNames={classNames}
       >
         {children}
-        {interactive && (
+      </CarouselItemLayers>
+    </div>
+  );
+}
+
+interface CarouselItemLayersProps {
+  hitRef: (element: HTMLElement | null) => void;
+  maskRef: (element: HTMLDivElement | null) => void;
+  /** The item's interaction states, for an item that can be pressed; none: no state layer. */
+  states: Omit<M3InteractionDataAttributes, 'data-focus-visible'> | undefined;
+  focusVisible: true | undefined;
+  styles: ReturnType<typeof carouselStyles>;
+  classNames?: CarouselClassNames;
+  children: ReactNode;
+}
+
+// What every item draws, in its slot or its link: where it takes presses, under the mask and
+// clipped to it or a little wider, then the mask holding the content, with the state layer
+// over it when the item can be pressed.
+function CarouselItemLayers({
+  hitRef,
+  maskRef,
+  states,
+  focusVisible,
+  styles,
+  classNames,
+  children,
+}: CarouselItemLayersProps) {
+  return (
+    <>
+      <span aria-hidden="true" ref={hitRef} data-slot="hit-area" className={styles.hitArea()} />
+      <div ref={maskRef} {...states} className={styles.mask({ class: classNames?.mask })}>
+        {children}
+        {states && (
           <span
             aria-hidden="true"
             {...states}
@@ -842,6 +962,6 @@ function CarouselActionItem({
           />
         )}
       </div>
-    </div>
+    </>
   );
 }
