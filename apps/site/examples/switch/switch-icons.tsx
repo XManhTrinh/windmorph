@@ -8,7 +8,7 @@ import { CheckIcon, StarIcon, StarOutlineIcon } from '../../components/icons';
  */
 export function SwitchIcons() {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Switch defaultChecked checkedIcon={<CheckIcon />}>
         Icon when on
       </Switch>

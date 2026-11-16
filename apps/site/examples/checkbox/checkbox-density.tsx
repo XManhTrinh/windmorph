@@ -14,8 +14,11 @@ export function CheckboxDensity() {
       {DENSITIES.map((density) => (
         <ThemeScope key={density} density={density} className="flex flex-col items-start gap-2">
           <p className="text-title-small">{`Density ${density}`}</p>
-          <Checkbox defaultChecked>Email</Checkbox>
-          <Checkbox>Text message</Checkbox>
+          {/* Rows 48px apart, top to top, at every density, so two targets never overlap. */}
+          <div className="flex flex-col items-start gap-[calc(8px-var(--md-sys-density,0)*4px)]">
+            <Checkbox defaultChecked>Email</Checkbox>
+            <Checkbox>Text message</Checkbox>
+          </div>
         </ThemeScope>
       ))}
     </div>
