@@ -146,7 +146,7 @@ describe('modifier keys pressed alone', () => {
       value: wrapped,
     });
     try {
-      // The press wraps the guard's wrapper over it again: a call reaches both, once each.
+      // The press leaves it there, the guard's wrapper under it: a call reaches both, once each.
       await userEvent.click(screen.getByRole('button', { name: 'Open' }));
       const cancel = screen.getByRole('button', { name: 'Cancel' });
       wrapped.mockClear();
@@ -162,6 +162,55 @@ describe('modifier keys pressed alone', () => {
         value: below,
       });
     }
+  });
+
+  // Round 3 wrapped `focus` again on every press, over whatever was there: a test's stub,
+  // restored later only as a property, kept being called, and two copies of the library stacked
+  // a wrap a press each (2026-11-16).
+  it('never takes over a stub put on focus after it', async () => {
+    render(
+      <>
+        <Button>Open</Button>
+        <input aria-label="Name" />
+      </>,
+    );
+    // A test's own stub, put back by hand afterwards.
+    const before = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'focus')!;
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+      configurable: true,
+      writable: true,
+      value: () => {},
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', before);
+    const name = screen.getByRole('textbox', { name: 'Name' });
+    act(() => name.focus());
+    expect(name).toHaveFocus();
+  });
+
+  it('is one guard a page, however many copies of the library it loads', async () => {
+    render(<Button>Open</Button>);
+    const focus = HTMLElement.prototype.focus;
+    vi.resetModules();
+    const copy = await import('./modifier-keys');
+    function Other() {
+      copy.useModifierKeysGuard();
+      return null;
+    }
+    render(<Other />);
+    expect(HTMLElement.prototype.focus).toBe(focus);
+  });
+
+  // A Tab from the browser's address bar reaches the page only as its key comes up, which React
+  // Aria counts as keyboard use: Option alone hid that ring (2026-11-16).
+  it('count a key that only comes up, as React Aria does', async () => {
+    render(<Button>Save</Button>);
+    const save = screen.getByRole('button', { name: 'Save' });
+    await userEvent.click(save);
+    fireEvent.keyUp(save, { key: 'Tab' });
+    expect(getInteractionModality()).toBe('keyboard');
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('keyboard');
   });
 
   it('keep the pointer through a held modifier, and leave the keyboard alone', async () => {

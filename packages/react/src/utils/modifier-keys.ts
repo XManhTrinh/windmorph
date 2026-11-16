@@ -28,7 +28,19 @@ const ignoredByReactAria = (event: KeyboardEvent) =>
   event.key === 'Shift' ||
   event.key === 'Meta';
 
-const guarded = new WeakSet<Document>();
+/**
+ * A modifier pressed alone: one of the keys above, or Control, Shift or Command. Neither the
+ * guard nor a press's "don't move" state takes it as keyboard use.
+ */
+export const isModifierAlone = (event: KeyboardEvent) =>
+  MODIFIERS.has(event.key) ||
+  event.key === 'Control' ||
+  event.key === 'Shift' ||
+  event.key === 'Meta';
+
+// One guard a window, however many copies of the library a page loads: each would wrap
+// `focus` over the other's.
+const GUARD = Symbol.for('@windmorph/react/modifier-keys-guard');
 
 // Keeps a modifier pressed alone from counting as keyboard use: after a pointer press, the
 // modality stays the pointer's, so no focus ring appears. React Aria sets it on both the key
@@ -48,19 +60,22 @@ const guarded = new WeakSet<Document>();
 // check that moves focus to an invalid field ends the pointer's turn, as React Aria shows that
 // field's ring.
 function guard(page: Document) {
-  const view = page.defaultView;
-  if (!view || guarded.has(page)) return;
-  guarded.add(page);
+  const view = page.defaultView as (Window & { [GUARD]?: true }) | null;
+  if (!view || view[GUARD]) return;
+  view[GUARD] = true;
   let pointerLast = false;
   let eventBeforeFocus = false;
   let returning = false;
+  let invalid = false;
   // The `focus` each wrap found, latest last. React Aria's unload teardown (a `beforeunload` the
   // page then stays on: a leave prompt answered "Stay", a download) puts back the `focus` it
-  // found and wraps it again as components render, leaving this wrapper out, so a press wraps it
-  // again. Should React Aria have wrapped this wrapper in turn, a call comes back into it: each
-  // call nested in the wrapper goes one wrap further down, so every call ends at the browser's.
+  // found, leaving this wrapper out, and wraps it again as components render, so the next press
+  // after one wraps it again, once. Should something have wrapped this wrapper by then, a call
+  // comes back into it: each call nested in the wrapper goes one wrap further down, so every
+  // call ends at the browser's `focus`.
   const found: HTMLElement['focus'][] = [];
   let depth = 0;
+  let unwrapped = false;
   const wrapper = function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
     eventBeforeFocus = true;
     const next = found[Math.max(0, found.length - 1 - depth)]!;
@@ -72,6 +87,7 @@ function guard(page: Document) {
     }
   };
   const wrapFocus = () => {
+    unwrapped = false;
     const current = view.HTMLElement.prototype.focus;
     if (current === wrapper) return;
     found.push(current);
@@ -83,26 +99,27 @@ function guard(page: Document) {
     });
   };
   wrapFocus();
+  // Runs after React Aria's own `beforeunload` listener, set up before this guard.
+  view.addEventListener('beforeunload', () => (unwrapped = true));
   const keepPointer = (event: KeyboardEvent) => {
     if (MODIFIERS.has(event.key) && pointerLast) setInteractionModality('pointer');
   };
   const onPointer = () => {
-    wrapFocus();
+    if (unwrapped) wrapFocus();
     pointerLast = true;
     eventBeforeFocus = true;
   };
   page.addEventListener('pointerdown', onPointer, true);
   page.addEventListener('mousedown', onPointer, true);
-  page.addEventListener(
-    'keydown',
-    (event) => {
-      eventBeforeFocus = true;
-      if (!MODIFIERS.has(event.key) && !ignoredByReactAria(event)) pointerLast = false;
-      keepPointer(event);
-    },
-    true,
-  );
-  page.addEventListener('keyup', keepPointer, true);
+  // A key going down or up, as React Aria counts both: a Tab from the browser's address bar
+  // reaches the page only as it comes up.
+  const onKey = (event: KeyboardEvent) => {
+    eventBeforeFocus = true;
+    if (!MODIFIERS.has(event.key) && !ignoredByReactAria(event)) pointerLast = false;
+    keepPointer(event);
+  };
+  page.addEventListener('keydown', onKey, true);
+  page.addEventListener('keyup', onKey, true);
   view.addEventListener(
     'focus',
     (event) => {
@@ -111,7 +128,10 @@ function guard(page: Document) {
         return;
       }
       if (event.target === page || !event.isTrusted) return;
-      if (!eventBeforeFocus && !returning) pointerLast = false;
+      // A form's failed check that moves focus to its first invalid field shows that field's
+      // ring: React Aria sets the keyboard's modality then. It focuses the field in the same
+      // task as the `invalid` event, after the browser's own, from a submit button's press too.
+      if (invalid || (!eventBeforeFocus && !returning)) pointerLast = false;
       eventBeforeFocus = false;
       returning = false;
     },
@@ -131,16 +151,11 @@ function guard(page: Document) {
     eventBeforeFocus = false;
     returning = true;
   });
-  view.addEventListener('pageshow', wrapFocus);
-  // A form's failed check that moves focus to its first invalid field shows that field's ring:
-  // React Aria sets the keyboard's modality then, so the pointer's turn ends.
   page.addEventListener(
     'invalid',
     () => {
-      const before = page.activeElement;
-      queueMicrotask(() => {
-        if (page.activeElement !== before) pointerLast = false;
-      });
+      invalid = true;
+      setTimeout(() => (invalid = false));
     },
     true,
   );
