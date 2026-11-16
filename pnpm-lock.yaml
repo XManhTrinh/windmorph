@@ -433,8 +433,8 @@ importers:
         version: 5.1.0(@types/node@26.6.6)(jsdom@30.1.3)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0)(tsx@4.23.15))
     optionalDependencies:
       '@windmorph/react-pro':
-        specifier: github:XManhTrinh/windmorph-pro#db9dab86c50e9eadaac7f2a9932f87fef9233f2c
-        version: git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c(1697118efbe6f4a5f593dc7ce79c9576)
+        specifier: github:XManhTrinh/windmorph-pro#8771a54b0010e3ad8d32d6fc82d8bc96af23ab67
+        version: git+https://github.com/XManhTrinh/windmorph-pro.git#8771a54b0010e3ad8d32d6fc82d8bc96af23ab67(1697118efbe6f4a5f593dc7ce79c9576)
 
   packages/react:
     dependencies:
@@ -2809,8 +2809,8 @@ packages:
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c':
-    resolution: {commit: db9dab86c50e9eadaac7f2a9932f87fef9233f2c, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#8771a54b0010e3ad8d32d6fc82d8bc96af23ab67':
+    resolution: {commit: 8771a54b0010e3ad8d32d6fc82d8bc96af23ab67, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
     version: 0.2.8
     peerDependencies:
       '@tanstack/react-virtual': ^3.14.26
@@ -6738,7 +6738,7 @@ snapshots:
 
   '@webcontainer/env@1.1.1': {}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c(1697118efbe6f4a5f593dc7ce79c9576)':
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#8771a54b0010e3ad8d32d6fc82d8bc96af23ab67(1697118efbe6f4a5f593dc7ce79c9576)':
     dependencies:
       '@internationalized/date': 3.12.4
       '@windmorph/react': link:packages/react
