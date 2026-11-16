@@ -456,7 +456,7 @@ describe('NavigationRail', () => {
   it('centres its items with itemAlign, keeping the header at the top', () => {
     render(<Rail itemAlign="center" />);
     const items = screen.getByRole('link', { name: 'Inbox' }).parentElement!;
-    expect(items).toHaveAttribute('data-item-alignment', 'center');
+    expect(items).toHaveAttribute('data-item-align', 'center');
     expect(items).toHaveClass('my-auto');
     expect(screen.getByRole('button', { name: 'Expand' }).parentElement).not.toHaveClass('my-auto');
   });
