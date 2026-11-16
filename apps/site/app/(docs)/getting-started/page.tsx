@@ -246,8 +246,9 @@ export default async function GettingStartedPage() {
           On Next.js, use <InlineCode>NextRouterProvider</InlineCode> from{' '}
           <InlineCode>@windmorph/react/next</InlineCode> — a one-liner that wires{' '}
           <InlineCode>RouterProvider</InlineCode> to the Next router; give it your{' '}
-          <InlineCode>basePath</InlineCode> when <InlineCode>next.config</InlineCode> sets one, so
-          links show it as Next’s own <InlineCode>Link</InlineCode> does. See the{' '}
+          <InlineCode>basePath</InlineCode> and <InlineCode>trailingSlash</InlineCode> when{' '}
+          <InlineCode>next.config</InlineCode> sets them, so links show the address Next’s own{' '}
+          <InlineCode>Link</InlineCode> does. See the{' '}
           <a className="text-primary underline" href="/nextjs">
             Next.js guide
           </a>

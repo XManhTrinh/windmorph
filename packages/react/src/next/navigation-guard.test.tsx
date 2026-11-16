@@ -143,4 +143,42 @@ describe('NextRouterProvider basePath', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Theming' }));
     expect(push).toHaveBeenCalledWith('/guides/theming');
   });
+
+  it("writes a path's end as Next's Link does", () => {
+    const { rerender } = render(
+      <NextRouterProvider basePath="/docs">
+        <Button href="/">Home</Button>
+        <Button href="/guides/?tab=code#top">Guides</Button>
+        <Button href="/report.pdf">Report</Button>
+      </NextRouterProvider>,
+    );
+    const href = (name: string) => screen.getByRole('link', { name }).getAttribute('href');
+    // Without `trailingSlash`, Next removes the slash at a path's end, the base path's too.
+    expect([href('Home'), href('Guides'), href('Report')]).toEqual([
+      '/docs',
+      '/docs/guides?tab=code#top',
+      '/docs/report.pdf',
+    ]);
+    rerender(
+      <NextRouterProvider basePath="/docs" trailingSlash>
+        <Button href="/">Home</Button>
+        <Button href="/guides?tab=code#top">Guides</Button>
+        <Button href="/report.pdf">Report</Button>
+      </NextRouterProvider>,
+    );
+    // With it, every path on the site ends in one, before its query, but a file's name doesn't.
+    expect([href('Home'), href('Guides'), href('Report')]).toEqual([
+      '/docs/',
+      '/docs/guides/?tab=code#top',
+      '/docs/report.pdf',
+    ]);
+    rerender(
+      <NextRouterProvider trailingSlash>
+        <Button href="/">Home</Button>
+        <Button href="/guides">Guides</Button>
+        <Button href="#main">Report</Button>
+      </NextRouterProvider>,
+    );
+    expect([href('Home'), href('Guides'), href('Report')]).toEqual(['/', '/guides/', '#main']);
+  });
 });

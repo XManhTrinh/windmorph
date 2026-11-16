@@ -14,12 +14,29 @@ export interface NextRouterProviderProps {
    * stay as they are. Navigation goes through the router, which adds it itself.
    */
   basePath?: string;
+  /**
+   * The app's `trailingSlash` (from `next.config`), so a link's address ends as Next's own
+   * `Link` writes it: `true` adds a `/` to a path on this site (not to a file's, such as
+   * `/report.pdf`). Given either prop, a path ends as Next writes it, so with `basePath` alone
+   * `/` is the base path itself (`/docs`, not `/docs/`).
+   * @default false
+   */
+  trailingSlash?: boolean;
 }
 
-// A path on this site gets the base path; a fragment, a query alone or a full URL doesn't.
-function withBasePath(basePath: string) {
+// A path on this site written as Next's `Link` writes it (its `addBasePath`): the base path in
+// front, then a trailing slash only when `trailingSlash` asks for one, never after a file's
+// name. A fragment, a query alone and a full URL stay as they are.
+function nextHref(basePath = '', trailingSlash = false) {
   const base = basePath.replace(/\/+$/, '');
-  return (href: string) => (href.startsWith('/') && !href.startsWith('//') ? base + href : href);
+  return (href: string) => {
+    if (!href.startsWith('/') || href.startsWith('//')) return href;
+    const split = href.search(/[?#]/);
+    const rest = split === -1 ? '' : href.slice(split);
+    const path = (base + (split === -1 ? href : href.slice(0, split))).replace(/\/+$/, '');
+    if (trailingSlash && !/\.[^/]+$/.test(path)) return `${path}/${rest}`;
+    return `${path || '/'}${rest}`;
+  };
 }
 
 /**
@@ -27,14 +44,14 @@ function withBasePath(basePath: string) {
  * Next.js router for client-side navigation, asking any active `useNavigationGuard` first.
  * Render it once inside the root layout.
  */
-export function NextRouterProvider({ children, basePath }: NextRouterProviderProps) {
+export function NextRouterProvider({ children, basePath, trailingSlash }: NextRouterProviderProps) {
   const router = useRouter();
   const guards = useGuardRegistry();
   return (
     <GuardProvider value={guards}>
       <RouterProvider
         navigate={(href) => guards.attempt(() => router.push(href))}
-        useHref={basePath ? withBasePath(basePath) : undefined}
+        useHref={basePath || trailingSlash ? nextHref(basePath, trailingSlash) : undefined}
       >
         {children}
       </RouterProvider>

@@ -2,4 +2,4 @@
 '@windmorph/react': patch
 ---
 
-Added: `basePath` on `NextRouterProvider`, the app's `basePath` from `next.config`, so library links show it in their address as Next's own `Link` does; navigation still goes through the router, which adds it itself.
+Added: `basePath` and `trailingSlash` on `NextRouterProvider`, the app's settings from `next.config`, so library links show the address Next's own `Link` writes (the base path in front, and the trailing slash `trailingSlash` asks for); navigation still goes through the router, which adds the base path itself.
