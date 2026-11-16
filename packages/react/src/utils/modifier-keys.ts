@@ -20,13 +20,37 @@ const MODIFIERS = new Set([
   'OS',
 ]);
 
-// Keys React Aria never counts as keyboard use: its own rule, without the platform part.
-const ignoredByReactAria = (event: KeyboardEvent) =>
-  event.metaKey ||
-  event.ctrlKey ||
-  event.key === 'Control' ||
-  event.key === 'Shift' ||
-  event.key === 'Meta';
+// React Aria 3.53's own rules, copied rather than approximated (its main entry exports none
+// of them): its platform tests, which keys it counts as keyboard use (Option only on a Mac,
+// where it types a character with another key), which clicks are a screen reader's, and the
+// first invalid field of a form, whose ring its form validation shows.
+type UserAgentData = { platform?: string; brands?: { brand: string }[] };
+const userAgentData = () =>
+  (window.navigator as Navigator & { userAgentData?: UserAgentData }).userAgentData;
+const isMac = () => /^Mac/i.test(userAgentData()?.platform || window.navigator.platform);
+const isAndroid = () =>
+  userAgentData()?.brands?.some(({ brand }) => /Android/i.test(brand)) ||
+  /Android/i.test(window.navigator.userAgent);
+const countedByReactAria = (event: KeyboardEvent) =>
+  !(
+    event.metaKey ||
+    (!isMac() && event.altKey) ||
+    event.ctrlKey ||
+    event.key === 'Control' ||
+    event.key === 'Shift' ||
+    event.key === 'Meta'
+  );
+const isVirtualClick = (event: MouseEvent) => {
+  const { pointerType } = event as PointerEvent;
+  // A screen reader with Firefox.
+  if (pointerType === '' && event.isTrusted) return true;
+  // TalkBack.
+  if (isAndroid() && pointerType) return event.type === 'click' && event.buttons === 1;
+  return event.detail === 0 && !pointerType;
+};
+const firstInvalidField = (form: HTMLFormElement) =>
+  [...form.elements].find((element) => (element as HTMLInputElement).validity?.valid === false) ??
+  null;
 
 /**
  * A modifier pressed alone: one of the keys above, or Control, Shift or Command. Neither the
@@ -75,7 +99,6 @@ function guard(page: Document) {
   let pointerLast = false;
   let eventBeforeFocus = false;
   let returning = false;
-  let invalid = false;
   // Wrapped once, as React Aria wraps it. React Aria's unload teardown (a `beforeunload` the
   // page then stays on) puts back the `focus` it found, leaving this wrapper out until the page
   // loads again: a script's focus then ends the pointer's turn, at worst a ring on a lone
@@ -91,21 +114,26 @@ function guard(page: Document) {
       focus.apply(this, args);
     },
   });
+  // Only a modifier React Aria took as keyboard use: Option off a Mac changes nothing there.
   const keepPointer = (event: KeyboardEvent) => {
-    if (!MODIFIERS.has(event.key) || !pointerLast) return;
+    if (!MODIFIERS.has(event.key) || !pointerLast || !countedByReactAria(event)) return;
     for (const set of setters) set('pointer');
   };
   const onPointer = () => {
     pointerLast = true;
     eventBeforeFocus = true;
   };
-  page.addEventListener('pointerdown', onPointer, true);
-  page.addEventListener('mousedown', onPointer, true);
+  // React Aria listens to pointer events where they exist, and to the mouse's otherwise.
+  page.addEventListener(
+    typeof view.PointerEvent === 'undefined' ? 'mousedown' : 'pointerdown',
+    onPointer,
+    true,
+  );
   // A key going down or up, as React Aria counts both: a Tab from the browser's address bar
   // reaches the page only as it comes up.
   const onKey = (event: KeyboardEvent) => {
     eventBeforeFocus = true;
-    if (!MODIFIERS.has(event.key) && !ignoredByReactAria(event)) pointerLast = false;
+    if (!MODIFIERS.has(event.key) && countedByReactAria(event)) pointerLast = false;
     keepPointer(event);
   };
   page.addEventListener('keydown', onKey, true);
@@ -118,11 +146,7 @@ function guard(page: Document) {
         return;
       }
       if (event.target === page || !event.isTrusted) return;
-      // React Aria's form validation focuses the first invalid field of a failed check, in the
-      // same task as its `invalid` event, and shows its ring.
-      const toInvalid =
-        invalid && (event.target as Element).matches(':invalid, [aria-invalid="true"]');
-      if (toInvalid || (!eventBeforeFocus && !returning)) pointerLast = false;
+      if (!eventBeforeFocus && !returning) pointerLast = false;
       eventBeforeFocus = false;
       returning = false;
     },
@@ -131,10 +155,9 @@ function guard(page: Document) {
   page.addEventListener(
     'click',
     (event) => {
-      if (event.detail === 0 && !(event as PointerEvent).pointerType) {
-        pointerLast = false;
-        eventBeforeFocus = true;
-      }
+      if (!isVirtualClick(event)) return;
+      pointerLast = false;
+      eventBeforeFocus = true;
     },
     true,
   );
@@ -142,14 +165,15 @@ function guard(page: Document) {
     eventBeforeFocus = false;
     returning = true;
   });
-  // React Aria's two rules for a failed form check: focus moved by the microtask after the
-  // `invalid` event (its own listener's), or the first invalid field focused (above).
+  // A failed form check, as React Aria takes it: its form validation shows the ring of the
+  // form's first invalid field, wherever it puts focus (a Select's trigger), and its own
+  // listener does when focus has moved by the microtask after the `invalid` event.
   page.addEventListener(
     'invalid',
-    () => {
+    (event) => {
+      const field = event.target as Element & { form?: HTMLFormElement | null };
+      if (field.form && firstInvalidField(field.form) === field) pointerLast = false;
       const before = page.activeElement;
-      invalid = true;
-      setTimeout(() => (invalid = false));
       queueMicrotask(() => {
         if (page.activeElement !== before) pointerLast = false;
       });

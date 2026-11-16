@@ -6,6 +6,8 @@ import { setInteractionModality } from 'react-aria';
 import { getInteractionModality } from 'react-aria/private/interactions/useFocusVisible';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Button } from '../components/button/Button';
+import { SelectItem } from '../components/select/option-list';
+import { Select } from '../components/select/Select';
 
 // The guard's own calls, counted; React Aria's internal ones don't go through the export.
 vi.mock('react-aria', async (importOriginal) => {
@@ -83,26 +85,45 @@ describe('modifier keys pressed alone', () => {
 
   // React Aria shows the ring of the invalid field a failed form check moves focus to; a
   // modifier alone put the pointer's modality back over it (2026-11-16).
-  it('leave the ring of an invalid field a form check focuses', async () => {
+  it('leave the ring of the first invalid field a form check finds', async () => {
     render(
-      <>
-        <Button>Send</Button>
+      <form>
         <input aria-label="Email" required />
-      </>,
+        <Button>Send</Button>
+      </form>,
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
     const email = screen.getByRole('textbox', { name: 'Email' });
-    // What React Aria's form validation does with the first invalid field.
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
     await act(async () => {
-      email.dispatchEvent(new Event('invalid', { cancelable: true }));
+      email.closest('form')!.checkValidity();
+      // What React Aria's form validation does with the form's first invalid field.
       email.focus();
       setInteractionModality('keyboard');
       await Promise.resolve();
     });
-    const steps = [getInteractionModality()];
     await userEvent.keyboard('{Alt}');
-    steps.push(getInteractionModality());
-    expect(steps).toEqual(['keyboard', 'keyboard']);
+    expect(getInteractionModality()).toBe('keyboard');
+  });
+
+  // A Select's form validation focuses its trigger, which isn't the invalid element (its hidden
+  // select is), and React Aria shows that ring all the same (2026-11-16).
+  it('leave the ring React Aria shows on a Select a form check finds', async () => {
+    render(
+      <form>
+        <Select label="Size" name="size" required validationBehavior="native">
+          <SelectItem key="s">Small</SelectItem>
+        </Select>
+        <Button>Send</Button>
+      </form>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    act(() => {
+      document.querySelector('form')!.checkValidity();
+    });
+    expect(screen.getByRole('button', { name: /Size/ })).toHaveFocus();
+    expect(getInteractionModality()).toBe('keyboard');
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('keyboard');
   });
 
   it("still reaches the browser's focus when its wrapper is wrapped in turn", async () => {
