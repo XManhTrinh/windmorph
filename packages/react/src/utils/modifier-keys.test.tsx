@@ -63,6 +63,24 @@ describe('modifier keys pressed alone', () => {
     expect(getInteractionModality()).not.toBe('pointer');
   });
 
+  it("keep the pointer when a press moves focus by script, as a dialog's first control takes it", async () => {
+    render(
+      <>
+        <Button>Open</Button>
+        <Button>Cancel</Button>
+      </>,
+    );
+    const open = screen.getByRole('button', { name: 'Open' });
+    const cancel = screen.getByRole('button', { name: 'Cancel' });
+    await userEvent.click(open);
+    // The press's own focus went to Open; the dialog it opens then focuses Cancel by script.
+    act(() => cancel.focus());
+    expect(cancel).toHaveFocus();
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('pointer');
+    expect(cancel).not.toHaveAttribute('data-focus-visible');
+  });
+
   it('keep the pointer through a held modifier, and leave the keyboard alone', async () => {
     render(<Button>Save</Button>);
     const button = screen.getByRole('button', { name: 'Save' });
