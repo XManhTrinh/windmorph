@@ -124,7 +124,9 @@ export async function RadioGroupBody(): Promise<ComponentDoc> {
             <li>
               The <InlineCode>RadioGroup</InlineCode> provides the state, arrow keys, the label (
               <InlineCode>text-title-small</InlineCode>), supporting / error text and{' '}
-              <InlineCode>orientation</InlineCode>.
+              <InlineCode>orientation</InlineCode>. Its{' '}
+              <InlineCode>controlPlacement=&quot;end&quot;</InlineCode> puts every option&apos;s
+              radio button after its label (an option&apos;s own wins), as a settings row&apos;s.
             </li>
           </ul>
         </section>

@@ -116,6 +116,11 @@ export async function CheckboxBody(): Promise<ComponentDoc> {
               <InlineCode>surface</InlineCode> check.
             </li>
             <li>
+              <InlineCode>controlPlacement=&quot;end&quot;</InlineCode> puts the box after its
+              label, the label filling the row, as a settings row&apos;s; the whole row stays the
+              label, so a press anywhere on it toggles the box.
+            </li>
+            <li>
               <strong>No CheckboxGroup</strong> yet (Compose has none); a fieldset of checkboxes
               with a shared <InlineCode>name</InlineCode> covers forms.
             </li>

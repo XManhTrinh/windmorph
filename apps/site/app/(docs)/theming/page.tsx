@@ -295,10 +295,10 @@ export default async function ThemingPage() {
         <p className="text-body-large text-on-surface-variant">
           <InlineCode>ThemeScope</InlineCode> re-themes a subtree. Any of its five props (theme,
           mode, contrast, motion and <InlineCode>density</InlineCode>) can be set; the rest inherit,
-          and scopes nest. It renders a <InlineCode>div</InlineCode>; inside inline content, such as
-          a dark badge over a picture in a card that is a link,{' '}
-          <InlineCode>as=&quot;span&quot;</InlineCode> renders a <InlineCode>span</InlineCode> that
-          does everything the same.
+          and scopes nest. It renders a <InlineCode>div</InlineCode>; inside content that takes only
+          phrasing content, such as a <InlineCode>button</InlineCode>, a <InlineCode>p</InlineCode>{' '}
+          or a <InlineCode>label</InlineCode>, <InlineCode>as=&quot;span&quot;</InlineCode> renders
+          a <InlineCode>span</InlineCode> that does everything the same.
         </p>
         <CodeBlock code={SCOPE_SNIPPET} html={scopeHtml} lang="tsx" title="ThemeScope" />
       </section>

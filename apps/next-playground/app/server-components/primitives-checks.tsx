@@ -184,6 +184,22 @@ export const primitivesChecks = {
   useRevealEntering: hook,
   useScrollKeys: hook,
   useSliderTouchTrack: hook,
+  sliderArrowRaises: { kind: 'value', run: () => Primitives.sliderArrowRaises('ArrowUp', 'ltr') },
+  sliderThumbInputProps: {
+    kind: 'value',
+    run: () =>
+      Primitives.sliderThumbInputProps(
+        { 'aria-labelledby': 'group' },
+        {
+          state: { setThumbDragging: () => {} } as unknown as Parameters<
+            typeof Primitives.sliderThumbInputProps
+          >[1]['state'],
+          index: 0,
+          groupId: 'group',
+          labelledBy: 'label',
+        },
+      )['aria-labelledby'],
+  },
   useScrollRestoration: hook,
   usePresence: hook,
   useTriggerProps: hook,

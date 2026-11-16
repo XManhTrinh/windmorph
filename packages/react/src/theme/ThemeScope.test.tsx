@@ -69,7 +69,7 @@ describe('ThemeScope', () => {
   });
 
   it('renders a span with as="span", inline content keeping every theme feature', () => {
-    const ref = createRef<HTMLDivElement>();
+    const ref = createRef<HTMLSpanElement>();
     render(
       <a href="#photo">
         <ThemeScope as="span" ref={ref} mode="dark" className="scoped" data-testid="scope">

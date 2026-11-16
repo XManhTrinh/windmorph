@@ -34,7 +34,8 @@ export const twMergeConfig = {
   },
 } satisfies ConfigExtension<string, string>;
 
-const twMerge = extendTailwindMerge<string, string>(twMergeConfig);
+/** The merger {@link cn} and the recipes ({@link tv}) share, so they resolve conflicts alike. */
+export const twMerge = extendTailwindMerge<string, string>(twMergeConfig);
 
 /**
  * Joins class names and resolves Tailwind conflicts, M3 tokens included.

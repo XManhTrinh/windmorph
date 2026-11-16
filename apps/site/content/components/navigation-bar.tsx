@@ -76,16 +76,16 @@ export async function NavigationBarBody(): Promise<ComponentDoc> {
             Items are links (<InlineCode>href</InlineCode>) or buttons (
             <InlineCode>onPress</InlineCode>) with an <InlineCode>icon</InlineCode>, an optional{' '}
             <InlineCode>currentIcon</InlineCode> and a label; <InlineCode>current</InlineCode> marks
-            the current one, with a bold label. Stacked items share the width equally;{' '}
-            <InlineCode>arrangement=&quot;centered&quot;</InlineCode> groups them within side
-            padding. Items beside their icons keep their own width and are centred by default, with
-            the extra space at the bar&apos;s ends; when their labels don&apos;t fit on one line
-            side by side (a narrow bar, or text at up to 2× its size), they stack and share the
-            width equally instead, so every label stays whole. A long label wraps between words and
-            the bar grows taller. A single word too long for its item may break only where the
-            browser hyphenates it for the page&apos;s <InlineCode>lang</InlineCode>; it never breaks
-            bare, and a line it still overflows ends with an ellipsis. The accessible name is always
-            the full label.
+            the current one, its label keeping its weight (M3 Expressive). Stacked items share the
+            width equally; <InlineCode>arrangement=&quot;centered&quot;</InlineCode> groups them
+            within side padding. Items beside their icons keep their own width and are centred by
+            default, with the extra space at the bar&apos;s ends; when their labels don&apos;t fit
+            on one line side by side (a narrow bar, or text at up to 2× its size), they stack and
+            share the width equally instead, so every label stays whole. A long label wraps between
+            words and the bar grows taller. A single word too long for its item may break only where
+            the browser hyphenates it for the page&apos;s <InlineCode>lang</InlineCode>; it never
+            breaks bare, and a line it still overflows ends with an ellipsis. The accessible name is
+            always the full label.
           </p>
           <p className="text-body-large text-on-surface-variant">
             An item&apos;s <InlineCode>badge</InlineCode> (a <InlineCode>Badge</InlineCode>)

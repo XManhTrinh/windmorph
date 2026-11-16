@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** How many times the `LoadingIndicator` module has been loaded in the current test. */
 let loads = 0;
@@ -24,6 +24,13 @@ async function load() {
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)));
 
 describe('LazyLoadingIndicator', () => {
+  // The first fresh import transforms the whole Select and Autocomplete module graph, which on a
+  // busy machine came near the 20s test limit; transformed once here, with room of its own,
+  // each test then only runs the modules again (\`vi.resetModules\` keeps the transforms).
+  beforeAll(async () => {
+    await load();
+  }, 60_000);
+
   beforeEach(() => {
     // Fresh modules for each test, so each starts with the indicator's code not yet loaded.
     vi.resetModules();

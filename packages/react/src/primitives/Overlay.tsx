@@ -1,23 +1,23 @@
 'use client';
 
 import {
+  createContext,
   useCallback,
   useContext,
   useId,
   useLayoutEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { Overlay as AriaOverlay, useUNSAFE_PortalContext } from 'react-aria';
+import { Overlay as AriaOverlay, useIsSSR, useUNSAFE_PortalContext } from 'react-aria';
 import {
   DocumentThemeContext,
   InheritedThemeContext,
   useThemeScope,
   useThemeScopeLayers,
 } from '../theme/context';
-import { themeAttributes, themeAttributesOver } from '../theme/state';
+import { themeAttributes, themeAttributesOver, type ThemeState } from '../theme/state';
 import type { Density } from '../tokens/density';
 import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
@@ -30,9 +30,15 @@ import { TriggerContext } from './TriggerContext';
 
 export interface OverlayProps {
   children: ReactNode;
-  /** Element to portal into. @default document.body */
+  /**
+   * Element to portal into. Left out, an app's React Aria `UNSAFE_PortalProvider` container,
+   * else the element in full screen when the overlay opened, else `document.body`.
+   */
   portalContainer?: Element;
-  /** Leave focus handling to the caller instead of restoring it on unmount. */
+  /**
+   * Leave focus handling to the caller: no focus scope, and focus isn't given back as the
+   * overlay leaves.
+   */
   disableFocusManagement?: boolean;
   /** Whether the overlay is animating out; focus containment is released meanwhile. */
   exiting?: boolean;
@@ -53,22 +59,81 @@ export interface OverlayProps {
 // What an overlay's buttons take from a container outside it: nothing.
 const NO_BUTTON_SETTINGS = {};
 
-// Elements that draw their own content and none of their children: an overlay put inside one
-// would never show.
-const REPLACED = new Set(['VIDEO', 'AUDIO', 'CANVAS', 'IMG', 'IFRAME', 'OBJECT', 'EMBED', 'SVG']);
+// HTML elements that draw their own content and none of their children (replaced elements and
+// form controls): an overlay put inside one would never show.
+const DRAWS_NO_CHILDREN = new Set([
+  'audio',
+  'canvas',
+  'embed',
+  'iframe',
+  'img',
+  'input',
+  'object',
+  'select',
+  'textarea',
+  'video',
+]);
 
-function subscribeFullscreen(onChange: () => void) {
-  document.addEventListener('fullscreenchange', onChange);
-  return () => document.removeEventListener('fullscreenchange', onChange);
+// The element in full screen, when an overlay has to be drawn inside it. A browser in full
+// screen draws only that element's own content, so an overlay portalled to `body` was in the
+// document but never seen (2026-11-15): a tooltip, a menu or a dialog opened in a full-screen
+// player. Only an HTML element that draws its children: an SVG or MathML element draws none of
+// ours, nor does a video or a form control. Not `<html>` or `body` either (2026-11-16): with the
+// whole page in full screen `body` is shown already, so nothing has to move, and the overlay
+// carries only what differs from `<html>`, as in any other `body`.
+function fullscreenContainer(page: Document): HTMLElement | null {
+  const element = page.fullscreenElement;
+  if (!(element instanceof HTMLElement) || DRAWS_NO_CHILDREN.has(element.localName)) return null;
+  return element.contains(page.body) ? null : element;
 }
 
-// The element in full screen, when an overlay can be drawn inside it. A browser in full screen
-// draws only that element's own content, so an overlay portalled to `body` was in the document
-// but never seen (2026-11-15): a tooltip, a menu or a dialog opened in a full-screen player.
-const fullscreenContainer = () => {
-  const element = document.fullscreenElement;
-  return element && !REPLACED.has(element.nodeName.toUpperCase()) ? element : null;
-};
+const THEME_COLOR_ATTRIBUTES = ['data-theme', 'data-mode', 'data-contrast'] as const;
+
+// The theme attributes an overlay's wrapper needs inside `container`, the element in full screen
+// (2026-11-16): only those that differ from what `container` already inherits, each read from
+// the nearest element carrying it, as `themeAttributesOver` does for a known ancestor theme. So
+// an app's own `:root` values for the system tokens reach an overlay in full screen too; with
+// every attribute on the wrapper, the theme's rules declared the colours again there. `<html>`
+// takes the `ThemeProvider`'s state when it writes it there, since it does so after this render.
+function themeAttributesInside(
+  state: ThemeState,
+  container: Element,
+  documentTheme: ThemeState | null,
+  restyled: boolean,
+): Partial<ReturnType<typeof themeAttributes>> {
+  const all = themeAttributes(state);
+  const onDocument = documentTheme && themeAttributes(documentTheme);
+  const root = container.ownerDocument.documentElement;
+  const differs = (name: keyof typeof all) => {
+    const carrier = container.closest(`[${name}]`);
+    if (onDocument && (carrier === null || carrier === root)) return all[name] !== onDocument[name];
+    return all[name] !== carrier?.getAttribute(name);
+  };
+  // The colour attributes go together, as one rule reads all three on the same element.
+  const colors = restyled || THEME_COLOR_ATTRIBUTES.some((name) => differs(name));
+  return {
+    ...(colors && {
+      'data-theme': all['data-theme'],
+      'data-mode': all['data-mode'],
+      'data-contrast': all['data-contrast'],
+    }),
+    ...(differs('data-motion') && { 'data-motion': all['data-motion'] }),
+    ...(differs('data-density') && { 'data-density': all['data-density'] }),
+  };
+}
+
+// React Aria's focus scope dispatches it on an element before giving focus back to it, so an app
+// can take the restore over (a virtualised list whose element now shows another item) by
+// cancelling it.
+const RESTORE_FOCUS_EVENT = 'react-aria-focus-scope-restore';
+
+/** Adds an overlay's wrapper to the overlay it was opened from, until the returned cleanup. */
+type NestOverlay = (wrapper: HTMLElement) => () => void;
+
+// Provided inside each overlay's content, so an overlay opened from it (a menu in a dialog)
+// tells it where its own content is: they're separate portals, and both leave together when the
+// menu's action closes the dialog (2026-11-16).
+const NestOverlayContext = createContext<NestOverlay | null>(null);
 
 // An overlay isn't part of what it was opened from. A chip in a dialog opened from a chip of a
 // set kept the set's selection and its `disabled`; a button in one opened from a button group
@@ -103,16 +168,11 @@ function LeaveOpener({ children }: { children: ReactNode }) {
 }
 
 /**
- * Portals overlay content (dialogs, menus, sheets, tooltips) to `document.body`
- * while keeping the theme, mode, contrast, motion scheme, density, **text direction and the
- * enclosing `ThemeScope`s' classes and inline CSS variables** of the place it was rendered from, so overlays opened
- * inside a `ThemeScope` or an RTL region still match it, and CSS variables set through a
- * scope's class (component tokens) reach them. The wrapper is `display: contents`, so the
- * classes affect only what children inherit. Dismissal, focus containment and scroll locking come from the React
- * Aria overlay hooks (`useModalOverlay`, `usePopover`, …) of the component using it.
- *
- * A portalled overlay sits outside any modal it was opened from, so the modal's
- * `ariaHideOutside` would mark it `aria-hidden`; `topLayer` keeps it visible.
+ * Portals an overlay (a dialog, menu, sheet or tooltip) into `portalContainer`, an app's React
+ * Aria `UNSAFE_PortalProvider` container, the element in full screen when it opened, or `body`,
+ * keeping the theme, density, direction and `ThemeScope` classes and variables of where it was
+ * rendered. Its content leaves the opener's contexts behind; as it closes, focus inside it goes
+ * back to where it was without resting on the page. `topLayer` keeps it visible beside a modal.
  */
 export function Overlay({
   children,
@@ -124,8 +184,7 @@ export function Overlay({
 }: OverlayProps) {
   const scope = useThemeScope();
   const themed = density === undefined ? scope : { ...scope, density };
-  // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
-  // `:root` values for the system tokens reach the overlay too.
+  // What `<html>` carries, when the `ThemeProvider` writes it there.
   const documentTheme = useContext(DocumentThemeContext);
   const [outerLayer, ...innerLayers] = useThemeScopeLayers();
   // A scope's class or variables may set a colour role: each layer carries the colour
@@ -143,14 +202,58 @@ export function Overlay({
   // Where it goes: the caller's container, then an app's `PortalProvider` (React Aria's, for a
   // subtree's overlays), then the element in full screen, then `body`.
   const { getContainer } = useUNSAFE_PortalContext();
-  const fullscreen = useSyncExternalStore(subscribeFullscreen, fullscreenContainer, () => null);
-  const container = portalContainer ?? getContainer?.() ?? fullscreen ?? undefined;
+  // The element in full screen is read once, as the overlay opens (it mounts as it opens), and
+  // kept while it's open (2026-11-16). Following `fullscreenchange` gave an open overlay a new
+  // container, so React built its content again there: an element in an open dialog that went
+  // full screen was taken out of the document and left full screen at once, and leaving full
+  // screen lost a dialog's typed text, scroll and focus. An overlay opened in full screen stays
+  // in that element after it, where it's still drawn. None while hydrating, when React Aria
+  // draws no portal.
+  const [openedInFullscreen] = useState(() =>
+    typeof document === 'undefined' ? null : fullscreenContainer(document),
+  );
+  const fullscreen = useIsSSR() ? null : openedInFullscreen;
+  const ownContainer = portalContainer ?? getContainer?.() ?? undefined;
+  const container = ownContainer ?? fullscreen ?? undefined;
+  // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
+  // `:root` values for the system tokens reach the overlay too; in the element in full screen,
+  // only what differs from what that element inherits; in a container of the caller's or an
+  // app's, whose theme isn't known, every attribute.
+  const restyled = outerLayer !== undefined;
+  const wrapperTheme = ownContainer
+    ? themeAttributesOver(themed, null, restyled)
+    : fullscreen
+      ? themeAttributesInside(themed, fullscreen, documentTheme, restyled)
+      : themeAttributesOver(themed, documentTheme, restyled);
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);
 
+  // The wrappers of the overlays opened from this one that are open now, and every overlay's
+  // wrapper is also added to the one above it, so a menu in a dialog in a sheet counts in all.
+  const nestInParent = useContext(NestOverlayContext);
+  const [nested] = useState(() => new Set<HTMLElement>());
+  const nest = useCallback<NestOverlay>(
+    (wrapper) => {
+      nested.add(wrapper);
+      const leaveParent = nestInParent?.(wrapper);
+      return () => {
+        nested.delete(wrapper);
+        leaveParent?.();
+      };
+    },
+    [nested, nestInParent],
+  );
+  useLayoutEffect(() => {
+    const wrapper = scopeRef.current;
+    if (!wrapper || !nestInParent) return;
+    return nestInParent(wrapper);
+  }, [nestInParent]);
+
   // Where focus was as the overlay opened, read as it first renders, before its content takes
-  // focus (as React Aria's focus scope reads it).
+  // focus, as React Aria's focus scope reads it. Nothing of the overlay is in a document yet, so
+  // it's the global one; the hand-back below acts only where the overlay's content is in that
+  // same document, and leaves a container in another one (an iframe's) to React Aria.
   const [focusedBefore] = useState(() =>
     typeof document === 'undefined' ? null : document.activeElement,
   );
@@ -165,24 +268,33 @@ export function Overlay({
   // scope then finds focus elsewhere and leaves it. Not during the commit: React reads no focus
   // events while it commits, so the element would miss its own handlers (its focus ring, its
   // tooltip). Where it was is gone, inside, or won't take focus: React Aria's, as before.
+  // Inside includes an overlay opened from this one that leaves with it (2026-11-16): a menu
+  // action that closes the dialog holding the menu took focus out with the menu, whose own
+  // opener left with the dialog, so focus waited on <body> for React Aria's frame.
   useLayoutEffect(() => {
     const wrapper = scopeRef.current;
     return () => {
-      const page = wrapper?.ownerDocument;
-      if (!managesFocus.current || !wrapper || !page?.activeElement) return;
-      if (!wrapper.contains(page.activeElement)) return;
       const back = focusedBefore;
+      if (!managesFocus.current || !wrapper) return;
       if (!(back instanceof HTMLElement || back instanceof SVGElement)) return;
-      if (back === page.body || wrapper.contains(back)) return;
+      const page = back.ownerDocument;
+      if (wrapper.ownerDocument !== page || back === page.body) return;
+      const inside = (node: Node | null) =>
+        node !== null && (wrapper.contains(node) || [...nested].some((own) => own.contains(node)));
+      if (!inside(page.activeElement) || inside(back)) return;
       queueMicrotask(() => {
         // Still in the document: Strict Mode rehearsing an unmount, not the overlay leaving.
         if (wrapper.isConnected || !back.isConnected) return;
         // Focus moved on purpose meanwhile.
         if (page.activeElement && page.activeElement !== page.body) return;
+        // As React Aria's focus scope does before giving focus back: cancelled, the app took
+        // the restore over (2026-11-16).
+        const restore = new CustomEvent(RESTORE_FOCUS_EVENT, { bubbles: true, cancelable: true });
+        if (!back.dispatchEvent(restore)) return;
         back.focus({ preventScroll: true });
       });
     };
-  }, [focusedBefore]);
+  }, [focusedBefore, nested]);
 
   // `dir` is inherited through the DOM, which a portal leaves; copy the direction in
   // effect where the overlay is declared onto the portalled wrapper.
@@ -217,11 +329,7 @@ export function Overlay({
       >
         <div
           ref={scopeRef}
-          {...themeAttributesOver(
-            themed,
-            container ? null : documentTheme,
-            outerLayer !== undefined,
-          )}
+          {...wrapperTheme}
           className={outerLayer?.className || undefined}
           data-overlay-scope={scopeId}
           data-react-aria-top-layer={topLayer || undefined}
@@ -244,7 +352,9 @@ export function Overlay({
               </div>
             ),
             <InheritedThemeContext value={themed}>
-              <LeaveOpener>{children}</LeaveOpener>
+              <NestOverlayContext value={nest}>
+                <LeaveOpener>{children}</LeaveOpener>
+              </NestOverlayContext>
             </InheritedThemeContext>,
           )}
         </div>

@@ -82,7 +82,12 @@ export { useLabels, type LabelsKey, type LabelsOf } from './components/labels/us
 export {
   useSliderTouchTrack,
   type SliderTouchTrackOptions,
-} from './components/slider/use-touch-track';
+} from './components/slider/use-slider-touch-track';
+export {
+  sliderArrowRaises,
+  sliderThumbInputProps,
+  type SliderThumbInputOptions,
+} from './components/slider/slider-thumb-input';
 export { mergeDataTokens } from './utils/merge-data-tokens';
 export { splitDataAttributes } from './utils/split-data-attributes';
 export {

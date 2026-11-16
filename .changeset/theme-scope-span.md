@@ -2,4 +2,4 @@
 '@windmorph/react': patch
 ---
 
-Added: `ThemeScope` takes `as="span"`, so a scope can sit inside a link's or a button's inline content (a dark badge over a picture in a card that is a link) without a `div` there. Everything else works the same, overlays opened inside included.
+Added: `ThemeScope` takes `as="span"`, so a scope can sit in content that takes only phrasing content (a `<button>`, a `<p>`, a `<label>`) without a `div` there. Its `ref` is typed for either element. Everything else works the same, overlays opened inside included.

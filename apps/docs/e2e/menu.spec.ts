@@ -494,12 +494,27 @@ test.describe('Menu under reduced motion', () => {
     await openStory(page, 'components-menu--grouped');
     await page.getByRole('button', { name: 'More' }).click();
     const reveal = page.getByRole('menu').locator('..');
-    // Read at once, while the fade is still running, and again while it fades out.
-    const clip = () => reveal.evaluate((el) => getComputedStyle(el).clipPath);
-    expect(await clip()).toBe('inset(-24px)');
+    // Read at once, while the fade is still running.
+    expect(await reveal.evaluate((el) => getComputedStyle(el).clipPath)).toBe('inset(-24px)');
+    // And on every frame while it fades out, from the element itself: read after Escape, the
+    // menu could already be gone on a busy machine.
+    await reveal.evaluate((el) => {
+      const clips: string[] = [];
+      (window as unknown as { exitClips: string[] }).exitClips = clips;
+      const sample = () => {
+        if (!el.isConnected) return;
+        clips.push(getComputedStyle(el).clipPath);
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
     await page.keyboard.press('Escape');
-    expect(await clip()).toBe('inset(-24px)');
     await expect(page.getByRole('menu')).toHaveCount(0);
+    const clips = await page.evaluate(
+      () => (window as unknown as { exitClips: string[] }).exitClips,
+    );
+    expect(clips.length).toBeGreaterThan(0);
+    expect(new Set(clips)).toEqual(new Set(['inset(-24px)']));
   });
 });
 

@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { layoutSafetySuite } from './layout-safety';
 import { MODES, THEMES } from './shots';
 import { openStory } from './story';
+import { tabTo } from './keyboard';
 
 test.describe('Chips visual regression', () => {
   for (const theme of THEMES) {
@@ -327,7 +328,7 @@ test.describe('Chips states', () => {
     await page.mouse.move(0, 0);
     // By keyboard: the focus layer, the darker border, and the indicator round the chip.
     await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await page.keyboard.press('Tab');
+    await tabTo(page, action);
     await expect(action).toBeFocused();
     await expect(action).toHaveAttribute('data-focus-visible', 'true');
     await expect.poll(layer).toBe(await opacity('focus'));

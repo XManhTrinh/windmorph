@@ -17,18 +17,16 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-# Every job only reads the repository.
+# Every job only reads the repository. Runners are pinned (`ubuntu-24.04`, the Storybook suite's
+# `ubuntu-24.04-arm`), so the image changes only in a pull request that moves it.
 permissions:
   contents: read
-
-env:
-  PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
 
 jobs:
   build-and-check:
     name: Build, typecheck, lint & test
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -46,13 +44,18 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      # Lets pnpm fetch Windmorph Pro from its private repo (see the note at the top).
-      - name: Allow installing Windmorph Pro
-        if: ${{ env.PRO_READ_TOKEN != '' }}
-        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
-
+      # Fetches Windmorph Pro from its private repo with the read token (see the note at the
+      # top), which only this step sees: the address rewrite that carries it goes once the
+      # install is done, so no later step, nor anything a test runs, can read it.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        env:
+          PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+        run: |
+          if [ -n "$PRO_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+          fi
+          pnpm install --frozen-lockfile
+          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       - name: Check formatting
         run: pnpm format:check
@@ -85,13 +88,13 @@ jobs:
   site-build:
     name: Site build, bento video & link check
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
     # is: its Chromium and system libraries are already there, so nothing is installed from
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     env:
       CI: 'true'
@@ -112,13 +115,18 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      # Lets pnpm fetch Windmorph Pro from its private repo (see the note at the top).
-      - name: Allow installing Windmorph Pro
-        if: ${{ env.PRO_READ_TOKEN != '' }}
-        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
-
+      # Fetches Windmorph Pro from its private repo with the read token (see the note at the
+      # top), which only this step sees: the address rewrite that carries it goes once the
+      # install is done, so no later step, nor anything a test runs, can read it.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        env:
+          PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+        run: |
+          if [ -n "$PRO_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+          fi
+          pnpm install --frozen-lockfile
+          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       - name: Build the site
         run: pnpm turbo run build --filter=site
@@ -177,13 +185,13 @@ jobs:
     name: Site Playwright smoke suite (shard ${{ matrix.shard }}/2)
     needs: site-build
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
     # is: its Chromium and system libraries are already there, so nothing is installed from
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     strategy:
       fail-fast: false
@@ -207,13 +215,18 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      # Lets pnpm fetch Windmorph Pro from its private repo (see the note at the top).
-      - name: Allow installing Windmorph Pro
-        if: ${{ env.PRO_READ_TOKEN != '' }}
-        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
-
+      # Fetches Windmorph Pro from its private repo with the read token (see the note at the
+      # top), which only this step sees: the address rewrite that carries it goes once the
+      # install is done, so no later step, nor anything a test runs, can read it.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        env:
+          PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+        run: |
+          if [ -n "$PRO_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+          fi
+          pnpm install --frozen-lockfile
+          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       # What `next dev` needs: the built core and the generated props.
       - name: Build the core and generate the props
@@ -292,13 +305,13 @@ jobs:
   playground-e2e:
     name: Playground Playwright suite
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # In the official Playwright image for the repo's Playwright version, as the Storybook suite
     # is: its Chromium and system libraries are already there, so nothing is installed from
     # Ubuntu's package servers, which the runners couldn't reach for hours (2026-11-11).
     # `scripts/playwright-image.test.mjs` fails when the tag falls behind `@playwright/test`.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
       options: --ipc=host
     env:
       CI: 'true'

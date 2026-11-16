@@ -119,3 +119,28 @@ describe('navigation guard', () => {
     expect(free.defaultPrevented).toBe(false);
   });
 });
+
+describe('NextRouterProvider basePath', () => {
+  it("shows the base path in a link's address and leaves navigation to the router", () => {
+    render(
+      <NextRouterProvider basePath="/docs/">
+        <Button href="/guides/theming">Theming</Button>
+        <Button href="#main">Skip</Button>
+        <Button href="https://example.com/a">Elsewhere</Button>
+      </NextRouterProvider>,
+    );
+    expect(screen.getByRole('link', { name: 'Theming' })).toHaveAttribute(
+      'href',
+      '/docs/guides/theming',
+    );
+    // A fragment and a full URL aren't paths on this site.
+    expect(screen.getByRole('link', { name: 'Skip' })).toHaveAttribute('href', '#main');
+    expect(screen.getByRole('link', { name: 'Elsewhere' })).toHaveAttribute(
+      'href',
+      'https://example.com/a',
+    );
+    // Next's router adds the base path itself.
+    fireEvent.click(screen.getByRole('link', { name: 'Theming' }));
+    expect(push).toHaveBeenCalledWith('/guides/theming');
+  });
+});

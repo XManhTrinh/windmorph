@@ -5,6 +5,7 @@ import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Carousel } from './components/carousel/Carousel';
 import { List, ListItem } from './components/list/List';
+import { Menu, MenuItem, SubmenuTrigger, type SubmenuTriggerProps } from './components/menu/Menu';
 import { NavigationBar, NavigationBarItem } from './components/navigation/NavigationBar';
 import { NavigationRail, NavigationRailItem } from './components/navigation/NavigationRail';
 import { Snackbar } from './components/snackbar/Snackbar';
@@ -61,6 +62,55 @@ describe('deprecated aliases', () => {
     );
     expect(await delayBeforeShowing('Save', 'Save the draft')).toBeGreaterThanOrEqual(300);
     expect(await delayBeforeShowing('Help', 'Read more.')).toBeGreaterThanOrEqual(300);
+  });
+
+  it('TooltipTrigger and RichTooltipTrigger: openDelay wins over delay', async () => {
+    render(
+      <>
+        <TooltipTrigger openDelay={0} delay={1500} closeDelay={0}>
+          <Button>Save</Button>
+          <Tooltip>Save the draft</Tooltip>
+        </TooltipTrigger>
+        <RichTooltipTrigger openDelay={0} delay={1500} closeDelay={0}>
+          <Button>Help</Button>
+          <RichTooltip title="Help">Read more.</RichTooltip>
+        </RichTooltipTrigger>
+      </>,
+    );
+    // With the old name's 1.5s it would still be hidden after 800ms.
+    for (const [name, text] of [
+      ['Save', 'Save the draft'],
+      ['Help', 'Read more.'],
+    ] as const) {
+      fireEvent.pointerMove(document.body);
+      await userEvent.hover(screen.getByRole('button', { name }));
+      expect(await screen.findByText(text, {}, { timeout: 800 })).toBeInTheDocument();
+      await userEvent.unhover(screen.getByRole('button', { name }));
+      await act(() => new Promise((resolve) => setTimeout(resolve, 600)));
+    }
+  });
+
+  it('SubmenuTrigger: delay is openDelay, and openDelay wins', () => {
+    // React Stately reads a submenu trigger through its collection node, which holds the delay.
+    const trigger = SubmenuTrigger as unknown as {
+      getCollectionNode: (props: SubmenuTriggerProps) => Iterable<{ element: ReactElement }>;
+    };
+    const submenuDelay = (props: { openDelay?: number; delay?: number }) => {
+      const [node] = [
+        ...trigger.getCollectionNode({
+          children: [
+            <MenuItem key="share">Share</MenuItem>,
+            <Menu aria-label="Share">
+              <MenuItem key="email">Email</MenuItem>
+            </Menu>,
+          ],
+          ...props,
+        }),
+      ];
+      return (node!.element.props as { submenuDelay?: number }).submenuDelay;
+    };
+    expect(submenuDelay({ delay: 500 })).toBe(500);
+    expect(submenuDelay({ openDelay: 0, delay: 500 })).toBe(0);
   });
 
   it('Carousel: heroAlignment is heroAlign', () => {
@@ -132,6 +182,19 @@ describe('deprecated aliases', () => {
     expect(items).toHaveAttribute('data-item-alignment', 'center');
   });
 
+  it('NavigationRail: itemAlign wins over itemAlignment', () => {
+    render(
+      <NavigationRail aria-label="Main" itemAlign="center" itemAlignment="top">
+        <NavigationRailItem href="#inbox" icon={<Icon />}>
+          Inbox
+        </NavigationRailItem>
+      </NavigationRail>,
+    );
+    const items = screen.getByRole('link', { name: 'Inbox' }).parentElement!;
+    expect(items).toHaveClass('my-auto');
+    expect(items).toHaveAttribute('data-item-align', 'center');
+  });
+
   it('NavigationBarItem and NavigationRailItem: selected is current, selectedIcon currentIcon', () => {
     render(
       <>
@@ -163,6 +226,24 @@ describe('deprecated aliases', () => {
     expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute('aria-current', 'page');
   });
 
+  it('NavigationBarItem: currentIcon wins over selectedIcon', () => {
+    render(
+      <NavigationBar aria-label="Bar">
+        <NavigationBarItem
+          href="#home"
+          icon={<Icon />}
+          currentIcon={<svg data-testid="new-icon" />}
+          selectedIcon={<svg data-testid="old-icon" />}
+          current
+        >
+          Home
+        </NavigationBarItem>
+      </NavigationBar>,
+    );
+    expect(screen.getByTestId('new-icon')).toBeInTheDocument();
+    expect(screen.queryByTestId('old-icon')).toBeNull();
+  });
+
   it('Snackbar: onDismiss is onClose', async () => {
     const onDismiss = vi.fn();
     render(<Snackbar onDismiss={onDismiss}>Message archived</Snackbar>);
@@ -171,5 +252,18 @@ describe('deprecated aliases', () => {
     // Escape calls it too, as it calls onClose.
     fireEvent.keyDown(screen.getByRole('button', { name: 'Dismiss' }), { key: 'Escape' });
     expect(onDismiss).toHaveBeenCalledTimes(2);
+  });
+
+  it('Snackbar: onClose wins over onDismiss', async () => {
+    const onClose = vi.fn();
+    const onDismiss = vi.fn();
+    render(
+      <Snackbar onClose={onClose} onDismiss={onDismiss}>
+        Message archived
+      </Snackbar>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(onDismiss).not.toHaveBeenCalled();
   });
 });

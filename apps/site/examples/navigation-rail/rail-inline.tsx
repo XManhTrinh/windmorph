@@ -23,7 +23,7 @@ const DESTINATIONS = [
  * toggles `expanded`, which springs the rail between its 96px collapsed width (icon above
  * label) and its expanded width (icon beside label). The FAB follows it: an `ExtendedFab`
  * shows only its icon while the rail is collapsed and grows its label as the rail expands.
- * Each item is a button that marks the current destination with `selected`.
+ * Each item is a button that marks the current destination with `current`.
  */
 export function RailInline() {
   const [current, setCurrent] = useState('home');

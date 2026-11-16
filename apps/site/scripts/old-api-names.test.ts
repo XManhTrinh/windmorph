@@ -124,6 +124,13 @@ const SCOPED_PATTERNS: [RegExp, RegExp, string][] = [
   [/(?:^|\/)load-more(?:[-./]|$)/, /\b(?:loading|end)=\{/, 'loadingIndicator / endMessage'],
   [/(?:^|\/)popover(?:[-./]|$)/, /\bheadline=/, 'title'],
   [/(?:^|\/)(?:navigation-rail-group|blocks)(?:[-./]|$)/, /\bheading=/, 'title'],
+  // 0.2.9: a navigation item marks the current page, in prose too ("with `selected`"), except
+  // where a page says the old name still works.
+  [
+    /(?:^|\/)(?:navigation-(?:bar|rail)|bar-|rail-)/,
+    /`selected(?:Icon)?`(?!, its name before)/,
+    '`current` / `currentIcon`',
+  ],
 ];
 
 /** A name used as code: a JSX attribute, an object key, a code span or a quoted string. */

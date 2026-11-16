@@ -35,7 +35,7 @@ export const slider: ComponentAccessibility = {
     role: '`group` around one `slider` per thumb: each thumb is a visually hidden native range input (React Aria `useSlider` / `useSliderThumb`).',
     name: '`aria-label`, or `aria-labelledby` pointing at a visible label; the types require one. Each thumb is named as the group is: with `aria-labelledby` it points at the label itself, so it\'s read as the label, never as its value. A range slider puts each thumb\'s own name from `labels` (default "Minimum" and "Maximum") before the slider\'s: "Minimum Price". `aria-describedby`, `aria-details` and `aria-errormessage` reach every thumb, so helper or error text is read as each one takes focus.',
     states:
-      'The value, minimum and maximum, the orientation (`aria-orientation`), and disabled. The announced value (`aria-valuetext`) is formatted with `formatOptions`.',
+      'The value, minimum and maximum, the orientation (`aria-orientation`), and disabled. The announced value (`aria-valuetext`) is formatted with `formatOptions`, or said in words by `valueText`, which gets each thumb\'s value and index (a time: "1 minute 25 seconds of 10 minutes").',
     notes: [
       'The track, stop indicators, ticks, inset icons and the value indicator pill are decorative and hidden from assistive tech (`aria-hidden`).',
     ],

@@ -1856,6 +1856,8 @@ export const COMPONENT_META: ComponentMeta[] = [
       'pickWidgetAria',
       'pickDescriptionAria',
       'splitDataAttributes',
+      'sliderThumbInputProps',
+      'sliderArrowRaises',
       'mergeDataTokens',
       'ThemeScopeContext',
       'generateSchemeColors',

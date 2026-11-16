@@ -99,6 +99,7 @@ interface SwitchOwnProps
   /**
    * Where the switch sits beside its label: `start` (before it) or `end` (after it, the label
    * growing to fill the row, as a settings row's). As `ListItem`'s `controlPlacement`.
+   * With `end` the root carries `data-control-placement="end"`, for styling.
    * @default "start"
    */
   controlPlacement?: ControlPlacement;

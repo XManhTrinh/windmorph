@@ -234,13 +234,20 @@ export default async function GettingStartedPage() {
           Links are an <InlineCode>href</InlineCode> on buttons, menu items and tabs, routed
           client-side through React Aria’s <InlineCode>RouterProvider</InlineCode>. For non-Next
           apps, wrap the tree in <InlineCode>RouterProvider</InlineCode> from{' '}
-          <InlineCode>react-aria</InlineCode> with your router’s navigate helper.
+          <InlineCode>react-aria</InlineCode> with your router’s navigate helper, and its{' '}
+          <InlineCode>useHref</InlineCode> when the app has a base path: every link then shows the
+          router’s address, so opening it in a new tab or copying it reaches the right page. As in
+          React Aria’s own links, every <InlineCode>href</InlineCode> goes through it, a{' '}
+          <InlineCode>#fragment</InlineCode> included, so it should leave fragments and full URLs as
+          they are (a router’s own <InlineCode>useHref</InlineCode> does).
         </p>
         <CodeBlock code={ROUTER_SNIPPET} html={routerHtml} lang="tsx" title="providers.tsx" />
         <p className="text-body-large text-on-surface-variant">
           On Next.js, use <InlineCode>NextRouterProvider</InlineCode> from{' '}
           <InlineCode>@windmorph/react/next</InlineCode> — a one-liner that wires{' '}
-          <InlineCode>RouterProvider</InlineCode> to the Next router. See the{' '}
+          <InlineCode>RouterProvider</InlineCode> to the Next router; give it your{' '}
+          <InlineCode>basePath</InlineCode> when <InlineCode>next.config</InlineCode> sets one, so
+          links show it as Next’s own <InlineCode>Link</InlineCode> does. See the{' '}
           <a className="text-primary underline" href="/nextjs">
             Next.js guide
           </a>

@@ -656,9 +656,48 @@ test.describe('Button pending', () => {
     test('pending · high contrast', async ({ page }) =>
       shoot(page, 'pending-high-contrast.png', { contrast: 'high' }));
     test('pending · rtl', async ({ page }) => shoot(page, 'pending-rtl.png', { dir: 'rtl' }));
+    // Read from the computed styles: Chromium 159's screenshots of this story come out without
+    // the system colours its computed styles have (2026-11-16).
     test('pending · forced colours', async ({ page }) => {
       await page.emulateMedia({ forcedColors: 'active' });
-      await shoot(page, 'pending-forced-colors.png');
+      await openStory(page, 'components-button--pending');
+      const root = page.getByTestId('pending');
+      await expect(root.locator('[data-slot="pending-indicator"] svg')).toHaveCount(
+        await root.locator('[data-pending]').count(),
+      );
+      const looks = await root.locator('[data-pending]').evaluateAll((buttons) => {
+        const probe = document.createElement('span');
+        document.body.append(probe);
+        const system = (name: string) => {
+          probe.style.cssText = `forced-color-adjust:none;color:${name}`;
+          return getComputedStyle(probe).color;
+        };
+        const canvas = system('Canvas');
+        const result = buttons.map((button) => {
+          const style = getComputedStyle(button);
+          const indicator = button.querySelector('[data-slot="pending-indicator"] svg')!;
+          const mark = getComputedStyle(indicator);
+          // The colour without its alpha: an outlined or text button is transparent over the
+          // page's Canvas, and a disabled one Canvas at the disabled opacity.
+          const rgb = (color: string) =>
+            color
+              .match(/\d+(\.\d+)?/g)!
+              .slice(0, 3)
+              .join(',');
+          return {
+            canvasOrHighlight: [canvas, system('Highlight')]
+              .map(rgb)
+              .includes(rgb(style.backgroundColor)),
+            edge: style.borderStyle !== 'none' || style.outlineStyle !== 'none',
+            indicatorShows: mark.color !== style.backgroundColor,
+          };
+        });
+        probe.remove();
+        return result;
+      });
+      expect(looks.length).toBeGreaterThan(0);
+      for (const look of looks)
+        expect(look).toEqual({ canvasOrHighlight: true, edge: true, indicatorShows: true });
     });
   });
 });

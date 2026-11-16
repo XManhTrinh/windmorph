@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useMemo, type ComponentPropsWithRef } from 'react';
+import { useCallback, useContext, useMemo, type ComponentPropsWithoutRef, type Ref } from 'react';
 import type { ColorMode, ContrastLevel } from '../tokens/color';
 import type { Density } from '../tokens/density';
 import type { MotionScheme } from '../tokens/motion';
@@ -14,7 +14,7 @@ import {
 } from './context';
 import { themeAttributesOver, type ThemeState } from './state';
 
-export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
+export interface ThemeScopeProps extends ComponentPropsWithoutRef<'div'> {
   /** Colour theme for this subtree. Inherited when omitted. */
   theme?: string;
   /** Colour mode for this subtree. Inherited when omitted. */
@@ -29,11 +29,14 @@ export interface ThemeScopeProps extends ComponentPropsWithRef<'div'> {
    */
   density?: Density;
   /**
-   * The element: a `div`, or a `span` for a scope inside inline content (a badge over a
-   * picture in a card that is a link), where a `div` isn't allowed. The ref receives it.
+   * The element: a `div`, or a `span` for a scope inside content that takes only phrasing
+   * content, where a `div` isn't allowed (a `<button>`, a `<p>`, a `<label>`). The ref
+   * receives it.
    * @default "div"
    */
   as?: 'div' | 'span';
+  /** The scope's element: a `div`, or the `span` of `as="span"`. */
+  ref?: Ref<HTMLDivElement | HTMLSpanElement>;
 }
 
 /**
@@ -52,12 +55,21 @@ export function ThemeScope({
   contrast,
   motion,
   density,
-  as: Element = 'div',
+  as: Tag = 'div',
   className,
   style,
   children,
+  ref,
   ...props
 }: ThemeScopeProps) {
+  // One callback for either element, so the ref is typed for both without a cast.
+  const setRef = useCallback(
+    (element: HTMLDivElement | HTMLSpanElement | null) => {
+      if (typeof ref === 'function') return ref(element);
+      if (ref) ref.current = element;
+    },
+    [ref],
+  );
   const parent = useThemeScope();
   const inherited = useContext(InheritedThemeContext);
   const parentLayers = useThemeScopeLayers();
@@ -82,8 +94,9 @@ export function ThemeScope({
   );
 
   return (
-    <Element
+    <Tag
       {...props}
+      ref={setRef}
       {...themeAttributesOver(state, inherited, layers !== parentLayers)}
       style={style}
       className={cn('text-on-surface', className)}
@@ -93,6 +106,6 @@ export function ThemeScope({
           <ThemeScopeLayersContext value={layers}>{children}</ThemeScopeLayersContext>
         </InheritedThemeContext>
       </ThemeScopeContext>
-    </Element>
+    </Tag>
   );
 }

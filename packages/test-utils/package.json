@@ -33,7 +33,7 @@
     "lint": "eslint --max-warnings 0 ."
   },
   "dependencies": {
-    "@tailwindcss/node": "^4.3.3",
+    "@tailwindcss/node": "^4.3.5",
     "axe-core": "^4.14.0"
   },
   "peerDependencies": {
@@ -49,7 +49,7 @@
     "@types/react": "^19.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.5",
     "tsdown": "^0.23.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vitest": "^5.0.3"

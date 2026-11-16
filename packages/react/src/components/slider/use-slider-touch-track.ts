@@ -8,14 +8,23 @@ export const TOUCH_SLOP = 8;
 
 /** What {@link useSliderTouchTrack} needs: the slider's state, its track and its layout. */
 export interface SliderTouchTrackOptions {
+  /** The slider's state (React Stately's `useSliderState`), whose thumbs the touch moves. */
   state: SliderState;
+  /** The element a press maps to a value along: the one given `useSlider`'s `trackProps`. */
   trackRef: RefObject<HTMLElement | null>;
+  /** The way the track runs; a touch across it is left to the browser to scroll. */
   orientation: 'horizontal' | 'vertical';
+  /**
+   * The reading direction (React Aria's `useLocale`): a horizontal track runs from the right in
+   * right to left.
+   */
   direction: 'ltr' | 'rtl';
+  /** Leaves every press to React Aria, which ignores it. */
   disabled: boolean;
   /**
-   * A discrete slider with drawn stops (`ticks`): its values are spread between the track's
-   * corners (`positionOf`), so a press maps back through the same inset.
+   * The values are spread between the track's corners, as a discrete slider's drawn stops
+   * are: a press maps back through the same inset, the corner read in px from the track's
+   * `--m3-slider-corner` (0 without it), so a tap on a drawn stop selects it. @default false
    */
   discrete?: boolean;
 }
@@ -44,6 +53,9 @@ function closestThumb(state: SliderState, value: number): number {
  * the stops and thumb are drawn with (`(offset − corner) / (length − 2 × corner)`), so a tap
  * on a drawn stop selects that stop: React Aria's linear mapping picked the next one near the
  * ends of a large slider, whose corners are wider than half a step (2026-10-17).
+ *
+ * A press that starts on an element marked `data-thumb` is left to React Aria's thumb handling,
+ * which drags that thumb.
  *
  * Returns handlers that wrap React Aria's `trackProps`. Public (`@windmorph/react/primitives`)
  * for any slider built on React Aria's `useSlider` outside the core, so its track takes
