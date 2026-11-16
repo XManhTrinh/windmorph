@@ -168,31 +168,11 @@ function LeaveOpener({ children }: { children: ReactNode }) {
 }
 
 /**
- * Portals overlay content (dialogs, menus, sheets, tooltips) out of the page's flow while
- * keeping the theme, mode, contrast, motion scheme, density, **text direction and the enclosing
- * `ThemeScope`s' classes and inline CSS variables** of the place it was rendered from, so
- * overlays opened inside a `ThemeScope` or an RTL region still match it, and CSS variables set
- * through a scope's class (component tokens) reach them. The wrapper is `display: contents`, so
- * the classes affect only what children inherit. Dismissal, focus containment and scroll locking
- * come from the React Aria overlay hooks (`useModalOverlay`, `usePopover`, …) of the component
- * using it.
- *
- * Where it goes, in order: `portalContainer`; an app's React Aria `UNSAFE_PortalProvider`
- * container; the element in full screen when the overlay opened (a browser in full screen draws
- * nothing else), where it stays until it closes; `document.body`.
- *
- * Its content leaves behind what it was opened from: the trigger, dialog and sheet trigger,
- * tooltip, toolbar, button group, selection group and chip set contexts around it are reset, so
- * its own buttons don't act as the opener's.
- *
- * Unless `disableFocusManagement`, focus inside it as it leaves (or inside an overlay opened
- * from it that leaves with it) goes back to where it was as the overlay opened, once the commit
- * ends and before the next frame, so it never rests on the page in between. As React Aria's
- * focus scope does, a `react-aria-focus-scope-restore` event goes to that element first, and an
- * app that cancels it keeps focus where it puts it.
- *
- * A portalled overlay sits outside any modal it was opened from, so the modal's
- * `ariaHideOutside` would mark it `aria-hidden`; `topLayer` keeps it visible.
+ * Portals an overlay (a dialog, menu, sheet or tooltip) into `portalContainer`, an app's React
+ * Aria `UNSAFE_PortalProvider` container, the element in full screen when it opened, or `body`,
+ * keeping the theme, density, direction and `ThemeScope` classes and variables of where it was
+ * rendered. Its content leaves the opener's contexts behind; as it closes, focus inside it goes
+ * back to where it was without resting on the page. `topLayer` keeps it visible beside a modal.
  */
 export function Overlay({
   children,

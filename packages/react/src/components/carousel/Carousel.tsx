@@ -215,7 +215,7 @@ function defaultPadding(variant: CarouselVariant): CarouselContentPadding {
 const TABBABLE =
   'a[href],area[href],button,input,select,textarea,iframe,summary,[contenteditable],[tabindex]';
 
-/** The next (or previous) element in the tab order outside `container`. */
+// The next (or previous) element in the tab order outside `container`.
 function tabbableOutside(container: HTMLElement, forward: boolean): HTMLElement | undefined {
   const candidates = Array.from(
     container.ownerDocument.querySelectorAll<HTMLElement>(TABBABLE),
@@ -233,11 +233,9 @@ function tabbableOutside(container: HTMLElement, forward: boolean): HTMLElement 
 
 const OPENNESS = '--m3-carousel-item-openness';
 
-/**
- * Writes an item's size state, only what changed: it's written on every scroll frame and
- * render, and an attribute set to the value it has still notifies observers and restyles what
- * reads it (2026-11-16).
- */
+// Writes an item's size state, only what changed: it's written on every scroll frame and render,
+// and an attribute set to the value it has still notifies observers and restyles what reads it
+// (2026-11-16).
 function writeItemSize(slot: HTMLElement, size: 'large' | 'medium' | 'small', openness: string) {
   if (slot.dataset.size !== size) slot.dataset.size = size;
   if (slot.style.getPropertyValue(OPENNESS) !== openness)

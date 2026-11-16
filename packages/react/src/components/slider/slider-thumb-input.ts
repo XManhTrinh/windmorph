@@ -32,19 +32,9 @@ export interface SliderThumbInputOptions {
 
 /**
  * React Aria's thumb input props (`useSliderThumb`'s `inputProps`) made right for assistive
- * technology, for a slider built on React Aria's hooks:
- *
- * - **Named by a visible label.** React Aria names each thumb by the group
- *   (`aria-labelledby` → the group's id), but a name is never followed through a second
- *   `aria-labelledby`, so a group named by a visible label left the thumb named by its own
- *   value text. The thumb points at the label itself, as the group does; an `aria-label` on
- *   the group is read through it as is.
- * - **No empty descriptions.** React Aria joins the description's ids into an empty string
- *   when there are none.
- * - **A value set by assistive technology is committed.** A screen reader's increment
- *   (VoiceOver's swipe, a form reset) changes the native input, which React Aria passes to the
- *   state with no drag around it, so `onChangeEnd` never came: the change is committed as a
- *   key's is.
+ * technology: named by a visible label that names the group, with no empty descriptions, and
+ * with a change of the native input (a screen reader's step, a form reset) committed as a
+ * key's is, so `onChangeEnd` comes.
  */
 export function sliderThumbInputProps(
   inputProps: InputHTMLAttributes<HTMLInputElement>,
