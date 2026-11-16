@@ -25,7 +25,8 @@ const importSnippet = `import {
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
-  useKeepPressedInPlace, useScrollRestoration, useScrollKeys, useSliderTouchTrack,
+  useKeepPressedInPlace, useScrollRestoration, useScrollKeys,
+  useSliderTouchTrack, sliderThumbInputProps, sliderArrowRaises,
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
   splitDataAttributes, mergeDataTokens, ThemeScopeContext, generateSchemeColors,
@@ -256,9 +257,15 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>Surface</InlineCode> (container role + elevation 0–5 + shape, with its
               variants as <InlineCode>surfaceStyles</InlineCode>),{' '}
               <InlineCode>TouchTarget</InlineCode> (48×48px hit area) and{' '}
-              <InlineCode>Overlay</InlineCode> (portal to <InlineCode>body</InlineCode> that
-              re-applies the theme attributes and <InlineCode>dir</InlineCode> of where it was
-              rendered).
+              <InlineCode>Overlay</InlineCode> (portals an overlay into its{' '}
+              <InlineCode>portalContainer</InlineCode>, else an app&apos;s React Aria{' '}
+              <InlineCode>UNSAFE_PortalProvider</InlineCode> container, else the element in full
+              screen when it opened, where it stays until it closes, else{' '}
+              <InlineCode>body</InlineCode>; re-applies the theme attributes and{' '}
+              <InlineCode>dir</InlineCode> of where it was rendered; leaves behind the trigger and
+              group contexts it was opened from; and as it closes, with focus inside it or in an
+              overlay opened from it, gives focus back to where it was before it opened without
+              passing through the page).
             </li>
             <li>
               Field parts (<InlineCode>FieldLabel</InlineCode>,{' '}
@@ -306,7 +313,11 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               <InlineCode>useSlider</InlineCode> track props so touch and pen take a slider of your
               own as the Slider&apos;s do: a tap sets the value as the finger lifts, a drag starts
               after 8px along the track, and a swipe across it scrolls the page instead of moving
-              the value).
+              the value), with <InlineCode>sliderThumbInputProps</InlineCode> (React Aria&apos;s
+              thumb input props made right for assistive technology: named by a visible label, no
+              empty descriptions, a screen reader&apos;s change committed as a key&apos;s) and{' '}
+              <InlineCode>sliderArrowRaises</InlineCode> (which arrow keys raise the value, mirrored
+              right to left).
             </li>
             <li>
               <InlineCode>useScrollRestoration</InlineCode> and{' '}

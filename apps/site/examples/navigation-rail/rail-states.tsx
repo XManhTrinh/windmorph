@@ -10,8 +10,8 @@ const DESTINATIONS = [
 
 /**
  * The collapsed and expanded layouts side by side. Collapsed, items stack the icon above
- * the label; expanded, the icon sits beside the label. A `selectedIcon` can swap in while
- * an item is selected, and a disabled item is skipped by the keyboard. A `badge` sits on
+ * the label; expanded, the icon sits beside the label. A `currentIcon` can swap in while
+ * an item is current, and a disabled item is skipped by the keyboard. A `badge` sits on
  * the icon while collapsed and after the label while expanded, and `divider` marks the
  * edge next to the content.
  */

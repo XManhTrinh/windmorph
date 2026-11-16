@@ -123,7 +123,9 @@ export default async function ApiConventionsPage() {
             Checkable inputs: <InlineCode>checked</InlineCode> /{' '}
             <InlineCode>defaultChecked</InlineCode> / <InlineCode>onCheckedChange</InlineCode> (
             <InlineCode>Checkbox</InlineCode>, <InlineCode>Switch</InlineCode>, list items). Toggle
-            buttons, chips and navigation items say <InlineCode>selected</InlineCode>, as M3 does.
+            buttons and chips say <InlineCode>selected</InlineCode>, as M3 does; navigation items
+            say <InlineCode>current</InlineCode>, since they mark the page the app is on (
+            <InlineCode>aria-current</InlineCode>), not a selection.
           </Rule>
           <Rule>
             Overlays: <InlineCode>open</InlineCode> / <InlineCode>defaultOpen</InlineCode> /{' '}

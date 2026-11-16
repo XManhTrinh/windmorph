@@ -24,7 +24,7 @@ import { tv, type VariantProps } from '../../utils/tv';
  * (M3: "a ripple passes through the indicator"), as on every other M3 control. In every layout the current item's pill expands from
  * the centre of its icon and fades in on the default spatial spring (M3: "the active
  * indicator expands from the center of the icon"), and colours change on default effects.
- * The current label keeps its weight (M3 Expressive). With a `selectedIcon`, the two
+ * The current label keeps its weight (M3 Expressive). With a `currentIcon`, the two
  * icons cross-fade on default effects.
  *
  * `slide` (the expanded rail's `indicatorMotion="slide"`, an extension beyond the spec that
