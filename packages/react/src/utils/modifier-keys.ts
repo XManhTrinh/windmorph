@@ -38,9 +38,11 @@ export const isModifierAlone = (event: KeyboardEvent) =>
   event.key === 'Shift' ||
   event.key === 'Meta';
 
-// One guard a window, however many copies of the library a page loads: each would wrap
-// `focus` over the other's.
+// One guard a window, however many copies of the library a page loads (each would wrap
+// `focus` over the other's): each copy adds its React Aria's modality setter, which a page
+// with copies bundled apart has one of each, and the guard sets them all.
 const GUARD = Symbol.for('@windmorph/react/modifier-keys-guard');
+type Setter = typeof setInteractionModality;
 
 // Keeps a modifier pressed alone from counting as keyboard use: after a pointer press, the
 // modality stays the pointer's, so no focus ring appears. React Aria sets it on both the key
@@ -60,52 +62,40 @@ const GUARD = Symbol.for('@windmorph/react/modifier-keys-guard');
 // check that moves focus to an invalid field ends the pointer's turn, as React Aria shows that
 // field's ring.
 function guard(page: Document) {
-  const view = page.defaultView as (Window & typeof globalThis & { [GUARD]?: true }) | null;
-  if (!view || view[GUARD]) return;
-  view[GUARD] = true;
+  const view = page.defaultView as
+    (Window & typeof globalThis & { [GUARD]?: { setters: Set<Setter> } }) | null;
+  if (!view) return;
+  const installed = view[GUARD];
+  if (installed) {
+    installed.setters.add(setInteractionModality);
+    return;
+  }
+  const setters = new Set<Setter>([setInteractionModality]);
+  view[GUARD] = { setters };
   let pointerLast = false;
   let eventBeforeFocus = false;
   let returning = false;
   let invalid = false;
-  // The `focus` each wrap found, latest last. React Aria's unload teardown (a `beforeunload` the
-  // page then stays on: a leave prompt answered "Stay", a download) puts back the `focus` it
-  // found, leaving this wrapper out, and wraps it again as components render, so the next press
-  // after one wraps it again, once. Should something have wrapped this wrapper by then, a call
-  // comes back into it: each call nested in the wrapper goes one wrap further down, so every
-  // call ends at the browser's `focus`.
-  const found: HTMLElement['focus'][] = [];
-  let depth = 0;
-  let unwrapped = false;
-  const wrapper = function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
-    eventBeforeFocus = true;
-    const next = found[Math.max(0, found.length - 1 - depth)]!;
-    depth += 1;
-    try {
-      next.apply(this, args);
-    } finally {
-      depth -= 1;
-    }
-  };
-  const wrapFocus = () => {
-    unwrapped = false;
-    const current = view.HTMLElement.prototype.focus;
-    if (current === wrapper) return;
-    found.push(current);
-    // Defined, not assigned, as React Aria does: a test library may have made `focus` a getter.
-    Reflect.defineProperty(view.HTMLElement.prototype, 'focus', {
-      configurable: true,
-      writable: true,
-      value: wrapper,
-    });
-  };
-  wrapFocus();
-  // Runs after React Aria's own `beforeunload` listener, set up before this guard.
-  view.addEventListener('beforeunload', () => (unwrapped = true));
+  // Wrapped once, as React Aria wraps it. React Aria's unload teardown (a `beforeunload` the
+  // page then stays on) puts back the `focus` it found, leaving this wrapper out until the page
+  // loads again: a script's focus then ends the pointer's turn, at worst a ring on a lone
+  // modifier. Wrapping again safely, over whatever had wrapped `focus` since, took more than
+  // that is worth (2026-11-16).
+  const focus = view.HTMLElement.prototype.focus;
+  // Defined, not assigned, as React Aria does: a test library may have made `focus` a getter.
+  Reflect.defineProperty(view.HTMLElement.prototype, 'focus', {
+    configurable: true,
+    writable: true,
+    value: function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
+      eventBeforeFocus = true;
+      focus.apply(this, args);
+    },
+  });
   const keepPointer = (event: KeyboardEvent) => {
-    if (MODIFIERS.has(event.key) && pointerLast) setInteractionModality('pointer');
+    if (!MODIFIERS.has(event.key) || !pointerLast) return;
+    for (const set of setters) set('pointer');
   };
   const onPointer = () => {
-    if (unwrapped) wrapFocus();
     pointerLast = true;
     eventBeforeFocus = true;
   };
@@ -128,10 +118,11 @@ function guard(page: Document) {
         return;
       }
       if (event.target === page || !event.isTrusted) return;
-      // A form's failed check that moves focus to its first invalid field shows that field's
-      // ring: React Aria sets the keyboard's modality then. It focuses the field in the same
-      // task as the `invalid` event, after the browser's own, from a submit button's press too.
-      if (invalid || (!eventBeforeFocus && !returning)) pointerLast = false;
+      // React Aria's form validation focuses the first invalid field of a failed check, in the
+      // same task as its `invalid` event, and shows its ring.
+      const toInvalid =
+        invalid && (event.target as Element).matches(':invalid, [aria-invalid="true"]');
+      if (toInvalid || (!eventBeforeFocus && !returning)) pointerLast = false;
       eventBeforeFocus = false;
       returning = false;
     },
@@ -151,11 +142,17 @@ function guard(page: Document) {
     eventBeforeFocus = false;
     returning = true;
   });
+  // React Aria's two rules for a failed form check: focus moved by the microtask after the
+  // `invalid` event (its own listener's), or the first invalid field focused (above).
   page.addEventListener(
     'invalid',
     () => {
+      const before = page.activeElement;
       invalid = true;
       setTimeout(() => (invalid = false));
+      queueMicrotask(() => {
+        if (page.activeElement !== before) pointerLast = false;
+      });
     },
     true,
   );

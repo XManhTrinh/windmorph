@@ -105,29 +105,6 @@ describe('modifier keys pressed alone', () => {
     expect(steps).toEqual(['keyboard', 'keyboard']);
   });
 
-  // React Aria's unload teardown put the browser's `focus` back, without the guard's wrapper,
-  // for good: the script focus above showed a ring again (2026-11-16).
-  it('keep counting a script focus after React Aria sets its focus tracking up again', async () => {
-    const { rerender } = render(<Button>Open</Button>);
-    // A `beforeunload` the page stays on: React Aria tears its tracking down, and sets it up
-    // again as a component renders.
-    act(() => {
-      window.dispatchEvent(new Event('beforeunload'));
-    });
-    rerender(
-      <>
-        <Button>Open</Button>
-        <Button>Cancel</Button>
-      </>,
-    );
-    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
-    const cancel = screen.getByRole('button', { name: 'Cancel' });
-    act(() => cancel.focus());
-    await userEvent.keyboard('{Alt}');
-    expect(getInteractionModality()).toBe('pointer');
-    expect(cancel).not.toHaveAttribute('data-focus-visible');
-  });
-
   it("still reaches the browser's focus when its wrapper is wrapped in turn", async () => {
     render(
       <>
@@ -188,17 +165,56 @@ describe('modifier keys pressed alone', () => {
     expect(name).toHaveFocus();
   });
 
-  it('is one guard a page, however many copies of the library it loads', async () => {
+  it('is one guard a page, which keeps every copy of the library in step', async () => {
     render(<Button>Open</Button>);
     const focus = HTMLElement.prototype.focus;
     vi.resetModules();
+    // A copy bundled apart, with a React Aria of its own.
     const copy = await import('./modifier-keys');
+    const copysSetter = vi.mocked((await import('react-aria')).setInteractionModality);
     function Other() {
       copy.useModifierKeysGuard();
       return null;
     }
     render(<Other />);
     expect(HTMLElement.prototype.focus).toBe(focus);
+    // Each copy's React Aria is kept in step: the page's guard sets every setter it was given.
+    const mark = (window as unknown as Record<symbol, { setters: Set<unknown> }>)[
+      Symbol.for('@windmorph/react/modifier-keys-guard')
+    ]!;
+    expect(mark.setters.has(copysSetter)).toBe(true);
+    const another = vi.fn();
+    mark.setters.add(another);
+    try {
+      await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+      await userEvent.keyboard('{Alt}');
+      expect(another).toHaveBeenCalledWith('pointer');
+    } finally {
+      mark.setters.delete(another);
+    }
+  });
+
+  // A field checked as focus leaves it (its blur calling `checkValidity`) fires `invalid` in
+  // the same task as the press's focus: that focus isn't React Aria's to the invalid field.
+  it('keep the pointer when a press leaves a field a check finds invalid', async () => {
+    render(
+      <>
+        <input aria-label="Email" required />
+        <Button>Next</Button>
+      </>,
+    );
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    const next = screen.getByRole('button', { name: 'Next' });
+    act(() => email.focus());
+    fireEvent.pointerDown(next);
+    // The browser runs React Aria's microtask after the `invalid` listeners, before the focus.
+    await act(async () => {
+      email.dispatchEvent(new Event('invalid', { cancelable: true }));
+      await Promise.resolve();
+      next.focus();
+    });
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('pointer');
   });
 
   // A Tab from the browser's address bar reaches the page only as its key comes up, which React
