@@ -7,9 +7,9 @@ import type { ReactNode } from 'react';
  * from assistive tech; its title names the component.
  */
 
-type Tone = 'primary' | 'secondary' | 'tertiary' | 'high' | 'variant' | 'outline' | 'surface';
+type Fill = 'primary' | 'secondary' | 'tertiary' | 'high' | 'variant' | 'outline' | 'surface';
 
-const FILL: Record<Tone, string> = {
+const FILL: Record<Fill, string> = {
   primary: 'bg-primary',
   secondary: 'bg-secondary-container',
   tertiary: 'bg-tertiary-container',
@@ -23,12 +23,12 @@ const FILL: Record<Tone, string> = {
 function Shape({
   w,
   h,
-  tone = 'high',
+  fill = 'high',
   round = 'full',
 }: {
   w: number;
   h: number;
-  tone?: Tone;
+  fill?: Fill;
   round?: 'full' | 'sm' | 'md' | 'lg' | 'xl' | 'none';
 }) {
   const radius = {
@@ -40,7 +40,7 @@ function Shape({
     none: 'rounded-none',
   }[round];
   return (
-    <span className={`block shrink-0 ${FILL[tone]} ${radius}`} style={{ width: w, height: h }} />
+    <span className={`block shrink-0 ${FILL[fill]} ${radius}`} style={{ width: w, height: h }} />
   );
 }
 
@@ -74,13 +74,13 @@ function Panel({
   w,
   h,
   round = 'lg',
-  tone = 'surface',
+  fill = 'surface',
 }: {
   children?: ReactNode;
   w: number;
   h: number;
   round?: 'md' | 'lg' | 'xl';
-  tone?: Tone;
+  fill?: Fill;
 }) {
   const radius = {
     md: 'rounded-corner-medium',
@@ -89,7 +89,7 @@ function Panel({
   }[round];
   return (
     <span
-      className={`flex shrink-0 flex-col gap-2 p-3 ${FILL[tone]} ${radius}`}
+      className={`flex shrink-0 flex-col gap-2 p-3 ${FILL[fill]} ${radius}`}
       style={{ width: w, height: h }}
     >
       {children}
@@ -121,10 +121,10 @@ const listRows = (count: number, lead?: ReactNode) => (
   </Col>
 );
 
-const field = (tone: Tone = 'high', w = 140) => (
+const field = (fill: Fill = 'high', w = 140) => (
   <span className="flex flex-col gap-1">
     <span
-      className={`flex h-9 items-center px-3 ${tone === 'outline' ? 'rounded-corner-extra-small border-2 border-outline' : 'rounded-t-corner-extra-small border-b-2 border-on-surface-variant bg-surface-container-highest'}`}
+      className={`flex h-9 items-center px-3 ${fill === 'outline' ? 'rounded-corner-extra-small border-2 border-outline' : 'rounded-t-corner-extra-small border-b-2 border-on-surface-variant bg-surface-container-highest'}`}
       style={{ width: w }}
     >
       <Text w={56} strong />
@@ -136,61 +136,61 @@ const field = (tone: Tone = 'high', w = 140) => (
 export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   button: (
     <Row>
-      <Shape w={64} h={28} tone="primary" />
-      <Shape w={64} h={28} tone="secondary" />
-      <Shape w={64} h={28} tone="outline" />
+      <Shape w={64} h={28} fill="primary" />
+      <Shape w={64} h={28} fill="secondary" />
+      <Shape w={64} h={28} fill="outline" />
     </Row>
   ),
   'icon-button': (
     <Row>
-      <Shape w={32} h={32} tone="primary" />
-      <Shape w={32} h={32} tone="secondary" round="md" />
-      <Shape w={32} h={32} tone="outline" />
+      <Shape w={32} h={32} fill="primary" />
+      <Shape w={32} h={32} fill="secondary" round="md" />
+      <Shape w={32} h={32} fill="outline" />
     </Row>
   ),
   'button-group': (
     <Row gap={1}>
-      <Shape w={48} h={32} tone="primary" />
-      <Shape w={48} h={32} tone="secondary" round="sm" />
-      <Shape w={48} h={32} tone="secondary" round="sm" />
+      <Shape w={48} h={32} fill="primary" />
+      <Shape w={48} h={32} fill="secondary" round="sm" />
+      <Shape w={48} h={32} fill="secondary" round="sm" />
     </Row>
   ),
   'split-button': (
     <Row gap={1}>
-      <Shape w={72} h={32} tone="primary" />
-      <Shape w={32} h={32} tone="primary" />
+      <Shape w={72} h={32} fill="primary" />
+      <Shape w={32} h={32} fill="primary" />
     </Row>
   ),
   fab: (
     <Row gap={3}>
-      <Shape w={48} h={48} tone="primary" round="lg" />
-      <Shape w={96} h={48} tone="tertiary" round="lg" />
+      <Shape w={48} h={48} fill="primary" round="lg" />
+      <Shape w={96} h={48} fill="tertiary" round="lg" />
     </Row>
   ),
   'fab-menu': (
     <Col gap={1}>
-      <Shape w={88} h={28} tone="secondary" />
-      <Shape w={72} h={28} tone="secondary" />
+      <Shape w={88} h={28} fill="secondary" />
+      <Shape w={72} h={28} fill="secondary" />
       <Row>
-        <Shape w={40} h={40} tone="primary" />
+        <Shape w={40} h={40} fill="primary" />
       </Row>
     </Col>
   ),
   'reaction-picker': (
-    <Panel w={156} h={44} round="xl" tone="surface">
+    <Panel w={156} h={44} round="xl" fill="surface">
       <Row>
-        <Shape w={20} h={20} tone="tertiary" />
-        <Shape w={20} h={20} tone="secondary" />
-        <Shape w={20} h={20} tone="tertiary" />
-        <Shape w={20} h={20} tone="secondary" />
-        <Shape w={20} h={20} tone="tertiary" />
+        <Shape w={20} h={20} fill="tertiary" />
+        <Shape w={20} h={20} fill="secondary" />
+        <Shape w={20} h={20} fill="tertiary" />
+        <Shape w={20} h={20} fill="secondary" />
+        <Shape w={20} h={20} fill="tertiary" />
       </Row>
     </Panel>
   ),
   'reaction-summary': (
     <Row gap={1}>
-      <Shape w={20} h={20} tone="tertiary" />
-      <Shape w={20} h={20} tone="secondary" />
+      <Shape w={20} h={20} fill="tertiary" />
+      <Shape w={20} h={20} fill="secondary" />
       <Text w={24} strong />
     </Row>
   ),
@@ -211,7 +211,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     <span className="flex h-10 w-48 items-center rounded-corner-extra-small border-2 border-outline ps-3 pe-1.5">
       <Text w={104} strong />
       <span className="ms-auto">
-        <Shape w={26} h={26} tone="secondary" />
+        <Shape w={26} h={26} fill="secondary" />
       </span>
     </span>
   ),
@@ -237,16 +237,16 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'message-field': (
     <Row>
-      <Shape w={150} h={36} tone="high" />
-      <Shape w={36} h={36} tone="primary" />
+      <Shape w={150} h={36} fill="high" />
+      <Shape w={36} h={36} fill="primary" />
     </Row>
   ),
   'rich-message-field': (
-    <Panel w={190} h={64} round="lg" tone="high">
+    <Panel w={190} h={64} round="lg" fill="high">
       <Row gap={1}>
-        <Shape w={16} h={16} tone="variant" round="sm" />
-        <Shape w={16} h={16} tone="variant" round="sm" />
-        <Shape w={16} h={16} tone="variant" round="sm" />
+        <Shape w={16} h={16} fill="variant" round="sm" />
+        <Shape w={16} h={16} fill="variant" round="sm" />
+        <Shape w={16} h={16} fill="variant" round="sm" />
       </Row>
       <Text w={110} strong />
     </Panel>
@@ -254,7 +254,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   select: (
     <Col gap={1}>
       {field('outline')}
-      <Panel w={140} h={52} round="md" tone="surface">
+      <Panel w={140} h={52} round="md" fill="surface">
         <Text w={70} strong />
         <Text w={50} />
       </Panel>
@@ -262,15 +262,15 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   autocomplete: (
     <Row gap={1}>
-      <Shape w={52} h={24} tone="secondary" round="sm" />
-      <Shape w={52} h={24} tone="secondary" round="sm" />
+      <Shape w={52} h={24} fill="secondary" round="sm" />
+      <Shape w={52} h={24} fill="secondary" round="sm" />
       <Text w={40} strong />
     </Row>
   ),
   'file-trigger': (
     <Row>
-      <Shape w={36} h={36} tone="secondary" />
-      <Shape w={96} h={36} tone="outline" />
+      <Shape w={36} h={36} fill="secondary" />
+      <Shape w={96} h={36} fill="outline" />
     </Row>
   ),
   'image-crop': (
@@ -280,33 +280,33 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'media-upload-grid': (
     <Row gap={1}>
-      <Shape w={44} h={44} tone="tertiary" round="sm" />
-      <Shape w={44} h={44} tone="secondary" round="sm" />
+      <Shape w={44} h={44} fill="tertiary" round="sm" />
+      <Shape w={44} h={44} fill="secondary" round="sm" />
       <span className="grid size-11 place-items-center rounded-corner-small border-2 border-dashed border-outline" />
     </Row>
   ),
   'phone-field': (
     <Row gap={1}>
-      <Shape w={52} h={36} tone="outline" round="sm" />
-      <Shape w={110} h={36} tone="outline" round="sm" />
+      <Shape w={52} h={36} fill="outline" round="sm" />
+      <Shape w={110} h={36} fill="outline" round="sm" />
     </Row>
   ),
   'pin-input': (
     <Row gap={1}>
-      <Shape w={28} h={36} tone="outline" round="sm" />
-      <Shape w={28} h={36} tone="outline" round="sm" />
-      <Shape w={28} h={36} tone="outline" round="sm" />
-      <Shape w={28} h={36} tone="outline" round="sm" />
+      <Shape w={28} h={36} fill="outline" round="sm" />
+      <Shape w={28} h={36} fill="outline" round="sm" />
+      <Shape w={28} h={36} fill="outline" round="sm" />
+      <Shape w={28} h={36} fill="outline" round="sm" />
     </Row>
   ),
   checkbox: (
     <Col>
       <Row>
-        <Shape w={18} h={18} tone="primary" round="sm" />
+        <Shape w={18} h={18} fill="primary" round="sm" />
         <Text w={64} strong />
       </Row>
       <Row>
-        <Shape w={18} h={18} tone="outline" round="sm" />
+        <Shape w={18} h={18} fill="outline" round="sm" />
         <Text w={52} strong />
       </Row>
     </Col>
@@ -337,9 +337,9 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   slider: (
     <Row gap={1}>
-      <Shape w={90} h={16} tone="primary" round="sm" />
-      <Shape w={4} h={40} tone="primary" />
-      <Shape w={60} h={16} tone="secondary" round="sm" />
+      <Shape w={90} h={16} fill="primary" round="sm" />
+      <Shape w={4} h={40} fill="primary" />
+      <Shape w={60} h={16} fill="secondary" round="sm" />
     </Row>
   ),
   'media-time-slider': (
@@ -356,25 +356,25 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   chips: (
     <Row gap={1}>
-      <Shape w={56} h={28} tone="secondary" round="sm" />
-      <Shape w={56} h={28} tone="outline" round="sm" />
-      <Shape w={48} h={28} tone="outline" round="sm" />
+      <Shape w={56} h={28} fill="secondary" round="sm" />
+      <Shape w={56} h={28} fill="outline" round="sm" />
+      <Shape w={48} h={28} fill="outline" round="sm" />
     </Row>
   ),
   card: (
     <Row>
-      <Panel w={84} h={84} round="md" tone="high">
-        <Shape w={60} h={30} tone="tertiary" round="sm" />
+      <Panel w={84} h={84} round="md" fill="high">
+        <Shape w={60} h={30} fill="tertiary" round="sm" />
         <Text w={44} strong />
       </Panel>
-      <Panel w={84} h={84} round="md" tone="surface">
-        <Shape w={60} h={30} tone="secondary" round="sm" />
+      <Panel w={84} h={84} round="md" fill="surface">
+        <Shape w={60} h={30} fill="secondary" round="sm" />
         <Text w={44} strong />
       </Panel>
     </Row>
   ),
   dialog: (
-    <Panel w={170} h={96} round="xl" tone="high">
+    <Panel w={170} h={96} round="xl" fill="high">
       <Text w={90} strong />
       <Text w={130} />
       <span className="mt-auto flex justify-end gap-3">
@@ -384,9 +384,9 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     </Panel>
   ),
   'confirm-dialog': (
-    <Panel w={170} h={104} round="xl" tone="high">
+    <Panel w={170} h={104} round="xl" fill="high">
       <span className="flex flex-col items-center gap-2">
-        <Shape w={18} h={18} tone="tertiary" />
+        <Shape w={18} h={18} fill="tertiary" />
         <Text w={96} strong />
         <Text w={128} />
       </span>
@@ -398,16 +398,16 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   popover: (
     <Col gap={1}>
-      <Shape w={72} h={26} tone="secondary" />
-      <Panel w={150} h={70} round="md" tone="surface">
+      <Shape w={72} h={26} fill="secondary" />
+      <Panel w={150} h={70} round="md" fill="surface">
         <Text w={84} strong />
         <Text w={118} />
-        <Shape w={52} h={16} tone="primary" />
+        <Shape w={52} h={16} fill="primary" />
       </Panel>
     </Col>
   ),
   menu: (
-    <Panel w={124} h={96} round="md" tone="surface">
+    <Panel w={124} h={96} round="md" fill="surface">
       <Text w={80} strong />
       <Text w={64} strong />
       <Text w={72} strong />
@@ -419,7 +419,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       <span className="rounded-corner-extra-small bg-inverse-surface px-2 py-1.5">
         <span className="block h-1.5 w-14 rounded-full bg-inverse-on-surface" />
       </span>
-      <Shape w={32} h={32} tone="secondary" />
+      <Shape w={32} h={32} fill="secondary" />
     </Col>
   ),
   sheets: (
@@ -430,15 +430,15 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
       </span>
     </span>
   ),
-  list: listRows(3, <Shape w={28} h={28} tone="tertiary" />),
+  list: listRows(3, <Shape w={28} h={28} fill="tertiary" />),
   'list-detail-layout': (
     <Row gap={1}>
-      <Panel w={64} h={88} round="md" tone="high">
+      <Panel w={64} h={88} round="md" fill="high">
         <Text w={40} strong />
         <Text w={32} />
         <Text w={40} strong />
       </Panel>
-      <Panel w={112} h={88} round="md" tone="high">
+      <Panel w={112} h={88} round="md" fill="high">
         <Text w={70} strong />
         <Text w={88} />
         <Text w={80} />
@@ -447,19 +447,19 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   carousel: (
     <Row gap={1}>
-      <Shape w={92} h={84} tone="tertiary" round="xl" />
-      <Shape w={52} h={84} tone="secondary" round="xl" />
-      <Shape w={20} h={84} tone="high" round="xl" />
+      <Shape w={92} h={84} fill="tertiary" round="xl" />
+      <Shape w={52} h={84} fill="secondary" round="xl" />
+      <Shape w={20} h={84} fill="high" round="xl" />
     </Row>
   ),
   'media-grid': (
     <span className="grid grid-cols-3 gap-1">
-      <Shape w={40} h={40} tone="tertiary" round="sm" />
-      <Shape w={40} h={40} tone="secondary" round="sm" />
-      <Shape w={40} h={40} tone="high" round="sm" />
-      <Shape w={40} h={40} tone="secondary" round="sm" />
-      <Shape w={40} h={40} tone="high" round="sm" />
-      <Shape w={40} h={40} tone="tertiary" round="sm" />
+      <Shape w={40} h={40} fill="tertiary" round="sm" />
+      <Shape w={40} h={40} fill="secondary" round="sm" />
+      <Shape w={40} h={40} fill="high" round="sm" />
+      <Shape w={40} h={40} fill="secondary" round="sm" />
+      <Shape w={40} h={40} fill="high" round="sm" />
+      <Shape w={40} h={40} fill="tertiary" round="sm" />
     </span>
   ),
   'media-viewer': (
@@ -474,15 +474,15 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'shaped-icon': (
     <Row gap={3}>
-      <Shape w={40} h={40} tone="primary" round="lg" />
+      <Shape w={40} h={40} fill="primary" round="lg" />
       <span className="size-10 rotate-45 rounded-corner-medium bg-tertiary-container" />
-      <Shape w={40} h={40} tone="secondary" />
+      <Shape w={40} h={40} fill="secondary" />
     </Row>
   ),
   'comment-row': (
     <Row>
-      <Shape w={28} h={28} tone="tertiary" />
-      <Panel w={140} h={48} round="lg" tone="high">
+      <Shape w={28} h={28} fill="tertiary" />
+      <Panel w={140} h={48} round="lg" fill="high">
         <Text w={50} strong />
         <Text w={100} />
       </Panel>
@@ -494,7 +494,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
         <Text w={90} strong />
         <span className="size-3 rotate-45 border-e-2 border-b-2 border-on-surface-variant" />
       </Row>
-      <Panel w={150} h={44} round="md" tone="high">
+      <Panel w={150} h={44} round="md" fill="high">
         <Text w={110} />
         <Text w={80} />
       </Panel>
@@ -556,9 +556,9 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   avatar: (
     <Row gap={1}>
-      <Shape w={36} h={36} tone="tertiary" />
-      <Shape w={36} h={36} tone="secondary" />
-      <Shape w={36} h={36} tone="primary" />
+      <Shape w={36} h={36} fill="tertiary" />
+      <Shape w={36} h={36} fill="secondary" />
+      <Shape w={36} h={36} fill="primary" />
     </Row>
   ),
   badge: (
@@ -573,13 +573,13 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   tag: (
     <Row gap={1}>
-      <Shape w={52} h={20} tone="tertiary" round="sm" />
-      <Shape w={44} h={20} tone="secondary" round="sm" />
-      <Shape w={48} h={20} tone="outline" round="sm" />
+      <Shape w={52} h={20} fill="tertiary" round="sm" />
+      <Shape w={44} h={20} fill="secondary" round="sm" />
+      <Shape w={48} h={20} fill="outline" round="sm" />
     </Row>
   ),
   'code-block': (
-    <Panel w={150} h={72} round="md" tone="high">
+    <Panel w={150} h={72} round="md" fill="high">
       <Col gap={1}>
         <Row gap={1}>
           <span className="block h-1.5 w-8 rounded-full bg-primary" />
@@ -594,7 +594,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     </Panel>
   ),
   'props-table': (
-    <Panel w={150} h={72} round="md" tone="outline">
+    <Panel w={150} h={72} round="md" fill="outline">
       <Col gap={2}>
         <Row gap={2}>
           <Text w={30} strong />
@@ -652,7 +652,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'skip-link': (
     <Col gap={1}>
-      <Shape w={100} h={28} tone="primary" round="md" />
+      <Shape w={100} h={28} fill="primary" round="md" />
       <Text w={150} />
     </Col>
   ),
@@ -668,17 +668,17 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'navigation-rail': (
     <span className="flex h-24 w-16 flex-col items-center gap-2 rounded-corner-medium bg-surface-container py-2">
-      <Shape w={36} h={20} tone="secondary" />
-      <Shape w={20} h={20} tone="variant" round="sm" />
-      <Shape w={20} h={20} tone="variant" round="sm" />
+      <Shape w={36} h={20} fill="secondary" />
+      <Shape w={20} h={20} fill="variant" round="sm" />
+      <Shape w={20} h={20} fill="variant" round="sm" />
     </span>
   ),
   'navigation-rail-group': (
     <span className="flex h-24 items-stretch gap-1">
       <span className="flex w-14 flex-col items-center gap-2 rounded-corner-medium bg-surface-container py-2">
-        <Shape w={20} h={20} tone="variant" round="sm" />
-        <Shape w={36} h={20} tone="secondary" />
-        <Shape w={20} h={20} tone="variant" round="sm" />
+        <Shape w={20} h={20} fill="variant" round="sm" />
+        <Shape w={36} h={20} fill="secondary" />
+        <Shape w={20} h={20} fill="variant" round="sm" />
       </span>
       <span className="flex w-28 flex-col gap-2.5 rounded-corner-medium bg-surface-container-low p-3 shadow-elevation-1">
         <Text w={44} />
@@ -696,17 +696,17 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
         <Text w={72} />
       </span>
       <span className="flex w-10 shrink-0 flex-col items-center gap-2 bg-surface-container-low py-2">
-        <Shape w={24} h={24} tone="secondary" />
-        <Shape w={18} h={18} tone="variant" round="sm" />
-        <Shape w={18} h={18} tone="variant" round="sm" />
+        <Shape w={24} h={24} fill="secondary" />
+        <Shape w={18} h={18} fill="variant" round="sm" />
+        <Shape w={18} h={18} fill="variant" round="sm" />
       </span>
     </span>
   ),
   'navigation-bar': (
     <span className="flex h-12 w-48 items-center justify-around rounded-corner-medium bg-surface-container">
-      <Shape w={36} h={20} tone="secondary" />
-      <Shape w={20} h={20} tone="variant" round="sm" />
-      <Shape w={20} h={20} tone="variant" round="sm" />
+      <Shape w={36} h={20} fill="secondary" />
+      <Shape w={20} h={20} fill="variant" round="sm" />
+      <Shape w={20} h={20} fill="variant" round="sm" />
     </span>
   ),
   tabs: (
@@ -723,10 +723,10 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   'top-app-bar': (
     <span className="flex h-12 w-48 items-center gap-3 rounded-corner-medium bg-surface-container px-3">
-      <Shape w={18} h={18} tone="variant" round="sm" />
+      <Shape w={18} h={18} fill="variant" round="sm" />
       <Text w={80} strong />
       <span className="ms-auto">
-        <Shape w={18} h={18} tone="variant" round="sm" />
+        <Shape w={18} h={18} fill="variant" round="sm" />
       </span>
     </span>
   ),
@@ -738,16 +738,16 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   toolbars: (
     <span className="flex h-12 items-center gap-2 rounded-full bg-surface-container px-2 shadow-elevation-3">
-      <Shape w={28} h={28} tone="variant" />
-      <Shape w={28} h={28} tone="secondary" />
-      <Shape w={28} h={28} tone="variant" />
-      <Shape w={36} h={36} tone="primary" round="lg" />
+      <Shape w={28} h={28} fill="variant" />
+      <Shape w={28} h={28} fill="secondary" />
+      <Shape w={28} h={28} fill="variant" />
+      <Shape w={36} h={36} fill="primary" round="lg" />
     </span>
   ),
   alert: (
-    <Panel w={180} h={52} round="md" tone="tertiary">
+    <Panel w={180} h={52} round="md" fill="tertiary">
       <Row>
-        <Shape w={18} h={18} tone="surface" />
+        <Shape w={18} h={18} fill="surface" />
         <Col gap={1}>
           <Text w={90} strong />
           <Text w={120} />
@@ -764,8 +764,8 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   progress: (
     <Col gap={3}>
       <Row gap={1}>
-        <Shape w={100} h={4} tone="primary" />
-        <Shape w={50} h={4} tone="secondary" />
+        <Shape w={100} h={4} fill="primary" />
+        <Shape w={50} h={4} fill="secondary" />
       </Row>
       <span className="size-10 rounded-full border-4 border-secondary-container border-t-primary border-e-primary" />
     </Col>
@@ -774,7 +774,7 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     <Col gap={2}>
       <Text w={150} />
       <Text w={150} />
-      <Shape w={100} h={32} tone="outline" />
+      <Shape w={100} h={32} fill="outline" />
     </Col>
   ),
   'loading-indicator': (
@@ -793,24 +793,24 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   skeleton: (
     <Row>
-      <Shape w={36} h={36} tone="high" />
+      <Shape w={36} h={36} fill="high" />
       <Col gap={2}>
-        <Shape w={110} h={10} tone="high" round="sm" />
-        <Shape w={80} h={10} tone="high" round="sm" />
+        <Shape w={110} h={10} fill="high" round="sm" />
+        <Shape w={80} h={10} fill="high" round="sm" />
       </Col>
     </Row>
   ),
   'empty-state': (
     <Col gap={2}>
       <span className="mx-auto">
-        <Shape w={44} h={44} tone="secondary" round="lg" />
+        <Shape w={44} h={44} fill="secondary" round="lg" />
       </span>
       <Text w={90} strong />
       <Text w={120} />
     </Col>
   ),
   'date-picker': (
-    <Panel w={150} h={96} round="xl" tone="high">
+    <Panel w={150} h={96} round="xl" fill="high">
       <span className="grid grid-cols-6 gap-1.5">
         {Array.from({ length: 18 }, (_, index) => (
           <span
@@ -844,9 +844,9 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
     </span>
   ),
   'picker-dialog': (
-    <Panel w={150} h={96} round="xl" tone="high">
+    <Panel w={150} h={96} round="xl" fill="high">
       <Text w={70} strong />
-      <Shape w={120} h={28} tone="secondary" round="sm" />
+      <Shape w={120} h={28} fill="secondary" round="sm" />
       <span className="mt-auto flex justify-end gap-3">
         <Text w={28} strong />
         <Text w={28} strong />
@@ -855,9 +855,9 @@ export const COMPONENT_PREVIEWS: Record<string, ReactNode> = {
   ),
   primitives: (
     <Row gap={3}>
-      <Shape w={36} h={36} tone="primary" round="md" />
-      <Shape w={36} h={36} tone="secondary" />
-      <Shape w={36} h={36} tone="tertiary" round="sm" />
+      <Shape w={36} h={36} fill="primary" round="md" />
+      <Shape w={36} h={36} fill="secondary" />
+      <Shape w={36} h={36} fill="tertiary" round="sm" />
     </Row>
   ),
 };

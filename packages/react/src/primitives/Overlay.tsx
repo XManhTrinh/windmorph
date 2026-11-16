@@ -290,8 +290,25 @@ export function Overlay({
         // As React Aria's focus scope does before giving focus back: cancelled, the app took
         // the restore over (2026-11-16).
         const restore = new CustomEvent(RESTORE_FOCUS_EVENT, { bubbles: true, cancelable: true });
-        if (!back.dispatchEvent(restore)) return;
-        back.focus({ preventScroll: true });
+        if (back.dispatchEvent(restore)) {
+          back.focus({ preventScroll: true });
+          return;
+        }
+        // The app took it over, but focus may still be on <body> when React Aria's scope tries
+        // in its frame: its own event for the same element is answered as the app's was,
+        // so the app hears of the hand-back once.
+        const view = page.defaultView;
+        if (!view) return;
+        const repeat = (event: Event) => {
+          if (event.target !== back) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        };
+        view.addEventListener(RESTORE_FOCUS_EVENT, repeat, true);
+        // Queued after React Aria's frame, which the unmount queued before this microtask.
+        view.requestAnimationFrame(() =>
+          view.removeEventListener(RESTORE_FOCUS_EVENT, repeat, true),
+        );
       });
     };
   }, [focusedBefore, nested]);

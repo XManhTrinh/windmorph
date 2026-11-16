@@ -10,7 +10,9 @@ import { describe, expect, it } from 'vitest';
  * snippet string and in a descriptor's prop list, which the compiler can't see.
  */
 const site = join(dirname(fileURLToPath(import.meta.url)), '..');
-const ROOTS = ['content', 'examples', 'components/playground/descriptors'];
+// The whole site's source: pages and their shell (`app`), and the home page's and the
+// playground's components, as well as the content and examples (2026-11-16).
+const ROOTS = ['content', 'examples', 'components', 'app'];
 
 /** Old name → what replaced it. Each is matched as a whole word in code-like positions. */
 const REPLACED: Record<string, string> = {
@@ -146,18 +148,71 @@ function files(dir: string): string[] {
 /** Compose's own parameter names, which the "From Compose" mappings quote on purpose. */
 const withoutCompose = (line: string) => line.replace(/compose:\s*'[^']*'/g, '');
 
+/**
+ * The JSX element whose `<` is at `start`, up to its tag's own `>`, with whatever sits in
+ * braces blanked: its attributes as written, over however many lines, without an arrow's `>`
+ * or a nested element's attributes (`icon={<HomeIcon />}`) ending or joining it.
+ */
+export function elementAt(text: string, start: number): string {
+  let depth = 0;
+  let quote = '';
+  let element = '';
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index]!;
+    if (quote) {
+      if (char === quote) quote = '';
+    } else if (char === '{') {
+      depth += 1;
+    } else if (char === '}') {
+      depth -= 1;
+    } else if (depth === 0 && (char === '"' || char === "'")) {
+      quote = char;
+    } else if (depth === 0 && char === '>') {
+      return element + char;
+    }
+    element += depth > 0 || char === '}' ? ' ' : char;
+  }
+  return element;
+}
+
+/**
+ * The patterns that read a JSX element's attributes (`<Tag … attr=`), split into the tag and
+ * the attribute and matched element by element, since an element's attributes usually sit on
+ * lines of their own (2026-11-16: line by line, they passed).
+ */
+const ELEMENT_PATTERNS = OLD_PATTERNS.filter(([pattern]) => pattern.source.startsWith('<')).map(
+  ([pattern, now]) => {
+    const [tag, attribute] = pattern.source.split('[^>]*') as [string, string];
+    return {
+      tag: new RegExp(tag, 'g'),
+      attribute: new RegExp(attribute),
+      source: pattern.source,
+      now,
+    };
+  },
+);
+const LINE_PATTERNS = OLD_PATTERNS.filter(([pattern]) => !pattern.source.startsWith('<'));
+
 function findings(): string[] {
   const found: string[] = [];
   for (const root of ROOTS) {
     for (const file of files(root)) {
-      const lines = readFileSync(file, 'utf8').split('\n');
+      const text = readFileSync(file, 'utf8');
+      for (const { tag, attribute, source, now } of ELEMENT_PATTERNS) {
+        for (const match of text.matchAll(tag)) {
+          if (!attribute.test(elementAt(text, match.index))) continue;
+          const line = text.slice(0, match.index).split('\n').length;
+          found.push(`${relative(site, file)}:${line} ${source} (now ${now})`);
+        }
+      }
+      const lines = text.split('\n');
       lines.forEach((raw, index) => {
         const line = withoutCompose(raw);
         const where = `${relative(site, file)}:${index + 1}`;
         for (const [name, now] of Object.entries(REPLACED)) {
           if (asCode(name).test(line)) found.push(`${where} ${name} (now ${now})`);
         }
-        for (const [pattern, now] of OLD_PATTERNS) {
+        for (const [pattern, now] of LINE_PATTERNS) {
           if (pattern.test(line)) found.push(`${where} ${pattern.source} (now ${now})`);
         }
         for (const [scope, pattern, now] of SCOPED_PATTERNS) {
@@ -180,6 +235,24 @@ function findings(): string[] {
 describe('old public names in the docs', () => {
   it('finds the files it scans', () => {
     expect(ROOTS.flatMap(files).length).toBeGreaterThan(300);
+  });
+
+  // Line by line, an old attribute on a line of its own, as most of the site's JSX writes it,
+  // passed (2026-11-16).
+  it("reads an element's attributes over its lines, past nested elements and arrows", () => {
+    const source = [
+      '<NavigationRailItem',
+      '  icon={<HomeIcon />}',
+      '  onPress={() => go()}',
+      '  selected',
+      '/>',
+      '<NavigationRailItem icon={<Icon selected />} current />',
+    ].join('\n');
+    const nav = ELEMENT_PATTERNS.find(({ source: original }) => original.includes('Navigation'))!;
+    const hits = [...source.matchAll(nav.tag)].filter((match) =>
+      nav.attribute.test(elementAt(source, match.index)),
+    );
+    expect(hits.map((match) => match.index)).toEqual([0]);
   });
 
   it('shows none of the names the library replaced', () => {

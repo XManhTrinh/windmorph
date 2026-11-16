@@ -12,7 +12,7 @@ export function SwitchDensity() {
   return (
     <div className="grid w-full grid-cols-2 gap-6 medium:grid-cols-4">
       {DENSITIES.map((density) => (
-        <ThemeScope key={density} density={density} className="flex flex-col items-start gap-3">
+        <ThemeScope key={density} density={density} className="flex flex-col items-start gap-4">
           <p className="text-title-small">{`Density ${density}`}</p>
           <Switch defaultChecked>Wi-Fi</Switch>
           <Switch>Bluetooth</Switch>

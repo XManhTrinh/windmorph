@@ -586,6 +586,30 @@ describe('Carousel items that are links', () => {
     expect(scrollTo.mock.calls[1]![0].left).toBeGreaterThan(0);
   });
 
+  // A press set the flag that keeps a press's focus from moving the carousel, and only a key
+  // inside the carousel cleared it, so after a press and a press elsewhere, Tab back in left the
+  // item out of view (2026-11-16).
+  it('brings an item into view when Tab comes back after a press elsewhere', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    Element.prototype.scrollTo = scrollTo;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
+    render(
+      <>
+        <Carousel aria-label="Recipes" itemHref={(index) => `/recipes/${index}`}>
+          {slides(6)}
+        </Carousel>
+        <button type="button">After</button>
+      </>,
+    );
+    await user.click(screen.getByRole('link', { name: 'Slide 3' }));
+    await user.click(screen.getByRole('button', { name: 'After' }));
+    scrollTo.mockClear();
+    await user.tab({ shift: true });
+    expect(screen.getByRole('link', { name: 'Slide 5' })).toHaveFocus();
+    expect(scrollTo).toHaveBeenCalled();
+  });
+
   // The drag flag stayed set until the next press, so Enter on a link after a mouse drag
   // across the carousel opened nothing (2026-11-16).
   it('follows a link with Enter after a mouse drag across the carousel', async () => {

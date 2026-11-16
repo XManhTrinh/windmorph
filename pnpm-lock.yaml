@@ -433,8 +433,8 @@ importers:
         version: 5.1.0(@types/node@26.6.6)(jsdom@30.1.3)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0)(tsx@4.23.15))
     optionalDependencies:
       '@windmorph/react-pro':
-        specifier: github:XManhTrinh/windmorph-pro#083ef05dbc17da4dc3c916b656ab523cf415897e
-        version: git+https://github.com/XManhTrinh/windmorph-pro.git#083ef05dbc17da4dc3c916b656ab523cf415897e(93edfa3fe3315a11cc961392158c2f43)
+        specifier: github:XManhTrinh/windmorph-pro#db9dab86c50e9eadaac7f2a9932f87fef9233f2c
+        version: git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c(1697118efbe6f4a5f593dc7ce79c9576)
 
   packages/react:
     dependencies:
@@ -2809,8 +2809,8 @@ packages:
   '@webcontainer/env@1.1.1':
     resolution: {integrity: sha512-6aN99yL695Hi9SuIk1oC88l9o0gmxL1nGWWQ/kNy81HigJ0FoaoTXpytCj6ItzgyCEwA9kF1wixsTuv5cjsgng==}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#083ef05dbc17da4dc3c916b656ab523cf415897e':
-    resolution: {commit: 083ef05dbc17da4dc3c916b656ab523cf415897e, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c':
+    resolution: {commit: db9dab86c50e9eadaac7f2a9932f87fef9233f2c, repo: https://github.com/XManhTrinh/windmorph-pro.git, type: git}
     version: 0.2.8
     peerDependencies:
       '@tanstack/react-virtual': ^3.14.26
@@ -4440,18 +4440,6 @@ packages:
 
   tailwind-merge@3.7.0:
     resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
-
-  tailwind-variants@3.3.1:
-    resolution: {integrity: sha512-4pAvwUtM4HKBiRZftncAbpn6V9Hhwoa5Fl7O2u5zbp7Z5Cvu+/o/6+176WY3WCEES209543quG8zFIcXCsc5Jw==}
-    engines: {node: '>=16.9.x', pnpm: '>=7.x'}
-    peerDependencies:
-      tailwind-merge: '>=3.0.0'
-      tailwindcss: 4.3.3
-    peerDependenciesMeta:
-      tailwind-merge:
-        optional: true
-      tailwindcss:
-        optional: true
 
   tailwind-variants@4.0.2:
     resolution: {integrity: sha512-sZvOFkfe5LlYG/crRX5IvP3oUHmJPu+7WmrLQFvF0kCRq51C+lurlzFMm/jURG/5keT7VOJ/it0N3jkzYux85w==}
@@ -6750,7 +6738,7 @@ snapshots:
 
   '@webcontainer/env@1.1.1': {}
 
-  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#083ef05dbc17da4dc3c916b656ab523cf415897e(93edfa3fe3315a11cc961392158c2f43)':
+  '@windmorph/react-pro@git+https://github.com/XManhTrinh/windmorph-pro.git#db9dab86c50e9eadaac7f2a9932f87fef9233f2c(1697118efbe6f4a5f593dc7ce79c9576)':
     dependencies:
       '@internationalized/date': 3.12.4
       '@windmorph/react': link:packages/react
@@ -6760,7 +6748,7 @@ snapshots:
       react-aria: 3.53.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react-dom: 19.3.1(react@19.3.1)
       react-stately: 3.51.0(react@19.3.1)
-      tailwind-variants: 3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.3)
+      tailwind-variants: 4.0.2
     optionalDependencies:
       '@tanstack/react-virtual': 3.14.26(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@tiptap/core': 3.34.0(@tiptap/pm@3.34.0)
@@ -6774,8 +6762,6 @@ snapshots:
       '@tiptap/starter-kit': 3.34.0
       '@tiptap/suggestion': 3.34.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.34.0(@tiptap/pm@3.34.0))(@tiptap/pm@3.34.0)
       tailwindcss: 4.3.3
-    transitivePeerDependencies:
-      - tailwind-merge
     optional: true
 
   '@yuku-toolchain/darwin-arm64@0.27.0':
@@ -8662,12 +8648,6 @@ snapshots:
   supports-preserve-symlinks-flag@1.0.0: {}
 
   tailwind-merge@3.7.0: {}
-
-  tailwind-variants@3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.3):
-    optionalDependencies:
-      tailwind-merge: 3.7.0
-      tailwindcss: 4.3.3
-    optional: true
 
   tailwind-variants@4.0.2: {}
 

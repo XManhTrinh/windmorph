@@ -779,7 +779,7 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       contentPadding:
         'An object of start, end and cross padding, whose defaults change with the variant.',
       disabledIndexes:
-        'A list of item indexes, which only matters with `onAction`; see Items that open something.',
+        'A list of item indexes that neither act (with `onAction`) nor open their address (with `itemHref`); see Items that open something.',
       itemTarget:
         'Where the links of `itemHref` (a function) open; the preview has no links, see Items that are links.',
       itemRel:

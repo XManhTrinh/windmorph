@@ -28,8 +28,8 @@ export const avatar: ComponentAccessibility = {
     'On an avatar with a status ring the indicator moves out past the ring. In an `AvatarGroup`, the avatar that holds keyboard focus is drawn above the others, so no neighbour, ring or badge covers its indicator.',
   ],
   touchTarget: [
-    'Linked or pressable `xs`, `sm` and `md` avatars (24, 32 and 40px) get an invisible 48 × 48px touch target; their layout size stays the same. `lg`, `xl` and `2xl` (56, 72 and 96px) are already larger than 48px. Sizes and targets are in px, so they hold at larger text sizes.',
-    'When two or more avatars in an `AvatarGroup` are links or buttons (the "+N" one included), the group stops overlapping and spaces them 48px minus the avatar size apart (at least 4px), so their touch targets never overlap. Decorative avatars in a group let presses through to a link they overlap.',
+    'A linked or pressable avatar always has a touch target of at least 48 × 48px, invisible and outside its layout: `xs`, `sm` and `md` (24, 32 and 40px), a number below 48 (`size={28}`) and a size set from CSS (`--wm-avatar-size`) get one 48px square, and larger avatars are their own target. Sizes and targets are in px, so they hold at larger text sizes.',
+    'When two or more avatars in an `AvatarGroup` are links or buttons (the "+N" one included), the group stops overlapping and spaces them 48px minus the avatar size apart (at least 4px), so their touch targets never overlap; a size given as a number or from CSS is spaced the same way. Decorative avatars in a group let presses through to a link they overlap.',
   ],
   motion: [
     "A link or button avatar has the core's state layer: hover and focus fade it in, and a press spreads a ripple. Under reduced motion the ripple appears at full size without growing; the static avatar has no animation.",

@@ -383,7 +383,7 @@ describe('Slider changed by assistive technology', () => {
         onChangeEnd={onChangeEnd}
       />,
     );
-    // VoiceOver's increment (and a form reset) changes the hidden range input itself.
+    // VoiceOver's increment changes the hidden range input itself.
     fireEvent.change(screen.getByRole('slider'), { target: { value: '41' } });
     expect(onChange).toHaveBeenLastCalledWith(41);
     expect(onChangeEnd).toHaveBeenCalledWith(41);

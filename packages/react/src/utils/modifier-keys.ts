@@ -37,19 +37,31 @@ const guarded = new WeakSet<Document>();
 // event reaches the window.
 //
 // The pointer counts only while it was the last way focus moved, as React Aria decides it: a
-// focus with no key or pointer before it, or a click with no pointer, is a screen reader's or a
-// phone's form navigation (its virtual modality, which shows rings), and ends the pointer's
-// turn, so a modifier alone then leaves the rings showing (2026-11-16). React Aria's main entry
-// has no reader for its modality, so the guard follows the same events instead.
+// focus with no key, pointer or script before it, or a click with no pointer, is a screen
+// reader's or a phone's form navigation (its virtual modality, which shows rings), and ends the
+// pointer's turn, so a modifier alone then leaves the rings showing (2026-11-16). React Aria's
+// main entry has no reader for its modality, so the guard follows the same events, with React
+// Aria 3.53's rules: a script's `focus()` (a dialog focusing its first control as a press opens
+// it) counts as an event before focus, as React Aria wraps `focus` to count it; an untrusted
+// focus event counts for nothing; and the window's own focus, or blur, marks the element focus
+// that follows as a return to the window, which isn't a screen reader's either.
 function guard(page: Document) {
   const view = page.defaultView;
   if (!view || guarded.has(page)) return;
   guarded.add(page);
   let pointerLast = false;
-  // A key or pointer event since focus last moved, and a return to the window, which moves
-  // focus with no event before it but isn't a screen reader's.
   let eventBeforeFocus = false;
   let returning = false;
+  const focus = view.HTMLElement.prototype.focus;
+  // Defined, not assigned, as React Aria does: a test library may have made `focus` a getter.
+  Reflect.defineProperty(view.HTMLElement.prototype, 'focus', {
+    configurable: true,
+    writable: true,
+    value: function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
+      eventBeforeFocus = true;
+      focus.apply(this, args);
+    },
+  });
   const keepPointer = (event: KeyboardEvent) => {
     if (MODIFIERS.has(event.key) && pointerLast) setInteractionModality('pointer');
   };
@@ -69,10 +81,14 @@ function guard(page: Document) {
     true,
   );
   page.addEventListener('keyup', keepPointer, true);
-  page.addEventListener(
+  view.addEventListener(
     'focus',
     (event) => {
-      if (event.target === view || event.target === page) return;
+      if (event.target === view) {
+        returning = true;
+        return;
+      }
+      if (event.target === page || !event.isTrusted) return;
       if (!eventBeforeFocus && !returning) pointerLast = false;
       eventBeforeFocus = false;
       returning = false;
@@ -82,11 +98,17 @@ function guard(page: Document) {
   page.addEventListener(
     'click',
     (event) => {
-      if (event.detail === 0 && !(event as PointerEvent).pointerType) pointerLast = false;
+      if (event.detail === 0 && !(event as PointerEvent).pointerType) {
+        pointerLast = false;
+        eventBeforeFocus = true;
+      }
     },
     true,
   );
-  view.addEventListener('blur', () => (returning = true));
+  view.addEventListener('blur', () => {
+    eventBeforeFocus = false;
+    returning = true;
+  });
   view.addEventListener('keydown', keepPointer);
   view.addEventListener('keyup', keepPointer);
 }

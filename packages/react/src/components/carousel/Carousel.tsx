@@ -518,8 +518,18 @@ export function Carousel({
   // scrolled the item to its snap position, and a drag neither scrolled nor was ignored).
   const drag = useRef<{ start: number; scroll: number; id: number } | null>(null);
   const dragged = useRef(false);
+  // A press's focus, which never moves the carousel: it lasts until a key is pressed anywhere,
+  // or focus leaves the carousel, so focus that comes back by Tab after a press elsewhere
+  // reveals the item again (it stayed set until a key inside the carousel).
   const pointerFocus = useRef(false);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!pointerFocus.current) {
+      event.currentTarget.ownerDocument.addEventListener(
+        'keydown',
+        () => (pointerFocus.current = false),
+        { capture: true, once: true },
+      );
+    }
     pointerFocus.current = true;
     dragged.current = false;
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
@@ -684,6 +694,9 @@ export function Carousel({
         onDragStartCapture={onDragStart}
         onKeyDownCapture={onKeyDownCapture}
         onKeyDown={onKeyDown}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) pointerFocus.current = false;
+        }}
         style={
           {
             gap: itemSpacing,

@@ -137,9 +137,10 @@ jobs:
         run: |
           if [ -n "$PRO_READ_TOKEN" ]; then
             git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+            # Removed however the step ends, a failed install included.
+            trap 'git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true' EXIT
           fi
           pnpm install --frozen-lockfile
-          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       # The same checks as CI's build-and-check job.
       - name: Check formatting

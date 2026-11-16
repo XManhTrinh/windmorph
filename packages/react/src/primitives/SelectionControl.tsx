@@ -76,13 +76,16 @@ export function SelectionControl({
   children,
   ref,
   className,
-  styles = selectionControlStyles(),
+  styles: stylesProp,
   classNames,
   style,
   controlStyle,
   controlProps,
-  controlPlacement = 'start',
+  controlPlacement: placementProp,
 }: SelectionControlProps) {
+  // The recipe knows the two placements; anything else is the default, the control first.
+  const controlPlacement = placementProp === 'end' ? 'end' : 'start';
+  const styles = stylesProp ?? selectionControlStyles({ controlPlacement });
   const hiddenInputRef = useMemo(() => mergeRefs(inputRef, preventHiddenInputScroll), [inputRef]);
   // Every press starts a fresh (centred) ripple on the control, as in Compose.
   const restart = (label: HTMLElement) => {

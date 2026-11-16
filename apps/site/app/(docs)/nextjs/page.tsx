@@ -233,7 +233,9 @@ export default async function NextjsPage() {
           <li>
             Client links are one line: <InlineCode>NextRouterProvider</InlineCode> wraps React
             Aria’s <InlineCode>RouterProvider</InlineCode> with the Next router’s{' '}
-            <InlineCode>push</InlineCode>.
+            <InlineCode>push</InlineCode>. Give it <InlineCode>basePath</InlineCode> and{' '}
+            <InlineCode>trailingSlash</InlineCode> when <InlineCode>next.config</InlineCode> sets
+            them, so a link’s address is the one Next’s own <InlineCode>Link</InlineCode> writes.
           </li>
         </ul>
       </section>

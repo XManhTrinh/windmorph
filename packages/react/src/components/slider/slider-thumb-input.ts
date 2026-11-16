@@ -33,7 +33,7 @@ export interface SliderThumbInputOptions {
 /**
  * React Aria's thumb input props (`useSliderThumb`'s `inputProps`) made right for assistive
  * technology: named by a visible label that names the group, with no empty descriptions, and
- * with a change of the native input (a screen reader's step, a form reset) committed as a
+ * with a change of the native input (a screen reader's step) committed as a
  * key's is, so `onChangeEnd` comes.
  */
 export function sliderThumbInputProps(

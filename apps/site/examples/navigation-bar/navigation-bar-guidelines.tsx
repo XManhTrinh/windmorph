@@ -29,12 +29,12 @@ const SIX: Destination[] = [
   { label: 'Settings', icon: <SettingsIcon /> },
 ];
 
-function Bar({ items, selected }: { items: Destination[]; selected: readonly string[] }) {
+function Bar({ items, current }: { items: Destination[]; current: readonly string[] }) {
   return (
     <div className="w-full max-w-96 overflow-hidden rounded-corner-large border border-outline-variant">
       <NavigationBar aria-label="Example">
         {items.map(({ label, icon }) => (
-          <NavigationBarItem key={label} icon={icon} current={selected.includes(label)}>
+          <NavigationBarItem key={label} icon={icon} current={current.includes(label)}>
             {label}
           </NavigationBarItem>
         ))}
@@ -45,20 +45,20 @@ function Bar({ items, selected }: { items: Destination[]; selected: readonly str
 
 /** Do: three to five destinations. */
 export function NavigationBarDoFour() {
-  return <Bar items={FOUR} selected={['Home']} />;
+  return <Bar items={FOUR} current={['Home']} />;
 }
 
 /** Don't: more than five destinations. */
 export function NavigationBarDontSix() {
-  return <Bar items={SIX} selected={['Home']} />;
+  return <Bar items={SIX} current={['Home']} />;
 }
 
 /** Do: the active indicator on the current destination only. */
 export function NavigationBarDoOneActive() {
-  return <Bar items={FOUR} selected={['Search']} />;
+  return <Bar items={FOUR} current={['Search']} />;
 }
 
 /** Don't: the active indicator on several destinations. */
 export function NavigationBarDontManyActive() {
-  return <Bar items={FOUR} selected={['Home', 'Starred']} />;
+  return <Bar items={FOUR} current={['Home', 'Starred']} />;
 }

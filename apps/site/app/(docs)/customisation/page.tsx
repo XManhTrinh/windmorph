@@ -50,9 +50,9 @@ import type { VariantProps } from '@windmorph/react';
 const brandButton = tv({
   extend: buttonStyles,
   variants: {
-    tone: { brand: 'bg-tertiary text-on-tertiary', muted: 'bg-surface-container' },
+    color: { brand: 'bg-tertiary text-on-tertiary', muted: 'bg-surface-container' },
   },
-  defaultVariants: { tone: 'brand' },
+  defaultVariants: { color: 'brand' },
 });
 
 type BrandButtonProps = VariantProps<typeof brandButton>;`;
