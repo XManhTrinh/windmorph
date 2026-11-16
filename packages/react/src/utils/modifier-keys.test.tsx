@@ -81,6 +81,89 @@ describe('modifier keys pressed alone', () => {
     expect(cancel).not.toHaveAttribute('data-focus-visible');
   });
 
+  // React Aria shows the ring of the invalid field a failed form check moves focus to; a
+  // modifier alone put the pointer's modality back over it (2026-11-16).
+  it('leave the ring of an invalid field a form check focuses', async () => {
+    render(
+      <>
+        <Button>Send</Button>
+        <input aria-label="Email" required />
+      </>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    // What React Aria's form validation does with the first invalid field.
+    await act(async () => {
+      email.dispatchEvent(new Event('invalid', { cancelable: true }));
+      email.focus();
+      setInteractionModality('keyboard');
+      await Promise.resolve();
+    });
+    const steps = [getInteractionModality()];
+    await userEvent.keyboard('{Alt}');
+    steps.push(getInteractionModality());
+    expect(steps).toEqual(['keyboard', 'keyboard']);
+  });
+
+  // React Aria's unload teardown put the browser's `focus` back, without the guard's wrapper,
+  // for good: the script focus above showed a ring again (2026-11-16).
+  it('keep counting a script focus after React Aria sets its focus tracking up again', async () => {
+    const { rerender } = render(<Button>Open</Button>);
+    // A `beforeunload` the page stays on: React Aria tears its tracking down, and sets it up
+    // again as a component renders.
+    act(() => {
+      window.dispatchEvent(new Event('beforeunload'));
+    });
+    rerender(
+      <>
+        <Button>Open</Button>
+        <Button>Cancel</Button>
+      </>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    const cancel = screen.getByRole('button', { name: 'Cancel' });
+    act(() => cancel.focus());
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('pointer');
+    expect(cancel).not.toHaveAttribute('data-focus-visible');
+  });
+
+  it("still reaches the browser's focus when its wrapper is wrapped in turn", async () => {
+    render(
+      <>
+        <Button>Open</Button>
+        <Button>Cancel</Button>
+      </>,
+    );
+    // Another script wraps `focus` over the guard's, as React Aria does when it sets up after it.
+    const below = HTMLElement.prototype.focus;
+    const wrapped = vi.fn(function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
+      below.apply(this, args);
+    });
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+      configurable: true,
+      writable: true,
+      value: wrapped,
+    });
+    try {
+      // The press wraps the guard's wrapper over it again: a call reaches both, once each.
+      await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+      wrapped.mockClear();
+      act(() => cancel.focus());
+      expect(cancel).toHaveFocus();
+      expect(wrapped).toHaveBeenCalledTimes(1);
+      await userEvent.keyboard('{Alt}');
+      expect(getInteractionModality()).toBe('pointer');
+    } finally {
+      Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+        configurable: true,
+        writable: true,
+        value: below,
+      });
+    }
+  });
+
   it('keep the pointer through a held modifier, and leave the keyboard alone', async () => {
     render(<Button>Save</Button>);
     const button = screen.getByRole('button', { name: 'Save' });
