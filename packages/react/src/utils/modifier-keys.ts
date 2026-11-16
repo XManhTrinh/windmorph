@@ -60,7 +60,7 @@ const GUARD = Symbol.for('@windmorph/react/modifier-keys-guard');
 // check that moves focus to an invalid field ends the pointer's turn, as React Aria shows that
 // field's ring.
 function guard(page: Document) {
-  const view = page.defaultView as (Window & { [GUARD]?: true }) | null;
+  const view = page.defaultView as (Window & typeof globalThis & { [GUARD]?: true }) | null;
   if (!view || view[GUARD]) return;
   view[GUARD] = true;
   let pointerLast = false;
