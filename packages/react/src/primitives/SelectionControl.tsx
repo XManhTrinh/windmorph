@@ -124,7 +124,7 @@ export function SelectionControl({
         <TouchTarget />
         {indicator}
       </span>
-      {controlPlacement === 'start' && label}
+      {controlPlacement !== 'end' && label}
     </label>
   );
 }

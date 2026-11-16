@@ -274,6 +274,7 @@ interface RadioOwnProps
   /**
    * Where the radio button sits beside its label: `start` (before it) or `end` (after it, the
    * label growing to fill the row). Left out, the group's applies.
+   * With `end` the root carries `data-control-placement="end"`, for styling.
    * @default "start"
    */
   controlPlacement?: ControlPlacement;
