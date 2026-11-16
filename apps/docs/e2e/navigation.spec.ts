@@ -13,25 +13,34 @@ const indicator = (item: Locator) => item.locator(':scope > span > span').first(
 type Box = { x: number; y: number; width: number };
 
 /**
- * Records `target`'s box every frame from just before `act` until it has been still for a
- * while (or 1.5s), so a test can see where it was mid-transition.
+ * Records `target`'s box every frame for 1.5s from the press `act` makes, so a test can see
+ * where it was mid-transition.
  */
 async function sampleWhile(page: Page, target: Locator, act: () => Promise<void>) {
   const handle = await target.elementHandle();
+  // From the press on, for 1.5s of frames: started before `act`, a click that waited on a busy
+  // machine could land after the sampling had ended, with no frame of the motion (2026-11-16).
   await page.evaluate((el) => {
-    const samples: Box[] = [];
-    (window as unknown as { __samples: Box[] }).__samples = samples;
-    const start = performance.now();
-    const tick = () => {
+    const sampling = { samples: [] as Box[], done: false };
+    (window as unknown as { __sampling: typeof sampling }).__sampling = sampling;
+    const sample = (start: number) => {
       const { x, y, width } = el!.getBoundingClientRect();
-      samples.push({ x, y, width });
-      if (performance.now() - start < 1500) requestAnimationFrame(tick);
+      sampling.samples.push({ x, y, width });
+      if (performance.now() - start < 1500) requestAnimationFrame(() => sample(start));
+      else sampling.done = true;
     };
-    requestAnimationFrame(tick);
+    document.addEventListener('pointerdown', () => sample(performance.now()), {
+      capture: true,
+      once: true,
+    });
   }, handle);
   await act();
-  await page.waitForTimeout(1600);
-  return page.evaluate(() => (window as unknown as { __samples: Box[] }).__samples);
+  await page.waitForFunction(
+    () => (window as unknown as { __sampling: { done: boolean } }).__sampling.done,
+  );
+  return page.evaluate(
+    () => (window as unknown as { __sampling: { samples: Box[] } }).__sampling.samples,
+  );
 }
 
 /**

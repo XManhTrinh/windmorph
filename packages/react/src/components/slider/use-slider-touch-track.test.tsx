@@ -64,6 +64,46 @@ describe('Slider touch on the track', () => {
     expect(onChangeEnd).toHaveBeenCalledWith(25);
   });
 
+  // The gesture kept the state of the render it began in (2026-11-16).
+  it('drops a tap still pending when the slider turns off, and reads the range as it is now', () => {
+    const onChangeEnd = vi.fn();
+    const { rerender } = render(
+      <Slider aria-label="Level" defaultValue={80} onChangeEnd={onChangeEnd} data-testid="t" />,
+    );
+    const track = screen.getByTestId('t').firstElementChild as HTMLElement;
+    vi.spyOn(track, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ x: 0, y: 0, width: 200, height: 44 }),
+    );
+    fireEvent(track, touch('pointerdown', 50, 20));
+    rerender(
+      <Slider
+        aria-label="Level"
+        defaultValue={80}
+        onChangeEnd={onChangeEnd}
+        data-testid="t"
+        disabled
+      />,
+    );
+    rerender(
+      <Slider aria-label="Level" defaultValue={80} onChangeEnd={onChangeEnd} data-testid="t" />,
+    );
+    act(() => window.dispatchEvent(touch('pointerup', 50, 20)));
+    expect(onChangeEnd).not.toHaveBeenCalled();
+    // A range that changes while a finger is down: the tap lands on the new one.
+    fireEvent(track, touch('pointerdown', 50, 20));
+    rerender(
+      <Slider
+        aria-label="Level"
+        defaultValue={80}
+        max={200}
+        onChangeEnd={onChangeEnd}
+        data-testid="t"
+      />,
+    );
+    act(() => window.dispatchEvent(touch('pointerup', 50, 20)));
+    expect(onChangeEnd).toHaveBeenCalledWith(50);
+  });
+
   it('drags the thumb once the touch moves along the track', () => {
     const { track, input, onChangeEnd } = setup();
     fireEvent(track, touch('pointerdown', 100, 20));

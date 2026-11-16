@@ -4,7 +4,7 @@ import { createContext, type RefObject } from 'react';
 import type { OverlayTriggerState } from 'react-stately';
 
 /** What a `DialogTrigger` gives its `Dialog`. */
-export interface DialogTriggerContextValue {
+interface DialogTriggerContextValue {
   state: OverlayTriggerState;
   /** Links the dialog to its trigger (`aria-controls`). */
   overlayProps: { id?: string };

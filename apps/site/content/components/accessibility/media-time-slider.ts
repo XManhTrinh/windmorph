@@ -12,7 +12,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
   ],
   keyboardNotes: [
     'Right to left, Arrow Left moves forward and Arrow Right back, as the bar runs from the right.',
-    'Each key calls `onChange` and `onChangeEnd`, so a player seeks once per key press.',
+    'Each key calls `onChangeEnd` (and `onChange` when it moves the position), so a player seeks once per key press.',
   ],
   screenReader: {
     role: 'A `slider` (a native range input) inside a `group`.',
@@ -22,7 +22,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
     notes: [
       'The time bubble, the bar and its loaded parts are hidden from assistive tech (`aria-hidden`); the value says the same.',
       "A screen reader's step (VoiceOver's swipe up or down) moves `step` seconds and seeks, as a key does.",
-      "While it has focus, its value and words stay where the person last put it during playback, so a screen reader doesn't announce the time every second; each key, step or drag refreshes them, and they follow playback again once focus leaves.",
+      "While it has focus, its value and words stay where the person last put it during playback, so a screen reader doesn't announce the time every second; each move key (one that changes nothing included), step or drag refreshes them, the length's words stay still as a stream grows, and they follow playback again once focus leaves. When the next media's length is unknown, the reading starts again from its own position.",
     ],
   },
   focus: [
@@ -40,7 +40,7 @@ export const mediaTimeSlider: ComponentAccessibility = {
     'Name it with `aria-label` ("Position", "Seek") or `aria-labelledby` the title of what plays.',
     'Translate `labels.position`, or set it once for the app with a {@link LabelsProvider}; the unit words come from the locale.',
     'Seek in `onChangeEnd`, and keep updating `value` from the media as it plays.',
-    "Give the slider a new `key` (the media's address) when it shows new media, so nothing held for the last one carries over.",
+    "Pass the media element's `duration` as it is: its `NaN` while the next media loads lets go of what was held for the last one. Keep the slider mounted rather than giving it a new `key`, which would drop focus on it to the page.",
     'Translate `labels.unknownLength` too.',
     'Leave about 40px above the bar for the bubble, or let it overflow.',
   ],

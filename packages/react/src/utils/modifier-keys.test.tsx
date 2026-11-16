@@ -6,6 +6,8 @@ import { setInteractionModality } from 'react-aria';
 import { getInteractionModality } from 'react-aria/private/interactions/useFocusVisible';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Button } from '../components/button/Button';
+import { SelectItem } from '../components/select/option-list';
+import { Select } from '../components/select/Select';
 
 // The guard's own calls, counted; React Aria's internal ones don't go through the export.
 vi.mock('react-aria', async (importOriginal) => {
@@ -79,6 +81,173 @@ describe('modifier keys pressed alone', () => {
     await userEvent.keyboard('{Alt}');
     expect(getInteractionModality()).toBe('pointer');
     expect(cancel).not.toHaveAttribute('data-focus-visible');
+  });
+
+  // React Aria shows the ring of the invalid field a failed form check moves focus to; a
+  // modifier alone put the pointer's modality back over it (2026-11-16).
+  it('leave the ring of the first invalid field a form check finds', async () => {
+    render(
+      <form>
+        <input aria-label="Email" required />
+        <Button>Send</Button>
+      </form>,
+    );
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await act(async () => {
+      email.closest('form')!.checkValidity();
+      // What React Aria's form validation does with the form's first invalid field.
+      email.focus();
+      setInteractionModality('keyboard');
+      await Promise.resolve();
+    });
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('keyboard');
+  });
+
+  // A Select's form validation focuses its trigger, which isn't the invalid element (its hidden
+  // select is), and React Aria shows that ring all the same (2026-11-16).
+  it('leave the ring React Aria shows on a Select a form check finds', async () => {
+    render(
+      <form>
+        <Select label="Size" name="size" required validationBehavior="native">
+          <SelectItem key="s">Small</SelectItem>
+        </Select>
+        <Button>Send</Button>
+      </form>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Send' }));
+    act(() => {
+      document.querySelector('form')!.checkValidity();
+    });
+    expect(screen.getByRole('button', { name: /Size/ })).toHaveFocus();
+    expect(getInteractionModality()).toBe('keyboard');
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('keyboard');
+  });
+
+  it("still reaches the browser's focus when its wrapper is wrapped in turn", async () => {
+    render(
+      <>
+        <Button>Open</Button>
+        <Button>Cancel</Button>
+      </>,
+    );
+    // Another script wraps `focus` over the guard's, as React Aria does when it sets up after it.
+    const below = HTMLElement.prototype.focus;
+    const wrapped = vi.fn(function (this: HTMLElement, ...args: Parameters<HTMLElement['focus']>) {
+      below.apply(this, args);
+    });
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+      configurable: true,
+      writable: true,
+      value: wrapped,
+    });
+    try {
+      // The press leaves it there, the guard's wrapper under it: a call reaches both, once each.
+      await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+      const cancel = screen.getByRole('button', { name: 'Cancel' });
+      wrapped.mockClear();
+      act(() => cancel.focus());
+      expect(cancel).toHaveFocus();
+      expect(wrapped).toHaveBeenCalledTimes(1);
+      await userEvent.keyboard('{Alt}');
+      expect(getInteractionModality()).toBe('pointer');
+    } finally {
+      Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+        configurable: true,
+        writable: true,
+        value: below,
+      });
+    }
+  });
+
+  // Round 3 wrapped `focus` again on every press, over whatever was there: a test's stub,
+  // restored later only as a property, kept being called, and two copies of the library stacked
+  // a wrap a press each (2026-11-16).
+  it('never takes over a stub put on focus after it', async () => {
+    render(
+      <>
+        <Button>Open</Button>
+        <input aria-label="Name" />
+      </>,
+    );
+    // A test's own stub, put back by hand afterwards.
+    const before = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'focus')!;
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', {
+      configurable: true,
+      writable: true,
+      value: () => {},
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+    Reflect.defineProperty(HTMLElement.prototype, 'focus', before);
+    const name = screen.getByRole('textbox', { name: 'Name' });
+    act(() => name.focus());
+    expect(name).toHaveFocus();
+  });
+
+  it('is one guard a page, which keeps every copy of the library in step', async () => {
+    render(<Button>Open</Button>);
+    const focus = HTMLElement.prototype.focus;
+    vi.resetModules();
+    // A copy bundled apart, with a React Aria of its own.
+    const copy = await import('./modifier-keys');
+    const copysSetter = vi.mocked((await import('react-aria')).setInteractionModality);
+    function Other() {
+      copy.useModifierKeysGuard();
+      return null;
+    }
+    render(<Other />);
+    expect(HTMLElement.prototype.focus).toBe(focus);
+    // Each copy's React Aria is kept in step: the page's guard sets every setter it was given.
+    const mark = (window as unknown as Record<symbol, { setters: Set<unknown> }>)[
+      Symbol.for('@windmorph/react/modifier-keys-guard')
+    ]!;
+    expect(mark.setters.has(copysSetter)).toBe(true);
+    const another = vi.fn();
+    mark.setters.add(another);
+    try {
+      await userEvent.click(screen.getByRole('button', { name: 'Open' }));
+      await userEvent.keyboard('{Alt}');
+      expect(another).toHaveBeenCalledWith('pointer');
+    } finally {
+      mark.setters.delete(another);
+    }
+  });
+
+  // A field checked as focus leaves it (its blur calling `checkValidity`) fires `invalid` in
+  // the same task as the press's focus: that focus isn't React Aria's to the invalid field.
+  it('keep the pointer when a press leaves a field a check finds invalid', async () => {
+    render(
+      <>
+        <input aria-label="Email" required />
+        <Button>Next</Button>
+      </>,
+    );
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    const next = screen.getByRole('button', { name: 'Next' });
+    act(() => email.focus());
+    fireEvent.pointerDown(next);
+    // The browser runs React Aria's microtask after the `invalid` listeners, before the focus.
+    await act(async () => {
+      email.dispatchEvent(new Event('invalid', { cancelable: true }));
+      await Promise.resolve();
+      next.focus();
+    });
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('pointer');
+  });
+
+  // A Tab from the browser's address bar reaches the page only as its key comes up, which React
+  // Aria counts as keyboard use: Option alone hid that ring (2026-11-16).
+  it('count a key that only comes up, as React Aria does', async () => {
+    render(<Button>Save</Button>);
+    const save = screen.getByRole('button', { name: 'Save' });
+    await userEvent.click(save);
+    fireEvent.keyUp(save, { key: 'Tab' });
+    expect(getInteractionModality()).toBe('keyboard');
+    await userEvent.keyboard('{Alt}');
+    expect(getInteractionModality()).toBe('keyboard');
   });
 
   it('keep the pointer through a held modifier, and leave the keyboard alone', async () => {

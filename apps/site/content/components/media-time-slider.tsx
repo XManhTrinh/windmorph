@@ -9,7 +9,7 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['root', 'track', 'buffered', 'played', 'thumb', 'bubble'];
+const SLOTS = ['root', 'track', 'buffered', 'played', 'thumb', 'bubbleAnchor', 'bubble'];
 
 /** MediaTimeSlider page body: examples, when to use it, behaviour, parts and tokens. */
 export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
@@ -72,10 +72,13 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               moment to seek. While dragged, and after a seek until <InlineCode>value</InlineCode>{' '}
               lands within a second of where it was put (two seconds at most, for a seek the player
               refused), it shows where it was put, so the player&apos;s time updates neither fight a
-              drag nor pull the handle back before the seek lands. A change of{' '}
-              <InlineCode>duration</InlineCode> lets a held seek go, never a drag, and so does a
-              form reset; give the slider a new <InlineCode>key</InlineCode> (the media&apos;s
-              address, say) when it shows new media.
+              drag nor pull the handle back before the seek lands. A known length that changes (a
+              stream growing) lets a held seek go, never a drag, and so does a form reset. A new
+              media&apos;s length is unknown while it loads, which lets go of everything held for
+              the last one, a drag included: pass the media element&apos;s{' '}
+              <InlineCode>duration</InlineCode> as it is, and keep the slider mounted rather than
+              giving it a new <InlineCode>key</InlineCode>, which would drop focus on it to the
+              page.
             </li>
             <li>
               A screen reader&apos;s step (one step of the native input, as VoiceOver&apos;s swipe

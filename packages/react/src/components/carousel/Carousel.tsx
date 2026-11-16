@@ -25,6 +25,7 @@ import {
 } from '../../primitives/use-m3-interaction';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
+import { isModifierAlone } from '../../utils/modifier-keys';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
 import { routedHref } from '../../utils/routed-href';
 import {
@@ -519,16 +520,26 @@ export function Carousel({
   const drag = useRef<{ start: number; scroll: number; id: number } | null>(null);
   const dragged = useRef(false);
   // A press's focus, which never moves the carousel: it lasts until a key is pressed anywhere,
-  // or focus leaves the carousel, so focus that comes back by Tab after a press elsewhere
-  // reveals the item again (it stayed set until a key inside the carousel).
+  // so focus that comes back by Tab after a press elsewhere reveals the item again (it stayed
+  // set until a key inside the carousel), while focus that comes back with no key (the window
+  // regaining it, a dialog the pointer closed) leaves the carousel where the press left it. A
+  // modifier alone isn't a key here (a window or tab switcher starts with one).
   const pointerFocus = useRef(false);
+  const stopListening = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopListening.current?.(), []);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!pointerFocus.current) {
-      event.currentTarget.ownerDocument.addEventListener(
-        'keydown',
-        () => (pointerFocus.current = false),
-        { capture: true, once: true },
-      );
+    if (!stopListening.current) {
+      const page = event.currentTarget.ownerDocument;
+      const onKey = (key: globalThis.KeyboardEvent) => {
+        if (isModifierAlone(key)) return;
+        pointerFocus.current = false;
+        stopListening.current?.();
+      };
+      page.addEventListener('keydown', onKey, true);
+      stopListening.current = () => {
+        page.removeEventListener('keydown', onKey, true);
+        stopListening.current = null;
+      };
     }
     pointerFocus.current = true;
     dragged.current = false;
@@ -569,8 +580,10 @@ export function Carousel({
   // the next press inside the carousel, so Enter on an item after a drag did nothing
   // (2026-11-16); a key press clears it too, for a browser whose Enter click has a `detail`.
   const endsDrag = (pointer: boolean) => pointer && dragged.current;
-  const onKeyDownCapture = () => {
-    dragged.current = false;
+  // A key ends a drag's hold on the next activation, but not a modifier alone, pressed
+  // mid-drag (a Command or Control click's start), whose click would then open the item.
+  const onKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!isModifierAlone(event.nativeEvent)) dragged.current = false;
   };
 
   // Brings a focused item into view: keylined carousels scroll it to its snap position
@@ -618,7 +631,7 @@ export function Carousel({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    pointerFocus.current = false;
+    if (!isModifierAlone(event.nativeEvent)) pointerFocus.current = false;
     const target = event.target as HTMLElement;
     const index = focusRefs.current.indexOf(target);
     if (index < 0) return;
@@ -694,9 +707,6 @@ export function Carousel({
         onDragStartCapture={onDragStart}
         onKeyDownCapture={onKeyDownCapture}
         onKeyDown={onKeyDown}
-        onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) pointerFocus.current = false;
-        }}
         style={
           {
             gap: itemSpacing,

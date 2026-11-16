@@ -27,8 +27,8 @@ function readProps(name: string): PropsRecord[] | undefined {
 
 /** Props whose value only an event outside the prop's own handler moves. */
 const MOVED_BY: Record<string, Record<string, string>> = {
-  NavigationBarItem: { selected: 'onPress' },
-  NavigationRailItem: { selected: 'onPress' },
+  NavigationBarItem: { current: 'onPress', selected: 'onPress' },
+  NavigationRailItem: { current: 'onPress', selected: 'onPress' },
 };
 
 /** Each element of a snippet that sets a controlled prop without its handler. */

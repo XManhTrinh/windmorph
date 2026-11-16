@@ -3,7 +3,7 @@ import { MediaTimeSlider } from '@windmorph/react-pro';
 /**
  * Loaded ranges as `[start, end]` pairs (a media element's `buffered` works as is); an hour-long
  * lecture, whose bubble writes `h:mm:ss`; and a media whose length isn't known yet
- * (`duration` is `NaN` until its metadata loads), which is disabled. Rest the pointer on a bar
+ * (`duration` is `NaN` until its metadata loads), which can't be moved. Rest the pointer on a bar
  * to see the time under it.
  */
 export function MediaTimeSliderStates() {

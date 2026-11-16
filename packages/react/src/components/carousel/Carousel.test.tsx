@@ -334,6 +334,8 @@ describe('Carousel', () => {
     ]);
     expect(scroller.scrollLeft).toBe(40);
     expect(scroller).toHaveAttribute('data-dragging');
+    // A modifier pressed mid-drag isn't the keyboard taking over: the drag still never acts.
+    fireEvent.keyDown(item, { key: 'Meta', metaKey: true });
     await user.pointer({
       keys: '[/MouseLeft]',
       target: item,
@@ -608,6 +610,44 @@ describe('Carousel items that are links', () => {
     await user.tab({ shift: true });
     expect(screen.getByRole('link', { name: 'Slide 5' })).toHaveFocus();
     expect(scrollTo).toHaveBeenCalled();
+  });
+
+  // Focus coming back after a press, as the window regains it or a dialog the pointer closed
+  // hands it back, left the press's flag cleared and moved the carousel back (2026-11-16).
+  it('stays where a press left it when focus comes back to the item', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    Element.prototype.scrollTo = scrollTo;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
+    render(
+      <>
+        <Carousel aria-label="Recipes" itemHref={(index) => `/recipes/${index}`}>
+          {slides(6)}
+        </Carousel>
+        <button type="button">Close</button>
+      </>,
+    );
+    const item = screen.getByRole('link', { name: 'Slide 3' });
+    await user.click(item);
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    scrollTo.mockClear();
+    act(() => item.focus());
+    expect(item).toHaveFocus();
+    expect(scrollTo).not.toHaveBeenCalled();
+    // A window switcher by keyboard (Command or Alt with Tab) sends its modifier alone to the
+    // page first: still no key, so focus coming back leaves the carousel where it was.
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.keyboard('{Meta}{Alt}{Control}');
+    act(() => item.focus());
+    expect(scrollTo).not.toHaveBeenCalled();
+    // And with the pressed item itself focused, as it usually is when the switcher starts.
+    await user.click(item);
+    await user.keyboard('{Meta}');
+    act(() => {
+      item.blur();
+      item.focus();
+    });
+    expect(scrollTo).not.toHaveBeenCalled();
   });
 
   // The drag flag stayed set until the next press, so Enter on a link after a mouse drag

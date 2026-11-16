@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useRef, type HTMLAttributes, type PointerEvent, type RefObject } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type HTMLAttributes,
+  type PointerEvent,
+  type RefObject,
+} from 'react';
 import type { SliderState } from 'react-stately';
 
 /** How far a touch moves along the track before it drags the slider (Android's touch slop). */
@@ -68,6 +75,17 @@ export function useSliderTouchTrack(
   const vertical = orientation === 'vertical';
   const cleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => cleanup.current?.(), []);
+  // A gesture outlives the render it began in: its moves and its release read the state as it
+  // is now (a range that changed, a media's length that grew), and a touch still waiting to
+  // tell a tap from a drag is dropped once the slider turns off, so it never sets a value the
+  // slider no longer takes (2026-11-16: it kept the press's state, and a held tap set the old
+  // range's value when the slider came back).
+  const current = useRef(state);
+  const dropPending = useRef<(() => void) | null>(null);
+  useLayoutEffect(() => {
+    current.current = state;
+    if (disabled) dropPending.current?.();
+  });
 
   /** The track's corner in px (`--m3-slider-corner`, which a token may set as any length). */
   const cornerOf = (track: HTMLElement) => {
@@ -123,9 +141,9 @@ export function useSliderTouchTrack(
       } catch {
         // The pointer may already be gone.
       }
-      state.setFocusedThumb(index);
-      state.setThumbDragging(index, true);
-      state.setThumbPercent(index, percent);
+      current.current.setFocusedThumb(index);
+      current.current.setThumbDragging(index, true);
+      current.current.setThumbPercent(index, percent);
     };
     // The mouse (on a discrete slider) sets the value as it goes down and drags from there,
     // as React Aria does; a touch waits to tell a tap, a drag and a scroll apart.
@@ -146,26 +164,26 @@ export function useSliderTouchTrack(
         if (across >= TOUCH_SLOP && across >= along) return end();
         if (along < TOUCH_SLOP || along <= across) return;
         const percent = percentAt(e.clientX, e.clientY, corner);
-        const index = closestThumb(state, state.getPercentValue(percent));
-        if (!state.isThumbEditable(index)) return end();
+        const index = closestThumb(current.current, current.current.getPercentValue(percent));
+        if (!current.current.isThumbEditable(index)) return end();
         startDragging(index, percent);
         return;
       }
-      state.setThumbPercent(dragging, percentAt(e.clientX, e.clientY, corner));
+      current.current.setThumbPercent(dragging, percentAt(e.clientX, e.clientY, corner));
     };
     const up = (e: globalThis.PointerEvent) => {
       if (e.pointerId !== pointerId) return;
       if (dragging !== null) {
-        state.setThumbDragging(dragging, false);
+        current.current.setThumbDragging(dragging, false);
       } else {
         // A tap: the nearest thumb jumps to it on release.
-        const value = state.getPercentValue(percentAt(e.clientX, e.clientY, corner));
-        const index = closestThumb(state, value);
-        if (state.isThumbEditable(index)) {
-          state.setFocusedThumb(index);
-          state.setThumbDragging(index, true);
-          state.setThumbValue(index, value);
-          state.setThumbDragging(index, false);
+        const value = current.current.getPercentValue(percentAt(e.clientX, e.clientY, corner));
+        const index = closestThumb(current.current, value);
+        if (current.current.isThumbEditable(index)) {
+          current.current.setFocusedThumb(index);
+          current.current.setThumbDragging(index, true);
+          current.current.setThumbValue(index, value);
+          current.current.setThumbDragging(index, false);
         }
       }
       end();
@@ -173,10 +191,11 @@ export function useSliderTouchTrack(
     // The browser took the touch to scroll: nothing changes.
     const cancel = (e: globalThis.PointerEvent) => {
       if (e.pointerId !== pointerId) return;
-      if (dragging !== null) state.setThumbDragging(dragging, false);
+      if (dragging !== null) current.current.setThumbDragging(dragging, false);
       end();
     };
     function end() {
+      dropPending.current = null;
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', cancel);
@@ -186,6 +205,9 @@ export function useSliderTouchTrack(
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', cancel);
     cleanup.current = end;
+    dropPending.current = () => {
+      if (dragging === null) end();
+    };
   };
 
   return {
