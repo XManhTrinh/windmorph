@@ -242,7 +242,7 @@ function FileTriggerPreview(props: Record<string, unknown>) {
           ...rest,
           ...(capture !== 'none' && { capture }),
           accept: ['image/*', '.pdf'],
-          onSelect: (files: File[]) => setChosen(files.map((file) => file.name)),
+          onFileAccept: (files: File[]) => setChosen(files.map((file) => file.name)),
         },
         <Button variant="tonal" leadingIcon={<AddAPhotoIcon />}>
           Choose files
@@ -294,7 +294,7 @@ function MediaUploadGridPreview({
         'aria-label': 'Photos in your post',
         items,
         accept: ['image/*'],
-        onAdd: (files: File[]) =>
+        onFileAccept: (files: File[]) =>
           setItems((current) => [
             ...current,
             ...files.map((file) => ({
@@ -494,7 +494,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
     codeImports: ["import { Button } from '@windmorph/react';"],
     codeSlots: {
       accept: "['image/*', '.pdf']",
-      onSelect: '(files) => console.log(files)',
+      onFileAccept: '(files) => console.log(files)',
     },
     codeChildren: '<Button variant="tonal">Choose files</Button>',
   },
@@ -608,7 +608,7 @@ export const INPUTS_PRO_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
       'aria-label': '"Photos in your post"',
       items:
         "[\n    { key: 'hills', previewUrl: '/photos/hills.jpg', alt: 'Hills under a blue sky', status: 'done' },\n    { key: 'rocks', previewUrl: '/photos/rocks.jpg', alt: 'Red rocks at dawn', status: 'uploading', progress: 0.4 },\n  ]",
-      onAdd: '(files) => console.log(files)',
+      onFileAccept: '(files) => console.log(files)',
     },
   },
   'phone-field': {

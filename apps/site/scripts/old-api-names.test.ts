@@ -115,6 +115,8 @@ const SCOPED: [RegExp, Record<string, string>][] = [
   // Windmorph Pro's 0.2.9 names, where the old one is also an everyday word.
   [/(?:^|\/)file-trigger(?:[-./]|$)/, { onSelect: 'onFileAccept' }],
   [/(?:^|\/)media-upload-grid(?:[-./]|$)/, { onAdd: 'onFileAccept' }],
+  // The playground's descriptors of Pro's inputs, FileTrigger's and MediaUploadGrid's among them.
+  [/(?:^|\/)descriptors\/inputs-pro\.tsx$/, { onSelect: 'onFileAccept', onAdd: 'onFileAccept' }],
 ];
 
 /**
