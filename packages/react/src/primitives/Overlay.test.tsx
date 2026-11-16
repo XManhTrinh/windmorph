@@ -346,6 +346,11 @@ describe('Overlay', () => {
         await Promise.resolve();
         expect(restores).toEqual([opener]);
         expect(opener).not.toHaveFocus();
+        // React Aria's scope tries a frame later, with focus still on <body>: the app hears of
+        // the hand-back once, and focus stays where the app leaves it.
+        await act(() => new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve))));
+        expect(restores).toEqual([opener]);
+        expect(opener).not.toHaveFocus();
       } finally {
         document.removeEventListener('react-aria-focus-scope-restore', takeOver);
       }
