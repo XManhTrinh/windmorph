@@ -70,8 +70,20 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               <InlineCode>onChange</InlineCode> follows every move of a drag;{' '}
               <InlineCode>onChangeEnd</InlineCode> comes when the drag ends or a key moves it: the
               moment to seek. While dragged, and after a seek until <InlineCode>value</InlineCode>{' '}
-              next changes, it shows where it was put, so the player&apos;s time updates neither
-              fight a drag nor pull the handle back before the seek lands.
+              lands within a second of where it was put (two seconds at most, for a seek the player
+              refused), it shows where it was put, so the player&apos;s time updates neither fight a
+              drag nor pull the handle back before the seek lands. A change of{' '}
+              <InlineCode>duration</InlineCode> lets a held seek go, never a drag, and so does a
+              form reset; give the slider a new <InlineCode>key</InlineCode> (the media&apos;s
+              address, say) when it shows new media.
+            </li>
+            <li>
+              A screen reader&apos;s step (one step of the native input, as VoiceOver&apos;s swipe
+              up or down) moves <InlineCode>step</InlineCode> seconds and seeks, as a key does.
+              While the slider has focus, the value screen readers read stays where the person last
+              put it, so playback doesn&apos;t make it speak every second; it refreshes on each key,
+              step or drag, and follows playback again once focus leaves. The handle on screen keeps
+              moving.
             </li>
             <li>
               A bubble shows the time under the pointer before a press, and the handle&apos;s time
@@ -88,7 +100,12 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
             <li>
               Until the length is known (<InlineCode>duration</InlineCode>{' '}
               <InlineCode>0</InlineCode> or <InlineCode>NaN</InlineCode>, as a media element&apos;s
-              before its metadata loads) it is disabled.
+              before its metadata loads), and with <InlineCode>Infinity</InlineCode>, a live
+              stream&apos;s, it can&apos;t be moved: it is marked{' '}
+              <InlineCode>aria-disabled</InlineCode>, reads{' '}
+              <InlineCode>labels.unknownLength</InlineCode> and leaves the Tab order, but focus
+              already on it stays as the next media loads. <InlineCode>disabled</InlineCode> turns
+              it off fully.
             </li>
           </ul>
         </section>
