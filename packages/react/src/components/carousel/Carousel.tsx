@@ -26,6 +26,7 @@ import {
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { routedHref } from '../../utils/routed-href';
 import {
   createStrategy,
   heroKeylineList,
@@ -828,8 +829,10 @@ function CarouselLinkItem({
         }}
         // As ButtonBase's disabled link: no address, so a middle click or "Open in new tab"
         // can't go there either, but still a link (an `a` without one loses the role), named
-        // and, as a disabled plain item, a tab stop (2026-11-16).
-        href={disabled ? undefined : href}
+        // and, as a disabled plain item, a tab stop. Otherwise the router's address (a
+        // `RouterProvider`'s `useHref`), not the raw `href`, so a new tab or a copied link keeps
+        // the app's base path (2026-11-16).
+        href={disabled ? undefined : routedHref(linkProps)}
         {...(disabled && { role: 'link', tabIndex: 0 })}
         target={target}
         rel={rel}

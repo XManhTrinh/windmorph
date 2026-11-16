@@ -78,6 +78,7 @@ import type { ControlPlacement } from '../../primitives/selection-control-styles
 import { densityAttribute, type Density } from '../../tokens/density';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
+import { routedHref } from '../../utils/routed-href';
 import { warnOnce } from '../../utils/warn-once';
 import { listStyles, type ListDividers, type ListVariant } from './list-styles';
 import { ListMediaContext } from './ListMedia';
@@ -2265,7 +2266,9 @@ function LinkItem({
               {...mergeProps(linkProps, focusProps)}
               {...naming}
               ref={linkRef}
-              href={href}
+              // The router's address (a `RouterProvider`'s `useHref`), not the raw `href`, so a
+              // new tab or a copied link keeps the app's base path (2026-11-16).
+              href={routedHref(linkProps)}
               target={item.target}
               rel={rel}
               download={item.download}

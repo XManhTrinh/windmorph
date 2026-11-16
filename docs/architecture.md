@@ -364,6 +364,7 @@ Adaptive components (Navigation rail ↔ Flexible navigation bar, dialogs ↔ fu
   - **Tooltips that repeat the name** don't describe: `Fab`, a collapsed `ExtendedFab` and a closed `FabMenu` drop `aria-describedby` as `IconButton` does (`WithoutDescription` in `tooltip-trigger.tsx`).
   - **48px hit areas without layout changes:** an xs / sm `Slider`'s track takes presses 2px past its 44px (a transparent `::before` under its parts); the `TimePicker`'s AM / PM options reach 48px away from each other (the options round their own outer corners, so the selector no longer clips them); a small `Carousel` item narrower than 48px gets a press area under its mask, grown into the spacing (half next to another growing item, all of it otherwise, the other way at the viewport's edge; `carousel-press-area.ts`), and a masked carousel's slots take no presses outside their visible item. **Not changed:** menu, `Select` and `Autocomplete` option rows stay 44px at density 0 (M3 Expressive's menu token); they're stacked full width with no gap, so a 48px hit area would overlap the neighbouring row, and they meet WCAG 2.5.8 (24px).
 - Links (`href`) use client-side routing via React Aria `RouterProvider`.
+  - **The router's address** (2026-11-16): a link renders the `href` React Aria's link hooks resolve through the router's `useHref` (a base path), read from `useLink`'s props by `utils/routed-href.ts`, since React Aria's router hooks aren't in its public entry; `ButtonBase`, `ListItem` link items and Carousel link items rendered the raw `href`, so a new tab or a copied link lost the base path. Every `href` goes through it, fragments included, as in React Aria's own links. `NextRouterProvider` takes `basePath` for a Next app's.
 
 ### Expressive Button family (API fixed from day one)
 
@@ -1146,7 +1147,7 @@ An **override matrix** in CI: every component rendered with `fixed`, `absolute`,
 - **No theme flash**:
   - Cookie (recommended): `getThemeFromCookies()` from `@windmorph/react/next` → render `<html data-theme data-mode data-contrast data-motion>` on the server.
   - Script: `<ThemeScript />` in `<head>` for static/exported sites (`suppressHydrationWarning` on `<html>`).
-- `<NextRouterProvider>` — one-line client routing integration.
+- `<NextRouterProvider>` — one-line client routing integration (`basePath` for an app's `next.config` one).
 - Roboto Flex via `next/font`, wired to `--md-ref-typeface-*`.
 - No `transpilePackages` needed (ships compiled ESM).
 

@@ -21,6 +21,7 @@ import {
 } from 'react-aria';
 import { useToggleState, type ToggleGroupState } from 'react-stately';
 import { isDraggedAttribute } from '../utils/dragged-attribute';
+import { routedHref } from '../utils/routed-href';
 import { ToggleGroupStateContext } from './ToggleGroupStateContext';
 import { TriggerContext, type TriggerContextValue } from './TriggerContext';
 import { useM3Interaction } from './use-m3-interaction';
@@ -286,8 +287,9 @@ function LinkBase({ ref, href, ...props }: ButtonBaseLinkProps & ButtonBasePendi
       {...pendingAttributes(pending, domRest)}
       {...element}
       // A pending link stays a link (role and tab stop); only a disabled one drops `href`, and
-      // keeps the role an `a` loses without one, so it can still be named.
-      href={disabled ? undefined : href}
+      // keeps the role an `a` loses without one, so it can still be named. The address is the
+      // router's (a `RouterProvider`'s `useHref`), not the raw `href` (2026-11-16).
+      href={disabled ? undefined : routedHref(linkProps)}
       {...(disabled && dom.role === undefined && { role: 'link' })}
       ref={domRef}
     >
