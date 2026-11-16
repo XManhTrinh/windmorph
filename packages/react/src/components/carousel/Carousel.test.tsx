@@ -638,6 +638,14 @@ describe('Carousel items that are links', () => {
     await user.keyboard('{Meta}{Alt}{Control}');
     act(() => item.focus());
     expect(scrollTo).not.toHaveBeenCalled();
+    // And with the pressed item itself focused, as it usually is when the switcher starts.
+    await user.click(item);
+    await user.keyboard('{Meta}');
+    act(() => {
+      item.blur();
+      item.focus();
+    });
+    expect(scrollTo).not.toHaveBeenCalled();
   });
 
   // The drag flag stayed set until the next press, so Enter on a link after a mouse drag

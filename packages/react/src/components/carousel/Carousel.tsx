@@ -629,7 +629,7 @@ export function Carousel({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    pointerFocus.current = false;
+    if (!isModifierAlone(event.nativeEvent)) pointerFocus.current = false;
     const target = event.target as HTMLElement;
     const index = focusRefs.current.indexOf(target);
     if (index < 0) return;
