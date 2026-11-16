@@ -4,7 +4,7 @@ import { HomeIcon, SearchIcon, SendIcon, StarIcon, StarOutlineIcon } from '../..
 const DESTINATIONS = [
   { id: 'home', label: 'Home', icon: <HomeIcon /> },
   { id: 'search', label: 'Search', icon: <SearchIcon /> },
-  { id: 'starred', label: 'Starred', icon: <StarOutlineIcon />, selectedIcon: <StarIcon /> },
+  { id: 'starred', label: 'Starred', icon: <StarOutlineIcon />, currentIcon: <StarIcon /> },
   { id: 'sent', label: 'Sent mail', icon: <SendIcon /> },
 ];
 
@@ -29,11 +29,11 @@ export function RailStates() {
             divider
             className="h-full"
           >
-            {DESTINATIONS.map(({ id, label, icon, selectedIcon }, index) => (
+            {DESTINATIONS.map(({ id, label, icon, currentIcon }, index) => (
               <NavigationRailItem
                 key={id}
                 icon={icon}
-                currentIcon={selectedIcon}
+                currentIcon={currentIcon}
                 {...(id === 'search' && { badge: <Badge>3</Badge>, badgeLabel: '3 new results' })}
                 current={index === 2}
                 disabled={index === 3}
