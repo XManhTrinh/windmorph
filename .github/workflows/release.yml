@@ -35,7 +35,7 @@ jobs:
   select-mode:
     name: Select mode
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
@@ -69,7 +69,7 @@ jobs:
     needs: select-mode
     if: ${{ needs.select-mode.outputs.mode == 'version' }}
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       pull-requests: write
@@ -109,11 +109,9 @@ jobs:
     needs: select-mode
     if: ${{ needs.select-mode.outputs.mode == 'publish' }}
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env:
-      PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
     outputs:
       pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
     steps:
@@ -131,13 +129,17 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
-      # Lets pnpm fetch Windmorph Pro from its private repo (see ci.yml).
-      - name: Allow installing Windmorph Pro
-        if: ${{ env.PRO_READ_TOKEN != '' }}
-        run: git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
-
+      # Fetches Windmorph Pro from its private repo with the read token (see ci.yml), which only
+      # this step sees: the address rewrite that carries it goes once the install is done.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        env:
+          PRO_READ_TOKEN: ${{ secrets.PRO_READ_TOKEN }}
+        run: |
+          if [ -n "$PRO_READ_TOKEN" ]; then
+            git config --global url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro".insteadOf "https://github.com/XManhTrinh/windmorph-pro"
+          fi
+          pnpm install --frozen-lockfile
+          git config --global --remove-section url."https://x-access-token:${PRO_READ_TOKEN}@github.com/XManhTrinh/windmorph-pro" 2>/dev/null || true
 
       # The same checks as CI's build-and-check job.
       - name: Check formatting
@@ -161,7 +163,7 @@ jobs:
     name: Publish to npm
     needs: pack
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: npm
     permissions:
       contents: write
