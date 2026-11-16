@@ -610,6 +610,30 @@ describe('Carousel items that are links', () => {
     expect(scrollTo).toHaveBeenCalled();
   });
 
+  // Focus coming back after a press, as the window regains it or a dialog the pointer closed
+  // hands it back, left the press's flag cleared and moved the carousel back (2026-11-16).
+  it('stays where a press left it when focus comes back to the item', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.fn();
+    Element.prototype.scrollTo = scrollTo;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(360);
+    render(
+      <>
+        <Carousel aria-label="Recipes" itemHref={(index) => `/recipes/${index}`}>
+          {slides(6)}
+        </Carousel>
+        <button type="button">Close</button>
+      </>,
+    );
+    const item = screen.getByRole('link', { name: 'Slide 3' });
+    await user.click(item);
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    scrollTo.mockClear();
+    act(() => item.focus());
+    expect(item).toHaveFocus();
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
+
   // The drag flag stayed set until the next press, so Enter on a link after a mouse drag
   // across the carousel opened nothing (2026-11-16).
   it('follows a link with Enter after a mouse drag across the carousel', async () => {

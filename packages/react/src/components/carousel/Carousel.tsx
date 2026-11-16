@@ -519,8 +519,9 @@ export function Carousel({
   const drag = useRef<{ start: number; scroll: number; id: number } | null>(null);
   const dragged = useRef(false);
   // A press's focus, which never moves the carousel: it lasts until a key is pressed anywhere,
-  // or focus leaves the carousel, so focus that comes back by Tab after a press elsewhere
-  // reveals the item again (it stayed set until a key inside the carousel).
+  // so focus that comes back by Tab after a press elsewhere reveals the item again (it stayed
+  // set until a key inside the carousel), while focus that comes back with no key (the window
+  // regaining it, a dialog the pointer closed) leaves the carousel where the press left it.
   const pointerFocus = useRef(false);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!pointerFocus.current) {
@@ -694,9 +695,6 @@ export function Carousel({
         onDragStartCapture={onDragStart}
         onKeyDownCapture={onKeyDownCapture}
         onKeyDown={onKeyDown}
-        onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) pointerFocus.current = false;
-        }}
         style={
           {
             gap: itemSpacing,
