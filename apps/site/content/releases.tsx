@@ -34,6 +34,145 @@ const CORE_PAGE_COUNT = COMPONENT_META.filter(
  */
 export const RELEASES: Release[] = [
   {
+    version: '0.2.9',
+    date: '2026-11-16',
+    summary: (
+      <>
+        One name for each idea across the library (the old names still work), links that show the
+        router&apos;s address, overlays that show in full screen, and a modifier key pressed alone
+        that no longer brings back a focus ring. In Windmorph Pro,{' '}
+        <InlineCode>MediaTimeSlider</InlineCode>, a media player&apos;s position bar, and an{' '}
+        <InlineCode>Avatar</InlineCode> of any size.
+      </>
+    ),
+    sections: [
+      {
+        title: 'Components',
+        items: [
+          <>
+            A <InlineCode>Carousel</InlineCode>&apos;s items can be links (
+            <InlineCode>itemHref</InlineCode>, with <InlineCode>itemTarget</InlineCode> and{' '}
+            <InlineCode>itemRel</InlineCode>), one tab stop each, that a modifier or the context
+            menu opens in a new tab. Each item says its size (<InlineCode>data-size</InlineCode> and
+            how open it is), so words over an item can fade as it shrinks, and{' '}
+            <InlineCode>onFocalChange</InlineCode> names the item in the large place.
+          </>,
+          <>
+            <InlineCode>controlPlacement=&quot;end&quot;</InlineCode> on{' '}
+            <InlineCode>Switch</InlineCode>, <InlineCode>Checkbox</InlineCode>,{' '}
+            <InlineCode>Radio</InlineCode> and <InlineCode>RadioGroup</InlineCode>: a settings row
+            with its words at the start and its control at the end, the whole row being the label.
+          </>,
+          <>
+            <InlineCode>valueText</InlineCode> on <InlineCode>Slider</InlineCode> and{' '}
+            <InlineCode>RangeSlider</InlineCode> says the value in words for screen readers, such as
+            a time; a screen reader&apos;s own change now calls <InlineCode>onChangeEnd</InlineCode>
+            , as a key does.
+          </>,
+          <>
+            <InlineCode>ThemeScope</InlineCode> takes <InlineCode>as=&quot;span&quot;</InlineCode>{' '}
+            for content that takes only phrasing content, and{' '}
+            <InlineCode>NextRouterProvider</InlineCode> takes the app&apos;s{' '}
+            <InlineCode>basePath</InlineCode> and <InlineCode>trailingSlash</InlineCode>.
+          </>,
+          <>
+            For sliders built on React Aria outside the library,{' '}
+            <InlineCode>@windmorph/react/primitives</InlineCode> has the Slider&apos;s touch
+            handling (<InlineCode>useSliderTouchTrack</InlineCode>) and its thumb helpers (
+            <InlineCode>sliderThumbInputProps</InlineCode>,{' '}
+            <InlineCode>sliderArrowRaises</InlineCode>).
+          </>,
+        ],
+      },
+      {
+        title: 'One name for each idea',
+        items: [
+          <>
+            Props that had two names now have the library&apos;s one:{' '}
+            <InlineCode>heroAlign</InlineCode>, <InlineCode>verticalAlign</InlineCode> and{' '}
+            <InlineCode>itemAlign</InlineCode>; <InlineCode>current</InlineCode> and{' '}
+            <InlineCode>currentIcon</InlineCode> on navigation items, which mark the page the app is
+            on; <InlineCode>onClose</InlineCode> on <InlineCode>Snackbar</InlineCode>; and{' '}
+            <InlineCode>openDelay</InlineCode> on tooltip and submenu triggers. The old names still
+            work, struck through in editors, and go in a later minor release.
+          </>,
+          <>
+            A <InlineCode>Snackbar</InlineCode> given <InlineCode>onClose</InlineCode> now shows its
+            close button: the name used to reach the page as an attribute and did nothing.
+          </>,
+        ],
+      },
+      {
+        title: 'Fixes',
+        items: [
+          <>
+            Links inside a <InlineCode>RouterProvider</InlineCode> with a{' '}
+            <InlineCode>useHref</InlineCode> (an app&apos;s base path) show the router&apos;s
+            address, so a new tab, a copied link or a crawler reaches the right page.
+          </>,
+          <>
+            Tooltips, menus, sheets and dialogs show while an element is in full screen, and stay
+            put as full screen starts or ends. Closing an overlay gives focus back without passing
+            through the page, and icon buttons in an overlay show their own tooltips again.
+          </>,
+          <>
+            A modifier key pressed alone (Option on a Mac, Caps Lock anywhere) no longer shows the
+            focus ring of a control a pointer focused; a screen reader&apos;s rings, and an invalid
+            field&apos;s after a form check, stay.
+          </>,
+          <>
+            Touch targets that overlapped are apart: a <InlineCode>RadioGroup</InlineCode>&apos;s
+            options and a multiple <InlineCode>Autocomplete</InlineCode>&apos;s chip rows are 48px
+            apart, top to top, and a scrolling <InlineCode>ChipSet</InlineCode> shows a focused end
+            chip&apos;s whole ring.
+          </>,
+          <>
+            Escape in an <InlineCode>Autocomplete</InlineCode> list inside a bottom sheet closes
+            only the list. In a <InlineCode>Carousel</InlineCode>, Enter after a mouse drag
+            activates the item, a drag that starts on a picture scrolls, and focus that comes back
+            after a press leaves the carousel where it was. A touch on a{' '}
+            <InlineCode>Slider</InlineCode> reads the slider as it is now.
+          </>,
+          <>
+            The recipes run on tailwind-variants 4 with the same classes as before, and the library
+            needs React Aria 3.53.1 and React Stately 3.51.0 or later.
+          </>,
+        ],
+      },
+      {
+        title: 'Windmorph Pro',
+        items: [
+          <>
+            <InlineCode>MediaTimeSlider</InlineCode>, a media player&apos;s position bar: a thin bar
+            that grows under the pointer, the loaded ranges, a time bubble, the position in words,
+            keys and a screen reader&apos;s step by <InlineCode>step</InlineCode> seconds, and a
+            handle that holds where it was put until the seek lands. While it has focus, the time
+            screen readers read stays still during playback.
+          </>,
+          <>
+            <InlineCode>Avatar</InlineCode> and <InlineCode>AvatarGroup</InlineCode> take any size
+            in px, or <InlineCode>--wm-avatar-size</InlineCode> from CSS, with a 48px touch target
+            and a group&apos;s spacing that follow it; a rectangle <InlineCode>Skeleton</InlineCode>{' '}
+            takes a <InlineCode>ratio</InlineCode>, standing for a picture before it loads.
+          </>,
+          <>
+            Pro speaks the same names: <InlineCode>headingLevel</InlineCode>,{' '}
+            <InlineCode>onFileAccept</InlineCode>, <InlineCode>loadingIndicator</InlineCode> and{' '}
+            <InlineCode>endMessage</InlineCode>, <InlineCode>title</InlineCode> on{' '}
+            <InlineCode>Popover</InlineCode> (now its header&apos;s text) and{' '}
+            <InlineCode>NavigationRailGroup</InlineCode>, and <InlineCode>current</InlineCode> on a{' '}
+            <InlineCode>SidePanelRailItem</InlineCode> link; the old names still work.
+          </>,
+          <>
+            A <InlineCode>DataTable</InlineCode> row&apos;s link shows the router&apos;s address,
+            and a focused link in collapsed <InlineCode>ExpandableText</InlineCode> keeps its whole
+            ring.
+          </>,
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2.8',
     date: '2026-11-15',
     summary: (
