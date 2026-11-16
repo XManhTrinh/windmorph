@@ -25,7 +25,8 @@ import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
 import { cn } from '../../utils/cn';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
 import { splitRootProps, type RootDOMProps } from '../../utils/root-props';
-import { useSliderTouchTrack } from './use-touch-track';
+import { sliderArrowRaises, sliderThumbInputProps } from './slider-thumb-input';
+import { useSliderTouchTrack } from './use-slider-touch-track';
 import {
   iconSizeWhenFits,
   movedStartIcon,
@@ -87,14 +88,18 @@ interface SliderCommonProps extends RootDOMProps {
   disabled?: boolean;
   /** Show the value above the thumb while it is dragged or keyboard-focused. @default false */
   valueLabel?: boolean;
-  /** Formats the value for the value indicator and assistive tech. */
+  /**
+   * Formats the value for the value indicator, and for assistive tech unless `valueText` says
+   * it in words.
+   */
   formatOptions?: Intl.NumberFormatOptions;
   /**
    * The value in words for assistive technology, each thumb's `aria-valuetext`, where a number
-   * format can't say it (a time: `(seconds) => '1 minute 23 seconds of 10 minutes'`). Without
-   * it the value is read as `formatOptions` formats it; the value indicator keeps that format.
+   * format can't say it (a time: `(seconds) => '1 minute 23 seconds of 10 minutes'`), given the
+   * thumb's index too (0, or 1 for a range's end). Without it the value is read as
+   * `formatOptions` formats it; the value indicator keeps that format.
    */
-  valueText?: (value: number) => string;
+  valueText?: (value: number, index: number) => string;
   /** Form field name (one hidden input per thumb). */
   name?: string;
   /** The id of the slider's root, its `group` (an error summary can link to it). */
@@ -444,12 +449,6 @@ function Segment({
   );
 }
 
-/** Whether each arrow key increases the value (true) or decreases it (false), by direction. */
-const INCREASE_KEYS: Record<'ltr' | 'rtl', Record<string, boolean>> = {
-  ltr: { ArrowRight: true, ArrowUp: true, ArrowLeft: false, ArrowDown: false },
-  rtl: { ArrowLeft: true, ArrowUp: true, ArrowRight: false, ArrowDown: false },
-};
-
 function Thumb({
   index,
   at,
@@ -477,7 +476,7 @@ function Thumb({
   label?: string;
   errorMessage?: string;
   valueLabel: boolean;
-  valueText: ((value: number) => string) | undefined;
+  valueText: ((value: number, index: number) => string) | undefined;
   styles: ReturnType<typeof sliderStyles>;
   classNames?: SliderClassNames;
 }) {
@@ -486,23 +485,11 @@ function Thumb({
     { index, trackRef, inputRef, name, 'aria-label': label, 'aria-errormessage': errorMessage },
     state,
   );
-  // React Aria names each thumb by the group (`aria-labelledby` → the group's id). A name is
-  // never followed through a second `aria-labelledby`, so a group named by a visible label would
-  // name the thumb by its own content, the value text ("0%"): the thumb points at the label
-  // itself instead, as the group does. An `aria-label` on the group is read through it as is.
-  const thumbLabelledBy = labelledBy?.trim()
-    ? inputProps['aria-labelledby']
-        ?.split(' ')
-        .flatMap((id) => (id === groupId ? labelledBy.trim().split(/\s+/) : [id]))
-        .join(' ')
-    : inputProps['aria-labelledby'];
-  // React Aria joins the description's ids into an empty string when there are none.
   const thumbInputProps = {
-    ...inputProps,
-    'aria-labelledby': thumbLabelledBy,
-    'aria-describedby': inputProps['aria-describedby'] || undefined,
-    'aria-details': inputProps['aria-details'] || undefined,
-    'aria-valuetext': valueText ? valueText(state.values[index]!) : inputProps['aria-valuetext'],
+    ...sliderThumbInputProps(inputProps, { state, index, groupId, labelledBy }),
+    'aria-valuetext': valueText
+      ? valueText(state.values[index]!, index)
+      : inputProps['aria-valuetext'],
   };
   const { focusProps, isFocusVisible } = useFocusRing();
   const { direction } = useLocale();
@@ -516,7 +503,7 @@ function Thumb({
         setSpaceHeld(true);
         return;
       }
-      const increase = INCREASE_KEYS[direction][event.key];
+      const increase = sliderArrowRaises(event.key, direction);
       if (!spaceHeld || increase === undefined) return;
       event.preventDefault();
       event.stopPropagation();

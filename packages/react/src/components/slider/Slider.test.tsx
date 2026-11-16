@@ -356,4 +356,36 @@ describe('Slider valueText', () => {
     expect(start).toHaveAttribute('aria-valuetext', '1 minutes 0 seconds of 10 minutes');
     expect(end).toHaveAttribute('aria-valuetext', '2 minutes 0 seconds of 10 minutes');
   });
+
+  it('tells valueText which thumb it reads', () => {
+    render(
+      <RangeSlider
+        aria-label="Price"
+        defaultValue={[20, 80]}
+        valueText={(value, index) => `${index === 0 ? 'From' : 'To'} ${value} euros`}
+      />,
+    );
+    const [start, end] = screen.getAllByRole('slider');
+    expect(start).toHaveAttribute('aria-valuetext', 'From 20 euros');
+    expect(end).toHaveAttribute('aria-valuetext', 'To 80 euros');
+  });
+});
+
+describe('Slider changed by assistive technology', () => {
+  it("commits a screen reader's change of the native input, as a key's", () => {
+    const onChange = vi.fn();
+    const onChangeEnd = vi.fn();
+    render(
+      <Slider
+        aria-label="Volume"
+        defaultValue={40}
+        onChange={onChange}
+        onChangeEnd={onChangeEnd}
+      />,
+    );
+    // VoiceOver's increment (and a form reset) changes the hidden range input itself.
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '41' } });
+    expect(onChange).toHaveBeenLastCalledWith(41);
+    expect(onChangeEnd).toHaveBeenCalledWith(41);
+  });
 });
