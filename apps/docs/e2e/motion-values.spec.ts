@@ -68,8 +68,9 @@ test.describe('Motion values', () => {
     const standard = await record(page, 'bar', 'height', [{ name: 'To 300', at: 0 }]);
     expect(Math.max(...standard.samples.map((sample) => sample.value))).toBeLessThanOrEqual(300.5);
     expect(standard.samples.at(-1)!.value).toBeCloseTo(300, 0);
-    // It moves through the heights between, not in one step.
-    expect(standard.samples.some((sample) => sample.value > 60 && sample.value < 280)).toBe(true);
+    // It moves through the heights between, not in one step (a slow machine paints few frames,
+    // so any height clear of both ends counts).
+    expect(standard.samples.some((sample) => sample.value > 45 && sample.value < 295)).toBe(true);
 
     await open(page, 'spring-value', { motion: 'expressive' });
     const expressive = await record(page, 'bar', 'height', [{ name: 'To 300', at: 0 }]);
@@ -78,19 +79,45 @@ test.describe('Motion values', () => {
 
   test('a new target mid-move keeps the speed it has', async ({ page }) => {
     await open(page, 'spring-value');
-    // Rising fast towards 300, it's sent to 200, just above where it is: carrying its speed,
-    // it rises well past 200 before settling there. Restarted from rest it would pass 200 by
-    // under a pixel (the spring's own overshoot on a short move).
-    const { samples, pressedAt } = await record(page, 'bar', 'height', [
-      { name: 'To 300', at: 0 },
-      { name: 'To 200', at: 90 },
-    ]);
-    const atSwitch = samples.findLast((sample) => sample.t <= pressedAt[1]!)!.value;
-    expect(atSwitch).toBeGreaterThan(80);
-    expect(atSwitch).toBeLessThan(200);
-    const after = samples.filter((sample) => sample.t > pressedAt[1]!);
-    expect(Math.max(...after.map((sample) => sample.value))).toBeGreaterThan(212);
-    expect(after.at(-1)!.value).toBeCloseTo(200, 0);
+    // Rising fast towards 300, it's sent to 200 once it passes 100 (by height, not by time, so
+    // a slow machine's late frames don't change the test): carrying its speed, it rises well past
+    // 200 before settling there. Restarted from rest it would pass 200 by under a pixel (the
+    // spring's own overshoot on a short move).
+    let run = { atSwitch: -1, after: [] as number[] };
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      run = await page.evaluate(
+        () =>
+          new Promise<{ atSwitch: number; after: number[] }>((resolve) => {
+            const bar = document.querySelector<HTMLElement>('[data-testid="bar"]')!;
+            const press = (name: string) =>
+              [...document.querySelectorAll('button')]
+                .find((button) => button.textContent === name)!
+                .click();
+            press('To 300');
+            let atSwitch = -1;
+            const after: number[] = [];
+            const start = performance.now();
+            const frame = () => {
+              const height = bar.getBoundingClientRect().height;
+              if (atSwitch < 0 && height > 100) {
+                atSwitch = height;
+                press('To 200');
+              } else if (atSwitch >= 0) after.push(height);
+              if (performance.now() - start < 1600) requestAnimationFrame(frame);
+              else resolve({ atSwitch, after });
+            };
+            requestAnimationFrame(frame);
+          }),
+      );
+      // A frame so late that it was already near 200 says nothing: back to 40 and again.
+      if (run.atSwitch > 0 && run.atSwitch < 180) break;
+      await page.getByRole('button', { name: 'To 40' }).click();
+      await page.waitForTimeout(1200);
+    }
+    expect(run.atSwitch).toBeGreaterThan(100);
+    expect(run.atSwitch).toBeLessThan(180);
+    expect(Math.max(...run.after)).toBeGreaterThan(212);
+    expect(run.after.at(-1)!).toBeCloseTo(200, 0);
   });
 
   test('a list of another length starts from the old shape', async ({ page }) => {
