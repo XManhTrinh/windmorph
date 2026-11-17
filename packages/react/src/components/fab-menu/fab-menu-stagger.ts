@@ -1,5 +1,5 @@
 import { timeToReach } from '../../motion/spring-state';
-import { SPRINGS, springPosition, type SpringToken } from '../../tokens/motion';
+import { SPRINGS, type SpringToken } from '../../tokens/motion';
 
 /*
  * Compose's FloatingActionButtonMenu animates the number of visible items as an Int on the
@@ -10,11 +10,6 @@ import { SPRINGS, springPosition, type SpringToken } from '../../tokens/motion';
  */
 
 const STAGGER_SPRING = SPRINGS.expressive.effects.slow;
-
-/** Normalised step response (0 → 1, starting at rest) of a spring at `seconds`. */
-export function springStep(spring: SpringToken, seconds: number): number {
-  return springPosition(spring, seconds);
-}
 
 /** Milliseconds until the (monotonic) step response first reaches `fraction`. */
 const timeToReachMs = (fraction: number, spring: SpringToken) =>

@@ -2,7 +2,10 @@ import { SPRINGS, type SpringToken } from '../tokens/motion';
 import { timeToReach } from './spring-state';
 
 export interface StaggerDelaysOptions {
-  /** The spring the count moves on. @default the slow effects spring, as the FAB menu's */
+  /**
+   * The spring the count moves on; one damped past critical (a ratio above 1) is read as
+   * critically damped. @default the slow effects spring, as the FAB menu's
+   */
   spring?: SpringToken;
 }
 
@@ -15,7 +18,7 @@ export interface StaggerDelaysOptions {
  * Under reduced motion an entrance has no movement to space out: don't apply the delays.
  *
  * @example
- * const delays = staggerDelays(bars.length); // [0, 0.04, 0.06, …]
+ * staggerDelays(6); // [0, 0.026, 0.042, 0.059, 0.081, 0.114]
  */
 export function staggerDelays(count: number, { spring }: StaggerDelaysOptions = {}): number[] {
   const token = spring ?? SPRINGS.expressive.effects.slow;

@@ -20,7 +20,7 @@ afterEach(() => {
 describe('useNearestReveal', () => {
   it("turns React Aria's centring reveal of the root into the nearest one", () => {
     const reveal = vi.fn();
-    Element.prototype.scrollIntoView = reveal;
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(reveal);
     const { getByTestId } = render(<Collection />);
     const root = getByTestId('root');
     root.scrollIntoView({ block: 'center', inline: 'center' });

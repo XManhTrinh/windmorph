@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { springStep, staggerSteps } from './fab-menu-stagger';
+import { springPosition as springStep } from '../../tokens/motion';
+import { staggerSteps } from './fab-menu-stagger';
 
-describe('springStep', () => {
+describe('springPosition (the menu’s step response)', () => {
   it('is the critically damped step response for effects springs', () => {
     const spring = { dampingRatio: 1, stiffness: 800 };
     const omega = Math.sqrt(800);

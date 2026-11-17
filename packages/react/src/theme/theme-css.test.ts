@@ -104,6 +104,10 @@ describe('themeSelector', () => {
     }
   });
 
+  it('refuses a theme name the theme CSS couldn’t carry', () => {
+    expect(() => themeSelector('Ocean"]', 'standard', 'light')).toThrow(/kebab-case/);
+  });
+
   it('applies the default theme where no theme is set, and standard contrast where none is', () => {
     const selector = themeSelector('baseline', 'standard', 'dark', true);
     expect(selector).toContain(

@@ -36,7 +36,12 @@ export interface ThemeCssOptions {
  * rule (`:root { --md-sys-color-primary: … }`, `[data-theme='ocean'] { … }`) wins. Among the
  * theme's own rules, source order decides: an element matches one theme and one contrast
  * level, and {@link generateThemeCss} writes light before dark and system, so the mode rule
- * that also matches comes later and wins.
+ * that also matches comes later and wins. Write yours the same way: for each contrast level,
+ * the `light` block (which also serves `system` on a light screen), then `dark`, then
+ * `system` inside the media query.
+ *
+ * @param name A theme name, as `createTheme` takes it (letters, digits and dashes).
+ * @param isDefault Also match a root with no `data-theme`, as the default theme does.
  */
 export function themeSelector(
   name: string,
@@ -44,6 +49,7 @@ export function themeSelector(
   mode: ResolvedColorMode | 'system',
   isDefault = false,
 ): string {
+  assertThemeName(name);
   const themeParts = [`[data-theme="${name}"]`];
   if (isDefault) themeParts.push(':root:not([data-theme])');
   const contrastParts = [`[data-contrast="${contrast}"]`];
