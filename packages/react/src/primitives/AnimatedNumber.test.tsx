@@ -64,13 +64,16 @@ describe('AnimatedNumber', () => {
   });
 
   it('never shows a figure past the one it moves to', async () => {
-    const { container, rerender } = render(<AnimatedNumber value={0} />);
-    rerender(<AnimatedNumber value={100} />);
+    const format = (value: number) => String(value);
+    const { container, rerender } = render(<AnimatedNumber value={0} format={format} />);
+    rerender(<AnimatedNumber value={100} format={format} />);
     const shown: number[] = [];
     for (let frame = 0; frame < 40; frame++) {
       await act(() => new Promise((resolve) => setTimeout(resolve, 16)));
       shown.push(Number(parts(container).moving.textContent));
     }
+    // A whole number counts in whole numbers, even through an app's own format.
+    expect(shown.every(Number.isInteger)).toBe(true);
     // It moved through figures between, and never past 100 (the spring overshoots).
     expect(shown.some((figure) => figure > 0 && figure < 100)).toBe(true);
     expect(Math.max(...shown)).toBeLessThanOrEqual(100);

@@ -11,7 +11,8 @@ export interface AnimatedNumberProps extends Omit<ComponentPropsWithRef<'span'>,
   /** The number to show. A new value springs from the one showing. */
   value: number;
   /**
-   * Formats the number as it moves and at rest.
+   * Formats the number as it moves and at rest. While it moves it is given figures with the
+   * value's own decimals, so a whole number counts in whole numbers.
    * @default `Intl.NumberFormat` in the page's locale, with the value's own decimals
    */
   format?: (value: number) => string;
@@ -79,9 +80,13 @@ export function AnimatedNumber({
 
   // The moving text is written by the spring alone: React rendering it would flash the new
   // value for a frame before the spring's first step. A new format or locale rewrites it.
+  // A moving figure keeps the value's own decimals (a whole number counts in whole numbers),
+  // whatever `format` does with them.
   const write = (next: number) => {
     const { low, high } = bounds.current;
-    if (textRef.current) textRef.current.textContent = show(Math.min(high, Math.max(low, next)));
+    const scale = 10 ** decimals;
+    const figure = Math.round(Math.min(high, Math.max(low, next)) * scale) / scale;
+    if (textRef.current) textRef.current.textContent = show(figure);
   };
   useMotionValueEvent(spring, 'change', write);
   useEffect(() => write(spring.get()));
