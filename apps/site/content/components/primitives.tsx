@@ -303,8 +303,9 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               an entrance: the times a spring of the count passes it, as the FAB menu staggers, so
               any number of items arrives within one spring&apos;s time) and{' '}
               <InlineCode>useEntrance</InlineCode> (plays an entrance once, as an element first
-              comes into view, and never for content on screen as the page hydrates). Under reduced
-              motion a spatial value, a list and a number change at once, and an effects value keeps
+              comes into view, and never for content on screen as the page hydrates). A delay waits
+              only from rest: a value already moving turns to its new target at once. Under reduced
+              motion a spatial value or list and a number change at once, and an effects value keeps
               its fade.
             </li>
             <li>
