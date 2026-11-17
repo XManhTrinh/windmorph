@@ -54,6 +54,8 @@ export function useM3SpringValue(
   // When the value last moved: a new target mid-move starts its move there, so the frame after
   // it continues from where the old move would be, rather than holding one frame still.
   const lastMoved = useRef(0);
+  // When a move waiting out its delay starts.
+  const waitingUntil = useRef(0);
   useMotionValueEvent(value, 'change', () => {
     lastMoved.current = time.now();
   });
@@ -63,14 +65,24 @@ export function useM3SpringValue(
       value.jump(target);
       return;
     }
-    const moving = value.getVelocity() !== 0;
+    // Moving past the settling speed: a tiny leftover isn't a move to keep.
+    const moving =
+      Math.abs(value.getVelocity()) > Math.max(1, Math.abs(target), Math.abs(value.get())) * 1e-3;
     if (value.get() === target && !moving) return;
+    const now = time.now();
     // Motion starts from the value's current position and velocity. A move under way (stopped
     // by now, so it shows only as speed) turns at once, from its last frame: a negative delay
-    // starts that far in. Only a move from rest waits its delay.
+    // starts that far in. Only a move from rest waits its delay, counted from when it first
+    // began to wait (a new target while it waits doesn't start the wait again).
+    const waitFor = moving
+      ? -Math.min(0.05, (now - lastMoved.current) / 1000)
+      : waitingUntil.current > now
+        ? (waitingUntil.current - now) / 1000
+        : delay;
+    if (!moving && waitFor > 0) waitingUntil.current = now + waitFor * 1000;
     const controls = animate(value, target, {
       ...getM3Spring(reducedMotion ? 'standard' : motion, family, speed),
-      delay: moving ? -Math.min(0.05, (time.now() - lastMoved.current) / 1000) : delay,
+      delay: waitFor,
     });
     return () => controls.stop();
   }, [target, animated, reducedMotion, family, speed, motion, delay, value]);

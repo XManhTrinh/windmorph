@@ -1,7 +1,7 @@
 import { act, render, renderHook } from '@testing-library/react';
 import type { MotionValue } from 'motion/react';
 import { Activity, useLayoutEffect } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { setMediaQueries } from '../../test/setup';
 import { resample } from './resample';
 import { useM3SpringValues } from './use-m3-spring-values';
@@ -122,6 +122,44 @@ describe('useM3SpringValues', () => {
     expect(seen).toEqual([3, 2]);
   });
 
+  it('matches by place, with a warning, when the keys don’t name every target', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) => useM3SpringValues(targets, { keys }),
+      { initialProps: { targets: [10, 20] as readonly number[], keys: ['a', 'b'] } },
+    );
+    rerender({ targets: [20, 30, 40], keys: ['b', 'c'] });
+    // Read at the new length from the old line, never a NaN for a key with no target.
+    expect(result.current.get()).toEqual([10, 15, 20]);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('one key per target'));
+  });
+
+  it('asks rest only when an element is new', () => {
+    const rest = vi.fn(() => [9, 9]);
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) => useM3SpringValues(targets, { keys, rest }),
+      { initialProps: { targets: [1, 2] as readonly number[], keys: ['a', 'b'] } },
+    );
+    rerender({ targets: [3, 4], keys: ['a', 'b'] });
+    expect(rest).not.toHaveBeenCalled();
+    rerender({ targets: [5, 6], keys: ['b', 'c'] });
+    expect(rest).toHaveBeenCalledTimes(1);
+    expect(result.current.get()[1]).toBe(9);
+  });
+
+  it('keeps an element’s delay counted from when it began to wait', async () => {
+    const { result, rerender } = renderHook(
+      ({ targets }) => useM3SpringValues(targets, { delay: [0, 0.3] }),
+      { initialProps: { targets: [0, 0] as readonly number[] } },
+    );
+    rerender({ targets: [100, 100] });
+    await wait(150);
+    // New targets while the second still waits: its wait doesn't start again.
+    rerender({ targets: [100, 50] });
+    await wait(220);
+    expect(result.current.get()[1]).toBeGreaterThan(0);
+  });
+
   it('springs to new targets over frames and settles on them', async () => {
     const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
       initialProps: { targets: [0, 0] as readonly number[] },
@@ -225,5 +263,13 @@ describe('useM3SpringValues', () => {
     });
     rerender({ targets: [1, 2] });
     expect(result.current.get()).toEqual([1, 2]);
+
+    // An effects list (opacities) keeps its spring, as fades do.
+    const effects = renderHook(
+      ({ targets }) => useM3SpringValues(targets, { family: 'effects' }),
+      { initialProps: { targets: [0, 0] as readonly number[] } },
+    );
+    effects.rerender({ targets: [1, 1] });
+    expect(effects.result.current.get()).toEqual([0, 0]);
   });
 });

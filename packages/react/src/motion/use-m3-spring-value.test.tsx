@@ -63,6 +63,18 @@ describe('useM3SpringValue', () => {
     expect(result.current.get()).toBeGreaterThan(0);
   });
 
+  it('keeps its wait counted from when it began, when a new target arrives', async () => {
+    const { result, rerender } = renderHook(
+      ({ target }) => useM3SpringValue(target, { delay: 0.3 }),
+      { initialProps: { target: 0 } },
+    );
+    rerender({ target: 100 });
+    await wait(150);
+    rerender({ target: 50 });
+    await wait(220);
+    expect(result.current.get()).toBeGreaterThan(0);
+  });
+
   it('jumps when it may not animate', () => {
     const { result, rerender } = renderHook(
       ({ target }) => useM3SpringValue(target, { animate: false }),
