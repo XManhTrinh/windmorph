@@ -265,10 +265,9 @@ describe('useM3SpringValues', () => {
     expect(result.current.get()).toEqual([1, 2]);
 
     // An effects list (opacities) keeps its spring, as fades do.
-    const effects = renderHook(
-      ({ targets }) => useM3SpringValues(targets, { family: 'effects' }),
-      { initialProps: { targets: [0, 0] as readonly number[] } },
-    );
+    const effects = renderHook(({ targets }) => useM3SpringValues(targets, { family: 'effects' }), {
+      initialProps: { targets: [0, 0] as readonly number[] },
+    });
     effects.rerender({ targets: [1, 1] });
     expect(effects.result.current.get()).toEqual([0, 0]);
   });
