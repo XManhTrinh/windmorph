@@ -8,8 +8,9 @@ import { AnimatedNumber } from './AnimatedNumber';
 
 const parts = (container: Element) => {
   const root = container.querySelector<HTMLElement>('[data-slot="animated-number"]')!;
-  const [width, moving, spoken] = root.children as unknown as HTMLElement[];
-  return { root, width: width!, moving: moving!, spoken: spoken! };
+  const [box, spoken] = root.children as unknown as HTMLElement[];
+  const [width, moving] = box!.children as unknown as HTMLElement[];
+  return { root, box: box!, width: width!, moving: moving!, spoken: spoken! };
 };
 
 // In view at once, so a change animates (jsdom has no IntersectionObserver).
@@ -41,9 +42,9 @@ describe('AnimatedNumber', () => {
   it('gives assistive technology the final value only, and keeps its width', async () => {
     const { container, rerender } = render(<AnimatedNumber value={10} />);
     rerender(<AnimatedNumber value={2500} />);
-    const { width, moving, spoken } = parts(container);
-    expect(moving).toHaveAttribute('aria-hidden', 'true');
-    expect(width).toHaveAttribute('aria-hidden', 'true');
+    const { box, width, spoken } = parts(container);
+    // The width and the moving figure, in one box assistive technology skips.
+    expect(box).toHaveAttribute('aria-hidden', 'true');
     expect(width).toHaveClass('invisible');
     expect(width).toHaveTextContent('2,500');
     expect(spoken).toHaveClass('sr-only');
@@ -107,6 +108,16 @@ describe('AnimatedNumber', () => {
     expect(Math.max(...shown)).toBeLessThanOrEqual(1000);
   });
 
+  it('lays its figure out inside its own box, so the root takes any display', () => {
+    const { container } = render(<AnimatedNumber value={42} className="block text-center" />);
+    const { root, box, moving } = parts(container);
+    expect(root).toHaveClass('block', 'text-center');
+    expect(root).not.toHaveClass('inline-grid');
+    // The box is as wide as the number wherever the root puts it, and the figure keeps to it.
+    expect(box).toHaveClass('relative', 'inline-grid');
+    expect(moving.parentElement).toBe(box);
+  });
+
   it('puts its own props on the root', () => {
     const { container } = render(
       <AnimatedNumber
@@ -121,7 +132,7 @@ describe('AnimatedNumber', () => {
     expect(root).toHaveAttribute('data-slot', 'value');
     expect(root).toHaveAttribute('id', 'total');
     expect(root).toHaveAttribute('data-kind', 'total');
-    expect(root).toHaveClass('inline-grid', 'text-title-large');
+    expect(root).toHaveClass('text-title-large');
   });
   // Last: Motion keeps the reduced-motion preference for the rest of the file once read.
   it('changes at once under reduced motion', () => {

@@ -30,7 +30,9 @@ async function record(
         const value = () => {
           if (read === 'length') return (element as unknown as SVGPathElement).getTotalLength();
           if (read === 'text')
-            return Number(element.children[1]!.textContent!.replace(/[^\d.]/g, ''));
+            return Number(
+              element.querySelector('[data-slot="figure"]')!.textContent!.replace(/[^\d.]/g, ''),
+            );
           return element.getBoundingClientRect()[read];
         };
         const buttons = [...document.querySelectorAll('button')];
@@ -100,6 +102,9 @@ test.describe('Motion values', () => {
     for (let index = Math.max(1, switched - 1); index < samples.length; index++) {
       expect(Math.abs(samples[index]!.value - samples[index - 1]!.value)).toBeLessThan(12);
     }
+    // It did become the other line, and settled there.
+    expect(Math.abs(samples.at(-1)!.value - samples[0]!.value)).toBeGreaterThan(2);
+    expect(samples.at(-1)!.value).toBeCloseTo(samples.at(-2)!.value, 0);
   });
 
   test('a counting number never shows a figure past its target and keeps its width', async ({
@@ -170,6 +175,7 @@ test.describe('Motion values', () => {
     const bar = await record(page, 'bar', 'height', [{ name: 'To 300', at: 0 }], 300);
     const moving = bar.samples.filter((sample) => sample.value > 41 && sample.value < 299);
     expect(moving).toEqual([]);
+    expect(bar.samples.at(-1)!.value).toBeCloseTo(300, 0);
 
     await open(page, 'spring-values');
     const line = await record(page, 'line', 'length', [{ name: '84 points', at: 50 }], 300);
@@ -177,11 +183,13 @@ test.describe('Motion values', () => {
     expect(
       new Set(line.samples.map((sample) => Math.round(sample.value))).size,
     ).toBeLessThanOrEqual(2);
+    expect(Math.abs(line.samples.at(-1)!.value - line.samples[0]!.value)).toBeGreaterThan(2);
 
     await open(page, 'counting-number');
     const number = await record(page, 'number', 'text', [{ name: 'Change', at: 0 }], 300);
     expect(number.samples.filter((sample) => sample.value !== 1284 && sample.value !== 96)).toEqual(
       [],
     );
+    expect(number.samples.at(-1)!.value).toBe(96);
   });
 });

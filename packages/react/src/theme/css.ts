@@ -40,7 +40,7 @@ export interface ThemeCssOptions {
  * the `light` block (which also serves `system` on a light screen), then `dark`, then
  * `system` inside the media query.
  *
- * @param name A theme name, as `createTheme` takes it (letters, digits and dashes).
+ * @param name A theme name, as `createTheme` takes it (lowercase kebab-case).
  * @param isDefault Also match a root with no `data-theme`, as the default theme does.
  */
 export function themeSelector(

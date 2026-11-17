@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState, type ComponentPropsWithRef } from
 import { useLocale, useObjectRef } from 'react-aria';
 import { useEntrance } from '../motion/use-entrance';
 import { useM3SpringValue } from '../motion/use-m3-spring-value';
-import { cn } from '../utils/cn';
 
 export interface AnimatedNumberProps extends Omit<ComponentPropsWithRef<'span'>, 'children'> {
   /** The number to show. A new value springs from the one showing. */
@@ -13,7 +12,8 @@ export interface AnimatedNumberProps extends Omit<ComponentPropsWithRef<'span'>,
   /**
    * Formats the number as it moves and at rest. While it moves it is given figures with the
    * value's own decimals, so a whole number counts in whole numbers.
-   * @default `Intl.NumberFormat` in the page's locale, with the value's own decimals (at most 3)
+   * @default `Intl.NumberFormat` in the nearest `LocaleProvider`'s locale (else the browser's),
+   * with the value's own decimals (at most 3)
    */
   format?: (value: number) => string;
   /**
@@ -39,12 +39,17 @@ const MOST_DEFAULT_DECIMALS = 3;
 
 /**
  * A number that springs between values on the theme's spatial spring, formatted by `format`.
- * Assistive technology reads only the value it settles on, once, and the box keeps that value's
- * width while counting (the moving figure is laid over it, right-aligned so the last digit stays
- * put), so nothing beside it moves; a copy gives the figure once. It never shows a figure past the one it is
- * moving to (a spring's overshoot is held at the target). It isn't a live region: announcing a
- * change is the app's choice. Under reduced motion it changes at once. In the server's HTML it
- * is the final value.
+ * Assistive technology reads only the value it settles on, once, and the number's box keeps that
+ * value's width while counting (the moving figure is laid over it, right-aligned so the last
+ * digit stays put), so nothing beside it moves; a copy gives the figure once. The root takes any
+ * display (inline, a block, a centred line). It never shows a figure past the one it is moving to
+ * (a spring's overshoot is held at the target). It isn't a live region: announcing a change is
+ * the app's choice. Under reduced motion it changes at once. In the server's HTML it is the final
+ * value.
+ *
+ * Counting down inline, a figure wider than the final one runs over what's before it until it
+ * narrows; give it room (a cell, a tile's line of its own) where that matters. Inside a link the
+ * box is drawn as one inline block, so the link's underline skips it.
  *
  * @example
  * <AnimatedNumber value={1284} from={0} />
@@ -103,22 +108,19 @@ export function AnimatedNumber({
 
   const final = show(value);
   return (
-    <span
-      data-slot="animated-number"
-      {...props}
-      ref={rootRef}
-      className={cn('relative inline-grid', className)}
-    >
-      <span aria-hidden="true" className="invisible [grid-area:1/1]">
-        {final}
-      </span>
-      {/* Out of the box's sizing, so a longer figure counting down never widens it. */}
-      <span
-        ref={textRef}
-        aria-hidden="true"
-        className="absolute top-0 right-0 whitespace-nowrap [grid-area:1/1]"
-      >
-        {firstText}
+    <span data-slot="animated-number" {...props} ref={rootRef} className={className}>
+      {/* A box as wide as the final value wherever the root lays it out (inline, a block, a
+          centred line), with the moving figure laid over it. */}
+      <span aria-hidden="true" className="relative inline-grid">
+        <span className="invisible [grid-area:1/1]">{final}</span>
+        {/* Out of the box's sizing, so a longer figure counting down never widens it. */}
+        <span
+          ref={textRef}
+          data-slot="figure"
+          className="absolute top-0 right-0 whitespace-nowrap [grid-area:1/1]"
+        >
+          {firstText}
+        </span>
       </span>
       <span className="sr-only select-none">{final}</span>
     </span>
