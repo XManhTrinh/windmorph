@@ -36,6 +36,47 @@ describe('useM3SpringValues', () => {
     expect(result.current.get()).toEqual([0, 2.5, 5, 7.5, 10]);
   });
 
+  it('matches a list by key: a kept key carries on, a new one starts at rest', async () => {
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) => useM3SpringValues(targets, { keys }),
+      { initialProps: { targets: [10, 20, 30] as readonly number[], keys: ['a', 'b', 'c'] } },
+    );
+    // A window sliding on by one: b and c stay where they are, d grows from the baseline.
+    rerender({ targets: [20, 30, 40], keys: ['b', 'c', 'd'] });
+    expect(result.current.get()).toEqual([20, 30, 0]);
+    await wait(1500);
+    expect(result.current.get()).toEqual([20, 30, 40]);
+  });
+
+  it('moves on when only the keys change', () => {
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) => useM3SpringValues(targets, { keys }),
+      { initialProps: { targets: [5, 5] as readonly number[], keys: ['a', 'b'] } },
+    );
+    rerender({ targets: [5, 5], keys: ['b', 'c'] });
+    // c is new, so it starts at rest even though the numbers are the same.
+    expect(result.current.get()).toEqual([5, 0]);
+  });
+
+  it('matches by place without keys, and starts new keys at a per-element rest', () => {
+    const byPlace = renderHook(({ targets }) => useM3SpringValues(targets), {
+      initialProps: { targets: [10, 20, 30] as readonly number[] },
+    });
+    byPlace.rerender({ targets: [20, 30, 40] });
+    expect(byPlace.result.current.get()).toEqual([10, 20, 30]);
+
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) => useM3SpringValues(targets, { keys, rest: targets }),
+      { initialProps: { targets: [0, 0.5, 1] as readonly number[], keys: ['a', 'b', 'c'] } },
+    );
+    // Places of a sliding line: kept points start where they were (and slide over), the new
+    // one at its own place.
+    rerender({ targets: [0, 0.5, 1], keys: ['b', 'c', 'd'] });
+    expect(result.current.get()).toEqual([0.5, 1, 1]);
+    rerender({ targets: [0, 0.25, 0.5, 0.75, 1], keys: ['b', 'c', 'd', 'e', 'f'] });
+    expect(result.current.get().slice(3)).toEqual([0.75, 1]);
+  });
+
   it('springs to new targets over frames and settles on them', async () => {
     const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
       initialProps: { targets: [0, 0] as readonly number[] },

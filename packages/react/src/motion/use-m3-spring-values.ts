@@ -21,8 +21,20 @@ export interface M3SpringValuesOptions extends Omit<M3SpringValueOptions, 'delay
    * element already moving turns to its new target at once. @default 0
    */
   delay?: number | readonly number[];
-  /** Where a new element starts when there was no list before. @default 0 */
-  rest?: number;
+  /**
+   * Where a new element starts: one for all, or one per element (a point entering at its own
+   * place). Used for every element when there was no list before, and for each new key.
+   * @default 0
+   */
+  rest?: number | readonly number[];
+  /**
+   * Names each element, so a new list is matched to the old one by name rather than by place:
+   * a kept key moves on from where its element is, at its speed, and a new key starts at
+   * `rest` (a window of a feed sliding on: kept bars carry on, a new one grows from the
+   * baseline). Without keys, elements match by place, and a list of another length starts
+   * from the old one read at the new places.
+   */
+  keys?: readonly string[];
 }
 
 // One element's move: from `origin` with `velocity` towards `target`, from `start` (ms).
@@ -45,7 +57,7 @@ const stateAt = (spring: SpringToken, move: Move, now: number) => {
 };
 
 // `Object.is`, so a list holding NaN is the same list on the next render.
-const sameList = (a: readonly number[], b: readonly number[]) =>
+const sameList = <T>(a: readonly T[], b: readonly T[]) =>
   a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
 
 /** The list's largest finite magnitude, at least 1: what "close enough to settle" scales by. */
@@ -78,6 +90,7 @@ export function useM3SpringValues(
     delay = 0,
     animate: animated = true,
     rest = 0,
+    keys,
   }: M3SpringValuesOptions = {},
 ): MotionValue<readonly number[]> {
   const value = useMotionValue<readonly number[]>(targets);
@@ -89,7 +102,15 @@ export function useM3SpringValues(
     spring: SpringToken;
     tick: ((data: { timestamp: number }) => void) | null;
     targets: readonly number[];
-  }>({ moves: [], pending: [], spring: SPRINGS.standard.spatial.default, tick: null, targets });
+    keys: readonly string[] | undefined;
+  }>({
+    moves: [],
+    pending: [],
+    spring: SPRINGS.standard.spatial.default,
+    tick: null,
+    targets,
+    keys,
+  });
 
   useEffect(() => {
     const current = state.current;
@@ -103,13 +124,17 @@ export function useM3SpringValues(
       current.pending = [];
       value.jump(targets);
     };
+    const previousKeys = current.keys;
+    current.keys = keys;
     if (!animated || (reducedMotion && family === 'spatial')) {
       current.targets = targets;
       jump();
       return;
     }
     const spring = SPRINGS[reducedMotion ? 'standard' : motion][family][speed];
-    const changed = !sameList(current.targets, targets);
+    const changed =
+      !sameList(current.targets, targets) ||
+      (keys !== undefined && previousKeys !== undefined && !sameList(previousKeys, keys));
     current.targets = targets;
     if (!changed) {
       // A new scheme applies from the next move; a move under way keeps its spring. With no
@@ -130,11 +155,26 @@ export function useM3SpringValues(
       const move = current.moves[index];
       return move ? stateAt(current.spring, move, now) : { value: position, velocity: 0 };
     });
-    const shown = states.map((state) => state.value);
-    const velocities = states.map((state) => state.velocity);
-    const positions = resample(shown, targets.length, rest);
-    const speeds =
-      shown.length === targets.length ? velocities : resample(velocities, targets.length, 0);
+    const restAt = (index: number) => (typeof rest === 'number' ? rest : (rest[index] ?? 0));
+    let positions: number[];
+    let speeds: number[];
+    if (keys && previousKeys && previousKeys.length === states.length) {
+      // Matched by name: a kept key carries on, a new one starts at rest.
+      const before = new Map(previousKeys.map((key, index) => [key, states[index]!]));
+      const matched = keys.map((key) => before.get(key));
+      positions = matched.map((state, index) => state?.value ?? restAt(index));
+      speeds = matched.map((state) => state?.velocity ?? 0);
+    } else if (states.length === 0) {
+      positions = targets.map((_, index) => restAt(index));
+      speeds = targets.map(() => 0);
+    } else {
+      // Matched by place: the old list read at the new length.
+      const shown = states.map((state) => state.value);
+      const velocities = states.map((state) => state.velocity);
+      positions = resample(shown, targets.length);
+      speeds =
+        shown.length === targets.length ? velocities : resample(velocities, targets.length, 0);
+    }
     current.spring = spring;
     current.moves = targets.map((_, index) => ({
       origin: positions[index]!,

@@ -296,7 +296,9 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               restart it), <InlineCode>useM3SpringValues</InlineCode> (a list of numbers that moves
               as one, each keeping its speed; a list of another length starts from the old one read
               at the new places with <InlineCode>resample</InlineCode>, so a line of 7 points
-              becomes one of 84 by moving), <InlineCode>AnimatedNumber</InlineCode> (a number that
+              becomes one of 84 by moving, or, given <InlineCode>keys</InlineCode>, is matched by
+              name, so a sliding window&apos;s kept elements carry on and new ones start at{' '}
+              <InlineCode>rest</InlineCode>), <InlineCode>AnimatedNumber</InlineCode> (a number that
               counts between values, formatted in the page&apos;s locale or by your function;
               assistive technology reads only the value it settles on, and its box keeps that
               width), <InlineCode>staggerDelays</InlineCode> (when each of a row&apos;s items starts

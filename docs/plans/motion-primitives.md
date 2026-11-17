@@ -40,7 +40,7 @@ interface M3SpringValueOptions {
 }
 ```
 
-`useM3SpringValues` takes the same, with `delay` one for all or one per element, plus `rest` (the value a new element starts at when there was no list before; default 0).
+`useM3SpringValues` takes the same, with `delay` one for all or one per element, plus `rest` (where a new element starts, one for all or per element; default 0) and `keys` (names matching a new list to the old one: a kept key carries on, a new one starts at `rest`; without them elements match by place).
 
 ## Behaviour
 
@@ -48,6 +48,7 @@ interface M3SpringValueOptions {
 - **Interrupted keeps its speed:** a new target mid-move starts from the current position and velocity. `useM3SpringValue` uses Motion's `animate`, which reads the value's velocity. `useM3SpringValues` keeps a position and a velocity per element and advances them all in one frame callback with the closed-form spring (`springState`), restarted from each element's current state on each new target, so 84 points are one loop, not 84 animations.
 - **Delays wait from rest:** an element at rest waits its delay (an entrance one after another); one already moving turns to a new target at once, keeping its speed, rather than holding still or swinging about its position for the delay.
 - **Another length:** the old positions and velocities are read at the new places by straight-line interpolation (`resample`), so a 7-point line becomes an 84-point one by moving, with no path-morphing library.
+- **By key** (added in the audit, 2026-11-17, for the charts' plan §6: "a place that stays moves, a new one grows from the baseline"): with `keys`, a new list is matched to the old one by name, so a window of a feed sliding on keeps each kept element's state and starts a new one at `rest` (per element: a point's x at its own place).
 - **Reduced motion** (the library's rule, §6): a `spatial` value jumps to each target, as the spatial tokens are 0ms; an `effects` value keeps its spring, as fades do. `AnimatedNumber` shows the new value at once. `staggerDelays` stays pure: the caller drops the delays. Before, `useM3Spring` alone returned the standard spring and each component skipped movement itself; these do it for their callers.
 - **`staggerDelays`:** the FAB menu's model made general: the count springs from 0 to `count` on the slow effects spring (default; `spring` option) and item `i` starts when it passes `i`, so any number of items arrives within one spring's time. `fab-menu-stagger.ts` then uses it.
 - **`useEntrance`:** `entered` is true on the server and for an element with any part on screen when the page hydrates (its final picture was in the server's HTML, so replaying from nothing would flash). Mounted by the client, or hydrated wholly out of view, it is false until the element first comes into view (an `IntersectionObserver`: a quarter of it by default, or that share of the window for an element taller than it; `amount` option). `inView` says any part shows. A hidden tab (`document.hidden`) defers it; with nothing to observe it shows the final picture.
