@@ -48,8 +48,10 @@ export function prepareAnnouncer(): void {
 /** Announces `message` politely (queued after what the screen reader is saying). */
 export function announcePolite(message: string): void {
   const { element, readyAt } = liveRegion();
+  // The region's own document: a message still waiting when its page (or a test's) goes away
+  // has no global document to reach for.
   const add = () => {
-    const node = document.createElement('div');
+    const node = element.ownerDocument.createElement('div');
     node.textContent = message;
     element.append(node);
     setTimeout(() => node.remove(), CLEAR_AFTER);
