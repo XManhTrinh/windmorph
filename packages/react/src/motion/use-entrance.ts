@@ -1,0 +1,89 @@
+'use client';
+
+import { useEffect, useState, useSyncExternalStore, type RefObject } from 'react';
+
+export interface EntranceOptions {
+  /** How much of the element must show before its entrance plays, from 0 to 1. @default 0.25 */
+  amount?: number;
+}
+
+export interface Entrance {
+  /**
+   * Whether the element shows its final state. `false` only while an entrance is waiting to
+   * play: show the start state (bars at their baseline, a number at its start). It turns `true`
+   * once, as the element first comes into view.
+   */
+  entered: boolean;
+  /** Whether the element is in view now, so a change is worth animating. */
+  inView: boolean;
+}
+
+const subscribeNothing = () => () => undefined;
+
+/**
+ * Whether an element's entrance should play: once, when it first comes into view, so motion
+ * nobody saw isn't wasted. Never for content that was on screen as the page hydrated: its final
+ * picture was in the server's HTML, and replaying it from nothing would flash. Content
+ * server-rendered out of view switches to its start state unseen and enters when scrolled to;
+ * content the browser mounts later enters as it comes into view. A hidden tab waits until it
+ * shows. On the server `entered` is `true`.
+ *
+ * @example
+ * const { entered, inView } = useEntrance(ref);
+ * const height = useM3SpringValue(entered ? share : 0, { animate: inView });
+ */
+export function useEntrance(
+  ref: RefObject<Element | null>,
+  { amount = 0.25 }: EntranceOptions = {},
+): Entrance {
+  // False on the server and while hydrating, true for a render the browser started.
+  const inBrowser = useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+  const [mountedInBrowser] = useState(inBrowser);
+  const [entered, setEntered] = useState(!mountedInBrowser);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      setEntered(true);
+      return;
+    }
+    let first = true;
+    let done = false;
+    let showing = false;
+    const enter = () => {
+      if (done || !showing || document.hidden) return;
+      done = true;
+      setEntered(true);
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Any part showing is worth animating; an entrance waits for `amount` of it.
+        setInView(entry !== undefined && entry.isIntersecting);
+        showing =
+          entry !== undefined && entry.isIntersecting && entry.intersectionRatio >= amount - 0.001;
+        if (first && !mountedInBrowser) {
+          // Hydrated with any part on screen: it showed its final picture already. Wholly out
+          // of view: show the start state, unseen, until it's scrolled to.
+          if (entry?.isIntersecting) done = true;
+          else setEntered(false);
+        }
+        first = false;
+        enter();
+      },
+      { threshold: [0, amount] },
+    );
+    observer.observe(element);
+    document.addEventListener('visibilitychange', enter);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', enter);
+    };
+  }, [ref, amount, mountedInBrowser]);
+
+  return { entered, inView };
+}

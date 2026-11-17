@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { COLOR_ROLES } from '../tokens';
+import { BUILT_IN_THEMES, COLOR_ROLES, CONTRAST_LEVEL_NAMES } from '../tokens';
 import { createTheme } from './create-theme';
-import { generateThemeCss } from './css';
+import { generateThemeCss, themeSelector } from './css';
 import { generateSchemeColors } from './scheme';
 
 const baseline = { seed: '#6750A4', variant: 'tonal-spot' } as const;
@@ -91,5 +91,26 @@ describe('createTheme', () => {
 
   it('rejects names that are not valid data-theme values', () => {
     expect(() => createTheme({ name: 'Acme Blue', seed: '#0B57D0' })).toThrow(/kebab-case/);
+  });
+});
+
+describe('themeSelector', () => {
+  it('is the selector of each block of the theme CSS', () => {
+    const css = generateThemeCss('ocean', BUILT_IN_THEMES.ocean);
+    for (const contrast of CONTRAST_LEVEL_NAMES) {
+      for (const mode of ['light', 'dark', 'system'] as const) {
+        expect(css).toContain(`${themeSelector('ocean', contrast, mode)} {`);
+      }
+    }
+  });
+
+  it('applies the default theme where no theme is set, and standard contrast where none is', () => {
+    const selector = themeSelector('baseline', 'standard', 'dark', true);
+    expect(selector).toContain(
+      ':where(:root:not([data-theme]):not([data-contrast])[data-mode="dark"])',
+    );
+    expect(themeSelector('rose', 'high', 'light')).toBe(
+      ':where([data-theme="rose"][data-contrast="high"])',
+    );
   });
 });

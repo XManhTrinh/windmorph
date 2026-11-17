@@ -24,7 +24,11 @@ export interface ThemeCssOptions {
 }
 
 /**
- * Selectors for one theme × contrast × mode block.
+ * Selectors for one theme × contrast × mode block of the theme CSS. Public in `/primitives`
+ * (2026-11-17) for CSS of an app's own (or a library's) that follows the themes exactly as the
+ * colour roles do, so a `ThemeScope` and the system mode pick the right values with no script.
+ * A `system` block goes inside `@media (prefers-color-scheme: dark)`.
+ *
  * A missing `data-contrast` behaves like `standard`; a missing `data-mode` like `light`;
  * the default theme also applies to a root without `data-theme`.
  *
@@ -34,11 +38,11 @@ export interface ThemeCssOptions {
  * level, and {@link generateThemeCss} writes light before dark and system, so the mode rule
  * that also matches comes later and wins.
  */
-function selectors(
+export function themeSelector(
   name: string,
   contrast: ContrastLevel,
   mode: ResolvedColorMode | 'system',
-  isDefault: boolean,
+  isDefault = false,
 ): string {
   const themeParts = [`[data-theme="${name}"]`];
   if (isDefault) themeParts.push(':root:not([data-theme])');
@@ -74,10 +78,10 @@ export function generateThemeCss(
   for (const contrast of contrastLevels) {
     const light = declarations(seed, 'light', contrast);
     const dark = declarations(seed, 'dark', contrast);
-    blocks.push(`${selectors(name, contrast, 'light', isDefault)} {\n${light}\n}`);
-    blocks.push(`${selectors(name, contrast, 'dark', isDefault)} {\n${dark}\n}`);
+    blocks.push(`${themeSelector(name, contrast, 'light', isDefault)} {\n${light}\n}`);
+    blocks.push(`${themeSelector(name, contrast, 'dark', isDefault)} {\n${dark}\n}`);
     blocks.push(
-      `@media (prefers-color-scheme: dark) {\n${selectors(name, contrast, 'system', isDefault)} {\n${dark}\n}\n}`,
+      `@media (prefers-color-scheme: dark) {\n${themeSelector(name, contrast, 'system', isDefault)} {\n${dark}\n}\n}`,
     );
   }
   return blocks.join('\n\n');

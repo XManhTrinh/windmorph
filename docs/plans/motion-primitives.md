@@ -1,6 +1,6 @@
 # Plan: motion primitives for values
 
-Status: **plan, waiting for approval (2026-11-17)**. Five building blocks in `@windmorph/react/primitives` that move numbers, lists of numbers and entrances on the theme's springs. Windmorph Pro's charts are the first to use them (its `docs/plans/charts.md`); they are general, so they belong here.
+Status: **approved 2026-11-17, built**. See "As built" for where the build settled a detail. Five building blocks in `@windmorph/react/primitives` that move numbers, lists of numbers and entrances on the theme's springs. Windmorph Pro's charts are the first to use them (its `docs/plans/charts.md`); they are general, so they belong here.
 
 ## The problem
 
@@ -65,3 +65,11 @@ Unit: velocity kept across a retarget (the position and its derivative are conti
 ## Not in this plan
 
 Dragging with inertia (decay, then a snap): a different model from a spring, for its own plan when something zooms or pans. View transitions stay an extra a component may use where the browser has them.
+
+## As built (2026-11-17)
+
+- **No `from` on the hooks:** an entrance switches the target instead (the start state while `useEntrance` says it waits, then the final one), so the hooks keep one meaning, "spring to this", and the server's HTML is always the final picture. `delay` applies to the move it's given with (an entrance's stagger), not only the first.
+- **`useEntrance` returns `{ entered, inView }`:** `entered` is false only while an entrance waits; `inView` (any part showing) is what `animate` should follow, so a change off screen lands at once.
+- **`staggerDelays` is pure:** under reduced motion the caller drops the delays (a spatial move is instant there anyway).
+- **The FAB menu shares the maths, not the function:** its steps keep Compose's timing (an item shows once the count passes it); `staggerDelays` starts the first item at once. Both use `timeToReach` from `motion/spring-state.ts`.
+- **`AnimatedNumber`'s moving figure is written by the spring alone,** never rendered by React after the first paint, which would flash the new value for a frame.

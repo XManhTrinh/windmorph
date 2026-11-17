@@ -77,6 +77,8 @@ const SHARED_TITLES: Record<string, (name: string) => string | undefined> = {
 export const NOT_COMPONENTS: Record<string, string> = {
   'foundations-shapes':
     'the shape library, documented under Primitives, not an interactive component',
+  'foundations-motion-values':
+    'motion on values (springs, a counting number, entrances), documented under Primitives and checked frame by frame in motion-values.spec.ts',
 };
 
 /** The catalog component a story shows, or `undefined` when no one mapped its title. */

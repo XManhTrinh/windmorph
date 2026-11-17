@@ -37,6 +37,12 @@ export {
 } from './primitives/Field';
 export { getM3Spring } from './motion/get-m3-spring';
 export { useM3Spring } from './motion/use-m3-spring';
+export { useM3SpringValue, type M3SpringValueOptions } from './motion/use-m3-spring-value';
+export { resample } from './motion/resample';
+export { useM3SpringValues, type M3SpringValuesOptions } from './motion/use-m3-spring-values';
+export { staggerDelays, type StaggerDelaysOptions } from './motion/stagger-delays';
+export { useEntrance, type Entrance, type EntranceOptions } from './motion/use-entrance';
+export { AnimatedNumber, type AnimatedNumberProps } from './primitives/AnimatedNumber';
 export {
   springProgressWithVelocity,
   springWithVelocityToLinearEasing,
@@ -104,6 +110,7 @@ export {
 } from './utils/root-props';
 export { ThemeScopeContext } from './theme/context';
 export { generateSchemeColors } from './theme/scheme';
+export { themeSelector } from './theme/css';
 
 // Shape library (port of androidx.graphics.shapes + Compose MaterialShapes)
 export { CornerRounding } from './shapes/corner-rounding';
