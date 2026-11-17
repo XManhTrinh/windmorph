@@ -80,6 +80,33 @@ describe('AnimatedNumber', () => {
     expect(shown.at(-1)).toBe(100);
   });
 
+  it('shows a computed value with at most three decimals, and a tiny one exactly', async () => {
+    const { container } = render(<AnimatedNumber value={2 / 3} />);
+    expect(parts(container).spoken).toHaveTextContent('0.667');
+    const tiny = render(<AnimatedNumber value={1.5e-7} format={String} />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    // Eight decimals: rounded to seven it would read 2e-7.
+    expect(parts(tiny.container).moving).toHaveTextContent('1.5e-7');
+  });
+
+  it('never shows a figure past the one it showed when a new value arrives mid-overshoot', async () => {
+    const { container, rerender } = render(<AnimatedNumber value={0} format={String} />);
+    rerender(<AnimatedNumber value={1000} format={String} />);
+    const moving = () => Number(parts(container).moving.textContent);
+    for (let frame = 0; frame < 60 && moving() < 1000; frame++) {
+      await act(() => new Promise((resolve) => setTimeout(resolve, 16)));
+    }
+    // Past the target now, held at 1000 on screen while the spring overshoots.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 60)));
+    rerender(<AnimatedNumber value={500} format={String} />);
+    const shown: number[] = [];
+    for (let frame = 0; frame < 12; frame++) {
+      await act(() => new Promise((resolve) => setTimeout(resolve, 16)));
+      shown.push(moving());
+    }
+    expect(Math.max(...shown)).toBeLessThanOrEqual(1000);
+  });
+
   it('puts its own props on the root', () => {
     const { container } = render(
       <AnimatedNumber

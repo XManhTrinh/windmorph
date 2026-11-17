@@ -106,17 +106,35 @@ test.describe('Motion values', () => {
     page,
   }) => {
     await open(page, 'counting-number');
-    await page.getByRole('button', { name: 'Change' }).click();
-    await page.waitForTimeout(1200);
-    const width = (await page.getByTestId('number').boundingBox())!.width;
+    // Each count keeps the box at its final value's width from the press on, down and up.
+    const widthsAfter = ({ samples, pressedAt }: Awaited<ReturnType<typeof record>>) =>
+      new Set(
+        samples.filter((sample) => sample.t > pressedAt[0]! + 20).map((s) => Math.round(s.value)),
+      );
+    const down = await record(page, 'number', 'width', [{ name: 'Change', at: 0 }], 900);
+    expect(widthsAfter(down).size).toBe(1);
+    const up = await record(page, 'number', 'width', [{ name: 'Change', at: 0 }], 900);
+    expect(widthsAfter(up).size).toBe(1);
+    expect([...widthsAfter(up)][0]).toBeGreaterThan([...widthsAfter(down)][0]!);
+
     const figures = await record(page, 'number', 'text', [{ name: 'Change', at: 0 }]);
-    const widths = await record(page, 'number', 'width', [], 400);
-    expect(Math.max(...figures.samples.map((sample) => sample.value))).toBeLessThanOrEqual(1284);
+    const back = await record(page, 'number', 'text', [{ name: 'Change', at: 0 }]);
+    expect(Math.min(...figures.samples.map((sample) => sample.value))).toBeGreaterThanOrEqual(96);
     expect(figures.samples.some((sample) => sample.value > 96 && sample.value < 1284)).toBe(true);
-    expect(figures.samples.at(-1)!.value).toBe(1284);
-    expect(new Set(widths.samples.map((sample) => Math.round(sample.value))).size).toBe(1);
-    expect(width).toBeGreaterThan(0);
+    expect(figures.samples.at(-1)!.value).toBe(96);
+    expect(Math.max(...back.samples.map((sample) => sample.value))).toBeLessThanOrEqual(1284);
+    expect(back.samples.at(-1)!.value).toBe(1284);
     await expect(page.getByText('1,284', { exact: true }).first()).toBeAttached();
+    // Selected and copied, it gives the figure once.
+    const copied = await page.getByTestId('number').evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection()!;
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return selection.toString();
+    });
+    expect(copied.trim()).toBe('1,284');
   });
 
   test('an entrance plays once, one bar after another, as the row comes into view', async ({
@@ -152,6 +170,13 @@ test.describe('Motion values', () => {
     const bar = await record(page, 'bar', 'height', [{ name: 'To 300', at: 0 }], 300);
     const moving = bar.samples.filter((sample) => sample.value > 41 && sample.value < 299);
     expect(moving).toEqual([]);
+
+    await open(page, 'spring-values');
+    const line = await record(page, 'line', 'length', [{ name: '84 points', at: 50 }], 300);
+    // The line's two shapes and nothing between them.
+    expect(
+      new Set(line.samples.map((sample) => Math.round(sample.value))).size,
+    ).toBeLessThanOrEqual(2);
 
     await open(page, 'counting-number');
     const number = await record(page, 'number', 'text', [{ name: 'Change', at: 0 }], 300);
