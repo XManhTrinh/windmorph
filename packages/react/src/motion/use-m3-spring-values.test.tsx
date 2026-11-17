@@ -77,6 +77,20 @@ describe('useM3SpringValues', () => {
     expect(result.current.get().slice(3)).toEqual([0.75, 1]);
   });
 
+  it('starts a new key where a function of the list as it shows puts it', () => {
+    const { result, rerender } = renderHook(
+      ({ targets, keys }) =>
+        useM3SpringValues(targets, {
+          keys,
+          // A new point enters on the line: the last value it showed.
+          rest: (shown) => targets.map(() => shown.at(-1) ?? 0),
+        }),
+      { initialProps: { targets: [10, 20] as readonly number[], keys: ['a', 'b'] } },
+    );
+    rerender({ targets: [20, 30], keys: ['b', 'c'] });
+    expect(result.current.get()).toEqual([20, 20]);
+  });
+
   it('springs to new targets over frames and settles on them', async () => {
     const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
       initialProps: { targets: [0, 0] as readonly number[] },

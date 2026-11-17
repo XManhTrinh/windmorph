@@ -40,7 +40,7 @@ interface M3SpringValueOptions {
 }
 ```
 
-`useM3SpringValues` takes the same, with `delay` one for all or one per element, plus `rest` (where a new element starts, one for all or per element; default 0) and `keys` (names matching a new list to the old one: a kept key carries on, a new one starts at `rest`; without them elements match by place).
+`useM3SpringValues` takes the same, with `delay` one for all or one per element, plus `rest` (where a new element starts: one for all, per element, or a function of the list as it shows at the change; default 0) and `keys` (names matching a new list to the old one: a kept key carries on, a new one starts at `rest`; without them elements match by place).
 
 ## Behaviour
 

@@ -22,11 +22,13 @@ export interface M3SpringValuesOptions extends Omit<M3SpringValueOptions, 'delay
    */
   delay?: number | readonly number[];
   /**
-   * Where a new element starts: one for all, or one per element (a point entering at its own
-   * place). Used for every element when there was no list before, and for each new key.
+   * Where a new element starts: one for all, one per element (a point entering at its own
+   * place), or worked out from the list as it shows at the change (`shown`, in the old list's
+   * order: a point entering on a line where the line is). Used for every element when there
+   * was no list before, and for each new key.
    * @default 0
    */
-  rest?: number | readonly number[];
+  rest?: number | readonly number[] | ((shown: readonly number[]) => readonly number[]);
   /**
    * Names each element, so a new list is matched to the old one by name rather than by place:
    * a kept key moves on from where its element is, at its speed, and a new key starts at
@@ -155,7 +157,8 @@ export function useM3SpringValues(
       const move = current.moves[index];
       return move ? stateAt(current.spring, move, now) : { value: position, velocity: 0 };
     });
-    const restAt = (index: number) => (typeof rest === 'number' ? rest : (rest[index] ?? 0));
+    const rests = typeof rest === 'function' ? rest(states.map((state) => state.value)) : rest;
+    const restAt = (index: number) => (typeof rests === 'number' ? rests : (rests[index] ?? 0));
     let positions: number[];
     let speeds: number[];
     if (keys && previousKeys && previousKeys.length === states.length) {
