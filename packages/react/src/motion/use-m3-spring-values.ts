@@ -16,7 +16,10 @@ import { springState } from './spring-state';
 import type { M3SpringValueOptions } from './use-m3-spring-value';
 
 export interface M3SpringValuesOptions extends Omit<M3SpringValueOptions, 'delay'> {
-  /** Seconds before each element moves: one for all, or one per element. @default 0 */
+  /**
+   * Seconds each element waits before a move from rest: one for all, or one per element. An
+   * element already moving turns to its new target at once. @default 0
+   */
   delay?: number | readonly number[];
   /** Where a new element starts when there was no list before. @default 0 */
   rest?: number;
@@ -38,11 +41,20 @@ const stateAt = (spring: SpringToken, move: Move, now: number) => {
     move.velocity,
     elapsed,
   );
-  return { value: move.target + displacement, velocity: elapsed === 0 ? move.velocity : velocity };
+  return { value: move.target + displacement, velocity };
 };
 
+// `Object.is`, so a list holding NaN is the same list on the next render.
 const sameList = (a: readonly number[], b: readonly number[]) =>
-  a.length === b.length && a.every((value, index) => value === b[index]);
+  a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+
+/** The list's largest finite magnitude, at least 1: what "close enough to settle" scales by. */
+function magnitude(list: readonly number[]) {
+  let largest = 1;
+  for (const value of list)
+    if (Number.isFinite(value)) largest = Math.max(largest, Math.abs(value));
+  return largest;
+}
 
 /**
  * A list of numbers that springs as one to each new `targets`, on the theme's spring: a line's
@@ -53,6 +65,7 @@ const sameList = (a: readonly number[], b: readonly number[]) =>
  * motion and `animate: false` jump, as {@link useM3SpringValue} does. On the server and in the
  * first render it is `targets`.
  *
+ * @param targets Where the elements go; a list with any element changed starts a move.
  * @example
  * const points = useM3SpringValues(values);
  * const d = useTransform(points, (list) => linePath(list));
@@ -99,9 +112,12 @@ export function useM3SpringValues(
     const changed = !sameList(current.targets, targets);
     current.targets = targets;
     if (!changed) {
-      // A new scheme applies from the next move; a move under way keeps its spring.
+      // A new scheme applies from the next move; a move under way keeps its spring. With no
+      // frame callback (none yet, or stopped while hidden by an `Activity`), it shows the targets.
       if (current.tick === null) {
         current.spring = spring;
+        current.moves = [];
+        current.pending = [];
         if (!sameList(value.get(), targets)) value.jump(targets);
       }
       return;
@@ -110,14 +126,12 @@ export function useM3SpringValues(
     const now = time.now();
     // Where each element is and how fast it moves now (not at the last frame), read at the new
     // length.
-    const shown = value.get().map((position, index) => {
+    const states = value.get().map((position, index) => {
       const move = current.moves[index];
-      return move ? stateAt(current.spring, move, now).value : position;
+      return move ? stateAt(current.spring, move, now) : { value: position, velocity: 0 };
     });
-    const velocities = shown.map((_, index) => {
-      const move = current.moves[index];
-      return move ? stateAt(current.spring, move, now).velocity : 0;
-    });
+    const shown = states.map((state) => state.value);
+    const velocities = states.map((state) => state.velocity);
     const positions = resample(shown, targets.length, rest);
     const speeds =
       shown.length === targets.length ? velocities : resample(velocities, targets.length, 0);
@@ -128,14 +142,14 @@ export function useM3SpringValues(
       target: positions[index]!,
       start: now,
     }));
+    // An element at rest holds where it is until its delay ends; one moving turns at once.
     current.pending = targets.map((target, index) => {
-      const wait = (typeof delay === 'number' ? delay : (delay[index] ?? 0)) * 1000;
-      return { origin: 0, velocity: 0, target, start: now + wait };
+      const wait = speeds[index] ? 0 : typeof delay === 'number' ? delay : (delay[index] ?? 0);
+      return { origin: 0, velocity: 0, target, start: now + wait * 1000 };
     });
-    // The elements hold where they are until their delay ends.
     value.set(positions);
 
-    const scale = Math.max(1, ...targets.map(Math.abs));
+    const scale = magnitude(targets);
     const tick = ({ timestamp }: { timestamp: number }) => {
       let settled = true;
       const next = current.moves.map((move, index) => {
@@ -175,8 +189,9 @@ export function useM3SpringValues(
 
   useEffect(
     () => () => {
-      const { tick } = state.current;
-      if (tick) cancelFrame(tick);
+      const current = state.current;
+      if (current.tick) cancelFrame(current.tick);
+      current.tick = null;
     },
     [],
   );

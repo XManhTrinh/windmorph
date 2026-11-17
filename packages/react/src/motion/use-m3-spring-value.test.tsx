@@ -29,12 +29,38 @@ describe('useM3SpringValue', () => {
     });
     rerender({ target: 100 });
     await wait(50);
-    const speed = result.current.getVelocity();
-    expect(speed).toBeGreaterThan(0);
-    rerender({ target: 200 });
-    await wait(20);
-    // Restarted from rest it would be far slower one frame in.
-    expect(result.current.getVelocity()).toBeGreaterThan(speed * 0.5);
+    const at = result.current.get();
+    expect(result.current.getVelocity()).toBeGreaterThan(100);
+    // A target just ahead: carried on its speed it runs well past it; from rest it would creep.
+    rerender({ target: at + 1 });
+    await wait(40);
+    expect(result.current.get()).toBeGreaterThan(at + 4);
+  });
+
+  it('turns a moving value to a new target at once, whatever its delay', async () => {
+    const { result, rerender } = renderHook(
+      ({ target, delay }) => useM3SpringValue(target, { delay }),
+      { initialProps: { target: 0, delay: 0 } },
+    );
+    rerender({ target: 100, delay: 0 });
+    await wait(50);
+    const at = result.current.get();
+    rerender({ target: 100 + at, delay: 0.4 });
+    await wait(250);
+    // Well on its way before the delay would have ended: never held still for it.
+    expect(result.current.get()).toBeGreaterThan(at + 60);
+  });
+
+  it('waits its delay before a move from rest', async () => {
+    const { result, rerender } = renderHook(
+      ({ target }) => useM3SpringValue(target, { delay: 0.2 }),
+      { initialProps: { target: 0 } },
+    );
+    rerender({ target: 100 });
+    await wait(100);
+    expect(result.current.get()).toBe(0);
+    await wait(200);
+    expect(result.current.get()).toBeGreaterThan(0);
   });
 
   it('jumps when it may not animate', () => {

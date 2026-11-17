@@ -18,7 +18,10 @@ export interface M3SpringValueOptions {
   family?: SpringFamily;
   /** @default "default" */
   speed?: SpringSpeed;
-  /** Seconds before this move starts (an entrance one after another). @default 0 */
+  /**
+   * Seconds a move from rest waits before it starts (an entrance one after another); a value
+   * already moving turns to a new target at once. @default 0
+   */
   delay?: number;
   /** `false` jumps to each target: off screen, or in a hidden tab. @default true */
   animate?: boolean;
@@ -31,6 +34,7 @@ export interface M3SpringValueOptions {
  * each target, as the spatial tokens are 0ms there; an effects value keeps its spring, as fades
  * do. On the server and in the first render it is the target.
  *
+ * @param target Where the value goes; each new one starts a move.
  * @example
  * const height = useM3SpringValue(value / max);
  * <m.div style={{ scaleY: height }} />
@@ -59,15 +63,14 @@ export function useM3SpringValue(
       value.jump(target);
       return;
     }
-    if (value.get() === target && value.getVelocity() === 0) return;
+    const moving = value.getVelocity() !== 0;
+    if (value.get() === target && !moving) return;
     // Motion starts from the value's current position and velocity. A move under way (stopped
-    // by now, so it shows only as speed) restarts from its last frame: a negative delay starts
-    // that far in.
-    const behind =
-      value.getVelocity() !== 0 ? Math.min(0.05, (time.now() - lastMoved.current) / 1000) : 0;
+    // by now, so it shows only as speed) turns at once, from its last frame: a negative delay
+    // starts that far in. Only a move from rest waits its delay.
     const controls = animate(value, target, {
       ...getM3Spring(reducedMotion ? 'standard' : motion, family, speed),
-      delay: delay - behind,
+      delay: moving ? -Math.min(0.05, (time.now() - lastMoved.current) / 1000) : delay,
     });
     return () => controls.stop();
   }, [target, animated, reducedMotion, family, speed, motion, delay, value]);

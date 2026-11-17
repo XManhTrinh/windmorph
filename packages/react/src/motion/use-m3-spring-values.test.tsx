@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { Activity } from 'react';
 import { describe, expect, it } from 'vitest';
 import { setMediaQueries } from '../../test/setup';
 import { resample } from './resample';
@@ -17,6 +18,8 @@ describe('resample', () => {
     expect(resample([1, 2], 0)).toEqual([]);
   });
 });
+
+const wait = (ms: number) => act(() => new Promise((resolve) => setTimeout(resolve, ms)));
 
 describe('useM3SpringValues', () => {
   it('is its targets in the first render', () => {
@@ -46,6 +49,79 @@ describe('useM3SpringValues', () => {
     await act(() => new Promise((resolve) => setTimeout(resolve, 1500)));
     expect(result.current.get()).toEqual([100, 50]);
   });
+  it('keeps each element’s speed when new targets arrive mid-move', async () => {
+    const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
+      initialProps: { targets: [0, 0] as readonly number[] },
+    });
+    rerender({ targets: [100, 100] });
+    await wait(50);
+    const [at = 0] = result.current.get();
+    // Targets just ahead: carried on its speed each runs well past them; from rest it would creep.
+    rerender({ targets: [at + 1, at + 1] });
+    await wait(40);
+    expect(result.current.get()[0]).toBeGreaterThan(at + 4);
+  });
+
+  it('waits each element’s delay before a move from rest', async () => {
+    const { result, rerender } = renderHook(
+      ({ targets }) => useM3SpringValues(targets, { delay: [0, 0.25] }),
+      { initialProps: { targets: [0, 0] as readonly number[] } },
+    );
+    rerender({ targets: [100, 100] });
+    await wait(120);
+    const [first, second] = result.current.get();
+    expect(first).toBeGreaterThan(0);
+    expect(second).toBe(0);
+    await wait(250);
+    expect(result.current.get()[1]).toBeGreaterThan(0);
+  });
+
+  it('turns a moving element to a new target at once, whatever its delay', async () => {
+    const { result, rerender } = renderHook(
+      ({ targets, delay }) => useM3SpringValues(targets, { delay }),
+      { initialProps: { targets: [0] as readonly number[], delay: 0 as number } },
+    );
+    rerender({ targets: [100], delay: 0 });
+    await wait(50);
+    const [at = 0] = result.current.get();
+    rerender({ targets: [100 + at], delay: 0.4 });
+    await wait(250);
+    // Well on its way before the delay would have ended: never held (or swung about) for it.
+    expect(result.current.get()[0]).toBeGreaterThan(at + 60);
+  });
+
+  it('reaches its targets after being hidden mid-move and shown again', async () => {
+    let mode: 'visible' | 'hidden' = 'visible';
+    const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
+      initialProps: { targets: [0] as readonly number[] },
+      wrapper: ({ children }) => <Activity mode={mode}>{children}</Activity>,
+    });
+    const full = [100];
+    rerender({ targets: full });
+    await wait(40);
+    mode = 'hidden';
+    rerender({ targets: full });
+    mode = 'visible';
+    rerender({ targets: full });
+    await wait(1500);
+    expect(result.current.get()).toEqual([100]);
+  });
+
+  it('settles a list holding NaN without restarting on every render', async () => {
+    const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
+      initialProps: { targets: [0, 0] as readonly number[] },
+    });
+    rerender({ targets: [Number.NaN, 100] });
+    await wait(60);
+    const moving = result.current.get()[1]!;
+    expect(moving).toBeGreaterThan(0);
+    expect(moving).toBeLessThan(100);
+    // The same list again (a parent's render) carries on rather than starting over.
+    rerender({ targets: [Number.NaN, 100] });
+    await wait(20);
+    expect(result.current.get()[1]).toBeGreaterThan(moving);
+  });
+
   it('jumps when it may not animate', () => {
     const { result, rerender } = renderHook(
       ({ targets }) => useM3SpringValues(targets, { animate: false }),
