@@ -73,6 +73,7 @@ export {
   useKeepPressedInPlace,
   type KeepPressedInPlaceResult,
 } from './utils/keep-pressed-in-place';
+export { useNearestReveal } from './utils/nearest-reveal';
 export { useScrollKeys, type ScrollKeysResult } from './utils/use-scroll-keys';
 export {
   useScrollRestoration,

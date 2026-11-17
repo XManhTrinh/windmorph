@@ -25,7 +25,7 @@ const importSnippet = `import {
   // Overlay plumbing
   TriggerContext, useTriggerProps, usePresence, DomDirectionLocale, localeWithDirection,
   // Scrolling
-  useKeepPressedInPlace, useScrollRestoration, useScrollKeys,
+  useKeepPressedInPlace, useNearestReveal, useScrollRestoration, useScrollKeys,
   useSliderTouchTrack, sliderThumbInputProps, sliderArrowRaises,
   // Building your own component
   splitRootProps, pickWidgetAria, pickDescriptionAria, type RootDOMProps, type WrapperRootDOMProps, type DescriptionAria,
@@ -307,6 +307,12 @@ export async function PrimitivesBody(): Promise<ComponentDoc> {
               on screen while an open item above it folds, by scrolling its scroller as much as the
               fold on every frame, as the List&apos;s tree grid does; pair it with{' '}
               <InlineCode>overflow-anchor: none</InlineCode> on the folding parts).
+            </li>
+            <li>
+              <InlineCode>useNearestReveal</InlineCode> (give it the element a React Aria collection
+              hook was given, such as a grid that scrolls inside a box of its own: arrow keys then
+              bring the next item into view without first centring the whole collection, so the
+              page moves only as far as the item needs, as in the List and Tabs).
             </li>
             <li>
               <InlineCode>useSliderTouchTrack</InlineCode> (wraps React Aria&apos;s{' '}
