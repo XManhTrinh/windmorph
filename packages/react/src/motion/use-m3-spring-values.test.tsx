@@ -1,5 +1,6 @@
-import { act, renderHook } from '@testing-library/react';
-import { Activity } from 'react';
+import { act, render, renderHook } from '@testing-library/react';
+import type { MotionValue } from 'motion/react';
+import { Activity, useLayoutEffect } from 'react';
 import { describe, expect, it } from 'vitest';
 import { setMediaQueries } from '../../test/setup';
 import { resample } from './resample';
@@ -89,6 +90,36 @@ describe('useM3SpringValues', () => {
     );
     rerender({ targets: [20, 30], keys: ['b', 'c'] });
     expect(result.current.get()).toEqual([20, 20]);
+  });
+
+  it('holds the new list by the time the page is laid out, before the next frame', () => {
+    // Marks that read an element by its index change with the list: a list still the old
+    // length for a frame would draw each one from its neighbour's place.
+    const seen: number[] = [];
+    let value: MotionValue<readonly number[]> | null = null;
+    function Holder({ targets, keys }: { targets: readonly number[]; keys: string[] }) {
+      value = useM3SpringValues(targets, { keys });
+      return null;
+    }
+    function Probe() {
+      useLayoutEffect(() => {
+        seen.push(value!.get().length);
+      });
+      return null;
+    }
+    const { rerender } = render(
+      <>
+        <Holder targets={[1, 2, 3]} keys={['a', 'b', 'c']} />
+        <Probe />
+      </>,
+    );
+    rerender(
+      <>
+        <Holder targets={[2, 3]} keys={['b', 'c']} />
+        <Probe />
+      </>,
+    );
+    expect(seen).toEqual([3, 2]);
   });
 
   it('springs to new targets over frames and settles on them', async () => {

@@ -8,7 +8,7 @@ import {
   useReducedMotion,
   type MotionValue,
 } from 'motion/react';
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useThemeScope } from '../theme/context';
 import { SPRINGS, type SpringToken } from '../tokens/motion';
 import { resample } from './resample';
@@ -114,7 +114,9 @@ export function useM3SpringValues(
     keys,
   });
 
-  useEffect(() => {
+  // Before the page is laid out, so marks that read an element by its index never draw a frame
+  // from the old list (a list that changed length would put each one at its neighbour's place).
+  useLayoutEffect(() => {
     const current = state.current;
     const stop = () => {
       if (current.tick) cancelFrame(current.tick);
@@ -230,7 +232,7 @@ export function useM3SpringValues(
     frame.update(tick, true);
   });
 
-  useEffect(
+  useLayoutEffect(
     () => () => {
       const current = state.current;
       if (current.tick) cancelFrame(current.tick);
