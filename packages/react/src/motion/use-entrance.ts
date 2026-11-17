@@ -3,7 +3,10 @@
 import { useEffect, useState, useSyncExternalStore, type RefObject } from 'react';
 
 export interface EntranceOptions {
-  /** How much of the element must show before its entrance plays, from 0 to 1. @default 0.25 */
+  /**
+   * How much must show before the entrance plays, from 0 to 1: of the element, or of the window
+   * for an element taller than it. @default 0.25
+   */
   amount?: number;
 }
 
@@ -19,6 +22,7 @@ export interface Entrance {
 }
 
 const subscribeNothing = () => () => undefined;
+const THRESHOLDS = Array.from({ length: 21 }, (_, step) => step / 20);
 
 /**
  * Whether an element's entrance should play: once, when it first comes into view, so motion
@@ -28,6 +32,7 @@ const subscribeNothing = () => () => undefined;
  * content the browser mounts later enters as it comes into view. A hidden tab waits until it
  * shows. On the server `entered` is `true`.
  *
+ * @param ref The element whose entrance it is; it must be rendered by the time effects run.
  * @example
  * const { entered, inView } = useEntrance(ref);
  * const height = useM3SpringValue(entered ? share : 0, { animate: inView });
@@ -48,8 +53,10 @@ export function useEntrance(
 
   useEffect(() => {
     const element = ref.current;
+    // Nothing to watch: show the final picture, and let changes animate.
     if (!element || typeof IntersectionObserver === 'undefined') {
       setEntered(true);
+      setInView(true);
       return;
     }
     let first = true;
@@ -64,8 +71,13 @@ export function useEntrance(
       ([entry]) => {
         // Any part showing is worth animating; an entrance waits for `amount` of it.
         setInView(entry !== undefined && entry.isIntersecting);
+        // A share of the element, or, for one taller than the window, that share of the window.
         showing =
-          entry !== undefined && entry.isIntersecting && entry.intersectionRatio >= amount - 0.001;
+          entry !== undefined &&
+          entry.isIntersecting &&
+          (entry.intersectionRatio >= amount - 0.001 ||
+            (entry.rootBounds !== null &&
+              entry.intersectionRect.height >= amount * entry.rootBounds.height - 0.5));
         if (first && !mountedInBrowser) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
@@ -75,7 +87,8 @@ export function useEntrance(
         first = false;
         enter();
       },
-      { threshold: [0, amount] },
+      // Fine steps, so a tall element's callback runs as more of it shows.
+      { threshold: THRESHOLDS },
     );
     observer.observe(element);
     document.addEventListener('visibilitychange', enter);

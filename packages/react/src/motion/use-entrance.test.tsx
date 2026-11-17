@@ -6,16 +6,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntrance } from './use-entrance';
 
 /** An IntersectionObserver the test drives: `show(ratio)` reports the element's visible share. */
-let observed: ((ratio: number) => void) | null = null;
+let observed: ((ratio: number, windowShare?: number) => void) | null = null;
 beforeEach(() => {
   observed = null;
   vi.stubGlobal(
     'IntersectionObserver',
     class {
       constructor(callback: IntersectionObserverCallback) {
-        observed = (ratio) =>
+        observed = (ratio, windowShare) =>
           callback(
-            [{ isIntersecting: ratio > 0, intersectionRatio: ratio } as IntersectionObserverEntry],
+            [
+              {
+                isIntersecting: ratio > 0,
+                intersectionRatio: ratio,
+                rootBounds: { height: 800 },
+                intersectionRect: { height: (windowShare ?? ratio) * 800 },
+              } as unknown as IntersectionObserverEntry,
+            ],
             this as unknown as IntersectionObserver,
           );
       }
@@ -27,7 +34,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-const show = (ratio: number) => act(() => observed?.(ratio));
+const show = (ratio: number, windowShare?: number) => act(() => observed?.(ratio, windowShare));
 
 const seen: boolean[] = [];
 function Chart() {
@@ -83,6 +90,20 @@ describe('useEntrance', () => {
     show(0.4);
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     container.remove();
+  });
+
+  it('enters an element taller than the window once a share of the window shows it', () => {
+    const { container } = render(<Chart />);
+    // A tenth of a very tall element, filling half the window.
+    show(0.1, 0.5);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+  });
+
+  it('shows the final picture and animates when there is nothing to watch', () => {
+    vi.stubGlobal('IntersectionObserver', undefined);
+    const { container } = render(<Chart />);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    expect(box(container)).toHaveAttribute('data-in-view', 'true');
   });
 
   it('waits for a hidden tab to show', () => {
