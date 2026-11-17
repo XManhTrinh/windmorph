@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore, type RefObject } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 
 export interface EntranceOptions {
   /**
    * How much must show before the entrance plays, from 0 to 1: of the element, or of the window
-   * for an element taller than it. @default 0.25
+   * across and down for an element larger than it. @default 0.25
    */
   amount?: number;
 }
 
-export interface Entrance {
+export interface EntranceResult {
   /**
    * Whether the element shows its final state. `false` only while an entrance is waiting to
    * play: show the start state (bars at their baseline, a number at its start). It turns `true`
@@ -40,7 +40,7 @@ const THRESHOLDS = Array.from({ length: 21 }, (_, step) => step / 20);
 export function useEntrance(
   ref: RefObject<Element | null>,
   { amount = 0.25 }: EntranceOptions = {},
-): Entrance {
+): EntranceResult {
   // False on the server and while hydrating, true for a render the browser started.
   const inBrowser = useSyncExternalStore(
     subscribeNothing,
@@ -50,6 +50,9 @@ export function useEntrance(
   const [mountedInBrowser] = useState(inBrowser);
   const [entered, setEntered] = useState(!mountedInBrowser);
   const [inView, setInView] = useState(false);
+  // Entered once, for good: watching again (a new `amount`, an `Activity` shown again) never
+  // sends it back to its start state.
+  const done = useRef(false);
 
   useEffect(() => {
     const element = ref.current;
@@ -60,28 +63,32 @@ export function useEntrance(
       return;
     }
     let first = true;
-    let done = false;
     let showing = false;
     const enter = () => {
-      if (done || !showing || document.hidden) return;
-      done = true;
+      if (done.current || !showing || document.hidden) return;
+      done.current = true;
       setEntered(true);
     };
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Any part showing is worth animating; an entrance waits for `amount` of it.
         setInView(entry !== undefined && entry.isIntersecting);
-        // A share of the element, or, for one taller than the window, that share of the window.
+        // A share of the element, or, for one larger than the window, that share of the window,
+        // across and down (a tall one in a sideways scroller waits for some of its width).
+        const bounds = entry?.rootBounds ?? null;
+        const shownAlong = (axis: 'width' | 'height') =>
+          bounds !== null &&
+          entry!.intersectionRect[axis] >=
+            amount * Math.min(entry!.boundingClientRect[axis], bounds[axis]) - 0.5;
         showing =
           entry !== undefined &&
           entry.isIntersecting &&
           (entry.intersectionRatio >= amount - 0.001 ||
-            (entry.rootBounds !== null &&
-              entry.intersectionRect.height >= amount * entry.rootBounds.height - 0.5));
-        if (first && !mountedInBrowser) {
+            (shownAlong('width') && shownAlong('height')));
+        if (first && !mountedInBrowser && !done.current) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
-          if (entry?.isIntersecting) done = true;
+          if (entry?.isIntersecting) done.current = true;
           else setEntered(false);
         }
         first = false;
