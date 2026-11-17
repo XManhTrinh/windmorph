@@ -90,9 +90,9 @@ export function AnimatedNumber({
   const final = show(value);
   return (
     <span
+      data-slot="animated-number"
       {...props}
       ref={rootRef}
-      data-slot="animated-number"
       className={cn('inline-grid', className)}
     >
       <span aria-hidden="true" className="invisible [grid-area:1/1]">

@@ -79,9 +79,16 @@ describe('AnimatedNumber', () => {
 
   it('puts its own props on the root', () => {
     const { container } = render(
-      <AnimatedNumber value={3} id="total" className="text-title-large" data-kind="total" />,
+      <AnimatedNumber
+        value={3}
+        id="total"
+        className="text-title-large"
+        data-kind="total"
+        data-slot="value"
+      />,
     );
-    const { root } = parts(container);
+    const root = container.firstElementChild!;
+    expect(root).toHaveAttribute('data-slot', 'value');
     expect(root).toHaveAttribute('id', 'total');
     expect(root).toHaveAttribute('data-kind', 'total');
     expect(root).toHaveClass('inline-grid', 'text-title-large');
