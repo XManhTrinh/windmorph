@@ -2,7 +2,7 @@
 
 import { useMotionValueEvent } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type ComponentPropsWithRef } from 'react';
-import { useLocale, useObjectRef } from 'react-aria';
+import { mergeRefs, useLocale } from 'react-aria';
 import { useEntrance } from '../motion/use-entrance';
 import { useM3SpringValue } from '../motion/use-m3-spring-value';
 
@@ -74,7 +74,9 @@ export function AnimatedNumber({
     [locale, decimals],
   );
   const show = format ?? ((number: number) => formatter.format(number));
-  const rootRef = useObjectRef(ref);
+  // Its own ref to watch, so an app's ref (an inline callback, merged refs) never makes it watch
+  // again on each render.
+  const rootRef = useRef<HTMLSpanElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const { entered, inView } = useEntrance(rootRef);
   const target = from !== undefined && !entered ? from : value;
@@ -108,7 +110,12 @@ export function AnimatedNumber({
 
   const final = show(value);
   return (
-    <span data-slot="animated-number" {...props} ref={rootRef} className={className}>
+    <span
+      data-slot="animated-number"
+      {...props}
+      ref={mergeRefs(rootRef, ref)}
+      className={className}
+    >
       {/* A box as wide as the final value wherever the root lays it out (inline, a block, a
           centred line), with the moving figure laid over it. */}
       <span aria-hidden="true" className="relative inline-grid">

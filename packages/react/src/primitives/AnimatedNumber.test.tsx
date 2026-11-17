@@ -118,6 +118,24 @@ describe('AnimatedNumber', () => {
     expect(moving.parentElement).toBe(box);
   });
 
+  it('watches its entrance with one observer, whatever ref an app passes', () => {
+    let observers = 0;
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor() {
+          observers += 1;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const { rerender } = render(<AnimatedNumber value={1} ref={() => undefined} />);
+    rerender(<AnimatedNumber value={2} ref={() => undefined} />);
+    rerender(<AnimatedNumber value={3} ref={() => undefined} />);
+    expect(observers).toBe(1);
+  });
+
   it('puts its own props on the root', () => {
     const { container } = render(
       <AnimatedNumber

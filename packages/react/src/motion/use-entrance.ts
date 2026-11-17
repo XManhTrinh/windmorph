@@ -53,6 +53,8 @@ export function useEntrance(
   // Entered once, for good: watching again (a new `amount`, an `Activity` shown again) never
   // sends it back to its start state.
   const done = useRef(false);
+  // Hydrated: the first report decides, once, whether it showed its final picture already.
+  const hydrating = useRef(!mountedInBrowser);
 
   useEffect(() => {
     const element = ref.current;
@@ -62,7 +64,6 @@ export function useEntrance(
       setInView(true);
       return;
     }
-    let first = true;
     let showing = false;
     const enter = () => {
       if (done.current || !showing || document.hidden) return;
@@ -85,13 +86,13 @@ export function useEntrance(
           entry.isIntersecting &&
           (entry.intersectionRatio >= amount - 0.001 ||
             (shownAlong('width') && shownAlong('height')));
-        if (first && !mountedInBrowser && !done.current) {
+        if (hydrating.current) {
           // Hydrated with any part on screen: it showed its final picture already. Wholly out
           // of view: show the start state, unseen, until it's scrolled to.
+          hydrating.current = false;
           if (entry?.isIntersecting) done.current = true;
           else setEntered(false);
         }
-        first = false;
         enter();
       },
       // Fine steps, so a tall element's callback runs as more of it shows.

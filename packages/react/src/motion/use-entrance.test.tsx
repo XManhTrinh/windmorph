@@ -113,6 +113,22 @@ describe('useEntrance', () => {
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
+  it('still enters a page hydrated out of view once it starts watching again', async () => {
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(<Chart />);
+    document.body.append(container);
+    const root = await act(async () => hydrateRoot(container, <Chart />));
+    show(0);
+    expect(box(container)).toHaveAttribute('data-entered', 'false');
+    // Watching again (a new amount) while part of it shows: it hasn't entered, and it still can.
+    act(() => root.render(<Chart amount={0.5} />));
+    show(0.3);
+    show(1);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+    act(() => root.unmount());
+    container.remove();
+  });
+
   it('enters once, even when it starts watching again', async () => {
     const container = document.createElement('div');
     container.innerHTML = renderToString(<Chart />);
