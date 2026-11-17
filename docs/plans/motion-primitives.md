@@ -1,6 +1,6 @@
 # Plan: motion primitives for values
 
-Status: **approved 2026-11-17, built**. See "As built" for where the build settled a detail. Five building blocks in `@windmorph/react/primitives` that move numbers, lists of numbers and entrances on the theme's springs. Windmorph Pro's charts are the first to use them (its `docs/plans/charts.md`); they are general, so they belong here.
+Status: **approved 2026-11-17, built**. See "As built" for where the build settled a detail. Six building blocks in `@windmorph/react/primitives` that move numbers, lists of numbers and entrances on the theme's springs. Windmorph Pro's charts are the first to use them (its `docs/plans/charts.md`); they are general, so they belong here.
 
 ## The problem
 
@@ -50,14 +50,14 @@ interface M3SpringValueOptions {
 - **Another length:** the old positions and velocities are read at the new places by straight-line interpolation (`resample`), so a 7-point line becomes an 84-point one by moving, with no path-morphing library.
 - **By key** (added in the audit, 2026-11-17, for the charts' plan §6: "a place that stays moves, a new one grows from the baseline"): with `keys`, a new list is matched to the old one by name, so a window of a feed sliding on keeps each kept element's state and starts a new one at `rest` (per element: a point's x at its own place).
 - **Reduced motion** (the library's rule, §6): a `spatial` value jumps to each target, as the spatial tokens are 0ms; an `effects` value keeps its spring, as fades do. `AnimatedNumber` shows the new value at once. `staggerDelays` stays pure: the caller drops the delays. Before, `useM3Spring` alone returned the standard spring and each component skipped movement itself; these do it for their callers.
-- **`staggerDelays`:** the FAB menu's model made general: the count springs from 0 to `count` on the slow effects spring (default; `spring` option) and item `i` starts when it passes `i`, so any number of items arrives within one spring's time. `fab-menu-stagger.ts` then uses it.
+- **`staggerDelays`:** the FAB menu's model made general: the count springs from 0 to `count` on the slow effects spring (default; `spring` option) and item `i` starts when it passes `i`, so any number of items arrives within one spring's time. `fab-menu-stagger.ts` shares its maths (`timeToReach`), keeping Compose's timing (see As built).
 - **`useEntrance`:** `entered` is true on the server and for an element with any part on screen when the page hydrates (its final picture was in the server's HTML, so replaying from nothing would flash). Mounted by the client, or hydrated wholly out of view, it is false until the element first comes into view (an `IntersectionObserver`: a quarter of it by default, or that share of the window for an element taller than it; `amount` option). `inView` says any part shows. A hidden tab (`document.hidden`) defers it; with nothing to observe it shows the final picture.
 - **`AnimatedNumber`:** `value`, `format` (default `Intl.NumberFormat` in `useLocale()`'s locale, with the target's decimals), `from`, `delay`, `className`, `style`, `ref`, `id`, `data-*`. It lays the final value out invisibly, sizing the box, and draws the counting figure over it (right-aligned, so the last digit stays put, and out of the box's sizing, so a longer figure counting down never widens it); the counting text is `aria-hidden` and the final one is what assistive technology reads, and a copy gives it once. The default format shows at most three decimals, as `Intl.NumberFormat`'s own default. It isn't a live region: announcing a change is the app's choice. In the server's HTML it is the final value.
 - **Server rendering:** no `window` or `document` at module load; every hook returns its target on the server.
 
 ## API conventions
 
-`M3` in the hooks' names, as `useM3Spring`, `useM3Morph` and `useM3Interaction`; `staggerDelays` and `useEntrance` describe what they return. All five go in `/primitives` (building blocks, not M3 components) and on the docs site's Primitives page.
+`M3` in the hooks' names, as `useM3Spring`, `useM3Morph` and `useM3Interaction`; `staggerDelays` and `useEntrance` describe what they return. All six go in `/primitives` (building blocks, not M3 components) and on the docs site's Primitives page.
 
 ## Tests
 
@@ -74,3 +74,7 @@ Dragging with inertia (decay, then a snap): a different model from a spring, for
 - **`staggerDelays` is pure:** under reduced motion the caller drops the delays (a spatial move is instant there anyway).
 - **The FAB menu shares the maths, not the function:** its steps keep Compose's timing (an item shows once the count passes it); `staggerDelays` starts the first item at once. Both use `timeToReach` from `motion/spring-state.ts`.
 - **`AnimatedNumber`'s moving figure is written by the spring alone,** never rendered by React after the first paint, which would flash the new value for a frame.
+- **The list updates before layout** (audit, 2026-11-17): `useM3SpringValues` takes a new list in a layout effect, so marks that read an element by its index never draw a frame from the old list. A `useTransform` in the same component hears the change through Motion's catch-up after it subscribes again (Motion 14.12 or later, the peer range's floor).
+- **Keys name every target or none:** `keys` of another length than `targets` (a development warning) match by place; keys are unique. `rest` as a function is asked only when an element is new. A delay waits from rest, counted from when an element first began to wait, and "moving" means past the settling speed.
+- **`useEntrance`** enters an element larger than the window once `amount` of the window shows it across and down, and enters once for good: watching again (a new `amount`, an `Activity` shown again) never sends it back to its start state. Its result type is `EntranceResult`, as the other hooks' `*Result`.
+- **`AnimatedNumber`'s box is its own:** the width holder and the moving figure sit in an inner inline box, so the root takes any display.
