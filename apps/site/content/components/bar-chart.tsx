@@ -135,7 +135,9 @@ export async function BarChartBody(): Promise<ComponentDoc> {
               places. The arrow keys step, Home and End go to the first and the newest place, and
               Page Up and Page Down move a tenth of the places. It starts on the newest place, or on
               the one just pressed. Right to left, the arrows follow the chart: Arrow Left moves
-              forward.
+              forward. Escape hides the readout, wherever focus is for one the pointer shows; it
+              shows again on another place, once the pointer leaves and comes back, or as the chart
+              takes focus again.
             </li>
             <li>
               Screen readers hear the slider&apos;s value: the place&apos;s name, each series on
@@ -200,7 +202,9 @@ export async function BarChartBody(): Promise<ComponentDoc> {
             <li>
               With two or more series the chart draws its legend above the plot: a filter chip for
               each series, with its key, that hides and shows it. The last one shown can&apos;t be
-              hidden. <InlineCode>legend={'{false}'}</InlineCode> leaves it out, and{' '}
+              hidden: its chip keeps its look and its tab stop, and says why (
+              <InlineCode>labels.lastSeries</InlineCode>).{' '}
+              <InlineCode>legend={'{false}'}</InlineCode> leaves it out, and{' '}
               <InlineCode>legend</InlineCode> shows it for one series.{' '}
               <InlineCode>hiddenSeries</InlineCode>, <InlineCode>defaultHiddenSeries</InlineCode>{' '}
               and <InlineCode>onHiddenSeriesChange</InlineCode> keep which are hidden, controlled or

@@ -85,9 +85,11 @@ export async function MeterBody(): Promise<ComponentDoc> {
             </li>
             <li>
               <InlineCode>note</InlineCode> goes under the track, after the state&apos;s words, in
-              your own words: what is left (&quot;24.4 GB left&quot;), or what to do. With a{' '}
-              <InlineCode>warningAt</InlineCode>, that line is kept even while it is empty, so the
-              warning appears without moving what is below the meter.
+              your own words: what is left (&quot;24.4 GB left&quot;), or what to do. That line is
+              kept even while it is empty, on every meter and every{' '}
+              <InlineCode>MeterList</InlineCode> row, with a <InlineCode>warningAt</InlineCode> or
+              without, since any amount can pass its limit: the state&apos;s words appear without
+              moving what is below.
             </li>
             <li>
               The fill grows from the start the first time the meter comes into view, while the
@@ -111,7 +113,8 @@ export async function MeterBody(): Promise<ComponentDoc> {
               column takes at most 12rem. In a container narrower than 28rem each track drops under
               its name, so the list fits a side panel. Keep each row&apos;s{' '}
               <InlineCode>key</InlineCode> as its amount changes; a development build warns when two
-              rows share one.
+              rows share one, or when a row&apos;s <InlineCode>min</InlineCode> is above its{' '}
+              <InlineCode>max</InlineCode>, as it does for a meter.
             </li>
             <li>
               Name a <InlineCode>MeterList</InlineCode> with <InlineCode>aria-label</InlineCode> or{' '}

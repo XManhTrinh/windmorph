@@ -74,6 +74,8 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
               value below nought counts as nought on the scale and prints as it is; one that
               isn&apos;t a number ranks below every number and prints{' '}
               <InlineCode>labels.noValue</InlineCode> (&quot;No value&quot;), never &quot;NaN&quot;.
+              A row that counts as nought, or has no value, draws no bar; any other keeps at least a
+              pixel, however small.
             </li>
           </ul>
         </section>
@@ -93,7 +95,14 @@ export async function RankedBarsBody(): Promise<ComponentDoc> {
               step says none when the step before has nothing above nought, or when its own value
               isn&apos;t a number.
             </li>
-            <li>The bars are on one scale, against the largest step.</li>
+            <li>
+              The bars are on one scale, against the largest step, and a step of nought or no value
+              draws no bar.
+            </li>
+            <li>
+              A funnel is an ordered list (<InlineCode>ol</InlineCode>), since its steps&apos; order
+              is the meaning; ranked bars are a plain list.
+            </li>
           </ul>
         </section>
         <section className={SECTION}>

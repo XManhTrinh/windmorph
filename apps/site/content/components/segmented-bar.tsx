@@ -90,7 +90,8 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
               as nothing toward it, while the readout, the list and the table still give the
               part&apos;s own value; one that isn&apos;t a number reads{' '}
               <InlineCode>labels.noValue</InlineCode> (&quot;No value&quot;), never &quot;NaN&quot;.
-              A part with little or no share keeps a 4px sliver.
+              A part that counts as nothing draws nothing, on a bar and on a list&apos;s thin bar,
+              though it keeps its key and its row; any other part keeps at least a 4px sliver.
             </li>
             <li>
               Each part takes the next of the charts&apos; eight colour slots, the first built from
@@ -120,30 +121,38 @@ export async function SegmentedBarBody(): Promise<ComponentDoc> {
           </h2>
           <ul className={LIST}>
             <li>
-              Each part of a bar but &quot;Other&quot; prints its share where it is at least 44px
-              wide, in white or black, whichever reads at 4.5:1 on its colour. A narrower part
-              leaves it to the readout, the slider&apos;s value text and a frame&apos;s table view.{' '}
-              <InlineCode>formatShare</InlineCode> writes shares (a whole percentage by default) and{' '}
-              <InlineCode>formatValue</InlineCode> amounts (the page&apos;s locale by default).
+              Each part of a bar but &quot;Other&quot; prints its share where it is at least 2.75rem
+              wide (44px at the default text size, so larger text needs a wider part rather than
+              clipping it), in white or black, whichever reads at 4.5:1 on its colour. A narrower
+              part leaves it to the readout, the slider&apos;s value text and a frame&apos;s table
+              view. <InlineCode>formatShare</InlineCode> writes shares and{' '}
+              <InlineCode>formatValue</InlineCode> amounts, in the page&apos;s locale by default. A
+              share is a whole percentage by default, but one above nought never reads
+              &quot;0%&quot; (under 0.5% it keeps one significant digit, &quot;0.3%&quot;), nor one
+              short of the whole &quot;100%&quot; (&quot;99.9%&quot;).
             </li>
             <li>
               The pointer reads the part under it, each part as wide as its share (in the gap
-              between two, the nearer): a readout below the bar gives its name, share and amount,
-              and the other parts step back, dimming their colour but not their figures. A press or
-              a tap reads a part and moves focus to the bar, so the arrow keys go on from it. A
-              finger slides along the bar to read it while the page still scrolls up and down.
+              between two, the nearer): a readout below the bar, by the part on its side with more
+              room and never wider than the bar, gives its name, share and amount, and the other
+              parts step back, dimming their colour but not their figures. A press or a tap reads a
+              part and moves focus to the bar, so the arrow keys go on from it. A finger slides
+              along the bar to read it while the page still scrolls up and down.
             </li>
             <li>
-              From the keyboard the bar is one stop: the arrow keys step through the parts, and Home
-              and End go to the first and the last. A list has nothing to step through; its rows
-              print every figure.
+              From the keyboard the bar is one stop that starts on the first part: the arrow keys
+              step through the parts, and Home and End go to the first and the last. Screen readers
+              hear each part with where it is among them (&quot;Phone: 5,120, 59%, 1 of 3&quot;,{' '}
+              <InlineCode>labels.describePart</InlineCode>). Escape hides the readout until another
+              part, the pointer coming back or focus shows it again. A list has nothing to step
+              through; its rows print every figure.
             </li>
             <li>
-              With two or more parts, each part and its key carry a pattern (the first slot solid, a
-              hatch for each slot after it, and a pattern per step when ordered), for anyone who
-              doesn&apos;t tell the colours apart; <InlineCode>texture={'{false}'}</InlineCode>{' '}
-              turns them off. &quot;Other&quot; is always dotted, and forced colours always draw the
-              patterns. Printed, the colours stay.
+              Patterns are on by default once there are two or more parts: each part and its key
+              carry one (the first slot solid, a hatch for each slot after it, and a pattern per
+              step when ordered), for anyone who doesn&apos;t tell the colours apart;{' '}
+              <InlineCode>texture={'{false}'}</InlineCode> turns them off. &quot;Other&quot; is
+              always dotted, and forced colours always draw the patterns. Printed, the colours stay.
             </li>
             <li>
               The parts grow to their shares when the bar first comes into view, and a change moves

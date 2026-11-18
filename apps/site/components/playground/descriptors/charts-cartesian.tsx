@@ -98,7 +98,8 @@ export const CHARTS_CARTESIAN_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
       curve: 'monotone',
       entrance: 'rise',
       legend: true,
-      texture: false,
+      // On by default with two or more series, as both previews have.
+      texture: true,
       minHeight: 240,
     },
     initialState: { subject: 'this-year' },
@@ -129,7 +130,7 @@ export const CHARTS_CARTESIAN_DESCRIPTORS: Record<string, PlaygroundDescriptor> 
           series: ORDERS,
         }),
       ),
-    defaultProps: { legend: true, texture: false, minHeight: 240 },
+    defaultProps: { legend: true, texture: true, minHeight: 240 },
     surfacedProps: ['legend', 'texture', 'minHeight'],
     groups: { legend: 'content', texture: 'appearance', minHeight: 'appearance' },
     numberRanges: { minHeight: { min: 120, max: 480, step: 8 } },

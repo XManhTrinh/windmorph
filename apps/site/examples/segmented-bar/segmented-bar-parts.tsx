@@ -22,15 +22,15 @@ const SIGN_UPS = [
 /**
  * Each part is a block as wide as its share, printing its share where it has room, with a key
  * below. Seven parts are more than colour can tell apart, so the sixth and seventh fold into one
- * quiet "Other". `texture` adds a pattern to each part and its key, for print or anyone who
- * doesn't tell the colours apart. Rest the pointer on a part, or tab to a bar and use the arrow
- * keys, to read it.
+ * quiet, dotted "Other". With two or more parts, each part and its key carry a pattern by
+ * default, for anyone who doesn't tell the colours apart (`texture={false}` turns them off).
+ * Rest the pointer on a part, or tab to a bar and use the arrow keys, to read it.
  */
 export function SegmentedBarParts() {
   return (
     <div className="flex w-full max-w-lg flex-col gap-8">
       <SegmentedBar aria-label="Visits by device" parts={VISITS} />
-      <SegmentedBar aria-label="Sign-ups by source" parts={SIGN_UPS} texture />
+      <SegmentedBar aria-label="Sign-ups by source" parts={SIGN_UPS} />
     </div>
   );
 }

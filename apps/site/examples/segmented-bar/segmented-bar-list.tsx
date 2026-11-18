@@ -11,8 +11,8 @@ const STORAGE = [
 
 /**
  * A thin bar that prints nothing, with each part's name, share and amount listed under it, for a
- * side panel or a narrow card. Each row's key carries its part's colour and, with `texture`, its
- * pattern, so the list needs no legend. `formatValue` writes the amounts in gigabytes.
+ * side panel or a narrow card. Each row's key carries its part's colour and its pattern (on by
+ * default with two or more parts), so the list needs no legend. `formatValue` writes the amounts in gigabytes.
  */
 export function SegmentedBarList() {
   return (
@@ -20,7 +20,6 @@ export function SegmentedBarList() {
       aria-label="Storage by file type"
       parts={STORAGE}
       formatValue={(gigabytes) => `${gigabytes} GB`}
-      texture
       className="w-full max-w-xs"
     />
   );

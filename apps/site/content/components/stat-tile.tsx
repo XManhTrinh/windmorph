@@ -10,7 +10,7 @@ const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
 const SLOTS = ['label', 'figure', 'value', 'unit', 'change', 'changeIcon', 'context', 'trend'];
-const SPARKLINE_SLOTS = ['trend', 'point'];
+const SPARKLINE_SLOTS = ['plot', 'trend', 'point'];
 
 /** StatTile page body: examples, when to use it, behaviour, parts and tokens. */
 export async function StatTileBody(): Promise<ComponentDoc> {
@@ -86,6 +86,14 @@ export async function StatTileBody(): Promise<ComponentDoc> {
               the arrows.
             </li>
             <li>
+              Screen readers hear the change as one sentence, the visible text hidden from them so
+              it is read once: the direction, the amount and the context, then good or bad news in
+              words (<InlineCode>labels.good</InlineCode>, <InlineCode>labels.bad</InlineCode>),
+              since colour alone doesn&apos;t say it: &quot;Up 12% on last week, good&quot;.{' '}
+              <InlineCode>labels.change(parts)</InlineCode> puts the sentence together, so a
+              language can order it its own way.
+            </li>
+            <li>
               <InlineCode>trend</InlineCode> takes the number&apos;s recent values, oldest first,
               and draws them as a <InlineCode>Sparkline</InlineCode> under the number: in the quiet
               colour, with a dot in the first series colour on the newest. About 12 values read
@@ -124,12 +132,13 @@ export async function StatTileBody(): Promise<ComponentDoc> {
           <InlineCode>--wm-chart-quiet</InlineCode>, <InlineCode>--wm-chart-color-1</InlineCode> and{' '}
           <InlineCode>--wm-chart-surface</InlineCode>); on a card of another colour than{' '}
           <InlineCode>surface</InlineCode>, set <InlineCode>--wm-chart-surface</InlineCode> to it so
-          the ring matches. <InlineCode>className</InlineCode> goes on the root; style each part
-          with <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />, where{' '}
+          the ring matches. Only a tile with a trend brings the charts&apos; palette to the page,
+          through its sparkline. <InlineCode>className</InlineCode> goes on the root; style each
+          part with <InlineCode>classNames</InlineCode>: <CodeList names={SLOTS} />, where{' '}
           <InlineCode>trend</InlineCode> goes on the sparkline&apos;s root. A{' '}
           <InlineCode>Sparkline</InlineCode> of your own takes <InlineCode>className</InlineCode> on
-          its root and <InlineCode>classNames</InlineCode> for its line and end dot:{' '}
-          <CodeList names={SPARKLINE_SLOTS} />.
+          its root and <InlineCode>classNames</InlineCode> for what holds its marks, its line and
+          its end dot: <CodeList names={SPARKLINE_SLOTS} />.
         </p>
         <TokenTable set={statTileTokenSet} caption="StatTile tokens" />
         <TokenTable set={sparklineTokenSet} caption="Sparkline tokens" />

@@ -25,7 +25,7 @@ export const CHARTS_PARTS_SPEC: Record<string, ComponentSpecData> = {
         examples: ['segmented-bar/segmented-bar-ordered'],
       },
       {
-        name: 'A pattern per part (`texture`)',
+        name: 'A pattern per part, on by default (`texture`)',
         kind: 'configuration',
         examples: ['segmented-bar/segmented-bar-parts', 'segmented-bar/segmented-bar-list'],
       },

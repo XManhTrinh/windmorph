@@ -102,7 +102,8 @@ export const CHARTS_PARTS_DESCRIPTORS: Record<string, PlaygroundDescriptor> = {
           parts: props.ordered ? ANSWERS : VISITS,
         }),
       ),
-    defaultProps: { ordered: false, texture: false },
+    // Patterns are on by default with two or more parts, as both previews have.
+    defaultProps: { ordered: false, texture: true },
     surfacedProps: ['form', 'ordered', 'texture'],
     // Both change only how the parts are painted.
     groups: { ordered: 'appearance', texture: 'appearance' },

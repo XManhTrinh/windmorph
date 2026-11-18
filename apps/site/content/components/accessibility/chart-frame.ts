@@ -17,11 +17,11 @@ export const chartFrame: ComponentAccessibility = {
     role: 'The core `Card` (a plain container) with a heading, the chart, and in the table view a `table`.',
     name: 'The title is a heading (`h3` by default, `headingLevel`). It names every chart inside through `aria-labelledby`, unless a chart has a name of its own, and names the table view too.',
     states:
-      'The table switch is a toggle button named `labels.showTable` ("Show as a table"), the same name in both views, with `aria-pressed` saying whether the table shows. While `pending`, the chart area is `aria-busy`.',
+      'The table switch is a toggle button named `labels.showTable` ("Show as a table"), the same name in both views, with `aria-pressed` saying whether the table shows. While `pending`, the chart area is `aria-busy` over the chart or the table, never over a state, whose announcements some screen readers would hold back inside a busy area; the table view shows its loading bar too.',
     notes: [
       'While `loading`, a status says `labels.loading` ("Loading"); the status goes into the page a moment before its words, so it is announced.',
       "The `error` message, and `empty` words given as text, are announced politely as they take the chart's place, through a status that is in the page from the start. An `EmptyState` passed as `empty` announces itself with its own `announce`.",
-      'The description is a paragraph after the title, read in page order.',
+      'The description is a `div` under the title, so it may hold more than words (a list, a link). It describes every chart inside and the table view through `aria-describedby`.',
       'While the table shows, the chart stays in the page, hidden from everyone.',
     ],
   },
@@ -35,7 +35,7 @@ export const chartFrame: ComponentAccessibility = {
     'The chart inside has its own targets; see its page.',
   ],
   motion: [
-    'Switching between the chart and the table fades the new view in on an effects spring (`--wm-chart-frame-view-duration`), under reduced motion too: a fade is not movement.',
+    'Switching between the chart and the table, or a state ending, fades the view that shows in where it stands, on an effects spring (`--wm-chart-frame-view-duration`), under reduced motion too: a fade is not movement. Only once the frame is on screen, so nothing fades as the page loads.',
     'While `pending`, the marks dim and come back on an effects spring, under reduced motion too: a fade is not movement.',
     'The loading placeholder is a `Skeleton`, which holds still under reduced motion.',
     "Going back from the table never replays the chart's entrance: it stayed in the page.",

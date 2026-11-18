@@ -18,21 +18,28 @@ export const segmentedBar: ComponentAccessibility = {
       action: 'Moves a tenth of the parts, at least one: with six parts or fewer, one part.',
       where: '`SegmentedBar`',
     },
+    {
+      keys: ['Escape'],
+      action:
+        'Hides the readout, wherever focus is for one the pointer shows. It shows again on another part (a key or the pointer), once the pointer leaves and comes back, or when the bar takes focus again. With no readout showing, Escape goes on, so a dialog round the bar still closes.',
+      where: '`SegmentedBar`',
+    },
   ],
   keyboardNotes: [
     'Right to left, Arrow Left reads the next part and Arrow Right the one before, as the parts run from the right.',
-    'Tabbing to the bar reads its last part and shows the readout; after a press or a tap the keys go on from the part pressed.',
+    'Tabbing to the bar reads its first part and shows the readout, and the keys start there; after a press or a tap they go on from the part pressed.',
     '`SegmentedList` has no keys: its rows are text, with nothing to focus.',
   ],
   screenReader: {
-    role: '`SegmentedBar`: a `slider` (a native range input, unseen, over the parts), then the key, a list named `labels.parts` ("Parts"). `SegmentedList`: a list, one item per part.',
+    role: '`SegmentedBar`: a `slider` (a native range input, unseen, over the parts), then the key, a list named `labels.parts` ("Parts") and the bar’s name. `SegmentedList`: a list, one item per part.',
     name: 'Named by `aria-label` or `aria-labelledby`, or in a `ChartFrame` by its title; a development build warns about one with no name.',
     states:
-      'The slider\'s value text (`aria-valuetext`) is the part it reads: "Web: 620, 59%", from `labels.describePart`. With no parts it says `labels.noValue` ("No value") and is disabled. Each list row reads its name, share and amount as text.',
+      'The slider’s value text (`aria-valuetext`) is the part it reads, then where it is among the parts: "Phone: 5,120, 59%, 1 of 3", from `labels.describePart`. With no parts it says `labels.noValue` ("No value") and is `aria-disabled`, still focusable, so focus on it never drops to the page. Each list row reads its name, share and amount apart ("Web, 60%, 600").',
     notes: [
       "The blocks, the shares printed on them, the colour keys and the readout are hidden from assistive tech (`aria-hidden`); the value text, the key's names and the list's rows say the same.",
       "A screen reader's step (a swipe up or down, or a volume key) moves the slider as a key does, since it is a native input.",
-      'An amount that isn\'t a number reads `labels.noValue`, never "NaN".',
+      'An amount that isn’t a number reads `labels.noValue`, never "NaN".',
+      'The value text follows the keys and a screen reader’s own steps, never the pointer hovering a focused bar.',
     ],
   },
   focus: [

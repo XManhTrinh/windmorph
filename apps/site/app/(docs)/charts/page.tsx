@@ -172,9 +172,11 @@ export default async function ChartsPage() {
             surface it&apos;s drawn on.
           </li>
           <li>
-            Series take the slots in order. Give a series a <InlineCode>slot</InlineCode> to pin it,
-            so the same thing is the same colour on every chart of a page and keeps its colour when
-            others are hidden.
+            Series take the free slots in the order they come, and keep theirs when others are
+            hidden. Give a series a <InlineCode>slot</InlineCode> to pin it, so the same thing is
+            the same colour on every chart of a page whatever series come and go; the others take
+            the slots left free. Two series pinned to one slot share its colour and pattern, and
+            development builds warn.
           </li>
           <li>
             An ordered ramp, five steps of slot 1&apos;s hue from lightest to darkest (the lightest
@@ -244,15 +246,22 @@ export default async function ChartsPage() {
             springs; a number counts up to its value.
           </li>
           <li>
-            When the numbers change, marks move from where they are. Places are matched by name, so
-            in a sliding window the kept places slide along and only the new one comes in.
+            When the numbers change, marks move from where they are. Places are matched by{' '}
+            <InlineCode>key</InlineCode>, so in a sliding window the kept places slide along and
+            only the new one comes in.
           </li>
           <li>
-            Under reduced motion, everything takes its new value at once. See{' '}
+            Under reduced motion, everything takes its new value at once, and a mark that arrives
+            once the chart is on screen (a new bar, a new series&apos; line) fades in where it
+            lands. See{' '}
             <Link href="/motion" className="text-primary underline">
               Motion
             </Link>
             .
+          </li>
+          <li>
+            Charts print as they show: their colours are kept, and every mark prints in its final
+            shape, even one never scrolled into view or still moving.
           </li>
         </ul>
       </section>

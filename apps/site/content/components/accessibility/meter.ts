@@ -20,6 +20,7 @@ export const meter: ComponentAccessibility = {
   motion: [
     "The fill grows from the start the first time the meter comes into view, as its number counts up from `min`; a new amount moves both, on the theme's default spatial spring (`--wm-meter-fill-duration`, `--wm-meter-fill-easing`). Under reduced motion both change at once.",
     "A meter on screen as the page loads shows its final picture from the server's HTML; nothing replays as the page hydrates.",
+    "The line under the track is kept even while it is empty, on every meter and every `MeterList` row, so the state's words appear without moving what follows.",
   ],
   consumer: [
     'Give every meter a `label` that says what is measured ("Storage", "Seats"), and name each `MeterList`; a development build warns about a list with no name.',

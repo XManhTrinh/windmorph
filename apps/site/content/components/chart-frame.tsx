@@ -11,14 +11,17 @@ const SECTION = 'flex flex-col gap-3';
 
 const SLOTS = [
   'header',
+  'heading',
   'title',
   'description',
   'actions',
   'toggle',
   'content',
+  'view',
   'table',
   'empty',
   'error',
+  'retry',
   'loading',
 ];
 
@@ -111,8 +114,10 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The chart stays in the page, hidden, while the table shows, so going back never
-              replays its entrance. Where the browser has view transitions, the switch between them
-              uses one, except under reduced motion.
+              replays its entrance. The view that shows, the table or the chart again (as the switch
+              or a state that ends turns to it), fades in where it stands on an effects spring (
+              <InlineCode>--wm-chart-frame-view-duration</InlineCode>), only once the frame is on
+              screen, so nothing fades as the page loads.
             </li>
             <li>
               <InlineCode>showTable</InlineCode> and <InlineCode>onShowTableChange</InlineCode>{' '}
@@ -131,7 +136,10 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>pending</InlineCode>: new numbers are loading. The last picture stays, its
               marks dimmed and its words at full contrast, and the chart area is{' '}
-              <InlineCode>aria-busy</InlineCode>. Use it for a period change or a refresh.
+              <InlineCode>aria-busy</InlineCode>; while the table shows, its loading bar shows over
+              the rows too. Use it for a period change or a refresh. With an{' '}
+              <InlineCode>error</InlineCode> showing, Try again shows its progress indicator
+              instead.
             </li>
             <li>
               <InlineCode>loading</InlineCode>: there is no picture yet. A placeholder fills the
@@ -151,9 +159,14 @@ export async function ChartFrameBody(): Promise<ComponentDoc> {
             </li>
             <li>
               The title stays in every state and the switch goes. One state shows at a time:{' '}
-              <InlineCode>empty</InlineCode> first, then <InlineCode>error</InlineCode>, then{' '}
-              <InlineCode>loading</InlineCode>. <InlineCode>minHeight</InlineCode> (240px by
-              default) is the chart area&apos;s least height, so a state or a table keeps it.
+              <InlineCode>error</InlineCode> first, then <InlineCode>loading</InlineCode>, then{' '}
+              <InlineCode>empty</InlineCode>, as a <InlineCode>DataTable</InlineCode> orders its
+              states, so the pattern above never hides a first load or a failure. An{' '}
+              <InlineCode>empty</InlineCode> or <InlineCode>error</InlineCode> given as a failed{' '}
+              <InlineCode>{"cond && 'Words'"}</InlineCode> (<InlineCode>false</InlineCode>) is no
+              state, as React draws nothing for it. <InlineCode>minHeight</InlineCode> (240px at the
+              default text size, growing with larger text) is the chart area&apos;s least height, so
+              a state or a table keeps it.
             </li>
           </ul>
         </section>

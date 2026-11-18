@@ -5,10 +5,10 @@ export const rankedBars: ComponentAccessibility = {
     none: 'Ranked and funnel bars are lists of text with nothing to focus, so they have no keys.',
   },
   screenReader: {
-    role: 'A list (`ul`), one item per row or step.',
+    role: "`RankedBars` is a list (`ul`), one item per row; `FunnelBars` is an ordered list (`ol`), one item per step, since its steps' order is the meaning.",
     name: 'Named by `aria-label` or `aria-labelledby`, or in a `ChartFrame` by its title; a development build warns about one with no name.',
     states:
-      'Each item reads its name and its amount as text, in the order drawn: largest first with the rest last, or a funnel\'s steps in their order. A funnel step after the first also reads its share of the step before ("65% of the step before", `labels.ofPrevious`).',
+      'Each item reads its name and its amount as text, apart ("Paris, 1,240"), in the order drawn: largest first with the rest last, or a funnel\'s steps in their order. A funnel step after the first also reads its share of the step before ("Paid, 150, 75% of the step before", `labels.ofPrevious`).',
     notes: [
       'The bars are hidden from assistive tech (`aria-hidden`); the amounts say the same.',
       'An amount that isn\'t a number reads `labels.noValue` ("No value"), never "NaN".',

@@ -62,8 +62,8 @@ export function BarChartSharedLegend() {
     <div className="flex w-full flex-col gap-4">
       <ChartLegend
         items={LEGEND}
-        hidden={hidden}
-        onHiddenChange={setHidden}
+        hiddenSeries={hidden}
+        onHiddenSeriesChange={setHidden}
         labels={{ legend: 'Channels' }}
       />
       <div className="grid gap-4 lg:grid-cols-2">
