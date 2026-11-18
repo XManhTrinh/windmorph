@@ -771,11 +771,21 @@ function MenuList({
     'MenuItem, MenuGroup and SubmenuTrigger elements',
   );
   const tree = useContext(MenuTreeContext);
+  // The menu's own keys only: see `withoutGroupKeys`. Read in an event, after the commit.
+  const collectionRef = useRef<TreeState<object>['collection'] | null>(null);
+  const { onSelectionChange } = props;
   // M3: "Disabled menu items can receive focus but aren't selectable."
   const state = useTreeState({
     ...(props as AriaMenuProps<object>),
+    ...(onSelectionChange && {
+      onSelectionChange: (keys: Selection) =>
+        onSelectionChange(withoutGroupKeys(keys, collectionRef.current)),
+    }),
     disallowEmptySelection: !deselectable,
     disabledBehavior: 'selection',
+  });
+  useLayoutEffect(() => {
+    collectionRef.current = state.collection;
   });
   const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
@@ -922,6 +932,28 @@ function MenuSection({
 }
 
 type SelectionManager = TreeState<object>['selectionManager'];
+
+/**
+ * The menu's selection without the keys of its groups that set `selectionMode`, whose items
+ * have a selection of their own. React Stately spells the menu's `'all'` out over the whole
+ * collection as an item is toggled (`getSelectAllKeys`), so a menu selected with `'all'`, or
+ * select-all (Ctrl + A), reported every group's keys too as one of its items was unchecked.
+ */
+function withoutGroupKeys(
+  keys: Selection,
+  collection: TreeState<object>['collection'] | null,
+): Selection {
+  if (keys === 'all' || !collection) return keys;
+  const owned = new Set<Key>();
+  for (const node of collection) {
+    if (node.type !== 'section' || (node.props as MenuGroupProps).selectionMode === undefined) {
+      continue;
+    }
+    for (const child of node.childNodes) owned.add(child.key);
+  }
+  if (![...keys].some((key) => owned.has(key))) return keys;
+  return new Set([...keys].filter((key) => !owned.has(key)));
+}
 
 /**
  * The keys of a group's items that `'all'` selects: React Stately's `'all'` is every item that

@@ -551,6 +551,42 @@ describe('Menu', () => {
     expect(onDensity).not.toHaveBeenCalled();
   });
 
+  it("keeps a group's keys out of the menu's own 'all', from its keys or a select-all", async () => {
+    const onSelectionChange = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>View</Button>
+        <Menu
+          aria-label="View"
+          selectionMode="multiple"
+          defaultSelectedKeys="all"
+          onSelectionChange={onSelectionChange}
+        >
+          <MenuGroup title="Show">
+            <MenuItem key="names">Names</MenuItem>
+            <MenuItem key="sizes">Sizes</MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="Actions" selectionMode="none">
+            <MenuItem key="reset">Reset the view</MenuItem>
+          </MenuGroup>
+          <MenuGroup title="Sort by" selectionMode="single" defaultSelectedKeys={['name']}>
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="size">Size</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('View');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect([...onSelectionChange.mock.lastCall![0]]).toEqual(['names']);
+    // A select-all (Ctrl + A) is the menu's own items too, once a toggle spells it out.
+    screen.getByRole('menuitemcheckbox', { name: 'Names' }).focus();
+    await userEvent.keyboard('{Control>}a{/Control}');
+    expect(onSelectionChange.mock.lastCall![0]).toBe('all');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Names' }));
+    expect([...onSelectionChange.mock.lastCall![0]]).toEqual(['sizes']);
+  });
+
   it('fails loudly in development if the selection manager a group builds changes shape', () => {
     // A group's manager comes from the menu manager's own constructor, React Stately's
     // `SelectionManager` (not exported): take a method away from it, as a change would.

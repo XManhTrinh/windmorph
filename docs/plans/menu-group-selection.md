@@ -15,7 +15,7 @@ M3's menus put a selectable group beside actions (a group of radio or checkbox i
 | Prop | Type | |
 |---|---|---|
 | `selectionMode` | `'none' \| 'single' \| 'multiple'` | The group's items are radio (`single`) or checkbox (`multiple`) items, or plain actions (`none`). |
-| `selectedKeys` / `defaultSelectedKeys` | `Iterable<Key> \| 'all'` | Controlled and uncontrolled, as on `Menu`; `'all'` is all of the group's own items. |
+| `selectedKeys` / `defaultSelectedKeys` | `Iterable<Key> \| 'all'` | Controlled and uncontrolled, as on `Menu`; `'all'` is all of the group's own items, and the menu's own `'all'` (or a select-all) is the menu's items, never a group's that sets `selectionMode`. |
 | `onSelectionChange` | `(keys: Selection) => void` | Called with the group's keys only. |
 | `deselectable` | `boolean`, default `true` | `false` keeps one of the group's items selected (the library's name for React Aria's `disallowEmptySelection`). |
 
@@ -31,6 +31,6 @@ React Aria Components gives each selectable section a selection manager whose se
 
 ## Checks
 
-- Unit: a single group's items are `menuitemradio` with `aria-checked`, the rest `menuitem`; a `none` group in a single-select menu holds plain actions that close it, Space included, without selecting; a toggle in a `multiple` group with `'all'` reports only the group's keys and leaves the other groups' and the menu's selection alone; a changed react-stately manager fails loudly in development; choosing in the group calls its `onSelectionChange` with its keys only and closes the menu, a plain action closes it without selecting; controlled and uncontrolled; `deselectable={false}`; a `multiple` group stays open on a toggle, Enter included (read from the trigger's `aria-expanded`, since a closing menu stays in the page for its exit); two groups keep separate selections; the menu's own `selectionMode` still works; keyboard (arrows across groups, Space, Enter); axe.
+- Unit: a single group's items are `menuitemradio` with `aria-checked`, the rest `menuitem`; a `none` group in a single-select menu holds plain actions that close it, Space included, without selecting; a toggle in a `multiple` group with `'all'` reports only the group's keys and leaves the other groups' and the menu's selection alone; an item of a menu selected with `'all'`, or by select-all, unchecked beside groups that set `selectionMode` reports only the menu's keys; a changed react-stately manager fails loudly in development; choosing in the group calls its `onSelectionChange` with its keys only and closes the menu, a plain action closes it without selecting; controlled and uncontrolled; `deselectable={false}`; a `multiple` group stays open on a toggle, Enter included (read from the trigger's `aria-expanded`, since a closing menu stays in the page for its exit); two groups keep separate selections; the menu's own `selectionMode` still works; keyboard (arrows across groups, Space, Enter); axe.
 - Story: a menu with a single-choice group and actions, in the Menu stories; screenshots in every theme.
 - Docs site: an example on the Menu page and the new props in its API table.
