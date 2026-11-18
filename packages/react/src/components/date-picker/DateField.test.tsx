@@ -157,6 +157,28 @@ describe('DateField (docked date picker)', () => {
     expect(input).toHaveValue('05/03/2030');
   });
 
+  // React Aria reads direction only from a locale's script, so a region laid out the other way
+  // gives it the locale in another script (`en-Arab-GB`), which formats as plain `en`: the
+  // field showed MM/DD/YYYY and read 03/04/2030 as 4 March on an `en-GB` page.
+  it('writes and reads dates in the page’s locale inside a region of the other direction', async () => {
+    const onChange = vi.fn();
+    render(
+      <LocaleProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DateField label="Date" onChange={onChange} />
+          <DateField label="Shown" defaultValue={new CalendarDate(2030, 4, 3)} />
+        </div>
+      </LocaleProvider>,
+    );
+    expect(screen.getByRole('textbox', { name: 'Shown' })).toHaveValue('03/04/2030');
+    const input = screen.getByRole('textbox', { name: 'Date' });
+    expect(input).toHaveAccessibleDescription('DD/MM/YYYY');
+    await userEvent.type(input, '03/04/2030');
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith(new CalendarDate(2030, 4, 3));
+    expect(input).toHaveValue('03/04/2030');
+  });
+
   it('closes and saves on Enter', async () => {
     const onChange = vi.fn();
     render(<DateField label="Date" defaultValue={march} onChange={onChange} defaultOpen />);

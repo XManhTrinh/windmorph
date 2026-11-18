@@ -25,7 +25,6 @@ import {
 import {
   mergeProps,
   useCalendar,
-  useDateFormatter,
   useLocale,
   useRangeCalendar,
   type AriaButtonProps,
@@ -39,6 +38,7 @@ import {
 import { useControlledState } from 'react-stately/useControlledState';
 import { NO_DEFAULT_LABELS, useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageDateFormatter } from '../../primitives/use-page-formatters';
 import { useSizeTransform } from './use-size-transform';
 import { useViewExit } from './use-view-exit';
 import { usePresence } from '../../primitives/use-presence';
@@ -269,7 +269,7 @@ function SingleDatePicker(props: Inner<DatePickerProps>) {
     locale,
     createCalendar,
   });
-  const formatter = useDateFormatter({ dateStyle: 'medium' });
+  const formatter = usePageDateFormatter({ dateStyle: 'medium' });
   const labels = useLabels('DatePicker', NO_DEFAULT_LABELS, props.labels);
   const headline = value
     ? formatter.format(value.toDate(getLocalTimeZone()))
@@ -332,7 +332,7 @@ function RangeDatePicker({ monthLayout = 'scroll', ...props }: Inner<DateRangePi
     locale,
     createCalendar,
   });
-  const formatter = useDateFormatter({ month: 'short', day: 'numeric' });
+  const formatter = usePageDateFormatter({ month: 'short', day: 'numeric' });
   const labels = useLabels('DatePicker', NO_DEFAULT_LABELS, props.labels);
   const format = (date: CalendarDate) => formatter.format(date.toDate(getLocalTimeZone()));
   // While a new range is being picked, its first day is the start and the end is still open
@@ -574,7 +574,7 @@ function CalendarBody({
   bodyRef?: Ref<HTMLDivElement>;
 }) {
   const confirm = useContext(PickerDialogContext);
-  const monthFormatter = useDateFormatter({ month: 'long', year: 'numeric' });
+  const monthFormatter = usePageDateFormatter({ month: 'long', year: 'numeric' });
   const monthLabel = monthFormatter.format(state.visibleRange.start.toDate(getLocalTimeZone()));
   const menuRef = useRef<HTMLButtonElement>(null);
   const [focusYears, setFocusYears] = useState(false);
@@ -688,9 +688,9 @@ function RangeMonthList({
   const count = monthsBetween(first, state.visibleRange.end) + 1;
   const focusedIndex = monthsBetween(first, state.focusedDate);
   const [view, setView] = useState(() => ({ top: focusedIndex * MONTH_HEIGHT, height: 0 }));
-  const weekdays = useDateFormatter({ weekday: 'narrow' });
-  const longWeekdays = useDateFormatter({ weekday: 'long' });
-  const subhead = useDateFormatter({ month: 'long', year: 'numeric' });
+  const weekdays = usePageDateFormatter({ weekday: 'narrow' });
+  const longWeekdays = usePageDateFormatter({ weekday: 'long' });
+  const subhead = usePageDateFormatter({ month: 'long', year: 'numeric' });
   const onKeyDownCapture = usePickerKeys(state, {
     onConfirm: confirm?.requestConfirm,
     onMonthMenu: () => undefined,

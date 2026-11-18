@@ -10,14 +10,9 @@ import {
   type CalendarDate,
 } from '@internationalized/date';
 import { useRef } from 'react';
-import {
-  mergeProps,
-  useCalendarCell,
-  useCalendarGrid,
-  useDateFormatter,
-  useLocale,
-} from 'react-aria';
+import { mergeProps, useCalendarCell, useCalendarGrid, useLocale } from 'react-aria';
 import type { CalendarState, RangeCalendarState } from 'react-stately';
+import { usePageDateFormatter } from '../../primitives/use-page-formatters';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import type { datePickerStyles } from './date-picker-styles';
 
@@ -54,17 +49,19 @@ export function CalendarGrid({
       : { weekdayStyle: 'narrow' },
     state,
   );
-  const longWeekday = useDateFormatter({ weekday: 'long' });
+  // The weekdays in the page's locale, as the headline and menus: React Aria's are in its own,
+  // which in a region laid out the other way is the locale in another script.
+  const narrowWeekday = usePageDateFormatter({ weekday: 'narrow' });
+  const longWeekday = usePageDateFormatter({ weekday: 'long' });
   const firstDay = startOfWeek(start, locale);
   // Compose always lays out six weeks, so the picker keeps its height between months.
   return (
     <table {...gridProps} className={styles.grid()}>
       <thead className={month ? 'sr-only' : undefined}>
         <tr>
-          {weekDays.map((day, index) => {
-            const name = longWeekday.format(
-              firstDay.add({ days: index }).toDate(getLocalTimeZone()),
-            );
+          {weekDays.map((_, index) => {
+            const day = firstDay.add({ days: index }).toDate(getLocalTimeZone());
+            const name = longWeekday.format(day);
             return (
               <th
                 key={index}
@@ -73,7 +70,7 @@ export function CalendarGrid({
                 title={name}
                 className={styles.weekday({ class: classNames?.weekday })}
               >
-                {day}
+                {narrowWeekday.format(day)}
               </th>
             );
           })}

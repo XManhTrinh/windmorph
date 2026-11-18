@@ -2,8 +2,8 @@
 
 import type { Time } from '@internationalized/date';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
-import { useLocale } from 'react-aria';
 import { Item, useListState, type OverlayTriggerState } from 'react-stately';
+import { usePageLocale } from '../../primitives/use-page-locale';
 import type { Density } from '../../tokens/density';
 import { OptionList, OptionPopover } from '../select/option-list';
 import { formatTime } from './time-format';
@@ -56,7 +56,7 @@ export function TimeFieldList({
   density,
   classNames,
 }: TimeFieldListProps) {
-  const { locale } = useLocale();
+  const locale = usePageLocale();
   const popoverRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const options = useMemo<TimeOption[]>(

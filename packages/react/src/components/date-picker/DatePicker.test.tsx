@@ -2,6 +2,7 @@ import { CalendarDate } from '@internationalized/date';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
+import { I18nProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { setMediaQueries } from '../../../test/setup';
@@ -39,6 +40,19 @@ describe('DatePicker', () => {
       'data-selected:bg-[var(--_md-comp-date-picker-modal-date-selected-container-color)]',
     );
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  // In a region laid out the other way React Aria gets the locale in another script
+  // (`en-Arab-GB`, written as plain `en`), so the headline said "Sep 4, 2030".
+  it('writes its headline in the page’s locale inside a region of the other direction', () => {
+    render(
+      <I18nProvider locale="en-GB">
+        <div dir="rtl" style={{ direction: 'rtl' }}>
+          <DatePicker defaultValue={new CalendarDate(2030, 9, 4)} />
+        </div>
+      </I18nProvider>,
+    );
+    expect(screen.getByText('4 Sept 2030')).toHaveClass('text-headline-large');
   });
 
   it('reads the modal date picker tokens for the headline, picked days and today', () => {

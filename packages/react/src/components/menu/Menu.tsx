@@ -23,9 +23,7 @@ import {
 } from 'react';
 import {
   DismissButton,
-  I18nProvider,
   mergeProps,
-  useLocale,
   useMenu,
   useMenuItem,
   useMenuSection,
@@ -50,7 +48,7 @@ import {
   type TreeState,
 } from 'react-stately';
 import { useLabels } from '../labels/use-labels';
-import { localeWithDirection } from '../../primitives/locale-with-direction';
+import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { Overlay } from '../../primitives/Overlay';
 import { useM3Interaction } from '../../primitives/use-m3-interaction';
 import { usePresence } from '../../primitives/use-presence';
@@ -569,11 +567,7 @@ function MenuPopover({
     () => 'ltr',
   );
   // Submenus' arrow keys and placement follow the locale's direction: give it the DOM's.
-  const { locale, direction: localeDirection } = useLocale();
-  const menuLocale =
-    direction === localeDirection
-      ? locale
-      : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
+  const menuDirection = direction === 'rtl' ? 'rtl' : 'ltr';
   const {
     popoverProps,
     underlayProps,
@@ -628,7 +622,7 @@ function MenuPopover({
           data-placement={actualPlacement ?? undefined}
           className={menuStyles({ instant }).reveal()}
         >
-          <I18nProvider locale={menuLocale}>
+          <DirectionLocale direction={menuDirection}>
             <MenuTreeContext
               value={{
                 rootState: trigger.state,
@@ -652,7 +646,7 @@ function MenuPopover({
                 autoFocus={trigger.state.focusStrategy ?? 'first'}
               />
             </MenuTreeContext>
-          </I18nProvider>
+          </DirectionLocale>
         </div>
         <DismissButton onDismiss={trigger.state.close} />
       </div>

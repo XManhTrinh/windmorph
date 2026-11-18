@@ -106,6 +106,34 @@ describe('TimeField', () => {
     expect(field()).toHaveAttribute('inputmode', 'decimal');
   });
 
+  // A region laid out the other way gives React Aria the locale in another script, which
+  // formats as its language's default: `fr-Arab-CA` wrote `fr`'s 15:05 for `fr-CA`'s 15 h 05.
+  it.each([
+    ['en-GB', 'rtl', '15:05', 'HH:MM', '4:30 pm', '16:30'],
+    ['fr-CA', 'rtl', '15 h 05', 'HH:MM', '16:30', '16 h 30'],
+    ['ar-EG', 'ltr', '٣:٠٥ م', 'H:MM AM', '٤:٣٠ م', '٤:٣٠ م'],
+  ] as const)(
+    'keeps a %s page’s clock, digits and format in a %s region',
+    async (locale, direction, shown, hint, typed, read) => {
+      const onChange = vi.fn();
+      render(
+        <I18nProvider locale={locale}>
+          <div dir={direction} style={{ direction }}>
+            <TimeField label="Opens at" defaultValue={new Time(15, 5)} onChange={onChange} />
+          </div>
+        </I18nProvider>,
+      );
+      const text = () => (field() as HTMLInputElement).value.replace(/\s/g, ' ');
+      expect(text()).toBe(shown);
+      expect(field()).toHaveAttribute('placeholder', hint);
+      await userEvent.clear(field());
+      await userEvent.type(field(), typed);
+      await userEvent.tab();
+      expect(onChange).toHaveBeenLastCalledWith(new Time(16, 30));
+      expect(text()).toBe(read);
+    },
+  );
+
   it('opens the picker typed first; OK commits and focus returns to the field', async () => {
     const onChange = vi.fn();
     render(<Sample defaultValue={new Time(9, 30)} onChange={onChange} />);

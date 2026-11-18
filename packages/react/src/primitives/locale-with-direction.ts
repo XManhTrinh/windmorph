@@ -41,8 +41,11 @@ const directed = new Map<string, string>();
  * `zh-Latn-TW-u-hc-h12`, still a 12-hour clock), and only those: a numbering system in the tag
  * also stops numbers typed in other digits from being read. No tag with another script keeps the
  * rest of a locale's own data, which then comes from its language's: words written in its script
- * (Traditional Chinese weekday names) and a region's own patterns and separators (`en-GB`'s
- * day-first dates, `es-MX`'s decimal point). A locale that can't be read gives `ar` or `en-US`.
+ * (Serbian's Latin month names come out Cyrillic) and a region's own patterns and separators
+ * (`en-GB`'s day-first dates, `es-MX`'s decimal point). So the tag is for React Aria only:
+ * `DomDirectionLocale` keeps the original for the components' own dates, times and numbers and
+ * for `useLocale`, and only React Aria's own words and formats there (a calendar day's accessible
+ * name) follow the tag. A locale that can't be read gives `ar` or `en-US`.
  */
 export function localeWithDirection(locale: string, direction: 'ltr' | 'rtl'): string {
   const key = `${direction} ${locale}`;

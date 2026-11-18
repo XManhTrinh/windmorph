@@ -1,8 +1,9 @@
 'use client';
 
 import type { ComponentPropsWithRef, ReactElement, ReactNode } from 'react';
-import { useNumberFormatter, VisuallyHidden } from 'react-aria';
+import { VisuallyHidden } from 'react-aria';
 import { useLabels } from '../labels/use-labels';
+import { usePageNumberFormatter } from '../../primitives/use-page-formatters';
 import { cn } from '../../utils/cn';
 import { badgedBoxStyles, badgeStyles } from './badge-styles';
 import { mergeDataTokens } from '../../utils/merge-data-tokens';
@@ -66,7 +67,7 @@ export function Badge({
   ...rest
 }: BadgeProps) {
   const labels = useLabels('Badge', DEFAULT_BADGE_LABELS, labelsProp);
-  const format = useNumberFormatter();
+  const format = usePageNumberFormatter();
   const size = children == null || children === false ? 'small' : 'large';
   // M3's limit is four characters, "+" included; only longer text is cut.
   const overflow = typeof children === 'string' && [...children].length > 4;

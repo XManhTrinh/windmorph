@@ -266,8 +266,8 @@ export default async function ApiConventionsPage() {
           </Rule>
           <Rule>
             <InlineCode>useLocale</InlineCode> returns the locale and its direction, for your own
-            formatting, so your dates match the fields beside them:{' '}
-            <InlineCode>new Intl.DateTimeFormat(useLocale().locale)</InlineCode>.
+            formatting, so your dates match the fields beside them, in a toolbar or list laid out
+            the other way too: <InlineCode>new Intl.DateTimeFormat(useLocale().locale)</InlineCode>.
           </Rule>
         </ul>
       </section>

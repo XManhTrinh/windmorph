@@ -11,11 +11,12 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { useLocale, useObjectRef } from 'react-aria';
+import { useObjectRef } from 'react-aria';
 import { useOverlayTriggerState } from 'react-stately';
 import { useControlledState } from 'react-stately/useControlledState';
 import { useLabels } from '../labels/use-labels';
 import { DomDirectionLocale } from '../../primitives/DomDirectionLocale';
+import { usePageLocale } from '../../primitives/use-page-locale';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
 import { onDemand, usePreloadOnIntent } from '../../utils/load-on-demand';
@@ -248,7 +249,9 @@ function TimeFieldInner({
   const invalid = invalidProp ?? ariaFlag(ariaInvalid);
   const required = requiredProp ?? ariaFlag(ariaRequired);
   const readOnly = readOnlyProp ?? ariaFlag(ariaReadonly);
-  const { locale } = useLocale();
+  // The page's, as the date field's: React Aria's, in a region laid out the other way, is the
+  // locale in another script, which writes `fr-CA`'s 15 h 05 as plain `fr`'s 15:05.
+  const locale = usePageLocale();
   const hourCycle = hourCycleProp ?? localeHourCycle(locale);
   const words = useLabels(['TimePicker', 'PickerDialog', 'TimeField'], DEFAULT_LABELS, labelsProp);
   const hint = words.timeFormatHint ?? (hourCycle === 24 ? 'HH:MM' : 'H:MM AM');
