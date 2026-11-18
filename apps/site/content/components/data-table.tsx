@@ -42,6 +42,7 @@ const SLOTS = [
   'pageButtons',
   'compactList',
   'compactRow',
+  'compactFigure',
   'loading',
   'skeletonRow',
   'progress',

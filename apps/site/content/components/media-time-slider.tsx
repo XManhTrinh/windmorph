@@ -109,7 +109,9 @@ export async function MediaTimeSliderBody(): Promise<ComponentDoc> {
               The bar runs left to right in every language, as media progress does: on a
               right-to-left page it fills from the left, Arrow Right moves forward and the pointer
               reads from the left. Its times and words stay in the page&apos;s locale and digits
-              (Arabic-Indic digits in <InlineCode>ar-EG</InlineCode>).
+              (Arabic-Indic digits in <InlineCode>ar-EG</InlineCode>). Only its parts run left to
+              right: the root keeps the page&apos;s direction, so your logical classes on it (
+              <InlineCode>ms-4</InlineCode>) stay on the page&apos;s side.
             </li>
             <li>
               A touch waits to tell a tap, a drag and a scroll apart, as the core{' '}
