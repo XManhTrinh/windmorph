@@ -70,35 +70,51 @@ export function useEntrance(
       done.current = true;
       setEntered(true);
     };
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Any part showing is worth animating; an entrance waits for `amount` of it.
-        setInView(entry !== undefined && entry.isIntersecting);
-        // A share of the element, or, for one larger than the window, that share of the window,
-        // across and down (a tall one in a sideways scroller waits for some of its width).
-        const bounds = entry?.rootBounds ?? null;
-        const shownAlong = (axis: 'width' | 'height') =>
-          bounds !== null &&
-          entry!.intersectionRect[axis] >=
-            amount * Math.min(entry!.boundingClientRect[axis], bounds[axis]) - 0.5;
-        showing =
-          entry !== undefined &&
-          entry.isIntersecting &&
-          (entry.intersectionRatio >= amount - 0.001 ||
-            (shownAlong('width') && shownAlong('height')));
-        if (hydrating.current) {
-          // Hydrated with any part on screen: it showed its final picture already. Wholly out
-          // of view: show the start state, unseen, until it's scrolled to.
-          hydrating.current = false;
-          if (entry?.isIntersecting) done.current = true;
-          else setEntered(false);
+    let observer: IntersectionObserver;
+    let scaled = false;
+    const onEntry: IntersectionObserverCallback = ([entry]) => {
+      // An element larger than the window shows only part of itself at most, so steps of its
+      // own share may never be crossed (a list 24 windows tall shows a 24th): it's watched
+      // again in steps of what it can show, so a share of the window is noticed.
+      if (!scaled && entry?.isIntersecting && entry.rootBounds) {
+        const reach =
+          Math.min(1, entry.rootBounds.width / entry.boundingClientRect.width) *
+          Math.min(1, entry.rootBounds.height / entry.boundingClientRect.height);
+        if (reach < 0.999) {
+          scaled = true;
+          observer.disconnect();
+          watch(THRESHOLDS.map((threshold) => threshold * reach));
         }
-        enter();
-      },
-      // Fine steps, so a tall element's callback runs as more of it shows.
-      { threshold: THRESHOLDS },
-    );
-    observer.observe(element);
+      }
+      // Any part showing is worth animating; an entrance waits for `amount` of it.
+      setInView(entry !== undefined && entry.isIntersecting);
+      // A share of the element, or, for one larger than the window, that share of the window,
+      // across and down (a tall one in a sideways scroller waits for some of its width).
+      const bounds = entry?.rootBounds ?? null;
+      const shownAlong = (axis: 'width' | 'height') =>
+        bounds !== null &&
+        entry!.intersectionRect[axis] >=
+          amount * Math.min(entry!.boundingClientRect[axis], bounds[axis]) - 0.5;
+      showing =
+        entry !== undefined &&
+        entry.isIntersecting &&
+        (entry.intersectionRatio >= amount - 0.001 ||
+          (shownAlong('width') && shownAlong('height')));
+      if (hydrating.current) {
+        // Hydrated with any part on screen: it showed its final picture already. Wholly out
+        // of view: show the start state, unseen, until it's scrolled to.
+        hydrating.current = false;
+        if (entry?.isIntersecting) done.current = true;
+        else setEntered(false);
+      }
+      enter();
+    };
+    const watch = (threshold: number[]) => {
+      observer = new IntersectionObserver(onEntry, { threshold });
+      observer.observe(element);
+    };
+    // Fine steps, so a tall element's callback runs as more of it shows.
+    watch(THRESHOLDS);
     document.addEventListener('visibilitychange', enter);
     return () => {
       observer.disconnect();

@@ -5,24 +5,45 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntrance } from './use-entrance';
 
-/** An IntersectionObserver the test drives: `show(ratio)` reports the element's visible share. */
+/**
+ * An IntersectionObserver the test drives: `show(ratio)` reports the element's visible share.
+ * A 1000 × 800 window; the element 400px tall, or `tallHeight` px when `windowShare` (the share
+ * of the window it fills) is given, with `widthShown` px of its 1000 showing. With `crossingsOnly`,
+ * it calls back only as a browser does: when the share crosses one of the observer's thresholds
+ * (or starts or stops intersecting).
+ */
 let observed: ((ratio: number, windowShare?: number, widthShown?: number) => void) | null = null;
+let tallHeight = 3200;
+let crossingsOnly = false;
 beforeEach(() => {
   observed = null;
+  tallHeight = 3200;
+  crossingsOnly = false;
   vi.stubGlobal(
     'IntersectionObserver',
     class {
-      constructor(callback: IntersectionObserverCallback) {
-        // A 1000 × 800 window; the element 400px tall, or 3200px when `windowShare` is given (the
-        // share of the window it fills), and `widthShown` px of its 1000 showing.
-        observed = (ratio, windowShare, widthShown = 1000) =>
+      last = 0;
+      constructor(
+        callback: IntersectionObserverCallback,
+        private options: IntersectionObserverInit = {},
+      ) {
+        observed = (ratio, windowShare, widthShown = 1000) => {
+          const thresholds = [this.options.threshold ?? 0].flat();
+          const crossed =
+            ratio > 0 !== this.last > 0 ||
+            thresholds.some((threshold) => this.last < threshold !== ratio < threshold);
+          this.last = ratio;
+          if (crossingsOnly && !crossed) return;
           callback(
             [
               {
                 isIntersecting: ratio > 0,
                 intersectionRatio: ratio,
                 rootBounds: { height: 800, width: 1000 },
-                boundingClientRect: { height: windowShare === undefined ? 400 : 3200, width: 1000 },
+                boundingClientRect: {
+                  height: windowShare === undefined ? 400 : tallHeight,
+                  width: 1000,
+                },
                 intersectionRect: {
                   height: windowShare === undefined ? ratio * 400 : windowShare * 800,
                   width: ratio > 0 ? widthShown : 0,
@@ -31,6 +52,7 @@ beforeEach(() => {
             ],
             this as unknown as IntersectionObserver,
           );
+        };
       }
       observe() {}
       disconnect() {}
@@ -101,6 +123,16 @@ describe('useEntrance', () => {
     const { container } = render(<Chart />);
     // A tenth of a very tall element, filling half the window.
     show(0.1, 0.5);
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+  });
+
+  it('enters an element many windows tall, though its own share stays tiny', () => {
+    crossingsOnly = true;
+    // 24 windows tall: a quarter of the window is about a hundredth of it.
+    tallHeight = 24 * 800;
+    const { container } = render(<Chart />);
+    show(0.002, 0.05);
+    show(0.0105, 0.25);
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
