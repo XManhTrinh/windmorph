@@ -8,8 +8,10 @@ import {
   POSITIONING_OVERRIDES,
 } from './overlay-safety';
 import { insetEdges, sampleMotion } from './motion-frames';
+import { samplePaintedFrames } from './painted-frames';
+import { expectNoMovement, faded } from './reduced-motion';
 import { MODES, THEMES } from './shots';
-import { openStory } from './story';
+import { openStory, type StoryGlobals } from './story';
 
 const box = async (locator: Locator) => (await locator.boundingBox())!;
 const settle = (page: Page) => page.waitForTimeout(600);
@@ -736,6 +738,438 @@ test.describe('Menu layout safety', () => {
     test(`panel · ${override}`, async ({ page }) => {
       await openStory(page, 'components-menu--layout-override', {}, { override, part: 'panel' });
       await openCheckAndPick(page, override, !POSITIONING_OVERRIDES.includes(override), 'panel');
+    });
+  }
+});
+
+/*
+ * Submenus in place and a menu inside an element (`submenuPresentation="replace"`,
+ * `submenuTransition`, `afterSelect`, `portalContainer`; docs/plans/menu-in-place-and-container.md):
+ * a video player's settings menu, opened from its settings button inside the player.
+ */
+const PLAYER = 'components-menu--player-settings';
+
+async function openPlayer(page: Page, globals: StoryGlobals = {}, args = {}) {
+  await openStory(page, PLAYER, globals, args);
+  await page.getByRole('button', { name: 'Settings' }).click();
+  await settle(page);
+  return page.getByTestId('player');
+}
+
+/** The surface the pages share, its pages' natural height, and the placement, on one frame. */
+const SURFACE = `(() => {
+  const surface = document.querySelector('[data-level]');
+  if (!surface) return null;
+  const r = surface.getBoundingClientRect();
+  return {
+    top: r.top, bottom: r.bottom, left: r.left, right: r.right, height: r.height,
+    pages: surface.firstElementChild.getBoundingClientRect().height,
+    placement: surface.closest('[data-placement]').dataset.placement,
+    pane: document.querySelector('[data-testid="pane"]').scrollTop,
+  };
+})()`;
+
+interface SurfaceFrame {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+  height: number;
+  pages: number;
+  placement: string;
+  pane: number;
+}
+
+const forward = (dir: 'ltr' | 'rtl') => (dir === 'ltr' ? 'ArrowRight' : 'ArrowLeft');
+
+test.describe('Menu in place: visual regression', () => {
+  for (const theme of THEMES) {
+    for (const mode of MODES) {
+      test(`player settings · ${theme} · ${mode}`, async ({ page }) => {
+        const player = await openPlayer(page, { theme, mode });
+        await expect(player).toHaveScreenshot(`player-settings-${theme}-${mode}.png`);
+        await page.getByRole('menuitem', { name: /^Quality/ }).click();
+        await page.mouse.move(0, 0);
+        await settle(page);
+        await expect(player).toHaveScreenshot(`player-settings-quality-${theme}-${mode}.png`);
+      });
+    }
+  }
+
+  test('player settings · vibrant · right to left', async ({ page }) => {
+    const player = await openPlayer(page, { dir: 'rtl' }, { variant: 'vibrant' });
+    await expect(player).toHaveScreenshot('player-settings-vibrant-rtl.png');
+    await page.getByRole('menuitem', { name: /^Quality/ }).click();
+    await page.mouse.move(0, 0);
+    await settle(page);
+    await expect(player).toHaveScreenshot('player-settings-quality-vibrant-rtl.png');
+  });
+
+  test('player settings · forced colours', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    const player = await openPlayer(page);
+    await page.getByRole('menuitem', { name: /^Quality/ }).click();
+    await page.mouse.move(0, 0);
+    await settle(page);
+    // The surface keeps a system-colour edge.
+    const edge = await page
+      .locator('[data-level]')
+      .evaluate((el) => [getComputedStyle(el).outlineStyle, getComputedStyle(el).outlineWidth]);
+    expect(edge).toEqual(['solid', '1px']);
+    await expect(player).toHaveScreenshot('player-settings-quality-forced-colors.png');
+  });
+});
+
+test.describe('Menu in place: behaviour', () => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    for (const corner of ['bottom', 'top'] as const) {
+      test(`the surface follows each page's height on every painted frame, its corner held · ${dir} · ${corner}`, async ({
+        page,
+      }) => {
+        await openPlayer(page, { dir }, { corner });
+        // The corner nearest the trigger: above it, the bottom; below it, the top; and the end edge.
+        const held = (f: SurfaceFrame) => [
+          corner === 'bottom' ? f.bottom : f.top,
+          dir === 'ltr' ? f.right : f.left,
+        ];
+        const check = (frames: (SurfaceFrame | null)[], grows: boolean) => {
+          const shown = frames.filter((f): f is SurfaceFrame => f !== null);
+          const [first, last] = [shown[0]!, shown.at(-1)!];
+          expect(Math.abs(last.height - last.pages)).toBeLessThanOrEqual(0.5);
+          expect(grows ? last.height > first.height : last.height < first.height).toBe(true);
+          for (const [i, f] of shown.entries()) {
+            const [main, end] = held(f);
+            const [main0, end0] = held(first);
+            expect(Math.abs(main! - main0!), `frame ${i}: the held edge`).toBeLessThanOrEqual(0.5);
+            expect(Math.abs(end! - end0!), `frame ${i}: the end edge`).toBeLessThanOrEqual(1);
+            expect(f.placement, `frame ${i} never flips`).toBe(first.placement);
+            expect(f.pane, `frame ${i}: the pane stays`).toBe(0);
+            // Shrinking eases on the effects spring: never below the page it shows.
+            if (!grows) expect(f.height).toBeGreaterThanOrEqual(last.pages - 0.5);
+            const before = shown[i - 1];
+            if (before) {
+              if (grows) expect(f.height).toBeGreaterThanOrEqual(before.height - 0.5);
+              else expect(f.height).toBeLessThanOrEqual(before.height + 0.5);
+            }
+          }
+          // It moved, rather than jumping in one frame.
+          expect(
+            shown.some(
+              (f) =>
+                f.height > Math.min(first.height, last.height) + 1 &&
+                f.height < Math.max(first.height, last.height) - 1,
+            ),
+          ).toBe(true);
+        };
+        // The first page (249px) to Quality (276px), which grows.
+        await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+        check(
+          await samplePaintedFrames(page, SURFACE, () => page.keyboard.press(forward(dir)), 700),
+          true,
+        );
+        await page.keyboard.press('Escape');
+        await settle(page);
+        // Subtitles (265px) to Font size (188px), which shrinks.
+        await page.getByRole('menuitem', { name: /^Subtitles/ }).focus();
+        await page.keyboard.press(forward(dir));
+        await settle(page);
+        await page.keyboard.press('End');
+        check(
+          await samplePaintedFrames(page, SURFACE, () => page.keyboard.press('Enter'), 700),
+          false,
+        );
+      });
+    }
+
+    test(`slide: a page comes in 30px from the end edge going forward, the start edge going back · ${dir}`, async ({
+      page,
+    }) => {
+      await openPlayer(page, { dir }, { submenuTransition: 'slide' });
+      const frame = `(() => {
+        const page = document.querySelector('[data-submenu-panel]');
+        const first = document.querySelector('[role="menu"]');
+        const x = (el) => (el ? (parseFloat(getComputedStyle(el).translate) || 0) : null);
+        return {
+          page: page ? x(page) : null,
+          first: getComputedStyle(first).display === 'none' ? null : x(first),
+        };
+      })()`;
+      type Frame = { page: number | null; first: number | null };
+      const end = dir === 'ltr' ? 1 : -1;
+      await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+      const forwardFrames = await samplePaintedFrames<Frame>(
+        page,
+        frame,
+        () => page.keyboard.press(forward(dir)),
+        700,
+      );
+      const coming = forwardFrames.filter((f) => f.page !== null);
+      // From the end edge, settling where it belongs; the first page gone from the first frame.
+      expect(coming[0]!.page! * end).toBeGreaterThan(20);
+      expect(coming.at(-1)!.page).toBe(0);
+      for (const f of coming) expect(f.first).toBeNull();
+      const backFrames = await samplePaintedFrames<Frame>(
+        page,
+        frame,
+        () => page.keyboard.press('Escape'),
+        700,
+      );
+      const back = backFrames.filter((f) => f.page === null && f.first !== null);
+      expect(back[0]!.first! * end).toBeLessThan(-20);
+      expect(back.at(-1)!.first).toBe(0);
+    });
+  }
+
+  test('afterSelect="back": a choice goes back to the page that shows it, focus on its item', async ({
+    page,
+  }) => {
+    await openPlayer(page);
+    const quality = page.getByRole('menuitem', { name: /^Quality/ });
+    await expect(quality).toContainText('Auto');
+    await quality.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+    // Space chooses and stays.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Space');
+    await expect(page.getByRole('menuitemradio', { name: '1080p' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('[data-submenu-panel]')).toHaveCount(0);
+    await expect(quality).toBeFocused();
+    await expect(quality).toContainText('720p');
+    // The menu stays open, and Escape closes it from the first page.
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Settings' })).toBeFocused();
+  });
+
+  test('in right to left, Arrow Left opens a page and Arrow Right goes back to its item', async ({
+    page,
+  }) => {
+    await openPlayer(page, { dir: 'rtl' });
+    const subtitles = page.getByRole('menuitem', { name: /^Subtitles/ });
+    await subtitles.focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect(page.getByRole('menuitemradio', { name: 'Off' })).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('[data-submenu-panel]')).toHaveCount(0);
+    await expect(subtitles).toBeFocused();
+  });
+
+  test('a menu in the element stays inside it, containerPadding from its edges, and flips within it', async ({
+    page,
+  }) => {
+    const inside = async () => {
+      const [s, p] = await Promise.all([
+        page.locator('[data-level]').boundingBox(),
+        page.getByTestId('player').boundingBox(),
+      ]);
+      expect(s!.x).toBeGreaterThanOrEqual(p!.x + 12 - 0.5);
+      expect(s!.x + s!.width).toBeLessThanOrEqual(p!.x + p!.width - 12 + 0.5);
+      expect(s!.y).toBeGreaterThanOrEqual(p!.y + 12 - 0.5);
+      expect(s!.y + s!.height).toBeLessThanOrEqual(p!.y + p!.height - 12 + 0.5);
+    };
+    // Asked to open below a trigger at the player's bottom: no room in the player, so above.
+    await openPlayer(page, {}, { flip: true });
+    await expect(page.locator('[data-placement]:has([data-level])')).toHaveAttribute(
+      'data-placement',
+      'top',
+    );
+    await inside();
+    await page.getByRole('menuitem', { name: /^Quality/ }).click();
+    await settle(page);
+    await inside();
+    // In body, the window has room below: it stays there.
+    await openPlayer(page, {}, { flip: true, inPlayer: false });
+    await expect(page.locator('[data-placement]:has([data-level])')).toHaveAttribute(
+      'data-placement',
+      'bottom',
+    );
+    // Right to left too: it opens from the trigger's end edge, inside the player.
+    await openPlayer(page, { dir: 'rtl' });
+    await inside();
+    const [s, t] = await Promise.all([
+      page.locator('[data-level]').boundingBox(),
+      page.getByRole('button', { name: 'Settings', includeHidden: true }).boundingBox(),
+    ]);
+    expect(Math.abs(s!.x - t!.x)).toBeLessThanOrEqual(1);
+  });
+
+  test('when a pane scrolls the element, the menu keeps its place in it on every frame', async ({
+    page,
+  }) => {
+    await openPlayer(page);
+    const offset = `(() => {
+      const s = document.querySelector('[data-level]').getBoundingClientRect();
+      const p = document.querySelector('[data-testid="player"]').getBoundingClientRect();
+      return [s.top - p.top, s.left - p.left, p.top];
+    })()`;
+    const pane = page.getByTestId('pane');
+    const frames = await samplePaintedFrames<number[]>(
+      page,
+      offset,
+      async () => {
+        for (let i = 0; i < 6; i++) {
+          await pane.evaluate((el) => (el.scrollTop += 20));
+          await page.waitForTimeout(32);
+        }
+      },
+      400,
+    );
+    // The pane scrolled the player, and the menu with it.
+    expect(frames.at(-1)![2]).toBeLessThan(frames[0]![2]! - 60);
+    for (const [top, left] of frames) {
+      expect(Math.abs(top! - frames[0]![0]!)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(left! - frames[0]![1]!)).toBeLessThanOrEqual(0.5);
+    }
+  });
+
+  test('a wheel outside the menu scrolls a pane around the element, and the menu stays with it', async ({
+    page,
+  }) => {
+    // Recorded (2026-11-18): the menu's underlay is inside the element, so a wheel over it
+    // scrolls through the element to the pane; the menu, placed in the element, goes along.
+    const player = await openPlayer(page);
+    const before =
+      (await page.locator('[data-level]').boundingBox())!.y - (await player.boundingBox())!.y;
+    await page.mouse.move(150, 300);
+    await page.mouse.wheel(0, 120);
+    await expect
+      .poll(() => page.getByTestId('pane').evaluate((el) => el.scrollTop))
+      .toBeGreaterThan(0);
+    await settle(page);
+    await expect(page.getByRole('menu', { name: 'Settings' })).toBeVisible();
+    const after =
+      (await page.locator('[data-level]').boundingBox())!.y - (await player.boundingBox())!.y;
+    expect(Math.abs(after - before)).toBeLessThanOrEqual(0.5);
+  });
+
+  test('Home and End move focus without scrolling a pane around the element', async ({ page }) => {
+    await openPlayer(page, {}, { corner: 'top' });
+    await page.keyboard.press('End');
+    await expect(page.getByRole('menuitemcheckbox', { name: 'Loop' })).toBeFocused();
+    await page.keyboard.press('Home');
+    await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+    await page.waitForTimeout(300);
+    expect(await page.getByTestId('pane').evaluate((el) => el.scrollTop)).toBe(0);
+  });
+
+  test('a container resized without the window places the menu back on its trigger', async ({
+    page,
+  }) => {
+    await openPlayer(page);
+    await page.getByTestId('player').evaluate((el) => {
+      (el as HTMLElement).style.width = '480px';
+    });
+    await expect
+      .poll(async () => {
+        const [s, t] = await Promise.all([
+          page.locator('[data-level]').boundingBox(),
+          page.getByRole('button', { name: 'Settings', includeHidden: true }).boundingBox(),
+        ]);
+        return Math.round(s!.x + s!.width - (t!.x + t!.width));
+      })
+      .toBe(0);
+  });
+
+  test('full screen: a menu opened before stays in sight, placed on its trigger, and after', async ({
+    page,
+  }) => {
+    await openPlayer(page);
+    // Playwright's evaluate counts as a user gesture, so headless Chromium grants it.
+    await page.evaluate(() =>
+      document.querySelector('[data-testid="player"]')!.requestFullscreen(),
+    );
+    await expect
+      .poll(() => page.evaluate(() => document.fullscreenElement?.getAttribute('data-testid')))
+      .toBe('player');
+    const atTrigger = async () => {
+      await expect
+        .poll(async () => {
+          const [s, t] = await Promise.all([
+            page.locator('[data-level]').boundingBox(),
+            page.getByRole('button', { name: 'Settings', includeHidden: true }).boundingBox(),
+          ]);
+          return [
+            Math.round(s!.x + s!.width - (t!.x + t!.width)),
+            Math.round(t!.y - 8 - (s!.y + s!.height)),
+          ];
+        })
+        .toEqual([0, 0]);
+    };
+    await atTrigger();
+    const box = (await page.locator('[data-level]').boundingBox())!;
+    expect(
+      await page.evaluate(
+        ([x, y]) => document.elementFromPoint(x!, y!)?.closest('[role="menu"]') != null,
+        [box.x + box.width / 2, box.y + 24],
+      ),
+    ).toBe(true);
+    await page.evaluate(() => document.exitFullscreen());
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+    await atTrigger();
+  });
+
+  test('a trigger outside the element: the menu opens kept within its width', async ({ page }) => {
+    const player = await openPlayer(page, {}, { triggerOutside: true });
+    const [s, p] = await Promise.all([
+      page.locator('[data-level]').boundingBox(),
+      player.boundingBox(),
+    ]);
+    expect(s!.x + s!.width).toBeLessThanOrEqual(p!.x + p!.width - 12 + 0.5);
+    await page.getByRole('menuitem', { name: /^Quality/ }).click();
+    await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+  });
+
+  // Consumer classes on the element the menu opens in (architecture §10).
+  for (const override of ['static', 'overflowHidden', 'transform', 'translate', 'containPaint']) {
+    test(`the element with a consumer class · ${override}`, async ({ page }) => {
+      const player = await openPlayer(page, {}, { override });
+      const trigger = page.getByRole('button', { name: 'Settings', includeHidden: true });
+      const [s, t, p] = await Promise.all([
+        page.locator('[data-level]').boundingBox(),
+        trigger.boundingBox(),
+        player.boundingBox(),
+      ]);
+      // Above its trigger, 8px off, its end edge on the trigger's, inside the player.
+      expect(Math.abs(t!.y - 8 - (s!.y + s!.height))).toBeLessThanOrEqual(1);
+      expect(Math.abs(t!.x + t!.width - (s!.x + s!.width))).toBeLessThanOrEqual(1);
+      expect(s!.y).toBeGreaterThanOrEqual(p!.y);
+      expect(
+        await page.evaluate(
+          ([x, y]) => document.elementFromPoint(x!, y!)?.closest('[role="menu"]') != null,
+          [s!.x + s!.width / 2, s!.y + 24],
+        ),
+      ).toBe(true);
+      // And it works from the keyboard, page and back.
+      await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('menuitem', { name: /^Quality/ })).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(trigger).toBeFocused();
+    });
+  }
+});
+
+test.describe('Menu in place under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  for (const submenuTransition of ['fade', 'slide']) {
+    test(`the height jumps and the page only fades · ${submenuTransition}`, async ({ page }) => {
+      await openPlayer(page, {}, { submenuTransition });
+      await page.getByRole('menuitem', { name: /^Quality/ }).focus();
+      const result = await expectNoMovement(page, {
+        parts: { surface: '[data-level]', page: '[data-submenu-panel]' },
+        act: () => page.keyboard.press('ArrowRight'),
+      });
+      expect(faded(result, 'page')).toBe(true);
+      await expect(page.getByRole('menuitemradio', { name: 'Auto' })).toBeFocused();
     });
   }
 });
