@@ -21,6 +21,7 @@ import {
   type Ref,
   type RefObject,
 } from 'react';
+import { flushSync } from 'react-dom';
 import {
   DismissButton,
   I18nProvider,
@@ -393,6 +394,19 @@ export interface MenuProps
    */
   afterSelect?: MenuAfterSelect;
   /**
+   * The element the menu's popover opens in, instead of `body`: a video player, so the menu
+   * opens over the picture, moves with the player and shows with it in full screen, opened
+   * before or after. The menu is placed against its trigger as before, then kept inside the
+   * element: `containerPadding` from its edges, flipping, shifting and capping its height (the
+   * list scrolls) within it, and placed again when the element resizes. It keeps the theme,
+   * `ThemeScope`, density and direction of where it's declared. Give the element
+   * `position: relative`, keep the trigger inside it or along its edge, and pass the element
+   * from a callback ref kept in state. It must draw its children (not a `<video>`, `<canvas>`
+   * or `<img>`). Popovers only: a bottom sheet opens over the window (and inside the element
+   * in full screen, as every overlay does). Set it on the root menu.
+   */
+  portalContainer?: Element | null;
+  /**
    * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
    * for the whole app.
    */
@@ -468,9 +482,10 @@ const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
 /**
  * M3 Expressive menu: items on one surface with dividers between groups (or on grouped
  * surfaces), standard or vibrant colours, optional single or multiple selection with a
- * selected shape and check, submenus, keyboard navigation and typeahead (React Aria
- * `useMenu`). Must be inside a `MenuTrigger` or `ContextMenuTrigger`; it opens anchored to
- * the trigger in a portal that keeps the surrounding theme and direction.
+ * selected shape and check, submenus beside their item or in its place, keyboard navigation
+ * and typeahead (React Aria `useMenu`). Must be inside a `MenuTrigger` or
+ * `ContextMenuTrigger`; it opens anchored to the trigger in a portal (in `body`, or in
+ * `portalContainer`) that keeps the surrounding theme and direction.
  *
  * @example
  * <MenuTrigger>
@@ -491,6 +506,7 @@ export function Menu({
   instant = false,
   submenuPresentation = 'beside',
   submenuTransition = 'fade',
+  portalContainer,
   ...props
 }: MenuProps) {
   const trigger = useContext(MenuTriggerContext);
@@ -505,13 +521,14 @@ export function Menu({
   const isExiting = !instant && presence.isExiting;
   if (!isPresent) return null;
   return (
-    <Overlay exiting={isExiting}>
+    <Overlay exiting={isExiting} portalContainer={portalContainer ?? undefined}>
       <MenuPopover
         {...props}
         trigger={trigger}
         instant={instant}
         replace={submenuPresentation === 'replace'}
         transition={submenuTransition}
+        boundary={portalContainer ?? null}
         isExiting={isExiting}
         exitProps={presence.exitProps}
       />
@@ -522,7 +539,7 @@ export function Menu({
 /** What the menu in a popover or a sheet takes: the root menu's props that pick neither. */
 type MenuShownProps = Omit<
   MenuProps,
-  'presentation' | 'instant' | 'submenuPresentation' | 'submenuTransition'
+  'presentation' | 'instant' | 'submenuPresentation' | 'submenuTransition' | 'portalContainer'
 >;
 
 /**
@@ -594,6 +611,7 @@ function MenuSheet({
             labels,
             classNames: props.classNames,
             backIcon,
+            boundary: null,
           }}
         >
           <MenuList
@@ -636,6 +654,8 @@ interface MenuTreeContextValue {
   /** The root menu's parts, for the row above each page. */
   classNames: MenuClassNames | undefined;
   backIcon: ReactElement | undefined;
+  /** The root's `portalContainer`, which submenus beside it stay within too. */
+  boundary: Element | null;
 }
 
 const MenuTreeContext = createContext<MenuTreeContextValue | null>(null);
@@ -677,6 +697,33 @@ function toPhysicalPlacement(placement: MenuPlacement, direction: string): Place
   return toAriaPlacement(placement, direction === 'rtl');
 }
 
+/**
+ * Places a menu again when its `portalContainer` resizes without the window. React Aria places
+ * a popover again on a window resize and on its own or its trigger's, but not when a container
+ * resizes and moves the trigger without resizing it, and `usePopover` doesn't return
+ * `updatePosition`. So as the container resizes, its `shouldUpdatePosition` turns off and on
+ * again, each committed at once, before the paint: the change re-runs its positioning effect.
+ */
+function usePlaceAgainOnResize(boundary: Element | null) {
+  const [placing, setPlacing] = useState(true);
+  useEffect(() => {
+    if (!boundary || typeof ResizeObserver === 'undefined') return;
+    let observed = false;
+    const observer = new ResizeObserver(() => {
+      // The first call reports the size the container has as it's observed.
+      if (!observed) {
+        observed = true;
+        return;
+      }
+      flushSync(() => setPlacing(false));
+      flushSync(() => setPlacing(true));
+    });
+    observer.observe(boundary);
+    return () => observer.disconnect();
+  }, [boundary]);
+  return placing;
+}
+
 /** A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`: `top left`). */
 function onSide(placement: Placement, side: string): Placement {
   const [, align] = placement.split(' ');
@@ -690,6 +737,7 @@ function MenuPopover({
   instant,
   replace,
   transition,
+  boundary,
   isExiting,
   exitProps,
   placement = 'bottom-start',
@@ -708,6 +756,8 @@ function MenuPopover({
   /** Submenus show in place, on one surface (`submenuPresentation="replace"`). */
   replace: boolean;
   transition: MenuSubmenuTransition;
+  /** The `portalContainer`: React Aria keeps the menu within it, as it keeps it in the window. */
+  boundary: Element | null;
   isExiting: boolean;
   exitProps: ExitProps;
 }) {
@@ -740,6 +790,7 @@ function MenuPopover({
   // runs out of room) instead of jumping across it mid-change.
   const [heldSide, setHeldSide] = useState<string | null>(null);
   const requested = toPhysicalPlacement(placement, direction);
+  const placing = usePlaceAgainOnResize(boundary);
   const {
     popoverProps,
     underlayProps,
@@ -752,6 +803,8 @@ function MenuPopover({
       shouldFlip: !heldSide,
       offset,
       containerPadding,
+      ...(boundary && { boundaryElement: boundary }),
+      shouldUpdatePosition: placing,
     },
     trigger.state,
   );
@@ -813,6 +866,7 @@ function MenuPopover({
                 labels,
                 classNames: props.classNames,
                 backIcon,
+                boundary,
               }}
             >
               {replace ? (
@@ -1557,6 +1611,8 @@ function SubmenuPopoverContent({
       // first item level with the item that opened it.
       offset: 6,
       crossOffset: -4,
+      // Within the root's `portalContainer`, as the root menu is.
+      ...(tree.boundary && { boundaryElement: tree.boundary }),
     },
     state,
   );

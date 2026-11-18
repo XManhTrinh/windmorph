@@ -553,4 +553,81 @@ describe('Overlay', () => {
       provided.remove();
     });
   });
+  describe("in a container of the caller's or an app's", () => {
+    it("carries only what differs from what the container inherits, so an app's :root values reach it", () => {
+      const player = document.createElement('div');
+      const provided = document.createElement('div');
+      document.body.append(player, provided);
+      render(
+        <ThemeProvider defaultTheme="ocean" storage="none">
+          <Overlay portalContainer={player}>
+            <div>Player menu</div>
+          </Overlay>
+          <ThemeScope theme="forest">
+            <Overlay portalContainer={player}>
+              <div>Forest menu</div>
+            </Overlay>
+          </ThemeScope>
+          <UNSAFE_PortalProvider getContainer={() => provided}>
+            <Overlay>
+              <div>Provided menu</div>
+            </Overlay>
+          </UNSAFE_PortalProvider>
+        </ThemeProvider>,
+      );
+      const inPlayer = screen.getByText('Player menu').closest('[data-overlay-scope]')!;
+      expect(inPlayer.parentElement).toBe(player);
+      for (const name of THEME_ATTRIBUTES) expect(inPlayer).not.toHaveAttribute(name);
+      const provider = screen.getByText('Provided menu').closest('[data-overlay-scope]')!;
+      expect(provider.parentElement).toBe(provided);
+      for (const name of THEME_ATTRIBUTES) expect(provider).not.toHaveAttribute(name);
+      // Declared in another theme than the container inherits: the colours go with it.
+      const forest = screen.getByText('Forest menu').closest('[data-overlay-scope]')!;
+      expect(forest).toHaveAttribute('data-theme', 'forest');
+      expect(forest).toHaveAttribute('data-mode');
+      expect(forest).toHaveAttribute('data-contrast');
+      expect(forest).not.toHaveAttribute('data-motion');
+      player.remove();
+      provided.remove();
+    });
+
+    it('carries every attribute in a container of another document, whose theme it can not know', () => {
+      const frame = document.createElement('iframe');
+      document.body.append(frame);
+      const framed = frame.contentDocument!.body;
+      render(
+        <ThemeProvider defaultTheme="ocean" storage="none">
+          <Overlay portalContainer={framed}>
+            <div>Framed menu</div>
+          </Overlay>
+        </ThemeProvider>,
+      );
+      const wrapper = framed.querySelector('[data-overlay-scope]')!;
+      expect(wrapper).toHaveTextContent('Framed menu');
+      for (const name of THEME_ATTRIBUTES) expect(wrapper).toHaveAttribute(name);
+      frame.remove();
+    });
+
+    it('warns in development when the container draws none of its children', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const video = document.createElement('video');
+      const player = document.createElement('div');
+      document.body.append(video, player);
+      const { rerender } = render(
+        <Overlay portalContainer={player}>
+          <div>Speed</div>
+        </Overlay>,
+      );
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <Overlay portalContainer={video}>
+          <div>Speed</div>
+        </Overlay>,
+      );
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('a <video> never shows'));
+      warn.mockRestore();
+      video.remove();
+      player.remove();
+    });
+  });
 });

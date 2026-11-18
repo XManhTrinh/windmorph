@@ -19,6 +19,7 @@ import {
 } from '../theme/context';
 import { themeAttributes, themeAttributesOver, type ThemeState } from '../theme/state';
 import type { Density } from '../tokens/density';
+import { useWarnOnce } from '../utils/warn-once';
 import { ContainerButtonContext } from './ButtonContext';
 import { ChipSetDisabledContext } from './ChipSetContext';
 import { DialogTriggerContext, SheetTriggerContext } from './OverlayTriggerContext';
@@ -32,7 +33,9 @@ export interface OverlayProps {
   children: ReactNode;
   /**
    * Element to portal into. Left out, an app's React Aria `UNSAFE_PortalProvider` container,
-   * else the element in full screen when the overlay opened, else `document.body`.
+   * else the element in full screen when the overlay opened, else `document.body`. It must draw
+   * its children (not a `<video>`, `<canvas>`, `<img>`, form control or SVG element), which
+   * development builds warn about.
    */
   portalContainer?: Element;
   /**
@@ -74,6 +77,14 @@ const DRAWS_NO_CHILDREN = new Set([
   'video',
 ]);
 
+/** Whether an element draws children of ours: an HTML element that isn't one of those above. */
+function drawsChildren(element: Element) {
+  return (
+    element.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
+    !DRAWS_NO_CHILDREN.has(element.localName)
+  );
+}
+
 // The element in full screen, when an overlay has to be drawn inside it. A browser in full
 // screen draws only that element's own content, so an overlay portalled to `body` was in the
 // document but never seen (2026-11-15): a tooltip, a menu or a dialog opened in a full-screen
@@ -83,18 +94,19 @@ const DRAWS_NO_CHILDREN = new Set([
 // carries only what differs from `<html>`, as in any other `body`.
 function fullscreenContainer(page: Document): HTMLElement | null {
   const element = page.fullscreenElement;
-  if (!(element instanceof HTMLElement) || DRAWS_NO_CHILDREN.has(element.localName)) return null;
+  if (!(element instanceof HTMLElement) || !drawsChildren(element)) return null;
   return element.contains(page.body) ? null : element;
 }
 
 const THEME_COLOR_ATTRIBUTES = ['data-theme', 'data-mode', 'data-contrast'] as const;
 
 // The theme attributes an overlay's wrapper needs inside `container`, the element in full screen
-// (2026-11-16): only those that differ from what `container` already inherits, each read from
-// the nearest element carrying it, as `themeAttributesOver` does for a known ancestor theme. So
-// an app's own `:root` values for the system tokens reach an overlay in full screen too; with
-// every attribute on the wrapper, the theme's rules declared the colours again there. `<html>`
-// takes the `ThemeProvider`'s state when it writes it there, since it does so after this render.
+// (2026-11-16) or a container the caller or an app names (2026-11-18): only those that differ
+// from what `container` already inherits, each read from the nearest element carrying it, as
+// `themeAttributesOver` does for a known ancestor theme. So an app's own `:root` values for the
+// system tokens reach an overlay there too; with every attribute on the wrapper, the theme's
+// rules declared the colours again there. `<html>` takes the `ThemeProvider`'s state when it
+// writes it there, since it does so after this render.
 function themeAttributesInside(
   state: ThemeState,
   container: Element,
@@ -215,16 +227,23 @@ export function Overlay({
   const fullscreen = useIsSSR() ? null : openedInFullscreen;
   const ownContainer = portalContainer ?? getContainer?.() ?? undefined;
   const container = ownContainer ?? fullscreen ?? undefined;
+  useWarnOnce(
+    portalContainer !== undefined && !drawsChildren(portalContainer),
+    `[@windmorph/react] An overlay's portalContainer must draw its children: a <${portalContainer?.localName}> never shows an overlay put inside it. Pass an element around it, such as the player that holds a video.`,
+  );
   // In `document.body`, the wrapper carries only what differs from `<html>`, so an app's own
-  // `:root` values for the system tokens reach the overlay too; in the element in full screen,
-  // only what differs from what that element inherits; in a container of the caller's or an
-  // app's, whose theme isn't known, every attribute.
+  // `:root` values for the system tokens reach the overlay too; in an element of the page (a
+  // container of the caller's or an app's, or the element in full screen), only what differs
+  // from what that element inherits (2026-11-18: a container of the caller's or an app's carried
+  // every attribute, so the app's `:root` values never reached a menu opened in its player); in
+  // a container in another document (an iframe's), whose theme isn't known, every attribute.
   const restyled = outerLayer !== undefined;
-  const wrapperTheme = ownContainer
-    ? themeAttributesOver(themed, null, restyled)
-    : fullscreen
-      ? themeAttributesInside(themed, fullscreen, documentTheme, restyled)
-      : themeAttributesOver(themed, documentTheme, restyled);
+  const drawnIn = ownContainer ?? fullscreen;
+  const wrapperTheme = !drawnIn
+    ? themeAttributesOver(themed, documentTheme, restyled)
+    : typeof document !== 'undefined' && drawnIn.ownerDocument === document
+      ? themeAttributesInside(themed, drawnIn, documentTheme, restyled)
+      : themeAttributesOver(themed, null, restyled);
   const scopeId = useId();
   const markerRef = useRef<HTMLSpanElement>(null);
   const scopeRef = useRef<HTMLDivElement>(null);

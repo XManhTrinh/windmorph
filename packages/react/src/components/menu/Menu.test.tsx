@@ -1,13 +1,14 @@
 import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { RouterProvider } from 'react-aria';
+import { RouterProvider, UNSAFE_PortalProvider } from 'react-aria';
 import { Item, useTreeState, type Selection } from 'react-stately';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
 import { setMediaQueries } from '../../../test/setup';
 import { COMPACT_WINDOW } from '../date-picker/use-media-query';
+import { ThemeProvider } from '../../theme/ThemeProvider';
 import { ThemeScope } from '../../theme/ThemeScope';
 import { Button } from '../button/Button';
 import { IconButton } from '../icon-button/IconButton';
@@ -1395,6 +1396,104 @@ describe('Menu submenus in place (submenuPresentation="replace")', () => {
     const page = await openPage('Quality');
     expect(screen.queryByRole('dialog')).toBe(null);
     expect(page.closest('[data-submenu-panel]')).toBeInTheDocument();
+  });
+});
+
+/** A player whose settings menu opens inside it (`portalContainer`), as an app passes it. */
+function Player({
+  menu,
+  scope,
+}: {
+  menu?: Partial<React.ComponentProps<typeof Menu>>;
+  scope?: Partial<React.ComponentProps<typeof ThemeScope>>;
+}) {
+  const [player, setPlayer] = useState<HTMLDivElement | null>(null);
+  return (
+    <div ref={setPlayer} data-testid="player" style={{ position: 'relative' }}>
+      <ThemeScope {...scope}>
+        <MenuTrigger>
+          <IconButton icon={<svg />} aria-label="Settings" />
+          <Menu aria-label="Settings" portalContainer={player} {...menu}>
+            <MenuItem key="quality">Quality</MenuItem>
+            <SubmenuTrigger>
+              <MenuItem key="speed">Playback speed</MenuItem>
+              <Menu>
+                <MenuItem key="normal">Normal</MenuItem>
+                <MenuItem key="fast">1.5×</MenuItem>
+              </Menu>
+            </SubmenuTrigger>
+          </Menu>
+        </MenuTrigger>
+      </ThemeScope>
+    </div>
+  );
+}
+
+describe('Menu in an element (portalContainer)', () => {
+  it('opens inside the element, with only the theme attributes that differ there', async () => {
+    const { unmount } = render(
+      <ThemeProvider defaultTheme="ocean" storage="none">
+        <Player />
+      </ThemeProvider>,
+    );
+    await openMenu('Settings');
+    const player = screen.getByTestId('player');
+    const wrapper = screen.getByRole('menu').closest('[data-overlay-scope]')!;
+    expect(wrapper.parentElement).toBe(player);
+    // Declared where the player's theme is in effect: nothing to write again, so an app's
+    // `:root` values reach it.
+    for (const name of ['data-theme', 'data-mode', 'data-contrast', 'data-motion']) {
+      expect(wrapper).not.toHaveAttribute(name);
+    }
+    unmount();
+    // Declared in another theme and direction than the player's: they go with it.
+    render(
+      <ThemeProvider defaultTheme="ocean" storage="none">
+        <Player scope={{ theme: 'rose', dir: 'rtl' }} />
+      </ThemeProvider>,
+    );
+    await openMenu('Settings');
+    const rose = screen.getByRole('menu').closest('[data-overlay-scope]')!;
+    expect(rose.parentElement).toBe(screen.getByTestId('player'));
+    expect(rose).toHaveAttribute('data-theme', 'rose');
+    expect(rose).toHaveAttribute('dir', 'rtl');
+    expect(rose).not.toHaveAttribute('data-motion');
+  });
+
+  it('keeps the menu, and a submenu beside it, within the element; a portal provider is no boundary', async () => {
+    const { unmount } = render(<Player />);
+    const player = screen.getByTestId('player');
+    // React Aria reads the boundary's box to keep the menu within it.
+    const box = vi.spyOn(player, 'getBoundingClientRect');
+    await openMenu('Settings');
+    expect(box).toHaveBeenCalled();
+    const before = box.mock.calls.length;
+    screen.getByRole('menuitem', { name: 'Playback speed' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: 'Playback speed' });
+    expect(box.mock.calls.length).toBeGreaterThan(before);
+    unmount();
+
+    // In an app's portal provider's container, the menu is placed within the window.
+    const provided = document.createElement('div');
+    document.body.append(provided);
+    const providedBox = vi.spyOn(provided, 'getBoundingClientRect');
+    render(
+      <UNSAFE_PortalProvider getContainer={() => provided}>
+        <Player menu={{ portalContainer: null }} />
+      </UNSAFE_PortalProvider>,
+    );
+    await openMenu('Settings');
+    expect(provided).toContainElement(screen.getByRole('menu'));
+    expect(providedBox).not.toHaveBeenCalled();
+    provided.remove();
+  });
+
+  it('opens a sheet over the window, not in the element', async () => {
+    render(<Player menu={{ presentation: 'sheet' }} />);
+    await openMenu('Settings');
+    const sheet = await screen.findByRole('dialog', { name: 'Settings' });
+    expect(screen.getByTestId('player')).not.toContainElement(sheet);
   });
 });
 
