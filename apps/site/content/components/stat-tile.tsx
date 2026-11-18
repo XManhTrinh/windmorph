@@ -9,7 +9,17 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['label', 'figure', 'value', 'unit', 'change', 'changeIcon', 'context', 'trend'];
+const SLOTS = [
+  'label',
+  'figure',
+  'value',
+  'unit',
+  'change',
+  'changeIcon',
+  'context',
+  'tone',
+  'trend',
+];
 const SPARKLINE_SLOTS = ['plot', 'trend', 'point'];
 
 /** StatTile page body: examples, when to use it, behaviour, parts and tokens. */
@@ -82,17 +92,19 @@ export async function StatTileBody(): Promise<ComponentDoc> {
               last week&quot;). <InlineCode>tone</InlineCode> says whether it is good news:{' '}
               <InlineCode>good</InlineCode> is in the <InlineCode>success</InlineCode> colour,{' '}
               <InlineCode>bad</InlineCode> in <InlineCode>error</InlineCode>, and{' '}
-              <InlineCode>neutral</InlineCode>, the default, stays quiet. Direction and tone are
-              separate, since a rise in returns is bad news. <InlineCode>icons</InlineCode> replaces
-              the arrows.
+              <InlineCode>neutral</InlineCode>, the default, stays quiet. Good or bad news also
+              shows in words after the change, in its colour (&quot;↑ 9% on last week · worse&quot;,
+              from <InlineCode>labels.good</InlineCode> and <InlineCode>labels.bad</InlineCode>,
+              &quot;better&quot; and &quot;worse&quot; by default), so colour is never the only cue.
+              Direction and tone are separate, since a rise in returns is bad news.{' '}
+              <InlineCode>icons</InlineCode> replaces the arrows.
             </li>
             <li>
               Screen readers hear the change as one sentence, the visible text hidden from them so
               it is read once: the direction, the amount and the context, then good or bad news in
-              words (<InlineCode>labels.good</InlineCode>, <InlineCode>labels.bad</InlineCode>),
-              since colour alone doesn&apos;t say it: &quot;Up 12% on last week, good&quot;.{' '}
-              <InlineCode>labels.change(parts)</InlineCode> puts the sentence together, so a
-              language can order it its own way.
+              words (<InlineCode>labels.good</InlineCode>, <InlineCode>labels.bad</InlineCode>):
+              &quot;Up 12% on last week, better&quot;. <InlineCode>labels.change(parts)</InlineCode>{' '}
+              puts the sentence together, so a language can order it its own way.
             </li>
             <li>
               <InlineCode>trend</InlineCode> takes the number&apos;s recent values, oldest first,

@@ -177,7 +177,15 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               from the text. Links are http and https only, open in a new tab and get{' '}
               <InlineCode>{'rel="ugc nofollow noopener noreferrer"'}</InlineCode>;{' '}
               <InlineCode>{'links={false}'}</InlineCode> shows them as words inside something
-              pressable. <InlineCode>parseMarkers</InlineCode>,{' '}
+              pressable. Links to the app&apos;s own pages can be ordinary links:{' '}
+              <InlineCode>internalLinks(url)</InlineCode> picks them (say,{' '}
+              <InlineCode>{'(url) => url.origin === location.origin'}</InlineCode>), and they open
+              in the same tab through the app&apos;s <InlineCode>RouterProvider</InlineCode>, with
+              no new-tab mark or words and <InlineCode>internalLinkRel</InlineCode> (none by
+              default) in place of <InlineCode>ugc nofollow</InlineCode>.{' '}
+              <InlineCode>renderLink(link)</InlineCode> renders a link yourself, for instance with
+              your router&apos;s link component; return <InlineCode>undefined</InlineCode> to keep
+              the default for that link. <InlineCode>parseMarkers</InlineCode>,{' '}
               <InlineCode>markersToDoc</InlineCode> and <InlineCode>docToMarkers</InlineCode> read
               and convert the format.
             </li>
