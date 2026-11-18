@@ -1,0 +1,5 @@
+---
+'@windmorph/react': patch
+---
+
+Added: a `Menu` can show its submenus in place and open inside an element, as a video player's settings menu does. `submenuPresentation="replace"` shows a popover's submenu in place of the menu, on the same surface below a back button and the item's label; the surface keeps its corner and its side of the trigger, and its height springs to each page. `submenuTransition` fades the pages (the default) or slides them in M3's forward and backward pattern, in a popover and a bottom sheet alike. `afterSelect="back"` on a submenu's `Menu` makes a choice return to the page that opened it, which shows the new choice, instead of closing the menu. `portalContainer` opens the popover inside an element, kept within it, moving with it and shown with it in full screen, and placed again when it resizes. The row above a page takes `classNames.header`, `back` and `title`, and the root menu's `backIcon`. `MenuSubmenuPresentation`, `MenuSubmenuTransition` and `MenuAfterSelect` are exported.
