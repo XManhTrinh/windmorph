@@ -60,7 +60,7 @@ Not using Tailwind? Import `@windmorph/react/styles.compiled.css` instead. See
 
 ## Development
 
-**Prerequisites:** Node.js `>=24` and [pnpm](https://pnpm.io) (`pnpm@12.8.1`, from
+**Prerequisites:** Node.js `>=26` and [pnpm](https://pnpm.io) (`pnpm@12.8.1`, from
 `packageManager`). [Turborepo](https://turborepo.com) runs and caches the tasks.
 
 ```bash
