@@ -1,8 +1,8 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, renderHook, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { RouterProvider } from 'react-aria';
-import type { Selection } from 'react-stately';
+import { Item, useTreeState, type Selection } from 'react-stately';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
@@ -446,6 +446,124 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveFocus();
     await userEvent.keyboard('{ArrowUp}{Enter}');
     expect([...onLayout.mock.calls[0]![0]]).toEqual(['list']);
+  });
+
+  it('makes a group with selectionMode="none" plain actions in a selectable menu', async () => {
+    const onSelectionChange = vi.fn();
+    const onAction = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>Sort</Button>
+        <Menu
+          aria-label="Sort"
+          selectionMode="single"
+          defaultSelectedKeys={['name']}
+          onSelectionChange={onSelectionChange}
+          onAction={onAction}
+        >
+          <MenuGroup title="Sort by">
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="date">Date</MenuItem>
+          </MenuGroup>
+          <MenuGroup aria-label="Actions" selectionMode="none">
+            <MenuItem key="reset">Reset sorting</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('Sort');
+    expect(screen.getAllByRole('menuitemradio')).toHaveLength(2);
+    const reset = screen.getByRole('menuitem', { name: 'Reset sorting' });
+    expect(reset).not.toHaveAttribute('aria-checked');
+    // Space closes the menu after an action, though it keeps a single-select menu open.
+    reset.focus();
+    await userEvent.keyboard(' ');
+    expect(onAction.mock.lastCall?.[0]).toBe('reset');
+    expect(onSelectionChange).not.toHaveBeenCalled();
+    await closed();
+  });
+
+  it('reports only its own keys from a multiple group with every item selected', async () => {
+    const onShow = vi.fn();
+    const onSort = vi.fn();
+    const onDensity = vi.fn();
+    render(
+      <MenuTrigger>
+        <Button>View</Button>
+        <Menu
+          aria-label="View"
+          selectionMode="single"
+          defaultSelectedKeys={['comfortable']}
+          onSelectionChange={onDensity}
+        >
+          <MenuGroup
+            title="Show"
+            selectionMode="multiple"
+            defaultSelectedKeys="all"
+            onSelectionChange={onShow}
+          >
+            <MenuItem key="names">Names</MenuItem>
+            <MenuItem key="sizes">Sizes</MenuItem>
+            <MenuItem key="dates">Dates</MenuItem>
+          </MenuGroup>
+          <MenuGroup
+            title="Sort by"
+            selectionMode="single"
+            defaultSelectedKeys={['name']}
+            onSelectionChange={onSort}
+          >
+            <MenuItem key="name">Name</MenuItem>
+            <MenuItem key="size">Size</MenuItem>
+          </MenuGroup>
+          <MenuGroup title="Density">
+            <MenuItem key="comfortable">Comfortable</MenuItem>
+            <MenuItem key="compact">Compact</MenuItem>
+          </MenuGroup>
+        </Menu>
+      </MenuTrigger>,
+    );
+    await openMenu('View');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Sizes' }));
+    expect([...onShow.mock.calls[0]![0]].sort()).toEqual(['dates', 'names']);
+    const checked = (role: string, name: string) =>
+      screen.getByRole(role, { name }).getAttribute('aria-checked');
+    expect(checked('menuitemcheckbox', 'Names')).toBe('true');
+    expect(checked('menuitemcheckbox', 'Sizes')).toBe('false');
+    expect(checked('menuitemradio', 'Name')).toBe('true');
+    expect(checked('menuitemradio', 'Size')).toBe('false');
+    expect(checked('menuitemradio', 'Comfortable')).toBe('true');
+    expect(checked('menuitemradio', 'Compact')).toBe('false');
+    expect(onSort).not.toHaveBeenCalled();
+    expect(onDensity).not.toHaveBeenCalled();
+  });
+
+  it('fails loudly in development if the selection manager a group builds changes shape', () => {
+    // A group's manager comes from the menu manager's own constructor, React Stately's
+    // `SelectionManager` (not exported): take a method away from it, as a change would.
+    const { result } = renderHook(() => useTreeState({ children: <Item key="a">A</Item> }));
+    const prototype = Object.getPrototypeOf(result.current.selectionManager) as {
+      select?: unknown;
+    };
+    const select = prototype.select;
+    delete prototype.select;
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(() =>
+        render(
+          <MenuTrigger defaultOpen>
+            <Button>Account</Button>
+            <Menu aria-label="Account">
+              <MenuGroup title="Signed in as" selectionMode="single">
+                <MenuItem key="alex">Alex Morgan</MenuItem>
+              </MenuGroup>
+            </Menu>
+          </MenuTrigger>,
+        ),
+      ).toThrow(/^\[@windmorph\/react\] MenuGroup: the selection manager .* lacks select\. /);
+    } finally {
+      prototype.select = select;
+      error.mockRestore();
+    }
   });
 
   it('disables items, which can still take focus', async () => {

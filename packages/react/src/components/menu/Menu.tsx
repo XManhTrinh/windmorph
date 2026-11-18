@@ -157,11 +157,13 @@ export interface MenuGroupProps {
    * A group of choices with a selection of its own, beside the menu's other items: its items
    * are radio items (`single`) or checkbox items (`multiple`), whatever the menu's own
    * `selectionMode`, and choosing one never changes another group's. Closing follows the
-   * group's mode, as a whole menu's would: a choice closes the menu, a toggle keeps it open.
+   * group's mode, as a whole menu's would: a choice closes the menu (Space keeps it open), a
+   * toggle keeps it open. `none` makes the group's items plain actions that close the menu,
+   * in a selectable menu too.
    * @default the menu's `selectionMode`
    */
   selectionMode?: SelectionMode;
-  /** The group's selected keys (controlled), with `selectionMode`. */
+  /** The group's selected keys (controlled), with `selectionMode`; `'all'` is all its items. */
   selectedKeys?: AriaMenuProps<object>['selectedKeys'];
   /** The group's keys selected at first (uncontrolled), with `selectionMode`. */
   defaultSelectedKeys?: AriaMenuProps<object>['defaultSelectedKeys'];
@@ -895,7 +897,7 @@ function MenuSection({
     heading: section.rendered,
     'aria-label': section['aria-label'],
   });
-  const selectionManager = useGroupSelection(section.props as MenuGroupProps, state);
+  const selectionManager = useGroupSelection(section, state);
   return (
     <div {...itemProps} className={className}>
       {section.rendered && (
@@ -921,16 +923,63 @@ function MenuSection({
 type SelectionManager = TreeState<object>['selectionManager'];
 
 /**
- * A selectable group's selection manager: the group's own selection (`useMultipleSelectionState`)
- * with the menu's focus, as React Aria Components' menu sections have. React Stately doesn't
- * export its `SelectionManager` class, so the menu manager's own constructor (its documented
- * `(collection, state)` signature) builds it, from a state whose focus members are the menu's.
- * `null` for a group without `selectionMode`, whose items use the menu's manager.
+ * The keys of a group's items that `'all'` selects: React Stately's `'all'` is every item that
+ * isn't disabled.
+ */
+function groupItemKeys(section: Node<object>, menu: SelectionManager) {
+  const keys = new Set<Node<object>['key']>();
+  for (const node of section.childNodes) {
+    if (node.type === 'item' && !menu.disabledKeys.has(node.key)) keys.add(node.key);
+  }
+  return keys;
+}
+
+/** What a group's items call on its manager (React Aria's `useMenuItem` and `useSelectableItem`). */
+const GROUP_MANAGER_METHODS = [
+  'isSelected',
+  'select',
+  'toggleSelection',
+  'replaceSelection',
+  'extendSelection',
+  'canSelectItem',
+  'isDisabled',
+  'isLink',
+  'setFocused',
+  'setFocusedKey',
+] as const;
+
+/**
+ * Development only. A group's manager is built with a class React Stately doesn't export, so a
+ * react-stately release that changed it would break a group's choices quietly (a press that
+ * selects nothing). Fail with the cause instead.
+ */
+function assertGroupManager(manager: SelectionManager, groupState: MultipleSelectionState) {
+  const missing = GROUP_MANAGER_METHODS.filter((name) => typeof manager[name] !== 'function');
+  if (missing.length === 0 && manager.selectionMode === groupState.selectionMode) return;
+  throw new Error(
+    `[@windmorph/react] MenuGroup: the selection manager built for a group's selection ` +
+      (missing.length > 0
+        ? `lacks ${missing.join(', ')}`
+        : `doesn't read the group's selection state`) +
+      `. A group's selection is built on React Stately's own SelectionManager, which this ` +
+      `react-stately version has changed; use the react-stately version @windmorph/react ` +
+      `depends on.`,
+  );
+}
+
+/**
+ * A group's selection manager when it sets `selectionMode` (`none` included, as React Aria
+ * Components' `MenuSection` does: a `none` group's items are plain actions in a selectable
+ * menu): the group's own selection (`useMultipleSelectionState`) with the menu's focus. React
+ * Stately doesn't export its `SelectionManager` class, so the menu manager's own constructor
+ * (its documented `(collection, state)` signature) builds it, from a state whose focus members
+ * are the menu's. `null` for a group without `selectionMode`, whose items use the menu's manager.
  */
 function useGroupSelection(
-  group: MenuGroupProps,
+  section: Node<object>,
   state: TreeState<object>,
 ): SelectionManager | null {
+  const group = section.props as MenuGroupProps;
   const own = useMultipleSelectionState({
     selectionMode: group.selectionMode ?? 'none',
     disallowEmptySelection: group.deselectable === false,
@@ -940,13 +989,16 @@ function useGroupSelection(
     }),
     ...(group.onSelectionChange !== undefined && { onSelectionChange: group.onSelectionChange }),
   });
-  if (!group.selectionMode || group.selectionMode === 'none') return null;
+  // Only a group that leaves `selectionMode` out follows the menu's.
+  if (group.selectionMode === undefined) return null;
   const menu = state.selectionManager;
   const groupState: MultipleSelectionState = {
     selectionMode: own.selectionMode,
     selectionBehavior: own.selectionBehavior,
     setSelectionBehavior: own.setSelectionBehavior,
-    selectedKeys: own.selectedKeys,
+    // The manager reads the whole menu's collection, so it would expand `'all'` over every item
+    // in the menu (a toggle reported the other groups' keys): the group's `'all'` is its own items.
+    selectedKeys: own.selectedKeys === 'all' ? groupItemKeys(section, menu) : own.selectedKeys,
     setSelectedKeys: own.setSelectedKeys,
     disallowEmptySelection: own.disallowEmptySelection,
     // Focus is the menu's: a group changes what's selected, never where focus goes.
@@ -968,7 +1020,9 @@ function useGroupSelection(
     collection: TreeState<object>['collection'],
     state: MultipleSelectionState,
   ) => SelectionManager;
-  return new Manager(state.collection, groupState);
+  const manager = new Manager(state.collection, groupState);
+  if (process.env.NODE_ENV !== 'production') assertGroupManager(manager, groupState);
+  return manager;
 }
 
 /**

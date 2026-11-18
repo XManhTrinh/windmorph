@@ -14,12 +14,12 @@ M3's menus put a selectable group beside actions (a group of radio or checkbox i
 
 | Prop | Type | |
 |---|---|---|
-| `selectionMode` | `'none' \| 'single' \| 'multiple'` | The group's items are radio (`single`) or checkbox (`multiple`) items. |
-| `selectedKeys` / `defaultSelectedKeys` | `Iterable<Key> \| 'all'` | Controlled and uncontrolled, as on `Menu`. |
+| `selectionMode` | `'none' \| 'single' \| 'multiple'` | The group's items are radio (`single`) or checkbox (`multiple`) items, or plain actions (`none`). |
+| `selectedKeys` / `defaultSelectedKeys` | `Iterable<Key> \| 'all'` | Controlled and uncontrolled, as on `Menu`; `'all'` is all of the group's own items. |
 | `onSelectionChange` | `(keys: Selection) => void` | Called with the group's keys only. |
 | `deselectable` | `boolean`, default `true` | `false` keeps one of the group's items selected (the library's name for React Aria's `disallowEmptySelection`). |
 
-- A group with `selectionMode` has its own selection: its items' roles, checks and `aria-checked` follow it, and choosing one never changes another group's or the menu's.
+- A group with `selectionMode` has its own selection: its items' roles, checks and `aria-checked` follow it, and choosing one never changes another group's or the menu's. `none` counts, as in React Aria Components: a `none` group's items are plain actions (`menuitem`) that close the menu, in a selectable menu too. Only a group that leaves `selectionMode` out follows the menu's.
 - Items outside such a group follow the menu's own `selectionMode` as before; in a menu with none, they're plain actions (`menuitem`) that close the menu.
 - Closing follows React Aria's rules for the group's mode: a choice in a `single` group closes the menu (Space keeps it open), a toggle in a `multiple` group keeps it open, Enter included (as a multi-select menu does, M3), each item's `closeOnSelect` still wins.
 - `onAction` on the menu still fires for every item, a group's choices included.
@@ -31,6 +31,6 @@ React Aria Components gives each selectable section a selection manager whose se
 
 ## Checks
 
-- Unit: a single group's items are `menuitemradio` with `aria-checked`, the rest `menuitem`; choosing in the group calls its `onSelectionChange` with its keys only and closes the menu, a plain action closes it without selecting; controlled and uncontrolled; `deselectable={false}`; a `multiple` group stays open on a toggle; two groups keep separate selections; the menu's own `selectionMode` still works; keyboard (arrows across groups, Space, Enter); axe.
+- Unit: a single group's items are `menuitemradio` with `aria-checked`, the rest `menuitem`; a `none` group in a single-select menu holds plain actions that close it, Space included, without selecting; a toggle in a `multiple` group with `'all'` reports only the group's keys and leaves the other groups' and the menu's selection alone; a changed react-stately manager fails loudly in development; choosing in the group calls its `onSelectionChange` with its keys only and closes the menu, a plain action closes it without selecting; controlled and uncontrolled; `deselectable={false}`; a `multiple` group stays open on a toggle; two groups keep separate selections; the menu's own `selectionMode` still works; keyboard (arrows across groups, Space, Enter); axe.
 - Story: a menu with a single-choice group and actions, in the Menu stories; screenshots in every theme.
 - Docs site: an example on the Menu page and the new props in its API table.
