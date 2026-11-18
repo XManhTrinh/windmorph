@@ -89,6 +89,21 @@ function Chart({ amount }: { amount?: number }) {
 }
 const box = (container: Element) => container.firstElementChild as HTMLElement;
 
+/**
+ * Runs `dispatch` outside `act`, as a browser dispatches its events: `act` would flush any
+ * update scheduled meanwhile, so what is committed by the time it returns couldn't be told apart.
+ */
+function outsideAct(dispatch: () => void) {
+  const environment = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
+  const actEnvironment = environment.IS_REACT_ACT_ENVIRONMENT;
+  environment.IS_REACT_ACT_ENVIRONMENT = false;
+  try {
+    dispatch();
+  } finally {
+    environment.IS_REACT_ACT_ENVIRONMENT = actEnvironment;
+  }
+}
+
 describe('useEntrance', () => {
   it('shows the final picture on the server', () => {
     expect(renderToString(<Chart />)).toContain('data-entered="true"');
@@ -115,17 +130,12 @@ describe('useEntrance', () => {
     // A print runs no frames, so a chart never scrolled to, or mid-entrance, would print as it
     // stands: it enters, and stops being in view so React's values land rather than animate.
     // The browser lays the print out as soon as `beforeprint` returns, so the change must be
-    // committed by then, not scheduled: dispatched outside `act` (which would flush it anyway),
-    // as a browser does, and read at once.
-    const environment = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
-    const actEnvironment = environment.IS_REACT_ACT_ENVIRONMENT;
-    environment.IS_REACT_ACT_ENVIRONMENT = false;
-    try {
-      window.dispatchEvent(new Event('beforeprint'));
-    } finally {
-      environment.IS_REACT_ACT_ENVIRONMENT = actEnvironment;
-    }
+    // committed by then, not scheduled: dispatched outside `act`, and read at once.
+    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
     expect(box(container)).toHaveAttribute('data-entered', 'true');
+    expect(box(container)).toHaveAttribute('data-in-view', 'false');
+    // A report while the page is printed (the print's own layout moves it) keeps it out of view.
+    place({ visible: true, ratio: 1, inside: true });
     expect(box(container)).toHaveAttribute('data-in-view', 'false');
     act(() => {
       window.dispatchEvent(new Event('afterprint'));
