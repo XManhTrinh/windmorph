@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react';
-import { Profiler, useEffect, useRef } from 'react';
+import { Profiler, StrictMode, useEffect, useRef } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -167,6 +167,22 @@ describe('useEntrance', () => {
       window.dispatchEvent(new Event('afterprint'));
     });
     for (const chart of container.children) expect(chart).toHaveAttribute('data-in-view', 'true');
+  });
+
+  it('listens for a print only while an entrance is mounted, under StrictMode too', () => {
+    const add = vi.spyOn(window, 'addEventListener');
+    const remove = vi.spyOn(window, 'removeEventListener');
+    const prints = (spy: typeof add) =>
+      spy.mock.calls.filter(([type]) => type === 'beforeprint' || type === 'afterprint').length;
+    const { container, unmount } = render(<StrictMode>{charts(3)}</StrictMode>);
+    // StrictMode mounts, unmounts and mounts again: the pair is there once, after it.
+    expect(prints(add) - prints(remove)).toBe(2);
+    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+    for (const chart of container.children) expect(chart).toHaveAttribute('data-entered', 'true');
+    outsideAct(() => window.dispatchEvent(new Event('afterprint')));
+    unmount();
+    // The last entrance gone, so is the pair.
+    expect(prints(add) - prints(remove)).toBe(0);
   });
 
   it('warns at most once for a print started from an effect', () => {
