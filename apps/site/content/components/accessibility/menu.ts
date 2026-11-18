@@ -82,7 +82,7 @@ export const menu: ComponentAccessibility = {
   focus: [
     'Opening the menu focuses its first item, or its last with Arrow Up from the trigger. Focus stays inside the menu while it is open, moving between items with the arrows.',
     "Keyboard focus shows M3's focus indicator inside the item, a 3px `secondary` outline drawn within its edges so the menu's clipping never hides it. Pointer presses show no ring.",
-    'Choosing an action (or, with Enter, a single choice), Escape or a press outside closes the menu and returns focus to the trigger; toggling a multi-select item keeps it open, with focus on the item. While the menu is open the trigger keeps its pressed state layer.',
+    'Choosing an action, or a single choice (unless with Space), Escape or a press outside closes the menu and returns focus to the trigger; toggling a multi-select item keeps it open, with focus on the item. While the menu is open the trigger keeps its pressed state layer.',
     "In a sheet, a submenu replaces its menu below a back button (named by `labels.back`), and going back returns focus to the submenu's item.",
   ],
   touchTarget: [
