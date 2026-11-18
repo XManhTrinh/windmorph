@@ -1,6 +1,6 @@
 # Menu: submenus in place, and an element to open in
 
-Status: **draft** (for 0.2.11). Both options were approved on 2026-11-18. The details below still need approval.
+Status: **approved 2026-11-18** (for 0.2.11), with every recommendation in "Open questions" and two additions: `submenuTransition` (a fade or M3's forward and backward slide between pages) and `afterSelect` (a choice on a submenu goes back instead of closing the menu).
 
 ## The gap
 
@@ -92,12 +92,12 @@ Version 3.53.1 is the core's version and the latest on npm. React Aria Component
 | # | Decision | Value |
 |---|---|---|
 | 1 | In-place submenus | `submenuPresentation: 'beside' \| 'replace'` on the root `Menu`, default `'beside'`; submenus follow the root's, as with `presentation` and `instant` |
-| 2 | Where it applies | Popovers only. A sheet always replaces (no change). `presentation="auto"` replaces below 600px (in the sheet) and follows `submenuPresentation` from 600px up |
+| 2 | Where it applies | Popovers only. A sheet always replaces (no change). `presentation="auto"` replaces below 600px (in the sheet) and follows `submenuPresentation` from 600px up. `submenuTransition` applies wherever pages replace each other: the popover with `replace`, and the sheet |
 | 3 | One implementation | The sheet's submenu page becomes the shared page for both presentations (see "Shared with the sheet") |
 | 4 | One surface | In place, the pages sit on one surface that persists from page to page (the `divider` layout's: colour, corners, elevation and 4px padding from the menu's tokens). `layout="gap"` gives way to dividers, as in a sheet and in a `gap` menu that scrolls; M3: "On web, use a divider to separate menu items". Pages take the root's `variant` and `layout`; a page's own `density`, selection, `onAction` and `classNames` still apply |
 | 5 | Height | The surface's height follows the visible page. It grows on the default spatial spring and shrinks over the same duration on the default effects spring's easing, so a shorter page is never cut and the surface never bounces open again (as the toolbar's collapsible content, §9). It's measured with the core's `useNaturalSize` |
 | 6 | Width | Each page takes its own width (112–280px) at once. Only the height moves, so the change runs along one axis, as M3 asks |
-| 7 | Page motion | The outgoing page goes at once and the incoming one fades in on the fast effects spring, as the sheet's pages do today. No slide (open question 1) |
+| 7 | Page motion | `submenuTransition?: 'fade' \| 'slide'` on the root `Menu`, default `'fade'`. `fade`: the outgoing page goes at once and the incoming one fades in on the fast effects spring, as the sheet's pages do today. `slide`: M3's forward and backward pattern, the incoming page sliding 30px in from the end edge going forward and from the start edge going back (mirrored in right to left) on the default spatial spring while it fades in; the outgoing page still goes at once. The first page never moves as the menu opens. Under reduced motion the slide drops (spatial durations are 0ms) and the fade stays; `instant` drops both |
 | 8 | Corner and side held | While a page other than the first is open, the popover keeps the side and alignment it opened with (React Aria's placement is held at the side it resolved, with flipping off). A taller page grows away from the trigger and scrolls if it runs out of room; it never jumps across the trigger mid-change |
 | 9 | Element to open in | `portalContainer?: Element \| null` on `Menu` (the root); `null` or left out keeps today's order |
 | 10 | Boundary | The `portalContainer` is also React Aria's `boundaryElement`, for the popover and for the submenus beside it, so they flip, shift and cap their height within it, `containerPadding` from its edges. A `PortalProvider`'s container is only a place to portal into, never a boundary (an app's portal root is often a zero-height `div` at the end of `body`) |
@@ -106,6 +106,7 @@ Version 3.53.1 is the core's version and the latest on npm. React Aria Component
 | 13 | New parts | `classNames.header`, `back` and `title` for the row above a page (in the sheet too, which has no keys for them today); `backIcon` on the root `Menu`, as on `SideSheet` |
 | 14 | Tokens | No new tokens. The surface reads the menu's (`--md-comp-menus-*`). The header's title and back icon read the items' label and leading-icon tokens, so `vibrant` and token overrides reach them |
 | 15 | Modality | The menu stays modal (React Aria's default for menus): the page is inert, and its scroll is locked while the menu is open. A non-modal popover would close on any page scroll |
+| 16 | After a choice | `afterSelect?: 'close' \| 'back'` on a submenu's `Menu` (the one inside `SubmenuTrigger`), default `'close'` (as before). `back`: a choice on a single-choice page (the page's own, or a single-choice `MenuGroup` on it) goes back one page instead of closing the menu, and the page it returns to shows the new choice, with focus on the item that opened the page. Beside, it closes only that submenu and focuses its item. Space keeps the page open either way, a toggle in a `multiple` page never closes it, and an action (a plain item) still closes the whole menu |
 
 ## API
 
@@ -113,11 +114,13 @@ Version 3.53.1 is the core's version and the latest on npm. React Aria Component
 |---|---|---|---|---|
 | `submenuPresentation` | `Menu` (root) | `'beside' \| 'replace'` | `'beside'` | Follows `presentation` (`Menu`, `Select`, `FabMenu`). `beside` repeats M3's "next to the parent menu item" and the current TSDoc; `replace` says what happens to the content. Rejected: `inline` (sounds like rows expanding within the list), a `drillIn` boolean (leaves no room for a third way) |
 | `portalContainer` | `Menu` (root) | `Element \| null` | — | The name of the core's `Overlay` prop and of React Aria's `Overlay` prop; React Aria Components' deprecated `UNSTABLE_portalContainer`; Radix's and Base UI's `Portal` `container`. Not just `container`, which `containerPadding` already uses for the boundary. On `Menu`, beside `placement`, `offset` and `containerPadding`, since the trigger holds only the open state. An element, not a ref, like the `Overlay` prop and React Aria's `getContainer`; apps pass it from a callback ref kept in state |
+| `submenuTransition` | `Menu` (root) | `'fade' \| 'slide'` | `'fade'` | What the motion is, as a `transition`; `slide` is M3's forward and backward pattern, `fade` the sheet's motion today |
+| `afterSelect` | a submenu's `Menu` | `'close' \| 'back'` | `'close'` | What follows a choice; `back` names where focus goes. On the submenu, since each page decides (Quality goes back, an action page closes) |
 | `backIcon` | `Menu` (root) | `ReactElement` | Material Symbols `arrow_back`, mirrored in right-to-left | `SideSheet`'s name and type |
 | `labels.back` | `Menu` (root) | `string` | `"Back"` | Unchanged; its TSDoc now covers the popover too |
 | `classNames.header` / `back` / `title` | `Menu` | `string` | — | `SideSheet`'s keys for the same row |
 
-- `MenuSubmenuPresentation` is exported beside `MenuPresentation`.
+- `MenuSubmenuPresentation`, `MenuSubmenuTransition` and `MenuAfterSelect` are exported beside `MenuPresentation`.
 - **TSDoc that changes:**
   - `Menu`: it opens in `body` or in `portalContainer`.
   - `placement`: a submenu opens beside its item, or in its place.
@@ -136,7 +139,7 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
     <Menu portalContainer={player} submenuPresentation="replace" placement="top-end" offset={8}>
       <SubmenuTrigger>
         <MenuItem key="quality" description={qualityLabel}>Quality</MenuItem>
-        <Menu selectionMode="single" deselectable={false} selectedKeys={[quality]} onSelectionChange={onQuality}>
+        <Menu selectionMode="single" deselectable={false} afterSelect="back" selectedKeys={[quality]} onSelectionChange={onQuality}>
           <MenuItem key="auto">Auto</MenuItem>
           <MenuItem key="1080">1080p</MenuItem>
           <MenuItem key="720">720p</MenuItem>
@@ -144,7 +147,7 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
       </SubmenuTrigger>
       <SubmenuTrigger>
         <MenuItem key="speed" description={speedLabel}>Playback speed</MenuItem>
-        <Menu selectionMode="single" deselectable={false} selectedKeys={[speed]} onSelectionChange={onSpeed}>
+        <Menu selectionMode="single" deselectable={false} afterSelect="back" selectedKeys={[speed]} onSelectionChange={onSpeed}>
           <MenuItem key="0.5">0.5×</MenuItem>
           <MenuItem key="1">Normal</MenuItem>
           <MenuItem key="1.5">1.5×</MenuItem>
@@ -163,18 +166,28 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
 - **Going back:** the back button, Escape or the back arrow returns to the previous page.
 - **Closing:** Escape on the first page closes the menu. Tab closes every page and the menu. An action on any page closes the whole menu and returns focus to the trigger.
 - **Each page is a menu:** a page is the submenu's own `role="menu"`, with its own items, `onAction`, `disabledKeys`, `selectionMode`, `selectedKeys`, `onSelectionChange` and `deselectable` (React Aria's own submenu state, as beside).
-  - In a `single` page, a choice closes the menu and Space keeps it open on that page (open question 2).
+  - In a `single` page, a choice closes the menu and Space keeps it open on that page, unless the page sets `afterSelect="back"` (below).
   - In a `multiple` page, toggles keep it open.
   - A `MenuGroup` with its own `selectionMode` works on any page, the first included: a "Loop" checkbox group beside the Quality and Playback speed rows, for instance.
 - **Pages two or more deep** stack in the surface: Settings › Subtitles › Font size. Each Back, Escape or back arrow goes back one level, the height follows every page, and focus returns to the item that opened the page left.
 - **Typeahead** works per page: letters move within the visible page's items. The back button isn't an item, so it's never reached.
 - **No shape morph:** the corner change while a submenu is open (24px on the menu with focus, 8px on the others) doesn't apply, since only one page shows. The surface keeps the menu's resting corner.
 - **Coming back to a long first page:** the item that opened the page takes focus again, which scrolls it back into view inside the list.
-- **`instant`:** page changes are instant too (no height motion, no fade), as `instant` turns off the menu's other motion.
+- **`instant`:** page changes are instant too (no height motion, no fade or slide), as `instant` turns off the menu's other motion.
+
+### After a choice (`afterSelect`)
+
+- **`close`** (the default): a choice on a single-choice page closes the whole menu, as in any single-select menu.
+- **`back`**, for a settings page whose choice is all it's for (Quality, Playback speed):
+  - In place, a choice by press or Enter goes back one page. The page it returns to shows the new choice (an item's `description` the app derives from it), and the item that opened the page takes focus.
+  - Beside, a choice closes only that submenu (not its parent menus), and its item takes focus.
+  - Space chooses and keeps the page open, as it keeps a single-select menu open.
+  - What counts is a choice that would close the menu: the page's own `single` items, or a single-choice `MenuGroup` on it. A toggle in a `multiple` page or group never closes it. An action (a plain item, or a `none` group's) still closes the whole menu and returns focus to the trigger.
+  - `onSelectionChange` and `onAction` are called as before, then the page goes back.
 
 ### With `presentation`
 
-- **`sheet`:** nothing changes. A sheet always shows submenus in place. `submenuPresentation` is ignored there, and the shared changes reach the sheet only through the new `classNames` keys and `backIcon`. The sheet's height still follows its content at once (`BottomSheet` animates no height).
+- **`sheet`:** a sheet always shows submenus in place. `submenuPresentation` is ignored there, and the shared changes reach the sheet through the new `classNames` keys, `backIcon`, `submenuTransition` and `afterSelect`. The sheet's height still follows its content at once (`BottomSheet` animates no height).
 - **`auto`:** below 600px the menu is a sheet, which replaces. From 600px up it's a popover that follows `submenuPresentation`.
 - **`portalContainer` and the sheet:** a sheet ignores `portalContainer` (open question 3). As every overlay does, a sheet still opens inside the element in full screen.
 
@@ -198,11 +211,13 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
 |---|---|
 | Enter, Space, the forward arrow (Right; Left in right-to-left) | On a submenu item: show its page and focus the page's first item |
 | Escape, the back arrow (Left; Right in right-to-left) | On a page: go back one page and focus the item that opened it. On the first page, Escape closes the menu |
+| Enter on a choice | Chooses it and closes the menu; with `afterSelect="back"`, goes back one page with focus on the item that opened it |
+| Space on a choice | Chooses it and keeps the page open |
 | Tab, Shift + Tab | Close every page and the menu; focus moves past the trigger, as today |
 | Letters | Typeahead within the visible page |
 
 - **Focus on a new page:** a page takes focus however it opened, since the item that opened it is now hidden (`autoFocus` `first`, as in the sheet). Focus goes to the page's first item, or to its selected item in a selectable page, as React Aria opens every selectable menu.
-- **Focus on going back:** the item that opened the page takes focus once it shows again. That's the sheet's refocus after commit, shared.
+- **Focus on going back:** the item that opened the page takes focus once it shows again. That's the sheet's refocus after commit, shared. After a choice with `afterSelect="back"`, focus goes to that item too, in place and beside.
 - **The back row:**
   - The back control is a `button` named by `labels.back` ("Back"). It's outside the page's `menu`, as in the sheet, since a menu holds only its items, and it isn't in the arrow order.
   - Pointer and touch users press it, and screen-reader users reach it with the virtual cursor or by swiping. Keyboard users go back with Escape or the back arrow, so going back works from the keyboard (WCAG 2.1.1), although Tab closes the menu rather than reaching the button (the APG menu button pattern, as today).
@@ -219,8 +234,11 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
   - It grows on the default spatial spring. That's the core's height spring for showing more content (the list's nested rows); M3 asks for no bouncy springs in common transitions, and the fast spring overshoots about 9%.
   - It shrinks over the same duration on the default effects spring's easing.
   - It never animates as the menu opens: the reveal does that. While the size is unmeasured, and on the server, it's `undefined` and the surface takes its natural size.
-- **Content:** the outgoing page goes at once and the incoming page fades in on the fast effects spring (the sheet's `sheetPanel`). There are no overlapping half-faded pages (M3: "Fully fade out content before fading new content in"), and nothing moves sideways while the height moves.
-- **Reduced motion:** the spatial durations are 0ms in the reduced-motion token set, so the height changes at once with no code of its own. The page still fades, as the reduced-motion rule keeps fades (§6). `instant` drops both.
+- **Content (`submenuTransition`):**
+  - `fade` (default): the outgoing page goes at once and the incoming page fades in on the fast effects spring (the sheet's `sheetPanel`). There are no overlapping half-faded pages (M3: "Fully fade out content before fading new content in"), and nothing moves sideways while the height moves.
+  - `slide`: M3's forward and backward pattern ("a horizontal sliding motion", "Android uses a fade as screens slide"). Going forward the incoming page slides in 30px from the end edge, going back from the start edge (left and right swap in right to left), on the default spatial spring, while it fades in on the fast effects spring. The outgoing page still goes at once, so two pages never overlap. The surface clips the page while it slides.
+  - The pages read the direction from the surface (`data-page-direction`, `forward` or `back`), which is set from the first page change on, so the first page never fades or slides in as the menu opens: the reveal does that. Going back to the first page fades it in too (the sheet didn't).
+- **Reduced motion:** the spatial durations are 0ms in the reduced-motion token set, so the height changes at once and the slide drops with no code of their own. The page still fades, as the reduced-motion rule keeps fades (§6). `instant` drops the height motion, the fade and the slide.
 - **Placement during the change:** React Aria places the popover again on every frame of its size change (its `ResizeObserver`). With the side held (decision 8), the corner nearest the trigger stays where it is.
 
 ## Theming, direction, server rendering, layout safety
@@ -235,7 +253,7 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
   - The back arrow is Right, and the back icon mirrors.
   - The root menu already gives React Aria a locale with the DOM's direction, so the arrows follow a right-to-left region.
   - `start` and `end` placements are already turned into physical sides from the trigger's direction.
-  - With no slide, nothing else depends on direction.
+  - The slide follows the reading direction: forward comes from the end edge (the left in right to left).
 - **Server rendering:** nothing changes. An open menu draws no portal while hydrating, `portalContainer` is read only in the browser, and the measured height is unset on the server.
 - **Layout safety:**
   - `className` and `style` stay on the box React Aria places, and `classNames.panel` reaches the surface.
@@ -256,16 +274,16 @@ The sheet's drill-in is the base. What changes:
 
 ## Docs site
 
-- **Example `menu/menu-player-settings`:** a neutral player placeholder (16:9, `surface-container-highest`, with a settings icon button in its bottom end corner and a full-screen button), showing both options. Quality and Playback speed are single-choice pages, with a "Loop" checkbox group on the first page.
+- **Example `menu/menu-player-settings`:** a neutral player placeholder (16:9, `surface-container-highest`, with a settings icon button in its bottom end corner and a full-screen button), showing both options. Quality and Playback speed are single-choice pages that go back after a choice (`afterSelect="back"`), with a "Loop" checkbox group on the first page, and the pages slide (`submenuTransition="slide"`).
 - **Menu page:** a section "Submenus beside or in place" says when to use each. Beside is for app menus, toolbars and context menus with room, as M3 shows. In place is for a menu confined to a small surface: a player, a card, a narrow panel. A section "Opening inside an element" covers `portalContainer`, `position: relative`, full screen and a trigger outside.
 - **API table:** generated from the TSDoc.
 - **Accessibility tab:** keys for pages (Escape and the back arrow go back one page; Escape on the first page closes the menu). The back button's role, name and place. Focus on a page and back. The height and fade motion, and reduced motion. A note for consumers: name the settings button, and give the container `position: relative`.
 - **Spec data:** two extensions ("Submenus in place", "Opening inside an element").
 - **Playground:**
-  - A `submenuPresentation` control, with the preview's Share item opening a two-item submenu so the control shows something.
+  - `submenuPresentation` and `submenuTransition` controls, with the preview's Share item opening a two-item submenu so the controls show something.
   - `portalContainer` and `backIcon` are listed in `notControlled`, with reasons: an element of the page; the example shows it.
 - **Changeset:**
-  - `Added:` the two props, the new `classNames` keys and `backIcon`.
+  - `Added:` `submenuPresentation`, `portalContainer`, `submenuTransition`, `afterSelect`, the new `classNames` keys and `backIcon`.
   - `Fixed:` `Overlay` in an app's container carries only the theme attributes that differ.
 - **Architecture:** §9 Menu and §3 `Overlay` are updated when it's built.
 
@@ -283,6 +301,8 @@ The sheet's drill-in is the base. What changes:
     - Typeahead stays within the page.
   - **Pages two deep:** back one level at a time.
   - **Selection on a page:** `single` closes, with Space keeping it open; `multiple` stays open; a `MenuGroup` of choices on a page.
+  - **`afterSelect="back"`:** a choice goes back in place and the page it returns to shows the new choice, with focus on the item; beside, only the submenu closes and its item takes focus; Space keeps the page open; a toggle in a `multiple` page stays; an action still closes the whole menu.
+  - **`submenuTransition`:** the surface carries the direction (`forward`, then `back`) from the first page change only, and `slide` marks it for the slide, in the popover and the sheet.
   - **`onAction` from a page** closes the menu and returns focus to the trigger.
   - **`instant`.**
   - **The defaults are unchanged:** the existing beside and sheet tests pass untouched. `presentation="sheet"` ignores `submenuPresentation`, and `auto` follows it from 600px up.
@@ -299,7 +319,8 @@ The sheet's drill-in is the base. What changes:
     - It grows to the new page and shrinks to it without going below it.
     - The anchored corner keeps its place on every frame, above and below the trigger, in left-to-right and right-to-left.
     - It never flips mid-change.
-  - **Reduced motion** (`e2e/reduced-motion.ts`): the height jumps and the page only fades.
+  - **Reduced motion** (`e2e/reduced-motion.ts`): the height jumps and the page only fades, with `slide` too.
+  - **`slide`:** the incoming page's offset on every painted frame, from 30px at the end edge going forward and from the start edge going back, in left-to-right and right-to-left, while the outgoing page is gone from the first frame.
   - **The container:**
     - The menu stays inside the element, `containerPadding` from its edges, and flips within it.
     - When a pane scrolls the container, the menu keeps its offset from the container on every frame.
@@ -324,8 +345,10 @@ The sheet's drill-in is the base. What changes:
 
 ## Open questions
 
-1. **Page motion:** should pages only fade in, with the height springing (one axis, the sheet's motion), or should they also slide like M3's forward and backward pattern, 30px from the end edge forward and the start edge back, as Windmorph Pro's list-detail layout does? **Recommended: fade only.** A slide adds a second axis while the height moves, and M3 asks for one ("a unified direction of movement").
-2. **A choice on a single-choice page:** close the menu, as every single-select menu does (Space keeps it open), or return to the first page? **Recommended: close.** That's what a `menuitemradio` choice does everywhere in the library, and returning could come later as a prop.
+Answered on 2026-11-18: every recommendation, with 1 and 2 as props.
+
+1. **Page motion:** should pages only fade in, with the height springing (one axis, the sheet's motion), or should they also slide like M3's forward and backward pattern, 30px from the end edge forward and the start edge back? **Recommended: fade only.** A slide adds a second axis while the height moves, and M3 asks for one ("a unified direction of movement"). **Decided:** fade by default, and `submenuTransition="slide"` for the slide (decision 7).
+2. **A choice on a single-choice page:** close the menu, as every single-select menu does (Space keeps it open), or return to the first page? **Recommended: close.** That's what a `menuitemradio` choice does everywhere in the library, and returning could come later as a prop. **Decided:** close by default, and `afterSelect="back"` on a submenu to go back one page (decision 16).
 3. **`portalContainer` for the sheet:** popover only, or the sheet too? **Recommended: popover only.** A sheet is a window-level modal with a scrim over the page, and inside a clipped player it would be cut off. It already opens inside the element in full screen.
 4. **Width:** follow each page at once, or spring with the height? **Recommended: at once.** Only the height was asked for, and a width spring moves the free edge sideways on every page change.
 5. **The back control:** a `button` outside the page's `menu`, as in the sheet, or a menu item at the top of each page in the arrow order (as Spectrum Web Components does)? **Recommended: a button.** A menu holds its items, typeahead would land on "Back", Escape and the back arrow already go back from the keyboard, and the sheet is built that way.
