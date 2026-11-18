@@ -21,7 +21,7 @@ M3's menus put a selectable group beside actions (a group of radio or checkbox i
 
 - A group with `selectionMode` has its own selection: its items' roles, checks and `aria-checked` follow it, and choosing one never changes another group's or the menu's. `none` counts, as in React Aria Components: a `none` group's items are plain actions (`menuitem`) that close the menu, in a selectable menu too. Only a group that leaves `selectionMode` out follows the menu's.
 - Items outside such a group follow the menu's own `selectionMode` as before; in a menu with none, they're plain actions (`menuitem`) that close the menu.
-- Closing follows React Aria's rules for the group's mode: a choice in a `single` group closes the menu (Space keeps it open), a toggle in a `multiple` group keeps it open, Enter included (as a multi-select menu does, M3), each item's `closeOnSelect` still wins.
+- Closing follows React Aria's rules for the group's mode: a choice in a `single` group closes the menu (Space keeps it open), a toggle in a `multiple` group keeps it open, Enter included (as a multi-select menu does, M3), and a `none` group's actions close it. `MenuItem` has no closing prop of its own, so the group's mode always decides.
 - `onAction` on the menu still fires for every item, a group's choices included.
 - Focus, typeahead and the arrow keys stay the menu's: a group changes what's selected, never where focus goes.
 

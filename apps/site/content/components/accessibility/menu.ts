@@ -31,7 +31,7 @@ export const menu: ComponentAccessibility = {
     {
       keys: ['Enter', 'Space'],
       action:
-        'Runs the item (`onAction`) and closes the menu. In a selectable menu it selects the item; a multi-select menu stays open until it is dismissed. On a submenu item it opens the submenu.',
+        'Runs the item (`onAction`); an action closes the menu. In a single-select menu, or a `MenuGroup` with `selectionMode="single"`, both select the item: Enter closes the menu and Space keeps it open. In a multi-select menu or group both toggle the item and the menu stays open, Enter included, until it is dismissed. On a submenu item they open the submenu.',
       where: 'In the menu',
     },
     {
@@ -68,10 +68,10 @@ export const menu: ComponentAccessibility = {
     'Items in `disabledKeys` take focus as the arrows pass them, as M3 asks, but do nothing. Dividers and group headings never take focus.',
   ],
   screenReader: {
-    role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
+    role: '`menu` holding `menuitem`s; `menuitemradio` or `menuitemcheckbox` in a single- or multi-select menu, and in a `MenuGroup` with a `selectionMode` of its own (`single` or `multiple`), beside the menu\'s plain `menuitem` actions. A `MenuGroup` is a `group`. With `presentation="sheet"` the menu sits in a modal bottom sheet, a `dialog` named like the menu.',
     name: "From a `MenuTrigger`, the menu is named by its own `aria-label` or `aria-labelledby` when it has one (`aria-labelledby` when it has both), else by its trigger's label, in the popover and the bottom sheet alike; a submenu is named by the item that opens it. A `ContextMenuTrigger` menu, and a `MenuGroup` without a visible heading, take their own `aria-label`. An item is named by its label and its `description`, in that order, so its name holds the text it shows; an `aria-label` replaces both.",
     states:
-      'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
+      'The trigger announces that it opens a menu (`aria-haspopup`) and whether it is open (`aria-expanded`); a context menu target announces neither. Items announce checked (`aria-checked`) in a selectable menu or a selectable `MenuGroup`, whose choices never change another group\'s, disabled (`aria-disabled`), and a submenu item announces its submenu (`aria-haspopup="menu"`, `aria-expanded`).',
     notes: [
       "An item's `badge` and `shortcut` (shown as a `<kbd>`) are read once, as its accessible description, after its name.",
       "An item with `href` is a real `<a>` that keeps its menu item role, since a menu holds only menu items: Enter follows it as the browser follows a link, and the browser's link menu and modified clicks work on it.",
