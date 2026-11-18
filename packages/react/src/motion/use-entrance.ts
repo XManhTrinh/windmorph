@@ -27,6 +27,38 @@ export interface EntranceResult {
 
 const subscribeNothing = () => () => undefined;
 
+/** Told `true` on `beforeprint` and `false` on `afterprint`. */
+type PrintListener = (printing: boolean) => void;
+const printListeners = new Set<PrintListener>();
+
+// One pair of window listeners for every entrance on the page, added with the first and removed
+// with the last: a print commits them all in one `flushSync`, so the browser lays it out after a
+// single synchronous render, and a print begun inside React's own work warns once, not once for
+// each entrance (twelve tiles, twelve warnings).
+const beforePrint = () => {
+  flushSync(() => {
+    for (const listener of [...printListeners]) listener(true);
+  });
+};
+const afterPrint = () => {
+  for (const listener of [...printListeners]) listener(false);
+};
+
+/** Calls `listener` as the page is printed and after; returns the unsubscribe. */
+function subscribeToPrint(listener: PrintListener) {
+  if (printListeners.size === 0) {
+    window.addEventListener('beforeprint', beforePrint);
+    window.addEventListener('afterprint', afterPrint);
+  }
+  printListeners.add(listener);
+  return () => {
+    printListeners.delete(listener);
+    if (printListeners.size > 0) return;
+    window.removeEventListener('beforeprint', beforePrint);
+    window.removeEventListener('afterprint', afterPrint);
+  };
+}
+
 /**
  * Whether an element's entrance should play: once, when it first comes into view, so motion
  * nobody saw isn't wasted. Never for content that was on screen as the page hydrated: its final
@@ -39,9 +71,11 @@ const subscribeNothing = () => () => undefined;
  * moved by it jumps to its target, but Motion writes the styles bound to that value on its next
  * frame, so a mark drawn from a Motion value needs a print value in CSS (its resting geometry
  * written as a CSS variable and applied under `@media print`), as `AnimatedNumber` prints its
- * final value. A print begun inside React's own work (`window.print()` from an effect, as a print
- * view does) is laid out before this update renders, and only CSS reaches it. On the server
- * `entered` is `true`.
+ * final value. Every entrance on the page commits in the same render, from one shared listener. A
+ * print begun inside React's own work (`window.print()` from an effect, as a print view does) is
+ * laid out before this update renders, and only CSS reaches it (React warns once that it couldn't
+ * flush): start a print from a press, or from an effect through a `setTimeout`, so what React
+ * renders from `entered` prints. On the server `entered` is `true`.
  *
  * @param ref The element whose entrance it is; it must be rendered by the time effects run.
  * @example
@@ -119,33 +153,30 @@ export function useEntrance(
       },
       { rootMargin: inset, threshold: 0 },
     );
-    // Committed before the browser lays the print out: React would otherwise render after it.
-    // Dispatched inside React's own work (`window.print()` from an effect) `flushSync` can't
-    // commit, so only CSS print styles reach that print.
-    const beforePrint = () => {
-      printing = true;
-      done.current = true;
-      hydrating.current = false;
-      flushSync(() => {
+    // Committed before the browser lays the print out (the shared `beforeprint` listener's
+    // `flushSync`): React would otherwise render after it. Dispatched inside React's own work
+    // (`window.print()` from an effect) `flushSync` can't commit, so only CSS print styles reach
+    // that print.
+    const print = (now: boolean) => {
+      printing = now;
+      if (now) {
+        done.current = true;
+        hydrating.current = false;
         setEntered(true);
         setInView(false);
-      });
-    };
-    const afterPrint = () => {
-      printing = false;
-      setInView(onScreenNow);
+      } else {
+        setInView(onScreenNow);
+      }
     };
     onScreen.observe(element);
     pastEdge.observe(element);
     document.addEventListener('visibilitychange', enter);
-    window.addEventListener('beforeprint', beforePrint);
-    window.addEventListener('afterprint', afterPrint);
+    const unsubscribePrint = subscribeToPrint(print);
     return () => {
       onScreen.disconnect();
       pastEdge.disconnect();
       document.removeEventListener('visibilitychange', enter);
-      window.removeEventListener('beforeprint', beforePrint);
-      window.removeEventListener('afterprint', afterPrint);
+      unsubscribePrint();
     };
   }, [ref, amount, mountedInBrowser]);
 

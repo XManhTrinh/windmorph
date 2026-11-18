@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react';
-import { useRef } from 'react';
+import { Profiler, useEffect, useRef } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -103,6 +103,8 @@ function outsideAct(dispatch: () => void) {
     environment.IS_REACT_ACT_ENVIRONMENT = actEnvironment;
   }
 }
+const charts = (count: number) =>
+  Array.from({ length: count }, (_, index) => <Chart key={index} />);
 
 describe('useEntrance', () => {
   it('shows the final picture on the server', () => {
@@ -142,6 +144,55 @@ describe('useEntrance', () => {
     });
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     expect(box(container)).toHaveAttribute('data-in-view', 'true');
+  });
+
+  // One listener for the page: each entrance committing on its own was a synchronous render for
+  // each, and from inside React's work a warning for each.
+  it('commits every entrance on the page in one render for a print', () => {
+    const commits = vi.fn();
+    const { container } = render(
+      <Profiler id="charts" onRender={commits}>
+        {charts(12)}
+      </Profiler>,
+    );
+    inView(0.1);
+    commits.mockClear();
+    outsideAct(() => window.dispatchEvent(new Event('beforeprint')));
+    expect(commits).toHaveBeenCalledTimes(1);
+    for (const chart of container.children) {
+      expect(chart).toHaveAttribute('data-entered', 'true');
+      expect(chart).toHaveAttribute('data-in-view', 'false');
+    }
+    act(() => {
+      window.dispatchEvent(new Event('afterprint'));
+    });
+    for (const chart of container.children) expect(chart).toHaveAttribute('data-in-view', 'true');
+  });
+
+  it('warns at most once for a print started from an effect', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    // A print view printing as it mounts: the browser dispatches both events inside the effect.
+    function PrintView() {
+      useEffect(() => {
+        window.dispatchEvent(new Event('beforeprint'));
+        window.dispatchEvent(new Event('afterprint'));
+      }, []);
+      return null;
+    }
+    try {
+      render(
+        <>
+          {charts(12)}
+          <PrintView />
+        </>,
+      );
+      const warnings = error.mock.calls.filter(([message]) =>
+        String(message).includes('flushSync'),
+      );
+      expect(warnings.length).toBeLessThanOrEqual(1);
+    } finally {
+      error.mockRestore();
+    }
   });
 
   it('draws the window in by amount of its half, top and bottom', () => {
