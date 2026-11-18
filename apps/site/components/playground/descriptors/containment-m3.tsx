@@ -22,6 +22,7 @@ import {
   MenuItem,
   MenuTrigger,
   SideSheet,
+  SubmenuTrigger,
   Tooltip,
   TooltipTrigger,
 } from '@windmorph/react';
@@ -265,7 +266,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         "The menu's items, composed in the preview; their icons, description, badge and shortcut are per item, as the examples show.",
       MenuGroup: 'Groups items under an optional title; the Basic and Layouts examples show it.',
       MenuTrigger: "Opens the menu from the preview's button; its open state is the preview's own.",
-      SubmenuTrigger: 'Opens a nested menu from an item; the Submenu example shows it.',
+      SubmenuTrigger:
+        "Opens a nested menu from an item: the preview's Share item opens one, so `submenuPresentation` and `submenuTransition` show; the Submenu examples show more.",
       ContextMenuTrigger:
         'Opens the menu on right-click or long press of an area; the Context menu example shows it.',
     },
@@ -289,9 +291,15 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
             <MenuItem key="edit" leadingIcon={<EditIcon />}>
               Edit
             </MenuItem>
-            <MenuItem key="share" leadingIcon={<SendIcon />}>
-              Share
-            </MenuItem>
+            <SubmenuTrigger>
+              <MenuItem key="share" leadingIcon={<SendIcon />}>
+                Share
+              </MenuItem>
+              <Menu aria-label="Share">
+                <MenuItem key="email">Email</MenuItem>
+                <MenuItem key="link">Copy link</MenuItem>
+              </Menu>
+            </SubmenuTrigger>
             <MenuItem key="favourite" leadingIcon={<StarIcon />}>
               Add to favourites
             </MenuItem>
@@ -311,6 +319,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       offset: 0,
       containerPadding: 12,
       presentation: 'popover',
+      submenuPresentation: 'beside',
+      submenuTransition: 'fade',
       instant: false,
     },
     surfacedProps: [
@@ -321,6 +331,8 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       'offset',
       'containerPadding',
       'presentation',
+      'submenuPresentation',
+      'submenuTransition',
       'instant',
     ],
     adjust: adjustMenuInstant,
@@ -329,11 +341,19 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
         "Applies only to a menu with `selectionMode`, which the preview's action menu doesn't have; the Selection example shows it.",
       disabledKeys:
         "An Iterable of item keys; the Basic example disables one, which stays focusable but can't be chosen.",
+      portalContainer:
+        'An element of the page to open in, such as a video player; the player example passes its player.',
+      backIcon:
+        'An icon element for the back button above a submenu shown in place; the default is the mirrored arrow the preview shows.',
+      afterSelect:
+        "Set on a submenu's own Menu, for a single-choice page; the player example's Quality and Playback speed pages go back after a choice.",
     },
     enumOptions: {
       placement: ['bottom-start', 'bottom-end', 'top-start', 'top-end', 'start', 'end'],
       density: ['0', '-1', '-2', '-3'],
       presentation: ['popover', 'sheet', 'auto'],
+      submenuPresentation: ['beside', 'replace'],
+      submenuTransition: ['fade', 'slide'],
     },
     // `density` is a number (0 to -3), so the snippet writes it as one.
     controlKinds: { density: 'number' },
@@ -341,13 +361,13 @@ export const CONTAINMENT_M3_DESCRIPTORS: Record<string, PlaygroundDescriptor> = 
       offset: { min: 0, max: 24 },
       containerPadding: { min: 0, max: 48, step: 4 },
     },
-    importMembers: ['Button', 'MenuGroup', 'MenuItem', 'MenuTrigger'],
+    importMembers: ['Button', 'MenuGroup', 'MenuItem', 'MenuTrigger', 'SubmenuTrigger'],
     codeWrap: {
       before: '<MenuTrigger>\n  <Button variant="tonal">Open menu</Button>',
       after: '</MenuTrigger>',
     },
     codeChildren:
-      '<MenuGroup aria-label="Edit">\n    <MenuItem key="edit">Edit</MenuItem>\n    <MenuItem key="share">Share</MenuItem>\n    <MenuItem key="favourite">Add to favourites</MenuItem>\n  </MenuGroup>\n  <MenuGroup aria-label="Danger zone">\n    <MenuItem key="delete">Delete</MenuItem>\n  </MenuGroup>',
+      '<MenuGroup aria-label="Edit">\n    <MenuItem key="edit">Edit</MenuItem>\n    <SubmenuTrigger>\n      <MenuItem key="share">Share</MenuItem>\n      <Menu aria-label="Share">\n        <MenuItem key="email">Email</MenuItem>\n        <MenuItem key="link">Copy link</MenuItem>\n      </Menu>\n    </SubmenuTrigger>\n    <MenuItem key="favourite">Add to favourites</MenuItem>\n  </MenuGroup>\n  <MenuGroup aria-label="Danger zone">\n    <MenuItem key="delete">Delete</MenuItem>\n  </MenuGroup>',
   },
   tooltip: {
     component: 'Tooltip',
