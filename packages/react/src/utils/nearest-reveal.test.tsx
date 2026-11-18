@@ -31,6 +31,25 @@ describe('useNearestReveal', () => {
     expect(reveal).toHaveBeenLastCalledWith({ block: 'center' });
   });
 
+  it('follows a root that mounts later, or is replaced', () => {
+    function Later({ shown, id }: { shown: boolean; id: string }) {
+      const ref = useRef<HTMLUListElement>(null);
+      useNearestReveal(ref);
+      return shown ? (
+        <ul key={id} ref={ref} data-testid="root">
+          <li>Inbox</li>
+        </ul>
+      ) : null;
+    }
+    const { getByTestId, rerender } = render(<Later shown={false} id="a" />);
+    rerender(<Later shown id="a" />);
+    const first = getByTestId('root');
+    expect(Object.hasOwn(first, 'scrollIntoView')).toBe(true);
+    rerender(<Later shown id="b" />);
+    expect(Object.hasOwn(getByTestId('root'), 'scrollIntoView')).toBe(true);
+    expect(Object.hasOwn(first, 'scrollIntoView')).toBe(false);
+  });
+
   it('gives the root back its own scrollIntoView when it unmounts', () => {
     const { getByTestId, unmount } = render(<Collection />);
     const root = getByTestId('root');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, type RefObject } from 'react';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 
 /**
  * Arrow keys must not jump the page. When keyboard focus moves to an item, React Aria
@@ -20,16 +20,26 @@ import { useLayoutEffect, type RefObject } from 'react';
  * useNearestReveal(ref);
  */
 export function useNearestReveal(rootRef: RefObject<HTMLElement | null>) {
+  // The root patched now: checked after every commit, so a root that mounts later (once data
+  // loads) or is replaced is patched too, and the one before it given back its own.
+  const patched = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
     const root = rootRef.current;
+    if (root === patched.current) return;
+    if (patched.current) Reflect.deleteProperty(patched.current, 'scrollIntoView');
+    patched.current = root;
     if (!root) return;
     root.scrollIntoView = (arg?: boolean | ScrollIntoViewOptions) =>
       Element.prototype.scrollIntoView?.call(
         root,
         typeof arg === 'object' ? { ...arg, block: 'nearest', inline: 'nearest' } : arg,
       );
-    return () => {
-      Reflect.deleteProperty(root, 'scrollIntoView');
-    };
-  }, [rootRef]);
+  });
+  useLayoutEffect(
+    () => () => {
+      if (patched.current) Reflect.deleteProperty(patched.current, 'scrollIntoView');
+      patched.current = null;
+    },
+    [],
+  );
 }
