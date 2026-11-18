@@ -178,6 +178,30 @@ export const menuStyles = tv({
     trailing:
       'ms-auto inline-flex shrink-0 items-center ps-[12px] text-label-small text-[color:var(--_md-comp-menus-menu-item-trailing-icon-color)] [&>svg]:size-[20px]',
     badge: 'inline-flex shrink-0 items-center ps-[12px]',
+    // A popover whose submenus show in place (`submenuPresentation="replace"`): one surface
+    // that persists from page to page, the `divider` layout's (its colour, corners, elevation
+    // and forced-colours edge). It holds the visible page's height (set inline), which grows
+    // on the default spatial spring and shrinks over the same duration on the default effects
+    // spring's easing (`data-shrinking`), so a shorter page is never cut and the surface never
+    // bounces open again; any other change of size follows at once. It clips the page coming in.
+    surface: [
+      'flex max-h-[inherit] min-h-0 flex-col overflow-clip',
+      'bg-[var(--_md-comp-menus-container-color)] shadow-[shadow:var(--_md-comp-menus-container-elevation)]',
+      'rounded-[var(--_md-comp-menus-container-shape)]',
+      'forced-colors:outline-solid forced-colors:outline-1 forced-colors:outline-[CanvasText]',
+      '[transition-property:none] data-paging:[transition-property:height]',
+      '[transition-duration:var(--md-sys-motion-spring-spatial-default-duration)]',
+      '[transition-timing-function:var(--md-sys-motion-spring-spatial-default-easing)]',
+      'data-shrinking:[transition-timing-function:var(--md-sys-motion-spring-effects-default-easing)]',
+    ],
+    // The pages on that surface, at their own height (up to the popover's maximum, the list
+    // scrolling inside) and width: the surface's 4px padding, and the menu's 112–280px width,
+    // which follows each page at once.
+    pages: [
+      'flex max-h-[inherit] min-w-[112px] max-w-[280px] shrink-0 flex-col p-[4px]',
+      ...pageStack,
+      ...pageDirection,
+    ],
     // A menu's place in a bottom sheet. An open submenu's page follows the menu that opened
     // it (portalled in after it) and hides it, and any page before it, while it's open.
     sheetContent: [

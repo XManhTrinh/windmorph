@@ -1102,6 +1102,213 @@ describe('Menu', () => {
   });
 });
 
+/**
+ * A player's settings menu with its submenus in place: Quality and Subtitles pages, Subtitles
+ * with a page of its own, a "Loop" checkbox group and an action on the first page.
+ */
+function PlayerSettings({
+  onAction,
+  quality: qualityProps,
+  ...props
+}: Partial<React.ComponentProps<typeof Menu>> & {
+  quality?: Partial<React.ComponentProps<typeof Menu>>;
+}) {
+  const [quality, setQuality] = useState<Selection>(new Set(['auto']));
+  const qualityLabel = { auto: 'Auto', '1080': '1080p', '720': '720p' }[
+    [...(quality as Set<string>)][0] as 'auto'
+  ];
+  return (
+    <MenuTrigger>
+      <IconButton icon={<svg />} aria-label="Settings" />
+      <Menu aria-label="Settings" submenuPresentation="replace" onAction={onAction} {...props}>
+        <SubmenuTrigger>
+          <MenuItem key="quality" description={qualityLabel}>
+            Quality
+          </MenuItem>
+          <Menu
+            selectionMode="single"
+            deselectable={false}
+            selectedKeys={quality}
+            onSelectionChange={setQuality}
+            onAction={onAction}
+            {...qualityProps}
+          >
+            <MenuItem key="auto">Auto</MenuItem>
+            <MenuItem key="1080">1080p</MenuItem>
+            <MenuItem key="720">720p</MenuItem>
+          </Menu>
+        </SubmenuTrigger>
+        <SubmenuTrigger>
+          <MenuItem key="subtitles">Subtitles</MenuItem>
+          <Menu onAction={onAction}>
+            <MenuItem key="off">Off</MenuItem>
+            <MenuItem key="english">English</MenuItem>
+            <MenuItem key="french">French</MenuItem>
+            <SubmenuTrigger>
+              <MenuItem key="size">Font size</MenuItem>
+              <Menu onAction={onAction}>
+                <MenuItem key="small">Small</MenuItem>
+                <MenuItem key="large">Large</MenuItem>
+              </Menu>
+            </SubmenuTrigger>
+          </Menu>
+        </SubmenuTrigger>
+        <MenuGroup aria-label="Playback" selectionMode="multiple">
+          <MenuItem key="loop">Loop</MenuItem>
+        </MenuGroup>
+        <MenuGroup aria-label="Help">
+          <MenuItem key="report">Report a problem</MenuItem>
+        </MenuGroup>
+      </Menu>
+    </MenuTrigger>
+  );
+}
+
+/** Opens the settings menu and the page of one of its items with the arrow key. */
+async function openPage(item: string, page = item) {
+  await openMenu('Settings');
+  screen.getByRole('menuitem', { name: new RegExp(`^${item}`) }).focus();
+  await userEvent.keyboard('{ArrowRight}');
+  return screen.findByRole('menu', { name: new RegExp(`^${page}`) });
+}
+
+describe('Menu submenus in place (submenuPresentation="replace")', () => {
+  it('shows a submenu in place of the menu on one surface, below a back button and its label', async () => {
+    render(<PlayerSettings classNames={{ panel: 'app-surface' }} />);
+    await openMenu('Settings');
+    const root = screen.getByRole('menu', { name: 'Settings' });
+    const surface = root.closest('[data-level]')!;
+    expect(surface).toHaveAttribute('data-level', '0');
+    expect(surface).toHaveAttribute('data-tokens', 'md-comp-menus');
+    // `panel` is the surface around the pages; the lists have none of their own.
+    expect(surface).toHaveClass('app-surface');
+    expect(root).not.toHaveClass('app-surface');
+    expect(root).toHaveClass('bg-transparent', 'shadow-none');
+    // Hovering doesn't open it: it would replace the content under the pointer.
+    const quality = screen.getByRole('menuitem', { name: /^Quality/ });
+    await userEvent.hover(quality);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(screen.queryByRole('menu', { name: /^Quality/ })).not.toBeInTheDocument();
+
+    await userEvent.click(quality);
+    const page = await screen.findByRole('menu', { name: /^Quality/ });
+    // The same surface, after the menu it hides, below a back button and the item's label.
+    expect(page.closest('[data-level]')).toBe(surface);
+    expect(surface).toHaveAttribute('data-level', '1');
+    const panel = page.closest('[data-submenu-panel]')!;
+    expect(root.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(panel).getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(panel.firstElementChild).toHaveTextContent('Quality');
+    // Opened by a press, focus moves in, to the selected choice.
+    await waitFor(() =>
+      expect(within(page).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    expect(await axeViolations(document.body)).toEqual([]);
+  });
+
+  it('goes back one page with Escape, the back arrow or the back button, focusing the item', async () => {
+    render(<PlayerSettings />);
+    const subtitles = await openPage('Subtitles');
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: 'Off' })).toHaveFocus(),
+    );
+    // Typeahead stays within the page.
+    await userEvent.keyboard('f');
+    expect(within(subtitles).getByRole('menuitem', { name: 'French' })).toHaveFocus();
+    await userEvent.keyboard('f');
+    expect(within(subtitles).getByRole('menuitem', { name: /^Font size/ })).toHaveFocus();
+    // Two pages deep, each way back goes up one level.
+    await userEvent.keyboard('{ArrowRight}');
+    const size = await screen.findByRole('menu', { name: /^Font size/ });
+    await waitFor(() =>
+      expect(within(size).getByRole('menuitem', { name: 'Small' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(size).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(within(subtitles).getByRole('menuitem', { name: /^Font size/ })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowLeft}');
+    await waitFor(() => expect(subtitles).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus());
+    await userEvent.keyboard('{Enter}');
+    const again = await screen.findByRole('menu', { name: /^Subtitles/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    await waitFor(() => expect(again).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('menuitem', { name: /^Subtitles/ })).toHaveFocus());
+    // On the first page, Escape closes the menu.
+    await userEvent.keyboard('{Escape}');
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
+  it('closes on a choice (Space keeps the page), stays on a toggle, and closes on an action', async () => {
+    const onAction = vi.fn();
+    render(<PlayerSettings onAction={onAction} />);
+    const quality = await openPage('Quality');
+    await waitFor(() =>
+      expect(within(quality).getByRole('menuitemradio', { name: 'Auto' })).toHaveFocus(),
+    );
+    await userEvent.keyboard('{ArrowDown} ');
+    expect(within(quality).getByRole('menuitemradio', { name: '1080p' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    expectOpen('Settings');
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await closed();
+    // A toggle in the first page's checkbox group keeps the menu open.
+    await openMenu('Settings');
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Loop' }));
+    expectOpen('Settings');
+    // An action from a page closes the whole menu and returns focus to the trigger.
+    screen.getByRole('menuitem', { name: /^Subtitles/ }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await screen.findByRole('menu', { name: /^Subtitles/ });
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(onAction.mock.lastCall?.[0]).toBe('english');
+    await closed();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Settings' })).toHaveFocus());
+  });
+
+  it('closes every page and the menu on Tab', async () => {
+    render(
+      <>
+        <PlayerSettings />
+        <Button>After</Button>
+      </>,
+    );
+    await openPage('Subtitles');
+    await userEvent.keyboard('{Tab}');
+    await closed();
+  });
+
+  it('changes pages with no motion when instant', async () => {
+    render(<PlayerSettings instant />);
+    const quality = await openPage('Quality');
+    expect(quality.closest('[data-submenu-panel]')).toHaveClass('[transition-property:none]');
+    expect(quality.closest('[data-level]')).not.toHaveAttribute('data-paging');
+    await userEvent.keyboard('{Escape}');
+    expect(screen.getByRole('menu', { name: 'Settings' })).toHaveClass(
+      '[transition-property:none]',
+    );
+  });
+
+  it('leaves a sheet in place as always, and follows submenuPresentation from 600px up with auto', async () => {
+    setMediaQueries({ [COMPACT_WINDOW]: true });
+    const { unmount } = render(<PlayerSettings presentation="auto" submenuPresentation="beside" />);
+    const sheetPage = await openPage('Quality');
+    expect(sheetPage.closest('[role="dialog"]')).toBeInTheDocument();
+    expect(sheetPage.closest('[data-submenu-panel]')).toBeInTheDocument();
+    unmount();
+    setMediaQueries({ [COMPACT_WINDOW]: false });
+    render(<PlayerSettings presentation="auto" />);
+    const page = await openPage('Quality');
+    expect(screen.queryByRole('dialog')).toBe(null);
+    expect(page.closest('[data-submenu-panel]')).toBeInTheDocument();
+  });
+});
+
 describe('Menu classNames', () => {
   it('puts each item part slot on its part', async () => {
     render(

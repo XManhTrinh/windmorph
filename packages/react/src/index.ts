@@ -406,6 +406,7 @@ export {
   type MenuPlacement,
   type MenuPresentation,
   type MenuProps,
+  type MenuSubmenuPresentation,
   type MenuTriggerProps,
   type SubmenuTriggerProps,
 } from './components/menu/Menu';

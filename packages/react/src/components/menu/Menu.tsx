@@ -67,6 +67,7 @@ import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import { BackIcon } from '../sheet/sheet-icons';
+import { usePageHeight } from './use-page-height';
 import { useRevealEntering } from './use-reveal-entering';
 import { menuOwnWidth, menuStyles, type MenuLayout, type MenuVariant } from './menu-styles';
 import { MenuTriggerContext, triggerMenuProps, type MenuTriggerContextValue } from './menu-trigger';
@@ -235,7 +236,10 @@ SubmenuTriggerElement.getCollectionNode = function* getCollectionNode({
  * item, without covering it, on hover, press, Enter, Space or the arrow key pointing away
  * from the menu (Left in right-to-left), and closes with the opposite arrow or Escape.
  * While it's open, the item shows its active (pressed) layer, and the menu holding focus
- * takes rounder corners than the other one.
+ * takes rounder corners than the other one. Shown in place of its menu instead (the root
+ * menu's `submenuPresentation="replace"`, or a bottom sheet), it opens on press, Enter, Space
+ * or that arrow, never on hover, below a back button; the back button, Escape and the
+ * opposite arrow go back.
  *
  * @example
  * <SubmenuTrigger>
@@ -253,7 +257,8 @@ export const SubmenuTrigger = SubmenuTriggerElement as unknown as (
 export interface MenuClassNames {
   /**
    * The menu's surface (the `menu` element): its colour, corners, size and the list that
-   * scrolls. In a sheet it spans the sheet, without a surface of its own.
+   * scrolls. In a sheet it spans the sheet, without a surface of its own. With
+   * `submenuPresentation="replace"`, the surface that holds the pages, around the lists.
    */
   panel?: string;
   /**
@@ -332,15 +337,17 @@ export interface MenuProps
   density?: Density;
   /**
    * Placement relative to the trigger: a side, then optionally the edge to align with
-   * (`start` / `end` follow the text direction). A submenu always opens beside its item.
+   * (`start` / `end` follow the text direction). A submenu opens beside its item, or in its
+   * place (`submenuPresentation`).
    * @default "bottom-start"
    */
   placement?: MenuPlacement;
   /** Gap between the trigger and the menu, in px (a split button's menu sits 4px away). @default 0 */
   offset?: number;
   /**
-   * The least space kept between the menu and the window's edges, in px. A split button
-   * passes 0, so its menu lines up with the trailing button even at the edge of the screen.
+   * The least space kept between the menu and the window's edges (or the `portalContainer`'s),
+   * in px. A split button passes 0, so its menu lines up with the trailing button even at the
+   * edge of the screen.
    * @default 12
    */
   containerPadding?: number;
@@ -352,6 +359,18 @@ export interface MenuProps
    * @default "popover"
    */
   presentation?: MenuPresentation;
+  /**
+   * Where a submenu shows in a popover. `beside`: in a popover of its own next to its item,
+   * without covering it (M3: "Submenus should open next to the parent menu item without
+   * overlapping it"), for app menus, toolbars and context menus with room. `replace`: in place
+   * of the menu, on the same surface, below a back button and its item's label, for a menu
+   * confined to a small surface (a video player's settings, a card, a narrow panel). The
+   * surface keeps its corner and its side of the trigger, and its height follows each page.
+   * `replace` extends M3, which shows submenus beside their item. Set it on the root menu; a
+   * bottom sheet always shows submenus in place.
+   * @default "beside"
+   */
+  submenuPresentation?: MenuSubmenuPresentation;
   /**
    * Words the menu shows in a sheet. Set them on the root menu. A {@link LabelsProvider} sets them
    * for the whole app.
@@ -404,10 +423,14 @@ export type MenuPlacement =
 /** Where a {@link Menu} opens. */
 export type MenuPresentation = 'popover' | 'sheet' | 'auto';
 
+/** Where a {@link Menu}'s submenus show in a popover: beside their item, or in its place. */
+export type MenuSubmenuPresentation = 'beside' | 'replace';
+
 /** Words a {@link Menu} shows. */
 export interface MenuLabels {
   /**
-   * In a sheet, the button above a submenu that goes back to the menu that opened it.
+   * The button above a submenu shown in place (in a sheet, or with
+   * `submenuPresentation="replace"`) that goes back to the menu that opened it.
    * @default "Back"
    */
   back: string;
@@ -436,7 +459,12 @@ const DEFAULT_LABELS: MenuLabels = { back: 'Back' };
  *   </Menu>
  * </MenuTrigger>
  */
-export function Menu({ presentation = 'popover', instant = false, ...props }: MenuProps) {
+export function Menu({
+  presentation = 'popover',
+  instant = false,
+  submenuPresentation = 'beside',
+  ...props
+}: MenuProps) {
   const trigger = useContext(MenuTriggerContext);
   if (!trigger) throw new Error('[@windmorph/react] <Menu> must be used inside <MenuTrigger>.');
   const compact = useMediaQuery(COMPACT_WINDOW);
@@ -454,6 +482,7 @@ export function Menu({ presentation = 'popover', instant = false, ...props }: Me
         {...props}
         trigger={trigger}
         instant={instant}
+        replace={submenuPresentation === 'replace'}
         isExiting={isExiting}
         exitProps={presence.exitProps}
       />
@@ -479,7 +508,9 @@ function MenuSheet({
   className,
   style,
   ...props
-}: Omit<MenuProps, 'presentation' | 'instant'> & { trigger: MenuTriggerContextValue }) {
+}: Omit<MenuProps, 'presentation' | 'instant' | 'submenuPresentation'> & {
+  trigger: MenuTriggerContextValue;
+}) {
   const labels = useLabels('Menu', DEFAULT_LABELS, labelsProp);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [activeLevel, setActiveLevel] = useState(0);
@@ -599,11 +630,18 @@ function toPhysicalPlacement(placement: MenuPlacement, direction: string): Place
   return toAriaPlacement(placement, direction === 'rtl');
 }
 
+/** A placement on `side` of the trigger, keeping its alignment (`bottom left` on `top`: `top left`). */
+function onSide(placement: Placement, side: string): Placement {
+  const [, align] = placement.split(' ');
+  return (align ? `${side} ${align}` : side) as Placement;
+}
+
 type ExitProps = ReturnType<typeof usePresence>['exitProps'];
 
 function MenuPopover({
   trigger,
   instant,
+  replace,
   isExiting,
   exitProps,
   placement = 'bottom-start',
@@ -616,9 +654,11 @@ function MenuPopover({
   className,
   style,
   ...props
-}: Omit<MenuProps, 'presentation' | 'instant'> & {
+}: Omit<MenuProps, 'presentation' | 'instant' | 'submenuPresentation'> & {
   trigger: MenuTriggerContextValue;
   instant: boolean;
+  /** Submenus show in place, on one surface (`submenuPresentation="replace"`). */
+  replace: boolean;
   isExiting: boolean;
   exitProps: ExitProps;
 }) {
@@ -629,6 +669,9 @@ function MenuPopover({
     popoverRef.current = element;
     setContainer(element);
   }, []);
+  // In place, the pages' element holds the submenus' pages.
+  const [pages, setPages] = useState<HTMLDivElement | null>(null);
+  const level = trigger.state.expandedKeysStack.length;
   const [activeLevel, setActiveLevel] = useState(0);
   // The DOM is the source of truth for direction; read it like an external store.
   const direction = useSyncExternalStore(
@@ -643,6 +686,11 @@ function MenuPopover({
     direction === localeDirection
       ? locale
       : localeWithDirection(locale, direction === 'rtl' ? 'rtl' : 'ltr');
+  // While a page other than the first shows in place, the popover keeps the side of the
+  // trigger it opened on: a taller page grows away from the trigger (and its list scrolls if it
+  // runs out of room) instead of jumping across it mid-change.
+  const [heldSide, setHeldSide] = useState<string | null>(null);
+  const requested = toPhysicalPlacement(placement, direction);
   const {
     popoverProps,
     underlayProps,
@@ -651,12 +699,15 @@ function MenuPopover({
     {
       triggerRef: trigger.triggerRef,
       popoverRef,
-      placement: toPhysicalPlacement(placement, direction),
+      placement: heldSide ? onSide(requested, heldSide) : requested,
+      shouldFlip: !heldSide,
       offset,
       containerPadding,
     },
     trigger.state,
   );
+  const side = replace && level > 0 ? (heldSide ?? actualPlacement) : null;
+  if (side !== heldSide) setHeldSide(side);
   const revealRef = useRef<HTMLDivElement>(null);
   const entering = useRevealEntering(actualPlacement, revealRef);
   const close = trigger.state.close;
@@ -701,33 +752,107 @@ function MenuPopover({
             <MenuTreeContext
               value={{
                 rootState: trigger.state,
-                container,
+                container: replace ? pages : container,
                 activeLevel,
                 setActiveLevel,
-                layout,
+                // In place, as in a sheet, `gap` gives way to dividers.
+                layout: replace ? 'divider' : layout,
                 variant,
                 density: props.density,
                 instant,
-                replace: false,
+                replace,
                 labels,
                 classNames: props.classNames,
                 backIcon,
               }}
             >
-              <MenuList
-                {...mergeProps(triggerMenuProps(trigger, props), props)}
-                layout={layout}
-                variant={variant}
-                level={0}
-                onClose={trigger.state.close}
-                autoFocus={trigger.state.focusStrategy ?? 'first'}
-              />
+              {replace ? (
+                <MenuPageSurface
+                  level={level}
+                  variant={variant}
+                  instant={instant}
+                  className={props.classNames?.panel}
+                  dataTokens={mergeDataTokens('md-comp-menus', props)}
+                  setPages={setPages}
+                >
+                  <MenuList
+                    {...mergeProps(triggerMenuProps(trigger, props), props)}
+                    // `panel` is the surface around the pages.
+                    classNames={{ ...props.classNames, panel: undefined }}
+                    layout="divider"
+                    variant={variant}
+                    level={0}
+                    embedded
+                    pageClassName={menuStyles({ instant }).page()}
+                    onClose={trigger.state.close}
+                    autoFocus={trigger.state.focusStrategy ?? 'first'}
+                  />
+                </MenuPageSurface>
+              ) : (
+                <MenuList
+                  {...mergeProps(triggerMenuProps(trigger, props), props)}
+                  layout={layout}
+                  variant={variant}
+                  level={0}
+                  onClose={trigger.state.close}
+                  autoFocus={trigger.state.focusStrategy ?? 'first'}
+                />
+              )}
             </MenuTreeContext>
           </I18nProvider>
         </div>
         <DismissButton onDismiss={trigger.state.close} />
       </div>
     </>
+  );
+}
+
+/**
+ * The one surface a popover's pages share when its submenus show in place: it holds the
+ * visible page's height (`usePageHeight`), springing to it with each page and following any
+ * other change at once, while the pages inside keep their own height and width.
+ */
+function MenuPageSurface({
+  level,
+  variant,
+  instant,
+  className,
+  dataTokens,
+  setPages,
+  children,
+}: {
+  level: number;
+  variant: MenuVariant;
+  instant: boolean;
+  className: string | undefined;
+  dataTokens: string;
+  setPages: (element: HTMLDivElement | null) => void;
+  children: ReactNode;
+}) {
+  const [pagesRef, { height, paging, shrinking }] = usePageHeight<HTMLDivElement>(level);
+  const direction = usePageDirection(level);
+  const attachPages = useCallback(
+    (element: HTMLDivElement | null) => {
+      pagesRef.current = element;
+      setPages(element);
+    },
+    [pagesRef, setPages],
+  );
+  const styles = menuStyles({ variant });
+  return (
+    <div
+      data-tokens={dataTokens}
+      data-variant={variant}
+      data-level={level}
+      data-paging={(!instant && paging) || undefined}
+      data-shrinking={(!instant && shrinking) || undefined}
+      style={height === undefined ? undefined : { height }}
+      className={styles.surface({ class: className })}
+    >
+      <div ref={attachPages} data-page-direction={direction} className={styles.pages()}>
+        {children}
+      </div>
+    </div>
   );
 }
 
