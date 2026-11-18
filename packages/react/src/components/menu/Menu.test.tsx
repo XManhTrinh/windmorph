@@ -28,6 +28,17 @@ async function openMenu(name: string) {
 const closed = () =>
   waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument(), { timeout: 1500 });
 
+/**
+ * Whether the menu its trigger opens is still open. A closing menu stays in the page while it
+ * plays its exit, so its presence proves nothing; the trigger's `aria-expanded` turns `false`
+ * as it starts to close. (The open menu hides the trigger from assistive tech.)
+ */
+const expectOpen = (trigger: string) =>
+  expect(screen.getByRole('button', { name: trigger, hidden: true })).toHaveAttribute(
+    'aria-expanded',
+    'true',
+  );
+
 function EditMenu(props: Partial<React.ComponentProps<typeof Menu>>) {
   return (
     <MenuTrigger>
@@ -308,6 +319,7 @@ describe('Menu', () => {
     );
     await openMenu('View');
     await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Grid lines' }));
+    expectOpen('View');
     await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Rulers' }));
     expect(screen.getByRole('menuitemcheckbox', { name: 'Grid lines' })).toHaveAttribute(
       'aria-checked',
@@ -324,7 +336,7 @@ describe('Menu', () => {
       'aria-checked',
       'false',
     );
-    expect(screen.getByRole('menu')).toBeInTheDocument();
+    expectOpen('View');
   });
 
   it('holds a group of choices beside plain actions: the group has a selection of its own', async () => {
@@ -420,12 +432,14 @@ describe('Menu', () => {
       'aria-checked',
       'true',
     );
+    expectOpen('View');
     screen.getByRole('menuitemcheckbox', { name: 'Names' }).focus();
     await userEvent.keyboard('{Enter}');
     expect(screen.getByRole('menuitemcheckbox', { name: 'Names' })).toHaveAttribute(
       'aria-checked',
       'false',
     );
+    expectOpen('View');
     expect(screen.getByRole('menuitemradio', { name: 'Grid' })).toHaveAttribute(
       'aria-checked',
       'true',
