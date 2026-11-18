@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../test/axe';
 import { setMediaQueries } from '../../test/setup';
+import { compiledCss } from '../../test/tailwind-classes';
 import { AnimatedNumber } from './AnimatedNumber';
 
 const parts = (container: Element) => {
@@ -51,6 +52,53 @@ describe('AnimatedNumber', () => {
     expect(spoken).toHaveTextContent('2,500');
     expect(container.textContent?.replace(/\s/g, '')).toContain('2,500');
     expect(await axeViolations(container)).toEqual([]);
+  });
+
+  it('prints its final value, whatever the moving figure shows', async () => {
+    // Never scrolled to, so its entrance waits at `from`, as a number below the fold of a page
+    // printed from an effect (a print view), where no update or frame runs before the print.
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          this.callback(
+            [{ isIntersecting: false, intersectionRatio: 0 } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        disconnect() {}
+      },
+    );
+    const { container } = render(<AnimatedNumber value={1284} from={0} />);
+    const { box, width, moving } = parts(container);
+    expect(moving).toHaveTextContent(/^0$/);
+    // On screen the final value only sizes the box; in print it shows, and the figure goes.
+    expect(width).toHaveTextContent('1,284');
+    expect(width).toHaveClass('invisible');
+    // The declarations inside the stylesheet's `@media print` blocks for an element's classes.
+    const printRules = async (element: Element) => {
+      const css = await compiledCss([...element.classList]);
+      const rules: string[] = [];
+      for (const { index } of css.matchAll(/@media print\s*\{/g)) {
+        const start = css.indexOf('{', index) + 1;
+        let end = start;
+        for (let depth = 1; depth > 0; end++) {
+          if (css[end] === '{') depth++;
+          else if (css[end] === '}') depth--;
+        }
+        const block = css.slice(start, end - 1);
+        for (const [, property, value] of block.matchAll(/\{\s*([a-z-]+):\s*([^;]+);/g)) {
+          rules.push(`${property}: ${value}`);
+        }
+      }
+      return rules;
+    };
+    expect(await printRules(width)).toEqual(['visibility: visible']);
+    expect(await printRules(moving)).toEqual(['display: none']);
+    // Both stay inside the box assistive technology skips, which reads the final value once.
+    expect(box).toHaveAttribute('aria-hidden', 'true');
+    expect(width.parentElement).toBe(box);
   });
 
   it('formats in the page’s locale with the value’s own decimals, or by `format`', () => {

@@ -33,8 +33,14 @@ const subscribeNothing = () => () => undefined;
  * picture was in the server's HTML, and replaying it from nothing would flash. Content
  * server-rendered out of view switches to its start state unseen and enters when scrolled to;
  * content the browser mounts later enters as it comes into view. A hidden tab waits until it
- * shows. Printing shows the final picture: a print runs no frames, so the element enters and is
- * out of view (its values land rather than animate) until the print is done. On the server
+ * shows. On `beforeprint` the element enters and is out of view until `afterprint`, committed
+ * before the print is laid out, so what React renders from `entered` (text, an attribute, a style
+ * or CSS variable) prints in its final state. A print runs no frames, though: a Motion value
+ * moved by it jumps to its target, but Motion writes the styles bound to that value on its next
+ * frame, so a mark drawn from a Motion value needs a print value in CSS (its resting geometry
+ * written as a CSS variable and applied under `@media print`), as `AnimatedNumber` prints its
+ * final value. A print begun inside React's own work (`window.print()` from an effect, as a print
+ * view does) is laid out before this update renders, and only CSS reaches it. On the server
  * `entered` is `true`.
  *
  * @param ref The element whose entrance it is; it must be rendered by the time effects run.
@@ -114,6 +120,8 @@ export function useEntrance(
       { rootMargin: inset, threshold: 0 },
     );
     // Committed before the browser lays the print out: React would otherwise render after it.
+    // Dispatched inside React's own work (`window.print()` from an effect) `flushSync` can't
+    // commit, so only CSS print styles reach that print.
     const beforePrint = () => {
       printing = true;
       done.current = true;

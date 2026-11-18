@@ -108,15 +108,23 @@ describe('useEntrance', () => {
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
-  it('shows its final picture, landing at once, as the page is printed', () => {
+  it('commits its final picture before the page is laid out for print', () => {
     const { container } = render(<Chart />);
     inView(0.1);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
     // A print runs no frames, so a chart never scrolled to, or mid-entrance, would print as it
-    // stands: it enters, and stops being in view so its values land rather than animate.
-    act(() => {
+    // stands: it enters, and stops being in view so React's values land rather than animate.
+    // The browser lays the print out as soon as `beforeprint` returns, so the change must be
+    // committed by then, not scheduled: dispatched outside `act` (which would flush it anyway),
+    // as a browser does, and read at once.
+    const environment = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
+    const actEnvironment = environment.IS_REACT_ACT_ENVIRONMENT;
+    environment.IS_REACT_ACT_ENVIRONMENT = false;
+    try {
       window.dispatchEvent(new Event('beforeprint'));
-    });
+    } finally {
+      environment.IS_REACT_ACT_ENVIRONMENT = actEnvironment;
+    }
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     expect(box(container)).toHaveAttribute('data-in-view', 'false');
     act(() => {
