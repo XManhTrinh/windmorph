@@ -93,10 +93,14 @@ export async function FileTriggerBody(): Promise<ComponentDoc> {
             <li>
               <InlineCode>accept</InlineCode> lists MIME types, wildcards or extensions. The system
               dialog only hints at it (a person can pick any file there, and a folder&apos;s
-              contents ignore it), so a chosen file off it goes to{' '}
-              <InlineCode>onFileReject</InlineCode>, with the <InlineCode>reason</InlineCode>{' '}
-              <InlineCode>type</InlineCode>, never to <InlineCode>onFileAccept</InlineCode>. Check
-              the real type on the server too, since a file&apos;s name and type can lie.
+              contents ignore it), so a chosen file off it never reaches{' '}
+              <InlineCode>onFileAccept</InlineCode>.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a pick brought that
+              weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never with an
+              empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
+              why a file didn&apos;t appear. Check the real type on the server too, since a
+              file&apos;s name and type can lie.
             </li>
             <li>
               <InlineCode>multiple</InlineCode> allows several files,{' '}

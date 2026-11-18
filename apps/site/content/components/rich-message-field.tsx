@@ -160,6 +160,17 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>focus()</InlineCode> brings a field that is wholly off screen into view.
             </li>
             <li>
+              <InlineCode>onFileAccept</InlineCode> gets files pasted or dropped onto the field that
+              match <InlineCode>accept</InlineCode>, before the editor sees them.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a paste or drop
+              brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
+              with an empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>), so you can say
+              why a file didn&apos;t appear. A paste that takes no file goes in as text; if it
+              carries text, it&apos;s a text paste and reports nothing, since copied cells or a
+              document bring a picture of themselves too.
+            </li>
+            <li>
               <InlineCode>FormattedText</InlineCode> shows the marker format as elements, never HTML
               from the text. Links are http and https only, open in a new tab and get{' '}
               <InlineCode>{'rel="ugc nofollow noopener noreferrer"'}</InlineCode>;{' '}

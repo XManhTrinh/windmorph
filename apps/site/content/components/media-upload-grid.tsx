@@ -101,12 +101,16 @@ export async function MediaUploadGridBody(): Promise<ComponentDoc> {
               The grid keeps nothing: the app holds the photos in <InlineCode>items</InlineCode> and
               changes them in the callbacks. <InlineCode>onFileAccept(files)</InlineCode> gets only
               files matching <InlineCode>accept</InlineCode>, and no more than fit under{' '}
-              <InlineCode>maxItems</InlineCode>; at the limit the add tile goes away and drops are
-              refused. <InlineCode>onFileReject(rejections)</InlineCode> then gets the rest of a
-              pick or drop, each with its <InlineCode>reason</InlineCode>:{' '}
-              <InlineCode>type</InlineCode> (off <InlineCode>accept</InlineCode>) or{' '}
-              <InlineCode>room</InlineCode> (past <InlineCode>maxItems</InlineCode>), so you can say
-              why a photo didn&apos;t appear.
+              <InlineCode>maxItems</InlineCode>; at the limit the add tile goes away.{' '}
+              <InlineCode>onFileReject(rejections)</InlineCode> gets the files a pick or drop
+              brought that weren&apos;t taken, after <InlineCode>onFileAccept</InlineCode> and never
+              with an empty list, each with its <InlineCode>reason</InlineCode> (
+              <InlineCode>type</InlineCode>, off <InlineCode>accept</InlineCode>, or{' '}
+              <InlineCode>room</InlineCode>, past <InlineCode>maxItems</InlineCode>), so you can say
+              why a file didn&apos;t appear. A full grid still takes a drop, only to report its
+              files as <InlineCode>room</InlineCode>, and isn&apos;t drawn as a drop target then. A
+              drag whose types can&apos;t match <InlineCode>accept</InlineCode> is refused while
+              it&apos;s over the grid, with the no-drop cursor, so it&apos;s never reported.
             </li>
             <li>
               Show a chosen file at once with <InlineCode>URL.createObjectURL(file)</InlineCode> as

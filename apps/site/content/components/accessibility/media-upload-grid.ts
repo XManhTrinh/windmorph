@@ -59,6 +59,7 @@ export const mediaUploadGrid: ComponentAccessibility = {
     'Pass `labels` from your translations; `uploading`, `remove` and `actions` are functions, so the words can go in any order.',
     'Pass `onReorder` only when the order matters, and set `disabled` while the post is being sent.',
     'Give a failed photo an `error` that says why ("Too large (max 10 MB)") and pass `onRetry` when trying again can help.',
+    'The grid announces nothing when it refuses files (off `accept`, or past `maxItems`): handle `onFileReject` and say why in words a screen reader hears too, such as a snackbar.',
     'In forced-colours mode tiles, the drop bars and the drop outline use system colours; keep `classNames` overrides from removing them.',
     'Give custom icons (`removeIcon`, `retryIcon`, `actionsIcon`, `addIcon`) no name of their own: the buttons are named by `labels`.',
   ],
