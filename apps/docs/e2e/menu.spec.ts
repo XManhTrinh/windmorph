@@ -999,6 +999,28 @@ test.describe('Menu in place: behaviour', () => {
     expect(Math.abs(s!.x - t!.x)).toBeLessThanOrEqual(1);
   });
 
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`a submenu beside a menu in the element stays inside it, flipping to the side with room · ${dir}`, async ({
+      page,
+    }) => {
+      const player = await openPlayer(page, { dir }, { submenuPresentation: 'beside' });
+      await page.getByRole('menuitem', { name: /^Quality/ }).click();
+      await settle(page);
+      const [root, sub, p] = await Promise.all([
+        page.getByRole('menu', { name: 'Settings' }).boundingBox(),
+        page.getByRole('menu', { name: /^Quality/ }).boundingBox(),
+        player.boundingBox(),
+      ]);
+      expect(sub!.x).toBeGreaterThanOrEqual(p!.x + 12 - 0.5);
+      expect(sub!.x + sub!.width).toBeLessThanOrEqual(p!.x + p!.width - 12 + 0.5);
+      expect(sub!.y).toBeGreaterThanOrEqual(p!.y + 12 - 0.5);
+      expect(sub!.y + sub!.height).toBeLessThanOrEqual(p!.y + p!.height - 12 + 0.5);
+      // The root sits near the player's end edge, so the submenu opens on its other side.
+      if (dir === 'ltr') expect(sub!.x + sub!.width).toBeLessThanOrEqual(root!.x);
+      else expect(sub!.x).toBeGreaterThanOrEqual(root!.x + root!.width);
+    });
+  }
+
   test('when a pane scrolls the element, the menu keeps its place in it on every frame', async ({
     page,
   }) => {
