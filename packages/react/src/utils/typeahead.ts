@@ -1,5 +1,5 @@
 import { useMemo, type RefObject } from 'react';
-import { ListKeyboardDelegate, useCollator } from 'react-aria';
+import { ListKeyboardDelegate } from 'react-aria';
 import type { Collection, DisabledBehavior, Key, Node } from 'react-stately';
 
 /** One character typed once or several times over ("p", "ppp"). */
@@ -49,21 +49,30 @@ interface TypeaheadState<T> {
 
 /**
  * The {@link TypeaheadKeyboardDelegate} for a collection, built as React Aria builds its
- * default list delegate (a base-sensitivity search collator, the state's disabled keys and
- * behaviour), for `useListBox`, `useMenu` or `useSelect`'s `keyboardDelegate`.
+ * default list delegate (a search collator, here the caller's, the state's disabled keys and
+ * behaviour), for `useListBox`, `useMenu` or `useSelect`'s `keyboardDelegate`. Pass the
+ * page's collator (`usePageCollator(TYPEAHEAD_COLLATION)`), so typeahead matches in the page's
+ * language in a region laid out the other way too.
  * `disabledBehavior` overrides the state's (a closed `Select`'s typeahead skips disabled
  * options even when its list lets them take focus); `currentKey` is where a search starts
  * when nothing has focus.
  */
+/**
+ * How typeahead compares: by letters, ignoring case and accents where the language does. Give
+ * it the page's collator (`usePageCollator(TYPEAHEAD_COLLATION)`), so it matches in the page's
+ * language (č is not c in Serbian) even in a region laid out the other way.
+ */
+export const TYPEAHEAD_COLLATION: Intl.CollatorOptions = { usage: 'search', sensitivity: 'base' };
+
 export function useTypeaheadDelegate<T>(
   state: TypeaheadState<T>,
   ref: RefObject<HTMLElement | null>,
+  collator: Intl.Collator,
   {
     disabledBehavior = state.selectionManager.disabledBehavior,
     currentKey = null,
   }: { disabledBehavior?: DisabledBehavior; currentKey?: Key | null } = {},
 ): TypeaheadKeyboardDelegate<T> {
-  const collator = useCollator({ usage: 'search', sensitivity: 'base' });
   const { collection, disabledKeys } = state;
   return useMemo(
     () =>

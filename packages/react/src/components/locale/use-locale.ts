@@ -9,7 +9,8 @@ export interface LocaleContextValue {
   /**
    * The locale, as a BCP 47 language tag (`'en-US'`): the page's, also in a toolbar, list or
    * other region laid out the other way, where React Aria is given it in another script for its
-   * arrow keys.
+   * arrow keys. So there it may not match `direction`: read `direction`, never work it out from
+   * the locale, and don't hand this locale to a provider of your own inside such a region.
    */
   locale: string;
   /**

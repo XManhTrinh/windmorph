@@ -27,6 +27,7 @@ import {
 } from 'react-stately/useSelectState';
 import { useControlledState } from 'react-stately/useControlledState';
 import type { Key } from 'react-stately';
+import { usePageCollator } from '../../primitives/use-page-collator';
 import { useLabels } from '../labels/use-labels';
 import { matchesSearch } from '../../utils/search';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
@@ -39,7 +40,7 @@ import {
   splitRootProps,
   type WrapperRootDOMProps,
 } from '../../utils/root-props';
-import { useTypeaheadDelegate } from '../../utils/typeahead';
+import { TYPEAHEAD_COLLATION, useTypeaheadDelegate } from '../../utils/typeahead';
 import { usePreloadLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
 import type { TextFieldVariant } from '../text-field/text-field-styles';
@@ -380,10 +381,15 @@ export function Select<T extends object, M extends SelectionMode = 'single'>(
   const triggerRef = useObjectRef(triggerRefProp);
   // Typeahead on the closed field moves to the next option starting with the letter (M3),
   // and still skips disabled options.
-  const typeaheadDelegate = useTypeaheadDelegate(state, triggerRef, {
-    disabledBehavior: 'all',
-    currentKey: state.selectionManager.selectionMode === 'single' ? state.selectedKey : null,
-  });
+  const typeaheadDelegate = useTypeaheadDelegate(
+    state,
+    triggerRef,
+    usePageCollator(TYPEAHEAD_COLLATION),
+    {
+      disabledBehavior: 'all',
+      currentKey: state.selectionManager.selectionMode === 'single' ? state.selectedKey : null,
+    },
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   // Set by a press outside the menu and the field: the focus the menu hands back to the
   // field on closing (WAI-ARIA, right after Escape or a choice) is let go, so one press

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { RouterProvider } from 'react-aria';
+import { I18nProvider, RouterProvider } from 'react-aria';
 import { describe, expect, it, vi } from 'vitest';
 import { axeViolations } from '../../../test/axe';
 import { labelInNameViolations } from '../../../test/label-in-name';
@@ -246,6 +246,29 @@ describe('Menu', () => {
     expect(screen.getByRole('menuitem', { name: /Copy/ })).toHaveFocus();
     await userEvent.keyboard('c');
     expect(screen.getByRole('menuitem', { name: /Cut/ })).toHaveFocus();
+  });
+
+  it('matches typeahead in the page’s language, in a region laid out the other way', async () => {
+    // Serbian in Latin script tells č from c; a region of the other direction gets a tag in
+    // another script, whose collation doesn't.
+    render(
+      <I18nProvider locale="sr-Latn-RS">
+        <div dir="rtl">
+          <MenuTrigger>
+            <Button>Town</Button>
+            <Menu aria-label="Town">
+              <MenuItem key="beograd">Beograd</MenuItem>
+              <MenuItem key="cacak">Čačak</MenuItem>
+              <MenuItem key="cetinje">Cetinje</MenuItem>
+            </Menu>
+          </MenuTrigger>
+        </div>
+      </I18nProvider>,
+    );
+    await openMenu('Town');
+    expect(screen.getByRole('menuitem', { name: 'Beograd' })).toHaveFocus();
+    await userEvent.keyboard('c');
+    expect(screen.getByRole('menuitem', { name: 'Cetinje' })).toHaveFocus();
   });
 
   it('closes on Escape', async () => {

@@ -29,12 +29,13 @@ import {
   type Node,
   type OverlayTriggerState,
 } from 'react-stately';
+import { usePageCollator } from '../../primitives/use-page-collator';
 import { useM3Spring } from '../../motion/use-m3-spring';
 import { Overlay } from '../../primitives/Overlay';
 import { usePresence } from '../../primitives/use-presence';
 import type { Density } from '../../tokens/density';
 import { cn } from '../../utils/cn';
-import { useTypeaheadDelegate } from '../../utils/typeahead';
+import { TYPEAHEAD_COLLATION, useTypeaheadDelegate } from '../../utils/typeahead';
 import { LazyLoadingIndicator } from '../loading-indicator/lazy-loading-indicator';
 import { menuStyles, persistentScrollbar } from '../menu/menu-styles';
 import { useRevealEntering } from '../menu/use-reveal-entering';
@@ -138,7 +139,11 @@ export function OptionList<T>({
   classNames?: OptionListClassNames | undefined;
 }) {
   // M3: a letter moves focus to the next option starting with it.
-  const typeaheadDelegate = useTypeaheadDelegate(state, listBoxRef);
+  const typeaheadDelegate = useTypeaheadDelegate(
+    state,
+    listBoxRef,
+    usePageCollator(TYPEAHEAD_COLLATION),
+  );
   const { listBoxProps: props } = useListBox(
     {
       ...listBoxProps,

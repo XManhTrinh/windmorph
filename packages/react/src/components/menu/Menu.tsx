@@ -47,6 +47,7 @@ import {
   type SubmenuTriggerState,
   type TreeState,
 } from 'react-stately';
+import { usePageCollator } from '../../primitives/use-page-collator';
 import { useLabels } from '../labels/use-labels';
 import { DirectionLocale } from '../../primitives/DomDirectionLocale';
 import { Overlay } from '../../primitives/Overlay';
@@ -56,7 +57,7 @@ import { densityAttribute, type Density } from '../../tokens/density';
 import { toAriaPlacement } from '../../utils/placement';
 import { assertCollectionChildren } from '../../utils/assert-collection-children';
 import { cn } from '../../utils/cn';
-import { useTypeaheadDelegate } from '../../utils/typeahead';
+import { TYPEAHEAD_COLLATION, useTypeaheadDelegate } from '../../utils/typeahead';
 import { COMPACT_WINDOW, useMediaQuery } from '../date-picker/use-media-query';
 import { Divider } from '../divider/Divider';
 import { LazyBottomSheet, usePreloadBottomSheet } from '../sheet/lazy-bottom-sheet';
@@ -746,7 +747,7 @@ function MenuList({
   const ownRef = useObjectRef(forwardedRef);
   const ref = listRef ?? ownRef;
   // M3 keyboard table: "Letters — Focus moves to the next menu item starting with letter".
-  const keyboardDelegate = useTypeaheadDelegate(state, ref);
+  const keyboardDelegate = useTypeaheadDelegate(state, ref, usePageCollator(TYPEAHEAD_COLLATION));
   const { menuProps } = useMenu(
     // The arrow keys wrap from the last item to the first and back, as M3's menus and the rest
     // of the library's collections do (APG makes it optional).
