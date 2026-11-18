@@ -96,7 +96,8 @@ export function useEntrance(
     );
     // Any part past the inset: the window drawn in from the top and the bottom by `amount` of
     // its half (not the sides: an element wholly at a wide window's edge could never enter).
-    const inset = `${-Math.min(0.98, Math.max(0, amount)) * 50}% 0px`;
+    const share = Number.isFinite(amount) ? Math.min(0.98, Math.max(0, amount)) : 0.25;
+    const inset = `${-share * 50}% 0px`;
     const pastEdge = new IntersectionObserver(
       (entries) => {
         const entry = newest(entries);

@@ -121,6 +121,22 @@ describe('AnimatedNumber', () => {
     expect(moving.parentElement).toBe(box);
   });
 
+  it('watches its own box, so a root with none (`contents`) still counts', () => {
+    const watched: Element[] = [];
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe(element: Element) {
+          watched.push(element);
+        }
+        disconnect() {}
+      },
+    );
+    const { container } = render(<AnimatedNumber value={42} className="contents" />);
+    expect(watched.length).toBeGreaterThan(0);
+    expect(watched.every((element) => element === parts(container).box)).toBe(true);
+  });
+
   it('watches its entrance with one observer, whatever ref an app passes', () => {
     let observers = 0;
     vi.stubGlobal(

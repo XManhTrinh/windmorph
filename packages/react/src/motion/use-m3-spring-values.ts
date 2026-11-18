@@ -205,13 +205,22 @@ export function useM3SpringValues(
         0,
       );
     }
+    // An element to or from something that isn't a number can't spring (it would stay NaN): it
+    // lands on its target at once, still, as the single value does.
+    targets.forEach((target, index) => {
+      if (!Number.isFinite(target) || !Number.isFinite(positions[index]!)) {
+        positions[index] = target;
+        speeds[index] = 0;
+      }
+    });
     // An element at rest waits its delay, counted from when it first began to wait (a new target
     // while it waits doesn't restart it); one moving (past the settling speed) turns at once.
     const pending = targets.map((target, index) => {
       const source = sources[index];
       const waiting = source === undefined ? null : current.pending[source];
       const moving = Math.abs(speeds[index] ?? 0) > scale * 1e-3;
-      const wait = typeof delay === 'number' ? delay : (delay[index] ?? 0);
+      const wait =
+        target === positions[index] ? 0 : typeof delay === 'number' ? delay : (delay[index] ?? 0);
       const start = moving
         ? now
         : waiting && waiting.start > now

@@ -2,7 +2,7 @@
 
 import { useMotionValueEvent } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type ComponentPropsWithRef } from 'react';
-import { mergeRefs, useLocale } from 'react-aria';
+import { useLocale } from 'react-aria';
 import { useEntrance } from '../motion/use-entrance';
 import { useM3SpringValue } from '../motion/use-m3-spring-value';
 
@@ -78,11 +78,12 @@ export function AnimatedNumber({
     [locale, decimals],
   );
   const show = format ?? ((number: number) => formatter.format(number));
-  // Its own ref to watch, so an app's ref (an inline callback, merged refs) never makes it watch
-  // again on each render.
-  const rootRef = useRef<HTMLSpanElement>(null);
+  // It watches its own box, which always has one (the final value's size) and is never given
+  // away: a root shown as `contents` has none, and an app's ref (an inline callback, merged refs)
+  // would make it watch again on each render.
+  const boxRef = useRef<HTMLSpanElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
-  const { entered, inView } = useEntrance(rootRef);
+  const { entered, inView } = useEntrance(boxRef);
   const target = from !== undefined && !entered ? from : value;
   const spring = useM3SpringValue(target, { delay, animate: inView });
 
@@ -121,15 +122,10 @@ export function AnimatedNumber({
 
   const final = show(value);
   return (
-    <span
-      data-slot="animated-number"
-      {...props}
-      ref={mergeRefs(rootRef, ref)}
-      className={className}
-    >
+    <span data-slot="animated-number" {...props} ref={ref} className={className}>
       {/* A box as wide as the final value wherever the root lays it out (inline, a block, a
           centred line), with the moving figure laid over it. */}
-      <span aria-hidden="true" className="relative inline-grid whitespace-nowrap">
+      <span ref={boxRef} aria-hidden="true" className="relative inline-grid whitespace-nowrap">
         <span className="invisible [grid-area:1/1]">{final}</span>
         {/* Out of the box's sizing, so a longer figure counting down never widens it. */}
         <span

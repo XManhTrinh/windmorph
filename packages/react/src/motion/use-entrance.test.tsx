@@ -115,6 +115,11 @@ describe('useEntrance', () => {
     expect(margins).toEqual(['-12.5% 0px', '-25% 0px']);
   });
 
+  it('takes an amount that isn’t a number as the default', () => {
+    expect(() => render(<Chart amount={Number.NaN} />)).not.toThrow();
+    expect(margins.at(-1)).toBe('-12.5% 0px');
+  });
+
   it('enters one shown whole, however near the window’s edge', () => {
     const { container } = render(<Chart />);
     place({ visible: true, ratio: 1, inside: false });

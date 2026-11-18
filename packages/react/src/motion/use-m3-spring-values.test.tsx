@@ -160,6 +160,18 @@ describe('useM3SpringValues', () => {
     expect(result.current.get()[1]).toBeGreaterThan(0);
   });
 
+  it('lands an element to or from a value that isn’t a number at once, as the rest move', async () => {
+    const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
+      initialProps: { targets: [Number.NaN, 0] as readonly number[] },
+    });
+    rerender({ targets: [5, 100] });
+    await wait(40);
+    const [landed, moving] = result.current.get();
+    expect(landed).toBe(5);
+    expect(moving).toBeGreaterThan(0);
+    expect(moving).toBeLessThan(100);
+  });
+
   it('springs to new targets over frames and settles on them', async () => {
     const { result, rerender } = renderHook(({ targets }) => useM3SpringValues(targets), {
       initialProps: { targets: [0, 0] as readonly number[] },
