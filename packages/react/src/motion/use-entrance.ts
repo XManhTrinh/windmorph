@@ -5,10 +5,10 @@ import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } fro
 export interface EntranceOptions {
   /**
    * How far into the window an element must come before its entrance plays, from 0 (any part
-   * showing) to 1 (to the middle): past that share of half the window from its edge, so 0.25 is
-   * an eighth of the window in. One shown whole enters wherever it is. The browser measures what
-   * shows, so an element of any size, one that changes size, or one in a box that clips it
-   * enters as it comes into view. @default 0.25
+   * showing) to 1 (to the middle): past that share of half the window's height from its top or
+   * bottom, so 0.25 is an eighth of the window in. One shown whole enters wherever it is. The
+   * browser measures what shows, so an element of any size, one that changes size, or one in a
+   * box that clips it enters as it comes into view. @default 0.25
    */
   amount?: number;
 }
@@ -66,7 +66,7 @@ export function useEntrance(
       setInView(true);
       return;
     }
-    // Shown whole, or come `amount` of half the window in from its edge.
+    // Shown whole, or come `amount` of half the window in from its top or bottom.
     let whole = false;
     let inside = false;
     const enter = () => {
@@ -94,8 +94,9 @@ export function useEntrance(
       },
       { threshold: [0, 1] },
     );
-    // Any part past the inset: the window drawn in by `amount` of its half on every side.
-    const inset = `${-Math.min(0.98, Math.max(0, amount)) * 50}%`;
+    // Any part past the inset: the window drawn in from the top and the bottom by `amount` of
+    // its half (not the sides: an element wholly at a wide window's edge could never enter).
+    const inset = `${-Math.min(0.98, Math.max(0, amount)) * 50}% 0px`;
     const pastEdge = new IntersectionObserver(
       (entries) => {
         const entry = newest(entries);

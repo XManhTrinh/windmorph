@@ -14,7 +14,7 @@ accessible components by default. Works with Vite and Next.js (App Router and Pa
 npm i @windmorph/react motion
 ```
 
-Peer dependencies: `react` and `react-dom` 19, `motion` 14, and optionally `tailwindcss` 4.1 or
+Peer dependencies: `react` and `react-dom` 19, `motion` 14.12 or later, and optionally `tailwindcss` 4.1 or
 later and `next` 15 or later.
 
 ### Browser support

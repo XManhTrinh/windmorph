@@ -108,10 +108,11 @@ describe('useEntrance', () => {
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
-  it('draws the window in by amount of its half', () => {
+  it('draws the window in by amount of its half, top and bottom', () => {
     render(<Chart />);
     render(<Chart amount={0.5} />);
-    expect(margins).toEqual(['-12.5%', '-25%']);
+    // From the top and the bottom only: an element at a wide window's side can still come in.
+    expect(margins).toEqual(['-12.5% 0px', '-25% 0px']);
   });
 
   it('enters one shown whole, however near the window’s edge', () => {
