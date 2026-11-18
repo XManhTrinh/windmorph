@@ -230,7 +230,7 @@ const [player, setPlayer] = useState<HTMLDivElement | null>(null);
 ## Motion
 
 - **Height:**
-  - The surface's `height` follows the visible page, which is measured with `useNaturalSize` and a page count. A size change that comes with a new page springs; any other change follows at once (a font arriving, text changing), as `data-resized` does for the toolbar.
+  - The surface's `height` follows the visible page, which is measured as each page goes in (built: `usePageHeight`, decision 5). A size change that comes with a new page springs; any other change follows at once (a font arriving, text changing), as `data-resized` does for the toolbar.
   - It grows on the default spatial spring. That's the core's height spring for showing more content (the list's nested rows); M3 asks for no bouncy springs in common transitions, and the fast spring overshoots about 9%.
   - It shrinks over the same duration on the default effects spring's easing.
   - It never animates as the menu opens: the reveal does that. While the size is unmeasured, and on the server, it's `undefined` and the surface takes its natural size.
@@ -325,13 +325,13 @@ The sheet's drill-in is the base. What changes:
     - The menu stays inside the element, `containerPadding` from its edges, and flips within it.
     - When a pane scrolls the container, the menu keeps its offset from the container on every frame.
     - A container resized without the window places the menu back on its trigger.
-    - Full screen with `requestFullscreen`, if headless Chromium grants it (unverified). Otherwise, the unit tests fake `document.fullscreenElement` as `Overlay.test.tsx` does.
+    - Full screen with `requestFullscreen`, if headless Chromium grants it (verified 2026-11-18: it does, from the test's `evaluate`). Otherwise, the unit tests fake `document.fullscreenElement` as `Overlay.test.tsx` does.
     - A trigger outside the container.
   - **The override matrix for the container:** `static`, `overflow-hidden`, a `transform`, the `translate` property and `contain: paint`.
 - **Stories and screenshots:**
   - A `PlayerSettings` story in `Menu.stories.tsx`: the first page and a page, in every theme, light and dark, vibrant, right-to-left and forced colours.
   - The story guards: scroll, focus ring, forced colours, catalog coverage.
-- **Bundle size:** raise `components/menu/Menu` in `bundle-size.json`, and the budgets that include it (`SplitButton`, `FabMenu`, `ButtonGroup`), by what the build measures. The guess is under 1.5 kB gzipped (unverified). The sheet stays lazily loaded.
+- **Bundle size:** raise `components/menu/Menu` in `bundle-size.json`, and the budgets that include it (`SplitButton`, `FabMenu`, `ButtonGroup`), by what the build measures. The guess was under 1.5 kB gzipped; measured, it was 4.5 kB in the size measure, 2.9 kB of it code (see "Risks"). The sheet stays lazily loaded.
 - **Docs tests:** props docs (TSDoc on every new prop and key), playground coverage and snippets, `old-api-names`.
 
 ## Risks
