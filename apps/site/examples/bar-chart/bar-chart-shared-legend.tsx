@@ -44,11 +44,15 @@ const SOUTH = seriesOf({
   store: [180, 172, 194, 201, 188, 210],
 });
 
-/** The legend's keys take the slots' colours with `chartColor`, as the charts draw them. */
+/**
+ * The legend's keys take the slots' colours with `chartColor` and their patterns with `slot`,
+ * as the charts draw them.
+ */
 const LEGEND: ChartLegendItem[] = CHANNELS.map((channel) => ({
   key: channel.key,
   label: channel.label,
   color: chartColor(channel.slot),
+  slot: channel.slot,
 }));
 
 /**
