@@ -6,64 +6,79 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntrance } from './use-entrance';
 
 /**
- * An IntersectionObserver the test drives: `show(ratio)` reports the element's visible share.
- * A 1000 × 800 window; the element 400px tall, or `tallHeight` px when `windowShare` (the share
- * of the window it fills) is given, with `widthShown` px of its 1000 showing. With `crossingsOnly`,
- * it calls back only as a browser does: when the share crosses one of the observer's thresholds
- * (or starts or stops intersecting).
+ * IntersectionObservers that behave as a browser's: each reports where the element stands as it
+ * starts watching, then only when that crosses its threshold or margin. `place` sets where the
+ * element is: whether any part shows, the share of it that does, and whether it has come past
+ * the inset a margin draws in.
  */
-let observed: ((ratio: number, windowShare?: number, widthShown?: number) => void) | null = null;
-let tallHeight = 3200;
-let crossingsOnly = false;
+interface Place {
+  /** Any part on screen. */
+  visible: boolean;
+  /** The share of the element on screen. */
+  ratio: number;
+  /** Some part has come past the margin's inset. */
+  inside: boolean;
+}
+let where: Place = { visible: false, ratio: 0, inside: false };
+const observers = new Set<{ margined: boolean; report: (force: boolean) => void }>();
+const margins: string[] = [];
 beforeEach(() => {
-  observed = null;
-  tallHeight = 3200;
-  crossingsOnly = false;
+  where = { visible: false, ratio: 0, inside: false };
+  observers.clear();
+  margins.length = 0;
   vi.stubGlobal(
     'IntersectionObserver',
     class {
-      last = 0;
-      constructor(
-        callback: IntersectionObserverCallback,
-        private options: IntersectionObserverInit = {},
-      ) {
-        observed = (ratio, windowShare, widthShown = 1000) => {
-          const thresholds = [this.options.threshold ?? 0].flat();
-          const crossed =
-            ratio > 0 !== this.last > 0 ||
-            thresholds.some((threshold) => this.last < threshold !== ratio < threshold);
-          this.last = ratio;
-          if (crossingsOnly && !crossed) return;
-          callback(
-            [
-              {
-                isIntersecting: ratio > 0,
-                intersectionRatio: ratio,
-                rootBounds: { height: 800, width: 1000 },
-                boundingClientRect: {
-                  height: windowShare === undefined ? 400 : tallHeight,
-                  width: 1000,
-                },
-                intersectionRect: {
-                  height: windowShare === undefined ? ratio * 400 : windowShare * 800,
-                  width: ratio > 0 ? widthShown : 0,
-                },
-              } as unknown as IntersectionObserverEntry,
-            ],
-            this as unknown as IntersectionObserver,
-          );
+      private watched = false;
+      private last: [boolean, boolean] = [false, false];
+      private self: { margined: boolean; report: (force: boolean) => void };
+      constructor(callback: IntersectionObserverCallback, options: IntersectionObserverInit = {}) {
+        const margined = options.rootMargin !== undefined;
+        if (margined) margins.push(options.rootMargin!);
+        this.self = {
+          margined,
+          report: (force) => {
+            if (!this.watched) return;
+            const intersecting = margined ? where.inside : where.visible;
+            const whole = where.ratio >= 1;
+            const crossed = intersecting !== this.last[0] || (!margined && whole !== this.last[1]);
+            this.last = [intersecting, whole];
+            if (!force && !crossed) return;
+            callback(
+              [
+                {
+                  isIntersecting: intersecting,
+                  intersectionRatio: margined ? (intersecting ? 1 : 0) : where.ratio,
+                } as IntersectionObserverEntry,
+              ],
+              this as unknown as IntersectionObserver,
+            );
+          },
         };
+        observers.add(this.self);
       }
-      observe() {}
-      disconnect() {}
+      observe() {
+        // Inside the render's own `act`, as React runs effects there: no `act` of its own.
+        this.watched = true;
+        this.self.report(true);
+      }
+      disconnect() {
+        this.watched = false;
+        observers.delete(this.self);
+      }
     },
   );
 });
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-const show = (ratio: number, windowShare?: number, widthShown?: number) =>
-  act(() => observed?.(ratio, windowShare, widthShown));
+/** Moves the element: every observer reports the crossings it sees. */
+const place = (next: Partial<Place>) =>
+  act(() => {
+    where = { ...where, ...next };
+    for (const observer of [...observers]) observer.report(false);
+  });
+const inView = (ratio: number) => place({ visible: ratio > 0, ratio, inside: false });
 
 const seen: boolean[] = [];
 function Chart({ amount }: { amount?: number }) {
@@ -79,28 +94,48 @@ describe('useEntrance', () => {
     expect(renderToString(<Chart />)).toContain('data-entered="true"');
   });
 
-  it('waits in the start state when the browser mounts it, and enters once seen', () => {
+  it('waits in the start state when the browser mounts it, and enters once it has come in', () => {
     const { container } = render(<Chart />);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
-    show(0.1);
+    // A sliver at the window's edge: in view, worth animating, not yet entered.
+    inView(0.1);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
     expect(box(container)).toHaveAttribute('data-in-view', 'true');
-    show(0.5);
+    place({ inside: true });
     expect(box(container)).toHaveAttribute('data-entered', 'true');
-    show(0);
-    show(0.5);
+    place({ visible: false, ratio: 0, inside: false });
+    place({ visible: true, ratio: 1, inside: true });
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+  });
+
+  it('draws the window in by amount of its half', () => {
+    render(<Chart />);
+    render(<Chart amount={0.5} />);
+    expect(margins).toEqual(['-12.5%', '-25%']);
+  });
+
+  it('enters one shown whole, however near the window’s edge', () => {
+    const { container } = render(<Chart />);
+    place({ visible: true, ratio: 1, inside: false });
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
+  });
+
+  it('enters one of any size as soon as part of it has come in (the browser measures it)', () => {
+    const { container } = render(<Chart />);
+    // A list many windows tall, or one in a box that clips it: a hundredth of it shows.
+    place({ visible: true, ratio: 0.01, inside: true });
     expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
   it('never replays for content on screen as the page hydrates', async () => {
     seen.length = 0;
+    place({ visible: true, ratio: 0.1, inside: false });
     const container = document.createElement('div');
     container.innerHTML = renderToString(<Chart />);
     document.body.append(container);
     const root = await act(async () => hydrateRoot(container, <Chart />));
-    show(0.1);
-    show(0);
-    show(1);
+    inView(0);
+    place({ visible: true, ratio: 1, inside: true });
     expect(seen.every(Boolean)).toBe(true);
     act(() => root.unmount());
     container.remove();
@@ -111,38 +146,11 @@ describe('useEntrance', () => {
     container.innerHTML = renderToString(<Chart />);
     document.body.append(container);
     const root = await act(async () => hydrateRoot(container, <Chart />));
-    show(0);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
-    show(0.4);
+    place({ visible: true, ratio: 0.4, inside: true });
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     act(() => root.unmount());
     container.remove();
-  });
-
-  it('enters an element taller than the window once a share of the window shows it', () => {
-    const { container } = render(<Chart />);
-    // A tenth of a very tall element, filling half the window.
-    show(0.1, 0.5);
-    expect(box(container)).toHaveAttribute('data-entered', 'true');
-  });
-
-  it('enters an element many windows tall, though its own share stays tiny', () => {
-    crossingsOnly = true;
-    // 24 windows tall: a quarter of the window is about a hundredth of it.
-    tallHeight = 24 * 800;
-    const { container } = render(<Chart />);
-    show(0.002, 0.05);
-    show(0.0105, 0.25);
-    expect(box(container)).toHaveAttribute('data-entered', 'true');
-  });
-
-  it('waits for a share across, too, in a sideways scroller', () => {
-    const { container } = render(<Chart />);
-    // Tall enough to fill half the window, with 1px of its width in view.
-    show(0.001, 0.5, 1);
-    expect(box(container)).toHaveAttribute('data-entered', 'false');
-    show(0.1, 0.5, 600);
-    expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
   it('still enters a page hydrated out of view once it starts watching again', async () => {
@@ -150,30 +158,52 @@ describe('useEntrance', () => {
     container.innerHTML = renderToString(<Chart />);
     document.body.append(container);
     const root = await act(async () => hydrateRoot(container, <Chart />));
-    show(0);
     expect(box(container)).toHaveAttribute('data-entered', 'false');
     // Watching again (a new amount) while part of it shows: it hasn't entered, and it still can.
+    inView(0.3);
     act(() => root.render(<Chart amount={0.5} />));
-    show(0.3);
-    show(1);
+    place({ inside: true });
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     act(() => root.unmount());
     container.remove();
   });
 
   it('enters once, even when it starts watching again', async () => {
+    place({ visible: true, ratio: 0.5, inside: true });
     const container = document.createElement('div');
     container.innerHTML = renderToString(<Chart />);
     document.body.append(container);
     const root = await act(async () => hydrateRoot(container, <Chart />));
-    show(0.5);
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     // A new amount watches again; out of view then, it doesn't go back to its start state.
+    inView(0);
     act(() => root.render(<Chart amount={0.5} />));
-    show(0);
     expect(box(container)).toHaveAttribute('data-entered', 'true');
     act(() => root.unmount());
     container.remove();
+  });
+
+  it('goes by the newest record when a report carries several', () => {
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(private callback: IntersectionObserverCallback) {}
+        observe() {
+          // Left, then came back, before the report ran.
+          this.callback(
+            [
+              { isIntersecting: false, intersectionRatio: 0 },
+              { isIntersecting: true, intersectionRatio: 1 },
+            ] as IntersectionObserverEntry[],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        disconnect() {}
+      },
+    );
+    const { container } = render(<Chart />);
+    expect(box(container)).toHaveAttribute('data-in-view', 'true');
+    expect(box(container)).toHaveAttribute('data-entered', 'true');
   });
 
   it('shows the final picture and animates when there is nothing to watch', () => {
@@ -186,7 +216,7 @@ describe('useEntrance', () => {
   it('waits for a hidden tab to show', () => {
     const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true);
     const { container } = render(<Chart />);
-    show(1);
+    place({ visible: true, ratio: 1, inside: true });
     expect(box(container)).toHaveAttribute('data-entered', 'false');
     hidden.mockReturnValue(false);
     act(() => {
