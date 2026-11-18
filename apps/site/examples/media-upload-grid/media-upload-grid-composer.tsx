@@ -27,7 +27,9 @@ function refusal(rejections: FileRejection[]) {
  * line under the grid says why it didn't appear.
  */
 export function MediaUploadGridComposer() {
-  const [notice, setNotice] = useState('');
+  // Each notice is a new node (its `id`), so the same refusal twice is announced twice.
+  const [notice, setNotice] = useState({ id: 0, text: '' });
+  const say = (text: string) => setNotice((last) => ({ id: last.id + 1, text }));
   const [items, setItems] = useState<MediaUploadItem[]>(() => [
     {
       key: 'sample-0',
@@ -88,7 +90,7 @@ export function MediaUploadGridComposer() {
         onFileAccept={(files) => {
           // Clears the last notice; `onFileReject`, called after this, sets a new one if a file
           // was refused.
-          setNotice('');
+          say('');
           setItems((current) => [
             ...current,
             ...files.map((file) => ({
@@ -101,7 +103,7 @@ export function MediaUploadGridComposer() {
           ]);
         }}
         // Called after `onFileAccept`, only when something was refused.
-        onFileReject={(rejections) => setNotice(refusal(rejections))}
+        onFileReject={(rejections) => say(refusal(rejections))}
         onReorder={(keys) =>
           setItems((current) => keys.map((key) => current.find((item) => item.key === key)!))
         }
@@ -129,7 +131,7 @@ export function MediaUploadGridComposer() {
       />
       {/* In the page from the start, so each new notice is announced. */}
       <p role="status" className="mt-3 text-body-medium text-on-surface-variant">
-        {notice}
+        <span key={notice.id}>{notice.text}</span>
       </p>
     </div>
   );

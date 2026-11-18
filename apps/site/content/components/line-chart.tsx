@@ -237,13 +237,17 @@ export async function LineChartBody(): Promise<ComponentDoc> {
               a readout for a chart you draw yourself. <InlineCode>ChartLegend</InlineCode> is a
               list of keys, or chips once it has <InlineCode>hiddenSeries</InlineCode>,{' '}
               <InlineCode>defaultHiddenSeries</InlineCode> or{' '}
-              <InlineCode>onHiddenSeriesChange</InlineCode>. It draws the charts&apos; patterns only
-              when each item has its series&apos; <InlineCode>slot</InlineCode> (the series&apos;
-              own, else the one its order gave it) and <InlineCode>{"mark: 'line'"}</InlineCode>,
-              for a line&apos;s dashes; <InlineCode>texture</InlineCode> is on from two items (
+              <InlineCode>onHiddenSeriesChange</InlineCode>. Each item&apos;s key draws its
+              slot&apos;s pattern: its <InlineCode>slot</InlineCode>, else the one its{' '}
+              <InlineCode>chartColor(n)</InlineCode> colour names, else its order&apos;s, so give
+              each item its series&apos; slot (or colour) where the order differs from the
+              chart&apos;s, and <InlineCode>{"mark: 'line'"}</InlineCode> for a line&apos;s dashes;{' '}
+              <InlineCode>texture</InlineCode> is on from two items (
               <InlineCode>texture={'{false}'}</InlineCode> turns it off).{' '}
-              <InlineCode>ChartTooltip</InlineCode> is drawn as the core&apos;s rich tooltip and is
-              hidden from assistive technology, so what it shows must be said another way too.
+              <InlineCode>ChartTooltip</InlineCode> takes the same <InlineCode>slot</InlineCode> on
+              its rows and the same <InlineCode>texture</InlineCode>; it is drawn as the core&apos;s
+              rich tooltip and is hidden from assistive technology, so what it shows must be said
+              another way too.
             </li>
             <li>
               <InlineCode>chartColor(slot)</InlineCode> gives a slot&apos;s colour as the charts

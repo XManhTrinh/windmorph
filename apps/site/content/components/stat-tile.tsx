@@ -17,6 +17,7 @@ const SLOTS = [
   'change',
   'changeIcon',
   'context',
+  'separator',
   'tone',
   'trend',
 ];

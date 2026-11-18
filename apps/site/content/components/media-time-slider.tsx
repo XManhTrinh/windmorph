@@ -9,7 +9,17 @@ const LIST = `flex flex-col gap-2 ps-5 ${TEXT} [&>li]:list-disc`;
 const HEADING = 'text-headline-small text-on-surface';
 const SECTION = 'flex flex-col gap-3';
 
-const SLOTS = ['root', 'track', 'buffered', 'hover', 'played', 'thumb', 'bubbleAnchor', 'bubble'];
+const SLOTS = [
+  'root',
+  'parts',
+  'track',
+  'buffered',
+  'played',
+  'hover',
+  'thumb',
+  'bubbleAnchor',
+  'bubble',
+];
 
 /** MediaTimeSlider page body: examples, when to use it, behaviour, parts and tokens. */
 export async function MediaTimeSliderBody(): Promise<ComponentDoc> {

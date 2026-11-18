@@ -185,13 +185,15 @@ export async function RichMessageFieldBody(): Promise<ComponentDoc> {
               <InlineCode>location</InlineCode>, and must answer the same there), and they open in
               the same tab, through the app&apos;s <InlineCode>RouterProvider</InlineCode> on the
               page&apos;s own origin (its <InlineCode>navigate</InlineCode> gets the link as
-              written), with no new-tab mark or words and <InlineCode>internalLinkRel</InlineCode>{' '}
-              (none by default) in place of <InlineCode>ugc nofollow</InlineCode>.{' '}
-              <InlineCode>renderLink(link)</InlineCode> renders a link yourself, for instance with
-              your router&apos;s link component; return <InlineCode>undefined</InlineCode> to keep
-              the default for that link. <InlineCode>parseMarkers</InlineCode>,{' '}
-              <InlineCode>markersToDoc</InlineCode> and <InlineCode>docToMarkers</InlineCode> read
-              and convert the format.
+              written, a full <InlineCode>https://</InlineCode> address, so a router that takes a
+              path takes the address&apos;s <InlineCode>pathname</InlineCode>, search and hash, or
+              use <InlineCode>renderLink</InlineCode>), with no new-tab mark or words and{' '}
+              <InlineCode>internalLinkRel</InlineCode> (none by default) in place of{' '}
+              <InlineCode>ugc nofollow</InlineCode>. <InlineCode>renderLink(link)</InlineCode>{' '}
+              renders a link yourself, for instance with your router&apos;s link component; return{' '}
+              <InlineCode>undefined</InlineCode> to keep the default for that link.{' '}
+              <InlineCode>parseMarkers</InlineCode>, <InlineCode>markersToDoc</InlineCode> and{' '}
+              <InlineCode>docToMarkers</InlineCode> read and convert the format.
             </li>
           </ul>
         </section>
